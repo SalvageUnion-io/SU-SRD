@@ -341,7 +341,7 @@ type SheetPickerModalProps = {
   open: boolean
   onClose: () => void
   title: string
-  /** ModalShell max width; defaults to the wide picker-grid width. */
+  /** ModalShell max width; defaults to 80% of the viewport for the wide picker grid. */
   maxWidth?: string
   /** Confirm/cancel footer for single-select pickers (multi-select omits it). */
   footer?: ReactNode
@@ -358,7 +358,7 @@ export function SheetPickerModal({
   open,
   onClose,
   title,
-  maxWidth = 'max-w-3xl',
+  maxWidth = 'max-w-[80vw]',
   footer,
   children,
 }: SheetPickerModalProps) {

@@ -646,7 +646,6 @@ export function MechSheet({
         open={picker === 'system'}
         onClose={() => setPicker(null)}
         title="Add Systems"
-        maxWidth="max-w-5xl"
       >
         <EntitySearcher
           schema="systems"
@@ -667,7 +666,6 @@ export function MechSheet({
         open={picker === 'module'}
         onClose={() => setPicker(null)}
         title="Add Modules"
-        maxWidth="max-w-5xl"
       >
         <EntitySearcher
           schema="modules"
