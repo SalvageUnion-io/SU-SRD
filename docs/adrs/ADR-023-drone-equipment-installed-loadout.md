@@ -27,21 +27,26 @@ stored per equipment instance on the owning pilot, edited through the **same
 already use — not the choice mechanism.
 
 - **Persistence (ITUN):** a new additive-optional `Pilot.equipmentLoadouts`
-  field — `Record<equipmentSlug, { systems: string[]; modules: string[] }>` —
-  mirroring the existing `equipmentChoices` / `equipmentConditions` per-slug maps.
-  Absent reads as no loadout; no DB migration; it rides through snapshots with the
-  pilot. Keyed by slug, so two of the same drone slug on one pilot share an entry —
-  an accepted limitation identical to `equipmentChoices`.
+  field — `Record<equipmentSlug, { systems, modules, systemConditions?,
+moduleConditions?, itemUses? }>` — mirroring the existing `equipmentChoices` /
+  `equipmentConditions` per-slug maps and the mech's own
+  `systemConditions`/`moduleConditions`/`itemUses`. Each installed item tracks its
+  Intact/Damaged/Destroyed condition and uses-remaining, scoped to that drone
+  instance. Absent reads as no loadout; no DB migration; it rides through
+  snapshots with the pilot. Keyed by slug, so two of the same drone slug on one
+  pilot share an entry — an accepted limitation identical to `equipmentChoices`.
 - **Identity stays on `equipmentChoices`.** Name / Appearance / A.I. Personality
-  remain free-text choices on the equipment; the loadout store is purely
-  `{ systems, modules }`.
+  remain free-text choices on the equipment; the loadout store holds the installed
+  items and their per-item condition/uses, not identity.
 - **Rendering (ITUN-local, no `suref-react` change):** a `PilotEquipmentLoadout`
   section reuses `SheetSectionCard` + `SheetPickerModal` + `EntitySearcher`
-  (`mode="count"`) + a `useEquipmentLoadout` hook (analogue of `useEntityChoices`).
-  It mounts on the equipment card when the resolved entity is a loadout host
-  (data-shape check: `systemSlots`/`moduleSlots` present), so normal gear never
-  shows it. Because nothing is added to `suref-react`, there is no generated-schema
-  drift and no suref-web / discord-bot blast radius.
+  (`mode="count"`) for editing and `MechItemCard` for each installed item (status
+  cycle + uses stepper + repair + remove), all wired through a
+  `useEquipmentLoadout` hook (analogue of `useEntityChoices`). It mounts on the
+  equipment card when the resolved entity is a loadout host (data-shape check:
+  `systemSlots`/`moduleSlots` present), so normal gear never shows it. Because
+  nothing is added to `suref-react`, there is no generated-schema drift and no
+  suref-web / discord-bot blast radius.
 - **Slot budget is soft** ([ADR-007](ADR-007-automation-boundary.md)): the picker
   shows `used/max` from the equipment's own slot fields but never blocks — the
   Live Sheet is a Free-Edit surface ([ADR-021](ADR-021-itun-surface-taxonomy.md)).
@@ -49,9 +54,6 @@ already use — not the choice mechanism.
   only, so every seeded kebab slug (`survey-drone`, `remote-mine`, …) rendered as a
   raw chit. Both now use the slug-tolerant `matchesRef`, so seeded equipment and
   abilities resolve to full cards (the drone card must resolve to host a loadout).
-
-Per-instance condition/uses tracking for installed drone systems/modules is
-deferred (v1 renders them read-only) to keep scope tight.
 
 ## Consequences
 

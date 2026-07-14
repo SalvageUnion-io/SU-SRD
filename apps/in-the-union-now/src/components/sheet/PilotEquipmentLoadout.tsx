@@ -5,33 +5,25 @@
  * so they host a real loadout the same way a mech does.
  *
  * Reuses the exact mech loadout stack — SheetSectionCard + SectionAddButton +
- * SheetPickerModal + EntitySearcher (mode="count") — writing through
- * `pilot.equipmentLoadouts[slug]` via useEquipmentLoadout. Installed items render
- * as compact ReferenceEntityDisplay cards with a remove control; per-item
- * condition/uses tracking is intentionally deferred for v1 (kept read-only),
- * unlike a mech's MechItemCard economy.
+ * SheetPickerModal + EntitySearcher (mode="count") for editing, and MechItemCard
+ * for each installed item (status cycle + uses stepper + repair + remove) —
+ * writing through `pilot.equipmentLoadouts[slug]` via useEquipmentLoadout. There
+ * is no crawler scrap pool in this surface, so repair uses the no-deduction path
+ * (scrapPool=null); "using a system" (EP/heat) is a mech-sheet transaction and is
+ * not offered here (uses stay hand-editable via the stepper).
  */
 
 import { useState } from 'react'
 
-import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from 'suref-react'
-
-import type { useEntityStore } from '../../stores/entityStore'
 import { useEquipmentLoadout } from '../shared/useEquipmentLoadout'
 import type { EquipmentLoadout } from '../shared/useEquipmentLoadout'
+import type { useEntityStore } from '../../stores/entityStore'
 import { EntitySearcher } from '../shared/EntitySearcher'
 import { Ecflow, Erow } from './Erow'
-import { resolveModule, resolveSystem } from './mechItemRules'
-import {
-  REMOVABLE_CARD_STYLE,
-  SectionAddButton,
-  SheetPickerModal,
-  cardRemoveControls,
-} from './SheetSection'
+import { MechItemCard } from './MechItemCard'
+import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
+import { SectionAddButton, SheetPickerModal } from './SheetSection'
 import { SheetSectionCard } from './SheetSectionCard'
-
-const HIDE_CHOICES = { choices: true } as const
 
 /** Read a numeric slot field off the drone-equipment entity, defaulting to 0. */
 function slotMax(equipment: Record<string, unknown>, field: 'systemSlots' | 'moduleSlots'): number {
@@ -70,12 +62,8 @@ export function PilotEquipmentLoadout({
   store,
 }: PilotEquipmentLoadoutProps) {
   const [picker, setPicker] = useState<Kind | null>(null)
-  const { loadout, addSystem, removeSystem, addModule, removeModule } = useEquipmentLoadout(
-    pilotId,
-    slug,
-    seed,
-    store
-  )
+  const { loadout, addSystem, removeSystem, addModule, removeModule, setCondition, setUses } =
+    useEquipmentLoadout(pilotId, slug, seed, store)
 
   const systemMax = slotMax(equipment, 'systemSlots')
   const moduleMax = slotMax(equipment, 'moduleSlots')
@@ -89,35 +77,38 @@ export function PilotEquipmentLoadout({
         </p>
       )
     }
+    const conditions = kind === 'system' ? loadout.systemConditions : loadout.moduleConditions
     return (
       <Ecflow>
         {slugs.map((itemSlug, index) => {
-          const entity = kind === 'system' ? resolveSystem(itemSlug) : resolveModule(itemSlug)
-          const controls =
-            readOnly || !entity
-              ? undefined
-              : cardRemoveControls({
-                  name: entity.name ?? itemSlug,
-                  onRemove: () => {
-                    onRemove(index)
-                  },
-                })
+          const condition = conditions?.[itemSlug] ?? 'intact'
           return (
             // biome-ignore lint/suspicious/noArrayIndexKey: the same slug may be installed more than once; install order is stable
             <Erow key={`${itemSlug}-${index}`}>
-              {entity ? (
-                <ReferenceEntityDisplay
-                  data={entity as unknown as SURefEntity}
-                  compact
-                  hide={HIDE_CHOICES}
-                  controls={controls}
-                  cardStyle={controls ? REMOVABLE_CARD_STYLE : undefined}
-                />
-              ) : (
-                <div className="flex h-full items-center justify-between gap-2 rounded-[3px] border-chrome border-ink bg-paper px-3 py-2">
-                  <span className="font-body text-sm text-ink">{itemSlug}</span>
-                </div>
-              )}
+              <MechItemCard
+                slug={itemSlug}
+                entity={kind === 'system' ? resolveSystem(itemSlug) : resolveModule(itemSlug)}
+                condition={condition}
+                usesRemaining={loadout.itemUses?.[itemSlug]}
+                scrapPool={null}
+                readOnly={readOnly}
+                onStatusCycle={() => {
+                  setCondition(kind, itemSlug, cycleCondition(condition))
+                }}
+                onUsesChange={(next) => {
+                  setUses(itemSlug, next)
+                }}
+                onRepair={() => {
+                  setCondition(kind, itemSlug, 'intact')
+                }}
+                onRemove={
+                  readOnly
+                    ? undefined
+                    : () => {
+                        onRemove(index)
+                      }
+                }
+              />
             </Erow>
           )
         })}
