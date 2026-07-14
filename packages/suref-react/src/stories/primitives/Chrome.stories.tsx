@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { Conditions, ConditionChip } from '../../components/chrome/Conditions'
 import { Field, Input } from '../../components/chrome/Field'
 import { Empty, Panel, Row } from '../../components/chrome/Panel'
@@ -9,6 +10,21 @@ import { Slab } from '../../components/chrome/Slab'
 export default {
   title: 'Primitives/Chrome',
 }
+
+// Real SRD content — reference data is preloaded by .ladle/components.tsx.
+const chassis = SalvageUnionReference.Chassis.all()[0]
+const system = SalvageUnionReference.Systems.all()[0]
+const crawler = SalvageUnionReference.Crawlers.all()[0]
+
+const chassisName = chassis?.name ?? 'Chassis'
+const techLevel = chassis?.techLevel ?? 1
+const salvageValue = chassis?.salvageValue ?? 5
+const systemSlots = chassis?.systemSlots ?? 6
+const moduleSlots = chassis?.moduleSlots ?? 2
+const cargoCapacity = chassis?.cargoCapacity ?? 6
+const systemName = system?.name ?? 'System'
+const systemTechLevel = system?.techLevel ?? 1
+const crawlerName = crawler?.name ?? 'Crawler'
 
 function Label({ children }: { children: string }) {
   return (
@@ -34,15 +50,15 @@ export const Slabs: Story = () => (
         <Slab label="Systems" />
       </Cluster>
       <Cluster label="dashed — with count">
-        <Slab label="Systems" count="2" />
+        <Slab label="Systems" count={`${systemSlots}`} />
       </Cluster>
       <Cluster label="dashed — with rich count">
-        <Slab label="Cargo" count="3 lots · 5/6 slots" />
+        <Slab label="Cargo" count={`0 lots · 0/${cargoCapacity} slots`} />
       </Cluster>
       <Cluster label="dashed — with actions">
         <Slab
           label="Modules"
-          count="4"
+          count={`${moduleSlots}`}
           actions={<span className="font-cond text-xs font-bold uppercase text-rust">+ Add</span>}
         />
       </Cluster>
@@ -67,12 +83,12 @@ export const Panels: Story = () => (
       <Cluster label="Panel (ink border) with Rows">
         <Panel className="p-2">
           <div className="flex flex-col gap-2">
-            <Row name="Iron Mongrel" meta="Chassis · TL3 · SV 8" />
+            <Row name={chassisName} meta={`Chassis · TL${techLevel} · SV ${salvageValue}`} />
             <Row
-              name="Wrench"
-              meta={'"Wrench" · Engineer · ↳ Iron Fist'}
+              name={systemName}
+              meta={`System · TL${systemTechLevel}`}
               actions={
-                <span className="font-cond text-xs font-bold uppercase text-rust">Sheet</span>
+                <span className="font-cond text-xs font-bold uppercase text-rust">Details</span>
               }
             />
           </div>
@@ -81,7 +97,7 @@ export const Panels: Story = () => (
       <Cluster label="Panel (soft border)">
         <Panel soft className="p-2">
           <div className="flex flex-col gap-2">
-            <Row name="Scrap Hauler" meta="Crawler · 6 bays" />
+            <Row name={crawlerName} meta="Union Crawler" />
           </div>
         </Panel>
       </Cluster>
@@ -102,13 +118,13 @@ export const ConditionsRow: Story = () => (
     <div className="flex flex-col gap-6">
       <Cluster label="Conditions summary — chips with × + Add">
         <Conditions
-          conditions={['Overheated', 'Restrained', 'Blinded']}
+          conditions={['Prone', 'Blind', 'Irradiated']}
           onRemove={() => {}}
           onAdd={() => {}}
         />
       </Cluster>
       <Cluster label="Conditions — read-only (no remove, no add)">
-        <Conditions conditions={['Impaired', 'Prone']} />
+        <Conditions conditions={['Shutdown', 'Prone']} />
       </Cluster>
       <div>
         <Label>ConditionChip states</Label>
@@ -129,8 +145,8 @@ export const Fields: Story = () => (
   <div className="bg-paper p-4">
     <div className="flex flex-col gap-6">
       <Cluster label="Field + Input — basic">
-        <Field label="Pilot Name" htmlFor="pilot-name">
-          <Input id="pilot-name" placeholder="e.g. Wrench" defaultValue="Wrench" />
+        <Field label="Mech Name" htmlFor="mech-name">
+          <Input id="mech-name" placeholder={`e.g. ${chassisName}`} defaultValue={chassisName} />
         </Field>
       </Cluster>
       <Cluster label="Field — required (rust asterisk)">
@@ -140,9 +156,9 @@ export const Fields: Story = () => (
       </Cluster>
       <Cluster label="Input — standalone variants">
         <div className="flex flex-col gap-3">
-          <Input placeholder="Empty with placeholder" />
-          <Input defaultValue="Filled value" />
-          <Input disabled defaultValue="Disabled" />
+          <Input placeholder={`e.g. ${systemName}`} />
+          <Input defaultValue={chassisName} />
+          <Input disabled defaultValue={crawlerName} />
         </div>
       </Cluster>
     </div>

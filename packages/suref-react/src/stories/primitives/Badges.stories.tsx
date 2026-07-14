@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { Chip, Pill } from '../../components/chrome/Pill'
 import type { PillTone } from '../../components/chrome/Pill'
 import { StatusBadge } from '../../components/chrome/StatusBadge'
@@ -9,6 +10,49 @@ import { Tag } from '../../components/chrome/Tag'
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Primitives/Badges',
+}
+
+// Real SRD content — reference data is preloaded by .ladle/components.tsx before
+// any story chunk imports, so module-top-level access is safe here.
+const chassis = SalvageUnionReference.Chassis.all()[0]
+const traits = SalvageUnionReference.Traits.all()
+const actions = SalvageUnionReference.Actions.all()
+const classes = SalvageUnionReference.Classes.all()
+const crawler = SalvageUnionReference.Crawlers.all()[0]
+
+const chassisName = chassis?.name ?? 'Chassis'
+const techLabel = `Tech ${chassis?.techLevel ?? 1}`
+const sp = chassis?.structurePoints ?? 10
+const ep = chassis?.energyPoints ?? 4
+const heat = chassis?.heatCapacity ?? 6
+const moduleSlots = chassis?.moduleSlots ?? 2
+const cargoCapacity = chassis?.cargoCapacity ?? 6
+
+const pilotLabel = classes[0]?.name ?? 'Pilot'
+const crawlerName = crawler?.name ?? 'Crawler'
+
+const traitLabel = (name: string, fallback: string) =>
+  traits.find((t) => t.name === name)?.name ?? fallback
+const keywordTags = [
+  traitLabel('armour', 'armour'),
+  traitLabel('ballistic', 'ballistic'),
+  traitLabel('explosive', 'explosive'),
+]
+
+const actionType = (type: string) => actions.find((a) => a.actionType === type)?.actionType ?? type
+const economyTags = [`${actionType('Turn')} Action`, actionType('Passive'), actionType('Reaction')]
+
+// Real Salvage Union condition vocabulary (rules keywords: prone / blind / irradiated / shutdown).
+const activeConditions = ['Prone', 'Blind', 'Irradiated']
+
+// One real, proper-cased label per Pill tone so every tone still renders.
+const PILL_TONE_LABELS: Record<PillTone, string> = {
+  pilot: pilotLabel,
+  mech: chassisName,
+  crawler: crawlerName,
+  ok: 'Intact',
+  warn: 'Damaged',
+  bad: 'Destroyed',
 }
 
 /** Tiny caption above each variant cluster so the catalog stays scannable. */
@@ -32,24 +76,24 @@ export const Pills: Story = () => (
     <ClusterLabel>Default (ink-on-paper outline)</ClusterLabel>
     <Row>
       <Pill>Legal Starting</Pill>
-      <Pill>Tech 3</Pill>
+      <Pill>{techLabel}</Pill>
     </Row>
 
     <ClusterLabel>Every tone</ClusterLabel>
     <Row>
       {PILL_TONES.map((tone) => (
         <Pill key={tone} tone={tone}>
-          {tone}
+          {PILL_TONE_LABELS[tone]}
         </Pill>
       ))}
     </Row>
 
     <ClusterLabel>Rounded (poster app-bar kindpill)</ClusterLabel>
     <Row>
-      <Pill rounded>Default</Pill>
+      <Pill rounded>{chassisName}</Pill>
       {PILL_TONES.map((tone) => (
         <Pill key={tone} tone={tone} rounded>
-          {tone}
+          {PILL_TONE_LABELS[tone]}
         </Pill>
       ))}
     </Row>
@@ -60,18 +104,18 @@ export const Chips: Story = () => (
   <div className="bg-paper p-4">
     <ClusterLabel>Without value (borderless stat chip)</ClusterLabel>
     <Row>
-      <Chip>Overheated</Chip>
-      <Chip>Prone</Chip>
-      <Chip>Grappled</Chip>
+      {activeConditions.map((condition) => (
+        <Chip key={condition}>{condition}</Chip>
+      ))}
     </Row>
 
     <ClusterLabel>With value (bold inverse-emphasis)</ClusterLabel>
     <Row>
-      <Chip value={12}>HP</Chip>
-      <Chip value={6}>SP</Chip>
-      <Chip value={4}>EP</Chip>
-      <Chip value={3}>Heat</Chip>
-      <Chip value="2/6">Cargo</Chip>
+      <Chip value={sp}>SP</Chip>
+      <Chip value={ep}>EP</Chip>
+      <Chip value={heat}>Heat</Chip>
+      <Chip value={moduleSlots}>Modules</Chip>
+      <Chip value={`0/${cargoCapacity}`}>Cargo</Chip>
     </Row>
   </div>
 )
@@ -81,16 +125,16 @@ export const Tags: Story = () => (
   <div className="bg-paper p-4">
     <ClusterLabel>Keyword (stamped ink chip)</ClusterLabel>
     <Row>
-      <Tag label="Turn Action" />
-      <Tag label="Passive" />
-      <Tag label="Ballistic" />
+      {keywordTags.map((keyword) => (
+        <Tag key={keyword} label={keyword} />
+      ))}
     </Row>
 
     <ClusterLabel>Ghost (inverted paper chip, inset ring)</ClusterLabel>
     <Row>
-      <Tag label="Turn Action" ghost />
-      <Tag label="Passive" ghost />
-      <Tag label="Reaction" ghost />
+      {economyTags.map((economy) => (
+        <Tag key={economy} label={economy} ghost />
+      ))}
     </Row>
   </div>
 )
@@ -107,7 +151,7 @@ export const StatusBadges: Story = () => (
     <ClusterLabel>Clickable (cycle handler, with subject)</ClusterLabel>
     <Row>
       {STATUSES.map((status) => (
-        <StatusBadge key={status} status={status} subject="Iron Mongrel" onClick={() => {}} />
+        <StatusBadge key={status} status={status} subject={chassisName} onClick={() => {}} />
       ))}
     </Row>
   </div>

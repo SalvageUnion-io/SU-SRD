@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { Btn } from '../../components/chrome/Btn'
 import { Sel } from '../../components/chrome/Sel'
 import { MiniBtn, StepBtn } from '../../components/chrome/SmallButtons'
@@ -9,6 +10,14 @@ import { FilterChip } from '../../components/shared/FilterChip'
 export default {
   title: 'Primitives/Buttons',
 }
+
+// Real SRD content — reference data is preloaded by .ladle/components.tsx.
+const chassis = SalvageUnionReference.Chassis.all()[0]
+const classes = SalvageUnionReference.Classes.all()
+const chassisName = chassis?.name ?? 'Chassis'
+const structure = chassis?.structurePoints ?? 10
+const pilotClassA = classes[0]?.name ?? 'Engineer'
+const pilotClassB = classes[1]?.name ?? 'Hacker'
 
 const BTN_VARIANTS = ['default', 'primary', 'ghost', 'danger'] as const
 const BTN_SIZES = ['sm', 'md', 'lg'] as const
@@ -71,19 +80,19 @@ export const Selection: Story = () => {
           <Sel selected>{swatch('Selected')}</Sel>
         </Cluster>
         <Cluster label="interactive — button (aria-pressed)">
-          <Sel selected={false} onToggle={() => {}} ariaLabel="Iron Mongrel">
-            {swatch('Toggle off')}
+          <Sel selected={false} onToggle={() => {}} ariaLabel={chassisName}>
+            {swatch(chassisName)}
           </Sel>
-          <Sel selected onToggle={() => {}} ariaLabel="Iron Mongrel">
-            {swatch('Toggle on')}
+          <Sel selected onToggle={() => {}} ariaLabel={chassisName}>
+            {swatch(chassisName)}
           </Sel>
         </Cluster>
         <Cluster label="interactive — radio (aria-checked)">
-          <Sel selected={false} onToggle={() => {}} radio ariaLabel="Pilot A">
-            {swatch('Radio off')}
+          <Sel selected={false} onToggle={() => {}} radio ariaLabel={pilotClassA}>
+            {swatch(pilotClassA)}
           </Sel>
-          <Sel selected onToggle={() => {}} radio ariaLabel="Pilot B">
-            {swatch('Radio on')}
+          <Sel selected onToggle={() => {}} radio ariaLabel={pilotClassB}>
+            {swatch(pilotClassB)}
           </Sel>
         </Cluster>
       </div>
@@ -134,21 +143,21 @@ export const StepButtons: Story = () => (
   <div className="bg-paper p-4">
     <div className="flex flex-col gap-5">
       <Cluster label="enabled −/+ pair">
-        <StepBtn aria-label="Decrease HP">–</StepBtn>
-        <StepBtn aria-label="Increase HP">+</StepBtn>
+        <StepBtn aria-label="Decrease Structure">–</StepBtn>
+        <StepBtn aria-label="Increase Structure">+</StepBtn>
       </Cluster>
-      <Cluster label="in context (HP 5)">
+      <Cluster label={`in context (SP ${structure})`}>
         <div className="flex items-center gap-2">
-          <StepBtn aria-label="Decrease HP">–</StepBtn>
-          <span className="font-body text-[15px] font-bold tabular-nums text-ink">5</span>
-          <StepBtn aria-label="Increase HP">+</StepBtn>
+          <StepBtn aria-label="Decrease Structure">–</StepBtn>
+          <span className="font-body text-[15px] font-bold tabular-nums text-ink">{structure}</span>
+          <StepBtn aria-label="Increase Structure">+</StepBtn>
         </div>
       </Cluster>
       <Cluster label="disabled at bound">
-        <StepBtn aria-label="Decrease HP" disabled>
+        <StepBtn aria-label="Decrease Structure" disabled>
           –
         </StepBtn>
-        <StepBtn aria-label="Increase HP" disabled>
+        <StepBtn aria-label="Increase Structure" disabled>
           +
         </StepBtn>
       </Cluster>
