@@ -60,9 +60,15 @@ type DashboardChooserProps = {
    * Pre-seed the crew picker from a launching pilot/mech sheet (P4.4): the
    * seeded entity is pre-selected and the picker opens on the first still-empty
    * step. Omit on the Roster chooser (start empty at the pilot step).
+   *
+   * A pilot sheet seeds its whole linked crew — the pilot plus, when present,
+   * its assigned mech and home crawler — so launching from a pilot with a mech
+   * and crawler lands on the ready-to-launch crawler step with all three
+   * pre-selected.
    */
   initialPilotId?: string
   initialMechId?: string
+  initialCrawlerId?: string
   /**
    * Scope the pilot/mech/crawler pickers to the current workspace: a workspace
    * id shows only that workspace's entities. Unset = unscoped (all saved
@@ -99,6 +105,7 @@ export function DashboardChooser({
   onLaunch,
   initialPilotId,
   initialMechId,
+  initialCrawlerId,
   activeWorkspaceId,
   label = 'Launch Dashboard',
   className,
@@ -135,11 +142,14 @@ export function DashboardChooser({
 
   function openDialog() {
     // Pre-seed from a launching sheet (P4.4); open on the first empty step.
+    // The crawler is optional, so it never advances the opening step past the
+    // (still-required) pilot/mech — a fully-seeded crew lands on the crawler
+    // step ready to launch.
     const seedPilot = initialPilotId ?? ''
     const seedMech = initialMechId ?? ''
     setPilotId(seedPilot)
     setMechId(seedMech)
-    setCrawlerId('')
+    setCrawlerId(initialCrawlerId ?? '')
     setStep(seedPilot === '' ? 'pilot' : seedMech === '' ? 'mech' : 'crawler')
     setError(null)
     setOpen(true)

@@ -263,4 +263,56 @@ describe('DashboardChooser — wizard', () => {
       )
     ).toBe(true)
   })
+
+  test('a fully-seeded crew opens on the crawler step with the crawler pre-selected and launches directly', async () => {
+    // Mirrors a pilot Live Sheet whose pilot has a linked mech + crawler: the
+    // chooser is seeded with all three, so it skips straight to the last step
+    // with the crew pre-selected and one Launch click links + launches them.
+    const { pilot, mech, crawler } = await seedCrew()
+    resetEntityStore()
+
+    const result: { id: string | null } = { id: null }
+    await act(async () => {
+      render(
+        <DashboardChooser
+          initialPilotId={pilot.id}
+          initialMechId={mech.id}
+          initialCrawlerId={crawler.id}
+          onLaunch={(id) => {
+            result.id = id
+          }}
+        />
+      )
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Launch the Dashboard' }))
+    })
+    // Lands on the crawler step (its Launch button, not a "Next"), with the
+    // seeded crawler already checked — no clicking through pilot/mech first.
+    await settle(
+      () =>
+        screen.queryByRole('button', { name: 'Launch the Dashboard for the chosen crew' }) !== null
+    )
+    const crawlerRadio = screen.getByRole('radio', { name: /Tenacity/ }) as HTMLInputElement
+    expect(crawlerRadio.checked).toBe(true)
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Launch the Dashboard for the chosen crew' })
+      )
+    })
+    await settle(() => result.id !== null)
+
+    expect(result.id).toBe(mech.id)
+    const links = useEntityStore.getState().softLinks
+    expect(
+      links.some((l) => l.type === 'mech-to-pilot' && l.from.id === mech.id && l.to.id === pilot.id)
+    ).toBe(true)
+    expect(
+      links.some(
+        (l) => l.type === 'pilot-to-crawler' && l.from.id === pilot.id && l.to.id === crawler.id
+      )
+    ).toBe(true)
+  })
 })
