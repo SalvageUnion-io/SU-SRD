@@ -30,6 +30,7 @@ import { usePlayStateStore } from '../../stores/playStateStore'
 import { AppLink } from '../shared/AppLink'
 import { ActionsDeck } from './ActionsDeck'
 import type { DialItem } from './dialItems'
+import { SrdExplorer } from './SrdExplorer'
 import { TablePickerOverlay } from './TablePickerOverlay'
 import type { PickableTable } from './tableCategories'
 
@@ -180,12 +181,10 @@ export function DisplayView({ focus, mech, pilot, crawler }: DisplayViewProps) {
     if (focus.key === 'actions') {
       return <ActionsDeck mech={mech} pilot={pilot} mount={mount} />
     }
-    // The SRD explorer lands in a later phase.
-    return (
-      <div className="pc-display-note">
-        SRD explorer — {focus.sublabel}. (Interactive content lands in a later phase.)
-      </div>
-    )
+    if (focus.key === 'srd') {
+      return <SrdExplorer />
+    }
+    return <div className="pc-display-note">{focus.label}</div>
   }
 
   // Statful entity focus → its reference card + entity-level foot actions.

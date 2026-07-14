@@ -172,6 +172,21 @@ describe('DisplayView', () => {
     expect(container.querySelector('.pc-display-note')).toBeNull()
   })
 
+  test('SRD focus → the interactive SrdExplorer (D4)', () => {
+    const focus: DialItem = {
+      key: 'srd',
+      kind: 'srd',
+      statless: true,
+      label: 'SRD Explorer',
+      sublabel: 'reference browser',
+    }
+    const { container } = renderDV(focus)
+    // The explorer renders its search + tiles, never the generic placeholder.
+    expect(container.querySelector('.pc-srd-input')).toBeTruthy()
+    expect(container.querySelectorAll('.pc-srd-tile').length).toBe(8)
+    expect(container.querySelector('.pc-display-note')).toBeNull()
+  })
+
   test('no focus → graceful empty note', () => {
     const { container } = renderDV(undefined)
     expect(container.querySelector('.pc-display-note')?.textContent).toContain('Nothing selected')
