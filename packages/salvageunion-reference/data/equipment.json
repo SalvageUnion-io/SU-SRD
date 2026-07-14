@@ -1205,6 +1205,19 @@
       "salvageValue": 0
     },
     "actions": ["Survey Drone"],
+    "choices": [
+      {
+        "id": "0b31fd03-df8b-485b-9a1e-d048496e89b7",
+        "name": "Name",
+        "choiceType": "freeform",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The name of your Survey Drone."
+          }
+        ]
+      }
+    ],
     "page": 48,
     "id": "4b6483d0-811e-40f9-8808-d88e940f5e61",
     "content": [
