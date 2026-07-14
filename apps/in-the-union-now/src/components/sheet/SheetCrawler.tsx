@@ -15,7 +15,7 @@
  */
 
 import { useState } from 'react'
-import { MChip, VitalGauge } from 'suref-react'
+import { StatDisplay, VitalGauge } from 'suref-react'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
@@ -236,7 +236,11 @@ export function SheetCrawler({
             heroRef={heroRef}
             cat="Crawler"
             name={crawler.name}
-            meta={tl !== undefined ? <MChip label="Tech LV" value={tl} /> : undefined}
+            meta={
+              tl !== undefined ? (
+                <StatDisplay orientation="horizontal" variant="framed" label="Tech LV" value={tl} />
+              ) : undefined
+            }
           />
         )}
         renderBody={() => (

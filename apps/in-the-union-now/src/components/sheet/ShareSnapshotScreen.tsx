@@ -24,7 +24,6 @@ import { useEffect, useState } from 'react'
 import {
   Btn,
   Input,
-  MChip,
   Panel,
   Pill,
   Row,
@@ -434,8 +433,20 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
         name={pilot.name}
         meta={
           <>
-            <MChip label="Callsign" value={`“${pilot.callsign}”`} variant="call" />
-            <MChip label="Class" value={resolveClassName(pilot.classRef)} variant="class" />
+            <StatDisplay
+              orientation="horizontal"
+              variant="framed"
+              emphasis="call"
+              label="Callsign"
+              value={`“${pilot.callsign}”`}
+            />
+            <StatDisplay
+              orientation="horizontal"
+              variant="framed"
+              emphasis="class"
+              label="Class"
+              value={resolveClassName(pilot.classRef)}
+            />
           </>
         }
         identity={[
@@ -509,9 +520,20 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
         name={mech.name}
         meta={
           <>
-            <MChip label="Chassis" value={chassis?.name ?? mech.chassisRef} variant="class" />
+            <StatDisplay
+              orientation="horizontal"
+              variant="framed"
+              emphasis="class"
+              label="Chassis"
+              value={chassis?.name ?? mech.chassisRef}
+            />
             {chassis && typeof chassis.techLevel === 'number' && (
-              <MChip label="Tech LV" value={chassis.techLevel} />
+              <StatDisplay
+                orientation="horizontal"
+                variant="framed"
+                label="Tech LV"
+                value={chassis.techLevel}
+              />
             )}
           </>
         }
@@ -561,7 +583,11 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
     <SheetHero
       cat="Crawler"
       name={crawler.name}
-      meta={tl !== undefined ? <MChip label="Tech LV" value={tl} /> : undefined}
+      meta={
+        tl !== undefined ? (
+          <StatDisplay orientation="horizontal" variant="framed" label="Tech LV" value={tl} />
+        ) : undefined
+      }
       trackers={
         <>
           <VitalGauge

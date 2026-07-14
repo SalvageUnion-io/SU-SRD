@@ -4,7 +4,6 @@ import { Text } from '../components/base/Text'
 import { Btn } from '../components/chrome/Btn'
 import { Conditions } from '../components/chrome/Conditions'
 import { Field, Input } from '../components/chrome/Field'
-import { MChip, Spec } from '../components/chrome/MChip'
 import { Empty, Panel, Row } from '../components/chrome/Panel'
 import { Chip, Pill } from '../components/chrome/Pill'
 import { Sel } from '../components/chrome/Sel'
@@ -88,8 +87,8 @@ export const Sheet: Story = () => (
         <Chip value={12}>HP</Chip>
         <Tag label="Range" value="Close" />
         <StatusBadge status="damaged" />
-        <MChip label="Class" value="Roughneck" />
-        <Spec label="SV" value={4} />
+        <StatDisplay orientation="horizontal" variant="framed" label="Class" value="Roughneck" />
+        <StatDisplay orientation="horizontal" variant="spec" label="SV" value={4} />
       </Group>
 
       {/* 4. Buttons */}

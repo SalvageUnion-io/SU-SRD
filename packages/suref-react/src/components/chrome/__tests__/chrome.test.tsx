@@ -4,7 +4,7 @@ import { Field, Input } from '../Field'
 import { Pill, Chip } from '../Pill'
 import { Panel, Row, Empty } from '../Panel'
 import { Slab } from '../Slab'
-import { MChip, Spec } from '../MChip'
+import { StatDisplay } from '../../shared/StatDisplay'
 import { Conditions, ConditionChip } from '../Conditions'
 import { StepBtn, MiniBtn } from '../SmallButtons'
 import { TreeSep } from '../TreeSep'
@@ -94,16 +94,26 @@ describe('Slab / MChip / Spec', () => {
   })
 
   test('mchip renders label tab + value', () => {
-    render(<MChip label="Callsign" value='"Wrench"' variant="call" />)
+    render(
+      <StatDisplay
+        orientation="horizontal"
+        variant="framed"
+        emphasis="call"
+        label="Callsign"
+        value='"Wrench"'
+      />
+    )
     expect(screen.getByText('Callsign')).toBeTruthy()
     expect(screen.getByText('"Wrench"')).toBeTruthy()
   })
 
   test('spec renders value with /max; cargo recolors', () => {
-    render(<Spec label="SYS" value={5} max={20} />)
+    render(<StatDisplay orientation="horizontal" variant="spec" label="SYS" value={5} max={20} />)
     expect(screen.getByText('/20')).toBeTruthy()
     cleanup()
-    const { container } = render(<Spec label="CARGO" value={4} cargo />)
+    const { container } = render(
+      <StatDisplay orientation="horizontal" variant="spec" label="CARGO" value={4} cargo />
+    )
     expect(container.firstElementChild?.className).toContain('border-cargo-deep')
   })
 })
