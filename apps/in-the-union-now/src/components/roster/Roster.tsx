@@ -40,6 +40,7 @@ import { DEFAULT_WORKSPACE_ID } from '../../lib/defaultWorkspace'
 import { ensureStarterSetSeeded } from '../../lib/starterSet/seedStarterSet'
 import { STARTER_WORKSPACE_ID } from '../../lib/starterSet/starterSet'
 import { useEntityStore } from '../../stores/entityStore'
+import { usePatternStore } from '../../stores/patternStore'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
@@ -128,6 +129,10 @@ export function Roster() {
   const allMechs = useMechs()
   const allCrawlers = useCrawlers()
   const softLinks: SoftLink[] = useSoftLinkList()
+  // Saved patterns are global (not workspace-scoped) — the Dashboard chooser
+  // offers them as stand-in mechs, so their presence also enables a launch.
+  const patterns = usePatternStore((s) => s.mechPatterns)
+  usePatternStore.getState().list()
 
   // Name lookups for '↳ Name' cross-links — built from the UNFILTERED lists so
   // links resolve across workspace boundaries.
@@ -210,8 +215,11 @@ export function Roster() {
             <ImportButton />
             {/* Launch the Dashboard for a chosen pilot/mech/crawler crew
                 (design-spec §8). Shown once the CURRENT workspace has a mech to
-                run — the chooser only offers this workspace's assets. */}
-            {mechs.length > 0 && <DashboardChooser activeWorkspaceId={activeWorkspaceId} />}
+                run, or any saved pattern exists to launch as a stand-in — the
+                chooser scopes saved mechs to this workspace. */}
+            {(mechs.length > 0 || patterns.length > 0) && (
+              <DashboardChooser activeWorkspaceId={activeWorkspaceId} />
+            )}
           </div>
           <WorkspaceSwitcher
             activeWorkspaceId={activeWorkspaceId}
