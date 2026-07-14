@@ -97,10 +97,20 @@ describe('Eldridge Coast seed — schema validity', () => {
     }
   })
 
-  test('every pilot, mech, and crawler carry seeded flavor text', () => {
+  test('every entity carries seeded flavor text in fields the sheet renders', () => {
+    // Pilots render `description` (Bio) + `background`; mechs render `quirk` +
+    // `appearance` (NOT `description`, which is deprecated/suppressed); crawlers
+    // render `description`.
     for (const p of ELDRIDGE_PILOTS) expect(p.description?.length ?? 0).toBeGreaterThan(0)
-    for (const m of ELDRIDGE_MECHS) expect(m.description?.length ?? 0).toBeGreaterThan(0)
+    for (const m of ELDRIDGE_MECHS) {
+      expect(m.quirk?.length ?? 0).toBeGreaterThan(0)
+      expect(m.appearance?.length ?? 0).toBeGreaterThan(0)
+    }
     for (const c of ELDRIDGE_CRAWLERS) expect(c.description?.length ?? 0).toBeGreaterThan(0)
+  })
+
+  test('mechs do not write the deprecated (unrendered) description field', () => {
+    for (const m of ELDRIDGE_MECHS) expect(m.description).toBeUndefined()
   })
 
   test('ids are unique across the whole seed', () => {
@@ -140,6 +150,21 @@ describe('Eldridge Coast seed — reference refs resolve (drift guard)', () => {
         expect(resolveChassisRef(m.chassisRef)).toBeFalsy()
       } else {
         expect(resolveChassisRef(m.chassisRef)).toBeTruthy()
+      }
+    }
+  })
+
+  test('crawler mounted weapons resolve via the crawler sheet id/name path', () => {
+    // The crawler sheet's resolveCrawlerSystem matches by `id` OR `name` only
+    // (NOT slug), so a slug-stored weapon would render as a raw chit. Guard the
+    // exact matching the UI uses.
+    const systems = SalvageUnionReference.Systems.all() as ReadonlyArray<{
+      id: string
+      name: string
+    }>
+    for (const c of ELDRIDGE_CRAWLERS) {
+      for (const s of c.systems) {
+        expect(systems.some((sys) => sys.id === s || sys.name === s)).toBe(true)
       }
     }
   })
