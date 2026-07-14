@@ -37,7 +37,6 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
-import { STARTER_WORKSPACE_ID } from '../../lib/starterSet/starterSet'
 import { cn } from '../../lib/utils'
 import type { LinkWriteStore } from './dashboardLinks'
 import { ensureDashboardLinks } from './dashboardLinks'
@@ -65,14 +64,13 @@ type DashboardChooserProps = {
   initialPilotId?: string
   initialMechId?: string
   /**
-   * Scope the pilot/mech/crawler pickers to the Roster's currently-chosen
-   * workspace, mirroring `Roster.tsx`'s own filter: `null` = "All Builds" shows
-   * every owned entity except the seeded Starter Set; a workspace id shows only
-   * that workspace's entities. Unset = unscoped (all saved entities). Stand-in
-   * mech patterns and default-TL crawler tokens carry no workspace, so they are
-   * always offered.
+   * Scope the pilot/mech/crawler pickers to the current workspace: a workspace
+   * id shows only that workspace's entities. Unset = unscoped (all saved
+   * entities) — the tests' default and a safe fallback for an entity with no
+   * workspace. Stand-in mech patterns and default-TL crawler tokens carry no
+   * workspace, so they are always offered.
    */
-  activeWorkspaceId?: string | null
+  activeWorkspaceId?: string
   /** Button label — defaults to "Launch Dashboard". */
   label?: string
   className?: string
@@ -118,14 +116,11 @@ export function DashboardChooser({
   const allCrawlers: Crawler[] = useCrawlers()
   const links: SoftLink[] = useSoftLinkList()
 
-  // Scope the pickers to the Roster's chosen workspace, mirroring Roster.tsx's
-  // own filter so the chooser can only launch entities the roster is showing.
-  // Unset activeWorkspaceId (prop omitted) = unscoped; `null` = "All Builds"
-  // (everything except the seeded Starter Set); an id = that workspace only.
+  // Scope the pickers to the chosen workspace so the chooser can only launch
+  // entities that workspace holds. Prop omitted = unscoped (tests / no-workspace
+  // fallback); an id = that workspace only.
   const inScope = <T extends { workspaceId?: string }>(list: T[]): T[] => {
     if (activeWorkspaceId === undefined) return list
-    if (activeWorkspaceId === null)
-      return list.filter((e) => e.workspaceId !== STARTER_WORKSPACE_ID)
     return list.filter((e) => e.workspaceId === activeWorkspaceId)
   }
   const pilots = inScope(allPilots)
