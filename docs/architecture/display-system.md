@@ -267,7 +267,7 @@ Renders the live resolved data tags in the subtitle/header area. Given `selectio
 
 ### ReferenceEntityGrants
 
-Renders the `Grants` section separator + compact nested `ReferenceEntityDisplay` cards for each entity resolved by `resolveGrantedEntities`. When the parent is compact (listing mode), the nested cards collapse to header-only (`listing: true`). Actions are suppressed on nested cards (the same-named action lives on the ability itself).
+Renders the `Grants` section separator + compact nested `ReferenceEntityDisplay` cards for each entity resolved by `resolveGrantedEntities`. When the parent is compact (listing mode), the nested cards collapse to header-only (`listing: true`) — unless the caller passes `expand` (surfaced as `expandGrants` on `ReferenceEntityDisplay`; the ITUN live sheet opts in), which keeps the nested card a full compact card (resolved row + choice cards), the same body it shows on its own reference page. Actions are suppressed on nested cards (the same-named action lives on the ability itself).
 
 **`resolveGrantedEntities` (salvageunion-reference):** the shared helper that walks `entity.grants`, skips `schema: 'choice'` entries, and resolves each remaining grant to a live entity via the ORM. Single source of truth for both the display layer and tooling.
 
@@ -300,7 +300,7 @@ When a class ability grants equipment (e.g. "Custom Sniper Rifle"), the entity d
 1. `resolveGrantedEntities(data)` is called; if the result is non-empty **and** the entity is an ability (`isAbility(data)`), `isGrantingAbility` is set to `true`.
 2. **Body substitution:** the ability's own `content` blocks and `Actions` section are suppressed. The body renders the `ReferenceEntityGrants` block — the `Grants` divider plus the nested granted-equipment card (its non-lead content + resolved data row + choice cards).
 3. **Header flavor preserved:** the ability's own `description` still renders in the right-header flavor slot — it does not conflict with the Grants block.
-4. **Compact collapse:** in compact/listing contexts the nested granted-equipment card collapses to header-only (`listing: true` on the inner `ReferenceEntityDisplay`).
+4. **Compact collapse:** in compact/listing contexts the nested granted-equipment card collapses to header-only (`listing: true` on the inner `ReferenceEntityDisplay`) — unless the caller passes `expandGrants` (ITUN live sheet), which renders it as a full compact card (resolved row + choice cards).
 
 The `lead` field on `ContentBlock` marks a granted entity's intro sentence. It renders on the entity's **own page**, but `ReferenceEntityGrants` passes `hideLeadContent` to the nested card so the `lead` block is **hidden when nested in a grant** — there it would duplicate the granting ability's own `description`. Every other content block renders in both places.
 

@@ -13,12 +13,22 @@ type ReferenceEntityGrantsProps = {
   /** Optional override; falls back to the card display-state context. */
   spacing?: ReturnType<typeof getReferenceEntitySpacing>
   compact?: boolean
+  /**
+   * Render granted entities as full compact cards even when the granting ability
+   * is itself compact — instead of collapsing them to a header-only listing. Used
+   * by the ITUN live sheet so a granting ability (e.g. Auto-Turret) shows the
+   * granted equipment as a proper entity display (stats, content, resolved row,
+   * and its choice cards), the same way it renders on its own reference page.
+   * Default false — dense compact listings (search, reference index) stay terse.
+   */
+  expand?: boolean
 }
 
 export function ReferenceEntityGrants({
   data,
   spacing: spacingProp,
   compact,
+  expand,
 }: ReferenceEntityGrantsProps) {
   const spacing = useDisplaySpacing(spacingProp, compact ?? false)
   // Shared resolver (single source of truth — see salvageunion-reference).
@@ -45,6 +55,7 @@ export function ReferenceEntityGrants({
             key={`${entity.id}-${idx}`}
             entity={entity}
             parentCompact={!!compact}
+            expand={!!expand}
           />
         ))}
       </div>
@@ -55,9 +66,11 @@ export function ReferenceEntityGrants({
 function GrantedEntityListing({
   entity,
   parentCompact,
+  expand,
 }: {
   entity: SURefEntity
   parentCompact: boolean
+  expand: boolean
 }) {
   const name = 'name' in entity && typeof entity.name === 'string' ? entity.name : 'entity'
   // Href comes from the app-provided builder (route-agnostic); no provider →
@@ -80,18 +93,20 @@ function GrantedEntityListing({
 
   // When the granting ability itself is shown compact (in lists / nested
   // contexts), collapse the granted entity to header-only — its name + resolved
-  // stat row in the header, no body. When the ability is shown full, the nested
-  // equipment expands (intro content + resolved row + choice cards). The `lead`
-  // intro block is hidden here (`hideLeadContent`) — it shows on the equipment's
-  // own page but is redundant with the ability's description in a grant. Actions
-  // are hidden (the same-named pilot-equipment action lives on the ability).
+  // stat row in the header, no body. When the ability is shown full — or a compact
+  // caller opts in via `expand` (the ITUN live sheet) — the nested equipment
+  // renders as a full card (intro content + resolved row + choice cards), the same
+  // way it renders on its own reference page. The `lead` intro block is hidden
+  // here (`hideLeadContent`) — it shows on the equipment's own page but is
+  // redundant with the ability's description in a grant. Actions are hidden (the
+  // same-named pilot-equipment action lives on the ability).
   return (
     <ReferenceEntityDisplay
       hide={{ actions: true }}
       hideLeadContent
       data={entity}
       compact
-      listing={parentCompact}
+      listing={expand ? false : parentCompact}
       controls={controls}
     />
   )

@@ -116,6 +116,45 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
   })
 })
 
+describe('EntitySearcher — class limits (overridable)', () => {
+  type Ability = { id: string; name: string; tree: string }
+  const abilities = () => SalvageUnionReference.Abilities.all() as unknown as Ability[]
+
+  it('applies the class limit by default and relaxes it via the Override toggle', () => {
+    const all = abilities()
+    const allowed = all[0]
+    if (!allowed) throw new Error('No abilities in reference data')
+    const outside = all.find((a) => a.tree !== allowed.tree)
+    if (!outside) throw new Error('Need two distinct ability trees in reference data')
+
+    render(
+      <EntitySearcher
+        schema="abilities"
+        selected={[]}
+        onToggle={() => {}}
+        idOf={(i) => i.id}
+        classLimit={{ allows: (item) => (item as Ability).tree === allowed.tree }}
+        facets={{ status: false }}
+      />
+    )
+
+    // In-class ability is offered; the out-of-class one is hidden by the limit.
+    expect(screen.getAllByRole('button', { name: allowed.name }).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: outside.name })).toBeNull()
+
+    // Flipping the toggle relaxes the limit and reveals the out-of-class ability.
+    fireEvent.click(screen.getByRole('button', { name: /override class limits/i }))
+    expect(screen.getAllByRole('button', { name: outside.name }).length).toBeGreaterThan(0)
+  })
+
+  it('renders no Class facet row when no classLimit is provided', () => {
+    render(
+      <EntitySearcher schema="abilities" selected={[]} onToggle={() => {}} idOf={(i) => i.id} />
+    )
+    expect(screen.queryByRole('group', { name: /filter by class/i })).toBeNull()
+  })
+})
+
 describe('EntitySearcher — systems (count mode)', () => {
   it('shows an Add affordance and emits idOf on add', () => {
     const sys = SalvageUnionReference.Systems.all() as unknown as Array<{

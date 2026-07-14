@@ -103,6 +103,14 @@ export type ReferenceEntityDisplayContentProps = ReferenceEntityDisplayStateInpu
    */
   hideLeadContent?: boolean
   /**
+   * Render an ability's granted entities as full compact cards even when the
+   * ability card itself is compact, instead of the header-only collapse. Set by
+   * the ITUN live sheet so granting abilities (e.g. Auto-Turret) show the granted
+   * equipment as a proper entity display (stats, content, resolved row, choice
+   * cards), the same way it renders on its own reference page. Default false.
+   */
+  expandGrants?: boolean
+  /**
    * Controlled choice selections for the granted-equipment choice cards
    * (`ChoiceSelections`, keyed by choice id). When provided, selection state is
    * owned by the consumer (e.g. ITUN, backed by persistence) rather than the
@@ -178,6 +186,7 @@ export function ReferenceEntityDisplayContent({
   status,
   onStatusClick,
   expand,
+  expandGrants = false,
   footActions,
   footMeta,
   showTypeLabel = false,
@@ -625,7 +634,9 @@ export function ReferenceEntityDisplayContent({
               {/* Granting ability: a `Grants` block — the nested compact equipment
                   renders its own intro paragraph, resolved row + choice cards.
                   Rendered in the main body flow so it is visible in compact mode. */}
-              {showGrants && <ReferenceEntityGrants data={data} compact={compact} />}
+              {showGrants && (
+                <ReferenceEntityGrants data={data} compact={compact} expand={expandGrants} />
+              )}
               <EntityStatblockEquipment systems={statblockSystems} modules={statblockModules} />
               {/* Compact: chassis abilities render after actions */}
               {compact && chassisAbilitiesBlock}

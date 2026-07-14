@@ -179,7 +179,8 @@ export function PilotSheet({
 
   // Abilities offered on the live sheet are scoped to the pilot's class trees
   // (core + advanced + legendary + any tree they've already learned) — the same
-  // edit-mode logic AbilitiesStep used, now feeding the shared searcher's filter.
+  // edit-mode logic AbilitiesStep used, now feeding the shared searcher's
+  // overridable `classLimit` (the "Override class limits" toggle relaxes it).
   // Computed only while the Abilities picker is open: it reads the reference ORM,
   // which read-only snapshot renders never preload (the picker never opens there).
   const abilityTrees = useMemo(() => {
@@ -563,9 +564,9 @@ export function PilotSheet({
           selected={pilot.abilities}
           onToggle={toggleAbility}
           idOf={(item) => item.id}
-          filter={
+          classLimit={
             abilityTrees
-              ? (item) => abilityTrees.has((item as unknown as SURefAbility).tree)
+              ? { allows: (item) => abilityTrees.has((item as unknown as SURefAbility).tree) }
               : undefined
           }
           facets={{

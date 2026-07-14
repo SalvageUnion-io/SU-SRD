@@ -120,6 +120,12 @@ export function PilotAbilityItem({
       compact
       label={ability.tree}
       hide={HIDE_CHOICES}
+      // Granting abilities (e.g. Auto-Turret) render their granted equipment as a
+      // full compact entity card here instead of the header-only collapse the
+      // dense reference listings use. Choices render uncontrolled (ephemeral),
+      // like the equipment's own reference page; persisting granted-equipment
+      // choices on the pilot is a possible follow-up.
+      expandGrants
       footMeta={footMeta}
       footActions={footActions}
       controls={controls}

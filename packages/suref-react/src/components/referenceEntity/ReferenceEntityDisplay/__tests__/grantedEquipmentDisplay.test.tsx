@@ -144,6 +144,19 @@ describe('Custom Sniper Rifle granting ability display', () => {
     expect(screen.queryByText('Modification')).toBeNull()
   })
 
+  test('expandGrants renders the granted equipment as a full compact card (choice cards shown)', () => {
+    // The ITUN live sheet opts in via `expandGrants` so a compact granting ability
+    // shows its granted equipment as a proper full entity display — the same body
+    // (resolved row + interactive choice cards) it shows on its own reference page,
+    // rather than the header-only collapse the dense reference listings use.
+    render(<ReferenceEntityDisplay data={rifleAbility} compact expandGrants />)
+    expect(screen.getByText('Grants')).toBeTruthy()
+    // Body content + choice groups render (all null in the header-only collapse).
+    expect(screen.getByText('Weapon Type')).toBeTruthy()
+    expect(screen.getByText('Modification')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Ballistic/ })).toBeTruthy()
+  })
+
   test('does not render an Actions section for the granting ability', () => {
     const { container } = render(<ReferenceEntityDisplay data={rifleAbility} />)
     expect(within(container).queryByText('Actions')).toBeNull()

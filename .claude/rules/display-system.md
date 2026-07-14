@@ -68,7 +68,7 @@ When an ability entity has `grants` that resolve to equipment (`resolveGrantedEn
 - **Suppresses** the ability's own `content` blocks and `Actions` section.
 - **Shows** the `Grants` block (nested compact equipment cards with resolved data row + choice cards).
 - The ability's `description` still renders in the right-header flavor slot.
-- In compact/listing contexts the nested equipment card collapses further to header-only (`listing: true` on the inner `ReferenceEntityDisplay`).
+- In compact/listing contexts the nested equipment card collapses further to header-only (`listing: true` on the inner `ReferenceEntityDisplay`) — **unless** the caller passes `expandGrants` (the ITUN live sheet does), which renders the granted entity as a full compact card (resolved row + choice cards), the same body it shows on its own reference page. Its choices render uncontrolled (ephemeral) there, like suref-web — persisting granted-equipment choices on the pilot is a possible follow-up.
 
 The `lead: true` field on a `ContentBlock` marks a granted entity's intro sentence: it renders on the entity's own page, but `ReferenceEntityGrants` passes `hideLeadContent` to the nested card so the `lead` block is hidden when nested in a grant (there it would duplicate the granting ability's own description). All other content renders in both places.
 

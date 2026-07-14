@@ -83,6 +83,20 @@ type EntitySearcherProps = {
   idOf?: (item: EntityLike) => string
   /** Narrow the pool (e.g. only weapons). Default: the whole collection. */
   filter?: (item: EntityLike) => boolean
+  /**
+   * An overridable class-limit constraint — standard kit for the picker. When
+   * provided, the pool is restricted to items the entity's class allows
+   * (`allows(item)` truthy) unless the user flips the "Override class limits"
+   * toggle. Distinct from `filter` (a hard narrow that can't be toggled off): the
+   * class limit is the soft, rules-suggested boundary a player may deliberately
+   * step outside of.
+   */
+  classLimit?: {
+    /** Does this item fall within the class's limits? */
+    allows: (item: EntityLike) => boolean
+    /** Toggle label. Default: 'Override class limits'. */
+    label?: string
+  }
   facets?: FacetConfig
   /** Optional soft budget track(s) shown in the rail (never blocks selection). */
   budget?: BudgetConfig | BudgetConfig[]
@@ -120,6 +134,7 @@ export function EntitySearcher({
   onRemove,
   idOf = (item) => item.name,
   filter,
+  classLimit,
   facets,
   budget,
   railName,
@@ -131,19 +146,27 @@ export function EntitySearcher({
   const [activeCats, setActiveCats] = useState<Set<string>>(() => new Set())
   const [activeTraits, setActiveTraits] = useState<Set<string>>(() => new Set())
   const [status, setStatus] = useState<'all' | 'equipped' | 'available'>('all')
+  // Class limits apply by default; the toggle relaxes them to the full collection.
+  const [overrideLimits, setOverrideLimits] = useState(false)
 
-  // Base pool — the whole collection, optionally narrowed, sorted by TL then name.
+  // Base pool — the whole collection, narrowed by the hard `filter` and (unless
+  // overridden) the soft class limit, sorted by TL then name. Gating the pool
+  // here (not just the visible list) means the facet options below reflect the
+  // active scope: the Tree chips list only the class's trees until overridden.
   const pool = useMemo(() => {
-    const items = SalvageUnionReference.findAllIn(schema, (item) =>
-      filter ? filter(item as EntityLike) : true
-    ) as unknown as EntityLike[]
+    const items = SalvageUnionReference.findAllIn(schema, (item) => {
+      const it = item as EntityLike
+      if (filter && !filter(it)) return false
+      if (classLimit && !overrideLimits && !classLimit.allows(it)) return false
+      return true
+    }) as unknown as EntityLike[]
     return [...items].sort((a, b) => {
       const ta = a.techLevel
       const tb = b.techLevel
       if (ta !== undefined && tb !== undefined && ta !== tb) return tlRank(ta) - tlRank(tb)
       return a.name.localeCompare(b.name)
     })
-  }, [schema, filter])
+  }, [schema, filter, classLimit, overrideLimits])
 
   // Available facet options, derived from the pool. A facet with <2 options is
   // useless, so it hides itself (also hides TL/traits on schemas that lack them).
@@ -172,6 +195,7 @@ export function EntitySearcher({
   const showTraits = facets?.traits !== false && traitOptions.length >= 2
   const showCat = !!facets?.category && catOptions.length >= 2
   const showStatus = facets?.status !== false
+  const showClassLimit = !!classLimit
 
   // Identity helpers — detection is ref-tolerant, emission uses `idOf`.
   const countOf = (item: EntityLike) => selected.filter((ref) => matchesRef(item, ref)).length
@@ -244,7 +268,7 @@ export function EntitySearcher({
     setter(next)
   }
 
-  const anyFacet = showTl || showTraits || showCat || showStatus
+  const anyFacet = showClassLimit || showTl || showTraits || showCat || showStatus
 
   return (
     <div className="flex flex-col gap-4">
@@ -274,6 +298,15 @@ export function EntitySearcher({
       {/* Facet chip rows */}
       {anyFacet && (
         <div className="flex flex-col gap-2">
+          {showClassLimit && classLimit && (
+            <FacetRow label="Class">
+              <FilterChip
+                label={classLimit.label ?? 'Override class limits'}
+                active={overrideLimits}
+                onClick={() => setOverrideLimits((v) => !v)}
+              />
+            </FacetRow>
+          )}
           {showTl && (
             <FacetRow label="Tech level">
               {tlOptions.map((tl) => (
