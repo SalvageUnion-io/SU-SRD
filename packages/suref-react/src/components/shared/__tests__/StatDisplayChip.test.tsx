@@ -66,7 +66,7 @@ describe('StatDisplay (inline chip) — heat escalation (U-1)', () => {
     )
     const root = screen.getByRole('group')
     expect(root.getAttribute('data-heat')).toBeNull()
-    expect(must(root.lastElementChild).className).toContain('border-ink')
+    expect(root.className).toContain('border-ink')
     expect(container.querySelector('[data-pip].bg-status-bad')).toBeNull()
   })
 
@@ -82,7 +82,7 @@ describe('StatDisplay (inline chip) — heat escalation (U-1)', () => {
     expect(pips.indexOf(must(danger[0]))).toBe(6)
     expect(screen.getByText('8').className).toContain('text-status-bad')
     // border only escalates at cap
-    expect(must(root.lastElementChild).className).toContain('border-ink')
+    expect(root.className).toContain('border-ink')
   })
 
   test('at cap the chip gets the red border + pulse', () => {
@@ -91,8 +91,8 @@ describe('StatDisplay (inline chip) — heat escalation (U-1)', () => {
     )
     const root = screen.getByRole('group')
     expect(root.getAttribute('data-heat')).toBe('critical')
-    expect(must(root.lastElementChild).className).toContain('border-status-bad')
-    expect(must(root.lastElementChild).className).toContain('motion-safe:animate-heat-pulse')
+    expect(root.className).toContain('border-status-bad')
+    expect(root.className).toContain('motion-safe:animate-heat-pulse')
   })
 
   test('number-only readout (max > 12) still reads danger via the value', () => {
@@ -102,7 +102,7 @@ describe('StatDisplay (inline chip) — heat escalation (U-1)', () => {
     expect(container.querySelectorAll('[data-pip]').length).toBe(0)
     const root = screen.getByRole('group')
     expect(root.getAttribute('data-heat')).toBe('critical')
-    expect(must(root.lastElementChild).className).toContain('border-status-bad')
+    expect(root.className).toContain('border-status-bad')
     expect(screen.getByText('20').className).toContain('text-status-bad')
   })
 
@@ -113,6 +113,6 @@ describe('StatDisplay (inline chip) — heat escalation (U-1)', () => {
     render(<StatDisplay orientation="horizontal" dots label="HP" value={10} max={10} tone="hp" />)
     const root = screen.getByRole('group')
     expect(root.getAttribute('data-heat')).toBeNull()
-    expect(must(root.lastElementChild).className).toContain('border-ink')
+    expect(root.className).toContain('border-ink')
   })
 })

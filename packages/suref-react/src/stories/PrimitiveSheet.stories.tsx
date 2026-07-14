@@ -96,6 +96,8 @@ export const Sheet: Story = () => (
         <StatDisplay label="SP" value={sp} />
         <StatDisplay label="EP" value={Math.ceil(ep * 0.75)} max={ep} dots tone="hp" />
         <StatDisplay label="RANGE" value={rangeLabel} orientation="horizontal" />
+        <StatDisplay orientation="horizontal" label="Class" value={className} />
+        <StatDisplay orientation="horizontal" label="SV" value={sv} />
         <StatDisplay
           label="HEAT"
           value={Math.ceil(heat / 2)}
@@ -120,8 +122,6 @@ export const Sheet: Story = () => (
         <Chip value={sp}>SP</Chip>
         <Tag label={traitName} />
         <StatusBadge status="damaged" />
-        <StatDisplay orientation="horizontal" label="Class" value={className} />
-        <StatDisplay orientation="horizontal" label="SV" value={sv} />
       </Group>
 
       {/* 4. Buttons */}
