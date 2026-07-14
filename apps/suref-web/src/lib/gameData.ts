@@ -26,5 +26,6 @@ export {
   getJsonSchemaDefinition,
   getUniqueTechLevels,
   getUniqueSources,
+  getUniqueTrees,
   extractStaticEntitySummary,
 } from 'salvageunion-reference'

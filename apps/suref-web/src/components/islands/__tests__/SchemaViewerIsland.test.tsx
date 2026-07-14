@@ -5,7 +5,9 @@ import {
   getModel,
   getUniqueTechLevels,
   getUniqueSources,
+  getUniqueTrees,
   getTechLevel,
+  getTree,
 } from 'salvageunion-reference'
 import { SchemaViewerIsland } from '../SchemaViewerIsland'
 
@@ -247,6 +249,76 @@ describe('SchemaViewerIsland', () => {
 
     const links = document.querySelectorAll('a[aria-label]')
     const matching = entities.filter((e) => getTechLevel(e)?.toString() === String(level))
+    expect(links.length).toBe(matching.length)
+    expect(links.length).toBeGreaterThan(0)
+    expect(links.length).toBeLessThan(entities.length)
+  })
+
+  it('tree filter: renders a Tree FilterRow only for the abilities schema', () => {
+    const abilitiesModel = required(getModel('abilities'), 'abilities model')
+    const entities = abilitiesModel.all()
+
+    const { container } = render(
+      <SchemaViewerIsland
+        initialData={entities}
+        schemaId="abilities"
+        techLevels={getUniqueTechLevels(entities)}
+        sources={getUniqueSources(entities)}
+        trees={getUniqueTrees(entities)}
+      />
+    )
+
+    const filterRail = required(container.querySelector('aside'), 'the <aside> filter rail')
+    expect(within(filterRail).getByText('Tree')).toBeTruthy()
+  })
+
+  it('tree filter: clicking a tree chip shows only that tree’s abilities', () => {
+    const abilitiesModel = required(getModel('abilities'), 'abilities model')
+    const entities = abilitiesModel.all()
+    const trees = getUniqueTrees(entities)
+    // Pick a tree that partitions the dataset (some in, some out).
+    const tree = required(trees[0], 'at least one ability tree')
+
+    render(
+      <SchemaViewerIsland
+        initialData={entities}
+        schemaId="abilities"
+        techLevels={getUniqueTechLevels(entities)}
+        sources={getUniqueSources(entities)}
+        trees={trees}
+      />
+    )
+
+    const treeChip = screen.getByRole('button', { name: tree })
+    fireEvent.click(treeChip)
+
+    const links = document.querySelectorAll('a[aria-label]')
+    const matching = entities.filter((e) => getTree(e) === tree)
+    expect(links.length).toBe(matching.length)
+    expect(links.length).toBeGreaterThan(0)
+    expect(links.length).toBeLessThan(entities.length)
+    cleanup()
+  })
+
+  it('tree filter URL sync: initializes the tree filter from ?tree= on mount', () => {
+    const abilitiesModel = required(getModel('abilities'), 'abilities model')
+    const entities = abilitiesModel.all()
+    const trees = getUniqueTrees(entities)
+    const tree = required(trees[0], 'at least one ability tree')
+    window.location.href = `http://localhost/schema/abilities/?tree=${encodeURIComponent(tree)}`
+
+    render(
+      <SchemaViewerIsland
+        initialData={entities}
+        schemaId="abilities"
+        techLevels={getUniqueTechLevels(entities)}
+        sources={getUniqueSources(entities)}
+        trees={trees}
+      />
+    )
+
+    const links = document.querySelectorAll('a[aria-label]')
+    const matching = entities.filter((e) => getTree(e) === tree)
     expect(links.length).toBe(matching.length)
     expect(links.length).toBeGreaterThan(0)
     expect(links.length).toBeLessThan(entities.length)

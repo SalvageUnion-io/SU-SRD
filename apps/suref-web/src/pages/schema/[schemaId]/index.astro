@@ -2,7 +2,7 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro'
 import { getSchemaStaticPaths } from '../../../lib/staticPaths'
 import { SchemaViewerIsland } from '../../../components/islands/SchemaViewerIsland'
-import { getUniqueTechLevels, getUniqueSources } from '../../../lib/gameData'
+import { getUniqueTechLevels, getUniqueSources, getUniqueTrees } from '../../../lib/gameData'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
 import { SITE_URL } from '../../../lib/constants'
 
@@ -19,6 +19,7 @@ const canonicalUrl = `${SITE_URL}/schema/${schemaId}/`
 // Pre-compute filter facets at build time
 const techLevels = getUniqueTechLevels(data)
 const sources = schemaId === 'sources' ? [] : getUniqueSources(data)
+const trees = schemaId === 'abilities' ? getUniqueTrees(data) : []
 
 const structuredData = {
   '@context': 'https://schema.org',
@@ -66,6 +67,7 @@ const structuredData = {
         schemaId={schemaId!}
         techLevels={techLevels}
         sources={sources}
+        trees={trees}
         preloadSchemas={getSchemaPreloadList(schemaId!)}
       />
     </div>
