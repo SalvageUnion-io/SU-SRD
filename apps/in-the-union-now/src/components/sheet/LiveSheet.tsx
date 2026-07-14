@@ -30,8 +30,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { MiniStat, Pill } from 'suref-react'
-import type { MiniStatTone, PillTone } from 'suref-react'
+import { Pill, StatDisplay } from 'suref-react'
+import type { PillTone, StatTone } from 'suref-react'
 
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
@@ -52,7 +52,7 @@ export type LiveSheetStripItem = {
   /** Stable key — also the `syncStats` overlay key (e.g. 'cargo'). */
   key: string
   label: string
-  stat?: MiniStatTone
+  stat?: StatTone
   value: number
   max?: number
   /**
@@ -224,12 +224,14 @@ export function LiveSheet({
               </Pill>
             )}
             {stripItems.map((item) => (
-              <MiniStat
+              <StatDisplay
                 key={item.key}
+                orientation="horizontal"
+                dots
                 label={item.label}
                 value={item.value}
                 max={item.max}
-                stat={item.stat}
+                tone={item.stat}
                 // U-5: non-priority readouts fold below sm so the condensed
                 // bar leads with Heat + SP on phones.
                 className={item.mobilePriority === false ? 'hidden sm:inline-flex' : undefined}

@@ -110,7 +110,9 @@ type StatDisplayProps = {
 }
 
 export function StatDisplay(props: StatDisplayProps) {
-  if (props.orientation === 'horizontal') return <HorizontalValue {...props} />
+  if (props.orientation === 'horizontal') {
+    return props.dots ? <InlineChip {...props} /> : <HorizontalValue {...props} />
+  }
   if (props.dots || props.states !== undefined) return <FramedTracker {...props} />
   return <ValueBox {...props} />
 }
@@ -159,6 +161,74 @@ function HorizontalValue({
           {value}
         </Text>
       )}
+    </span>
+  )
+}
+
+/* ------------------------------------------------------------------ *
+ * Inline chip — the former MiniStat. Condensed [label · pips · value]  *
+ * for the live condensed bar; pips render only when max <= 12.         *
+ * ------------------------------------------------------------------ */
+const CHIP_PIP_MAX = 12
+
+function InlineChip({ label, value, max, tone = 'default', className }: StatDisplayProps) {
+  const v = typeof value === 'number' ? value : Number(value)
+  // Over-capacity honesty: the derived mech Hold (cargo tone) can exceed its
+  // soft cap — show the true value + red over-pips rather than clamping to a lie.
+  const isOver = tone === 'cargo' && max !== undefined && v > max
+  const clamped = isOver ? v : Math.max(0, max !== undefined ? Math.min(v, max) : v)
+  const total = isOver ? v : (max ?? 0)
+  const showPips = max !== undefined && max > 0 && total <= CHIP_PIP_MAX
+
+  const level = tone === 'heat' ? heatLevel(clamped, max) : 'normal'
+  const heatDanger =
+    tone === 'heat' && max !== undefined && max > 0 ? heatDangerFrom(max) : Infinity
+
+  return (
+    // biome-ignore lint/a11y/useSemanticElements: a <fieldset> cannot render as an inline stat chip; role="group" carries the same semantics
+    <span
+      role="group"
+      aria-label={`${label} ${clamped}${max !== undefined ? ` of ${max}` : ''}${
+        isOver ? ' — over capacity' : ''
+      }`}
+      data-heat={level !== 'normal' ? level : undefined}
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-[2px] border-chrome bg-paper px-2 py-[3px]',
+        level === 'critical' ? 'border-status-bad motion-safe:animate-heat-pulse' : 'border-ink',
+        className
+      )}
+    >
+      <span className="font-cond text-[10px] font-bold uppercase leading-none text-wk-muted">
+        {label}
+      </span>
+      {showPips && (
+        <span className="flex items-center gap-[3px]" aria-hidden="true">
+          {Array.from({ length: total }).map((_, i) => (
+            <span
+              // biome-ignore lint/suspicious/noArrayIndexKey: pips are positional — the index IS their identity
+              key={i}
+              data-pip={i < clamped ? 'on' : 'off'}
+              className={cn(
+                'h-[7px] w-[7px] rounded-[1px] border-[1.25px]',
+                i < clamped
+                  ? i >= (max ?? Infinity) || i >= heatDanger
+                    ? 'border-status-bad bg-status-bad'
+                    : PIP_FILL[tone]
+                  : 'border-ink bg-transparent'
+              )}
+            />
+          ))}
+        </span>
+      )}
+      <span
+        className={cn(
+          'font-body text-sm font-bold leading-none',
+          level !== 'normal' || isOver ? 'text-status-bad' : 'text-ink'
+        )}
+      >
+        {clamped}
+        {max !== undefined && <small className="text-[10px] font-bold text-wk-muted">/{max}</small>}
+      </span>
     </span>
   )
 }
