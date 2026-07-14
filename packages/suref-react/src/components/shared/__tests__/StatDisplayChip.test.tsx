@@ -1,6 +1,6 @@
 import { describe, test, expect, afterEach } from 'bun:test'
 import { render, screen, cleanup } from '@testing-library/react'
-import { MiniStat } from '../MiniStat'
+import { StatDisplay } from '../StatDisplay'
 
 afterEach(cleanup)
 
@@ -10,9 +10,12 @@ function must<T>(value: T | null | undefined): T {
   return value
 }
 
-describe('MiniStat', () => {
+// The inline-chip anatomy (formerly MiniStat): orientation="horizontal" + dots.
+describe('StatDisplay (inline chip)', () => {
   test('renders label and value/max with pips when max ≤ 12', () => {
-    const { container } = render(<MiniStat label="HP" value={7} max={10} stat="hp" />)
+    const { container } = render(
+      <StatDisplay orientation="horizontal" dots label="HP" value={7} max={10} tone="hp" />
+    )
     expect(screen.getByText('HP')).toBeTruthy()
     expect(screen.getByText('7')).toBeTruthy()
     expect(screen.getByText('/10')).toBeTruthy()
@@ -21,40 +24,46 @@ describe('MiniStat', () => {
   })
 
   test('suppresses pips when max > 12 (number-only readout)', () => {
-    const { container } = render(<MiniStat label="SP" value={24} max={30} stat="sp" />)
+    const { container } = render(
+      <StatDisplay orientation="horizontal" dots label="SP" value={24} max={30} tone="sp" />
+    )
     expect(container.querySelectorAll('[data-pip]').length).toBe(0)
     expect(screen.getByText('24')).toBeTruthy()
     expect(screen.getByText('/30')).toBeTruthy()
   })
 
   test('renders pips at exactly max 12', () => {
-    const { container } = render(<MiniStat label="HEAT" value={6} max={12} stat="heat" />)
+    const { container } = render(
+      <StatDisplay orientation="horizontal" dots label="HEAT" value={6} max={12} tone="heat" />
+    )
     expect(container.querySelectorAll('[data-pip]').length).toBe(12)
   })
 
   test('clamps value to max and 0', () => {
-    render(<MiniStat label="AP" value={9} max={5} stat="ap" />)
+    render(<StatDisplay orientation="horizontal" dots label="AP" value={9} max={5} tone="ap" />)
     expect(screen.getByText('5')).toBeTruthy()
     cleanup()
-    render(<MiniStat label="AP" value={-2} max={5} stat="ap" />)
+    render(<StatDisplay orientation="horizontal" dots label="AP" value={-2} max={5} tone="ap" />)
     expect(screen.getByText('0')).toBeTruthy()
   })
 
   test('no max renders bare value without pips', () => {
-    const { container } = render(<MiniStat label="TP" value={3} />)
+    const { container } = render(<StatDisplay orientation="horizontal" dots label="TP" value={3} />)
     expect(container.querySelectorAll('[data-pip]').length).toBe(0)
     expect(screen.getByText('3')).toBeTruthy()
   })
 
   test('exposes an accessible group label', () => {
-    render(<MiniStat label="HP" value={7} max={10} stat="hp" />)
+    render(<StatDisplay orientation="horizontal" dots label="HP" value={7} max={10} tone="hp" />)
     expect(screen.getByRole('group', { name: 'HP 7 of 10' })).toBeTruthy()
   })
 })
 
-describe('MiniStat — heat escalation (U-1)', () => {
+describe('StatDisplay (inline chip) — heat escalation (U-1)', () => {
   test('below ~70% heat stays on the warn fill with no escalation', () => {
-    const { container } = render(<MiniStat label="HEAT" value={6} max={10} stat="heat" />)
+    const { container } = render(
+      <StatDisplay orientation="horizontal" dots label="HEAT" value={6} max={10} tone="heat" />
+    )
     const root = screen.getByRole('group')
     expect(root.getAttribute('data-heat')).toBeNull()
     expect(root.className).toContain('border-ink')
@@ -62,7 +71,9 @@ describe('MiniStat — heat escalation (U-1)', () => {
   })
 
   test('at >= ~70% the lit pips past the line and the value go status-bad', () => {
-    const { container } = render(<MiniStat label="HEAT" value={8} max={10} stat="heat" />)
+    const { container } = render(
+      <StatDisplay orientation="horizontal" dots label="HEAT" value={8} max={10} tone="heat" />
+    )
     const root = screen.getByRole('group')
     expect(root.getAttribute('data-heat')).toBe('high')
     const pips = Array.from(container.querySelectorAll('[data-pip]'))
@@ -75,7 +86,9 @@ describe('MiniStat — heat escalation (U-1)', () => {
   })
 
   test('at cap the chip gets the red border + pulse', () => {
-    render(<MiniStat label="HEAT" value={10} max={10} stat="heat" />)
+    render(
+      <StatDisplay orientation="horizontal" dots label="HEAT" value={10} max={10} tone="heat" />
+    )
     const root = screen.getByRole('group')
     expect(root.getAttribute('data-heat')).toBe('critical')
     expect(root.className).toContain('border-status-bad')
@@ -83,7 +96,9 @@ describe('MiniStat — heat escalation (U-1)', () => {
   })
 
   test('number-only readout (max > 12) still reads danger via the value', () => {
-    const { container } = render(<MiniStat label="HEAT" value={20} max={20} stat="heat" />)
+    const { container } = render(
+      <StatDisplay orientation="horizontal" dots label="HEAT" value={20} max={20} tone="heat" />
+    )
     expect(container.querySelectorAll('[data-pip]').length).toBe(0)
     const root = screen.getByRole('group')
     expect(root.getAttribute('data-heat')).toBe('critical')
@@ -92,10 +107,10 @@ describe('MiniStat — heat escalation (U-1)', () => {
   })
 
   test('inert without a max and for non-heat tones at cap', () => {
-    render(<MiniStat label="HEAT" value={9} stat="heat" />)
+    render(<StatDisplay orientation="horizontal" dots label="HEAT" value={9} tone="heat" />)
     expect(screen.getByRole('group').getAttribute('data-heat')).toBeNull()
     cleanup()
-    render(<MiniStat label="HP" value={10} max={10} stat="hp" />)
+    render(<StatDisplay orientation="horizontal" dots label="HP" value={10} max={10} tone="hp" />)
     const root = screen.getByRole('group')
     expect(root.getAttribute('data-heat')).toBeNull()
     expect(root.className).toContain('border-ink')

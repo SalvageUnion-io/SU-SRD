@@ -171,7 +171,7 @@
   }
 
   /* -------------------------------------------------------------------------
-   * Stat pips (suref-react StatBlock/MiniStat) — keep trackable boxes on paper.
+   * Stat pips (suref-react StatBlock + StatDisplay) — keep trackable boxes on paper.
    *
    * The global `*` reset above forces every background to white, which would
    * erase a filled pip's fill and make it indistinguishable from an empty one.
