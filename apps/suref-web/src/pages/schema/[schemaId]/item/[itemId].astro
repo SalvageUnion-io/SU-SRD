@@ -11,7 +11,7 @@ export function getStaticPaths() {
   return getItemStaticPaths()
 }
 
-const { item, schema, itemName, itemDescription, prevItem, nextItem } = Astro.props
+const { item, schema, itemName, itemDescription } = Astro.props
 const { schemaId, itemId } = Astro.params
 
 const schemaName = schema.displayName || 'Item'
@@ -119,40 +119,4 @@ const ogImage = `/schema/${schemaId}/item/${itemId}.og.png`
         crawlers keep the content. */}
     {staticSummary && <StaticEntityContent summary={staticSummary} />}
   </article>
-
-  {/* Prev/next sibling navigation within the same schema listing. No
-      wrap-around: the first item omits prev, the last omits next. */}
-  {(prevItem || nextItem) && (
-    <nav
-      aria-label={`${schemaName} navigation`}
-      class="mx-auto flex w-full max-w-[1000px] items-stretch justify-between gap-3 px-4 pb-8"
-    >
-      {prevItem ? (
-        <a
-          href={`/schema/${schemaId}/item/${prevItem.slug}/`}
-          rel="prev"
-          aria-label={`Previous: ${prevItem.name}`}
-          class="group flex flex-1 flex-col rounded border border-su-grey-light bg-su-white px-4 py-3 no-underline transition-colors hover:border-su-orange-dark"
-        >
-          <span class="font-mono text-xs uppercase tracking-wide text-su-grey-dark">← Previous</span>
-          <span class="mt-0.5 font-semibold text-su-black group-hover:text-su-orange-dark">{prevItem.name}</span>
-        </a>
-      ) : (
-        <span class="flex-1" aria-hidden="true"></span>
-      )}
-      {nextItem ? (
-        <a
-          href={`/schema/${schemaId}/item/${nextItem.slug}/`}
-          rel="next"
-          aria-label={`Next: ${nextItem.name}`}
-          class="group flex flex-1 flex-col items-end rounded border border-su-grey-light bg-su-white px-4 py-3 text-right no-underline transition-colors hover:border-su-orange-dark"
-        >
-          <span class="font-mono text-xs uppercase tracking-wide text-su-grey-dark">Next →</span>
-          <span class="mt-0.5 font-semibold text-su-black group-hover:text-su-orange-dark">{nextItem.name}</span>
-        </a>
-      ) : (
-        <span class="flex-1" aria-hidden="true"></span>
-      )}
-    </nav>
-  )}
 </BaseLayout>
