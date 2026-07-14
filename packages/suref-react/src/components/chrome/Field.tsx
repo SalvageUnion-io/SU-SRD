@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
+import { Text } from '../base/Text'
 
 type FieldProps = {
   label: ReactNode
@@ -18,13 +19,13 @@ type FieldProps = {
 export function Field({ label, required = false, htmlFor, children, className }: FieldProps) {
   return (
     <div className={cn('block', className)}>
-      <label
-        htmlFor={htmlFor}
-        className="mb-1.5 block font-cond text-[13px] font-semibold uppercase tracking-caps-tight text-ink"
-      >
-        {label}
+      <label htmlFor={htmlFor} className="mb-1.5 flex w-fit items-center gap-1">
+        {/* The field label IS the ink Stamp (canonical label atom). */}
+        <Text variant="pseudoheader" as="span" className="text-[11px]">
+          {label}
+        </Text>
         {required && (
-          <span aria-hidden="true" className="ml-0.5 text-rust">
+          <span aria-hidden="true" className="font-cond text-[13px] font-bold text-rust">
             *
           </span>
         )}
