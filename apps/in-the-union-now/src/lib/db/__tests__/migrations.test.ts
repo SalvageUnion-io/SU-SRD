@@ -17,6 +17,7 @@
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 
+import { DEFAULT_WORKSPACE_ID, DEFAULT_WORKSPACE_NAME } from '../../defaultWorkspace'
 import { MechPatternSchema } from '../../schemas/pattern'
 import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
@@ -352,6 +353,69 @@ describe('salvage read path', () => {
       const raw = await db.get(STORE_NAMES.pilots, 'pilot-heal')
       expect('fieldFromTheFuture' in (raw as Record<string, unknown>)).toBe(false)
       expect((raw as Record<string, unknown>).motto).toBe('Healed.')
+    } finally {
+      db.close()
+    }
+  })
+})
+
+describe('v10 — Default workspace seed + backfill', () => {
+  beforeEach(async () => {
+    await destroyTestDatabase()
+  })
+
+  afterEach(async () => {
+    await destroyTestDatabase()
+  })
+
+  test('creates the Default workspace and backfills only unassigned builds', async () => {
+    // Two builds with NO workspaceId (should be backfilled) and one already
+    // assigned to another workspace (must be left untouched).
+    const unassignedMech = { ...v2Mech, id: 'mech-unassigned' }
+    const unassignedPilot = { ...v2Pilot, id: 'pilot-unassigned' }
+    const assignedPilot = {
+      ...v2Pilot,
+      id: 'pilot-assigned',
+      workspaceId: 'starter-set-workspace',
+    }
+    await seedV2Database([
+      { store: STORE_NAMES.mechs, value: unassignedMech },
+      { store: STORE_NAMES.pilots, value: unassignedPilot },
+      { store: STORE_NAMES.pilots, value: assignedPilot },
+    ])
+
+    const db = await openItunDatabase(TEST_DB_NAME)
+    try {
+      expect(db.version).toBe(DB_VERSION)
+
+      // The Default workspace record now exists.
+      const ws = (await db.get(STORE_NAMES.workspaces, DEFAULT_WORKSPACE_ID)) as
+        | { id: string; name: string }
+        | undefined
+      expect(ws?.id).toBe(DEFAULT_WORKSPACE_ID)
+      expect(ws?.name).toBe(DEFAULT_WORKSPACE_NAME)
+
+      // Unassigned builds were moved into Default (and still strict-parse).
+      const mech = MechSchema.parse(await db.get(STORE_NAMES.mechs, 'mech-unassigned'))
+      expect(mech.workspaceId).toBe(DEFAULT_WORKSPACE_ID)
+      const pilot = PilotSchema.parse(await db.get(STORE_NAMES.pilots, 'pilot-unassigned'))
+      expect(pilot.workspaceId).toBe(DEFAULT_WORKSPACE_ID)
+
+      // A build already in another workspace is untouched.
+      const kept = PilotSchema.parse(await db.get(STORE_NAMES.pilots, 'pilot-assigned'))
+      expect(kept.workspaceId).toBe('starter-set-workspace')
+    } finally {
+      db.close()
+    }
+  })
+
+  test('a fresh database opens with the Default workspace already present', async () => {
+    const db = await openItunDatabase(TEST_DB_NAME)
+    try {
+      const ws = (await db.get(STORE_NAMES.workspaces, DEFAULT_WORKSPACE_ID)) as
+        | { id: string }
+        | undefined
+      expect(ws?.id).toBe(DEFAULT_WORKSPACE_ID)
     } finally {
       db.close()
     }

@@ -27,6 +27,7 @@
 
 import { create } from 'zustand'
 
+import { getActiveWorkspaceId } from './activeWorkspaceStore'
 import { recordDataWrite } from '../lib/backupNudge'
 import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import * as db from '../lib/db/index'
@@ -268,6 +269,20 @@ function afterWrite(type: EntityType): void {
   recordDataWrite()
 }
 
+/**
+ * Stamp a brand-new build with the current workspace so it belongs somewhere
+ * (mandatory current-workspace model — there is no unassigned pool any more).
+ * Applies to pilots/mechs/crawlers only; SoftLinks carry no workspace, and an
+ * input that already sets `workspaceId` (imports, explicit assignment) is left
+ * untouched so it isn't clobbered.
+ */
+function withActiveWorkspace<T extends EntityType>(type: T, input: CreateInput<T>): CreateInput<T> {
+  if (type === 'softLink') return input
+  const rec = input as { workspaceId?: string }
+  if (rec.workspaceId != null) return input
+  return { ...input, workspaceId: getActiveWorkspaceId() } as CreateInput<T>
+}
+
 export const useEntityStore = create<EntityState>((set, get) => ({
   pilots: [],
   mechs: [],
@@ -317,7 +332,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
 
   async create<T extends EntityType>(type: T, input: CreateInput<T>): Promise<EntityForType<T>> {
     const key = storeKeyFor(type)
-    const record = await dbStoreFor(type).create(input)
+    const record = await dbStoreFor(type).create(withActiveWorkspace(type, input))
     set((state) => ({
       [key]: [record, ...(state[key] as EntityForType<T>[])],
     }))

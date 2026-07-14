@@ -19,7 +19,9 @@ import { useState } from 'react'
 import { Btn, Input, ModalShell } from 'suref-react'
 
 import { useWorkspaceActions, useWorkspaces } from '../../hooks/queries'
+import { DEFAULT_WORKSPACE_ID } from '../../lib/defaultWorkspace'
 import type { Workspace } from '../../lib/schemas/workspace'
+import { getActiveWorkspaceId, setActiveWorkspaceId } from '../../stores/activeWorkspaceStore'
 
 // ---------------------------------------------------------------------------
 // Injectable store type (for dep-injection in tests)
@@ -136,7 +138,14 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
   }
 
   async function handleDelete(id: string) {
+    // The Default workspace is the mandatory fallback — never deletable.
+    if (id === DEFAULT_WORKSPACE_ID) return
     await activeStore.delete(id)
+    // Deleting the current workspace strands the view (members cascade to
+    // Default) — follow them back to Default so the selection stays valid.
+    if (getActiveWorkspaceId() === id) {
+      setActiveWorkspaceId(DEFAULT_WORKSPACE_ID)
+    }
     // If editing this row, cancel the edit
     if (editingId === id) {
       cancelEditing()
@@ -223,15 +232,19 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                     >
                       Rename
                     </Btn>
-                    <Btn
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => void handleDelete(ws.id)}
-                      aria-label={`Delete workspace ${ws.name}`}
-                      className="text-danger hover:text-danger"
-                    >
-                      Delete
-                    </Btn>
+                    {/* The Default workspace is the mandatory fallback — it can
+                        be renamed but never deleted. */}
+                    {ws.id !== DEFAULT_WORKSPACE_ID && (
+                      <Btn
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => void handleDelete(ws.id)}
+                        aria-label={`Delete workspace ${ws.name}`}
+                        className="text-danger hover:text-danger"
+                      >
+                        Delete
+                      </Btn>
+                    )}
                   </>
                 )}
               </li>

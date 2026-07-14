@@ -2,16 +2,23 @@
  * Query hooks over workspaceStore (design review T-7).
  *
  * Same contract as ./entities: typed reactive reads with the store's lazy
- * auto-hydration semantics. There is deliberately NO `useActiveWorkspace`
- * hook — the "active workspace" is page-local UI state (Dashboard and
- * EncounterScreen each keep their own `activeWorkspaceId` useState filter),
- * not store state.
+ * auto-hydration semantics.
+ *
+ * The "current workspace" is now GLOBAL, persisted state (activeWorkspaceStore),
+ * re-exported here as `useActiveWorkspaceId` — it was previously a page-local
+ * `useState` on each surface, but the mandatory current-workspace model (no
+ * cross-workspace "All Builds" view) needs one shared, reload-surviving current
+ * workspace that create sites and the Dashboard chooser can also read.
  */
 
 import { useShallow } from 'zustand/react/shallow'
 
+import { useActiveWorkspaceId } from '../../stores/activeWorkspaceStore'
 import type { Workspace } from '../../lib/schemas/workspace'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
+
+export { useActiveWorkspaceId }
+export { setActiveWorkspaceId } from '../../stores/activeWorkspaceStore'
 
 /** Full workspaceStore state+actions shape (what selectors receive). */
 type WorkspaceStoreState = ReturnType<typeof useWorkspaceStore.getState>

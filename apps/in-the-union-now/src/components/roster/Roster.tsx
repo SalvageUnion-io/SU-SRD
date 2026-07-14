@@ -24,6 +24,8 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { Btn, btnVariants, Empty } from 'suref-react'
 
 import {
+  setActiveWorkspaceId,
+  useActiveWorkspaceId,
   useCrawlers,
   useHydrateEntities,
   useMechs,
@@ -34,6 +36,7 @@ import type { SoftLink } from '../../lib/schemas/softLink'
 import { resolveClassName } from '../../lib/classRef'
 import { cn } from '../../lib/utils'
 import type { EntityType } from '../../stores/entityStore'
+import { DEFAULT_WORKSPACE_ID } from '../../lib/defaultWorkspace'
 import { ensureStarterSetSeeded } from '../../lib/starterSet/seedStarterSet'
 import { STARTER_WORKSPACE_ID } from '../../lib/starterSet/starterSet'
 import { useEntityStore } from '../../stores/entityStore'
@@ -111,8 +114,8 @@ const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
 
 export function Roster() {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
-  /** null = "All Builds" (show all), string = filter by workspace id */
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null)
+  /** The current workspace (global, persisted) — always a concrete id. */
+  const activeWorkspaceId = useActiveWorkspaceId()
   /** Mobile-endpoint segmented switch (design §3.7) — which column shows ≤ md */
   const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
 
@@ -125,26 +128,6 @@ export function Roster() {
   const allMechs = useMechs()
   const allCrawlers = useCrawlers()
   const softLinks: SoftLink[] = useSoftLinkList()
-
-  // The built-in Starter Set workspace is seeded into every install but must
-  // stay hidden from the default experience: it never counts toward first-run
-  // and never shows in "All Builds". It surfaces only when explicitly selected
-  // in the Workspace switcher. `isOwn` = "the user's own build, not seeded".
-  const isOwn = <T extends { workspaceId?: string }>(e: T) => e.workspaceId !== STARTER_WORKSPACE_ID
-
-  /**
-   * First-run: a brand-new user with ZERO builds of their OWN, viewing "All
-   * Builds". Measured against the UNFILTERED totals minus the seeded Starter
-   * Set so it means "no data of your own", not "this workspace is empty". The
-   * `activeWorkspaceId === null` guard is load-bearing: once the user selects a
-   * workspace (e.g. "Starter Set") the grid must render so its seeded roster
-   * shows — otherwise the welcome screen would swallow the selection.
-   */
-  const isFirstRun =
-    activeWorkspaceId === null &&
-    allPilots.filter(isOwn).length === 0 &&
-    allMechs.filter(isOwn).length === 0 &&
-    allCrawlers.filter(isOwn).length === 0
 
   // Name lookups for '↳ Name' cross-links — built from the UNFILTERED lists so
   // links resolve across workspace boundaries.
@@ -172,27 +155,30 @@ export function Roster() {
     )
   }
 
-  // Filter by active workspace. "All Builds" (null) shows every entity EXCEPT
-  // the seeded Starter Set — that workspace is reachable only by selecting it.
-  const pilots =
-    activeWorkspaceId === null
-      ? allPilots.filter(isOwn)
-      : allPilots.filter((p) => p.workspaceId === activeWorkspaceId)
-  const mechs =
-    activeWorkspaceId === null
-      ? allMechs.filter(isOwn)
-      : allMechs.filter((m) => m.workspaceId === activeWorkspaceId)
-  const crawlers =
-    activeWorkspaceId === null
-      ? allCrawlers.filter(isOwn)
-      : allCrawlers.filter((c) => c.workspaceId === activeWorkspaceId)
+  // Filter to the current workspace — the only view now (no cross-workspace
+  // "All Builds"). Everything created here is stamped with this workspace.
+  const pilots = allPilots.filter((p) => p.workspaceId === activeWorkspaceId)
+  const mechs = allMechs.filter((m) => m.workspaceId === activeWorkspaceId)
+  const crawlers = allCrawlers.filter((c) => c.workspaceId === activeWorkspaceId)
+
+  /**
+   * First-run welcome: only for a brand-new user sitting in an empty DEFAULT
+   * workspace. Any other empty workspace (a fresh campaign the user made, or the
+   * un-summoned Starter Set) falls through to the normal grid with its per-column
+   * "create" empty states — the big welcome would misfire there.
+   */
+  const isFirstRun =
+    activeWorkspaceId === DEFAULT_WORKSPACE_ID &&
+    pilots.length === 0 &&
+    mechs.length === 0 &&
+    crawlers.length === 0
 
   /**
    * Workspace select. Opening the built-in Starter Set spawns it into this
    * browser on first visit (idempotent), then switches to it — the roster is
    * never seeded until the user asks for it here.
    */
-  async function handleSelectWorkspace(id: string | null) {
+  async function handleSelectWorkspace(id: string) {
     if (id === STARTER_WORKSPACE_ID) await ensureStarterSetSeeded()
     setActiveWorkspaceId(id)
   }
@@ -223,8 +209,9 @@ export function Roster() {
             <ExportAllButton />
             <ImportButton />
             {/* Launch the Dashboard for a chosen pilot/mech/crawler crew
-                (design-spec §8). Shown once at least one mech exists to run. */}
-            {allMechs.length > 0 && <DashboardChooser activeWorkspaceId={activeWorkspaceId} />}
+                (design-spec §8). Shown once the CURRENT workspace has a mech to
+                run — the chooser only offers this workspace's assets. */}
+            {mechs.length > 0 && <DashboardChooser activeWorkspaceId={activeWorkspaceId} />}
           </div>
           <WorkspaceSwitcher
             activeWorkspaceId={activeWorkspaceId}

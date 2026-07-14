@@ -23,6 +23,7 @@ import { migrate as migrate3CargoToCargoLots } from './3-cargo-to-cargo-lots'
 import { migrate as migrate4RemovePilotRollResults } from './4-remove-pilot-roll-results'
 import { migrate as migrate6MechRefsToSlugs } from './6-mech-refs-to-slugs'
 import { migrate as migrate8CrawlerBattleSpToDerived } from './8-crawler-battle-sp-to-derived'
+import { migrate as migrate10WorkspaceDefaultBackfill } from './10-workspace-default-backfill'
 
 /** The untyped versionchange transaction handed to the idb upgrade callback. */
 export type UpgradeTransaction = IDBPTransaction<
@@ -67,9 +68,17 @@ const MIGRATIONS: ReadonlyArray<Migration> = [
     description: 'crawler-battle-sp-to-derived',
     migrate: (tx) => migrate8CrawlerBattleSpToDerived(tx),
   },
+  // v9 was store creation only (changeLog) — no record rewrite.
+  {
+    toVersion: 10,
+    description: 'workspace-default-backfill',
+    migrate: (tx) => migrate10WorkspaceDefaultBackfill(tx),
+  },
   // NOTE: the built-in Starter Set is NOT seeded by a migration. It is spawned
   // on-demand into each browser the first time the user opens the Starter Set
-  // workspace — see lib/starterSet/seedStarterSet.ts.
+  // workspace — see lib/starterSet/seedStarterSet.ts. The built-in DEFAULT
+  // workspace, by contrast, IS created (and backfilled) by the v10 migration
+  // above — it is mandatory, not on-demand.
 ]
 
 /**

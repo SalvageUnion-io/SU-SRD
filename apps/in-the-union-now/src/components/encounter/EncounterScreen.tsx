@@ -11,14 +11,16 @@
  *      condition ticks, per-NPC Mediator rolls, and Remove.
  *
  * Local-first: instances persist to IndexedDB via encounterStore and are
- * workspace-scoped through the same WorkspaceSwitcher the dashboard uses
- * (null = All Builds). New instances are stamped with the active workspace.
+ * workspace-scoped through the same WorkspaceSwitcher the roster uses. There is
+ * always a current workspace (no cross-workspace "All Builds"), so every new
+ * instance is stamped with it.
  */
 
 import { useState } from 'react'
 import { Users } from 'lucide-react'
 import { Empty } from 'suref-react'
 
+import { setActiveWorkspaceId, useActiveWorkspaceId } from '../../hooks/queries'
 import { useHydrateOnMount } from '../../hooks/queries/useHydrateEntities'
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { FindRollTable } from '../../lib/rules/mediatorTables'
@@ -64,8 +66,8 @@ export function EncounterScreen({
   findTable,
 }: EncounterScreenProps) {
   const storeState = store()
-  /** null = "All Builds" — same semantics as the dashboard filter. */
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null)
+  /** The current workspace (global, persisted) — always a concrete id. */
+  const activeWorkspaceId = useActiveWorkspaceId()
   /** Whole-group roll result — page state, not persisted (per-NPC rolls are). */
   const [groupResult, setGroupResult] = useState<MediatorRollResult | null>(null)
 
@@ -95,7 +97,7 @@ export function EncounterScreen({
     }
     await storeState.create({
       schemaVersion: 1,
-      ...(activeWorkspaceId !== null ? { workspaceId: activeWorkspaceId } : {}),
+      workspaceId: activeWorkspaceId,
       refSchema: candidate.schema,
       refSlug: candidate.slug,
       refName: candidate.name,
