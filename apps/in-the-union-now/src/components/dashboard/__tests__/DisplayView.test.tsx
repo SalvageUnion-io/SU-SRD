@@ -62,9 +62,39 @@ describe('DisplayView', () => {
       gauges: [],
     }
     const { container } = renderDV(focus, 'definitely-not-a-chassis')
-    expect(container.querySelector('.pc-display-note')?.textContent).toContain(
+    expect(container.querySelector('.pc-entity-fallback')?.textContent).toContain(
       'not in the reference set'
     )
+  })
+
+  test('mech focus → foot carries a "Full mech sheet" link (D5)', () => {
+    const focus: DialItem = {
+      key: 'mech:m1',
+      kind: 'mech',
+      statless: false,
+      label: 'Mech · Rig',
+      tone: 'mech',
+      gauges: [],
+    }
+    const { container } = renderDV(focus)
+    expect(container.querySelector('a[href="/sheet/mech/m1"]')).toBeTruthy()
+  })
+
+  test('crawler focus → foot carries Enter Downtime + a crawler sheet link (D5)', () => {
+    const focus: DialItem = {
+      key: 'crawler:c1',
+      kind: 'crawler',
+      statless: false,
+      label: 'Crawler · Hauler',
+      tone: 'crawler',
+      gauges: [],
+    }
+    const { container } = renderDV(focus)
+    expect(container.querySelector('a[href="/sheet/crawler/c1"]')).toBeTruthy()
+    const downtime = [...container.querySelectorAll('button')].some((b) =>
+      b.textContent?.includes('Enter Downtime')
+    )
+    expect(downtime).toBe(true)
   })
 
   test('Tables focus → a RollTable renders', () => {
