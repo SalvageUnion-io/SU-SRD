@@ -20,31 +20,51 @@ type TagProps = {
  * chip and flips the value box back to ink-on-paper.
  */
 export function Tag({ label, value, pre = false, ghost = false, className }: TagProps) {
-  const valueNode =
-    value != null ? (
-      <b
+  const chipBase = 'font-cond text-[11px] font-semibold uppercase leading-tight tracking-caps-snug'
+  const chipTone = ghost
+    ? 'bg-paper text-ink shadow-[inset_0_0_0_1px_rgba(40,32,25,0.2)]'
+    : 'bg-ink text-paper'
+
+  // Label-only form: a single padded stamp chip.
+  if (value == null) {
+    return (
+      <span
         className={cn(
-          'px-1 font-body font-bold normal-case',
-          ghost ? 'bg-ink text-paper' : 'bg-paper text-ink'
+          'inline-flex items-center rounded-[2px] px-[7px] pb-[1px] pt-[2px]',
+          chipBase,
+          chipTone,
+          className
         )}
       >
-        {value}
-      </b>
-    ) : null
+        {label}
+      </span>
+    )
+  }
 
+  // Value form: two flush segmented sections — each cell holds its own content,
+  // no trailing chip padding after the value (the value cell reaches the edge).
+  const labelCell = <span className="flex items-center px-[7px] pb-[1px] pt-[2px]">{label}</span>
+  const valueCell = (
+    <b
+      className={cn(
+        'flex items-center px-[7px] pb-[1px] pt-[2px] font-body font-bold normal-case',
+        ghost ? 'bg-ink text-paper' : 'bg-paper text-ink'
+      )}
+    >
+      {value}
+    </b>
+  )
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-[2px] px-[7px] pb-[1px] pt-[2px] font-cond text-[11px] font-semibold uppercase leading-tight tracking-caps-snug',
-        ghost
-          ? 'bg-paper text-ink shadow-[inset_0_0_0_1px_rgba(40,32,25,0.2)]'
-          : 'bg-ink text-paper',
+        'inline-flex items-stretch overflow-hidden rounded-[2px]',
+        chipBase,
+        chipTone,
         className
       )}
     >
-      {pre && valueNode}
-      <span>{label}</span>
-      {!pre && valueNode}
+      {pre ? valueCell : labelCell}
+      {pre ? labelCell : valueCell}
     </span>
   )
 }
