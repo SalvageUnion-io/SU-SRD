@@ -13,6 +13,13 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
+    date: '2026-07-13',
+    title: 'Bot Terms & Privacy moved to the Discord page',
+    items: [
+      "The bot's Terms of Service and Privacy Policy links now live at the bottom of the Discord page instead of in the site footer.",
+    ],
+  },
+  {
     date: '2026-07-09',
     title: 'Link to the character builder',
     items: [
