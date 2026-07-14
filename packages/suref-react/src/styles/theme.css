@@ -10,6 +10,17 @@
   --font-body: 'Barlow', system-ui, -apple-system, sans-serif;
   --font-cond: 'Barlow Semi Condensed', 'Barlow', system-ui, -apple-system, sans-serif;
 
+  /* === Caps tracking steps (canonical primitive language §3) ===
+     Promoted up from the ITUN app so BOTH apps (and the shared components they
+     render) resolve the same letter-spacing ladder. `tracking-caps-tight`
+     (0.04em) is the canonical Stamp/label tracking. Slots around Tailwind's
+     built-ins (wide 0.025 / wider 0.05 / widest 0.1). */
+  --tracking-caps-tight: 0.04em;
+  --tracking-caps-snug: 0.06em;
+  --tracking-caps: 0.08em;
+  --tracking-caps-wide: 0.12em;
+  --tracking-eyebrow: 0.22em;
+
   /* === Brand Colors === */
   --color-su-orange: rgb(239, 137, 79);
   --color-su-orange-dark: rgb(168, 82, 34);
@@ -62,18 +73,25 @@
   --color-mech-dark: var(--color-su-green-dark);
   --color-crawler: var(--color-su-pink);
 
-  /* Roll result tiers */
-  --color-roll-cascade: rgb(244, 67, 54);
-  --color-roll-failure: rgb(255, 152, 0);
-  --color-roll-tough: rgb(255, 193, 7);
-  --color-roll-success: rgb(76, 175, 80);
-  --color-roll-nailed: rgb(33, 150, 243);
+  /* Roll result tiers — canonical warm state palette (canonical primitive
+     language §3). Re-toned off the old stock-Material hues so damaged/destroyed
+     state (via the --color-status-* aliases below) and the Discord bot's roll
+     outcomes share ONE warm ramp. Web surfaces never colour roll outcomes —
+     tier colour is a bot-only affordance. */
+  --color-roll-cascade: rgb(176, 67, 43); /* #b0432b */
+  --color-roll-failure: rgb(192, 122, 47); /* #c07a2f */
+  --color-roll-tough: rgb(193, 154, 62); /* #c19a3e */
+  --color-roll-success: rgb(111, 138, 74); /* #6f8a4a */
+  --color-roll-nailed: rgb(75, 134, 160); /* #4b86a0 */
 
   /* === ITUN design-handoff tokens (design-spec §1.1) === */
   /* Ink / paper / action */
   --color-ink: var(--color-su-black);
   --color-ink-2: rgb(70, 61, 49); /* #463d31 secondary ink */
-  --color-paper: var(--color-su-white);
+  /* System white — the canonical reading surface (canonical primitive language
+     §1). NOT pure white and NOT cream: a near-white warm paper. Pure white
+     (--color-su-white) survives only inside stamps + the ValueDisplay value cell. */
+  --color-paper: rgb(251, 250, 247); /* #fbfaf7 */
   --color-rust: var(--color-su-orange-dark); /* THE single action color */
   --color-rust-hi: rgb(138, 64, 25); /* #8a4019 primary hover */
   --color-danger: rgb(154, 70, 51); /* #9a4633 .btn--danger */
@@ -133,6 +151,40 @@
   --bw-rail: 2.5px;
   --bw-pill: 2px;
   --bw-chrome: 1.5px;
+}
+
+/*
+ * === Semantic border-width utilities (canonical primitive language §3) ===
+ *
+ * Promoted up from the ITUN app so every surface (suref-web + ITUN + the shared
+ * components) names border weights by role instead of hardcoding pixels. Only
+ * the NON-native weights get a utility — hairline 1px is native `border`, pill
+ * 2px is native `border-2`; these fill chrome 1.5px / rail 2.5px / entity 3px.
+ * This is the ONE border vocabulary — never `border-[1.5px]`.
+ */
+@utility border-chrome {
+  border-width: var(--bw-chrome);
+}
+@utility border-t-chrome {
+  border-top-width: var(--bw-chrome);
+}
+@utility border-b-chrome {
+  border-bottom-width: var(--bw-chrome);
+}
+@utility border-l-chrome {
+  border-left-width: var(--bw-chrome);
+}
+@utility border-r-chrome {
+  border-right-width: var(--bw-chrome);
+}
+@utility border-rail {
+  border-width: var(--bw-rail);
+}
+@utility border-entity {
+  border-width: var(--bw-entity);
+}
+@utility border-b-entity {
+  border-bottom-width: var(--bw-entity);
 }
 
 /* Per-sheet one-variable theming (design-spec §1.4): each sheet class sets its
