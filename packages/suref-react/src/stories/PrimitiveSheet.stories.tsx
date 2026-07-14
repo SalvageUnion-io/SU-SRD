@@ -116,10 +116,8 @@ export const Sheet: Story = () => (
       {/* 3. Badges */}
       <Group title="Badges">
         <Pill tone="pilot">pilot</Pill>
-        <Pill tone="mech" rounded>
-          mech
-        </Pill>
-        <Chip value={sp}>SP</Chip>
+        <Pill tone="mech">mech</Pill>
+        <Chip>{conditionsForDisplay[0]}</Chip>
         <Tag label={traitName} />
         <StatusBadge status="damaged" />
       </Group>
