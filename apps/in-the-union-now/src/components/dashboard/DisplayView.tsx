@@ -109,7 +109,7 @@ export function DisplayView({ focus, mech, pilot, crawler }: DisplayViewProps) {
       )
     }
     if (focus.key === 'actions') {
-      return <ActionsDeck mech={mech} />
+      return <ActionsDeck mech={mech} pilot={pilot} mount={mount} />
     }
     // The SRD explorer lands in a later phase.
     return (

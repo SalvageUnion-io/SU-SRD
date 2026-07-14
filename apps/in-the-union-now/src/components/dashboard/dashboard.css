@@ -498,6 +498,158 @@
   color: #6c6153;
 }
 
+/* ---- Deck controls bar (D1: timing tabs, grouping, range, source tags) ---- */
+.pc-deck-controls-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.pc-deck-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.pc-deck-tab {
+  padding: 5px 10px;
+  border: 1.5px solid rgba(40, 32, 25, 0.22);
+  border-radius: 4px;
+  background: #fff;
+  color: #6c6153;
+  cursor: pointer;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 12px;
+}
+.pc-deck-tab:hover {
+  border-color: rgba(40, 32, 25, 0.45);
+}
+.pc-deck-tab.is-active {
+  background: #282019;
+  border-color: #282019;
+  color: #f3ede2;
+}
+.pc-deck-toolrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pc-deck-tool {
+  padding: 5px 10px;
+  border: 1.5px solid rgba(40, 32, 25, 0.22);
+  border-radius: 4px;
+  background: #fff;
+  color: #282019;
+  cursor: pointer;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+}
+.pc-deck-tool:hover {
+  border-color: rgba(40, 32, 25, 0.45);
+}
+.pc-deck-range {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pc-deck-range-btn {
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid rgba(40, 32, 25, 0.22);
+  border-radius: 4px;
+  background: #fff;
+  color: #6c6153;
+  cursor: pointer;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+}
+.pc-deck-range-btn.is-active {
+  background: #282019;
+  border-color: #282019;
+  color: #f3ede2;
+}
+.pc-deck-reach {
+  margin-left: 6px;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6c6153;
+  white-space: nowrap;
+}
+.pc-deck-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.pc-deck-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border: 1.5px solid rgba(40, 32, 25, 0.22);
+  border-radius: 999px;
+  background: #fff;
+  color: #282019;
+  cursor: pointer;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  max-width: 100%;
+}
+.pc-deck-source:hover {
+  border-color: rgba(40, 32, 25, 0.45);
+}
+.pc-deck-fam-mech .pc-deck-source.is-active {
+  border-color: var(--pc-mech-deep);
+  box-shadow: inset 0 0 0 1px var(--pc-mech-deep);
+}
+.pc-deck-fam-pilot .pc-deck-source.is-active {
+  border-color: var(--pc-pilot-deep);
+  box-shadow: inset 0 0 0 1px var(--pc-pilot-deep);
+}
+.pc-deck-stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #282019;
+  color: #f3ede2;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+.pc-deck-item-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+.pc-deck-item-meta {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #6c6153;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pc-deck-item.is-locked {
+  opacity: 0.42;
+}
+
 /* ---- Crawler focus → Enter Downtime (light display, Phase 6) ---- */
 .pc-crawler-focus {
   display: flex;
