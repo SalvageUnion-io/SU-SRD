@@ -28,7 +28,7 @@ import {
   Panel,
   Pill,
   Row,
-  StatBlock,
+  StatDisplay,
   VitalGauge,
   heatDangerFrom,
   toast,
@@ -458,8 +458,9 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
               value={Math.min(pilot.currentAP ?? maxAP, maxAP)}
               readOnly
             />
-            <StatBlock
-              code="TP"
+            <StatDisplay
+              dots
+              label="TP"
               name="Training"
               unit="Points"
               value={pilot.trainingPoints ?? 0}
@@ -571,7 +572,7 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
             readOnly
           />
           {states.length > 0 && (
-            <StatBlock code="Bays" name="Condition" unit="Bays" states={states} />
+            <StatDisplay dots label="Bays" name="Condition" unit="Bays" states={states} />
           )}
         </>
       }

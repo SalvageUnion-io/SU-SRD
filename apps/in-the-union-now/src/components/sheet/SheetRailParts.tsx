@@ -9,7 +9,7 @@
  * (redesign gap G10).
  */
 
-import type { PillTone, StatBlockState } from 'suref-react'
+import type { PillTone, StatState } from 'suref-react'
 
 import {
   crawlerMaxSP,
@@ -124,7 +124,7 @@ export function CrawlerRailStats({ crawler }: { crawler: Crawler }) {
 
 /** Bay conditions as StatBlock pip states (Intact/Damaged only, rules C8). */
 // biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
-export function bayStates(crawler: Crawler): StatBlockState[] {
+export function bayStates(crawler: Crawler): StatState[] {
   return (crawler.crawlerBays ?? []).map((bay) => bay.condition ?? 'intact')
 }
 

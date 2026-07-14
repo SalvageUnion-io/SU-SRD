@@ -13,7 +13,7 @@
  * choice (see CrawlerSheet). readOnly renders plain text, no edit affordances.
  */
 
-import { StatBlock } from 'suref-react'
+import { StatDisplay } from 'suref-react'
 
 import { SectionCard } from '../shared/SectionCard'
 import { InlineEditField } from './InlineEditField'
@@ -97,10 +97,11 @@ export function NpcInset({
       bodyClassName="flex flex-wrap items-start gap-[11px]"
     >
       {maxHp > 0 && (
-        <StatBlock
-          code="HP"
+        <StatDisplay
+          dots
+          label="HP"
           size="sm"
-          stat="hp"
+          tone="hp"
           max={maxHp}
           value={hp}
           onChange={editable ? onHpChange : undefined}

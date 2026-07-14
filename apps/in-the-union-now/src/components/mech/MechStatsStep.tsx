@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { NestedChassisAbility, StatBlock, TreeSep } from 'suref-react'
+import { NestedChassisAbility, StatDisplay, TreeSep } from 'suref-react'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 
 type MechStatsStepProps = {
@@ -34,60 +34,67 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
   return (
     <div className="w-full space-y-5">
       <div className="flex flex-wrap gap-4">
-        <StatBlock
-          code="SP"
+        <StatDisplay
+          dots
+          label="SP"
           name="Structure Pts"
-          stat="sp"
+          tone="sp"
           size="sm"
           value={chassis.structurePoints}
           max={chassis.structurePoints}
           editable={false}
         />
-        <StatBlock
-          code="EP"
+        <StatDisplay
+          dots
+          label="EP"
           name="Energy Pts"
-          stat="ep"
+          tone="ep"
           size="sm"
           value={chassis.energyPoints}
           max={chassis.energyPoints}
           editable={false}
         />
-        <StatBlock
-          code="HEAT"
+        <StatDisplay
+          dots
+          label="HEAT"
           name="Heat Cap"
-          stat="heat"
+          tone="heat"
           size="sm"
           value={chassis.heatCapacity}
           max={chassis.heatCapacity}
           editable={false}
         />
-        <StatBlock
-          code="SYS"
+        <StatDisplay
+          dots
+          label="SYS"
           name="System Slots"
           size="sm"
           value={chassis.systemSlots}
           max={chassis.systemSlots}
           editable={false}
         />
-        <StatBlock
-          code="MOD"
+        <StatDisplay
+          dots
+          label="MOD"
           name="Module Slots"
           size="sm"
           value={chassis.moduleSlots}
           max={chassis.moduleSlots}
           editable={false}
         />
-        <StatBlock
-          code="CARGO"
+        <StatDisplay
+          dots
+          label="CARGO"
           name="Cargo Cap"
-          stat="cargo"
+          tone="cargo"
           size="sm"
           value={chassis.cargoCapacity}
           max={chassis.cargoCapacity}
           editable={false}
         />
-        <StatBlock
-          code="SV"
+        <StatDisplay
+          dots
+          label="SV"
           name="Salvage Value"
           size="sm"
           value={chassis.salvageValue}
