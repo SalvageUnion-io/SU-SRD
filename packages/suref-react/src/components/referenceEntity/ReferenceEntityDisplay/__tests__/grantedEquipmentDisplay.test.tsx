@@ -20,6 +20,9 @@ const weaponTypeChoiceId =
   (rifleEquipment
     ? getChoices(rifleEquipment)?.find((c) => c.name === 'Weapon Type')?.id
     : undefined) ?? ''
+// Grants of one ability namespace their selections by grant index (`"{idx}:…"`).
+// Independence of two identical grants is unit-tested in grantSelectionScope.test.ts.
+const grant0 = (choiceId: string) => `0:${choiceId}`
 
 afterEach(() => cleanup())
 
@@ -163,13 +166,14 @@ describe('Custom Sniper Rifle granting ability display', () => {
 
   test('expandGrants: seeded selections on the ability resolve in the nested equipment', () => {
     // ITUN threads the pilot's persisted selections through the granting ability;
-    // they must reach the nested granted-equipment choice cards.
+    // they must reach the nested granted-equipment choice cards. The map is
+    // grant-index namespaced, so a single grant lives under the "0:" prefix.
     render(
       <ReferenceEntityDisplay
         data={rifleAbility}
         compact
         expandGrants
-        selections={{ [weaponTypeChoiceId]: ['Ballistic'] }}
+        selections={{ [grant0(weaponTypeChoiceId)]: ['Ballistic'] }}
         onSelectionChange={() => {}}
       />
     )
@@ -180,7 +184,8 @@ describe('Custom Sniper Rifle granting ability display', () => {
 
   test('expandGrants: toggling a nested granted-equipment choice notifies onSelectionChange', () => {
     // The persistence path: a nested choice toggle bubbles up to the granting
-    // ability's onSelectionChange (ITUN persists it under pilot.abilityChoices).
+    // ability's onSelectionChange (ITUN persists it under pilot.abilityChoices),
+    // re-namespaced under the grant's "0:" prefix.
     let next: ChoiceSelections | undefined
     render(
       <ReferenceEntityDisplay
@@ -195,7 +200,7 @@ describe('Custom Sniper Rifle granting ability display', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: /Ballistic/ }))
     expect(next).toBeDefined()
-    expect(next?.[weaponTypeChoiceId]).toEqual(['Ballistic'])
+    expect(next?.[grant0(weaponTypeChoiceId)]).toEqual(['Ballistic'])
   })
 
   test('does not render an Actions section for the granting ability', () => {

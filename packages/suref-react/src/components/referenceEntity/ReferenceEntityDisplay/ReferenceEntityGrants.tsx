@@ -8,6 +8,7 @@ import { cn } from '../../../utils/cn'
 import type { getReferenceEntitySpacing } from './referenceEntityDisplayTypes'
 import { useDisplaySpacing } from './displayStateContext'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
+import { mergeGrantSelections, scopeGrantSelections } from './grantSelectionScope'
 
 type ReferenceEntityGrantsProps = {
   data: SURefEntity
@@ -19,9 +20,9 @@ type ReferenceEntityGrantsProps = {
    * down from the granting ability's display. When provided (with
    * `onSelectionChange`), the nested granted equipment's choices are controlled +
    * persisted by the consumer (ITUN keys these under the pilot's `abilityChoices`)
-   * rather than the nested card's own ephemeral state. All grants of one ability
-   * share this map (keyed by choiceId) — fine for distinct equipment; two
-   * identical grants (e.g. Mecha Packmaster's paired Companions) would share it.
+   * rather than the nested card's own ephemeral state. The map is namespaced by
+   * grant index (`"{idx}:{choiceId}"`), so two identical grants (e.g. Mecha
+   * Packmaster's paired Companions) each keep independent selections.
    */
   selections?: ChoiceSelections
   /** Next-state callback when a nested granted-entity choice toggles (controlled). */
@@ -74,8 +75,14 @@ export function ReferenceEntityGrants({
             entity={entity}
             parentCompact={!!compact}
             expand={!!expand}
-            selections={selections}
-            onSelectionChange={onSelectionChange}
+            // Each grant instance owns an index-namespaced slice of the selections
+            // so two identical grants (e.g. paired Mecha Companions) stay distinct.
+            selections={selections ? scopeGrantSelections(selections, idx) : undefined}
+            onSelectionChange={
+              onSelectionChange
+                ? (next) => onSelectionChange(mergeGrantSelections(selections, idx, next))
+                : undefined
+            }
             scalingParent={scalingParent}
           />
         ))}
