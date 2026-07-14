@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 
 import { cn } from '../../utils/cn'
-import { pipClickValue } from './pipRows'
+import { pipClickValue, statBlockRowStarts } from './pipRows'
 
 export type VitalGaugeProps = {
   /** Stamp label, e.g. 'HP', 'SP', 'Heat'. */
@@ -236,43 +236,49 @@ export function VitalGauge({
         </span>
       </div>
 
-      {/* Segmented track — one flex row, never wraps */}
-      <div className={cn('flex', isDense ? 'gap-[3px]' : 'gap-1')}>
-        {Array.from({ length: segCount }).map((_, i) => {
-          const on = i < shown
-          const isDanger = on && (i >= max || i >= dangerFrom)
-          const fill = !on
-            ? 'border-[rgba(40,32,25,0.5)] bg-paper'
-            : isDanger
-              ? 'border-status-bad bg-status-bad'
-              : 'border-[var(--tone-deep)] bg-[var(--tone)]'
-          const segClass = cn(
-            'min-h-0 min-w-0 flex-1 border-chrome p-0',
-            isDense ? 'h-[18px] rounded-[2px]' : 'h-[22px] rounded-[3px]',
-            fill
-          )
-          return editable ? (
-            <button
-              // biome-ignore lint/suspicious/noArrayIndexKey: segments are positional — the index IS their identity
-              key={i}
-              type="button"
-              data-pip={on ? 'on' : 'off'}
-              aria-label={`Set ${label} to ${i + 1}`}
-              onClick={() => setValue(pipClickValue(i, shown))}
-              className={cn(
-                segClass,
-                'cursor-pointer transition-transform duration-[120ms] motion-safe:hover:-translate-y-px'
-              )}
-            />
-          ) : (
-            <span
-              // biome-ignore lint/suspicious/noArrayIndexKey: segments are positional — the index IS their identity
-              key={i}
-              data-pip={on ? 'on' : 'off'}
-              className={segClass}
-            />
-          )
-        })}
+      {/* Segmented track — balanced rows, max 5 per row (the pip-row split /
+          "looping chips" rule; shared with the StatDisplay tracker). */}
+      <div className={cn('flex flex-col', isDense ? 'gap-[3px]' : 'gap-1')}>
+        {statBlockRowStarts(segCount, 5).map((segRow) => (
+          <div key={segRow.start} className={cn('flex', isDense ? 'gap-[3px]' : 'gap-1')}>
+            {Array.from({ length: segRow.count }).map((_, c) => {
+              const i = segRow.start + c
+              const on = i < shown
+              const isDanger = on && (i >= max || i >= dangerFrom)
+              const fill = !on
+                ? 'border-[rgba(40,32,25,0.5)] bg-paper'
+                : isDanger
+                  ? 'border-status-bad bg-status-bad'
+                  : 'border-[var(--tone-deep)] bg-[var(--tone)]'
+              const segClass = cn(
+                'min-h-0 min-w-0 flex-1 border-chrome p-0',
+                isDense ? 'h-[18px] rounded-[2px]' : 'h-[22px] rounded-[3px]',
+                fill
+              )
+              return editable ? (
+                <button
+                  // biome-ignore lint/suspicious/noArrayIndexKey: segments are positional — the index IS their identity
+                  key={i}
+                  type="button"
+                  data-pip={on ? 'on' : 'off'}
+                  aria-label={`Set ${label} to ${i + 1}`}
+                  onClick={() => setValue(pipClickValue(i, shown))}
+                  className={cn(
+                    segClass,
+                    'cursor-pointer transition-transform duration-[120ms] motion-safe:hover:-translate-y-px'
+                  )}
+                />
+              ) : (
+                <span
+                  // biome-ignore lint/suspicious/noArrayIndexKey: segments are positional — the index IS their identity
+                  key={i}
+                  data-pip={on ? 'on' : 'off'}
+                  className={segClass}
+                />
+              )
+            })}
+          </div>
+        ))}
       </div>
 
       {/* Caption — right-aligned Current / Max; an override note sits left. */}
