@@ -33,3 +33,23 @@ export function statBlockRowStarts(n: number, perRow = 6): { count: number; star
 export function pipClickValue(index: number, value: number): number {
   return index < value ? index : index + 1
 }
+
+/**
+ * Per-segment fill state for a value/max track — the shared "segmented track"
+ * core used by both StatDisplay's framed tracker (square pips) and VitalGauge
+ * (full-width bars). 'off' = unlit, 'on' = lit, 'danger' = lit but past the cap
+ * (over-capacity) or past the heat redline. `dangerFrom` is the first 0-based
+ * index that reads danger (default Infinity = never). Each surface keeps its own
+ * visual styling; only the state logic + the row split (statBlockRowStarts) are
+ * shared.
+ */
+export type TrackSegmentState = 'off' | 'on' | 'danger'
+export function trackSegmentState(
+  index: number,
+  value: number,
+  max: number,
+  dangerFrom: number = Number.POSITIVE_INFINITY
+): TrackSegmentState {
+  if (index >= value) return 'off'
+  return index >= max || index >= dangerFrom ? 'danger' : 'on'
+}

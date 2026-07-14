@@ -3,7 +3,7 @@ import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
 import { Tooltip } from '../ui/tooltip'
 import { StepBtn } from '../chrome/SmallButtons'
-import { statBlockRowStarts, pipClickValue } from '../stat/pipRows'
+import { statBlockRowStarts, pipClickValue, trackSegmentState } from '../stat/pipRows'
 import { heatDangerFrom, heatLevel } from '../stat/heatLevel'
 
 /**
@@ -497,12 +497,21 @@ function FramedTracker({
                 <div key={r} className="flex justify-center gap-1">
                   {Array.from({ length: count }).map((_, c) => {
                     const i = start + c
-                    const on = i < value
-                    const fill =
-                      on && (i >= (max ?? Infinity) || i >= heatDanger)
-                        ? 'border-status-bad bg-status-bad'
-                        : pipFill
-                    const pipClass = cn(pipBox, on ? fill : 'border-ink bg-transparent')
+                    const state = trackSegmentState(
+                      i,
+                      value,
+                      max ?? Number.POSITIVE_INFINITY,
+                      heatDanger
+                    )
+                    const on = state !== 'off'
+                    const pipClass = cn(
+                      pipBox,
+                      state === 'off'
+                        ? 'border-ink bg-transparent'
+                        : state === 'danger'
+                          ? 'border-status-bad bg-status-bad'
+                          : pipFill
+                    )
                     return isEditable ? (
                       <button
                         key={i}
