@@ -1,8 +1,8 @@
 /**
- * StorageManifest — The Hold cargo panel (design §2.12, plan 4.5/4.7).
+ * StorageManifest — The Hold panel (design §2.12, plan 4.5/4.7).
  *
  * One component, two sides of the mech ⇄ crawler boundary:
- *   - side='mech' (mech sheet): capacity strip (used/cap + cargo pips,
+ *   - side='mech' (mech sheet): capacity strip (used/cap + pips,
  *     over-capacity rendered honestly as red pips — never clamped), cargo
  *     chits (linear list, `CargoChit`) with 'Stow →' (whole-lot, SCRAP
  *     deposits the crawler's TL pool bucket), counterpart = the crawler's
@@ -210,7 +210,6 @@ function CargoTile({ lot, cargo, linked, readOnly }: CargoTileProps) {
         </span>
         <StatDisplay
           orientation="horizontal"
-          variant="framed"
           label={tag.label}
           value={tag.value}
           className="shrink-0"

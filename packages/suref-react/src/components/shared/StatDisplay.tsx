@@ -103,16 +103,6 @@ type StatDisplayProps = {
   textColor?: string
   /** Horizontal anatomy: inline-flex (default) vs flex. */
   inline?: boolean
-  /** Horizontal chip framing: stamp (black/white pair, the default) | framed
-   *  (ink label tab + paper value cell, was MChip) | spec (ink key + value/max,
-   *  was Spec). */
-  variant?: 'stamp' | 'framed' | 'spec'
-  /** Framed value emphasis (was MChip's variant): default | call (bigger,
-   *  nowrap — callsign) | class (muted ink-2). */
-  emphasis?: 'default' | 'call' | 'class'
-  /** Spec recolour to the cargo deep bronze. */
-  cargo?: boolean
-
   labelId?: string
   ariaLabel?: string
   className?: string
@@ -120,80 +110,10 @@ type StatDisplayProps = {
 
 export function StatDisplay(props: StatDisplayProps) {
   if (props.orientation === 'horizontal') {
-    if (props.dots) return <InlineChip {...props} />
-    if (props.variant === 'framed') return <FramedChip {...props} />
-    if (props.variant === 'spec') return <SpecChip {...props} />
-    return <HorizontalValue {...props} />
+    return props.dots ? <InlineChip {...props} /> : <HorizontalValue {...props} />
   }
   if (props.dots || props.states !== undefined) return <FramedTracker {...props} />
   return <ValueBox {...props} />
-}
-
-const FRAMED_VALUE_EMPHASIS: Record<NonNullable<StatDisplayProps['emphasis']>, string> = {
-  default: 'text-[13px] text-ink',
-  call: 'whitespace-nowrap text-base text-ink',
-  class: 'text-[13px] text-ink-2',
-}
-
-/* ------------------------------------------------------------------ *
- * Framed chip — the former MChip. 1.5px ink frame, ink label tab +    *
- * uppercase cond value cell. `emphasis` sizes the value cell.         *
- * ------------------------------------------------------------------ */
-function FramedChip({ label, value, emphasis = 'default', className }: StatDisplayProps) {
-  return (
-    <span
-      className={cn(
-        'inline-flex items-stretch overflow-hidden rounded-[2px] border-chrome border-ink bg-paper',
-        className
-      )}
-    >
-      <span className="flex items-center bg-ink px-1.5 font-cond text-[9.5px] font-bold uppercase leading-none tracking-caps-wide text-paper">
-        {label}
-      </span>
-      <span
-        className={cn(
-          'flex items-center px-[9px] py-[3px] font-cond font-bold uppercase leading-none',
-          FRAMED_VALUE_EMPHASIS[emphasis]
-        )}
-      >
-        {value}
-      </span>
-    </span>
-  )
-}
-
-/* ------------------------------------------------------------------ *
- * Spec chip — the former Spec. Tiny ink key cell + bold value with an *
- * optional `/max`; `cargo` recolours to the cargo deep bronze.        *
- * ------------------------------------------------------------------ */
-function SpecChip({ label, value, max, cargo = false, className }: StatDisplayProps) {
-  return (
-    <span
-      className={cn(
-        'inline-flex items-stretch overflow-hidden rounded-[2px] border-chrome',
-        cargo ? 'border-cargo-deep' : 'border-ink',
-        className
-      )}
-    >
-      <span
-        className={cn(
-          'flex items-center px-1.5 font-cond text-[9px] font-bold uppercase leading-none text-paper',
-          cargo ? 'bg-cargo-deep' : 'bg-ink'
-        )}
-      >
-        {label}
-      </span>
-      <span
-        className={cn(
-          'flex items-baseline gap-0.5 px-1.5 py-0.5 font-body text-sm font-bold leading-none',
-          cargo ? 'text-cargo-deep' : 'text-ink'
-        )}
-      >
-        {value}
-        {max != null && <small className="text-[10px] font-bold text-wk-muted">/{max}</small>}
-      </span>
-    </span>
-  )
 }
 
 /* ------------------------------------------------------------------ *
