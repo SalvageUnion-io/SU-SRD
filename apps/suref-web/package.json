@@ -40,6 +40,7 @@
     "@playwright/test": "1.61.1",
     "@vite-pwa/astro": "1.2.0",
     "playwright": "1.61.1",
-    "sharp": "0.35.3"
+    "sharp": "0.35.3",
+    "typescript": "6.0.3"
   }
 }

@@ -29,7 +29,8 @@
     "puppeteer-core": "25.3.0",
     "sharp": "0.35.3",
     "tailwindcss": "4.3.2",
-    "typescript": "6.0.3"
+    "typescript": "7.0.2",
+    "typescript-classic": "npm:typescript@6.0.3"
   },
   "scripts": {
     "prepare": "[ -z \"$CI\" ] && [ -d .git ] && bunx lefthook install || true",
@@ -87,5 +88,8 @@
     "ladle": "bun --filter suref-react ladle",
     "ladle:web": "bun --filter suref-web ladle",
     "ladle:itun": "bun --filter in-the-union-now ladle"
+  },
+  "patchedDependencies": {
+    "@ladle/react@5.1.1": "patches/@ladle%2Freact@5.1.1.patch"
   }
 }
