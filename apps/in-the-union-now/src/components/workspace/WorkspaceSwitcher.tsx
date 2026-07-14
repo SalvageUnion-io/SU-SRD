@@ -1,14 +1,17 @@
 /**
- * WorkspaceSwitcher — Dashboard header control.
+ * WorkspaceSwitcher — Roster / Encounter header control.
  *
  * Renders a <select> with:
- *   - "All Builds" option (value = "__all__") — shows all unassigned entities
- *   - One option per workspace
+ *   - One option per real workspace
+ *   - A synthetic "Default workspace" option (fallback until the v10 migration's
+ *     record is hydrated) — the current-workspace model always has a current
+ *     workspace, so there is no "All Builds" entry any more
+ *   - A synthetic "Starter Set" option (until it is spawned into this browser)
  *   - "Manage workspaces…" option (value = "__manage__") — opens WorkspaceList modal
  *
  * Props:
- *   activeWorkspaceId — currently selected workspace id, or null for "All Builds"
- *   onSelect          — called when a workspace (or "__all__") is selected
+ *   activeWorkspaceId — currently selected workspace id (always concrete)
+ *   onSelect          — called when a workspace is selected
  *   store             — injectable store slice for testability
  *
  * WorkspaceList modal is managed internally via local state.
@@ -17,6 +20,7 @@
 import { useState } from 'react'
 
 import { useWorkspaceActions, useWorkspaces } from '../../hooks/queries'
+import { DEFAULT_WORKSPACE_ID, DEFAULT_WORKSPACE_NAME } from '../../lib/defaultWorkspace'
 import type { Workspace } from '../../lib/schemas/workspace'
 import { STARTER_WORKSPACE_ID } from '../../lib/starterSet/starterSet'
 import { WorkspaceList } from './WorkspaceList'
@@ -34,8 +38,6 @@ export type WorkspaceSwitcherStore = WorkspaceListStore & {
 // Constants
 // ---------------------------------------------------------------------------
 
-// biome-ignore lint/style/useComponentExportOnlyModules: sentinel option value consumers must compare against, colocated with the switcher by design
-export const ALL_BUILDS_VALUE = '__all__'
 const MANAGE_VALUE = '__manage__'
 
 // ---------------------------------------------------------------------------
@@ -43,8 +45,8 @@ const MANAGE_VALUE = '__manage__'
 // ---------------------------------------------------------------------------
 
 type WorkspaceSwitcherProps = {
-  activeWorkspaceId: string | null
-  onSelect: (workspaceId: string | null) => void
+  activeWorkspaceId: string
+  onSelect: (workspaceId: string) => void
   /** Inject to avoid Zustand global in tests. */
   store?: WorkspaceSwitcherStore
 }
@@ -65,7 +67,7 @@ export function WorkspaceSwitcher({ activeWorkspaceId, onSelect, store }: Worksp
 
   const [manageOpen, setManageOpen] = useState(false)
 
-  const selectValue = activeWorkspaceId ?? ALL_BUILDS_VALUE
+  const selectValue = activeWorkspaceId
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const val = e.target.value
@@ -73,7 +75,7 @@ export function WorkspaceSwitcher({ activeWorkspaceId, onSelect, store }: Worksp
       setManageOpen(true)
       return
     }
-    onSelect(val === ALL_BUILDS_VALUE ? null : val)
+    onSelect(val)
   }
 
   return (
@@ -94,7 +96,13 @@ export function WorkspaceSwitcher({ activeWorkspaceId, onSelect, store }: Worksp
             className="w-[200px] min-h-11 cursor-pointer appearance-none rounded-[3px] border-chrome border-ink bg-paper py-2 pl-3 pr-8 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22] sm:min-h-9"
             aria-label="Select workspace"
           >
-            <option value={ALL_BUILDS_VALUE}>All Builds</option>
+            {/* The built-in Default workspace always exists (created by the v10
+                migration). Surface it synthetically if the migration's record
+                hasn't hydrated into the store yet, so the current selection is
+                never an option-less value. */}
+            {!activeStore.workspaces.some((ws) => ws.id === DEFAULT_WORKSPACE_ID) && (
+              <option value={DEFAULT_WORKSPACE_ID}>{DEFAULT_WORKSPACE_NAME}</option>
+            )}
             {activeStore.workspaces.map((ws) => (
               <option key={ws.id} value={ws.id}>
                 {ws.name}

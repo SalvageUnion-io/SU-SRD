@@ -14,16 +14,19 @@
  * accessors for one-shot reads or derive-at-call-time patterns.
  *
  * Delete workspace semantics (plan 2.7, gap 9): deleting a workspace CASCADES
- * — every member entity's `workspaceId` is cleared first, so members return
- * to the unassigned pool instead of becoming invisible (assigned to a
- * workspace that no longer exists). As a second line of defence,
- * listUnassigned() also treats entities whose workspaceId points at an
- * unknown workspace as unassigned (records written before the cascade
- * existed, or imported from another browser).
+ * — every member entity is REASSIGNED to the built-in Default workspace first,
+ * so members stay visible instead of vanishing. (Before the mandatory
+ * current-workspace model this cleared `workspaceId` to return members to an
+ * "unassigned pool"; there is no such pool now — there is no cross-workspace
+ * "All Builds" view — so an unassigned build would be invisible. Reassigning to
+ * Default keeps it reachable.) The Default workspace itself cannot be deleted
+ * (guarded in the UI). listUnassigned() still treats entities whose workspaceId
+ * points at an unknown workspace as unassigned, as a salvage fallback.
  */
 
 import { create } from 'zustand'
 
+import { DEFAULT_WORKSPACE_ID } from '../lib/defaultWorkspace'
 import * as db from '../lib/db/index'
 import { STORE_NAMES } from '../lib/db/stores'
 import type { Workspace } from '../lib/schemas/workspace'
@@ -49,8 +52,8 @@ type WorkspaceState = HydratedCollectionSlice<'workspaces', Workspace> &
     rename: (id: string, name: string) => Promise<Workspace>
 
     /**
-     * Deletes the workspace record AND clears workspaceId on every member
-     * entity (cascade) so members return to the unassigned pool.
+     * Deletes the workspace record AND reassigns every member entity to the
+     * built-in Default workspace (cascade) so members stay visible.
      */
     delete: (id: string) => Promise<void>
 
@@ -103,8 +106,15 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
     },
 
     async delete(id) {
-      // Cascade FIRST: clear workspaceId on every member so nothing is left
-      // pointing at a workspace that no longer exists (plan 2.7, gap 9).
+      // The built-in Default workspace is the cascade target and the mandatory
+      // fallback — it must never be deleted (the UI also guards this).
+      if (id === DEFAULT_WORKSPACE_ID) {
+        throw new Error('The Default workspace cannot be deleted.')
+      }
+      // Cascade FIRST: reassign every member to the Default workspace so nothing
+      // is left pointing at a workspace that no longer exists — and nothing
+      // becomes invisible now that there is no cross-workspace view (plan 2.7,
+      // gap 9; mandatory current-workspace model).
       const entityStore = useEntityStore.getState()
       for (const type of ASSIGNABLE_TYPES) {
         await entityStore.hydrate(type)
@@ -115,7 +125,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
         ).filter((e) => e.workspaceId === id)
         for (const member of members) {
           await entityStore.update(type, member.id, {
-            workspaceId: undefined,
+            workspaceId: DEFAULT_WORKSPACE_ID,
           } as Partial<EntityForType<typeof type>>)
         }
       }

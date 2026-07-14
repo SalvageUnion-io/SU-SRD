@@ -8,6 +8,7 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 
+import { DEFAULT_WORKSPACE_ID } from '../../lib/defaultWorkspace'
 import { _clearAllStores, _resetDbSingleton } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
 import { useWorkspaceStore } from '../workspaceStore'
@@ -100,7 +101,7 @@ describe('workspaceStore — delete', () => {
     expect(fetched).toBeNull()
   })
 
-  test('delete workspace CASCADES — members return to the unassigned pool (plan 2.7)', async () => {
+  test('delete workspace CASCADES — members reassign to the Default workspace', async () => {
     // Create workspace and assign a pilot
     const ws = await useWorkspaceStore.getState().create({ name: 'Campaign' })
     await useEntityStore.getState().hydrate('pilot')
@@ -114,14 +115,25 @@ describe('workspaceStore — delete', () => {
     // Delete workspace
     await useWorkspaceStore.getState().delete(ws.id)
 
-    // Entity still exists but its workspaceId was cleared by the cascade
+    // Entity still exists and was reassigned to the Default workspace by the
+    // cascade — mandatory current-workspace model has no "unassigned pool".
     const member = useEntityStore.getState().get('pilot', pilot.id)
     expect(member).not.toBeNull()
-    expect(member?.workspaceId).toBeUndefined()
+    expect(member?.workspaceId).toBe(DEFAULT_WORKSPACE_ID)
 
-    // It returns to the unassigned pool — never invisible
-    const unassigned = useWorkspaceStore.getState().listUnassigned('pilot')
-    expect(unassigned.find((p) => p.id === pilot.id)).toBeDefined()
+    // It now shows under the Default workspace — never invisible.
+    const inDefault = useWorkspaceStore.getState().listForWorkspace(DEFAULT_WORKSPACE_ID, 'pilot')
+    expect(inDefault.find((p) => p.id === pilot.id)).toBeDefined()
+  })
+
+  test('the Default workspace cannot be deleted', async () => {
+    let message = ''
+    try {
+      await useWorkspaceStore.getState().delete(DEFAULT_WORKSPACE_ID)
+    } catch (err) {
+      message = err instanceof Error ? err.message : String(err)
+    }
+    expect(message).toMatch(/cannot be deleted/i)
   })
 
   test('listUnassigned treats an unknown workspaceId as unassigned (dashboard fallback)', async () => {

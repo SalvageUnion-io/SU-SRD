@@ -8,9 +8,10 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 
+import { DEFAULT_WORKSPACE_ID } from '../../../lib/defaultWorkspace'
 import type { Workspace } from '../../../lib/schemas/workspace'
 import type { WorkspaceSwitcherStore } from '../WorkspaceSwitcher'
-import { WorkspaceSwitcher, ALL_BUILDS_VALUE } from '../WorkspaceSwitcher'
+import { WorkspaceSwitcher } from '../WorkspaceSwitcher'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -42,14 +43,29 @@ function makeStore(workspaces: Workspace[] = []): WorkspaceSwitcherStore {
 
 describe('WorkspaceSwitcher — render', () => {
   test('renders the workspace select', () => {
-    render(<WorkspaceSwitcher activeWorkspaceId={null} onSelect={() => {}} store={makeStore()} />)
+    render(
+      <WorkspaceSwitcher
+        activeWorkspaceId={DEFAULT_WORKSPACE_ID}
+        onSelect={() => {}}
+        store={makeStore()}
+      />
+    )
     expect(screen.getByRole('combobox', { name: /select workspace/i })).toBeTruthy()
   })
 
-  test('"All Builds" is the default option when activeWorkspaceId is null', () => {
-    render(<WorkspaceSwitcher activeWorkspaceId={null} onSelect={() => {}} store={makeStore()} />)
+  test('there is no "All Builds" option — a synthetic Default workspace is offered instead', () => {
+    render(
+      <WorkspaceSwitcher
+        activeWorkspaceId={DEFAULT_WORKSPACE_ID}
+        onSelect={() => {}}
+        store={makeStore()}
+      />
+    )
+    expect(screen.queryByRole('option', { name: /all builds/i })).toBeNull()
     const select = screen.getByRole('combobox') as HTMLSelectElement
-    expect(select.value).toBe(ALL_BUILDS_VALUE)
+    // Falls back to the synthetic Default option when the store has no record yet.
+    expect(select.value).toBe(DEFAULT_WORKSPACE_ID)
+    expect(screen.getByRole('option', { name: /default workspace/i })).toBeTruthy()
   })
 
   test('workspace options are rendered', () => {
@@ -57,7 +73,7 @@ describe('WorkspaceSwitcher — render', () => {
     const ws2 = makeWorkspace('ws-2', 'Beta')
     render(
       <WorkspaceSwitcher
-        activeWorkspaceId={null}
+        activeWorkspaceId="ws-1"
         onSelect={() => {}}
         store={makeStore([ws1, ws2])}
       />
@@ -79,11 +95,15 @@ describe('WorkspaceSwitcher — render', () => {
 describe('WorkspaceSwitcher — selection', () => {
   test('selecting a workspace calls onSelect with that workspace id', async () => {
     const ws = makeWorkspace('ws-1', 'Campaign')
-    const onSelect = mock((id: string | null) => {
+    const onSelect = mock((id: string) => {
       void id
     })
     render(
-      <WorkspaceSwitcher activeWorkspaceId={null} onSelect={onSelect} store={makeStore([ws])} />
+      <WorkspaceSwitcher
+        activeWorkspaceId={DEFAULT_WORKSPACE_ID}
+        onSelect={onSelect}
+        store={makeStore([ws])}
+      />
     )
 
     await act(async () => {
@@ -94,25 +114,14 @@ describe('WorkspaceSwitcher — selection', () => {
     expect(onSelect.mock.calls[0]?.[0]).toBe('ws-1')
   })
 
-  test('selecting "All Builds" calls onSelect with null', async () => {
-    const ws = makeWorkspace('ws-1', 'Campaign')
-    const onSelect = mock((id: string | null) => {
-      void id
-    })
-    render(
-      <WorkspaceSwitcher activeWorkspaceId="ws-1" onSelect={onSelect} store={makeStore([ws])} />
-    )
-
-    await act(async () => {
-      fireEvent.change(screen.getByRole('combobox'), { target: { value: ALL_BUILDS_VALUE } })
-    })
-
-    expect(onSelect).toHaveBeenCalledTimes(1)
-    expect(onSelect.mock.calls[0]?.[0]).toBeNull()
-  })
-
   test('selecting "Manage workspaces…" opens WorkspaceList modal', async () => {
-    render(<WorkspaceSwitcher activeWorkspaceId={null} onSelect={() => {}} store={makeStore()} />)
+    render(
+      <WorkspaceSwitcher
+        activeWorkspaceId={DEFAULT_WORKSPACE_ID}
+        onSelect={() => {}}
+        store={makeStore()}
+      />
+    )
 
     await act(async () => {
       fireEvent.change(screen.getByRole('combobox'), { target: { value: '__manage__' } })
@@ -122,10 +131,16 @@ describe('WorkspaceSwitcher — selection', () => {
   })
 
   test('selecting "Manage workspaces…" does not call onSelect', async () => {
-    const onSelect = mock((id: string | null) => {
+    const onSelect = mock((id: string) => {
       void id
     })
-    render(<WorkspaceSwitcher activeWorkspaceId={null} onSelect={onSelect} store={makeStore()} />)
+    render(
+      <WorkspaceSwitcher
+        activeWorkspaceId={DEFAULT_WORKSPACE_ID}
+        onSelect={onSelect}
+        store={makeStore()}
+      />
+    )
 
     await act(async () => {
       fireEvent.change(screen.getByRole('combobox'), { target: { value: '__manage__' } })

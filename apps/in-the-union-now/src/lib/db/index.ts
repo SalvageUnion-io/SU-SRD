@@ -47,9 +47,13 @@ import { STORE_NAMES } from './stores'
  * replaced by on-demand seeding in lib/starterSet/seedStarterSet.ts. v8 heals
  * Battle crawlers whose maxSpModifier hand-carried the type's +5 — the bonus
  * is now derived at read from the type's mutations. v9 creates the append-only
- * `changeLog` (provenance) store — creation only, no record rewrite; ADR-022.)
+ * `changeLog` (provenance) store — creation only, no record rewrite; ADR-022.
+ * v10 creates the mandatory built-in Default workspace and backfills every
+ * unassigned pilot/mech/crawler/encounterNpc into it — the current-workspace
+ * model replaces the old cross-workspace "All Builds" view; see
+ * lib/defaultWorkspace.ts.)
  */
-export const DB_VERSION = 9
+export const DB_VERSION = 10
 
 const DB_NAME = 'itun-v1'
 
