@@ -10,7 +10,7 @@
  * `PilotSheet` as `linkedUnits`.
  */
 
-import { Pill, StatBlock } from 'suref-react'
+import { Pill, StatDisplay } from 'suref-react'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
@@ -102,8 +102,9 @@ export function SheetPilot({
           roleLabel="Home Crawler"
           message="No crawler linked. Set the crawler level by hand until your union home is wired in."
           mock={
-            <StatBlock
-              code="CRAWLER"
+            <StatDisplay
+              dots
+              label="CRAWLER"
               name="Level"
               unit="Tech Level"
               max={6}

@@ -15,7 +15,7 @@
  */
 
 import type { ReactNode, Ref } from 'react'
-import { StatBlock } from 'suref-react'
+import { StatDisplay } from 'suref-react'
 
 import { cn } from '../../lib/utils'
 
@@ -183,9 +183,10 @@ export function ChassisStats({ items, className }: ChassisStatsProps) {
     <div className={cn('flex flex-wrap items-start gap-2', className)}>
       {items.map((item) => {
         const block = (
-          <StatBlock
+          <StatDisplay
+            dots
             key={item.code}
-            code={item.code}
+            label={item.code}
             name={item.name}
             unit={item.unit}
             size="sm"

@@ -1,4 +1,4 @@
-import { StatBlock } from 'suref-react'
+import { StatDisplay } from 'suref-react'
 import {
   PILOT_BASE_AP,
   PILOT_BASE_HP,
@@ -15,26 +15,29 @@ import {
 export function StatsStep() {
   return (
     <div className="flex flex-wrap gap-4">
-      <StatBlock
-        code="HP"
+      <StatDisplay
+        dots
+        label="HP"
         name="Hit Points"
-        stat="hp"
+        tone="hp"
         size="sm"
         value={PILOT_BASE_HP}
         max={PILOT_BASE_HP}
         editable={false}
       />
-      <StatBlock
-        code="AP"
+      <StatDisplay
+        dots
+        label="AP"
         name="Ability Points"
-        stat="ap"
+        tone="ap"
         size="sm"
         value={PILOT_BASE_AP}
         max={PILOT_BASE_AP}
         editable={false}
       />
-      <StatBlock
-        code="INV"
+      <StatDisplay
+        dots
+        label="INV"
         name="Inventory Slots"
         size="sm"
         value={PILOT_BASE_INVENTORY_SLOTS}

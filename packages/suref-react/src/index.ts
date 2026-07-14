@@ -141,8 +141,6 @@ export type { ChangelogEntry } from './changelog/parseChangelog'
 export { ChangelogView } from './changelog/ChangelogView'
 
 // Stat trackers (ITUN design handoff — design-spec §2.7)
-export { StatBlock } from './components/stat/StatBlock'
-export type { StatBlockTone, StatBlockState } from './components/stat/StatBlock'
 export { VitalGauge } from './components/stat/VitalGauge'
 export type { VitalGaugeProps } from './components/stat/VitalGauge'
 export { statBlockRows, statBlockRowStarts, pipClickValue } from './components/stat/pipRows'

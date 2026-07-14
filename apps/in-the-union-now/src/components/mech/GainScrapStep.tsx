@@ -1,4 +1,4 @@
-import { StatBlock } from 'suref-react'
+import { StatDisplay } from 'suref-react'
 import { MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 
 /**
@@ -10,8 +10,9 @@ import { MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 export function GainScrapStep() {
   return (
     <div className="flex flex-wrap items-start gap-4">
-      <StatBlock
-        code="SCRAP"
+      <StatDisplay
+        dots
+        label="SCRAP"
         name="Tech 1 Scrap"
         unit="Starting budget"
         size="sm"
