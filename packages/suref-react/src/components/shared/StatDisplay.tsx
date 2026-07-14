@@ -191,19 +191,18 @@ function InlineChip({ label, value, max, tone = 'default', className }: StatDisp
         isOver ? ' — over capacity' : ''
       }`}
       data-heat={level !== 'normal' ? level : undefined}
-      className={cn('inline-flex flex-col items-center', className)}
+      className={cn(
+        'inline-flex w-fit items-stretch whitespace-nowrap border',
+        level === 'critical' ? 'border-status-bad motion-safe:animate-heat-pulse' : 'border-ink',
+        className
+      )}
     >
-      {/* Ink stamp label riding the chip's top border (StampSeam), like the box. */}
-      <span className="z-[1] -mb-2 bg-ink px-1.5 py-0.5 font-cond text-[10px] font-bold uppercase leading-none tracking-caps-tight text-su-white">
+      {/* Ink stamp label cell — the [RANGE | CLOSE] horizontal split-stat style. */}
+      <span className="flex items-center bg-ink px-1.5 font-cond text-[10px] font-bold uppercase leading-none tracking-caps-tight text-su-white">
         {label}
       </span>
-      {/* Bordered value chip: pips + value. */}
-      <span
-        className={cn(
-          'flex items-center gap-1.5 rounded-[2px] border-chrome bg-paper px-2 pb-1 pt-2.5',
-          level === 'critical' ? 'border-status-bad motion-safe:animate-heat-pulse' : 'border-ink'
-        )}
-      >
+      {/* White value cell — the pip-chips + value live in the white "close" section. */}
+      <span className="flex items-center gap-1.5 bg-su-white px-1.5 py-0.5">
         {showPips && (
           <span className="flex items-center gap-[3px]" aria-hidden="true">
             {Array.from({ length: total }).map((_, i) => (
