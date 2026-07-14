@@ -1,7 +1,7 @@
 import { SalvageUnionReference, EntitySchemaNames } from 'salvageunion-reference'
 import type { SURefEnumSchemaName, EntitySchemaName } from 'salvageunion-reference'
 import { ReferenceEntityDisplayTooltip } from './ReferenceEntityDisplayTooltip'
-import { ValueDisplay } from '../shared/ValueDisplay'
+import { StatDisplay } from '../shared/StatDisplay'
 import { useMemo } from 'react'
 
 /**
@@ -34,12 +34,26 @@ export function TraitKeywordDisplayView({
   const id = entity?.id
 
   if (!id) {
-    return <ValueDisplay label={label} value={value} compact={compact} inline={inline} />
+    return (
+      <StatDisplay
+        orientation="horizontal"
+        label={label}
+        value={value}
+        compact={compact}
+        inline={inline}
+      />
+    )
   }
 
   return (
     <ReferenceEntityDisplayTooltip schemaName={schemaName} entityId={id} openDelay={300}>
-      <ValueDisplay label={label} value={value} compact={compact} inline={inline} />
+      <StatDisplay
+        orientation="horizontal"
+        label={label}
+        value={value}
+        compact={compact}
+        inline={inline}
+      />
     </ReferenceEntityDisplayTooltip>
   )
 }

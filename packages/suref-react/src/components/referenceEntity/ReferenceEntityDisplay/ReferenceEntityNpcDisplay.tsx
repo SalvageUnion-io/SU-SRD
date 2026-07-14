@@ -4,7 +4,6 @@ import type { SURefMetaEntity } from 'salvageunion-reference'
 import { DisplayCard } from '../../shared/DisplayCard'
 import { CardHeader } from '../../shared/CardHeader'
 import { StatDisplay } from '../../shared/StatDisplay'
-import { ValueDisplay } from '../../shared/ValueDisplay'
 import type { StatItem } from '../../shared/statsBarTypes'
 import { BlockContentRendererView } from '../BlockContentRendererView'
 import { borderColorFromHeaderBg } from '../referenceEntityHelpers'
@@ -105,7 +104,13 @@ export function ReferenceEntityNpcDisplay({
                 </div>
               )}
               {npc.position && (
-                <ValueDisplay label="The" value={npc.position} compact={compact} inverse />
+                <StatDisplay
+                  orientation="horizontal"
+                  label="The"
+                  value={npc.position}
+                  compact={compact}
+                  inverse
+                />
               )}
             </div>
             {npc.hitPoints > 0 && (
@@ -153,7 +158,7 @@ export function ReferenceEntityNpcDisplay({
       title={titleContent}
       subtitle={
         hasName && npc.position ? (
-          <ValueDisplay label="The" value={npc.position} compact inverse />
+          <StatDisplay orientation="horizontal" label="The" value={npc.position} compact inverse />
         ) : undefined
       }
       rightContent={npc.hitPoints > 0 && hpSlot ? hpSlot : undefined}

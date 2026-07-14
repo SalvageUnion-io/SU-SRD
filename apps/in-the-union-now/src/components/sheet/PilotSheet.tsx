@@ -36,7 +36,7 @@ import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility } from 'salvageunion-reference'
-import { Panel, StepBtn, ValueDisplay, VitalGauge } from 'suref-react'
+import { Panel, StatDisplay, StepBtn, VitalGauge } from 'suref-react'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
@@ -420,7 +420,14 @@ export function PilotSheet({
       {/* ===== R2: Abilities (full width) ===== */}
       <SheetSectionCard
         title="Abilities"
-        count={<ValueDisplay compact label="Known" value={pilot.abilities.length} />}
+        count={
+          <StatDisplay
+            orientation="horizontal"
+            compact
+            label="Known"
+            value={pilot.abilities.length}
+          />
+        }
         controls={
           readOnly ? undefined : (
             <SectionAddButton label="ability" onClick={() => setPicker('abilities')} />
