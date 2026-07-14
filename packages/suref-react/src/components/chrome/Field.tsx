@@ -19,8 +19,9 @@ type FieldProps = {
 export function Field({ label, required = false, htmlFor, children, className }: FieldProps) {
   return (
     <div className={cn('block', className)}>
-      <label htmlFor={htmlFor} className="mb-1.5 flex w-fit items-center gap-1">
-        {/* The field label IS the ink Stamp (canonical label atom). */}
+      {/* The field label IS the ink Stamp, riding the input's top border
+          (StampSeam) — the same seam the square statblock box uses. */}
+      <label htmlFor={htmlFor} className="relative z-10 -mb-2 ml-2 flex w-fit items-center gap-1">
         <Text variant="pseudoheader" as="span" className="text-[11px]">
           {label}
         </Text>
