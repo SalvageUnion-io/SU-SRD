@@ -22,12 +22,13 @@
  * Fidelity notes — the workbook mixes canonical SRD content with home-brew.
  * Best-effort mapping (canonical refs where a name resolves; free-text notes in
  * `description` / `quirk` / `appearance` / NPC descriptions otherwise):
- *   - Four "mechs" are ability-granted drones/companions whose "chassis" is not
- *     in the SRD Chassis dataset (Survey Drone → Custos & PR-1, Mecha Companion
- *     → Incitatus, Auto-Turret → Rek Jet). Their `chassisRef` is stored as the
- *     drone/companion slug and renders by name only; derived SP/EP/Heat fall to
- *     0 (their Systems/Modules still resolve and render). The seed test asserts
- *     chassis resolution only for the six standard-chassis mechs.
+ *   - Four companions are ability-granted equipment, NOT mechs (Survey Drone →
+ *     Custos & PR-1, Mecha Companion → Incitatus, Auto-Turret → Rek Jet). They
+ *     live on their owning pilot: the drone-equipment slug in `equipment[]`, its
+ *     Name/Appearance/A.I.-Personality in `equipmentChoices`, and its installed
+ *     systems/modules in `equipmentLoadouts` (ADR-023). The equipment carries its
+ *     own SP/EP/slots, so it renders as a proper stat card with an editable
+ *     loadout — no "unknown chassis" artifact.
  *   - The crawlers' home-brew Library / Bar bays are not SRD bays (only the ten
  *     canonical bays exist), so that crew is folded into the crawler
  *     `description` rather than a `crawlerBays[]` entry.
@@ -103,7 +104,17 @@ function pilot(
     | 'appearance'
     | 'background'
   > &
-    Partial<Pick<Pilot, 'description' | 'maxHpModifier' | 'maxApModifier' | 'trainingPoints'>>
+    Partial<
+      Pick<
+        Pilot,
+        | 'description'
+        | 'maxHpModifier'
+        | 'maxApModifier'
+        | 'trainingPoints'
+        | 'equipmentChoices'
+        | 'equipmentLoadouts'
+      >
+    >
 ): Pilot {
   return {
     schemaVersion: 1,
@@ -122,6 +133,15 @@ const PILOT_GERSIN = 'eldridge-pilot-gersin'
 const PILOT_ROACH_BOY = 'eldridge-pilot-roach-boy'
 const PILOT_LESTER = 'eldridge-pilot-lester'
 
+// Drone/companion equipment choice ids (from each granting equipment's SRD
+// `choices`) — used to seed the companion's Name / Appearance / A.I. Personality
+// via the pilot's equipmentChoices, alongside the equipmentLoadouts below.
+const SURVEY_DRONE_NAME = '0b31fd03-df8b-485b-9a1e-d048496e89b7'
+const MECHA_COMPANION_NAME = 'c0d1e2f3-a4b5-4c6d-9e0f-1a2b3c4d5e6f'
+const MECHA_COMPANION_APPEARANCE = 'a901dcdc-8c95-4bea-90ee-3c02cd695d93'
+const AUTO_TURRET_NAME = 'b9c0d1e2-f3a4-4b5c-9d0e-1f2a3b4c5d6e'
+const AUTO_TURRET_AI = 'b1dae587-1448-41df-9194-97d5dd3a23d8'
+
 export const ELDRIDGE_PILOTS: readonly Pilot[] = [
   pilot({
     id: PILOT_CALIGULA,
@@ -139,7 +159,38 @@ export const ELDRIDGE_PILOTS: readonly Pilot[] = [
       'snipe',
       'infiltration',
     ],
-    equipment: ['remote-mine', 'portable-comms-unit', 'holofoil-tent', 'handheld-epoxy-canister'],
+    equipment: [
+      'remote-mine',
+      'portable-comms-unit',
+      'holofoil-tent',
+      'handheld-epoxy-canister',
+      // Ability-granted companions (Survey Drone → Custos, Mecha Companion →
+      // Incitatus), each with its installed loadout below.
+      'survey-drone',
+      'mecha-companion',
+    ],
+    equipmentChoices: {
+      'survey-drone': { [SURVEY_DRONE_NAME]: ['Custos'] },
+      'mecha-companion': {
+        [MECHA_COMPANION_NAME]: ['Incitatus'],
+        [MECHA_COMPANION_APPEARANCE]: ['Industrial and utilitarian.'],
+      },
+    },
+    equipmentLoadouts: {
+      'survey-drone': {
+        systems: ['nanofibre-net-launcher', '50-cal-machine-gun'],
+        modules: ['hacking-repeater-node', 'damage-assessor', 'comms-module'],
+      },
+      'mecha-companion': {
+        systems: [
+          'locomotion-system',
+          'long-barrelled-green-laser',
+          'composite-armour',
+          'tracking-node',
+        ],
+        modules: ['comms-module', 'navigation-module'],
+      },
+    },
     motto: 'Feel the fear and do it anyway.',
     keepsake: 'Butterfly Earrings',
     appearance: 'Gaunt, all hair buzzed with the shortest clippers. He/him, age 34.',
@@ -148,7 +199,7 @@ export const ELDRIDGE_PILOTS: readonly Pilot[] = [
     maxApModifier: 2,
     trainingPoints: 2,
     description:
-      'Scout who advanced into the Ranger tree. Custom Sniper Rifle (Tech 3): Energy, 5 SP, Range Long, Silent; Mods: High Caliber, Compact, Silenced. Fields a Mecha Companion (Incitatus) and a Survey Drone.',
+      'Scout who advanced into the Ranger tree. Custom Sniper Rifle (Tech 3): Energy, 5 SP, Range Long, Silent; Mods: High Caliber, Compact, Silenced. Fields a Mecha Companion (Incitatus) and a Survey Drone (Custos).',
   }),
   pilot({
     id: PILOT_NELL,
@@ -237,7 +288,18 @@ export const ELDRIDGE_PILOTS: readonly Pilot[] = [
       'portable-comms-unit',
       'holofoil-tent',
       'hazard-protection-suit',
+      // Ability-granted Survey Drone → PR-1, with its loadout below.
+      'survey-drone',
     ],
+    equipmentChoices: {
+      'survey-drone': { [SURVEY_DRONE_NAME]: ['PR-1'] },
+    },
+    equipmentLoadouts: {
+      'survey-drone': {
+        systems: ['hydraulic-crusher'],
+        modules: ['hull-magnetiser', 'self-destruct', 'survey-scanner'],
+      },
+    },
     motto: "It's worth a shot.",
     keepsake: 'Tatterfolk family photo',
     appearance: 'Wiry. They/them, age 38.',
@@ -268,7 +330,27 @@ export const ELDRIDGE_PILOTS: readonly Pilot[] = [
       'high-tensile-wire',
       'tranquiliser-rifle',
       'green-laser-rifle',
+      // Ability-granted Auto-Turret → Rek Jet, with its loadout below.
+      'auto-turret',
     ],
+    equipmentChoices: {
+      'auto-turret': {
+        [AUTO_TURRET_NAME]: ['Rek Jet'],
+        [AUTO_TURRET_AI]: ['Changes personality frequently'],
+      },
+    },
+    equipmentLoadouts: {
+      'auto-turret': {
+        systems: [
+          'red-laser',
+          'locomotion-system',
+          'nanofibre-net-launcher',
+          'composite-armour',
+          'welding-laser',
+        ],
+        modules: ['comms-module'],
+      },
+    },
     motto: 'It is not a bug, it is a feature.',
     keepsake: 'Roach Squad Pin',
     appearance: 'Small and Dirty. He/him.',
@@ -317,10 +399,9 @@ export const ELDRIDGE_PILOTS: readonly Pilot[] = [
 
 // ---------------------------------------------------------------------------
 // Mechs — the tab name is the pattern name (a chassis + systems + modules
-// combination). Six use standard SRD chassis; four are ability-granted
-// drones/companions whose "chassis" is not in the SRD Chassis dataset (see the
-// file-header fidelity notes) — their SP/EP/Heat derive to 0 but their
-// Systems/Modules still resolve.
+// combination). All six use standard SRD chassis. The four ability-granted
+// companions (Survey Drone / Mecha Companion / Auto-Turret) are NOT here — they
+// live on their owning pilot as equipment with a loadout (see the header notes).
 // ---------------------------------------------------------------------------
 
 /** Build a mech record with the shared, always-present defaults. */
@@ -340,13 +421,9 @@ function mech(
 }
 
 const MECH_GOAT = 'eldridge-mech-goat'
-const MECH_CUSTOS = 'eldridge-mech-custos'
 const MECH_DAMNATIO = 'eldridge-mech-damnatio-memoriae'
-const MECH_INCITATUS = 'eldridge-mech-incitatus'
 const MECH_NEW_DUKE = 'eldridge-mech-new-duke'
 const MECH_PEEKABOO = 'eldridge-mech-peekaboo'
-const MECH_PR1 = 'eldridge-mech-pr-1'
-const MECH_REK_JET = 'eldridge-mech-rek-jet'
 const MECH_RUST_BUCKET = 'eldridge-mech-rust-bucket'
 const MECH_SOB = 'eldridge-mech-son-of-beanstalk'
 
@@ -371,17 +448,6 @@ export const ELDRIDGE_MECHS: readonly Mech[] = [
       'Overgrown with plants and vines. Cargo: melee armament, ejection system, "Panda sneeze".',
   }),
   mech({
-    id: MECH_CUSTOS,
-    name: 'Custos',
-    chassisRef: 'survey-drone',
-    patternName: 'Custos',
-    systems: ['nanofibre-net-launcher', '50-cal-machine-gun'],
-    modules: ['hacking-repeater-node', 'damage-assessor', 'comms-module'],
-    quirk: 'Occasionally sparks electricity.',
-    appearance:
-      "'Steampunk', whirring gears, bronze parts. A Tech 4 Survey Drone with an Integrated Hover Locomotion System.",
-  }),
-  mech({
     id: MECH_DAMNATIO,
     name: 'Damnatio Memoriae',
     chassisRef: 'solo',
@@ -391,21 +457,6 @@ export const ELDRIDGE_MECHS: readonly Mech[] = [
     quirk: 'Unusual cockpit location.',
     appearance:
       "Covered in camo and foliage. The main gun cuts through the cockpit, only slightly to the right of the pilot's headrest.",
-  }),
-  mech({
-    id: MECH_INCITATUS,
-    name: 'Incitatus',
-    chassisRef: 'mecha-companion',
-    patternName: 'Incitatus',
-    systems: [
-      'locomotion-system',
-      'long-barrelled-green-laser',
-      'composite-armour',
-      'tracking-node',
-    ],
-    modules: ['comms-module', 'navigation-module'],
-    quirk: 'Secretly emits radio waves.',
-    appearance: "Industrial and utilitarian. Caligula's Mecha Companion (Tech 4).",
   }),
   mech({
     id: MECH_NEW_DUKE,
@@ -435,33 +486,6 @@ export const ELDRIDGE_MECHS: readonly Mech[] = [
     modules: ['zoom-optics', 'comms-module', 'firewall', 'ecm-transmitter'],
     quirk: 'Exterior fluctuates in colour.',
     appearance: 'Industrial and utilitarian.',
-  }),
-  mech({
-    id: MECH_PR1,
-    name: 'PR-1',
-    chassisRef: 'survey-drone',
-    patternName: 'PR-1',
-    systems: ['hydraulic-crusher'],
-    modules: ['hull-magnetiser', 'self-destruct', 'survey-scanner'],
-    quirk: 'Exterior fluctuates in colour.',
-    appearance:
-      'Industrial and utilitarian. A Survey Drone with an Integrated Hover Locomotion System.',
-  }),
-  mech({
-    id: MECH_REK_JET,
-    name: 'Rek Jet',
-    chassisRef: 'auto-turret',
-    patternName: 'Rek Jet',
-    systems: [
-      'red-laser',
-      'locomotion-system',
-      'nanofibre-net-launcher',
-      'composite-armour',
-      'welding-laser',
-    ],
-    modules: ['comms-module'],
-    quirk: 'Changes personality frequently',
-    appearance: "Bobblehead Head. Roach-Boy's Auto-Turret. Cargo: 2× Tier 3 Scrap and a Pelt cape.",
   }),
   mech({
     id: MECH_RUST_BUCKET,
@@ -640,16 +664,17 @@ export const ELDRIDGE_CRAWLERS: readonly Crawler[] = [HAVEN_CRAWLER, GLADHAND_CR
 
 // ---------------------------------------------------------------------------
 // SoftLinks — pilot↔mech assignments (confirmed by the campaign owner) and
-// pilot↔crawler crew membership. Each pilot's main mech and any drone/companion
-// are all `mech-to-pilot` links (the schema's only mech relationship):
+// pilot↔crawler crew membership. Companions are NOT mechs: they live on their
+// owning pilot as ability-granted equipment with an installed loadout (see the
+// pilots' equipmentLoadouts above) — Caligula's Custos (Survey Drone) + Incitatus
+// (Mecha Companion), Gersin's PR-1 (Survey Drone), Roach-Boy's Rek Jet
+// (Auto-Turret). The mech-to-pilot links cover only the true mechs:
 //   - Parcel → GOAT
-//   - Caligula → Damnatio Memoriae (main) + Custos (Survey Drone) + Incitatus
-//     (Mecha Companion)
-//   - Roach-Boy → Rust Bucket (main) + Rek Jet (Auto-Turret)
+//   - Caligula → Damnatio Memoriae
+//   - Roach-Boy → Rust Bucket
 //   - Lester 'Stumpy' Owens → New Duke
 //   - Nell → Son of Beanstalk
-//   - Gersin 'Part' → Peekaboo (main) + PR-1 (Survey Drone) — the remaining
-//     builds, mirroring Caligula's stealth-Solo + Survey-Drone loadout.
+//   - Gersin 'Part' → Peekaboo
 // All six pilots crew Haven (the Exploratory party crawler; its Storage-bay note
 // names pilot Parcel). Gladhand is a second crawler with its own NPC crew, no
 // pilots auto-assigned.
@@ -664,18 +689,14 @@ const CREW_PILOT_IDS = [
   PILOT_LESTER,
 ] as const
 
-/** Owning pilot for each mech (main mechs + drones/companions). */
+/** Owning pilot for each mech. Companions are pilot equipment, not mechs. */
 const MECH_PILOT_LINKS: ReadonlyArray<readonly [string, string]> = [
   [MECH_GOAT, PILOT_PARCEL],
   [MECH_DAMNATIO, PILOT_CALIGULA],
-  [MECH_CUSTOS, PILOT_CALIGULA],
-  [MECH_INCITATUS, PILOT_CALIGULA],
   [MECH_RUST_BUCKET, PILOT_ROACH_BOY],
-  [MECH_REK_JET, PILOT_ROACH_BOY],
   [MECH_NEW_DUKE, PILOT_LESTER],
   [MECH_SOB, PILOT_NELL],
   [MECH_PEEKABOO, PILOT_GERSIN],
-  [MECH_PR1, PILOT_GERSIN],
 ]
 
 export const ELDRIDGE_SOFT_LINKS: readonly SoftLink[] = [

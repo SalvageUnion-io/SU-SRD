@@ -57,19 +57,6 @@ function slugExists(all: ReadonlyArray<{ name: string }>, slug: string): boolean
   return all.some((e) => nameToSlug(e.name) === slug)
 }
 
-/**
- * The four ability-granted drones/companions whose "chassis" is not an SRD
- * Chassis entry (Survey Drone → Custos & PR-1, Mecha Companion → Incitatus,
- * Auto-Turret → Rek Jet). Their `chassisRef` is intentionally unresolved — see
- * the eldridgeCoast.ts fidelity notes. Their Systems/Modules still resolve.
- */
-const DRONE_MECH_IDS = new Set([
-  'eldridge-mech-custos',
-  'eldridge-mech-incitatus',
-  'eldridge-mech-pr-1',
-  'eldridge-mech-rek-jet',
-])
-
 describe('Eldridge Coast seed — schema validity', () => {
   test('workspace strict-parses', () => {
     expect(() => WorkspaceSchema.parse(ELDRIDGE_WORKSPACE)).not.toThrow()
@@ -144,12 +131,36 @@ describe('Eldridge Coast seed — reference refs resolve (drift guard)', () => {
     }
   })
 
-  test('standard-chassis mechs resolve; the four drone/companion mechs stay unresolved', () => {
+  test('every mech chassis resolves (all six use standard SRD chassis)', () => {
     for (const m of ELDRIDGE_MECHS) {
-      if (DRONE_MECH_IDS.has(m.id)) {
-        expect(resolveChassisRef(m.chassisRef)).toBeFalsy()
-      } else {
-        expect(resolveChassisRef(m.chassisRef)).toBeTruthy()
+      expect(resolveChassisRef(m.chassisRef)).toBeTruthy()
+    }
+  })
+
+  test('every pilot equipmentLoadout system/module ref resolves', () => {
+    for (const p of ELDRIDGE_PILOTS) {
+      for (const loadout of Object.values(p.equipmentLoadouts ?? {})) {
+        for (const s of loadout.systems) expect(resolveSystemRef(s)).toBeTruthy()
+        for (const mod of loadout.modules) expect(resolveModuleRef(mod)).toBeTruthy()
+      }
+    }
+  })
+
+  test('the three companion owners carry the granted drone equipment', () => {
+    const byId = new Map(ELDRIDGE_PILOTS.map((p) => [p.id, p]))
+    const cali = byId.get('eldridge-pilot-caligula')
+    const gersin = byId.get('eldridge-pilot-gersin')
+    const roach = byId.get('eldridge-pilot-roach-boy')
+    expect(cali?.equipment).toContain('survey-drone')
+    expect(cali?.equipment).toContain('mecha-companion')
+    expect(gersin?.equipment).toContain('survey-drone')
+    expect(roach?.equipment).toContain('auto-turret')
+    // Each drone-equipment slug resolves + carries a loadout.
+    for (const p of [cali, gersin, roach]) {
+      for (const slug of ['survey-drone', 'mecha-companion', 'auto-turret']) {
+        if (p?.equipment.includes(slug)) {
+          expect(p.equipmentLoadouts?.[slug]).toBeDefined()
+        }
       }
     }
   })
