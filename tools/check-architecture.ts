@@ -57,7 +57,13 @@
 import { readFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import ts from 'typescript'
+// `typescript-classic` is an npm alias for typescript@6 (see root package.json).
+// TypeScript 7's package no longer exposes the classic compiler API this tool
+// walks (`ts.createSourceFile`, `ts.ScriptTarget`, `ts.isFunctionDeclaration`,
+// `ts.forEachChild`, …) — they are all undefined on the TS7 default export — so
+// this AST-walking tool stays on the TS6 API until it's migrated. The rest of
+// the monorepo type-checks on TS7.
+import ts from 'typescript-classic'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 

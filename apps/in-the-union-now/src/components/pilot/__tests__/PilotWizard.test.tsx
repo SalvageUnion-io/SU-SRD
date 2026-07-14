@@ -418,8 +418,11 @@ describe('PilotWizard — edit mode', () => {
       // Live-play state untouched by the wizard patch.
       expect(p.currentHP).toBe(pilot.currentHP)
       expect(p.callsign).toBe('Sparks')
+      // Assert inside waitFor: the wizard persists to the store before invoking
+      // onComplete in a later microtask, so a bare assertion here races under
+      // heavy parallel load.
+      expect(onComplete).toHaveBeenCalledWith(pilot.id)
     })
-    expect(onComplete).toHaveBeenCalledWith(pilot.id)
   }, 30000)
 
   it('offers Advanced/Hybrid specialisation classes in edit mode', async () => {

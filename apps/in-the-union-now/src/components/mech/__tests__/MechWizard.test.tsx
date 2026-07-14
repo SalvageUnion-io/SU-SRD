@@ -424,8 +424,11 @@ describe('MechWizard — edit mode (soft regime)', () => {
       expect(m.currentSP).toBe(5)
       expect(m.conditions).toEqual(['Vulnerable'])
       expect(m.systemConditions).toEqual({ 'cargo-pod': 'damaged' })
+      // Assert inside waitFor: the wizard persists to the store before invoking
+      // onComplete in a later microtask, so a bare assertion here races under
+      // heavy parallel load.
+      expect(onComplete).toHaveBeenCalledWith(mech.id)
     })
-    expect(onComplete).toHaveBeenCalledWith(mech.id)
   }, 45000)
 
   it('over-slot installs warn but never block in edit mode', async () => {
