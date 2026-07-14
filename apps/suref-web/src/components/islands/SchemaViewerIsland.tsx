@@ -25,6 +25,7 @@ const HIDE_ACTIONS_AND_CHOICES = { actions: true, choices: true } as const
 // bookmarkable/shareable and survives back-navigation.
 const PARAM_TECH_LEVEL = 'tl'
 const PARAM_SOURCE = 'source'
+const PARAM_TREE = 'tree'
 const PARAM_NAME = 'q'
 
 /**
@@ -48,6 +49,9 @@ type SchemaViewerIslandProps = {
   schemaId: string
   techLevels: (number | 'B' | 'N')[]
   sources: string[]
+  /** Ability trees to offer as a filter facet; only abilities carry a tree, so
+   *  this defaults to empty and the facet is hidden for every other schema. */
+  trees?: string[]
   /** Which schemas to preload — defaults to `'all'`. Pass the per-route list
    *  from `../../lib/schemaPreloadDeps.ts` to load only what this listing needs. */
   preloadSchemas?: SchemaList
@@ -58,6 +62,7 @@ export function SchemaViewerIsland({
   schemaId,
   techLevels,
   sources,
+  trees = [],
   preloadSchemas,
 }: SchemaViewerIslandProps) {
   // Filter state initializes from the URL on mount so a shared/bookmarked link
@@ -67,6 +72,7 @@ export function SchemaViewerIsland({
     readUrlSet(PARAM_TECH_LEVEL)
   )
   const [sourceFilters, setSourceFilters] = useState<Set<string>>(() => readUrlSet(PARAM_SOURCE))
+  const [treeFilters, setTreeFilters] = useState<Set<string>>(() => readUrlSet(PARAM_TREE))
   const [nameFilter, setNameFilter] = useState(() => readUrlParam(PARAM_NAME))
 
   // Push filter state back into the URL (replaceState — bookmarkable/shareable
@@ -82,6 +88,7 @@ export function SchemaViewerIsland({
     }
     setOrDelete(PARAM_TECH_LEVEL, [...techLevelFilters].join(','))
     setOrDelete(PARAM_SOURCE, [...sourceFilters].join(','))
+    setOrDelete(PARAM_TREE, [...treeFilters].join(','))
     setOrDelete(PARAM_NAME, nameFilter)
     const qs = params.toString()
     const nextUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname
@@ -89,7 +96,7 @@ export function SchemaViewerIsland({
     if (nextUrl !== currentUrl) {
       window.history.replaceState(window.history.state, '', nextUrl)
     }
-  }, [techLevelFilters, sourceFilters, nameFilter])
+  }, [techLevelFilters, sourceFilters, treeFilters, nameFilter])
 
   const filteredData = useMemo(() => {
     return initialData.filter((item) => {
@@ -108,6 +115,13 @@ export function SchemaViewerIsland({
         }
       }
 
+      if (treeFilters.size > 0) {
+        const itemTree = getTree(item)
+        if (typeof itemTree !== 'string' || !treeFilters.has(itemTree)) {
+          return false
+        }
+      }
+
       if (nameFilter) {
         if (!item.name.toLowerCase().includes(nameFilter.toLowerCase())) {
           return false
@@ -116,7 +130,7 @@ export function SchemaViewerIsland({
 
       return true
     })
-  }, [initialData, techLevelFilters, sourceFilters, nameFilter])
+  }, [initialData, techLevelFilters, sourceFilters, treeFilters, nameFilter])
 
   const toggleTechLevel = (level: number | 'B' | 'N') => {
     setTechLevelFilters((prev) => {
@@ -141,7 +155,18 @@ export function SchemaViewerIsland({
     })
   }
 
-  const hasFilters = techLevels.length > 1 || sources.length > 1
+  const toggleTree = (tree: string) => {
+    setTreeFilters((prev) => {
+      if (prev.size === 0) return new Set([tree])
+      const next = new Set(prev)
+      if (next.has(tree)) next.delete(tree)
+      else next.add(tree)
+      if (trees.every((t) => next.has(t))) return new Set()
+      return next
+    })
+  }
+
+  const hasFilters = techLevels.length > 1 || sources.length > 1 || trees.length > 1
   // Show the name input whenever the dataset is large enough to benefit from it
   const hasNameFilter = initialData.length > 12
 
@@ -150,11 +175,13 @@ export function SchemaViewerIsland({
   const containerClass = 'mx-auto w-full max-w-[1400px]'
   const showAside = hasFilters || hasNameFilter
 
-  const hasActiveFilters = techLevelFilters.size > 0 || sourceFilters.size > 0 || nameFilter !== ''
+  const hasActiveFilters =
+    techLevelFilters.size > 0 || sourceFilters.size > 0 || treeFilters.size > 0 || nameFilter !== ''
 
   const clearFilters = () => {
     setTechLevelFilters(new Set())
     setSourceFilters(new Set())
+    setTreeFilters(new Set())
     setNameFilter('')
   }
 
@@ -245,6 +272,24 @@ export function SchemaViewerIsland({
                       label={source}
                       active={sourceFilters.has(source)}
                       onClick={() => toggleSource(source)}
+                    />
+                  ))}
+                </FilterRow>
+              )}
+
+              {trees.length > 1 && (
+                <FilterRow label="Tree">
+                  <FilterChip
+                    label="All"
+                    active={treeFilters.size === 0}
+                    onClick={() => setTreeFilters(new Set())}
+                  />
+                  {trees.map((tree) => (
+                    <FilterChip
+                      key={tree}
+                      label={tree}
+                      active={treeFilters.has(tree)}
+                      onClick={() => toggleTree(tree)}
                     />
                   ))}
                 </FilterRow>

@@ -22,6 +22,7 @@ import {
   getName,
   getDescription,
   getSource,
+  getTree,
   getPageReference,
   getTechLevel,
   getAssetUrl,
@@ -573,6 +574,21 @@ export function getUniqueSources(entities: SURefEntity[]): string[] {
     return [PRIMARY_SOURCE, ...sorted.filter((s) => s !== PRIMARY_SOURCE)]
   }
   return sorted
+}
+
+/**
+ * Get unique ability-tree strings from an array of entities, sorted alphabetically.
+ * Only abilities carry a `tree`; entities without one are skipped.
+ * @param entities - Array of entities to extract trees from
+ * @returns Sorted array of unique tree strings
+ */
+export function getUniqueTrees(entities: SURefEntity[]): string[] {
+  const treeSet = new Set<string>()
+  for (const entity of entities) {
+    const tree = getTree(entity)
+    if (typeof tree === 'string' && tree) treeSet.add(tree)
+  }
+  return Array.from(treeSet).sort()
 }
 
 // ============================================================================

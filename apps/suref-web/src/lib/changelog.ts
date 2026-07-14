@@ -7,6 +7,13 @@ type ChangelogEntry = {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-07-13',
+    title: 'Filter abilities by tree',
+    items: [
+      'The Abilities listing now has a Tree filter, so you can narrow abilities down to a specific ability tree (e.g. Hacking, Ranger, Legendary Soldier). Like the other filters, the selection is shareable via the page URL.',
+    ],
+  },
+  {
+    date: '2026-07-13',
     title: 'Simpler entity pages',
     items: [
       'Removed the Previous/Next paging links from entity pages — use search or the category listing to move between entities.',
