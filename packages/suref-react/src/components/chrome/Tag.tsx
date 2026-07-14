@@ -35,7 +35,7 @@ export function Tag({ label, value, pre = false, ghost = false, className }: Tag
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-[2px] px-[7px] pb-[1px] pt-[2px] font-cond text-[11px] font-semibold uppercase leading-tight tracking-[0.06em]',
+        'inline-flex items-center gap-1 rounded-[2px] px-[7px] pb-[1px] pt-[2px] font-cond text-[11px] font-semibold uppercase leading-tight tracking-caps-snug',
         ghost
           ? 'bg-paper text-ink shadow-[inset_0_0_0_1px_rgba(40,32,25,0.2)]'
           : 'bg-ink text-paper',

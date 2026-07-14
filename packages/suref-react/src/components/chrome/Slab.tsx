@@ -39,7 +39,7 @@ export function Slab({ label, count, actions, className, variant = 'dashed' }: S
         </span>
       ) : (
         <span
-          className="shrink-0 font-cond text-sm font-bold uppercase tracking-[0.12em]"
+          className="shrink-0 font-cond text-sm font-bold uppercase tracking-caps-wide"
           style={{ color: 'var(--tone-deep, var(--color-ink))' }}
         >
           {label}
@@ -51,7 +51,7 @@ export function Slab({ label, count, actions, className, variant = 'dashed' }: S
         </span>
       )}
       {isSolid ? (
-        <span aria-hidden="true" className="h-0 min-w-3 flex-1 border-t-[1.5px] border-ink/35" />
+        <span aria-hidden="true" className="h-0 min-w-3 flex-1 border-t-chrome border-ink/35" />
       ) : (
         <span
           aria-hidden="true"

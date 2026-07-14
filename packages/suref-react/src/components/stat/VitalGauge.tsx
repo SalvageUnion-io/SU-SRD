@@ -247,7 +247,7 @@ export function VitalGauge({
               ? 'border-status-bad bg-status-bad'
               : 'border-[var(--tone-deep)] bg-[var(--tone)]'
           const segClass = cn(
-            'min-h-0 min-w-0 flex-1 border-[1.5px] p-0',
+            'min-h-0 min-w-0 flex-1 border-chrome p-0',
             isDense ? 'h-[18px] rounded-[2px]' : 'h-[22px] rounded-[3px]',
             fill
           )
@@ -276,9 +276,9 @@ export function VitalGauge({
       </div>
 
       {/* Caption — right-aligned Current / Max; an override note sits left. */}
-      <div className="mt-1.5 flex items-center justify-end gap-1 font-cond text-[8.5px] font-semibold uppercase leading-none tracking-[0.22em] text-ink/55">
+      <div className="mt-1.5 flex items-center justify-end gap-1 font-cond text-[8.5px] font-semibold uppercase leading-none tracking-eyebrow text-ink/55">
         {isOverridden && (
-          <span className="mr-auto tracking-[0.06em] text-[var(--tone-deep)]">
+          <span className="mr-auto tracking-caps-snug text-[var(--tone-deep)]">
             overridden from {overriddenFrom}
           </span>
         )}

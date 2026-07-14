@@ -125,7 +125,7 @@ export function StatDisplay({
             boxSize,
             trueBg,
             trueBorderColor,
-            compact ? 'border' : 'border-[1.5px]',
+            compact ? 'border' : 'border-chrome',
             disabled
               ? 'pointer-events-none'
               : 'cursor-pointer hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange',
@@ -151,7 +151,7 @@ export function StatDisplay({
             boxSize,
             trueBg,
             trueBorderColor,
-            compact ? 'border' : 'border-[1.5px]',
+            compact ? 'border' : 'border-chrome',
             isFlashing && 'animate-[growShrink_3s_ease-out] motion-reduce:animate-none'
           )}
         >

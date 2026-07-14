@@ -117,7 +117,7 @@ export function StatBlock({
   const pipFill = PIP_FILL[stat]
   const pipBox = isSm
     ? 'h-2 w-2 rounded-[1px] border-[1.25px]'
-    : 'h-[13px] w-[13px] rounded-[2px] border-[1.5px]'
+    : 'h-[13px] w-[13px] rounded-[2px] border-chrome'
 
   const tallies: { state: StatBlockState; count: number }[] = isStates
     ? (['intact', 'damaged', 'destroyed'] as const)
@@ -149,7 +149,7 @@ export function StatBlock({
     >
       {/* Black header tab */}
       <div className="flex items-center justify-between gap-2 bg-ink px-2 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
-        <span className="font-cond text-xs font-bold uppercase leading-none tracking-[0.12em] text-su-white">
+        <span className="font-cond text-xs font-bold uppercase leading-none tracking-caps-wide text-su-white">
           {code}
         </span>
         {name && (
@@ -164,10 +164,7 @@ export function StatBlock({
             <span key={state} className="flex items-center gap-1.5">
               <span
                 aria-hidden="true"
-                className={cn(
-                  'h-[11px] w-[11px] rounded-[1px] border-[1.5px]',
-                  TALLY_SWATCH[state]
-                )}
+                className={cn('h-[11px] w-[11px] rounded-[1px] border-chrome', TALLY_SWATCH[state])}
               />
               <span className="font-body text-[17px] font-bold leading-none text-ink">{count}</span>
               <span className="font-cond text-[9.5px] uppercase leading-none text-wk-muted">
