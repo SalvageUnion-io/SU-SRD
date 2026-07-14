@@ -23,6 +23,7 @@ import { useWorkspaceActions, useWorkspaces } from '../../hooks/queries'
 import { DEFAULT_WORKSPACE_ID, DEFAULT_WORKSPACE_NAME } from '../../lib/defaultWorkspace'
 import type { Workspace } from '../../lib/schemas/workspace'
 import { STARTER_WORKSPACE_ID } from '../../lib/starterSet/starterSet'
+import { ELDRIDGE_WORKSPACE_ID } from '../../lib/eldridgeCoast/eldridgeCoast'
 import { WorkspaceList } from './WorkspaceList'
 import type { WorkspaceListStore } from './WorkspaceList'
 
@@ -113,6 +114,11 @@ export function WorkspaceSwitcher({ activeWorkspaceId, onSelect, store }: Worksp
                 real workspace, so surface it here as a synthetic option. */}
             {!activeStore.workspaces.some((ws) => ws.id === STARTER_WORKSPACE_ID) && (
               <option value={STARTER_WORKSPACE_ID}>Starter Set</option>
+            )}
+            {/* The built-in Eldridge Coast campaign is likewise always
+                selectable; surfaced synthetically until first opened. */}
+            {!activeStore.workspaces.some((ws) => ws.id === ELDRIDGE_WORKSPACE_ID) && (
+              <option value={ELDRIDGE_WORKSPACE_ID}>The Eldridge Coast</option>
             )}
             <option value={MANAGE_VALUE}>Manage workspaces…</option>
           </select>

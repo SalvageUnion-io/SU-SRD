@@ -39,6 +39,8 @@ import type { EntityType } from '../../stores/entityStore'
 import { DEFAULT_WORKSPACE_ID } from '../../lib/defaultWorkspace'
 import { ensureStarterSetSeeded } from '../../lib/starterSet/seedStarterSet'
 import { STARTER_WORKSPACE_ID } from '../../lib/starterSet/starterSet'
+import { ensureEldridgeCoastSeeded } from '../../lib/eldridgeCoast/seedEldridgeCoast'
+import { ELDRIDGE_WORKSPACE_ID } from '../../lib/eldridgeCoast/eldridgeCoast'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
 import { ExportAllButton } from '../export/ExportAllButton'
@@ -179,12 +181,13 @@ export function Roster() {
     crawlers.length === 0
 
   /**
-   * Workspace select. Opening the built-in Starter Set spawns it into this
-   * browser on first visit (idempotent), then switches to it — the roster is
-   * never seeded until the user asks for it here.
+   * Workspace select. Opening a built-in workspace (Starter Set, The Eldridge
+   * Coast) spawns it into this browser on first visit (idempotent), then
+   * switches to it — the roster is never seeded until the user asks for it here.
    */
   async function handleSelectWorkspace(id: string) {
     if (id === STARTER_WORKSPACE_ID) await ensureStarterSetSeeded()
+    if (id === ELDRIDGE_WORKSPACE_ID) await ensureEldridgeCoastSeeded()
     setActiveWorkspaceId(id)
   }
 
