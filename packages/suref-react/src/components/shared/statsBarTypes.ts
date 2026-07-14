@@ -14,7 +14,7 @@ export type StatItem = {
   flash?: boolean
   disabled?: boolean
   ariaLabel?: string
-  // Interactivity — presence of onChange renders StatControl (+/- buttons)
+  // Interactivity — presence of onChange renders StatDisplay in edit mode (+/- buttons)
   onChange?: (newValue: number) => void
   canEdit?: boolean // controls whether +/- are enabled (only when onChange present)
   // Click — makes the stat box itself a button

@@ -2,34 +2,404 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
 import { Tooltip } from '../ui/tooltip'
+import { StepBtn } from '../chrome/SmallButtons'
+import { statBlockRowStarts, pipClickValue } from '../stat/pipRows'
+import { heatDangerFrom, heatLevel } from '../stat/heatLevel'
+
+/**
+ * The single canonical stat/value primitive (canonical primitive language §2).
+ * One prop-controlled component that renders three anatomies — it absorbs the
+ * former StatBlock (framed tracker), ValueDisplay (horizontal label|value) and
+ * StatControl (box + steppers), and replaces MiniStat:
+ *
+ *   orientation="horizontal"  -> the horizontal black/white [label | value].
+ *   dots (or states[])        -> the framed tracker: black code tab, big
+ *                                numeral, pip track / bay tally, unit bar,
+ *                                steppers, tones + heat escalation.
+ *   (default)                 -> the centred value box with pseudoheader stamps
+ *                                above/below; mode="edit" adds +/- steppers.
+ *
+ * The three renders are the verbatim originals behind one API, so migrating a
+ * call site is a prop remap — no visual drift.
+ */
+
+/** Pip / fill semantics: hp red, ap/ep rust, heat warn, cargo bronze, cw crawler pink, sp/default ink. */
+export type StatTone = 'hp' | 'ap' | 'ep' | 'sp' | 'heat' | 'cargo' | 'cw' | 'default'
+/** Tri-state tally entry for the `states[]` mode (crawler bays). */
+export type StatState = 'intact' | 'damaged' | 'destroyed'
+
+const PIP_FILL: Record<StatTone, string> = {
+  hp: 'border-status-bad bg-status-bad',
+  ap: 'border-rust bg-rust',
+  ep: 'border-rust bg-rust',
+  heat: 'border-status-warn bg-status-warn',
+  cargo: 'border-cargo bg-cargo',
+  cw: 'border-crawler bg-crawler',
+  sp: 'border-ink bg-ink',
+  default: 'border-ink bg-ink',
+}
+
+const TALLY_SWATCH: Record<StatState, string> = {
+  intact: 'border-status-ok bg-status-ok',
+  damaged:
+    'border-status-warn bg-[linear-gradient(135deg,var(--color-status-warn)_50%,transparent_50%)]',
+  destroyed:
+    'border-status-bad bg-[linear-gradient(45deg,transparent_42%,var(--color-status-bad)_42%,var(--color-status-bad)_58%,transparent_58%),linear-gradient(-45deg,transparent_42%,var(--color-status-bad)_42%,var(--color-status-bad)_58%,transparent_58%)]',
+}
 
 type StatDisplayProps = {
+  /** Header code / label ('HP', 'STRUCTURE', 'Range'). */
   label: string
-  value: number | string | undefined
-  outOfMax?: number
+  value?: number | string
+  /** Track maximum (framed tracker) or the /max shown beside the value. */
+  max?: number
+  /** Minimum for edit-mode steppers (box). */
+  min?: number
+  /** Bottom pseudoheader stamp (box anatomy). */
   bottomLabel?: string
-  labelId?: string
-  disabled?: boolean
+  /** Muted right-side header name (framed tracker). */
+  name?: string
+  /** Black footer unit bar (framed tracker), e.g. 'POINTS'. */
+  unit?: string
+
+  /** 'horizontal' selects the [label | value] anatomy; default 'vertical'. */
+  orientation?: 'vertical' | 'horizontal'
+  /** true selects the framed pip-track tracker anatomy. */
+  dots?: boolean
+  /** 'edit' adds steppers (box + tracker). */
+  mode?: 'read' | 'edit'
+  /** lg (sheet hero) or sm (rail / NPC / spec strip) — framed tracker. */
+  size?: 'lg' | 'sm'
+  /** Pip fill semantics (framed tracker). */
+  tone?: StatTone
+  /** Tri-state tally mode (crawler bays) — replaces the numeric track. */
+  states?: StatState[]
+
+  inverse?: boolean
+  compact?: boolean
+
+  /** Uncontrolled initial value (framed tracker self-managed state). */
+  init?: number
+  onChange?: (value: number) => void
+  /** Force editability on/off (framed tracker); derived otherwise. */
+  editable?: boolean
+  /** Set false to suppress pips even with a max (framed tracker). */
+  pips?: boolean
+  /** Click handler per states[] pip (framed tracker). */
+  onBay?: (index: number) => void
+
   onClick?: () => void
+  hoverText?: string
+  flash?: boolean
+  disabled?: boolean
+  isOverMax?: boolean
+
+  /** Value-box colour overrides. */
   bg?: string
   valueColor?: string
   borderColor?: string
+  /** Horizontal-anatomy colour overrides. */
+  bgColor?: string
+  textColor?: string
+  /** Horizontal anatomy: inline-flex (default) vs flex. */
+  inline?: boolean
+
+  labelId?: string
   ariaLabel?: string
-  compact?: boolean
-  flash?: boolean
-  inverse?: boolean
-  isOverMax?: boolean
-  hoverText?: string
+  className?: string
 }
 
-export function StatDisplay({
+export function StatDisplay(props: StatDisplayProps) {
+  if (props.orientation === 'horizontal') return <HorizontalValue {...props} />
+  if (props.dots || props.states !== undefined) return <FramedTracker {...props} />
+  return <ValueBox {...props} />
+}
+
+/* ------------------------------------------------------------------ *
+ * Horizontal [label | value] — the former ValueDisplay. Black/white   *
+ * pseudoheader pair; the combo is inviolable.                         *
+ * ------------------------------------------------------------------ */
+function HorizontalValue({
   label,
   value,
-  outOfMax,
+  compact = false,
+  inverse = false,
+  inline = true,
+  bgColor,
+  textColor,
+  borderColor,
+}: StatDisplayProps) {
+  const fontSize = compact ? 'text-xs' : 'text-sm'
+  const mainVariant = inverse ? 'pseudoheaderInverse' : 'pseudoheader'
+  const valueVariant = inverse ? 'pseudoheader' : 'pseudoheaderInverse'
+
+  return (
+    <span
+      className={cn(
+        'shrink-0 grow-0 cursor-default whitespace-nowrap border border-su-black',
+        inline ? 'inline-flex' : 'flex',
+        'w-fit'
+      )}
+      style={borderColor ? { borderColor } : undefined}
+    >
+      <Text
+        variant={mainVariant}
+        as="span"
+        className={cn('uppercase', fontSize, compact ? 'font-normal' : 'font-semibold')}
+        style={bgColor || textColor ? { backgroundColor: bgColor, color: textColor } : undefined}
+      >
+        {label}
+      </Text>
+      {value !== undefined && (
+        <Text
+          variant={valueVariant}
+          as="span"
+          className={cn('uppercase', fontSize, compact ? 'font-normal' : 'font-semibold')}
+        >
+          {value}
+        </Text>
+      )}
+    </span>
+  )
+}
+
+/* ------------------------------------------------------------------ *
+ * Framed tracker — the former StatBlock. Black code tab, numeral +    *
+ * steppers, pip track / bay tally, black unit bar, tones + heat.      *
+ * ------------------------------------------------------------------ */
+function FramedTracker({
+  label: code,
+  name,
+  unit,
+  tone = 'default',
+  size = 'lg',
+  max,
+  value: valueProp,
+  init,
+  onChange,
+  editable,
+  mode,
+  pips = true,
+  states,
+  onBay,
+  className,
+}: StatDisplayProps) {
+  const isControlled = valueProp !== undefined
+  const numericProp = typeof valueProp === 'number' ? valueProp : undefined
+  const [internal, setInternal] = useState(init ?? max ?? 0)
+  const rawValue = isControlled ? (numericProp ?? 0) : internal
+  const clamp = (v: number) => Math.max(0, max !== undefined ? Math.min(v, max) : v)
+
+  const isEditable = editable ?? (mode === 'edit' || onChange !== undefined || !isControlled)
+
+  const isOver = !isEditable && max !== undefined && rawValue > max
+  const value = isOver ? rawValue : clamp(rawValue)
+
+  const setValue = (next: number) => {
+    if (!isEditable) return
+    const clamped = clamp(next)
+    if (!isControlled) setInternal(clamped)
+    onChange?.(clamped)
+  }
+
+  const isStates = states !== undefined
+  const isSm = size === 'sm'
+  const showSteppers = !isStates && !isSm && isEditable
+  const showPips = !isStates && pips && max !== undefined && max > 0
+
+  const isHeat = tone === 'heat'
+  const level = isHeat && !isStates ? heatLevel(value, max) : 'normal'
+  const heatDanger = isHeat && max !== undefined && max > 0 ? heatDangerFrom(max) : Infinity
+
+  const pipFill = PIP_FILL[tone]
+  const pipBox = isSm
+    ? 'h-2 w-2 rounded-[1px] border-[1.25px]'
+    : 'h-[13px] w-[13px] rounded-[2px] border-chrome'
+
+  const tallies: { state: StatState; count: number }[] = isStates
+    ? (['intact', 'damaged', 'destroyed'] as const)
+        .map((state) => ({
+          state,
+          count: states.filter((s) => s === state).length,
+        }))
+        .filter((t) => t.count > 0)
+    : []
+
+  return (
+    // biome-ignore lint/a11y/useSemanticElements: a <fieldset> would break the inline-flex stat-block chrome; role="group" carries the same semantics
+    <div
+      role="group"
+      aria-label={
+        isStates
+          ? `${code} ${states.length} bays`
+          : `${code} ${value}${max !== undefined ? ` of ${max}` : ''}${
+              isOver ? ' — over capacity' : ''
+            }`
+      }
+      data-heat={level !== 'normal' ? level : undefined}
+      className={cn(
+        'inline-flex flex-col overflow-hidden rounded-[3px] border-2 bg-paper shadow-[0_2px_6px_-2px_rgba(40,32,25,0.4)]',
+        level === 'critical' ? 'border-status-bad motion-safe:animate-heat-pulse' : 'border-ink',
+        isSm && 'min-w-[96px]',
+        className
+      )}
+    >
+      {/* Black header tab */}
+      <div className="flex items-center justify-between gap-2 bg-ink px-2 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
+        <span className="font-cond text-xs font-bold uppercase leading-none tracking-caps-wide text-su-white">
+          {code}
+        </span>
+        {name && (
+          <span className="font-cond text-[9px] uppercase leading-none text-white/55">{name}</span>
+        )}
+      </div>
+
+      {/* Main row: steppers + value, or the bay tally */}
+      {isStates ? (
+        <div className="flex items-center justify-center gap-3 px-2.5 py-1.5">
+          {tallies.map(({ state, count }) => (
+            <span key={state} className="flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className={cn('h-[11px] w-[11px] rounded-[1px] border-chrome', TALLY_SWATCH[state])}
+              />
+              <span className="font-body text-[17px] font-bold leading-none text-ink">{count}</span>
+              <span className="font-cond text-[9.5px] uppercase leading-none text-wk-muted">
+                {state}
+              </span>
+            </span>
+          ))}
+        </div>
+      ) : (
+        <div className="flex items-center justify-center gap-2 px-2.5 py-1.5">
+          {showSteppers && (
+            <StepBtn aria-label={`Decrease ${code}`} onClick={() => setValue(value - 1)}>
+              –
+            </StepBtn>
+          )}
+          <span
+            className={cn(
+              'font-body font-bold leading-none',
+              isSm ? 'text-base' : 'text-[23px]',
+              isOver ? 'text-status-bad' : 'text-ink'
+            )}
+          >
+            {value}
+            {max !== undefined && (
+              <small
+                className={cn(
+                  'font-bold',
+                  isSm ? 'text-[10px]' : 'text-[13px]',
+                  isOver ? 'text-status-bad' : 'text-wk-muted'
+                )}
+              >
+                /{max}
+              </small>
+            )}
+          </span>
+          {showSteppers && (
+            <StepBtn aria-label={`Increase ${code}`} onClick={() => setValue(value + 1)}>
+              +
+            </StepBtn>
+          )}
+        </div>
+      )}
+
+      {/* Pip track */}
+      {isStates ? (
+        <div className="flex flex-col items-center gap-1 px-2.5 pb-2">
+          {statBlockRowStarts(states.length).map(({ count, start }, r) => {
+            return (
+              // biome-ignore lint/suspicious/noArrayIndexKey: pip rows are positional — the row index IS their identity
+              <div key={r} className="flex justify-center gap-1">
+                {Array.from({ length: count }).map((_, c) => {
+                  const i = start + c
+                  const state = states[i]
+                  if (!state) return null
+                  const title = `Bay ${i + 1} · ${state}`
+                  const pipClass = cn(pipBox, 'cursor-default', TALLY_SWATCH[state])
+                  return onBay ? (
+                    <button
+                      key={i}
+                      type="button"
+                      title={title}
+                      aria-label={title}
+                      onClick={() => onBay(i)}
+                      className={cn(pipClass, 'cursor-pointer')}
+                    />
+                  ) : (
+                    <span key={i} title={title} className={pipClass} />
+                  )
+                })}
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        showPips && (
+          <div
+            className="flex flex-col items-center gap-1 px-2.5 pb-2"
+            role="img"
+            aria-label={`${value} of ${max}${isOver ? ' — over capacity' : ''}`}
+          >
+            {statBlockRowStarts(Math.max(max ?? 0, value)).map(({ count, start }, r) => {
+              return (
+                // biome-ignore lint/suspicious/noArrayIndexKey: pip rows are positional — the row index IS their identity
+                <div key={r} className="flex justify-center gap-1">
+                  {Array.from({ length: count }).map((_, c) => {
+                    const i = start + c
+                    const on = i < value
+                    const fill =
+                      on && (i >= (max ?? Infinity) || i >= heatDanger)
+                        ? 'border-status-bad bg-status-bad'
+                        : pipFill
+                    const pipClass = cn(pipBox, on ? fill : 'border-ink bg-transparent')
+                    return isEditable ? (
+                      <button
+                        key={i}
+                        type="button"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        data-pip={on ? 'on' : 'off'}
+                        onClick={() => setValue(pipClickValue(i, value))}
+                        className={cn(pipClass, 'cursor-pointer')}
+                      />
+                    ) : (
+                      <span key={i} data-pip={on ? 'on' : 'off'} className={pipClass} />
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
+        )
+      )}
+
+      {/* Black unit bar */}
+      {unit && (
+        <div className="bg-ink px-2 py-[3px] text-center font-cond text-[9.5px] font-bold uppercase leading-none tracking-[0.14em] text-su-white">
+          {unit}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ *
+ * Centred value box — the former StatDisplay; mode="edit" grows the   *
+ * +/- stepper column (the former StatControl).                        *
+ * ------------------------------------------------------------------ */
+function ValueBox({
+  label,
+  value,
+  max,
+  min = 0,
   bottomLabel,
   labelId,
   disabled,
   onClick,
+  onChange,
+  mode = 'read',
   bg = 'bg-su-white',
   valueColor = 'text-su-black',
   borderColor = 'border-su-black',
@@ -83,6 +453,18 @@ export function StatDisplay({
 
   if (value === undefined) return null
 
+  const numericValue = typeof value === 'number' ? value : Number(value)
+  const canEdit = mode === 'edit' && onChange !== undefined && Number.isFinite(numericValue)
+  const atMin = numericValue <= min
+  const atMax = max !== undefined && numericValue >= max
+  const btnSize = compact ? 'h-3 w-3 text-[9px]' : 'h-4 w-4 text-xs'
+  const btnResting = inverse
+    ? 'border-su-white bg-su-black text-su-white'
+    : 'border-su-black bg-su-white text-su-black'
+  const btnHover = inverse
+    ? 'hover:bg-su-white hover:text-su-black'
+    : 'hover:bg-su-black hover:text-su-white'
+
   const boxSize = compact ? 'h-8 min-w-8 px-0.5' : 'h-12 w-12'
   // Disabled state: reduce overall opacity to signal disabled while preserving
   // foreground/background contrast. The default bg-su-white / text-su-black pair
@@ -90,7 +472,7 @@ export function StatDisplay({
   // well above the WCAG AA threshold of 4.5:1 for normal text.
   const disabledClass = disabled ? 'opacity-60' : ''
 
-  const content = (
+  const box = (
     // biome-ignore lint/a11y/useSemanticElements: a <fieldset> would break the flex stat-box layout; role="group" carries the same semantics
     <div
       role="group"
@@ -140,7 +522,7 @@ export function StatDisplay({
               compact ? 'text-xs' : 'text-[0.85rem]'
             )}
           >
-            {outOfMax !== undefined ? `${value}/${outOfMax}` : value}
+            {max !== undefined ? `${value}/${max}` : value}
           </span>
         </button>
       ) : (
@@ -162,7 +544,7 @@ export function StatDisplay({
               compact ? 'text-xs' : 'text-[0.85rem]'
             )}
           >
-            {outOfMax !== undefined ? `${value}/${outOfMax}` : value}
+            {max !== undefined ? `${value}/${max}` : value}
           </span>
         </div>
       )}
@@ -176,9 +558,43 @@ export function StatDisplay({
           !bottomLabel && 'invisible'
         )}
       >
-        {bottomLabel || '\u00A0'}
+        {bottomLabel || ' '}
       </Text>
     </div>
+  )
+
+  const content = canEdit ? (
+    <div className="flex items-center gap-0.5">
+      {box}
+      <div className="flex flex-col gap-0.5">
+        <button
+          type="button"
+          aria-label={`Increase ${label}`}
+          onClick={() =>
+            onChange?.(max !== undefined ? Math.min(max, numericValue + 1) : numericValue + 1)
+          }
+          disabled={!!atMax}
+          className={`flex min-h-11 min-w-11 items-center justify-center border font-mono font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
+            atMax ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`
+          }`}
+        >
+          +
+        </button>
+        <button
+          type="button"
+          aria-label={`Decrease ${label}`}
+          onClick={() => onChange?.(Math.max(min, numericValue - 1))}
+          disabled={atMin}
+          className={`flex min-h-11 min-w-11 items-center justify-center border font-mono font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
+            atMin ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`
+          }`}
+        >
+          −
+        </button>
+      </div>
+    </div>
+  ) : (
+    box
   )
 
   if (hoverText) {

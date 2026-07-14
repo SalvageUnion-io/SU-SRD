@@ -1,5 +1,4 @@
 import { StatDisplay } from './StatDisplay'
-import { StatControl } from './StatControl'
 import { cn } from '../../utils/cn'
 import type { StatItem } from './statsBarTypes'
 
@@ -23,13 +22,13 @@ export function StatsBar({
 
         if (stat.onChange) {
           return (
-            <StatControl
+            <StatDisplay
               key={stat.key}
               label={stat.label}
               value={typeof stat.value === 'number' ? stat.value : parseInt(String(stat.value), 10)}
               max={stat.outOfMax}
               bottomLabel={stat.bottomLabel}
-              canEdit={stat.canEdit ?? true}
+              mode={(stat.canEdit ?? true) ? 'edit' : 'read'}
               compact={compact}
               onChange={stat.onChange}
             />
@@ -41,7 +40,7 @@ export function StatsBar({
             key={stat.key}
             label={stat.label}
             value={stat.value}
-            outOfMax={stat.outOfMax}
+            max={stat.outOfMax}
             bottomLabel={stat.bottomLabel}
             hoverText={suppressTooltips ? undefined : stat.hoverText}
             inverse={stat.inverse}
