@@ -514,8 +514,11 @@ describe('CrawlerBuilder — edit mode', () => {
       expect(bay?.npcCurrentHP).toBe(1)
       expect(bay?.condition).toBe('damaged')
       expect(c.crawlerBays?.length).toBe(must(crawler.crawlerBays).length)
+      // Assert inside waitFor: the wizard persists to the store before invoking
+      // onComplete in a later microtask, so a bare assertion here races under
+      // heavy parallel load.
+      expect(onComplete).toHaveBeenCalledWith(crawler.id)
     })
-    expect(onComplete).toHaveBeenCalledWith(crawler.id)
   }, 30000)
 
   it('edit lifts the Tech-1 filter (all-TL weapons offered) and the hard cap', async () => {
