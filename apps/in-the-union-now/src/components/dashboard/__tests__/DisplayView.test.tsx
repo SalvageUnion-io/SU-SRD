@@ -9,7 +9,7 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { render } from '@testing-library/react'
+import { fireEvent, render, waitFor } from '@testing-library/react'
 import { EntityHrefProvider } from 'suref-react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
@@ -97,19 +97,64 @@ describe('DisplayView', () => {
     expect(downtime).toBe(true)
   })
 
-  test('Tables focus → a RollTable renders', () => {
-    const focus: DialItem = {
-      key: 'tables',
-      kind: 'tables',
-      statless: true,
-      label: 'Tables',
-      sublabel: 'roll',
-    }
-    const { container } = renderDV(focus)
+  const tablesFocus: DialItem = {
+    key: 'tables',
+    kind: 'tables',
+    statless: true,
+    label: 'Tables',
+    sublabel: 'roll',
+  }
+
+  test('Tables focus → a RollTable renders under the picker bar (D3)', () => {
+    const { container } = renderDV(tablesFocus)
     expect(container.querySelector('.pc-display-scroll')).toBeTruthy()
+    // The picker bar replaces the old <select>.
+    expect(container.querySelector('.pc-tables-pick-btn')).toBeTruthy()
+    expect(container.querySelector('select')).toBeNull()
     // The reused RollTable renders a real table (not the fallback note).
     expect(container.querySelector('table')).toBeTruthy()
     expect(container.querySelector('.pc-display-note')).toBeNull()
+  })
+
+  test('Tables picker → opens a 5-column category overlay (D3)', () => {
+    const { container, getByLabelText } = renderDV(tablesFocus)
+    expect(container.querySelector('.pc-tablepick')).toBeNull()
+    const openBtn = container.querySelector('.pc-tables-pick-btn') as HTMLButtonElement
+    fireEvent.click(openBtn)
+    const overlay = container.querySelector('[role="dialog"]')
+    expect(overlay).toBeTruthy()
+    const cats = [...container.querySelectorAll('.pc-tablepick-cat')].map((c) => c.textContent)
+    expect(cats).toEqual(['Combat', 'Pilot', 'Salvage', 'Crawler', 'Downtime'])
+    // Closing removes the overlay.
+    fireEvent.click(getByLabelText('Close table picker'))
+    expect(container.querySelector('.pc-tablepick')).toBeNull()
+  })
+
+  test('Tables picker → picking a table updates the bar and closes (D3)', () => {
+    const { container } = renderDV(tablesFocus)
+    fireEvent.click(container.querySelector('.pc-tables-pick-btn') as HTMLButtonElement)
+    const items = [...container.querySelectorAll('.pc-tablepick-item')] as HTMLButtonElement[]
+    const initiative = items.find((b) => b.textContent === 'Group Initiative')
+    expect(initiative).toBeTruthy()
+    fireEvent.click(initiative as HTMLButtonElement)
+    // Overlay closed and the mini-bar now names the picked table.
+    expect(container.querySelector('.pc-tablepick')).toBeNull()
+    expect(container.querySelector('.pc-tables-pick-btn')?.textContent).toContain(
+      'Group Initiative'
+    )
+  })
+
+  test('Tables → rolling records a roll-history row (D3)', async () => {
+    const { container } = renderDV(tablesFocus)
+    const rollBtn = container.querySelector(
+      'button[aria-label="Roll on this table"]'
+    ) as HTMLButtonElement
+    expect(rollBtn).toBeTruthy()
+    fireEvent.click(rollBtn)
+    await waitFor(() => expect(container.querySelector('.pc-rollhist-row')).toBeTruthy())
+    // Clear empties the history.
+    fireEvent.click(container.querySelector('.pc-rollhist-clear') as HTMLButtonElement)
+    expect(container.querySelector('.pc-rollhist')).toBeNull()
   })
 
   test('Actions focus → the interactive ActionsDeck (Phase 5)', () => {
@@ -124,6 +169,21 @@ describe('DisplayView', () => {
     // The deck renders (list or empty state), never the generic placeholder note.
     expect(container.querySelector('.pc-display-scroll')).toBeTruthy()
     expect(container.querySelector('.pc-deck, .pc-deck-empty')).toBeTruthy()
+    expect(container.querySelector('.pc-display-note')).toBeNull()
+  })
+
+  test('SRD focus → the interactive SrdExplorer (D4)', () => {
+    const focus: DialItem = {
+      key: 'srd',
+      kind: 'srd',
+      statless: true,
+      label: 'SRD Explorer',
+      sublabel: 'reference browser',
+    }
+    const { container } = renderDV(focus)
+    // The explorer renders its search + tiles, never the generic placeholder.
+    expect(container.querySelector('.pc-srd-input')).toBeTruthy()
+    expect(container.querySelectorAll('.pc-srd-tile').length).toBe(8)
     expect(container.querySelector('.pc-display-note')).toBeNull()
   })
 

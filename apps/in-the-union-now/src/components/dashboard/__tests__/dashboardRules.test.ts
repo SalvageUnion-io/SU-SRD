@@ -12,18 +12,34 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 
 import type { Roll } from '../../../lib/rules/heatCheck'
 import type { Mech } from '../../../lib/schemas/mech'
+import type { Pilot } from '../../../lib/schemas/pilot'
 import {
   VENT_PATCH,
+  actionInRange,
+  actionMicroMeta,
+  actionReachable,
   activationPatch,
   buildMechActions,
+  buildPilotActions,
   critDamagePatch,
   critInjuryPatch,
+  economyForActivation,
+  groupBySource,
+  groupByTiming,
+  hasCurrencyChoice,
+  hasVariableHot,
   heatCheckOncePatch,
+  hotHeatFor,
+  isDestructiveOutcome,
   mechDamagePatch,
+  pilotActivationPatch,
   pilotDamagePatch,
   pushPatch,
+  reachSummary,
   shutdownTogglePatch,
+  tabMatchesAction,
 } from '../dashboardRules'
+import type { PlayAction } from '../dashboardRules'
 
 /** A deterministic roller that returns the queued values, then 20. */
 function seqRoll(values: number[]): Roll {
@@ -171,7 +187,7 @@ describe('activationPatch', () => {
 })
 
 describe('buildMechActions', () => {
-  test('groups a chassis with abilities under "Chassis Ability"', () => {
+  test('surfaces a chassis ability action, stamped CHS', () => {
     // Find a chassis whose resolveActions returns at least one action.
     const chassis = SalvageUnionReference.Chassis.all().find((c) => {
       const acts = SalvageUnionReference.resolveActions(c)
@@ -186,8 +202,33 @@ describe('buildMechActions', () => {
       systems: [],
       modules: [],
     } as unknown as Mech
-    const groups = buildMechActions(mech)
-    expect(groups.some((g) => g.source === 'Chassis Ability')).toBe(true)
+    const deck = buildMechActions(mech)
+    expect(deck.length).toBeGreaterThan(0)
+    expect(deck.every((pa) => pa.stamp === 'CHS')).toBe(true)
+    expect(deck.every((pa) => pa.currency === 'EP')).toBe(true)
+  })
+
+  test('lists EVERY action of a multi-action installed system', () => {
+    // A system with more than one resolvable action → more than one deck card.
+    const multi = SalvageUnionReference.Systems.all().find((sys) => {
+      const acts = SalvageUnionReference.resolveActions(sys)
+      return acts !== undefined && acts.filter((a) => !a.hidden).length > 1
+    }) as { id?: string } | undefined
+
+    if (!multi?.id) return // dataset has none — nothing to assert
+    const mech = {
+      id: 'm3',
+      name: 'Rig',
+      chassisRef: 'not-a-real-chassis',
+      systems: [multi.id],
+      modules: [],
+    } as unknown as Mech
+    const deck = buildMechActions(mech)
+    expect(deck.length).toBeGreaterThan(1)
+    expect(deck.every((pa) => pa.stamp === 'SYS')).toBe(true)
+    // Every card shares the same owner (the system) but has a distinct key.
+    expect(new Set(deck.map((pa) => pa.ownerName)).size).toBe(1)
+    expect(new Set(deck.map((pa) => pa.key)).size).toBe(deck.length)
   })
 
   test('empty for an unresolvable chassis with no items', () => {
@@ -199,5 +240,174 @@ describe('buildMechActions', () => {
       modules: [],
     } as unknown as Mech
     expect(buildMechActions(mech)).toEqual([])
+  })
+})
+
+describe('buildPilotActions', () => {
+  test('surfaces ability + equipment actions on the AP economy', () => {
+    const ability = SalvageUnionReference.Abilities.all().find((a) => {
+      const acts = SalvageUnionReference.resolveActions(a)
+      return acts !== undefined && acts.filter((x) => !x.hidden).length > 0
+    }) as { id?: string } | undefined
+    expect(ability?.id).toBeTruthy()
+
+    const pilot = {
+      id: 'p1',
+      name: 'Vex',
+      abilities: [ability?.id ?? ''],
+      equipment: [],
+    } as unknown as Pilot
+    const deck = buildPilotActions(pilot)
+    expect(deck.length).toBeGreaterThan(0)
+    expect(deck.every((pa) => pa.stamp === 'ABL')).toBe(true)
+    expect(deck.every((pa) => pa.currency === 'AP')).toBe(true)
+  })
+
+  test('empty for a pilot with no abilities or equipment', () => {
+    const pilot = { id: 'p2', name: 'Ghost', abilities: [], equipment: [] } as unknown as Pilot
+    expect(buildPilotActions(pilot)).toEqual([])
+  })
+})
+
+describe('deck filtering / grouping / range', () => {
+  function mkAction(over: Partial<PlayAction['action']>): PlayAction {
+    return {
+      key: `k:${over.name ?? over.id ?? Math.random()}`,
+      name: (over.name as string) ?? 'A',
+      kind: 'system',
+      stamp: 'SYS',
+      currency: 'EP',
+      ownerName: 'Owner',
+      slug: 'slug',
+      economy: { epCost: 0, heat: 0, maxUses: 0 },
+      action: { id: 'a', name: 'A', ...over } as PlayAction['action'],
+      condition: 'intact',
+    }
+  }
+
+  test('tabMatchesAction: All admits all; React maps to Reaction', () => {
+    const turn = mkAction({ actionType: 'Turn' })
+    const react = mkAction({ actionType: 'Reaction' })
+    expect(tabMatchesAction('All', turn.action)).toBe(true)
+    expect(tabMatchesAction('Turn', turn.action)).toBe(true)
+    expect(tabMatchesAction('Turn', react.action)).toBe(false)
+    expect(tabMatchesAction('React', react.action)).toBe(true)
+    expect(tabMatchesAction('React', turn.action)).toBe(false)
+  })
+
+  test('actionInRange: no declared range = always in range; else exact band', () => {
+    const utility = mkAction({})
+    const close = mkAction({ range: ['Close'] })
+    expect(actionInRange(utility.action, 'Far')).toBe(true)
+    expect(actionInRange(close.action, 'Close')).toBe(true)
+    expect(actionInRange(close.action, 'Far')).toBe(false)
+  })
+
+  test('actionReachable: destroyed, out-of-range, and heat-locked all fail', () => {
+    const ok = mkAction({ range: ['Close'] })
+    expect(actionReachable(ok, 'Close', 0, 10)).toBe(true)
+    expect(actionReachable(ok, 'Far', 0, 10)).toBe(false)
+
+    const destroyed = { ...ok, condition: 'destroyed' as const }
+    expect(actionReachable(destroyed, 'Close', 0, 10)).toBe(false)
+
+    const hot = mkAction({ range: ['Close'], traits: [{ type: 'hot', amount: 5 }] })
+    hot.economy = { epCost: 0, heat: 5, maxUses: 0 }
+    expect(actionReachable(hot, 'Close', 8, 10)).toBe(false) // 8 + 5 > 10
+    expect(actionReachable(hot, 'Close', 3, 10)).toBe(true) // 3 + 5 <= 10
+  })
+
+  test('reachSummary counts reachable vs total', () => {
+    const a = mkAction({ range: ['Close'] })
+    const b = mkAction({ range: ['Far'] })
+    const summary = reachSummary([a, b], 'Close', 0, 10)
+    expect(summary).toEqual({ inReach: 1, total: 2 })
+  })
+
+  test('groupBySource / groupByTiming bucket the flat deck', () => {
+    const s1 = { ...mkAction({ actionType: 'Turn' }), ownerName: 'Gun' }
+    const s2 = { ...mkAction({ actionType: 'Free' }), ownerName: 'Gun' }
+    const s3 = { ...mkAction({ actionType: 'Turn' }), ownerName: 'Shield' }
+    const bySource = groupBySource([s1, s2, s3])
+    expect(bySource.map((g) => g.label)).toEqual(['Gun', 'Shield'])
+    expect(bySource[0]?.items).toHaveLength(2)
+
+    const byTiming = groupByTiming([s1, s2, s3])
+    expect(byTiming.map((g) => g.label)).toEqual(['Turn', 'Free'])
+    expect(byTiming[0]?.items).toHaveLength(2)
+  })
+
+  test('actionMicroMeta renders range initials, damage, and traits', () => {
+    const pa = mkAction({
+      range: ['Close', 'Medium'],
+      damage: { damageType: 'HP', amount: 3 },
+      traits: [{ type: 'hot', amount: 2 }],
+    })
+    const meta = actionMicroMeta(pa)
+    expect(meta).toContain('C/M')
+    expect(meta).toContain('3 HP')
+    expect(meta).toContain('HOT 2')
+  })
+})
+
+describe('pilotActivationPatch', () => {
+  test('spends AP, clamped at 0; no-op for zero cost', () => {
+    expect(pilotActivationPatch({ apCost: 2, currentAP: 5 })).toEqual({ currentAP: 3 })
+    expect(pilotActivationPatch({ apCost: 9, currentAP: 4 })).toEqual({ currentAP: 0 })
+    expect(pilotActivationPatch({ apCost: 0, currentAP: 4 })).toEqual({})
+  })
+})
+
+describe('resolve flow helpers (D2)', () => {
+  type Act = PlayAction['action']
+  const act = (over: Partial<Act>): Act => ({ id: 'a', name: 'A', ...over }) as Act
+
+  test('hasCurrencyChoice: only for EP-or-AP actions', () => {
+    expect(hasCurrencyChoice(act({ activationCurrency: 'EP or AP' }))).toBe(true)
+    expect(hasCurrencyChoice(act({ activationCurrency: 'SP or HP' }))).toBe(false)
+    expect(hasCurrencyChoice(act({}))).toBe(false)
+  })
+
+  test('hasVariableHot: only when a Hot trait carries amount "X"', () => {
+    expect(hasVariableHot(act({ traits: [{ type: 'hot', amount: 'X' }] }))).toBe(true)
+    expect(hasVariableHot(act({ traits: [{ type: 'hot', amount: 2 }] }))).toBe(false)
+    expect(hasVariableHot(act({ traits: [{ type: 'uses', amount: 'X' }] }))).toBe(false)
+    expect(hasVariableHot(act({}))).toBe(false)
+  })
+
+  test('hotHeatFor: variable Hot uses the picked X; fixed Hot keeps its printed value', () => {
+    expect(hotHeatFor(act({ traits: [{ type: 'hot', amount: 'X' }] }), 4)).toBe(4)
+    expect(hotHeatFor(act({ traits: [{ type: 'hot', amount: 3 }] }), 4)).toBe(3)
+    // A fixed Hot with no numeric amount still costs at least 1 (matches actionEconomy).
+    expect(hotHeatFor(act({ traits: [{ type: 'hot' }] }), 4)).toBe(1)
+    // Mixed fixed + variable sum together.
+    expect(
+      hotHeatFor(
+        act({
+          traits: [
+            { type: 'hot', amount: 2 },
+            { type: 'hot', amount: 'X' },
+          ],
+        }),
+        5
+      )
+    ).toBe(7)
+    expect(hotHeatFor(act({}), 4)).toBe(0)
+  })
+
+  test('economyForActivation: overrides Heat only for variable Hot, else passes through', () => {
+    const base = { epCost: 2, heat: 1, maxUses: 0 }
+    const variable = act({ traits: [{ type: 'hot', amount: 'X' }] })
+    expect(economyForActivation(base, variable, 3)).toEqual({ epCost: 2, heat: 3, maxUses: 0 })
+    const fixed = act({ traits: [{ type: 'hot', amount: 2 }] })
+    expect(economyForActivation(base, fixed, 3)).toBe(base)
+  })
+
+  test('isDestructiveOutcome: only Cascade Failure is destructive', () => {
+    expect(isDestructiveOutcome('cascade')).toBe(true)
+    expect(isDestructiveOutcome('failure')).toBe(false)
+    expect(isDestructiveOutcome('tough')).toBe(false)
+    expect(isDestructiveOutcome('success')).toBe(false)
+    expect(isDestructiveOutcome('nailed')).toBe(false)
   })
 })

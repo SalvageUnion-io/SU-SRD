@@ -15,7 +15,7 @@
  */
 
 import type { ReactNode } from 'react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
@@ -30,8 +30,112 @@ import { usePlayStateStore } from '../../stores/playStateStore'
 import { AppLink } from '../shared/AppLink'
 import { ActionsDeck } from './ActionsDeck'
 import type { DialItem } from './dialItems'
+import { SrdExplorer } from './SrdExplorer'
+import { TablePickerOverlay } from './TablePickerOverlay'
+import type { PickableTable } from './tableCategories'
 
 const HIDE_CHOICES = { choices: true } as const
+
+/** How many recent roll results the Tables view keeps. */
+const ROLL_HISTORY_LIMIT = 8
+
+/** A roll-table entity: its `table` is the actual RollTable payload. */
+type RollTableEntity = PickableTable & {
+  table: Parameters<typeof RollTable>[0]['table']
+}
+
+type RollHistoryEntry = {
+  /** Ephemeral, per-mount unique id for the list key. */
+  seq: number
+  tableName: string
+  key: string
+  text: string
+}
+
+/**
+ * TablesView — the Tables focus (D3): a 5-column category picker overlay over
+ * the curated `tableCategories` map, the selected table rendered via the reused
+ * `RollTable` (roll button on, result in-panel), and an ephemeral roll history.
+ */
+function TablesView() {
+  const tables = SalvageUnionReference.RollTables.all() as unknown as RollTableEntity[]
+  const [tableId, setTableId] = useState<string | null>(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [history, setHistory] = useState<RollHistoryEntry[]>([])
+  const seqRef = useRef(0)
+
+  const selected =
+    (tableId ? tables.find((t) => t.id === tableId) : undefined) ??
+    tables.find((t) => t.name === 'Core Mechanic') ??
+    tables[0]
+
+  return (
+    <div className="pc-display-scroll pc-tables">
+      <div className="pc-tables-bar">
+        <span className="pc-tables-lab">Roll table</span>
+        <button
+          type="button"
+          className="pc-tables-pick-btn"
+          onClick={() => setPickerOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={pickerOpen}
+        >
+          {selected?.name ?? 'Choose a table'} ▾
+        </button>
+      </div>
+
+      {selected ? (
+        <RollTable
+          table={selected.table}
+          tableName={selected.name}
+          showCommand
+          onRollResult={(text, key) => {
+            seqRef.current += 1
+            const entry: RollHistoryEntry = {
+              seq: seqRef.current,
+              tableName: selected.name,
+              key,
+              text,
+            }
+            setHistory((h) => [entry, ...h].slice(0, ROLL_HISTORY_LIMIT))
+          }}
+        />
+      ) : (
+        <div className="pc-display-note">Roll tables load here.</div>
+      )}
+
+      {history.length > 0 ? (
+        <div className="pc-rollhist">
+          <div className="pc-rollhist-head">
+            <span className="pc-rollhist-title">Roll history</span>
+            <button type="button" className="pc-rollhist-clear" onClick={() => setHistory([])}>
+              Clear
+            </button>
+          </div>
+          <ul className="pc-rollhist-list">
+            {history.map((h) => (
+              <li key={h.seq} className="pc-rollhist-row">
+                <span className="pc-rollhist-src">
+                  {h.tableName} · {h.key}
+                </span>
+                <span className="pc-rollhist-text">{h.text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {pickerOpen ? (
+        <TablePickerOverlay
+          tables={tables}
+          selectedId={selected?.id ?? null}
+          onPick={setTableId}
+          onClose={() => setPickerOpen(false)}
+        />
+      ) : null}
+    </div>
+  )
+}
 
 type DisplayViewProps = {
   focus: DialItem | undefined
@@ -68,55 +172,19 @@ export function DisplayView({ focus, mech, pilot, crawler }: DisplayViewProps) {
   const enterDowntime = usePlayStateStore((s) => s.enterDowntime)
   const mount = usePlayStateStore((s) => s.mount)
   const setMount = usePlayStateStore((s) => s.setMount)
-  // Which roll table the Tables focus shows (ephemeral; defaults to Core Mechanic).
-  const [tableId, setTableId] = useState<string | null>(null)
   if (!focus) return <div className="pc-display-note">Nothing selected.</div>
 
   if (focus.statless) {
     if (focus.key === 'tables') {
-      const tables = SalvageUnionReference.RollTables.all() as Array<{ id: string; name: string }>
-      const sorted = [...tables].sort((a, b) => a.name.localeCompare(b.name))
-      const selected =
-        (tableId ? tables.find((t) => t.id === tableId) : undefined) ??
-        tables.find((t) => t.name === 'Core Mechanic') ??
-        sorted[0]
-      return (
-        <div className="pc-display-scroll">
-          <label className="pc-table-picker">
-            <span className="pc-table-picker-lab">Roll table</span>
-            <select
-              className="pc-table-picker-sel"
-              value={selected?.id ?? ''}
-              onChange={(e) => setTableId(e.target.value)}
-              aria-label="Choose a roll table"
-            >
-              {sorted.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          {selected ? (
-            <RollTable
-              table={selected as unknown as Parameters<typeof RollTable>[0]['table']}
-              tableName={selected.name}
-            />
-          ) : (
-            <div className="pc-display-note">Roll tables load here.</div>
-          )}
-        </div>
-      )
+      return <TablesView />
     }
     if (focus.key === 'actions') {
-      return <ActionsDeck mech={mech} />
+      return <ActionsDeck mech={mech} pilot={pilot} mount={mount} />
     }
-    // The SRD explorer lands in a later phase.
-    return (
-      <div className="pc-display-note">
-        SRD explorer — {focus.sublabel}. (Interactive content lands in a later phase.)
-      </div>
-    )
+    if (focus.key === 'srd') {
+      return <SrdExplorer />
+    }
+    return <div className="pc-display-note">{focus.label}</div>
   }
 
   // Statful entity focus → its reference card + entity-level foot actions.

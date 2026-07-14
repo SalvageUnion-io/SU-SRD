@@ -16,10 +16,16 @@
  * into the returned patch — they stay explicit player calls at the UI layer.
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefMetaAction, SURefMetaEntity } from 'salvageunion-reference'
+import { SalvageUnionReference, canActivateAction } from 'salvageunion-reference'
+import type {
+  SURefAbility,
+  SURefEquipment,
+  SURefMetaAction,
+  SURefMetaEntity,
+} from 'salvageunion-reference'
 
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
+import type { CoreRollBand } from '../../lib/rules/coreMechanic'
 import { clampHeat, heatCheckPatch, performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
 import {
@@ -34,10 +40,11 @@ import type {
   MechDamageEffect,
   PilotDamageEffect,
 } from '../../lib/rules/takeDamage'
-import type { Mech } from '../../lib/schemas/mech'
+import type { ItemCondition, Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
-import { itemEconomy, resolveModule, resolveSystem } from '../sheet/mechItemRules'
-import type { MechItem, MechItemEconomy } from '../sheet/mechItemRules'
+import { resolveModule, resolveSystem } from '../sheet/mechItemRules'
+import type { MechItemEconomy } from '../sheet/mechItemRules'
+import { resolveEquipment } from '../sheet/pilotInventory'
 
 // ---------------------------------------------------------------------------
 // Reactor — Push / Heat Check / Vent / Shutdown (plan §5.1)
@@ -206,31 +213,63 @@ export function describeCritInjury(effect: CriticalInjuryEffect): string {
 // Action activation (plan §5.2)
 // ---------------------------------------------------------------------------
 
-export type PlayActionKind = 'chassis' | 'system' | 'module'
-export type PlayActionSourceLabel = 'Chassis Ability' | 'Systems' | 'Modules'
+export type PlayActionKind = 'chassis' | 'system' | 'module' | 'ability' | 'equipment'
+/** Compact source stamp shown on each action card (mockup `acell`). */
+export type PlayActionStamp = 'CHS' | 'SYS' | 'MOD' | 'ABL' | 'EQP'
+/** Which resource one activation of this action spends. */
+export type PlayActionCurrency = 'EP' | 'AP'
 
+/**
+ * A single activatable action. The Dashboard deck lists EVERY action of a
+ * multi-action system/module/ability as its own card (not just the primary),
+ * so `economy` is PER ACTION (not the item-wide `itemEconomy`). For pilot
+ * (on-foot) actions the `economy.epCost` holds the AP cost and `currency` is
+ * 'AP' — the field name is mech-legacy; read it as "primary activation cost".
+ */
 export type PlayAction = {
-  /** Stable list key. */
+  /** Stable list key (owner + action). */
   key: string
-  /** Display name of the ability / item. */
+  /** Display name of the action. */
   name: string
   kind: PlayActionKind
-  /** The installed item's slug (systems/modules); the chassis ref for chassis. */
+  stamp: PlayActionStamp
+  currency: PlayActionCurrency
+  /** The owning item / ability / chassis display name (the source label). */
+  ownerName: string
+  /** The installed item / ability / equipment slug; the chassis ref for chassis. */
   slug: string
-  /** What one activation costs / produces. */
+  /** What one activation costs / produces (per action). */
   economy: MechItemEconomy
-  /** The primary action, for the reference card + damage/roll detection. */
+  /** The action itself, for the reference card + range/damage/traits meta. */
   action: SURefMetaAction
+  /** Live condition of the owning item ('intact' for chassis/pilot abilities). */
+  condition: ItemCondition
 }
 
-export type PlayActionGroup = { source: PlayActionSourceLabel; items: PlayAction[] }
+/** A named bucket of actions (grouped by source owner or by timing). */
+export type PlayActionGroup = { label: string; items: PlayAction[] }
+
+/** Self-declared engagement range band (playStateStore, ephemeral). */
+export type RangeBand = 'Close' | 'Medium' | 'Long' | 'Far'
+export const RANGE_BANDS: readonly RangeBand[] = ['Close', 'Medium', 'Long', 'Far'] as const
+
+/** The timing-filter tabs (one per actionType; 'React' maps to 'Reaction'). */
+export type TimingTab = 'All' | 'Turn' | 'Short' | 'Long' | 'Free' | 'React'
+export const TIMING_TABS: readonly TimingTab[] = [
+  'All',
+  'Turn',
+  'Short',
+  'Long',
+  'Free',
+  'React',
+] as const
 
 function traitAmount(trait: { amount?: unknown }): number {
   return typeof trait.amount === 'number' ? trait.amount : 0
 }
 
-/** Per-action economy for a chassis ability (EP from cost, Heat from Hot). */
-function chassisActionEconomy(action: SURefMetaAction): MechItemEconomy {
+/** Per-action economy (EP/AP from cost, Heat from Hot, uses from Uses). */
+function actionEconomy(action: SURefMetaAction): MechItemEconomy {
   const epCost = typeof action.activationCost === 'number' ? action.activationCost : 0
   const heat = (action.traits ?? [])
     .filter((t) => t.type === 'hot')
@@ -241,67 +280,300 @@ function chassisActionEconomy(action: SURefMetaAction): MechItemEconomy {
   return { epCost, heat, maxUses }
 }
 
-function itemActions(item: MechItem): SURefMetaAction[] {
-  return SalvageUnionReference.resolveActions(item as unknown as SURefMetaEntity) ?? []
+function entityActions(entity: { name?: string }): SURefMetaAction[] {
+  return SalvageUnionReference.resolveActions(entity as unknown as SURefMetaEntity) ?? []
 }
 
-/** The action that drives an item's Use button (first numeric-cost, else first). */
-function primaryAction(actions: SURefMetaAction[]): SURefMetaAction | undefined {
-  return actions.find((a) => typeof a.activationCost === 'number') ?? actions[0]
+/** Non-rendering `hidden` actions are book-keeping only — never deck cards. */
+function deckActions(entity: { name?: string }): SURefMetaAction[] {
+  return entityActions(entity).filter((a) => !a.hidden)
 }
 
 /**
- * The boarded mech's available actions, grouped by source (Chassis Ability /
- * Systems / Modules) via `SalvageUnionReference.resolveActions`. Systems/modules
- * contribute one entry each (their primary action), matching the sheet's
- * per-item Use model; the chassis contributes each of its ability actions.
+ * The boarded mech's activatable actions, flat — every action of the chassis,
+ * each installed System, and each installed Module surfaces as its own
+ * `PlayAction`. Grouping/filtering is a UI concern (see `groupBySource` /
+ * `groupByTiming` / `TIMING_TABS`), kept out of this pure builder.
  */
-export function buildMechActions(mech: Mech): PlayActionGroup[] {
-  const groups: PlayActionGroup[] = []
+export function buildMechActions(mech: Mech): PlayAction[] {
+  const out: PlayAction[] = []
 
-  const chassis = resolveChassisRef(mech.chassisRef)
+  const chassis = resolveChassisRef(mech.chassisRef) as { name?: string } | null
   if (chassis) {
-    const acts = SalvageUnionReference.resolveActions(chassis) ?? []
-    if (acts.length > 0) {
-      groups.push({
-        source: 'Chassis Ability',
-        items: acts.map((action, i) => ({
-          key: `chassis:${action.id ?? i}`,
-          name: action.name,
-          kind: 'chassis',
-          slug: mech.chassisRef,
-          economy: chassisActionEconomy(action),
-          action,
-        })),
+    const chassisName = chassis.name ?? mech.chassisRef
+    deckActions(chassis).forEach((action, i) => {
+      out.push({
+        key: `chassis:${action.id ?? i}`,
+        name: action.name,
+        kind: 'chassis',
+        stamp: 'CHS',
+        currency: 'EP',
+        ownerName: chassisName,
+        slug: mech.chassisRef,
+        economy: actionEconomy(action),
+        action,
+        condition: 'intact',
       })
-    }
+    })
   }
 
-  const build = (slugs: string[], kind: 'system' | 'module'): PlayAction[] => {
-    const out: PlayAction[] = []
+  const build = (slugs: string[], kind: 'system' | 'module') => {
+    const conditions = kind === 'system' ? mech.systemConditions : mech.moduleConditions
     for (const slug of slugs) {
       const item = kind === 'system' ? resolveSystem(slug) : resolveModule(slug)
       if (!item) continue
-      const action = primaryAction(itemActions(item))
-      if (!action) continue
-      out.push({
-        key: `${kind}:${slug}`,
-        name: item.name,
-        kind,
-        slug,
-        economy: itemEconomy(item),
-        action,
+      const condition = conditions?.[slug] ?? 'intact'
+      deckActions(item).forEach((action, i) => {
+        out.push({
+          key: `${kind}:${slug}:${action.id ?? i}`,
+          name: action.name,
+          kind,
+          stamp: kind === 'system' ? 'SYS' : 'MOD',
+          currency: 'EP',
+          ownerName: item.name,
+          slug,
+          economy: actionEconomy(action),
+          action,
+          condition,
+        })
       })
     }
-    return out
   }
 
-  const systems = build(mech.systems ?? [], 'system')
-  if (systems.length > 0) groups.push({ source: 'Systems', items: systems })
-  const modules = build(mech.modules ?? [], 'module')
-  if (modules.length > 0) groups.push({ source: 'Modules', items: modules })
+  build(mech.systems ?? [], 'system')
+  build(mech.modules ?? [], 'module')
 
+  return out
+}
+
+/** Resolve a pilot ability slug (id or name) against the reference ORM. */
+function resolveAbilityBySlug(slug: string): SURefAbility | null {
+  const all = SalvageUnionReference.Abilities.all() as ReadonlyArray<SURefAbility>
+  return all.find((a) => a.id === slug || a.name === slug) ?? null
+}
+
+/**
+ * The on-foot pilot's activatable actions, flat — every action of each selected
+ * ability and each carried equipment item. Mirrors `buildMechActions` but on the
+ * AP economy (pilots have no Heat/EP): `economy.epCost` carries the AP cost and
+ * `currency` is 'AP'.
+ */
+export function buildPilotActions(pilot: Pilot): PlayAction[] {
+  const out: PlayAction[] = []
+
+  for (const slug of pilot.abilities ?? []) {
+    const ability = resolveAbilityBySlug(slug)
+    if (!ability) continue
+    deckActions(ability as unknown as { name?: string }).forEach((action, i) => {
+      out.push({
+        key: `ability:${slug}:${action.id ?? i}`,
+        name: action.name,
+        kind: 'ability',
+        stamp: 'ABL',
+        currency: 'AP',
+        ownerName: ability.name,
+        slug,
+        economy: actionEconomy(action),
+        action,
+        condition: 'intact',
+      })
+    })
+  }
+
+  for (const slug of pilot.equipment ?? []) {
+    const equip: SURefEquipment | null = resolveEquipment(slug)
+    if (!equip) continue
+    const condition = pilot.equipmentConditions?.[slug] ?? 'intact'
+    deckActions(equip as unknown as { name?: string }).forEach((action, i) => {
+      out.push({
+        key: `equipment:${slug}:${action.id ?? i}`,
+        name: action.name,
+        kind: 'equipment',
+        stamp: 'EQP',
+        currency: 'AP',
+        ownerName: equip.name,
+        slug,
+        economy: actionEconomy(action),
+        action,
+        condition,
+      })
+    })
+  }
+
+  return out
+}
+
+// ---------------------------------------------------------------------------
+// Deck filtering / grouping / range (pure — the UI reads these)
+// ---------------------------------------------------------------------------
+
+/** Whether a timing tab admits this action (`All` admits everything). */
+export function tabMatchesAction(tab: TimingTab, action: SURefMetaAction): boolean {
+  if (tab === 'All') return true
+  const want = tab === 'React' ? 'Reaction' : tab
+  return action.actionType === want
+}
+
+/**
+ * Whether an action's declared range covers the given band. Actions with NO
+ * declared range (utility / passive) are treated as always in range.
+ */
+export function actionInRange(action: SURefMetaAction, band: RangeBand): boolean {
+  const ranges = action.range
+  if (!ranges || ranges.length === 0) return true
+  return ranges.includes(band)
+}
+
+/**
+ * Whether an action is currently usable: not destroyed, in range for the band,
+ * and its Hot cost would not push heat past the cap (`canActivateAction`). Pilot
+ * actions carry no heat, so pass heatCap large / heat 0 for those.
+ */
+export function actionReachable(
+  pa: PlayAction,
+  band: RangeBand,
+  currentHeat: number,
+  heatCap: number
+): boolean {
+  if (pa.condition === 'destroyed') return false
+  if (!actionInRange(pa.action, band)) return false
+  return canActivateAction(currentHeat, pa.economy.heat, heatCap)
+}
+
+/** Count reachable vs total for the reach readout ("7 / 12 in reach"). */
+export function reachSummary(
+  actions: PlayAction[],
+  band: RangeBand,
+  currentHeat: number,
+  heatCap: number
+): { inReach: number; total: number } {
+  let inReach = 0
+  for (const pa of actions) {
+    if (actionReachable(pa, band, currentHeat, heatCap)) inReach += 1
+  }
+  return { inReach, total: actions.length }
+}
+
+/** Group actions by their source owner (chassis / each item / ability), in order. */
+export function groupBySource(actions: PlayAction[]): PlayActionGroup[] {
+  const groups: PlayActionGroup[] = []
+  const index = new Map<string, PlayActionGroup>()
+  for (const a of actions) {
+    const key = `${a.stamp}:${a.ownerName}`
+    let g = index.get(key)
+    if (!g) {
+      g = { label: a.ownerName, items: [] }
+      index.set(key, g)
+      groups.push(g)
+    }
+    g.items.push(a)
+  }
   return groups
+}
+
+const TIMING_ORDER = ['Turn', 'Short', 'Long', 'Free', 'Reaction', 'Passive', 'DownTime']
+
+/** Group actions by their `actionType`, in canonical timing order. */
+export function groupByTiming(actions: PlayAction[]): PlayActionGroup[] {
+  const groups: PlayActionGroup[] = []
+  const index = new Map<string, PlayActionGroup>()
+  for (const a of actions) {
+    const t = a.action.actionType ?? 'Other'
+    let g = index.get(t)
+    if (!g) {
+      g = { label: t, items: [] }
+      index.set(t, g)
+      groups.push(g)
+    }
+    g.items.push(a)
+  }
+  groups.sort((x, y) => {
+    const ix = TIMING_ORDER.indexOf(x.label)
+    const iy = TIMING_ORDER.indexOf(y.label)
+    return (ix === -1 ? 99 : ix) - (iy === -1 ? 99 : iy)
+  })
+  return groups
+}
+
+/** Compact micro-meta tags for a deck card (range / damage / traits). */
+export function actionMicroMeta(pa: PlayAction): string[] {
+  const bits: string[] = []
+  const ranges = pa.action.range
+  if (ranges && ranges.length > 0) bits.push(ranges.map((r) => r[0]).join('/'))
+  const dmg = pa.action.damage
+  if (dmg) bits.push(`${dmg.amount} ${dmg.damageType}`)
+  for (const t of pa.action.traits ?? []) {
+    const label = t.type.toUpperCase()
+    bits.push(t.amount != null ? `${label} ${t.amount}` : label)
+  }
+  return bits
+}
+
+// ---------------------------------------------------------------------------
+// Resolve flow — cost choice, variable Hot, Apply outcome (plan §5, D2)
+// ---------------------------------------------------------------------------
+
+/**
+ * Whether the action offers a genuine EP-vs-AP currency choice (§4.2). The
+ * `activationCurrency` enum is descriptive text no rules helper consumes; a real
+ * choice ('EP or AP') is authored in the Dashboard resolve flow as a radio pair.
+ */
+export function hasCurrencyChoice(action: SURefMetaAction): boolean {
+  return action.activationCurrency === 'EP or AP'
+}
+
+/**
+ * Whether the action's Hot cost is variable — a trait `{type:'hot', amount:'X'}`.
+ * These need a player-picked amount (a `− X +` stepper); the stored data only
+ * marks heat as variable, never a value/range.
+ */
+export function hasVariableHot(action: SURefMetaAction): boolean {
+  return (action.traits ?? []).some((t) => t.type === 'hot' && t.amount === 'X')
+}
+
+/**
+ * The Hot heat one activation produces given a player-picked `hotX` for the
+ * variable Hot trait. Fixed Hot traits keep their printed amount (min 1, matching
+ * `actionEconomy`); the variable 'X' Hot uses the picked value (clamped ≥ 0).
+ * Non-Hot actions produce 0.
+ */
+export function hotHeatFor(action: SURefMetaAction, hotX: number): number {
+  return (action.traits ?? [])
+    .filter((t) => t.type === 'hot')
+    .reduce((sum, t) => {
+      if (t.amount === 'X') return sum + Math.max(0, hotX)
+      return sum + Math.max(1, traitAmount(t))
+    }, 0)
+}
+
+/**
+ * Per-activation economy with a player-picked X folded in. When the action has a
+ * variable Hot ('X'), the Heat is recomputed from `hotX`; otherwise the base
+ * economy passes through unchanged. EP/uses are untouched (only Hot is variable).
+ */
+export function economyForActivation(
+  base: MechItemEconomy,
+  action: SURefMetaAction,
+  hotX: number
+): MechItemEconomy {
+  if (!hasVariableHot(action)) return base
+  return { ...base, heat: hotHeatFor(action, hotX) }
+}
+
+/**
+ * Classify a rolled outcome for the Apply step (ADR-007). A Cascade Failure is
+ * the destructive band — its severe consequence must NEVER be auto-written; the
+ * caller routes it to the Active Item band's player-confirmed controls (Push /
+ * Take Dmg / Critical). Every other band is non-destructive and auto-commits.
+ */
+export function isDestructiveOutcome(band: CoreRollBand): boolean {
+  return band === 'cascade'
+}
+
+/** The write-through patch for one on-foot (AP) activation. */
+export function pilotActivationPatch(args: { apCost: number; currentAP: number }): Partial<Pilot> {
+  if (args.apCost <= 0) return {}
+  return { currentAP: Math.max(0, args.currentAP - args.apCost) }
 }
 
 /**

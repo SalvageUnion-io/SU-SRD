@@ -20,6 +20,8 @@
 
 import { create } from 'zustand'
 
+import type { RangeBand } from '../components/dashboard/dashboardRules'
+
 /** Which entity currently "owns" the cockpit — the active-row entity. */
 export type MountState = 'mech' | 'pilot' | 'downtime'
 
@@ -29,14 +31,26 @@ type PlayState = {
   mount: MountState
   /** Selected index on the rotary Dial. */
   wheel: number
+  /** Self-declared engagement range band for the Actions deck (ephemeral). */
+  range: RangeBand
   /** The mount to restore when leaving Downtime (null when not in Downtime). */
   priorMount: MountState | null
   /** Current step index in the Downtime wizard (0-based). */
   dtStep: number
   /** Per-step "Mark Complete" toggles, keyed by step index (ephemeral). */
   dtDone: Record<number, boolean>
+  /** One-shot signal: the deck's Apply step armed a destructive outcome, so the
+   *  active Item band should open its Take-Damage overlay (pre-armed) for the
+   *  player to confirm. Consumed (reset) by the band once it opens the overlay. */
+  damagePromptArmed: boolean
   setMount: (mount: MountState) => void
   setWheel: (wheel: number) => void
+  /** Set the self-declared engagement range band. */
+  setRange: (range: RangeBand) => void
+  /** Arm the destructive-outcome hand-off (deck Apply → active band overlay). */
+  armDamagePrompt: () => void
+  /** Consume the destructive-outcome signal (band opened its overlay). */
+  consumeDamagePrompt: () => void
   /** Enter Downtime, remembering the current mount to restore on Leave. */
   enterDowntime: () => void
   /** Leave Downtime, restoring the mount active when it was entered. */
@@ -50,11 +64,16 @@ type PlayState = {
 export const usePlayStateStore = create<PlayState>((set) => ({
   mount: 'pilot',
   wheel: 0,
+  range: 'Close',
   priorMount: null,
   dtStep: 0,
   dtDone: {},
+  damagePromptArmed: false,
   setMount: (mount) => set({ mount }),
   setWheel: (wheel) => set({ wheel }),
+  setRange: (range) => set({ range }),
+  armDamagePrompt: () => set({ damagePromptArmed: true }),
+  consumeDamagePrompt: () => set({ damagePromptArmed: false }),
   enterDowntime: () =>
     set((s) =>
       s.mount === 'downtime' ? s : { mount: 'downtime', priorMount: s.mount, dtStep: 0, dtDone: {} }
