@@ -528,12 +528,14 @@ function ValueBox({
   const atMin = numericValue <= min
   const atMax = max !== undefined && numericValue >= max
   const btnSize = compact ? 'h-3 w-3 text-[9px]' : 'h-4 w-4 text-xs'
+  // Match the canonical button border (border-chrome border-ink bg-paper), same
+  // as Btn / StepBtn; keep the invert-on-hover the box steppers have always had.
   const btnResting = inverse
     ? 'border-su-white bg-su-black text-su-white'
-    : 'border-su-black bg-su-white text-su-black'
+    : 'border-ink bg-paper text-ink'
   const btnHover = inverse
     ? 'hover:bg-su-white hover:text-su-black'
-    : 'hover:bg-su-black hover:text-su-white'
+    : 'hover:bg-ink hover:text-paper'
 
   const boxSize = compact ? 'h-8 min-w-8 px-0.5' : 'h-12 w-12'
   // Disabled state: reduce overall opacity to signal disabled while preserving
@@ -644,7 +646,7 @@ function ValueBox({
             onChange?.(max !== undefined ? Math.min(max, numericValue + 1) : numericValue + 1)
           }
           disabled={!!atMax}
-          className={`flex min-h-11 min-w-11 items-center justify-center border font-mono font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
+          className={`flex min-h-11 min-w-11 items-center justify-center border-chrome font-mono font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
             atMax ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`
           }`}
         >
@@ -655,7 +657,7 @@ function ValueBox({
           aria-label={`Decrease ${label}`}
           onClick={() => onChange?.(Math.max(min, numericValue - 1))}
           disabled={atMin}
-          className={`flex min-h-11 min-w-11 items-center justify-center border font-mono font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
+          className={`flex min-h-11 min-w-11 items-center justify-center border-chrome font-mono font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
             atMin ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`
           }`}
         >

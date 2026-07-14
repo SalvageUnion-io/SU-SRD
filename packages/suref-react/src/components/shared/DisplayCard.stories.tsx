@@ -24,7 +24,14 @@ const bodyContent = (
 
 export const Default: Story = () => (
   <div className="w-[400px]">
-    <DisplayCard headerBg="bg-su-green" headerContent={headerContent}>
+    <DisplayCard
+      headerBg="bg-su-green"
+      headerContent={headerContent}
+      footMeta={[
+        { label: 'TL', value: 3 },
+        { label: 'SV', value: 8 },
+      ]}
+    >
       {bodyContent}
     </DisplayCard>
   </div>
