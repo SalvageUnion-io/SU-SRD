@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 
 import { cn } from '../../utils/cn'
-import { pipClickValue, statBlockRowStarts } from './pipRows'
+import { pipClickValue, statBlockRowStarts, trackSegmentState } from './pipRows'
 
 export type VitalGaugeProps = {
   /** Stamp label, e.g. 'HP', 'SP', 'Heat'. */
@@ -243,13 +243,14 @@ export function VitalGauge({
           <div key={segRow.start} className={cn('flex', isDense ? 'gap-[3px]' : 'gap-1')}>
             {Array.from({ length: segRow.count }).map((_, c) => {
               const i = segRow.start + c
-              const on = i < shown
-              const isDanger = on && (i >= max || i >= dangerFrom)
-              const fill = !on
-                ? 'border-[rgba(40,32,25,0.5)] bg-paper'
-                : isDanger
-                  ? 'border-status-bad bg-status-bad'
-                  : 'border-[var(--tone-deep)] bg-[var(--tone)]'
+              const state = trackSegmentState(i, shown, max, dangerFrom)
+              const on = state !== 'off'
+              const fill =
+                state === 'off'
+                  ? 'border-[rgba(40,32,25,0.5)] bg-paper'
+                  : state === 'danger'
+                    ? 'border-status-bad bg-status-bad'
+                    : 'border-[var(--tone-deep)] bg-[var(--tone)]'
               const segClass = cn(
                 'min-h-0 min-w-0 flex-1 border-chrome p-0',
                 isDense ? 'h-[18px] rounded-[2px]' : 'h-[22px] rounded-[3px]',
