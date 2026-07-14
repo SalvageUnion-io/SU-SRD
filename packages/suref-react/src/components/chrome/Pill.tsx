@@ -35,7 +35,7 @@ export function Pill({ children, tone, rounded, className }: PillProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center border-2 px-[9px] py-[3px] font-cond text-[11px] font-semibold uppercase leading-none tracking-[0.05em]',
+        'inline-flex items-center border-2 px-[9px] py-[3px] font-cond text-[11px] font-semibold uppercase leading-none tracking-wider',
         rounded ? 'rounded-full' : 'rounded-[2px]',
         tone ? PILL_TONES[tone] : 'border-ink bg-paper text-ink',
         className

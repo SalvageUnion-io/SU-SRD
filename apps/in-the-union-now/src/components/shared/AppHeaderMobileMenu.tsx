@@ -19,14 +19,14 @@ import { AppLink } from './AppLink'
 // Full-width vertical restatements of AppHeader's `.nav-link`/buy-button looks,
 // sized up for touch targets inside the drawer.
 const DRAWER_LINK =
-  'flex items-center rounded-md border border-su-black bg-su-white px-4 py-3 font-cond text-base font-semibold uppercase tracking-[0.04em] text-su-black no-underline transition-colors hover:border-su-orange-dark hover:text-su-orange-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
+  'flex items-center rounded-md border border-su-black bg-su-white px-4 py-3 font-cond text-base font-semibold uppercase tracking-caps-tight text-su-black no-underline transition-colors hover:border-su-orange-dark hover:text-su-orange-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
 
 const DRAWER_BUY =
-  'flex items-center justify-center rounded-md border border-su-orange-dark bg-su-orange-dark px-4 py-3 font-cond text-base font-medium uppercase tracking-[0.06em] text-su-white no-underline transition-colors hover:bg-su-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
+  'flex items-center justify-center rounded-md border border-su-orange-dark bg-su-orange-dark px-4 py-3 font-cond text-base font-medium uppercase tracking-caps-snug text-su-white no-underline transition-colors hover:bg-su-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
 
 // Small "Alpha" pill — same rust treatment as HeaderShell's "Beta" badge.
 const ALPHA_TAG =
-  'ml-2 inline-block rounded bg-rust px-1.5 py-0.5 font-cond text-[11px] font-bold uppercase leading-none tracking-[0.08em] text-su-paper'
+  'ml-2 inline-block rounded bg-rust px-1.5 py-0.5 font-cond text-[11px] font-bold uppercase leading-none tracking-caps text-su-paper'
 
 export function AppHeaderMobileMenu() {
   return (

@@ -24,7 +24,7 @@ export function OptRow({ name, desc, active = false, onClick, img, className }: 
       onClick={onClick}
       aria-current={active || undefined}
       className={cn(
-        'mb-2 flex w-full cursor-pointer items-center gap-3 rounded-[3px] border-[1.5px] border-ink px-3 py-[11px] text-left transition-colors duration-[120ms] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25',
+        'mb-2 flex w-full cursor-pointer items-center gap-3 rounded-[3px] border-chrome border-ink px-3 py-[11px] text-left transition-colors duration-[120ms] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25',
         active ? 'bg-paper shadow-[inset_3px_0_0_var(--color-rust)]' : 'bg-transparent',
         className
       )}
@@ -32,7 +32,7 @@ export function OptRow({ name, desc, active = false, onClick, img, className }: 
       {img ?? (
         <span
           aria-hidden="true"
-          className="flex h-11 w-11 shrink-0 items-center justify-center border-[1.5px] border-wk-faint bg-[repeating-linear-gradient(135deg,#dbe3e9_0_7px,#e7eef3_7px_14px)] text-[10px] uppercase text-[#8a97a0]"
+          className="flex h-11 w-11 shrink-0 items-center justify-center border-chrome border-wk-faint bg-[repeating-linear-gradient(135deg,#dbe3e9_0_7px,#e7eef3_7px_14px)] text-[10px] uppercase text-[#8a97a0]"
         >
           art
         </span>

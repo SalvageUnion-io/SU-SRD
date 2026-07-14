@@ -37,7 +37,7 @@ const KIND_LABEL: Record<BlankCreateKind, string> = {
 }
 
 const SELECT_CLASS =
-  'w-full min-h-11 rounded-[3px] border-[1.5px] border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
+  'w-full min-h-11 rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
 type RefOption = { value: string; label: string }
 

@@ -27,11 +27,11 @@ export function MChip({ label, value, variant = 'default', className }: MChipPro
   return (
     <span
       className={cn(
-        'inline-flex items-stretch overflow-hidden rounded-[2px] border-[1.5px] border-ink bg-paper',
+        'inline-flex items-stretch overflow-hidden rounded-[2px] border-chrome border-ink bg-paper',
         className
       )}
     >
-      <span className="flex items-center bg-ink px-1.5 font-cond text-[9.5px] font-bold uppercase leading-none tracking-[0.12em] text-paper">
+      <span className="flex items-center bg-ink px-1.5 font-cond text-[9.5px] font-bold uppercase leading-none tracking-caps-wide text-paper">
         {label}
       </span>
       <span
@@ -65,7 +65,7 @@ export function Spec({ label, value, max, cargo = false, className }: SpecProps)
   return (
     <span
       className={cn(
-        'inline-flex items-stretch overflow-hidden rounded-[2px] border-[1.5px]',
+        'inline-flex items-stretch overflow-hidden rounded-[2px] border-chrome',
         cargo ? 'border-cargo-deep' : 'border-ink',
         className
       )}

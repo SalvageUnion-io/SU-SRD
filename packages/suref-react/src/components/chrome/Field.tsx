@@ -20,7 +20,7 @@ export function Field({ label, required = false, htmlFor, children, className }:
     <div className={cn('block', className)}>
       <label
         htmlFor={htmlFor}
-        className="mb-1.5 block font-cond text-[13px] font-semibold uppercase tracking-[0.04em] text-ink"
+        className="mb-1.5 block font-cond text-[13px] font-semibold uppercase tracking-caps-tight text-ink"
       >
         {label}
         {required && (
@@ -48,7 +48,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     <input
       ref={ref}
       className={cn(
-        'w-full rounded-[3px] border-[1.5px] border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]',
+        'w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]',
         className
       )}
       {...props}

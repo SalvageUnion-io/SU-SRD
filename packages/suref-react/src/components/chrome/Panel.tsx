@@ -16,7 +16,7 @@ export function Panel({ children, soft = false, className }: PanelProps) {
   return (
     <div
       className={cn(
-        'rounded-[6px] border-[1.5px] bg-paper',
+        'rounded-[6px] border-chrome bg-paper',
         soft ? 'border-wk-faint' : 'border-ink',
         className
       )}
@@ -44,7 +44,7 @@ export function Row({ name, meta, actions, className }: RowProps) {
   return (
     <div
       className={cn(
-        'flex items-center gap-3 rounded-[3px] border-[1.5px] border-ink bg-paper px-3 py-2.5',
+        'flex items-center gap-3 rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5',
         className
       )}
     >
@@ -75,7 +75,7 @@ export function Empty({ message, icon, children, className }: EmptyProps) {
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-3.5 rounded-[3px] border-[1.5px] border-dashed border-wk-faint p-[26px] text-center',
+        'flex flex-col items-center justify-center gap-3.5 rounded-[3px] border-chrome border-dashed border-wk-faint p-[26px] text-center',
         className
       )}
     >

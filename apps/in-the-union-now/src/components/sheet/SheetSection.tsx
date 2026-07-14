@@ -203,7 +203,7 @@ export function SectionChead({ title, count, actions, className }: SectionCheadP
         </span>
         {count}
       </div>
-      <span aria-hidden="true" className="h-0 min-w-3 flex-1 border-t-[1.5px] border-ink/35" />
+      <span aria-hidden="true" className="h-0 min-w-3 flex-1 border-t-chrome border-ink/35" />
       {actions && <div className="ml-auto flex items-center gap-2">{actions}</div>}
     </div>
   )

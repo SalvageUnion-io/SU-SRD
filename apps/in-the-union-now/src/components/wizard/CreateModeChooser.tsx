@@ -57,7 +57,7 @@ const DTAB_CLASS =
 
 /** Condensed-caps door heading (mockup `.dhead`). */
 const DHEAD_CLASS =
-  'mb-1.5 ml-[34px] block font-cond text-[27px] font-bold uppercase leading-none tracking-[0.04em]'
+  'mb-1.5 ml-[34px] block font-cond text-[27px] font-bold uppercase leading-none tracking-caps-tight'
 
 const DBODY_CLASS = 'ml-[34px] block font-body text-[13px] leading-[1.55]'
 const DCITE_CLASS = 'ml-[34px] mt-2.5 block font-body text-[12.5px] font-bold'
@@ -115,7 +115,7 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
             onClick={onBlank}
             className={cn(
               DOOR_CLASS,
-              'border-[3px] border-dashed border-ink/55 bg-paper text-ink shadow-[0_14px_26px_-14px_rgba(0,0,0,0.4)]'
+              'border-entity border-dashed border-ink/55 bg-paper text-ink shadow-[0_14px_26px_-14px_rgba(0,0,0,0.4)]'
             )}
           >
             <span className={DTAB_CLASS} aria-hidden="true">
@@ -135,7 +135,7 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
         {kind === 'mech' && (
           <AppLink
             href="/mechs/patterns"
-            className="mx-auto mt-6 block w-fit max-w-[92%] rounded-[2px] bg-ink px-4 py-2 text-center font-cond text-[11px] font-bold uppercase leading-relaxed tracking-[0.1em] text-su-white no-underline hover:bg-ink/85"
+            className="mx-auto mt-6 block w-fit max-w-[92%] rounded-[2px] bg-ink px-4 py-2 text-center font-cond text-[11px] font-bold uppercase leading-relaxed tracking-widest text-su-white no-underline hover:bg-ink/85"
           >
             A third door in the Blank family —{' '}
             <span className="text-su-orange">Instantiate from Pattern</span> · stamp a saved

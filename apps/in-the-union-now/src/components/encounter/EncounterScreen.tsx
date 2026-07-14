@@ -115,7 +115,7 @@ export function EncounterScreen({
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h1 className="m-0 flex items-center gap-2 font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
             Encounter Tray
-            <span className="inline-block rounded bg-rust px-1.5 py-0.5 font-cond text-[11px] font-bold uppercase leading-none tracking-[0.08em] text-su-paper">
+            <span className="inline-block rounded bg-rust px-1.5 py-0.5 font-cond text-[11px] font-bold uppercase leading-none tracking-caps text-su-paper">
               Alpha
             </span>
           </h1>

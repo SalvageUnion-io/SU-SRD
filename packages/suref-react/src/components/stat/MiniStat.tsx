@@ -57,7 +57,7 @@ export function MiniStat({ label, value, max, stat = 'default', className }: Min
       }`}
       data-heat={level !== 'normal' ? level : undefined}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-[2px] border-[1.5px] bg-paper px-2 py-[3px]',
+        'inline-flex items-center gap-1.5 rounded-[2px] border-chrome bg-paper px-2 py-[3px]',
         level === 'critical' ? 'border-status-bad motion-safe:animate-heat-pulse' : 'border-ink',
         className
       )}

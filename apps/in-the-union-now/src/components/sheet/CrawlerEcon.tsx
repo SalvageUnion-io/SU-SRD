@@ -50,7 +50,7 @@ export function CrawlerEconFrame({ gauge, items, className }: CrawlerEconFramePr
   return (
     <aside
       aria-label="Crawler economy"
-      className={cn('flex flex-col gap-3 rounded-[3px] border-[3px] p-3', className)}
+      className={cn('flex flex-col gap-3 rounded-[3px] border-entity p-3', className)}
       style={{ borderColor: 'var(--tone)', background: 'var(--tone)' }}
     >
       <div className="rounded-[3px] bg-paper px-3 py-2.5">{gauge}</div>

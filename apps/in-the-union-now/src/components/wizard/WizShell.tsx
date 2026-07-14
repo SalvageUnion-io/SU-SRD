@@ -85,7 +85,7 @@ export function WizTracker({ label, value }: { label: string; value: ReactNode }
   return (
     <span className="inline-flex items-baseline gap-2 whitespace-nowrap rounded-[2px] bg-ink px-3 py-1.5 font-cond text-[13px] font-bold uppercase leading-none tracking-caps text-su-white shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.28)]">
       <span>{label}</span>
-      <span className="text-[15px] tracking-[0.04em] text-su-orange">{value}</span>
+      <span className="text-[15px] tracking-caps-tight text-su-orange">{value}</span>
     </span>
   )
 }
@@ -136,7 +136,7 @@ function RailStep({
       </span>
       <span
         className={cn(
-          'hidden font-cond font-bold uppercase leading-[1.15] tracking-[0.06em] text-ink min-[721px]:block',
+          'hidden font-cond font-bold uppercase leading-[1.15] tracking-caps-snug text-ink min-[721px]:block',
           active ? 'text-[13px]' : 'text-[11.5px]',
           done && !active && 'opacity-80',
           !done && !active && 'opacity-[0.66]'
