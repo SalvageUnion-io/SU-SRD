@@ -492,6 +492,7 @@ export function PilotSheet({
                   slug={slug}
                   pilotId={pilot.id}
                   seedSelections={pilot.equipmentChoices?.[slug]}
+                  seedLoadout={pilot.equipmentLoadouts?.[slug]}
                   condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
                   usesLeft={pilot.equipmentUses?.[slug]}
                   onConditionChange={(itemSlug, next) => {

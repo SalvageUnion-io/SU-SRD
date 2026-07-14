@@ -14,8 +14,11 @@ import type { CardFootMeta, ChoiceSelections, EntityStatus } from 'suref-react'
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry } from '../../lib/schemas/pilot'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
+import { matchesRef } from '../../lib/rules/resolveRefs'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
+import type { EquipmentLoadout } from '../shared/useEquipmentLoadout'
+import { PilotEquipmentLoadout, isLoadoutHost } from './PilotEquipmentLoadout'
 import { CardRemoveButton, REMOVABLE_CARD_STYLE, cardRemoveControls } from './SheetSection'
 import {
   equipmentMaxUses,
@@ -36,7 +39,8 @@ const CONDITION_CYCLE: Record<ItemCondition, ItemCondition> = {
 // biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
 export function resolveAbility(slug: string): SURefAbility | null {
   const all = SalvageUnionReference.Abilities.all() as ReadonlyArray<SURefAbility>
-  return all.find((a) => a.id === slug || a.name === slug) ?? null
+  // Slug-tolerant (matchesRef): seeded pilots store kebab ability slugs.
+  return all.find((a) => matchesRef(a, slug)) ?? null
 }
 
 // ---------------------------------------------------------------------------
@@ -142,6 +146,12 @@ type PilotEquipmentItemProps = {
    * pilot prop so read-only/snapshot rendering does not depend on the store.
    */
   seedSelections: ChoiceSelections | undefined
+  /**
+   * Persisted installed loadout for drone/companion equipment (Survey Drone,
+   * Mecha Companion, Auto-Turret), sourced from the canonical pilot prop.
+   * Undefined for normal gear, which never renders a loadout section.
+   */
+  seedLoadout: EquipmentLoadout | undefined
   condition: ItemCondition
   /** Uses remaining for this item; undefined = full (rules A14). */
   usesLeft: number | undefined
@@ -172,6 +182,7 @@ export function PilotEquipmentItem({
   slug,
   pilotId,
   seedSelections,
+  seedLoadout,
   condition,
   usesLeft,
   onConditionChange,
@@ -252,26 +263,43 @@ export function PilotEquipmentItem({
   const controls =
     !readOnly && onRemove ? cardRemoveControls({ name: equipment.name, onRemove }) : undefined
 
+  const equipmentRecord = equipment as unknown as Record<string, unknown> & { name?: string }
+
   return (
-    <ReferenceEntityDisplay
-      data={equipment as unknown as SURefEntity}
-      compact
-      selections={selections}
-      onSelectionChange={readOnly ? undefined : setSelections}
-      scalingParent={scalingParent}
-      status={condition as EntityStatus}
-      onStatusClick={
-        readOnly
-          ? undefined
-          : () => {
-              onConditionChange(slug, CONDITION_CYCLE[condition])
-            }
-      }
-      footMeta={footMeta}
-      footActions={footActions}
-      controls={controls}
-      cardStyle={controls ? REMOVABLE_CARD_STYLE : undefined}
-    />
+    <>
+      <ReferenceEntityDisplay
+        data={equipment as unknown as SURefEntity}
+        compact
+        selections={selections}
+        onSelectionChange={readOnly ? undefined : setSelections}
+        scalingParent={scalingParent}
+        status={condition as EntityStatus}
+        onStatusClick={
+          readOnly
+            ? undefined
+            : () => {
+                onConditionChange(slug, CONDITION_CYCLE[condition])
+              }
+        }
+        footMeta={footMeta}
+        footActions={footActions}
+        controls={controls}
+        cardStyle={controls ? REMOVABLE_CARD_STYLE : undefined}
+      />
+      {/* Drone/companion equipment (Survey Drone, Mecha Companion, Auto-Turret)
+          carries its own systemSlots/moduleSlots, so it hosts a real installed
+          loadout edited with the same picker mechs use. */}
+      {isLoadoutHost(equipmentRecord) && (
+        <PilotEquipmentLoadout
+          pilotId={pilotId}
+          slug={slug}
+          equipment={equipmentRecord}
+          seed={seedLoadout}
+          readOnly={readOnly}
+          store={store}
+        />
+      )}
+    </>
   )
 }
 

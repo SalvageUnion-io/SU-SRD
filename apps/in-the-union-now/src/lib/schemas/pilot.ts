@@ -142,6 +142,28 @@ export const PilotSchema = z
      */
     equipmentChoices: z.record(z.string(), ChoiceSelectionsSchema).optional(),
     /**
+     * Per-equipment installed loadout for drone/companion equipment that carries
+     * its own systemSlots/moduleSlots (Survey Drone, Mecha Companion,
+     * Auto-Turret). Keyed by equipment slug → the systems/modules installed on
+     * that instance; refs are system/module slugs (same convention as
+     * mech.systems/modules). Edited through the same "Add System/Module" picker
+     * mechs use. Additive-optional — absent reads as no loadout; no DB migration
+     * needed (same tactic as equipmentChoices/equipmentConditions). Keyed by slug
+     * so two of the same drone slug on one pilot would share an entry — an
+     * accepted limitation identical to equipmentChoices.
+     */
+    equipmentLoadouts: z
+      .record(
+        z.string(),
+        z
+          .object({
+            systems: z.array(z.string()).default([]),
+            modules: z.array(z.string()).default([]),
+          })
+          .strict()
+      )
+      .optional(),
+    /**
      * Manual fallback for the pilot's effective Crawler Tech Level (1–6), used
      * to scale choice caps (e.g. the Custom Sniper Rifle's Modification choice,
      * "at each Tech Level you may select an additional Modification"). Only used

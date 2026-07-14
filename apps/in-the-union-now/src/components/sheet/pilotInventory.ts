@@ -20,11 +20,17 @@ import type { SURefEquipment, SURefMetaEntity } from 'salvageunion-reference'
 
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 import { PILOT_BASE_INVENTORY_SLOTS } from '../../lib/rules/derivedStats'
+import { matchesRef } from '../../lib/rules/resolveRefs'
 
-/** Resolve an equipment slug (id or name) against the reference data. */
+/**
+ * Resolve an equipment ref (slug, name, or id) against the reference data.
+ * Seeded records store kebab slugs (e.g. `remote-mine`, `survey-drone`), so the
+ * match must be slug-tolerant via `matchesRef` — an id/name-only match silently
+ * fails every slug and renders the item as a raw-slug chit.
+ */
 export function resolveEquipment(slug: string): SURefEquipment | null {
   const all = SalvageUnionReference.Equipment.all() as ReadonlyArray<SURefEquipment>
-  return all.find((e) => e.id === slug || e.name === slug) ?? null
+  return all.find((e) => matchesRef(e, slug)) ?? null
 }
 
 /**

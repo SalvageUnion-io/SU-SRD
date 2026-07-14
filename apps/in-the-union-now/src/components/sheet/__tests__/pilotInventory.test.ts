@@ -29,6 +29,26 @@ function inventory(
   return { equipment, genericInventory }
 }
 
+describe('resolveEquipment — slug tolerance', () => {
+  // Seeded pilots store kebab slugs; resolveEquipment must be slug-tolerant
+  // (matchesRef), not id/name-only — else every seed slug renders as a raw chit.
+  test('resolves a kebab slug to the same entity as its display name', () => {
+    const byName = resolveEquipment('Remote Mine')
+    const bySlug = resolveEquipment('remote-mine')
+    expect(byName).not.toBeNull()
+    expect(bySlug).not.toBeNull()
+    expect(bySlug?.id).toBe(byName?.id as string)
+  })
+
+  test('resolves the drone-equipment slug (survey-drone)', () => {
+    expect(resolveEquipment('survey-drone')?.name).toBe('Survey Drone')
+  })
+
+  test('unknown slug returns null', () => {
+    expect(resolveEquipment('not-a-real-thing')).toBeNull()
+  })
+})
+
 describe('equipmentSlotCost', () => {
   test('standard equipment costs 1 slot', () => {
     expect(equipmentSlotCost(resolveEquipment('Rifle'))).toBe(1)
