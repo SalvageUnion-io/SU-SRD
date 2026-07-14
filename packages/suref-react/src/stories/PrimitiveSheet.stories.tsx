@@ -99,8 +99,8 @@ export const Sheet: Story = () => (
         <Btn variant="ghost">Ghost</Btn>
         <Btn variant="danger">Danger</Btn>
         <Sel selected onToggle={noop} ariaLabel="Selected">
-          <span className="rounded-[4px] border-chrome border-ink bg-paper px-3 py-1.5 font-body text-[13px]">
-            Sel
+          <span className="block w-44 rounded-[4px] border-chrome border-ink bg-paper px-3 py-2 font-body text-[13px]">
+            Selected item
           </span>
         </Sel>
         <FilterChip label="Facet" active onClick={noop} />
