@@ -150,9 +150,9 @@ The action type is `SURefMetaAction` = `ActionSchema`
 | Source stamp           | group source + `action.actionSource` schema              | CHS/SYS/MOD/ABL/EQP.                                                                                                                                |
 
 `SalvageUnionReference.resolveActions(entity)` preserves all of these (nothing
-stripped). **Caveat:** for systems/modules the deck currently surfaces only the
-**primary action** (first numeric-cost) per item (`dashboardRules.ts:249`); listing
-every action independently would need `buildMechActions` widened (optional — see §7).
+stripped). **Decided (§7):** the deck **lists every action** — a multi-action
+system/module surfaces each action as its own card, so `buildMechActions` must be
+widened beyond today's primary-action-per-item (`dashboardRules.ts:249`).
 
 ### 4.2 Two controls need Dashboard-authored logic (no stored backing)
 
@@ -226,9 +226,11 @@ tests.
 
 ### D1 — Actions deck: filters, grouping, range, rich cards (highest visible value)
 
-- **Timing tabs** `All/Turn/Free/React` over `action.actionType` (map React→Reaction;
-  bucket Short/Long/DownTime), and a **grouping toggle** `Timing ⇄ Source`; drop the
+- **Timing tabs** — one tab per `actionType`: `All/Turn/Short/Long/Free/React`
+  (React→Reaction; §7) — and a **grouping toggle** `Timing ⇄ Source`; drop the
   hardcoded group-by-source.
+- **List every action** per item (widen `buildMechActions`; §4.1), each an
+  independently filterable card.
 - **Source-filter tags** per owner, family-colored.
 - **Range selector** `C/M/L/F` + **reach readout** from `action.range`; add ephemeral
   `range` + `setRange` to `playStateStore` and a pure range-vs-band helper in
@@ -289,25 +291,18 @@ existing `--color-sheet-*` / `--color-rust` / `--color-roll-*` tokens.
 - **Ephemeral split (ADR-019):** filter/grouping/range/resolve state stays in
   component state / `playStateStore`, never `entityStore` or snapshots.
 
-## 7. Decisions & residual product questions
+## 7. Decisions (all settled)
 
-Resolved (defaults chosen; flag to change):
-
+- **Timing tabs** = **one tab per `actionType`** — `All · Turn · Short · Long · Free ·
+React` (React→`Reaction`). No bucketing; each type is its own tab.
+- **Deck granularity** = **list every action** — a multi-action system/module surfaces
+  each action as its own filterable card (`buildMechActions` widened beyond the
+  primary action; §4.1).
+- **Hot(X) / Uses(X)** = **player-entered stepper** — a `− X +` control with a live
+  heat-vs-cap projection; Dashboard-local state (§4.2).
 - **Range** = lightweight self-declared band (`playStateStore.range`), compared
   against `action.range`. No enemy/target model (matches local-first).
 - **SRD Explorer** = search + 8 tiles + `ReferenceEntityDisplay` drill-in (reusing
   `useSearchCombobox`), _not_ a separate standalone browser.
 - **Apply** auto-commits non-destructive rolled outcomes; destructive outcomes route
   through confirm/undo (ADR-007).
-
-Still worth a product call:
-
-1. **Timing buckets.** How should `Short` / `Long` / `DownTime` action types map onto
-   the mockup's 3-tab `Turn/Free/React` filter — folded into `Turn`, given their own
-   tab, or dropped from the play deck?
-2. **Per-item action granularity.** Keep the current primary-action-per-item deck, or
-   widen `buildMechActions` so every action of a multi-action system is independently
-   listed/filterable (more faithful to the mockup, larger change)?
-3. **Hot(X) / Uses(X) semantics.** For variable-heat actions, is a player-entered X
-   (stepper) the right model, or should the deck just surface "variable" and let the
-   player adjust Heat via the Reactor bay?
