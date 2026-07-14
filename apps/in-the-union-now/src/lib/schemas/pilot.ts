@@ -147,7 +147,11 @@ export const PilotSchema = z
      * Auto-Turret). Keyed by equipment slug → the systems/modules installed on
      * that instance; refs are system/module slugs (same convention as
      * mech.systems/modules). Edited through the same "Add System/Module" picker
-     * mechs use. Additive-optional — absent reads as no loadout; no DB migration
+     * mechs use, with the same per-item condition/uses tracking scoped to this
+     * instance: `systemConditions`/`moduleConditions` keyed by the item slug
+     * (Intact/Damaged/Destroyed) and `itemUses` (uses remaining, absent = full)
+     * — the pilot-equipment analogue of mech.systemConditions/moduleConditions/
+     * itemUses. Additive-optional — absent reads as no loadout; no DB migration
      * needed (same tactic as equipmentChoices/equipmentConditions). Keyed by slug
      * so two of the same drone slug on one pilot would share an entry — an
      * accepted limitation identical to equipmentChoices.
@@ -159,6 +163,12 @@ export const PilotSchema = z
           .object({
             systems: z.array(z.string()).default([]),
             modules: z.array(z.string()).default([]),
+            /** Per-installed-system condition (slug → Intact/Damaged/Destroyed). */
+            systemConditions: ItemConditionMapSchema.optional(),
+            /** Per-installed-module condition (slug → Intact/Damaged/Destroyed). */
+            moduleConditions: ItemConditionMapSchema.optional(),
+            /** Uses remaining per installed item slug (absent = full, rules B13). */
+            itemUses: z.record(z.string(), z.number().int().min(0)).optional(),
           })
           .strict()
       )

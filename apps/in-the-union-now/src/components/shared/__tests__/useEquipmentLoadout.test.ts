@@ -143,3 +143,64 @@ describe('useEquipmentLoadout — add/remove persistence', () => {
     })
   })
 })
+
+describe('useEquipmentLoadout — condition + uses persistence', () => {
+  function seeded() {
+    const pilot = makePilot({
+      'survey-drone': { systems: ['red-laser'], modules: ['comms-module'] },
+    })
+    const { store, updateFn } = makeStore(pilot)
+    const { result } = renderHook(() =>
+      useEquipmentLoadout(PILOT_ID, SLUG, pilot.equipmentLoadouts?.[SLUG], store)
+    )
+    return { store, updateFn, result }
+  }
+
+  test('setCondition writes systemConditions, preserving the installed items', async () => {
+    const { updateFn, result } = seeded()
+    await act(async () => {
+      result.current.setCondition('system', 'red-laser', 'damaged')
+    })
+    expect(updateFn).toHaveBeenCalledWith('pilot', PILOT_ID, {
+      equipmentLoadouts: {
+        'survey-drone': {
+          systems: ['red-laser'],
+          modules: ['comms-module'],
+          systemConditions: { 'red-laser': 'damaged' },
+        },
+      },
+    })
+  })
+
+  test('setCondition writes moduleConditions for modules', async () => {
+    const { updateFn, result } = seeded()
+    await act(async () => {
+      result.current.setCondition('module', 'comms-module', 'destroyed')
+    })
+    expect(updateFn).toHaveBeenCalledWith('pilot', PILOT_ID, {
+      equipmentLoadouts: {
+        'survey-drone': {
+          systems: ['red-laser'],
+          modules: ['comms-module'],
+          moduleConditions: { 'comms-module': 'destroyed' },
+        },
+      },
+    })
+  })
+
+  test('setUses writes itemUses, clamped to ≥ 0', async () => {
+    const { updateFn, result } = seeded()
+    await act(async () => {
+      result.current.setUses('red-laser', -3)
+    })
+    expect(updateFn).toHaveBeenCalledWith('pilot', PILOT_ID, {
+      equipmentLoadouts: {
+        'survey-drone': {
+          systems: ['red-laser'],
+          modules: ['comms-module'],
+          itemUses: { 'red-laser': 0 },
+        },
+      },
+    })
+  })
+})
