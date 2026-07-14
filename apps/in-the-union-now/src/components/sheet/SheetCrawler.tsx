@@ -238,7 +238,7 @@ export function SheetCrawler({
             name={crawler.name}
             meta={
               tl !== undefined ? (
-                <StatDisplay orientation="horizontal" variant="framed" label="Tech LV" value={tl} />
+                <StatDisplay orientation="horizontal" label="Tech LV" value={tl} />
               ) : undefined
             }
           />

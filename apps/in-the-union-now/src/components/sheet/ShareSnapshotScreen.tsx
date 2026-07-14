@@ -433,17 +433,9 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
         name={pilot.name}
         meta={
           <>
+            <StatDisplay orientation="horizontal" label="Callsign" value={`“${pilot.callsign}”`} />
             <StatDisplay
               orientation="horizontal"
-              variant="framed"
-              emphasis="call"
-              label="Callsign"
-              value={`“${pilot.callsign}”`}
-            />
-            <StatDisplay
-              orientation="horizontal"
-              variant="framed"
-              emphasis="class"
               label="Class"
               value={resolveClassName(pilot.classRef)}
             />
@@ -522,18 +514,11 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
           <>
             <StatDisplay
               orientation="horizontal"
-              variant="framed"
-              emphasis="class"
               label="Chassis"
               value={chassis?.name ?? mech.chassisRef}
             />
             {chassis && typeof chassis.techLevel === 'number' && (
-              <StatDisplay
-                orientation="horizontal"
-                variant="framed"
-                label="Tech LV"
-                value={chassis.techLevel}
-              />
+              <StatDisplay orientation="horizontal" label="Tech LV" value={chassis.techLevel} />
             )}
           </>
         }
@@ -585,7 +570,7 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
       name={crawler.name}
       meta={
         tl !== undefined ? (
-          <StatDisplay orientation="horizontal" variant="framed" label="Tech LV" value={tl} />
+          <StatDisplay orientation="horizontal" label="Tech LV" value={tl} />
         ) : undefined
       }
       trackers={

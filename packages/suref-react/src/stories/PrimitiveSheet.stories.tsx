@@ -87,8 +87,8 @@ export const Sheet: Story = () => (
         <Chip value={12}>HP</Chip>
         <Tag label="Passive" />
         <StatusBadge status="damaged" />
-        <StatDisplay orientation="horizontal" variant="framed" label="Class" value="Roughneck" />
-        <StatDisplay orientation="horizontal" variant="spec" label="SV" value={4} />
+        <StatDisplay orientation="horizontal" label="Class" value="Roughneck" />
+        <StatDisplay orientation="horizontal" label="SV" value={4} />
       </Group>
 
       {/* 4. Buttons */}

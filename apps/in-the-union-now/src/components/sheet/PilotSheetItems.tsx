@@ -207,7 +207,7 @@ export function PilotEquipmentItem({
     return (
       <Panel className="flex items-center gap-3 px-3 py-2.5">
         <span className="min-w-0 flex-1 truncate font-body text-sm text-wk-muted">{slug}</span>
-        <StatDisplay orientation="horizontal" variant="spec" label="Slots" value={1} />
+        <StatDisplay orientation="horizontal" label="Slots" value={1} />
         <StatusBadge
           status={condition}
           onClick={
@@ -323,12 +323,7 @@ export function GenericEntryCard({ entry, onRemove }: GenericEntryCardProps) {
         </div>
         {entry.note && <div className="truncate font-body text-xs text-wk-muted">{entry.note}</div>}
       </div>
-      <StatDisplay
-        orientation="horizontal"
-        variant="spec"
-        label="Slots"
-        value={genericEntrySlots(entry)}
-      />
+      <StatDisplay orientation="horizontal" label="Slots" value={genericEntrySlots(entry)} />
       {onRemove && (
         <Btn size="sm" variant="ghost" aria-label={`Remove ${entry.name}`} onClick={onRemove}>
           Remove

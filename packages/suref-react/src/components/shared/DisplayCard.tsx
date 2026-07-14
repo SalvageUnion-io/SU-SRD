@@ -313,7 +313,7 @@ export function DisplayCard({
               hasCallout ? 'items-start' : 'items-center',
               // px-3 (12px) aligns the header content L/R extremes with the
               // inset white body block (which uses mx-3) and the footer.
-              isCompact ? 'min-h-[60px] px-3 py-1' : 'min-h-[64px] px-3 py-1',
+              isCompact ? 'px-3 py-1' : 'px-3 py-1.5',
               // Top padding clears the callout so the gap below it is consistent.
               // Non-compact: every callout stamp is text-sm (lone stamps now match
               // the segmented ValueDisplay), so pt-6 clears all of them uniformly

@@ -5,7 +5,6 @@ import type { PillTone } from '../../components/chrome/Pill'
 import { StatusBadge } from '../../components/chrome/StatusBadge'
 import type { EntityStatus } from '../../components/chrome/StatusBadge'
 import { Tag } from '../../components/chrome/Tag'
-import { StatDisplay } from '../../components/shared/StatDisplay'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -78,7 +77,6 @@ export const Chips: Story = () => (
 )
 
 // Tag is a SINGLE keyword chip. Split label/value content is a Stat — render it
-// with StatDisplay orientation="horizontal" (see the StatDisplay stories), not Tag.
 export const Tags: Story = () => (
   <div className="bg-paper p-4">
     <ClusterLabel>Keyword (stamped ink chip)</ClusterLabel>
@@ -111,55 +109,6 @@ export const StatusBadges: Story = () => (
       {STATUSES.map((status) => (
         <StatusBadge key={status} status={status} subject="Iron Mongrel" onClick={() => {}} />
       ))}
-    </Row>
-  </div>
-)
-
-export const MChips: Story = () => (
-  <div className="bg-paper p-4">
-    <ClusterLabel>MChip — default</ClusterLabel>
-    <Row>
-      <StatDisplay orientation="horizontal" variant="framed" label="Class" value="Roughneck" />
-      <StatDisplay
-        orientation="horizontal"
-        variant="framed"
-        label="Motto"
-        value="Never Salvage Alone"
-      />
-    </Row>
-
-    <ClusterLabel>MChip — call (16px nowrap callsign)</ClusterLabel>
-    <Row>
-      <StatDisplay
-        orientation="horizontal"
-        variant="framed"
-        emphasis="call"
-        label="Callsign"
-        value='"Wrench"'
-      />
-    </Row>
-
-    <ClusterLabel>MChip — class (13px ink-2)</ClusterLabel>
-    <Row>
-      <StatDisplay
-        orientation="horizontal"
-        variant="framed"
-        emphasis="class"
-        label="Keywords"
-        value="Ballistic"
-      />
-    </Row>
-
-    <ClusterLabel>Spec — chassis lozenge</ClusterLabel>
-    <Row>
-      <StatDisplay orientation="horizontal" variant="spec" label="SV" value={4} />
-      <StatDisplay orientation="horizontal" variant="spec" label="HP" value={12} max={12} />
-      <StatDisplay orientation="horizontal" variant="spec" label="EP" value={6} max={6} />
-    </Row>
-
-    <ClusterLabel>Spec — cargo (deep bronze recolor)</ClusterLabel>
-    <Row>
-      <StatDisplay orientation="horizontal" variant="spec" label="Cargo" value={2} max={6} cargo />
     </Row>
   </div>
 )
