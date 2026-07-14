@@ -6,6 +6,13 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-07-13',
+    title: 'Simpler entity pages',
+    items: [
+      'Removed the Previous/Next paging links from entity pages — use search or the category listing to move between entities.',
+    ],
+  },
+  {
     date: '2026-07-09',
     title: 'Link to the character builder',
     items: [
