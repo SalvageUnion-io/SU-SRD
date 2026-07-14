@@ -635,7 +635,14 @@ export function ReferenceEntityDisplayContent({
                   renders its own intro paragraph, resolved row + choice cards.
                   Rendered in the main body flow so it is visible in compact mode. */}
               {showGrants && (
-                <ReferenceEntityGrants data={data} compact={compact} expand={expandGrants} />
+                <ReferenceEntityGrants
+                  data={data}
+                  compact={compact}
+                  expand={expandGrants}
+                  selections={choiceSelections}
+                  onSelectionChange={setChoiceSelections}
+                  scalingParent={scalingParent}
+                />
               )}
               <EntityStatblockEquipment systems={statblockSystems} modules={statblockModules} />
               {/* Compact: chassis abilities render after actions */}

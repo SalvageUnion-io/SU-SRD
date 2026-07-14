@@ -7,12 +7,27 @@ import type { ReferenceEntityControl } from './referenceEntityControlTypes'
 import { cn } from '../../../utils/cn'
 import type { getReferenceEntitySpacing } from './referenceEntityDisplayTypes'
 import { useDisplaySpacing } from './displayStateContext'
+import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 
 type ReferenceEntityGrantsProps = {
   data: SURefEntity
   /** Optional override; falls back to the card display-state context. */
   spacing?: ReturnType<typeof getReferenceEntitySpacing>
   compact?: boolean
+  /**
+   * Controlled choice selections for the granted entities' choice cards, threaded
+   * down from the granting ability's display. When provided (with
+   * `onSelectionChange`), the nested granted equipment's choices are controlled +
+   * persisted by the consumer (ITUN keys these under the pilot's `abilityChoices`)
+   * rather than the nested card's own ephemeral state. All grants of one ability
+   * share this map (keyed by choiceId) — fine for distinct equipment; two
+   * identical grants (e.g. Mecha Packmaster's paired Companions) would share it.
+   */
+  selections?: ChoiceSelections
+  /** Next-state callback when a nested granted-entity choice toggles (controlled). */
+  onSelectionChange?: (selections: ChoiceSelections) => void
+  /** Scaling parent for the nested entities' `scalesWithField` choice caps. */
+  scalingParent?: Record<string, unknown>
   /**
    * Render granted entities as full compact cards even when the granting ability
    * is itself compact — instead of collapsing them to a header-only listing. Used
@@ -29,6 +44,9 @@ export function ReferenceEntityGrants({
   spacing: spacingProp,
   compact,
   expand,
+  selections,
+  onSelectionChange,
+  scalingParent,
 }: ReferenceEntityGrantsProps) {
   const spacing = useDisplaySpacing(spacingProp, compact ?? false)
   // Shared resolver (single source of truth — see salvageunion-reference).
@@ -56,6 +74,9 @@ export function ReferenceEntityGrants({
             entity={entity}
             parentCompact={!!compact}
             expand={!!expand}
+            selections={selections}
+            onSelectionChange={onSelectionChange}
+            scalingParent={scalingParent}
           />
         ))}
       </div>
@@ -67,10 +88,16 @@ function GrantedEntityListing({
   entity,
   parentCompact,
   expand,
+  selections,
+  onSelectionChange,
+  scalingParent,
 }: {
   entity: SURefEntity
   parentCompact: boolean
   expand: boolean
+  selections?: ChoiceSelections
+  onSelectionChange?: (selections: ChoiceSelections) => void
+  scalingParent?: Record<string, unknown>
 }) {
   const name = 'name' in entity && typeof entity.name === 'string' ? entity.name : 'entity'
   // Href comes from the app-provided builder (route-agnostic); no provider →
@@ -108,6 +135,9 @@ function GrantedEntityListing({
       compact
       listing={expand ? false : parentCompact}
       controls={controls}
+      selections={selections}
+      onSelectionChange={onSelectionChange}
+      scalingParent={scalingParent}
     />
   )
 }

@@ -45,6 +45,16 @@ export function resolveAbility(slug: string): SURefAbility | null {
 
 type PilotAbilityItemProps = {
   ability: SURefAbility
+  /** Owning pilot id — granted-equipment choice selections persist under it. */
+  pilotId: string
+  /** Stored ability ref (the `pilot.abilities` entry) — key for persisted choices. */
+  abilitySlug: string
+  /**
+   * Persisted granted-equipment choice selections for this ability, sourced from
+   * the canonical pilot prop (`pilot.abilityChoices[slug]`) so read-only/snapshot
+   * rendering doesn't depend on the store.
+   */
+  seedSelections: ChoiceSelections | undefined
   /** Pilot's current AP — gates whether the spend action is enabled. */
   currentAP: number
   /** Whether this ability has been marked used (once-per-rest tracking). */
@@ -58,6 +68,13 @@ type PilotAbilityItemProps = {
    */
   onRemove?: () => void
   readOnly: boolean
+  /**
+   * Scaling parent for the granted equipment's `scalesWithField` choice caps
+   * (e.g. the Custom Sniper Rifle's Modification scaling with `techLevel`).
+   */
+  scalingParent: Record<string, unknown> | undefined
+  /** Injectable store — forwarded to useEntityChoices for tests. */
+  store: typeof useEntityStore
 }
 
 /**
@@ -67,13 +84,29 @@ type PilotAbilityItemProps = {
  */
 export function PilotAbilityItem({
   ability,
+  pilotId,
+  abilitySlug,
+  seedSelections,
   currentAP,
   used,
   onSpend,
   onToggleUsed,
   onRemove,
   readOnly,
+  scalingParent,
+  store,
 }: PilotAbilityItemProps) {
+  // Granted-equipment choices (e.g. Auto-Turret's A.I. Personality) persist under
+  // the pilot's `abilityChoices`, keyed by ability slug — the equipment-choice
+  // pattern, applied to a granting ability's grants.
+  const { selections, setSelections } = useEntityChoices(
+    'pilot',
+    pilotId,
+    abilitySlug,
+    'abilityChoices',
+    seedSelections,
+    store
+  )
   const apCost = resolveAbilityApCost(ability)
   const canSpend = apCost !== null && currentAP >= apCost
 
@@ -122,10 +155,12 @@ export function PilotAbilityItem({
       hide={HIDE_CHOICES}
       // Granting abilities (e.g. Auto-Turret) render their granted equipment as a
       // full compact entity card here instead of the header-only collapse the
-      // dense reference listings use. Choices render uncontrolled (ephemeral),
-      // like the equipment's own reference page; persisting granted-equipment
-      // choices on the pilot is a possible follow-up.
+      // dense reference listings use. Its choice cards are controlled + persisted
+      // under the pilot's abilityChoices (selections/onSelectionChange below).
       expandGrants
+      selections={selections}
+      onSelectionChange={readOnly ? undefined : setSelections}
+      scalingParent={scalingParent}
       footMeta={footMeta}
       footActions={footActions}
       controls={controls}

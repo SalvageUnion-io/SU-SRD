@@ -445,6 +445,9 @@ export function PilotSheet({
                 <Erow key={ability.id}>
                   <PilotAbilityItem
                     ability={ability}
+                    pilotId={pilot.id}
+                    abilitySlug={slug}
+                    seedSelections={pilot.abilityChoices?.[slug]}
                     currentAP={pilot.currentAP ?? pilotMaxAP(pilot)}
                     used={pilot.usedAbilities?.includes(slug) ?? false}
                     onSpend={(cost) => {
@@ -461,6 +464,8 @@ export function PilotSheet({
                           }
                     }
                     readOnly={readOnly}
+                    scalingParent={scalingParent}
+                    store={store}
                   />
                 </Erow>
               )

@@ -142,6 +142,15 @@ export const PilotSchema = z
      */
     equipmentChoices: z.record(z.string(), ChoiceSelectionsSchema).optional(),
     /**
+     * Persisted choice selections for a granting ability's granted equipment
+     * (e.g. Auto-Turret's A.I. Personality, the Custom Sniper Rifle's Weapon Type
+     * / Modification), keyed by ability slug, then by choiceId → selected option
+     * values. Optional: when absent or a key is missing, the granted equipment
+     * reads as having no selections. Additive optional field — no DB migration
+     * needed (same tactic as equipmentChoices).
+     */
+    abilityChoices: z.record(z.string(), ChoiceSelectionsSchema).optional(),
+    /**
      * Manual fallback for the pilot's effective Crawler Tech Level (1–6), used
      * to scale choice caps (e.g. the Custom Sniper Rifle's Modification choice,
      * "at each Tech Level you may select an additional Modification"). Only used
