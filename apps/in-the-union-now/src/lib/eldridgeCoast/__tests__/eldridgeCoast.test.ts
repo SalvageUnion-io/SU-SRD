@@ -173,9 +173,16 @@ describe('Eldridge Coast seed — soft link integrity', () => {
   const mechIds = new Set(ELDRIDGE_MECHS.map((m) => m.id))
   const crawlerIds = new Set(ELDRIDGE_CRAWLERS.map((c) => c.id))
 
-  test('every pilot crews a crawler, plus the two companion links', () => {
-    // 6 pilot-to-crawler + 2 mech-to-pilot (Incitatus → Cali, Rek Jet → Roach-Boy).
-    expect(ELDRIDGE_SOFT_LINKS).toHaveLength(ELDRIDGE_PILOTS.length + 2)
+  test('every pilot crews a crawler and every mech links to its owning pilot', () => {
+    // 6 pilot-to-crawler + 10 mech-to-pilot (each mech assigned to a pilot).
+    expect(ELDRIDGE_SOFT_LINKS).toHaveLength(ELDRIDGE_PILOTS.length + ELDRIDGE_MECHS.length)
+  })
+
+  test('every mech has exactly one mech-to-pilot link', () => {
+    const linkedMechIds = ELDRIDGE_SOFT_LINKS.filter((l) => l.type === 'mech-to-pilot').map(
+      (l) => l.from.id
+    )
+    expect([...linkedMechIds].sort()).toEqual([...mechIds].sort())
   })
 
   test('every link endpoint references a seeded entity of the right type', () => {

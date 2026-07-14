@@ -31,9 +31,10 @@
  *   - The crawlers' home-brew Library / Bar bays are not SRD bays (only the ten
  *     canonical bays exist), so that crew is folded into the crawler
  *     `description` rather than a `crawlerBays[]` entry.
- *   - Crawler type-abilities (All Terrain Locomotion / Improved Trading Bay),
- *     home-brew crawler weapons carried in `systems[]`, and mech cargo notes are
- *     captured in free-text where no structured field exists.
+ *   - Crawler type-abilities (All Terrain Locomotion / Improved Trading Bay)
+ *     and mech cargo notes are captured in free-text where no structured field
+ *     exists; the crawlers' mounted weapons (Mechapult, CACB Laser) are
+ *     canonical Systems and resolve normally.
  *   - Pilot real names that the sheet left blank/unknown fall back to the
  *     callsign (Roach-Boy); the pilots' sheet HP/AP maxima above the 10/5 base
  *     are encoded via `maxHpModifier` / `maxApModifier`.
@@ -643,13 +644,20 @@ const GLADHAND_CRAWLER: Crawler = {
 export const ELDRIDGE_CRAWLERS: readonly Crawler[] = [HAVEN_CRAWLER, GLADHAND_CRAWLER]
 
 // ---------------------------------------------------------------------------
-// SoftLinks — the workbook does not pair pilots to their piloted mechs, so only
-// the relationships the sheets actually establish are wired:
-//   - all six pilots crew Haven (the Exploratory party crawler; its Storage-bay
-//     note names pilot Parcel). Gladhand is included as a second crawler with
-//     its own NPC crew, no pilots auto-assigned.
-//   - the two ability-granted companions link to their owning pilot: Incitatus
-//     (Mecha Companion) → Caligula, Rek Jet (Auto-Turret) → Roach-Boy.
+// SoftLinks — pilot↔mech assignments (confirmed by the campaign owner) and
+// pilot↔crawler crew membership. Each pilot's main mech and any drone/companion
+// are all `mech-to-pilot` links (the schema's only mech relationship):
+//   - Parcel → GOAT
+//   - Caligula → Damnatio Memoriae (main) + Custos (Survey Drone) + Incitatus
+//     (Mecha Companion)
+//   - Roach-Boy → Rust Bucket (main) + Rek Jet (Auto-Turret)
+//   - Lester 'Stumpy' Owens → New Duke
+//   - Nell → Son of Beanstalk
+//   - Gersin 'Part' → Peekaboo (main) + PR-1 (Survey Drone) — the remaining
+//     builds, mirroring Caligula's stealth-Solo + Survey-Drone loadout.
+// All six pilots crew Haven (the Exploratory party crawler; its Storage-bay note
+// names pilot Parcel). Gladhand is a second crawler with its own NPC crew, no
+// pilots auto-assigned.
 // ---------------------------------------------------------------------------
 
 const CREW_PILOT_IDS = [
@@ -661,6 +669,20 @@ const CREW_PILOT_IDS = [
   PILOT_LESTER,
 ] as const
 
+/** Owning pilot for each mech (main mechs + drones/companions). */
+const MECH_PILOT_LINKS: ReadonlyArray<readonly [string, string]> = [
+  [MECH_GOAT, PILOT_PARCEL],
+  [MECH_DAMNATIO, PILOT_CALIGULA],
+  [MECH_CUSTOS, PILOT_CALIGULA],
+  [MECH_INCITATUS, PILOT_CALIGULA],
+  [MECH_RUST_BUCKET, PILOT_ROACH_BOY],
+  [MECH_REK_JET, PILOT_ROACH_BOY],
+  [MECH_NEW_DUKE, PILOT_LESTER],
+  [MECH_SOB, PILOT_NELL],
+  [MECH_PEEKABOO, PILOT_GERSIN],
+  [MECH_PR1, PILOT_GERSIN],
+]
+
 export const ELDRIDGE_SOFT_LINKS: readonly SoftLink[] = [
   ...CREW_PILOT_IDS.map((pilotId) => ({
     id: `eldridge-link-crew-${pilotId}`,
@@ -669,18 +691,11 @@ export const ELDRIDGE_SOFT_LINKS: readonly SoftLink[] = [
     type: 'pilot-to-crawler' as const,
     createdAt: SEED_TS,
   })),
-  {
-    id: `eldridge-link-mech-${PILOT_CALIGULA}`,
-    from: { type: 'mech' as const, id: MECH_INCITATUS },
-    to: { type: 'pilot' as const, id: PILOT_CALIGULA },
+  ...MECH_PILOT_LINKS.map(([mechId, pilotId]) => ({
+    id: `eldridge-link-mech-${mechId}`,
+    from: { type: 'mech' as const, id: mechId },
+    to: { type: 'pilot' as const, id: pilotId },
     type: 'mech-to-pilot' as const,
     createdAt: SEED_TS,
-  },
-  {
-    id: `eldridge-link-mech-${PILOT_ROACH_BOY}`,
-    from: { type: 'mech' as const, id: MECH_REK_JET },
-    to: { type: 'pilot' as const, id: PILOT_ROACH_BOY },
-    type: 'mech-to-pilot' as const,
-    createdAt: SEED_TS,
-  },
+  })),
 ]
