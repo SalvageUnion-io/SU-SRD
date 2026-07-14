@@ -302,7 +302,7 @@ function FramedTracker({
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: a <fieldset> would break the inline-flex stat-block chrome; role="group" carries the same semantics
-    <div
+    <span
       role="group"
       aria-label={
         isStates
@@ -312,160 +312,167 @@ function FramedTracker({
             }`
       }
       data-heat={level !== 'normal' ? level : undefined}
-      className={cn(
-        'inline-flex flex-col overflow-hidden rounded-[3px] border-2 bg-paper shadow-[0_2px_6px_-2px_rgba(40,32,25,0.4)]',
-        level === 'critical' ? 'border-status-bad motion-safe:animate-heat-pulse' : 'border-ink',
-        isSm && 'min-w-[96px]',
-        className
-      )}
+      className={cn('inline-flex flex-col items-center', isSm && 'min-w-[96px]', className)}
     >
-      {/* Black header tab */}
-      <div className="flex items-center justify-between gap-2 bg-ink px-2 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
-        <span className="font-cond text-xs font-bold uppercase leading-none tracking-caps-wide text-su-white">
-          {code}
+      {/* Code stamp riding the framed body's top border (StampSeam), not a header tab. */}
+      <span className="z-[1] -mb-2 self-center bg-ink px-1.5 py-0.5 font-cond text-xs font-bold uppercase leading-none tracking-caps-wide text-su-white">
+        {code}
+      </span>
+      {name && (
+        <span className="-mb-1 font-cond text-[9px] uppercase leading-none text-wk-muted">
+          {name}
         </span>
-        {name && (
-          <span className="font-cond text-[9px] uppercase leading-none text-white/55">{name}</span>
-        )}
-      </div>
-
-      {/* Main row: steppers + value, or the bay tally */}
-      {isStates ? (
-        <div className="flex items-center justify-center gap-3 px-2.5 py-1.5">
-          {tallies.map(({ state, count }) => (
-            <span key={state} className="flex items-center gap-1.5">
-              <span
-                aria-hidden="true"
-                className={cn('h-[11px] w-[11px] rounded-[1px] border-chrome', TALLY_SWATCH[state])}
-              />
-              <span className="font-body text-[17px] font-bold leading-none text-ink">{count}</span>
-              <span className="font-cond text-[9.5px] uppercase leading-none text-wk-muted">
-                {state}
-              </span>
-            </span>
-          ))}
-        </div>
-      ) : (
-        <div className="flex items-center justify-center gap-2 px-2.5 py-1.5">
-          {showSteppers && (
-            <StepBtn aria-label={`Decrease ${code}`} onClick={() => setValue(value - 1)}>
-              –
-            </StepBtn>
-          )}
-          <span
-            className={cn(
-              'font-body font-bold leading-none',
-              isSm ? 'text-base' : 'text-[23px]',
-              isOver ? 'text-status-bad' : 'text-ink'
-            )}
-          >
-            {value}
-            {max !== undefined && (
-              <small
-                className={cn(
-                  'font-bold',
-                  isSm ? 'text-[10px]' : 'text-[13px]',
-                  isOver ? 'text-status-bad' : 'text-wk-muted'
-                )}
-              >
-                /{max}
-              </small>
-            )}
-          </span>
-          {showSteppers && (
-            <StepBtn aria-label={`Increase ${code}`} onClick={() => setValue(value + 1)}>
-              +
-            </StepBtn>
-          )}
-        </div>
       )}
+      {/* Framed body */}
+      <div
+        className={cn(
+          'flex w-full flex-col overflow-hidden rounded-[3px] border-2 bg-paper pt-3 shadow-[0_2px_6px_-2px_rgba(40,32,25,0.4)]',
+          level === 'critical' ? 'border-status-bad motion-safe:animate-heat-pulse' : 'border-ink'
+        )}
+      >
+        {/* Main row: steppers + value, or the bay tally */}
+        {isStates ? (
+          <div className="flex items-center justify-center gap-3 px-2.5 py-1.5">
+            {tallies.map(({ state, count }) => (
+              <span key={state} className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'h-[11px] w-[11px] rounded-[1px] border-chrome',
+                    TALLY_SWATCH[state]
+                  )}
+                />
+                <span className="font-body text-[17px] font-bold leading-none text-ink">
+                  {count}
+                </span>
+                <span className="font-cond text-[9.5px] uppercase leading-none text-wk-muted">
+                  {state}
+                </span>
+              </span>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center gap-2 px-2.5 py-1.5">
+            {showSteppers && (
+              <StepBtn aria-label={`Decrease ${code}`} onClick={() => setValue(value - 1)}>
+                –
+              </StepBtn>
+            )}
+            <span
+              className={cn(
+                'font-body font-bold leading-none',
+                isSm ? 'text-base' : 'text-[23px]',
+                isOver ? 'text-status-bad' : 'text-ink'
+              )}
+            >
+              {value}
+              {max !== undefined && (
+                <small
+                  className={cn(
+                    'font-bold',
+                    isSm ? 'text-[10px]' : 'text-[13px]',
+                    isOver ? 'text-status-bad' : 'text-wk-muted'
+                  )}
+                >
+                  /{max}
+                </small>
+              )}
+            </span>
+            {showSteppers && (
+              <StepBtn aria-label={`Increase ${code}`} onClick={() => setValue(value + 1)}>
+                +
+              </StepBtn>
+            )}
+          </div>
+        )}
 
-      {/* Pip track */}
-      {isStates ? (
-        <div className="flex flex-col items-center gap-1 px-2.5 pb-2">
-          {statBlockRowStarts(states.length).map(({ count, start }, r) => {
-            return (
-              // biome-ignore lint/suspicious/noArrayIndexKey: pip rows are positional — the row index IS their identity
-              <div key={r} className="flex justify-center gap-1">
-                {Array.from({ length: count }).map((_, c) => {
-                  const i = start + c
-                  const state = states[i]
-                  if (!state) return null
-                  const title = `Bay ${i + 1} · ${state}`
-                  const pipClass = cn(pipBox, 'cursor-default', TALLY_SWATCH[state])
-                  return onBay ? (
-                    <button
-                      key={i}
-                      type="button"
-                      title={title}
-                      aria-label={title}
-                      onClick={() => onBay(i)}
-                      className={cn(pipClass, 'cursor-pointer')}
-                    />
-                  ) : (
-                    <span key={i} title={title} className={pipClass} />
-                  )
-                })}
-              </div>
-            )
-          })}
-        </div>
-      ) : (
-        showPips && (
-          <div
-            className="flex flex-col items-center gap-1 px-2.5 pb-2"
-            role="img"
-            aria-label={`${value} of ${max}${isOver ? ' — over capacity' : ''}`}
-          >
-            {statBlockRowStarts(Math.max(max ?? 0, value)).map(({ count, start }, r) => {
+        {/* Pip track */}
+        {isStates ? (
+          <div className="flex flex-col items-center gap-1 px-2.5 pb-2">
+            {statBlockRowStarts(states.length).map(({ count, start }, r) => {
               return (
                 // biome-ignore lint/suspicious/noArrayIndexKey: pip rows are positional — the row index IS their identity
                 <div key={r} className="flex justify-center gap-1">
                   {Array.from({ length: count }).map((_, c) => {
                     const i = start + c
-                    const state = trackSegmentState(
-                      i,
-                      value,
-                      max ?? Number.POSITIVE_INFINITY,
-                      heatDanger
-                    )
-                    const on = state !== 'off'
-                    const pipClass = cn(
-                      pipBox,
-                      state === 'off'
-                        ? 'border-ink bg-transparent'
-                        : state === 'danger'
-                          ? 'border-status-bad bg-status-bad'
-                          : pipFill
-                    )
-                    return isEditable ? (
+                    const state = states[i]
+                    if (!state) return null
+                    const title = `Bay ${i + 1} · ${state}`
+                    const pipClass = cn(pipBox, 'cursor-default', TALLY_SWATCH[state])
+                    return onBay ? (
                       <button
                         key={i}
                         type="button"
-                        tabIndex={-1}
-                        aria-hidden="true"
-                        data-pip={on ? 'on' : 'off'}
-                        onClick={() => setValue(pipClickValue(i, value))}
+                        title={title}
+                        aria-label={title}
+                        onClick={() => onBay(i)}
                         className={cn(pipClass, 'cursor-pointer')}
                       />
                     ) : (
-                      <span key={i} data-pip={on ? 'on' : 'off'} className={pipClass} />
+                      <span key={i} title={title} className={pipClass} />
                     )
                   })}
                 </div>
               )
             })}
           </div>
-        )
-      )}
+        ) : (
+          showPips && (
+            <div
+              className="flex flex-col items-center gap-1 px-2.5 pb-2"
+              role="img"
+              aria-label={`${value} of ${max}${isOver ? ' — over capacity' : ''}`}
+            >
+              {statBlockRowStarts(Math.max(max ?? 0, value)).map(({ count, start }, r) => {
+                return (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: pip rows are positional — the row index IS their identity
+                  <div key={r} className="flex justify-center gap-1">
+                    {Array.from({ length: count }).map((_, c) => {
+                      const i = start + c
+                      const state = trackSegmentState(
+                        i,
+                        value,
+                        max ?? Number.POSITIVE_INFINITY,
+                        heatDanger
+                      )
+                      const on = state !== 'off'
+                      const pipClass = cn(
+                        pipBox,
+                        state === 'off'
+                          ? 'border-ink bg-transparent'
+                          : state === 'danger'
+                            ? 'border-status-bad bg-status-bad'
+                            : pipFill
+                      )
+                      return isEditable ? (
+                        <button
+                          key={i}
+                          type="button"
+                          tabIndex={-1}
+                          aria-hidden="true"
+                          data-pip={on ? 'on' : 'off'}
+                          onClick={() => setValue(pipClickValue(i, value))}
+                          className={cn(pipClass, 'cursor-pointer')}
+                        />
+                      ) : (
+                        <span key={i} data-pip={on ? 'on' : 'off'} className={pipClass} />
+                      )
+                    })}
+                  </div>
+                )
+              })}
+            </div>
+          )
+        )}
 
-      {/* Black unit bar */}
-      {unit && (
-        <div className="bg-ink px-2 py-[3px] text-center font-cond text-[9.5px] font-bold uppercase leading-none tracking-[0.14em] text-su-white">
-          {unit}
-        </div>
-      )}
-    </div>
+        {/* Black unit bar */}
+        {unit && (
+          <div className="bg-ink px-2 py-[3px] text-center font-cond text-[9.5px] font-bold uppercase leading-none tracking-[0.14em] text-su-white">
+            {unit}
+          </div>
+        )}
+      </div>
+    </span>
   )
 }
 
