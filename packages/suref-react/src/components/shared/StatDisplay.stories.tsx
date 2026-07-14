@@ -3,7 +3,7 @@ import { StatDisplay } from './StatDisplay'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Shared/StatDisplay',
+  title: 'Primitives/StatDisplay',
 }
 
 export const Default: Story = () => (
