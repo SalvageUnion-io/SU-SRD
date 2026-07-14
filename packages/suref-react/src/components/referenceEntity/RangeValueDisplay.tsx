@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ValueDisplay } from '../shared/ValueDisplay'
+import { StatDisplay } from '../shared/StatDisplay'
 import { Tooltip } from '../ui/tooltip'
 
 type RangeValueDisplayProps = {
@@ -23,7 +23,15 @@ function getRangeDescription(rangeName: string): string | null {
 export function RangeValueDisplay({ label, value, compact = false }: RangeValueDisplayProps) {
   const description = useMemo(() => (value ? getRangeDescription(String(value)) : null), [value])
 
-  const display = <ValueDisplay label={label} value={value} compact={compact} inline={false} />
+  const display = (
+    <StatDisplay
+      orientation="horizontal"
+      label={label}
+      value={value}
+      compact={compact}
+      inline={false}
+    />
+  )
 
   if (!description) return display
 

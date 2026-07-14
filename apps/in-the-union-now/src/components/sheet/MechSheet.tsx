@@ -45,7 +45,7 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { ValueDisplay, VitalGauge, heatDangerFrom } from 'suref-react'
+import { StatDisplay, VitalGauge, heatDangerFrom } from 'suref-react'
 
 import { useCargo } from '../../lib/cargo/useCargo'
 import { computeMechCapacity } from '../../lib/rules/capacity'
@@ -524,7 +524,14 @@ export function MechSheet({
           <div className="@5xl:col-span-7">
             <SheetSectionCard
               title="Chassis Ability"
-              count={<ValueDisplay compact label="Actions" value={chassisAbilities.length} />}
+              count={
+                <StatDisplay
+                  orientation="horizontal"
+                  compact
+                  label="Actions"
+                  value={chassisAbilities.length}
+                />
+              }
             >
               <Ecflow>
                 {chassisAbilities.map((ability) => {

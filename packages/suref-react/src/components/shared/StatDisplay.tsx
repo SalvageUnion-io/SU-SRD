@@ -48,8 +48,8 @@ const TALLY_SWATCH: Record<StatState, string> = {
 }
 
 type StatDisplayProps = {
-  /** Header code / label ('HP', 'STRUCTURE', 'Range'). */
-  label: string
+  /** Header code / label ('HP', 'STRUCTURE', 'Range', or a numeric tier). */
+  label: string | number
   value?: number | string
   /** Track maximum (framed tracker) or the /max shown beside the value. */
   max?: number
@@ -412,7 +412,7 @@ function ValueBox({
 }: StatDisplayProps) {
   const [isFlashing, setIsFlashing] = useState(false)
 
-  const combinedAriaLabel = ariaLabel || (bottomLabel ? `${label} ${bottomLabel}` : label)
+  const combinedAriaLabel = ariaLabel || (bottomLabel ? `${label} ${bottomLabel}` : String(label))
   const trueBg = inverse ? 'bg-su-black' : bg
   const trueValueColor = inverse ? 'text-su-white' : valueColor
   const trueBorderColor = isOverMax ? 'border-su-green' : borderColor

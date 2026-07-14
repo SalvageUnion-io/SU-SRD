@@ -3,7 +3,7 @@ import type { SURefObjectDataValue } from 'salvageunion-reference'
 import { ActivationCostBox } from '../shared/ActivationCostBox'
 import { TraitKeywordDisplayView } from './TraitKeywordDisplayView'
 import { RangeValueDisplay } from './RangeValueDisplay'
-import { ValueDisplay } from '../shared/ValueDisplay'
+import { StatDisplay } from '../shared/StatDisplay'
 import { Text } from '../base/Text'
 import { cn } from '../../utils/cn'
 
@@ -152,7 +152,8 @@ export function DataValueDisplayView({
   if (item.type === 'meta') {
     const useRustBg = item.label === 'Recommended' || item.label === 'Legal Starting Pattern'
     return (
-      <ValueDisplay
+      <StatDisplay
+        orientation="horizontal"
         label={item.label}
         compact={compact}
         inline={false}
@@ -163,5 +164,13 @@ export function DataValueDisplayView({
     )
   }
 
-  return <ValueDisplay label={item.label} value={item.value} compact={compact} inline={false} />
+  return (
+    <StatDisplay
+      orientation="horizontal"
+      label={item.label}
+      value={item.value}
+      compact={compact}
+      inline={false}
+    />
+  )
 }
