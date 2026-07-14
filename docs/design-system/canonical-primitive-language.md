@@ -70,6 +70,33 @@ re-tone (damaged/destroyed reads a warm brick red); suref-web gaining
 `tracking-caps` where it was previously a silent no-op; and the fused
 StatDisplay renders (all four anatomies) via the Ladle stories.
 
+### Centralized Ladle catalog
+
+Every primitive now has a story under one **`Primitives/*`** namespace
+(`bun run ladle`) — a dev-tool catalog living centrally in
+`packages/suref-react/src/stories/primitives/` (Badges · Buttons · Chrome ·
+VitalGauge) plus the retitled StatDisplay / DisplayCard / RollTable / Stamp&Text
+/ Tooltip / Toaster / ActivationCostBox. Stories only render the shipped
+components, so the catalog is ground truth. `ladle build` passes.
+
+### Known deviations to reconcile (surfaced by the catalog — not yet changed)
+
+These pre-existing off-system spots are what the merges below will fix; listed
+so nothing ships as a silent surprise:
+
+- **FilterChip is off the chrome token system** — styles on the `su-*` palette
+  (`bg-su-black`/`text-su-white` active, `bg-su-grey-light` inactive) with a
+  `su-orange` focus outline, instead of the ink/paper/rust + `ring-rust/25` that
+  Btn / Sel / StepBtn / MiniBtn share. (Reconcile in the Btn merge.)
+- **Two status vocabularies** — Pill `ok/warn/bad` vs StatusBadge
+  `intact/damaged/destroyed` both resolve to `status-ok/warn/bad`. One naming.
+- **Tag ghost ring** is a raw `rgba(40,32,25,0.2)` inset shadow, not an ink token.
+- **Arbitrary radii** across the badge/chrome families (`rounded-[2px]/[3px]/
+[5px]/[6px]`, `rounded-full`) with no shared radius token.
+- **Arbitrary spacing / font sizes** (`px-[9px]`, `text-[11px]`, `text-[9.5px]`…)
+  not on a scale; `Input` focus uses `ring-rust/[0.22]`; `Slab` dashed is a
+  hand-rolled `repeating-linear-gradient`, solid uses `border-ink/35`.
+
 ## 2. The primitive catalog (post-merge)
 
 Every merged component collapses into one file with a prop-controlled API. Old
