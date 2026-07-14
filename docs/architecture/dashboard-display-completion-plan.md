@@ -129,97 +129,185 @@ Tables uses a bare `<select>` (`:49-82`), SRD is a placeholder (`:87-92`), and e
 focuses render a bare `ReferenceEntityDisplay` with no `footActions`/`statsOverride`/
 `ReferenceEntityActions`/`EntityHrefProvider` anywhere in `components/dashboard/`.
 
-## 4. Workstreams (Display-focused)
+## 4. Data & reuse foundations (dependencies resolved)
 
-Ordered by user-visible value. Each is independently shippable and gated on
+All §6 open questions from the first draft were investigated against the code. The
+Display is buildable on existing data + shared components; only two controls need
+Dashboard-authored logic, and drone/ally support is out of scope.
+
+### 4.1 Action metadata — all filters/micro-meta are data-backed
+
+The action type is `SURefMetaAction` = `ActionSchema`
+(`packages/salvageunion-reference/lib/schemas/objects.ts:674`). Fields the deck needs:
+
+| Deck feature           | Field / helper                                           | Notes                                                                                                                                               |
+| ---------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Timing tabs            | **`action.actionType`** (not `timing`)                   | enum `Passive/Free/Reaction/Turn/Short/Long/DownTime`; `getActionTypes()` lists them. "React"→`Reaction`; **bucket or drop** `Short/Long/DownTime`. |
+| Range selector + reach | **`action.range: ('Close'\|'Medium'\|'Long'\|'Far')[]`** | clean enum array — backs C/M/L/F directly; no prose parsing.                                                                                        |
+| Damage micro-meta      | `action.damage {damageType:'HP'\|'SP', amount}`          | already rendered by `ActionCard`.                                                                                                                   |
+| HOT micro-meta         | trait `{type:'hot', amount}`; economy `heat`             | `traits[].type` is lowercase (`'hot'`,`'uses'`).                                                                                                    |
+| Traits micro-meta      | `action.traits: {type, amount?}[]`                       | already rendered.                                                                                                                                   |
+| Source stamp           | group source + `action.actionSource` schema              | CHS/SYS/MOD/ABL/EQP.                                                                                                                                |
+
+`SalvageUnionReference.resolveActions(entity)` preserves all of these (nothing
+stripped). **Caveat:** for systems/modules the deck currently surfaces only the
+**primary action** (first numeric-cost) per item (`dashboardRules.ts:249`); listing
+every action independently would need `buildMechActions` widened (optional — see §7).
+
+### 4.2 Two controls need Dashboard-authored logic (no stored backing)
+
+- **EP/AP cost radio.** `resolveActivationCurrency(actionSource)` is _deterministic_
+  (systems/modules/chassis→EP, else AP); the action's `activationCurrency:'EP or AP'`
+  enum is descriptive text no helper consumes. A genuine EP-vs-AP choice (the
+  pilot-through-mech case) must be authored in the Dashboard, branching on
+  `activationCurrency === 'EP or AP'`.
+- **Hot(X) stepper.** `amount` can be the literal `'X'`; today `itemEconomy` /
+  `chassisActionEconomy` collapse `'X'`→`+1` heat (`traitAmount` returns 0). A real
+  stepper needs Dashboard-local state; the data only marks heat as _variable_, not a
+  value/range. (Uses(X) collapses to 0 the same way.)
+
+### 4.3 Reuse-point API (verified) — prop names are correct verbatim
+
+`ReferenceEntityDisplay` accepts `abilitiesSection`, `statsOverride
+{value, bottomLabel}`, `footerOverride`, `afterExtraContent`, `hide`
+(`ReferenceEntityHideConfig` object), `footActions`, `footMeta`
+(`CardFootMeta = {label, value:ReactNode}`) — all real. Caveats to design around:
+
+- **`abilitiesSection` replaces the _chassis-abilities_ block only**, not the
+  game-rules `Actions` masonry. To keep the built-in actions, don't `hide.actions`;
+  to inject entity-level buttons use `afterExtraContent`/`footerOverride`.
+- **`ReferenceEntityActions` and `displayStateContext` are internal** (not in the
+  `suref-react` barrel) — reach them _through_ `ReferenceEntityDisplay`, don't import
+  internals. Density is a `compact`/`mode` prop, not a context knob.
+- **`RollTable`** is interactive but its Roll button needs **`showCommand` + a truthy
+  `tableName`** (else static grid). Roll math: `rollOnTable`/`resultForTable`
+  (package root).
+- **In-panel `[[links]]`**: wrap the display in `EntityHrefProvider value={builder}`
+  and leave `EntityDetailLinkProvider` at default `false` (in-app modal, not
+  navigate-away); both are public. `useSearchCombobox` is also public (for D4).
+- Economy injection stays the `Erow`/`ActionCardErow` + `footActions`/`footMeta`
+  vocabulary (`ActionCard` itself takes neither — wrap it, per ADR-017).
+
+### 4.4 Tables & SRD data
+
+- **No table category field** — the 5 columns (COMBAT/PILOT/SALVAGE/CRAWLER/DOWNTIME)
+  are an **app-side curated `name→category` map** over `RollTables.all()` (96 tables);
+  `indexable:true` filters to the ~19 headline tables. `source` (book) doesn't map.
+- **SRD Explorer:** all 8 tiles map to accessors — `Chassis/Systems/Modules/`
+  **`Abilities`**`/Equipment/NPCs/CrawlerBays/RollTables`. Reuse `useSearchCombobox`
+  (public) or `search()` (needs ORM `preload()` — the dashboard already preloads);
+  render items via `ReferenceEntityDisplay`. **Preload hazard:** never call accessor
+  `.all()`/query at module scope.
+
+### 4.5 Out of scope (data-model work, not Display completion)
+
+- **Drone / Ally focuses + decks.** No drone/ally entity exists; `SoftLink.type` is
+  only `mech-to-pilot`/`pilot-to-crawler`, `EntityRef.type` only
+  `pilot`/`mech`/`crawler`. Surfacing them = new schema + link kinds + composition
+  extension — a separate project.
+- **Broader HUD chrome, Settings menu, phone reflow** — not Display content.
+
+## 5. Workstreams (Display-focused)
+
+Ordered by value. Each is independently shippable and gated on
 `bun --filter in-the-union-now test`, `typecheck`, `lint`, and the ADR-007 boundary
-tests. Reuse `suref-react` (`ReferenceEntityDisplay` / `ActionCard` / `RollTable`)
-and inject economy via the existing `Erow`/`ActionCardErow` + `DisplayCard.footActions`
-vocabulary (ADR-017) — never a new schema-specific renderer.
+tests.
 
-### D1 — Actions deck: filters, grouping, range, and rich cards (highest value)
+### D5 — EntityView: a real reference document (do first — underpins D1/D4)
 
-- **Timing tabs** `All/Turn/Free/React` and a **grouping toggle** `Timing ⇄ Source`
-  over the existing `buildMechActions` groups; drop the hardcoded group-by-source.
-- **Source-filter tags** per owner (pilot/mech/drone), family-colored.
-- **Range selector** `C/M/L/F` + **reach readout**; dim (not hide) out-of-range,
-  heat-locked (`canActivateAction`), and destroyed actions in place.
-- **`acell` cards** carry a source stamp (CHS/SYS/MOD/ABL/EQP) + micro-meta
-  (range/dmg/HOT/traits) — read from `SURefMetaAction`.
-- **On-foot deck:** when `mount==='pilot'`, render the **pilot's** action deck
-  (add a pilot-sourced `buildActions` sibling), not the mech's.
-- Touches: `ActionsDeck.tsx`, `dashboardRules.ts`, `DisplayView.tsx`.
-- **Data dependency to confirm first:** whether `SURefMetaAction` carries timing
-  group / range / traits fields the tabs+range+micro-meta need (see §6).
+- Drive each entity focus through `ReferenceEntityDisplay`: keep the built-in
+  actions (don't `hide.actions`), feed live **`statsOverride`**
+  (`currentHP/SP/EP/Heat`), and inject entity-level **`footActions`** (Load Into Mech
+  / Enter Downtime / Hand re-roll / "Full sheet →") via `afterExtraContent` /
+  `footerOverride` — not a new renderer.
+- Render the **crawler** focus as its real card (today a text note).
+- Provide an in-panel `EntityHrefProvider` (+ `EntityDetailLinkProvider={false}`) so
+  `[[links]]` drill in place. Touches: `DisplayView.tsx` (+ an `EntityView`).
+
+### D1 — Actions deck: filters, grouping, range, rich cards (highest visible value)
+
+- **Timing tabs** `All/Turn/Free/React` over `action.actionType` (map React→Reaction;
+  bucket Short/Long/DownTime), and a **grouping toggle** `Timing ⇄ Source`; drop the
+  hardcoded group-by-source.
+- **Source-filter tags** per owner, family-colored.
+- **Range selector** `C/M/L/F` + **reach readout** from `action.range`; add ephemeral
+  `range` + `setRange` to `playStateStore` and a pure range-vs-band helper in
+  `dashboardRules`. Dim (not hide) out-of-range, heat-locked (`canActivateAction`),
+  and destroyed actions in place.
+- **`acell` cards**: source stamp + micro-meta (range/dmg/HOT/traits) — reuse
+  `ActionCard`/`DataValueDisplayView` for the tag row.
+- **On-foot deck:** when `mount==='pilot'`, render a `buildPilotActions(pilot)`
+  (mirror `buildMechActions` over `pilot.abilities`/`pilot.equipment` via
+  `resolveActions`/`resolveAbilityApCost`; AP economy) instead of the mech deck.
+- Touches: `ActionsDeck.tsx`, `dashboardRules.ts`, `playStateStore.ts`,
+  `DisplayView.tsx`.
 
 ### D2 — Resolve flow: Apply, cost choice, Hot stepper
 
-- Add the **Apply** step (`Activate → Roll → Push → Apply`) that commits a rolled
-  outcome as one write under the ADR-007 boundary (auto for non-destructive; route
-  destructive branches through the existing `ActiveItemBand` confirm overlays).
-- **Cost — EP or AP** radios for `'EP or AP'` actions (`resolveActivationCurrency`).
-- **Hot(X) stepper** with heat-vs-cap projection; disable when it would exceed cap.
-- `◀ Back` / `Clear`. Touches: `ActionsDeck.tsx`, `dashboardRules.ts`.
+- Add the **Apply** step (`Activate → Roll → Push → Apply`) committing the rolled
+  outcome as one write under ADR-007 (auto for non-destructive; route destructive
+  branches through the existing `ActiveItemBand` confirm overlays).
+- **Cost — EP or AP** radios, authored in the Dashboard for
+  `activationCurrency==='EP or AP'` actions (§4.2).
+- **Hot(X) stepper** with Dashboard-local state + heat-vs-cap projection; disable
+  when it would exceed cap (§4.2). `◀ Back` / `Clear`.
+- Touches: `ActionsDeck.tsx`, `dashboardRules.ts`.
 
 ### D3 — Tables: 5-column category picker + roll history
 
-- Replace the `<select>` with the **5-column grouped picker overlay**
-  (`COMBAT/PILOT/SALVAGE/CRAWLER/DOWNTIME`), categorizing `RollTables.all()`
-  app-side (no category field in data — §5.6 of the spec).
-- Roll result + follow-ups in-panel; **roll history** + Clear. Reuse `RollTable`.
-- Touches: `DisplayView.tsx` (+ a `TablePickerOverlay`).
+- Replace the `<select>` with the **5-column picker overlay**
+  (COMBAT/PILOT/SALVAGE/CRAWLER/DOWNTIME) driven by an **app-side curated
+  name→category map** (§4.4). Roll result + follow-ups in-panel via `RollTable`
+  (`showCommand` + `tableName`); **roll history** + Clear.
+- Touches: `DisplayView.tsx` (+ a `TablePickerOverlay` + the category map).
 
 ### D4 — SRD Explorer (currently a hard stub)
 
-- **Search box** over `salvageunion-reference` `search()`, **8 category tiles**
-  (CHS/SYS/MOD/ABL/EQP/NPC/BAY/TBL), result cards drilling into the real
-  `ReferenceEntityDisplay` in-panel (shares the D5 `EntityHrefProvider`).
+- **Search box** via `useSearchCombobox` / `search()`, **8 category tiles** over the
+  real accessors (§4.4), results drilling into `ReferenceEntityDisplay` in-panel
+  (shares D5's `EntityHrefProvider`). Respect the preload hazard.
 - Touches: `DisplayView.tsx` (`srd` branch) + a small `SrdExplorer`.
-
-### D5 — EntityView: a real reference document
-
-- Drive the entity focus through `ReferenceEntityDisplay` slot props: grouped
-  `ReferenceEntityActions` (`abilitiesSection`), live `statsOverride`
-  (`currentHP/SP/EP/Heat`), and entity-level `footActions` (Load Into Mech / Enter
-  Downtime / Hand re-roll / sheet links) via `DisplayCard.footActions`.
-- Render the **crawler** focus as its real card (currently a text note).
-- Provide an in-display `EntityHrefProvider` so `[[links]]` drill in-panel (the one
-  sanctioned internal scroll). Touches: `DisplayView.tsx` (+ an `EntityView`).
 
 ### D6 — Display visual fidelity (fold into D1–D5, not a separate build)
 
-The mockup's Display treatment: light "workshop-paper" SRD card inset in the dark
-HUD; **source stamps** (Barlow Semi Condensed, uppercase, dark-on-light); **cost
-pennant** for EP/AP; **segmented pip gauges**; roll-band colors
-(`--cascade/--failure/--tough/--success/--nailed`); state overlays as _treatment_
-(heat redline pulse, damaged 45° hatch, destroyed strike-in-place), never a second
-hue. Apply these per-workstream as each control lands, against the existing
-`--color-sheet-*` / `--color-rust` / `--color-roll-*` tokens — not as a separate
-visual pass. (Broader HUD chrome / phone reflow are **out of scope** here.)
+Apply the mockup's Display treatment as each control lands: light "workshop-paper"
+SRD card inset in the dark HUD; **source stamps** (Barlow Semi Condensed, uppercase,
+dark-on-light); **cost pennant** for EP/AP; **segmented pip gauges**; roll-band
+colors (`--color-roll-*`); state overlays as _treatment_ (heat redline pulse,
+damaged 45° hatch, destroyed strike-in-place), never a second hue — against the
+existing `--color-sheet-*` / `--color-rust` / `--color-roll-*` tokens.
 
-## 5. Sequencing & verification
+## 6. Sequencing & verification
 
-- **Order:** D5 → D1 → D2 → D3 → D4. D5 (real reference card + `EntityHrefProvider`)
-  underpins D4 and the `acell` cards, and fixes the most visible "bare card" gap;
-  D1/D2 restore the action instrument; D3/D4 complete Tables and SRD.
-- **Per-workstream gate:** the four checks above + extend
-  `__tests__/DisplayView.test.tsx` per mode and keep
-  `e2e/display-verification.e2e.ts` green.
-- **ADR-007:** new Apply/resolve writes must auto-apply only non-destructive
-  bookkeeping and route destructive outcomes through confirm/undo — unit-tested.
+- **Order:** D5 → D1 → D2 → D3 → D4 (D6 folded in). D5's real card +
+  `EntityHrefProvider` underpin D4 and the `acell` cards and fix the most visible
+  "bare card" gap; D1/D2 restore the action instrument; D3/D4 finish Tables and SRD.
+- **Per-workstream gate:** the checks above + extend `__tests__/DisplayView.test.tsx`
+  per mode; keep `e2e/display-verification.e2e.ts` green.
+- **ADR-007:** new Apply/resolve writes auto-apply only non-destructive bookkeeping
+  and route destructive outcomes through confirm/undo — unit-tested.
 - **Ephemeral split (ADR-019):** filter/grouping/range/resolve state stays in
   component state / `playStateStore`, never `entityStore` or snapshots.
 
-## 6. Open questions / dependencies
+## 7. Decisions & residual product questions
 
-1. **Action metadata (blocks D1).** Do `SURefMetaAction` records carry the **timing
-   group** (Turn/Free/React), **range**, and **traits** the tabs / range selector /
-   micro-meta need? If not, D1's filters degrade to what the data supports — confirm
-   before building.
-2. **Range model.** ITUN has no enemy/GM model (local-first); the mockup's `C/M/L/F`
-   is a self-declared range band. Ship the lightweight declare-a-band version
-   (matches spec §10.5), not target selection?
-3. **SRD Explorer depth (D4).** Full standalone browser, or the search + 8-tile +
-   drill-in the mockup shows (recommended — reuses D5's card path)?
-4. **Apply semantics (D2).** Auto-commit non-destructive rolled outcomes, explicit
-   confirm for destructive (recommended, per ADR-007)?
+Resolved (defaults chosen; flag to change):
+
+- **Range** = lightweight self-declared band (`playStateStore.range`), compared
+  against `action.range`. No enemy/target model (matches local-first).
+- **SRD Explorer** = search + 8 tiles + `ReferenceEntityDisplay` drill-in (reusing
+  `useSearchCombobox`), _not_ a separate standalone browser.
+- **Apply** auto-commits non-destructive rolled outcomes; destructive outcomes route
+  through confirm/undo (ADR-007).
+
+Still worth a product call:
+
+1. **Timing buckets.** How should `Short` / `Long` / `DownTime` action types map onto
+   the mockup's 3-tab `Turn/Free/React` filter — folded into `Turn`, given their own
+   tab, or dropped from the play deck?
+2. **Per-item action granularity.** Keep the current primary-action-per-item deck, or
+   widen `buildMechActions` so every action of a multi-action system is independently
+   listed/filterable (more faithful to the mockup, larger change)?
+3. **Hot(X) / Uses(X) semantics.** For variable-heat actions, is a player-entered X
+   (stepper) the right model, or should the deck just surface "variable" and let the
+   player adjust Heat via the Reactor bay?
