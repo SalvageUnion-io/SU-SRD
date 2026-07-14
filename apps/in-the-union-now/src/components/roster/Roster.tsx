@@ -20,7 +20,7 @@
 import { Fragment, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 import { Btn, btnVariants, Empty } from 'suref-react'
 
 import {
@@ -58,12 +58,12 @@ import { EntityListItem } from './EntityListItem'
 
 /** Roster row meta segment for a mech: "Chassis · TL n". */
 function mechChassisMeta(chassisRef: string): string | undefined {
+  // resolveChassisRef is slug/name/id tolerant; stored refs are slugs, so a
+  // name-only match here would fall through to the raw slug for every mech. Wrap
+  // in try/catch: resolveChassisRef throws when the Chassis model isn't preloaded
+  // (some test/snapshot contexts) — fall back to the raw ref rather than crash.
   try {
-    const all = SalvageUnionReference.Chassis.all() as ReadonlyArray<{
-      name: string
-      techLevel?: number
-    }>
-    const c = all.find((x) => x.name === chassisRef)
+    const c = resolveChassisRef(chassisRef) as { name: string; techLevel?: number } | null
     if (!c) return chassisRef || undefined
     return c.techLevel != null ? `${c.name} · TL ${c.techLevel}` : c.name
   } catch {

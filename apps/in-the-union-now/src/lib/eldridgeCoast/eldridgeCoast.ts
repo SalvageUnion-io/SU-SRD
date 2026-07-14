@@ -32,9 +32,12 @@
  *     canonical bays exist), so that crew is folded into the crawler
  *     `description` rather than a `crawlerBays[]` entry.
  *   - Crawler type-abilities (All Terrain Locomotion / Improved Trading Bay)
- *     and mech cargo notes are captured in free-text where no structured field
- *     exists; the crawlers' mounted weapons (Mechapult, CACB Laser) are
- *     canonical Systems and resolve normally.
+ *     and mech cargo/ownership notes are captured in mech `appearance` / `quirk`
+ *     (the mech `description` field is deprecated and NOT rendered by the sheet,
+ *     so it is left unset — unlike pilot `description`, which renders as the
+ *     Bio). The crawlers' mounted weapons (Mechapult, CACB Laser) are stored by
+ *     NAME as canonical Systems so the crawler sheet's id/name resolver renders
+ *     them as full weapon cards.
  *   - Pilot real names that the sheet left blank/unknown fall back to the
  *     callsign (Roach-Boy); the pilots' sheet HP/AP maxima above the 10/5 base
  *     are encoded via `maxHpModifier` / `maxApModifier`.
@@ -323,7 +326,7 @@ export const ELDRIDGE_PILOTS: readonly Pilot[] = [
 /** Build a mech record with the shared, always-present defaults. */
 function mech(
   fields: Pick<Mech, 'id' | 'name' | 'chassisRef' | 'patternName' | 'systems' | 'modules'> &
-    Partial<Pick<Mech, 'quirk' | 'appearance' | 'description' | 'systemConditions'>>
+    Partial<Pick<Mech, 'quirk' | 'appearance' | 'systemConditions'>>
 ): Mech {
   return {
     schemaVersion: 1,
@@ -364,9 +367,8 @@ export const ELDRIDGE_MECHS: readonly Mech[] = [
     ],
     modules: ['metal-detector', 'comms-module'],
     quirk: 'constantly leaks coolant',
-    appearance: 'Overgrown with plants and vines.',
-    description:
-      'Integrated Colossal Cargo Bay (default Cargo Cap. 30). Carries: melee armament, ejection system, "Panda sneeze".',
+    appearance:
+      'Overgrown with plants and vines. Cargo: melee armament, ejection system, "Panda sneeze".',
   }),
   mech({
     id: MECH_CUSTOS,
@@ -376,8 +378,8 @@ export const ELDRIDGE_MECHS: readonly Mech[] = [
     systems: ['nanofibre-net-launcher', '50-cal-machine-gun'],
     modules: ['hacking-repeater-node', 'damage-assessor', 'comms-module'],
     quirk: 'Occasionally sparks electricity.',
-    appearance: "'Steampunk', whirring gears, bronze parts.",
-    description: 'Survey Drone (Tech 4) with an Integrated Hover Locomotion System.',
+    appearance:
+      "'Steampunk', whirring gears, bronze parts. A Tech 4 Survey Drone with an Integrated Hover Locomotion System.",
   }),
   mech({
     id: MECH_DAMNATIO,
@@ -387,9 +389,8 @@ export const ELDRIDGE_MECHS: readonly Mech[] = [
     systems: ['rail-rifle', 'locomotion-system', 'ejection-system', 'high-gain-antenna'],
     modules: ['comms-module', 'survey-scanner', 'ir-night-vision-optics', 'pinpoint-targeter'],
     quirk: 'Unusual cockpit location.',
-    appearance: 'Covered in camo and foliage.',
-    description:
-      "Polycarbonate Stealth Chassis. The main gun cuts through the cockpit, only slightly to the right of the pilot's headrest.",
+    appearance:
+      "Covered in camo and foliage. The main gun cuts through the cockpit, only slightly to the right of the pilot's headrest.",
   }),
   mech({
     id: MECH_INCITATUS,
@@ -404,8 +405,7 @@ export const ELDRIDGE_MECHS: readonly Mech[] = [
     ],
     modules: ['comms-module', 'navigation-module'],
     quirk: 'Secretly emits radio waves.',
-    appearance: 'Industrial and utilitarian.',
-    description: "Caligula's Mecha Companion (Tech 4).",
+    appearance: "Industrial and utilitarian. Caligula's Mecha Companion (Tech 4).",
   }),
   mech({
     id: MECH_NEW_DUKE,
@@ -423,9 +423,7 @@ export const ELDRIDGE_MECHS: readonly Mech[] = [
     ],
     modules: ['adv-weapon-link', 'personal-recreation-device'],
     quirk: 'Novelty Car Horn',
-    appearance: 'Beat up and Orange',
-    description:
-      'Close Range Protocols (+2 SP damage at Close Range). The Armour Plating is destroyed.',
+    appearance: 'Beat up and Orange. Its Armour Plating is destroyed.',
     systemConditions: { 'armour-plating': 'destroyed' },
   }),
   mech({
@@ -437,7 +435,6 @@ export const ELDRIDGE_MECHS: readonly Mech[] = [
     modules: ['zoom-optics', 'comms-module', 'firewall', 'ecm-transmitter'],
     quirk: 'Exterior fluctuates in colour.',
     appearance: 'Industrial and utilitarian.',
-    description: 'Polycarbonate Stealth Chassis.',
   }),
   mech({
     id: MECH_PR1,
@@ -447,8 +444,8 @@ export const ELDRIDGE_MECHS: readonly Mech[] = [
     systems: ['hydraulic-crusher'],
     modules: ['hull-magnetiser', 'self-destruct', 'survey-scanner'],
     quirk: 'Exterior fluctuates in colour.',
-    appearance: 'Industrial and utilitarian.',
-    description: 'Survey Drone with an Integrated Hover Locomotion System.',
+    appearance:
+      'Industrial and utilitarian. A Survey Drone with an Integrated Hover Locomotion System.',
   }),
   mech({
     id: MECH_REK_JET,
@@ -464,8 +461,7 @@ export const ELDRIDGE_MECHS: readonly Mech[] = [
     ],
     modules: ['comms-module'],
     quirk: 'Changes personality frequently',
-    appearance: 'Bobblehead Head',
-    description: "Roach-Boy's Auto-Turret. Carries 2 Tier 3 Scrap; a Pelt cape.",
+    appearance: "Bobblehead Head. Roach-Boy's Auto-Turret. Cargo: 2× Tier 3 Scrap and a Pelt cape.",
   }),
   mech({
     id: MECH_RUST_BUCKET,
@@ -482,9 +478,7 @@ export const ELDRIDGE_MECHS: readonly Mech[] = [
     ],
     modules: ['offensive-protocols', 'comms-module', 'personal-recreation-device'],
     quirk: 'Cockpit has far, far too many buttons.',
-    appearance: 'Looks Like Shit, Runs like Butter',
-    description:
-      'Scrap Plating (counts as 3 Armour Plating Systems, restorable in a T2+ Mech Bay).',
+    appearance: 'Looks Like Shit, Runs like Butter.',
   }),
   mech({
     id: MECH_SOB,
@@ -500,9 +494,7 @@ export const ELDRIDGE_MECHS: readonly Mech[] = [
     ],
     modules: ['comms-module'],
     quirk: 'Mismatched Hardware',
-    appearance: 'Hostile Ladybug',
-    description:
-      'Integrated Advanced Shield Dome (spend X EP as a Turn Action; the Shield Dome has SP equal to EP spent x3).',
+    appearance: 'Hostile Ladybug.',
   }),
 ]
 
@@ -600,7 +592,9 @@ const HAVEN_CRAWLER: Crawler = {
     npcCurrentHP: 4,
     npcDescription: 'Wasteland Explorer. Barber, wise beyond his years. Keepsake: Empty Mug.',
   },
-  systems: ['mechapult'],
+  // Stored by NAME (not slug): the crawler sheet's mounted-weapon resolver
+  // matches by id/name only, so a slug would render as a raw chit.
+  systems: ['Mechapult'],
   crawlerBays: HAVEN_BAY_CREW.map((c) => ({
     bayRef: c.ref,
     npcName: c.npcName,
@@ -627,7 +621,8 @@ const GLADHAND_CRAWLER: Crawler = {
     npcCurrentHP: 4,
     npcDescription: 'Savvy Trader. A corpo trading AI.',
   },
-  systems: ['cacb-laser'],
+  // Stored by NAME (see Haven's note).
+  systems: ['CACB Laser'],
   crawlerBays: GLADHAND_BAY_CREW.map((c) => ({
     bayRef: c.ref,
     npcName: c.npcName,
