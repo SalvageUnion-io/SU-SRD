@@ -531,6 +531,26 @@
   min-width: 200px;
   background: var(--pc-crawler-deep);
 }
+.pc-entity-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  text-align: center;
+  padding: 24px 16px;
+}
+.pc-entity-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.pc-entity-foot .pc-deck-btn {
+  flex: 0 0 auto;
+  min-width: 180px;
+}
 
 /* ---- Downtime wizard (light display, Phase 6) ---- */
 .pc-dt {
