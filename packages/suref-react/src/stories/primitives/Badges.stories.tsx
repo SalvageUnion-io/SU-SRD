@@ -77,34 +77,22 @@ export const Chips: Story = () => (
   </div>
 )
 
+// Tag is a SINGLE keyword chip. Split label/value content is a Stat — render it
+// with StatDisplay orientation="horizontal" (see the StatDisplay stories), not Tag.
 export const Tags: Story = () => (
   <div className="bg-paper p-4">
-    <ClusterLabel>Label only (stamped ink chip)</ClusterLabel>
+    <ClusterLabel>Keyword (stamped ink chip)</ClusterLabel>
     <Row>
       <Tag label="Turn Action" />
       <Tag label="Passive" />
       <Tag label="Ballistic" />
     </Row>
 
-    <ClusterLabel>Value (inverted value box after label)</ClusterLabel>
-    <Row>
-      <Tag label="Range" value="Close" />
-      <Tag label="Damage" value="[2]" />
-      <Tag label="Heat" value={1} />
-    </Row>
-
-    <ClusterLabel>Pre (value before label)</ClusterLabel>
-    <Row>
-      <Tag label="AP" value="[1]" pre />
-      <Tag label="EP" value={2} pre />
-    </Row>
-
     <ClusterLabel>Ghost (inverted paper chip, inset ring)</ClusterLabel>
     <Row>
       <Tag label="Turn Action" ghost />
       <Tag label="Passive" ghost />
-      <Tag label="Range" value="Medium" ghost />
-      <Tag label="AP" value="[1]" pre ghost />
+      <Tag label="Reaction" ghost />
     </Row>
   </div>
 )
