@@ -96,6 +96,7 @@ export const Sheet: Story = () => (
         <StatDisplay label="SP" value={sp} />
         <StatDisplay label="EP" value={Math.ceil(ep * 0.75)} max={ep} dots tone="hp" />
         <StatDisplay label="RANGE" value={rangeLabel} orientation="horizontal" />
+        <StatDisplay orientation="horizontal" label="TL" value={tl} />
         <StatDisplay orientation="horizontal" label="Class" value={className} />
         <StatDisplay orientation="horizontal" label="SV" value={sv} />
         <StatDisplay
@@ -114,7 +115,6 @@ export const Sheet: Story = () => (
 
       {/* 3. Badges */}
       <Group title="Badges">
-        <Pill>Tech {tl}</Pill>
         <Pill tone="pilot">pilot</Pill>
         <Pill tone="mech" rounded>
           mech

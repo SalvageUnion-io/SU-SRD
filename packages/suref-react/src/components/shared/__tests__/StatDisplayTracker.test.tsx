@@ -101,7 +101,7 @@ describe('StatDisplay (tracker) — heat escalation (U-1)', () => {
     const { container } = render(<StatDisplay dots label="HEAT" value={6} max={10} tone="heat" />)
     const root = screen.getByRole('group')
     expect(root.getAttribute('data-heat')).toBeNull()
-    expect(root.className).toContain('border-ink')
+    expect(must(root.lastElementChild).className).toContain('border-ink')
     expect(container.querySelector('[data-pip].bg-status-bad')).toBeNull()
   })
 
@@ -121,24 +121,24 @@ describe('StatDisplay (tracker) — heat escalation (U-1)', () => {
     render(<StatDisplay dots label="HEAT" value={10} max={10} tone="heat" />)
     const root = screen.getByRole('group')
     expect(root.getAttribute('data-heat')).toBe('critical')
-    expect(root.className).toContain('border-status-bad')
-    expect(root.className).toContain('motion-safe:animate-heat-pulse')
-    expect(root.className).not.toContain('border-ink')
+    expect(must(root.lastElementChild).className).toContain('border-status-bad')
+    expect(must(root.lastElementChild).className).toContain('motion-safe:animate-heat-pulse')
+    expect(must(root.lastElementChild).className).not.toContain('border-ink')
   })
 
   test('inert without a max (suref-web static render)', () => {
     render(<StatDisplay dots label="HEAT" init={9} tone="heat" />)
     const root = screen.getByRole('group')
     expect(root.getAttribute('data-heat')).toBeNull()
-    expect(root.className).toContain('border-ink')
+    expect(must(root.lastElementChild).className).toContain('border-ink')
   })
 
   test('non-heat tones never escalate, even at cap', () => {
     render(<StatDisplay dots label="HP" value={10} max={10} tone="hp" />)
     const root = screen.getByRole('group')
     expect(root.getAttribute('data-heat')).toBeNull()
-    expect(root.className).toContain('border-ink')
-    expect(root.className).not.toContain('animate-heat-pulse')
+    expect(must(root.lastElementChild).className).toContain('border-ink')
+    expect(must(root.lastElementChild).className).not.toContain('animate-heat-pulse')
   })
 })
 
