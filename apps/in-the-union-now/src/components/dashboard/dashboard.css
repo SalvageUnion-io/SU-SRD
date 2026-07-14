@@ -77,6 +77,10 @@
 
 .pc-primary {
   grid-area: primary;
+  /* The wider active card (380px) is right-aligned in the 260px wheel column and
+     overhangs ~110px left into this row. Reserve that space so the band's
+     content never sits under the active dial card (the intersection corner). */
+  padding-right: 120px;
 }
 .pc-display {
   grid-area: display;
@@ -648,7 +652,7 @@
   color: var(--pc-text);
 }
 
-/* ---- Rotary Dial ---- */
+/* ---- Rotary Dial (momentum wheel) ---- */
 .pc-wheel-col {
   position: relative;
   display: flex;
@@ -656,66 +660,73 @@
   gap: 8px;
   height: 100%;
   overflow: visible;
+}
+/* The stage the wheel rolls in: seats are absolutely stacked and JS sets each
+   seat's real top + height. Clipped so cards rolling off the top don't bleed
+   over the rail and cards off the bottom don't spill past the controls. The
+   active slot is flush with the top, so the active card aligns with the
+   primary row (its top edge = the Active row's top). */
+.pc-wheel-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  /* Clip vertically (cards rolling off the top don't bleed over the rail) but
+     NOT horizontally, so the wider active card can overhang left into the
+     primary row's reserved space (the viewfinder = the intersection corner). */
+  overflow: visible;
+  clip-path: inset(0 -400px);
   touch-action: none;
   cursor: grab;
 }
-.pc-wheel-col:active {
+.pc-wheel-stage:active {
   cursor: grabbing;
 }
-.pc-wheel-slot {
-  height: 168px;
-  flex: 0 0 auto;
-  display: flex;
-  justify-content: flex-end;
-  overflow: visible;
-}
-.pc-wheel-track {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-end;
-  overflow: hidden;
-  padding: 2px 0;
+/* Seats are stacked; JS sets each seat's real top + width + height from the
+   scroll position (no scale — labels keep their size and match the mech stamp). */
+.pc-wheel-seat {
+  position: absolute;
+  right: 0;
+  will-change: top, width, height;
 }
 .pc-cell {
   box-sizing: border-box;
+  width: 100%;
+  height: 100%;
   border: 1.5px solid var(--pc-line);
   border-radius: 5px;
   background: color-mix(in oklab, var(--pc-panel) 80%, #000);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
   cursor: pointer;
-  padding: 9px 13px;
+  padding: 5px 10px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   text-align: left;
   color: var(--pc-text);
-  width: 84%;
-  flex: 0 0 auto;
+  overflow: hidden;
 }
 .pc-cell-active {
-  width: 420px;
-  height: 100%;
+  border-color: color-mix(in oklab, var(--pc-line-hard) 80%, #fff);
+  background: color-mix(in oklab, var(--pc-panel) 92%, #000);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
-  padding: 12px 16px;
-  justify-content: flex-start;
+  cursor: default;
 }
 .pc-cell.statless {
   align-items: center;
   justify-content: center;
   text-align: center;
 }
+/* Match the Active Item band's mech stamp (.pc-stamp) so the card labels line
+   up with, and stay the same size as, the mech label. */
 .pc-cell-lab {
   align-self: flex-start;
   font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  font-size: 12px;
+  letter-spacing: 0.05em;
+  font-size: 13px;
   line-height: 1;
-  padding: 4px 7px 5px;
+  padding: 5px 9px 6px;
   border-radius: 2px;
   color: #fff;
 }
@@ -731,29 +742,27 @@
 .pc-cell-gauges {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-}
-.pc-cell-active .pc-cell-gauges {
-  margin-top: 8px;
+  gap: 3px;
 }
 .pc-cell-title {
   font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  font-size: 18px;
+  font-size: 15px;
   line-height: 1;
   color: var(--pc-text);
 }
+/* Statless titles (Actions / Tables / SRD) read large in the tall active slot. */
 .pc-cell-active.statless .pc-cell-title {
-  font-size: 30px;
+  font-size: 26px;
 }
 .pc-cell-sub {
   font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  font-size: 10px;
+  font-size: 9px;
   color: var(--pc-muted);
 }
 .pc-wheel-ctl {
@@ -773,44 +782,6 @@
 }
 .pc-wheel-btn:hover {
   border-color: var(--pc-muted);
-}
-.pc-wheel-slot.anim-fwd .pc-cell {
-  animation: pcRollFwd 0.2s cubic-bezier(0.25, 0.8, 0.3, 1.1);
-}
-.pc-wheel-slot.anim-back .pc-cell {
-  animation: pcRollBack 0.2s cubic-bezier(0.25, 0.8, 0.3, 1.1);
-}
-@keyframes pcRollFwd {
-  0% {
-    transform: translateY(42px);
-    opacity: 0.15;
-  }
-  70% {
-    transform: translateY(-4px);
-    opacity: 1;
-  }
-  100% {
-    transform: none;
-  }
-}
-@keyframes pcRollBack {
-  0% {
-    transform: translateY(-42px);
-    opacity: 0.15;
-  }
-  70% {
-    transform: translateY(4px);
-    opacity: 1;
-  }
-  100% {
-    transform: none;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pc-wheel-slot.anim-fwd .pc-cell,
-  .pc-wheel-slot.anim-back .pc-cell {
-    animation: none;
-  }
 }
 
 /* Below the scale floor (phones / heavy zoom) the fixed canvas is abandoned. */
