@@ -85,7 +85,7 @@ export const Sheet: Story = () => (
           mech
         </Pill>
         <Chip value={12}>HP</Chip>
-        <Tag label="Range" value="Close" />
+        <Tag label="Passive" />
         <StatusBadge status="damaged" />
         <StatDisplay orientation="horizontal" variant="framed" label="Class" value="Roughneck" />
         <StatDisplay orientation="horizontal" variant="spec" label="SV" value={4} />
