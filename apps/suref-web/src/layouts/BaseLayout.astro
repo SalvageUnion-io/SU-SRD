@@ -133,13 +133,7 @@ const ogImageUrl = ogImage.startsWith('http') ? ogImage : new URL(ogImage, SITE_
       <main class="flex flex-1 flex-col bg-su-blue-pale" transition:animate="fade">
         <slot />
       </main>
-      <Footer
-        poweredBySalvageUrl="/Powered_by_Salvage_Black.webp"
-        legalLinks={[
-          { label: 'Bot Terms', href: '/bot/terms' },
-          { label: 'Bot Privacy', href: '/bot/privacy' },
-        ]}
-      />
+      <Footer poweredBySalvageUrl="/Powered_by_Salvage_Black.webp" />
     </div>
   </body>
 </html>
