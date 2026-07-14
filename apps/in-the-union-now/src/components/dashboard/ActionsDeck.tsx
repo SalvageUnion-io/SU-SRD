@@ -83,6 +83,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
   const s: PlayStore = store ?? liveStore
   const range = usePlayStateStore((st) => st.range)
   const setRange = usePlayStateStore((st) => st.setRange)
+  const armDamagePrompt = usePlayStateStore((st) => st.armDamagePrompt)
 
   const isPilotDeck = mount === 'pilot' && pilot != null
   const deck = isPilotDeck ? buildPilotActions(pilot) : buildMechActions(mech)
@@ -170,12 +171,14 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
    * Apply commits the rolled outcome (ADR-007). Non-destructive bands auto-commit
    * (the mechanical cost already landed at Activate; there is no self-mutating
    * write for a Core Mechanic result in the local-first actor-only model). A
-   * Cascade Failure is destructive — it is NOT auto-written; the deck routes the
-   * player to the Active Item band's existing confirm/undo controls instead.
+   * Cascade Failure is destructive — it is NOT auto-written; the deck ARMS the
+   * active Item band to open its Take-Damage overlay (pre-armed) so the player
+   * confirms the consequence there under ADR-007, never an auto-write here.
    */
   function doApply(result: CoreRollResult) {
     if (isDestructiveOutcome(result.band)) {
       setApplyRouted(true)
+      armDamagePrompt()
       return
     }
     setApplied(true)
@@ -369,8 +372,8 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
           {applied && <p className="pc-deck-applied">Result applied ✓</p>}
           {applyRouted && (
             <p className="pc-deck-apply-route">
-              Cascade Failure — a severe consequence. Resolve it on the Active Item band (Push /
-              Take Dmg / Critical); nothing was auto-applied.
+              Cascade Failure — a severe consequence. The Take-Damage control is open on the Active
+              Item band above; confirm the hit there. Nothing was auto-applied.
             </p>
           )}
         </div>

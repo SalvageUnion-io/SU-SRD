@@ -15,7 +15,7 @@
  * maxima come from the same `derivedStats` helpers the gauges read.
  */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import {
@@ -265,6 +265,17 @@ function MechBand({
 
   const [prompt, setPrompt] = useState<MechPrompt>(null)
   const [dmg, setDmg] = useState(1)
+
+  // The deck's Apply step routes a destructive Cascade Failure here: open the
+  // Take-Structure-Damage overlay pre-armed for the player to confirm (ADR-007).
+  const damagePromptArmed = usePlayStateStore((s) => s.damagePromptArmed)
+  const consumeDamagePrompt = usePlayStateStore((s) => s.consumeDamagePrompt)
+  useEffect(() => {
+    if (damagePromptArmed) {
+      setPrompt({ kind: 'dmg' })
+      consumeDamagePrompt()
+    }
+  }, [damagePromptArmed, consumeDamagePrompt])
 
   const fresh = () => store.get('mech', mech.id) ?? mech
 
@@ -550,6 +561,17 @@ function PilotBand({
 
   const [prompt, setPrompt] = useState<PilotPrompt>(null)
   const [dmg, setDmg] = useState(1)
+
+  // On-foot: the deck's Apply routes a destructive Cascade Failure here — open
+  // the Take-HP-Damage overlay pre-armed for the player to confirm (ADR-007).
+  const damagePromptArmed = usePlayStateStore((s) => s.damagePromptArmed)
+  const consumeDamagePrompt = usePlayStateStore((s) => s.consumeDamagePrompt)
+  useEffect(() => {
+    if (damagePromptArmed) {
+      setPrompt({ kind: 'dmg' })
+      consumeDamagePrompt()
+    }
+  }, [damagePromptArmed, consumeDamagePrompt])
 
   const fresh = () => store.get('pilot', pilot.id) ?? pilot
 

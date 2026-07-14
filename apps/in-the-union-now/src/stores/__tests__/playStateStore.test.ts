@@ -80,4 +80,13 @@ describe('playStateStore', () => {
     usePlayStateStore.getState().toggleDtDone(2)
     expect(usePlayStateStore.getState().dtDone[2]).toBe(false)
   })
+
+  test('armDamagePrompt / consumeDamagePrompt is a one-shot hand-off (deck Apply → band)', () => {
+    expect(usePlayStateStore.getState().damagePromptArmed).toBe(false)
+    usePlayStateStore.getState().armDamagePrompt()
+    expect(usePlayStateStore.getState().damagePromptArmed).toBe(true)
+    // The active band consumes it once it opens its Take-Damage overlay.
+    usePlayStateStore.getState().consumeDamagePrompt()
+    expect(usePlayStateStore.getState().damagePromptArmed).toBe(false)
+  })
 })
