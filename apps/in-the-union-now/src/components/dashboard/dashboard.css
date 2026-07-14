@@ -498,6 +498,72 @@
   color: #6c6153;
 }
 
+/* ---- Resolve flow: cost choice, Hot(X) stepper, Apply readouts (D2) ---- */
+.pc-deck-cost-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1.5px solid rgba(40, 32, 25, 0.18);
+  border-radius: 4px;
+}
+.pc-deck-cost-choice-lab {
+  padding: 0;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 12px;
+  color: #6c6153;
+}
+.pc-deck-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  color: #282019;
+  cursor: pointer;
+}
+.pc-deck-hotx {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pc-deck-hotx-lab {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 12px;
+  color: #6c6153;
+}
+.pc-deck-hotx-proj {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: #282019;
+}
+.pc-deck-hotx-proj.is-over {
+  color: var(--pc-crawler-deep);
+}
+.pc-deck-applied {
+  margin: 0;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: #2f6b3a;
+}
+.pc-deck-apply-route {
+  margin: 0;
+  font-family: 'Barlow', sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--pc-crawler-deep);
+}
+
 /* ---- Deck controls bar (D1: timing tabs, grouping, range, source tags) ---- */
 .pc-deck-controls-bar {
   display: flex;

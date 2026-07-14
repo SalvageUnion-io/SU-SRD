@@ -23,9 +23,14 @@ import {
   buildPilotActions,
   critDamagePatch,
   critInjuryPatch,
+  economyForActivation,
   groupBySource,
   groupByTiming,
+  hasCurrencyChoice,
+  hasVariableHot,
   heatCheckOncePatch,
+  hotHeatFor,
+  isDestructiveOutcome,
   mechDamagePatch,
   pilotActivationPatch,
   pilotDamagePatch,
@@ -350,5 +355,59 @@ describe('pilotActivationPatch', () => {
     expect(pilotActivationPatch({ apCost: 2, currentAP: 5 })).toEqual({ currentAP: 3 })
     expect(pilotActivationPatch({ apCost: 9, currentAP: 4 })).toEqual({ currentAP: 0 })
     expect(pilotActivationPatch({ apCost: 0, currentAP: 4 })).toEqual({})
+  })
+})
+
+describe('resolve flow helpers (D2)', () => {
+  type Act = PlayAction['action']
+  const act = (over: Partial<Act>): Act => ({ id: 'a', name: 'A', ...over }) as Act
+
+  test('hasCurrencyChoice: only for EP-or-AP actions', () => {
+    expect(hasCurrencyChoice(act({ activationCurrency: 'EP or AP' }))).toBe(true)
+    expect(hasCurrencyChoice(act({ activationCurrency: 'SP or HP' }))).toBe(false)
+    expect(hasCurrencyChoice(act({}))).toBe(false)
+  })
+
+  test('hasVariableHot: only when a Hot trait carries amount "X"', () => {
+    expect(hasVariableHot(act({ traits: [{ type: 'hot', amount: 'X' }] }))).toBe(true)
+    expect(hasVariableHot(act({ traits: [{ type: 'hot', amount: 2 }] }))).toBe(false)
+    expect(hasVariableHot(act({ traits: [{ type: 'uses', amount: 'X' }] }))).toBe(false)
+    expect(hasVariableHot(act({}))).toBe(false)
+  })
+
+  test('hotHeatFor: variable Hot uses the picked X; fixed Hot keeps its printed value', () => {
+    expect(hotHeatFor(act({ traits: [{ type: 'hot', amount: 'X' }] }), 4)).toBe(4)
+    expect(hotHeatFor(act({ traits: [{ type: 'hot', amount: 3 }] }), 4)).toBe(3)
+    // A fixed Hot with no numeric amount still costs at least 1 (matches actionEconomy).
+    expect(hotHeatFor(act({ traits: [{ type: 'hot' }] }), 4)).toBe(1)
+    // Mixed fixed + variable sum together.
+    expect(
+      hotHeatFor(
+        act({
+          traits: [
+            { type: 'hot', amount: 2 },
+            { type: 'hot', amount: 'X' },
+          ],
+        }),
+        5
+      )
+    ).toBe(7)
+    expect(hotHeatFor(act({}), 4)).toBe(0)
+  })
+
+  test('economyForActivation: overrides Heat only for variable Hot, else passes through', () => {
+    const base = { epCost: 2, heat: 1, maxUses: 0 }
+    const variable = act({ traits: [{ type: 'hot', amount: 'X' }] })
+    expect(economyForActivation(base, variable, 3)).toEqual({ epCost: 2, heat: 3, maxUses: 0 })
+    const fixed = act({ traits: [{ type: 'hot', amount: 2 }] })
+    expect(economyForActivation(base, fixed, 3)).toBe(base)
+  })
+
+  test('isDestructiveOutcome: only Cascade Failure is destructive', () => {
+    expect(isDestructiveOutcome('cascade')).toBe(true)
+    expect(isDestructiveOutcome('failure')).toBe(false)
+    expect(isDestructiveOutcome('tough')).toBe(false)
+    expect(isDestructiveOutcome('success')).toBe(false)
+    expect(isDestructiveOutcome('nailed')).toBe(false)
   })
 })

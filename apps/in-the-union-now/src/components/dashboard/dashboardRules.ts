@@ -25,6 +25,7 @@ import type {
 } from 'salvageunion-reference'
 
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
+import type { CoreRollBand } from '../../lib/rules/coreMechanic'
 import { clampHeat, heatCheckPatch, performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
 import {
@@ -506,6 +507,67 @@ export function actionMicroMeta(pa: PlayAction): string[] {
     bits.push(t.amount != null ? `${label} ${t.amount}` : label)
   }
   return bits
+}
+
+// ---------------------------------------------------------------------------
+// Resolve flow — cost choice, variable Hot, Apply outcome (plan §5, D2)
+// ---------------------------------------------------------------------------
+
+/**
+ * Whether the action offers a genuine EP-vs-AP currency choice (§4.2). The
+ * `activationCurrency` enum is descriptive text no rules helper consumes; a real
+ * choice ('EP or AP') is authored in the Dashboard resolve flow as a radio pair.
+ */
+export function hasCurrencyChoice(action: SURefMetaAction): boolean {
+  return action.activationCurrency === 'EP or AP'
+}
+
+/**
+ * Whether the action's Hot cost is variable — a trait `{type:'hot', amount:'X'}`.
+ * These need a player-picked amount (a `− X +` stepper); the stored data only
+ * marks heat as variable, never a value/range.
+ */
+export function hasVariableHot(action: SURefMetaAction): boolean {
+  return (action.traits ?? []).some((t) => t.type === 'hot' && t.amount === 'X')
+}
+
+/**
+ * The Hot heat one activation produces given a player-picked `hotX` for the
+ * variable Hot trait. Fixed Hot traits keep their printed amount (min 1, matching
+ * `actionEconomy`); the variable 'X' Hot uses the picked value (clamped ≥ 0).
+ * Non-Hot actions produce 0.
+ */
+export function hotHeatFor(action: SURefMetaAction, hotX: number): number {
+  return (action.traits ?? [])
+    .filter((t) => t.type === 'hot')
+    .reduce((sum, t) => {
+      if (t.amount === 'X') return sum + Math.max(0, hotX)
+      return sum + Math.max(1, traitAmount(t))
+    }, 0)
+}
+
+/**
+ * Per-activation economy with a player-picked X folded in. When the action has a
+ * variable Hot ('X'), the Heat is recomputed from `hotX`; otherwise the base
+ * economy passes through unchanged. EP/uses are untouched (only Hot is variable).
+ */
+export function economyForActivation(
+  base: MechItemEconomy,
+  action: SURefMetaAction,
+  hotX: number
+): MechItemEconomy {
+  if (!hasVariableHot(action)) return base
+  return { ...base, heat: hotHeatFor(action, hotX) }
+}
+
+/**
+ * Classify a rolled outcome for the Apply step (ADR-007). A Cascade Failure is
+ * the destructive band — its severe consequence must NEVER be auto-written; the
+ * caller routes it to the Active Item band's player-confirmed controls (Push /
+ * Take Dmg / Critical). Every other band is non-destructive and auto-commits.
+ */
+export function isDestructiveOutcome(band: CoreRollBand): boolean {
+  return band === 'cascade'
 }
 
 /** The write-through patch for one on-foot (AP) activation. */

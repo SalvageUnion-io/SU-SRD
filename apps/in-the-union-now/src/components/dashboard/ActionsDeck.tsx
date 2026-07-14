@@ -6,7 +6,14 @@
  *   Activate  → pay EP/AP + Hot Heat, decrement Uses (auto bookkeeping, ADR-007)
  *   Roll      → the Core Mechanic d20 + its band (component state, never stored)
  *   Push      → reroll the d20, +2 Heat, forcing a Heat Check (mech deck only)
- *   Close     → back to the list
+ *   Apply     → commit the rolled outcome (auto for non-destructive bands; a
+ *               Cascade Failure is routed to the Active Item band, never
+ *               auto-written — ADR-007)
+ *   Back/Clear → return to the list / reset the resolve state
+ *
+ * The resolve panel authors two controls the stored data can't: an EP-vs-AP cost
+ * radio for `activationCurrency === 'EP or AP'` actions, and a `− X +` Hot(X)
+ * stepper (with a live heat-vs-cap projection) for variable-Heat actions.
  *
  * The deck is a filterable instrument:
  *   - Timing tabs (All / Turn / Short / Long / Free / React) filter by actionType.
@@ -24,6 +31,7 @@
 
 import { useState } from 'react'
 import { ActionCard } from 'suref-react'
+import { canActivateAction } from 'salvageunion-reference'
 
 import { CORE_ROLL_BANDS, describePushOutcome, performCoreRoll } from '../../lib/rules/coreMechanic'
 import type { CoreRollResult } from '../../lib/rules/coreMechanic'
@@ -42,8 +50,12 @@ import {
   actionReachable,
   buildMechActions,
   buildPilotActions,
+  economyForActivation,
   groupBySource,
   groupByTiming,
+  hasCurrencyChoice,
+  hasVariableHot,
+  isDestructiveOutcome,
   pilotActivationPatch,
   pushPatch,
   reachSummary,
@@ -51,7 +63,8 @@ import {
   RANGE_BANDS,
   TIMING_TABS,
 } from './dashboardRules'
-import type { PlayAction, RangeBand, TimingTab } from './dashboardRules'
+import type { MechItemEconomy } from '../sheet/mechItemRules'
+import type { PlayAction, PlayActionCurrency, RangeBand, TimingTab } from './dashboardRules'
 
 type ActionsDeckProps = {
   mech: Mech
@@ -86,6 +99,11 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
   const [roll, setRoll] = useState<CoreRollResult | null>(null)
   const [activated, setActivated] = useState(false)
   const [pushLog, setPushLog] = useState<string | null>(null)
+  // Resolve-flow state (D2, all Dashboard-local / ephemeral).
+  const [applied, setApplied] = useState(false)
+  const [applyRouted, setApplyRouted] = useState(false)
+  const [hotX, setHotX] = useState(1)
+  const [currency, setCurrency] = useState<PlayActionCurrency>('EP')
 
   const [tab, setTab] = useState<TimingTab>('All')
   const [grouping, setGrouping] = useState<'source' | 'timing'>('source')
@@ -93,26 +111,38 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
 
   const selected = deck.find((a) => a.key === selectedKey) ?? null
 
-  function open(action: PlayAction) {
-    setSelectedKey(action.key)
+  function resetResolve() {
     setRoll(null)
     setActivated(false)
     setPushLog(null)
+    setApplied(false)
+    setApplyRouted(false)
+    setHotX(1)
+  }
+
+  function open(action: PlayAction) {
+    setSelectedKey(action.key)
+    setCurrency(action.currency)
+    resetResolve()
   }
 
   function close() {
     setSelectedKey(null)
-    setRoll(null)
-    setActivated(false)
-    setPushLog(null)
+    resetResolve()
   }
 
-  function activate(action: PlayAction) {
-    if (action.currency === 'AP') {
+  /**
+   * Pay one activation in `effCurrency`, spending the (possibly Hot-X-adjusted)
+   * `economy`. EP writes the mech patch (EP + Hot Heat + uses); AP writes the
+   * pilot's AP spend. This is the single non-destructive ADR-007 bookkeeping
+   * write; the Apply step never adds a destructive one.
+   */
+  function activate(action: PlayAction, effCurrency: PlayActionCurrency, economy: MechItemEconomy) {
+    if (effCurrency === 'AP') {
       if (!pilot) return
       const fresh = s.get('pilot', pilot.id) ?? pilot
       const patch = pilotActivationPatch({
-        apCost: action.economy.epCost,
+        apCost: economy.epCost,
         currentAP: fresh.currentAP ?? 0,
       })
       if (Object.keys(patch).length > 0) void s.update('pilot', pilot.id, patch)
@@ -124,7 +154,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
     const heatCap = mechMaxHeat(fresh, chassis)
     const patch = activationPatch({
       slug: action.slug,
-      economy: action.economy,
+      economy,
       currentEP: fresh.currentEP ?? 0,
       currentHeat: fresh.currentHeat ?? 0,
       heatCap,
@@ -136,9 +166,26 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
     setActivated(true)
   }
 
+  /**
+   * Apply commits the rolled outcome (ADR-007). Non-destructive bands auto-commit
+   * (the mechanical cost already landed at Activate; there is no self-mutating
+   * write for a Core Mechanic result in the local-first actor-only model). A
+   * Cascade Failure is destructive — it is NOT auto-written; the deck routes the
+   * player to the Active Item band's existing confirm/undo controls instead.
+   */
+  function doApply(result: CoreRollResult) {
+    if (isDestructiveOutcome(result.band)) {
+      setApplyRouted(true)
+      return
+    }
+    setApplied(true)
+  }
+
   function doRoll() {
     setRoll(performCoreRoll(defaultRoll))
     setPushLog(null)
+    setApplied(false)
+    setApplyRouted(false)
   }
 
   function doPush() {
@@ -154,6 +201,8 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
     void s.update('mech', mech.id, patch)
     setRoll(performCoreRoll(defaultRoll))
     setPushLog(describePushOutcome(nextHeat, effect))
+    setApplied(false)
+    setApplyRouted(false)
   }
 
   if (deck.length === 0) {
@@ -169,10 +218,26 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
   }
 
   if (selected) {
-    const eco = selected.economy
+    // Fold the player-picked Hot X into this activation's economy (no-op unless
+    // the action carries a variable Hot); the chosen currency drives the patch.
+    const currencyChoice = hasCurrencyChoice(selected.action)
+    const variableHot = hasVariableHot(selected.action) && !isPilotDeck
+    const eco = economyForActivation(selected.economy, selected.action, hotX)
+    const effCurrency: PlayActionCurrency = currencyChoice ? currency : selected.currency
+
+    // Heat projection + cap gate (mech deck only; pilots carry no Heat).
+    const heatOk =
+      isPilotDeck ||
+      effCurrency === 'AP' ||
+      eco.heat <= 0 ||
+      canActivateAction(heatCtx.currentHeat, eco.heat, heatCtx.heatCap)
+    const projectedHeat = heatCtx.currentHeat + eco.heat
+    const apUnavailable = effCurrency === 'AP' && !pilot
+    const activateDisabled = activated || !heatOk || apUnavailable
+
     const cost: string[] = []
-    if (eco.epCost > 0) cost.push(`${eco.epCost} ${selected.currency}`)
-    if (eco.heat > 0) cost.push(`+${eco.heat} Heat`)
+    if (eco.epCost > 0) cost.push(`${eco.epCost} ${effCurrency}`)
+    if (!isPilotDeck && effCurrency === 'EP' && eco.heat > 0) cost.push(`+${eco.heat} Heat`)
     if (eco.maxUses > 0) cost.push(`Uses ${eco.maxUses}`)
 
     return (
@@ -180,19 +245,83 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
         <div className="pc-deck-panel">
           <div className="pc-deck-panel-head">
             <button type="button" className="pc-deck-back" onClick={close}>
-              ‹ All actions
+              ◀ Back
             </button>
             <span className="pc-deck-cost">{cost.length > 0 ? cost.join(' · ') : 'No cost'}</span>
           </div>
 
           <ActionCard data={selected.action} />
 
+          {currencyChoice && (
+            <fieldset className="pc-deck-cost-choice">
+              <legend className="pc-deck-cost-choice-lab">Pay with</legend>
+              <label className="pc-deck-radio">
+                <input
+                  type="radio"
+                  name="pc-deck-currency"
+                  checked={currency === 'EP'}
+                  disabled={activated}
+                  onChange={() => setCurrency('EP')}
+                />
+                {eco.epCost} EP
+              </label>
+              <label className="pc-deck-radio">
+                <input
+                  type="radio"
+                  name="pc-deck-currency"
+                  checked={currency === 'AP'}
+                  disabled={activated || !pilot}
+                  onChange={() => setCurrency('AP')}
+                />
+                {eco.epCost} AP
+              </label>
+            </fieldset>
+          )}
+
+          {variableHot && (
+            <div className="pc-deck-hotx">
+              <span className="pc-deck-hotx-lab">Hot</span>
+              <div className="pc-step">
+                <button
+                  type="button"
+                  className="pc-btn"
+                  onClick={() => setHotX((x) => Math.max(1, x - 1))}
+                  disabled={activated}
+                  aria-label="Decrease Hot"
+                >
+                  −
+                </button>
+                <span className="pc-step-num">{hotX}</span>
+                <button
+                  type="button"
+                  className="pc-btn"
+                  onClick={() => setHotX((x) => x + 1)}
+                  disabled={activated}
+                  aria-label="Increase Hot"
+                >
+                  +
+                </button>
+              </div>
+              <span className={`pc-deck-hotx-proj${heatOk ? '' : ' is-over'}`}>
+                Heat {projectedHeat}/{heatCtx.heatCap}
+                {heatOk ? '' : ' — over cap'}
+              </span>
+            </div>
+          )}
+
           <div className="pc-deck-controls">
             <button
               type="button"
               className="pc-deck-btn"
-              onClick={() => activate(selected)}
-              disabled={activated}
+              onClick={() => activate(selected, effCurrency, eco)}
+              disabled={activateDisabled}
+              title={
+                apUnavailable
+                  ? 'No pilot to spend AP'
+                  : heatOk
+                    ? undefined
+                    : 'Activating would exceed the Heat Cap'
+              }
             >
               {activated ? 'Activated' : 'Activate'}
             </button>
@@ -210,6 +339,21 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
                 Push
               </button>
             )}
+            <button
+              type="button"
+              className="pc-deck-btn"
+              onClick={() => roll && doApply(roll)}
+              disabled={roll === null || applied || applyRouted}
+              title="Commit this result"
+            >
+              {applied ? 'Applied' : 'Apply'}
+            </button>
+          </div>
+
+          <div className="pc-deck-controls">
+            <button type="button" className="pc-deck-back" onClick={resetResolve}>
+              Clear
+            </button>
           </div>
 
           {roll && (
@@ -222,6 +366,13 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
             </div>
           )}
           {pushLog && <p className="pc-deck-pushlog">{pushLog}</p>}
+          {applied && <p className="pc-deck-applied">Result applied ✓</p>}
+          {applyRouted && (
+            <p className="pc-deck-apply-route">
+              Cascade Failure — a severe consequence. Resolve it on the Active Item band (Push /
+              Take Dmg / Critical); nothing was auto-applied.
+            </p>
+          )}
         </div>
       </div>
     )
