@@ -311,7 +311,11 @@ function ColumnsRollTable({
               return (
                 <tr
                   key={entryNum}
-                  className={cn(i % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-white')}
+                  className={cn(
+                    // Codex `.a-rt` alternating bands: tone tint / warm paper + row hairline.
+                    'border-b border-ink/10',
+                    i % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-paper'
+                  )}
                 >
                   {COLUMN_KEYS.map((colKey) => {
                     const entry = getColumnEntry(tableData, colKey, entryNum)
@@ -467,7 +471,8 @@ function StandardRollTable({
             {digestedTable.map(({ label, value, key }, index) => {
               if (key === 'type') return null
               const isHighlighted = highlightedKey === key
-              const bgColor = index % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-white'
+              // Codex `.a-rt` alternating full-row bands: tone tint / warm paper.
+              const bgColor = index % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-paper'
 
               return (
                 <tr
@@ -476,7 +481,7 @@ function StandardRollTable({
                   aria-selected={isHighlighted || undefined}
                   tabIndex={isHighlighted ? 0 : undefined}
                   className={cn(
-                    'relative flex flex-row flex-wrap transition-all duration-200',
+                    'relative flex flex-row flex-wrap border-b border-ink/10 transition-all duration-200',
                     bgColor,
                     isHighlighted &&
                       'z-[1] scale-[1.04] cursor-pointer shadow-[0_0_0_4px_rgba(0,0,0,0.9),0_14px_40px_rgba(0,0,0,0.85)]',
@@ -507,7 +512,8 @@ function StandardRollTable({
                   <th
                     scope="row"
                     className={cn(
-                      'flex flex-1 flex-col items-center justify-center self-stretch font-normal',
+                      // Codex `.a-rt .band`: fixed 52px roll column, centred, with a right hairline.
+                      'flex w-[52px] shrink-0 flex-col items-center justify-center self-stretch border-r border-ink/20 font-normal tabular-nums',
                       compact ? 'py-1' : 'py-2'
                     )}
                   >
