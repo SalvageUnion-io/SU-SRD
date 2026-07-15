@@ -9,6 +9,11 @@
 > tables) is the design artifact:
 > <https://claude.ai/code/artifact/21df6224-cb0d-4520-a411-10f5646b4cf7>.
 > Read it for the rendered examples; this doc is the buildable plan.
+>
+> **The governing laws** — context laws, the rendering matrix, foundations, the
+> irreducible atom set, the merge map, and the value-cell / StampSeam laws — are
+> the comprehensive ruleset in [`ruleset.md`](./ruleset.md). This doc is the
+> _build order_; that doc is the _rules_. Where they disagree, the ruleset wins.
 
 ---
 
