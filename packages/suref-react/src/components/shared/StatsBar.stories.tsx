@@ -6,7 +6,7 @@ import type { StatItem } from './statsBarTypes'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Atoms/StatsBar',
+  title: 'Legacy/StatsBar',
 }
 
 // Real chassis stats drive the bar.
