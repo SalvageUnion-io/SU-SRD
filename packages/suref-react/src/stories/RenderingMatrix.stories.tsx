@@ -13,7 +13,7 @@ import { RollTable } from '../components/shared/RollTable'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Rendering Matrix',
+  title: 'Foundations/Rendering Matrix',
 }
 
 const noop = () => {}

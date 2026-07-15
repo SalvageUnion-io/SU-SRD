@@ -10,7 +10,7 @@ export default {
   // WITHOUT the surrounding module scope, so it must be fully self-contained —
   // no references to outer-scope consts/helpers.
   storyOrder: (stories) => {
-    const order = ['rendering-matrix', 'foundations', 'atoms', 'compositions', 'containers', 'reference-entity', 'legacy']
+    const order = ['foundations', 'atoms', 'compositions', 'containers', 'reference-entity', 'legacy']
     const rank = (id) => {
       const i = order.findIndex((g) => id.startsWith(g))
       return i === -1 ? order.length : i
