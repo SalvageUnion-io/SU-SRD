@@ -54,7 +54,7 @@ const PILL_TONE_LABELS: Record<PillTone, string> = {
 /** Tiny caption above each variant cluster so the catalog stays scannable. */
 function ClusterLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="mb-1 mt-4 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
+    <div className="mb-1 mt-4 font-cond text-label uppercase tracking-caps text-wk-muted">
       {children}
     </div>
   )

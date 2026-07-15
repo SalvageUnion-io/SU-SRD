@@ -49,7 +49,7 @@ export function Row({ name, meta, actions, className }: RowProps) {
       )}
     >
       <div className="min-w-0 flex-1">
-        <div className="truncate font-body text-[15px] font-medium text-ink">{name}</div>
+        <div className="truncate font-body text-lede font-medium text-ink">{name}</div>
         {meta && <div className="truncate font-body text-xs text-wk-muted">{meta}</div>}
       </div>
       {actions && <div className="flex shrink-0 items-center gap-1.5">{actions}</div>}
@@ -84,7 +84,7 @@ export function Empty({ message, icon, children, className }: EmptyProps) {
           {icon}
         </span>
       )}
-      <p className="font-body text-[13px] text-wk-muted">{message}</p>
+      <p className="font-body text-caption text-wk-muted">{message}</p>
       {children}
     </div>
   )

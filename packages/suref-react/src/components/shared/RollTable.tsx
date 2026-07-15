@@ -267,7 +267,7 @@ function ColumnsRollTable({
                   onClick={handleRoll}
                   disabled={singleRoll && hasRolled}
                   className={cn(
-                    'inline-flex items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-[11px] font-bold uppercase tracking-caps-tight text-su-white',
+                    'inline-flex items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-badge font-bold uppercase tracking-caps-tight text-su-white',
                     singleRoll && hasRolled
                       ? 'cursor-not-allowed opacity-30'
                       : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'
@@ -438,7 +438,7 @@ function StandardRollTable({
                   onClick={handleRoll}
                   disabled={singleRoll && hasRolled}
                   className={cn(
-                    'inline-flex items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-[11px] font-bold uppercase tracking-caps-tight text-su-white',
+                    'inline-flex items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-badge font-bold uppercase tracking-caps-tight text-su-white',
                     singleRoll && hasRolled
                       ? 'cursor-not-allowed opacity-30'
                       : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'

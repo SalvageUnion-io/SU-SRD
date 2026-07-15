@@ -18,8 +18,8 @@ export const btnVariants = cva(
       },
       size: {
         sm: 'px-[11px] py-[6px] text-xs',
-        md: 'px-4 py-[9px] text-[13px]',
-        lg: 'px-[22px] py-3 text-[15px]',
+        md: 'px-4 py-[9px] text-caption',
+        lg: 'px-[22px] py-3 text-lede',
       },
     },
     defaultVariants: {

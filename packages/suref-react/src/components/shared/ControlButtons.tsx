@@ -54,7 +54,7 @@ function ControlButton({
 
   const segmentClasses = cn(
     'px-1 font-mono font-bold uppercase tracking-tight',
-    compact ? 'text-[10px]' : 'text-xs'
+    compact ? 'text-label' : 'text-xs'
   )
 
   // Icon-only control (design-spec `.ctl`): a square 28/32px button with a

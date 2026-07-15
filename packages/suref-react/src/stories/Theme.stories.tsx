@@ -9,7 +9,7 @@ export default {
 // Shared caption in the catalog's canonical voice (design ruleset §4).
 function Caption({ children }: { children: ReactNode }) {
   return (
-    <span className="font-cond text-[10px] uppercase tracking-caps text-wk-muted">{children}</span>
+    <span className="font-cond text-label uppercase tracking-caps text-wk-muted">{children}</span>
   )
 }
 
@@ -43,7 +43,7 @@ function RoleSwatch({ bg, role, token }: ColorRole) {
         style={{ borderColor: 'var(--color-ink)' }}
       />
       <Caption>{role}</Caption>
-      <span className="font-cond text-[10px] tracking-caps-tight text-ink">{token}</span>
+      <span className="font-cond text-label tracking-caps-tight text-ink">{token}</span>
     </div>
   )
 }
@@ -367,7 +367,7 @@ export const BorderMap: Story = () => (
           >
             <span className="font-cond text-sm tracking-caps-tight text-ink">{w.label}</span>
           </div>
-          <span className="font-cond text-[10px] tracking-caps-tight text-ink">{w.token}</span>
+          <span className="font-cond text-label tracking-caps-tight text-ink">{w.token}</span>
           <Caption>{w.applies}</Caption>
         </div>
       ))}

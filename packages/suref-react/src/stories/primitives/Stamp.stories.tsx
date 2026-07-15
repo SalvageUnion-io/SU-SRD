@@ -14,7 +14,7 @@ const chassisName = chassis?.name ?? 'Chassis'
 const tl = chassis?.techLevel ?? 1
 
 const Caption = ({ children }: { children: ReactNode }) => (
-  <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">{children}</div>
+  <div className="mb-1 font-cond text-label uppercase tracking-caps text-wk-muted">{children}</div>
 )
 
 /** surface — the plate the stamp sits on: on-ink / inverse / on-tone. */

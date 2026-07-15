@@ -9,7 +9,7 @@ export default {
 }
 
 const Caption = ({ children }: { children: ReactNode }) => (
-  <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">{children}</div>
+  <div className="mb-1 font-cond text-label uppercase tracking-caps text-wk-muted">{children}</div>
 )
 
 const NAMES: GlyphName[] = ['gear', 'clock', 'pennant', 'x']

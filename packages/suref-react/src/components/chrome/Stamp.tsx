@@ -26,7 +26,7 @@ type StampProps = {
 } & Omit<HTMLAttributes<HTMLElement>, 'children' | 'className'>
 
 const SIZE: Record<StampSize, string> = {
-  sm: 'px-1 py-0.5 text-[11px]',
+  sm: 'px-1 py-0.5 text-badge',
   md: 'px-1.5 py-0.5 text-xs',
   lg: 'px-2 py-1 text-sm',
 }

@@ -160,9 +160,9 @@ export function VitalGauge({
       {/* Label stamp + big numeral */}
       <div className="mb-2 flex items-baseline justify-between gap-2.5">
         <span className="flex min-w-0 items-baseline gap-1.5">
-          <span className={cn(STAMP, 'text-[13px]')}>{label}</span>
+          <span className={cn(STAMP, 'text-caption')}>{label}</span>
           {subLabel && (
-            <span className="truncate font-cond text-[10px] uppercase leading-none tracking-caps text-wk-muted">
+            <span className="truncate font-cond text-label uppercase leading-none tracking-caps text-wk-muted">
               {subLabel}
             </span>
           )}
@@ -217,7 +217,7 @@ export function VitalGauge({
           {isOverridden && (
             <sup
               title={`Overridden from ${overriddenFrom}`}
-              className="ml-0.5 text-[10px] font-bold text-[var(--tone-deep)]"
+              className="ml-0.5 text-label font-bold text-[var(--tone-deep)]"
             >
               *
             </sup>
@@ -228,7 +228,7 @@ export function VitalGauge({
               onClick={onRevertOverride}
               aria-label={`Revert ${label} max to derived ${overriddenFrom}`}
               title={`Revert to derived (${overriddenFrom})`}
-              className="ml-1 cursor-pointer align-middle text-[13px] leading-none text-wk-muted hover:text-ink"
+              className="ml-1 cursor-pointer align-middle text-caption leading-none text-wk-muted hover:text-ink"
             >
               ↺
             </button>

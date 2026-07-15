@@ -34,7 +34,7 @@ describe('Btn', () => {
     expect(screen.getByRole('button').className).toContain('text-xs')
     cleanup()
     render(<Btn size="lg">Large</Btn>)
-    expect(screen.getByRole('button').className).toContain('text-[15px]')
+    expect(screen.getByRole('button').className).toContain('text-lede')
   })
 
   test('disabled blocks clicks and fades', () => {

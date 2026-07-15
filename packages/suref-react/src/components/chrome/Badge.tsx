@@ -54,7 +54,7 @@ export function Badge({ children, surface = 'solid', tone, className }: BadgePro
   return (
     <span
       className={cn(
-        'inline-flex h-[22px] items-center rounded-badge font-cond text-[11px] font-semibold uppercase leading-none',
+        'inline-flex h-[22px] items-center rounded-badge font-cond text-badge font-semibold uppercase leading-none',
         BADGE_SURFACE[surface],
         surface === 'tone' && tone && BADGE_TONES[tone],
         className

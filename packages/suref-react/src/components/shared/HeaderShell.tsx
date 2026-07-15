@@ -99,14 +99,14 @@ export function HeaderShell({
             {wordmark}
             {wordmarkAccent && <span className="text-su-orange-dark">{wordmarkAccent}</span>}
             {badge && (
-              <span className="ml-2 inline-block rounded bg-rust px-1.5 py-0.5 align-[0.32em] font-cond text-[13px] font-bold uppercase leading-none tracking-caps text-su-paper">
+              <span className="ml-2 inline-block rounded bg-rust px-1.5 py-0.5 align-[0.32em] font-cond text-caption font-bold uppercase leading-none tracking-caps text-su-paper">
                 {badge}
               </span>
             )}
           </span>
           <span
             className={cn(
-              'mt-[7px] font-cond text-[13px] font-semibold uppercase tracking-eyebrow text-su-orange sm:mt-[9px]',
+              'mt-[7px] font-cond text-caption font-semibold uppercase tracking-eyebrow text-su-orange sm:mt-[9px]',
               // When the brand can shrink, let a long eyebrow wrap (with room
               // between lines); otherwise keep the SRD's single-line eyebrow.
               brandShrink ? 'leading-tight' : 'whitespace-nowrap leading-none'

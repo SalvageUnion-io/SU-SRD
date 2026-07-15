@@ -22,7 +22,7 @@ const cargo = chassis?.cargoCapacity ?? 16
 /** Read-only static gauge — non-interactive read-out (role="img"). */
 export const ReadOnly: Story = () => (
   <div className="bg-paper p-4">
-    <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
+    <div className="mb-1 font-cond text-label uppercase tracking-caps text-wk-muted">
       read-only static · {chassisName}
     </div>
     <div className="sheet--pilot max-w-sm">
@@ -34,7 +34,7 @@ export const ReadOnly: Story = () => (
 /** Editable gauge — click a segment / arrow-key the group (onChange no-op here). */
 export const Editable: Story = () => (
   <div className="bg-paper p-4">
-    <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
+    <div className="mb-1 font-cond text-label uppercase tracking-caps text-wk-muted">
       editable (onChange no-op) · {chassisName}
     </div>
     <div className="sheet--mech max-w-sm">
@@ -46,7 +46,7 @@ export const Editable: Story = () => (
 /** Dense sizing — auto-on at max ≥ 12 (h-18, gap-3). */
 export const Dense: Story = () => (
   <div className="bg-paper p-4">
-    <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
+    <div className="mb-1 font-cond text-label uppercase tracking-caps text-wk-muted">
       dense (max ≥ 12) · {chassisName}
     </div>
     <div className="sheet--crawler max-w-md">
@@ -58,7 +58,7 @@ export const Dense: Story = () => (
 /** Danger redline — first danger segment index reads status-bad when lit. */
 export const Danger: Story = () => (
   <div className="bg-paper p-4">
-    <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
+    <div className="mb-1 font-cond text-label uppercase tracking-caps text-wk-muted">
       with danger redline · {chassisName}
     </div>
     <div className="sheet--mech max-w-sm">
@@ -76,7 +76,7 @@ export const Danger: Story = () => (
 /** Custom caption pair — right-aligned under the track (defaults to Current / Max). */
 export const WithCaption: Story = () => (
   <div className="bg-paper p-4">
-    <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
+    <div className="mb-1 font-cond text-label uppercase tracking-caps text-wk-muted">
       with a caption pair · {chassisName}
     </div>
     <div className="sheet--crawler max-w-sm">
@@ -94,7 +94,7 @@ export const WithCaption: Story = () => (
 /** Sub-label — muted stamp-adjacent note (e.g. mech-frame 'Structure'). */
 export const WithSubLabel: Story = () => (
   <div className="bg-paper p-4">
-    <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
+    <div className="mb-1 font-cond text-label uppercase tracking-caps text-wk-muted">
       with subLabel · {chassisName}
     </div>
     <div className="sheet--mech max-w-sm">
@@ -112,7 +112,7 @@ export const WithSubLabel: Story = () => (
 /** Overridden max — hand-pinned cap (overriddenFrom + revert-to-derived; both no-op). */
 export const OverriddenMax: Story = () => (
   <div className="bg-paper p-4">
-    <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
+    <div className="mb-1 font-cond text-label uppercase tracking-caps text-wk-muted">
       overridden max (from derived) · {chassisName}
     </div>
     <div className="sheet--pilot max-w-sm">

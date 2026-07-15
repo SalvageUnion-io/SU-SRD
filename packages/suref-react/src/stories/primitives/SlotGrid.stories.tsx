@@ -14,7 +14,7 @@ const chassisName = chassis?.name ?? 'Chassis'
 const cargo = chassis?.cargoCapacity ?? 16
 
 const Caption = ({ children }: { children: ReactNode }) => (
-  <div className="mb-1 font-cond text-[10px] uppercase tracking-caps text-wk-muted">{children}</div>
+  <div className="mb-1 font-cond text-label uppercase tracking-caps text-wk-muted">{children}</div>
 )
 
 /** scale=pip — dense inline cells for listings / tooltips. */

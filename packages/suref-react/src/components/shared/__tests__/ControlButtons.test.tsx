@@ -79,7 +79,7 @@ describe('ControlButtons', () => {
   test('compact renders smaller text', () => {
     render(<ControlButtons controls={[makeControl()]} compact />)
     const button = screen.getByRole('button')
-    expect(button.innerHTML).toContain('text-[10px]')
+    expect(button.innerHTML).toContain('text-label')
   })
 
   test('default size renders text-xs', () => {

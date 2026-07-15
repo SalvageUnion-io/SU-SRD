@@ -9,7 +9,7 @@ export default {
 // Ruleset §Toast: an off-white chip — status swatch + message + rust dismiss.
 // Each button below fires a real `toast(...)` so the container is interactive.
 
-const CAPTION = 'font-cond text-[10px] uppercase tracking-caps text-wk-muted'
+const CAPTION = 'font-cond text-label uppercase tracking-caps text-wk-muted'
 
 export const Variants: Story = () => (
   <>
