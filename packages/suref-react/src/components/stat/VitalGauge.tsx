@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 
 import { cn } from '../../utils/cn'
+import { POSTER_STAMP } from '../chrome/Stamp'
 import { pipClickValue, statBlockRowStarts, trackSegmentState } from './pipRows'
 
 export type VitalGaugeProps = {
@@ -39,10 +40,6 @@ export type VitalGaugeProps = {
   danger?: number
   className?: string
 }
-
-/** Black inline stamp label, cloned across wraps (design-spec `.stamp`). */
-const STAMP =
-  'box-decoration-clone inline bg-ink px-[0.5em] pb-[0.16em] pt-[0.1em] font-cond font-bold uppercase leading-[1.5] tracking-[0.09em] text-paper'
 
 /**
  * VitalGauge (poster design-spec `.gauge`): a horizontal full-width segmented
@@ -160,7 +157,14 @@ export function VitalGauge({
       {/* Label stamp + big numeral */}
       <div className="mb-2 flex items-baseline justify-between gap-2.5">
         <span className="flex min-w-0 items-baseline gap-1.5">
-          <span className={cn(STAMP, 'text-caption')}>{label}</span>
+          <span
+            className={cn(
+              POSTER_STAMP,
+              'px-[0.5em] pb-[0.16em] pt-[0.1em] text-caption leading-[1.5]'
+            )}
+          >
+            {label}
+          </span>
           {subLabel && (
             <span className="truncate font-cond text-label uppercase leading-none tracking-caps text-wk-muted">
               {subLabel}

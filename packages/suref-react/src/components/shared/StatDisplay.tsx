@@ -90,19 +90,94 @@ type StatDisplayProps = {
   disabled?: boolean
   isOverMax?: boolean
 
-  /** Value-box colour overrides. */
+  /** [box] Value-box fill / value-text colour overrides (Tailwind classes). */
   bg?: string
   valueColor?: string
+  /**
+   * Border colour override. **Anatomy-dependent value format:** in the [box]
+   * anatomy it is a Tailwind class (default `border-su-black`); in the
+   * [horizontal] anatomy it is a raw CSS colour applied as inline `style`.
+   */
   borderColor?: string
-  /** Horizontal-anatomy colour overrides. */
+  /** [horizontal] Label-cell background / text colour overrides (raw CSS colours). */
   bgColor?: string
   textColor?: string
-  /** Horizontal anatomy: inline-flex (default) vs flex. */
+  /** [horizontal] inline-flex (default) vs flex. */
   inline?: boolean
   labelId?: string
   ariaLabel?: string
   className?: string
 }
+
+/*
+ * Per-anatomy prop groups. `StatDisplayProps` stays one flat bag for
+ * backward-compatible call sites, but the four anatomies are mutually
+ * exclusive and each reads only a SUBSET of it. These `Pick`s are the
+ * authoritative "which props co-apply" answer — each sub-renderer is typed to
+ * exactly its group, so e.g. the [horizontal] `bgColor`/`textColor` and the
+ * [box] `bg`/`valueColor` colour overrides never coexist in one signature.
+ */
+
+/** [horizontal] `orientation="horizontal"` without `pips` — the former ValueDisplay. */
+type HorizontalValueProps = Pick<
+  StatDisplayProps,
+  | 'label'
+  | 'value'
+  | 'compact'
+  | 'xs'
+  | 'inverse'
+  | 'inline'
+  | 'bgColor'
+  | 'textColor'
+  | 'borderColor'
+>
+
+/** [inline-chip] `orientation="horizontal"` with `pips` — the former MiniStat. */
+type InlineChipProps = Pick<StatDisplayProps, 'label' | 'value' | 'max' | 'tone' | 'className'>
+
+/** [tracker] `pips` or `states` (vertical) — the former StatBlock. */
+type FramedTrackerProps = Pick<
+  StatDisplayProps,
+  | 'label'
+  | 'name'
+  | 'unit'
+  | 'tone'
+  | 'size'
+  | 'max'
+  | 'value'
+  | 'init'
+  | 'onChange'
+  | 'editable'
+  | 'mode'
+  | 'showPips'
+  | 'states'
+  | 'onBay'
+  | 'className'
+>
+
+/** [box] the default centred value box; `mode="edit"` adds steppers (former StatControl). */
+type ValueBoxProps = Pick<
+  StatDisplayProps,
+  | 'label'
+  | 'value'
+  | 'max'
+  | 'min'
+  | 'bottomLabel'
+  | 'labelId'
+  | 'disabled'
+  | 'onClick'
+  | 'onChange'
+  | 'mode'
+  | 'bg'
+  | 'valueColor'
+  | 'borderColor'
+  | 'ariaLabel'
+  | 'compact'
+  | 'flash'
+  | 'inverse'
+  | 'isOverMax'
+  | 'hoverText'
+>
 
 export function StatDisplay(props: StatDisplayProps) {
   if (props.orientation === 'horizontal') {
@@ -126,7 +201,7 @@ function HorizontalValue({
   bgColor,
   textColor,
   borderColor,
-}: StatDisplayProps) {
+}: HorizontalValueProps) {
   const fontSize = xs ? 'text-label' : compact ? 'text-xs' : 'text-sm'
   const fontWeight = xs ? 'font-bold' : compact ? 'font-normal' : 'font-semibold'
   const mainVariant = inverse ? 'pseudoheaderInverse' : 'pseudoheader'
@@ -164,7 +239,7 @@ function HorizontalValue({
  * ------------------------------------------------------------------ */
 const CHIP_PIP_MAX = 12
 
-function InlineChip({ label, value, max, tone = 'default', className }: StatDisplayProps) {
+function InlineChip({ label, value, max, tone = 'default', className }: InlineChipProps) {
   const v = typeof value === 'number' ? value : Number(value)
   // Over-capacity honesty: the derived mech Hold (cargo tone) can exceed its
   // soft cap — show the true value + red over-pips rather than clamping to a lie.
@@ -252,7 +327,7 @@ function FramedTracker({
   states,
   onBay,
   className,
-}: StatDisplayProps) {
+}: FramedTrackerProps) {
   const isControlled = valueProp !== undefined
   const numericProp = typeof valueProp === 'number' ? valueProp : undefined
   const [internal, setInternal] = useState(init ?? max ?? 0)
@@ -491,7 +566,7 @@ function ValueBox({
   inverse = false,
   isOverMax = false,
   hoverText,
-}: StatDisplayProps) {
+}: ValueBoxProps) {
   const [isFlashing, setIsFlashing] = useState(false)
 
   const combinedAriaLabel = ariaLabel || (bottomLabel ? `${label} ${bottomLabel}` : String(label))
