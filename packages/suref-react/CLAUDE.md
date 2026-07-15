@@ -24,6 +24,14 @@ Shared React component library consumed by both `suref-web` and `in-the-union-no
 
 The entity display uses **generic slot props** (`afterExtraContent`, `abilitiesSection`, `footerOverride`, etc.) so consuming apps can inject app-specific renderers without the shared library knowing about app-specific concerns. Schema-specific logic is extracted into helper hooks (`useChassisPatternConfig`) and utilities (`getClassSelections`) that return generic override props.
 
+## Stories (Ladle)
+
+Component stories live beside their components (`*.stories.tsx`) and are served by Ladle (`bun run ladle` from the repo root).
+
+- **Every story MUST render with real SRD data or real game terms — never lorem/placeholder/invented content.** Drive stories from `SalvageUnionReference.*` fixtures (e.g. `SalvageUnionReference.Chassis.all()[0]`, `SalvageUnionReference.Actions.all()[0]`), and when a prop needs a literal (a label, a stat name, a condition), use the real game term, not a stand-in. A story is a preview of what ships; fake data hides real rendering bugs (overflow, wrapping, tone, empty-state) that only surface with production content.
+- **Render entities the way we actually render them.** Feed props exactly as consuming apps do — real values in the real shapes, through the real components (e.g. entities via `ReferenceEntityDisplay`, stats via `StatDisplay`). Don't hand-assemble simplified markup that no app produces; the story must exercise the same path production does.
+- Reference data is preloaded by `.ladle/components.tsx` (a `use()` + `Suspense` gate calling `SalvageUnionReference.preload('all')`) — mirror how ITUN's `GameDataReady` and suref-web's `useGameData` gate. Reading a `SalvageUnionReference.*` model at story-module top level before that gate throws "Schema not loaded" and renders silently blank, so keep new stories consistent with the existing preload pattern.
+
 ## Testing
 
 - Own `bunfig.toml` with happy-dom preload
