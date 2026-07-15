@@ -277,14 +277,6 @@ export function DisplayCard({
         </div>
       )}
 
-      {/* Status badge (design .ec__status: top 10 right 10). Shifts left when
-          controls share the top-right corner. */}
-      {status && (
-        <div className={cn('absolute top-2.5 z-20', controls ? 'right-10' : 'right-2.5')}>
-          <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject} />
-        </div>
-      )}
-
       {/* Inner wrapper clips backgrounds to border-radius.
           overflow-visible when stickyHeader so position:sticky and absolute overlays work.
           overflow-hidden otherwise (non-sticky cards still clip at border-radius). */}
@@ -344,7 +336,23 @@ export function DisplayCard({
                 </div>
                 <div className="flex w-full shrink-0 flex-wrap items-center justify-center gap-1 gap-y-1 sm:w-auto sm:justify-end">
                   <StatsBar stats={stats} compact={isCompact} />
+                  {status && (
+                    <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject} />
+                  )}
                 </div>
+              </>
+            ) : status ? (
+              // Status rides the header line, right-aligned beside the title.
+              <>
+                <div className="flex min-w-0 flex-1 items-center gap-2 overflow-visible">
+                  {headerContent}
+                </div>
+                <StatusBadge
+                  status={status}
+                  onClick={onStatusClick}
+                  subject={statusSubject}
+                  className="shrink-0"
+                />
               </>
             ) : (
               headerContent

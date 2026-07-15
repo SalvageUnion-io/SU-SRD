@@ -454,14 +454,14 @@ function FramedTracker({
             </div>
           )
         )}
-
-        {/* Black unit bar */}
-        {unit && (
-          <div className="bg-ink px-2 py-[3px] text-center font-cond text-[9.5px] font-bold uppercase leading-none tracking-[0.14em] text-paper">
-            {unit}
-          </div>
-        )}
       </div>
+      {/* Unit stamp riding the framed body's BOTTOM border (StampSeam),
+          mirroring the code stamp on the top border. */}
+      {unit && (
+        <span className="z-[1] -mt-2 self-center bg-ink px-1.5 py-0.5 font-cond text-[9.5px] font-bold uppercase leading-none tracking-caps-wide text-paper">
+          {unit}
+        </span>
+      )}
     </span>
   )
 }

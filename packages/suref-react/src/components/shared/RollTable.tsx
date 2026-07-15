@@ -513,8 +513,8 @@ function StandardRollTable({
                   >
                     <Text
                       className={cn(
-                        'text-center font-bold text-su-black',
-                        compact ? 'text-base' : 'text-xl'
+                        'whitespace-nowrap text-center font-bold leading-none text-su-black',
+                        compact ? 'text-sm' : 'text-lg'
                       )}
                     >
                       {key}

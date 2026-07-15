@@ -1,4 +1,5 @@
 import { cn } from '../../utils/cn'
+import { statBlockRowStarts } from '../stat/pipRows'
 
 type SlotGridProps = {
   /** Slots currently filled. Values above `cap` render as over-capacity cells. */
@@ -26,6 +27,9 @@ type SlotGridProps = {
  *
  * `SlotGrid` measures fungible _quantity that has addresses_ — it never merges
  * with a scalar Gauge or a StatDisplay (ruleset §6, must-NOT-merge).
+ *
+ * Cells lay out on the shared pip-row split (ruleset §4.5): ≤5 per row,
+ * bottom-heavy, centred — the same rhythm as the gauge / statblock tracks.
  */
 export function SlotGrid({ used, cap, scale = 'pip', label, className }: SlotGridProps) {
   const safeCap = Math.max(0, Math.floor(cap))
@@ -41,25 +45,31 @@ export function SlotGrid({ used, cap, scale = 'pip', label, className }: SlotGri
       aria-label={
         label ?? `${safeUsed} of ${safeCap} slots filled${over ? ' — over capacity' : ''}`
       }
-      className={cn('flex flex-wrap gap-1', className)}
+      className={cn('flex flex-col items-center gap-1', className)}
     >
-      {Array.from({ length: total }).map((_, i) => {
-        const state = i >= safeCap ? 'over' : i < safeUsed ? 'filled' : 'empty'
-        return (
-          <span
-            // biome-ignore lint/suspicious/noArrayIndexKey: cells are positional — the index IS the slot address
-            key={i}
-            aria-hidden="true"
-            className={cn(
-              'inline-block border-chrome',
-              cell,
-              state === 'filled' && 'border-cargo bg-cargo',
-              state === 'empty' && 'border-dashed border-ink/40 bg-paper',
-              state === 'over' && 'border-status-bad bg-status-bad'
-            )}
-          />
-        )
-      })}
+      {statBlockRowStarts(total).map((row) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: rows are positional — the start index IS their identity
+        <div key={row.start} className="flex justify-center gap-1">
+          {Array.from({ length: row.count }, (_, c) => {
+            const i = row.start + c
+            const state = i >= safeCap ? 'over' : i < safeUsed ? 'filled' : 'empty'
+            return (
+              <span
+                // biome-ignore lint/suspicious/noArrayIndexKey: cells are positional — the index IS the slot address
+                key={i}
+                aria-hidden="true"
+                className={cn(
+                  'inline-block border-chrome',
+                  cell,
+                  state === 'filled' && 'border-cargo bg-cargo',
+                  state === 'empty' && 'border-dashed border-ink/40 bg-paper',
+                  state === 'over' && 'border-status-bad bg-status-bad'
+                )}
+              />
+            )
+          })}
+        </div>
+      ))}
     </div>
   )
 }
