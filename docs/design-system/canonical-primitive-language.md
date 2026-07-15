@@ -117,13 +117,16 @@ These catalog-surfaced off-system spots have been reconciled:
   `theme.css` generate `rounded-pip/badge/card/panel`, registered in `cn()`; every
   `rounded-[Npx]` across the primitives migrated. Stamps stay square.
 - **Input focus ring** ✅ — `ring-rust/[0.22]` → the shared `ring-rust/25`.
+- **One type scale** ✅ — the semantic ladder (`--text-nano … --text-lede`)
+  promoted from ITUN-local into the suref-react `@theme`, generating
+  `text-nano … text-lede` on every surface; matching arbitrary `text-[Npx]` in
+  the primitives migrated (`text-[11px]` → `text-badge`, etc.).
+- **One radius scale** ✅ and **pure white retired** ✅ — see the paper flip
+  above; `su-white` is removed, paper is the only light surface.
 
-_Deferred (a larger token-architecture step, not a per-component fix): promoting
-the semantic **type scale** (`--text-*`, currently ITUN-local) into the shared
-theme so badge/chrome font sizes leave the arbitrary `text-[11px]` form; and the
-one-off arbitrary border widths (`border-[1.25px]` on the sm pip). The `Slab`
-leader treatments (dashed `repeating-linear-gradient`, solid `border-ink/35`) are
-deliberate control-panel shapes on ink tokens, kept as-is._
+_Remaining nits, not per-component deviations: the one-off `border-[1.25px]` on
+the sm pip, and the `Slab` leader treatments (dashed `repeating-linear-gradient`,
+solid `border-ink/35`) — deliberate control-panel shapes on ink tokens, kept._
 
 ## 2. The primitive catalog (post-merge)
 
