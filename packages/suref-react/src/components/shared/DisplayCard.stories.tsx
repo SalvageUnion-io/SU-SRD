@@ -1,4 +1,6 @@
 import type { Story } from '@ladle/react'
+import type { ReactNode } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { DisplayCard } from './DisplayCard'
 import type { DisplayCardTab } from './DisplayCard'
 import { Text } from '../base/Text'
@@ -8,157 +10,173 @@ export default {
   title: 'Compositions/DisplayCard',
 }
 
-const headerContent = (
+// Real chassis content so header/body/foot read like a shipped card.
+const chassis = SalvageUnionReference.Chassis.all()[0]
+const name = chassis?.name ?? 'Mule'
+const tl = chassis?.techLevel ?? 3
+const sv = chassis?.salvageValue ?? 8
+const sp = chassis?.structurePoints ?? 12
+const cargo = chassis?.cargoCapacity ?? 16
+
+const header = (
   <Text variant="pseudoheader" as="span">
-    Sample Card
+    {name}
   </Text>
 )
 
-const bodyContent = (
+const body = (
   <div className="p-3">
-    <Text as="p" className="text-sm">
-      Card body content goes here.
+    <Text as="p" className="text-sm text-ink-2">
+      Structure {sp} · Cargo {cargo} · Tech Level {tl}
     </Text>
   </div>
 )
 
-export const Default: Story = () => (
-  <div className="w-[400px]">
-    <DisplayCard
-      headerBg="bg-su-green"
-      headerContent={headerContent}
-      footMeta={[
-        { label: 'TL', value: 3 },
-        { label: 'SV', value: 8 },
-      ]}
-    >
-      {bodyContent}
-    </DisplayCard>
-  </div>
+const footMeta = [
+  { label: 'TL', value: tl },
+  { label: 'SV', value: sv },
+]
+
+function Gallery({ rule, children }: { rule: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-4 bg-paper p-5 font-mono text-ink">
+      <p className="max-w-2xl text-xs leading-relaxed text-ink-2">{rule}</p>
+      <div className="flex flex-wrap items-start gap-6">{children}</div>
+    </div>
+  )
+}
+
+function Cell({
+  label,
+  width = 'w-[360px]',
+  children,
+}: {
+  label: string
+  width?: string
+  children: ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className={width}>{children}</div>
+      <code className="text-nano text-ink-2">{label}</code>
+    </div>
+  )
+}
+
+/** Density + interactivity: full → compact → listing (header-only) → disabled. */
+export const Densities: Story = () => (
+  <Gallery rule="Two booleans span the density range: compact (reduced spacing) and listing (header-only clickable row). disabled dims the whole card.">
+    <Cell label="default">
+      <DisplayCard headerBg="bg-su-green" headerContent={header} footMeta={footMeta}>
+        {body}
+      </DisplayCard>
+    </Cell>
+    <Cell label="compact">
+      <DisplayCard headerBg="bg-su-green" headerContent={header} compact>
+        {body}
+      </DisplayCard>
+    </Cell>
+    <Cell label="listing">
+      <DisplayCard headerBg="bg-su-green" headerContent={header} listing>
+        {body}
+      </DisplayCard>
+    </Cell>
+    <Cell label="compact listing">
+      <DisplayCard headerBg="bg-su-green" headerContent={header} compact listing>
+        {body}
+      </DisplayCard>
+    </Cell>
+    <Cell label="disabled">
+      <DisplayCard headerBg="bg-su-green" headerContent={header} disabled>
+        {body}
+      </DisplayCard>
+    </Cell>
+  </Gallery>
 )
 
-export const Compact: Story = () => (
-  <div className="w-[350px]">
-    <DisplayCard headerBg="bg-su-green" headerContent={headerContent} compact>
-      {bodyContent}
-    </DisplayCard>
-  </div>
+/** Condition status: intact → damaged → destroyed (the warm state treatment). */
+export const Status: Story = () => (
+  <Gallery rule="status drives the condition treatment — intact is pristine; damaged/destroyed apply the warm brick-red state overlay (a treatment, never a second hue).">
+    <Cell label='status="intact"'>
+      <DisplayCard headerBg="bg-su-green" headerContent={header} status="intact">
+        {body}
+      </DisplayCard>
+    </Cell>
+    <Cell label='status="damaged"'>
+      <DisplayCard headerBg="bg-su-green" headerContent={header} status="damaged">
+        {body}
+      </DisplayCard>
+    </Cell>
+    <Cell label='status="destroyed"'>
+      <DisplayCard headerBg="bg-su-green" headerContent={header} status="destroyed">
+        {body}
+      </DisplayCard>
+    </Cell>
+  </Gallery>
 )
 
-export const Listing: Story = () => (
-  <div className="w-[400px]">
-    <DisplayCard headerBg="bg-su-green" headerContent={headerContent} listing>
-      {bodyContent}
-    </DisplayCard>
-  </div>
-)
-
-export const CompactListing: Story = () => (
-  <div className="w-[350px]">
-    <DisplayCard headerBg="bg-su-green" headerContent={headerContent} compact listing>
-      {bodyContent}
-    </DisplayCard>
-  </div>
-)
-
-export const Disabled: Story = () => (
-  <div className="w-[400px]">
-    <DisplayCard headerBg="bg-su-green" headerContent={headerContent} disabled>
-      {bodyContent}
-    </DisplayCard>
-  </div>
-)
-
-export const StatusIntact: Story = () => (
-  <div className="w-[400px] pt-3">
-    <DisplayCard headerBg="bg-su-green" headerContent={headerContent} status="intact">
-      {bodyContent}
-    </DisplayCard>
-  </div>
-)
-
-export const StatusDamaged: Story = () => (
-  <div className="w-[400px] pt-3">
-    <DisplayCard headerBg="bg-su-green" headerContent={headerContent} status="damaged">
-      {bodyContent}
-    </DisplayCard>
-  </div>
-)
-
-export const StatusDestroyed: Story = () => (
-  <div className="w-[400px] pt-3">
-    <DisplayCard headerBg="bg-su-green" headerContent={headerContent} status="destroyed">
-      {bodyContent}
-    </DisplayCard>
-  </div>
-)
-
-const demoTabs: DisplayCardTab[] = [
-  { key: 'stats', label: 'Stats', content: <div className="p-3 text-sm">Stats tab content.</div> },
+const tabs: DisplayCardTab[] = [
+  {
+    key: 'stats',
+    label: 'Stats',
+    content: (
+      <div className="p-3 text-sm text-ink-2">
+        Structure {sp} · Cargo {cargo}
+      </div>
+    ),
+  },
   {
     key: 'notes',
     label: 'Notes',
-    content: <div className="p-3 text-sm">Notes tab content.</div>,
+    content: <div className="p-3 text-sm text-ink-2">Field notes.</div>,
   },
 ]
 
-/** Default (Info) tab active — the tab bar renders alongside the standard body. */
-export const WithTabs: Story = () => (
-  <div className="w-[420px]">
-    <DisplayCard headerBg="bg-su-blue" headerContent={headerContent} tabs={demoTabs}>
-      {bodyContent}
-    </DisplayCard>
-  </div>
-)
-
-export const WithFootActionsAndMeta: Story = () => (
-  <div className="w-[420px]">
-    <DisplayCard
-      headerBg="bg-su-green"
-      headerContent={headerContent}
-      footActions={
-        <button type="button" className="rounded-badge border border-su-black px-2 py-1 text-xs">
-          Repair
-        </button>
-      }
-      footMeta={[{ label: 'AP Cost', value: 1 }]}
-    >
-      {bodyContent}
-    </DisplayCard>
-  </div>
-)
-
-/**
- * Sticky header inside a scrollable container. The screenshot captures the
- * card at rest (scrollTop 0) — sticky positioning itself only manifests on
- * scroll, so this baseline documents the structural markup (header wrapper +
- * scrollable body) rather than the stuck-to-top visual, which needs a human
- * to verify interactively (see PR description).
- */
-export const WithStickyHeader: Story = () => (
-  <div className="h-[300px] w-[420px] overflow-y-auto border border-su-grey-dark/30">
-    <DisplayCard headerBg="bg-su-blue" headerContent={headerContent} stickyHeader>
-      <div className="flex flex-col gap-3 p-3">
-        {Array.from({ length: 8 }).map((_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: static demo lines generated from their index
-          <Text as="p" className="text-sm" key={i}>
-            Scrollable body line {i + 1}.
-          </Text>
-        ))}
+/** Composed features: tabs, foot actions + meta, a header label badge, sticky header. */
+export const Features: Story = () => (
+  <Gallery rule="Feature slots layer onto the same shell: tabs, footActions + footMeta, a header label + labelBadge, and a stickyHeader (scroll to see it stick).">
+    <Cell label="tabs" width="w-[380px]">
+      <DisplayCard headerBg="bg-su-blue" headerContent={header} tabs={tabs}>
+        {body}
+      </DisplayCard>
+    </Cell>
+    <Cell label="footActions + footMeta" width="w-[380px]">
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={header}
+        footActions={
+          <button type="button" className="rounded-badge border border-ink px-2 py-1 text-xs">
+            Repair
+          </button>
+        }
+        footMeta={[{ label: 'AP Cost', value: 1 }]}
+      >
+        {body}
+      </DisplayCard>
+    </Cell>
+    <Cell label="label + labelBadge">
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={header}
+        label="Tech Level"
+        labelBadge={String(tl)}
+      >
+        {body}
+      </DisplayCard>
+    </Cell>
+    <Cell label="stickyHeader (scroll)" width="w-[380px]">
+      <div className="h-[240px] overflow-y-auto border border-ink/20">
+        <DisplayCard headerBg="bg-su-blue" headerContent={header} stickyHeader>
+          <div className="flex flex-col gap-3 p-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: static demo lines identified by index
+              <Text as="p" className="text-sm text-ink-2" key={i}>
+                Loadout row {i + 1}.
+              </Text>
+            ))}
+          </div>
+        </DisplayCard>
       </div>
-    </DisplayCard>
-  </div>
-)
-
-export const Label: Story = () => (
-  <div className="w-[400px] pt-3">
-    <DisplayCard
-      headerBg="bg-su-green"
-      headerContent={headerContent}
-      label="Tech Level"
-      labelBadge="2"
-    >
-      {bodyContent}
-    </DisplayCard>
-  </div>
+    </Cell>
+  </Gallery>
 )
