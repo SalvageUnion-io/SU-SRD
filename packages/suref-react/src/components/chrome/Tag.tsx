@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { cn } from '../../utils/cn'
+import { Badge } from './Badge'
 
 type TagProps = {
   /** Stamped chip text, e.g. "RANGE" */
@@ -11,23 +11,16 @@ type TagProps = {
 }
 
 /**
- * Stamped keyword chip (design-spec §2.2 `.tag`): cond 600 11px uppercase, ink
- * bg / paper text. A single label — NOT split label/value. Split label/value
- * content is a Stat: render it with `StatDisplay orientation="horizontal"`.
- * `ghost` inverts the chip (paper bg, ink text) for keyword / action-economy tags.
+ * Stamped keyword chip — the `Badge` `solid`/`ghost` preset (ruleset §6:
+ * "a keyword Tag is a Badge with a single label cell"). Cond 600 11px
+ * uppercase, ink bg / paper text. A single label — NOT split label/value.
+ * Split label/value content is a Stat: render it with
+ * `StatDisplay orientation="horizontal"`.
  */
 export function Tag({ label, ghost = false, className }: TagProps) {
   return (
-    <span
-      className={cn(
-        'inline-flex h-[22px] items-center rounded-[2px] px-[7px] font-cond text-[11px] font-semibold uppercase leading-none tracking-caps-snug',
-        ghost
-          ? 'bg-paper text-ink shadow-[inset_0_0_0_1px_rgba(40,32,25,0.2)]'
-          : 'bg-ink text-paper',
-        className
-      )}
-    >
+    <Badge surface={ghost ? 'ghost' : 'solid'} className={className}>
       {label}
-    </span>
+    </Badge>
   )
 }

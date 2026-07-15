@@ -77,6 +77,8 @@ export {
 
 // Skeletons
 export { ReferenceEntityCardSkeleton } from './components/skeleton/ReferenceEntityCardSkeleton'
+export { Skeleton } from './components/skeleton/Skeleton'
+export type { SkeletonMode } from './components/skeleton/Skeleton'
 
 // Guide display system
 export type {
@@ -112,8 +114,15 @@ export type { ChoiceSelections } from './components/referenceEntity/choiceCard/c
 
 // Chrome primitives (ITUN design handoff — design-spec §2)
 export { Tag } from './components/chrome/Tag'
+// Badge — the unified stamp-chip family; Tag/Pill/Chip are its presets (ruleset §6)
+export { Badge } from './components/chrome/Badge'
+export type { BadgeTone, BadgeSurface } from './components/chrome/Badge'
 export { Btn } from './components/chrome/Btn'
 export { btnVariants } from './components/chrome/btnVariants'
+// EmptyState — dashed stamp-headline empty slot (ruleset §"Empty state")
+export { EmptyState } from './components/chrome/EmptyState'
+// InlineRef — in-prose entity reference (resolved=rust / unresolved=ink)
+export { InlineRef } from './components/chrome/InlineRef'
 // Stamp — the one ink label/header atom (ruleset §5) + the StampSeam placement
 export { Stamp } from './components/chrome/Stamp'
 export type { StampSize, StampSurface } from './components/chrome/Stamp'
