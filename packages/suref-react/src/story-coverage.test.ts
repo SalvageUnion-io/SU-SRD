@@ -26,6 +26,9 @@ const ALLOWLIST = new Set([
   'GuideStepsDisplay', // internal to ReferenceEntityDisplay entity body (20 stories)
   // External integration chrome, not a design primitive.
   'KofiButton',
+  // Redundant with the canonical Slab (ruleset: "slabs section"); pending
+  // retirement — its Separators story was dropped as a duplicate.
+  'SectionSeparator',
 ])
 
 function read(rel: string): string {
