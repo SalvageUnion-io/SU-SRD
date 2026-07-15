@@ -17,31 +17,33 @@ const systemSlug = systemName
   .replace(/^-|-$/g, '')
 const systemHref = `/systems/${systemSlug}`
 
-/** In-prose references: resolved (rust, navigates) vs unresolved (ink dashed). */
-export const InProse: Story = () => (
-  <div className="max-w-md bg-paper p-4 font-body text-sm text-ink">
-    Mount a{' '}
-    <InlineRef resolved href={systemHref} title={`${systemName} — resolved`}>
-      {systemName}
-    </InlineRef>{' '}
-    for close work, or an{' '}
-    <InlineRef title="Unresolved — summons a tooltip">unresolved Widget</InlineRef> if the reference
-    can&apos;t be found.
-  </div>
-)
-
-/** Resolved — rust border, a real keyboard-reachable link. */
-export const Resolved: Story = () => (
-  <div className="bg-paper p-4 font-body text-sm text-ink">
-    <InlineRef resolved href={systemHref} title={systemName}>
-      {systemName}
-    </InlineRef>
-  </div>
-)
-
-/** Unresolved — ink dashed border, inert; only summons the tooltip. */
-export const Unresolved: Story = () => (
-  <div className="bg-paper p-4 font-body text-sm text-ink">
-    <InlineRef title="No such entity">Phantom System</InlineRef>
+/** Resolved vs unresolved references, in prose and standalone — on one page. */
+export const Variants: Story = () => (
+  <div className="flex flex-col gap-5 bg-paper p-5 text-ink">
+    <p className="max-w-2xl font-mono text-xs leading-relaxed text-ink-2">
+      An in-prose entity reference: resolved (rust border, a real keyboard-reachable link) or
+      unresolved (ink dashed border, inert — only summons a tooltip).
+    </p>
+    <div className="max-w-md font-body text-sm">
+      Mount a{' '}
+      <InlineRef resolved href={systemHref} title={`${systemName} — resolved`}>
+        {systemName}
+      </InlineRef>{' '}
+      for close work, or an{' '}
+      <InlineRef title="Unresolved — summons a tooltip">unresolved Widget</InlineRef> if the
+      reference can&apos;t be found.
+    </div>
+    <div className="flex flex-wrap items-start gap-6 font-body text-sm">
+      <div className="flex flex-col gap-1.5">
+        <InlineRef resolved href={systemHref} title={systemName}>
+          {systemName}
+        </InlineRef>
+        <code className="font-mono text-nano text-ink-2">resolved</code>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <InlineRef title="No such entity">Phantom System</InlineRef>
+        <code className="font-mono text-nano text-ink-2">unresolved</code>
+      </div>
+    </div>
   </div>
 )
