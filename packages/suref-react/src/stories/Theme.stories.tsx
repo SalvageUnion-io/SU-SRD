@@ -438,18 +438,18 @@ function PipRows({ max, label }: { max: number; label: string }) {
   )
 }
 
-/** Pip-row split — ≤5 per row, bottom-heavy (heavy row on the bottom), centred. */
+/** Pip-row split — ≤6 per row, bottom-heavy (heavy row on the bottom), centred. */
 export const PipSplit: Story = () => (
   <div className="flex flex-col gap-6 p-4">
     <h2 className="font-cond text-lg uppercase tracking-caps-tight text-ink">Pip-row split</h2>
     <Caption>
-      Gauge + statblock tracks split into balanced rows via the real statBlockRowStarts — ≤5 per
-      row, bottom-heavy (the heavier row rides on the bottom).
+      Every pip surface (gauges, statblocks, cargo) splits into balanced rows via the real
+      statBlockRowStarts — ≤6 per row, bottom-heavy (the heavier row rides on the bottom).
     </Caption>
     <div className="flex flex-wrap gap-8">
-      <PipRows max={6} label="3/3" />
-      <PipRows max={8} label="4/4" />
-      <PipRows max={10} label="5/5" />
+      <PipRows max={6} label="6" />
+      <PipRows max={11} label="5/6" />
+      <PipRows max={12} label="6/6" />
       <PipRows max={13} label="4/4/5" />
     </div>
   </div>

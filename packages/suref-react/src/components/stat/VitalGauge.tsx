@@ -239,7 +239,7 @@ export function VitalGauge({
       {/* Segmented track — balanced rows, max 5 per row (the pip-row split /
           "looping chips" rule; shared with the StatDisplay tracker). */}
       <div className={cn('flex flex-col', isDense ? 'gap-[3px]' : 'gap-1')}>
-        {statBlockRowStarts(segCount, 5).map((segRow) => (
+        {statBlockRowStarts(segCount).map((segRow) => (
           <div key={segRow.start} className={cn('flex', isDense ? 'gap-[3px]' : 'gap-1')}>
             {Array.from({ length: segRow.count }).map((_, c) => {
               const i = segRow.start + c

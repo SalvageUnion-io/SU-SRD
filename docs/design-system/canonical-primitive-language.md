@@ -41,9 +41,9 @@ Guiding laws (all already visualised in the codex):
   and also re-toned; the web never colours roll outcomes. **No gradients.**
 - **Border weights** are tokens only (`--bw-entity/rail/pill/chrome/hairline`),
   one meaning per weight, holding in both the light sheet and dark instrument.
-- **Pip-row split** (gauges + statblocks): max 5 per row, balanced —
-  `rows = ceil(n/5); base = floor(n/rows); extra = n % rows → extra rows of
-(base+1), then the rest of base` (6→3+3, 8→4+4, 10→5+5).
+- **Pip-row split** (every pip surface — gauges, statblocks, cargo): max 6 per
+  row, balanced — `rows = ceil(n/6); base = floor(n/rows); extra = n % rows →
+extra rows of (base+1), then the rest of base` (6→6, 8→4+4, 10→5+5, 12→6+6).
 
 ---
 

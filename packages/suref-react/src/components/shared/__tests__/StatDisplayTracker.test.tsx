@@ -61,7 +61,7 @@ describe('StatDisplay (tracker) — numeric mode', () => {
     expect(screen.queryByLabelText('Increase HP')).toBeNull()
   })
 
-  test('pips follow the bottom-heavy ≤5/row split and fill to value', () => {
+  test('pips follow the bottom-heavy ≤6/row split and fill to value', () => {
     const { container } = render(<StatDisplay dots label="SP" value={8} max={13} />)
     const pips = container.querySelectorAll('[data-pip]')
     expect(pips.length).toBe(13)
