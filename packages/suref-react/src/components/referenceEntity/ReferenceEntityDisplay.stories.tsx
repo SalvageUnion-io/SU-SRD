@@ -1,4 +1,5 @@
 import type { Story } from '@ladle/react'
+import type { ReactNode } from 'react'
 import { ReferenceEntityDisplay } from './ReferenceEntityDisplay/index'
 import { SalvageUnionReference, getChoices } from 'salvageunion-reference'
 
@@ -7,182 +8,155 @@ export default {
   title: 'Legacy/ReferenceEntityDisplay',
 }
 
+// Real SRD entities across schemas + expansions drive every gallery.
 const system = SalvageUnionReference.Systems.all()[0]
-const module = SalvageUnionReference.Modules.all()[0]
+const mod = SalvageUnionReference.Modules.all()[0]
 const chassis = SalvageUnionReference.Chassis.all()[0]
 const ability = SalvageUnionReference.Abilities.all()[0]
 const trait = SalvageUnionReference.Traits.all()[0]
 
-const rainmakerEntity =
+const rainmaker =
   SalvageUnionReference.Systems.all().find((s) => s.source === 'Rainmaker') ?? system
-const wwhfEntity =
+const wwhf =
   SalvageUnionReference.Systems.all().find((s) => s.source === 'We Were Here First!') ?? system
-const falseFlagEntity =
+const falseFlag =
   SalvageUnionReference.Systems.all().find((s) => s.source === 'False Flag') ?? system
 
-// Fixtures for the choice-card / grants-collapse coverage below (same fixtures
-// used by the ReferenceEntityGrants / grantedEquipmentDisplay test suites).
 const grantingAbility = SalvageUnionReference.Abilities.all().find((a) => a.name === 'Auto-Turret')
-const choiceBearingEquipment = SalvageUnionReference.Equipment.all().find(
+const choiceEquipment = SalvageUnionReference.Equipment.all().find(
   (e) => e.name === 'Custom Sniper Rifle'
 )
+const weaponTypeChoice = choiceEquipment
+  ? getChoices(choiceEquipment)?.find((c) => c.name === 'Weapon Type')
+  : undefined
 
-export const DefaultSystem: Story = () => (
-  <div className="w-[600px]">
-    <ReferenceEntityDisplay data={system} />
-  </div>
-)
-
-export const CompactMode: Story = () => (
-  <div className="w-[400px]">
-    <ReferenceEntityDisplay data={system} compact />
-  </div>
-)
-
-export const Listing: Story = () => (
-  <div className="w-[600px]">
-    <ReferenceEntityDisplay data={system} listing />
-  </div>
-)
-
-export const Disabled: Story = () => (
-  <div className="w-[600px]">
-    <ReferenceEntityDisplay data={system} disabled />
-  </div>
-)
-
-export const Damaged: Story = () => (
-  <div className="w-[600px]">
-    <ReferenceEntityDisplay data={system} damaged />
-  </div>
-)
-
-export const CustomHeaderColor: Story = () => (
-  <div className="w-[600px]">
-    <ReferenceEntityDisplay data={system} headerColor="bg-su-pink" />
-  </div>
-)
-
-export const HiddenActions: Story = () => (
-  <div className="w-[600px]">
-    <ReferenceEntityDisplay data={system} hide={{ actions: true }} />
-  </div>
-)
-
-export const WithFooter: Story = () => (
-  <div className="w-[600px]">
-    <ReferenceEntityDisplay data={system} />
-  </div>
-)
-
-export const DifferentSchemas: Story = () => (
-  <div className="flex flex-col gap-4 w-[600px]">
-    <ReferenceEntityDisplay data={system} />
-    <ReferenceEntityDisplay data={module} />
-    <ReferenceEntityDisplay data={chassis} />
-    <ReferenceEntityDisplay data={ability} />
-    <ReferenceEntityDisplay data={trait} />
-  </div>
-)
-
-export const DimHeader: Story = () => (
-  <div className="w-[600px]">
-    <ReferenceEntityDisplay data={ability} dimHeader />
-  </div>
-)
-
-export const CompactDamaged: Story = () => (
-  <div className="w-[400px]">
-    <ReferenceEntityDisplay data={system} compact damaged />
-  </div>
-)
-
-export const ListingDisabled: Story = () => (
-  <div className="w-[600px]">
-    <ReferenceEntityDisplay data={system} listing disabled />
-  </div>
-)
-
-/** Grants-collapse, expanded: the ability's own content/Actions are suppressed
- * in favor of a "Grants" block with a nested, fully-expanded equipment card. */
-export const GrantingAbilityExpanded: Story = () => (
-  <div className="w-[600px]">
-    <ReferenceEntityDisplay data={grantingAbility} />
-  </div>
-)
-
-/** Grants-collapse, collapsed: in compact mode the nested granted entity
- * itself collapses to a header-only listing card. */
-export const GrantingAbilityCompactCollapsed: Story = () => (
-  <div className="w-[420px]">
-    <ReferenceEntityDisplay data={grantingAbility} compact />
-  </div>
-)
-
-/** Choice-bearing equipment: interactive ChoiceGroups render in the card body
- * (Not Chosen state, unresolved "Choose:" prompt in the header row). */
-export const ChoiceBearingEquipment: Story = () => (
-  <div className="w-[600px]">
-    <ReferenceEntityDisplay data={choiceBearingEquipment} compact />
-  </div>
-)
-
-/** Same choice-bearing equipment with a controlled selection pre-seeded
- * (Chosen state), as ITUN's persistence layer would render it. */
-export const ChoiceBearingEquipmentSelected: Story = () => {
-  const weaponTypeChoice = choiceBearingEquipment
-    ? getChoices(choiceBearingEquipment)?.find((c) => c.name === 'Weapon Type')
-    : undefined
+function Row({
+  label,
+  width = 'w-[600px]',
+  children,
+}: {
+  label: string
+  width?: string
+  children: ReactNode
+}) {
   return (
-    <div className="w-[600px]">
-      <ReferenceEntityDisplay
-        data={choiceBearingEquipment}
-        compact
-        selections={weaponTypeChoice ? { [weaponTypeChoice.id]: ['Ballistic'] } : undefined}
-      />
+    <div className="flex flex-col gap-1.5">
+      <div className={width}>{children}</div>
+      <code className="font-mono text-nano text-ink-2">{label}</code>
     </div>
   )
 }
 
-export const ExpansionRainmaker: Story = () => (
-  <div className="w-[600px] py-6">
-    <ReferenceEntityDisplay data={rainmakerEntity} />
-  </div>
-)
-
-export const ExpansionWeWereHereFirst: Story = () => (
-  <div className="w-[600px] py-6">
-    <ReferenceEntityDisplay data={wwhfEntity} />
-  </div>
-)
-
-export const ExpansionFalseFlag: Story = () => (
-  <div className="w-[600px]">
-    <ReferenceEntityDisplay data={falseFlagEntity} />
-  </div>
-)
-
-export const AllExpansions: Story = () => (
-  <div className="flex w-[600px] flex-col gap-8 py-6">
-    <div>
-      <p className="mb-2 text-xs font-bold uppercase tracking-wide text-su-grey-dark">Rainmaker</p>
-      <ReferenceEntityDisplay data={rainmakerEntity} />
+function Gallery({ rule, children }: { rule: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-6 bg-paper p-5 text-ink">
+      <p className="max-w-2xl font-mono text-xs leading-relaxed text-ink-2">{rule}</p>
+      {children}
     </div>
-    <div>
-      <p className="mb-2 text-xs font-bold uppercase tracking-wide text-su-grey-dark">
-        We Were Here First!
-      </p>
-      <ReferenceEntityDisplay data={wwhfEntity} />
-    </div>
-    <div>
-      <p className="mb-2 text-xs font-bold uppercase tracking-wide text-su-grey-dark">False Flag</p>
-      <ReferenceEntityDisplay data={falseFlagEntity} />
-    </div>
-    <div>
-      <p className="mb-2 text-xs font-bold uppercase tracking-wide text-su-grey-dark">
-        No Expansion (Core)
-      </p>
+  )
+}
+
+/** Density: full card → compact → header-only listing. */
+export const Densities: Story = () => (
+  <Gallery rule="One entity renderer across densities: full, compact (reduced spacing), listing (header-only clickable row).">
+    <Row label="default">
       <ReferenceEntityDisplay data={system} />
-    </div>
-  </div>
+    </Row>
+    <Row label="compact" width="w-[400px]">
+      <ReferenceEntityDisplay data={system} compact />
+    </Row>
+    <Row label="listing">
+      <ReferenceEntityDisplay data={system} listing />
+    </Row>
+  </Gallery>
+)
+
+/** States: disabled, damaged, dimmed header, custom accent, hidden actions. */
+export const States: Story = () => (
+  <Gallery rule="State treatments — disabled dims; damaged applies the warm brick-red overlay; dimHeader mutes the header; headerColor overrides the accent; hide suppresses sections (actions here).">
+    <Row label="disabled">
+      <ReferenceEntityDisplay data={system} disabled />
+    </Row>
+    <Row label="damaged">
+      <ReferenceEntityDisplay data={system} damaged />
+    </Row>
+    <Row label="dimHeader (ability)">
+      <ReferenceEntityDisplay data={ability} dimHeader />
+    </Row>
+    <Row label='headerColor="bg-su-pink"'>
+      <ReferenceEntityDisplay data={system} headerColor="bg-su-pink" />
+    </Row>
+    <Row label="hide={{ actions: true }}">
+      <ReferenceEntityDisplay data={system} hide={{ actions: true }} />
+    </Row>
+  </Gallery>
+)
+
+/** Schemas: the same renderer across system, module, chassis, ability, trait. */
+export const Schemas: Story = () => (
+  <Gallery rule="Schema-agnostic: one component renders every entity type from its data shape.">
+    <Row label="system">
+      <ReferenceEntityDisplay data={system} />
+    </Row>
+    <Row label="module">
+      <ReferenceEntityDisplay data={mod} />
+    </Row>
+    <Row label="chassis">
+      <ReferenceEntityDisplay data={chassis} />
+    </Row>
+    <Row label="ability">
+      <ReferenceEntityDisplay data={ability} />
+    </Row>
+    <Row label="trait">
+      <ReferenceEntityDisplay data={trait} />
+    </Row>
+  </Gallery>
+)
+
+/** Grants collapse: an ability's content/actions give way to a nested granted card. */
+export const Grants: Story = () => (
+  <Gallery rule="isGrantingAbility: the ability's own content + Actions are suppressed in favour of a Grants block with a nested equipment card — expanded, or (compact) collapsed to a header-only listing.">
+    <Row label="expanded">
+      {grantingAbility ? <ReferenceEntityDisplay data={grantingAbility} /> : null}
+    </Row>
+    <Row label="compact (collapsed)" width="w-[420px]">
+      {grantingAbility ? <ReferenceEntityDisplay data={grantingAbility} compact /> : null}
+    </Row>
+  </Gallery>
+)
+
+/** Choice-bearing equipment: interactive choices in the body — unchosen vs pre-seeded. */
+export const Choices: Story = () => (
+  <Gallery rule="Equipment carrying choices renders interactive ChoiceGroups in the body (unresolved 'Choose:' prompt in the header) — unselected, or with a controlled selection pre-seeded as ITUN would.">
+    <Row label="not chosen">
+      {choiceEquipment ? <ReferenceEntityDisplay data={choiceEquipment} compact /> : null}
+    </Row>
+    <Row label="Ballistic chosen">
+      {choiceEquipment ? (
+        <ReferenceEntityDisplay
+          data={choiceEquipment}
+          compact
+          selections={weaponTypeChoice ? { [weaponTypeChoice.id]: ['Ballistic'] } : undefined}
+        />
+      ) : null}
+    </Row>
+  </Gallery>
+)
+
+/** Provenance: expansion badges — Rainmaker, We Were Here First!, False Flag, Core. */
+export const Provenance: Story = () => (
+  <Gallery rule="Source expansion drives the provenance badge; Core (no expansion) shows none.">
+    <Row label="Rainmaker">
+      <ReferenceEntityDisplay data={rainmaker} />
+    </Row>
+    <Row label="We Were Here First!">
+      <ReferenceEntityDisplay data={wwhf} />
+    </Row>
+    <Row label="False Flag">
+      <ReferenceEntityDisplay data={falseFlag} />
+    </Row>
+    <Row label="Core (no expansion)">
+      <ReferenceEntityDisplay data={system} />
+    </Row>
+  </Gallery>
 )
