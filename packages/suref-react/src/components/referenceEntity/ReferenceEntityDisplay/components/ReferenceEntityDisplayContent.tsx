@@ -477,9 +477,7 @@ export function ReferenceEntityDisplayContent({
   // Trailing type-label tag (design-spec §2.1), appended last to the header
   // data row.
   const typeLabelNode =
-    showTypeLabel || typeLabel != null ? (
-      <Tag label={typeLabel ?? getDisplayName(schemaName)} />
-    ) : null
+    showTypeLabel || typeLabel != null ? <Tag>{typeLabel ?? getDisplayName(schemaName)}</Tag> : null
 
   const headerContent = (
     <CardHeader

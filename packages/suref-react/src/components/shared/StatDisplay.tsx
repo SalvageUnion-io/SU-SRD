@@ -6,6 +6,7 @@ import { StepBtn } from '../chrome/SmallButtons'
 import { statBlockRowStarts, pipClickValue, trackSegmentState } from '../stat/pipRows'
 import { heatDangerFrom, heatLevel } from '../stat/heatLevel'
 import { ConditionSwatch } from '../stat/ConditionSwatch'
+import type { EntityStatus } from './entityStatus'
 
 /**
  * The single canonical stat/value primitive (canonical primitive language §2).
@@ -27,7 +28,7 @@ import { ConditionSwatch } from '../stat/ConditionSwatch'
 /** Pip / fill semantics: hp red, ap/ep rust, heat warn, cargo bronze, cw crawler pink, sp/default ink. */
 export type StatTone = 'hp' | 'ap' | 'ep' | 'sp' | 'heat' | 'cargo' | 'cw' | 'default'
 /** Tri-state tally entry for the `states[]` mode (crawler bays). */
-export type StatState = 'intact' | 'damaged' | 'destroyed'
+export type StatState = EntityStatus
 
 const PIP_FILL: Record<StatTone, string> = {
   hp: 'border-status-bad bg-status-bad',

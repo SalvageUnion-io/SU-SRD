@@ -129,14 +129,16 @@ export const Tags: Story = () => (
     <ClusterLabel>Keyword (stamped ink chip)</ClusterLabel>
     <Row>
       {keywordTags.map((keyword) => (
-        <Tag key={keyword} label={keyword} />
+        <Tag key={keyword}>{keyword}</Tag>
       ))}
     </Row>
 
     <ClusterLabel>Ghost (inverted paper chip, inset ring)</ClusterLabel>
     <Row>
       {economyTags.map((economy) => (
-        <Tag key={economy} label={economy} ghost />
+        <Tag key={economy} ghost>
+          {economy}
+        </Tag>
       ))}
     </Row>
   </div>

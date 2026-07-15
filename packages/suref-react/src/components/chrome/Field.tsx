@@ -1,7 +1,7 @@
 import { forwardRef } from 'react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
-import { Text } from '../base/Text'
+import { Stamp } from './Stamp'
 
 type FieldProps = {
   label: ReactNode
@@ -26,14 +26,14 @@ export function Field({ label, required = false, htmlFor, children, className }:
         htmlFor={htmlFor}
         className="absolute left-2 top-0 z-10 flex w-fit -translate-y-1/2 items-center"
       >
-        <Text variant="pseudoheader" as="span" className="text-badge">
+        <Stamp size="sm">
           {label}
           {required && (
             <span aria-hidden="true" className="ml-0.5">
               *
             </span>
           )}
-        </Text>
+        </Stamp>
       </label>
       {children}
     </div>

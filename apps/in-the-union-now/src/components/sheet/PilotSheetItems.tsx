@@ -84,7 +84,7 @@ export function PilotAbilityItem({
   const footMeta: CardFootMeta[] = [{ label: 'AP Cost', value: apCost ?? '—' }]
   const footActions = readOnly ? (
     used ? (
-      <Tag label="Used" />
+      <Tag>Used</Tag>
     ) : undefined
   ) : (
     <>

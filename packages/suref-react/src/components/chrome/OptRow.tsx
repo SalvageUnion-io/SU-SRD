@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
+import { FOCUS_RING } from './interaction'
 
 type OptRowProps = {
   name: string
@@ -24,7 +25,8 @@ export function OptRow({ name, desc, active = false, onClick, img, className }: 
       onClick={onClick}
       aria-current={active || undefined}
       className={cn(
-        'mb-2 flex w-full cursor-pointer items-center gap-3 rounded-card border-chrome border-ink px-3 py-[11px] text-left transition-colors duration-[120ms] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25',
+        'mb-2 flex w-full cursor-pointer items-center gap-3 rounded-card border-chrome border-ink px-3 py-[11px] text-left transition-colors duration-[120ms]',
+        FOCUS_RING,
         active ? 'bg-paper shadow-[inset_3px_0_0_var(--color-rust)]' : 'bg-transparent',
         className
       )}

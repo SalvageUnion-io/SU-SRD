@@ -96,7 +96,7 @@ const rows: MatrixRow[] = [
     when: 'cite',
     use: 'Tag (= Badge solid)',
     rule: 'A single stamped keyword.',
-    example: <Tag label={traitLabel} />,
+    example: <Tag>{traitLabel}</Tag>,
   },
   {
     role: 'Condition',

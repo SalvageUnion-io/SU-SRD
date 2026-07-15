@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../utils/cn'
+import { DISABLED, FOCUS_RING } from './interaction'
 
 type StepBtnProps = ComponentPropsWithoutRef<'button'>
 
@@ -20,7 +21,9 @@ export const StepBtn = forwardRef<HTMLButtonElement, StepBtnProps>(function Step
       ref={ref}
       type={type}
       className={cn(
-        'inline-flex h-6 w-6 min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-card border-chrome border-ink bg-paper font-body text-lede font-bold leading-none text-ink hover:bg-[var(--ground,var(--color-wk-bg-2))] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25 disabled:pointer-events-none disabled:opacity-40 sm:min-h-0 sm:min-w-0',
+        'inline-flex h-6 w-6 min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-card border-chrome border-ink bg-paper font-body text-lede font-bold leading-none text-ink hover:bg-[var(--ground,var(--color-wk-bg-2))] sm:min-h-0 sm:min-w-0',
+        FOCUS_RING,
+        DISABLED,
         className
       )}
       {...props}
@@ -43,7 +46,9 @@ export const MiniBtn = forwardRef<HTMLButtonElement, MiniBtnProps>(function Mini
       ref={ref}
       type={type}
       className={cn(
-        'inline-flex cursor-pointer items-center gap-1 rounded-badge border-chrome border-ink bg-paper px-2 py-[3px] font-cond text-label-lg font-semibold uppercase leading-none text-ink hover:bg-[var(--ground,var(--color-wk-bg-2))] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25 disabled:pointer-events-none disabled:opacity-40',
+        'inline-flex cursor-pointer items-center gap-1 rounded-badge border-chrome border-ink bg-paper px-2 py-[3px] font-cond text-label-lg font-semibold uppercase leading-none text-ink hover:bg-[var(--ground,var(--color-wk-bg-2))]',
+        FOCUS_RING,
+        DISABLED,
         className
       )}
       {...props}

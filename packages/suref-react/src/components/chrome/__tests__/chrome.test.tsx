@@ -21,8 +21,8 @@ describe('Field / Input', () => {
       </Field>
     )
     expect(screen.getByLabelText(/Name/)).toBeTruthy()
-    // The required mark rides inside the ink stamp (white on ink), not a rust glyph.
-    expect(screen.getByText('*').closest('.bg-su-black')).not.toBeNull()
+    // The required mark rides inside the ink Stamp (white on ink), not a rust glyph.
+    expect(screen.getByText('*').closest('.bg-ink')).not.toBeNull()
   })
 
   test('input carries the rust focus ring classes', () => {

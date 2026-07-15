@@ -8,13 +8,13 @@ afterEach(cleanup)
 // render it with StatDisplay orientation="horizontal" (see StatDisplay tests).
 describe('Tag', () => {
   test('renders an ink-on-paper stamped chip by default', () => {
-    const { container } = render(<Tag label="Turn Action" />)
+    const { container } = render(<Tag>Turn Action</Tag>)
     expect(screen.getByText('Turn Action')).toBeTruthy()
     expect(container.firstElementChild?.className).toContain('bg-ink')
   })
 
   test('ghost inverts the chip (paper bg, ink text)', () => {
-    const { container } = render(<Tag label="Passive" ghost />)
+    const { container } = render(<Tag ghost>Passive</Tag>)
     expect(screen.getByText('Passive')).toBeTruthy()
     expect(container.firstElementChild?.className).toContain('bg-paper')
   })
