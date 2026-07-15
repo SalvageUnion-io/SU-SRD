@@ -250,18 +250,16 @@ export function DisplayCard({
           {/* A label + badge pair (e.g. TECH LEVEL · 1, or a tree + ability level)
               renders as one segmented value — label on the dark stamp, value in a
               bounded white box — matching the data-row tags (e.g. RANGE · LONG).
-              A lone label or badge stays a single dark stamp. */}
+              A lone label or badge stays a single dark stamp.
+              The seam stamp is ALWAYS the small (compact) size so it reads as a
+              tag riding the border, subordinate to the header — never card
+              `compact`, which only governs the body/header density. */}
           {label && labelBadge ? (
-            <StatDisplay
-              orientation="horizontal"
-              label={label}
-              value={labelBadge}
-              compact={isCompact}
-            />
+            <StatDisplay orientation="horizontal" label={label} value={labelBadge} xs />
           ) : label ? (
-            <CalloutMetaStamp compact={isCompact}>{label}</CalloutMetaStamp>
+            <CalloutMetaStamp xs>{label}</CalloutMetaStamp>
           ) : labelBadge ? (
-            <CalloutMetaStamp compact={isCompact}>{labelBadge}</CalloutMetaStamp>
+            <CalloutMetaStamp xs>{labelBadge}</CalloutMetaStamp>
           ) : null}
         </div>
       )}
@@ -312,12 +310,12 @@ export function DisplayCard({
               // inset white body block (which uses mx-3) and the footer.
               isCompact ? 'min-h-[34px] px-2.5 py-1.5' : 'min-h-[44px] px-3 py-2',
               // Top padding clears the callout so the gap below it is consistent.
-              // Non-compact: every callout stamp is text-sm (lone stamps now match
-              // the segmented ValueDisplay), so pt-6 clears all of them uniformly
-              // and never runs into the title.
+              // Non-compact: the callout seam is now the small (compact) stamp,
+              // so pt-5 clears it uniformly with a thin gap and never runs into
+              // the title.
               // Compact: callout sits centred on the edge (~8px of it below the
               // top) → pt-3 ≈ 4px gap, tighter to suit dense listings.
-              !isCompact && hasCallout && 'pb-4 pt-6',
+              !isCompact && hasCallout && 'pb-4 pt-5',
               isCompact && hasCallout && 'pt-3',
               actualHeaderBg,
               headerStyleProp?.className,

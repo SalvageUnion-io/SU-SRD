@@ -93,7 +93,9 @@ describe('DisplayCard', () => {
     )
     const headerRow = screen.getByTestId('frame-header-container')
     expect(headerRow.className).toContain('items-start')
-    expect(headerRow.className).toContain('pt-6')
+    // Non-compact callout clearance: the seam is the small (compact) stamp, so
+    // pt-5 clears it with a thin, consistent gap under the callout.
+    expect(headerRow.className).toContain('pt-5')
     expect(headerRow.className).toContain('pb-4')
   })
 
