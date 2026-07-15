@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
+import { POSTER_STAMP } from './Stamp'
 
 type SlabProps = {
   /** Section label, e.g. 'Systems' */
@@ -34,7 +35,9 @@ export function Slab({ label, count, actions, className, variant = 'dashed' }: S
   return (
     <div className={cn('mb-3.5 flex items-center gap-3', className)}>
       {isSolid ? (
-        <span className="box-decoration-clone inline shrink-0 bg-ink px-2 pb-[3px] pt-[2px] font-cond text-sm font-bold uppercase leading-relaxed tracking-[0.09em] text-paper">
+        <span
+          className={cn(POSTER_STAMP, 'shrink-0 px-2 pb-[3px] pt-[2px] text-sm leading-relaxed')}
+        >
           {label}
         </span>
       ) : (
