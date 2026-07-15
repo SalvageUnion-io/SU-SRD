@@ -5,7 +5,7 @@ import { Text } from '../base/Text'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Sheet Display',
+  title: 'Legacy/Sheet Display',
 }
 
 // Real chassis drives the label|value fields.

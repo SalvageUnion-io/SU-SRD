@@ -4,7 +4,7 @@ import { ActivationCostBox } from './ActivationCostBox'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Activation Cost',
+  title: 'Legacy/Activation Cost',
 }
 
 // AP / EP / Variable are the real Salvage Union activation currencies.
