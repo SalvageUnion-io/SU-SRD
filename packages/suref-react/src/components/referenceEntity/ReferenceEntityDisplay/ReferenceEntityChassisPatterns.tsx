@@ -56,13 +56,17 @@ function PatternListing({
     abilitiesSection: modalConfig?.abilitiesSection,
     afterExtraContent: modalConfig?.afterExtraContent,
     hide: { patterns: true },
+    // A pattern is a modal-only configured view of the chassis (per-pattern
+    // title, stats, loadout) with no standalone URL — its `data` is the chassis
+    // itself. Force the detail to stay a modal even where the app enables link
+    // mode (suref-web); linking out would just reopen the same chassis page and
+    // drop the pattern-specific view. This must be an explicit option because
+    // the `EntityDetailLinkProvider` below only wraps the returned JSX — this
+    // hook runs above it and would otherwise read the ambient link mode.
+    forceModal: true,
   })
 
-  // A pattern is a modal-only configured view of the chassis (per-pattern title,
-  // stats, loadout) with no standalone URL — its `data` is the chassis itself.
-  // So we force the detail to stay a modal even where the app enables link mode
-  // (suref-web); linking out would just reopen the same chassis page and drop
-  // the pattern-specific view.
+  // The provider keeps nested cards inside the listing/modal from linking out.
   return (
     <EntityDetailLinkProvider value={false}>
       <ReferenceEntityDisplay

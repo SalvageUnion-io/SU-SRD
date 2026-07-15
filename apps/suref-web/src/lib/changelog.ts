@@ -6,6 +6,13 @@ type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-07-14',
+    title: 'Chassis patterns open their loadout again',
+    items: [
+      'Clicking a pattern on a chassis page now opens its pattern-specific systems and modules in a modal, instead of re-opening the chassis page in a new tab.',
+    ],
+  },
+  {
     date: '2026-07-13',
     title: 'Filter abilities by tree',
     items: [
