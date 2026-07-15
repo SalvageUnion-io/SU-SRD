@@ -59,6 +59,8 @@ export type {
 } from './components/shared/useSearchCombobox'
 export { Footer } from './components/shared/Footer'
 export { HeaderShell } from './components/shared/HeaderShell'
+export { KofiButton } from './components/shared/KofiButton'
+export type { KofiButtonProps } from './components/shared/KofiButton'
 export { StatDisplay } from './components/shared/StatDisplay'
 export type { StatTone, StatState } from './components/shared/StatDisplay'
 export { StatsBar } from './components/shared/StatsBar'
