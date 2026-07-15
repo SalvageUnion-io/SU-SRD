@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import eldridgeCoastMap from '../assets/eldridge-coast-map.png'
+import { KofiButtonIsland } from '../components/islands/KofiButtonIsland'
 import { SITE_URL } from '../lib/constants'
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
@@ -127,6 +128,16 @@ const structuredData = {
         <p>
           The site is open source and contributions are welcome.
         </p>
+      </section>
+
+      <!-- Support -->
+      <section class="text-sm leading-relaxed text-center">
+        <h2 class="mb-2 page-subheading">Support the project</h2>
+        <p class="mb-4">
+          This reference is free and open source. If it's been useful at your table, you can chip in
+          toward hosting and development.
+        </p>
+        <KofiButtonIsland client:visible />
       </section>
     </div>
   </div>

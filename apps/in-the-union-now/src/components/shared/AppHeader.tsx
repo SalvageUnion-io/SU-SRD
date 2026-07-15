@@ -63,6 +63,9 @@ export function AppHeader({ onSearchClick }: AppHeaderProps) {
           Encounter
           <span className={ALPHA_TAG}>Alpha</span>
         </AppLink>
+        <AppLink href="/about" className={`${NAV_LINK} hidden lg:inline-flex`}>
+          About
+        </AppLink>
         <a
           href="https://salvageunion.io/discord/"
           target="_blank"
