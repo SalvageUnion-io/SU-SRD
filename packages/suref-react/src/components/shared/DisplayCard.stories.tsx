@@ -1,9 +1,13 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { DisplayCard } from './DisplayCard'
-import type { DisplayCardTab } from './DisplayCard'
+import type { CardFootMeta, DisplayCardTab } from './DisplayCard'
 import { Text } from '../base/Text'
+import { Badge } from '../chrome/Badge'
+import { Btn } from '../chrome/Btn'
+import { StepBtn } from '../chrome/SmallButtons'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -177,6 +181,120 @@ export const Features: Story = () => (
           </div>
         </DisplayCard>
       </div>
+    </Cell>
+  </Gallery>
+)
+
+// A real installed mech system so the action-economy foot reads like ITUN's
+// MechItemCard (EP/heat/uses come off this entity in the app).
+const system = SalvageUnionReference.Systems.all()[0]
+const systemName = system?.name ?? '.50 Cal Machine Gun'
+const systemSlots = system?.slotsRequired ?? 2
+
+const installedBody = (
+  <div className="p-3">
+    <Text as="p" className="font-cond text-caption font-bold uppercase tracking-wide text-ink-2">
+      Installed System
+    </Text>
+  </div>
+)
+
+// EP.0 / SLOTS.2 — the inline label/value meta folded into the foot band.
+const installedFootMeta: CardFootMeta[] = [
+  { label: 'EP', value: 0 },
+  { label: 'Slots', value: systemSlots },
+]
+
+/** The uses stepper as MechItemCard renders it: ± StepBtns bracketing "Uses n/max". */
+function UsesStepper({ max }: { max: number }) {
+  const [remaining, setRemaining] = useState(max)
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <StepBtn
+        aria-label={`Decrease ${systemName} uses`}
+        disabled={remaining <= 0}
+        onClick={() => setRemaining((n) => n - 1)}
+      >
+        &ndash;
+      </StepBtn>
+      <span className="min-w-[4.5rem] text-center font-cond text-badge font-bold uppercase leading-none tabular-nums text-ink">
+        Uses {remaining}/{max}
+      </span>
+      <StepBtn
+        aria-label={`Increase ${systemName} uses`}
+        disabled={remaining >= max}
+        onClick={() => setRemaining((n) => n + 1)}
+      >
+        +
+      </StepBtn>
+    </span>
+  )
+}
+
+/**
+ * Action-economy foot: the folded MechItemCard preset. A compact installed-system
+ * card carries its condition Badge, EP/Slots footMeta, and a footActions band —
+ * Use (rust, the one action color) + a uses stepper, with a rust Repair on the
+ * damaged variant. Rust appears ONLY on Use/Repair; everything else stays paper/ink.
+ */
+export const ActionEconomyFoot: Story = () => (
+  <Gallery rule="The action-economy foot (folded ItemCard preset): footMeta cites EP/Slots, footActions folds Use + a uses stepper into the band. Rust is reserved for the action verbs — Use and Repair — never chrome; condition is a tone Badge, not a second hue.">
+    <Cell label="intact" width="w-[400px]">
+      <DisplayCard
+        compact
+        headerBg="bg-su-green"
+        headerContent={
+          <span className="flex min-w-0 items-center gap-2">
+            <Text variant="pseudoheader" as="span">
+              {systemName}
+            </Text>
+            <Badge surface="tone" tone="ok">
+              Intact
+            </Badge>
+          </span>
+        }
+        footMeta={installedFootMeta}
+        footActions={
+          <>
+            <Btn size="sm" variant="primary" aria-label={`Use ${systemName}`}>
+              Use
+            </Btn>
+            <UsesStepper max={3} />
+          </>
+        }
+      >
+        {installedBody}
+      </DisplayCard>
+    </Cell>
+    <Cell label="damaged" width="w-[400px]">
+      <DisplayCard
+        compact
+        headerBg="bg-su-green"
+        headerContent={
+          <span className="flex min-w-0 items-center gap-2">
+            <Text variant="pseudoheader" as="span">
+              {systemName}
+            </Text>
+            <Badge surface="tone" tone="warn">
+              Damaged
+            </Badge>
+          </span>
+        }
+        footMeta={installedFootMeta}
+        footActions={
+          <>
+            <Btn size="sm" variant="primary" aria-label={`Use ${systemName}`}>
+              Use
+            </Btn>
+            <UsesStepper max={3} />
+            <Btn size="sm" variant="primary" aria-label={`Repair ${systemName}`}>
+              Repair · 2 Scrap
+            </Btn>
+          </>
+        }
+      >
+        {installedBody}
+      </DisplayCard>
     </Cell>
   </Gallery>
 )
