@@ -9,7 +9,6 @@ import { Tag } from '../components/chrome/Tag'
 import { Stamp } from '../components/chrome/Stamp'
 import { ConditionSwatch } from '../components/stat/ConditionSwatch'
 import { SlotGrid } from '../components/shared/SlotGrid'
-import { DisplayCard } from '../components/shared/DisplayCard'
 import { RollTable } from '../components/shared/RollTable'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -21,7 +20,6 @@ const noop = () => {}
 
 // Real reference data drives every live example (preloaded by .ladle/components.tsx).
 const chassis = SalvageUnionReference.Chassis.all()[0]
-const chassisName = chassis?.name ?? 'Mule'
 const sp = chassis?.structurePoints ?? 13
 const cargo = chassis?.cargoCapacity ?? 16
 const tl = chassis?.techLevel ?? 1
@@ -126,23 +124,6 @@ const rows: MatrixRow[] = [
     use: 'Stamp',
     rule: 'The one ink label/header atom.',
     example: <Stamp>Systems</Stamp>,
-  },
-  {
-    role: 'Entity',
-    when: 'listing',
-    use: 'DisplayCard listing',
-    rule: 'Header-only clickable row.',
-    example: (
-      <div className="w-56">
-        <DisplayCard
-          listing
-          headerBg="bg-su-green"
-          headerContent={
-            <span className="font-cond font-bold uppercase text-ink">{chassisName}</span>
-          }
-        />
-      </div>
-    ),
   },
   {
     role: 'Roll table',
