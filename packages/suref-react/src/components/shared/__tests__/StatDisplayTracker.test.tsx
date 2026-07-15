@@ -159,14 +159,14 @@ describe('StatDisplay (tracker) — states[] tally mode (crawler bays)', () => {
   ] as const
 
   test('renders one pip per bay with state titles', () => {
-    render(<StatDisplay pips label="BAYS" states={[...states]} />)
+    render(<StatDisplay label="BAYS" states={[...states]} />)
     expect(screen.getByTitle('Bay 1 · intact')).toBeTruthy()
     expect(screen.getByTitle('Bay 9 · damaged')).toBeTruthy()
     expect(screen.getByTitle('Bay 10 · damaged')).toBeTruthy()
   })
 
   test('tallies counts per present state', () => {
-    render(<StatDisplay pips label="BAYS" states={[...states]} />)
+    render(<StatDisplay label="BAYS" states={[...states]} />)
     expect(screen.getByText('8')).toBeTruthy()
     expect(screen.getByText('intact')).toBeTruthy()
     expect(screen.getByText('2')).toBeTruthy()
@@ -177,13 +177,13 @@ describe('StatDisplay (tracker) — states[] tally mode (crawler bays)', () => {
 
   test('onBay makes pips clickable with the bay index', () => {
     const onBay = mock((i: number) => i)
-    render(<StatDisplay pips label="BAYS" states={[...states]} onBay={onBay} />)
+    render(<StatDisplay label="BAYS" states={[...states]} onBay={onBay} />)
     fireEvent.click(screen.getByTitle('Bay 9 · damaged'))
     expect(onBay).toHaveBeenLastCalledWith(8)
   })
 
   test('states mode renders no steppers or numeric value row', () => {
-    render(<StatDisplay pips label="BAYS" states={[...states]} />)
+    render(<StatDisplay label="BAYS" states={[...states]} />)
     expect(screen.queryByLabelText('Increase BAYS')).toBeNull()
   })
 })
