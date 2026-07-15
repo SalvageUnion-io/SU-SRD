@@ -255,120 +255,113 @@ function ColumnsRollTable({
         {rollAnnouncement}
       </div>
 
-      {showCommand && (
-        <div
-          className={cn(
-            'flex items-center justify-between gap-2 border-b-2 border-su-orange-light bg-su-paper px-2',
-            compact ? 'mb-1 py-1' : 'mb-2 py-1.5'
-          )}
-        >
-          <span
-            className={cn(
-              'font-cond font-bold uppercase leading-none tracking-caps-wide text-su-black',
-              compact ? 'text-xs' : 'text-sm'
+      <div className="rounded-[3px] border-2 border-su-orange-light">
+        {showCommand && (
+          <div className="flex items-center justify-between gap-2 bg-su-black px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
+            <span>{tableName || 'Roll table'}</span>
+            {!disabled && (
+              <span className="inline-flex items-center gap-2">
+                Roll the Die
+                <button
+                  type="button"
+                  onClick={handleRoll}
+                  disabled={singleRoll && hasRolled}
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-[2px] border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-[11px] font-bold uppercase tracking-caps-tight text-su-white',
+                    singleRoll && hasRolled
+                      ? 'cursor-not-allowed opacity-30'
+                      : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'
+                  )}
+                  aria-label="Roll on this table"
+                  title="Roll on this table"
+                >
+                  Roll
+                  <DiceIcon compact />
+                </button>
+              </span>
             )}
-          >
-            {tableName || 'Roll Table'}
-          </span>
-          {tableName && !disabled && (
-            <button
-              type="button"
-              onClick={handleRoll}
-              disabled={singleRoll && hasRolled}
-              className={cn(
-                'inline-flex items-center gap-1 rounded-[2px] border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-xs font-bold uppercase leading-none tracking-caps-tight text-su-white',
-                singleRoll && hasRolled
-                  ? 'cursor-not-allowed opacity-30'
-                  : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'
-              )}
-              aria-label="Roll on this table"
-              title="Roll on this table"
-            >
-              <DiceIcon compact />
-              Roll the Die
-            </button>
-          )}
-        </div>
-      )}
+          </div>
+        )}
 
-      <div className="overflow-visible">
-        <table className="w-full border-collapse border-2 border-su-orange-light">
-          <caption className="sr-only">{tableName || 'Columns roll table'}</caption>
-          <thead>
-            <tr>
-              {COLUMN_KEYS.map((colKey) => (
-                <th
-                  key={colKey}
-                  scope="col"
-                  className={cn(
-                    'text-left font-bold text-su-black',
-                    compact ? 'px-2 py-1 text-lg' : 'px-3 py-2 text-2xl'
-                  )}
-                >
-                  ({colKey.replace('-', ' - ')})
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {Array.from({ length: 20 }, (_, i) => {
-              const entryNum = (i + 1).toString()
-              return (
-                <tr
-                  key={entryNum}
-                  className={cn(
-                    // Codex `.a-rt` alternating bands: tone tint / warm paper + row hairline.
-                    'border-b border-ink/10',
-                    i % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-paper'
-                  )}
-                >
-                  {COLUMN_KEYS.map((colKey) => {
-                    const entry = getColumnEntry(tableData, colKey, entryNum)
-                    const isHighlighted =
-                      result?.columnKey === colKey && result?.entryKey === entryNum
+        <div className="overflow-visible">
+          <table className="w-full border-collapse">
+            <caption className="sr-only">{tableName || 'Columns roll table'}</caption>
+            <thead>
+              <tr>
+                {COLUMN_KEYS.map((colKey) => (
+                  <th
+                    key={colKey}
+                    scope="col"
+                    className={cn(
+                      'text-left font-bold text-su-black',
+                      compact ? 'px-2 py-1 text-lg' : 'px-3 py-2 text-2xl'
+                    )}
+                  >
+                    ({colKey.replace('-', ' - ')})
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 20 }, (_, i) => {
+                const entryNum = (i + 1).toString()
+                return (
+                  <tr
+                    key={entryNum}
+                    className={cn(
+                      // Codex `.a-rt` alternating bands: tone tint / warm paper + row hairline.
+                      'border-b border-ink/10',
+                      i % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-paper'
+                    )}
+                  >
+                    {COLUMN_KEYS.map((colKey) => {
+                      const entry = getColumnEntry(tableData, colKey, entryNum)
+                      const isHighlighted =
+                        result?.columnKey === colKey && result?.entryKey === entryNum
 
-                    return (
-                      // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-selected marks the rolled result cell; restructuring the table to a grid role would change its announced semantics
-                      <td
-                        key={colKey + entryNum}
-                        ref={isHighlighted ? highlightedRef : null}
-                        className={cn(
-                          'relative text-left text-su-black transition-all duration-200',
-                          compact ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-base',
-                          isHighlighted &&
-                            'z-[1] scale-[1.04] cursor-pointer outline-4 outline-su-black shadow-[0_14px_40px_rgba(0,0,0,0.85)]'
-                        )}
-                        onClick={isHighlighted ? handleClear : undefined}
-                        onKeyDown={
-                          isHighlighted
-                            ? (e: React.KeyboardEvent) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  handleClear()
+                      return (
+                        // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-selected marks the rolled result cell; restructuring the table to a grid role would change its announced semantics
+                        <td
+                          key={colKey + entryNum}
+                          ref={isHighlighted ? highlightedRef : null}
+                          className={cn(
+                            'relative text-left text-su-black transition-all duration-200',
+                            compact ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-base',
+                            isHighlighted &&
+                              'z-[1] scale-[1.04] cursor-pointer outline-4 outline-su-black shadow-[0_14px_40px_rgba(0,0,0,0.85)]'
+                          )}
+                          onClick={isHighlighted ? handleClear : undefined}
+                          onKeyDown={
+                            isHighlighted
+                              ? (e: React.KeyboardEvent) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault()
+                                    handleClear()
+                                  }
                                 }
-                              }
-                            : undefined
-                        }
-                        aria-selected={isHighlighted || undefined}
-                        tabIndex={isHighlighted ? 0 : undefined}
-                      >
-                        <span className="font-bold">{entryNum}:</span> {entry?.value}
-                        {isHighlighted && (
-                          <ResultActionBar
-                            compact={compact}
-                            resultText={entry?.value ?? ''}
-                            onReroll={handleRoll}
-                            hideReroll={singleRoll}
-                          />
-                        )}
-                      </td>
-                    )
-                  })}
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                              : undefined
+                          }
+                          aria-selected={isHighlighted || undefined}
+                          tabIndex={isHighlighted ? 0 : undefined}
+                        >
+                          <span className="font-bold">{entryNum}:</span> {entry?.value}
+                          {isHighlighted && (
+                            <ResultActionBar
+                              compact={compact}
+                              resultText={entry?.value ?? ''}
+                              onReroll={handleRoll}
+                              hideReroll={singleRoll}
+                            />
+                          )}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
@@ -433,43 +426,34 @@ function StandardRollTable({
         {rollAnnouncement}
       </div>
 
-      <div className="overflow-visible transition-opacity duration-200">
+      <div className="overflow-visible rounded-[3px] border-2 border-su-orange-light transition-opacity duration-200">
         {showCommand && (
-          <div
-            className={cn(
-              'flex items-center justify-between gap-2 border-b-2 border-su-orange-light bg-su-paper px-2',
-              compact ? 'mb-1 py-1' : 'mb-2 py-1.5'
-            )}
-          >
-            <span
-              className={cn(
-                'font-cond font-bold uppercase leading-none tracking-caps-wide text-su-black',
-                compact ? 'text-xs' : 'text-sm'
-              )}
-            >
-              {tableName || 'Roll table'}
-            </span>
-            {tableName && !disabled && (
-              <button
-                type="button"
-                onClick={handleRoll}
-                disabled={singleRoll && hasRolled}
-                className={cn(
-                  'inline-flex items-center gap-1 rounded-[2px] border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-xs font-bold uppercase leading-none tracking-caps-tight text-su-white',
-                  singleRoll && hasRolled
-                    ? 'cursor-not-allowed opacity-30'
-                    : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'
-                )}
-                aria-label="Roll on this table"
-                title="Roll on this table"
-              >
-                <DiceIcon compact />
+          <div className="flex items-center justify-between gap-2 bg-su-black px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
+            <span>{tableName || 'Roll table'}</span>
+            {!disabled && (
+              <span className="inline-flex items-center gap-2">
                 Roll the Die
-              </button>
+                <button
+                  type="button"
+                  onClick={handleRoll}
+                  disabled={singleRoll && hasRolled}
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-[2px] border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-[11px] font-bold uppercase tracking-caps-tight text-su-white',
+                    singleRoll && hasRolled
+                      ? 'cursor-not-allowed opacity-30'
+                      : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'
+                  )}
+                  aria-label="Roll on this table"
+                  title="Roll on this table"
+                >
+                  Roll
+                  <DiceIcon compact />
+                </button>
+              </span>
             )}
           </div>
         )}
-        <table className="w-full border-collapse border-2 border-su-orange-light">
+        <table className="w-full border-collapse">
           <caption className="sr-only">{tableName || 'Roll table'}</caption>
           <thead className="sr-only">
             <tr>

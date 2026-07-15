@@ -174,7 +174,10 @@ export function DisplayCard({
   const isCardHoverable = !!resolvedCardClick || cardClickable
 
   const actualHeaderBg = headerBg
-  const effectiveBorderColor = borderColorProp
+  // Border colour equals the tone (header background) itself when a header bg is
+  // set, matching the codex "After" .a-card spec; falls back to the su-black
+  // default (borderColorProp) when there is no header bg.
+  const effectiveBorderColor = borderColorFromHeaderBg(headerBg, headerBgColor) ?? borderColorProp
 
   const handleCardKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -195,7 +198,9 @@ export function DisplayCard({
   } = useStickyCard(stickyHeader)
 
   const defaultBodyPadding = 'p-0'
-  const borderWidth = isCompact ? 2 : 3
+  // 3px for both compact and non-compact — the codex .a-card is 3px and .cx does
+  // not override it.
+  const borderWidth = 3
 
   const isDefaultTab = resolvedTabKey === DEFAULT_TAB_KEY
   const activeTab = hasTabs ? tabs.find((t) => t.key === resolvedTabKey) : undefined
@@ -313,7 +318,7 @@ export function DisplayCard({
               hasCallout ? 'items-start' : 'items-center',
               // px-3 (12px) aligns the header content L/R extremes with the
               // inset white body block (which uses mx-3) and the footer.
-              isCompact ? 'px-3 py-1.5' : 'px-3 py-2',
+              isCompact ? 'min-h-[34px] px-2.5 py-1.5' : 'min-h-[44px] px-3 py-2',
               // Top padding clears the callout so the gap below it is consistent.
               // Non-compact: every callout stamp is text-sm (lone stamps now match
               // the segmented ValueDisplay), so pt-6 clears all of them uniformly
@@ -424,7 +429,7 @@ export function DisplayCard({
             <StickyHeaderContext.Provider value={isSticky}>
               <div
                 className={cn(
-                  'w-full flex-1 isolate bg-su-white flex flex-col',
+                  'w-full flex-1 isolate bg-paper flex flex-col',
                   bodyPadding || defaultBodyPadding,
                   hasTabs && (isDefaultTab ? 'pt-3' : 'p-0 pt-2')
                 )}
@@ -445,7 +450,7 @@ export function DisplayCard({
         {!isListing && (footerContent || footActions || (footMeta && footMeta.length > 0)) && (
           <div
             className={cn(
-              'flex w-full items-center justify-between gap-2 px-3 py-2',
+              'flex w-full items-center justify-between gap-2 px-3 py-1 font-cond text-[9px] font-bold uppercase tracking-[0.05em] text-ink',
               footerStyleProp?.className ?? actualHeaderBg
             )}
             style={{
@@ -461,7 +466,7 @@ export function DisplayCard({
                 {footMeta?.map(({ label: metaLabel, value }, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: footMeta is a static per-render list; index disambiguates repeated labels
                   <span key={`${metaLabel}-${i}`} className="mr-1 inline-flex items-baseline gap-1">
-                    <span className="font-cond text-[10.5px] font-bold uppercase leading-none opacity-75">
+                    <span className="font-cond text-[9px] font-bold uppercase leading-none tracking-[0.05em] opacity-75">
                       {metaLabel}
                     </span>
                     <span className="font-body text-[13px] font-bold leading-none">{value}</span>
