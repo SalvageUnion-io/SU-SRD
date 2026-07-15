@@ -36,16 +36,16 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
     <div className="w-full space-y-5">
       <div className="flex flex-wrap gap-4">
         <StatDisplay
-          dots
+          pips
           label="TL"
           name="Tech Level"
           size="sm"
           value={techLevel.techLevel}
-          pips={false}
+          showPips={false}
           editable={false}
         />
         <StatDisplay
-          dots
+          pips
           label="SP"
           name="Structure Pts"
           tone="sp"
@@ -55,30 +55,30 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
           editable={false}
         />
         <StatDisplay
-          dots
+          pips
           label="UPKEEP"
           name="Upkeep Cost"
           size="sm"
           value={techLevel.upkeepCost ?? 0}
-          pips={false}
+          showPips={false}
           editable={false}
         />
         <StatDisplay
-          dots
+          pips
           label="UPG"
           name="Upgrade Cost"
           size="sm"
           value={techLevel.upgradeCost ?? 0}
-          pips={false}
+          showPips={false}
           editable={false}
         />
         <StatDisplay
-          dots
+          pips
           label="POOL"
           name="Upgrade Pool"
           size="sm"
           value={0}
-          pips={false}
+          showPips={false}
           editable={false}
         />
       </div>

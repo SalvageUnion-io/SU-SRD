@@ -115,7 +115,7 @@ export function Sheet({
   // bar's priority row is just Share + overflow.
   // NO sheet has a global Edit toggle any more — editing is section-based
   // (unified edit language: per-section Edit buttons, always-available
-  // collection add/remove, always-live StatBlock dots).
+  // collection add/remove, always-live StatBlock pips).
   // Print/PDF export (#82/#258): the print stylesheet (index.css @media
   // print) turns the live sheet into a clean paper layout; "Save as PDF"
   // in the browser dialog covers the PDF ask without a rendering dep.

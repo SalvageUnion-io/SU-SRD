@@ -66,8 +66,8 @@ draft PR pending your screenshot review of the visual deltas:
   no aliases:
   - `mode="edit"` → the box + `+`/`−` steppers (was **StatControl**)
   - `orientation="horizontal"` → the black/white `[label | value]` (was **ValueDisplay**)
-  - `orientation="horizontal"` + `dots` → the condensed inline `[label · pips · value]` chip (was **MiniStat**)
-  - `dots` (or `states[]`) → the framed tracker: code tab, numeral + steppers, pip track / bay tally, unit bar, tones + heat (was **StatBlock**)
+  - `orientation="horizontal"` + `pips` → the condensed inline `[label · pips · value]` chip (was **MiniStat**)
+  - `pips` (or `states[]`) → the framed tracker: code tab, numeral + steppers, pip track / bay tally, unit bar, tones + heat (was **StatBlock**)
   - default → the centred value box
 
 - **Irreducible atoms + follow-ups built.** The remaining net-new atoms now
@@ -136,7 +136,7 @@ exports become thin deprecated aliases during migration, then are deleted.
 | Component           | File (`packages/suref-react/src/…`)   | Absorbs                                                                                                               | Key props                                                                                                                                                                                                                                            |
 | ------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Stamp**           | `components/chrome/Stamp.tsx`         | `base/Text` pseudoheader                                                                                              | `size` · `surface` (on-tone / on-ink / inverse) · `as`                                                                                                                                                                                               |
-| **StatDisplay** ✅  | `components/shared/StatDisplay.tsx`   | StatControl · StatBlock · MiniStat · ValueDisplay — **all fused + deleted**. (Field/Input · InlineEditField deferred) | `label` · `value` · `max` (bottom label, bigger) · `bottomLabel` · `mode` (read/edit → edit adds steppers) · **`dots`** (default `false` → box goes rectangular) · `orientation` (vertical / horizontal = ValueDisplay) · `tone` · `min` · `inverse` |
+| **StatDisplay** ✅  | `components/shared/StatDisplay.tsx`   | StatControl · StatBlock · MiniStat · ValueDisplay — **all fused + deleted**. (Field/Input · InlineEditField deferred) | `label` · `value` · `max` (bottom label, bigger) · `bottomLabel` · `mode` (read/edit → edit adds steppers) · **`pips`** (default `false` → box goes rectangular) · `orientation` (vertical / horizontal = ValueDisplay) · `tone` · `min` · `inverse` |
 | **VitalGauge**      | `components/stat/VitalGauge.tsx`      | DashboardGauge                                                                                                        | `label` · `value` · `max` · `danger` · `editable` · `skin` (sheet / instrument) · `dense` · `tone`                                                                                                                                                   |
 | **Badge**           | `components/chrome/Badge.tsx`         | Tag · Pill · Chip · CalloutMetaStamp · StatusBadge shell · cost-pennant · Range · TL                                  | `form` (label / label+value) · `surface` (solid / ghost / tone / quiet) · `shape` (chip / pennant / pill) · `tone`                                                                                                                                   |
 | **Btn**             | `components/chrome/Btn.tsx`           | FilterChip · Sel                                                                                                      | `variant` (primary / secondary / ghost / danger / control) · `size` · `disabled`                                                                                                                                                                     |
@@ -153,8 +153,8 @@ exports become thin deprecated aliases during migration, then are deleted.
 | **InlineRef**       | `components/chrome/InlineRef.tsx`     | `parseTraitReferences`                                                                                                | `resolved` · `href`                                                                                                                                                                                                                                  |
 | **Icons**           | `components/chrome/glyphs.tsx`        | action-type · pennant · X                                                                                             | `name` (currentColor)                                                                                                                                                                                                                                |
 
-`StatBlock` is a StatDisplay with `dots`; it is a **48px square** box by default,
-going rectangular only when `dots` add chips (or in the horizontal form).
+`StatBlock` is a StatDisplay with `pips`; it is a **48px square** box by default,
+going rectangular only when `pips` are shown (or in the horizontal form).
 `StatControl` is `mode="edit"`: ink `+`/`−` buttons with a fill (invert-on-hover),
 stretched to and flush with the box. `MiniStat` is **dropped entirely**.
 
@@ -198,7 +198,7 @@ screenshots gate anything with a visible delta.
    the codex), `Badge`, `VitalGauge`, `DisplayCard`, `RollTable`, `Modal`, …
    Keep the Ladle `bun patch` intact ([[ts7-upgrade-ts6-footholds]]).
 4. **Migrate consumers** — grep the call sites across suref-web + ITUN; swap to
-   the unified props (StatBlock → StatDisplay `dots`, ValueDisplay →
+   the unified props (StatBlock → StatDisplay `pips`, ValueDisplay →
    `orientation="horizontal"`, DashboardGauge → VitalGauge `skin="instrument"`,
    Tag/Pill → Badge). Remove the aliases when clean. This is where "legacy/canon"
    disappears.

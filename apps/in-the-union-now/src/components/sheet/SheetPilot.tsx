@@ -103,7 +103,7 @@ export function SheetPilot({
           message="No crawler linked. Set the crawler level by hand until your union home is wired in."
           mock={
             <StatDisplay
-              dots
+              pips
               label="CRAWLER"
               name="Level"
               unit="Tech Level"

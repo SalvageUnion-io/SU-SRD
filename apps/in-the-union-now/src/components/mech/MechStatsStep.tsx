@@ -35,7 +35,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
     <div className="w-full space-y-5">
       <div className="flex flex-wrap gap-4">
         <StatDisplay
-          dots
+          pips
           label="SP"
           name="Structure Pts"
           tone="sp"
@@ -45,7 +45,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
           editable={false}
         />
         <StatDisplay
-          dots
+          pips
           label="EP"
           name="Energy Pts"
           tone="ep"
@@ -55,7 +55,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
           editable={false}
         />
         <StatDisplay
-          dots
+          pips
           label="HEAT"
           name="Heat Cap"
           tone="heat"
@@ -65,7 +65,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
           editable={false}
         />
         <StatDisplay
-          dots
+          pips
           label="SYS"
           name="System Slots"
           size="sm"
@@ -74,7 +74,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
           editable={false}
         />
         <StatDisplay
-          dots
+          pips
           label="MOD"
           name="Module Slots"
           size="sm"
@@ -83,7 +83,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
           editable={false}
         />
         <StatDisplay
-          dots
+          pips
           label="CARGO"
           name="Cargo Cap"
           tone="cargo"
@@ -93,12 +93,12 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
           editable={false}
         />
         <StatDisplay
-          dots
+          pips
           label="SV"
           name="Salvage Value"
           size="sm"
           value={chassis.salvageValue}
-          pips={false}
+          showPips={false}
           editable={false}
         />
       </div>

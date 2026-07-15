@@ -98,7 +98,7 @@ export function NpcInset({
     >
       {maxHp > 0 && (
         <StatDisplay
-          dots
+          pips
           label="HP"
           size="sm"
           tone="hp"

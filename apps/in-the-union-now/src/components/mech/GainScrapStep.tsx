@@ -11,7 +11,7 @@ export function GainScrapStep() {
   return (
     <div className="flex flex-wrap items-start gap-4">
       <StatDisplay
-        dots
+        pips
         label="SCRAP"
         name="Tech 1 Scrap"
         unit="Starting budget"

@@ -57,10 +57,10 @@ const rows: MatrixRow[] = [
   },
   {
     role: 'Stat',
-    when: 'chips',
-    use: 'StatDisplay dots',
+    when: 'pips',
+    use: 'StatDisplay pips',
     rule: 'Framed tracker, pip track; add mode="edit" to set pips.',
-    example: <StatDisplay dots label="SP" value={Math.ceil(sp * 0.7)} max={sp} tone="sp" />,
+    example: <StatDisplay pips label="SP" value={Math.ceil(sp * 0.7)} max={sp} tone="sp" />,
   },
   {
     role: 'Stat',
