@@ -48,14 +48,12 @@ export function SlotGrid({ used, cap, scale = 'pip', label, className }: SlotGri
       className={cn('flex flex-col items-center gap-1', className)}
     >
       {statBlockRowStarts(total).map((row) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: rows are positional — the start index IS their identity
         <div key={row.start} className="flex justify-center gap-1">
           {Array.from({ length: row.count }, (_, c) => {
             const i = row.start + c
             const state = i >= safeCap ? 'over' : i < safeUsed ? 'filled' : 'empty'
             return (
               <span
-                // biome-ignore lint/suspicious/noArrayIndexKey: cells are positional — the index IS the slot address
                 key={i}
                 aria-hidden="true"
                 className={cn(
