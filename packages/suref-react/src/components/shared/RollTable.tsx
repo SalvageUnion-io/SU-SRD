@@ -258,29 +258,34 @@ function ColumnsRollTable({
       {showCommand && (
         <div
           className={cn(
-            'flex items-center justify-center bg-su-black font-bold uppercase text-su-white',
-            compact ? 'mb-1 gap-1 p-1' : 'mb-2 gap-2 p-2'
+            'flex items-center justify-between gap-2 border-b-2 border-su-orange-light bg-su-paper px-2',
+            compact ? 'mb-1 py-1' : 'mb-2 py-1.5'
           )}
         >
-          <Text as="span" className={cn('text-su-white', compact ? 'text-xs' : 'text-base')}>
-            ROLL THE DIE:
-          </Text>
+          <span
+            className={cn(
+              'font-cond font-bold uppercase leading-none tracking-caps-wide text-su-black',
+              compact ? 'text-xs' : 'text-sm'
+            )}
+          >
+            {tableName || 'Roll Table'}
+          </span>
           {tableName && !disabled && (
             <button
               type="button"
               onClick={handleRoll}
               disabled={singleRoll && hasRolled}
               className={cn(
-                'rounded-md bg-transparent text-su-white',
+                'inline-flex items-center gap-1 rounded-[2px] border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-xs font-bold uppercase leading-none tracking-caps-tight text-su-white',
                 singleRoll && hasRolled
                   ? 'cursor-not-allowed opacity-30'
-                  : 'cursor-pointer hover:bg-brand-srd',
-                compact ? 'p-0.5' : 'p-1'
+                  : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'
               )}
               aria-label="Roll on this table"
               title="Roll on this table"
             >
-              <DiceIcon compact={false} />
+              <DiceIcon compact />
+              Roll the Die
             </button>
           )}
         </div>
@@ -432,29 +437,34 @@ function StandardRollTable({
         {showCommand && (
           <div
             className={cn(
-              'flex items-center justify-center bg-su-black font-bold uppercase text-su-white',
-              compact ? 'mb-1 gap-1 p-1' : 'mb-2 gap-2 p-2'
+              'flex items-center justify-between gap-2 border-b-2 border-su-orange-light bg-su-paper px-2',
+              compact ? 'mb-1 py-1' : 'mb-2 py-1.5'
             )}
           >
-            <Text as="span" className={cn('text-su-white', compact ? 'text-xs' : 'text-base')}>
-              ROLL THE DIE:
-            </Text>
+            <span
+              className={cn(
+                'font-cond font-bold uppercase leading-none tracking-caps-wide text-su-black',
+                compact ? 'text-xs' : 'text-sm'
+              )}
+            >
+              {tableName || 'Roll table'}
+            </span>
             {tableName && !disabled && (
               <button
                 type="button"
                 onClick={handleRoll}
                 disabled={singleRoll && hasRolled}
                 className={cn(
-                  'rounded-md bg-transparent text-su-white',
+                  'inline-flex items-center gap-1 rounded-[2px] border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-xs font-bold uppercase leading-none tracking-caps-tight text-su-white',
                   singleRoll && hasRolled
                     ? 'cursor-not-allowed opacity-30'
-                    : 'cursor-pointer hover:bg-brand-srd',
-                  compact ? 'p-0.5' : 'p-1'
+                    : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'
                 )}
                 aria-label="Roll on this table"
                 title="Roll on this table"
               >
-                <DiceIcon compact={false} />
+                <DiceIcon compact />
+                Roll the Die
               </button>
             )}
           </div>
