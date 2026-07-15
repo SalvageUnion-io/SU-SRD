@@ -8,7 +8,7 @@ exploring the codebase or planning work.
 **I'm building a new feature** → start with [/CLAUDE.md](../CLAUDE.md) for
 conventions, then the relevant architecture doc below.
 
-**I'm adding/changing a UI component** → [architecture/display-system.md](architecture/display-system.md) + [architecture/package-contracts.md](architecture/package-contracts.md)
+**I'm adding/changing a UI component** → [design-system/ruleset.md](design-system/ruleset.md) (**the governing primitive laws** — one kind × one context = one primitive) + [architecture/display-system.md](architecture/display-system.md) + [architecture/package-contracts.md](architecture/package-contracts.md)
 
 **I'm changing how data flows / persists** → [architecture/data-flow.md](architecture/data-flow.md) + [adrs/ADR-002-indexeddb-idb-zod.md](adrs/ADR-002-indexeddb-idb-zod.md) + [adrs/ADR-003-zustand-hydration.md](adrs/ADR-003-zustand-hydration.md)
 
@@ -25,6 +25,13 @@ conventions, then the relevant architecture doc below.
 **I'm shipping SEO/a11y work** → [architecture/seo-accessibility.md](architecture/seo-accessibility.md)
 
 ## Directory Map
+
+### [`design-system/`](design-system/) — The canonical primitive language
+
+| Doc                                                                              | Scope                                                                                                                                                 |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ruleset.md](design-system/ruleset.md)                                           | **Canon** — the governing laws: context laws, the rendering matrix, foundations, the irreducible atom set, the merge map, value-cell + StampSeam laws |
+| [canonical-primitive-language.md](design-system/canonical-primitive-language.md) | The buildable migration plan — primitive catalog, token codification, phased merge order                                                              |
 
 ### [`architecture/`](architecture/) — Cross-cutting architecture
 
