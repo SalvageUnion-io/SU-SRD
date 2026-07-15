@@ -14,7 +14,7 @@ import { ConditionSwatch } from '../stat/ConditionSwatch'
  * StatControl (box + steppers), and replaces MiniStat:
  *
  *   orientation="horizontal"  -> the horizontal black/white [label | value].
- *   dots (or states[])        -> the framed tracker: black code tab, big
+ *   pips (or states[])        -> the framed tracker: black code tab, big
  *                                numeral, pip track / bay tally, unit bar,
  *                                steppers, tones + heat escalation.
  *   (default)                 -> the centred value box with pseudoheader stamps
@@ -57,8 +57,8 @@ type StatDisplayProps = {
 
   /** 'horizontal' selects the [label | value] anatomy; default 'vertical'. */
   orientation?: 'vertical' | 'horizontal'
-  /** true selects the framed pip-track tracker anatomy. */
-  dots?: boolean
+  /** true selects the framed pip-track (pips) tracker anatomy. */
+  pips?: boolean
   /** 'edit' adds steppers (box + tracker). */
   mode?: 'read' | 'edit'
   /** lg (sheet hero) or sm (rail / NPC / spec strip) — framed tracker. */
@@ -76,8 +76,8 @@ type StatDisplayProps = {
   onChange?: (value: number) => void
   /** Force editability on/off (framed tracker); derived otherwise. */
   editable?: boolean
-  /** Set false to suppress pips even with a max (framed tracker). */
-  pips?: boolean
+  /** Set false to suppress the pip track even with a max (framed tracker). */
+  showPips?: boolean
   /** Click handler per states[] pip (framed tracker). */
   onBay?: (index: number) => void
 
@@ -103,9 +103,9 @@ type StatDisplayProps = {
 
 export function StatDisplay(props: StatDisplayProps) {
   if (props.orientation === 'horizontal') {
-    return props.dots ? <InlineChip {...props} /> : <HorizontalValue {...props} />
+    return props.pips ? <InlineChip {...props} /> : <HorizontalValue {...props} />
   }
-  if (props.dots || props.states !== undefined) return <FramedTracker {...props} />
+  if (props.pips || props.states !== undefined) return <FramedTracker {...props} />
   return <ValueBox {...props} />
 }
 
@@ -170,7 +170,7 @@ function InlineChip({ label, value, max, tone = 'default', className }: StatDisp
   const isOver = tone === 'cargo' && max !== undefined && v > max
   const clamped = isOver ? v : Math.max(0, max !== undefined ? Math.min(v, max) : v)
   const total = isOver ? v : (max ?? 0)
-  const showPips = max !== undefined && max > 0 && total <= CHIP_PIP_MAX
+  const pipsVisible = max !== undefined && max > 0 && total <= CHIP_PIP_MAX
 
   const level = tone === 'heat' ? heatLevel(clamped, max) : 'normal'
   const heatDanger =
@@ -194,9 +194,9 @@ function InlineChip({ label, value, max, tone = 'default', className }: StatDisp
       <span className="flex items-center bg-ink px-1.5 font-cond text-label font-bold uppercase leading-none tracking-caps-tight text-paper">
         {label}
       </span>
-      {/* White value cell — the pip-chips + value live in the white "close" section. */}
+      {/* White value cell — the pips + value live in the white "close" section. */}
       <span className="flex items-center gap-1.5 bg-paper px-1.5 py-0.5">
-        {showPips && (
+        {pipsVisible && (
           <span className="flex items-center gap-[3px]" aria-hidden="true">
             {Array.from({ length: total }).map((_, i) => (
               <span
@@ -247,7 +247,7 @@ function FramedTracker({
   onChange,
   editable,
   mode,
-  pips = true,
+  showPips = true,
   states,
   onBay,
   className,
@@ -273,7 +273,7 @@ function FramedTracker({
   const isStates = states !== undefined
   const isSm = size === 'sm'
   const showSteppers = !isStates && !isSm && isEditable
-  const showPips = !isStates && pips && max !== undefined && max > 0
+  const pipsVisible = !isStates && showPips && max !== undefined && max > 0
 
   const isHeat = tone === 'heat'
   const level = isHeat && !isStates ? heatLevel(value, max) : 'normal'
@@ -407,7 +407,7 @@ function FramedTracker({
             })}
           </div>
         ) : (
-          showPips && (
+          pipsVisible && (
             <div
               className="flex flex-col items-center gap-1 px-2.5 pb-2"
               role="img"

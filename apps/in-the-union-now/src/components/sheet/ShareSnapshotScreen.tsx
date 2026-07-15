@@ -462,7 +462,7 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
               readOnly
             />
             <StatDisplay
-              dots
+              pips
               label="TP"
               name="Training"
               unit="Points"
@@ -583,7 +583,7 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
             readOnly
           />
           {states.length > 0 && (
-            <StatDisplay dots label="Bays" name="Condition" unit="Bays" states={states} />
+            <StatDisplay pips label="Bays" name="Condition" unit="Bays" states={states} />
           )}
         </>
       }

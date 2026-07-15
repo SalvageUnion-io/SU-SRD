@@ -244,7 +244,7 @@ VitalGauge) are **named compositions**, not atoms.
 ```
 DisplayCard   = Frame(3px, tone) + band + [Badge · StampSeam] + body + expand + foot
 StatDisplay   = the labeled-value primitive: vertical (Well) | horizontal (=ValueDisplay);
-                read|edit · +max · +label · +dots · mini
+                read|edit · +max · +label · +pips · mini
 VitalGauge    = Stamp + numeral (+ Well edit) + Gauge(bar)
 StatControl   = Well(number, edit) + StepBtn×2
 StatusBadge   = Badge(tone) + ConditionSwatch
@@ -262,7 +262,7 @@ not a different page, size, or theme; a different _intent_.
 | Unified         | Folds in                                                                                                          | Distinguished by                                                                                | Audience test                                    |
 | --------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | **Badge**       | ValueDisplay · Tag · Pill · Chip · CalloutMetaStamp · cost-pennant · Range · Action-type · TL · StatusBadge shell | `form` (label / label+value) · `surface` (solid/ghost/tone/quiet) · `shape` (chip/pennant/pill) | all = "categorical metadata at a glance" → merge |
-| **StatDisplay** | StatControl · Field/Input · InlineEditField · StatBlock(dots)                                                     | `mode` read\|edit × `type` number\|text · steppers · label rides the border in every state      | read vs edit = a state, not an audience → merge  |
+| **StatDisplay** | StatControl · Field/Input · InlineEditField · StatBlock(pips)                                                     | `mode` read\|edit × `type` number\|text · steppers · label rides the border in every state      | read vs edit = a state, not an audience → merge  |
 | **Gauge**       | VitalGauge · DashboardGauge · StatBlock pip-track · MiniStat pip-strip                                            | track bar\|grid\|micro · tone · dense · danger · editable · skin paper\|dark                    | same current/max, darker room = a skin → merge   |
 | _compositions_  | StatusBadge (Badge+Swatch) · Tally (Swatch×count)                                                                 | Frame + band + Gauge/Well/Swatch — assembled from atoms                                         | instruments are built, not atomic                |
 

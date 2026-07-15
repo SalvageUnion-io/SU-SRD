@@ -119,7 +119,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
       >
         {npc.maxHp > 0 && (
           <StatDisplay
-            dots
+            pips
             label={npc.statKind === 'sp' ? 'SP' : 'HP'}
             size="sm"
             tone={npc.statKind}
@@ -127,7 +127,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
             value={npc.currentHp}
             onChange={handleHpChange}
             editable
-            pips={npc.maxHp <= MAX_PIPS}
+            showPips={npc.maxHp <= MAX_PIPS}
           />
         )}
 

@@ -137,16 +137,16 @@ export const Horizontal: Story = () => (
   </div>
 )
 
-/* --- Framed tracker (the former StatBlock): dots pip track --- */
+/* --- Framed tracker (the former StatBlock): pips pip track --- */
 export const Tracker: Story = () => (
   <div className="flex items-start gap-3">
-    <StatDisplay label="SP" value={Math.ceil(sp * 0.5)} max={sp} dots tone="sp" unit="Structure" />
-    <StatDisplay label="EP" value={Math.ceil(ep * 0.75)} max={ep} dots tone="ap" />
+    <StatDisplay label="SP" value={Math.ceil(sp * 0.5)} max={sp} pips tone="sp" unit="Structure" />
+    <StatDisplay label="EP" value={Math.ceil(ep * 0.75)} max={ep} pips tone="ap" />
     <StatDisplay
       label="HEAT"
       value={Math.ceil(heat / 2)}
       max={heat}
-      dots
+      pips
       tone="heat"
       name="Heat Capacity"
     />
@@ -160,19 +160,19 @@ export const TrackerEditable: Story = () => (
       label="HEAT"
       value={Math.ceil(heat / 2)}
       max={heat}
-      dots
+      pips
       tone="heat"
       onChange={() => {}}
     />
-    <StatDisplay label="SP" value={Math.ceil(sp / 3)} max={sp} dots tone="sp" onChange={() => {}} />
+    <StatDisplay label="SP" value={Math.ceil(sp / 3)} max={sp} pips tone="sp" onChange={() => {}} />
   </div>
 )
 
 /* --- Tracker, sm (rail / NPC strip) --- */
 export const TrackerSm: Story = () => (
   <div className="flex items-start gap-3">
-    <StatDisplay label="EP" value={Math.ceil(ep / 2)} max={ep} dots tone="sp" size="sm" />
-    <StatDisplay label="HEAT" value={Math.ceil(heat * 0.8)} max={heat} dots tone="hp" size="sm" />
+    <StatDisplay label="EP" value={Math.ceil(ep / 2)} max={ep} pips tone="sp" size="sm" />
+    <StatDisplay label="HEAT" value={Math.ceil(heat * 0.8)} max={heat} pips tone="hp" size="sm" />
   </div>
 )
 

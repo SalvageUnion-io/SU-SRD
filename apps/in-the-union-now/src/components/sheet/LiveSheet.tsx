@@ -223,7 +223,7 @@ export function LiveSheet({
               <StatDisplay
                 key={item.key}
                 orientation="horizontal"
-                dots
+                pips
                 label={item.label}
                 value={item.value}
                 max={item.max}

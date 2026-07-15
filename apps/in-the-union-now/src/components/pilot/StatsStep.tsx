@@ -16,7 +16,7 @@ export function StatsStep() {
   return (
     <div className="flex flex-wrap gap-4">
       <StatDisplay
-        dots
+        pips
         label="HP"
         name="Hit Points"
         tone="hp"
@@ -26,7 +26,7 @@ export function StatsStep() {
         editable={false}
       />
       <StatDisplay
-        dots
+        pips
         label="AP"
         name="Ability Points"
         tone="ap"
@@ -36,7 +36,7 @@ export function StatsStep() {
         editable={false}
       />
       <StatDisplay
-        dots
+        pips
         label="INV"
         name="Inventory Slots"
         size="sm"
