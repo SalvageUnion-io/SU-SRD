@@ -28,10 +28,11 @@ conventions, then the relevant architecture doc below.
 
 ### [`design-system/`](design-system/) — The canonical primitive language
 
-| Doc                                                                              | Scope                                                                                                                                                 |
-| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [ruleset.md](design-system/ruleset.md)                                           | **Canon** — the governing laws: context laws, the rendering matrix, foundations, the irreducible atom set, the merge map, value-cell + StampSeam laws |
-| [canonical-primitive-language.md](design-system/canonical-primitive-language.md) | The buildable migration plan — primitive catalog, token codification, phased merge order                                                              |
+| Doc                                                                              | Scope                                                                                                                                                                                             |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ruleset.md](design-system/ruleset.md)                                           | **Canon** — the governing laws: context laws, the rendering matrix, foundations, the irreducible atom set, the merge map, value-cell + StampSeam laws                                             |
+| [canonical-primitive-language.md](design-system/canonical-primitive-language.md) | The buildable migration plan — primitive catalog, token codification, phased merge order                                                                                                          |
+| [style-unification-pass.md](design-system/style-unification-pass.md)             | **Standing operating knowledge** for the ongoing pass — the layer ladder, the current DisplayCard tidy-up scope, per-primitive rules, the Ladle conversion procedure, and the migration work-list |
 
 ### [`architecture/`](architecture/) — Cross-cutting architecture
 
