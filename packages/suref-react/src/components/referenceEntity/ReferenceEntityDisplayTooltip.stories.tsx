@@ -12,28 +12,24 @@ export default {
 const system = SalvageUnionReference.Systems.all()[0]
 const trait = SalvageUnionReference.Traits.all()[0]
 
-export const Default: Story = () => (
-  <div className="p-8">
-    <ReferenceEntityDisplayTooltip schemaName="systems" entityId={system?.id ?? ''}>
-      <Text variant="pseudoheader" className="cursor-help">
-        Hover to see {system?.name}
-      </Text>
-    </ReferenceEntityDisplayTooltip>
-  </div>
-)
-
-export const WithValueDisplay: Story = () => (
-  <div className="p-8">
-    <ReferenceEntityDisplayTooltip schemaName="systems" entityId={system?.id ?? ''}>
-      <StatDisplay orientation="horizontal" label={system?.name ?? 'System'} value="TL 2" />
-    </ReferenceEntityDisplayTooltip>
-  </div>
-)
-
-export const TraitTooltip: Story = () => (
-  <div className="flex gap-4 p-8">
-    <ReferenceEntityDisplayTooltip schemaName="traits" entityId={trait?.id ?? ''}>
-      <StatDisplay orientation="horizontal" label={trait?.name ?? 'Trait'} />
-    </ReferenceEntityDisplayTooltip>
+/** Entity hovercards over different triggers — pseudoheader, a stat, a trait. */
+export const Variants: Story = () => (
+  <div className="flex flex-col gap-6 bg-paper p-8 text-ink">
+    <p className="max-w-2xl font-mono text-xs leading-relaxed text-ink-2">
+      Wrap any trigger to summon a dense entity hovercard (schemaName + entityId). Hover each below.
+    </p>
+    <div className="flex flex-wrap items-start gap-8">
+      <ReferenceEntityDisplayTooltip schemaName="systems" entityId={system?.id ?? ''}>
+        <Text variant="pseudoheader" className="cursor-help">
+          Hover {system?.name}
+        </Text>
+      </ReferenceEntityDisplayTooltip>
+      <ReferenceEntityDisplayTooltip schemaName="systems" entityId={system?.id ?? ''}>
+        <StatDisplay orientation="horizontal" label={system?.name ?? 'System'} value="TL 2" />
+      </ReferenceEntityDisplayTooltip>
+      <ReferenceEntityDisplayTooltip schemaName="traits" entityId={trait?.id ?? ''}>
+        <StatDisplay orientation="horizontal" label={trait?.name ?? 'Trait'} />
+      </ReferenceEntityDisplayTooltip>
+    </div>
   </div>
 )
