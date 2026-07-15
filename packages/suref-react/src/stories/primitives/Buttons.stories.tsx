@@ -41,8 +41,8 @@ type BtnVariant = (typeof BTN_VARIANTS)[number]
  * (opacity .4, pointer-events none). Labels are sentence-case bodies — a Btn is
  * never a stamp.
  */
-function variantStory(variant: BtnVariant, label: string): Story {
-  const Component: Story = () => (
+function VariantShowcase({ variant, label }: { variant: BtnVariant; label: string }) {
+  return (
     <div className="bg-paper p-4">
       <div className="flex flex-col gap-5">
         <Cluster label={`${variant} · sizes`}>
@@ -60,20 +60,19 @@ function variantStory(variant: BtnVariant, label: string): Story {
       </div>
     </div>
   )
-  return Component
 }
 
 /** `default` — paper/ink outline, the resting non-action button. */
-export const Default = variantStory('default', 'Cancel')
+export const Default: Story = () => <VariantShowcase variant="default" label="Cancel" />
 
 /** `primary` — rust, THE single action colour. */
-export const Primary = variantStory('primary', 'Commit')
+export const Primary: Story = () => <VariantShowcase variant="primary" label="Commit" />
 
 /** `ghost` — transparent ground, ink text; a low-emphasis action. */
-export const Ghost = variantStory('ghost', 'Details')
+export const Ghost: Story = () => <VariantShowcase variant="ghost" label="Details" />
 
 /** `danger` — the warm bad tone for destructive actions. */
-export const Danger = variantStory('danger', 'Eject')
+export const Danger: Story = () => <VariantShowcase variant="danger" label="Eject" />
 
 /** Every variant side-by-side at md, plus the disabled row, for a scan. */
 export const AllVariants: Story = () => (

@@ -6,6 +6,7 @@ import type { PillTone } from '../../components/chrome/Pill'
 import { StatusBadge } from '../../components/chrome/StatusBadge'
 import type { EntityStatus } from '../../components/chrome/StatusBadge'
 import { Tag } from '../../components/chrome/Tag'
+import { Badge, type BadgeTone } from '../../components/chrome/Badge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -65,6 +66,32 @@ function Row({ children }: { children: ReactNode }) {
 
 const PILL_TONES: PillTone[] = ['pilot', 'mech', 'crawler', 'ok', 'warn', 'bad']
 const STATUSES: EntityStatus[] = ['intact', 'damaged', 'destroyed']
+const BADGE_TONES: BadgeTone[] = ['pilot', 'mech', 'crawler', 'ok', 'warn', 'bad']
+
+/**
+ * The unified `Badge` — Tag / Pill / Chip are named presets over this one
+ * implementation (ruleset §6). Badges are LABEL-ONLY: a label+value readout is a
+ * Stat (`StatDisplay orientation="horizontal"`), never a badge (value-cell law).
+ */
+export const Unified: Story = () => (
+  <div className="bg-paper p-4">
+    <ClusterLabel>surface · solid / ghost / outline / quiet</ClusterLabel>
+    <Row>
+      <Badge surface="solid">{keywordTags[0]}</Badge>
+      <Badge surface="ghost">{economyTags[0]}</Badge>
+      <Badge surface="outline">{economyTags[1]}</Badge>
+      <Badge surface="quiet">Uses</Badge>
+    </Row>
+    <ClusterLabel>surface=tone · entity-kind + status fills</ClusterLabel>
+    <Row>
+      {BADGE_TONES.map((tone) => (
+        <Badge key={tone} surface="tone" tone={tone}>
+          {PILL_TONE_LABELS[tone]}
+        </Badge>
+      ))}
+    </Row>
+  </div>
+)
 
 export const Pills: Story = () => (
   <div className="bg-paper p-4">
