@@ -4,7 +4,7 @@ import { Text } from '../base/Text'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Primitives/ActivationCostBox',
+  title: 'Compositions/Activation Cost',
 }
 
 export const ActionPoints: Story = () => (

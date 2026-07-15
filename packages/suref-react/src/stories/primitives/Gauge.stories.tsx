@@ -5,7 +5,7 @@ import { VitalGauge } from '../../components/stat/VitalGauge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Primitives/VitalGauge',
+  title: 'Atoms/VitalGauge',
 }
 
 const noop = () => {}

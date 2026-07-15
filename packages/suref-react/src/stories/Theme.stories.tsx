@@ -1,8 +1,51 @@
 import type { Story } from '@ladle/react'
+import type { ReactNode } from 'react'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Theme',
+  title: 'Foundations/Theme',
+}
+
+// Shared caption in the catalog's canonical voice (design ruleset §4).
+function Caption({ children }: { children: ReactNode }) {
+  return (
+    <span className="font-cond text-[10px] uppercase tracking-caps text-wk-muted">{children}</span>
+  )
+}
+
+// --- §4.1 Colour roles ---------------------------------------------------
+// Every swatch renders a REAL token via its Tailwind utility class (never a
+// raw hex) so the catalog stays ground-truth against theme.css.
+type ColorRole = {
+  bg: string
+  role: string
+  token: string
+}
+
+const colorRoles: ColorRole[] = [
+  { bg: 'bg-ink', role: 'ink', token: '--color-ink' },
+  { bg: 'bg-paper', role: 'paper · system white', token: '--color-paper' },
+  { bg: 'bg-rust', role: 'rust · action', token: '--color-rust' },
+  { bg: 'bg-pilot', role: 'pilot', token: '--color-pilot' },
+  { bg: 'bg-mech', role: 'mech', token: '--color-mech' },
+  { bg: 'bg-crawler', role: 'crawler', token: '--color-crawler' },
+  { bg: 'bg-cargo', role: 'cargo', token: '--color-cargo' },
+  { bg: 'bg-status-ok', role: 'status · ok', token: '--color-status-ok' },
+  { bg: 'bg-status-warn', role: 'status · warn', token: '--color-status-warn' },
+  { bg: 'bg-status-bad', role: 'status · bad', token: '--color-status-bad' },
+]
+
+function RoleSwatch({ bg, role, token }: ColorRole) {
+  return (
+    <div className="flex w-[128px] flex-col gap-1">
+      <div
+        className={`h-20 w-full rounded-[3px] border-chrome border-ink ${bg}`}
+        style={{ borderColor: 'var(--color-ink)' }}
+      />
+      <Caption>{role}</Caption>
+      <span className="font-cond text-[10px] tracking-caps-tight text-ink">{token}</span>
+    </div>
+  )
 }
 
 const brandColors: Record<string, string> = {
@@ -224,6 +267,150 @@ export const CSSVariables: Story = () => (
           </div>
         </div>
       ))}
+    </div>
+  </div>
+)
+
+// === Foundations, mirroring codex §03 =====================================
+
+export const ColorRoles: Story = () => (
+  <div className="flex flex-col gap-3 p-4">
+    <h2 className="font-cond text-lg uppercase tracking-caps-tight text-ink">Colour roles</h2>
+    <Caption>
+      the closed set — ink, paper (system white #fbfaf7), rust = action, the three entity tones,
+      cargo, and status ok/warn/bad. State is a treatment, never a random colour.
+    </Caption>
+    <div className="flex flex-wrap gap-4">
+      {colorRoles.map((role) => (
+        <RoleSwatch key={role.token} {...role} />
+      ))}
+    </div>
+  </div>
+)
+
+export const Tracking: Story = () => (
+  <div className="flex flex-col gap-6 p-4">
+    <h2 className="font-cond text-lg uppercase tracking-caps-tight text-ink">One label tracking</h2>
+    <Caption>15 tracking values today → 3. Shown on real uppercase label text.</Caption>
+
+    <div className="flex flex-col gap-1">
+      <span className="font-cond text-xl uppercase text-ink tracking-caps-tight">
+        Systems &amp; Modules
+      </span>
+      <Caption>--tracking-label · 0.04em · every stamp / label / tab (tracking-caps-tight)</Caption>
+    </div>
+
+    <div className="flex flex-col gap-1">
+      <span className="font-cond text-2xl uppercase text-ink" style={{ letterSpacing: '0.01em' }}>
+        Iron Mongrel
+      </span>
+      <Caption>--tracking-display · 0.01em · titles ≥22px + buttons</Caption>
+    </div>
+
+    <div className="flex flex-col gap-1">
+      <span className="font-cond text-sm uppercase text-ink tracking-eyebrow">Salvage Union</span>
+      <Caption>--tracking-eyebrow · 0.22em · brand caption only (tracking-eyebrow)</Caption>
+    </div>
+  </div>
+)
+
+type BorderWeight = {
+  cssWidth: string
+  token: string
+  label: string
+  applies: string
+}
+
+const borderWeights: BorderWeight[] = [
+  {
+    cssWidth: 'var(--bw-entity)',
+    token: '--bw-entity',
+    label: '3px',
+    applies: 'entity cards + hero header',
+  },
+  {
+    cssWidth: 'var(--bw-rail)',
+    token: '--bw-rail',
+    label: '2.5px',
+    applies: 'rail cards & Hold frames',
+  },
+  {
+    cssWidth: 'var(--bw-pill)',
+    token: '--bw-pill',
+    label: '2px',
+    applies: 'pills / status badges / dividers',
+  },
+  {
+    cssWidth: 'var(--bw-chrome)',
+    token: '--bw-chrome',
+    label: '1.5px',
+    applies: 'buttons, inputs, panels, rows, pips',
+  },
+]
+
+export const BorderMap: Story = () => (
+  <div className="flex flex-col gap-3 p-4">
+    <h2 className="font-cond text-lg uppercase tracking-caps-tight text-ink">The border map</h2>
+    <Caption>
+      Canon weights, one meaning each — the ONE border vocabulary, never border-[1.5px].
+    </Caption>
+    <div className="flex flex-wrap gap-5">
+      {borderWeights.map((w) => (
+        <div key={w.token} className="flex w-[160px] flex-col gap-1">
+          <div
+            className="flex h-20 w-full items-center justify-center rounded-[3px] bg-paper"
+            style={{
+              borderStyle: 'solid',
+              borderWidth: w.cssWidth,
+              borderColor: 'var(--color-ink)',
+            }}
+          >
+            <span className="font-cond text-sm tracking-caps-tight text-ink">{w.label}</span>
+          </div>
+          <span className="font-cond text-[10px] tracking-caps-tight text-ink">{w.token}</span>
+          <Caption>{w.applies}</Caption>
+        </div>
+      ))}
+    </div>
+  </div>
+)
+
+export const RadiusSpacing: Story = () => (
+  <div className="flex flex-col gap-6 p-4">
+    <h2 className="font-cond text-lg uppercase tracking-caps-tight text-ink">
+      Radius &amp; spacing
+    </h2>
+    <Caption>
+      3px outer radius (card + Btn — the one primitive allowed to round); inner = calc(3px − frame).
+      Stamps are square. Spacing spends only {'{2, 4, 6, 8, 12}px'} — 12px = the card gutter.
+    </Caption>
+
+    <div className="flex flex-wrap items-start gap-6">
+      <div className="flex flex-col gap-1">
+        <div
+          className="h-24 w-40 rounded-[3px] bg-paper"
+          style={{ border: 'var(--bw-entity) solid var(--color-ink)' }}
+        />
+        <Caption>card · rounded-[3px] outer</Caption>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <button
+          type="button"
+          className="rounded-[3px] bg-rust px-4 py-2 font-cond uppercase tracking-caps-tight text-su-white"
+          style={{ letterSpacing: '0.01em' }}
+        >
+          Commit
+        </button>
+        <Caption>Btn · rounded-[3px] · rust = action</Caption>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <span className="inline-block rounded-none bg-ink px-2 py-1 font-cond text-xs uppercase tracking-caps-tight text-su-white">
+          Stamp
+        </span>
+        <Caption>stamp · square (rounded-none)</Caption>
+      </div>
     </div>
   </div>
 )

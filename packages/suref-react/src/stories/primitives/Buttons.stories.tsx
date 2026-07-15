@@ -8,7 +8,7 @@ import { FilterChip } from '../../components/shared/FilterChip'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Primitives/Buttons',
+  title: 'Atoms/Button',
 }
 
 // Real SRD content — reference data is preloaded by .ladle/components.tsx.
@@ -19,38 +19,74 @@ const structure = chassis?.structurePoints ?? 10
 const pilotClassA = classes[0]?.name ?? 'Engineer'
 const pilotClassB = classes[1]?.name ?? 'Hacker'
 
+// The `.btn` cva ships four variants (btnVariants.ts). `secondary` / `control`
+// are named in the codex but not yet implemented — only the real ones render.
 const BTN_VARIANTS = ['default', 'primary', 'ghost', 'danger'] as const
 const BTN_SIZES = ['sm', 'md', 'lg'] as const
 
+/** Gauge-story caption: names the variant / prop under each cluster. */
 function Cluster({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-ink/60">
-        {label}
-      </span>
+      <span className="font-cond text-[10px] uppercase tracking-caps text-wk-muted">{label}</span>
       <div className="flex flex-wrap items-start gap-3">{children}</div>
     </div>
   )
 }
 
+type BtnVariant = (typeof BTN_VARIANTS)[number]
+
 /**
- * `Btn` — the app-chrome `.btn` (btnVariants cva): every variant × size, plus
- * the disabled treatment (opacity .4, no pointer events). `primary` is rust,
- * the single action colour; `danger` is the warm bad tone.
+ * One story per variant: every size (sm/md/lg) plus the disabled treatment
+ * (opacity .4, pointer-events none). Labels are sentence-case bodies — a Btn is
+ * never a stamp.
  */
-export const Buttons: Story = () => (
-  <div className="bg-paper p-4">
-    <div className="flex flex-col gap-5">
-      {BTN_SIZES.map((size) => (
-        <Cluster key={size} label={`size: ${size}`}>
-          {BTN_VARIANTS.map((variant) => (
-            <Btn key={variant} variant={variant} size={size}>
-              {variant}
+function variantStory(variant: BtnVariant, label: string): Story {
+  const Component: Story = () => (
+    <div className="bg-paper p-4">
+      <div className="flex flex-col gap-5">
+        <Cluster label={`${variant} · sizes`}>
+          {BTN_SIZES.map((size) => (
+            <Btn key={size} variant={variant} size={size}>
+              {label}
             </Btn>
           ))}
         </Cluster>
-      ))}
-      <Cluster label="disabled (each variant)">
+        <Cluster label={`${variant} · disabled`}>
+          <Btn variant={variant} disabled>
+            {label}
+          </Btn>
+        </Cluster>
+      </div>
+    </div>
+  )
+  return Component
+}
+
+/** `default` — paper/ink outline, the resting non-action button. */
+export const Default = variantStory('default', 'Cancel')
+
+/** `primary` — rust, THE single action colour. */
+export const Primary = variantStory('primary', 'Commit')
+
+/** `ghost` — transparent ground, ink text; a low-emphasis action. */
+export const Ghost = variantStory('ghost', 'Details')
+
+/** `danger` — the warm bad tone for destructive actions. */
+export const Danger = variantStory('danger', 'Eject')
+
+/** Every variant side-by-side at md, plus the disabled row, for a scan. */
+export const AllVariants: Story = () => (
+  <div className="bg-paper p-4">
+    <div className="flex flex-col gap-5">
+      <Cluster label="every variant · md">
+        {BTN_VARIANTS.map((variant) => (
+          <Btn key={variant} variant={variant}>
+            {variant}
+          </Btn>
+        ))}
+      </Cluster>
+      <Cluster label="every variant · disabled">
         {BTN_VARIANTS.map((variant) => (
           <Btn key={variant} variant={variant} disabled>
             {variant}

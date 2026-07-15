@@ -4,7 +4,7 @@ import { Text } from '../base/Text'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Shared/SheetDisplay',
+  title: 'Compositions/Sheet Display',
 }
 
 export const Default: Story = () => (
