@@ -18,25 +18,19 @@ type PillProps = {
   children: ReactNode
   /** Entity-kind or status fill; default is ink-on-paper outline */
   tone?: PillTone
-  /**
-   * Full pill shape (radius 999) — the poster app-bar "kindpill" (design
-   * source clean-pilot.html `.kindpill`). Default false keeps the existing
-   * 2px-radius badge shape used everywhere else.
-   */
-  rounded?: boolean
   className?: string
 }
 
 /**
  * Pill badge (design-spec §2.6 `.pill`): 2px border, 2px radius, uppercase
- * cond 11px. Kind fills pilot/mech/crawler; status fills ok/warn/bad.
+ * cond 11px, fixed 22px badge height. Kind fills pilot/mech/crawler; status
+ * fills ok/warn/bad.
  */
-export function Pill({ children, tone, rounded, className }: PillProps) {
+export function Pill({ children, tone, className }: PillProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center border-2 px-[9px] py-[3px] font-cond text-[11px] font-semibold uppercase leading-none tracking-wider',
-        rounded ? 'rounded-full' : 'rounded-[2px]',
+        'inline-flex h-[22px] items-center rounded-[2px] border-2 px-[9px] font-cond text-[11px] font-semibold uppercase leading-none tracking-wider',
         tone ? PILL_TONES[tone] : 'border-ink bg-paper text-ink',
         className
       )}
@@ -48,25 +42,23 @@ export function Pill({ children, tone, rounded, className }: PillProps) {
 
 type ChipProps = {
   children: ReactNode
-  /** Bold inverse-emphasis value, rendered after the label */
-  value?: ReactNode
   className?: string
 }
 
 /**
- * Quiet stat chip (design-spec §2.6 `.chip`): borderless, wk-bg-2 ground —
- * used for pick-card stats, conditions summaries, cargo summaries.
+ * Quiet keyword / status chip (design-spec §2.6 `.chip`): borderless, wk-bg-2
+ * ground, fixed 22px badge height. A single keyword — a label+value readout is
+ * a Stat (`StatDisplay`), not a chip.
  */
-export function Chip({ children, value, className }: ChipProps) {
+export function Chip({ children, className }: ChipProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-[2px] bg-wk-bg-2 px-2 py-[2px] font-cond text-[11px] font-semibold uppercase leading-tight text-ink-2',
+        'inline-flex h-[22px] items-center rounded-[2px] bg-wk-bg-2 px-2 font-cond text-[11px] font-semibold uppercase leading-none text-ink-2',
         className
       )}
     >
       {children}
-      {value != null && <b className="font-body font-bold normal-case">{value}</b>}
     </span>
   )
 }

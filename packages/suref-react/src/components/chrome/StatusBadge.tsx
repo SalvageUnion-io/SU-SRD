@@ -30,7 +30,7 @@ type StatusBadgeProps = {
 export function StatusBadge({ status, onClick, subject, className }: StatusBadgeProps) {
   const { label, className: fill } = STATUS_STYLES[status]
   const shared = cn(
-    'inline-flex items-center rounded-[2px] border-2 border-ink px-[9px] py-[3px] font-cond text-[11px] font-semibold uppercase leading-none text-su-white',
+    'inline-flex h-[22px] items-center rounded-[2px] border-2 border-ink px-[9px] font-cond text-[11px] font-semibold uppercase leading-none text-su-white',
     fill,
     className
   )

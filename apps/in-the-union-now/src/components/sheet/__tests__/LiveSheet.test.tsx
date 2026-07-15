@@ -79,8 +79,8 @@ describe('LiveSheet — condensed identity (name stamp + kind pill)', () => {
     expect(screen.getByText('Mara Vex').closest('[aria-hidden="true"]')).not.toBeNull()
     const pill = screen.getByText('Pilot')
     expect(pill.closest('[aria-hidden="true"]')).not.toBeNull()
-    // Poster `.kindpill` shape (design source clean-pilot.html): radius 999.
-    expect(pill.className).toContain('rounded-full')
+    // One canonical badge radius — the rounded-full kindpill variant was retired.
+    expect(pill.className).toContain('rounded-[2px]')
   })
 
   test('name and kind pill fade in once the hero scrolls out of view', () => {
