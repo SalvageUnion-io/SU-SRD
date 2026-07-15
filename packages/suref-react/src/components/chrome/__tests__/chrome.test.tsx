@@ -8,6 +8,8 @@ import { Conditions, ConditionChip } from '../Conditions'
 import { StepBtn, MiniBtn } from '../SmallButtons'
 import { TreeSep } from '../TreeSep'
 import { StatusBadge } from '../StatusBadge'
+import { Stamp } from '../Stamp'
+import { Glyph } from '../glyphs'
 
 afterEach(cleanup)
 
@@ -134,6 +136,44 @@ describe('TreeSep', () => {
     expect(screen.getByText('Engineering')).toBeTruthy()
     expect(screen.getByText('Tree')).toBeTruthy()
     expect(screen.getByRole('separator')).toBeTruthy()
+  })
+})
+
+describe('Stamp', () => {
+  test('on-ink is the default surface; text is condensed uppercase', () => {
+    render(<Stamp>Mule</Stamp>)
+    const stamp = screen.getByText('Mule')
+    expect(stamp.className).toContain('bg-ink')
+    expect(stamp.className).toContain('text-su-white')
+    expect(stamp.className).toContain('uppercase')
+    expect(stamp.className).toContain('tracking-caps-tight')
+  })
+
+  test('inverse surface flips to paper-on-ink; seam rides the border', () => {
+    const { container } = render(
+      <Stamp surface="inverse" seam>
+        SP
+      </Stamp>
+    )
+    const stamp = container.firstElementChild as HTMLElement
+    expect(stamp.className).toContain('bg-paper')
+    expect(stamp.className).toContain('text-ink')
+    // StampSeam: self-height-centred over the top border.
+    expect(stamp.className).toContain('-translate-y-1/2')
+  })
+})
+
+describe('Glyph', () => {
+  test('is decorative (aria-hidden) with no title', () => {
+    const { container } = render(<Glyph name="gear" />)
+    const svg = container.querySelector('svg')
+    expect(svg?.getAttribute('aria-hidden')).toBe('true')
+    expect(svg?.querySelector('path')).toBeTruthy()
+  })
+
+  test('a title makes it an accessible image', () => {
+    render(<Glyph name="pennant" title="1 AP" />)
+    expect(screen.getByRole('img', { name: '1 AP' })).toBeTruthy()
   })
 })
 

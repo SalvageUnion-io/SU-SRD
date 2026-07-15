@@ -5,6 +5,7 @@ import { Tooltip } from '../ui/tooltip'
 import { StepBtn } from '../chrome/SmallButtons'
 import { statBlockRowStarts, pipClickValue, trackSegmentState } from '../stat/pipRows'
 import { heatDangerFrom, heatLevel } from '../stat/heatLevel'
+import { ConditionSwatch } from '../stat/ConditionSwatch'
 
 /**
  * The single canonical stat/value primitive (canonical primitive language §2).
@@ -37,14 +38,6 @@ const PIP_FILL: Record<StatTone, string> = {
   cw: 'border-crawler bg-crawler',
   sp: 'border-ink bg-ink',
   default: 'border-ink bg-ink',
-}
-
-const TALLY_SWATCH: Record<StatState, string> = {
-  intact: 'border-status-ok bg-status-ok',
-  damaged:
-    'border-status-warn bg-[linear-gradient(135deg,var(--color-status-warn)_50%,transparent_50%)]',
-  destroyed:
-    'border-status-bad bg-[linear-gradient(45deg,transparent_42%,var(--color-status-bad)_42%,var(--color-status-bad)_58%,transparent_58%),linear-gradient(-45deg,transparent_42%,var(--color-status-bad)_42%,var(--color-status-bad)_58%,transparent_58%)]',
 }
 
 type StatDisplayProps = {
@@ -335,13 +328,7 @@ function FramedTracker({
           <div className="flex items-center justify-center gap-3 px-2.5 py-1.5">
             {tallies.map(({ state, count }) => (
               <span key={state} className="flex items-center gap-1.5">
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    'h-[11px] w-[11px] rounded-[1px] border-chrome',
-                    TALLY_SWATCH[state]
-                  )}
-                />
+                <ConditionSwatch state={state} aria-hidden="true" className="size-[11px]" />
                 <span className="font-body text-[17px] font-bold leading-none text-ink">
                   {count}
                 </span>
@@ -398,7 +385,6 @@ function FramedTracker({
                     const state = states[i]
                     if (!state) return null
                     const title = `Bay ${i + 1} · ${state}`
-                    const pipClass = cn(pipBox, 'cursor-default', TALLY_SWATCH[state])
                     return onBay ? (
                       <button
                         key={i}
@@ -406,10 +392,14 @@ function FramedTracker({
                         title={title}
                         aria-label={title}
                         onClick={() => onBay(i)}
-                        className={cn(pipClass, 'cursor-pointer')}
-                      />
+                        className="inline-flex cursor-pointer"
+                      >
+                        <ConditionSwatch state={state} aria-hidden="true" className={pipBox} />
+                      </button>
                     ) : (
-                      <span key={i} title={title} className={pipClass} />
+                      <span key={i} title={title} className="inline-flex">
+                        <ConditionSwatch state={state} aria-hidden="true" className={pipBox} />
+                      </span>
                     )
                   })}
                 </div>

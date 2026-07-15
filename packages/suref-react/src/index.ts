@@ -114,6 +114,13 @@ export type { ChoiceSelections } from './components/referenceEntity/choiceCard/c
 export { Tag } from './components/chrome/Tag'
 export { Btn } from './components/chrome/Btn'
 export { btnVariants } from './components/chrome/btnVariants'
+// Stamp — the one ink label/header atom (ruleset §5) + the StampSeam placement
+export { Stamp } from './components/chrome/Stamp'
+export type { StampSize, StampSurface } from './components/chrome/Stamp'
+export { STAMP_SEAM } from './components/chrome/stampSeam'
+// Icon glyphs — currentColor, 1em, CSP-safe (ruleset §5, atom 11)
+export { Glyph } from './components/chrome/glyphs'
+export type { GlyphName } from './components/chrome/glyphs'
 
 // Utilities — the ONE cn(): its tailwind-merge config knows the custom
 // text/tracking/border-width utilities (consumers must not re-wrap twMerge
@@ -142,6 +149,11 @@ export { ChangelogView } from './changelog/ChangelogView'
 // Stat trackers (ITUN design handoff — design-spec §2.7)
 export { VitalGauge } from './components/stat/VitalGauge'
 export type { VitalGaugeProps } from './components/stat/VitalGauge'
+export { ConditionSwatch } from './components/stat/ConditionSwatch'
+export type { ConditionSwatchState } from './components/stat/ConditionSwatch'
 export { statBlockRows, statBlockRowStarts, pipClickValue } from './components/stat/pipRows'
 export { heatLevel, heatDangerFrom, HEAT_HIGH_RATIO } from './components/stat/heatLevel'
 export type { HeatLevel } from './components/stat/heatLevel'
+
+// Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)
+export { SlotGrid } from './components/shared/SlotGrid'
