@@ -12,23 +12,26 @@ export function CalloutMetaStamp({
   children,
   rust = false,
   compact = false,
+  xs = false,
 }: {
   children: ReactNode
   rust?: boolean
   compact?: boolean
+  /** Extra-small (text-label / 10px) — the seam-tag size; matches StatDisplay xs. */
+  xs?: boolean
 }) {
   return (
     <Text
       variant="pseudoheader"
       as="span"
-      // Mirror ValueDisplay's size + weight exactly (text-sm/font-semibold in full
-      // mode, text-xs/font-normal when compact) so a lone stamp — e.g. legendary
-      // and generic ability trees, which have no numeric level badge — is uniform
-      // with the segmented ValueDisplay callout used for numeric levels / tech
-      // levels. The pseudoheader variant is font-bold; these override it.
+      // Mirror the segmented ValueDisplay callout's size + weight exactly so a
+      // lone stamp (e.g. legendary / generic ability trees, which have no numeric
+      // level badge) is uniform with the segmented callout used for numeric
+      // levels / tech levels: xs → text-label (the seam-tag size), compact →
+      // text-xs, else text-sm. The pseudoheader variant is font-bold; these override it.
       className={cn(
         'whitespace-nowrap uppercase',
-        compact ? 'text-xs font-normal' : 'text-sm font-semibold',
+        xs ? 'text-label font-bold' : compact ? 'text-xs font-normal' : 'text-sm font-semibold',
         rust && 'bg-su-rust text-paper'
       )}
     >

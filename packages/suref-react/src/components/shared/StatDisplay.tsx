@@ -70,6 +70,8 @@ type StatDisplayProps = {
 
   inverse?: boolean
   compact?: boolean
+  /** Horizontal anatomy only: extra-small (text-label / 10px) — the seam-tag size. */
+  xs?: boolean
 
   /** Uncontrolled initial value (framed tracker self-managed state). */
   init?: number
@@ -117,13 +119,15 @@ function HorizontalValue({
   label,
   value,
   compact = false,
+  xs = false,
   inverse = false,
   inline = true,
   bgColor,
   textColor,
   borderColor,
 }: StatDisplayProps) {
-  const fontSize = compact ? 'text-xs' : 'text-sm'
+  const fontSize = xs ? 'text-label' : compact ? 'text-xs' : 'text-sm'
+  const fontWeight = xs ? 'font-bold' : compact ? 'font-normal' : 'font-semibold'
   const mainVariant = inverse ? 'pseudoheaderInverse' : 'pseudoheader'
   const valueVariant = inverse ? 'pseudoheader' : 'pseudoheaderInverse'
 
@@ -139,17 +143,13 @@ function HorizontalValue({
       <Text
         variant={mainVariant}
         as="span"
-        className={cn('uppercase', fontSize, compact ? 'font-normal' : 'font-semibold')}
+        className={cn('uppercase', fontSize, fontWeight)}
         style={bgColor || textColor ? { backgroundColor: bgColor, color: textColor } : undefined}
       >
         {label}
       </Text>
       {value !== undefined && (
-        <Text
-          variant={valueVariant}
-          as="span"
-          className={cn('uppercase', fontSize, compact ? 'font-normal' : 'font-semibold')}
-        >
+        <Text variant={valueVariant} as="span" className={cn('uppercase', fontSize, fontWeight)}>
           {value}
         </Text>
       )}
