@@ -20,8 +20,8 @@ export function TreeSep({ name, suffix = 'Tree', className }: TreeSepProps) {
     // biome-ignore lint/a11y/useSemanticElements: the divider must wrap the flanking rules and tree-name tags, which a void <hr> cannot contain
     <div className={cn('flex items-center gap-2', className)} role="separator">
       <span aria-hidden="true" className="h-[1.5px] flex-1 bg-[rgba(128,128,128,0.45)]" />
-      <Tag label={name} />
-      <Tag label={suffix} ghost />
+      <Tag>{name}</Tag>
+      <Tag ghost>{suffix}</Tag>
       <span aria-hidden="true" className="h-[1.5px] flex-1 bg-[rgba(128,128,128,0.45)]" />
     </div>
   )

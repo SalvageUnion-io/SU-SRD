@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
+import { FOCUS_RING, SELECTION_RING, activateOnKey } from './interaction'
 
 type SelProps = {
   /** Whether the selection ring is on */
@@ -43,21 +44,11 @@ export function Sel({
       aria-checked={interactive && radio ? selected : undefined}
       aria-label={interactive ? ariaLabel : undefined}
       onClick={onToggle}
-      onKeyDown={
-        interactive
-          ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                onToggle()
-              }
-            }
-          : undefined
-      }
+      onKeyDown={interactive ? activateOnKey(onToggle) : undefined}
       className={cn(
         'rounded-panel',
-        interactive &&
-          'cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25',
-        selected && 'shadow-[0_0_0_3px_var(--color-rust)]',
+        interactive && cn('cursor-pointer', FOCUS_RING),
+        selected && SELECTION_RING,
         className
       )}
     >

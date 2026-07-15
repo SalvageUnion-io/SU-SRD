@@ -359,7 +359,7 @@ export function EntitySearcher({
                     onToggle?.(isSelected ? (matchedRef(item) ?? idOf(item)) : idOf(item))
                   }
                   entityProps={
-                    isSelected ? { footActions: <Tag label={`${chosenLabel} ✓`} /> } : undefined
+                    isSelected ? { footActions: <Tag>{`${chosenLabel} ✓`}</Tag> } : undefined
                   }
                 />
               )

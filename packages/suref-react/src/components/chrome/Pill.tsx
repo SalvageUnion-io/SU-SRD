@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
-import { Badge } from './Badge'
+import { Badge, type BadgeTone } from './Badge'
 
-export type PillTone = 'pilot' | 'mech' | 'crawler' | 'ok' | 'warn' | 'bad'
+/** A Pill's tone is exactly the Badge tone set (a Pill is a Badge preset). */
+export type PillTone = BadgeTone
 
 type PillProps = {
   children: ReactNode

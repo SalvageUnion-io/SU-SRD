@@ -31,7 +31,7 @@ describe('Badge (unified) + presets', () => {
   })
 
   test('Tag/Pill/Chip presets still render their signature fills', () => {
-    render(<Tag label="Armour" />)
+    render(<Tag>Armour</Tag>)
     expect(screen.getByText('Armour').className).toContain('bg-ink')
     cleanup()
     render(<Pill tone="mech">Mule</Pill>)

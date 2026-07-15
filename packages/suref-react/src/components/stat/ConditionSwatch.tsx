@@ -1,7 +1,9 @@
 import type { HTMLAttributes } from 'react'
 import { cn } from '../../utils/cn'
+import type { EntityStatus } from '../shared/entityStatus'
 
-export type ConditionSwatchState = 'intact' | 'damaged' | 'destroyed'
+/** Tri-state swatch vocabulary — the shared entity condition set. */
+export type ConditionSwatchState = EntityStatus
 
 type ConditionSwatchProps = {
   state: ConditionSwatchState

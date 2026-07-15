@@ -1,4 +1,5 @@
 import { cva } from 'class-variance-authority'
+import { DISABLED, FOCUS_RING } from './interaction'
 
 /**
  * The `.btn` cva recipe (design-spec §2.4), exported for non-button elements
@@ -7,7 +8,7 @@ import { cva } from 'class-variance-authority'
  * (react-refresh).
  */
 export const btnVariants = cva(
-  'inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-card border-chrome font-body font-medium tracking-[0.01em] transition-colors duration-[120ms] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25 disabled:pointer-events-none disabled:opacity-40',
+  `inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-card border-chrome font-body font-medium tracking-[0.01em] transition-colors duration-[120ms] ${FOCUS_RING} ${DISABLED}`,
   {
     variants: {
       variant: {

@@ -69,7 +69,7 @@ export const Filters: Story = () => (
   <div className="flex max-w-2xl flex-col gap-4 bg-paper p-4">
     <FilterRow label="Traits">
       {traits.map((t) => (
-        <Tag key={t} label={t} />
+        <Tag key={t}>{t}</Tag>
       ))}
     </FilterRow>
   </div>

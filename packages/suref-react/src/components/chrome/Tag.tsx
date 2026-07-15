@@ -2,8 +2,9 @@ import type { ReactNode } from 'react'
 import { Badge } from './Badge'
 
 type TagProps = {
-  /** Stamped chip text, e.g. "RANGE" */
-  label: ReactNode
+  /** Stamped chip content, e.g. "RANGE" (a single label — the Badge family
+   * all take content via `children`). */
+  children: ReactNode
   /** Inverted ghost chip (paper bg, ink text, inset ring) for keyword /
    * action-economy tags (TURN ACTION, PASSIVE, BALLISTIC…) */
   ghost?: boolean
@@ -17,10 +18,10 @@ type TagProps = {
  * Split label/value content is a Stat: render it with
  * `StatDisplay orientation="horizontal"`.
  */
-export function Tag({ label, ghost = false, className }: TagProps) {
+export function Tag({ children, ghost = false, className }: TagProps) {
   return (
     <Badge surface={ghost ? 'ghost' : 'solid'} className={className}>
-      {label}
+      {children}
     </Badge>
   )
 }

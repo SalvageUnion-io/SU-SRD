@@ -1,7 +1,8 @@
 import { Badge, type BadgeTone } from './Badge'
+import type { EntityStatus } from '../shared/entityStatus'
 
 /** Per-item condition vocabulary (rules: Intact / Damaged / Destroyed). */
-export type EntityStatus = 'intact' | 'damaged' | 'destroyed'
+export type { EntityStatus }
 
 /** The domain vocabulary maps onto the shared badge tones — one rendering. */
 const STATUS_STYLES: Record<EntityStatus, { label: string; tone: BadgeTone }> = {

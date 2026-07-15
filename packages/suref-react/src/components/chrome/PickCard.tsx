@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
+import { FOCUS_RING, SELECTION_RING, activateOnKey } from './interaction'
 
 type PickCardProps = {
   /** Card title (cond 700 22px uppercase) */
@@ -38,21 +39,15 @@ export function PickCard({
       tabIndex={interactive ? 0 : undefined}
       aria-pressed={interactive ? selected : undefined}
       onClick={onSelect}
-      onKeyDown={
-        interactive
-          ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                onSelect()
-              }
-            }
-          : undefined
-      }
+      onKeyDown={interactive ? activateOnKey(onSelect) : undefined}
       className={cn(
         'flex flex-col overflow-hidden rounded-panel border-chrome border-ink bg-paper transition-all duration-[120ms]',
         interactive &&
-          'cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_6px_22px_rgba(34,30,23,0.14)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25',
-        selected && 'shadow-[0_0_0_3px_var(--color-rust)]',
+          cn(
+            'cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_6px_22px_rgba(34,30,23,0.14)]',
+            FOCUS_RING
+          ),
+        selected && SELECTION_RING,
         className
       )}
     >
