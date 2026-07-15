@@ -1,13 +1,13 @@
 /**
  * Pip-track row split (ruleset §4.5): at most **5 pips per row**, rows split as
- * evenly as possible, and in awkward splits the **TOP rows get heavier** — the
- * bottom rows carry the smaller count and balance, centred beneath. So the
- * extras go to the FIRST rows (top-heavy):
+ * evenly as possible, and **bottom-heavy** — the heavier row sits on the
+ * BOTTOM, so the higher-numbered pips fill the last row. Extras go to the LAST
+ * rows:
  *
- *   6 → 3/3 · 7 → 4/3 · 8 → 4/4 · 9 → 5/4 · 10 → 5/5 · 13 → 5/4/4 · 20 → 5/5/5/5
+ *   6 → 3/3 · 7 → 3/4 · 8 → 4/4 · 9 → 4/5 · 10 → 5/5 · 13 → 4/4/5 · 20 → 5/5/5/5
  *
- * Each row is rendered `justify-center`, so the lighter lower rows sit centred
- * under the heavier top row. One canonical split for every pip surface
+ * Each row renders `justify-center`, so the lighter upper rows sit centred above
+ * the heavier bottom row. One canonical split for every pip surface
  * (StatDisplay framed tracker + VitalGauge).
  */
 export function statBlockRows(n: number, perRow = 5): number[] {
@@ -15,7 +15,7 @@ export function statBlockRows(n: number, perRow = 5): number[] {
   const rows = Math.max(1, Math.ceil(n / perRow))
   const base = Math.floor(n / rows)
   const extra = n % rows
-  return Array.from({ length: rows }, (_, i) => base + (i < extra ? 1 : 0))
+  return Array.from({ length: rows }, (_, i) => base + (i >= rows - extra ? 1 : 0))
 }
 
 /** statBlockRows with each row's starting pip index precomputed (render-pure). */
