@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as EncounterRouteImport } from './routes/encounter'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SIdRouteImport } from './routes/s/$id'
 import { Route as PilotsNewRouteImport } from './routes/pilots/new'
@@ -26,6 +27,11 @@ import { Route as SheetKindIdShareRouteImport } from './routes/sheet/$kind/$id_.
 const EncounterRoute = EncounterRouteImport.update({
   id: '/encounter',
   path: '/encounter',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -91,6 +97,7 @@ const SheetKindIdShareRoute = SheetKindIdShareRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/encounter': typeof EncounterRoute
   '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/encounter': typeof EncounterRoute
   '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
@@ -122,6 +130,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/encounter': typeof EncounterRoute
   '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/encounter'
     | '/crawlers/$id'
     | '/crawlers/new'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/encounter'
     | '/crawlers/$id'
     | '/crawlers/new'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/encounter'
     | '/crawlers/$id'
     | '/crawlers/new'
@@ -185,6 +197,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   EncounterRoute: typeof EncounterRoute
   CrawlersIdRoute: typeof CrawlersIdRoute
   CrawlersNewRoute: typeof CrawlersNewRoute
@@ -206,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/encounter'
       fullPath: '/encounter'
       preLoaderRoute: typeof EncounterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -297,6 +317,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   EncounterRoute: EncounterRoute,
   CrawlersIdRoute: CrawlersIdRoute,
   CrawlersNewRoute: CrawlersNewRoute,

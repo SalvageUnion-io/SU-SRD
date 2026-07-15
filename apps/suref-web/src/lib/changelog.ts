@@ -7,6 +7,13 @@ type ChangelogEntry = {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-07-14',
+    title: 'Support the project on Ko-fi',
+    items: [
+      'The About page now has a Ko-fi support link, so you can chip in toward hosting and development.',
+    ],
+  },
+  {
+    date: '2026-07-14',
     title: 'Chassis patterns open their loadout again',
     items: [
       'Clicking a pattern on a chassis page now opens its pattern-specific systems and modules in a modal, instead of re-opening the chassis page in a new tab.',
