@@ -9,7 +9,7 @@ import { Tag } from '../../components/chrome/Tag'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Primitives/Badges',
+  title: 'Atoms/Badge',
 }
 
 // Real SRD content — reference data is preloaded by .ladle/components.tsx before
@@ -53,7 +53,7 @@ const PILL_TONE_LABELS: Record<PillTone, string> = {
 /** Tiny caption above each variant cluster so the catalog stays scannable. */
 function ClusterLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="mb-1 mt-4 font-cond text-[10px] font-bold uppercase tracking-wider text-ink-2">
+    <div className="mb-1 mt-4 font-cond text-[10px] uppercase tracking-caps text-wk-muted">
       {children}
     </div>
   )

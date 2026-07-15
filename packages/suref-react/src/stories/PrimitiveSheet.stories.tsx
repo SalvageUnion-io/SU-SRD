@@ -20,7 +20,7 @@ import { VitalGauge } from '../components/stat/VitalGauge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Primitive Sheet',
+  title: 'Codex/Primitive Sheet',
 }
 
 /* ── module-local helpers (NOT stories) ─────────────────────────────────── */

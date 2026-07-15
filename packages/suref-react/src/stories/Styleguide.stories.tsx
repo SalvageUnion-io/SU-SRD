@@ -5,7 +5,7 @@ import { cn } from '../utils/cn'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Styleguide',
+  title: 'Codex/Overview',
 }
 
 /* ── module-local helpers (NOT stories) ─────────────────────────────────── */

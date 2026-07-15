@@ -4,7 +4,7 @@ import { StatDisplay, type StatState } from './StatDisplay'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Primitives/StatDisplay',
+  title: 'Atoms/StatDisplay',
 }
 
 // Real SRD content drives every anatomy below (reference data is preloaded by

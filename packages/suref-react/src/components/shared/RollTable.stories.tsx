@@ -4,7 +4,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Primitives/RollTable',
+  title: 'Atoms/RollTable',
 }
 
 // Get a real roll table from game data

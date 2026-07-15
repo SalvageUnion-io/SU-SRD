@@ -3,7 +3,7 @@ import { Tooltip } from './tooltip'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Primitives/Tooltip',
+  title: 'Containers/Tooltip',
 }
 
 export const Basic: Story = () => (

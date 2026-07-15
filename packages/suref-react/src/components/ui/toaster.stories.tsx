@@ -3,57 +3,84 @@ import { Toaster, toast } from './toaster'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Primitives/Toaster',
+  title: 'Containers/Toast',
 }
 
-export const AllTypes: Story = () => (
+// Ruleset §Toast: an off-white chip — status swatch + message + rust dismiss.
+// Each button below fires a real `toast(...)` so the container is interactive.
+
+const CAPTION = 'font-cond text-[10px] uppercase tracking-caps text-wk-muted'
+
+export const Variants: Story = () => (
   <>
     <Toaster />
-    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-      <button
-        type="button"
-        className="rounded bg-su-green px-4 py-2 text-su-white"
-        onClick={() =>
-          toast.success('Success', {
-            description: 'Operation completed successfully.',
-          })
-        }
-      >
-        Success Toast
-      </button>
-      <button
-        type="button"
-        className="rounded bg-su-orange px-4 py-2 text-su-white"
-        onClick={() =>
-          toast.error('Error', {
-            description: 'Something went wrong.',
-          })
-        }
-      >
-        Error Toast
-      </button>
-      <button
-        type="button"
-        className="rounded bg-su-blue px-4 py-2 text-su-white"
-        onClick={() =>
-          toast.info('Info', {
-            description: 'Here is some information.',
-          })
-        }
-      >
-        Info Toast
-      </button>
-      <button
-        type="button"
-        className="rounded bg-su-black px-4 py-2 text-su-white"
-        onClick={() =>
-          toast.warning('Warning', {
-            description: 'Please be careful.',
-          })
-        }
-      >
-        Warning Toast
-      </button>
+    <div className="flex flex-col gap-3">
+      <span className={CAPTION}>
+        status swatch + message + rust dismiss · fires a real toast, bottom-right
+      </span>
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          className="rounded-[3px] bg-status-ok px-4 py-2 font-cond uppercase tracking-caps-tight text-su-white"
+          onClick={() =>
+            toast.success('Saved to workspace.', {
+              description: 'Your build is up to date.',
+            })
+          }
+        >
+          Success
+        </button>
+        <button
+          type="button"
+          className="rounded-[3px] bg-status-bad px-4 py-2 font-cond uppercase tracking-caps-tight text-su-white"
+          onClick={() =>
+            toast.error('Save failed.', {
+              description: 'Could not reach local storage.',
+            })
+          }
+        >
+          Error
+        </button>
+        <button
+          type="button"
+          className="rounded-[3px] bg-ink px-4 py-2 font-cond uppercase tracking-caps-tight text-su-white"
+          onClick={() => toast('Nothing to report.')}
+        >
+          Default
+        </button>
+      </div>
+    </div>
+  </>
+)
+
+export const Dismiss: Story = () => (
+  <>
+    <Toaster />
+    <div className="flex flex-col gap-3">
+      <span className={CAPTION}>
+        rust = the dismiss action · raise a sticky toast, then clear it
+      </span>
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          className="rounded-[3px] bg-ink px-4 py-2 font-cond uppercase tracking-caps-tight text-su-white"
+          onClick={() =>
+            toast('Salvage pending…', {
+              description: 'This chip stays until dismissed.',
+              duration: Number.POSITIVE_INFINITY,
+            })
+          }
+        >
+          Raise sticky
+        </button>
+        <button
+          type="button"
+          className="rounded-[3px] bg-rust px-4 py-2 font-cond uppercase tracking-caps-tight text-su-white"
+          onClick={() => toast.dismiss()}
+        >
+          Dismiss
+        </button>
+      </div>
     </div>
   </>
 )

@@ -3,7 +3,7 @@ import { TraitKeywordDisplayView } from './TraitKeywordDisplayView'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'ReferenceEntity/TraitKeywordDisplayView',
+  title: 'Reference Entity/TraitKeywordDisplayView',
 }
 
 export const Trait: Story = () => (
