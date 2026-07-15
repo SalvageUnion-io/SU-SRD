@@ -70,13 +70,17 @@ and the surface/mode taxonomy of [ADR-021](../adrs/ADR-021-itun-surface-taxonomy
 
 ## 2. The Rendering Matrix
 
-`kind × context → one primitive + rule`. This is the heart of the ruleset: for
-every kind of thing, exactly one primitive per context, with the rule that
-tailors it. (`—` = not rendered in that context.)
+**What to use, when.** This is the heart of the ruleset: every UI **role** — the
+job a piece of data does on screen — maps to exactly one primitive, and the rule
+tailors it. Instances collapse into their role (a Tech level is not a role; it is
+the Stat / `label | value` role). The tables below read left-to-right across
+**surfaces** — Reference → Live Sheet → Dashboard → Listing → Tooltip; `—` = not
+rendered on that surface. For the at-a-glance role → primitive summary, see the
+`Rendering Matrix` Ladle story (`bun run ladle`).
 
 ### Vitals — Heat · HP · AP/EP · SP · TP
 
-| Kind      | Reference                               | Live Sheet                                                   | Dashboard                                                                              | Listing  | Tooltip          |
+| Role      | Reference                               | Live Sheet                                                   | Dashboard                                                                              | Listing  | Tooltip          |
 | --------- | --------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------- | -------- | ---------------- |
 | **Heat**  | — (only Heat Cap canon)                 | VitalGauge sheet-skin, redline at cap `free` + overload hint | VitalGauge instrument · Push +2 `auto` · at cap → Overload `confirm` · Vent = rust Btn | MiniStat | VitalGauge dense |
 | **HP**    | VitalGauge sheet-skin (read)            | VitalGauge sheet-skin `free` · at 0 → Critical Injury hint   | VitalGauge instrument · damage `auto` · 0 → Critical Injury `confirm`                  | MiniStat | VitalGauge dense |
@@ -86,7 +90,7 @@ tailors it. (`—` = not rendered in that context.)
 
 ### Stats / Caps · Conditions
 
-| Kind              | Reference                        | Live Sheet                                                               | Dashboard                                                | Listing                | Tooltip             |
+| Role              | Reference                        | Live Sheet                                                               | Dashboard                                                | Listing                | Tooltip             |
 | ----------------- | -------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------- | ---------------------- | ------------------- |
 | **Cap / stat**    | StatDisplay — the printed number | StatDisplay; Override → StatControl w/ dashed non-canonical ring, logged | `free` — cap is the gauge's max end                      | MiniStat               | MiniStat            |
 | **Sys/Mod slots** | StatDisplay pair                 | StatDisplay used/max (derives from chassis)                              | MiniStat in the deck header                              | MiniStat               | MiniStat            |
@@ -94,7 +98,7 @@ tailors it. (`—` = not rendered in that context.)
 
 ### Rolls · Resources
 
-| Kind             | Reference                                            | Live Sheet                                  | Dashboard                              | Listing                | Tooltip                  |
+| Role             | Reference                                            | Live Sheet                                  | Dashboard                              | Listing                | Tooltip                  |
 | ---------------- | ---------------------------------------------------- | ------------------------------------------- | -------------------------------------- | ---------------------- | ------------------------ |
 | **Roll table**   | RollTable banded d20, peach/cream                    | RollTable in a modal · rust Roll Btn `free` | RollTable dense, instrument · Roll Btn | Stamp + d20 Pill       | RollTable dense, no Roll |
 | **Roll result**  | Highlighted rolled row + text · no colour · no Apply | Highlighted row + Apply · lines             | `auto` / `confirm`                     | —                      | —                        |
@@ -103,7 +107,7 @@ tailors it. (`—` = not rendered in that context.)
 
 ### Action facets · Entities · Chrome
 
-| Kind               | Reference                               | Live Sheet                                                      | Dashboard                                                | Listing                                | Tooltip                        |
+| Role               | Reference                               | Live Sheet                                                      | Dashboard                                                | Listing                                | Tooltip                        |
 | ------------------ | --------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------- | -------------------------------------- | ------------------------------ |
 | **Cost (AP/EP)**   | Cost pennant                            | Cost pennant read-only                                          | pennant = rust ActionsDeck Btn label · tap spends `auto` | Cost pennant                           | Cost pennant                   |
 | **Range**          | Range badge + tooltip                   | Range badge (never interactive)                                 | Range badge                                              | Range badge                            | badge (own tooltip suppressed) |
