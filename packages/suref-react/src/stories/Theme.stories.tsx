@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
+import { statBlockRowStarts } from '../components/stat/pipRows'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -411,6 +412,45 @@ export const RadiusSpacing: Story = () => (
         </span>
         <Caption>stamp · square (rounded-none)</Caption>
       </div>
+    </div>
+  </div>
+)
+
+const PIP = 'h-3 w-3 rounded-badge border-chrome border-ink'
+
+function PipRows({ max, label }: { max: number; label: string }) {
+  return (
+    <div className="flex w-40 flex-col gap-2">
+      <div className="flex flex-col items-center gap-1">
+        {statBlockRowStarts(max).map((row) => (
+          <div key={row.start} className="flex gap-1">
+            {Array.from({ length: row.count }, (_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: pips are positional — the index IS their identity
+              <span key={row.start + i} className={PIP} />
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className="text-xs font-bold text-ink">
+        max = {max} <span className="font-normal text-ink-2">({label})</span>
+      </div>
+    </div>
+  )
+}
+
+/** Pip-row split — ≤5 per row, bottom-heavy (heavy row on the bottom), centred. */
+export const PipSplit: Story = () => (
+  <div className="flex flex-col gap-6 p-4">
+    <h2 className="font-cond text-lg uppercase tracking-caps-tight text-ink">Pip-row split</h2>
+    <Caption>
+      Gauge + statblock tracks split into balanced rows via the real statBlockRowStarts — ≤5 per
+      row, bottom-heavy (the heavier row rides on the bottom).
+    </Caption>
+    <div className="flex flex-wrap gap-8">
+      <PipRows max={6} label="3/3" />
+      <PipRows max={8} label="4/4" />
+      <PipRows max={10} label="5/5" />
+      <PipRows max={13} label="4/4/5" />
     </div>
   </div>
 )
