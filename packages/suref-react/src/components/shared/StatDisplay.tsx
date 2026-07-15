@@ -41,149 +41,171 @@ const PIP_FILL: Record<StatTone, string> = {
   default: 'border-ink bg-ink',
 }
 
-type StatDisplayProps = {
-  /** Header code / label ('HP', 'STRUCTURE', 'Range', or a numeric tier). */
-  label: string | number
-  value?: number | string
-  /** Track maximum (framed tracker) or the /max shown beside the value. */
-  max?: number
-  /** Minimum for edit-mode steppers (box). */
-  min?: number
-  /** Bottom pseudoheader stamp (box anatomy). */
-  bottomLabel?: string
-  /** Muted right-side header name (framed tracker). */
-  name?: string
-  /** Black footer unit bar (framed tracker), e.g. 'POINTS'. */
-  unit?: string
+type StatValue = number | string
 
-  /** 'horizontal' selects the [label | value] anatomy; default 'vertical'. */
-  orientation?: 'vertical' | 'horizontal'
-  /** true selects the framed pip-track (pips) tracker anatomy. */
-  pips?: boolean
-  /** 'edit' adds steppers (box + tracker). */
-  mode?: 'read' | 'edit'
-  /** lg (sheet hero) or sm (rail / NPC / spec strip) — framed tracker. */
-  size?: 'lg' | 'sm'
-  /** Pip fill semantics (framed tracker). */
-  tone?: StatTone
-  /** Tri-state tally mode (crawler bays) — replaces the numeric track. */
-  states?: StatState[]
-
-  inverse?: boolean
-  compact?: boolean
-  /** Horizontal anatomy only: extra-small (text-label / 10px) — the seam-tag size. */
-  xs?: boolean
-
-  /** Uncontrolled initial value (framed tracker self-managed state). */
-  init?: number
-  onChange?: (value: number) => void
-  /** Force editability on/off (framed tracker); derived otherwise. */
-  editable?: boolean
-  /** Set false to suppress the pip track even with a max (framed tracker). */
-  showPips?: boolean
-  /** Click handler per states[] pip (framed tracker). */
-  onBay?: (index: number) => void
-
-  onClick?: () => void
-  hoverText?: string
-  flash?: boolean
-  disabled?: boolean
-  isOverMax?: boolean
-
-  /** [box] Value-box fill / value-text colour overrides (Tailwind classes). */
-  bg?: string
-  valueColor?: string
-  /**
-   * Border colour override. **Anatomy-dependent value format:** in the [box]
-   * anatomy it is a Tailwind class (default `border-su-black`); in the
-   * [horizontal] anatomy it is a raw CSS colour applied as inline `style`.
-   */
-  borderColor?: string
-  /** [horizontal] Label-cell background / text colour overrides (raw CSS colours). */
-  bgColor?: string
-  textColor?: string
-  /** [horizontal] inline-flex (default) vs flex. */
-  inline?: boolean
-  labelId?: string
-  ariaLabel?: string
-  className?: string
-}
-
-/*
- * Per-anatomy prop groups. `StatDisplayProps` stays one flat bag for
- * backward-compatible call sites, but the four anatomies are mutually
- * exclusive and each reads only a SUBSET of it. These `Pick`s are the
- * authoritative "which props co-apply" answer — each sub-renderer is typed to
- * exactly its group, so e.g. the [horizontal] `bgColor`/`textColor` and the
- * [box] `bg`/`valueColor` colour overrides never coexist in one signature.
+/**
+ * StatDisplay is a discriminated union over its four mutually-exclusive
+ * anatomies. The discriminants are `orientation` / `pips` / `states`:
+ *
+ *   { orientation: 'horizontal' }             -> HorizontalValue (label|value)
+ *   { orientation: 'horizontal', pips: true } -> InlineChip (label·pips·value)
+ *   { pips: true } | { states }               -> FramedTracker (vertical)
+ *   (default)                                 -> ValueBox (centred box)
+ *
+ * Every prop is scoped to the anatomy that reads it. `Exact<>` (below) then
+ * forbids every OTHER anatomy's props with `?: never`, so mixing anatomies —
+ * e.g. a `[box]` `bg` on an `orientation="horizontal"` call — is a compile
+ * error, not a silently-ignored prop. (A plain union can't do this: TS treats
+ * a prop as "excess" only when it appears in NO member, so `bg` would slip
+ * through on the horizontal member.)
  */
 
-/** [horizontal] `orientation="horizontal"` without `pips` — the former ValueDisplay. */
-type HorizontalValueProps = Pick<
-  StatDisplayProps,
-  | 'label'
-  | 'value'
-  | 'compact'
-  | 'xs'
-  | 'inverse'
-  | 'inline'
-  | 'bgColor'
-  | 'textColor'
-  | 'borderColor'
->
-
-/** [inline-chip] `orientation="horizontal"` with `pips` — the former MiniStat. */
-type InlineChipProps = Pick<StatDisplayProps, 'label' | 'value' | 'max' | 'tone' | 'className'>
-
-/** [tracker] `pips` or `states` (vertical) — the former StatBlock. */
-type FramedTrackerProps = Pick<
-  StatDisplayProps,
-  | 'label'
-  | 'name'
-  | 'unit'
-  | 'tone'
-  | 'size'
-  | 'max'
-  | 'value'
-  | 'init'
-  | 'onChange'
-  | 'editable'
-  | 'mode'
-  | 'showPips'
-  | 'states'
-  | 'onBay'
-  | 'className'
->
-
-/** [box] the default centred value box; `mode="edit"` adds steppers (former StatControl). */
-type ValueBoxProps = Pick<
-  StatDisplayProps,
+/** Every prop name any anatomy accepts — the domain `Exact<>` closes over. */
+type StatPropKey =
   | 'label'
   | 'value'
   | 'max'
   | 'min'
   | 'bottomLabel'
-  | 'labelId'
-  | 'disabled'
-  | 'onClick'
-  | 'onChange'
+  | 'name'
+  | 'unit'
+  | 'orientation'
+  | 'pips'
   | 'mode'
+  | 'size'
+  | 'tone'
+  | 'states'
+  | 'inverse'
+  | 'compact'
+  | 'xs'
+  | 'init'
+  | 'onChange'
+  | 'editable'
+  | 'showPips'
+  | 'onBay'
+  | 'onClick'
+  | 'hoverText'
+  | 'flash'
+  | 'disabled'
+  | 'isOverMax'
   | 'bg'
   | 'valueColor'
   | 'borderColor'
+  | 'bgColor'
+  | 'textColor'
+  | 'inline'
+  | 'labelId'
   | 'ariaLabel'
-  | 'compact'
-  | 'flash'
-  | 'inverse'
-  | 'isOverMax'
-  | 'hoverText'
->
+  | 'className'
+
+/** `T`, plus every stat prop NOT in `T` forbidden (`?: never`) — the exclusion
+ * that makes the anatomies genuinely non-overlapping at the type level. */
+type Exact<T extends Partial<Record<StatPropKey, unknown>>> = T &
+  Partial<Record<Exclude<StatPropKey, keyof T>, never>>
+
+/** [horizontal] `orientation="horizontal"` without `pips` — the former ValueDisplay. */
+type HorizontalValueProps = Exact<{
+  /** Header code / label ('HP', 'Range', or a numeric tier). */
+  label: StatValue
+  orientation: 'horizontal'
+  pips?: false
+  value?: StatValue
+  compact?: boolean
+  /** Extra-small (text-label / 10px) — the seam-tag size. */
+  xs?: boolean
+  inverse?: boolean
+  /** inline-flex (default) vs flex. */
+  inline?: boolean
+  /** Label-cell background / text colour overrides (raw CSS colours). */
+  bgColor?: string
+  textColor?: string
+  /** Outer border colour — a raw CSS colour applied as inline `style`. */
+  borderColor?: string
+  className?: string
+}>
+
+/** [inline-chip] `orientation="horizontal"` with `pips` — the former MiniStat. */
+type InlineChipProps = Exact<{
+  label: StatValue
+  orientation: 'horizontal'
+  pips: true
+  value?: StatValue
+  max?: number
+  tone?: StatTone
+  className?: string
+}>
+
+/** Fields shared by both framed-tracker discriminants. */
+type FramedTrackerBase = {
+  label: StatValue
+  orientation?: 'vertical'
+  value?: StatValue
+  /** Muted right-side header name. */
+  name?: string
+  /** Black footer unit bar, e.g. 'POINTS'. */
+  unit?: string
+  tone?: StatTone
+  /** lg (sheet hero) or sm (rail / NPC / spec strip). */
+  size?: 'lg' | 'sm'
+  max?: number
+  /** Uncontrolled initial value (self-managed state). */
+  init?: number
+  onChange?: (value: number) => void
+  /** Force editability on/off; derived otherwise. */
+  editable?: boolean
+  mode?: 'read' | 'edit'
+  /** Set false to suppress the pip track even with a max. */
+  showPips?: boolean
+  /** Click handler per states[] pip. */
+  onBay?: (index: number) => void
+  className?: string
+}
+
+/** [tracker] numeric pip track (vertical). */
+type TrackerPipsProps = Exact<FramedTrackerBase & { pips: true; states?: undefined }>
+/** [tracker] tri-state bay tally (vertical) — replaces the numeric track. */
+type TrackerStatesProps = Exact<FramedTrackerBase & { pips?: false; states: StatState[] }>
+type FramedTrackerProps = TrackerPipsProps | TrackerStatesProps
+
+/** [box] the default centred value box; `mode="edit"` adds steppers (former StatControl). */
+type ValueBoxProps = Exact<{
+  label: StatValue
+  orientation?: 'vertical'
+  pips?: false
+  states?: undefined
+  value?: StatValue
+  max?: number
+  /** Minimum for edit-mode steppers. */
+  min?: number
+  /** Bottom pseudoheader stamp. */
+  bottomLabel?: string
+  labelId?: string
+  disabled?: boolean
+  onClick?: () => void
+  onChange?: (value: number) => void
+  mode?: 'read' | 'edit'
+  /** Value-box fill / value-text colour overrides (Tailwind classes). */
+  bg?: string
+  valueColor?: string
+  /** Border colour — a Tailwind class (default `border-su-black`). */
+  borderColor?: string
+  ariaLabel?: string
+  compact?: boolean
+  flash?: boolean
+  inverse?: boolean
+  isOverMax?: boolean
+  hoverText?: string
+  className?: string
+}>
+
+type StatDisplayProps = HorizontalValueProps | InlineChipProps | FramedTrackerProps | ValueBoxProps
 
 export function StatDisplay(props: StatDisplayProps) {
   if (props.orientation === 'horizontal') {
     return props.pips ? <InlineChip {...props} /> : <HorizontalValue {...props} />
   }
-  if (props.pips || props.states !== undefined) return <FramedTracker {...props} />
+  if (props.pips) return <FramedTracker {...props} />
+  if (props.states !== undefined) return <FramedTracker {...props} />
   return <ValueBox {...props} />
 }
 
@@ -201,6 +223,7 @@ function HorizontalValue({
   bgColor,
   textColor,
   borderColor,
+  className,
 }: HorizontalValueProps) {
   const fontSize = xs ? 'text-label' : compact ? 'text-xs' : 'text-sm'
   const fontWeight = xs ? 'font-bold' : compact ? 'font-normal' : 'font-semibold'
@@ -212,7 +235,8 @@ function HorizontalValue({
       className={cn(
         'shrink-0 grow-0 cursor-default whitespace-nowrap border border-su-black',
         inline ? 'inline-flex' : 'flex',
-        'w-fit'
+        'w-fit',
+        className
       )}
       style={borderColor ? { borderColor } : undefined}
     >
@@ -566,6 +590,7 @@ function ValueBox({
   inverse = false,
   isOverMax = false,
   hoverText,
+  className,
 }: ValueBoxProps) {
   const [isFlashing, setIsFlashing] = useState(false)
 
@@ -636,7 +661,8 @@ function ValueBox({
       className={cn(
         'flex flex-col items-center gap-0 overflow-visible',
         compact ? 'min-w-8' : 'w-12',
-        disabledClass
+        disabledClass,
+        className
       )}
       aria-label={combinedAriaLabel}
     >

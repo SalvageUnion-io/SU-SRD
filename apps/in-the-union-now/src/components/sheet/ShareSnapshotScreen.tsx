@@ -583,7 +583,7 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
             readOnly
           />
           {states.length > 0 && (
-            <StatDisplay pips label="Bays" name="Condition" unit="Bays" states={states} />
+            <StatDisplay label="Bays" name="Condition" unit="Bays" states={states} />
           )}
         </>
       }
