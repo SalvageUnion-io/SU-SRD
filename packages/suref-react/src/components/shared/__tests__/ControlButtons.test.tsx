@@ -41,7 +41,7 @@ describe('ControlButtons', () => {
   test('applies ghost variant classes', () => {
     render(<ControlButtons controls={[makeControl({ variant: 'ghost' })]} />)
     const button = screen.getByRole('button')
-    expect(button.innerHTML).toContain('bg-su-white')
+    expect(button.innerHTML).toContain('bg-paper')
   })
 
   test('fires onClick with stopPropagation', () => {

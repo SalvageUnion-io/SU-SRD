@@ -34,7 +34,7 @@
 .btn-active {
   background-color: var(--color-su-orange-dark);
   border-color: var(--color-su-orange-dark);
-  color: var(--color-su-white);
+  color: var(--color-paper);
 }
 
 .btn-inactive {
@@ -44,7 +44,7 @@
 .btn-inactive:hover {
   background-color: var(--color-su-orange-dark);
   border-color: var(--color-su-orange-dark);
-  color: var(--color-su-white);
+  color: var(--color-paper);
 }
 
 .btn:focus-visible {
@@ -122,7 +122,7 @@
   border: 1.5px solid var(--color-su-black);
   border-radius: 3px;
   background: var(--catalog-bg);
-  color: var(--color-su-white);
+  color: var(--color-paper);
   padding: 13px 15px;
   text-decoration: none;
   transition:
@@ -144,7 +144,7 @@
    of .catalog-item (e.g. the 404 "Return to Home" link). Apply alongside
    .catalog-item: class="catalog-item catalog-item--ghost". */
 .catalog-item--ghost {
-  background: var(--color-su-white);
+  background: var(--color-paper);
   color: var(--color-su-black);
   font-family: var(--font-cond);
   font-size: 1.125rem;
@@ -159,7 +159,7 @@
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
   background: var(--color-su-black);
-  color: var(--color-su-white);
+  color: var(--color-paper);
   padding: 0.25rem 0.5rem;
   font-family: var(--font-cond);
   font-size: 1.875rem;
@@ -190,7 +190,7 @@
   font-size: 16px;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--color-su-white);
+  color: var(--color-paper);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
   line-height: 1.2;
   text-align: center;

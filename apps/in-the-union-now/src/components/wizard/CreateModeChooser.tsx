@@ -53,7 +53,7 @@ const DOOR_CLASS =
 
 /** Black notched tab overhanging the door's left edge (mockup `.dtab`). */
 const DTAB_CLASS =
-  'absolute -left-3.5 top-[18px] grid h-12 w-11 place-items-center rounded-[2px] bg-ink font-cond text-[22px] font-bold text-su-white shadow-[0_8px_14px_-8px_rgba(0,0,0,0.55)]'
+  'absolute -left-3.5 top-[18px] grid h-12 w-11 place-items-center rounded-[2px] bg-ink font-cond text-[22px] font-bold text-paper shadow-[0_8px_14px_-8px_rgba(0,0,0,0.55)]'
 
 /** Condensed-caps door heading (mockup `.dhead`). */
 const DHEAD_CLASS =
@@ -75,10 +75,10 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
       {/* Poster band (mockup `.band` + `.banner`): tone ground, white
           condensed banner, a white rule then a tone bandtail below it. */}
       <header
-        className="border-b-4 border-su-white/95 px-5 pb-3.5 pt-7 sm:px-7"
+        className="border-b-4 border-paper/95 px-5 pb-3.5 pt-7 sm:px-7"
         style={{ background: 'var(--tone)' }}
       >
-        <h1 className="m-0 font-cond text-[clamp(34px,5.2vw,54px)] font-bold uppercase leading-[0.98] tracking-[0.5px] text-su-white [text-shadow:0_2px_0_rgba(0,0,0,0.22)]">
+        <h1 className="m-0 font-cond text-[clamp(34px,5.2vw,54px)] font-bold uppercase leading-[0.98] tracking-[0.5px] text-paper [text-shadow:0_2px_0_rgba(0,0,0,0.22)]">
           New {label}
         </h1>
       </header>
@@ -100,9 +100,7 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
             <span className={DTAB_CLASS} aria-hidden="true">
               ▶
             </span>
-            <span
-              className={cn(DHEAD_CLASS, 'text-su-white [text-shadow:0_1px_0_rgba(0,0,0,0.38)]')}
-            >
+            <span className={cn(DHEAD_CLASS, 'text-paper [text-shadow:0_1px_0_rgba(0,0,0,0.38)]')}>
               Guided
             </span>
             <span className={cn(DBODY_CLASS, 'text-ink')}>{guided.body}</span>
@@ -135,7 +133,7 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
         {kind === 'mech' && (
           <AppLink
             href="/mechs/patterns"
-            className="mx-auto mt-6 block w-fit max-w-[92%] rounded-[2px] bg-ink px-4 py-2 text-center font-cond text-[11px] font-bold uppercase leading-relaxed tracking-widest text-su-white no-underline hover:bg-ink/85"
+            className="mx-auto mt-6 block w-fit max-w-[92%] rounded-[2px] bg-ink px-4 py-2 text-center font-cond text-[11px] font-bold uppercase leading-relaxed tracking-widest text-paper no-underline hover:bg-ink/85"
           >
             A third door in the Blank family —{' '}
             <span className="text-su-orange">Instantiate from Pattern</span> · stamp a saved

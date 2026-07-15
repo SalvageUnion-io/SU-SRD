@@ -29,7 +29,7 @@ export function CalloutMetaStamp({
       className={cn(
         'whitespace-nowrap uppercase',
         compact ? 'text-xs font-normal' : 'text-sm font-semibold',
-        rust && 'bg-su-rust text-su-white'
+        rust && 'bg-su-rust text-paper'
       )}
     >
       {children}

@@ -48,10 +48,10 @@ const baseUrl = SITE_URL
           <code class="rounded bg-su-blue-pale px-1 py-0.5">{baseUrl}</code>
         </p>
         <p class="rounded-md border-l-4 border-su-orange-dark bg-su-blue-pale px-4 py-3">
-          <strong>Tip:</strong> appending <code class="rounded bg-su-white px-1 py-0.5">.json</code> to any schema URL on this site returns the underlying data. For example,{' '}
-          <code class="rounded bg-su-white px-1 py-0.5">/schema/chassis</code> renders the HTML index, and{' '}
-          <code class="rounded bg-su-white px-1 py-0.5">/schema/chassis.json</code> serves the raw array. The same applies to individual entities:{' '}
-          <code class="rounded bg-su-white px-1 py-0.5">/schema/chassis/item/iron-mongrel.json</code>.
+          <strong>Tip:</strong> appending <code class="rounded bg-paper px-1 py-0.5">.json</code> to any schema URL on this site returns the underlying data. For example,{' '}
+          <code class="rounded bg-paper px-1 py-0.5">/schema/chassis</code> renders the HTML index, and{' '}
+          <code class="rounded bg-paper px-1 py-0.5">/schema/chassis.json</code> serves the raw array. The same applies to individual entities:{' '}
+          <code class="rounded bg-paper px-1 py-0.5">/schema/chassis/item/iron-mongrel.json</code>.
         </p>
       </section>
 
@@ -60,7 +60,7 @@ const baseUrl = SITE_URL
         <h2 class="page-subheading">Endpoints</h2>
 
         <!-- Schema data array -->
-        <div class="rounded-md border-2 border-su-grey-light bg-su-white">
+        <div class="rounded-md border-2 border-su-grey-light bg-paper">
           <div class="border-b-2 border-su-grey-light px-5 py-3">
             <p class="font-mono text-sm font-bold uppercase tracking-wide text-su-grey-dark">GET</p>
             <p class="mt-1 font-mono text-base font-bold">
@@ -94,7 +94,7 @@ const baseUrl = SITE_URL
         </div>
 
         <!-- JSON Schema definition -->
-        <div class="rounded-md border-2 border-su-grey-light bg-su-white">
+        <div class="rounded-md border-2 border-su-grey-light bg-paper">
           <div class="border-b-2 border-su-grey-light px-5 py-3">
             <p class="font-mono text-sm font-bold uppercase tracking-wide text-su-grey-dark">GET</p>
             <p class="mt-1 font-mono text-base font-bold">
@@ -130,7 +130,7 @@ const baseUrl = SITE_URL
         </div>
 
         <!-- Individual entity -->
-        <div class="rounded-md border-2 border-su-grey-light bg-su-white">
+        <div class="rounded-md border-2 border-su-grey-light bg-paper">
           <div class="border-b-2 border-su-grey-light px-5 py-3">
             <p class="font-mono text-sm font-bold uppercase tracking-wide text-su-grey-dark">GET</p>
             <p class="mt-1 font-mono text-base font-bold">
@@ -184,7 +184,7 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
         <div class="overflow-hidden rounded-md border-2 border-su-grey-light">
           <table class="w-full text-sm">
             <thead>
-              <tr class="border-b-2 border-su-grey-light bg-su-black text-su-white">
+              <tr class="border-b-2 border-su-grey-light bg-su-black text-paper">
                 <th class="px-4 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide">Schema ID</th>
                 <th class="px-4 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide">Name</th>
                 <th class="px-4 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide hidden sm:table-cell">Description</th>
@@ -193,7 +193,7 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
             </thead>
             <tbody>
               {schemas.map((schema, i) => (
-                <tr class:list={['border-b border-su-grey-light', i % 2 === 0 ? 'bg-su-white' : 'bg-su-blue-pale']}>
+                <tr class:list={['border-b border-su-grey-light', i % 2 === 0 ? 'bg-paper' : 'bg-su-blue-pale']}>
                   <td class="px-4 py-2">
                     <a
                       href={`/schema/${schema.id}/`}

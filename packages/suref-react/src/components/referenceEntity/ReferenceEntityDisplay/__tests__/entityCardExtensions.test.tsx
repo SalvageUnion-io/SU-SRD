@@ -32,7 +32,7 @@ describe('mode sugar', () => {
     const { container } = render(<ReferenceEntityDisplay data={system} mode="head" />)
     expect(screen.getByText(must(system).name)).toBeTruthy()
     // listing mode renders no white body box
-    expect(container.querySelector('.bg-su-white.mx-3')).toBeNull()
+    expect(container.querySelector('.bg-paper.mx-3')).toBeNull()
   })
 
   test('explicit booleans still win over mode', () => {

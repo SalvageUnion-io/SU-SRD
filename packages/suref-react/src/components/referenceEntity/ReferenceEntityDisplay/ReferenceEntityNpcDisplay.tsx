@@ -94,7 +94,7 @@ export function ReferenceEntityNpcDisplay({
                     variant="pseudoheader"
                     as="span"
                     className={cn(
-                      'box-decoration-clone bg-su-black px-1 text-su-white uppercase tracking-[-0.02em]',
+                      'box-decoration-clone bg-su-black px-1 text-paper uppercase tracking-[-0.02em]',
                       compact ? 'py-[3px] text-base' : 'py-1 text-[1.75rem]'
                     )}
                     style={compact ? { lineHeight: 1 } : undefined}

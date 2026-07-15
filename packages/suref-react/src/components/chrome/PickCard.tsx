@@ -61,7 +61,7 @@ export function PickCard({
           {name}
         </span>
         {selected && (
-          <span className="mt-0.5 shrink-0 rounded-badge bg-rust px-2 py-[2px] font-cond text-badge font-semibold uppercase leading-tight text-su-white">
+          <span className="mt-0.5 shrink-0 rounded-badge bg-rust px-2 py-[2px] font-cond text-badge font-semibold uppercase leading-tight text-paper">
             Selected
           </span>
         )}

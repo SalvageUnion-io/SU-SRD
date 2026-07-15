@@ -34,7 +34,7 @@ export function Slab({ label, count, actions, className, variant = 'dashed' }: S
   return (
     <div className={cn('mb-3.5 flex items-center gap-3', className)}>
       {isSolid ? (
-        <span className="box-decoration-clone inline shrink-0 bg-ink px-2 pb-[3px] pt-[2px] font-cond text-sm font-bold uppercase leading-relaxed tracking-[0.09em] text-su-white">
+        <span className="box-decoration-clone inline shrink-0 bg-ink px-2 pb-[3px] pt-[2px] font-cond text-sm font-bold uppercase leading-relaxed tracking-[0.09em] text-paper">
           {label}
         </span>
       ) : (

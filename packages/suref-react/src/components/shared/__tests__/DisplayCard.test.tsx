@@ -183,7 +183,7 @@ describe('DisplayCard', () => {
     const { container } = render(
       <DisplayCard headerBg="bg-su-green" headerContent={<span>Header only</span>} />
     )
-    expect(container.querySelector('.bg-su-white')).toBeNull()
+    expect(container.querySelector('.bg-paper')).toBeNull()
   })
 
   test('disabled state keeps original header background and applies opacity', () => {
@@ -398,7 +398,7 @@ describe('DisplayCard', () => {
     expect(wrapper.className).toContain('focus-visible:ring-2')
     expect(wrapper.className).toContain('focus-visible:ring-su-black')
     expect(wrapper.className).toContain('focus-visible:ring-offset-2')
-    expect(wrapper.className).toContain('focus-visible:ring-offset-su-white')
+    expect(wrapper.className).toContain('focus-visible:ring-offset-paper')
   })
 
   test('non-button (non-clickable) card does not render focus ring classes', () => {

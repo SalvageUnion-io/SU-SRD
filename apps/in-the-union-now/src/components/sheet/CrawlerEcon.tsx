@@ -91,7 +91,7 @@ function EconLoz({ item }: { item: EconLozItem }) {
       )}
       {item.action && (
         <span
-          className="mt-1 inline-flex items-center rounded-[2px] px-2 py-[3px] font-cond text-[9px] font-bold uppercase tracking-[0.16em] text-su-white"
+          className="mt-1 inline-flex items-center rounded-[2px] px-2 py-[3px] font-cond text-[9px] font-bold uppercase tracking-[0.16em] text-paper"
           style={{ background: 'var(--tone-deep)' }}
         >
           {item.action.label}

@@ -27,7 +27,7 @@ import { cn } from '../../lib/utils'
 
 /** Black inline stamp (poster `.dcard-head .title .stamp`). Shared with SectionChead. */
 const CARD_TITLE_STAMP =
-  'box-decoration-clone inline bg-ink px-2 pb-[3px] pt-[2px] font-cond text-sm font-bold uppercase leading-relaxed tracking-caps text-su-white'
+  'box-decoration-clone inline bg-ink px-2 pb-[3px] pt-[2px] font-cond text-sm font-bold uppercase leading-relaxed tracking-caps text-paper'
 
 type SheetSectionCardProps = {
   /** Section title — rendered as the black stamp in the header's left group. */

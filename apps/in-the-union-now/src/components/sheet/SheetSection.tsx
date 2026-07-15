@@ -145,9 +145,9 @@ const HBTN_BASE =
   'inline-flex cursor-pointer items-center gap-1.5 rounded-[3px] border-2 px-3 font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide whitespace-nowrap transition-colors min-h-11 sm:min-h-8 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25 print:hidden'
 
 const HBTN_VARIANT: Record<HBtnVariant, string> = {
-  edit: 'border-ink bg-paper text-ink hover:bg-ink hover:text-su-white',
-  done: 'border-[color:var(--tone-deep,var(--color-rust))] bg-[color:var(--tone-deep,var(--color-rust))] text-su-white hover:border-ink hover:bg-ink',
-  add: 'border-[color:var(--tone-deep,var(--color-rust))] bg-paper text-[color:var(--tone-deep,var(--color-rust))] hover:bg-[color:var(--tone-deep,var(--color-rust))] hover:text-su-white',
+  edit: 'border-ink bg-paper text-ink hover:bg-ink hover:text-paper',
+  done: 'border-[color:var(--tone-deep,var(--color-rust))] bg-[color:var(--tone-deep,var(--color-rust))] text-paper hover:border-ink hover:bg-ink',
+  add: 'border-[color:var(--tone-deep,var(--color-rust))] bg-paper text-[color:var(--tone-deep,var(--color-rust))] hover:bg-[color:var(--tone-deep,var(--color-rust))] hover:text-paper',
 }
 
 type HBtnProps = ComponentPropsWithoutRef<'button'> & {
@@ -198,7 +198,7 @@ export function SectionChead({ title, count, actions, className }: SectionCheadP
   return (
     <div className={cn('mb-2 flex min-h-8 flex-wrap items-center gap-x-2.5 gap-y-2', className)}>
       <div className="flex min-w-0 items-center gap-2">
-        <span className="bg-ink px-2 pb-px pt-[2px] font-cond text-sm font-bold uppercase leading-relaxed tracking-caps text-su-white">
+        <span className="bg-ink px-2 pb-px pt-[2px] font-cond text-sm font-bold uppercase leading-relaxed tracking-caps text-paper">
           {title}
         </span>
         {count}

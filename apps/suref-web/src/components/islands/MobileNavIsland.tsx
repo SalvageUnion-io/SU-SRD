@@ -31,7 +31,7 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger
         render={
-          <button type="button" className="rounded-md p-2 text-su-white" aria-label="Open menu">
+          <button type="button" className="rounded-md p-2 text-paper" aria-label="Open menu">
             <svg
               width="24"
               height="24"
@@ -53,15 +53,15 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
 
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50" />
-        <Dialog.Popup className="fixed inset-y-0 right-0 z-50 flex w-full flex-col bg-su-white p-4 shadow-lg data-[open]:animate-slide-in-right data-[closed]:animate-slide-out-right">
+        <Dialog.Popup className="fixed inset-y-0 right-0 z-50 flex w-full flex-col bg-paper p-4 shadow-lg data-[open]:animate-slide-in-right data-[closed]:animate-slide-out-right">
           <Dialog.Title className="sr-only">Navigation Menu</Dialog.Title>
 
           {/* Header row: Logo | Close */}
           <div className="mb-2 flex items-center justify-between">
             <a href="/" onClick={() => setOpen(false)}>
               <span className="inline-flex shrink-0 cursor-pointer border border-su-black font-mono text-xl font-bold uppercase leading-none tracking-tight">
-                <span className="bg-su-black px-1 py-0.5 text-su-white">Salvage Union</span>
-                <span className="bg-su-white px-1 py-0.5 text-su-black">SRD</span>
+                <span className="bg-su-black px-1 py-0.5 text-paper">Salvage Union</span>
+                <span className="bg-paper px-1 py-0.5 text-su-black">SRD</span>
               </span>
             </a>
             <Dialog.Close
@@ -99,7 +99,7 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
               <div key={cat.label} className="mb-2 flex flex-col gap-2">
                 <div className="catalog-header">
                   <span
-                    className="bg-su-black px-1 font-mono font-bold uppercase tracking-tight text-su-white"
+                    className="bg-su-black px-1 font-mono font-bold uppercase tracking-tight text-paper"
                     style={{ lineHeight: 1 }}
                   >
                     {cat.label}

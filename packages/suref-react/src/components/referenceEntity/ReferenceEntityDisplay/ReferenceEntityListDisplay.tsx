@@ -96,7 +96,7 @@ export function ReferenceEntityListDisplay({
         {visibleOptions.map((option) => (
           <div
             key={option.value}
-            className="w-full rounded-md bg-su-white"
+            className="w-full rounded-md bg-paper"
             style={spacing.contentPaddingStyle}
           >
             <Text className={cn('font-bold text-base', option.description ? 'mb-2' : '')}>

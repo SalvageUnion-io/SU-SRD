@@ -31,19 +31,19 @@ const mockAction: SURefMetaAction = sampleAction ?? {
 }
 
 export const Default: Story = () => (
-  <div className="w-[500px] bg-su-white p-2">
+  <div className="w-[500px] bg-paper p-2">
     <NestedActionDisplay data={mockAction} />
   </div>
 )
 
 export const Compact: Story = () => (
-  <div className="w-[400px] bg-su-white p-2">
+  <div className="w-[400px] bg-paper p-2">
     <NestedActionDisplay data={mockAction} compact />
   </div>
 )
 
 export const HiddenContent: Story = () => (
-  <div className="w-[500px] bg-su-white p-2">
+  <div className="w-[500px] bg-paper p-2">
     <NestedActionDisplay data={mockAction} hideContent />
   </div>
 )

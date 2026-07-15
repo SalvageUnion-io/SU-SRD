@@ -5,13 +5,13 @@ import { StatDisplay } from '../StatDisplay'
 describe('StatDisplay', () => {
   afterEach(cleanup)
 
-  test('default colors are text-su-black on bg-su-white (16:1 contrast, WCAG AAA)', () => {
+  test('default colors are text-su-black on bg-paper (16:1 contrast, WCAG AAA)', () => {
     render(<StatDisplay label="HP" value={10} />)
     const group = screen.getByRole('group')
     expect(group).toBeTruthy()
-    // The value box uses bg-su-white and text-su-black by default,
+    // The value box uses bg-paper and text-su-black by default,
     // which gives 16:1 contrast ratio — well above WCAG AAA (7:1).
-    const box = group.querySelector('.bg-su-white')
+    const box = group.querySelector('.bg-paper')
     expect(box).toBeTruthy()
     expect(box?.querySelector('.text-su-black')).toBeTruthy()
   })

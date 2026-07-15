@@ -86,7 +86,7 @@ function TpBlock({
       aria-label={`TP ${value}`}
       className="flex shrink-0 flex-col items-center gap-1 rounded-[3px] border-2 border-ink bg-paper px-3.5 py-2 text-center"
     >
-      <span className="box-decoration-clone inline bg-ink px-[0.5em] pb-[0.16em] pt-[0.1em] font-cond text-[11px] font-bold uppercase leading-[1.5] tracking-widest text-su-white">
+      <span className="box-decoration-clone inline bg-ink px-[0.5em] pb-[0.16em] pt-[0.1em] font-cond text-[11px] font-bold uppercase leading-[1.5] tracking-widest text-paper">
         TP
       </span>
       <span className="flex items-center gap-1.5">

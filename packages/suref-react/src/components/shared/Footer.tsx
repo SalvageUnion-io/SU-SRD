@@ -13,7 +13,7 @@ type FooterProps = {
 
 export function Footer({ poweredBySalvageUrl, legalLinks }: FooterProps) {
   return (
-    <footer className="border-t border-su-grey-light bg-su-white py-3 lg:shadow-sm">
+    <footer className="border-t border-su-grey-light bg-paper py-3 lg:shadow-sm">
       <div className="mx-auto flex max-w-7xl flex-row flex-wrap items-center justify-center gap-4 text-xs text-su-black">
         <div className="min-w-0 flex-1 text-center">
           <p>

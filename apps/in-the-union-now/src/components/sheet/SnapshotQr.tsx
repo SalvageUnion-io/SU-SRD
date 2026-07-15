@@ -37,7 +37,7 @@ export function SnapshotQr({ url }: SnapshotQrProps) {
     return (
       <div
         aria-hidden="true"
-        className="h-[84px] w-[84px] shrink-0 animate-pulse rounded-[3px] border-chrome border-ink bg-white"
+        className="h-[84px] w-[84px] shrink-0 animate-pulse rounded-[3px] border-chrome border-ink bg-paper"
       />
     )
   }
@@ -47,7 +47,7 @@ export function SnapshotQr({ url }: SnapshotQrProps) {
       role="img"
       aria-label="QR code linking to this snapshot"
       data-testid="snapshot-qr"
-      className="h-[84px] w-[84px] shrink-0 rounded-[3px] border-chrome border-ink bg-white p-1 [&>svg]:h-full [&>svg]:w-full"
+      className="h-[84px] w-[84px] shrink-0 rounded-[3px] border-chrome border-ink bg-paper p-1 [&>svg]:h-full [&>svg]:w-full"
       // Trusted markup: generated locally by the qrcode encoder from module
       // geometry — the URL is encoded as QR modules, never interpolated as HTML.
       // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG string is produced locally by the qrcode encoder from module geometry; no user-controlled HTML can reach it

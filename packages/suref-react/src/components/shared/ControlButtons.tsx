@@ -11,26 +11,26 @@ import type {
 const VARIANT_BG: Record<ReferenceEntityControlVariant, string> = {
   primary: 'bg-su-black',
   danger: 'bg-su-rust',
-  ghost: 'bg-su-white',
+  ghost: 'bg-paper',
 }
 
 const VARIANT_TEXT: Record<ReferenceEntityControlVariant, string> = {
-  primary: 'text-su-white',
-  danger: 'text-su-white',
+  primary: 'text-paper',
+  danger: 'text-paper',
   ghost: 'text-su-black',
 }
 
 /** Inverse segment colors (for segmentText) */
 const INVERSE_BG: Record<ReferenceEntityControlVariant, string> = {
-  primary: 'bg-su-white',
-  danger: 'bg-su-white',
+  primary: 'bg-paper',
+  danger: 'bg-paper',
   ghost: 'bg-su-black',
 }
 
 const INVERSE_TEXT: Record<ReferenceEntityControlVariant, string> = {
   primary: 'text-su-black',
   danger: 'text-su-black',
-  ghost: 'text-su-white',
+  ghost: 'text-paper',
 }
 
 type ControlButtonsProps = {
@@ -75,7 +75,7 @@ function ControlButton({
           compact ? 'h-7 w-7' : 'h-8 w-8',
           isDisabled
             ? 'cursor-not-allowed border-su-grey-medium text-su-grey-dark'
-            : 'cursor-pointer border-su-black bg-su-white text-su-black hover:bg-su-black hover:text-su-white',
+            : 'cursor-pointer border-su-black bg-paper text-su-black hover:bg-su-black hover:text-paper',
           control.className
         )}
         title={control.ariaLabel}

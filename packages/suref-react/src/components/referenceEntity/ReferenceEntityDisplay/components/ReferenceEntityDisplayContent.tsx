@@ -573,7 +573,7 @@ export function ReferenceEntityDisplayContent({
             // above its content, so the footer isn't top-heavy.
             // 3px left accent border in the card's "deep" (darker) accent tint.
             className={cn(
-              'mx-3 min-w-0 bg-su-white p-0',
+              'mx-3 min-w-0 bg-paper p-0',
               accentDeep && 'border-l-[3px]',
               damageOverlayText && 'relative'
             )}
@@ -716,7 +716,7 @@ export function ReferenceEntityDisplayContent({
             {damageOverlayText && (
               <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-b-md bg-black/50 p-4">
                 <div className="rounded border-2 border-red-500/60 bg-red-800/90 px-4 py-3 text-center shadow-lg">
-                  <Text variant="pseudoheader" as="span" className="text-xs uppercase text-white">
+                  <Text variant="pseudoheader" as="span" className="text-xs uppercase text-paper">
                     Damaged
                   </Text>
                   <Text variant="default" className="mt-1 text-sm leading-snug text-red-100">

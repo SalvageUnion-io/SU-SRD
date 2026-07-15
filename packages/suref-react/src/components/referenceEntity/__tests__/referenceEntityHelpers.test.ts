@@ -105,9 +105,9 @@ describe('borderColorFromHeaderBg', () => {
 })
 
 describe('accentSurface', () => {
-  it('should fall back to bg-su-white with no inline style when headerBg is undefined', () => {
+  it('should fall back to bg-paper with no inline style when headerBg is undefined', () => {
     expect(accentSurface(undefined, undefined)).toEqual({
-      className: 'bg-su-white',
+      className: 'bg-paper',
       style: undefined,
     })
   })

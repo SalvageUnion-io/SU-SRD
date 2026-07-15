@@ -219,7 +219,7 @@ export function SchemaViewerIsland({
                           onChange={(e) => setNameFilter(e.target.value)}
                           placeholder="Filter by name…"
                           aria-label="Filter items by name"
-                          className="w-full rounded border border-su-black bg-su-white px-2 py-1 font-mono text-[13px] md:w-64"
+                          className="w-full rounded border border-su-black bg-paper px-2 py-1 font-mono text-[13px] md:w-64"
                         />
                       </FilterRow>
                     </div>

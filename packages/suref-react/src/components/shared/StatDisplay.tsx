@@ -191,11 +191,11 @@ function InlineChip({ label, value, max, tone = 'default', className }: StatDisp
       )}
     >
       {/* Ink stamp label cell — the [RANGE | CLOSE] horizontal split-stat style. */}
-      <span className="flex items-center bg-ink px-1.5 font-cond text-label font-bold uppercase leading-none tracking-caps-tight text-su-white">
+      <span className="flex items-center bg-ink px-1.5 font-cond text-label font-bold uppercase leading-none tracking-caps-tight text-paper">
         {label}
       </span>
       {/* White value cell — the pip-chips + value live in the white "close" section. */}
-      <span className="flex items-center gap-1.5 bg-su-white px-1.5 py-0.5">
+      <span className="flex items-center gap-1.5 bg-paper px-1.5 py-0.5">
         {showPips && (
           <span className="flex items-center gap-[3px]" aria-hidden="true">
             {Array.from({ length: total }).map((_, i) => (
@@ -308,7 +308,7 @@ function FramedTracker({
       className={cn('inline-flex flex-col items-center', isSm && 'min-w-[96px]', className)}
     >
       {/* Code stamp riding the framed body's top border (StampSeam), not a header tab. */}
-      <span className="z-[1] -mb-2 self-center bg-ink px-1.5 py-0.5 font-cond text-xs font-bold uppercase leading-none tracking-caps-wide text-su-white">
+      <span className="z-[1] -mb-2 self-center bg-ink px-1.5 py-0.5 font-cond text-xs font-bold uppercase leading-none tracking-caps-wide text-paper">
         {code}
       </span>
       {name && (
@@ -457,7 +457,7 @@ function FramedTracker({
 
         {/* Black unit bar */}
         {unit && (
-          <div className="bg-ink px-2 py-[3px] text-center font-cond text-[9.5px] font-bold uppercase leading-none tracking-[0.14em] text-su-white">
+          <div className="bg-ink px-2 py-[3px] text-center font-cond text-[9.5px] font-bold uppercase leading-none tracking-[0.14em] text-paper">
             {unit}
           </div>
         )}
@@ -481,7 +481,7 @@ function ValueBox({
   onClick,
   onChange,
   mode = 'read',
-  bg = 'bg-su-white',
+  bg = 'bg-paper',
   valueColor = 'text-su-black',
   borderColor = 'border-su-black',
   ariaLabel,
@@ -495,7 +495,7 @@ function ValueBox({
 
   const combinedAriaLabel = ariaLabel || (bottomLabel ? `${label} ${bottomLabel}` : String(label))
   const trueBg = inverse ? 'bg-su-black' : bg
-  const trueValueColor = inverse ? 'text-su-white' : valueColor
+  const trueValueColor = inverse ? 'text-paper' : valueColor
   const trueBorderColor = isOverMax ? 'border-su-green' : borderColor
 
   useEffect(() => {
@@ -542,15 +542,13 @@ function ValueBox({
   // Match the canonical button border (border-chrome border-ink bg-paper), same
   // as Btn / StepBtn; keep the invert-on-hover the box steppers have always had.
   const btnResting = inverse
-    ? 'border-su-white bg-su-black text-su-white'
+    ? 'border-paper bg-su-black text-paper'
     : 'border-ink bg-paper text-ink'
-  const btnHover = inverse
-    ? 'hover:bg-su-white hover:text-su-black'
-    : 'hover:bg-ink hover:text-paper'
+  const btnHover = inverse ? 'hover:bg-paper hover:text-su-black' : 'hover:bg-ink hover:text-paper'
 
   const boxSize = compact ? 'h-8 min-w-8 px-0.5' : 'h-12 w-12'
   // Disabled state: reduce overall opacity to signal disabled while preserving
-  // foreground/background contrast. The default bg-su-white / text-su-black pair
+  // foreground/background contrast. The default bg-paper / text-su-black pair
   // has a 16:1 base ratio; at 60% opacity the effective ratio is ~9.6:1, still
   // well above the WCAG AA threshold of 4.5:1 for normal text.
   const disabledClass = disabled ? 'opacity-60' : ''

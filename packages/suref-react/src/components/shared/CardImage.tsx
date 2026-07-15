@@ -19,9 +19,9 @@ type CardImageProps = {
 }
 
 const TAG_SM =
-  'inline-flex items-center gap-1 border border-su-black bg-su-white px-1 py-0 font-mono text-xs font-bold uppercase leading-none text-su-black transition-opacity hover:opacity-80'
+  'inline-flex items-center gap-1 border border-su-black bg-paper px-1 py-0 font-mono text-xs font-bold uppercase leading-none text-su-black transition-opacity hover:opacity-80'
 const TAG_SM_DANGER =
-  'inline-flex items-center gap-1 border border-su-black bg-su-rust px-1 py-0 font-mono text-xs font-bold uppercase leading-none text-su-white transition-opacity hover:opacity-80'
+  'inline-flex items-center gap-1 border border-su-black bg-su-rust px-1 py-0 font-mono text-xs font-bold uppercase leading-none text-paper transition-opacity hover:opacity-80'
 
 export function CardImage({ url, alt, compact, editable, width, height }: CardImageProps) {
   const [showImage, setShowImage] = useState(true)
@@ -77,7 +77,7 @@ export function CardImage({ url, alt, compact, editable, width, height }: CardIm
 
   return (
     <div
-      className="mx-auto shrink-0 bg-su-white align-top md:mx-0 md:float-left md:mr-4"
+      className="mx-auto shrink-0 bg-paper align-top md:mx-0 md:float-left md:mr-4"
       style={{ width: containerWidth, maxWidth: '100%', shapeOutside: 'margin-box' }}
     >
       <div
@@ -137,7 +137,7 @@ export function CardImage({ url, alt, compact, editable, width, height }: CardIm
             )}
           >
             {editable.isUploading ? (
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-su-white border-t-transparent" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-paper border-t-transparent" />
             ) : hasCustom ? (
               <>
                 <button

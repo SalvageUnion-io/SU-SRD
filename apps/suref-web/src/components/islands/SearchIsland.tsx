@@ -128,7 +128,7 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
         {/* Search container — .srd-search treatment: bordered su-black, tight radius, font-mono.
           The inner input keeps focus:outline-none, so the container carries the
           visible keyboard-focus indicator via focus-within (WCAG 2.4.7). */}
-        <div className="flex items-center gap-2 rounded border border-su-black bg-su-white px-3 py-[7px] font-mono text-[13px] text-su-grey-dark focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-su-orange">
+        <div className="flex items-center gap-2 rounded border border-su-black bg-paper px-3 py-[7px] font-mono text-[13px] text-su-grey-dark focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-su-orange">
           {/* Search glyph */}
           <svg
             aria-hidden="true"
@@ -171,7 +171,7 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
           <div
             id={listboxId}
             role="listbox"
-            className="absolute right-0 top-full z-50 mt-1 max-h-96 w-80 overflow-y-auto rounded-md border border-su-grey-light bg-su-white shadow-lg"
+            className="absolute right-0 top-full z-50 mt-1 max-h-96 w-80 overflow-y-auto rounded-md border border-su-grey-light bg-paper shadow-lg"
           >
             {!ready ? (
               <div className="px-4 py-3 text-sm text-su-grey-dark">Loading search index…</div>

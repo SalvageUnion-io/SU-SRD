@@ -152,14 +152,9 @@ export const FilterChips: Story = () => (
           label="Pilot"
           active={false}
           onClick={() => {}}
-          colorClass="bg-su-orange text-su-white"
+          colorClass="bg-su-orange text-paper"
         />
-        <FilterChip
-          label="Pilot"
-          active
-          onClick={() => {}}
-          colorClass="bg-su-orange text-su-white"
-        />
+        <FilterChip label="Pilot" active onClick={() => {}} colorClass="bg-su-orange text-paper" />
       </Cluster>
       <Cluster label="swatchStyle (tlchip)">
         <FilterChip label="TL1" active={false} onClick={() => {}} swatchStyle="#8bbf5a" />

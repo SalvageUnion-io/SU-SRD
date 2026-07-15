@@ -38,7 +38,7 @@ export function ConditionChip({
     <span
       className={cn(
         'inline-flex items-center gap-1.5 rounded-badge border-chrome border-ink px-2 py-[3px] font-cond text-badge font-semibold uppercase leading-none',
-        active ? 'bg-status-warn text-su-white' : 'bg-paper text-ink',
+        active ? 'bg-status-warn text-paper' : 'bg-paper text-ink',
         className
       )}
     >

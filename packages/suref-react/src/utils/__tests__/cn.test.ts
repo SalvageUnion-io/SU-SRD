@@ -46,7 +46,7 @@ describe('cn', () => {
 
     test('keeps semantic font sizes alongside text colors', () => {
       expect(cn('text-badge text-ink')).toBe('text-badge text-ink')
-      expect(cn('text-label-lg text-su-white')).toBe('text-label-lg text-su-white')
+      expect(cn('text-label-lg text-paper')).toBe('text-label-lg text-paper')
     })
 
     test('resolves semantic font-size conflicts (last wins)', () => {

@@ -84,7 +84,7 @@ export function useDetailModal(
                 The SRD black-stamp square button is kitty-cornered, straddling the
                 card's top-right corner. */}
             <div className="relative">
-              <Dialog.Close className="absolute -top-2 -right-2 z-[60] flex h-9 w-9 cursor-pointer items-center justify-center rounded-card border-2 border-su-white bg-su-black text-su-white shadow-lg transition-colors hover:bg-su-orange-dark">
+              <Dialog.Close className="absolute -top-2 -right-2 z-[60] flex h-9 w-9 cursor-pointer items-center justify-center rounded-card border-2 border-paper bg-su-black text-paper shadow-lg transition-colors hover:bg-su-orange-dark">
                 <X className="h-5 w-5" aria-hidden="true" />
                 <span className="sr-only">Close</span>
               </Dialog.Close>

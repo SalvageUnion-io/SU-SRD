@@ -87,7 +87,7 @@ export function SectionCard({
     <Root aria-label={ariaLabel} className={cn(FRAME[variant], className)}>
       <div className={HEAD[variant]}>
         {variant === 'panel' ? (
-          <TitleTag className="m-0 font-cond text-xs font-bold uppercase tracking-wider text-su-white">
+          <TitleTag className="m-0 font-cond text-xs font-bold uppercase tracking-wider text-paper">
             {title}
           </TitleTag>
         ) : (
@@ -95,7 +95,7 @@ export function SectionCard({
         )}
         {hint != null &&
           (variant === 'panel' ? (
-            <span className="min-w-0 truncate font-cond text-xs uppercase text-su-white/60">
+            <span className="min-w-0 truncate font-cond text-xs uppercase text-paper/60">
               {hint}
             </span>
           ) : (

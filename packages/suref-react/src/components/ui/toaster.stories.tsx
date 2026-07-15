@@ -21,7 +21,7 @@ export const Variants: Story = () => (
       <div className="flex flex-wrap gap-3">
         <button
           type="button"
-          className="rounded-card bg-status-ok px-4 py-2 font-cond uppercase tracking-caps-tight text-su-white"
+          className="rounded-card bg-status-ok px-4 py-2 font-cond uppercase tracking-caps-tight text-paper"
           onClick={() =>
             toast.success('Saved to workspace.', {
               description: 'Your build is up to date.',
@@ -32,7 +32,7 @@ export const Variants: Story = () => (
         </button>
         <button
           type="button"
-          className="rounded-card bg-status-bad px-4 py-2 font-cond uppercase tracking-caps-tight text-su-white"
+          className="rounded-card bg-status-bad px-4 py-2 font-cond uppercase tracking-caps-tight text-paper"
           onClick={() =>
             toast.error('Save failed.', {
               description: 'Could not reach local storage.',
@@ -43,7 +43,7 @@ export const Variants: Story = () => (
         </button>
         <button
           type="button"
-          className="rounded-card bg-ink px-4 py-2 font-cond uppercase tracking-caps-tight text-su-white"
+          className="rounded-card bg-ink px-4 py-2 font-cond uppercase tracking-caps-tight text-paper"
           onClick={() => toast('Nothing to report.')}
         >
           Default
@@ -63,7 +63,7 @@ export const Dismiss: Story = () => (
       <div className="flex flex-wrap gap-3">
         <button
           type="button"
-          className="rounded-card bg-ink px-4 py-2 font-cond uppercase tracking-caps-tight text-su-white"
+          className="rounded-card bg-ink px-4 py-2 font-cond uppercase tracking-caps-tight text-paper"
           onClick={() =>
             toast('Salvage pending…', {
               description: 'This chip stays until dismissed.',
@@ -75,7 +75,7 @@ export const Dismiss: Story = () => (
         </button>
         <button
           type="button"
-          className="rounded-card bg-rust px-4 py-2 font-cond uppercase tracking-caps-tight text-su-white"
+          className="rounded-card bg-rust px-4 py-2 font-cond uppercase tracking-caps-tight text-paper"
           onClick={() => toast.dismiss()}
         >
           Dismiss
