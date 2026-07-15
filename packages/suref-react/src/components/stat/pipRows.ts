@@ -1,16 +1,16 @@
 /**
- * Pip-track row split (ruleset §4.5): at most **5 pips per row**, rows split as
+ * Pip-track row split (ruleset §4.5): at most **6 pips per row**, rows split as
  * evenly as possible, and **bottom-heavy** — the heavier row sits on the
  * BOTTOM, so the higher-numbered pips fill the last row. Extras go to the LAST
  * rows:
  *
- *   6 → 3/3 · 7 → 3/4 · 8 → 4/4 · 9 → 4/5 · 10 → 5/5 · 13 → 4/4/5 · 20 → 5/5/5/5
+ *   6 → 6 · 7 → 3/4 · 8 → 4/4 · 10 → 5/5 · 11 → 5/6 · 12 → 6/6 · 13 → 4/4/5 · 20 → 5/5/5/5
  *
  * Each row renders `justify-center`, so the lighter upper rows sit centred above
- * the heavier bottom row. One canonical split for every pip surface
- * (StatDisplay framed tracker + VitalGauge).
+ * the heavier bottom row. One canonical split for every pip surface —
+ * StatDisplay framed tracker, VitalGauge, and SlotGrid cargo.
  */
-export function statBlockRows(n: number, perRow = 5): number[] {
+export function statBlockRows(n: number, perRow = 6): number[] {
   if (n <= 0) return []
   const rows = Math.max(1, Math.ceil(n / perRow))
   const base = Math.floor(n / rows)

@@ -201,19 +201,20 @@ dark instrument.
 
 ### 4.5 The pip-row split (gauges + statblocks)
 
-Max 5 pips per row, split balanced, and **bottom-heavy** — in an awkward split
+Max 6 pips per row, split balanced, and **bottom-heavy** — in an awkward split
 the heavier row sits on the **bottom** (the higher-numbered pips fill the last
 row), the lighter rows balance above (each row is centred, so the short upper
-rows sit centred over the full bottom row):
+rows sit centred over the full bottom row). One canonical split for every pip
+surface — StatDisplay framed tracker, VitalGauge, and SlotGrid cargo:
 
 ```
-pipRows(n): perRow = 5
-  rows  = ceil(n / 5)
+pipRows(n): perRow = 6
+  rows  = ceil(n / 6)
   base  = floor(n / rows); extra = n mod rows
   → the last `extra` rows get (base+1), the earlier rows get base
 ```
 
-`6 → 3/3 · 7 → 3/4 · 8 → 4/4 · 9 → 4/5 · 10 → 5/5 · 13 → 4/4/5 · 20 → 5/5/5/5`.
+`6 → 6 · 7 → 3/4 · 8 → 4/4 · 9 → 4/5 · 10 → 5/5 · 11 → 5/6 · 12 → 6/6 · 13 → 4/4/5 · 20 → 5/5/5/5`.
 The redline pip sits at the **70% law**.
 
 ---
