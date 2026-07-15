@@ -1,0 +1,27 @@
+import type { Story } from '@ladle/react'
+import { SalvageUnionReference } from 'salvageunion-reference'
+
+import { ClassAbilityTreeDisplay } from './ClassAbilityTreeDisplay'
+
+// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
+export default {
+  title: 'Legacy/Class Ability Tree',
+}
+
+const classes = SalvageUnionReference.Classes.all()
+
+/** The full core / advanced / legendary tree listing for a real class. */
+export const Default: Story = () =>
+  classes[0] ? (
+    <div className="max-w-2xl p-4">
+      <ClassAbilityTreeDisplay classEntity={classes[0]} />
+    </div>
+  ) : null
+
+/** A second class — trees vary in depth (core count, advanced/legendary presence). */
+export const AnotherClass: Story = () =>
+  classes[1] ? (
+    <div className="max-w-2xl p-4">
+      <ClassAbilityTreeDisplay classEntity={classes[1]} />
+    </div>
+  ) : null
