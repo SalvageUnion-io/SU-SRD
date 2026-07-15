@@ -9,19 +9,19 @@ type GlyphProps = {
 } & Omit<SVGProps<SVGSVGElement>, 'name' | 'children'>
 
 /**
- * Hand-drawn `currentColor` paths for {@link Glyph}. Kept as bare `<path>` data
- * (viewBox `0 0 16 16`) so the set is CSP-safe inline SVG and homebrew-safe.
+ * `currentColor` paths for {@link Glyph} (viewBox `0 0 24 24`) — clean,
+ * well-formed geometry so the set is CSP-safe inline SVG and homebrew-safe.
  */
 const PATHS: Record<GlyphName, string> = {
-  // action-type · gear (system / turn action)
-  gear: 'M8 5.2A2.8 2.8 0 1 0 8 10.8 2.8 2.8 0 0 0 8 5.2Zm6.2 3.6.1-.8-.1-.8 1.4-1.1-1-1.7-1.7.5a5.6 5.6 0 0 0-1.4-.8L11.2.8h-2l-.3 1.8a5.6 5.6 0 0 0-1.4.8l-1.7-.5-1 1.7L6.2 5.6a5.6 5.6 0 0 0 0 1.6L4.8 8.3l1 1.7 1.7-.5c.4.3.9.6 1.4.8l.3 1.8h2l.3-1.8c.5-.2 1-.5 1.4-.8l1.7.5 1-1.7-1.4-1.1Z',
+  // action-type · gear / cog (system / turn action)
+  gear: 'M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54A.48.48 0 0 0 13.4 2h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L1.8 8.47a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94 0 .32.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58ZM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2Z',
   // action-type · clock (reaction / long action)
   clock:
-    'M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Zm0 11.7A5.2 5.2 0 1 1 8 2.8a5.2 5.2 0 0 1 0 10.4ZM8.65 4.5h-1.3v4l3.35 2 .65-1.07-2.7-1.6V4.5Z',
-  // AP cost · pennant (a clipped flag)
-  pennant: 'M3.5 1.5h9l-2.2 3 2.2 3h-9V1.5Zm0 7h9v6l-4.5-2.2L3.5 14.5v-6Z',
+    'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7Z',
+  // AP cost · pennant (a flag on a pole)
+  pennant: 'M6 2h2v20H6V2Zm2 2h11l-3 4 3 4H8V4Z',
   // condition · ✕
-  x: 'M12.4 4.5 11.5 3.6 8 7.1 4.5 3.6l-.9.9L7.1 8l-3.5 3.5.9.9L8 8.9l3.5 3.5.9-.9L8.9 8l3.5-3.5Z',
+  x: 'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
 }
 
 /**
@@ -34,7 +34,7 @@ export function Glyph({ name, title, ...rest }: GlyphProps) {
   const decorative = title === undefined
   return (
     <svg
-      viewBox="0 0 16 16"
+      viewBox="0 0 24 24"
       width="1em"
       height="1em"
       fill="currentColor"
