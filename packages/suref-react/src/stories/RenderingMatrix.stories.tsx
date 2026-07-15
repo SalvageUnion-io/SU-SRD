@@ -41,14 +41,28 @@ type MatrixRow = {
 const rows: MatrixRow[] = [
   {
     kind: 'Bounded stat',
-    context: 'read',
+    context: 'no chips · read',
+    primitive: 'StatDisplay (max, no dots)',
+    rule: 'Square value box; value / max, no pip track.',
+    example: <StatDisplay label="SP" value={Math.ceil(sp * 0.7)} max={sp} />,
+  },
+  {
+    kind: 'Bounded stat',
+    context: 'no chips · interactive',
+    primitive: 'StatDisplay mode="edit"',
+    rule: 'Value box + steppers, no pips (StatControl).',
+    example: <StatDisplay label="HP" value={8} max={10} mode="edit" onChange={noop} />,
+  },
+  {
+    kind: 'Bounded stat',
+    context: 'chips · read',
     primitive: 'StatDisplay dots',
     rule: 'Framed tracker, pip track read-only.',
     example: <StatDisplay dots label="SP" value={Math.ceil(sp * 0.7)} max={sp} tone="sp" />,
   },
   {
     kind: 'Bounded stat',
-    context: 'interactive',
+    context: 'chips · interactive',
     primitive: 'StatDisplay dots mode="edit"',
     rule: 'Numeral + steppers; pips click-to-set.',
     example: (
