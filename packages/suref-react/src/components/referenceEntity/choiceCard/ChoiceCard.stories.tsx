@@ -4,7 +4,7 @@ import { ChoiceCard, FreeTextChoiceCard, StaticChoiceCard } from './ChoiceCard'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Reference Entity/ChoiceCard',
+  title: 'Legacy/ChoiceCard',
 }
 
 export const NotChosen: Story = () => (

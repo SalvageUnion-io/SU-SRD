@@ -5,7 +5,7 @@ import type { SURefMetaAction } from 'salvageunion-reference'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Reference Entity/NestedActionDisplay',
+  title: 'Legacy/NestedActionDisplay',
 }
 
 // Find a system with visible actions to use as demo data
