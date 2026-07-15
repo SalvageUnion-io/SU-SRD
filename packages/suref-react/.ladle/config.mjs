@@ -1,28 +1,23 @@
-// Sidebar taxonomy — the Ladle catalog mirrors the design "codex": read it
-// top-to-bottom as Codex overview → Foundations (tokens) → Atoms (the
-// irreducible set) → Compositions → Containers → Reference Entity internals.
-const GROUP_ORDER = [
-  'codex',
-  'foundations',
-  'atoms',
-  'compositions',
-  'containers',
-  'reference-entity',
-]
-
-function groupRank(id) {
-  const i = GROUP_ORDER.findIndex((g) => id.startsWith(g))
-  return i === -1 ? GROUP_ORDER.length : i
-}
-
 export default {
   stories: 'src/**/*.stories.{ts,tsx}',
   outDir: 'build-ladle',
   viteConfig: './vite.config.ts',
-  // Order groups by GROUP_ORDER, then alphabetically within each group.
-  storyOrder: (stories) =>
-    [...stories].sort((a, b) => {
-      const r = groupRank(a) - groupRank(b)
+  // The catalog mirrors the design "codex": read it top-to-bottom as
+  // Codex overview → Foundations (tokens) → Atoms (the irreducible set) →
+  // Compositions → Containers → Reference Entity internals.
+  //
+  // NOTE: Ladle serializes this function and evaluates it in the browser
+  // WITHOUT the surrounding module scope, so it must be fully self-contained —
+  // no references to outer-scope consts/helpers.
+  storyOrder: (stories) => {
+    const order = ['codex', 'foundations', 'atoms', 'compositions', 'containers', 'reference-entity']
+    const rank = (id) => {
+      const i = order.findIndex((g) => id.startsWith(g))
+      return i === -1 ? order.length : i
+    }
+    return [...stories].sort((a, b) => {
+      const r = rank(a) - rank(b)
       return r !== 0 ? r : a.localeCompare(b)
-    }),
+    })
+  },
 }
