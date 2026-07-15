@@ -1,22 +1,22 @@
 import { describe, test, expect } from 'bun:test'
 import { statBlockRows, pipClickValue } from '../pipRows'
 
-describe('statBlockRows — ≤5 per row, extras to FIRST rows (ruleset §4.5)', () => {
+describe('statBlockRows — ≤5 per row, extras to LAST rows (ruleset §4.5)', () => {
   test('fits a single row up to 5', () => {
     expect(statBlockRows(1)).toEqual([1])
     expect(statBlockRows(5)).toEqual([5])
   })
 
-  test('splits evenly with extras to the FIRST rows (top-heavy, ≤5/row)', () => {
+  test('splits evenly with extras to the LAST rows (bottom-heavy, ≤5/row)', () => {
     expect(statBlockRows(6)).toEqual([3, 3])
-    expect(statBlockRows(7)).toEqual([4, 3])
+    expect(statBlockRows(7)).toEqual([3, 4])
     expect(statBlockRows(8)).toEqual([4, 4])
-    expect(statBlockRows(9)).toEqual([5, 4])
+    expect(statBlockRows(9)).toEqual([4, 5])
     expect(statBlockRows(10)).toEqual([5, 5])
-    expect(statBlockRows(11)).toEqual([4, 4, 3])
+    expect(statBlockRows(11)).toEqual([3, 4, 4])
     expect(statBlockRows(12)).toEqual([4, 4, 4])
-    // The awkward-split case: the heavy row of 5 rides on top.
-    expect(statBlockRows(13)).toEqual([5, 4, 4])
+    // The awkward-split case: the heavy row of 5 sits on the bottom.
+    expect(statBlockRows(13)).toEqual([4, 4, 5])
     expect(statBlockRows(20)).toEqual([5, 5, 5, 5])
   })
 
