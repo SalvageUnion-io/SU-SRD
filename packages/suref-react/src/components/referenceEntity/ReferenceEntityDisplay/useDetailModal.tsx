@@ -24,6 +24,15 @@ type UseDetailModalOptions = {
   afterChoicesContent?: ReactNode
   footerOverride?: ReactNode
   hide?: Partial<ReferenceEntityHideConfig>
+  /**
+   * Force the in-place modal even when the app enables link mode. Used for
+   * views that have no standalone URL (e.g. chassis patterns, whose `data` is
+   * the chassis itself) — linking out would just reopen the same page and drop
+   * the pattern-specific view. The `EntityDetailLinkProvider` can't cover this:
+   * this hook runs in the caller's body, above the provider it wraps its JSX
+   * with, so the hook still reads the ambient link mode.
+   */
+  forceModal?: boolean
 }
 
 export function useDetailModal(
@@ -41,7 +50,7 @@ export function useDetailModal(
   // so it keeps the modal (its href would deep-link out to suref-web).
   const href = useEntityHref(data)
   const linkMode = useEntityDetailLink()
-  const openInNewTab = linkMode && !!href
+  const openInNewTab = !options?.forceModal && linkMode && !!href
 
   const schemaName =
     data && 'schemaName' in data && typeof data.schemaName === 'string'
