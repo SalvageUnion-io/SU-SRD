@@ -12,14 +12,15 @@ import { StatusBadge } from '../StatusBadge'
 afterEach(cleanup)
 
 describe('Field / Input', () => {
-  test('renders label wired to the input, with rust required asterisk', () => {
+  test('renders label wired to the input, with a required asterisk inside the stamp', () => {
     render(
       <Field label="Name" required htmlFor="name">
         <Input id="name" placeholder="Mara Vex" />
       </Field>
     )
     expect(screen.getByLabelText(/Name/)).toBeTruthy()
-    expect(screen.getByText('*').className).toContain('text-rust')
+    // The required mark rides inside the ink stamp (white on ink), not a rust glyph.
+    expect(screen.getByText('*').closest('.bg-su-black')).not.toBeNull()
   })
 
   test('input carries the rust focus ring classes', () => {

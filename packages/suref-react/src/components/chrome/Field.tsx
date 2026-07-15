@@ -18,18 +18,22 @@ type FieldProps = {
  */
 export function Field({ label, required = false, htmlFor, children, className }: FieldProps) {
   return (
-    <div className={cn('block', className)}>
-      {/* The field label IS the ink Stamp, riding the input's top border
-          (StampSeam) — the same seam the square statblock box uses. */}
-      <label htmlFor={htmlFor} className="relative z-10 -mb-2 ml-2 flex w-fit items-center gap-1">
+    <div className={cn('relative block', className)}>
+      {/* The field label IS the ink Stamp, straddling the input's top border
+          (StampSeam) — the same seam the statblock box uses. The required mark
+          rides inside the stamp (white on ink), not a separate rust glyph. */}
+      <label
+        htmlFor={htmlFor}
+        className="absolute left-2 top-0 z-10 flex w-fit -translate-y-1/2 items-center"
+      >
         <Text variant="pseudoheader" as="span" className="text-[11px]">
           {label}
+          {required && (
+            <span aria-hidden="true" className="ml-0.5">
+              *
+            </span>
+          )}
         </Text>
-        {required && (
-          <span aria-hidden="true" className="font-cond text-[13px] font-bold text-rust">
-            *
-          </span>
-        )}
       </label>
       {children}
     </div>
