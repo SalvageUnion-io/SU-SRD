@@ -14,11 +14,11 @@ export default {
 const chassis = SalvageUnionReference.Chassis.all()[0]
 const name = chassis?.name ?? 'Mule'
 
-function Demo({ headerBg }: { headerBg?: string }) {
+function Trigger({ headerBg, label }: { headerBg?: string; label: string }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="p-4">
-      <Btn onClick={() => setOpen(true)}>Open {name}</Btn>
+    <div className="flex flex-col gap-1.5">
+      <Btn onClick={() => setOpen(true)}>{label}</Btn>
       <ModalShell
         open={open}
         onOpenChange={setOpen}
@@ -34,12 +34,23 @@ function Demo({ headerBg }: { headerBg?: string }) {
           </Text>
         </div>
       </ModalShell>
+      <code className="font-mono text-nano text-ink-2">
+        {headerBg ? headerBg : 'default header'}
+      </code>
     </div>
   )
 }
 
-/** Default header (orange). Click to open; Esc / backdrop / × close it. */
-export const Default: Story = () => <Demo />
-
-/** Rust header — the light-close variant. */
-export const RustHeader: Story = () => <Demo headerBg="bg-su-rust" />
+/** The dialog shell — default vs rust header. Click a trigger; Esc / backdrop / × close it. */
+export const Variants: Story = () => (
+  <div className="flex flex-col gap-4 bg-paper p-5 text-ink">
+    <p className="max-w-2xl font-mono text-xs leading-relaxed text-ink-2">
+      A centered dialog on the DisplayCard shell. headerBg tones the header (bg-su-rust uses the
+      light close button). Modals overlay, so open one to see it.
+    </p>
+    <div className="flex flex-wrap gap-6">
+      <Trigger label={`Open ${name}`} />
+      <Trigger headerBg="bg-su-rust" label={`Open ${name} (rust)`} />
+    </div>
+  </div>
+)

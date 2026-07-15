@@ -1,4 +1,5 @@
 import type { Story } from '@ladle/react'
+import type { ReactNode } from 'react'
 import { RollTable } from './RollTable'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
@@ -7,50 +8,47 @@ export default {
   title: 'Legacy/RollTable',
 }
 
-// Get a real roll table from game data
+// A real SRD roll table drives the gallery.
 const rollTableEntity = SalvageUnionReference.RollTables.all()[0]
-const rollTable = rollTableEntity && 'table' in rollTableEntity ? rollTableEntity.table : undefined
+const table = rollTableEntity && 'table' in rollTableEntity ? rollTableEntity.table : undefined
+const tableName = rollTableEntity?.name ?? 'Attack Roll'
 
-// Simple mock table as fallback
-const mockTable = {
-  type: 'standard' as const,
-  '20': 'Critical Success: Double damage and bonus effect',
-  '11-19': 'Hit: Standard damage applied',
-  '6-10': 'Glancing Blow: Half damage applied',
-  '2-5': 'Miss: No damage dealt',
-  '1': 'Critical Failure: Weapon jams, take 1 Structure Point damage',
+function Row({
+  label,
+  width = 'w-[600px]',
+  children,
+}: {
+  label: string
+  width?: string
+  children: ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className={width}>{children}</div>
+      <code className="font-mono text-nano text-ink-2">{label}</code>
+    </div>
+  )
 }
 
-export const WithGameData: Story = () => (
-  <div className="w-[600px]">
-    <RollTable
-      table={rollTable ?? mockTable}
-      showCommand
-      tableName={rollTableEntity?.name ?? 'Attack Roll'}
-    />
-  </div>
-)
-
-export const BasicTable: Story = () => (
-  <div className="w-[600px]">
-    <RollTable table={mockTable} />
-  </div>
-)
-
-export const WithCommand: Story = () => (
-  <div className="w-[600px]">
-    <RollTable table={mockTable} showCommand tableName="Attack Roll" />
-  </div>
-)
-
-export const Compact: Story = () => (
-  <div className="w-[400px]">
-    <RollTable table={mockTable} compact showCommand tableName="Attack Roll" />
-  </div>
-)
-
-export const Disabled: Story = () => (
-  <div className="w-[600px]">
-    <RollTable table={mockTable} showCommand tableName="Attack Roll" disabled />
-  </div>
-)
+/** The banded d20 table — bare, with the roll command, compact, and disabled. */
+export const Variants: Story = () =>
+  table ? (
+    <div className="flex flex-col gap-6 bg-paper p-5 text-ink">
+      <p className="max-w-2xl font-mono text-xs leading-relaxed text-ink-2">
+        The banded d20 roll table. showCommand adds the rust Roll control + command name; compact
+        tightens for rails/tooltips; disabled suppresses the Roll action (Reference surface).
+      </p>
+      <Row label="bare">
+        <RollTable table={table} />
+      </Row>
+      <Row label="showCommand">
+        <RollTable table={table} showCommand tableName={tableName} />
+      </Row>
+      <Row label="compact" width="w-[420px]">
+        <RollTable table={table} compact showCommand tableName={tableName} />
+      </Row>
+      <Row label="disabled (Reference)">
+        <RollTable table={table} showCommand tableName={tableName} disabled />
+      </Row>
+    </div>
+  ) : null

@@ -1,4 +1,5 @@
 import type { Story } from '@ladle/react'
+import type { ReactNode } from 'react'
 import { BlockContentRendererView } from './BlockContentRendererView'
 import type { SURefObjectContentBlock } from 'salvageunion-reference'
 
@@ -7,15 +8,7 @@ export default {
   title: 'Legacy/BlockContentRendererView',
 }
 
-const paragraphBlocks: SURefObjectContentBlock[] = [
-  { type: 'paragraph', value: 'This is a standard paragraph of content describing a system.' },
-  {
-    type: 'paragraph',
-    value: 'It can span multiple blocks for longer descriptions with game mechanics.',
-  },
-]
-
-const mixedBlocks: SURefObjectContentBlock[] = [
+const mixed: SURefObjectContentBlock[] = [
   { type: 'heading', value: 'System Overview', level: 1 },
   { type: 'paragraph', value: 'This system provides enhanced capabilities.' },
   { type: 'heading', value: 'Usage', level: 2 },
@@ -24,36 +17,43 @@ const mixedBlocks: SURefObjectContentBlock[] = [
   { type: 'list-item', value: 'Range 2 zones' },
   { type: 'hint', value: 'Tip: Combine with other systems for maximum effect.' },
 ]
-
-const labelBlocks: SURefObjectContentBlock[] = [
+const labels: SURefObjectContentBlock[] = [
   { type: 'label', label: 'EFFECT', value: 'Deals 3 damage to target in range.' },
-  {
-    type: 'label',
-    label: 'ON CRITICAL',
-    value: 'Deals double damage and applies Burning condition.',
-  },
+  { type: 'label', label: 'ON CRITICAL', value: 'Deals double damage and applies Burning.' },
 ]
 
-export const Paragraphs: Story = () => (
-  <div className="w-[500px] bg-paper p-3">
-    <BlockContentRendererView content={paragraphBlocks} />
-  </div>
-)
+function Row({
+  label,
+  width = 'w-[500px]',
+  children,
+}: {
+  label: string
+  width?: string
+  children: ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className={`${width} bg-paper p-3`}>{children}</div>
+      <code className="font-mono text-nano text-ink-2">{label}</code>
+    </div>
+  )
+}
 
-export const MixedContent: Story = () => (
-  <div className="w-[500px] bg-paper p-3">
-    <BlockContentRendererView content={mixedBlocks} />
-  </div>
-)
-
-export const Labels: Story = () => (
-  <div className="w-[500px] bg-paper p-3">
-    <BlockContentRendererView content={labelBlocks} />
-  </div>
-)
-
-export const Compact: Story = () => (
-  <div className="w-[400px] bg-paper p-2">
-    <BlockContentRendererView content={mixedBlocks} compact />
+/** Every content-block type — headings, paragraphs, list-items, hints, labels. */
+export const Variants: Story = () => (
+  <div className="flex flex-col gap-6 bg-paper p-5 text-ink">
+    <p className="max-w-2xl font-mono text-xs leading-relaxed text-ink-2">
+      Renders a content-block array: headings, paragraphs, list-items, hints, and EFFECT/ON-CRITICAL
+      labels. compact tightens spacing.
+    </p>
+    <Row label="mixed (heading · paragraph · list · hint)">
+      <BlockContentRendererView content={mixed} />
+    </Row>
+    <Row label="labels">
+      <BlockContentRendererView content={labels} />
+    </Row>
+    <Row label="compact" width="w-[400px]">
+      <BlockContentRendererView content={mixed} compact />
+    </Row>
   </div>
 )
