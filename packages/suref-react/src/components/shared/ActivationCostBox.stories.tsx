@@ -1,39 +1,51 @@
 import type { Story } from '@ladle/react'
+import type { ReactNode } from 'react'
 import { ActivationCostBox } from './ActivationCostBox'
-import { Text } from '../base/Text'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Activation Cost',
 }
 
-export const ActionPoints: Story = () => (
-  <div className="flex items-center gap-4">
-    <ActivationCostBox cost={1} currency="AP" />
-    <ActivationCostBox cost={2} currency="AP" />
-    <ActivationCostBox cost={3} currency="AP" />
-  </div>
-)
+// AP / EP / Variable are the real Salvage Union activation currencies.
+function Cell({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      <div className="flex min-h-[44px] items-center">{children}</div>
+      <code className="text-nano text-ink-2">{label}</code>
+    </div>
+  )
+}
 
-export const EnergyPoints: Story = () => (
-  <div className="flex items-center gap-4">
-    <ActivationCostBox cost={1} currency="EP" />
-    <ActivationCostBox cost={2} currency="EP" />
-    <ActivationCostBox cost={3} currency="EP" />
-  </div>
-)
-
-export const VariableCost: Story = () => (
-  <div className="flex items-center gap-4">
-    <ActivationCostBox cost="Variable" currency="AP" />
-    <Text className="text-sm">Variable costs display as X</Text>
-  </div>
-)
-
-export const Compact: Story = () => (
-  <div className="flex items-center gap-3">
-    <ActivationCostBox cost={1} currency="AP" compact />
-    <ActivationCostBox cost={2} currency="EP" compact />
-    <ActivationCostBox cost="Variable" currency="AP" compact />
+/** Every currency × cost at a glance — the AP / EP / Variable activation costs. */
+export const Costs: Story = () => (
+  <div className="flex flex-col gap-4 bg-paper p-5 font-mono text-ink">
+    <p className="max-w-2xl text-xs leading-relaxed text-ink-2">
+      The activation-cost pennant. currency is AP or EP; a non-numeric cost (Variable) renders as X.
+      compact tightens it for rails and listings.
+    </p>
+    <div className="flex flex-wrap items-start gap-x-6 gap-y-5">
+      <Cell label="1 AP">
+        <ActivationCostBox cost={1} currency="AP" />
+      </Cell>
+      <Cell label="2 AP">
+        <ActivationCostBox cost={2} currency="AP" />
+      </Cell>
+      <Cell label="3 EP">
+        <ActivationCostBox cost={3} currency="EP" />
+      </Cell>
+      <Cell label="Variable AP">
+        <ActivationCostBox cost="Variable" currency="AP" />
+      </Cell>
+      <Cell label="compact 1 AP">
+        <ActivationCostBox cost={1} currency="AP" compact />
+      </Cell>
+      <Cell label="compact 2 EP">
+        <ActivationCostBox cost={2} currency="EP" compact />
+      </Cell>
+      <Cell label="compact Variable">
+        <ActivationCostBox cost="Variable" currency="AP" compact />
+      </Cell>
+    </div>
   </div>
 )
