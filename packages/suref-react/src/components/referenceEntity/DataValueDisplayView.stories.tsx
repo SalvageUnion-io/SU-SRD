@@ -4,7 +4,7 @@ import type { DataValue } from '../../types/common'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Reference Entity/DataValueDisplayView',
+  title: 'Legacy/DataValueDisplayView',
 }
 
 const costItem: DataValue = { label: '2 EP', type: 'cost' }

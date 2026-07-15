@@ -5,7 +5,7 @@ import { ReferenceEntityGrants } from './ReferenceEntityGrants'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Reference Entity/ReferenceEntityGrants',
+  title: 'Legacy/ReferenceEntityGrants',
 }
 
 const singleGrant = SalvageUnionReference.Abilities.find(

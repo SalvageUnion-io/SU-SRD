@@ -5,7 +5,7 @@ import type { SURefMetaAction } from 'salvageunion-reference'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Reference Entity/NestedChassisAbility',
+  title: 'Legacy/NestedChassisAbility',
 }
 
 // Find a chassis with abilities

@@ -4,7 +4,7 @@ import { ChoiceGroups } from './ChoiceGroups'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Reference Entity/ChoiceGroups',
+  title: 'Legacy/ChoiceGroups',
 }
 
 const weaponTypeChoice: SURefObjectChoice = {
