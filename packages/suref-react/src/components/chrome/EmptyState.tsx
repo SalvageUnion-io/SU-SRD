@@ -24,7 +24,7 @@ export function EmptyState({ headline, body, action, className }: EmptyStateProp
   return (
     <div
       className={cn(
-        'flex flex-col items-start gap-3 rounded-[3px] border-chrome border-dashed border-ink/40 bg-paper p-4 text-left',
+        'flex flex-col items-start gap-3 rounded-card border-chrome border-dashed border-ink/40 bg-paper p-4 text-left',
         className
       )}
     >

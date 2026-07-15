@@ -37,7 +37,7 @@ export function ConditionChip({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-[2px] border-chrome border-ink px-2 py-[3px] font-cond text-[11px] font-semibold uppercase leading-none',
+        'inline-flex items-center gap-1.5 rounded-badge border-chrome border-ink px-2 py-[3px] font-cond text-[11px] font-semibold uppercase leading-none',
         active ? 'bg-status-warn text-su-white' : 'bg-paper text-ink',
         className
       )}
@@ -83,7 +83,7 @@ export function Conditions({ conditions, onRemove, onAdd, className }: Condition
         <button
           type="button"
           onClick={onAdd}
-          className="inline-flex cursor-pointer items-center rounded-[2px] border-chrome border-dashed border-wk-faint px-2 py-[3px] font-cond text-[11px] font-semibold uppercase leading-none text-wk-muted hover:border-ink hover:text-ink"
+          className="inline-flex cursor-pointer items-center rounded-badge border-chrome border-dashed border-wk-faint px-2 py-[3px] font-cond text-[11px] font-semibold uppercase leading-none text-wk-muted hover:border-ink hover:text-ink"
         >
           + Add
         </button>

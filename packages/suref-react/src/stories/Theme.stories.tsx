@@ -39,7 +39,7 @@ function RoleSwatch({ bg, role, token }: ColorRole) {
   return (
     <div className="flex w-[128px] flex-col gap-1">
       <div
-        className={`h-20 w-full rounded-[3px] border-chrome border-ink ${bg}`}
+        className={`h-20 w-full rounded-card border-chrome border-ink ${bg}`}
         style={{ borderColor: 'var(--color-ink)' }}
       />
       <Caption>{role}</Caption>
@@ -358,7 +358,7 @@ export const BorderMap: Story = () => (
       {borderWeights.map((w) => (
         <div key={w.token} className="flex w-[160px] flex-col gap-1">
           <div
-            className="flex h-20 w-full items-center justify-center rounded-[3px] bg-paper"
+            className="flex h-20 w-full items-center justify-center rounded-card bg-paper"
             style={{
               borderStyle: 'solid',
               borderWidth: w.cssWidth,
@@ -388,21 +388,21 @@ export const RadiusSpacing: Story = () => (
     <div className="flex flex-wrap items-start gap-6">
       <div className="flex flex-col gap-1">
         <div
-          className="h-24 w-40 rounded-[3px] bg-paper"
+          className="h-24 w-40 rounded-card bg-paper"
           style={{ border: 'var(--bw-entity) solid var(--color-ink)' }}
         />
-        <Caption>card · rounded-[3px] outer</Caption>
+        <Caption>card · rounded-card outer</Caption>
       </div>
 
       <div className="flex flex-col gap-1">
         <button
           type="button"
-          className="rounded-[3px] bg-rust px-4 py-2 font-cond uppercase tracking-caps-tight text-su-white"
+          className="rounded-card bg-rust px-4 py-2 font-cond uppercase tracking-caps-tight text-su-white"
           style={{ letterSpacing: '0.01em' }}
         >
           Commit
         </button>
-        <Caption>Btn · rounded-[3px] · rust = action</Caption>
+        <Caption>Btn · rounded-card · rust = action</Caption>
       </div>
 
       <div className="flex flex-col gap-1">

@@ -12,7 +12,7 @@ type SkeletonProps = {
 
 /** One ink-alpha ghost bar on off-white. */
 function Ghost({ className }: { className?: string }) {
-  return <div className={cn('rounded-[2px] bg-ink/10', className)} />
+  return <div className={cn('rounded-badge bg-ink/10', className)} />
 }
 
 /**
@@ -45,7 +45,7 @@ export function Skeleton({ mode = 'card', rows = 3, className }: SkeletonProps) 
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: ghost rows are positional
             key={i}
-            className="flex items-center gap-3 rounded-[3px] border-chrome border-ink/15 bg-paper px-3 py-2.5"
+            className="flex items-center gap-3 rounded-card border-chrome border-ink/15 bg-paper px-3 py-2.5"
           >
             <div className="min-w-0 flex-1 space-y-1.5">
               <Ghost className="h-3.5 w-2/5" />
@@ -63,7 +63,7 @@ export function Skeleton({ mode = 'card', rows = 3, className }: SkeletonProps) 
     <div
       role="status"
       aria-label="Loading"
-      className={cn('overflow-hidden rounded-[3px] border-2 border-ink/15 bg-paper', className)}
+      className={cn('overflow-hidden rounded-card border-2 border-ink/15 bg-paper', className)}
     >
       <div className="flex items-center gap-2 bg-ink/10 px-3 py-2.5">
         <Ghost className="h-4 w-2/5 bg-ink/20" />

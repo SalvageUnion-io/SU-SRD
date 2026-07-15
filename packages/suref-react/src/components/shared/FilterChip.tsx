@@ -12,35 +12,34 @@ type FilterChipProps = {
 }
 
 export function FilterChip({ label, active, onClick, colorClass, swatchStyle }: FilterChipProps) {
+  // On the shared chrome token system (ink / paper / rust), matching
+  // Btn / Sel / StepBtn / MiniBtn — active = ink fill, inactive = paper.
   const base =
-    'cursor-pointer rounded px-2 py-0.5 font-mono text-xs font-semibold uppercase transition-colors'
+    'cursor-pointer rounded-badge px-2 py-0.5 font-mono text-xs font-semibold uppercase transition-colors'
 
   // When a swatch is shown, use tlchip layout: flex row, font-cond label, bordered swatch
   const swatchBase =
-    'cursor-pointer flex items-center gap-1.5 rounded border border-su-black px-2.5 py-1 font-cond text-[13px] font-semibold uppercase tracking-caps-tight transition-colors'
+    'cursor-pointer flex items-center gap-1.5 rounded-badge border border-ink px-2.5 py-1 font-cond text-[13px] font-semibold uppercase tracking-caps-tight transition-colors'
 
-  // Themed keyboard-focus ring — applied to every branch (incl. the active swatch,
-  // which previously fell back to the browser default) for a consistent WCAG 2.4.7
-  // focus indicator.
-  const focusRing =
-    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
+  // The shared themed keyboard-focus ring (WCAG 2.4.7) — rust, matching every
+  // other chrome control.
+  const focusRing = 'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25'
 
   let classes: string
   if (swatchStyle !== undefined) {
     // tlchip mode
     classes = active
-      ? cn(swatchBase, 'bg-su-black text-su-white', focusRing)
-      : cn(swatchBase, 'bg-su-white text-su-black hover:bg-su-grey-light', focusRing)
+      ? cn(swatchBase, 'bg-ink text-paper', focusRing)
+      : cn(swatchBase, 'bg-paper text-ink hover:bg-wk-bg-2', focusRing)
   } else if (active) {
-    classes = colorClass ? cn(base, colorClass) : cn(base, 'bg-su-black text-su-white')
-  } else {
-    // Inactive state uses fully opaque text-su-black on bg-su-grey-light so contrast
-    // passes WCAG AA (≥ 4.5:1 for normal text).
-    // - text-su-black (rgb(40,32,25)) on bg-su-grey-light (rgb(199,199,199)) ≈ 9.1:1
-    // - text-su-black on white (colorClass variant) = 16:1
     classes = colorClass
-      ? cn(base, 'text-su-black hover:bg-su-grey-light', focusRing)
-      : cn(base, 'bg-su-grey-light text-su-black hover:bg-su-grey-medium', focusRing)
+      ? cn(base, colorClass, focusRing)
+      : cn(base, 'bg-ink text-paper', focusRing)
+  } else {
+    // Inactive = ink text on paper (high contrast, WCAG AA); hover deepens to wk-bg-2.
+    classes = colorClass
+      ? cn(base, 'text-ink hover:bg-wk-bg-2', focusRing)
+      : cn(base, 'bg-paper text-ink hover:bg-wk-bg-2', focusRing)
   }
 
   return (
@@ -48,7 +47,7 @@ export function FilterChip({ label, active, onClick, colorClass, swatchStyle }: 
       {swatchStyle !== undefined && (
         <i
           aria-hidden="true"
-          className="block h-3.5 w-3.5 shrink-0 rounded-sm border border-su-black"
+          className="block h-3.5 w-3.5 shrink-0 rounded-pip border border-ink"
           style={{ background: swatchStyle }}
         />
       )}

@@ -54,7 +54,7 @@ export function Sel({
           : undefined
       }
       className={cn(
-        'rounded-[5px]',
+        'rounded-panel',
         interactive &&
           'cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25',
         selected && 'shadow-[0_0_0_3px_var(--color-rust)]',

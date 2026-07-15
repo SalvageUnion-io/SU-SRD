@@ -80,7 +80,7 @@ describe('LiveSheet — condensed identity (name stamp + kind pill)', () => {
     const pill = screen.getByText('Pilot')
     expect(pill.closest('[aria-hidden="true"]')).not.toBeNull()
     // One canonical badge radius — the rounded-full kindpill variant was retired.
-    expect(pill.className).toContain('rounded-[2px]')
+    expect(pill.className).toContain('rounded-badge')
   })
 
   test('name and kind pill fade in once the hero scrolls out of view', () => {

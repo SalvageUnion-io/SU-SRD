@@ -204,7 +204,7 @@ function InlineChip({ label, value, max, tone = 'default', className }: StatDisp
                 key={i}
                 data-pip={i < clamped ? 'on' : 'off'}
                 className={cn(
-                  'h-[7px] w-[7px] rounded-[1px] border-[1.25px]',
+                  'h-[7px] w-[7px] rounded-pip border-[1.25px]',
                   i < clamped
                     ? i >= (max ?? Infinity) || i >= heatDanger
                       ? 'border-status-bad bg-status-bad'
@@ -281,8 +281,8 @@ function FramedTracker({
 
   const pipFill = PIP_FILL[tone]
   const pipBox = isSm
-    ? 'h-2 w-2 rounded-[1px] border-[1.25px]'
-    : 'h-[13px] w-[13px] rounded-[2px] border-chrome'
+    ? 'h-2 w-2 rounded-pip border-[1.25px]'
+    : 'h-[13px] w-[13px] rounded-badge border-chrome'
 
   const tallies: { state: StatState; count: number }[] = isStates
     ? (['intact', 'damaged', 'destroyed'] as const)
@@ -319,7 +319,7 @@ function FramedTracker({
       {/* Framed body */}
       <div
         className={cn(
-          'flex w-full flex-col overflow-hidden rounded-[3px] border-2 bg-paper pt-3 shadow-[0_2px_6px_-2px_rgba(40,32,25,0.4)]',
+          'flex w-full flex-col overflow-hidden rounded-card border-2 bg-paper pt-3 shadow-[0_2px_6px_-2px_rgba(40,32,25,0.4)]',
           level === 'critical' ? 'border-status-bad motion-safe:animate-heat-pulse' : 'border-ink'
         )}
       >

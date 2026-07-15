@@ -26,7 +26,7 @@ type ConditionSwatchProps = {
  * status word, or pass a `title` at the call site for a standalone glyph.
  */
 export function ConditionSwatch({ state, className, ...rest }: ConditionSwatchProps) {
-  const box = cn('relative inline-block size-3.5 rounded-[1px] border-chrome', className)
+  const box = cn('relative inline-block size-3.5 rounded-pip border-chrome', className)
 
   if (state === 'intact') {
     return <span {...rest} className={cn(box, 'border-status-ok bg-status-ok')} />

@@ -255,7 +255,7 @@ function ColumnsRollTable({
         {rollAnnouncement}
       </div>
 
-      <div className="rounded-[3px] border-2 border-su-orange-light">
+      <div className="rounded-card border-2 border-su-orange-light">
         {showCommand && (
           <div className="flex items-center justify-between gap-2 bg-su-black px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
             <span>{tableName || 'Roll table'}</span>
@@ -267,7 +267,7 @@ function ColumnsRollTable({
                   onClick={handleRoll}
                   disabled={singleRoll && hasRolled}
                   className={cn(
-                    'inline-flex items-center gap-1 rounded-[2px] border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-[11px] font-bold uppercase tracking-caps-tight text-su-white',
+                    'inline-flex items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-[11px] font-bold uppercase tracking-caps-tight text-su-white',
                     singleRoll && hasRolled
                       ? 'cursor-not-allowed opacity-30'
                       : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'
@@ -426,7 +426,7 @@ function StandardRollTable({
         {rollAnnouncement}
       </div>
 
-      <div className="overflow-visible rounded-[3px] border-2 border-su-orange-light transition-opacity duration-200">
+      <div className="overflow-visible rounded-card border-2 border-su-orange-light transition-opacity duration-200">
         {showCommand && (
           <div className="flex items-center justify-between gap-2 bg-su-black px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
             <span>{tableName || 'Roll table'}</span>
@@ -438,7 +438,7 @@ function StandardRollTable({
                   onClick={handleRoll}
                   disabled={singleRoll && hasRolled}
                   className={cn(
-                    'inline-flex items-center gap-1 rounded-[2px] border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-[11px] font-bold uppercase tracking-caps-tight text-su-white',
+                    'inline-flex items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-[11px] font-bold uppercase tracking-caps-tight text-su-white',
                     singleRoll && hasRolled
                       ? 'cursor-not-allowed opacity-30'
                       : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'

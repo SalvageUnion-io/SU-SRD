@@ -221,7 +221,7 @@ export function DisplayCard({
       role={resolvedCardClick ? 'button' : undefined}
       tabIndex={resolvedCardClick ? 0 : undefined}
       className={cn(
-        'relative flex shrink-0 flex-col overflow-visible rounded-[3px]',
+        'relative flex shrink-0 flex-col overflow-visible rounded-card',
         cardStyle?.className || 'shadow-lg',
         disabled && 'opacity-50',
         // Focus ring for button mode: uses a dark inner ring + white outer offset

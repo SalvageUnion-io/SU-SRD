@@ -100,23 +100,30 @@ VitalGauge) plus the retitled StatDisplay / DisplayCard / RollTable / Stamp&Text
 / Tooltip / Toaster / ActivationCostBox. Stories only render the shipped
 components, so the catalog is ground truth. `ladle build` passes.
 
-### Known deviations to reconcile (surfaced by the catalog — not yet changed)
+### Known deviations — RESOLVED
 
-These pre-existing off-system spots are what the merges below will fix; listed
-so nothing ships as a silent surprise:
+These catalog-surfaced off-system spots have been reconciled:
 
-- **FilterChip is off the chrome token system** — styles on the `su-*` palette
-  (`bg-su-black`/`text-su-white` active, `bg-su-grey-light` inactive) with a
-  `su-orange` focus outline, instead of the ink/paper/rust + `ring-rust/25` that
-  Btn / Sel / StepBtn / MiniBtn share. (Reconcile in the Btn merge.)
-- **Two status vocabularies** — Pill `ok/warn/bad` vs StatusBadge
-  `intact/damaged/destroyed` both resolve to `status-ok/warn/bad`. One naming.
-- **Tag ghost ring** is a raw `rgba(40,32,25,0.2)` inset shadow, not an ink token.
-- **Arbitrary radii** across the badge/chrome families (`rounded-[2px]/[3px]/
-[5px]/[6px]`, `rounded-full`) with no shared radius token.
-- **Arbitrary spacing / font sizes** (`px-[9px]`, `text-[11px]`, `text-[9.5px]`…)
-  not on a scale; `Input` focus uses `ring-rust/[0.22]`; `Slab` dashed is a
-  hand-rolled `repeating-linear-gradient`, solid uses `border-ink/35`.
+- **FilterChip is on the chrome token system** ✅ — active = `bg-ink text-paper`,
+  inactive = `bg-paper text-ink hover:bg-wk-bg-2`, with the shared
+  `ring-rust/25` focus ring (matching Btn / Sel / StepBtn / MiniBtn). The
+  `su-orange` outline and grey inactive fill are gone.
+- **One status rendering** ✅ — `StatusBadge` now delegates to `Badge` (surface
+  `tone`), so the entity `intact/damaged/destroyed` vocabulary maps onto the one
+  shared `ok/warn/bad` badge; no second implementation.
+- **Ghost ring is an ink token** ✅ — the Tag/Badge `ghost` surface uses
+  `ring-1 ring-inset ring-ink/20`, not a raw `rgba()` inset shadow.
+- **One radius scale** ✅ — `--radius-pip/badge/card/panel` (1 / 2 / 3 / 6 px) in
+  `theme.css` generate `rounded-pip/badge/card/panel`, registered in `cn()`; every
+  `rounded-[Npx]` across the primitives migrated. Stamps stay square.
+- **Input focus ring** ✅ — `ring-rust/[0.22]` → the shared `ring-rust/25`.
+
+_Deferred (a larger token-architecture step, not a per-component fix): promoting
+the semantic **type scale** (`--text-*`, currently ITUN-local) into the shared
+theme so badge/chrome font sizes leave the arbitrary `text-[11px]` form; and the
+one-off arbitrary border widths (`border-[1.25px]` on the sm pip). The `Slab`
+leader treatments (dashed `repeating-linear-gradient`, solid `border-ink/35`) are
+deliberate control-panel shapes on ink tokens, kept as-is._
 
 ## 2. The primitive catalog (post-merge)
 

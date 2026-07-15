@@ -27,7 +27,7 @@ describe('Badge (unified) + presets', () => {
     render(<Badge surface="quiet">Uses</Badge>)
     const chip = screen.getByText('Uses')
     expect(chip.className).toContain('h-[22px]')
-    expect(chip.className).toContain('rounded-[2px]')
+    expect(chip.className).toContain('rounded-badge')
   })
 
   test('Tag/Pill/Chip presets still render their signature fills', () => {
