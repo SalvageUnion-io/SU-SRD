@@ -2,18 +2,13 @@
  * AboutScreen — the /about page for In the Union Now.
  *
  * Static content page: what ITUN is, its local-first stance, links to the SRD
- * and the official game, and a Ko-fi support button. Styled in the ITUN
- * paper/ink Workshop-Manual idiom (mirrors the Roster main layout) rather than
- * the SRD reference-site look, so it reads as part of this app.
- *
- * The Ko-fi button is a plain styled anchor to ko-fi.com — NOT Ko-fi's
- * external widget script. Both apps ship a strict CSP
- * (`script-src 'self' 'unsafe-inline'`, see netlify.toml) that blocks
- * storage.ko-fi.com, so the native link is the only thing that works without
- * widening the CSP.
+ * and the official game, and the official Ko-fi support widget (shared
+ * KofiButton from suref-react). Styled in the ITUN paper/ink Workshop-Manual
+ * idiom (mirrors the Roster main layout) rather than the SRD reference-site
+ * look, so it reads as part of this app.
  */
 
-import { KofiButton } from '../shared/KofiButton'
+import { KofiButton } from 'suref-react'
 
 export function AboutScreen() {
   return (
@@ -82,7 +77,7 @@ export function AboutScreen() {
             These tools are free and open source. If they've been useful at your table, you can chip
             in toward hosting and development.
           </p>
-          <KofiButton />
+          <KofiButton code="C3Z82382ZC" />
         </section>
       </div>
     </main>

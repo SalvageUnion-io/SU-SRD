@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import eldridgeCoastMap from '../assets/eldridge-coast-map.png'
+import { KofiButtonIsland } from '../components/islands/KofiButtonIsland'
 import { SITE_URL } from '../lib/constants'
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
@@ -136,16 +137,7 @@ const structuredData = {
           This reference is free and open source. If it's been useful at your table, you can chip in
           toward hosting and development.
         </p>
-        <a
-          href="https://ko-fi.com/C3Z82382ZC"
-          target="_blank"
-          rel="noopener noreferrer"
-          style="background-color: #72a4f2;"
-          class="inline-flex items-center gap-2 rounded-md px-5 py-2.5 font-cond text-sm font-semibold uppercase tracking-wider text-su-white no-underline shadow-sm transition-opacity hover:opacity-90"
-        >
-          <span aria-hidden="true">&#9749;</span>
-          Support me on Ko-fi
-        </a>
+        <KofiButtonIsland client:visible />
       </section>
     </div>
   </div>

@@ -96,7 +96,7 @@
     # Mirrors suref-web's proven CSP. connect-src allows the same-origin snapshot
     # API ('self') plus the Netlify RUM endpoint; no 'unsafe-eval'. If a future
     # feature needs another origin, widen the relevant directive here.
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://ingesteer.services-prod.nsvcs.net;"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://ingesteer.services-prod.nsvcs.net;"
     X-DNS-Prefetch-Control = "on"
 
 [[headers]]
