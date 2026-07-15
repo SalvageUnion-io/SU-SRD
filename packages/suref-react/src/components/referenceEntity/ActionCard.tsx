@@ -163,7 +163,7 @@ export function ActionCard({
               Left border uses the parent (lighter) accent so it stays visible
               against the deep accent field. */}
           <div
-            className={cn('mx-3 min-w-0 bg-su-white p-0', bodyBorderColor && 'border-l-[3px]')}
+            className={cn('mx-3 min-w-0 bg-paper p-0', bodyBorderColor && 'border-l-[3px]')}
             style={bodyBorderColor ? { borderLeftColor: bodyBorderColor } : undefined}
           >
             <div className={cn('flex flex-col gap-1', compact ? 'px-2 py-1' : 'px-3 py-2')}>

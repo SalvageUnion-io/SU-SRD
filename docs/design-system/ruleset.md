@@ -28,7 +28,8 @@ The corollaries the rest of the ruleset makes precise:
 - **Stamps label · slabs section · tags cite — never interchanged.**
 - **Rust means action, and only action.** A rust element in a read-only context
   is a defect.
-- **A value cell is ink-on-white, always** (the value-cell law, §7).
+- **A value cell is a framed ink-on-paper cell** — distinguished by its frame,
+  not by a special fill (the value-cell law, §7).
 - **State is a treatment, not a hue** — redline / strike / X ride _on top of_ the
   ontology colour; state never introduces a second colour.
 - **No gradients, anywhere.** No colour outside the closed set (§4).
@@ -139,26 +140,27 @@ tailors it. (`—` = not rendered in that context.)
 
 ### 4.1 Colour roles
 
-| Role                      | Token                 | Hex       | Use                                          |
-| ------------------------- | --------------------- | --------- | -------------------------------------------- |
-| ink                       | `--color-ink`         | `#282019` | every stamp/label/tab, text, borders         |
-| paper · system white      | `--color-paper`       | `#fbfaf7` | THE fill: cards, stats, inputs, gauge tracks |
-| white → stamps only       | `su-white`            | `#ffffff` | stamp text + the value cell only             |
-| rust · action             | `--color-rust`        | `#a85222` | the one action colour                        |
-| pilot                     | pilot tone            | `#ef894f` | pilot ontology                               |
-| mech                      | mech tone             | `#7a978a` | mech ontology                                |
-| crawler                   | crawler tone          | `#ce5898` | crawler ontology                             |
-| cargo                     | cargo tone            | `#9c7a3e` | cargo fills                                  |
-| status-ok                 | `--color-status-ok`   | `#6f8a4a` | ok state overlay                             |
-| status-warn               | `--color-status-warn` | `#c07a2f` | warn state overlay                           |
-| status-bad · damaged      | `--color-status-bad`  | `#b0432b` | damaged / destroyed / redline / over-cap     |
-| roll tiers · **BOT ONLY** | re-toned ramp         | —         | Discord roll outcomes only                   |
-| tech-level blues          | TL 1–6                | —         | TL badge ramp                                |
+| Role                      | Token                 | Hex       | Use                                                                                 |
+| ------------------------- | --------------------- | --------- | ----------------------------------------------------------------------------------- |
+| ink                       | `--color-ink`         | `#282019` | every stamp/label/tab, text, borders                                                |
+| paper · system white      | `--color-paper`       | `#fbfaf7` | THE light surface: cards, stats, inputs, gauge tracks, value cells, and text on ink |
+| rust · action             | `--color-rust`        | `#a85222` | the one action colour                                                               |
+| pilot                     | pilot tone            | `#ef894f` | pilot ontology                                                                      |
+| mech                      | mech tone             | `#7a978a` | mech ontology                                                                       |
+| crawler                   | crawler tone          | `#ce5898` | crawler ontology                                                                    |
+| cargo                     | cargo tone            | `#9c7a3e` | cargo fills                                                                         |
+| status-ok                 | `--color-status-ok`   | `#6f8a4a` | ok state overlay                                                                    |
+| status-warn               | `--color-status-warn` | `#c07a2f` | warn state overlay                                                                  |
+| status-bad · damaged      | `--color-status-bad`  | `#b0432b` | damaged / destroyed / redline / over-cap                                            |
+| roll tiers · **BOT ONLY** | re-toned ramp         | —         | Discord roll outcomes only                                                          |
+| tech-level blues          | TL 1–6                | —         | TL badge ramp                                                                       |
 
 **The paper flip (decided):** `--color-paper = #fbfaf7` — the dedicated system
 white, **not cream** (the cream cutover read too beige, and `bg-paper` is already
-the dominant whitespace token). One token, every reading surface. **Pure white
-survives only in stamps + the value cell.**
+the dominant whitespace token). One token, every light surface. **Pure white is
+retired from the UI** — paper is used universally, including the value cell and
+text on ink. (The only remaining `#ffffff` are scoped exceptions: the print
+stylesheet's physical paper and the dark Dashboard instrument skin.)
 
 ### 4.2 One label tracking
 
@@ -219,7 +221,7 @@ VitalGauge) are **named compositions**, not atoms.
 
 | #   | Atom                        | Is                                                             |
 | --- | --------------------------- | -------------------------------------------------------------- |
-| 1   | **Stamp**                   | ink block, white text — the atom of labeling                   |
+| 1   | **Stamp**                   | ink block, paper text — the atom of labeling                   |
 | 2   | **Frame**                   | bordered container; weights only from `--bw-*`                 |
 | —   | **StampSeam** _(technique)_ | the border-riding placement (§7)                               |
 | 3   | **Badge**                   | the stamp-chip family                                          |
@@ -273,12 +275,14 @@ not a different page, size, or theme; a different _intent_.
 
 ### 7.1 The value-cell law
 
-> A Badge's (or StatDisplay's) **value cell is ink-on-white, always** — white is a
-> **stamp fill**, never a surface.
+> A Badge's (or StatDisplay's) **value cell is ink-on-paper**, distinguished by
+> its **frame**, not by a special fill.
 
 The label+value plate is **framed** (1px ink binds the two stamps); a **lone-label**
 badge is **frameless**. This is the rule that resolves "why does ValueDisplay have
-a border but Tag doesn't." TL is never tinted; the value cell is never cream.
+a border but Tag doesn't." TL is never tinted; the value cell is never cream, and
+never pure white — it is the same paper as every other surface, set apart only by
+the ink frame + the ink label stamp beside it.
 
 ### 7.2 The StampSeam law (the border-riding label)
 
@@ -300,10 +304,10 @@ A component obeys the ruleset when:
 
 - [ ] It is **one primitive** for its kind×context — no sibling for a different size/theme (§0).
 - [ ] Every label/header is a **Stamp** at `--tracking-label` `0.04em`; stamps are square (§4.2, §5).
-- [ ] Reading surfaces are `--color-paper` **#fbfaf7**; pure white only in stamps + value cells (§4.1, §7.1).
+- [ ] Every light surface is `--color-paper` **#fbfaf7** — no pure white in the UI, including the value cell and text on ink (§4.1, §7.1).
 - [ ] The only **rust** is an action (or a Reference inline link) (§3.1).
 - [ ] Borders use `--bw-*` weight tokens; radius is 3px on cards/Btns only, `calc()` inside (§4.3–4.4).
-- [ ] Any label+value shows as a **framed** ink-on-white value cell; a lone label is **frameless** (§7.1).
+- [ ] Any label+value shows as a **framed** ink-on-paper value cell; a lone label is **frameless** (§7.1).
 - [ ] A border-riding label uses **StampSeam** (self-height-centred), not a fixed margin (§7.2).
 - [ ] State reads as a **treatment overlay** (strike/X/redline), never a second hue; **no gradients** (§3.3, §3.5).
 - [ ] Pips split by `pipRows(n)`; redline at 70% (§4.5).

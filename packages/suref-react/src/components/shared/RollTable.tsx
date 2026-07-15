@@ -173,7 +173,7 @@ function ResultActionBar({
           type="button"
           onClick={handleReroll}
           className={cn(
-            'flex cursor-pointer items-center gap-1 bg-su-black font-bold text-su-white hover:bg-brand-srd',
+            'flex cursor-pointer items-center gap-1 bg-su-black font-bold text-paper hover:bg-brand-srd',
             compact ? 'px-2 text-xs' : 'px-3 text-sm'
           )}
         >
@@ -267,7 +267,7 @@ function ColumnsRollTable({
                   onClick={handleRoll}
                   disabled={singleRoll && hasRolled}
                   className={cn(
-                    'inline-flex items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-badge font-bold uppercase tracking-caps-tight text-su-white',
+                    'inline-flex items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-badge font-bold uppercase tracking-caps-tight text-paper',
                     singleRoll && hasRolled
                       ? 'cursor-not-allowed opacity-30'
                       : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'
@@ -438,7 +438,7 @@ function StandardRollTable({
                   onClick={handleRoll}
                   disabled={singleRoll && hasRolled}
                   className={cn(
-                    'inline-flex items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-badge font-bold uppercase tracking-caps-tight text-su-white',
+                    'inline-flex items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-badge font-bold uppercase tracking-caps-tight text-paper',
                     singleRoll && hasRolled
                       ? 'cursor-not-allowed opacity-30'
                       : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'

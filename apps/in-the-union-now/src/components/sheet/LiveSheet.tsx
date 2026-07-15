@@ -139,7 +139,7 @@ const SEGMENT_BTN_CLASS =
 
 /** App-bar name stamp (poster `.barname .stamp`): black-on-ink, ~15px. */
 const BARNAME_STAMP_CLASS =
-  'block max-w-full truncate bg-ink px-2 pb-[3px] pt-[2px] font-cond text-[15px] font-bold uppercase leading-[1.5] tracking-[0.045em] text-su-white'
+  'block max-w-full truncate bg-ink px-2 pb-[3px] pt-[2px] font-cond text-[15px] font-bold uppercase leading-[1.5] tracking-[0.045em] text-paper'
 
 export function LiveSheet({
   variant,
@@ -252,7 +252,7 @@ export function LiveSheet({
                 <span
                   key={segment.key}
                   aria-current="page"
-                  className={cn(SEGMENT_BTN_CLASS, 'border-rust bg-rust text-su-white')}
+                  className={cn(SEGMENT_BTN_CLASS, 'border-rust bg-rust text-paper')}
                 >
                   {segment.label}
                 </span>

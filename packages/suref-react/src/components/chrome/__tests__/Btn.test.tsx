@@ -16,7 +16,7 @@ describe('Btn', () => {
     render(<Btn variant="primary">Create Pilot</Btn>)
     const btn = screen.getByRole('button')
     expect(btn.className).toContain('bg-rust')
-    expect(btn.className).toContain('text-su-white')
+    expect(btn.className).toContain('text-paper')
   })
 
   test('ghost variant is transparent', () => {

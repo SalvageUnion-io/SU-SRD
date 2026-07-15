@@ -158,7 +158,7 @@ export function DataValueDisplayView({
         compact={compact}
         inline={false}
         bgColor={useRustBg ? 'var(--color-su-rust)' : undefined}
-        textColor={useRustBg ? 'var(--color-su-white)' : undefined}
+        textColor={useRustBg ? 'var(--color-paper)' : undefined}
         borderColor={useRustBg ? 'var(--color-su-rust)' : undefined}
       />
     )

@@ -62,7 +62,7 @@ const brandColors: Record<string, string> = {
   'su-brick': 'rgb(168, 89, 71)',
   'su-brick-pale': 'rgb(210, 160, 140)',
   'su-black': 'rgb(40, 32, 25)',
-  'su-white': 'rgb(251, 248, 243)',
+  paper: 'rgb(251, 248, 243)',
   'su-grey': 'rgb(150, 150, 150)',
   'su-grey-light': 'rgb(199, 199, 199)',
   'su-grey-medium': 'rgb(130, 130, 130)',
@@ -99,7 +99,7 @@ const rollColors: Record<string, string> = {
 }
 
 const cssVarMappings: Record<string, string> = {
-  '--background': 'var(--color-su-white)',
+  '--background': 'var(--color-paper)',
   '--foreground': 'var(--color-su-black)',
 }
 
@@ -397,7 +397,7 @@ export const RadiusSpacing: Story = () => (
       <div className="flex flex-col gap-1">
         <button
           type="button"
-          className="rounded-card bg-rust px-4 py-2 font-cond uppercase tracking-caps-tight text-su-white"
+          className="rounded-card bg-rust px-4 py-2 font-cond uppercase tracking-caps-tight text-paper"
           style={{ letterSpacing: '0.01em' }}
         >
           Commit
@@ -406,7 +406,7 @@ export const RadiusSpacing: Story = () => (
       </div>
 
       <div className="flex flex-col gap-1">
-        <span className="inline-block rounded-none bg-ink px-2 py-1 font-cond text-xs uppercase tracking-caps-tight text-su-white">
+        <span className="inline-block rounded-none bg-ink px-2 py-1 font-cond text-xs uppercase tracking-caps-tight text-paper">
           Stamp
         </span>
         <Caption>stamp · square (rounded-none)</Caption>

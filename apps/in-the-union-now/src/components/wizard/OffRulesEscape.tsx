@@ -16,7 +16,7 @@ export function OffRulesEscape({ onEscape }: OffRulesEscapeProps) {
     <button
       type="button"
       onClick={onEscape}
-      className="cursor-pointer whitespace-nowrap font-cond text-[11px] font-semibold uppercase tracking-caps text-su-white/70 underline decoration-dotted underline-offset-2 hover:text-su-white"
+      className="cursor-pointer whitespace-nowrap font-cond text-[11px] font-semibold uppercase tracking-caps text-paper/70 underline decoration-dotted underline-offset-2 hover:text-paper"
     >
       Off-rules build? Build it on the Live Sheet →
     </button>

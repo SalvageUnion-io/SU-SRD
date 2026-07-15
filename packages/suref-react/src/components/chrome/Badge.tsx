@@ -8,10 +8,10 @@ export type BadgeSurface = 'solid' | 'ghost' | 'outline' | 'tone' | 'quiet'
 const BADGE_TONES: Record<BadgeTone, string> = {
   pilot: 'border-ink bg-su-orange text-ink',
   mech: 'border-ink bg-su-green text-ink',
-  crawler: 'border-ink bg-su-pink text-su-white',
-  ok: 'border-status-ok bg-status-ok text-su-white',
-  warn: 'border-status-warn bg-status-warn text-su-white',
-  bad: 'border-status-bad bg-status-bad text-su-white',
+  crawler: 'border-ink bg-su-pink text-paper',
+  ok: 'border-status-ok bg-status-ok text-paper',
+  warn: 'border-status-warn bg-status-warn text-paper',
+  bad: 'border-status-bad bg-status-bad text-paper',
 }
 
 /** Per-surface geometry — every badge is a fixed 22px, rounded-badge stamp-chip. */

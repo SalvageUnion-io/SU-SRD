@@ -113,10 +113,10 @@ export function RailChip({
       <span className="flex items-start justify-between gap-2.5 px-3 pt-2.5 pb-2">
         <span className="flex min-w-0 flex-col items-start gap-1.5">
           <span className="inline-flex items-stretch self-start overflow-hidden rounded-[2px] border-chrome border-ink font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide">
-            <span className="bg-ink px-2 py-1 text-su-white">{roleLabel}</span>
+            <span className="bg-ink px-2 py-1 text-paper">{roleLabel}</span>
             {tl !== undefined && <span className="bg-paper px-2 py-1 text-ink">{`TL${tl}`}</span>}
           </span>
-          <span className="min-w-0 truncate bg-ink px-1.5 py-0.5 font-cond text-base font-bold uppercase leading-tight text-su-white">
+          <span className="min-w-0 truncate bg-ink px-1.5 py-0.5 font-cond text-base font-bold uppercase leading-tight text-paper">
             {name}
           </span>
         </span>
@@ -138,7 +138,7 @@ export function RailChip({
         className="mt-auto flex items-center justify-between gap-2 border-t-2 border-ink px-2.5 py-1.5"
         style={{ background: RAIL_BG[tone] }}
       >
-        <span className="bg-ink px-2 py-1 font-cond text-label-lg font-bold uppercase leading-none tracking-caps-snug text-su-white">
+        <span className="bg-ink px-2 py-1 font-cond text-label-lg font-bold uppercase leading-none tracking-caps-snug text-paper">
           Open sheet &rarr;
         </span>
         <span className="flex items-center gap-1.5">
@@ -174,7 +174,7 @@ export function RailEmpty({ tone, roleLabel, message, mock, actions, className }
       )}
       style={{ background: RAIL_EMPTY_BG[tone] }}
     >
-      <span className="self-start bg-ink px-2 pb-0.5 pt-[3px] font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide text-su-white">
+      <span className="self-start bg-ink px-2 pb-0.5 pt-[3px] font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide text-paper">
         {roleLabel}
       </span>
       <div className="flex flex-wrap items-center gap-3 px-2.5 py-2">

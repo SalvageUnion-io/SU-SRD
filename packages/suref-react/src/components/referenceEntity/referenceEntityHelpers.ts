@@ -16,14 +16,14 @@ import {
  * The card's accent surface: a Tailwind bg class (or the white fallback) plus an
  * optional inline backgroundColor for dynamic per-source accents. Shared by the
  * body wrapper, the interactive footer wrapper, and ReferenceEntityFooter so the
- * `headerBg || 'bg-su-white'` + `headerBgColor` fallback lives in one place.
+ * `headerBg || 'bg-paper'` + `headerBgColor` fallback lives in one place.
  */
 export function accentSurface(
   headerBg: string | undefined,
   headerBgColor: string | undefined
 ): { className: string; style: CSSProperties | undefined } {
   return {
-    className: headerBg || 'bg-su-white',
+    className: headerBg || 'bg-paper',
     style: headerBgColor ? { backgroundColor: headerBgColor } : undefined,
   }
 }

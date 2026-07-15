@@ -79,7 +79,7 @@ export function SheetHero({
       style={{ background: 'var(--tone)' }}
     >
       {/* Category tab — overhangs the top border like .ec__cat */}
-      <span className="absolute -top-px left-[18px] bg-ink px-[7px] pb-px pt-[2px] font-cond text-badge font-semibold uppercase leading-none tracking-caps-snug text-su-white">
+      <span className="absolute -top-px left-[18px] bg-ink px-[7px] pb-px pt-[2px] font-cond text-badge font-semibold uppercase leading-none tracking-caps-snug text-paper">
         {cat}
       </span>
 
@@ -88,7 +88,7 @@ export function SheetHero({
           reading order (identity → vitals). */}
       <div className="flex flex-col gap-[18px] px-4 py-[18px] sm:px-5">
         <div className="min-w-0">
-          <h1 className="m-0 inline bg-ink box-decoration-clone px-2 font-cond text-[26px] font-bold uppercase leading-[1.28] text-su-white sm:text-[31px]">
+          <h1 className="m-0 inline bg-ink box-decoration-clone px-2 font-cond text-[26px] font-bold uppercase leading-[1.28] text-paper sm:text-[31px]">
             {name}
           </h1>
           {meta && <div className="mt-2.5 flex flex-wrap items-center gap-1.5">{meta}</div>}

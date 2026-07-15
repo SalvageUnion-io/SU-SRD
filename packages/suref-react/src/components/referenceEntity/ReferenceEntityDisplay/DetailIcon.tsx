@@ -5,7 +5,7 @@ export function DetailIcon({ className }: { className?: string }) {
       height="14"
       viewBox="0 0 14 14"
       fill="none"
-      className={className ?? 'text-su-white'}
+      className={className ?? 'text-paper'}
       aria-hidden="true"
     >
       <rect

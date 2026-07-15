@@ -54,12 +54,12 @@ export function ModalShell({
                   <Text
                     as="span"
                     variant="pseudoheader"
-                    className={`${headerBg === 'bg-su-rust' ? 'text-xl' : 'text-[1.75rem]'} text-su-white`}
+                    className={`${headerBg === 'bg-su-rust' ? 'text-xl' : 'text-[1.75rem]'} text-paper`}
                   >
                     {title}
                   </Text>
                   {subtitle && (
-                    <Text as="span" variant="pseudoheader" className="text-xs text-su-white/80">
+                    <Text as="span" variant="pseudoheader" className="text-xs text-paper/80">
                       {subtitle}
                     </Text>
                   )}
@@ -67,7 +67,7 @@ export function ModalShell({
                 <Dialog.Close
                   className={`flex shrink-0 cursor-pointer items-center justify-center rounded p-1 transition-colors ${
                     isLightClose
-                      ? 'text-su-white/60 hover:bg-su-black/20 hover:text-su-white'
+                      ? 'text-paper/60 hover:bg-su-black/20 hover:text-paper'
                       : 'text-su-black/60 hover:bg-su-black/20 hover:text-su-black'
                   }`}
                 >

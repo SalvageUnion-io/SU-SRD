@@ -32,7 +32,7 @@ const SIZE: Record<StampSize, string> = {
 }
 
 const SURFACE: Record<StampSurface, string> = {
-  'on-ink': 'bg-ink text-su-white',
+  'on-ink': 'bg-ink text-paper',
   inverse: 'bg-paper text-ink ring-1 ring-inset ring-ink',
   'on-tone': 'bg-transparent text-ink',
 }

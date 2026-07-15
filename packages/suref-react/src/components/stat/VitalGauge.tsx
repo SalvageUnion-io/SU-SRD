@@ -42,7 +42,7 @@ export type VitalGaugeProps = {
 
 /** Black inline stamp label, cloned across wraps (design-spec `.stamp`). */
 const STAMP =
-  'box-decoration-clone inline bg-ink px-[0.5em] pb-[0.16em] pt-[0.1em] font-cond font-bold uppercase leading-[1.5] tracking-[0.09em] text-su-white'
+  'box-decoration-clone inline bg-ink px-[0.5em] pb-[0.16em] pt-[0.1em] font-cond font-bold uppercase leading-[1.5] tracking-[0.09em] text-paper'
 
 /**
  * VitalGauge (poster design-spec `.gauge`): a horizontal full-width segmented

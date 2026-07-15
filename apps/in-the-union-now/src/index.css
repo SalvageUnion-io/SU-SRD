@@ -16,18 +16,18 @@
  */
 :root {
   /* Page shell + body */
-  --background: var(--color-su-white);
+  --background: var(--color-paper);
   --foreground: var(--color-su-black);
 
   /* Cards / popovers */
-  --card: var(--color-su-white);
+  --card: var(--color-paper);
   --card-foreground: var(--color-su-black);
-  --popover: var(--color-su-white);
+  --popover: var(--color-paper);
   --popover-foreground: var(--color-su-black);
 
   /* Primary — Salvage orange. Mirrors `.btn-active` on the SRD. */
   --primary: var(--color-su-orange-dark);
-  --primary-foreground: var(--color-su-white);
+  --primary-foreground: var(--color-paper);
 
   /* Secondary — pale blue (matches the SRD main-area chrome). */
   --secondary: var(--color-su-blue-pale);
@@ -43,7 +43,7 @@
 
   /* Destructive — rust, not red. */
   --destructive: var(--color-su-rust);
-  --destructive-foreground: var(--color-su-white);
+  --destructive-foreground: var(--color-paper);
 
   /* Borders / inputs / focus rings. */
   --border: var(--color-su-grey-light);

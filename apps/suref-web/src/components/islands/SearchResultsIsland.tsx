@@ -56,7 +56,7 @@ export function SearchResultsIsland() {
       <div className="mx-auto flex w-full max-w-[900px] flex-col gap-6">
         {/* biome-ignore lint/a11y/useSemanticElements: role="search" on <form> is the established search-landmark pattern; the <search> element is not a form, so swapping would change Enter-key submit semantics */}
         <form role="search" onSubmit={(e) => e.preventDefault()}>
-          <div className="flex items-center gap-2 rounded border border-su-black bg-su-white px-3 py-2 font-mono text-sm text-su-grey-dark focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-su-orange">
+          <div className="flex items-center gap-2 rounded border border-su-black bg-paper px-3 py-2 font-mono text-sm text-su-grey-dark focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-su-orange">
             <svg
               aria-hidden="true"
               width={16}
@@ -163,7 +163,7 @@ function SearchResults({ query, index }: { query: string; index: CompactSearchEn
         </FilterRow>
       )}
 
-      <ul className="flex flex-col divide-y divide-su-grey-light rounded border border-su-grey-light bg-su-white">
+      <ul className="flex flex-col divide-y divide-su-grey-light rounded border border-su-grey-light bg-paper">
         {visible.map((result) => (
           <li key={result.entityId}>
             <a

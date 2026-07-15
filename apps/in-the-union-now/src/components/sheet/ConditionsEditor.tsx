@@ -43,7 +43,7 @@ function chipToneClasses(condition: string): string {
   if (WARN_CONDITIONS.has(condition.trim().toLowerCase())) {
     return 'border-su-sickly-yellow bg-su-sickly-yellow text-ink'
   }
-  return 'border-ink bg-ink text-su-white'
+  return 'border-ink bg-ink text-paper'
 }
 
 /** The chip's leading dot (poster `.cond .dot` — accent-filled when ON). */
@@ -141,7 +141,7 @@ export function ConditionsEditor({
               onClick={() => {
                 void removeAt(index)
               }}
-              className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[1px] leading-none hover:bg-white/20"
+              className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[1px] leading-none hover:bg-paper/20"
             >
               <span aria-hidden className="text-[12px]">
                 ×
@@ -171,7 +171,7 @@ export function ConditionsEditor({
             onBlur={() => {
               void commitAdd()
             }}
-            className="w-28 rounded-[2px] border border-ink bg-su-white px-1.5 py-0.5 font-cond text-badge uppercase tracking-wider text-ink focus:outline-none focus:ring-1 focus:ring-su-orange"
+            className="w-28 rounded-[2px] border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge uppercase tracking-wider text-ink focus:outline-none focus:ring-1 focus:ring-su-orange"
           />
         ) : (
           <button

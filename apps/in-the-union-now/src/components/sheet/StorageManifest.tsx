@@ -96,7 +96,7 @@ function CargoChit({ lot, side, cargo, linked, readOnly }: CargoChitProps) {
     >
       {/* Marker cell: BULK ×N bronze stripes / UNIT ink diamond */}
       <span
-        className="flex w-[42px] shrink-0 flex-col items-center justify-center gap-0.5 py-1.5 text-su-white"
+        className="flex w-[42px] shrink-0 flex-col items-center justify-center gap-0.5 py-1.5 text-paper"
         style={
           lot.kind === 'bulk'
             ? {
@@ -205,7 +205,7 @@ function CargoTile({ lot, cargo, linked, readOnly }: CargoTileProps) {
       style={{ borderColor: 'var(--tone)', background: 'var(--tone)' }}
     >
       <div className="flex flex-wrap items-start justify-between gap-1.5">
-        <span className="box-decoration-clone min-w-0 flex-1 break-words bg-ink px-1.5 py-0.5 font-cond text-[11px] font-bold uppercase leading-[1.4] text-su-white">
+        <span className="box-decoration-clone min-w-0 flex-1 break-words bg-ink px-1.5 py-0.5 font-cond text-[11px] font-bold uppercase leading-[1.4] text-paper">
           {lot.name}
         </span>
         <StatDisplay
@@ -378,7 +378,7 @@ export function StorageManifest({
         </span>
         {linkedCounterpart !== null ? (
           <>
-            <span className="self-start bg-ink px-2 py-0.5 font-cond text-base font-bold uppercase leading-tight text-su-white">
+            <span className="self-start bg-ink px-2 py-0.5 font-cond text-base font-bold uppercase leading-tight text-paper">
               {linkedCounterpart}
             </span>
             {side === 'mech' ? (

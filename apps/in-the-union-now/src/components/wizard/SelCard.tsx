@@ -85,7 +85,7 @@ export function SelCard({
           e.stopPropagation()
           onCountChange(count - 1)
         }}
-        className="rounded-none border-0 bg-ink text-su-white hover:bg-ink-2"
+        className="rounded-none border-0 bg-ink text-paper hover:bg-ink-2"
       >
         −
       </StepBtn>
@@ -112,7 +112,7 @@ export function SelCard({
           e.stopPropagation()
           onCountChange(count + 1)
         }}
-        className="rounded-none border-0 bg-ink text-su-white hover:bg-ink-2"
+        className="rounded-none border-0 bg-ink text-paper hover:bg-ink-2"
       >
         +
       </StepBtn>

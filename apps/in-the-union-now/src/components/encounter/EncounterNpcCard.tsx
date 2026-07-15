@@ -80,20 +80,20 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
         // Head bar: schema tag + instance name + reference name; Details/Remove ride the hint slot.
         title={
           <>
-            <span className="rounded-[1px] bg-rust px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-su-white">
+            <span className="rounded-[1px] bg-rust px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-paper">
               {ENCOUNTER_SCHEMA_LABEL[npc.refSchema]}
             </span>
-            <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-su-white">
+            <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-paper">
               <InlineEditField
                 value={npc.name}
                 onSave={(next) => void patch({ name: String(next) })}
                 type="text"
                 ariaLabel={`Edit ${npc.name} instance name`}
-                className="text-su-white"
+                className="text-paper"
               />
             </span>
             {npc.name !== npc.refName && (
-              <span className="font-cond text-micro uppercase leading-none tracking-caps text-su-white/60">
+              <span className="font-cond text-micro uppercase leading-none tracking-caps text-paper/60">
                 {npc.refName}
               </span>
             )}

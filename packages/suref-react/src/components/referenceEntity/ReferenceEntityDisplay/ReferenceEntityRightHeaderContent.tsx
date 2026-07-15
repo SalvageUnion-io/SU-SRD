@@ -31,7 +31,7 @@ export function ReferenceEntityRightHeaderContent({
         // Flavor text: a lighter variant of the base/header colour (no backing
         // chip, no drop shadow). Falls back to white when no accent is available.
         'pr-1.5 text-pretty text-right font-cond font-semibold leading-none',
-        !accentColor && 'text-su-white',
+        !accentColor && 'text-paper',
         fontSize.sm
       )}
       style={accentColor ? { color: accentColor } : undefined}

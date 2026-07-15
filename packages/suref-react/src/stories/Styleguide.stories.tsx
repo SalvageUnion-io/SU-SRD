@@ -98,7 +98,7 @@ export const GuidingLaws: Story = () => (
             <span className="flex h-8 w-8 items-center justify-center rounded-badge border border-ink bg-paper text-micro">
               paper
             </span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-badge border border-ink bg-su-white text-micro">
+            <span className="flex h-8 w-8 items-center justify-center rounded-badge border border-ink bg-paper text-micro">
               white
             </span>
           </div>
@@ -181,8 +181,8 @@ export const Palette: Story = () => (
             textClass="text-ink"
           />
           <Swatch
-            className="bg-su-white"
-            token="--color-su-white"
+            className="bg-paper"
+            token="--color-paper"
             desc="Pure white · stamps + value cells only"
             textClass="text-ink"
           />
@@ -260,7 +260,7 @@ type BorderSampleProps = {
 function BorderSample({ className, name, spec }: BorderSampleProps) {
   return (
     <div className="flex w-44 flex-col gap-2">
-      <div className={cn('h-16 rounded-card bg-su-white', className)} />
+      <div className={cn('h-16 rounded-card bg-paper', className)} />
       <div className="text-xs font-bold">{name}</div>
       <div className="text-badge text-ink-2">{spec}</div>
     </div>
@@ -361,7 +361,7 @@ export const TheStamp: Story = () => (
         <div className="mb-2 text-xs font-bold uppercase tracking-caps-tight text-ink-2">
           StampSeam — riding a border line
         </div>
-        <div className="relative rounded-card border-rail border-ink bg-su-white px-4 pb-4 pt-5">
+        <div className="relative rounded-card border-rail border-ink bg-paper px-4 pb-4 pt-5">
           <span className="absolute -top-[11px] left-3">
             <Text as="span" variant="pseudoheader">
               Systems
@@ -544,7 +544,7 @@ export const KnownDeviations: Story = () => (
             aria-hidden
             className={cn(
               'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-badge border-chrome border-ink text-xs font-bold',
-              item.done ? 'bg-status-ok text-su-white' : 'text-rust'
+              item.done ? 'bg-status-ok text-paper' : 'text-rust'
             )}
           >
             {item.done ? '✓' : '☐'}

@@ -41,7 +41,7 @@ export function RailCta({
       className={cn(
         'rounded-[3px] border-chrome px-2.5 py-1.5 text-center font-body text-xs font-medium no-underline transition-colors duration-[120ms]',
         primary
-          ? 'border-rust bg-rust text-su-white hover:bg-rust-hi'
+          ? 'border-rust bg-rust text-paper hover:bg-rust-hi'
           : 'border-ink bg-paper text-ink hover:bg-wk-bg-2'
       )}
     >

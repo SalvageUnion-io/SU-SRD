@@ -35,7 +35,7 @@ function choiceCardColors(
   parentHeaderBgColor: string | undefined
 ): { backgroundColor: string; borderColor: string } {
   const accent = choiceAccent(parentHeaderBg, parentHeaderBgColor)
-  const light = accentTextColor(parentHeaderBg, parentHeaderBgColor) ?? 'var(--color-su-white)'
+  const light = accentTextColor(parentHeaderBg, parentHeaderBgColor) ?? 'var(--color-paper)'
   return {
     backgroundColor: chosen ? accent : light,
     borderColor: accent,
@@ -99,7 +99,7 @@ function ChoiceCardBody({
   return (
     <div
       className={cn(
-        'min-w-0 border-l-[3px] bg-su-white',
+        'min-w-0 border-l-[3px] bg-paper',
         compact ? 'mx-1.5 mb-1.5 px-2 py-1' : 'mx-2 mb-2 px-3 py-2',
         topGap && (compact ? 'mt-1.5' : 'mt-2')
       )}
@@ -224,7 +224,7 @@ export function FreeTextChoiceCard({
   }
 
   const fieldClasses = cn(
-    'w-full border border-su-black/20 bg-su-white text-su-black',
+    'w-full border border-su-black/20 bg-paper text-su-black',
     'focus:border-su-rust focus:outline-none',
     compact ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-1 text-sm'
   )

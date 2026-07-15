@@ -26,7 +26,7 @@ export function ReferenceEntityCardSkeleton({
           <div className={cn('rounded bg-su-grey/20', compact ? 'h-3 w-1/4' : 'h-4 w-1/4')} />
         </div>
       </div>
-      <div className={cn('rounded-b-md bg-su-white/50', compact ? 'p-2' : 'p-3')}>
+      <div className={cn('rounded-b-md bg-paper/50', compact ? 'p-2' : 'p-3')}>
         <div className="space-y-2">
           <div className={cn('rounded bg-su-grey/20', compact ? 'h-3 w-full' : 'h-4 w-full')} />
           <div className={cn('rounded bg-su-grey/15', compact ? 'h-3 w-4/5' : 'h-4 w-4/5')} />

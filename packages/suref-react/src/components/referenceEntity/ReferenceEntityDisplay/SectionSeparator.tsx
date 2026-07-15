@@ -44,9 +44,7 @@ export function SectionSeparator({
       </span>
       <div className="flex-1 border-t border-dashed border-su-grey-light" aria-hidden="true" />
       {children && (
-        <div className="absolute right-0 flex shrink-0 items-center bg-su-white pl-3">
-          {children}
-        </div>
+        <div className="absolute right-0 flex shrink-0 items-center bg-paper pl-3">{children}</div>
       )}
     </div>
   )

@@ -9,7 +9,7 @@ export default {
 export const Basic: Story = () => (
   <div style={{ display: 'flex', gap: '1rem', padding: '2rem' }}>
     <Tooltip content="This is a tooltip">
-      <button type="button" className="rounded bg-su-black px-4 py-2 text-su-white">
+      <button type="button" className="rounded bg-su-black px-4 py-2 text-paper">
         Hover me
       </button>
     </Tooltip>
@@ -19,22 +19,22 @@ export const Basic: Story = () => (
 export const Positions: Story = () => (
   <div style={{ display: 'flex', gap: '1rem', padding: '4rem' }}>
     <Tooltip content="Top tooltip" side="top">
-      <button type="button" className="rounded bg-su-orange px-4 py-2 text-su-white">
+      <button type="button" className="rounded bg-su-orange px-4 py-2 text-paper">
         Top
       </button>
     </Tooltip>
     <Tooltip content="Right tooltip" side="right">
-      <button type="button" className="rounded bg-su-green px-4 py-2 text-su-white">
+      <button type="button" className="rounded bg-su-green px-4 py-2 text-paper">
         Right
       </button>
     </Tooltip>
     <Tooltip content="Bottom tooltip" side="bottom">
-      <button type="button" className="rounded bg-su-blue px-4 py-2 text-su-white">
+      <button type="button" className="rounded bg-su-blue px-4 py-2 text-paper">
         Bottom
       </button>
     </Tooltip>
     <Tooltip content="Left tooltip" side="left">
-      <button type="button" className="rounded bg-su-pink px-4 py-2 text-su-white">
+      <button type="button" className="rounded bg-su-pink px-4 py-2 text-paper">
         Left
       </button>
     </Tooltip>
@@ -51,7 +51,7 @@ export const RichContent: Story = () => (
         </div>
       }
     >
-      <button type="button" className="rounded bg-tl-2 px-4 py-2 text-su-white">
+      <button type="button" className="rounded bg-tl-2 px-4 py-2 text-paper">
         Rich Content
       </button>
     </Tooltip>
@@ -61,12 +61,12 @@ export const RichContent: Story = () => (
 export const CustomDelay: Story = () => (
   <div style={{ display: 'flex', gap: '1rem', padding: '2rem' }}>
     <Tooltip content="Instant tooltip" delayDuration={0}>
-      <button type="button" className="rounded bg-su-brick px-4 py-2 text-su-white">
+      <button type="button" className="rounded bg-su-brick px-4 py-2 text-paper">
         No Delay
       </button>
     </Tooltip>
     <Tooltip content="Slow tooltip" delayDuration={1000}>
-      <button type="button" className="rounded bg-su-grey-dark px-4 py-2 text-su-white">
+      <button type="button" className="rounded bg-su-grey-dark px-4 py-2 text-paper">
         1s Delay
       </button>
     </Tooltip>

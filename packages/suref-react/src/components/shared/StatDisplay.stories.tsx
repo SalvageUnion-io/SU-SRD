@@ -79,21 +79,21 @@ export const CustomColors: Story = () => (
       label="SP"
       value={sp}
       bg="bg-su-green"
-      valueColor="text-su-white"
+      valueColor="text-paper"
       borderColor="border-su-green"
     />
     <StatDisplay
       label="EP"
       value={ep}
       bg="bg-su-orange"
-      valueColor="text-su-white"
+      valueColor="text-paper"
       borderColor="border-su-orange"
     />
     <StatDisplay
       label="HEAT"
       value={heat}
       bg="bg-su-pink"
-      valueColor="text-su-white"
+      valueColor="text-paper"
       borderColor="border-su-pink"
     />
   </div>

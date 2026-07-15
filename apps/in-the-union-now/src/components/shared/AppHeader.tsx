@@ -24,14 +24,14 @@ const NAV_LINK =
   'inline-flex shrink-0 items-center font-cond text-[15px] font-semibold uppercase tracking-caps-tight text-su-muted no-underline transition-colors hover:text-su-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
 
 // SRD search-field treatment (SearchIsland's `.srd-search` box): bordered
-// su-black, tight radius, su-white ground, font-mono. It's a trigger button
+// su-black, tight radius, paper ground, font-mono. It's a trigger button
 // here (opens the GlobalSearch modal) dressed to match the SRD's inline field.
 const SEARCH_BOX =
-  'flex shrink-0 cursor-pointer items-center gap-2 rounded border border-su-black bg-su-white px-3 py-[7px] font-mono text-[13px] text-su-grey-dark transition-colors hover:border-su-orange-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange lg:w-64'
+  'flex shrink-0 cursor-pointer items-center gap-2 rounded border border-su-black bg-paper px-3 py-[7px] font-mono text-[13px] text-su-grey-dark transition-colors hover:border-su-orange-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange lg:w-64'
 
 // SRD `.btn.btn-active` + the buy-link modifiers from TopNavigation.astro.
 const BUY_BUTTON =
-  'inline-flex shrink-0 items-center rounded-md border border-su-orange-dark bg-su-orange-dark px-4 py-1.5 font-cond text-[13px] font-medium uppercase tracking-caps-snug text-su-white no-underline transition-colors'
+  'inline-flex shrink-0 items-center rounded-md border border-su-orange-dark bg-su-orange-dark px-4 py-1.5 font-cond text-[13px] font-medium uppercase tracking-caps-snug text-paper no-underline transition-colors'
 
 // Small "Alpha" pill — same rust treatment as HeaderShell's "Beta" badge,
 // sized down to sit inline beside the Encounter nav link.

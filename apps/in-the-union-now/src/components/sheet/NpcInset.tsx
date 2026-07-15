@@ -68,17 +68,17 @@ export function NpcInset({
       // Head bar: CREW tag + name; role title rides the right edge as the hint.
       title={
         <>
-          <span className="rounded-[1px] bg-crawler px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-su-white">
+          <span className="rounded-[1px] bg-crawler px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-paper">
             Crew
           </span>
-          <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-su-white">
+          <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-paper">
             {editable && onNameChange ? (
               <InlineEditField
                 value={name}
                 onSave={(next) => onNameChange(String(next))}
                 type="text"
                 ariaLabel={`Edit ${bayName} crew name`}
-                className="text-su-white"
+                className="text-paper"
               />
             ) : (
               name || '—'
@@ -88,7 +88,7 @@ export function NpcInset({
       }
       hint={
         title ? (
-          <span className="font-cond text-micro uppercase leading-none tracking-caps text-su-white/60">
+          <span className="font-cond text-micro uppercase leading-none tracking-caps text-paper/60">
             {title}
           </span>
         ) : undefined

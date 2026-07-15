@@ -40,7 +40,7 @@ describe('HBtn', () => {
     render(<HBtn variant="done">Done</HBtn>)
     const btn = screen.getByRole('button', { name: 'Done' })
     expect(btn.className).toContain('bg-[color:var(--tone-deep,var(--color-rust))]')
-    expect(btn.className).toContain('text-su-white')
+    expect(btn.className).toContain('text-paper')
   })
 
   test('add variant is a deep-tone outline', () => {

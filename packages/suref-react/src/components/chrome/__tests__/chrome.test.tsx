@@ -34,7 +34,7 @@ describe('Field / Input', () => {
 describe('Pill / Chip', () => {
   test('kind fills: crawler is white-on-pink, pilot is ink-on-orange', () => {
     render(<Pill tone="crawler">Crawler</Pill>)
-    expect(screen.getByText('Crawler').className).toContain('text-su-white')
+    expect(screen.getByText('Crawler').className).toContain('text-paper')
     cleanup()
     render(<Pill tone="pilot">Pilot</Pill>)
     expect(screen.getByText('Pilot').className).toContain('bg-su-orange')
@@ -144,7 +144,7 @@ describe('Stamp', () => {
     render(<Stamp>Mule</Stamp>)
     const stamp = screen.getByText('Mule')
     expect(stamp.className).toContain('bg-ink')
-    expect(stamp.className).toContain('text-su-white')
+    expect(stamp.className).toContain('text-paper')
     expect(stamp.className).toContain('uppercase')
     expect(stamp.className).toContain('tracking-caps-tight')
   })

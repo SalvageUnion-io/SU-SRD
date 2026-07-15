@@ -54,7 +54,7 @@ const READ_VALUE_BOX_CLASS =
  * icon.
  */
 const EDIT_VALUE_BOX_CLASS =
-  'relative flex min-h-[44px] items-center rounded-[8px] border-2 border-[color:var(--tone-deep,var(--color-ink))] bg-white px-3 py-2 pr-9 font-body text-sm text-ink'
+  'relative flex min-h-[44px] items-center rounded-[8px] border-2 border-[color:var(--tone-deep,var(--color-ink))] bg-paper px-3 py-2 pr-9 font-body text-sm text-ink'
 
 /** Pen icon pinned right inside an editing `.ifield` box (design-spec `.ifield .pen`). */
 function PenIcon({ className }: { className?: string }) {
@@ -154,7 +154,7 @@ export function IdentityField({
     <div className={cn('flex min-w-0 flex-col', className)}>
       {/* Label row — tight (~2px) above the value box (redesign refinement). */}
       <span className="mb-[2px] flex items-center justify-between gap-2">
-        <span className="bg-ink px-1.5 pb-px pt-[2px] font-cond text-label font-bold uppercase leading-none tracking-caps text-su-white">
+        <span className="bg-ink px-1.5 pb-px pt-[2px] font-cond text-label font-bold uppercase leading-none tracking-caps text-paper">
           {label}
         </span>
         {labelAction}
