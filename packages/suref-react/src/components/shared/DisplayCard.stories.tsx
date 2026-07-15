@@ -7,7 +7,7 @@ import { Text } from '../base/Text'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/DisplayCard',
+  title: 'Legacy/DisplayCard',
 }
 
 // Real chassis content so header/body/foot read like a shipped card.
