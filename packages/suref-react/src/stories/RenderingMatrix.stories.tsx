@@ -30,56 +30,51 @@ const traitLabel = (trait?.name ?? 'Ballistic').toUpperCase()
 const rollTableEntity = SalvageUnionReference.RollTables.all()[0]
 const rollTable = rollTableEntity && 'table' in rollTableEntity ? rollTableEntity.table : undefined
 
+// A row is a ROLE — the job a piece of data does on screen. Each role maps to
+// exactly one primitive; `when` is the situation that picks its anatomy, `rule`
+// tailors it. Instances collapse into their role (a Tech level is not a role —
+// it's the Stat/label|value role, so it lives on that row).
 type MatrixRow = {
-  kind: string
-  context: string
-  primitive: string
+  role: string
+  when: string
+  use: string
   rule: string
   example: ReactNode
 }
 
 const rows: MatrixRow[] = [
   {
-    kind: 'Bounded stat',
-    context: 'no chips · read',
-    primitive: 'StatDisplay (max, no dots)',
+    role: 'Stat',
+    when: 'read',
+    use: 'StatDisplay',
     rule: 'Square value box; value / max, no pip track.',
     example: <StatDisplay label="SP" value={Math.ceil(sp * 0.7)} max={sp} />,
   },
   {
-    kind: 'Bounded stat',
-    context: 'no chips · interactive',
-    primitive: 'StatDisplay mode="edit"',
-    rule: 'Value box + steppers, no pips (StatControl).',
+    role: 'Stat',
+    when: 'interactive',
+    use: 'StatDisplay mode="edit"',
+    rule: 'Value box + steppers, no pips (was StatControl).',
     example: <StatDisplay label="HP" value={8} max={10} mode="edit" onChange={noop} />,
   },
   {
-    kind: 'Bounded stat',
-    context: 'chips · read',
-    primitive: 'StatDisplay dots',
-    rule: 'Framed tracker, pip track read-only.',
+    role: 'Stat',
+    when: 'chips',
+    use: 'StatDisplay dots',
+    rule: 'Framed tracker, pip track; add mode="edit" to set pips.',
     example: <StatDisplay dots label="SP" value={Math.ceil(sp * 0.7)} max={sp} tone="sp" />,
   },
   {
-    kind: 'Bounded stat',
-    context: 'chips · interactive',
-    primitive: 'StatDisplay dots mode="edit"',
-    rule: 'Numeral + steppers; pips click-to-set.',
-    example: (
-      <StatDisplay dots label="HP" value={8} max={10} mode="edit" tone="hp" onChange={noop} />
-    ),
+    role: 'Stat',
+    when: 'label | value',
+    use: 'StatDisplay orientation="horizontal"',
+    rule: 'The printed [label | value] readout — a Stat, never a badge (Tech level, Range, …).',
+    example: <StatDisplay orientation="horizontal" label="TL" value={tl} />,
   },
   {
-    kind: 'Label | value',
-    context: 'inline pair',
-    primitive: 'StatDisplay orientation="horizontal"',
-    rule: 'The [label | value] chip; value cell paper.',
-    example: <StatDisplay orientation="horizontal" label="Range" value="Close" />,
-  },
-  {
-    kind: 'Capacity bar',
-    context: 'sheet',
-    primitive: 'VitalGauge',
+    role: 'Capacity',
+    when: 'sheet',
+    use: 'VitalGauge',
     rule: 'Segmented current/max; skin sheet|instrument.',
     example: (
       <div className="w-52">
@@ -88,9 +83,9 @@ const rows: MatrixRow[] = [
     ),
   },
   {
-    kind: 'Status',
-    context: 'badge',
-    primitive: 'Badge surface="tone"',
+    role: 'Status',
+    when: 'badge',
+    use: 'Badge surface="tone"',
     rule: 'Label-only status/keyword; uniform chip.',
     example: (
       <Badge surface="tone" tone="bad">
@@ -99,23 +94,16 @@ const rows: MatrixRow[] = [
     ),
   },
   {
-    kind: 'Keyword',
-    context: 'cite',
-    primitive: 'Tag (= Badge solid)',
+    role: 'Keyword',
+    when: 'cite',
+    use: 'Tag (= Badge solid)',
     rule: 'A single stamped keyword.',
     example: <Tag label={traitLabel} />,
   },
   {
-    kind: 'Tech level',
-    context: 'readout',
-    primitive: 'StatDisplay horizontal',
-    rule: 'Label+value → a Stat, never a badge.',
-    example: <StatDisplay orientation="horizontal" label="TL" value={tl} />,
-  },
-  {
-    kind: 'Condition',
-    context: 'glyph',
-    primitive: 'ConditionSwatch',
+    role: 'Condition',
+    when: 'glyph',
+    use: 'ConditionSwatch',
     rule: 'Tri-state; fill-shape primary, no gradient.',
     example: (
       <div className="flex gap-2">
@@ -126,23 +114,23 @@ const rows: MatrixRow[] = [
     ),
   },
   {
-    kind: 'Cargo slots',
-    context: 'addressable',
-    primitive: 'SlotGrid',
-    rule: '1 cell = 1 slot; dashed empty / cargo filled.',
+    role: 'Slots',
+    when: 'addressable',
+    use: 'SlotGrid',
+    rule: '1 cell = 1 slot; dashed empty / filled.',
     example: <SlotGrid used={Math.ceil(cargo * 0.5)} cap={cargo} />,
   },
   {
-    kind: 'Section header',
-    context: 'label',
-    primitive: 'Stamp',
+    role: 'Label / header',
+    when: '—',
+    use: 'Stamp',
     rule: 'The one ink label/header atom.',
     example: <Stamp>Systems</Stamp>,
   },
   {
-    kind: 'Entity card',
-    context: 'listing',
-    primitive: 'DisplayCard listing',
+    role: 'Entity',
+    when: 'listing',
+    use: 'DisplayCard listing',
     rule: 'Header-only clickable row.',
     example: (
       <div className="w-56">
@@ -157,9 +145,9 @@ const rows: MatrixRow[] = [
     ),
   },
   {
-    kind: 'Roll table',
-    context: 'content',
-    primitive: 'RollTable',
+    role: 'Roll table',
+    when: 'content',
+    use: 'RollTable',
     rule: 'Banded d20 map; uniform peach/paper.',
     example: rollTable ? (
       <div className="w-80">
@@ -181,14 +169,15 @@ export const Matrix: Story = () => (
       Rendering Matrix
     </Stamp>
     <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
-      Kind × context → one primitive + rule, with a live render of each. This is the decision table
-      for which primitive renders a given shape of data (ruleset §2).
+      <span className="font-bold text-ink">What to use, when.</span> Every UI <em>role</em> — the
+      job a piece of data does on screen — maps to exactly one primitive, with a live render of
+      each; the rule tailors it to context. Instances collapse into their role (ruleset §2).
     </p>
     <div className="mt-5 overflow-x-auto">
       <table className="w-full min-w-[52rem] border-collapse text-sm">
         <thead>
           <tr className="border-b-2 border-ink text-left">
-            {['Kind', 'Context', 'Primitive', 'Rule', 'Example'].map((h) => (
+            {['Role', 'When', 'Use', 'Rule', 'Example'].map((h) => (
               <th key={h} className="p-2 text-xs font-bold uppercase tracking-caps-tight">
                 {h}
               </th>
@@ -197,13 +186,11 @@ export const Matrix: Story = () => (
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={`${row.kind}-${row.context}`} className="border-b border-ink/12 align-top">
-              <td className="p-2 font-bold">{row.kind}</td>
-              <td className="p-2 text-ink-2">{row.context}</td>
+            <tr key={`${row.role}-${row.when}`} className="border-b border-ink/12 align-top">
+              <td className="p-2 font-bold">{row.role}</td>
+              <td className="p-2 text-ink-2">{row.when}</td>
               <td className="p-2">
-                <code className="rounded-badge bg-ink/8 px-1 py-0.5 text-[12px]">
-                  {row.primitive}
-                </code>
+                <code className="rounded-badge bg-ink/8 px-1 py-0.5 text-[12px]">{row.use}</code>
               </td>
               <td className="max-w-[14rem] p-2 text-ink-2">{row.rule}</td>
               <td className="p-2">{row.example}</td>
