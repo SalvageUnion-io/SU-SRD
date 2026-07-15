@@ -33,7 +33,7 @@ export function SlotGrid({ used, cap, scale = 'pip', label, className }: SlotGri
   const total = Math.max(safeCap, safeUsed)
   const over = safeUsed > safeCap
 
-  const cell = scale === 'sheet' ? 'size-5 rounded-[2px]' : 'size-2.5 rounded-[1px]'
+  const cell = scale === 'sheet' ? 'size-5 rounded-badge' : 'size-2.5 rounded-pip'
 
   return (
     <div

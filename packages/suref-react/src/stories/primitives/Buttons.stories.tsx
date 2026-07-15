@@ -103,7 +103,7 @@ export const AllVariants: Story = () => (
  */
 export const Selection: Story = () => {
   const swatch = (children: ReactNode) => (
-    <div className="rounded-[4px] border-chrome border-ink bg-paper px-4 py-3 font-body text-[13px] text-ink">
+    <div className="rounded-card border-chrome border-ink bg-paper px-4 py-3 font-body text-[13px] text-ink">
       {children}
     </div>
   )

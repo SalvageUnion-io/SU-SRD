@@ -117,7 +117,7 @@ export const WithFootActionsAndMeta: Story = () => (
       headerBg="bg-su-green"
       headerContent={headerContent}
       footActions={
-        <button type="button" className="rounded-[2px] border border-su-black px-2 py-1 text-xs">
+        <button type="button" className="rounded-badge border border-su-black px-2 py-1 text-xs">
           Repair
         </button>
       }

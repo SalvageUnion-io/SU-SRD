@@ -23,6 +23,8 @@ const twMerge = extendTailwindMerge({
     theme: {
       text: ['nano', 'micro', 'label', 'label-lg', 'badge', 'note', 'caption', 'lede'],
       tracking: ['caps', 'caps-tight', 'caps-snug', 'caps-wide'],
+      // Radius scale (--radius-* in theme.css) → rounded-pip/badge/card/panel.
+      radius: ['pip', 'badge', 'card', 'panel'],
     },
     classGroups: {
       'border-w': [{ border: ['chrome', 'rail', 'entity'] }],

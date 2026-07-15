@@ -192,7 +192,7 @@ export function VitalGauge({
               onBlur={commitMax}
               aria-label={`Set ${label} max`}
               className={cn(
-                'w-14 rounded-[3px] border border-ink/40 bg-paper px-1 text-center tabular-nums text-ink',
+                'w-14 rounded-card border border-ink/40 bg-paper px-1 text-center tabular-nums text-ink',
                 isDense ? 'text-[16px]' : 'text-[17px]'
               )}
             />
@@ -202,7 +202,7 @@ export function VitalGauge({
               onClick={beginEditMax}
               aria-label={`Override ${label} max (currently ${max})`}
               className={cn(
-                'cursor-pointer rounded-[2px] px-0.5 underline decoration-dotted underline-offset-2',
+                'cursor-pointer rounded-badge px-0.5 underline decoration-dotted underline-offset-2',
                 isOverridden ? 'text-[var(--tone-deep)]' : 'text-ink/70',
                 isDense ? 'text-[16px]' : 'text-[17px]'
               )}
@@ -253,7 +253,7 @@ export function VitalGauge({
                     : 'border-[var(--tone-deep)] bg-[var(--tone)]'
               const segClass = cn(
                 'min-h-0 min-w-0 flex-1 border-chrome p-0',
-                isDense ? 'h-[18px] rounded-[2px]' : 'h-[22px] rounded-[3px]',
+                isDense ? 'h-[18px] rounded-badge' : 'h-[22px] rounded-card',
                 fill
               )
               return editable ? (

@@ -30,7 +30,7 @@ export function Stepper({ steps, active, onStepClick, className }: StepperProps)
             aria-current={isActive ? 'step' : undefined}
             onClick={clickable ? () => onStepClick(i) : undefined}
             className={cn(
-              'flex items-center gap-2.5 rounded-[3px] px-3 py-[7px] text-left font-body text-sm disabled:pointer-events-none',
+              'flex items-center gap-2.5 rounded-card px-3 py-[7px] text-left font-body text-sm disabled:pointer-events-none',
               isActive
                 ? 'bg-wk-bg-2 font-bold text-ink shadow-[inset_3px_0_0_var(--color-rust)]'
                 : isDone

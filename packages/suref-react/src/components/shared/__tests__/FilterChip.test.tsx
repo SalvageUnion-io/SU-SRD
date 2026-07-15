@@ -5,33 +5,32 @@ import { FilterChip } from '../FilterChip'
 describe('FilterChip', () => {
   afterEach(cleanup)
 
-  test('inactive chip uses fully opaque text-su-black for WCAG AA contrast', () => {
+  test('inactive chip is ink-on-paper (chrome token system, high AA contrast)', () => {
     render(<FilterChip label="Weapons" active={false} onClick={() => {}} />)
     const button = screen.getByRole('button', { name: 'Weapons' })
-    // text-su-black on bg-su-grey-light ≈ 9.1:1 (passes AA for normal text)
-    expect(button.className).toContain('text-su-black')
-    expect(button.className).toContain('bg-su-grey-light')
-    expect(button.className).not.toContain('text-su-black/70')
-    expect(button.className).not.toContain('bg-su-grey-light/30')
+    // text-ink on bg-paper is very high contrast (passes AA for normal text)
+    expect(button.className).toContain('text-ink')
+    expect(button.className).toContain('bg-paper')
+    expect(button.className).not.toContain('text-ink/70')
   })
 
-  test('inactive chip with colorClass uses fully opaque text-su-black', () => {
+  test('inactive chip with colorClass uses fully opaque ink text', () => {
     render(<FilterChip label="Armor" active={false} onClick={() => {}} colorClass="bg-su-green" />)
     const button = screen.getByRole('button', { name: 'Armor' })
-    expect(button.className).toContain('text-su-black')
-    expect(button.className).not.toContain('text-su-black/70')
+    expect(button.className).toContain('text-ink')
+    expect(button.className).not.toContain('text-ink/70')
   })
 
-  test('active chip uses contrasting text on dark background', () => {
+  test('active chip is paper text on the ink fill', () => {
     render(<FilterChip label="All" active={true} onClick={() => {}} />)
     const button = screen.getByRole('button', { name: 'All' })
-    expect(button.className).toContain('text-su-white')
-    expect(button.className).not.toContain('text-su-black/70')
+    expect(button.className).toContain('text-paper')
+    expect(button.className).toContain('bg-ink')
   })
 
-  test('inactive chip exposes a focus-visible outline for keyboard users', () => {
+  test('inactive chip exposes the shared rust focus ring for keyboard users', () => {
     render(<FilterChip label="Weapons" active={false} onClick={() => {}} />)
     const button = screen.getByRole('button', { name: 'Weapons' })
-    expect(button.className).toContain('focus-visible:outline')
+    expect(button.className).toContain('focus-visible:ring-rust/25')
   })
 })

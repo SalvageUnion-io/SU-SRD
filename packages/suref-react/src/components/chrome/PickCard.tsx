@@ -49,7 +49,7 @@ export function PickCard({
           : undefined
       }
       className={cn(
-        'flex flex-col overflow-hidden rounded-[6px] border-chrome border-ink bg-paper transition-all duration-[120ms]',
+        'flex flex-col overflow-hidden rounded-panel border-chrome border-ink bg-paper transition-all duration-[120ms]',
         interactive &&
           'cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_6px_22px_rgba(34,30,23,0.14)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25',
         selected && 'shadow-[0_0_0_3px_var(--color-rust)]',
@@ -61,7 +61,7 @@ export function PickCard({
           {name}
         </span>
         {selected && (
-          <span className="mt-0.5 shrink-0 rounded-[2px] bg-rust px-2 py-[2px] font-cond text-[11px] font-semibold uppercase leading-tight text-su-white">
+          <span className="mt-0.5 shrink-0 rounded-badge bg-rust px-2 py-[2px] font-cond text-[11px] font-semibold uppercase leading-tight text-su-white">
             Selected
           </span>
         )}

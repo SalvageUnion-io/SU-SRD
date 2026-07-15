@@ -14,11 +14,10 @@ const BADGE_TONES: Record<BadgeTone, string> = {
   bad: 'border-status-bad bg-status-bad text-su-white',
 }
 
-/** Per-surface geometry — every badge is a fixed 22px, rounded-[2px] stamp-chip. */
+/** Per-surface geometry — every badge is a fixed 22px, rounded-badge stamp-chip. */
 const BADGE_SURFACE: Record<BadgeSurface, string> = {
   solid: 'px-[7px] bg-ink text-paper tracking-caps-snug',
-  ghost:
-    'px-[7px] bg-paper text-ink shadow-[inset_0_0_0_1px_rgba(40,32,25,0.2)] tracking-caps-snug',
+  ghost: 'px-[7px] bg-paper text-ink ring-1 ring-inset ring-ink/20 tracking-caps-snug',
   outline: 'px-[9px] border-2 border-ink bg-paper text-ink tracking-wider',
   tone: 'px-[9px] border-2 tracking-wider',
   quiet: 'px-2 bg-wk-bg-2 text-ink-2',
@@ -55,7 +54,7 @@ export function Badge({ children, surface = 'solid', tone, className }: BadgePro
   return (
     <span
       className={cn(
-        'inline-flex h-[22px] items-center rounded-[2px] font-cond text-[11px] font-semibold uppercase leading-none',
+        'inline-flex h-[22px] items-center rounded-badge font-cond text-[11px] font-semibold uppercase leading-none',
         BADGE_SURFACE[surface],
         surface === 'tone' && tone && BADGE_TONES[tone],
         className

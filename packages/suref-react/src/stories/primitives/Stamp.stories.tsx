@@ -47,7 +47,7 @@ export const Sizes: Story = () => (
 export const Seam: Story = () => (
   <div className="bg-paper p-4">
     <Caption>seam · rides the top border (StampSeam)</Caption>
-    <div className="relative mt-3 w-48 rounded-[3px] border-2 border-ink bg-paper px-3 py-4">
+    <div className="relative mt-3 w-48 rounded-card border-2 border-ink bg-paper px-3 py-4">
       <Stamp seam className="left-3">
         {chassisName}
       </Stamp>

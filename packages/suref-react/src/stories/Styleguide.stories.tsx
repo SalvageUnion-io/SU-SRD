@@ -10,7 +10,7 @@ export default {
 
 /* ── module-local helpers (NOT stories) ─────────────────────────────────── */
 
-const PIP = 'h-3 w-3 rounded-[2px] border-chrome border-ink'
+const PIP = 'h-3 w-3 rounded-badge border-chrome border-ink'
 
 type SectionProps = {
   title: string
@@ -60,7 +60,7 @@ function Swatch({ className, token, desc, textClass = 'text-paper' }: SwatchProp
     <div className="flex w-40 flex-col gap-1">
       <div
         className={cn(
-          'flex h-16 items-end rounded-[3px] border border-ink p-1.5',
+          'flex h-16 items-end rounded-card border border-ink p-1.5',
           className,
           textClass
         )}
@@ -95,10 +95,10 @@ export const GuidingLaws: Story = () => (
         detail="Reading surfaces are the system white #fbfaf7 — not pure white, not cream. Pure white survives only inside stamps and the value cell."
         example={
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-ink bg-paper text-[9px]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-badge border border-ink bg-paper text-[9px]">
               paper
             </span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-ink bg-su-white text-[9px]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-badge border border-ink bg-su-white text-[9px]">
               white
             </span>
           </div>
@@ -107,16 +107,16 @@ export const GuidingLaws: Story = () => (
       <Law
         rule="One action colour = rust"
         detail="Hue encodes ontology. Rust (#a85222) is the single action colour; state is a treatment overlay (redline / strike / X), never a second hue."
-        example={<span className="h-8 w-16 rounded-[2px] border border-ink bg-rust" />}
+        example={<span className="h-8 w-16 rounded-badge border border-ink bg-rust" />}
       />
       <Law
         rule="Warm state palette"
         detail="Off stock Material: ok #6f8a4a, warn #c07a2f, bad #b0432b. No gradients."
         example={
           <div className="flex gap-1.5">
-            <span className="h-8 w-8 rounded-[2px] border border-ink bg-status-ok" />
-            <span className="h-8 w-8 rounded-[2px] border border-ink bg-status-warn" />
-            <span className="h-8 w-8 rounded-[2px] border border-ink bg-status-bad" />
+            <span className="h-8 w-8 rounded-badge border border-ink bg-status-ok" />
+            <span className="h-8 w-8 rounded-badge border border-ink bg-status-warn" />
+            <span className="h-8 w-8 rounded-badge border border-ink bg-status-bad" />
           </div>
         }
       />
@@ -125,16 +125,16 @@ export const GuidingLaws: Story = () => (
         detail="One meaning per weight — entity / rail / pill / chrome / hairline — holding in both the light sheet and the dark instrument. Never border-[1.5px]."
         example={
           <div className="flex items-end gap-2">
-            <span className="h-8 w-8 rounded-[2px] border border-ink" />
-            <span className="h-8 w-8 rounded-[2px] border-chrome border-ink" />
-            <span className="h-8 w-8 rounded-[2px] border-rail border-ink" />
-            <span className="h-8 w-8 rounded-[2px] border-entity border-ink" />
+            <span className="h-8 w-8 rounded-badge border border-ink" />
+            <span className="h-8 w-8 rounded-badge border-chrome border-ink" />
+            <span className="h-8 w-8 rounded-badge border-rail border-ink" />
+            <span className="h-8 w-8 rounded-badge border-entity border-ink" />
           </div>
         }
       />
       <Law
         rule="Balanced pip-row split"
-        detail="Gauges + statblocks split a track into balanced rows (max ~5–6 per row). 6 → 3+3, 8 → 4+4, 10 → 5+5."
+        detail="Gauges + statblocks split a track into balanced rows (≤5 per row), top-heavy — the heavy rows ride on top. 6 → 3/3, 8 → 4/4, 13 → 5/4/4."
         example={
           <div className="flex flex-col items-end gap-1">
             {statBlockRowStarts(8).map((row) => (
@@ -260,7 +260,7 @@ type BorderSampleProps = {
 function BorderSample({ className, name, spec }: BorderSampleProps) {
   return (
     <div className="flex w-44 flex-col gap-2">
-      <div className={cn('h-16 rounded-[3px] bg-su-white', className)} />
+      <div className={cn('h-16 rounded-card bg-su-white', className)} />
       <div className="text-xs font-bold">{name}</div>
       <div className="text-[11px] text-ink-2">{spec}</div>
     </div>
@@ -361,7 +361,7 @@ export const TheStamp: Story = () => (
         <div className="mb-2 text-xs font-bold uppercase tracking-caps-tight text-ink-2">
           StampSeam — riding a border line
         </div>
-        <div className="relative rounded-[3px] border-rail border-ink bg-su-white px-4 pb-4 pt-5">
+        <div className="relative rounded-card border-rail border-ink bg-su-white px-4 pb-4 pt-5">
           <span className="absolute -top-[11px] left-3">
             <Text as="span" variant="pseudoheader">
               Systems
@@ -493,7 +493,7 @@ export const RenderingMatrix: Story = () => (
               <td className="p-2 font-bold">{row.kind}</td>
               <td className="p-2 text-ink-2">{row.context}</td>
               <td className="p-2">
-                <code className="rounded-[2px] bg-ink/8 px-1 py-0.5 text-[12px]">
+                <code className="rounded-badge bg-ink/8 px-1 py-0.5 text-[12px]">
                   {row.primitive}
                 </code>
               </td>
@@ -506,31 +506,50 @@ export const RenderingMatrix: Story = () => (
   </Section>
 )
 
-/* ── 8. Known deviations ────────────────────────────────────────────────── */
+/* ── 8. Resolved deviations ─────────────────────────────────────────────── */
 
-const deviations: string[] = [
-  'FilterChip is off the chrome token system — styles on the su-* palette (bg-su-black / su-orange focus) instead of ink/paper/rust + ring-rust/25. Reconcile in the Btn merge.',
-  'Two status vocabularies — Pill ok/warn/bad vs StatusBadge intact/damaged/destroyed both resolve to status-ok/warn/bad. One naming.',
-  'Tag ghost ring is a raw rgba(40,32,25,0.2) inset shadow, not an ink token.',
-  'Arbitrary radii across the badge / chrome families (rounded-[2px]/[3px]/[5px]/[6px], rounded-full) with no shared radius token.',
-  'Arbitrary spacing / font sizes (px-[9px], text-[11px], text-[9.5px]…) not on a scale; Input focus uses ring-rust/[0.22]; Slab dashed is a hand-rolled repeating-linear-gradient.',
+const deviations: { text: string; done: boolean }[] = [
+  {
+    text: 'FilterChip on the chrome token system — ink/paper fills + shared ring-rust/25.',
+    done: true,
+  },
+  {
+    text: 'One status rendering — StatusBadge delegates to Badge(tone); no second vocabulary.',
+    done: true,
+  },
+  {
+    text: 'Ghost ring is an ink token — ring-1 ring-inset ring-ink/20, not a raw rgba() shadow.',
+    done: true,
+  },
+  {
+    text: 'One radius scale — --radius-pip/badge/card/panel → rounded-* tokens; every rounded-[Npx] migrated.',
+    done: true,
+  },
+  { text: 'Input focus ring conforms to the shared ring-rust/25.', done: true },
+  {
+    text: 'Deferred: promote the semantic type scale (--text-*) into the shared theme so badge/chrome font sizes leave the arbitrary text-[11px] form.',
+    done: false,
+  },
 ]
 
 export const KnownDeviations: Story = () => (
   <Section
-    title="Known Deviations"
-    intro="Off-system spots surfaced by the primitive catalog — the backlog the merges will fix. Listed here so nothing ships as a silent surprise."
+    title="Deviations — Resolved"
+    intro="Off-system spots the catalog surfaced. The token-hygiene set is reconciled; one larger type-scale promotion is deferred."
   >
     <ul className="max-w-3xl list-none space-y-3 p-0">
       {deviations.map((item) => (
-        <li key={item} className="flex items-start gap-3">
+        <li key={item.text} className="flex items-start gap-3">
           <span
             aria-hidden
-            className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-[2px] border-chrome border-ink text-xs font-bold text-rust"
+            className={cn(
+              'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-badge border-chrome border-ink text-xs font-bold',
+              item.done ? 'bg-status-ok text-su-white' : 'text-rust'
+            )}
           >
-            ☐
+            {item.done ? '✓' : '☐'}
           </span>
-          <span className="text-sm text-ink-2">{item}</span>
+          <span className="text-sm text-ink-2">{item.text}</span>
         </li>
       ))}
     </ul>

@@ -70,7 +70,7 @@ function ControlButton({
         key={control.key}
         type="button"
         className={cn(
-          'inline-flex shrink-0 items-center justify-center rounded-[3px] border-2 transition-colors',
+          'inline-flex shrink-0 items-center justify-center rounded-card border-2 transition-colors',
           'min-h-11 min-w-11 sm:min-h-0 sm:min-w-0',
           compact ? 'h-7 w-7' : 'h-8 w-8',
           isDisabled

@@ -1,12 +1,13 @@
-import { cn } from '../../utils/cn'
+import { Badge, type BadgeTone } from './Badge'
 
 /** Per-item condition vocabulary (rules: Intact / Damaged / Destroyed). */
 export type EntityStatus = 'intact' | 'damaged' | 'destroyed'
 
-const STATUS_STYLES: Record<EntityStatus, { label: string; className: string }> = {
-  intact: { label: 'Intact', className: 'bg-status-ok' },
-  damaged: { label: 'Damaged', className: 'bg-status-warn' },
-  destroyed: { label: 'Destroyed', className: 'bg-status-bad' },
+/** The domain vocabulary maps onto the shared badge tones — one rendering. */
+const STATUS_STYLES: Record<EntityStatus, { label: string; tone: BadgeTone }> = {
+  intact: { label: 'Intact', tone: 'ok' },
+  damaged: { label: 'Damaged', tone: 'warn' },
+  destroyed: { label: 'Destroyed', tone: 'bad' },
 }
 
 type StatusBadgeProps = {
@@ -23,16 +24,16 @@ type StatusBadgeProps = {
 }
 
 /**
- * Entity status badge (design-spec §2.1 `.ec__status`): 2px ink frame,
- * status-colored fill, uppercase cond label. Clickable when a cycle handler
- * is provided.
+ * Entity status badge (ruleset §5: a composition = Badge(tone) with the entity
+ * condition vocabulary). Renders the one canonical badge; clickable when a cycle
+ * handler is provided.
  */
 export function StatusBadge({ status, onClick, subject, className }: StatusBadgeProps) {
-  const { label, className: fill } = STATUS_STYLES[status]
-  const shared = cn(
-    'inline-flex h-[22px] items-center rounded-[2px] border-2 border-ink px-[9px] font-cond text-[11px] font-semibold uppercase leading-none text-su-white',
-    fill,
-    className
+  const { label, tone } = STATUS_STYLES[status]
+  const badge = (
+    <Badge surface="tone" tone={tone} className={className}>
+      {label}
+    </Badge>
   )
   if (onClick) {
     return (
@@ -44,11 +45,11 @@ export function StatusBadge({ status, onClick, subject, className }: StatusBadge
             ? `${subject} status: ${label} — click to change`
             : `Status: ${label} — click to change`
         }
-        className={cn(shared, 'cursor-pointer')}
+        className="inline-flex cursor-pointer"
       >
-        {label}
+        {badge}
       </button>
     )
   }
-  return <span className={shared}>{label}</span>
+  return badge
 }

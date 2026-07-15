@@ -150,7 +150,7 @@ export function ChoiceCard({
       disabled={disabled}
       aria-pressed={chosen}
       className={cn(
-        'relative block w-full min-w-0 overflow-visible rounded-[3px] border text-left',
+        'relative block w-full min-w-0 overflow-visible rounded-card border text-left',
         interactive ? 'cursor-pointer transition-colors' : 'cursor-default',
         disabled && 'opacity-50'
       )}
@@ -233,7 +233,7 @@ export function FreeTextChoiceCard({
   // Chosen / Not Chosen status.
   return (
     <div
-      className={cn('relative w-full min-w-0 overflow-hidden rounded-[3px] border')}
+      className={cn('relative w-full min-w-0 overflow-hidden rounded-card border')}
       style={choiceCardColors(true, parentHeaderBg, parentHeaderBgColor)}
     >
       <ChoiceCardHeader label={label} chosen compact={compact} />
@@ -291,7 +291,7 @@ export function StaticChoiceCard({
 
   return (
     <div
-      className="relative w-full min-w-0 overflow-hidden rounded-[3px] border"
+      className="relative w-full min-w-0 overflow-hidden rounded-card border"
       style={choiceCardColors(false, parentHeaderBg, parentHeaderBgColor)}
     >
       {label && <ChoiceCardHeader label={label} chosen compact={compact} />}
