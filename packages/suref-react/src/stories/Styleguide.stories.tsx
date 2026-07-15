@@ -65,10 +65,10 @@ function Swatch({ className, token, desc, textClass = 'text-paper' }: SwatchProp
           textClass
         )}
       >
-        <span className="text-[10px] font-bold">{className}</span>
+        <span className="text-label font-bold">{className}</span>
       </div>
       <div className="text-xs font-bold">{token}</div>
-      <div className="text-[11px] text-ink-2">{desc}</div>
+      <div className="text-badge text-ink-2">{desc}</div>
     </div>
   )
 }
@@ -95,10 +95,10 @@ export const GuidingLaws: Story = () => (
         detail="Reading surfaces are the system white #fbfaf7 — not pure white, not cream. Pure white survives only inside stamps and the value cell."
         example={
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-badge border border-ink bg-paper text-[9px]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-badge border border-ink bg-paper text-micro">
               paper
             </span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-badge border border-ink bg-su-white text-[9px]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-badge border border-ink bg-su-white text-micro">
               white
             </span>
           </div>
@@ -262,7 +262,7 @@ function BorderSample({ className, name, spec }: BorderSampleProps) {
     <div className="flex w-44 flex-col gap-2">
       <div className={cn('h-16 rounded-card bg-su-white', className)} />
       <div className="text-xs font-bold">{name}</div>
-      <div className="text-[11px] text-ink-2">{spec}</div>
+      <div className="text-badge text-ink-2">{spec}</div>
     </div>
   )
 }
@@ -527,7 +527,7 @@ const deviations: { text: string; done: boolean }[] = [
   },
   { text: 'Input focus ring conforms to the shared ring-rust/25.', done: true },
   {
-    text: 'Deferred: promote the semantic type scale (--text-*) into the shared theme so badge/chrome font sizes leave the arbitrary text-[11px] form.',
+    text: 'Deferred: promote the semantic type scale (--text-*) into the shared theme so badge/chrome font sizes leave the arbitrary text-badge form.',
     done: false,
   },
 ]

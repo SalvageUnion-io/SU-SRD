@@ -55,7 +55,7 @@ export const getReferenceEntitySpacing = (compact: boolean) => {
  */
 export const getReferenceEntityFontSizes = (compact: boolean) => ({
   /** Extra small text */
-  xs: compact ? 'text-[10px]' : 'text-xs',
+  xs: compact ? 'text-label' : 'text-xs',
   /** Small text */
   sm: compact ? 'text-xs' : 'text-sm',
   /** Medium text */

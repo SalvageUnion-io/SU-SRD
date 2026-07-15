@@ -78,10 +78,10 @@ export function ReferenceEntityFooter({
           {footMeta?.map(({ label, value }, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: footMeta is a static per-render list; index disambiguates repeated labels
             <span key={`${label}-${i}`} className="mr-1 inline-flex items-baseline gap-1">
-              <span className="font-cond text-[10.5px] font-bold uppercase leading-none opacity-75">
+              <span className="font-cond text-label-lg font-bold uppercase leading-none opacity-75">
                 {label}
               </span>
-              <span className="font-body text-[13px] font-bold leading-none">{value}</span>
+              <span className="font-body text-caption font-bold leading-none">{value}</span>
             </span>
           ))}
           {footActions}

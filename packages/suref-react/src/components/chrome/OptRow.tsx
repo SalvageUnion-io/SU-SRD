@@ -32,7 +32,7 @@ export function OptRow({ name, desc, active = false, onClick, img, className }: 
       {img ?? (
         <span
           aria-hidden="true"
-          className="flex h-11 w-11 shrink-0 items-center justify-center border-chrome border-wk-faint bg-[repeating-linear-gradient(135deg,#dbe3e9_0_7px,#e7eef3_7px_14px)] text-[10px] uppercase text-[#8a97a0]"
+          className="flex h-11 w-11 shrink-0 items-center justify-center border-chrome border-wk-faint bg-[repeating-linear-gradient(135deg,#dbe3e9_0_7px,#e7eef3_7px_14px)] text-label uppercase text-[#8a97a0]"
         >
           art
         </span>

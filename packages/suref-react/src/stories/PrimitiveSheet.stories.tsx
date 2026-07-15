@@ -129,7 +129,7 @@ export const Sheet: Story = () => (
         <Btn variant="ghost">Ghost</Btn>
         <Btn variant="danger">Danger</Btn>
         <Sel selected onToggle={noop} ariaLabel={systemName}>
-          <span className="block w-44 rounded-card border-chrome border-ink bg-paper px-3 py-2 font-body text-[13px]">
+          <span className="block w-44 rounded-card border-chrome border-ink bg-paper px-3 py-2 font-body text-caption">
             {systemName}
           </span>
         </Sel>
@@ -180,7 +180,7 @@ export const Sheet: Story = () => (
             tableName={rollTableEntity?.name ?? 'Core Mechanic'}
           />
         </div>
-        <div className="w-full rounded-card border-chrome border-dashed border-ink/40 p-2 font-mono text-[11px] text-ink-2">
+        <div className="w-full rounded-card border-chrome border-dashed border-ink/40 p-2 font-mono text-badge text-ink-2">
           Tooltip · Modal · Toaster — portal/interaction primitives; verify live (not statically
           rendered).
         </div>

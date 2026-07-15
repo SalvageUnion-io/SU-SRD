@@ -450,7 +450,7 @@ export function DisplayCard({
         {!isListing && (footerContent || footActions || (footMeta && footMeta.length > 0)) && (
           <div
             className={cn(
-              'flex w-full items-center justify-between gap-2 px-3 py-1 font-cond text-[9px] font-bold uppercase tracking-[0.05em] text-ink',
+              'flex w-full items-center justify-between gap-2 px-3 py-1 font-cond text-micro font-bold uppercase tracking-[0.05em] text-ink',
               footerStyleProp?.className ?? actualHeaderBg
             )}
             style={{
@@ -466,10 +466,10 @@ export function DisplayCard({
                 {footMeta?.map(({ label: metaLabel, value }, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: footMeta is a static per-render list; index disambiguates repeated labels
                   <span key={`${metaLabel}-${i}`} className="mr-1 inline-flex items-baseline gap-1">
-                    <span className="font-cond text-[9px] font-bold uppercase leading-none tracking-[0.05em] opacity-75">
+                    <span className="font-cond text-micro font-bold uppercase leading-none tracking-[0.05em] opacity-75">
                       {metaLabel}
                     </span>
-                    <span className="font-body text-[13px] font-bold leading-none">{value}</span>
+                    <span className="font-body text-caption font-bold leading-none">{value}</span>
                   </span>
                 ))}
                 {footActions}

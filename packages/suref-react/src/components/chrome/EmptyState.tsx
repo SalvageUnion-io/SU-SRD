@@ -29,7 +29,7 @@ export function EmptyState({ headline, body, action, className }: EmptyStateProp
       )}
     >
       <Stamp size="sm">{headline}</Stamp>
-      {body && <p className="font-body text-[13px] text-wk-muted">{body}</p>}
+      {body && <p className="font-body text-caption text-wk-muted">{body}</p>}
       {action}
     </div>
   )

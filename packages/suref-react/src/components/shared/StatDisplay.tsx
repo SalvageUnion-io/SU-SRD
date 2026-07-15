@@ -191,7 +191,7 @@ function InlineChip({ label, value, max, tone = 'default', className }: StatDisp
       )}
     >
       {/* Ink stamp label cell — the [RANGE | CLOSE] horizontal split-stat style. */}
-      <span className="flex items-center bg-ink px-1.5 font-cond text-[10px] font-bold uppercase leading-none tracking-caps-tight text-su-white">
+      <span className="flex items-center bg-ink px-1.5 font-cond text-label font-bold uppercase leading-none tracking-caps-tight text-su-white">
         {label}
       </span>
       {/* White value cell — the pip-chips + value live in the white "close" section. */}
@@ -223,7 +223,7 @@ function InlineChip({ label, value, max, tone = 'default', className }: StatDisp
         >
           {clamped}
           {max !== undefined && (
-            <small className="text-[10px] font-bold text-wk-muted">/{max}</small>
+            <small className="text-label font-bold text-wk-muted">/{max}</small>
           )}
         </span>
       </span>
@@ -312,7 +312,7 @@ function FramedTracker({
         {code}
       </span>
       {name && (
-        <span className="-mb-1 font-cond text-[9px] uppercase leading-none text-wk-muted">
+        <span className="-mb-1 font-cond text-micro uppercase leading-none text-wk-muted">
           {name}
         </span>
       )}
@@ -357,7 +357,7 @@ function FramedTracker({
                 <small
                   className={cn(
                     'font-bold',
-                    isSm ? 'text-[10px]' : 'text-[13px]',
+                    isSm ? 'text-label' : 'text-caption',
                     isOver ? 'text-status-bad' : 'text-wk-muted'
                   )}
                 >
@@ -538,7 +538,7 @@ function ValueBox({
   const canEdit = mode === 'edit' && onChange !== undefined && Number.isFinite(numericValue)
   const atMin = numericValue <= min
   const atMax = max !== undefined && numericValue >= max
-  const btnSize = compact ? 'h-3 w-3 text-[9px]' : 'h-4 w-4 text-xs'
+  const btnSize = compact ? 'h-3 w-3 text-micro' : 'h-4 w-4 text-xs'
   // Match the canonical button border (border-chrome border-ink bg-paper), same
   // as Btn / StepBtn; keep the invert-on-hover the box steppers have always had.
   const btnResting = inverse
@@ -572,7 +572,7 @@ function ValueBox({
         as="span"
         className={cn(
           'z-[1] -mb-2 origin-center self-center whitespace-nowrap uppercase',
-          compact ? 'text-[10px]' : 'text-xs'
+          compact ? 'text-label' : 'text-xs'
         )}
         id={labelId}
       >
@@ -637,7 +637,7 @@ function ValueBox({
         as="span"
         className={cn(
           'z-[1] -mt-2 origin-center self-center whitespace-nowrap uppercase',
-          compact ? 'text-[10px]' : 'text-xs',
+          compact ? 'text-label' : 'text-xs',
           !bottomLabel && 'invisible'
         )}
       >

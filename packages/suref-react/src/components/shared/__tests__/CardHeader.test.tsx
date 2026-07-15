@@ -64,7 +64,7 @@ describe('CardHeader', () => {
   test('compact passes through to ControlButtons', () => {
     render(<CardHeader title="Title" controls={[makeControl()]} compact />)
     const button = screen.getByRole('button')
-    expect(button.innerHTML).toContain('text-[10px]')
+    expect(button.innerHTML).toContain('text-label')
   })
 
   test('leftContent renders before title', () => {

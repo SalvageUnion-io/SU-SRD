@@ -30,6 +30,26 @@
   --radius-card: 3px;
   --radius-panel: 6px;
 
+  /* Semantic type scale (ruleset §4.2 — the ONE font-size ladder; never
+     text-[Npx] for these steps). Shared by every surface (was ITUN-local):
+       nano     8px    smallest markers — TL glyphs, unit suffixes
+       micro    9px    dense caps meta labels (NPC insets, encounter cards)
+       label    10px   standard uppercase font-cond field/section label
+       label-lg 10.5px pseudoheader / rail caps label
+       badge    11px   badges, pills, compact caps values
+       note     11.5px small body copy in rails and insets
+       caption  13px   small body copy — hints, empty states, subtitles
+       lede     15px   emphasized inline values, inset titles
+     Generates text-nano … text-lede. */
+  --text-nano: 8px;
+  --text-micro: 9px;
+  --text-label: 10px;
+  --text-label-lg: 10.5px;
+  --text-badge: 11px;
+  --text-note: 11.5px;
+  --text-caption: 13px;
+  --text-lede: 15px;
+
   /* === Brand Colors === */
   --color-su-orange: rgb(239, 137, 79);
   --color-su-orange-dark: rgb(168, 82, 34);

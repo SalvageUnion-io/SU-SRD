@@ -28,7 +28,7 @@ const BTN_SIZES = ['sm', 'md', 'lg'] as const
 function Cluster({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="font-cond text-[10px] uppercase tracking-caps text-wk-muted">{label}</span>
+      <span className="font-cond text-label uppercase tracking-caps text-wk-muted">{label}</span>
       <div className="flex flex-wrap items-start gap-3">{children}</div>
     </div>
   )
@@ -103,7 +103,7 @@ export const AllVariants: Story = () => (
  */
 export const Selection: Story = () => {
   const swatch = (children: ReactNode) => (
-    <div className="rounded-card border-chrome border-ink bg-paper px-4 py-3 font-body text-[13px] text-ink">
+    <div className="rounded-card border-chrome border-ink bg-paper px-4 py-3 font-body text-caption text-ink">
       {children}
     </div>
   )
@@ -184,7 +184,7 @@ export const StepButtons: Story = () => (
       <Cluster label={`in context (SP ${structure})`}>
         <div className="flex items-center gap-2">
           <StepBtn aria-label="Decrease Structure">–</StepBtn>
-          <span className="font-body text-[15px] font-bold tabular-nums text-ink">{structure}</span>
+          <span className="font-body text-lede font-bold tabular-nums text-ink">{structure}</span>
           <StepBtn aria-label="Increase Structure">+</StepBtn>
         </div>
       </Cluster>

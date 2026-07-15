@@ -19,7 +19,7 @@ export function FilterChip({ label, active, onClick, colorClass, swatchStyle }: 
 
   // When a swatch is shown, use tlchip layout: flex row, font-cond label, bordered swatch
   const swatchBase =
-    'cursor-pointer flex items-center gap-1.5 rounded-badge border border-ink px-2.5 py-1 font-cond text-[13px] font-semibold uppercase tracking-caps-tight transition-colors'
+    'cursor-pointer flex items-center gap-1.5 rounded-badge border border-ink px-2.5 py-1 font-cond text-caption font-semibold uppercase tracking-caps-tight transition-colors'
 
   // The shared themed keyboard-focus ring (WCAG 2.4.7) — rust, matching every
   // other chrome control.
