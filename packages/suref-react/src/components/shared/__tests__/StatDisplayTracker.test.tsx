@@ -61,15 +61,15 @@ describe('StatDisplay (tracker) — numeric mode', () => {
     expect(screen.queryByLabelText('Increase HP')).toBeNull()
   })
 
-  test('pips follow the bottom-heavy ≤6/row split and fill to value', () => {
+  test('pips follow the top-heavy ≤5/row split and fill to value', () => {
     const { container } = render(<StatDisplay dots label="SP" value={8} max={13} />)
     const pips = container.querySelectorAll('[data-pip]')
     expect(pips.length).toBe(13)
     expect(container.querySelectorAll('[data-pip="on"]').length).toBe(8)
-    // 13 → 4/4/5 rows
+    // 13 → 5/4/4 rows: the heavy row of 5 rides on top (ruleset §4.5)
     const rows = must(container.querySelectorAll('[data-pip]')[0]?.parentElement?.parentElement)
     const rowCounts = Array.from(rows.children).map((row) => row.children.length)
-    expect(rowCounts).toEqual([4, 4, 5])
+    expect(rowCounts).toEqual([5, 4, 4])
   })
 
   test('pips=false suppresses the track (e.g. SYS 5/20)', () => {

@@ -195,16 +195,19 @@ dark instrument.
 
 ### 4.5 The pip-row split (gauges + statblocks)
 
-Max 5 pips per row, split balanced:
+Max 5 pips per row, split balanced, and **top-heavy** — in an awkward split the
+heavier rows ride on **top**, the lighter rows balance beneath (each row is
+centred, so the short lower rows sit centred under the full top row):
 
 ```
 pipRows(n): perRow = 5
   rows  = ceil(n / 5)
   base  = floor(n / rows); extra = n mod rows
-  → `extra` rows of (base+1), then (rows − extra) rows of base
+  → the first `extra` rows get (base+1), the remaining rows get base
 ```
 
-`6 → 3+3 · 7 → 4+3 · 8 → 4+4 · 10 → 5+5`. The redline pip sits at the **70% law**.
+`6 → 3/3 · 7 → 4/3 · 8 → 4/4 · 9 → 5/4 · 10 → 5/5 · 13 → 5/4/4 · 20 → 5/5/5/5`.
+The redline pip sits at the **70% law**.
 
 ---
 
