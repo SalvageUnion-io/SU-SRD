@@ -19,7 +19,8 @@ export const Roster: Story = () => (
         <EntityRow
           entityType="pilot"
           name="Ace"
-          meta="Corpo-trained Pilot · HP 16"
+          meta="Corpo-trained Pilot"
+          stats={[{ label: 'HP', value: 16 }]}
           sheetHref="#/pilot/ace"
           onDeleteClick={() => {}}
         />
@@ -28,7 +29,10 @@ export const Roster: Story = () => (
         <EntityRow
           entityType="mech"
           name="Mule — Hauler Pattern"
-          meta="TL 1 · SP 12"
+          stats={[
+            { label: 'TL', value: 1 },
+            { label: 'SP', value: 12 },
+          ]}
           sheetHref="#/mech/mule"
           onDeleteClick={() => {}}
         />
@@ -37,7 +41,10 @@ export const Roster: Story = () => (
         <EntityRow
           entityType="crawler"
           name="Hamlet"
-          meta="TL 1 · SP 20"
+          stats={[
+            { label: 'TL', value: 1 },
+            { label: 'SP', value: 20 },
+          ]}
           sheetHref="#/crawler/hamlet"
           onDeleteClick={() => {}}
         />

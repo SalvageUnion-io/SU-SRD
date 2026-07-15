@@ -3,6 +3,7 @@ import { Trash2 } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import { Btn } from '../chrome/Btn'
 import { btnVariants } from '../chrome/btnVariants'
+import { StatDisplay } from './StatDisplay'
 
 /**
  * EntityRow — a header-only clickable listing ROW: the compact, one-line
@@ -23,12 +24,24 @@ import { btnVariants } from '../chrome/btnVariants'
 
 export type EntityRowType = 'pilot' | 'mech' | 'crawler'
 
+/** A single `label | value` stat rendered in the subheader as a horizontal StatDisplay. */
+export type EntityRowStat = {
+  label: string | number
+  value: string | number
+}
+
 type EntityRowProps = {
   /** Entity ontology driving the accent rail + tone wash. */
   entityType: EntityRowType
   /** Entity name rendered in the black pseudoheader name tab. */
   name: string
-  /** Optional muted caption under the name (e.g. `TL 1 · SP 12`). */
+  /**
+   * Subheader stat content. Each entry renders through the canonical
+   * StatDisplay (horizontal `label | value` mode) — never hand-assembled text
+   * (see the stats-render-through-StatDisplay law, ruleset §3).
+   */
+  stats?: EntityRowStat[]
+  /** Optional muted prose caption beside the stats (e.g. a class/role line). */
   meta?: ReactNode
   /** Destination for the View link. */
   sheetHref: string
@@ -56,7 +69,14 @@ const TONE: Record<EntityRowType, { rail: string; wash: string }> = {
   },
 }
 
-export function EntityRow({ entityType, name, meta, sheetHref, onDeleteClick }: EntityRowProps) {
+export function EntityRow({
+  entityType,
+  name,
+  stats,
+  meta,
+  sheetHref,
+  onDeleteClick,
+}: EntityRowProps) {
   const tone = TONE[entityType]
   const frameStyle: CSSProperties = { background: tone.wash }
 
@@ -82,7 +102,20 @@ export function EntityRow({ entityType, name, meta, sheetHref, onDeleteClick }: 
           <span className="inline-block max-w-full truncate rounded-pip bg-ink px-1.5 py-0.5 align-middle font-cond text-lede font-bold uppercase leading-tight tracking-caps-tight text-paper">
             {name}
           </span>
-          {meta && <div className="mt-1.5 truncate font-body text-note text-wk-muted">{meta}</div>}
+          {(meta || (stats && stats.length > 0)) && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+              {meta && <span className="truncate font-body text-note text-wk-muted">{meta}</span>}
+              {stats?.map((stat) => (
+                <StatDisplay
+                  key={String(stat.label)}
+                  label={stat.label}
+                  value={stat.value}
+                  orientation="horizontal"
+                  xs
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5">

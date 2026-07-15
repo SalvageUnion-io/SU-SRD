@@ -137,6 +137,15 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 5. **No gradients. Closed colour set.** No colour outside §4's set; no gradient
    anywhere (half-fills and X's are `clip-path` + SVG, never gradient fills).
 6. **Copy is 1:1 with real SRD data**, everywhere — catalog stories included.
+7. **Stats render through StatDisplay; game data renders through the shared
+   primitives.** Any `label | value` — a stat, cap, vital, tech level, range,
+   cost — is a **StatDisplay** in the anatomy its context calls for (horizontal
+   `label | value`, framed tracker, box, inline chip), **never** hand-assembled
+   text like `<span>SP {n}</span>`. More broadly, every game component renders
+   through the canonical shared primitives (DisplayCard · StatDisplay ·
+   VitalGauge · Badge · ConditionSwatch · SlotGrid · RollTable · …) — a surface
+   never reinvents a primitive's markup one-off. If you are about to type a stat
+   into a `<span>`, you want a StatDisplay.
 
 ---
 
