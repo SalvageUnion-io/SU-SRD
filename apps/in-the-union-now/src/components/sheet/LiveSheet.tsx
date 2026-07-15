@@ -218,11 +218,7 @@ export function LiveSheet({
             )}
           >
             <span className={BARNAME_STAMP_CLASS}>{name}</span>
-            {pill && (
-              <Pill tone={pill.tone} rounded>
-                {pill.label}
-              </Pill>
-            )}
+            {pill && <Pill tone={pill.tone}>{pill.label}</Pill>}
             {stripItems.map((item) => (
               <StatDisplay
                 key={item.key}

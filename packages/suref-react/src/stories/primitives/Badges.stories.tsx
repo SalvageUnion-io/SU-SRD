@@ -22,11 +22,6 @@ const crawler = SalvageUnionReference.Crawlers.all()[0]
 
 const chassisName = chassis?.name ?? 'Chassis'
 const techLabel = `Tech ${chassis?.techLevel ?? 1}`
-const sp = chassis?.structurePoints ?? 10
-const ep = chassis?.energyPoints ?? 4
-const heat = chassis?.heatCapacity ?? 6
-const moduleSlots = chassis?.moduleSlots ?? 2
-const cargoCapacity = chassis?.cargoCapacity ?? 6
 
 const pilotLabel = classes[0]?.name ?? 'Pilot'
 const crawlerName = crawler?.name ?? 'Crawler'
@@ -87,35 +82,16 @@ export const Pills: Story = () => (
         </Pill>
       ))}
     </Row>
-
-    <ClusterLabel>Rounded (poster app-bar kindpill)</ClusterLabel>
-    <Row>
-      <Pill rounded>{chassisName}</Pill>
-      {PILL_TONES.map((tone) => (
-        <Pill key={tone} tone={tone} rounded>
-          {PILL_TONE_LABELS[tone]}
-        </Pill>
-      ))}
-    </Row>
   </div>
 )
 
 export const Chips: Story = () => (
   <div className="bg-paper p-4">
-    <ClusterLabel>Without value (borderless stat chip)</ClusterLabel>
+    <ClusterLabel>Keyword / status chips (borderless)</ClusterLabel>
     <Row>
       {activeConditions.map((condition) => (
         <Chip key={condition}>{condition}</Chip>
       ))}
-    </Row>
-
-    <ClusterLabel>With value (bold inverse-emphasis)</ClusterLabel>
-    <Row>
-      <Chip value={sp}>SP</Chip>
-      <Chip value={ep}>EP</Chip>
-      <Chip value={heat}>Heat</Chip>
-      <Chip value={moduleSlots}>Modules</Chip>
-      <Chip value={`0/${cargoCapacity}`}>Cargo</Chip>
     </Row>
   </div>
 )

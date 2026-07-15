@@ -44,10 +44,9 @@ describe('Pill / Chip', () => {
     expect(pill.className).toContain('border-status-warn')
   })
 
-  test('chip renders quiet label + bold value', () => {
-    const { container } = render(<Chip value={3}>Uses</Chip>)
+  test('chip renders a quiet keyword chip', () => {
+    render(<Chip>Uses</Chip>)
     expect(screen.getByText('Uses')).toBeTruthy()
-    expect(container.querySelector('b')?.textContent).toBe('3')
   })
 })
 

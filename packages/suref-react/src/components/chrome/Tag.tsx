@@ -20,7 +20,7 @@ export function Tag({ label, ghost = false, className }: TagProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-[2px] px-[7px] pb-[1px] pt-[2px] font-cond text-[11px] font-semibold uppercase leading-tight tracking-caps-snug',
+        'inline-flex h-[22px] items-center rounded-[2px] px-[7px] font-cond text-[11px] font-semibold uppercase leading-none tracking-caps-snug',
         ghost
           ? 'bg-paper text-ink shadow-[inset_0_0_0_1px_rgba(40,32,25,0.2)]'
           : 'bg-ink text-paper',
