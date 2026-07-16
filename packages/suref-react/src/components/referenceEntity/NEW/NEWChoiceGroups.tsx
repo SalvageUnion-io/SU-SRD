@@ -107,14 +107,17 @@ function NEWChoiceOption({
       </div>
     </div>
   )
+  // Always a `button[aria-pressed]` so the chosen state stays queryable in BOTH
+  // modes (the read-only snapshot / share-link viewer needs to see which option
+  // was chosen). Read-only just makes it inert — no toggle handler, default
+  // cursor — while keeping the same dim-until-chosen visual.
   const wrap = cn('block rounded-card transition-opacity duration-150', !chosen && 'opacity-45')
-  if (readOnly) return <div className={wrap}>{card}</div>
   return (
     <button
       type="button"
       aria-pressed={chosen}
-      onClick={onToggle}
-      className={cn('w-full text-left', wrap)}
+      onClick={readOnly ? undefined : onToggle}
+      className={cn('w-full text-left', wrap, readOnly && 'cursor-default')}
     >
       {card}
     </button>
