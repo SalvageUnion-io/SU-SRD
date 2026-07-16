@@ -4,7 +4,7 @@ import type { CardFootMeta } from '../../shared/DisplayCard'
 
 export type NEWCardDomain = 'pilot' | 'mech' | 'crawler' | 'monster' | 'gear' | 'action'
 
-type NEWIdentityFooterProps = {
+type EntityCardIdentityFooterProps = {
   /** Darker shade of the domain/tech-level tone (a raw CSS colour). */
   bgColor: string
   /** Entity TYPE (e.g. "Chassis") — plain muted text on the LEFT of the row. */
@@ -21,7 +21,7 @@ type NEWIdentityFooterProps = {
 }
 
 /**
- * NEWIdentityFooter — the card's FOOTER band (depth-0 / full cards only).
+ * EntityCardIdentityFooter — the card's FOOTER band (depth-0 / full cards only).
  *
  * ONE muted row: the entity TYPE on the LEFT, provenance (source · page) on the
  * RIGHT — e.g. "Chassis … Salvage Union Workshop Manual · p.128". The type is
@@ -29,7 +29,7 @@ type NEWIdentityFooterProps = {
  * the type stamp moved OUT of the seam to here on full cards. (Nested/compact
  * cards have no footer, so they keep the type stamp in the seam.)
  */
-export function NEWIdentityFooter({
+export function EntityCardIdentityFooter({
   bgColor,
   typeLabel,
   source,
@@ -38,7 +38,7 @@ export function NEWIdentityFooter({
   footMeta,
   footActions,
   compact = false,
-}: NEWIdentityFooterProps) {
+}: EntityCardIdentityFooterProps) {
   const sourceLabel = source && booklet ? `${source} (${booklet})` : source
   const rightParts = [sourceLabel, page !== undefined ? `p.${page}` : undefined].filter(
     (part): part is string => !!part

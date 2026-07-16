@@ -18,7 +18,7 @@ import {
 import { accentDeepColor } from '../referenceEntityHelpers'
 
 /**
- * NEWChoiceGroups — the write-layer choice renderer in the NEW design language.
+ * EntityCardChoiceGroups — the write-layer choice renderer in the NEW design language.
  *
  * A choice is just another nested group: a dashed `Slab` (the choice name) over a
  * masonry of compact option cards, in the SAME chrome as any nested card — a tone
@@ -32,7 +32,7 @@ import { accentDeepColor } from '../referenceEntityHelpers'
  * persistence and the SRD ephemeral case both keep working unchanged.
  */
 
-type NEWChoiceGroupsProps = {
+type EntityCardChoiceGroupsProps = {
   choices: SURefObjectChoice[]
   /** Parent entity — resolves `scalesWithField` caps (e.g. techLevel). */
   parent?: Record<string, unknown>
@@ -227,7 +227,7 @@ function NEWChoiceGroup({
   )
 }
 
-export function NEWChoiceGroups({
+export function EntityCardChoiceGroups({
   choices,
   parent,
   selections: controlled,
@@ -235,7 +235,7 @@ export function NEWChoiceGroups({
   readOnly,
   compact,
   toneColor,
-}: NEWChoiceGroupsProps) {
+}: EntityCardChoiceGroupsProps) {
   const isControlled = controlled !== undefined
   const [internal, setInternal] = useState<ChoiceSelections>({})
   const selections = isControlled ? controlled : internal

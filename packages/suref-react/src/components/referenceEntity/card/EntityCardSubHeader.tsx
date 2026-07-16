@@ -6,7 +6,7 @@ import { StatDisplay } from '../../shared/StatDisplay'
  * optional for label-only keywords, e.g. "Immobile"). The MODIFIED-STATS language
  * uses `borderColor` (an upgraded stat's cell border) and `labelBg` (an added /
  * modified trait's label fill). */
-export type NEWSubHeaderCell = {
+export type EntityCardSubHeaderCell = {
   key: string
   label: string
   value?: string | number
@@ -20,22 +20,22 @@ export type NEWSubHeaderCell = {
  * Level" + its "+N" cells) — a label cell followed by "+N" cells, all the SAME
  * horizontal StatDisplay treatment as the trait cells (black border, same
  * size/padding), wrapped in ONE container so the block line-breaks together. */
-export type NEWSubHeaderGroup = {
+export type EntityCardSubHeaderGroup = {
   label: string
-  cells: NEWSubHeaderCell[]
+  cells: EntityCardSubHeaderCell[]
 }
 
-type NEWSubHeaderProps = {
+type EntityCardSubHeaderProps = {
   /** Darker shade of the domain/tech-level/rust tone (a raw CSS colour). */
   bgColor: string
   /** Sub-header cells — entity traits, or an action's range/damage/traits. */
-  cells: NEWSubHeaderCell[]
+  cells: EntityCardSubHeaderCell[]
   /** Leading node rendered FIRST in the row — e.g. an action's EP/AP
    * `ActivationCostBox`, which must lead before Range/Damage/Traits. */
   leading?: ReactNode
   /** Optional cohesive labelled stat group (e.g. bonus-per-tech-level), rendered
    * as one wrap-together block after the cells. */
-  group?: NEWSubHeaderGroup
+  group?: EntityCardSubHeaderGroup
   /** Right-aligned trailing node (e.g. the status chip), laid out space-between
    * against the trait cells. Absent ⇒ the band renders its plain packed layout. */
   trailing?: ReactNode
@@ -43,7 +43,7 @@ type NEWSubHeaderProps = {
 }
 
 /**
- * NEWSubHeader — the unified card's SUB-HEADER band, a darker shade of the tone.
+ * EntityCardSubHeader — the unified card's SUB-HEADER band, a darker shade of the tone.
  *
  * A feature of the card BASE: every card — entity, action, or NPC, full or
  * nested — renders this same band. Its content is horizontal StatDisplay cells
@@ -52,14 +52,14 @@ type NEWSubHeaderProps = {
  * `group` (a green-tinted label + "+N" cells that wrap together — same cell
  * treatment as the traits, e.g. bonus-per-tech-level).
  */
-export function NEWSubHeader({
+export function EntityCardSubHeader({
   bgColor,
   cells,
   leading,
   group,
   trailing,
   compact = false,
-}: NEWSubHeaderProps) {
+}: EntityCardSubHeaderProps) {
   const hasGroup = !!group && group.cells.length > 0
   if (!leading && cells.length === 0 && !hasGroup && !trailing) return null
 

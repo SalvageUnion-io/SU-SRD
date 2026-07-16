@@ -2,7 +2,7 @@ import { cn } from '../../../utils/cn'
 import { StatDisplay } from '../../shared/StatDisplay'
 import type { StatItem } from '../../shared/statsBarTypes'
 
-type NEWStatBoxProps = {
+type EntityCardStatBoxProps = {
   /** Headline stats (already capped to 1–3 by the caller). Each renders as a
    * centred StatDisplay value box (the "axis" cluster, top-right of the header). */
   /** Every header stat — the cluster wraps to multiple rows when needed. */
@@ -14,13 +14,13 @@ type NEWStatBoxProps = {
 }
 
 /**
- * NEWStatBox — the header's top-right headline-stat cluster.
+ * EntityCardStatBox — the header's top-right headline-stat cluster.
  *
  * Deliberately a thin layout shell: each stat is a real `StatDisplay` value box
  * (the canonical stat/value primitive), just clustered and right-aligned. No
  * ad-hoc stat rendering happens here — this is composition, not a new atom.
  */
-export function NEWStatBox({ stats, compact = false }: NEWStatBoxProps) {
+export function EntityCardStatBox({ stats, compact = false }: EntityCardStatBoxProps) {
   if (stats.length === 0) return null
 
   // ATOM MODEL: COMPACT header stats lay out as (at most) TWO rows — columns =

@@ -2,11 +2,11 @@ import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { NEWReferenceEntityCard } from './NEWReferenceEntityCard'
+import { ReferenceEntityCard } from './ReferenceEntityCard'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'NEW/Reference Entity Card',
+  title: 'Compositions/Reference Entity Card',
 }
 
 /**
@@ -71,7 +71,7 @@ const surveyorPattern = pick(
 function One({ entity }: { entity: SURefEntity }): ReactNode {
   return (
     <div className="flex flex-col gap-4 bg-paper p-4">
-      <NEWReferenceEntityCard data={entity} />
+      <ReferenceEntityCard data={entity} />
     </div>
   )
 }
@@ -87,7 +87,7 @@ export const CrawlerBayCard: Story = () => <One entity={crawlerBay} />
 export const Gallery: Story = () => (
   <div className="flex flex-col gap-10 bg-paper p-4">
     {[ability, system, chassis, bioTitan, crawler, equipment, crawlerBay].map((entity) => (
-      <NEWReferenceEntityCard key={('id' in entity && entity.id) || entity.name} data={entity} />
+      <ReferenceEntityCard key={('id' in entity && entity.id) || entity.name} data={entity} />
     ))}
   </div>
 )
@@ -103,6 +103,6 @@ export const PatternCard: Story = () => (
     <code className="font-mono text-nano text-ink-2">
       {chassis.name} · {surveyorPattern.name}
     </code>
-    <NEWReferenceEntityCard data={chassis} pattern={surveyorPattern} />
+    <ReferenceEntityCard data={chassis} pattern={surveyorPattern} />
   </div>
 )

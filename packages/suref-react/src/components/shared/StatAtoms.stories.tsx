@@ -4,7 +4,7 @@ import { StatDisplay } from './StatDisplay'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'NEW/Stat Atoms',
+  title: 'Atoms/Stat Display',
 }
 
 /** A titled demo row on the paper ground the cards use. */

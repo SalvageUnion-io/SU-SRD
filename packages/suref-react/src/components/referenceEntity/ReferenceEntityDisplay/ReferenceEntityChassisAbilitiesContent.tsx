@@ -1,7 +1,7 @@
 import type { SURefMetaAction } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { NestedChassisAbility } from '../NestedChassisAbility'
-import { ReferenceEntityDisplay } from '../NEW/referenceEntityDisplayShim'
+import { ReferenceEntityDisplay } from '../card/referenceEntityDisplayShim'
 import { SectionSeparator } from './SectionSeparator'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 import { cn } from '../../../utils/cn'
