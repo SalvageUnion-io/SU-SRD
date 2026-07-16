@@ -1,7 +1,6 @@
 import { describe, test, expect, afterEach } from 'bun:test'
 import { render, screen, cleanup } from '@testing-library/react'
 import { Badge } from '../Badge'
-import { Tag } from '../Tag'
 import { Pill, Chip } from '../Pill'
 import { EmptyState } from '../EmptyState'
 import { InlineRef } from '../InlineRef'
@@ -31,7 +30,7 @@ describe('Badge (unified) + presets', () => {
   })
 
   test('Tag/Pill/Chip presets still render their signature fills', () => {
-    render(<Tag>Armour</Tag>)
+    render(<Badge>Armour</Badge>)
     expect(screen.getByText('Armour').className).toContain('bg-ink')
     cleanup()
     render(<Pill tone="mech">Mule</Pill>)

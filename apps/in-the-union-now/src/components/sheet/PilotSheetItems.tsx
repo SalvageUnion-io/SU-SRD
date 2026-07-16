@@ -8,7 +8,7 @@
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefEntity } from 'salvageunion-reference'
-import { Btn, Panel, ReferenceEntityDisplay, Stat, StatusBadge, Tag } from 'suref-react'
+import { Btn, Panel, ReferenceEntityDisplay, Stat, StatusBadge, Badge } from 'suref-react'
 import type { CardFootMeta, ChoiceSelections, EntityStatus } from 'suref-react'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
@@ -84,7 +84,7 @@ export function PilotAbilityItem({
   const footMeta: CardFootMeta[] = [{ label: 'AP Cost', value: apCost ?? '—' }]
   const footActions = readOnly ? (
     used ? (
-      <Tag>Used</Tag>
+      <Badge>Used</Badge>
     ) : undefined
   ) : (
     <>

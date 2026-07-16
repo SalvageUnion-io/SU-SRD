@@ -6,7 +6,6 @@ import { Stat } from '../components/shared/Stat'
 import { VitalGauge } from '../components/stat/VitalGauge'
 import { BayStatus } from '../components/stat/BayStatus'
 import { Badge } from '../components/chrome/Badge'
-import { Tag } from '../components/chrome/Tag'
 import { Stamp } from '../components/chrome/Stamp'
 import { ConditionSwatch } from '../components/stat/ConditionSwatch'
 import { SlotGrid } from '../components/shared/SlotGrid'
@@ -95,9 +94,9 @@ const rows: MatrixRow[] = [
   {
     role: 'Keyword',
     when: 'cite',
-    use: 'Tag (= Badge solid)',
-    rule: 'A single stamped keyword.',
-    example: <Tag>{traitLabel}</Tag>,
+    use: 'Badge (solid, the default)',
+    rule: 'A single stamped keyword — the solid Badge.',
+    example: <Badge>{traitLabel}</Badge>,
   },
   {
     role: 'Condition',

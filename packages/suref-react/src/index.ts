@@ -103,7 +103,6 @@ export {
 export type { ChoiceSelections } from './components/referenceEntity/choiceCard/choiceSelectionHelpers'
 
 // Chrome primitives (ITUN design handoff — design-spec §2)
-export { Tag } from './components/chrome/Tag'
 // Badge — the unified stamp-chip family; Tag/Pill/Chip are its presets (ruleset §6)
 export { Badge } from './components/chrome/Badge'
 export type { BadgeTone, BadgeSurface } from './components/chrome/Badge'

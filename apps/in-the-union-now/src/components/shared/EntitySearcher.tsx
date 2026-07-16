@@ -26,7 +26,7 @@ import {
   MiniBtn,
   Panel,
   ReferenceEntityDisplay,
-  Tag,
+  Badge,
   statBlockRowStarts,
 } from 'suref-react'
 import { cn } from '../../lib/utils'
@@ -359,7 +359,7 @@ export function EntitySearcher({
                     onToggle?.(isSelected ? (matchedRef(item) ?? idOf(item)) : idOf(item))
                   }
                   entityProps={
-                    isSelected ? { footActions: <Tag>{`${chosenLabel} ✓`}</Tag> } : undefined
+                    isSelected ? { footActions: <Badge>{`${chosenLabel} ✓`}</Badge> } : undefined
                   }
                 />
               )
