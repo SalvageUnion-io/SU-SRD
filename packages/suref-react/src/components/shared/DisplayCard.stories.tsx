@@ -1,45 +1,55 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
-import { useState } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { DisplayCard } from './DisplayCard'
 import type { CardFootMeta, DisplayCardTab } from './DisplayCard'
+import type { StatItem } from './statsBarTypes'
 import { Text } from '../base/Text'
-import { Badge } from '../chrome/Badge'
-import { Btn } from '../chrome/Btn'
-import { StepBtn } from '../chrome/SmallButtons'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/DisplayCard',
 }
 
-// Real chassis content so header/body/foot read like a shipped card.
-const chassis = SalvageUnionReference.Chassis.all()[0]
-const name = chassis?.name ?? 'Mule'
-const tl = chassis?.techLevel ?? 3
-const sv = chassis?.salvageValue ?? 8
-const sp = chassis?.structurePoints ?? 12
-const cargo = chassis?.cargoCapacity ?? 16
+// DisplayCard is the GENERIC container primitive — its stories demonstrate
+// the shell (header / sub-header / body / footer) with abstract content,
+// never real SRD entities. Entity-specific rendering lives one layer up, in
+// ReferenceEntityDisplay's own stories. The only "real" content here is the
+// status badge (intact/damaged/destroyed) — that's the primitive's own
+// mechanic, not an entity concern.
 
 const header = (
   <Text variant="pseudoheader" as="span">
-    {name}
+    Card Title
   </Text>
 )
 
 const body = (
   <div className="p-3">
     <Text as="p" className="text-sm text-ink-2">
-      Structure {sp} · Cargo {cargo} · Tech Level {tl}
+      This is the card&apos;s body — the main reading surface for descriptive content, notes, or any
+      other prose the container needs to hold.
     </Text>
   </div>
 )
 
-const footMeta = [
-  { label: 'TL', value: tl },
-  { label: 'SV', value: sv },
+// Abstract stat axis for the sub-header band demo — generic labels and
+// numbers, not real SRD entity stats.
+const genericStats: StatItem[] = [
+  { key: 'alpha', label: 'Alpha', value: 12 },
+  { key: 'beta', label: 'Beta', value: 7 },
+  { key: 'gamma', label: 'Gamma', value: 3 },
 ]
+
+const genericFootMeta: CardFootMeta[] = [
+  { label: 'Ref', value: 'A1' },
+  { label: 'Qty', value: 3 },
+]
+
+const genericFootActions = (
+  <button type="button" className="rounded-badge border border-ink px-2 py-1 text-xs">
+    Action
+  </button>
+)
 
 function Gallery({ rule, children }: { rule: string; children: ReactNode }) {
   return (
@@ -67,11 +77,76 @@ function Cell({
   )
 }
 
+/**
+ * Four-band model (design-spec §2.1): a required header, an optional
+ * sub-header (a darker shade of the header tone, populated by `subHeader`
+ * content and/or `stats`), an optional body, and an optional footer
+ * (`footActions`/`footMeta`/`footerContent`). Sub-header and footer are each
+ * independently opt-in — this gallery shows every combination, including
+ * both present and absent, so their optionality is obvious.
+ */
+export const Bands: Story = () => (
+  <Gallery rule="DisplayCard is a generic four-band shell: header (required) + optional sub-header + optional body + optional footer. Sub-header and footer are each independently opt-in — every combination below uses the same abstract content so the arrangement is the only thing changing.">
+    <Cell label="header only (listing — body/sub-header/footer hidden)" width="w-[380px]">
+      <DisplayCard headerBg="bg-su-green" headerContent={header} listing>
+        {body}
+      </DisplayCard>
+    </Cell>
+    <Cell label="header + sub-header (stats)" width="w-[380px]">
+      <DisplayCard headerBg="bg-su-green" headerContent={header} stats={genericStats}>
+        {body}
+      </DisplayCard>
+    </Cell>
+    <Cell label="header + sub-header (subHeader node, no stats)" width="w-[380px]">
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={header}
+        subHeader={
+          <Text
+            as="span"
+            className="font-cond text-micro font-bold uppercase tracking-wide text-paper"
+          >
+            Custom sub-header content
+          </Text>
+        }
+      >
+        {body}
+      </DisplayCard>
+    </Cell>
+    <Cell label="header + footer (no sub-header)" width="w-[380px]">
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={header}
+        footMeta={genericFootMeta}
+        footActions={genericFootActions}
+      >
+        {body}
+      </DisplayCard>
+    </Cell>
+    <Cell label="header + sub-header + footer (all four bands)" width="w-[380px]">
+      <DisplayCard
+        headerBg="bg-su-green"
+        headerContent={header}
+        stats={genericStats}
+        footMeta={genericFootMeta}
+        footActions={genericFootActions}
+      >
+        {body}
+      </DisplayCard>
+    </Cell>
+    <Cell label="header only (no sub-header, no footer)" width="w-[380px]">
+      <DisplayCard headerBg="bg-su-green" headerContent={header}>
+        {body}
+      </DisplayCard>
+    </Cell>
+  </Gallery>
+)
+
 /** Density + interactivity: full → compact → listing (header-only) → disabled. */
 export const Densities: Story = () => (
   <Gallery rule="Two booleans span the density range: compact (reduced spacing) and listing (header-only clickable row). disabled dims the whole card.">
     <Cell label="default">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} footMeta={footMeta}>
+      <DisplayCard headerBg="bg-su-green" headerContent={header} footMeta={genericFootMeta}>
         {body}
       </DisplayCard>
     </Cell>
@@ -121,50 +196,27 @@ export const Status: Story = () => (
 
 const tabs: DisplayCardTab[] = [
   {
-    key: 'stats',
-    label: 'Stats',
-    content: (
-      <div className="p-3 text-sm text-ink-2">
-        Structure {sp} · Cargo {cargo}
-      </div>
-    ),
+    key: 'details',
+    label: 'Details',
+    content: <div className="p-3 text-sm text-ink-2">Alpha 12 · Beta 7</div>,
   },
   {
     key: 'notes',
     label: 'Notes',
-    content: <div className="p-3 text-sm text-ink-2">Field notes.</div>,
+    content: <div className="p-3 text-sm text-ink-2">Additional notes.</div>,
   },
 ]
 
-/** Composed features: tabs, foot actions + meta, a header label badge, sticky header. */
+/** Composed features: tabs, a header label + labelBadge, sticky header. */
 export const Features: Story = () => (
-  <Gallery rule="Feature slots layer onto the same shell: tabs, footActions + footMeta, a header label + labelBadge, and a stickyHeader (scroll to see it stick).">
+  <Gallery rule="Feature slots layer onto the same shell: tabs, a header label + labelBadge, and a stickyHeader (scroll to see it stick).">
     <Cell label="tabs" width="w-[380px]">
       <DisplayCard headerBg="bg-su-blue" headerContent={header} tabs={tabs}>
         {body}
       </DisplayCard>
     </Cell>
-    <Cell label="footActions + footMeta" width="w-[380px]">
-      <DisplayCard
-        headerBg="bg-su-green"
-        headerContent={header}
-        footActions={
-          <button type="button" className="rounded-badge border border-ink px-2 py-1 text-xs">
-            Repair
-          </button>
-        }
-        footMeta={[{ label: 'AP Cost', value: 1 }]}
-      >
-        {body}
-      </DisplayCard>
-    </Cell>
     <Cell label="label + labelBadge">
-      <DisplayCard
-        headerBg="bg-su-green"
-        headerContent={header}
-        label="Tech Level"
-        labelBadge={String(tl)}
-      >
+      <DisplayCard headerBg="bg-su-green" headerContent={header} label="Category" labelBadge="1">
         {body}
       </DisplayCard>
     </Cell>
@@ -175,126 +227,12 @@ export const Features: Story = () => (
             {Array.from({ length: 8 }).map((_, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: static demo lines identified by index
               <Text as="p" className="text-sm text-ink-2" key={i}>
-                Loadout row {i + 1}.
+                Body row {i + 1}.
               </Text>
             ))}
           </div>
         </DisplayCard>
       </div>
-    </Cell>
-  </Gallery>
-)
-
-// A real installed mech system so the action-economy foot reads like ITUN's
-// MechItemCard (EP/heat/uses come off this entity in the app).
-const system = SalvageUnionReference.Systems.all()[0]
-const systemName = system?.name ?? '.50 Cal Machine Gun'
-const systemSlots = system?.slotsRequired ?? 2
-
-const installedBody = (
-  <div className="p-3">
-    <Text as="p" className="font-cond text-caption font-bold uppercase tracking-wide text-ink-2">
-      Installed System
-    </Text>
-  </div>
-)
-
-// EP.0 / SLOTS.2 — the inline label/value meta folded into the foot band.
-const installedFootMeta: CardFootMeta[] = [
-  { label: 'EP', value: 0 },
-  { label: 'Slots', value: systemSlots },
-]
-
-/** The uses stepper as MechItemCard renders it: ± StepBtns bracketing "Uses n/max". */
-function UsesStepper({ max }: { max: number }) {
-  const [remaining, setRemaining] = useState(max)
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <StepBtn
-        aria-label={`Decrease ${systemName} uses`}
-        disabled={remaining <= 0}
-        onClick={() => setRemaining((n) => n - 1)}
-      >
-        &ndash;
-      </StepBtn>
-      <span className="min-w-[4.5rem] text-center font-cond text-badge font-bold uppercase leading-none tabular-nums text-ink">
-        Uses {remaining}/{max}
-      </span>
-      <StepBtn
-        aria-label={`Increase ${systemName} uses`}
-        disabled={remaining >= max}
-        onClick={() => setRemaining((n) => n + 1)}
-      >
-        +
-      </StepBtn>
-    </span>
-  )
-}
-
-/**
- * Action-economy foot: the folded MechItemCard preset. A compact installed-system
- * card carries its condition Badge, EP/Slots footMeta, and a footActions band —
- * Use (rust, the one action color) + a uses stepper, with a rust Repair on the
- * damaged variant. Rust appears ONLY on Use/Repair; everything else stays paper/ink.
- */
-export const ActionEconomyFoot: Story = () => (
-  <Gallery rule="The action-economy foot (folded ItemCard preset): footMeta cites EP/Slots, footActions folds Use + a uses stepper into the band. Rust is reserved for the action verbs — Use and Repair — never chrome; condition is a tone Badge, not a second hue.">
-    <Cell label="intact" width="w-[400px]">
-      <DisplayCard
-        compact
-        headerBg="bg-su-green"
-        headerContent={
-          <span className="flex min-w-0 items-center gap-2">
-            <Text variant="pseudoheader" as="span">
-              {systemName}
-            </Text>
-            <Badge surface="tone" tone="ok">
-              Intact
-            </Badge>
-          </span>
-        }
-        footMeta={installedFootMeta}
-        footActions={
-          <>
-            <Btn size="sm" variant="primary" aria-label={`Use ${systemName}`}>
-              Use
-            </Btn>
-            <UsesStepper max={3} />
-          </>
-        }
-      >
-        {installedBody}
-      </DisplayCard>
-    </Cell>
-    <Cell label="damaged" width="w-[400px]">
-      <DisplayCard
-        compact
-        headerBg="bg-su-green"
-        headerContent={
-          <span className="flex min-w-0 items-center gap-2">
-            <Text variant="pseudoheader" as="span">
-              {systemName}
-            </Text>
-            <Badge surface="tone" tone="warn">
-              Damaged
-            </Badge>
-          </span>
-        }
-        footMeta={installedFootMeta}
-        footActions={
-          <>
-            <Btn size="sm" variant="primary" aria-label={`Use ${systemName}`}>
-              Use
-            </Btn>
-            <UsesStepper max={3} />
-            <Btn size="sm" variant="primary" aria-label={`Repair ${systemName}`}>
-              Repair · 2 Scrap
-            </Btn>
-          </>
-        }
-      >
-        {installedBody}
-      </DisplayCard>
     </Cell>
   </Gallery>
 )

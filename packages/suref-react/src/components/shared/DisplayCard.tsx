@@ -5,7 +5,7 @@ import { ControlButtons } from './ControlButtons'
 import { StatsBar } from './StatsBar'
 import { StatDisplay } from './StatDisplay'
 import type { StatItem } from './statsBarTypes'
-import { borderColorFromHeaderBg } from '../referenceEntity/referenceEntityHelpers'
+import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntity/referenceEntityHelpers'
 import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 import { StickyHeaderContext, StickyOffsetContext } from './StickyHeaderContext'
 import { useStickyCard } from './useStickyCard'
@@ -106,7 +106,13 @@ type DisplayCardProps = {
   defaultTabLabel?: string
   /** CSS color override for the default tab's active background */
   defaultTabActiveColor?: string
-  /** Stats rendered in the header's right side (between headerContent and controls) */
+  /** Content rendered in the sub-header band, alongside/instead of `stats` —
+   * a darker shade of the header tone directly below the header content row.
+   * The band renders when either `subHeader` or `stats` is provided; no band
+   * renders when both are empty. */
+  subHeader?: ReactNode
+  /** Stats rendered in the sub-header band — a darker shade of the header tone
+   * directly below the header content row. No band renders when empty. */
   stats?: StatItem[]
 }
 
@@ -144,6 +150,7 @@ export function DisplayCard({
   tabs,
   defaultTabLabel = 'Info',
   defaultTabActiveColor,
+  subHeader,
   stats,
 }: DisplayCardProps) {
   const resolvedMode = resolveDisplayMode(mode, compactProp, listingProp)
@@ -178,6 +185,13 @@ export function DisplayCard({
   // set, matching the codex "After" .a-card spec; falls back to the su-black
   // default (borderColorProp) when there is no header bg.
   const effectiveBorderColor = borderColorFromHeaderBg(headerBg, headerBgColor) ?? borderColorProp
+
+  // Sub-header band (design-spec four-band model): a darker shade of the
+  // header tone, sitting flush below the header content row. Optional —
+  // populated by `subHeader` content and/or `stats`; no band when both are empty.
+  const subHeaderBg = accentDeepColor(headerBg, headerBgColor) ?? 'var(--color-su-black)'
+  const hasStats = !!stats && stats.length > 0
+  const hasSubHeader = !!subHeader || hasStats
 
   const handleCardKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -327,19 +341,7 @@ export function DisplayCard({
             }}
             data-testid={headerTestId}
           >
-            {stats && stats.length > 0 ? (
-              <>
-                <div className="flex min-w-0 flex-1 basis-full flex-wrap items-center justify-center gap-2 overflow-visible sm:basis-0 sm:justify-between">
-                  {headerContent}
-                </div>
-                <div className="flex w-full shrink-0 flex-wrap items-center justify-center gap-1 gap-y-1 sm:w-auto sm:justify-end">
-                  <StatsBar stats={stats} compact={isCompact} />
-                  {status && (
-                    <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject} />
-                  )}
-                </div>
-              </>
-            ) : status ? (
+            {status ? (
               // Status rides the header line, right-aligned beside the title.
               <>
                 <div className="flex min-w-0 flex-1 items-center gap-2 overflow-visible">
@@ -356,6 +358,24 @@ export function DisplayCard({
               headerContent
             )}
           </div>
+
+          {/* Sub-header band (design-spec four-band model) — a darker shade of
+              the header tone, directly below the header content row. Carries
+              `subHeader` content and/or `stats` (moved out of the header's
+              right side), full width, flush to the frame. Both are optional;
+              renders nothing when neither is present. */}
+          {hasSubHeader && (
+            <div
+              className={cn(
+                'flex w-full flex-wrap items-center gap-1.5 gap-y-1 overflow-visible',
+                isCompact ? 'px-2.5 py-1' : 'px-3 py-1.5'
+              )}
+              style={{ backgroundColor: subHeaderBg }}
+            >
+              {subHeader}
+              {hasStats && <StatsBar stats={stats ?? []} compact={isCompact} />}
+            </div>
+          )}
 
           {/* Tab bar — only when hasTabs */}
           {hasTabs &&
@@ -456,13 +476,13 @@ export function DisplayCard({
         {!isListing && (footerContent || footActions || (footMeta && footMeta.length > 0)) && (
           <div
             className={cn(
-              'flex w-full items-center justify-between gap-2 px-3 py-1 font-cond text-micro font-bold uppercase tracking-[0.05em] text-ink',
-              footerStyleProp?.className ?? actualHeaderBg
+              'flex w-full items-center justify-between gap-2 px-3 py-1 font-cond text-micro font-bold uppercase tracking-[0.05em] text-paper',
+              footerStyleProp?.className
             )}
             style={{
-              ...(headerBgColor && !footerStyleProp?.className
-                ? { backgroundColor: headerBgColor }
-                : {}),
+              // Footer is the DARKER shade (matches the sub-header + the
+              // reference-entity footer), not the header tone.
+              ...(!footerStyleProp?.className ? { backgroundColor: subHeaderBg } : {}),
               ...footerStyleProp?.style,
             }}
           >
