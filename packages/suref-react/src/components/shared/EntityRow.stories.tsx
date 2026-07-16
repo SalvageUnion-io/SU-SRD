@@ -1,4 +1,5 @@
 import type { Story } from '@ladle/react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntityRow } from './EntityRow'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -6,11 +7,19 @@ export default {
   title: 'Compositions/Entity Row',
 }
 
+// The mech row is a LIVE chassis fixture (name + pattern + TL/SP straight from
+// the ORM). The pilot and crawler are player-build shapes — no reference entity
+// backs a saved pilot/crawler instance — so they're named from real SU data
+// (a real Class, a real Crawler type) with player-side vitals.
+const mech = SalvageUnionReference.Chassis.all()[0]
+const pilotClass = SalvageUnionReference.Classes.all()[0]
+const crawlerType = SalvageUnionReference.Crawlers.all()[0]
+
 /**
  * A roster column: three saved builds — a pilot, a mech, and a crawler — each a
- * header-only listing row keyed to its ontology tone. Real Salvage Union data:
- * Ace (HP 16), the Mule chassis on its Hauler pattern (TL 1 · SP 12), and the
- * Hamlet crawler (TL 1 · SP 20).
+ * header-only listing row keyed to its ontology tone. The mech reads live from
+ * the first chassis fixture; the pilot/crawler are player builds named from a
+ * real Class and Crawler type.
  */
 export const Default: Story = () => (
   <div className="max-w-md bg-paper p-5">
@@ -19,7 +28,7 @@ export const Default: Story = () => (
         <EntityRow
           entityType="pilot"
           name="Ace"
-          meta="Corpo-trained Pilot"
+          meta={pilotClass?.name ?? 'Pilot'}
           stats={[{ label: 'HP', value: 16 }]}
           sheetHref="#/pilot/ace"
           onDeleteClick={() => {}}
@@ -28,10 +37,10 @@ export const Default: Story = () => (
       <li>
         <EntityRow
           entityType="mech"
-          name="Mule — Hauler Pattern"
+          name={`${mech?.name ?? 'Mule'} — ${mech?.patterns?.[0]?.name ?? 'Hauler Pattern'}`}
           stats={[
-            { label: 'TL', value: 1 },
-            { label: 'SP', value: 12 },
+            { label: 'TL', value: mech?.techLevel ?? 1 },
+            { label: 'SP', value: mech?.structurePoints ?? 12 },
           ]}
           sheetHref="#/mech/mule"
           onDeleteClick={() => {}}
@@ -40,7 +49,7 @@ export const Default: Story = () => (
       <li>
         <EntityRow
           entityType="crawler"
-          name="Hamlet"
+          name={crawlerType?.name ?? 'Union Crawler'}
           stats={[
             { label: 'TL', value: 1 },
             { label: 'SP', value: 20 },
