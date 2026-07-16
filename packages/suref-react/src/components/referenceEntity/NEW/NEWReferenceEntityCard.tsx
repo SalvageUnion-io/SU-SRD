@@ -37,6 +37,7 @@ import { STAMP_SEAM } from '../../chrome/stampSeam'
 import { ActivationCostBox } from '../../shared/ActivationCostBox'
 import { CardImage } from '../../shared/CardImage'
 import { ControlButtons } from '../../shared/ControlButtons'
+import type { CardFootMeta } from '../../shared/DisplayCard'
 import { StatDisplay } from '../../shared/StatDisplay'
 import type { StatItem } from '../../shared/statsBarTypes'
 import { BlockContentRendererView } from '../BlockContentRendererView'
@@ -147,6 +148,11 @@ type NEWReferenceEntityCardProps = {
   afterExtraContent?: ReactNode
   afterChoicesContent?: ReactNode
   footerOverride?: ReactNode
+  /** Write-layer: inline `[label value]` meta pairs (cost / SV) folded into the
+   * identity footer's right side, before the source/page. */
+  footMeta?: CardFootMeta[]
+  /** Write-layer: action buttons folded into the identity footer band. */
+  footActions?: ReactNode
   /** Overrides the header's top-right flavor slot. */
   rightContent?: ReactNode
   /** Callout stamp above the frame (with optional value badge). */
@@ -305,6 +311,8 @@ export function NEWReferenceEntityCard({
   afterExtraContent,
   afterChoicesContent,
   footerOverride,
+  footMeta,
+  footActions,
   rightContent: rightContentProp,
   label,
   labelBadge,
@@ -1285,6 +1293,8 @@ export function NEWReferenceEntityCard({
                 source={getSource(entity)}
                 booklet={getBooklet(entity)}
                 page={getPageReference(entity)}
+                footMeta={footMeta}
+                footActions={footActions}
                 compact={compact}
               />
             )))}
