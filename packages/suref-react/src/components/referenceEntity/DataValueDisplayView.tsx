@@ -1,7 +1,6 @@
 import type { DataValue } from '../../types/common'
 import type { SURefObjectDataValue } from 'salvageunion-reference'
 import { ActivationCostBox } from '../shared/ActivationCostBox'
-import { TraitKeywordDisplayView } from './TraitKeywordDisplayView'
 import { RangeValueDisplay } from './RangeValueDisplay'
 import { StatDisplay } from '../shared/StatDisplay'
 import { Text } from '../base/Text'
@@ -40,24 +39,26 @@ export function DataValueDisplayView({
 
   if (item.type === 'trait') {
     return (
-      <TraitKeywordDisplayView
+      <StatDisplay
+        orientation="horizontal"
         label={item.label}
         value={item.value}
         compact={compact}
-        schemaName="traits"
         inline={false}
+        entityTooltip={{ schemaName: 'traits', label: item.label }}
       />
     )
   }
 
   if (item.type === 'keyword') {
     return (
-      <TraitKeywordDisplayView
+      <StatDisplay
+        orientation="horizontal"
         label={item.label}
         value={item.value}
         compact={compact}
-        schemaName="keywords"
         inline={false}
+        entityTooltip={{ schemaName: 'keywords', label: item.label }}
       />
     )
   }
