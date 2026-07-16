@@ -15,7 +15,7 @@
  */
 
 import type { ReactNode, Ref } from 'react'
-import { StatDisplay } from 'suref-react'
+import { Stat } from 'suref-react'
 
 import { cn } from '../../lib/utils'
 
@@ -183,13 +183,7 @@ export function ChassisStats({ items, className }: ChassisStatsProps) {
     <div className={cn('flex flex-wrap items-start gap-2', className)}>
       {items.map((item) => {
         const block = (
-          <StatDisplay
-            key={item.code}
-            label={item.code}
-            value={item.value}
-            max={item.max}
-            compact
-          />
+          <Stat key={item.code} label={item.code} value={item.value} max={item.max} compact />
         )
         return item.onClick ? (
           <button

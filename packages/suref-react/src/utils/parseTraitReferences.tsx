@@ -1,19 +1,19 @@
 import { useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { StatDisplay } from '../components/shared/StatDisplay'
+import { Stat } from '../components/shared/Stat'
 
 /**
- * Hook to parse text content for trait references and replace them with horizontal StatDisplay chips (with an entity hover-tooltip)
+ * Hook to parse text content for trait references and replace them with horizontal Stat chips (with an entity hover-tooltip)
  *
  * Supports two bracket notation patterns:
- * 1. Simple traits: [[trait-name]] -> a horizontal StatDisplay with label="trait-name"
- * 2. Traits with parameters: [[[Trait Name] (parameter)]] -> a horizontal StatDisplay with label="trait-name", value="parameter"
+ * 1. Simple traits: [[trait-name]] -> a horizontal Stat with label="trait-name"
+ * 2. Traits with parameters: [[[Trait Name] (parameter)]] -> a horizontal Stat with label="trait-name", value="parameter"
  *
  * Performance: Uses useMemo to prevent re-parsing on every render
  * Returns original text as-is if no bracket notation found (common case)
  *
  * @param text - The text content to parse
- * @returns Original text string if no matches, or array of React nodes (strings and horizontal StatDisplay chips (with an entity hover-tooltip)) if matches found
+ * @returns Original text string if no matches, or array of React nodes (strings and horizontal Stat chips (with an entity hover-tooltip)) if matches found
  */
 export function useParseTraitReferences(text: string | undefined): ReactNode {
   return useMemo(() => {
@@ -49,7 +49,7 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
         const paramValue = match[2].trim()
 
         nodes.push(
-          <StatDisplay
+          <Stat
             key={`trait-${match.index}`}
             orientation="horizontal"
             label={traitName}
@@ -62,7 +62,7 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
         const traitName = match[3].trim()
 
         nodes.push(
-          <StatDisplay
+          <Stat
             key={`trait-${match.index}`}
             orientation="horizontal"
             label={traitName}

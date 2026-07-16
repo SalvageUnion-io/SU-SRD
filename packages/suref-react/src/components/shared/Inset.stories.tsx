@@ -2,7 +2,7 @@ import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Inset } from './Inset'
-import { StatDisplay } from './StatDisplay'
+import { Stat } from './Stat'
 import { Btn } from '../chrome/Btn'
 import { VitalGauge } from '../stat/VitalGauge'
 
@@ -60,7 +60,7 @@ export const CrewLead: Story = () => (
       }
       bodyClassName="flex flex-wrap items-start gap-3"
     >
-      <StatDisplay label="HP" value={3} max={4} compact />
+      <Stat label="HP" value={3} max={4} compact />
       <dl className="m-0 min-w-0 flex-1 space-y-1.5">
         <div className="flex items-baseline gap-1.5">
           <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps text-ink">

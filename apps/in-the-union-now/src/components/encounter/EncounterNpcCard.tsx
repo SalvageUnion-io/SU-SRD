@@ -10,7 +10,7 @@
  */
 
 import { useMemo, useState } from 'react'
-import { MiniBtn, StatDisplay, useDetailModal } from 'suref-react'
+import { MiniBtn, Stat, useDetailModal } from 'suref-react'
 
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { FindRollTable } from '../../lib/rules/mediatorTables'
@@ -115,7 +115,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
         bodyClassName="flex flex-wrap items-start gap-3"
       >
         {npc.maxHp > 0 && (
-          <StatDisplay
+          <Stat
             label={npc.statKind === 'sp' ? 'SP' : 'HP'}
             value={npc.currentHp}
             max={npc.maxHp}

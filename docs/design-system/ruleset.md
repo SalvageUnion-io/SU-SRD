@@ -90,11 +90,11 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 
 ### Stats / Caps · Conditions
 
-| Role              | Reference                        | Live Sheet                                                               | Dashboard                                                | Listing                | Tooltip             |
-| ----------------- | -------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------- | ---------------------- | ------------------- |
-| **Cap / stat**    | StatDisplay — the printed number | StatDisplay; Override → StatControl w/ dashed non-canonical ring, logged | `free` — cap is the gauge's max end                      | MiniStat               | MiniStat            |
-| **Sys/Mod slots** | StatDisplay pair                 | StatDisplay used/max (derives from chassis)                              | MiniStat in the deck header                              | MiniStat               | MiniStat            |
-| **Condition**     | — (canon is pristine)            | ConditionToggle tri-state `free` · Destroyed grays the card              | ConditionToggle · →Damaged `auto` · →Destroyed `confirm` | tri-state glyph static | glyph + status word |
+| Role              | Reference                 | Live Sheet                                                        | Dashboard                                                | Listing                | Tooltip             |
+| ----------------- | ------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------- | ---------------------- | ------------------- |
+| **Cap / stat**    | Stat — the printed number | Stat; Override → StatControl w/ dashed non-canonical ring, logged | `free` — cap is the gauge's max end                      | MiniStat               | MiniStat            |
+| **Sys/Mod slots** | Stat pair                 | Stat used/max (derives from chassis)                              | MiniStat in the deck header                              | MiniStat               | MiniStat            |
+| **Condition**     | — (canon is pristine)     | ConditionToggle tri-state `free` · Destroyed grays the card       | ConditionToggle · →Damaged `auto` · →Destroyed `confirm` | tri-state glyph static | glyph + status word |
 
 ### Rolls · Resources
 
@@ -102,7 +102,7 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 | ---------------- | ---------------------------------------------------- | ------------------------------------------- | -------------------------------------- | ---------------------- | ------------------------ |
 | **Roll table**   | RollTable banded d20, peach/cream                    | RollTable in a modal · rust Roll Btn `free` | RollTable dense, instrument · Roll Btn | Stamp + d20 Pill       | RollTable dense, no Roll |
 | **Roll result**  | Highlighted rolled row + text · no colour · no Apply | Highlighted row + Apply · lines             | `auto` / `confirm`                     | —                      | —                        |
-| **Cargo slots**  | StatDisplay cap only                                 | SlotGrid dashed=empty/solid=filled `free`   | SlotGrid · salvage fills `auto`        | MiniStat               | MiniStat                 |
+| **Cargo slots**  | Stat cap only                                        | SlotGrid dashed=empty/solid=filled `free`   | SlotGrid · salvage fills `auto`        | MiniStat               | MiniStat                 |
 | **TL / Salvage** | TL-Salvage badge                                     | TL-Salvage badge read-only (derived: SV=TL) | TL-Salvage badge instrument            | TL-Salvage badge dense | TL-Salvage badge         |
 
 ### Action facets · Entities · Chrome
@@ -137,15 +137,15 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 5. **No gradients. Closed colour set.** No colour outside §4's set; no gradient
    anywhere (half-fills and X's are `clip-path` + SVG, never gradient fills).
 6. **Copy is 1:1 with real SRD data**, everywhere — catalog stories included.
-7. **Stats render through StatDisplay; game data renders through the shared
+7. **Stats render through Stat; game data renders through the shared
    primitives.** Any `label | value` — a stat, cap, vital, tech level, range,
-   cost — is a **StatDisplay** in the anatomy its context calls for (horizontal
+   cost — is a **Stat** in the anatomy its context calls for (horizontal
    `label | value`, framed tracker, box, inline chip), **never** hand-assembled
    text like `<span>SP {n}</span>`. More broadly, every game component renders
-   through the canonical shared primitives (DisplayCard · StatDisplay ·
+   through the canonical shared primitives (DisplayCard · Stat ·
    VitalGauge · Badge · ConditionSwatch · SlotGrid · RollTable · …) — a surface
    never reinvents a primitive's markup one-off. If you are about to type a stat
-   into a `<span>`, you want a StatDisplay.
+   into a `<span>`, you want a Stat.
 
 ---
 
@@ -195,7 +195,7 @@ The wide "instrument HUD" stamps (`0.09 / 0.12 / 0.14`) conform **down** to
 | ------ | ----------------------------- | ---------------------------------------------------------------------------- |
 | 3px    | `--bw-entity`                 | DisplayCard frame (full)                                                     |
 | 2px    | `--bw-entity-compact` _(new)_ | compact card frame                                                           |
-| 1.5px  | `--bw-chrome`                 | StatDisplay box, gauge segments, inputs, buttons, pips, steppers             |
+| 1.5px  | `--bw-chrome`                 | Stat box, gauge segments, inputs, buttons, pips, steppers                    |
 | 1px    | `--bw-hairline` _(new)_       | value-cell badge frame & table rules — the ink stamp inside carries the mass |
 
 One meaning per weight; each weight holds in **both** the light sheet and the
@@ -214,7 +214,7 @@ Max 6 pips per row, split balanced, and **bottom-heavy** — in an awkward split
 the heavier row sits on the **bottom** (the higher-numbered pips fill the last
 row), the lighter rows balance above (each row is centred, so the short upper
 rows sit centred over the full bottom row). One canonical split for every pip
-surface — StatDisplay framed tracker, VitalGauge, and SlotGrid cargo:
+surface — Stat framed tracker, VitalGauge, and SlotGrid cargo:
 
 ```
 pipRows(n): perRow = 6
@@ -252,7 +252,7 @@ VitalGauge) are **named compositions**, not atoms.
 
 ```
 DisplayCard   = Frame(3px, tone) + band + [Badge · StampSeam] + body + expand + foot
-StatDisplay   = the labeled-value primitive: vertical (Well) | horizontal (=ValueDisplay);
+Stat   = the labeled-value primitive: vertical (Well) | horizontal (=ValueDisplay);
                 read|edit · +max · +label · +pips · mini
 VitalGauge    = Stamp + numeral (+ Well edit) + Gauge(bar)
 StatControl   = Well(number, edit) + StepBtn×2
@@ -268,12 +268,12 @@ RollTable✦    = DisplayCard + SRD description + banded table
 Merge any primitive that does not serve a genuinely **different reader intent** —
 not a different page, size, or theme; a different _intent_.
 
-| Unified         | Folds in                                                                                                          | Distinguished by                                                                                | Audience test                                    |
-| --------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| **Badge**       | ValueDisplay · Tag · Pill · Chip · CalloutMetaStamp · cost-pennant · Range · Action-type · TL · StatusBadge shell | `form` (label / label+value) · `surface` (solid/ghost/tone/quiet) · `shape` (chip/pennant/pill) | all = "categorical metadata at a glance" → merge |
-| **StatDisplay** | StatControl · Field/Input · InlineEditField · StatBlock(pips)                                                     | `mode` read\|edit × `type` number\|text · steppers · label rides the border in every state      | read vs edit = a state, not an audience → merge  |
-| **Gauge**       | VitalGauge · DashboardGauge · StatBlock pip-track · MiniStat pip-strip                                            | track bar\|grid\|micro · tone · dense · danger · editable · skin paper\|dark                    | same current/max, darker room = a skin → merge   |
-| _compositions_  | StatusBadge (Badge+Swatch) · Tally (Swatch×count)                                                                 | Frame + band + Gauge/Well/Swatch — assembled from atoms                                         | instruments are built, not atomic                |
+| Unified        | Folds in                                                                                                          | Distinguished by                                                                                | Audience test                                    |
+| -------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| **Badge**      | ValueDisplay · Tag · Pill · Chip · CalloutMetaStamp · cost-pennant · Range · Action-type · TL · StatusBadge shell | `form` (label / label+value) · `surface` (solid/ghost/tone/quiet) · `shape` (chip/pennant/pill) | all = "categorical metadata at a glance" → merge |
+| **Stat**       | StatControl · Field/Input · InlineEditField · StatBlock(pips)                                                     | `mode` read\|edit × `type` number\|text · steppers · label rides the border in every state      | read vs edit = a state, not an audience → merge  |
+| **Gauge**      | VitalGauge · DashboardGauge · StatBlock pip-track · MiniStat pip-strip                                            | track bar\|grid\|micro · tone · dense · danger · editable · skin paper\|dark                    | same current/max, darker room = a skin → merge   |
+| _compositions_ | StatusBadge (Badge+Swatch) · Tally (Swatch×count)                                                                 | Frame + band + Gauge/Well/Swatch — assembled from atoms                                         | instruments are built, not atomic                |
 
 ### Must **NOT** merge
 
@@ -289,7 +289,7 @@ not a different page, size, or theme; a different _intent_.
 
 ### 7.1 The value-cell law
 
-> A Badge's (or StatDisplay's) **value cell is ink-on-paper**, distinguished by
+> A Badge's (or Stat's) **value cell is ink-on-paper**, distinguished by
 > its **frame**, not by a special fill.
 
 The label+value plate is **framed** (1px ink binds the two stamps); a **lone-label**

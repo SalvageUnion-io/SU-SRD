@@ -1,11 +1,11 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
-import { BlockContentRendererView } from './BlockContentRendererView'
+import { Content } from './Content'
 import type { SURefObjectContentBlock } from 'salvageunion-reference'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Block Content Renderer View',
+  title: 'Compositions/Content',
 }
 
 const mixed: SURefObjectContentBlock[] = [
@@ -47,13 +47,13 @@ export const Default: Story = () => (
       labels. compact tightens spacing.
     </p>
     <Row label="mixed (heading · paragraph · list · hint)">
-      <BlockContentRendererView content={mixed} />
+      <Content body={mixed} />
     </Row>
     <Row label="labels">
-      <BlockContentRendererView content={labels} />
+      <Content body={labels} />
     </Row>
     <Row label="compact" width="w-[400px]">
-      <BlockContentRendererView content={mixed} compact />
+      <Content body={mixed} compact />
     </Row>
   </div>
 )

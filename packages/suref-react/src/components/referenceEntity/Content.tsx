@@ -2,7 +2,7 @@ import type { SURefObjectContentBlock, SURefObjectDataValue } from 'salvageunion
 import { Text } from '../base/Text'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { parseContentBlockString } from 'salvageunion-reference'
-import { StatDisplay } from '../shared/StatDisplay'
+import { Stat } from '../shared/Stat'
 import { ActivationCostBox } from '../shared/ActivationCostBox'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 import { cn } from '../../utils/cn'
@@ -10,7 +10,7 @@ import { Slab } from '../chrome/Slab'
 import { StaticChoiceCard } from './choiceCard/StaticChoiceCard'
 
 /**
- * A single `datavalues` item — rendered as a horizontal StatDisplay chip (the one
+ * A single `datavalues` item — rendered as a horizontal Stat chip (the one
  * canonical stat/value atom). A `cost` item ("3 AP") uses the ActivationCostBox
  * atom; a `trait`/`keyword` item gets its entity hover-tooltip; everything else
  * is a plain label|value cell (value + unit when present).
@@ -37,7 +37,7 @@ function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?
         ? { schemaName: 'keywords' as const, label: item.label }
         : undefined
   return (
-    <StatDisplay
+    <Stat
       orientation="horizontal"
       label={item.label}
       value={value}
@@ -48,9 +48,9 @@ function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?
   )
 }
 
-type BlockContentRendererViewProps = {
-  /** Content blocks to render */
-  content: SURefObjectContentBlock[]
+type ContentProps = {
+  /** The content blocks to render. */
+  body: SURefObjectContentBlock[]
   /** Font size for content (Tailwind class) */
   fontSize?: string
   /** Whether to use compact styling */
@@ -74,14 +74,14 @@ type BlockContentRendererViewProps = {
  * - hint: Italic text for hints/tips
  * - datavalues: Array of data values rendered as compact flex row (value is array of dataValue objects)
  */
-export function BlockContentRendererView({
-  content: rawContent,
+export function Content({
+  body: rawContent,
   fontSize = 'text-sm',
   compact = false,
   chassisName,
   headerBg,
   headerBgColor,
-}: BlockContentRendererViewProps) {
+}: ContentProps) {
   if (!rawContent || rawContent.length === 0) {
     return null
   }

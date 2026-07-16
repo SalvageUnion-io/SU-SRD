@@ -3,7 +3,7 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { getTechLevel, getSource, getEntitySlug, getTree } from 'salvageunion-reference'
 import {
   ReferenceEntityDisplay,
-  ReferenceEntityCardSkeleton,
+  CardSkeleton,
   FilterChip,
   FilterRow,
   MasonryColumns,
@@ -195,7 +195,7 @@ export function SchemaViewerIsland({
               <MasonryColumns>
                 {Array.from({ length: 9 }, (_, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: static 9-item skeleton placeholder list, never reordered — index is stable
-                  <ReferenceEntityCardSkeleton key={i} compact />
+                  <CardSkeleton key={i} compact />
                 ))}
               </MasonryColumns>
             </div>
@@ -325,7 +325,7 @@ export function SchemaViewerIsland({
                           aria-label={item.name}
                           className="relative block"
                         >
-                          <Suspense fallback={<ReferenceEntityCardSkeleton compact />}>
+                          <Suspense fallback={<CardSkeleton compact />}>
                             <ReferenceEntityDisplay
                               hide={HIDE_ACTIONS_AND_CHOICES}
                               data={item}

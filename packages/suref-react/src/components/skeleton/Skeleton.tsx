@@ -20,7 +20,7 @@ function Ghost({ className }: { className?: string }) {
  *
  * Mirrors the real anatomy (frame / band / body) with **ink-alpha ghosts on
  * off-white**, so the loaded content drops in with **zero layout shift**. The
- * card-specific `ReferenceEntityCardSkeleton` is a composition of this idea;
+ * card-specific `CardSkeleton` is a composition of this idea;
  * this is the atom, driven by `mode` + `rows`.
  */
 export function Skeleton({ mode = 'card', rows = 3, className }: SkeletonProps) {

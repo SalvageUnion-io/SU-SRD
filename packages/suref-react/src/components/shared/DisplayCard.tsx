@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { ControlButtons } from './ControlButtons'
-import { StatDisplay } from './StatDisplay'
+import { Stat } from './Stat'
 import type { StatItem } from './statsBarTypes'
 import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntity/referenceEntityHelpers'
 import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
@@ -118,7 +118,7 @@ type DisplayCardProps = {
 const DEFAULT_TAB_KEY = '__default'
 
 /**
- * The sub-header band's stat row — a tight, non-wrapping `[StatItem → StatDisplay]`
+ * The sub-header band's stat row — a tight, non-wrapping `[StatItem → Stat]`
  * cluster inside the wrapping band. Folded in from the former standalone `StatsBar`
  * (DisplayCard was its only consumer): each item skips when its value is undefined,
  * an `onChange` item renders the edit-mode +/- stepper (coercing a string value to
@@ -140,7 +140,7 @@ function SubHeaderStats({
 
         if (stat.onChange) {
           return (
-            <StatDisplay
+            <Stat
               key={stat.key}
               label={stat.label}
               value={typeof stat.value === 'number' ? stat.value : parseInt(String(stat.value), 10)}
@@ -154,7 +154,7 @@ function SubHeaderStats({
         }
 
         return (
-          <StatDisplay
+          <Stat
             key={stat.key}
             label={stat.label}
             value={stat.value}
@@ -329,7 +329,7 @@ export function DisplayCard({
               tag riding the border, subordinate to the header — never card
               `compact`, which only governs the body/header density. */}
           {label && labelBadge ? (
-            <StatDisplay orientation="horizontal" label={label} value={labelBadge} xs />
+            <Stat orientation="horizontal" label={label} value={labelBadge} xs />
           ) : label ? (
             <CalloutMetaStamp xs>{label}</CalloutMetaStamp>
           ) : labelBadge ? (

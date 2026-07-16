@@ -1,5 +1,5 @@
 import type { SURefClass, SURefEntity } from 'salvageunion-reference'
-import { ClassAbilityTreeDisplay, OptRow, ReferenceEntityDisplay } from 'suref-react'
+import { ClassAbilityTree, OptRow, ReferenceEntityDisplay } from 'suref-react'
 import { classDescription } from './classOptions'
 
 type ClassOptionListProps = {
@@ -58,7 +58,7 @@ type ClassDetailProps = {
  * Detail pane for the Class step (design §3.2c): the selected class's full
  * entity card with its ability trees expanded inside the card (TreeSep
  * headers + head-mode ability cards in 3-col core / 2-col special grids —
- * ClassAbilityTreeDisplay implements exactly that layout).
+ * ClassAbilityTree implements exactly that layout).
  */
 export function ClassDetail({ selectedClass }: ClassDetailProps) {
   if (!selectedClass) {
@@ -71,7 +71,7 @@ export function ClassDetail({ selectedClass }: ClassDetailProps) {
   return (
     <ReferenceEntityDisplay
       data={selectedClass as unknown as SURefEntity}
-      afterExtraContent={<ClassAbilityTreeDisplay classEntity={selectedClass} />}
+      afterExtraContent={<ClassAbilityTree classEntity={selectedClass} />}
     />
   )
 }

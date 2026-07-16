@@ -195,7 +195,7 @@ export type NEWAxisMarker = { label: string; value: string }
  * The categorical classification axis (Ability Tree, Level, Tech Level) — the
  * mockup's "second axis" — as an ORDERED list of pills the card renders in the
  * StampSeam riding the header's top border (each an `xs` horizontal
- * `StatDisplay`, e.g. "ABILITY TREE · FORGING" / "LEVEL · 3" / "TECH LEVEL ·
+ * `Stat`, e.g. "ABILITY TREE · FORGING" / "LEVEL · 3" / "TECH LEVEL ·
  * 2"). Entity-type-specific:
  *
  * - ABILITIES → `[Ability Tree | <tree>]` then `[Level | <n>]` (each only when

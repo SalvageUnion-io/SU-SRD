@@ -35,7 +35,7 @@ type EntityCardHeaderProps = {
  * Left: the title as the canonical black name-tab (`Text variant="pseudoheader"`
  * — ink block, paper text) that HUGS its text (`w-fit`, never full-width), sized
  * by the DEPTH ladder. Right: the header axis cluster — an optional cost node
- * (action AP box) then the headline `StatDisplay` boxes (`EntityCardStatBox`), wrapping;
+ * (action AP box) then the headline `Stat` boxes (`EntityCardStatBox`), wrapping;
  * or a `rightContent` flavor line (white ability hint) when the axis is free.
  */
 export function EntityCardHeader({

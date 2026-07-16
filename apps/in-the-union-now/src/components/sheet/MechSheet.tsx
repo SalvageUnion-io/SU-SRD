@@ -45,7 +45,7 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { StatDisplay, VitalGauge, heatDangerFrom } from 'suref-react'
+import { Stat, VitalGauge, heatDangerFrom } from 'suref-react'
 
 import { useCargo } from '../../lib/cargo/useCargo'
 import { computeMechCapacity } from '../../lib/rules/capacity'
@@ -525,7 +525,7 @@ export function MechSheet({
             <SheetSectionCard
               title="Chassis Ability"
               count={
-                <StatDisplay
+                <Stat
                   orientation="horizontal"
                   compact
                   label="Actions"

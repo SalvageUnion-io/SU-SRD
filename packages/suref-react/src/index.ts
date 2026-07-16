@@ -17,7 +17,7 @@ export { Toaster, toast } from './components/ui/toaster'
 
 // Entity display system
 export { ReferenceEntityDisplay } from './components/referenceEntity/card/referenceEntityDisplayShim'
-export { ReferenceEntityDisplayTooltip } from './components/referenceEntity/ReferenceEntityDisplayTooltip'
+export { EntityTooltip } from './components/referenceEntity/EntityTooltip'
 export { SectionSeparator } from './components/referenceEntity/ReferenceEntityDisplay/SectionSeparator'
 export {
   EntityHrefProvider,
@@ -32,7 +32,7 @@ export type {
   EntityExternalLinkBuilder,
 } from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
 export { ReferenceEntityChassisAbilitiesContent } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChassisAbilitiesContent'
-export { ClassAbilityTreeDisplay } from './components/referenceEntity/ClassAbilityTreeDisplay'
+export { ClassAbilityTree } from './components/referenceEntity/ClassAbilityTree'
 export { entityHostTone } from './components/referenceEntity/card/entityCardTone'
 export { getReferenceEntitySpacing } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
 
@@ -59,8 +59,8 @@ export { Footer } from './components/shared/Footer'
 export { HeaderShell } from './components/shared/HeaderShell'
 export { KofiButton } from './components/shared/KofiButton'
 export type { KofiButtonProps } from './components/shared/KofiButton'
-export { StatDisplay } from './components/shared/StatDisplay'
-export type { StatTone, StatState } from './components/shared/StatDisplay'
+export { Stat } from './components/shared/Stat'
+export type { StatTone, StatState } from './components/shared/Stat'
 export { RollTable } from './components/shared/RollTable'
 export { FilterChip } from './components/shared/FilterChip'
 export { FilterRow } from './components/shared/FilterRow'
@@ -75,11 +75,11 @@ export {
 } from './components/shared/techLevelStyles'
 
 // Skeletons
-export { ReferenceEntityCardSkeleton } from './components/skeleton/ReferenceEntityCardSkeleton'
+export { CardSkeleton } from './components/skeleton/CardSkeleton'
 export { Skeleton } from './components/skeleton/Skeleton'
 export type { SkeletonMode } from './components/skeleton/Skeleton'
 
-export { BlockContentRendererView } from './components/referenceEntity/BlockContentRendererView'
+export { Content } from './components/referenceEntity/Content'
 export {
   borderColorFromHeaderBg,
   calculateBackgroundColor,

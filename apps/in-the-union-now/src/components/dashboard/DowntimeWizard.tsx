@@ -7,7 +7,7 @@
  * The 10 steps are NOT hard-coded — they are driven from the real "Crawler
  * Downtime" Guide in the reference ORM (`SalvageUnionReference.Guides`, faithful
  * SRD p.227-228), one step at a time. Each step's descriptive content renders
- * through the reused `BlockContentRendererView` (the same content renderer the
+ * through the reused `Content` (the same content renderer the
  * reference site uses) so it matches the book verbatim. Step *gating* is layered
  * on top from the pure rules modules (`downtime.ts` bay gates, `crawlerEconomy.ts`
  * upkeep/trading) as READ-ONLY readouts, and the relevant SRD roll tables
@@ -22,7 +22,7 @@
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefObjectGuideStep, SURefObjectTable } from 'salvageunion-reference'
-import { BlockContentRendererView, RollTable } from 'suref-react'
+import { Content, RollTable } from 'suref-react'
 
 import { bayGate, UPKEEP_SCRAP } from '../../lib/rules/crawlerEconomy'
 import { mechBayStatus, medBayStatus } from '../../lib/rules/downtime'
@@ -148,7 +148,7 @@ export function DowntimeWizard({ crawler }: DowntimeWizardProps) {
           {step.name}
         </h3>
         {step.content && step.content.length > 0 && (
-          <BlockContentRendererView content={step.content} headerBg={headerBg} />
+          <Content body={step.content} headerBg={headerBg} />
         )}
 
         {crawler && <StepGate step={step} crawler={crawler} />}

@@ -8,7 +8,7 @@ import {
 } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { Text } from '../../base/Text'
-import { BlockContentRendererView } from '../BlockContentRendererView'
+import { Content } from '../Content'
 import { ReferenceEntityChassisAbilitiesContent } from './ReferenceEntityChassisAbilitiesContent'
 import { resolvePatternOverride, computeSvOverride } from './patternOverrideUtils'
 import {
@@ -16,7 +16,7 @@ import {
   getReferenceEntitySpacing,
 } from './referenceEntityDisplayTypes'
 import type { PatternOverrideData, ReferenceEntityHideConfig } from './referenceEntityDisplayTypes'
-import { StatDisplay } from '../../shared/StatDisplay'
+import { Stat } from '../../shared/Stat'
 import { SectionSeparator } from './SectionSeparator'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 
@@ -100,7 +100,7 @@ export function useChassisPatternConfig(
   const subtitleExtra = (
     <>
       {isLegalStartingMech && (
-        <StatDisplay
+        <Stat
           orientation="horizontal"
           label="Legal Starting Pattern"
           compact={compact}
@@ -111,7 +111,7 @@ export function useChassisPatternConfig(
         />
       )}
       {chassisName && (
-        <StatDisplay
+        <Stat
           orientation="horizontal"
           label="Chassis"
           value={chassisName}
@@ -154,8 +154,8 @@ export function useChassisPatternConfig(
               )}
             </div>
             {overridePatternData.content && overridePatternData.content.length > 0 && (
-              <BlockContentRendererView
-                content={overridePatternData.content}
+              <Content
+                body={overridePatternData.content}
                 fontSize={fontSize.sm}
                 compact={compact}
               />

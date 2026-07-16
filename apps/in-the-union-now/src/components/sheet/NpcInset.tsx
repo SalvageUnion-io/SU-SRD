@@ -13,7 +13,7 @@
  * choice (see CrawlerSheet). readOnly renders plain text, no edit affordances.
  */
 
-import { StatDisplay } from 'suref-react'
+import { Stat } from 'suref-react'
 
 import { SectionCard } from '../shared/SectionCard'
 import { InlineEditField } from './InlineEditField'
@@ -97,7 +97,7 @@ export function NpcInset({
       bodyClassName="flex flex-wrap items-start gap-[11px]"
     >
       {maxHp > 0 && (
-        <StatDisplay
+        <Stat
           label="HP"
           value={hp}
           max={maxHp}

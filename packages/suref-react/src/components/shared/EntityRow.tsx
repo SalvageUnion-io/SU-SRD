@@ -4,7 +4,7 @@ import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { Btn } from '../chrome/Btn'
 import { btnVariants } from '../chrome/btnVariants'
-import { StatDisplay } from './StatDisplay'
+import { Stat } from './Stat'
 
 /**
  * EntityRow — a header-only clickable listing ROW: the compact, one-line
@@ -25,7 +25,7 @@ import { StatDisplay } from './StatDisplay'
 
 export type EntityRowType = 'pilot' | 'mech' | 'crawler'
 
-/** A single `label | value` stat rendered in the subheader as a horizontal StatDisplay. */
+/** A single `label | value` stat rendered in the subheader as a horizontal Stat. */
 export type EntityRowStat = {
   label: string | number
   value: string | number
@@ -38,8 +38,8 @@ type EntityRowProps = {
   name: string
   /**
    * Subheader stat content. Each entry renders through the canonical
-   * StatDisplay (horizontal `label | value` mode) — never hand-assembled text
-   * (see the stats-render-through-StatDisplay law, ruleset §3).
+   * Stat (horizontal `label | value` mode) — never hand-assembled text
+   * (see the stats-render-through-Stat law, ruleset §3).
    */
   stats?: EntityRowStat[]
   /** Optional class/role label beside the stats — rendered as an ontology-toned
@@ -115,7 +115,7 @@ export function EntityRow({
                 </Badge>
               )}
               {stats?.map((stat) => (
-                <StatDisplay
+                <Stat
                   key={String(stat.label)}
                   label={stat.label}
                   value={stat.value}

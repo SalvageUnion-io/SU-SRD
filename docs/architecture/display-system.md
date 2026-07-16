@@ -81,7 +81,7 @@ type StatItem = {
 }
 ```
 
-When `onChange` is present, `StatsBar` renders `StatControl` (interactive with +/- buttons). Otherwise, it renders `StatDisplay` (read-only).
+When `onChange` is present, `StatsBar` renders `StatControl` (interactive with +/- buttons). Otherwise, it renders `Stat` (read-only).
 
 ### Tabs
 
@@ -230,7 +230,7 @@ Three exported variants, all sharing a coloured-header + white-inset-body visual
 | `FreeTextChoiceCard` | Editable free-text field (Name / Appearance / A.I. Personality) — always renders as "chosen"             |
 | `StaticChoiceCard`   | Display-only list items (NPC motivations, bullet options); borrowed choice-card chrome, no interactivity |
 
-`BlockContentRendererView` renders `list-item` content blocks as `StaticChoiceCard` (the bordered frame replaces plain bullets).
+`Content` renders `list-item` content blocks as `StaticChoiceCard` (the bordered frame replaces plain bullets).
 
 ### ChoiceGroup / ChoiceGroups
 

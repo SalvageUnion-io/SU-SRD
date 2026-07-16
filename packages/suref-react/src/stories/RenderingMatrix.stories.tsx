@@ -2,7 +2,7 @@ import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
-import { StatDisplay } from '../components/shared/StatDisplay'
+import { Stat } from '../components/shared/Stat'
 import { VitalGauge } from '../components/stat/VitalGauge'
 import { BayStatus } from '../components/stat/BayStatus'
 import { Badge } from '../components/chrome/Badge'
@@ -45,30 +45,30 @@ const rows: MatrixRow[] = [
   {
     role: 'Stat',
     when: 'read',
-    use: 'StatDisplay',
+    use: 'Stat',
     rule: 'Square value box; value / max, no pip track.',
-    example: <StatDisplay label="SP" value={Math.ceil(sp * 0.7)} max={sp} />,
+    example: <Stat label="SP" value={Math.ceil(sp * 0.7)} max={sp} />,
   },
   {
     role: 'Stat',
     when: 'interactive',
-    use: 'StatDisplay mode="edit"',
+    use: 'Stat mode="edit"',
     rule: 'Value box + steppers, no pips (was StatControl).',
-    example: <StatDisplay label="HP" value={8} max={10} mode="edit" onChange={noop} />,
+    example: <Stat label="HP" value={8} max={10} mode="edit" onChange={noop} />,
   },
   {
     role: 'Stat',
     when: 'bay tally',
     use: 'BayStatus',
-    rule: 'The crawler-bay condition tally (intact / damaged / destroyed) — its own primitive, not a StatDisplay mode.',
+    rule: 'The crawler-bay condition tally (intact / damaged / destroyed) — its own primitive, not a Stat mode.',
     example: <BayStatus states={['intact', 'intact', 'damaged', 'destroyed']} />,
   },
   {
     role: 'Stat',
     when: 'label | value',
-    use: 'StatDisplay orientation="horizontal"',
+    use: 'Stat orientation="horizontal"',
     rule: 'The printed [label | value] readout — a Stat, never a badge (Tech level, Range, …).',
-    example: <StatDisplay orientation="horizontal" label="TL" value={tl} />,
+    example: <Stat orientation="horizontal" label="TL" value={tl} />,
   },
   {
     role: 'Capacity',

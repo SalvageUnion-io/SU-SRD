@@ -71,7 +71,7 @@ const BADGE_TONES: BadgeTone[] = ['pilot', 'mech', 'crawler', 'ok', 'warn', 'bad
 /**
  * The unified `Badge` — Tag / Pill / Chip are named presets over this one
  * implementation (ruleset §6). Badges are LABEL-ONLY: a label+value readout is a
- * Stat (`StatDisplay orientation="horizontal"`), never a badge (value-cell law).
+ * Stat (`Stat orientation="horizontal"`), never a badge (value-cell law).
  */
 export const Unified: Story = () => (
   <div className="bg-paper p-4">

@@ -4,7 +4,7 @@ import { BayStatus } from '../BayStatus'
 
 afterEach(cleanup)
 
-// The crawler-bay condition tally — its own primitive (the former StatDisplay
+// The crawler-bay condition tally — its own primitive (the former Stat
 // states[] mode). Ported from the retired framed-tracker states tests.
 describe('BayStatus — crawler-bay condition tally', () => {
   const states = [

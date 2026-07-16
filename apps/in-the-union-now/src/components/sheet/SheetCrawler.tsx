@@ -15,7 +15,7 @@
  */
 
 import { useState } from 'react'
-import { StatDisplay, VitalGauge } from 'suref-react'
+import { Stat, VitalGauge } from 'suref-react'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
@@ -238,7 +238,7 @@ export function SheetCrawler({
             name={crawler.name}
             meta={
               tl !== undefined ? (
-                <StatDisplay orientation="horizontal" label="Tech LV" value={tl} />
+                <Stat orientation="horizontal" label="Tech LV" value={tl} />
               ) : undefined
             }
           />

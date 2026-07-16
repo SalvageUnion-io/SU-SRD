@@ -8,7 +8,7 @@
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefEntity } from 'salvageunion-reference'
-import { Btn, Panel, ReferenceEntityDisplay, StatDisplay, StatusBadge, Tag } from 'suref-react'
+import { Btn, Panel, ReferenceEntityDisplay, Stat, StatusBadge, Tag } from 'suref-react'
 import type { CardFootMeta, ChoiceSelections, EntityStatus } from 'suref-react'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
@@ -207,7 +207,7 @@ export function PilotEquipmentItem({
     return (
       <Panel className="flex items-center gap-3 px-3 py-2.5">
         <span className="min-w-0 flex-1 truncate font-body text-sm text-wk-muted">{slug}</span>
-        <StatDisplay orientation="horizontal" label="Slots" value={1} />
+        <Stat orientation="horizontal" label="Slots" value={1} />
         <StatusBadge
           status={condition}
           onClick={
@@ -323,7 +323,7 @@ export function GenericEntryCard({ entry, onRemove }: GenericEntryCardProps) {
         </div>
         {entry.note && <div className="truncate font-body text-xs text-wk-muted">{entry.note}</div>}
       </div>
-      <StatDisplay orientation="horizontal" label="Slots" value={genericEntrySlots(entry)} />
+      <Stat orientation="horizontal" label="Slots" value={genericEntrySlots(entry)} />
       {onRemove && (
         <Btn size="sm" variant="ghost" aria-label={`Remove ${entry.name}`} onClick={onRemove}>
           Remove

@@ -8,7 +8,7 @@
  *
  * Each row renders `justify-center`, so the lighter upper rows sit centred above
  * the heavier bottom row. One canonical split for every pip surface —
- * StatDisplay framed tracker, VitalGauge, and SlotGrid cargo.
+ * Stat framed tracker, VitalGauge, and SlotGrid cargo.
  */
 export function statBlockRows(n: number, perRow = 6): number[] {
   if (n <= 0) return []
@@ -39,7 +39,7 @@ export function pipClickValue(index: number, value: number): number {
 
 /**
  * Per-segment fill state for a value/max track — the shared "segmented track"
- * core used by both StatDisplay's framed tracker (square pips) and VitalGauge
+ * core used by both Stat's framed tracker (square pips) and VitalGauge
  * (full-width bars). 'off' = unlit, 'on' = lit, 'danger' = lit but past the cap
  * (over-capacity) or past the heat redline. `dangerFrom` is the first 0-based
  * index that reads danger (default Infinity = never). Each surface keeps its own

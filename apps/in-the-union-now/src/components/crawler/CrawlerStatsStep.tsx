@@ -1,6 +1,6 @@
 import type { SURefCrawler, SURefMetaCrawlerTechLevel } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
-import { StatDisplay } from 'suref-react'
+import { Stat } from 'suref-react'
 
 type CrawlerStatsStepProps = {
   /** The Tech Level 1 (Hamlet Crawler) entity — creation is fixed there. */
@@ -35,11 +35,11 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
   return (
     <div className="w-full space-y-5">
       <div className="flex flex-wrap gap-4">
-        <StatDisplay label="TL" value={techLevel.techLevel} compact />
-        <StatDisplay label="SP" value={sp.total} max={sp.total} compact />
-        <StatDisplay label="UPKEEP" value={techLevel.upkeepCost ?? 0} compact />
-        <StatDisplay label="UPG" value={techLevel.upgradeCost ?? 0} compact />
-        <StatDisplay label="POOL" value={0} compact />
+        <Stat label="TL" value={techLevel.techLevel} compact />
+        <Stat label="SP" value={sp.total} max={sp.total} compact />
+        <Stat label="UPKEEP" value={techLevel.upkeepCost ?? 0} compact />
+        <Stat label="UPG" value={techLevel.upgradeCost ?? 0} compact />
+        <Stat label="POOL" value={0} compact />
       </div>
 
       <div className="max-w-[64ch] space-y-1.5 font-body text-sm leading-relaxed text-current">

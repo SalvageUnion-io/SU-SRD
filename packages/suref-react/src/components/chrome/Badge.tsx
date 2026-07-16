@@ -44,7 +44,7 @@ type BadgeProps = {
  *
  * **Label-only.** A badge cites categorical metadata at a glance: a keyword, a
  * status, an action-economy tag. **A label+value readout is NOT a badge** — it
- * is a Stat (`StatDisplay orientation="horizontal"`), the value-cell law
+ * is a Stat (`Stat orientation="horizontal"`), the value-cell law
  * (ruleset §0, §7.1). Every badge shares one height (22px), one radius (2px),
  * and the condensed-uppercase stamp type; only `surface`/`tone` vary.
  *

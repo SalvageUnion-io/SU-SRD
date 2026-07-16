@@ -16,7 +16,7 @@ type TagProps = {
  * "a keyword Tag is a Badge with a single label cell"). Cond 600 11px
  * uppercase, ink bg / paper text. A single label — NOT split label/value.
  * Split label/value content is a Stat: render it with
- * `StatDisplay orientation="horizontal"`.
+ * `Stat orientation="horizontal"`.
  */
 export function Tag({ children, ghost = false, className }: TagProps) {
   return (

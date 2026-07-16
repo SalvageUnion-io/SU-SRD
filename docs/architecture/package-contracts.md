@@ -203,10 +203,10 @@ know the categories and check the barrel:
 - **Interactive choice cards** — `ChoiceGroups`/`ChoiceGroup`/`ChoiceCard` + selection helpers
 - **Shared components** — `DisplayCard`, `RollTable`, `FilterChip`/`FilterRow`, `ValueDisplay`, `Footer`, …
 - **Utilities** — color helpers, `cn`, filtering/enrichment helpers
-- **Content rendering** — `BlockContentRendererView`, `DataValueDisplayView`
+- **Content rendering** — `Content`, `DataValueDisplayView`
 
 Note: there is no exported `Tooltip` primitive — entity tooltips ship as
-`ReferenceEntityDisplayTooltip`.
+`EntityTooltip`.
 
 ### Dependencies
 

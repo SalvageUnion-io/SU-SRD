@@ -5,7 +5,7 @@ import { Tag } from '../Tag'
 afterEach(cleanup)
 
 // Tag is a single-label keyword chip. Split label/value content is a Stat —
-// render it with StatDisplay orientation="horizontal" (see StatDisplay tests).
+// render it with Stat orientation="horizontal" (see Stat tests).
 describe('Tag', () => {
   test('renders an ink-on-paper stamped chip by default', () => {
     const { container } = render(<Tag>Turn Action</Tag>)

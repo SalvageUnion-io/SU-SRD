@@ -87,7 +87,7 @@ type StaticChoiceCardProps = ChoiceCardShellProps & {
  * white body. No selectable status, toggle, or fade — it just borrows the look.
  *
  * Display-only remnant of the retired interactive ChoiceCard; used by
- * `BlockContentRendererView` to render `list-item` content blocks.
+ * `Content` to render `list-item` content blocks.
  */
 export function StaticChoiceCard({
   label,
