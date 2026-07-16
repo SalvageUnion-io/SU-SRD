@@ -26,7 +26,7 @@ export const SourceSchema = z
  * Type of content block for rendering structured text
  */
 export const ContentTypeSchema = z
-  .enum(['paragraph', 'heading', 'list-item', 'label', 'datavalues', 'hint', 'flavor'])
+  .enum(['paragraph', 'heading', 'list-item', 'label', 'datavalues', 'hint', 'flavor', 'choice'])
   .describe('Type of content block for rendering structured text')
 
 /**

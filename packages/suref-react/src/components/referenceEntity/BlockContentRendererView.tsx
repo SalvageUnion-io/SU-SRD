@@ -35,14 +35,22 @@ type BlockContentRendererViewProps = {
  * - datavalues: Array of data values rendered as compact flex row (value is array of dataValue objects)
  */
 export function BlockContentRendererView({
-  content,
+  content: rawContent,
   fontSize = 'text-sm',
   compact = false,
   chassisName,
   headerBg,
   headerBgColor,
 }: BlockContentRendererViewProps) {
-  if (!content || content.length === 0) {
+  if (!rawContent || rawContent.length === 0) {
+    return null
+  }
+
+  // `choice` blocks are position markers consumed by interleaving-aware renderers
+  // (the NEW card's editable walk); they carry no display content, so strip them
+  // here — read-only output is identical to data without them.
+  const content = rawContent.filter((b) => b?.type !== 'choice')
+  if (content.length === 0) {
     return null
   }
 

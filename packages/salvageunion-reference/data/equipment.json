@@ -1096,6 +1096,10 @@
         "value": "At each Tech Level, you may select an additional Modification for your Custom Missile Launcher."
       },
       {
+        "type": "choice",
+        "choiceId": "d097ed5d-d7d9-46f5-8bda-ba902f09ebc8"
+      },
+      {
         "type": "datavalues",
         "value": [
           {

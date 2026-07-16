@@ -2318,53 +2318,16 @@
         "value": "Choose if it is a [[Ballistic]] or [[Energy]] weapon and it gains the respective [[Energy]] or [[Ballistic]] Trait."
       },
       {
+        "type": "choice",
+        "choiceId": "d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a"
+      },
+      {
         "type": "paragraph",
         "value": " In addition, choose a modification from the list below."
       },
       {
-        "type": "list-item",
-        "value": "The Custom Sniper Rifle increases its Range to Far.",
-        "label": "Rangefinder"
-      },
-      {
-        "type": "list-item",
-        "value": "You may spend 2 AP to automatically hit with the Custom Sniper Rifle. It also gains the [[Targeter]] Trait.",
-        "label": "Laser Guidance"
-      },
-      {
-        "type": "list-item",
-        "value": "You may spend 2 AP when you make an attack. If it hits, a System, Module, or appendage of your choice on the target is damaged. It also gains the [[Targeter]] Trait.",
-        "label": "Pinpoint Targeter"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Sniper Rifle gains the [[Anti-Organic]] Trait.",
-        "label": "Dum Dum Rounds"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Sniper Rifle deals an additional 1 SP damage.",
-        "label": "High Calibre Rounds"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Sniper Rifle gains the [[Deadly]] Trait.",
-        "label": "Anti-Matter"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Sniper Rifle gains the [[Flashy]] Trait.",
-        "label": "Flashy"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Sniper Rifle gains the [[Silent]] Trait.",
-        "label": "Silencer"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Sniper Rifle is designed to fold down into a briefcase, making it easily concealable.",
-        "label": "Compact Design"
+        "type": "choice",
+        "choiceId": "8688eb63-550c-4d06-9b50-e1649c442da6"
       },
       {
         "type": "paragraph",
@@ -4307,6 +4270,10 @@
       {
         "type": "paragraph",
         "value": "Your Union Crawler may mount two Weapons Systems in its Armament Bay instead of the usual one and make two attacks on its turn. In addition, the Crawler increases its Max SP by 5."
+      },
+      {
+        "type": "choice",
+        "choiceId": "49dbf700-b4b4-4718-8847-5f24dbf033a2"
       }
     ],
     "actionSource": "crawlers"
@@ -5474,6 +5441,10 @@
       {
         "type": "paragraph",
         "value": "When crafting this you may describe what the weapon looks like."
+      },
+      {
+        "type": "choice",
+        "choiceId": "1d0f3be8-3cf9-4c3a-a6d1-d2f221b02832"
       }
     ],
     "actionSource": "systems",

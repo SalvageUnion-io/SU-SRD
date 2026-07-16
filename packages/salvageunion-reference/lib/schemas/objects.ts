@@ -133,6 +133,7 @@ export const ContentBlockSchema: z.ZodType<{
   label?: string
   level?: number
   lead?: boolean
+  choiceId?: string
   items?: Array<{
     type?: z.infer<typeof ContentTypeSchema>
     value?: string | z.infer<typeof DataValueSchema>[]
@@ -153,6 +154,12 @@ export const ContentBlockSchema: z.ZodType<{
         label: z.string().optional(),
         level: z.number().int().min(1).max(6).optional(),
         lead: z.boolean().optional(),
+        choiceId: z
+          .string()
+          .describe(
+            'When type is "choice": the id of the entity choice to render inline at this position'
+          )
+          .optional(),
         items: z
           .array(
             z

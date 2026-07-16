@@ -28,7 +28,8 @@
                 "label",
                 "datavalues",
                 "hint",
-                "flavor"
+                "flavor",
+                "choice"
               ],
               "description": "Type of content block for rendering structured text"
             },
@@ -68,6 +69,10 @@
             "label": { "type": "string" },
             "level": { "type": "integer", "minimum": 1, "maximum": 6 },
             "lead": { "type": "boolean" },
+            "choiceId": {
+              "type": "string",
+              "description": "When type is \"choice\": the id of the entity choice to render inline at this position"
+            },
             "items": {
               "type": "array",
               "items": {
@@ -83,7 +88,8 @@
                       "label",
                       "datavalues",
                       "hint",
-                      "flavor"
+                      "flavor",
+                      "choice"
                     ],
                     "description": "Type of content block for rendering structured text"
                   },
@@ -236,7 +242,8 @@
                     "label",
                     "datavalues",
                     "hint",
-                    "flavor"
+                    "flavor",
+                    "choice"
                   ],
                   "description": "Type of content block for rendering structured text"
                 },
@@ -276,6 +283,10 @@
                 "label": { "type": "string" },
                 "level": { "type": "integer", "minimum": 1, "maximum": 6 },
                 "lead": { "type": "boolean" },
+                "choiceId": {
+                  "type": "string",
+                  "description": "When type is \"choice\": the id of the entity choice to render inline at this position"
+                },
                 "items": {
                   "type": "array",
                   "items": {
@@ -291,7 +302,8 @@
                           "label",
                           "datavalues",
                           "hint",
-                          "flavor"
+                          "flavor",
+                          "choice"
                         ],
                         "description": "Type of content block for rendering structured text"
                       },
@@ -380,7 +392,8 @@
                           "label",
                           "datavalues",
                           "hint",
-                          "flavor"
+                          "flavor",
+                          "choice"
                         ],
                         "description": "Type of content block for rendering structured text"
                       },
@@ -420,6 +433,10 @@
                       "label": { "type": "string" },
                       "level": { "type": "integer", "minimum": 1, "maximum": 6 },
                       "lead": { "type": "boolean" },
+                      "choiceId": {
+                        "type": "string",
+                        "description": "When type is \"choice\": the id of the entity choice to render inline at this position"
+                      },
                       "items": {
                         "type": "array",
                         "items": {
@@ -435,7 +452,8 @@
                                 "label",
                                 "datavalues",
                                 "hint",
-                                "flavor"
+                                "flavor",
+                                "choice"
                               ],
                               "description": "Type of content block for rendering structured text"
                             },

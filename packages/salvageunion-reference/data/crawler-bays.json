@@ -341,6 +341,10 @@
         "value": "The main defensive Weapons System of the Union Crawler is mounted here. Your Union Crawler may mount any single Weapons System of the Tech Level of the Crawler that you have access to. As your Union Crawler upgrades, you may replace this Weapons System with another Weapons System of your choice as long as it is of the same Tech Level or lower of the Union Crawler."
       },
       {
+        "type": "choice",
+        "choiceId": "383de916-bbd6-4e34-9cfc-1b37e12178c8"
+      },
+      {
         "type": "paragraph",
         "value": "If the Armament Bay becomes damaged, the Union Crawler cannot use any of its Weapons Systems."
       }

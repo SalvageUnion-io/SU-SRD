@@ -24,17 +24,25 @@ import {
   isAbility,
   parseContentBlockString,
   resolveActivationCurrency,
+  resolveChoiceView,
   resolveGrantedEntities,
 } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
+import type { EntityStatus } from '../../shared/entityStatus'
+import { FOCUS_RING, activateOnKey } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
+import { StatusBadge } from '../../chrome/StatusBadge'
 import { Stamp } from '../../chrome/Stamp'
 import { STAMP_SEAM } from '../../chrome/stampSeam'
 import { ActivationCostBox } from '../../shared/ActivationCostBox'
 import { CardImage } from '../../shared/CardImage'
+import { ControlButtons } from '../../shared/ControlButtons'
 import { StatDisplay } from '../../shared/StatDisplay'
 import type { StatItem } from '../../shared/statsBarTypes'
 import { BlockContentRendererView } from '../BlockContentRendererView'
+import { NEWChoiceGroups } from './NEWChoiceGroups'
+import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
+import type { ReferenceEntityControl } from '../ReferenceEntityDisplay/referenceEntityControlTypes'
 import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { buildReferenceEntityStats } from '../ReferenceEntityDisplay/referenceEntityStatsConfig'
 import { NEWCardHeader } from './NEWCardHeader'
@@ -86,6 +94,9 @@ type NEWReferenceEntityCardProps = {
   /** The SUMMONING (parent) entity's tone as a resolvable CSS colour — threaded
    * onto a nested ACTION card, whose bands are this tone GHOSTED. */
   hostTone?: string
+  /** The parent is damaged/destroyed — threaded down so every nested card in the
+   * subtree gets the same grey treatment as the damaged parent. */
+  hostDown?: boolean
   /** The owning chassis's name — threaded down so `[(CHASSIS)]` tokens in nested
    * ability/drone/pattern content resolve to the chassis name. */
   chassisName?: string
@@ -93,7 +104,73 @@ type NEWReferenceEntityCardProps = {
    * uses the drone's own loadout; a pattern uses its pattern-specific config).
    * Rendered as listings INSIDE this drone card, never at the parent level. */
   droneLoadout?: { systems: SURefEntity[]; modules: SURefEntity[] }
+
+  // ─── WRITE LAYER (all additive — absent ⇒ read-only is byte-identical) ───
+  /** Render guards that SUBTRACT already-rendered sections. */
+  hide?: NEWHideConfig
+  /** Intact/Damaged/Destroyed chip in the header stat axis beside the title. */
+  status?: EntityStatus
+  /** Cycle handler (Intact → Damaged → Destroyed) — makes the chip a button. */
+  onStatusClick?: () => void
+  /** Accessible-label subject for the status chip. */
+  statusSubject?: string
+  /** Grey the header tone (sub-header/footer to darker greys) — a damaged item. */
+  damaged?: boolean
+  /** Grey the header tone — a destroyed item (same treatment as `damaged`). */
+  destroyed?: boolean
+  /** Optional translucent scrim + red danger box over the body inset. */
+  damageOverlayText?: string
+  /** Whole-card opacity-50 (an unavailable/inactive item). */
+  disabled?: boolean
+  /** Draw the canonical rust selection border (SELECTION_RING) — non-layout-shifting. */
+  selected?: boolean
+  /** When off in a picker: dim + desaturate (opacity-50 saturate-50). */
+  selectable?: boolean
+  /** Whole-card click → role=button + hover-enlarge + focus ring. */
+  onCardClick?: () => void
+  /** Enable the hover-enlarge/role=button affordance without a click handler. */
+  cardClickable?: boolean
+  /** Top-right overlay controls (reuse ControlButtons shapes/variants). */
+  controls?: ReferenceEntityControl[]
+  /** Controlled interactive-choice state (renders `ChoiceGroups` in the body). */
+  selections?: ChoiceSelections
+  /** Selection-change handler — its presence flips choices to editable body cards. */
+  onSelectionChange?: (selections: ChoiceSelections) => void
+
+  // ─── SLOT OVERRIDES (generic extension seams — additive) ───
+  titleOverride?: string
+  titleSlot?: ReactNode
+  statsOverride?: StatItem[]
+  primaryStatsOnly?: boolean
+  subtitleExtra?: ReactNode
+  abilitiesSection?: ReactNode
+  afterExtraContent?: ReactNode
+  afterChoicesContent?: ReactNode
+  footerOverride?: ReactNode
+  /** Overrides the header's top-right flavor slot. */
+  rightContent?: ReactNode
+  /** Callout stamp above the frame (with optional value badge). */
+  label?: string
+  labelBadge?: string
+  /** Title + controls only header (no stats / flavor). */
+  lightweight?: boolean
+  /** De-emphasise the header band. */
+  dimHeader?: boolean
+  /** Reserved passthrough for the NPC two-column config (wired in a later increment). */
+  npcConfig?: Record<string, unknown>
   className?: string
+}
+
+/** Write-layer: which already-rendered sections to suppress (additive guards). */
+export type NEWHideConfig = {
+  actions?: boolean
+  patterns?: boolean
+  damagedEffect?: boolean
+  choices?: boolean
+  stats?: boolean
+  content?: boolean
+  rollTable?: boolean
+  footer?: boolean
 }
 
 /** The action-shaped fields the card reads when `schemaName === 'actions'`. */
@@ -177,14 +254,6 @@ function firstParagraphText(content: SURefObjectContentBlock[] | undefined): str
   return paragraph ? parseContentBlockString(paragraph) : undefined
 }
 
-/** Read-only choice prompt: freeform → an empty "—" slot; a roll-table choice →
- * "roll or choose"; anything else → "choose". Never an input. */
-function choicePrompt(choice: SURefObjectChoice): string {
-  if (choice.choiceType === 'freeform') return '—'
-  if (choice.rollTable) return 'roll or choose'
-  return 'choose'
-}
-
 /**
  * NEWReferenceEntityCard — the ONE card that renders ENTITIES, ACTIONS, and
  * NPCs, driven by two parameters:
@@ -209,8 +278,38 @@ export function NEWReferenceEntityCard({
   parentSeal,
   pattern,
   hostTone,
+  hostDown,
   chassisName,
   droneLoadout,
+  hide,
+  status,
+  onStatusClick,
+  statusSubject,
+  damaged,
+  destroyed,
+  damageOverlayText,
+  disabled,
+  selected,
+  selectable,
+  onCardClick,
+  cardClickable,
+  controls,
+  selections,
+  onSelectionChange,
+  titleOverride,
+  titleSlot,
+  statsOverride,
+  primaryStatsOnly,
+  subtitleExtra,
+  abilitiesSection,
+  afterExtraContent,
+  afterChoicesContent,
+  footerOverride,
+  rightContent: rightContentProp,
+  label,
+  labelBadge,
+  lightweight,
+  dimHeader,
   className,
 }: NEWReferenceEntityCardProps) {
   // `SalvageUnionReference.*.all()` entities carry a runtime `schemaName`
@@ -243,13 +342,22 @@ export function NEWReferenceEntityCard({
   // GHOSTED (D8): the header + sub-header bands + 3px frame use the ghosted host
   // tone; the body stays paper/ink. A standalone action (no host) falls back to
   // a neutral base.
+  // DAMAGED/DESTROYED (write layer): grey the whole tone. The header goes flat
+  // grey #969696; sub-header + footer + frame use the darker grey shade.
+  const isDown = !!damaged || !!destroyed || !!hostDown
+  const GREY_HEADER = '#969696'
+  const GREY_DEEP = accentDeepColor(undefined, GREY_HEADER) ?? '#5a5a5a'
   const ghost = isGhosted ? ghostActionTone(hostTone ?? 'var(--color-su-black)') : undefined
-  const darkTone = ghost
-    ? ghost.sub
-    : (accentDeepColor(tone.bg, tone.bgColor) ?? 'var(--color-su-black)')
-  const frameColor = ghost
-    ? ghost.frame
-    : (borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-su-black)')
+  const darkTone = isDown
+    ? GREY_DEEP
+    : ghost
+      ? ghost.sub
+      : (accentDeepColor(tone.bg, tone.bgColor) ?? 'var(--color-su-black)')
+  const frameColor = isDown
+    ? GREY_DEEP
+    : ghost
+      ? ghost.frame
+      : (borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-su-black)')
   // This entity's own tone base — threaded to its nested action cards as their host.
   const ownToneBase = borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-su-black)'
   const techLevel = getTechLevel(entity)
@@ -265,7 +373,7 @@ export function NEWReferenceEntityCard({
   // pattern is a LIST ROW: name-tab left, description on the header right.
   const isPattern = !!pattern
   const isPatternListing = isPattern && size === 'listing'
-  const name = isPattern ? pattern.name : entityName
+  const name = titleOverride ?? (isPattern ? pattern.name : entityName)
   const effectiveSeal = parentSeal
   // `[(CHASSIS)]` content tokens resolve to the owning chassis name — this card's
   // own name when it IS a chassis, else the name threaded down from the parent.
@@ -336,31 +444,30 @@ export function NEWReferenceEntityCard({
       ? []
       : buildReferenceEntityStats(entity, {
           compact: false,
-          primaryOnly: size === 'listing',
+          primaryOnly: !!primaryStatsOnly || size === 'listing',
           schemaName: schemaName as SURefEnumSchemaName,
           techLevel,
         })
   // TECH LEVEL is a header headline stat (value box), NOT a seam pill — a
   // size-aware label ("Tech Level" full / "TL" compact), placed first in the
   // top-right cluster. `buildReferenceEntityStats` doesn't emit it, so add it.
-  const isListing = size === 'listing'
   const techLevelStat: StatItem | undefined =
     !isAction && !isPatternListing && techLevel != null
       ? {
           key: 'tech-level',
-          // Display-mode ladder: a LISTING renders stats in COMPACT mode → the
-          // abbreviation "TL"; a vertical value box → two-line "Tech" / "Level".
-          label: isListing ? 'TL' : 'Tech',
-          bottomLabel: isListing ? undefined : 'Level',
+          // ATOM MODEL: COMPACT (horizontal) renders the abbreviation "TL"; a
+          // full-size vertical value box renders two-line "Tech" / "Level".
+          label: compact ? 'TL' : 'Tech',
+          bottomLabel: compact ? undefined : 'Level',
           value: String(techLevel),
         }
       : undefined
   const headerStats: StatItem[] = [
     ...(techLevelStat ? [techLevelStat] : []),
-    // Compact abbreviates (SP, Cargo, …). Non-compact keeps full labels, but the
-    // slotsRequired stat reads "Slots" at BOTH sizes — drop its "Required" bottom
-    // label (compact does this via `abbreviateStat`; do it here for non-compact).
-    ...(isListing
+    // ATOM MODEL: compact = horizontal cells + SHORTFORM labels (SP, TL, Cargo, …).
+    // Non-compact = the vertical value box with FULL labels, but the slotsRequired
+    // stat reads "Slots" at both sizes — drop its "Required" bottom label there.
+    ...(compact
       ? rawHeaderStats.map(abbreviateStat)
       : rawHeaderStats.map((stat) =>
           stat.label === 'Slots' ? { ...stat, bottomLabel: undefined } : stat
@@ -373,17 +480,16 @@ export function NEWReferenceEntityCard({
       <ActivationCostBox
         cost={costSource.activationCost}
         currency={resolveActivationCurrency(costSource.actionSource)}
-        compact
+        compact={compact}
       />
     ) : undefined
 
   // SUB-HEADER cells — action range/damage/traits, else entity traits + the
-  // read-only choice slots (moved out of the body into the sub-header).
-  const choiceCells: NEWSubHeaderCell[] = (getChoices(entity) ?? []).map((choice) => ({
-    key: `choice-${choice.id}`,
-    label: choice.name,
-    value: choicePrompt(choice),
-  }))
+  // CHOICES render in the BODY (read-only static, editable choosable) — never as
+  // sub-header slots — so they read like every other nested thing.
+  const entityChoices = getChoices(entity) ?? []
+  const editableChoices = !!onSelectionChange
+  const choiceCells: NEWSubHeaderCell[] = []
   // A folded single action surfaces its type/range/damage/traits into the
   // sub-header; entity traits/choices follow, deduped so a shared trait (e.g.
   // "Explosive") isn't listed twice.
@@ -392,8 +498,58 @@ export function NEWReferenceEntityCard({
   const dedupedEntityCells = entityCells.filter(
     (cell) => !foldedActionCells.some((folded) => folded.key === cell.key)
   )
-  const cells: NEWSubHeaderCell[] =
+  const baseCells: NEWSubHeaderCell[] =
     isAction && action ? actionCells(action) : [...foldedActionCells, ...dedupedEntityCells]
+  // dvSourceContent — the content whose `datavalues` block (Damage/Range) feeds
+  // the resolver's base stats (a self-action's content for a self-action entity).
+  const entityContentForDv = 'content' in entity ? entity.content : undefined
+  const dvSourceContent =
+    (foldedAction && foldedAction.name === entityName
+      ? foldedAction.content
+      : entityContentForDv) ?? entityContentForDv
+
+  // MODIFIED-STATS LANGUAGE + DATAVALUES BUBBLE. `resolveChoiceView` applies the
+  // selected choice effects to the entity's base datavalues + traits; diffing it
+  // against the base (no selections) tells us what a choice CHANGED. Anything a
+  // choice touched gets a RUST cell BORDER (the "modified" colour) — a choice-ADDED
+  // trait (picking "Ballistic" → the Ballistic trait) and any datavalue an effect
+  // UPGRADED (Damage 2→3, Range → Far; the value itself updates too). With no
+  // selections this is just the base view — so Damage/Range still bubble normally.
+  const MODIFIED = 'var(--color-rust)'
+  const resolvable = {
+    content: dvSourceContent,
+    traits: getTraits(entity) ?? [],
+    choices: entityChoices,
+  }
+  const resolvedView = resolveChoiceView(resolvable, selections ?? {})
+  const baseView = resolveChoiceView(resolvable, {})
+  const baseTraitKeys = new Set(baseView.traits.map((t) => String(t.type).toLowerCase()))
+  const addedTraitCells: NEWSubHeaderCell[] = traitCells(
+    resolvedView.traits.filter((t) => !baseTraitKeys.has(String(t.type).toLowerCase()))
+  ).map((c) => ({ ...c, borderColor: MODIFIED }))
+  const fmtDv = (dv: { value?: unknown; unit?: string }): string => {
+    const v = dv.value == null ? '' : String(dv.value)
+    return dv.unit ? `${v}${dv.unit}` : v
+  }
+  const baseDvMap = new Map(
+    baseView.datavalues
+      .filter((d) => d.label != null)
+      .map((d) => [String(d.label).toLowerCase(), fmtDv(d)])
+  )
+  const existingLabels = new Set(baseCells.map((c) => String(c.label).toLowerCase()))
+  const datavalueCells: NEWSubHeaderCell[] = resolvedView.datavalues
+    .filter((d) => d.label != null && !existingLabels.has(String(d.label).toLowerCase()))
+    .map((d) => {
+      const val = fmtDv(d)
+      const changed = baseDvMap.get(String(d.label).toLowerCase()) !== val
+      return {
+        key: `dv-${d.label}`,
+        label: String(d.label),
+        value: val,
+        ...(changed ? { borderColor: MODIFIED } : {}),
+      }
+    })
+  const cells: NEWSubHeaderCell[] = [...baseCells, ...addedTraitCells, ...datavalueCells]
 
   // ABILITY flavor — the short description hint, shown WHITE in the header's
   // top-right (abilities have no numeric vitals, so the axis is free for it).
@@ -434,32 +590,96 @@ export function NEWReferenceEntityCard({
   // ACTIONS wear the GHOSTED host tone on their HEADER band; their body stays
   // paper/ink like an entity, only the bands are off-colour. Entities use their
   // own medium tone on the header.
-  const headerBg = isGhosted ? undefined : tone.bg
-  const headerBgColor = ghost ? ghost.header : tone.bgColor
+  const headerBg = isDown || isGhosted ? undefined : tone.bg
+  const headerBgColor = isDown ? GREY_HEADER : ghost ? ghost.header : tone.bgColor
 
+  // WRITE LAYER header composition (all additive):
+  // - statsOverride replaces the built stats (e.g. editable sheet stats); hide/
+  //   lightweight suppress them.
+  // - status chip leads the right cluster; rightContent override / lightweight.
+  const effectiveHeaderStats: StatItem[] =
+    lightweight || hide?.stats ? [] : (statsOverride ?? headerStats)
+  const effectiveRightContent: ReactNode = lightweight
+    ? undefined
+    : (rightContentProp ?? flavorNode)
+  const statusNode: ReactNode = status ? (
+    <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject ?? entityName} />
+  ) : undefined
   const header = (
     <NEWCardHeader
       title={name}
+      titleSlot={titleSlot}
       bg={headerBg}
       bgColor={headerBgColor}
       titleClass={titleClass}
-      stats={headerStats}
-      rightContent={flavorNode}
+      stats={effectiveHeaderStats}
+      rightContent={effectiveRightContent}
       listing={size === 'listing'}
+      dim={dimHeader}
       compact={compact}
     />
   )
+
+  // WRITE LAYER — whole-card affordances shared by the listing + full returns.
+  // All of these collapse to nothing when their props are absent, so the
+  // rendered wrapper is byte-identical to read-only.
+  const resolvedCardClick = onCardClick ?? controls?.find((c) => c.cardClick)?.onClick
+  const isHoverable = !!resolvedCardClick || !!cardClickable
+  const outerClassName = cn(
+    'relative flex flex-col overflow-visible',
+    disabled && 'opacity-50',
+    selectable === false && 'opacity-50 saturate-50',
+    isHoverable &&
+      'cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:-translate-y-0.5 md:hover:scale-[1.02]',
+    resolvedCardClick && FOCUS_RING,
+    className
+  )
+  const outerInteraction = resolvedCardClick
+    ? {
+        role: 'button' as const,
+        tabIndex: 0,
+        onClick: resolvedCardClick,
+        onKeyDown: activateOnKey(resolvedCardClick),
+      }
+    : {}
+  // Selection state — the canonical rust SELECTION_RING (chrome/interaction.ts),
+  // the same 3px rust border the wizard Sel/PickCard draw. A non-layout-shifting
+  // box-shadow that reads as a border, sitting just outside the 3px tone frame.
+  const frameStyle = selected
+    ? { border: `3px solid ${frameColor}`, boxShadow: '0 0 0 3px var(--color-rust)' }
+    : { border: `3px solid ${frameColor}` }
+  // Controls overlay — straddling the top-right frame (reuse ControlButtons).
+  const controlsOverlay = controls?.some((c) => !c.hidden) ? (
+    <div
+      className={cn('absolute right-0 z-30 mr-1.5', compact ? 'top-0 -translate-y-1/2' : '-mt-2')}
+    >
+      <ControlButtons controls={controls} compact={compact} />
+    </div>
+  ) : null
+  // Label callout — a stamp (or [label|badge] pair) straddling the top-left frame.
+  const labelCallout =
+    label || labelBadge ? (
+      <div className={cn('absolute left-3 z-30', compact ? 'top-0 -translate-y-1/2' : '-mt-2')}>
+        {label && labelBadge ? (
+          <StatDisplay orientation="horizontal" label={label} value={labelBadge} xs />
+        ) : (
+          <Stamp size="sm">{label ?? labelBadge}</Stamp>
+        )}
+      </div>
+    ) : null
 
   // Frame lives on the INNER clipping element (3px tone, radius + clip on one
   // element — the mockup `.ec`). The OUTER div is overflow-visible only so the
   // seam escapes the clip.
   if (size === 'listing') {
     return (
-      <div className={cn('relative flex flex-col overflow-visible', className)}>
+      <div className={outerClassName} {...outerInteraction}>
         {seam}
+        {labelCallout}
+        {controlsOverlay}
         <div
           className="flex flex-1 flex-col overflow-hidden rounded-card bg-paper"
-          style={{ border: `3px solid ${frameColor}` }}
+          style={frameStyle}
         >
           {header}
         </div>
@@ -530,10 +750,6 @@ export function NEWReferenceEntityCard({
     if (isGrantContext && (block as { lead?: boolean }).lead === true) return false
     return true
   })
-  const showBodyContent =
-    isPattern || isTitanicMeta
-      ? !!bodyContent && bodyContent.length > 0
-      : showContent && !!bodyContent && bodyContent.length > 0
   // TITANIC actions always get their own full-width row (never the masonry).
   const titanicActions = allActions.filter(isTitanicAction)
   const normalActions = allActions.filter((a) => !isTitanicAction(a))
@@ -542,6 +758,88 @@ export function NEWReferenceEntityCard({
   const foldSingleAction = !!foldedAction
   const foldedActionContent = foldedAction?.content ?? undefined
   const gridActions = foldSingleAction ? [] : normalActions
+
+  // A SELF-action (a single folded action named like the entity — e.g. Custom
+  // Sniper Rifle's own action) carries the entity's real prose AND its choice
+  // markers interwoven. Render ITS content as the body so the choices interleave
+  // there; the entity's own thin content duplicates it (dropped), and the action
+  // is NOT rendered a second time below.
+  const isSelfAction = foldSingleAction && foldedAction?.name === entityName
+  const bodyBlocks = (
+    isSelfAction && foldedActionContent && foldedActionContent.length > 0
+      ? foldedActionContent
+      : bodyContent
+  )?.filter((b) => b?.type !== 'datavalues')
+  const showBody =
+    isPattern || isTitanicMeta
+      ? !!bodyBlocks && bodyBlocks.length > 0
+      : showContent && !!bodyBlocks && bodyBlocks.length > 0
+
+  // WRITE LAYER — editable choices interleave with content by a plain in-order
+  // walk of `bodyContent`: a `{type:'choice'}` marker renders that choice's
+  // ChoiceGroups (rust-bordered) exactly where it sits in the data. Choices with
+  // no marker render at the natural END position (trailing fallback). Read-only
+  // (no `onSelectionChange`) never enters this branch.
+  const renderChoiceRegion = (choice: SURefObjectChoice): ReactNode => (
+    <div key={`choice-region-${choice.id}`} className="[&:not(:last-child)]:mb-3">
+      <NEWChoiceGroups
+        choices={[choice]}
+        parent={entity as unknown as Record<string, unknown>}
+        selections={selections}
+        onSelectionChange={onSelectionChange}
+        readOnly={!editableChoices}
+        compact={compact}
+        toneColor={tone.bgColor}
+      />
+    </div>
+  )
+
+  // The interleave walk runs in BOTH modes — read-only renders the same choice
+  // cards, static (readable); editable makes them selectable. Choices are never
+  // sub-header slots — they live in the body, like every other nested thing.
+  const bodyNodes: ReactNode[] = []
+  {
+    const choiceById = new Map(entityChoices.map((c) => [c.id, c] as const))
+    const rendered = new Set<string>()
+    let buffer: SURefObjectContentBlock[] = []
+    let seg = 0
+    const flush = () => {
+      if (buffer.length > 0 && !hide?.content && showBody) {
+        bodyNodes.push(
+          <div key={`seg-${seg}`} className="[&:not(:last-child)]:mb-3">
+            <BlockContentRendererView
+              content={buffer}
+              compact={compact}
+              chassisName={resolvedChassisName}
+              fontSize={compact ? 'text-xs' : 'text-sm'}
+              headerBg={tone.bg}
+              headerBgColor={tone.bgColor}
+            />
+          </div>
+        )
+      }
+      buffer = []
+      seg += 1
+    }
+    for (const block of bodyBlocks ?? []) {
+      if (block?.type === 'choice') {
+        const choice = block.choiceId ? choiceById.get(block.choiceId) : undefined
+        if (choice && !hide?.choices && !rendered.has(choice.id)) {
+          flush()
+          bodyNodes.push(renderChoiceRegion(choice))
+          rendered.add(choice.id)
+        }
+        continue // markers never contribute body text
+      }
+      buffer.push(block)
+    }
+    flush()
+    if (!hide?.choices) {
+      for (const choice of entityChoices) {
+        if (!rendered.has(choice.id)) bodyNodes.push(renderChoiceRegion(choice))
+      }
+    }
+  }
 
   // Leaf data — bonus-per-tech-level stat increases (choices now live in the
   // sub-header, so no "Choices" body section).
@@ -594,6 +892,7 @@ export function NEWReferenceEntityCard({
           <NEWReferenceEntityCard
             size="compact"
             depth={depth + 1}
+            hostDown={isDown}
             data={nested}
             parentSeal={seal}
             hostTone={childHostTone}
@@ -614,6 +913,7 @@ export function NEWReferenceEntityCard({
                 <NEWReferenceEntityCard
                   size="compact"
                   depth={depth + 1}
+                  hostDown={isDown}
                   data={nested}
                   parentSeal={seal}
                   hostTone={childHostTone}
@@ -628,6 +928,7 @@ export function NEWReferenceEntityCard({
             key={cardKey(orphan, entities.length - 1)}
             size="compact"
             depth={depth + 1}
+            hostDown={isDown}
             data={orphan}
             parentSeal={seal}
             hostTone={childHostTone}
@@ -688,13 +989,19 @@ export function NEWReferenceEntityCard({
       {entities.map((item, index) =>
         flat ? (
           <div key={cardKey(item, index)} className="mb-1.5 flow-root">
-            <NEWReferenceEntityCard size="listing" depth={depth + 1} data={item} />
+            <NEWReferenceEntityCard
+              size="listing"
+              depth={depth + 1}
+              hostDown={isDown}
+              data={item}
+            />
           </div>
         ) : (
           <NEWReferenceEntityCard
             key={cardKey(item, index)}
             size="listing"
             depth={depth + 1}
+            hostDown={isDown}
             data={item}
           />
         )
@@ -724,6 +1031,7 @@ export function NEWReferenceEntityCard({
             key={cardKey(npc, index)}
             size="compact"
             depth={depth + 1}
+            hostDown={isDown}
             data={npc}
             hostTone={ownToneBase}
             chassisName={resolvedChassisName}
@@ -733,13 +1041,36 @@ export function NEWReferenceEntityCard({
     ) : undefined
 
   return (
-    <div className={cn('relative flex flex-col overflow-visible', className)}>
+    <div className={outerClassName} {...outerInteraction}>
       {seam}
+      {labelCallout}
+      {controlsOverlay}
       <div
-        className="flex flex-1 flex-col overflow-hidden rounded-card bg-paper"
-        style={{ border: `3px solid ${frameColor}` }}
+        className={cn(
+          'flex flex-1 flex-col overflow-hidden rounded-card bg-paper',
+          // Positioned only when a damage scrim needs an absolute overlay anchor —
+          // absent ⇒ no `relative`, byte-identical to read-only.
+          damageOverlayText && 'relative'
+        )}
+        style={frameStyle}
       >
+        {/* DAMAGE OVERLAY (write layer) — a translucent scrim + red danger box
+            over the whole card body. Non-interactive; absent ⇒ nothing renders. */}
+        {damageOverlayText && (
+          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-su-black/40 p-3">
+            <span
+              className="rounded-card px-3 py-1.5 text-center font-cond text-sm font-bold uppercase leading-tight tracking-caps-tight text-paper"
+              style={{ backgroundColor: 'var(--color-status-bad)' }}
+            >
+              {damageOverlayText}
+            </span>
+          </div>
+        )}
         {header}
+        {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
+        {subtitleExtra && (
+          <div className={cn(compact ? 'px-2 pt-1' : 'px-3 pt-1.5')}>{subtitleExtra}</div>
+        )}
         {/* EP/AP cost leads the action sub-header row; the bonus-per-tech-level
             group (Badge + "+N" cells) wraps together after the trait cells. */}
         <NEWSubHeader
@@ -751,6 +1082,7 @@ export function NEWReferenceEntityCard({
               ? { label: 'Bonus per Tech Level', cells: bonusCellList }
               : undefined
           }
+          trailing={statusNode}
           compact={compact}
         />
         <div
@@ -760,47 +1092,47 @@ export function NEWReferenceEntityCard({
             // the band instead of top-aligned with a gap below; taller content
             // grows normally. (Flat/anchor bodies use flow-root for the float.)
             flat ? 'flow-root' : 'flex min-h-[2.5rem] flex-1 flex-col justify-center gap-1.5',
-            compact ? 'p-2' : 'p-3'
+            compact ? 'p-2' : 'p-3',
+            // A damaged/destroyed entity dims its body content too (not just the
+            // greyed header), so the whole card reads as de-emphasised.
+            isDown && 'opacity-60'
           )}
         >
           {anchorNode}
-          {/* Content blocks get a clear gap below (mb-3) before the nested-card
-              sections, so nested cards never crowd the parent's description. */}
-          {showBodyContent && bodyContent && (
-            <div className="[&:not(:last-child)]:mb-3">
-              <BlockContentRendererView
-                content={bodyContent}
-                compact={compact}
-                chassisName={resolvedChassisName}
-                fontSize={compact ? 'text-xs' : 'text-sm'}
-                headerBg={tone.bg}
-                headerBgColor={tone.bgColor}
-              />
-            </div>
-          )}
-          {foldedActionContent && foldedActionContent.length > 0 && (
-            <div className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
-              {/* The folded action keeps its NAME as a centered section heading
+          {/* The interleave walk builds the WHOLE body — content segments (via
+              BlockContentRendererView) with choice cards dropped in at their
+              markers — in both read-only and editable. Content gets a clear gap
+              (mb-3) before nested-card sections. */}
+          {bodyNodes.length > 0 && <>{bodyNodes}</>}
+          {/* A SELF-action's content already renders AS the body above; only a
+              differently-named folded action renders here (with its name heading). */}
+          {!isSelfAction &&
+            !hide?.content &&
+            !hide?.actions &&
+            foldedActionContent &&
+            foldedActionContent.length > 0 && (
+              <div className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
+                {/* The folded action keeps its NAME as a centered section heading
                   ONLY when it differs from the entity — a same-named action (e.g.
                   Grenade's own "Grenade" action) would be redundant noise. */}
-              {foldedAction?.name &&
-                foldedAction.name !== entityName &&
-                renderSectionHeading(foldedAction.name)}
-              <BlockContentRendererView
-                content={foldedActionContent}
-                compact={compact}
-                chassisName={resolvedChassisName}
-                fontSize={compact ? 'text-xs' : 'text-sm'}
-                headerBg={tone.bg}
-                headerBgColor={tone.bgColor}
-              />
-            </div>
-          )}
+                {foldedAction?.name &&
+                  foldedAction.name !== entityName &&
+                  renderSectionHeading(foldedAction.name)}
+                <BlockContentRendererView
+                  content={foldedActionContent}
+                  compact={compact}
+                  chassisName={resolvedChassisName}
+                  fontSize={compact ? 'text-xs' : 'text-sm'}
+                  headerBg={tone.bg}
+                  headerBgColor={tone.bgColor}
+                />
+              </div>
+            )}
 
           {/* CRAWLER BAY "WHEN DAMAGED" callout — action-card style (ghosted
               bands + black name-tab + paper body), tinted from the RED danger
               token so it clearly signals the damaged effect. */}
-          {damagedEffect && damagedBands && (
+          {!hide?.damagedEffect && damagedEffect && damagedBands && (
             <div
               className="overflow-hidden rounded-card"
               style={{ border: `3px solid ${damagedBands.frame}` }}
@@ -820,14 +1152,19 @@ export function NEWReferenceEntityCard({
             </div>
           )}
 
-          {/* CHASSIS ABILITY — a "Chassis Ability" stampseal on each card. */}
-          {chassisAbilityEntities.length > 0 &&
-            renderNested(
-              chassisAbilityEntities,
-              { label: 'Chassis Ability', tone: darkTone },
-              ownToneBase,
-              flat
-            )}
+          {/* SLOT: afterChoicesContent — appended just below the choices. */}
+          {afterChoicesContent}
+
+          {/* CHASSIS ABILITY — a "Chassis Ability" stampseal on each card. The
+              `abilitiesSection` slot fully replaces this block when provided. */}
+          {abilitiesSection ??
+            (chassisAbilityEntities.length > 0 &&
+              renderNested(
+                chassisAbilityEntities,
+                { label: 'Chassis Ability', tone: darkTone },
+                ownToneBase,
+                flat
+              ))}
 
           {/* DRONE — the compact drone card; its systems + modules render INSIDE
               the drone card (via the `droneLoadout` prop), NOT here. */}
@@ -837,6 +1174,7 @@ export function NEWReferenceEntityCard({
                 <NEWReferenceEntityCard
                   size="compact"
                   depth={depth + 1}
+                  hostDown={isDown}
                   data={droneInfo.drone}
                   chassisName={resolvedChassisName}
                   droneLoadout={{ systems: droneInfo.systems, modules: droneInfo.modules }}
@@ -846,6 +1184,7 @@ export function NEWReferenceEntityCard({
               <NEWReferenceEntityCard
                 size="compact"
                 depth={depth + 1}
+                hostDown={isDown}
                 data={droneInfo.drone}
                 chassisName={resolvedChassisName}
                 droneLoadout={{ systems: droneInfo.systems, modules: droneInfo.modules }}
@@ -858,9 +1197,11 @@ export function NEWReferenceEntityCard({
           {droneModules.length > 0 && renderListingGroup('Modules', droneModules, flat)}
 
           {/* PATTERN view → loadout groups. BASIC chassis / entities → nested groups. */}
-          {inFlowGroups.map((group) => renderNestedGroup(group.label, group.entities, flat))}
+          {(!isPattern || !hide?.patterns) &&
+            inFlowGroups.map((group) => renderNestedGroup(group.label, group.entities, flat))}
 
-          {gridActions.length > 0 &&
+          {!hide?.actions &&
+            gridActions.length > 0 &&
             renderGroup(
               'Actions',
               gridActions as unknown as SURefEntity[],
@@ -869,34 +1210,37 @@ export function NEWReferenceEntityCard({
             )}
 
           {/* Titanic actions — a full-width row of their own, never masonry. */}
-          {titanicActions.map((action, index) =>
-            flat ? (
-              <div
-                key={cardKey(action as unknown as SURefEntity, index)}
-                className="mb-1.5 flow-root"
-              >
+          {!hide?.actions &&
+            titanicActions.map((action, index) =>
+              flat ? (
+                <div
+                  key={cardKey(action as unknown as SURefEntity, index)}
+                  className="mb-1.5 flow-root"
+                >
+                  <NEWReferenceEntityCard
+                    size="compact"
+                    depth={depth + 1}
+                    hostDown={isDown}
+                    data={action as unknown as SURefEntity}
+                    hostTone={ownToneBase}
+                    chassisName={resolvedChassisName}
+                  />
+                </div>
+              ) : (
                 <NEWReferenceEntityCard
+                  key={cardKey(action as unknown as SURefEntity, index)}
                   size="compact"
                   depth={depth + 1}
+                  hostDown={isDown}
                   data={action as unknown as SURefEntity}
                   hostTone={ownToneBase}
                   chassisName={resolvedChassisName}
                 />
-              </div>
-            ) : (
-              <NEWReferenceEntityCard
-                key={cardKey(action as unknown as SURefEntity, index)}
-                size="compact"
-                depth={depth + 1}
-                data={action as unknown as SURefEntity}
-                hostTone={ownToneBase}
-                chassisName={resolvedChassisName}
-              />
-            )
-          )}
+              )
+            )}
 
           {/* BASIC CHASSIS → a LIST of its patterns as LISTING rows. */}
-          {patternList.length > 0 && (
+          {!hide?.patterns && patternList.length > 0 && (
             <div className={flat ? 'mb-1.5' : 'flex flex-col gap-1.5'}>
               <Slab variant="dashed" label="Patterns" />
               <div className={flat ? undefined : 'flex flex-col gap-1.5'}>
@@ -908,6 +1252,7 @@ export function NEWReferenceEntityCard({
                         pattern={pat}
                         size="listing"
                         depth={depth + 1}
+                        hostDown={isDown}
                       />
                     </div>
                   ) : (
@@ -917,23 +1262,32 @@ export function NEWReferenceEntityCard({
                       pattern={pat}
                       size="listing"
                       depth={depth + 1}
+                      hostDown={isDown}
                     />
                   )
                 )}
               </div>
             </div>
           )}
+
+          {/* SLOT: afterExtraContent — trailing body content (absent ⇒ nothing). */}
+          {afterExtraContent}
         </div>
-        {depth === 0 && (
-          <NEWIdentityFooter
-            bgColor={darkTone}
-            typeLabel={footerType}
-            source={getSource(entity)}
-            booklet={getBooklet(entity)}
-            page={getPageReference(entity)}
-            compact={compact}
-          />
-        )}
+        {/* FOOTER — `footerOverride` replaces the identity footer; `hide.footer`
+            suppresses it entirely. Absent ⇒ the depth-0 identity footer, unchanged. */}
+        {hide?.footer
+          ? null
+          : (footerOverride ??
+            (depth === 0 && (
+              <NEWIdentityFooter
+                bgColor={darkTone}
+                typeLabel={footerType}
+                source={getSource(entity)}
+                booklet={getBooklet(entity)}
+                page={getPageReference(entity)}
+                compact={compact}
+              />
+            )))}
       </div>
     </div>
   )
