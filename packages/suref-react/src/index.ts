@@ -113,8 +113,7 @@ export { EmptyState } from './components/chrome/EmptyState'
 // InlineRef — in-prose entity reference (resolved=rust / unresolved=ink)
 export { InlineRef } from './components/chrome/InlineRef'
 // Stamp — the one ink label/header atom (ruleset §5) + the StampSeam placement
-export { Stamp } from './components/chrome/Stamp'
-export type { StampSize, StampSurface } from './components/chrome/Stamp'
+export type { StampSize, StampSurface } from './components/chrome/Badge'
 export { STAMP_SEAM } from './components/chrome/stampSeam'
 // Icon glyphs — currentColor, 1em, CSP-safe (ruleset §5, atom 11)
 export { Glyph } from './components/chrome/glyphs'

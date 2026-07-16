@@ -161,3 +161,45 @@ export const StatusBadges: Story = () => (
     </Row>
   </div>
 )
+
+// The SQUARE stamp shape (shape="stamp") — the ink label/header/tab/eyebrow atom
+// (the former Stamp). Sizes, plates, and the seam that rides a container's border.
+export const Stamps: Story = () => (
+  <div className="bg-paper p-4">
+    <ClusterLabel>surface — on-ink (default) / inverse / on-tone</ClusterLabel>
+    <Row>
+      <Badge shape="stamp">{chassisName}</Badge>
+      <Badge shape="stamp" surface="inverse">
+        Structure
+      </Badge>
+      <span className="inline-block bg-su-green px-2 py-1">
+        <Badge shape="stamp" surface="on-tone">
+          On tone
+        </Badge>
+      </span>
+    </Row>
+
+    <ClusterLabel>size — sm / md (default) / lg</ClusterLabel>
+    <Row>
+      <Badge shape="stamp" size="sm">
+        SP
+      </Badge>
+      <Badge shape="stamp" size="md">
+        {techLabel}
+      </Badge>
+      <Badge shape="stamp" size="lg">
+        {chassisName}
+      </Badge>
+    </Row>
+
+    <ClusterLabel>seam — rides the container's top border</ClusterLabel>
+    <div className="relative mt-2 rounded-card border-2 border-ink bg-paper p-4">
+      <Badge shape="stamp" seam className="left-3">
+        Systems
+      </Badge>
+      <p className="m-0 font-body text-sm text-ink-2">
+        A framed body; the stamp straddles the top border.
+      </p>
+    </div>
+  </div>
+)

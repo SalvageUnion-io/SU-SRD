@@ -8,7 +8,7 @@ import { Conditions, ConditionChip } from '../Conditions'
 import { StepBtn, MiniBtn } from '../SmallButtons'
 import { TreeSep } from '../TreeSep'
 import { StatusBadge } from '../StatusBadge'
-import { Stamp } from '../Stamp'
+import { Badge } from '../Badge'
 import { Glyph } from '../glyphs'
 
 afterEach(cleanup)
@@ -141,7 +141,7 @@ describe('TreeSep', () => {
 
 describe('Stamp', () => {
   test('on-ink is the default surface; text is condensed uppercase', () => {
-    render(<Stamp>Mule</Stamp>)
+    render(<Badge shape="stamp">Mule</Badge>)
     const stamp = screen.getByText('Mule')
     expect(stamp.className).toContain('bg-ink')
     expect(stamp.className).toContain('text-paper')
@@ -151,9 +151,9 @@ describe('Stamp', () => {
 
   test('inverse surface flips to paper-on-ink; seam rides the border', () => {
     const { container } = render(
-      <Stamp surface="inverse" seam>
+      <Badge shape="stamp" surface="inverse" seam>
         SP
-      </Stamp>
+      </Badge>
     )
     const stamp = container.firstElementChild as HTMLElement
     expect(stamp.className).toContain('bg-paper')

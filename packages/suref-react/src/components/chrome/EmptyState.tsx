@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
-import { Stamp } from './Stamp'
+import { Badge } from './Badge'
 
 type EmptyStateProps = {
   /** The stamp headline (ruleset: "stamp voice"). */
@@ -28,7 +28,9 @@ export function EmptyState({ headline, body, action, className }: EmptyStateProp
         className
       )}
     >
-      <Stamp size="sm">{headline}</Stamp>
+      <Badge shape="stamp" size="sm">
+        {headline}
+      </Badge>
       {body && <p className="font-body text-caption text-wk-muted">{body}</p>}
       {action}
     </div>

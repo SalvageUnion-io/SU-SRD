@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { cn } from '../../utils/cn'
 import { Input } from './Field'
-import { Stamp } from './Stamp'
+import { Badge } from './Badge'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -249,9 +249,9 @@ export function InlineEditField({
 
   return (
     <div className={cn('flex min-w-0 flex-col', className)}>
-      <Stamp size="sm" className="mb-0.5">
+      <Badge shape="stamp" size="sm" className="mb-0.5">
         {label}
-      </Stamp>
+      </Badge>
       <span
         className={cn(
           'relative flex min-h-11 items-center rounded-card border-2 bg-paper px-3',
