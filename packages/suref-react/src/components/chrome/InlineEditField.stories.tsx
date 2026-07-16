@@ -4,7 +4,7 @@ import { InlineEditField } from './InlineEditField'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Atoms/InlineEditField',
+  title: 'Atoms/Inline Edit Field',
 }
 
 /** Controlled harness — commits persist so you can watch the value change. */
@@ -32,7 +32,7 @@ function Cell({ caption, children }: { caption: string; children: React.ReactNod
  * Every mode on one page. Click a value to edit; Enter or blur commits, Esc
  * cancels. Real Salvage Union stats stand in for the values.
  */
-export const Variants: Story = () => (
+export const Default: Story = () => (
   <div className="flex max-w-md flex-col gap-8 bg-paper p-8 text-ink">
     <Cell caption="read — click .50 Cal's damage to edit (text)">
       <Live initial=".50 Cal Machine Gun" ariaLabel="Weapon name" />

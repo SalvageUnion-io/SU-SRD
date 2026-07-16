@@ -7,7 +7,7 @@ import { Text } from '../base/Text'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/DisplayCard',
+  title: 'Containers/Display Card',
 }
 
 // DisplayCard is the GENERIC container primitive — its stories demonstrate

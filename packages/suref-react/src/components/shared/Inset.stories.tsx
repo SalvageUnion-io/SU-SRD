@@ -7,7 +7,7 @@ import { VitalGauge } from '../stat/VitalGauge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Inset',
+  title: 'Containers/Inset',
 }
 
 // Each story frames the primitive with the rule it embodies, then renders the

@@ -11,7 +11,7 @@ export default {
 
 const CAPTION = 'font-cond text-label uppercase tracking-caps text-wk-muted'
 
-export const Variants: Story = () => (
+export const Default: Story = () => (
   <>
     <Toaster />
     <div className="flex flex-col gap-3">

@@ -31,7 +31,7 @@ function Row({
 }
 
 /** The banded d20 table — bare, with the roll command, compact, and disabled. */
-export const Variants: Story = () =>
+export const Default: Story = () =>
   table ? (
     <div className="flex flex-col gap-6 bg-paper p-5 text-ink">
       <p className="max-w-2xl font-mono text-xs leading-relaxed text-ink-2">

@@ -6,7 +6,7 @@ import { SlotGrid } from '../../components/shared/SlotGrid'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Atoms/SlotGrid',
+  title: 'Atoms/Slot Grid',
 }
 
 const chassis = SalvageUnionReference.Chassis.all()[0]

@@ -5,7 +5,7 @@ import type { SURefObjectContentBlock } from 'salvageunion-reference'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/BlockContentRendererView',
+  title: 'Compositions/Block Content Renderer View',
 }
 
 const mixed: SURefObjectContentBlock[] = [
@@ -40,7 +40,7 @@ function Row({
 }
 
 /** Every content-block type — headings, paragraphs, list-items, hints, labels. */
-export const Variants: Story = () => (
+export const Default: Story = () => (
   <div className="flex flex-col gap-6 bg-paper p-5 text-ink">
     <p className="max-w-2xl font-mono text-xs leading-relaxed text-ink-2">
       Renders a content-block array: headings, paragraphs, list-items, hints, and EFFECT/ON-CRITICAL

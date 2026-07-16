@@ -7,7 +7,7 @@ export default {
 }
 
 /** Every Text variant on one page — body, pseudoheader (three sizes), inverse. */
-export const Variants: Story = () => (
+export const Default: Story = () => (
   <div className="flex flex-col gap-5 bg-paper p-5">
     <div className="flex flex-col gap-2">
       <code className="font-mono text-nano text-ink-2">default (body)</code>
