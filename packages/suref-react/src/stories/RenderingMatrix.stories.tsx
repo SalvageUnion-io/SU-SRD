@@ -6,7 +6,6 @@ import { Stat } from '../components/shared/Stat'
 import { VitalGauge } from '../components/stat/VitalGauge'
 import { BayStatus } from '../components/stat/BayStatus'
 import { Badge } from '../components/chrome/Badge'
-import { Stamp } from '../components/chrome/Stamp'
 import { ConditionSwatch } from '../components/stat/ConditionSwatch'
 import { SlotGrid } from '../components/shared/SlotGrid'
 import { RollTable } from '../components/shared/RollTable'
@@ -121,9 +120,9 @@ const rows: MatrixRow[] = [
   {
     role: 'Label / header',
     when: '—',
-    use: 'Stamp',
-    rule: 'The one ink label/header atom.',
-    example: <Stamp>Systems</Stamp>,
+    use: 'Badge shape="stamp"',
+    rule: 'The one ink label/header atom — the square Badge.',
+    example: <Badge shape="stamp">Systems</Badge>,
   },
   {
     role: 'Roll table',
@@ -146,9 +145,9 @@ const rows: MatrixRow[] = [
 
 export const Default: Story = () => (
   <div className="bg-paper p-6 font-mono text-ink">
-    <Stamp size="lg" as="span">
+    <Badge shape="stamp" size="lg" as="span">
       Rendering Matrix
-    </Stamp>
+    </Badge>
     <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2">
       <span className="font-bold text-ink">What to use, when.</span> Every UI <em>role</em> — the
       job a piece of data does on screen — maps to exactly one primitive, with a live render of

@@ -6,7 +6,6 @@ import { MasonryColumns } from '../../components/shared/MasonryColumns'
 import { FilterRow } from '../../components/shared/FilterRow'
 import { DisplayCard } from '../../components/shared/DisplayCard'
 import { Badge } from '../../components/chrome/Badge'
-import { Stamp } from '../../components/chrome/Stamp'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -35,7 +34,7 @@ export const DualColumn: Story = () => (
     <DualColumnLayout
       left={
         <div className="flex flex-col gap-2">
-          <Stamp>Left</Stamp>
+          <Badge shape="stamp">Left</Badge>
           {chassis.slice(0, 3).map((c) => (
             <ChassisRow key={c.name} name={c.name} />
           ))}
@@ -43,7 +42,7 @@ export const DualColumn: Story = () => (
       }
       right={
         <div className="flex flex-col gap-2">
-          <Stamp>Right</Stamp>
+          <Badge shape="stamp">Right</Badge>
           {chassis.slice(3, 6).map((c) => (
             <ChassisRow key={c.name} name={c.name} />
           ))}

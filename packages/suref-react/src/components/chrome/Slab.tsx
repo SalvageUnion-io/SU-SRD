@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
-import { POSTER_STAMP } from './Stamp'
+import { POSTER_STAMP } from './posterStamp'
 
 type SlabProps = {
   /** Section label, e.g. 'Systems' */

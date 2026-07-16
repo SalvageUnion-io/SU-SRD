@@ -33,7 +33,7 @@ import type { EntityStatus } from '../../shared/entityStatus'
 import { FOCUS_RING, activateOnKey } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
 import { StatusBadge } from '../../chrome/StatusBadge'
-import { Stamp } from '../../chrome/Stamp'
+import { Badge } from '../../chrome/Badge'
 import { STAMP_SEAM } from '../../chrome/stampSeam'
 import { ActivationCostBox } from '../../shared/ActivationCostBox'
 import { CardImage } from '../../shared/CardImage'
@@ -506,7 +506,11 @@ export function ReferenceEntityCard({
         </span>
       )}
       {/* Type stamp on NESTED cards only — full cards show the type in the footer. */}
-      {depth > 0 && seamType && <Stamp size="sm">{seamType}</Stamp>}
+      {depth > 0 && seamType && (
+        <Badge shape="stamp" size="sm">
+          {seamType}
+        </Badge>
+      )}
       {axisMarkers.map((marker) => (
         <Stat
           key={marker.label}
@@ -788,7 +792,9 @@ export function ReferenceEntityCard({
         {label && labelBadge ? (
           <Stat orientation="horizontal" label={label} value={labelBadge} xs />
         ) : (
-          <Stamp size="sm">{label ?? labelBadge}</Stamp>
+          <Badge shape="stamp" size="sm">
+            {label ?? labelBadge}
+          </Badge>
         )}
       </div>
     ) : null

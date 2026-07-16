@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 
 import { cn } from '../../utils/cn'
-import { POSTER_STAMP } from '../chrome/Stamp'
+import { POSTER_STAMP } from '../chrome/posterStamp'
 import { pipClickValue, statBlockRowStarts, trackSegmentState } from './pipRows'
 
 export type VitalGaugeProps = {

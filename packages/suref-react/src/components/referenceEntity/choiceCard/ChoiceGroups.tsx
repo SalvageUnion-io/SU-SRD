@@ -6,7 +6,7 @@ import { cn } from '../../../utils/cn'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Text } from '../../base/Text'
 import { Slab } from '../../chrome/Slab'
-import { Stamp } from '../../chrome/Stamp'
+import { Badge } from '../../chrome/Badge'
 import {
   type ChoiceSelections,
   getChoiceCardOptions,
@@ -74,9 +74,9 @@ function ChoiceOption({
   const card = (
     <div className="relative">
       {chosen && (
-        <Stamp seam size="sm" className="right-2">
+        <Badge shape="stamp" seam size="sm" className="right-2">
           Chosen
-        </Stamp>
+        </Badge>
       )}
       <div className="overflow-hidden rounded-card" style={{ border: `3px solid ${frameColor}` }}>
         <div
