@@ -8,8 +8,8 @@
  */
 
 import type { ReactNode } from 'react'
-import type { SURefMetaAction } from 'salvageunion-reference'
-import { ActionCard } from 'suref-react'
+import type { SURefEntity, SURefMetaAction } from 'salvageunion-reference'
+import { ReferenceEntityDisplay } from 'suref-react'
 import type { CardFootMeta } from 'suref-react'
 
 import { Erow } from './Erow'
@@ -23,7 +23,10 @@ type ActionCardErowProps = {
 export function ActionCardErow({ ability, footMeta, actions }: ActionCardErowProps) {
   return (
     <Erow mode="rail" footMeta={footMeta} actions={actions}>
-      <ActionCard data={ability} parentHeaderBgColor="var(--color-sheet-mech-deep)" />
+      <ReferenceEntityDisplay
+        data={ability as unknown as SURefEntity}
+        hostTone="var(--color-sheet-mech-deep)"
+      />
     </Erow>
   )
 }

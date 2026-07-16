@@ -2,7 +2,7 @@ import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-referenc
 import { getDisplayName, getTechLevel, getTechLevelNumber, isAbility } from 'salvageunion-reference'
 import type { StatItem } from '../../shared/statsBarTypes'
 import { TECH_LEVEL_BG } from '../../shared/techLevelStyles'
-import { calculateBackgroundColor } from '../referenceEntityHelpers'
+import { borderColorFromHeaderBg, calculateBackgroundColor } from '../referenceEntityHelpers'
 import type { NEWCardDomain } from './EntityCardIdentityFooter'
 
 /** The three densities a `ReferenceEntityCard` renders at. Nested entities
@@ -146,6 +146,20 @@ export function resolveCardTone(
     return { domain: 'action', bg: undefined, bgColor: undefined, onToneText: 'text-ink' }
   }
   return resolveDomainTone(schemaName, entity)
+}
+
+/**
+ * The parent entity's tone base as a resolvable CSS colour — the value a host
+ * (chassis, mech, sheet) threads to its actions/abilities via the card's
+ * `hostTone` prop, which the child then ghosts. Consumers rendering a parent's
+ * actions/abilities pass `hostTone={entityHostTone(parent)}`.
+ */
+export function entityHostTone(entity: SURefMetaEntity): string {
+  const schemaName = (entity as { schemaName?: string }).schemaName as
+    | SURefEnumSchemaName
+    | 'actions'
+  const tone = resolveCardTone(schemaName, entity)
+  return borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-su-black)'
 }
 
 /**

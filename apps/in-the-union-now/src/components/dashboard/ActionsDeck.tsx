@@ -30,8 +30,9 @@
  */
 
 import { useState } from 'react'
-import { ActionCard } from 'suref-react'
+import { ReferenceEntityDisplay } from 'suref-react'
 import { canActivateAction } from 'salvageunion-reference'
+import type { SURefEntity } from 'salvageunion-reference'
 
 import { CORE_ROLL_BANDS, describePushOutcome, performCoreRoll } from '../../lib/rules/coreMechanic'
 import type { CoreRollResult } from '../../lib/rules/coreMechanic'
@@ -253,7 +254,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
             <span className="pc-deck-cost">{cost.length > 0 ? cost.join(' · ') : 'No cost'}</span>
           </div>
 
-          <ActionCard data={selected.action} />
+          <ReferenceEntityDisplay data={selected.action as unknown as SURefEntity} />
 
           {currencyChoice && (
             <fieldset className="pc-deck-cost-choice">
