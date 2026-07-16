@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import type {
   SURefEntity,
   SURefEnumSchemaName,
@@ -137,6 +137,12 @@ type NEWReferenceEntityCardProps = {
   selections?: ChoiceSelections
   /** Selection-change handler — its presence flips choices to editable body cards. */
   onSelectionChange?: (selections: ChoiceSelections) => void
+  /** Parent entity for choice-cap resolution (`scalesWithField`, e.g. techLevel) —
+   * when a host (mech/pilot) supplies the scaling field instead of the entity. */
+  scalingParent?: Record<string, unknown>
+  /** Extra content on the accent field after the body box, before the footer
+   * (legacy `expand` — e.g. a crawler bay's crew inset). */
+  expand?: ReactNode
 
   // ─── SLOT OVERRIDES (generic extension seams — additive) ───
   titleOverride?: string
@@ -165,6 +171,11 @@ type NEWReferenceEntityCardProps = {
   /** Reserved passthrough for the NPC two-column config (wired in a later increment). */
   npcConfig?: Record<string, unknown>
   className?: string
+  /** Extra className + inline style on the card root (legacy `cardStyle`, e.g. the
+   * removable-card treatment). `className` alone covers the class-only case. */
+  cardStyle?: { className?: string; style?: CSSProperties }
+  /** SEO: render the title as an `h1` (item pages) instead of the default `span`. */
+  titleAs?: 'span' | 'h1'
 }
 
 /** Write-layer: which already-rendered sections to suppress (additive guards). */
@@ -319,6 +330,10 @@ export function NEWReferenceEntityCard({
   lightweight,
   dimHeader,
   className,
+  cardStyle,
+  titleAs,
+  scalingParent,
+  expand,
 }: NEWReferenceEntityCardProps) {
   // `SalvageUnionReference.*.all()` entities carry a runtime `schemaName`
   // discriminant that isn't reflected in the static `SURefEntity` union type —
@@ -617,6 +632,7 @@ export function NEWReferenceEntityCard({
     <NEWCardHeader
       title={name}
       titleSlot={titleSlot}
+      titleAs={titleAs}
       bg={headerBg}
       bgColor={headerBgColor}
       titleClass={titleClass}
@@ -640,7 +656,8 @@ export function NEWReferenceEntityCard({
     isHoverable &&
       'cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:-translate-y-0.5 md:hover:scale-[1.02]',
     resolvedCardClick && FOCUS_RING,
-    className
+    className,
+    cardStyle?.className
   )
   const outerInteraction = resolvedCardClick
     ? {
@@ -681,7 +698,7 @@ export function NEWReferenceEntityCard({
   // seam escapes the clip.
   if (size === 'listing') {
     return (
-      <div className={outerClassName} {...outerInteraction}>
+      <div className={outerClassName} style={cardStyle?.style} {...outerInteraction}>
         {seam}
         {labelCallout}
         {controlsOverlay}
@@ -792,7 +809,7 @@ export function NEWReferenceEntityCard({
     <div key={`choice-region-${choice.id}`} className="[&:not(:last-child)]:mb-3">
       <NEWChoiceGroups
         choices={[choice]}
-        parent={entity as unknown as Record<string, unknown>}
+        parent={scalingParent ?? (entity as unknown as Record<string, unknown>)}
         selections={selections}
         onSelectionChange={onSelectionChange}
         readOnly={!editableChoices}
@@ -1049,7 +1066,7 @@ export function NEWReferenceEntityCard({
     ) : undefined
 
   return (
-    <div className={outerClassName} {...outerInteraction}>
+    <div className={outerClassName} style={cardStyle?.style} {...outerInteraction}>
       {seam}
       {labelCallout}
       {controlsOverlay}
@@ -1281,6 +1298,9 @@ export function NEWReferenceEntityCard({
           {/* SLOT: afterExtraContent — trailing body content (absent ⇒ nothing). */}
           {afterExtraContent}
         </div>
+        {/* SLOT: expand — on the accent field after the body box, before the
+            footer (legacy `expand`, e.g. a crawler bay's crew inset). */}
+        {expand && <div className={compact ? 'px-2 pb-2' : 'px-3 pb-3'}>{expand}</div>}
         {/* FOOTER — `footerOverride` replaces the identity footer; `hide.footer`
             suppresses it entirely. Absent ⇒ the depth-0 identity footer, unchanged. */}
         {hide?.footer

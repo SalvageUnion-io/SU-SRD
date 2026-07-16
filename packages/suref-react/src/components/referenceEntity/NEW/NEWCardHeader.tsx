@@ -15,6 +15,8 @@ type NEWCardHeaderProps = {
   titleClass: string
   /** Write layer: a full replacement node for the title (overrides the name-tab). */
   titleSlot?: ReactNode
+  /** SEO: render the name-tab as an `h1` (item pages) instead of the default `span`. */
+  titleAs?: 'span' | 'h1'
   /** The full header stat cluster (all stats), clustered + wrapping top-right. */
   stats: StatItem[]
   /** Top-right flavor slot — white hint text (an ability's `description`), shown
@@ -42,6 +44,7 @@ export function NEWCardHeader({
   bgColor,
   titleClass,
   titleSlot,
+  titleAs,
   stats,
   rightContent,
   listing = false,
@@ -67,7 +70,7 @@ export function NEWCardHeader({
       {titleSlot ?? (
         <Text
           variant="pseudoheader"
-          as="span"
+          as={titleAs ?? 'span'}
           className={cn(
             // `self-center` overrides the pseudoheader variant's built-in
             // `self-start` so the name-tab truly centers against the band height.
