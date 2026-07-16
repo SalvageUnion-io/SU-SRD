@@ -78,7 +78,7 @@ function isTitanicAction(action: { name?: string }): boolean {
   return /titanic action/i.test(action.name ?? '')
 }
 
-type NEWReferenceEntityCardProps = {
+export type NEWReferenceEntityCardProps = {
   data: SURefEntity
   size?: NEWReferenceEntityCardSize
   /** Nesting level — 0 = full/solo, ≥1 = nested (compact, no footer, smaller
@@ -809,7 +809,7 @@ export function NEWReferenceEntityCard({
     <div key={`choice-region-${choice.id}`} className="[&:not(:last-child)]:mb-3">
       <NEWChoiceGroups
         choices={[choice]}
-        parent={scalingParent ?? (entity as unknown as Record<string, unknown>)}
+        parent={scalingParent}
         selections={selections}
         onSelectionChange={onSelectionChange}
         readOnly={!editableChoices}
@@ -1060,6 +1060,10 @@ export function NEWReferenceEntityCard({
             data={npc}
             hostTone={ownToneBase}
             chassisName={resolvedChassisName}
+            // The parent's visibility config governs its identity NPC too — a bay
+            // that hides choices (rendering the NPC's crew facts as external
+            // IdentityFields) must not also surface those same choices here.
+            hide={hide}
           />
         ))}
       </div>
