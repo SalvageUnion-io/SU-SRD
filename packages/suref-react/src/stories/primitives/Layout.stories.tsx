@@ -10,7 +10,7 @@ import { Stamp } from '../../components/chrome/Stamp'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/Layout',
+  title: 'Foundations/Layout',
 }
 
 // Real SRD content fills every layout so wrapping/overflow read truthfully.

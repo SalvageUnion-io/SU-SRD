@@ -5,7 +5,7 @@ import type { SURefObjectContentBlock } from 'salvageunion-reference'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/BlockContentRendererView',
+  title: 'Compositions/BlockContentRendererView',
 }
 
 const mixed: SURefObjectContentBlock[] = [
