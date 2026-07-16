@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react'
 import { cn } from '../../../utils/cn'
+import type { CardFootMeta } from '../../shared/DisplayCard'
 
 export type NEWCardDomain = 'pilot' | 'mech' | 'crawler' | 'monster' | 'gear' | 'action'
 
@@ -10,6 +12,11 @@ type NEWIdentityFooterProps = {
   source: string | undefined
   booklet: string | undefined
   page: number | undefined
+  /** Write-layer: inline `[label value]` meta pairs (cost / SV) folded into the
+   * footer's right side, before the source/page. */
+  footMeta?: CardFootMeta[]
+  /** Write-layer: action buttons folded into the footer band (after footMeta). */
+  footActions?: ReactNode
   compact?: boolean
 }
 
@@ -28,14 +35,17 @@ export function NEWIdentityFooter({
   source,
   booklet,
   page,
+  footMeta,
+  footActions,
   compact = false,
 }: NEWIdentityFooterProps) {
   const sourceLabel = source && booklet ? `${source} (${booklet})` : source
   const rightParts = [sourceLabel, page !== undefined ? `p.${page}` : undefined].filter(
     (part): part is string => !!part
   )
+  const hasFootExtras = !!footActions || (footMeta?.length ?? 0) > 0
 
-  if (!typeLabel && rightParts.length === 0) return null
+  if (!typeLabel && rightParts.length === 0 && !hasFootExtras) return null
 
   const textClass = 'truncate font-body text-xs font-normal normal-case text-paper/70'
 
@@ -49,7 +59,21 @@ export function NEWIdentityFooter({
       style={{ backgroundColor: bgColor }}
     >
       <span className={textClass}>{typeLabel ?? ''}</span>
-      {rightParts.length > 0 && <span className={textClass}>{rightParts.join(' · ')}</span>}
+      {/* Foot extras — inline meta pairs (cost / SV) + action buttons folded into
+          the band, then the source/page on the far right. */}
+      <div className="flex min-w-0 items-center justify-end gap-2">
+        {footMeta?.map(({ label, value }, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static per-render list; index disambiguates repeated labels
+          <span key={`${label}-${i}`} className="inline-flex shrink-0 items-baseline gap-1">
+            <span className="font-cond text-xs font-bold uppercase leading-none text-paper/70">
+              {label}
+            </span>
+            <span className="font-body text-xs font-bold leading-none text-paper">{value}</span>
+          </span>
+        ))}
+        {footActions}
+        {rightParts.length > 0 && <span className={textClass}>{rightParts.join(' · ')}</span>}
+      </div>
     </div>
   )
 }
