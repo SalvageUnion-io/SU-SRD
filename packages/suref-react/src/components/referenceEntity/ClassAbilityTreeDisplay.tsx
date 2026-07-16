@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
 import { SalvageUnionReference, isCoreClass, isBaseAdvancedClass } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from './ReferenceEntityDisplay/index'
+import { ReferenceEntityDisplay } from './NEW/referenceEntityDisplayShim'
 import { SectionSeparator } from './ReferenceEntityDisplay/SectionSeparator'
 import { useDetailModal } from './ReferenceEntityDisplay/useDetailModal'
 
