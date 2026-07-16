@@ -5,7 +5,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/RollTable',
+  title: 'Compositions/Roll Table',
 }
 
 // A real SRD roll table drives the gallery.
