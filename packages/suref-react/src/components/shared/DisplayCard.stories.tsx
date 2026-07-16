@@ -92,8 +92,8 @@ export const Bands: Story = () => (
         {body}
       </DisplayCard>
     </Cell>
-    <Cell label="header + sub-header (stats)" width="w-[380px]">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} stats={genericStats}>
+    <Cell label="header + sub-header (stats — compact horizontal)" width="w-[380px]">
+      <DisplayCard headerBg="bg-su-green" headerContent={header} stats={genericStats} compact>
         {body}
       </DisplayCard>
     </Cell>
@@ -130,6 +130,7 @@ export const Bands: Story = () => (
         stats={genericStats}
         footMeta={genericFootMeta}
         footActions={genericFootActions}
+        compact
       >
         {body}
       </DisplayCard>
