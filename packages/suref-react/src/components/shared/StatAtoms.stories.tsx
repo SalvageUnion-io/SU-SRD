@@ -18,20 +18,21 @@ function Row({ title, children }: { title: string; children: React.ReactNode }) 
 }
 
 /**
- * The two stat shapes after the atom refactor:
- *  - VERTICAL (Full): the boxed value with full (optionally two-line) labels.
- *  - HORIZONTAL (Compact): the inline `[label|value]` cell with SHORTFORM labels.
- * Each shape has a read-only form and an edit form (the +/- stepper column).
+ * A stat atom has exactly TWO modes — there is no separate "horizontal" mode:
+ *  - NORMAL: the boxed value with full (optionally two-line) labels (vertical).
+ *  - COMPACT: the inline `[label|value]` cell with SHORTFORM labels (this IS the
+ *    horizontal shape — compact and horizontal are the same thing).
+ * Each mode has a read-only form and an edit form (the +/- stepper column).
  */
 export const Shapes: Story = () => (
   <div className="flex flex-col gap-8 bg-paper p-6">
-    <Row title="Vertical (Full) · read-only">
+    <Row title="Normal · read-only">
       <StatDisplay label="Tech" bottomLabel="Level" value={3} />
       <StatDisplay label="Structure" bottomLabel="Points" value={15} />
       <StatDisplay label="Energy" bottomLabel="Points" value={10} />
       <StatDisplay label="Salvage" bottomLabel="Value" value={2} />
     </Row>
-    <Row title="Horizontal (Compact) · read-only · shortform labels">
+    <Row title="Compact · read-only · shortform labels">
       <StatDisplay orientation="horizontal" label="TL" value={3} compact />
       <StatDisplay orientation="horizontal" label="SP" value={15} compact />
       <StatDisplay orientation="horizontal" label="EP" value={10} compact />
@@ -49,12 +50,12 @@ export const EditSteppers: Story = () => {
   const [heat, setHeat] = useState(4)
   return (
     <div className="flex flex-col gap-8 bg-paper p-6">
-      <Row title="Vertical (Full) · editable">
+      <Row title="Normal · editable">
         <StatDisplay label="SP" value={sp} max={13} mode="edit" onChange={setSp} />
         <StatDisplay label="EP" value={ep} max={11} mode="edit" onChange={setEp} />
         <StatDisplay label="Heat" value={heat} max={12} mode="edit" onChange={setHeat} />
       </Row>
-      <Row title="Horizontal (Compact) · editable · the new compact-with-steppers">
+      <Row title="Compact · editable · the new compact-with-steppers">
         <StatDisplay
           orientation="horizontal"
           label="SP"

@@ -84,7 +84,7 @@ export function NEWCardHeader({
       {(rightContent || stats.length > 0) && (
         <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
           {rightContent}
-          <NEWStatBox stats={stats} compact={compact} horizontal={compact || listing} />
+          <NEWStatBox stats={stats} compact={compact || listing} />
         </div>
       )}
     </div>
