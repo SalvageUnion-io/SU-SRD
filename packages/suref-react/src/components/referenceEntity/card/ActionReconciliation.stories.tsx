@@ -75,9 +75,9 @@ function Pair({
   canonical: ReactNode
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-3">
       <code className="font-mono text-nano text-ink-2">{label}</code>
-      <div className="flex flex-wrap items-start gap-6">
+      <div className="flex flex-col gap-4">
         <div className="flex w-[420px] flex-col gap-1.5">
           <code className="font-mono text-nano text-ink-2">LEGACY</code>
           {legacy}
