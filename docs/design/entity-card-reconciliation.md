@@ -5,6 +5,14 @@ The single source of truth for the entity-card refresh: the **methodology**, the
 set, shared files). Supersedes the earlier `component-refresh-methodology.md` and
 `entity-card-write-layer-plan.md`.
 
+> **DONE (Stages 0–d complete).** The legacy RED render core is deleted; the
+> `NEW` prefix is dropped (`components/referenceEntity/card/`, `ReferenceEntityCard`);
+> every app renders through the card (via the `ReferenceEntityDisplay` compat shim);
+> stories live in the canonical Ladle groups (`Compositions/Reference Entity *`,
+> `Atoms/Stat Display`). The **design rules** settled during this work are enshrined
+> in [ADR-024](../adrs/ADR-024-entity-card-design-rules.md). This doc is retained
+> for the reusable **methodology** (Part 1) and the historical record.
+
 ---
 
 ## Part 1 — The methodology (reusable for any component refresh)
