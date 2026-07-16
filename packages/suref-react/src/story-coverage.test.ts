@@ -23,7 +23,6 @@ const ALLOWLIST = new Set([
   'ChoiceGroup', // rendered by ChoiceGroups
   'ControlButtons', // rendered via DisplayCard foot actions
   'ReferenceEntityChassisAbilitiesContent', // render-prop slot
-  'GuideStepsDisplay', // internal to ReferenceEntityDisplay entity body (20 stories)
   // External integration chrome, not a design primitive.
   'KofiButton',
   // Redundant with the canonical Slab (ruleset: "slabs section"); pending

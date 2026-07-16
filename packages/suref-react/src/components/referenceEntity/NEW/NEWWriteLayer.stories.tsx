@@ -5,11 +5,6 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { EntityStatus } from '../../shared/entityStatus'
 import type { StatItem } from '../../shared/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
-import {
-  EntityDetailLinkProvider,
-  EntityHrefProvider,
-} from '../ReferenceEntityDisplay/entityHrefContext'
-import { ReferenceEntityDisplay } from '../ReferenceEntityDisplay/index'
 import { selectControl } from '../ReferenceEntityDisplay/referenceEntityControls'
 import { NEWReferenceEntityCard } from './NEWReferenceEntityCard'
 
@@ -45,42 +40,20 @@ const choiceEquip = pick(
   'choice equipment'
 )
 
-/** The legacy `ReferenceEntityDisplay`, wired exactly like the suref-web island. */
-function Legacy({ children }: { children: ReactNode }): ReactNode {
-  return (
-    <EntityHrefProvider value={() => '#'}>
-      <EntityDetailLinkProvider value={true}>{children}</EntityDetailLinkProvider>
-    </EntityHrefProvider>
-  )
-}
-
 /**
- * Stacked comparison harness: the legacy card (top, with its interactive prop
- * where one exists), the NEW card read-only (middle — this is the byte-identical
- * baseline), and the NEW card with the write layer engaged (bottom). Each block
- * is captioned so the diff is obvious at a glance.
+ * Stacked comparison harness: the canonical card read-only (top — the baseline)
+ * and the same card with the write layer engaged (bottom). Each block is
+ * captioned so the diff is obvious at a glance.
  */
-function ThreeUp({
-  legacy,
-  readOnly,
-  editable,
-}: {
-  legacy: ReactNode
-  readOnly: ReactNode
-  editable: ReactNode
-}): ReactNode {
+function TwoUp({ readOnly, editable }: { readOnly: ReactNode; editable: ReactNode }): ReactNode {
   return (
     <div className="flex flex-col gap-6 bg-paper p-4">
       <div className="flex flex-col gap-1.5">
-        <code className="font-mono text-nano text-ink-2">LEGACY (interactive)</code>
-        <Legacy>{legacy}</Legacy>
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <code className="font-mono text-nano text-ink-2">NEW · read-only</code>
+        <code className="font-mono text-nano text-ink-2">read-only</code>
         {readOnly}
       </div>
       <div className="flex flex-col gap-1.5">
-        <code className="font-mono text-nano text-ink-2">NEW · editable</code>
+        <code className="font-mono text-nano text-ink-2">editable</code>
         {editable}
       </div>
     </div>
@@ -96,10 +69,7 @@ export const SelectableChassis: Story = () => {
   const [selected, setSelected] = useState(false)
   const toggle = () => setSelected((s) => !s)
   return (
-    <ThreeUp
-      legacy={
-        <ReferenceEntityDisplay data={chassis} controls={[selectControl(toggle, selected)]} />
-      }
+    <TwoUp
       readOnly={<NEWReferenceEntityCard data={chassis} />}
       editable={
         <NEWReferenceEntityCard
@@ -124,8 +94,7 @@ export const StatusCycleItem: Story = () => {
     setStatus((s) => (s === 'intact' ? 'damaged' : s === 'damaged' ? 'destroyed' : 'intact'))
   const isDown = status === 'damaged' || status === 'destroyed'
   return (
-    <ThreeUp
-      legacy={<ReferenceEntityDisplay data={system} status={status} onStatusClick={cycle} />}
+    <TwoUp
       readOnly={<NEWReferenceEntityCard data={system} />}
       editable={
         <NEWReferenceEntityCard
@@ -154,8 +123,7 @@ export const EditableStats: Story = () => {
     { key: 'ep', label: 'EP', value: ep, outOfMax: 8, onChange: setEp },
   ]
   return (
-    <ThreeUp
-      legacy={<ReferenceEntityDisplay data={chassis} />}
+    <TwoUp
       readOnly={<NEWReferenceEntityCard data={chassis} />}
       editable={<NEWReferenceEntityCard data={chassis} statsOverride={stats} />}
     />
@@ -172,14 +140,7 @@ export const ChoiceEquipment: Story = () => {
   const [selections, setSelections] = useState<ChoiceSelections>({})
   const [techLevel, setTechLevel] = useState(1)
   return (
-    <ThreeUp
-      legacy={
-        <ReferenceEntityDisplay
-          data={choiceEquip}
-          selections={selections}
-          onSelectionChange={setSelections}
-        />
-      }
+    <TwoUp
       readOnly={<NEWReferenceEntityCard data={choiceEquip as unknown as SURefEntity} />}
       editable={
         <NEWReferenceEntityCard
@@ -206,8 +167,7 @@ export const TechLevelScaling: Story = () => {
   const [selections, setSelections] = useState<ChoiceSelections>({})
   const [techLevel, setTechLevel] = useState(3)
   return (
-    <ThreeUp
-      legacy={<ReferenceEntityDisplay data={choiceEquip} />}
+    <TwoUp
       readOnly={
         // Controlled from without: TL3 supplied, header read-only, Damage 2→4.
         <NEWReferenceEntityCard
