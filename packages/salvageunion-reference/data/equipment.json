@@ -204,7 +204,7 @@
     "source": "Salvage Union Workshop Manual",
     "page": 35,
     "indexable": false,
-    "techLevel": 3,
+    "techLevel": 1,
     "actions": ["Holo Companion", "Project", "Un-Project"],
     "id": "dd96f7c0-3760-4b71-9451-77ced25a3b09",
     "content": [
@@ -639,7 +639,7 @@
   {
     "source": "Salvage Union Workshop Manual",
     "name": "Custom Sniper Rifle",
-    "techLevel": 3,
+    "techLevel": 1,
     "page": 85,
     "id": "fc761f88-48ef-4925-8335-b7a6908a27f3",
     "content": [
@@ -1240,7 +1240,7 @@
   {
     "name": "Mecha Companion",
     "indexable": false,
-    "techLevel": 3,
+    "techLevel": 1,
     "moduleSlots": 2,
     "systemSlots": 12,
     "structurePoints": 12,
