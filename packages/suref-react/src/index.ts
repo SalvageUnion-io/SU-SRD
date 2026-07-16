@@ -90,7 +90,6 @@ export {
   extractReferenceEntityDetails,
   getActivationCurrency,
 } from './lib/referenceEntityDataExtraction'
-export { DataValueDisplayView } from './components/referenceEntity/DataValueDisplayView'
 
 // Interactive choice cards (granted-equipment choices)
 export { ChoiceGroups } from './components/referenceEntity/choiceCard/ChoiceGroups'
