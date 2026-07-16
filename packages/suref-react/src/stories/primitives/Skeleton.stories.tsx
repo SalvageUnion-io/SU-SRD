@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react'
-import type { ReactNode } from 'react'
+import { Caption } from '../_harness'
 
 import { Skeleton } from '../../components/skeleton/Skeleton'
 
@@ -7,10 +7,6 @@ import { Skeleton } from '../../components/skeleton/Skeleton'
 export default {
   title: 'Containers/Skeleton',
 }
-
-const Caption = ({ children }: { children: ReactNode }) => (
-  <div className="mb-1 font-cond text-label uppercase tracking-caps text-wk-muted">{children}</div>
-)
 
 /** mode=card — mirrors the DisplayCard anatomy (frame / band / body). */
 export const Card: Story = () => (

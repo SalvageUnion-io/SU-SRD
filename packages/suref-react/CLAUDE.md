@@ -39,6 +39,7 @@ Component stories live beside their components (`*.stories.tsx`) and are served 
   - **Containers** — content-agnostic wrappers / state shells that hold or announce arbitrary content (Display Card — the container primitive — Modal, Inset, Banner, Toast, Empty State, Skeleton, Card Skeleton).
   - **Compositions** — domain/game components built from atoms (the Reference Entity family, Choice Groups, Class Ability Tree, Roll Table, Entity Grid/Row, Block Content Renderer View).
 - **Title + story naming is standardized.** The group title is **Title Case with spaces** — `Atoms/Stat Display`, `Containers/Display Card`, `Compositions/Block Content Renderer View` — while the story **file keeps the component symbol name** (`StatDisplay.stories.tsx`) so a symbol grep still finds it. A file whose only story is a catch-all "show everything" page exports it as **`Default`** (not `Variants`/`Costs`/etc.).
+- **Stories render on a global paper canvas.** `.ladle/components.tsx` frames every story on `bg-paper` (+ mono, padding), so a story does **not** need its own outer `bg-paper` wrapper. Shared caption/frame helpers that would otherwise be copy-pasted across story files live in `src/stories/_harness.tsx` (e.g. `Caption`) — import them instead of re-declaring a local copy.
 
 ## Testing
 

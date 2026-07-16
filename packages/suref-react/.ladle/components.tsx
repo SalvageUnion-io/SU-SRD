@@ -28,8 +28,15 @@ function PreloadGate({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+// Global story canvas: every story renders on the same paper ground (so a story
+// no longer needs its own `bg-paper` wrapper, and the couple that lacked one no
+// longer render on Ladle's bare default). Padding + mono font are kept from the
+// original inline frame.
 export const Provider: GlobalProvider = ({ children }) => (
-  <div style={{ padding: '1rem', fontFamily: 'Fira Code, monospace' }}>
+  <div
+    className="min-h-screen bg-paper"
+    style={{ padding: '1rem', fontFamily: 'Fira Code, monospace' }}
+  >
     <Suspense fallback={null}>
       <PreloadGate>{children}</PreloadGate>
     </Suspense>

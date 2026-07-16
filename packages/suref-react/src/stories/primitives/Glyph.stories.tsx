@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react'
-import type { ReactNode } from 'react'
+import { Caption } from '../_harness'
 
 import { Glyph, type GlyphName } from '../../components/chrome/glyphs'
 
@@ -7,10 +7,6 @@ import { Glyph, type GlyphName } from '../../components/chrome/glyphs'
 export default {
   title: 'Atoms/Glyph',
 }
-
-const Caption = ({ children }: { children: ReactNode }) => (
-  <div className="mb-1 font-cond text-label uppercase tracking-caps text-wk-muted">{children}</div>
-)
 
 const NAMES: GlyphName[] = ['gear', 'clock', 'pennant', 'x']
 
