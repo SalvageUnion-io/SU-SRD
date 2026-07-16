@@ -2,15 +2,11 @@ import type { SURefMetaAction, SURefObjectChoice } from 'salvageunion-reference'
 import { getTable, resolveActivationCurrency } from 'salvageunion-reference'
 import { Text } from '../base/Text'
 import { BlockContentRendererView } from './BlockContentRendererView'
-import { ReferenceEntityChoice } from './ReferenceEntityDisplay/ReferenceEntityChoice'
+import { NEWChoiceGroups } from './NEW/NEWChoiceGroups'
 import type { DataValue } from '../../types/common'
 import { extractReferenceEntityDetails } from '../../lib/referenceEntityDataExtraction'
 import { DataValueDisplayView } from './DataValueDisplayView'
 import { RollTable } from '../shared/RollTable'
-import {
-  getReferenceEntityFontSizes,
-  getReferenceEntitySpacing,
-} from './ReferenceEntityDisplay/referenceEntityDisplayTypes'
 import { cn } from '../../utils/cn'
 
 type NestedChassisAbilityProps = {
@@ -182,14 +178,7 @@ export function NestedChassisAbility({
                     : 'pt-2'
           )}
         >
-          {actionChoices.map((choice) => (
-            <ReferenceEntityChoice
-              key={choice.id}
-              choice={choice}
-              fontSize={getReferenceEntityFontSizes(compact)}
-              spacing={getReferenceEntitySpacing(compact)}
-            />
-          ))}
+          <NEWChoiceGroups choices={actionChoices} readOnly compact={compact} />
         </div>
       )}
     </div>
