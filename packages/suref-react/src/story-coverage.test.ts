@@ -20,7 +20,6 @@ const ALLOWLIST = new Set([
   'Footer',
   'HeaderShell',
   // Sub-parts / slots demonstrated via their parent composition.
-  'ChoiceGroup', // rendered by ChoiceGroups
   'ControlButtons', // rendered via DisplayCard foot actions
   'ReferenceEntityChassisAbilitiesContent', // render-prop slot
   // External integration chrome, not a design primitive.

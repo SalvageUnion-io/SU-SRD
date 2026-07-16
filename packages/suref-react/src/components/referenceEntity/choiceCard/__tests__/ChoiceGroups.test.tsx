@@ -38,12 +38,15 @@ const parent = { techLevel: 2 }
 afterEach(cleanup)
 
 describe('ChoiceGroups — uncontrolled (ephemeral) state', () => {
-  test('renders option cards with a Not Chosen status by default', () => {
+  test('renders option cards dimmed (unchosen) with no Chosen stamp by default', () => {
     render(<ChoiceGroups choices={[weaponTypeChoice]} parent={parent} />)
     expect(screen.getByText('Ballistic')).toBeTruthy()
     expect(screen.getByText('Energy')).toBeTruthy()
-    expect(screen.getAllByText('Not Chosen').length).toBe(2)
+    // New style: unchosen options carry no stamp; only a chosen option gets "Chosen".
     expect(screen.queryByText('Chosen')).toBeNull()
+    expect(screen.getByRole('button', { name: /Ballistic/ }).getAttribute('aria-pressed')).toBe(
+      'false'
+    )
   })
 
   test('toggles an option on click and back off', () => {

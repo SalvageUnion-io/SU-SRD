@@ -95,8 +95,6 @@ export { DataValueDisplayView } from './components/referenceEntity/DataValueDisp
 
 // Interactive choice cards (granted-equipment choices)
 export { ChoiceGroups } from './components/referenceEntity/choiceCard/ChoiceGroups'
-export { ChoiceGroup } from './components/referenceEntity/choiceCard/ChoiceGroup'
-export { ChoiceCard, FreeTextChoiceCard } from './components/referenceEntity/choiceCard/ChoiceCard'
 export type { ChoiceCardOption } from './components/referenceEntity/choiceCard/choiceSelectionHelpers'
 export {
   isFreeTextChoice,

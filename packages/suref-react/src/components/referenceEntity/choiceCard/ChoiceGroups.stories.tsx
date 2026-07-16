@@ -5,7 +5,7 @@ import { ChoiceGroups } from './ChoiceGroups'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/ChoiceGroups',
+  title: 'Compositions/Choice Groups',
 }
 
 // Real Salvage Union choice vocabulary (traits, TL-scaled modifications).
@@ -61,29 +61,29 @@ export const Types: Story = () => (
       choices — unselected vs a pre-seeded controlled selection.
     </p>
     <Row label="exclusive · unselected">
-      <ChoiceGroups choices={[weaponType]} parent={parent} parentHeaderBg="bg-su-green" />
+      <ChoiceGroups choices={[weaponType]} parent={parent} toneColor="var(--color-tl-3)" />
     </Row>
     <Row label="exclusive · selected (Ballistic)">
       <ChoiceGroups
         choices={[weaponType]}
         parent={parent}
         selections={{ 'weapon-type': ['Ballistic'] }}
-        parentHeaderBg="bg-su-green"
+        toneColor="var(--color-tl-3)"
       />
     </Row>
     <Row label="multi-select · capped, none chosen">
-      <ChoiceGroups choices={[modification]} parent={parent} parentHeaderBg="bg-su-green" />
+      <ChoiceGroups choices={[modification]} parent={parent} toneColor="var(--color-tl-3)" />
     </Row>
     <Row label="multi-select · two chosen">
       <ChoiceGroups
         choices={[modification]}
         parent={parent}
         selections={{ modification: ['Rangefinder', 'Laser Guidance'] }}
-        parentHeaderBg="bg-su-green"
+        toneColor="var(--color-tl-3)"
       />
     </Row>
     <Row label="free-text · editable" width="w-[400px]">
-      <ChoiceGroups choices={[nameChoice]} parent={parent} parentHeaderBg="bg-su-green" />
+      <ChoiceGroups choices={[nameChoice]} parent={parent} toneColor="var(--color-tl-3)" />
     </Row>
     <Row label="free-text · read-only" width="w-[400px]">
       <ChoiceGroups
@@ -91,7 +91,7 @@ export const Types: Story = () => (
         parent={parent}
         selections={{ name: ['Rex'] }}
         readOnly
-        parentHeaderBg="bg-su-green"
+        toneColor="var(--color-tl-3)"
       />
     </Row>
   </div>
@@ -108,7 +108,7 @@ export const Composed: Story = () => (
       <ChoiceGroups
         choices={[weaponType, modification]}
         parent={parent}
-        parentHeaderBg="bg-su-green"
+        toneColor="var(--color-tl-3)"
       />
     </Row>
     <Row label="compact" width="w-[420px]">
@@ -116,7 +116,7 @@ export const Composed: Story = () => (
         choices={[weaponType, modification]}
         parent={parent}
         compact
-        parentHeaderBg="bg-su-green"
+        toneColor="var(--color-tl-3)"
       />
     </Row>
   </div>

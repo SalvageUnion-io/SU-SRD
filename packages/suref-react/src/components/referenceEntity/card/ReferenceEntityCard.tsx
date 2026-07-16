@@ -42,7 +42,7 @@ import type { CardFootMeta } from '../../shared/DisplayCard'
 import { StatDisplay } from '../../shared/StatDisplay'
 import type { StatItem } from '../../shared/statsBarTypes'
 import { BlockContentRendererView } from '../BlockContentRendererView'
-import { EntityCardChoiceGroups } from './EntityCardChoiceGroups'
+import { ChoiceGroups } from '../choiceCard/ChoiceGroups'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import type { ReferenceEntityControl } from '../ReferenceEntityDisplay/referenceEntityControlTypes'
 import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntityHelpers'
@@ -889,7 +889,7 @@ export function ReferenceEntityCard({
   // (no `onSelectionChange`) never enters this branch.
   const renderChoiceRegion = (choice: SURefObjectChoice): ReactNode => (
     <div key={`choice-region-${choice.id}`} className="[&:not(:last-child)]:mb-3">
-      <EntityCardChoiceGroups
+      <ChoiceGroups
         choices={[choice]}
         parent={effTechLevel !== undefined ? { techLevel: effTechLevel } : scalingParent}
         selections={selections}
