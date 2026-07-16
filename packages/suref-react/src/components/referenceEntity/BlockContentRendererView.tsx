@@ -6,7 +6,7 @@ import { DataValueDisplayView } from './DataValueDisplayView'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 import { cn } from '../../utils/cn'
 import { SectionSeparator } from './ReferenceEntityDisplay/SectionSeparator'
-import { StaticChoiceCard } from './choiceCard/ChoiceCard'
+import { StaticChoiceCard } from './choiceCard/StaticChoiceCard'
 
 type BlockContentRendererViewProps = {
   /** Content blocks to render */
