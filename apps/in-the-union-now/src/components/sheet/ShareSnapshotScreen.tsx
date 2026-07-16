@@ -22,6 +22,7 @@
 
 import { useEffect, useState } from 'react'
 import {
+  BayStatus,
   Btn,
   Input,
   Panel,
@@ -461,14 +462,7 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
               value={Math.min(pilot.currentAP ?? maxAP, maxAP)}
               readOnly
             />
-            <StatDisplay
-              pips
-              label="TP"
-              name="Training"
-              unit="Points"
-              value={pilot.trainingPoints ?? 0}
-              editable={false}
-            />
+            <StatDisplay label="TP" value={pilot.trainingPoints ?? 0} />
           </>
         }
       />
@@ -582,9 +576,7 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
             caption={['Structure', 'Max']}
             readOnly
           />
-          {states.length > 0 && (
-            <StatDisplay label="Bays" name="Condition" unit="Bays" states={states} />
-          )}
+          {states.length > 0 && <BayStatus label="Bays" states={states} />}
         </>
       }
     />

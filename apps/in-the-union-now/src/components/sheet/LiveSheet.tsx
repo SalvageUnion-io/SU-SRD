@@ -223,11 +223,8 @@ export function LiveSheet({
               <StatDisplay
                 key={item.key}
                 orientation="horizontal"
-                pips
                 label={item.label}
-                value={item.value}
-                max={item.max}
-                tone={item.stat}
+                value={item.max !== undefined ? `${item.value}/${item.max}` : item.value}
                 // U-5: non-priority readouts fold below sm so the condensed
                 // bar leads with Heat + SP on phones.
                 className={item.mobilePriority === false ? 'hidden sm:inline-flex' : undefined}

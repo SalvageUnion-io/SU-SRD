@@ -103,14 +103,11 @@ export function SheetPilot({
           message="No crawler linked. Set the crawler level by hand until your union home is wired in."
           mock={
             <StatDisplay
-              pips
               label="CRAWLER"
-              name="Level"
-              unit="Tech Level"
-              max={6}
               value={pilot.crawlerLevel ?? 1}
-              onChange={editable ? (v) => patch({ crawlerLevel: Math.max(1, v) }) : undefined}
-              editable={editable}
+              max={6}
+              mode={editable ? 'edit' : 'read'}
+              onChange={(v) => patch({ crawlerLevel: Math.max(1, v) })}
             />
           }
           actions={

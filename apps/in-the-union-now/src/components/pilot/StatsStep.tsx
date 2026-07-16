@@ -15,34 +15,13 @@ import {
 export function StatsStep() {
   return (
     <div className="flex flex-wrap gap-4">
+      <StatDisplay label="HP" value={PILOT_BASE_HP} max={PILOT_BASE_HP} compact />
+      <StatDisplay label="AP" value={PILOT_BASE_AP} max={PILOT_BASE_AP} compact />
       <StatDisplay
-        pips
-        label="HP"
-        name="Hit Points"
-        tone="hp"
-        size="sm"
-        value={PILOT_BASE_HP}
-        max={PILOT_BASE_HP}
-        editable={false}
-      />
-      <StatDisplay
-        pips
-        label="AP"
-        name="Ability Points"
-        tone="ap"
-        size="sm"
-        value={PILOT_BASE_AP}
-        max={PILOT_BASE_AP}
-        editable={false}
-      />
-      <StatDisplay
-        pips
         label="INV"
-        name="Inventory Slots"
-        size="sm"
         value={PILOT_BASE_INVENTORY_SLOTS}
         max={PILOT_BASE_INVENTORY_SLOTS}
-        editable={false}
+        compact
       />
     </div>
   )

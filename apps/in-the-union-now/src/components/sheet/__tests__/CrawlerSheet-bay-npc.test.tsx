@@ -24,7 +24,6 @@ import { CrawlerSheet } from '../CrawlerSheet'
 import { CrawlerSchema } from '../../../lib/schemas/crawler'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
-import { must } from '../../__tests__/must'
 
 afterEach(() => {
   cleanup()
@@ -210,7 +209,7 @@ describe('CrawlerSheet — crew HP editing (NpcInset)', () => {
     restore?.()
   })
 
-  test('clicking an HP pip persists npcCurrentHP via the per-bay merge', async () => {
+  test('editing crew HP persists npcCurrentHP via the per-bay merge', async () => {
     restore = await patchCrawlerBays()
     const updateCrawlerBay = mock(async () => baseCrawler)
     render(
@@ -221,27 +220,29 @@ describe('CrawlerSheet — crew HP editing (NpcInset)', () => {
     )
 
     const inset = screen.getByLabelText('Command Bay crew lead')
-    const pips = inset.querySelectorAll('button[data-pip]')
-    expect(pips.length).toBe(4)
-    // Clicking lit pip index 1 (value 4) sets HP to 1 (§4.5 click-to-set).
+    // Crew HP is an editable value box (starts full at 4/4, max 4); its steppers
+    // adjust it by 1. Decrementing from 4 persists npcCurrentHP: 3.
+    const decrease = within(inset).getByRole('button', { name: 'Decrease HP' })
     await act(async () => {
-      fireEvent.click(must(pips[1]))
+      fireEvent.click(decrease)
     })
 
     expect(updateCrawlerBay).toHaveBeenCalledWith(
       baseCrawler.id,
       'command-bay',
-      { npcCurrentHP: 1 },
+      { npcCurrentHP: 3 },
       0
     )
   })
 
-  test('readOnly renders HP pips as plain spans (no buttons)', async () => {
+  test('readOnly renders crew HP without editable steppers', async () => {
     restore = await patchCrawlerBays()
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} readOnly />)
     const inset = screen.getByLabelText('Command Bay crew lead')
-    expect(inset.querySelectorAll('button[data-pip]').length).toBe(0)
-    expect(inset.querySelectorAll('[data-pip]').length).toBe(4)
+    expect(within(inset).queryByRole('button', { name: 'Decrease HP' })).toBeNull()
+    expect(within(inset).queryByRole('button', { name: 'Increase HP' })).toBeNull()
+    // The HP value still renders (value / max).
+    expect(within(inset).getByText('4/4')).toBeTruthy()
   })
 })
 
