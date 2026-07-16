@@ -10,6 +10,15 @@ export type NEWSubHeaderCell = {
   value?: string | number
 }
 
+/** A cohesive labelled stat group in the sub-header (e.g. "Bonus per Tech
+ * Level" + its "+N" cells) — a label cell followed by "+N" cells, all the SAME
+ * horizontal StatDisplay treatment as the trait cells (black border, same
+ * size/padding), wrapped in ONE container so the block line-breaks together. */
+export type NEWSubHeaderGroup = {
+  label: string
+  cells: NEWSubHeaderCell[]
+}
+
 type NEWSubHeaderProps = {
   /** Darker shade of the domain/tech-level/rust tone (a raw CSS colour). */
   bgColor: string
@@ -18,6 +27,9 @@ type NEWSubHeaderProps = {
   /** Leading node rendered FIRST in the row — e.g. an action's EP/AP
    * `ActivationCostBox`, which must lead before Range/Damage/Traits. */
   leading?: ReactNode
+  /** Optional cohesive labelled stat group (e.g. bonus-per-tech-level), rendered
+   * as one wrap-together block after the cells. */
+  group?: NEWSubHeaderGroup
   compact?: boolean
 }
 
@@ -25,36 +37,69 @@ type NEWSubHeaderProps = {
  * NEWSubHeader — the unified card's SUB-HEADER band, a darker shade of the tone.
  *
  * A feature of the card BASE: every card — entity, action, or NPC, full or
- * nested — renders this same band. Its content is StatDisplays ONLY (each a
- * horizontal `[label | value]` cell): entity TRAITS, or an action's
- * range/damage/traits. No badges. Every stat axis lives in the header; source
- * lives only in the footer.
+ * nested — renders this same band. Its content is horizontal StatDisplay cells
+ * (entity TRAITS, or an action's range/damage/traits, plus read-only choices),
+ * an optional `leading` node (an action's EP box), and an optional cohesive
+ * `group` (a green-tinted label + "+N" cells that wrap together — same cell
+ * treatment as the traits, e.g. bonus-per-tech-level).
  */
-export function NEWSubHeader({ bgColor, cells, leading, compact = false }: NEWSubHeaderProps) {
-  if (!leading && cells.length === 0) return null
+export function NEWSubHeader({
+  bgColor,
+  cells,
+  leading,
+  group,
+  compact = false,
+}: NEWSubHeaderProps) {
+  const hasGroup = !!group && group.cells.length > 0
+  if (!leading && cells.length === 0 && !hasGroup) return null
+
+  // Cell size ladder, nudged up one notch: a FULL card's cells are the default
+  // (text-sm); a compact/nested card's cells are one step down (`compact` →
+  // text-xs) — bigger than the old text-label, still smaller than full. The
+  // inter-cell gap is the SAME (gap-1.5) at both sizes.
 
   return (
     <div
       className={cn(
+        // px-3 (both sizes) so sub-header content shares the seam/title left edge.
         'flex w-full flex-wrap items-center gap-1.5',
-        compact ? 'px-2.5 py-1' : 'px-3.5 py-1.5'
+        compact ? 'px-3 py-1' : 'px-3 py-1.5'
       )}
       style={{ backgroundColor: bgColor }}
     >
       {leading}
       {cells.map((cell) => (
-        // Cell size steps down with the card: a full card's cells are one
-        // notch below the default (`compact` → text-xs); a compact/nested card's
-        // cells drop another notch (`xs` → text-label).
         <StatDisplay
           key={cell.key}
           orientation="horizontal"
           label={cell.label}
           value={cell.value}
-          xs={compact}
-          compact={!compact}
+          compact={compact}
         />
       ))}
+      {hasGroup && (
+        // One container → the label + all its cells wrap together as a unit, the
+        // EXACT same horizontal StatDisplay treatment as the trait cells. Only
+        // the LABEL box is tinted GREEN (`status-ok`); the stat cells are BLACK.
+        <span className="inline-flex flex-wrap items-center gap-1.5">
+          <StatDisplay
+            orientation="horizontal"
+            label={group.label}
+            bgColor="var(--color-status-ok)"
+            textColor="var(--color-paper)"
+            compact={compact}
+          />
+          {group.cells.map((cell) => (
+            <StatDisplay
+              key={cell.key}
+              orientation="horizontal"
+              label={cell.label}
+              value={cell.value}
+              compact={compact}
+            />
+          ))}
+        </span>
+      )}
     </div>
   )
 }

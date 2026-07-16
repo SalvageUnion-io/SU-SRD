@@ -170,6 +170,8 @@ export type NEWEyebrow = { type: string }
  */
 export function resolveEyebrow(schemaName: SURefEnumSchemaName | 'actions'): NEWEyebrow {
   if (schemaName === 'actions') return { type: 'Action' }
+  // The crawler CLASS type reads "Crawler Type" (not just "Crawler").
+  if (schemaName === 'crawlers') return { type: 'Crawler Type' }
   return { type: getDisplayName(schemaName) }
 }
 
@@ -192,14 +194,14 @@ export type NEWAxisMarker = { label: string; value: string }
  * cluster; only this classification axis lives in the seam.
  */
 export function resolveAxisMarkers(entity: SURefMetaEntity): NEWAxisMarker[] {
+  // Only ABILITY classification pills (Ability Tree / Level) live in the seam.
+  // TECH LEVEL moved to the header's top-right main stat cluster (a value box).
   if (isAbility(entity)) {
     const markers: NEWAxisMarker[] = []
     if (entity.tree) markers.push({ label: 'Ability Tree', value: String(entity.tree) })
     if (entity.level != null) markers.push({ label: 'Level', value: String(entity.level) })
     return markers
   }
-  const techLevel = getTechLevel(entity)
-  if (techLevel != null) return [{ label: 'TL', value: String(techLevel) }]
   return []
 }
 
@@ -220,6 +222,8 @@ const STAT_LABEL_ABBR: Record<string, string> = {
   Cargo: 'Cargo',
   Salvage: 'SV',
   Hit: 'HP',
+  Bio: 'BSV',
+  'BIO-SALVAGE': 'BSV',
 }
 
 /** Abbreviate a header stat's label (Structure Points → SP, …) and drop the

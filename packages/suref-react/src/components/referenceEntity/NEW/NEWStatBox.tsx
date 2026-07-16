@@ -1,4 +1,3 @@
-import { cn } from '../../../utils/cn'
 import { StatDisplay } from '../../shared/StatDisplay'
 import type { StatItem } from '../../shared/statsBarTypes'
 
@@ -8,6 +7,9 @@ type NEWStatBoxProps = {
   /** Every header stat — the cluster wraps to multiple rows when needed. */
   stats: StatItem[]
   compact?: boolean
+  /** Listing mode: render the stats as horizontal `[label | value]` cells
+   * (wrapping to up to ~2 rows), not the vertical value boxes. */
+  horizontal?: boolean
 }
 
 /**
@@ -17,28 +19,36 @@ type NEWStatBoxProps = {
  * (the canonical stat/value primitive), just clustered and right-aligned. No
  * ad-hoc stat rendering happens here — this is composition, not a new atom.
  */
-export function NEWStatBox({ stats, compact = false }: NEWStatBoxProps) {
+export function NEWStatBox({ stats, compact = false, horizontal = false }: NEWStatBoxProps) {
   if (stats.length === 0) return null
 
   return (
     <div
-      className={cn(
-        'flex shrink-0 flex-wrap items-start justify-end gap-2',
-        // Compact/nested cards shrink the whole stat cluster a notch below the
-        // ValueBox's own compact size — the box has no smaller tier of its own.
-        compact && 'origin-top-right scale-[0.85]'
-      )}
+      // Same inter-box gap (gap-1) at every size, and no extra compact shrink —
+      // compact boxes render a notch bigger and their spacing equals full mode.
+      className="flex shrink-0 flex-wrap items-start justify-end gap-1"
     >
-      {stats.map((stat) => (
-        <StatDisplay
-          key={stat.key}
-          label={stat.label}
-          value={stat.value}
-          bottomLabel={stat.bottomLabel}
-          hoverText={stat.hoverText}
-          compact={compact}
-        />
-      ))}
+      {stats.map((stat) =>
+        horizontal ? (
+          <StatDisplay
+            key={stat.key}
+            orientation="horizontal"
+            label={stat.label}
+            value={stat.value}
+            bottomLabel={stat.bottomLabel}
+            compact
+          />
+        ) : (
+          <StatDisplay
+            key={stat.key}
+            label={stat.label}
+            value={stat.value}
+            bottomLabel={stat.bottomLabel}
+            hoverText={stat.hoverText}
+            compact={compact}
+          />
+        )
+      )}
     </div>
   )
 }

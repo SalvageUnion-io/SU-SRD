@@ -110,6 +110,9 @@ type HorizontalValueProps = Exact<{
   orientation: 'horizontal'
   pips?: false
   value?: StatValue
+  /** Optional second label line — renders the label cell as a two-line stack
+   * (`label` on top, `bottomLabel` below), e.g. "Tech" / "Level". */
+  bottomLabel?: StatValue
   compact?: boolean
   /** Extra-small (text-label / 10px) — the seam-tag size. */
   xs?: boolean
@@ -216,6 +219,7 @@ export function StatDisplay(props: StatDisplayProps) {
 function HorizontalValue({
   label,
   value,
+  bottomLabel,
   compact = false,
   xs = false,
   inverse = false,
@@ -233,7 +237,7 @@ function HorizontalValue({
   return (
     <span
       className={cn(
-        'shrink-0 grow-0 cursor-default whitespace-nowrap border border-su-black',
+        'shrink-0 grow-0 cursor-default items-stretch whitespace-nowrap border border-su-black',
         inline ? 'inline-flex' : 'flex',
         'w-fit',
         className
@@ -243,13 +247,30 @@ function HorizontalValue({
       <Text
         variant={mainVariant}
         as="span"
-        className={cn('uppercase', fontSize, fontWeight)}
+        className={cn(
+          'uppercase',
+          fontSize,
+          fontWeight,
+          // Two-line label cell (e.g. "Tech" / "Level") when a bottomLabel is set.
+          bottomLabel !== undefined && 'flex flex-col items-center justify-center leading-[0.95]'
+        )}
         style={bgColor || textColor ? { backgroundColor: bgColor, color: textColor } : undefined}
       >
-        {label}
+        {bottomLabel !== undefined ? (
+          <>
+            <span>{label}</span>
+            <span>{bottomLabel}</span>
+          </>
+        ) : (
+          label
+        )}
       </Text>
       {value !== undefined && (
-        <Text variant={valueVariant} as="span" className={cn('uppercase', fontSize, fontWeight)}>
+        <Text
+          variant={valueVariant}
+          as="span"
+          className={cn('flex items-center uppercase', fontSize, fontWeight)}
+        >
           {value}
         </Text>
       )}

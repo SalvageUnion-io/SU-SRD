@@ -64,6 +64,12 @@ const equipment = pick(
   (e) => e.name === 'Grenade',
   'equipment'
 )
+// A real crawler bay (schema `crawler-bays`) — Command Bay has content + a crew NPC.
+const crawlerBay = pick(
+  SalvageUnionReference.CrawlerBays.all(),
+  (b) => b.name === 'Command Bay',
+  'crawler bay'
+)
 
 // One of Little Sestra's patterns — drives the PATTERN rendering (chassis-name
 // stampseal + the systems/modules loadout).
@@ -145,6 +151,12 @@ export const EquipmentCard: Story<{ view: ViewMode }> = ({ view }) => (
 EquipmentCard.args = { view: 'both' }
 EquipmentCard.argTypes = viewArgTypes
 
+export const CrawlerBayCard: Story<{ view: ViewMode }> = ({ view }) => (
+  <Compare entity={crawlerBay} view={view} />
+)
+CrawlerBayCard.args = { view: 'both' }
+CrawlerBayCard.argTypes = viewArgTypes
+
 export const Gallery: Story<{ view: ViewMode }> = ({ view }) => (
   <div className="flex flex-col gap-10">
     <Compare entity={ability} view={view} />
@@ -153,6 +165,7 @@ export const Gallery: Story<{ view: ViewMode }> = ({ view }) => (
     <Compare entity={bioTitan} view={view} />
     <Compare entity={crawler} view={view} />
     <Compare entity={equipment} view={view} />
+    <Compare entity={crawlerBay} view={view} />
   </div>
 )
 Gallery.args = { view: 'both' }
