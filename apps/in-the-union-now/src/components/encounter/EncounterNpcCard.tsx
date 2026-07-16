@@ -22,9 +22,6 @@ import { InlineEditField } from '../sheet/InlineEditField'
 import { MediatorRollControl } from './MediatorRollControl'
 import { ENCOUNTER_SCHEMA_LABEL, resolveCandidate } from './referenceNpcs'
 
-/** Above this max the pip track is suppressed (bio-titans run to 60+ SP). */
-const MAX_PIPS = 20
-
 type EncounterNpcCardProps = {
   npc: EncounterNpc
   /** Injectable store — defaults to useEncounterStore at the call site. */
@@ -119,15 +116,12 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
       >
         {npc.maxHp > 0 && (
           <StatDisplay
-            pips
             label={npc.statKind === 'sp' ? 'SP' : 'HP'}
-            size="sm"
-            tone={npc.statKind}
-            max={npc.maxHp}
             value={npc.currentHp}
+            max={npc.maxHp}
+            compact
+            mode="edit"
             onChange={handleHpChange}
-            editable
-            showPips={npc.maxHp <= MAX_PIPS}
           />
         )}
 

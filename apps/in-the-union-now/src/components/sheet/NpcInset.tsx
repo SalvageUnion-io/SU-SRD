@@ -98,14 +98,12 @@ export function NpcInset({
     >
       {maxHp > 0 && (
         <StatDisplay
-          pips
           label="HP"
-          size="sm"
-          tone="hp"
-          max={maxHp}
           value={hp}
-          onChange={editable ? onHpChange : undefined}
-          editable={editable && onHpChange !== undefined}
+          max={maxHp}
+          compact
+          mode={editable && onHpChange !== undefined ? 'edit' : 'read'}
+          onChange={onHpChange}
         />
       )}
 

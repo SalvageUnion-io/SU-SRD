@@ -11,14 +11,10 @@ export function GainScrapStep() {
   return (
     <div className="flex flex-wrap items-start gap-4">
       <StatDisplay
-        pips
         label="SCRAP"
-        name="Tech 1 Scrap"
-        unit="Starting budget"
-        size="sm"
         value={MECH_CREATION_SCRAP_CAP}
         max={MECH_CREATION_SCRAP_CAP}
-        editable={false}
+        compact
       />
       <p className="m-0 max-w-[52ch] self-center font-body text-sm leading-relaxed text-current">
         Every purchase in this workshop — the Chassis, each System, each Module — debits this one

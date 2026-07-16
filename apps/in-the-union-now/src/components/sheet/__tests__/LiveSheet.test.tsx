@@ -64,11 +64,10 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
 }
 
 function stripWrapper(): HTMLElement {
-  // The condensed block wraps the name stamp, kind pill, and live MiniStat
-  // readouts — all hidden at rest, fading in together once the hero scrolls
-  // out of view (Option A: the resting bar is slim, back + actions only).
-  const stat = screen.getByLabelText('HP 7 of 10')
-  return stat.parentElement as HTMLElement
+  // The condensed block wraps the name stamp, kind pill, and live readouts — all
+  // hidden at rest, fading in together once the hero scrolls out of view (Option
+  // A: the resting bar is slim, back + actions only). Find it via the name stamp.
+  return screen.getByText('Mara Vex').parentElement as HTMLElement
 }
 
 describe('LiveSheet — condensed identity (name stamp + kind pill)', () => {
@@ -120,8 +119,8 @@ describe('LiveSheet — condense strip gating (S11)', () => {
     expect(wrapper.getAttribute('aria-hidden')).toBe('false')
     expect(wrapper.className).not.toContain('pointer-events-none')
     expect(wrapper.className).toContain('opacity-100')
-    // Live MiniStat readout present in the condensed bar
-    expect(screen.getByLabelText('HP 7 of 10')).toBeTruthy()
+    // Live stat readout present in the condensed bar
+    expect(screen.getByText('7/10')).toBeTruthy()
     expect(screen.getByText('Pilot')).toBeTruthy()
   })
 
@@ -156,9 +155,9 @@ describe('LiveSheet — strip values and syncStats', () => {
     act(() => {
       must(observerCallbacks[0])([{ isIntersecting: false }])
     })
-    expect(screen.getByLabelText('Hold 4 of 6')).toBeTruthy()
+    expect(screen.getByText('4/6')).toBeTruthy()
     // Non-overlaid keys keep their own value
-    expect(screen.getByLabelText('HP 7 of 10')).toBeTruthy()
+    expect(screen.getByText('7/10')).toBeTruthy()
   })
 
   test('variant sets the sheet tone class on the root', () => {
@@ -177,9 +176,10 @@ describe('LiveSheet — strip values and syncStats', () => {
       must(observerCallbacks[0])([{ isIntersecting: false }])
     })
     // Priority readout always visible; non-priority carries the fold classes.
-    expect(screen.getByLabelText('SP 5 of 8').className).not.toContain('hidden')
-    const folded = screen.getByLabelText('EP 3 of 4')
-    expect(folded.className).toContain('hidden')
+    // The fold class rides the outer stat cell (the value text's parent).
+    expect(screen.getByText('5/8').parentElement?.className).not.toContain('hidden')
+    const folded = screen.getByText('3/4').parentElement
+    expect(folded?.className).toContain('hidden')
     expect(folded.className).toContain('sm:inline-flex')
   })
 })

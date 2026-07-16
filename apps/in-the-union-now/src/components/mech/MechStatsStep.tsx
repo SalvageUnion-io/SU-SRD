@@ -36,72 +36,22 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
     <div className="w-full space-y-5">
       <div className="flex flex-wrap gap-4">
         <StatDisplay
-          pips
           label="SP"
-          name="Structure Pts"
-          tone="sp"
-          size="sm"
           value={chassis.structurePoints}
           max={chassis.structurePoints}
-          editable={false}
+          compact
         />
+        <StatDisplay label="EP" value={chassis.energyPoints} max={chassis.energyPoints} compact />
+        <StatDisplay label="HEAT" value={chassis.heatCapacity} max={chassis.heatCapacity} compact />
+        <StatDisplay label="SYS" value={chassis.systemSlots} max={chassis.systemSlots} compact />
+        <StatDisplay label="MOD" value={chassis.moduleSlots} max={chassis.moduleSlots} compact />
         <StatDisplay
-          pips
-          label="EP"
-          name="Energy Pts"
-          tone="ep"
-          size="sm"
-          value={chassis.energyPoints}
-          max={chassis.energyPoints}
-          editable={false}
-        />
-        <StatDisplay
-          pips
-          label="HEAT"
-          name="Heat Cap"
-          tone="heat"
-          size="sm"
-          value={chassis.heatCapacity}
-          max={chassis.heatCapacity}
-          editable={false}
-        />
-        <StatDisplay
-          pips
-          label="SYS"
-          name="System Slots"
-          size="sm"
-          value={chassis.systemSlots}
-          max={chassis.systemSlots}
-          editable={false}
-        />
-        <StatDisplay
-          pips
-          label="MOD"
-          name="Module Slots"
-          size="sm"
-          value={chassis.moduleSlots}
-          max={chassis.moduleSlots}
-          editable={false}
-        />
-        <StatDisplay
-          pips
           label="CARGO"
-          name="Cargo Cap"
-          tone="cargo"
-          size="sm"
           value={chassis.cargoCapacity}
           max={chassis.cargoCapacity}
-          editable={false}
+          compact
         />
-        <StatDisplay
-          pips
-          label="SV"
-          name="Salvage Value"
-          size="sm"
-          value={chassis.salvageValue}
-          showPips={false}
-          editable={false}
-        />
+        <StatDisplay label="SV" value={chassis.salvageValue} compact />
       </div>
 
       {chassisAbilities.length > 0 && (

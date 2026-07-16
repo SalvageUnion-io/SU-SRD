@@ -35,52 +35,11 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
   return (
     <div className="w-full space-y-5">
       <div className="flex flex-wrap gap-4">
-        <StatDisplay
-          pips
-          label="TL"
-          name="Tech Level"
-          size="sm"
-          value={techLevel.techLevel}
-          showPips={false}
-          editable={false}
-        />
-        <StatDisplay
-          pips
-          label="SP"
-          name="Structure Pts"
-          tone="sp"
-          size="sm"
-          value={sp.total}
-          max={sp.total}
-          editable={false}
-        />
-        <StatDisplay
-          pips
-          label="UPKEEP"
-          name="Upkeep Cost"
-          size="sm"
-          value={techLevel.upkeepCost ?? 0}
-          showPips={false}
-          editable={false}
-        />
-        <StatDisplay
-          pips
-          label="UPG"
-          name="Upgrade Cost"
-          size="sm"
-          value={techLevel.upgradeCost ?? 0}
-          showPips={false}
-          editable={false}
-        />
-        <StatDisplay
-          pips
-          label="POOL"
-          name="Upgrade Pool"
-          size="sm"
-          value={0}
-          showPips={false}
-          editable={false}
-        />
+        <StatDisplay label="TL" value={techLevel.techLevel} compact />
+        <StatDisplay label="SP" value={sp.total} max={sp.total} compact />
+        <StatDisplay label="UPKEEP" value={techLevel.upkeepCost ?? 0} compact />
+        <StatDisplay label="UPG" value={techLevel.upgradeCost ?? 0} compact />
+        <StatDisplay label="POOL" value={0} compact />
       </div>
 
       <div className="max-w-[64ch] space-y-1.5 font-body text-sm leading-relaxed text-current">

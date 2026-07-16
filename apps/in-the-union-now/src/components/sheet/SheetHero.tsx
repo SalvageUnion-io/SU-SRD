@@ -184,16 +184,11 @@ export function ChassisStats({ items, className }: ChassisStatsProps) {
       {items.map((item) => {
         const block = (
           <StatDisplay
-            pips
             key={item.code}
             label={item.code}
-            name={item.name}
-            unit={item.unit}
-            size="sm"
             value={item.value}
             max={item.max}
-            showPips={item.pips ?? true}
-            editable={false}
+            compact
           />
         )
         return item.onClick ? (
