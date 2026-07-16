@@ -3,12 +3,12 @@ import { getDisplayName, getTechLevel, getTechLevelNumber, isAbility } from 'sal
 import type { StatItem } from '../../shared/statsBarTypes'
 import { TECH_LEVEL_BG } from '../../shared/techLevelStyles'
 import { calculateBackgroundColor } from '../referenceEntityHelpers'
-import type { NEWCardDomain } from './NEWIdentityFooter'
+import type { NEWCardDomain } from './EntityCardIdentityFooter'
 
-/** The three densities a `NEWReferenceEntityCard` renders at. Nested entities
+/** The three densities a `ReferenceEntityCard` renders at. Nested entities
  * are ALWAYS 'compact'; 'listing' uses the same compact header treatment,
  * rendered as a solid full-colour domain row. */
-export type NEWReferenceEntityCardSize = 'full' | 'compact' | 'listing'
+export type ReferenceEntityCardSize = 'full' | 'compact' | 'listing'
 
 /**
  * MONSTER/actor domain tone (approved L1 mockup): a dark navy, NOT the legacy

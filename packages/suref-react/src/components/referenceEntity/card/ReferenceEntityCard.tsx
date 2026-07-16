@@ -42,15 +42,15 @@ import type { CardFootMeta } from '../../shared/DisplayCard'
 import { StatDisplay } from '../../shared/StatDisplay'
 import type { StatItem } from '../../shared/statsBarTypes'
 import { BlockContentRendererView } from '../BlockContentRendererView'
-import { NEWChoiceGroups } from './NEWChoiceGroups'
+import { EntityCardChoiceGroups } from './EntityCardChoiceGroups'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import type { ReferenceEntityControl } from '../ReferenceEntityDisplay/referenceEntityControlTypes'
 import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { buildReferenceEntityStats } from '../ReferenceEntityDisplay/referenceEntityStatsConfig'
-import { NEWCardHeader } from './NEWCardHeader'
-import { NEWIdentityFooter } from './NEWIdentityFooter'
-import { NEWSubHeader } from './NEWSubHeader'
-import type { NEWSubHeaderCell } from './NEWSubHeader'
+import { EntityCardHeader } from './EntityCardHeader'
+import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
+import { EntityCardSubHeader } from './EntityCardSubHeader'
+import type { EntityCardSubHeaderCell } from './EntityCardSubHeader'
 import {
   abbreviateStat,
   ghostActionTone,
@@ -58,8 +58,8 @@ import {
   resolveCardTone,
   resolveEyebrow,
   titleSizeClass,
-} from './newCardTone'
-import type { NEWReferenceEntityCardSize } from './newCardTone'
+} from './entityCardTone'
+import type { ReferenceEntityCardSize } from './entityCardTone'
 import {
   resolveChassisDrone,
   resolveDroneOwnLoadout,
@@ -68,7 +68,7 @@ import {
   resolvePatternGroups,
 } from './resolveNestedEntities'
 
-export type { NEWReferenceEntityCardSize } from './newCardTone'
+export type { ReferenceEntityCardSize } from './entityCardTone'
 
 /** Beyond this nesting depth a card renders header-only (no body expansion) —
  * bounds runaway recursion (deep chassis → systems → actions, or grant cycles). */
@@ -79,9 +79,9 @@ function isTitanicAction(action: { name?: string }): boolean {
   return /titanic action/i.test(action.name ?? '')
 }
 
-export type NEWReferenceEntityCardProps = {
+export type ReferenceEntityCardProps = {
   data: SURefEntity
-  size?: NEWReferenceEntityCardSize
+  size?: ReferenceEntityCardSize
   /** Nesting level — 0 = full/solo, ≥1 = nested (compact, no footer, smaller
    * header, one step down per level). Threaded through the recursion. */
   depth?: number
@@ -109,7 +109,7 @@ export type NEWReferenceEntityCardProps = {
 
   // ─── WRITE LAYER (all additive — absent ⇒ read-only is byte-identical) ───
   /** Render guards that SUBTRACT already-rendered sections. */
-  hide?: NEWHideConfig
+  hide?: ReferenceEntityCardHideConfig
   /** Intact/Damaged/Destroyed chip in the header stat axis beside the title. */
   status?: EntityStatus
   /** Cycle handler (Intact → Damaged → Destroyed) — makes the chip a button. */
@@ -189,7 +189,7 @@ export type NEWReferenceEntityCardProps = {
 }
 
 /** Write-layer: which already-rendered sections to suppress (additive guards). */
-export type NEWHideConfig = {
+export type ReferenceEntityCardHideConfig = {
   actions?: boolean
   patterns?: boolean
   damagedEffect?: boolean
@@ -216,7 +216,7 @@ function capitalize(value: string): string {
 
 /** Entity/action traits → sub-header cells: "Explosive (1)" → label "Explosive"
  * value "1"; "Immobile" → label only. */
-function traitCells(traits: SURefObjectTrait[]): NEWSubHeaderCell[] {
+function traitCells(traits: SURefObjectTrait[]): EntityCardSubHeaderCell[] {
   return traits.map((trait) => ({
     key: `trait-${trait.type}`,
     label: capitalize(trait.type),
@@ -235,8 +235,8 @@ function formatActionType(type: string): string {
 /** An action's classification + range / damage / traits as sub-header cells. The
  * action TYPE leads (a label-only cell), then range/damage/traits. The EP/AP
  * cost is the sub-header's `leading` node, rendered before all of these. */
-function actionCells(action: ActionFields): NEWSubHeaderCell[] {
-  const cells: NEWSubHeaderCell[] = []
+function actionCells(action: ActionFields): EntityCardSubHeaderCell[] {
+  const cells: EntityCardSubHeaderCell[] = []
   if (action.actionType) {
     cells.push({ key: 'action-type', label: formatActionType(action.actionType) })
   }
@@ -266,7 +266,10 @@ const BONUS_LABELS: [keyof SURefObjectBonusPerTechLevel, string, string][] = [
   ['salvageValue', 'Salvage Value', 'SV'],
 ]
 
-function bonusCells(bonus: SURefObjectBonusPerTechLevel, compact: boolean): NEWSubHeaderCell[] {
+function bonusCells(
+  bonus: SURefObjectBonusPerTechLevel,
+  compact: boolean
+): EntityCardSubHeaderCell[] {
   return BONUS_LABELS.flatMap(([field, full, abbr]) => {
     const amount = bonus[field]
     return typeof amount === 'number' && amount !== 0
@@ -282,7 +285,7 @@ function firstParagraphText(content: SURefObjectContentBlock[] | undefined): str
 }
 
 /**
- * NEWReferenceEntityCard — the ONE card that renders ENTITIES, ACTIONS, and
+ * ReferenceEntityCard — the ONE card that renders ENTITIES, ACTIONS, and
  * NPCs, driven by two parameters:
  *
  * - **TONE** (what it is): domain hue for entities, tech-level blue for gear,
@@ -298,7 +301,7 @@ function firstParagraphText(content: SURefObjectContentBlock[] | undefined): str
  * Actions) each render a `Slab` separator + a 2-up grid of depth+1 cards;
  * actions are rust, always compact, AP via `ActivationCostBox`.
  */
-export function NEWReferenceEntityCard({
+export function ReferenceEntityCard({
   data,
   size: sizeProp = 'full',
   depth: depthProp = 0,
@@ -346,7 +349,7 @@ export function NEWReferenceEntityCard({
   effectiveTechLevel,
   onTechLevelChange,
   expand,
-}: NEWReferenceEntityCardProps) {
+}: ReferenceEntityCardProps) {
   // `SalvageUnionReference.*.all()` entities carry a runtime `schemaName`
   // discriminant that isn't reflected in the static `SURefEntity` union type —
   // the same cast-at-the-boundary pattern used throughout the display system.
@@ -356,7 +359,7 @@ export function NEWReferenceEntityCard({
   ) as SURefEnumSchemaName | 'actions' | undefined
 
   if (!schemaName) {
-    console.warn('NEWReferenceEntityCard: data does not have a schemaName property', data)
+    console.warn('ReferenceEntityCard: data does not have a schemaName property', data)
     return null
   }
 
@@ -364,7 +367,7 @@ export function NEWReferenceEntityCard({
   // Actions are ALWAYS nested (never solo on their own SRD page), so an action
   // can only render compact or compact-listing — never full. Coerce a full-size
   // action to compact (min depth 1) so the full-size path can't be reached.
-  const size: NEWReferenceEntityCardSize = isAction && sizeProp === 'full' ? 'compact' : sizeProp
+  const size: ReferenceEntityCardSize = isAction && sizeProp === 'full' ? 'compact' : sizeProp
   const depth = isAction ? Math.max(depthProp, 1) : depthProp
   // A NESTED NPC (one summoned by a parent that threaded `hostTone` down) is
   // dimmed the same way actions are — it ghosts the PARENT's tone, not its own
@@ -580,7 +583,7 @@ export function NEWReferenceEntityCard({
   // CHOICES render in the BODY (read-only static, editable choosable) — never as
   // sub-header slots — so they read like every other nested thing.
   const editableChoices = !!onSelectionChange
-  const choiceCells: NEWSubHeaderCell[] = []
+  const choiceCells: EntityCardSubHeaderCell[] = []
   // A folded single action surfaces its type/range/damage/traits into the
   // sub-header; entity traits/choices follow, deduped so a shared trait (e.g.
   // "Explosive") isn't listed twice.
@@ -589,7 +592,7 @@ export function NEWReferenceEntityCard({
   const dedupedEntityCells = entityCells.filter(
     (cell) => !foldedActionCells.some((folded) => folded.key === cell.key)
   )
-  const baseCells: NEWSubHeaderCell[] =
+  const baseCells: EntityCardSubHeaderCell[] =
     isAction && action ? actionCells(action) : [...foldedActionCells, ...dedupedEntityCells]
   // dvSourceContent — the content whose `datavalues` block (Damage/Range) feeds
   // the resolver's base stats (a self-action's content for a self-action entity).
@@ -614,7 +617,7 @@ export function NEWReferenceEntityCard({
   const resolvedView = resolveChoiceView(resolvable, selections ?? {})
   const baseView = resolveChoiceView(resolvable, {})
   const baseTraitKeys = new Set(baseView.traits.map((t) => String(t.type).toLowerCase()))
-  const addedTraitCells: NEWSubHeaderCell[] = traitCells(
+  const addedTraitCells: EntityCardSubHeaderCell[] = traitCells(
     resolvedView.traits.filter((t) => !baseTraitKeys.has(String(t.type).toLowerCase()))
   ).map((c) => ({ ...c, borderColor: MODIFIED }))
   const fmtDv = (dv: { value?: unknown; unit?: string }): string => {
@@ -627,7 +630,7 @@ export function NEWReferenceEntityCard({
       .map((d) => [String(d.label).toLowerCase(), fmtDv(d)])
   )
   const existingLabels = new Set(baseCells.map((c) => String(c.label).toLowerCase()))
-  const datavalueCells: NEWSubHeaderCell[] = resolvedView.datavalues
+  const datavalueCells: EntityCardSubHeaderCell[] = resolvedView.datavalues
     .filter((d) => d.label != null && !existingLabels.has(String(d.label).toLowerCase()))
     .map((d) => {
       // TL scaling rides ON TOP of any choice effect already applied by
@@ -651,7 +654,7 @@ export function NEWReferenceEntityCard({
         ...(changed ? { borderColor: MODIFIED } : {}),
       }
     })
-  const cells: NEWSubHeaderCell[] = [...baseCells, ...addedTraitCells, ...datavalueCells]
+  const cells: EntityCardSubHeaderCell[] = [...baseCells, ...addedTraitCells, ...datavalueCells]
 
   // ABILITY flavor — the short description hint, shown WHITE in the header's
   // top-right (abilities have no numeric vitals, so the axis is free for it).
@@ -708,7 +711,7 @@ export function NEWReferenceEntityCard({
     <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject ?? entityName} />
   ) : undefined
   const header = (
-    <NEWCardHeader
+    <EntityCardHeader
       title={name}
       titleSlot={titleSlot}
       titleAs={titleAs}
@@ -886,7 +889,7 @@ export function NEWReferenceEntityCard({
   // (no `onSelectionChange`) never enters this branch.
   const renderChoiceRegion = (choice: SURefObjectChoice): ReactNode => (
     <div key={`choice-region-${choice.id}`} className="[&:not(:last-child)]:mb-3">
-      <NEWChoiceGroups
+      <EntityCardChoiceGroups
         choices={[choice]}
         parent={effTechLevel !== undefined ? { techLevel: effTechLevel } : scalingParent}
         selections={selections}
@@ -993,7 +996,7 @@ export function NEWReferenceEntityCard({
     if (flat) {
       return entities.map((nested, index) => (
         <div key={cardKey(nested, index)} className="mb-1.5 flow-root">
-          <NEWReferenceEntityCard
+          <ReferenceEntityCard
             size="compact"
             depth={depth + 1}
             hostDown={isDown}
@@ -1014,7 +1017,7 @@ export function NEWReferenceEntityCard({
           <div className="columns-1 gap-1.5 sm:columns-2">
             {columnCards.map((nested, index) => (
               <div key={cardKey(nested, index)} className="mb-1.5 break-inside-avoid">
-                <NEWReferenceEntityCard
+                <ReferenceEntityCard
                   size="compact"
                   depth={depth + 1}
                   hostDown={isDown}
@@ -1028,7 +1031,7 @@ export function NEWReferenceEntityCard({
           </div>
         )}
         {orphan && (
-          <NEWReferenceEntityCard
+          <ReferenceEntityCard
             key={cardKey(orphan, entities.length - 1)}
             size="compact"
             depth={depth + 1}
@@ -1093,15 +1096,10 @@ export function NEWReferenceEntityCard({
       {entities.map((item, index) =>
         flat ? (
           <div key={cardKey(item, index)} className="mb-1.5 flow-root">
-            <NEWReferenceEntityCard
-              size="listing"
-              depth={depth + 1}
-              hostDown={isDown}
-              data={item}
-            />
+            <ReferenceEntityCard size="listing" depth={depth + 1} hostDown={isDown} data={item} />
           </div>
         ) : (
-          <NEWReferenceEntityCard
+          <ReferenceEntityCard
             key={cardKey(item, index)}
             size="listing"
             depth={depth + 1}
@@ -1131,7 +1129,7 @@ export function NEWReferenceEntityCard({
     ) : anchorNpcEntities.length > 0 ? (
       <div className="mb-1.5 w-full shrink-0 md:float-right md:w-1/2 md:max-w-full md:pl-3">
         {anchorNpcEntities.map((npc, index) => (
-          <NEWReferenceEntityCard
+          <ReferenceEntityCard
             key={cardKey(npc, index)}
             size="compact"
             depth={depth + 1}
@@ -1181,7 +1179,7 @@ export function NEWReferenceEntityCard({
         )}
         {/* EP/AP cost leads the action sub-header row; the bonus-per-tech-level
             group (Badge + "+N" cells) wraps together after the trait cells. */}
-        <NEWSubHeader
+        <EntityCardSubHeader
           bgColor={darkTone}
           cells={cells}
           leading={costNode}
@@ -1279,7 +1277,7 @@ export function NEWReferenceEntityCard({
           {droneInfo &&
             (flat ? (
               <div className="mb-1.5 flow-root">
-                <NEWReferenceEntityCard
+                <ReferenceEntityCard
                   size="compact"
                   depth={depth + 1}
                   hostDown={isDown}
@@ -1289,7 +1287,7 @@ export function NEWReferenceEntityCard({
                 />
               </div>
             ) : (
-              <NEWReferenceEntityCard
+              <ReferenceEntityCard
                 size="compact"
                 depth={depth + 1}
                 hostDown={isDown}
@@ -1325,7 +1323,7 @@ export function NEWReferenceEntityCard({
                   key={cardKey(action as unknown as SURefEntity, index)}
                   className="mb-1.5 flow-root"
                 >
-                  <NEWReferenceEntityCard
+                  <ReferenceEntityCard
                     size="compact"
                     depth={depth + 1}
                     hostDown={isDown}
@@ -1335,7 +1333,7 @@ export function NEWReferenceEntityCard({
                   />
                 </div>
               ) : (
-                <NEWReferenceEntityCard
+                <ReferenceEntityCard
                   key={cardKey(action as unknown as SURefEntity, index)}
                   size="compact"
                   depth={depth + 1}
@@ -1355,7 +1353,7 @@ export function NEWReferenceEntityCard({
                 {patternList.map((pat) =>
                   flat ? (
                     <div key={pat.name} className="mb-1.5 flow-root">
-                      <NEWReferenceEntityCard
+                      <ReferenceEntityCard
                         data={data}
                         pattern={pat}
                         size="listing"
@@ -1364,7 +1362,7 @@ export function NEWReferenceEntityCard({
                       />
                     </div>
                   ) : (
-                    <NEWReferenceEntityCard
+                    <ReferenceEntityCard
                       key={pat.name}
                       data={data}
                       pattern={pat}
@@ -1390,7 +1388,7 @@ export function NEWReferenceEntityCard({
           ? null
           : (footerOverride ??
             (depth === 0 && (
-              <NEWIdentityFooter
+              <EntityCardIdentityFooter
                 bgColor={darkTone}
                 typeLabel={footerType}
                 source={getSource(entity)}

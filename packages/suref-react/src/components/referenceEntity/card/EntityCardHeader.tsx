@@ -2,10 +2,10 @@ import type { ReactNode } from 'react'
 import { cn } from '../../../utils/cn'
 import { Text } from '../../base/Text'
 import { accentSurface } from '../referenceEntityHelpers'
-import { NEWStatBox } from './NEWStatBox'
+import { EntityCardStatBox } from './EntityCardStatBox'
 import type { StatItem } from '../../shared/statsBarTypes'
 
-type NEWCardHeaderProps = {
+type EntityCardHeaderProps = {
   title: string
   /** Domain/tech-level/rust tone — a Tailwind bg class. */
   bg: string | undefined
@@ -30,15 +30,15 @@ type NEWCardHeaderProps = {
 }
 
 /**
- * NEWCardHeader — the unified card's HEADER band (the tone).
+ * EntityCardHeader — the unified card's HEADER band (the tone).
  *
  * Left: the title as the canonical black name-tab (`Text variant="pseudoheader"`
  * — ink block, paper text) that HUGS its text (`w-fit`, never full-width), sized
  * by the DEPTH ladder. Right: the header axis cluster — an optional cost node
- * (action AP box) then the headline `StatDisplay` boxes (`NEWStatBox`), wrapping;
+ * (action AP box) then the headline `StatDisplay` boxes (`EntityCardStatBox`), wrapping;
  * or a `rightContent` flavor line (white ability hint) when the axis is free.
  */
-export function NEWCardHeader({
+export function EntityCardHeader({
   title,
   bg,
   bgColor,
@@ -50,7 +50,7 @@ export function NEWCardHeader({
   listing = false,
   dim = false,
   compact = false,
-}: NEWCardHeaderProps) {
+}: EntityCardHeaderProps) {
   const accent = accentSurface(bg, bgColor)
 
   return (
@@ -84,7 +84,7 @@ export function NEWCardHeader({
       {(rightContent || stats.length > 0) && (
         <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
           {rightContent}
-          <NEWStatBox stats={stats} compact={compact || listing} />
+          <EntityCardStatBox stats={stats} compact={compact || listing} />
         </div>
       )}
     </div>

@@ -8,17 +8,17 @@ import type {
 } from 'salvageunion-reference'
 import { SalvageUnionReference, extractVisibleActions } from 'salvageunion-reference'
 import { borderColorFromHeaderBg } from '../referenceEntityHelpers'
-import { NEWReferenceEntityCard } from './NEWReferenceEntityCard'
-import { resolveCardTone } from './newCardTone'
+import { ReferenceEntityCard } from './ReferenceEntityCard'
+import { resolveCardTone } from './entityCardTone'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'NEW/Actions',
+  title: 'Compositions/Reference Entity Actions',
 }
 
 /**
  * This story is the SPEC for how actions render. Actions are NOT a separate
- * component — an action is `NEWReferenceEntityCard` rendering an `actions`-schema
+ * component — an action is `ReferenceEntityCard` rendering an `actions`-schema
  * entity in "action mode". These are the enshrined rendering rules:
  *
  * - GHOSTED PARENT TONE on the header + sub-header bands + 3px frame (an action
@@ -127,7 +127,7 @@ function ActionSpecCard({ spec }: { spec: ActionSpec }): ReactNode {
   return (
     <div className="flex flex-col gap-1.5">
       <code className="font-mono text-nano text-ink-2">{spec.parentLabel}</code>
-      <NEWReferenceEntityCard
+      <ReferenceEntityCard
         data={spec.action as unknown as SURefEntity}
         hostTone={parentToneBase(spec.parent)}
         size="compact"

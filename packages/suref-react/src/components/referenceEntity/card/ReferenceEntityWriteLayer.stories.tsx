@@ -6,11 +6,11 @@ import type { EntityStatus } from '../../shared/entityStatus'
 import type { StatItem } from '../../shared/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { selectControl } from '../ReferenceEntityDisplay/referenceEntityControls'
-import { NEWReferenceEntityCard } from './NEWReferenceEntityCard'
+import { ReferenceEntityCard } from './ReferenceEntityCard'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'NEW/Write Layer',
+  title: 'Compositions/Reference Entity Write Layer',
 }
 
 /**
@@ -70,9 +70,9 @@ export const SelectableChassis: Story = () => {
   const toggle = () => setSelected((s) => !s)
   return (
     <TwoUp
-      readOnly={<NEWReferenceEntityCard data={chassis} />}
+      readOnly={<ReferenceEntityCard data={chassis} />}
       editable={
-        <NEWReferenceEntityCard
+        <ReferenceEntityCard
           data={chassis}
           selected={selected}
           onCardClick={toggle}
@@ -95,9 +95,9 @@ export const StatusCycleItem: Story = () => {
   const isDown = status === 'damaged' || status === 'destroyed'
   return (
     <TwoUp
-      readOnly={<NEWReferenceEntityCard data={system} />}
+      readOnly={<ReferenceEntityCard data={system} />}
       editable={
-        <NEWReferenceEntityCard
+        <ReferenceEntityCard
           data={system}
           status={status}
           onStatusClick={cycle}
@@ -124,8 +124,8 @@ export const EditableStats: Story = () => {
   ]
   return (
     <TwoUp
-      readOnly={<NEWReferenceEntityCard data={chassis} />}
-      editable={<NEWReferenceEntityCard data={chassis} statsOverride={stats} />}
+      readOnly={<ReferenceEntityCard data={chassis} />}
+      editable={<ReferenceEntityCard data={chassis} statsOverride={stats} />}
     />
   )
 }
@@ -141,9 +141,9 @@ export const ChoiceEquipment: Story = () => {
   const [techLevel, setTechLevel] = useState(1)
   return (
     <TwoUp
-      readOnly={<NEWReferenceEntityCard data={choiceEquip as unknown as SURefEntity} />}
+      readOnly={<ReferenceEntityCard data={choiceEquip as unknown as SURefEntity} />}
       editable={
-        <NEWReferenceEntityCard
+        <ReferenceEntityCard
           data={choiceEquip as unknown as SURefEntity}
           selections={selections}
           onSelectionChange={setSelections}
@@ -170,14 +170,11 @@ export const TechLevelScaling: Story = () => {
     <TwoUp
       readOnly={
         // Controlled from without: TL3 supplied, header read-only, Damage 2→4.
-        <NEWReferenceEntityCard
-          data={choiceEquip as unknown as SURefEntity}
-          effectiveTechLevel={3}
-        />
+        <ReferenceEntityCard data={choiceEquip as unknown as SURefEntity} effectiveTechLevel={3} />
       }
       editable={
         // Editable in place: bump the header TL stepper to watch the cap + Damage grow.
-        <NEWReferenceEntityCard
+        <ReferenceEntityCard
           data={choiceEquip as unknown as SURefEntity}
           selections={selections}
           onSelectionChange={setSelections}

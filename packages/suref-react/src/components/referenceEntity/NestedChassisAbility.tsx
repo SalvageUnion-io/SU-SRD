@@ -2,7 +2,7 @@ import type { SURefMetaAction, SURefObjectChoice } from 'salvageunion-reference'
 import { getTable, resolveActivationCurrency } from 'salvageunion-reference'
 import { Text } from '../base/Text'
 import { BlockContentRendererView } from './BlockContentRendererView'
-import { NEWChoiceGroups } from './NEW/NEWChoiceGroups'
+import { EntityCardChoiceGroups } from './card/EntityCardChoiceGroups'
 import type { DataValue } from '../../types/common'
 import { extractReferenceEntityDetails } from '../../lib/referenceEntityDataExtraction'
 import { DataValueDisplayView } from './DataValueDisplayView'
@@ -178,7 +178,7 @@ export function NestedChassisAbility({
                     : 'pt-2'
           )}
         >
-          <NEWChoiceGroups choices={actionChoices} readOnly compact={compact} />
+          <EntityCardChoiceGroups choices={actionChoices} readOnly compact={compact} />
         </div>
       )}
     </div>

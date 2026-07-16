@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { type EntityDisplayMode, resolveDisplayMode } from '../../shared/displayMode'
 import type { StatItem } from '../../shared/statsBarTypes'
-import { NEWReferenceEntityCard, type NEWReferenceEntityCardProps } from './NEWReferenceEntityCard'
+import { ReferenceEntityCard, type ReferenceEntityCardProps } from './ReferenceEntityCard'
 
 /** Legacy `statsOverride` sugar — the old single-SV override shape. */
 type LegacyStatsOverride = { value: number | string; bottomLabel: string }
@@ -10,7 +10,7 @@ type LegacyStatsOverride = { value: number | string; bottomLabel: string }
 /**
  * `ReferenceEntityDisplay` — the CUTOVER COMPAT SHIM (temporary).
  *
- * Lets every legacy consumer render through the canonical `NEWReferenceEntityCard`
+ * Lets every legacy consumer render through the canonical `ReferenceEntityCard`
  * without a call-site rewrite. It maps the legacy display sugar to the new API:
  *   - `mode` / `compact` / `listing` → `size` (`resolveDisplayMode`)
  *   - `status` = damaged/destroyed folds into `damaged` (legacy behaviour)
@@ -20,7 +20,7 @@ type LegacyStatsOverride = { value: number | string; bottomLabel: string }
  * call the canonical card directly.
  */
 type ReferenceEntityDisplayProps = Omit<
-  NEWReferenceEntityCardProps,
+  ReferenceEntityCardProps,
   'size' | 'statsOverride' | 'data'
 > & {
   data: SURefEntity | undefined
@@ -61,7 +61,7 @@ export function ReferenceEntityDisplay({
     : undefined
 
   return (
-    <NEWReferenceEntityCard
+    <ReferenceEntityCard
       data={data}
       size={size}
       status={status}

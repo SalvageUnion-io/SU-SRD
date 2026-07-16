@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { SalvageUnionReference, isKeyword } from 'salvageunion-reference'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import { Tooltip } from '@base-ui/react/tooltip'
-import { ReferenceEntityDisplay } from './NEW/referenceEntityDisplayShim'
+import { ReferenceEntityDisplay } from './card/referenceEntityDisplayShim'
 import { Tooltip as SimpleTooltip } from '../ui/tooltip'
 
 type ReferenceEntityDisplayTooltipProps = {
