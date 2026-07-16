@@ -1,20 +1,19 @@
 import { useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { TraitKeywordDisplayView } from '../components/referenceEntity/TraitKeywordDisplayView'
+import { StatDisplay } from '../components/shared/StatDisplay'
 
 /**
- * Hook to parse text content for trait references and replace them with TraitKeywordDisplayView components
+ * Hook to parse text content for trait references and replace them with horizontal StatDisplay chips (with an entity hover-tooltip)
  *
  * Supports two bracket notation patterns:
- * 1. Simple traits: [[trait-name]] -> TraitKeywordDisplayView with label="trait-name"
- * 2. Traits with parameters: [[[Trait Name] (parameter)]] -> TraitKeywordDisplayView with label="trait-name", value="parameter"
+ * 1. Simple traits: [[trait-name]] -> a horizontal StatDisplay with label="trait-name"
+ * 2. Traits with parameters: [[[Trait Name] (parameter)]] -> a horizontal StatDisplay with label="trait-name", value="parameter"
  *
  * Performance: Uses useMemo to prevent re-parsing on every render
  * Returns original text as-is if no bracket notation found (common case)
- * TraitKeywordDisplayView uses useMemo to cache entity lookups for performance
  *
  * @param text - The text content to parse
- * @returns Original text string if no matches, or array of React nodes (strings and TraitKeywordDisplayView components) if matches found
+ * @returns Original text string if no matches, or array of React nodes (strings and horizontal StatDisplay chips (with an entity hover-tooltip)) if matches found
  */
 export function useParseTraitReferences(text: string | undefined): ReactNode {
   return useMemo(() => {
@@ -50,23 +49,25 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
         const paramValue = match[2].trim()
 
         nodes.push(
-          <TraitKeywordDisplayView
+          <StatDisplay
             key={`trait-${match.index}`}
+            orientation="horizontal"
             label={traitName}
-            schemaName="traits"
             value={paramValue}
             compact
+            entityTooltip={{ schemaName: 'traits', label: traitName }}
           />
         )
       } else if (match[3] !== undefined) {
         const traitName = match[3].trim()
 
         nodes.push(
-          <TraitKeywordDisplayView
+          <StatDisplay
             key={`trait-${match.index}`}
+            orientation="horizontal"
             label={traitName}
-            schemaName="traits"
             compact
+            entityTooltip={{ schemaName: 'traits', label: traitName }}
           />
         )
       }

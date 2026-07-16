@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { SalvageUnionReference, EntitySchemaNames } from 'salvageunion-reference'
+import type { EntitySchemaName, SURefEnumSchemaName } from 'salvageunion-reference'
 import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
 import { Tooltip } from '../ui/tooltip'
+import { ReferenceEntityDisplayTooltip } from '../referenceEntity/ReferenceEntityDisplayTooltip'
 import { StepBtn } from '../chrome/SmallButtons'
 import { statBlockRowStarts, pipClickValue, trackSegmentState } from '../stat/pipRows'
 import { heatDangerFrom, heatLevel } from '../stat/heatLevel'
@@ -85,6 +88,7 @@ type StatPropKey =
   | 'onBay'
   | 'onClick'
   | 'hoverText'
+  | 'entityTooltip'
   | 'flash'
   | 'disabled'
   | 'isOverMax'
@@ -132,6 +136,10 @@ type HorizontalValueProps = Exact<{
   mode?: 'read' | 'edit'
   max?: number
   min?: number
+  /** When set, wrap the cell in the entity/keyword hover-tooltip — the trait
+   * chip's detail-on-hover (resolves `label` within `schemaName`). Replaces the
+   * former TraitKeywordDisplayView; unresolved refs render plain (no tooltip). */
+  entityTooltip?: { schemaName: SURefEnumSchemaName; label: StatValue }
   className?: string
 }>
 
@@ -212,6 +220,30 @@ type ValueBoxProps = Exact<{
 type StatDisplayProps = HorizontalValueProps | InlineChipProps | FramedTrackerProps | ValueBoxProps
 
 export function StatDisplay(props: StatDisplayProps) {
+  const inner = renderStatDisplay(props)
+  const entityTooltip = 'entityTooltip' in props ? props.entityTooltip : undefined
+  if (entityTooltip) {
+    // Resolve the trait/keyword to a real entity; wrap in the hover-tooltip when
+    // found (the former TraitKeywordDisplayView), else render plain.
+    const { schemaName, label } = entityTooltip
+    const entity = EntitySchemaNames.has(schemaName as EntitySchemaName)
+      ? SalvageUnionReference.findIn(
+          schemaName as EntitySchemaName,
+          (t) => t.name.toLowerCase() === String(label).toLowerCase()
+        )
+      : undefined
+    if (entity?.id) {
+      return (
+        <ReferenceEntityDisplayTooltip schemaName={schemaName} entityId={entity.id} openDelay={300}>
+          {inner}
+        </ReferenceEntityDisplayTooltip>
+      )
+    }
+  }
+  return inner
+}
+
+function renderStatDisplay(props: StatDisplayProps) {
   if (props.orientation === 'horizontal') {
     return props.pips ? <InlineChip {...props} /> : <HorizontalValue {...props} />
   }
