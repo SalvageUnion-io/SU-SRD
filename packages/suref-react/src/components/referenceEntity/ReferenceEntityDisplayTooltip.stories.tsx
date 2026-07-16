@@ -6,7 +6,7 @@ import { StatDisplay } from '../shared/StatDisplay'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/ReferenceEntityDisplayTooltip',
+  title: 'Compositions/Reference Entity Tooltip',
 }
 
 const system = SalvageUnionReference.Systems.all()[0]
