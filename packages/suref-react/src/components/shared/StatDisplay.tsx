@@ -103,7 +103,9 @@ type StatPropKey =
 type Exact<T extends Partial<Record<StatPropKey, unknown>>> = T &
   Partial<Record<Exclude<StatPropKey, keyof T>, never>>
 
-/** [horizontal] `orientation="horizontal"` without `pips` — the former ValueDisplay. */
+/** [horizontal] `orientation="horizontal"` without `pips` — the former ValueDisplay.
+ * With `onChange` + `mode="edit"` it grows a compact +/- stepper column — the
+ * "compact stat display with steppers" (the horizontal peer of the box's edit mode). */
 type HorizontalValueProps = Exact<{
   /** Header code / label ('HP', 'Range', or a numeric tier). */
   label: StatValue
@@ -124,6 +126,12 @@ type HorizontalValueProps = Exact<{
   textColor?: string
   /** Outer border colour — a raw CSS colour applied as inline `style`. */
   borderColor?: string
+  /** Edit layer: with `mode="edit"`, render a +/- stepper column to the cell's
+   * right (mirrors the value box's edit anatomy). `max`/`min` bound the steppers. */
+  onChange?: (value: number) => void
+  mode?: 'read' | 'edit'
+  max?: number
+  min?: number
   className?: string
 }>
 
@@ -227,6 +235,10 @@ function HorizontalValue({
   bgColor,
   textColor,
   borderColor,
+  onChange,
+  mode = 'read',
+  max,
+  min = 0,
   className,
 }: HorizontalValueProps) {
   const fontSize = xs ? 'text-label' : compact ? 'text-xs' : 'text-sm'
@@ -234,7 +246,7 @@ function HorizontalValue({
   const mainVariant = inverse ? 'pseudoheaderInverse' : 'pseudoheader'
   const valueVariant = inverse ? 'pseudoheader' : 'pseudoheaderInverse'
 
-  return (
+  const cell = (
     <span
       className={cn(
         'shrink-0 grow-0 cursor-default items-stretch whitespace-nowrap border border-su-black',
@@ -248,11 +260,13 @@ function HorizontalValue({
         variant={mainVariant}
         as="span"
         className={cn(
-          'uppercase',
+          // Stretch to the cell height and center vertically (no whitespace above/
+          // below the label); the value cell already centers the same way.
+          'flex items-center justify-center uppercase',
           fontSize,
           fontWeight,
           // Two-line label cell (e.g. "Tech" / "Level") when a bottomLabel is set.
-          bottomLabel !== undefined && 'flex flex-col items-center justify-center leading-[0.95]'
+          bottomLabel !== undefined && 'flex-col leading-[0.95]'
         )}
         style={bgColor || textColor ? { backgroundColor: bgColor, color: textColor } : undefined}
       >
@@ -274,6 +288,63 @@ function HorizontalValue({
           {value}
         </Text>
       )}
+    </span>
+  )
+
+  // COMPACT STAT WITH STEPPERS — the horizontal peer of the value box's edit
+  // mode: the `[label|value]` cell with a small vertical +/- column to its
+  // right. Read-only (no edit / no onChange) returns the bare cell, unchanged.
+  const numericValue = typeof value === 'number' ? value : Number(value)
+  const canEdit = mode === 'edit' && onChange !== undefined && Number.isFinite(numericValue)
+  if (!canEdit) return cell
+
+  const atMin = numericValue <= min
+  const atMax = max !== undefined && numericValue >= max
+  // Buttons sit SIDE BY SIDE after the value cell and stretch to its height, so
+  // the stepper adds no vertical height to the row.
+  const btnSize = compact ? 'w-4 text-xs' : 'w-5 text-sm'
+  const btnResting = inverse
+    ? 'border-paper bg-su-black text-paper'
+    : 'border-ink bg-paper text-ink'
+  const btnHover = inverse ? 'hover:bg-paper hover:text-su-black' : 'hover:bg-ink hover:text-paper'
+  // `border` (1px) matches the value cell's `border border-su-black` — the
+  // thicker `border-chrome` read heavy next to the compact cell.
+  const btnBase =
+    'flex min-h-11 items-center justify-center border border-ink font-mono font-bold leading-none transition-colors sm:min-h-0'
+
+  return (
+    <span className="inline-flex w-fit items-stretch gap-0.5">
+      {cell}
+      <button
+        type="button"
+        aria-label={`Decrease ${label}`}
+        onClick={() => onChange?.(Math.max(min, numericValue - 1))}
+        disabled={atMin}
+        className={cn(
+          btnBase,
+          btnSize,
+          btnResting,
+          atMin ? 'cursor-not-allowed opacity-30' : cn('cursor-pointer', btnHover)
+        )}
+      >
+        −
+      </button>
+      <button
+        type="button"
+        aria-label={`Increase ${label}`}
+        onClick={() =>
+          onChange?.(max !== undefined ? Math.min(max, numericValue + 1) : numericValue + 1)
+        }
+        disabled={!!atMax}
+        className={cn(
+          btnBase,
+          btnSize,
+          btnResting,
+          atMax ? 'cursor-not-allowed opacity-30' : cn('cursor-pointer', btnHover)
+        )}
+      >
+        +
+      </button>
     </span>
   )
 }

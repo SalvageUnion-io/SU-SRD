@@ -211,19 +211,20 @@ export function resolveAxisMarkers(entity: SURefMetaEntity): NEWAxisMarker[] {
  * `bottomLabel` cleared so the box shows just the short label + value.
  */
 const STAT_LABEL_ABBR: Record<string, string> = {
-  // slotsRequired already carries the label "Slots"; mapping it here drops its
-  // "Required" bottom label so the box reads just "Slots" (not "Slots Required").
-  Slots: 'Slots',
+  // The single compact-label map (full top-label → shortform). Compact drops the
+  // bottom label entirely; each stat becomes ONE short token. The cell uppercases,
+  // so case here is cosmetic. Tech Level → "TL" is handled where the stat is built.
+  Slots: 'SLOTS',
   Structure: 'SP',
-  Energy: 'EP',
-  Heat: 'Heat',
-  System: 'Sys',
-  Module: 'Mod',
-  Cargo: 'Cargo',
-  Salvage: 'SV',
   Hit: 'HP',
-  Bio: 'BSV',
-  'BIO-SALVAGE': 'BSV',
+  Energy: 'EP',
+  Salvage: 'SV',
+  Bio: 'BIO SV',
+  'BIO-SALVAGE': 'BIO SV',
+  System: 'SYS',
+  Module: 'MOD',
+  Cargo: 'CARGO',
+  Heat: 'HEAT',
 }
 
 /** Abbreviate a header stat's label (Structure Points → SP, …) and drop the

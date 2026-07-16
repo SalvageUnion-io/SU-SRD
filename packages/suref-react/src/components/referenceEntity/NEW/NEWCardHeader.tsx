@@ -13,6 +13,8 @@ type NEWCardHeaderProps = {
   bgColor: string | undefined
   /** Title type-scale class from the DEPTH ladder (steps down per nesting level). */
   titleClass: string
+  /** Write layer: a full replacement node for the title (overrides the name-tab). */
+  titleSlot?: ReactNode
   /** The full header stat cluster (all stats), clustered + wrapping top-right. */
   stats: StatItem[]
   /** Top-right flavor slot — white hint text (an ability's `description`), shown
@@ -20,6 +22,8 @@ type NEWCardHeaderProps = {
   rightContent?: ReactNode
   /** Listing mode: header stats render as horizontal cells (up to ~2 rows). */
   listing?: boolean
+  /** Write layer: dim the header band (a de-emphasised / inactive header). */
+  dim?: boolean
   compact?: boolean
 }
 
@@ -37,9 +41,11 @@ export function NEWCardHeader({
   bg,
   bgColor,
   titleClass,
+  titleSlot,
   stats,
   rightContent,
   listing = false,
+  dim = false,
   compact = false,
 }: NEWCardHeaderProps) {
   const accent = accentSurface(bg, bgColor)
@@ -53,26 +59,29 @@ export function NEWCardHeader({
         // px-3 (both sizes) so the title's left edge lines up with the seam
         // stamp + sub-header content (all at border 3px + px-3 = 15px).
         compact ? 'gap-3 px-3 py-1.5' : 'px-3 py-3',
+        dim && 'opacity-60',
         accent.className
       )}
       style={accent.style}
     >
-      <Text
-        variant="pseudoheader"
-        as="span"
-        className={cn(
-          // `self-center` overrides the pseudoheader variant's built-in
-          // `self-start` so the name-tab truly centers against the band height.
-          'w-fit shrink-0 self-center font-cond font-bold uppercase leading-none tracking-caps-tight',
-          titleClass
-        )}
-      >
-        {title}
-      </Text>
+      {titleSlot ?? (
+        <Text
+          variant="pseudoheader"
+          as="span"
+          className={cn(
+            // `self-center` overrides the pseudoheader variant's built-in
+            // `self-start` so the name-tab truly centers against the band height.
+            'w-fit shrink-0 self-center font-cond font-bold uppercase leading-none tracking-caps-tight',
+            titleClass
+          )}
+        >
+          {title}
+        </Text>
+      )}
       {(rightContent || stats.length > 0) && (
         <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
           {rightContent}
-          <NEWStatBox stats={stats} compact={compact} horizontal={listing} />
+          <NEWStatBox stats={stats} compact={compact} horizontal={compact || listing} />
         </div>
       )}
     </div>

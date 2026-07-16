@@ -3,11 +3,17 @@ import { cn } from '../../../utils/cn'
 import { StatDisplay } from '../../shared/StatDisplay'
 
 /** One sub-header cell — a horizontal StatDisplay `[label | value]` (value
- * optional for label-only keywords, e.g. "Immobile"). */
+ * optional for label-only keywords, e.g. "Immobile"). The MODIFIED-STATS language
+ * uses `borderColor` (an upgraded stat's cell border) and `labelBg` (an added /
+ * modified trait's label fill). */
 export type NEWSubHeaderCell = {
   key: string
   label: string
   value?: string | number
+  /** Raw CSS colour for the whole cell's border — marks an upgraded stat. */
+  borderColor?: string
+  /** Raw CSS colour for the label fill — marks an added/modified trait. */
+  labelBg?: string
 }
 
 /** A cohesive labelled stat group in the sub-header (e.g. "Bonus per Tech
@@ -30,6 +36,9 @@ type NEWSubHeaderProps = {
   /** Optional cohesive labelled stat group (e.g. bonus-per-tech-level), rendered
    * as one wrap-together block after the cells. */
   group?: NEWSubHeaderGroup
+  /** Right-aligned trailing node (e.g. the status chip), laid out space-between
+   * against the trait cells. Absent ⇒ the band renders its plain packed layout. */
+  trailing?: ReactNode
   compact?: boolean
 }
 
@@ -48,25 +57,19 @@ export function NEWSubHeader({
   cells,
   leading,
   group,
+  trailing,
   compact = false,
 }: NEWSubHeaderProps) {
   const hasGroup = !!group && group.cells.length > 0
-  if (!leading && cells.length === 0 && !hasGroup) return null
+  if (!leading && cells.length === 0 && !hasGroup && !trailing) return null
 
   // Cell size ladder, nudged up one notch: a FULL card's cells are the default
   // (text-sm); a compact/nested card's cells are one step down (`compact` →
   // text-xs) — bigger than the old text-label, still smaller than full. The
   // inter-cell gap is the SAME (gap-1.5) at both sizes.
 
-  return (
-    <div
-      className={cn(
-        // px-3 (both sizes) so sub-header content shares the seam/title left edge.
-        'flex w-full flex-wrap items-center gap-1.5',
-        compact ? 'px-3 py-1' : 'px-3 py-1.5'
-      )}
-      style={{ backgroundColor: bgColor }}
-    >
+  const inner = (
+    <>
       {leading}
       {cells.map((cell) => (
         <StatDisplay
@@ -74,6 +77,9 @@ export function NEWSubHeader({
           orientation="horizontal"
           label={cell.label}
           value={cell.value}
+          borderColor={cell.borderColor}
+          bgColor={cell.labelBg}
+          textColor={cell.labelBg ? 'var(--color-paper)' : undefined}
           compact={compact}
         />
       ))}
@@ -100,6 +106,37 @@ export function NEWSubHeader({
           ))}
         </span>
       )}
+    </>
+  )
+
+  // No trailing node ⇒ the plain packed band (DOM-identical to read-only today).
+  if (!trailing) {
+    return (
+      <div
+        className={cn(
+          // px-3 (both sizes) so sub-header content shares the seam/title left edge.
+          'flex w-full flex-wrap items-center gap-1.5',
+          compact ? 'px-3 py-1' : 'px-3 py-1.5'
+        )}
+        style={{ backgroundColor: bgColor }}
+      >
+        {inner}
+      </div>
+    )
+  }
+
+  // With a trailing node (e.g. the status chip): traits left, trailing right,
+  // space-between across the band.
+  return (
+    <div
+      className={cn(
+        'flex w-full flex-wrap items-center justify-between gap-1.5',
+        compact ? 'px-3 py-1' : 'px-3 py-1.5'
+      )}
+      style={{ backgroundColor: bgColor }}
+    >
+      <div className="flex min-w-0 flex-wrap items-center gap-1.5">{inner}</div>
+      <div className="shrink-0">{trailing}</div>
     </div>
   )
 }
