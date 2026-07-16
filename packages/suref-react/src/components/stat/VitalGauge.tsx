@@ -262,7 +262,6 @@ export function VitalGauge({
               )
               return editable ? (
                 <button
-                  // biome-ignore lint/suspicious/noArrayIndexKey: segments are positional — the index IS their identity
                   key={i}
                   type="button"
                   data-pip={on ? 'on' : 'off'}
@@ -274,12 +273,7 @@ export function VitalGauge({
                   )}
                 />
               ) : (
-                <span
-                  // biome-ignore lint/suspicious/noArrayIndexKey: segments are positional — the index IS their identity
-                  key={i}
-                  data-pip={on ? 'on' : 'off'}
-                  className={segClass}
-                />
+                <span key={i} data-pip={on ? 'on' : 'off'} className={segClass} />
               )
             })}
           </div>

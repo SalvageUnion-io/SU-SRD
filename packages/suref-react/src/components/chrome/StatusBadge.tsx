@@ -2,6 +2,7 @@ import { Badge, type BadgeTone } from './Badge'
 import type { EntityStatus } from '../shared/entityStatus'
 
 /** Per-item condition vocabulary (rules: Intact / Damaged / Destroyed). */
+// biome-ignore lint/style/useComponentExportOnlyModules: a type-only re-export is erased at build and cannot affect fast-refresh; kept here so StatusBadge is the one condition entry point
 export type { EntityStatus }
 
 /** The domain vocabulary maps onto the shared badge tones — one rendering. */
