@@ -1,5 +1,5 @@
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from './index'
+import { ReferenceEntityDisplay } from '../NEW/referenceEntityDisplayShim'
 import { useDetailModal } from './useDetailModal'
 
 export function PatternEquipmentItem({ data }: { data: SURefEntity }) {

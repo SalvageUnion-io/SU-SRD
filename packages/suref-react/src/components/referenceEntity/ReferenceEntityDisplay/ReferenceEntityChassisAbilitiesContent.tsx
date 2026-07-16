@@ -1,12 +1,11 @@
 import type { SURefMetaAction } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { NestedChassisAbility } from '../NestedChassisAbility'
-import { ReferenceEntityDisplay } from './index'
+import { ReferenceEntityDisplay } from '../NEW/referenceEntityDisplayShim'
 import { SectionSeparator } from './SectionSeparator'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 import { cn } from '../../../utils/cn'
-import type { getReferenceEntitySpacing } from './referenceEntityDisplayTypes'
-import { useDisplaySpacing } from './displayStateContext'
+import { getReferenceEntitySpacing } from './referenceEntityDisplayTypes'
 
 type ReferenceEntityChassisAbilitiesContentProps = {
   chassisName?: string
@@ -28,7 +27,7 @@ export function ReferenceEntityChassisAbilitiesContent({
   droneEquipment,
   hideDrone,
 }: ReferenceEntityChassisAbilitiesContentProps) {
-  const spacing = useDisplaySpacing(spacingProp, compact)
+  const spacing = spacingProp ?? getReferenceEntitySpacing(compact)
   if (!chassisAbilities || chassisAbilities.length === 0) return null
 
   const droneAbility = chassisAbilities.find((a) => a.drone)
@@ -65,7 +64,12 @@ export function ReferenceEntityChassisAbilitiesContent({
         />
       ))}
       {droneEntity && !hideDrone && (
-        <ReferenceEntityDisplay data={droneEntity} compact hide={{ actions: true, patterns: true }}>
+        <>
+          <ReferenceEntityDisplay
+            data={droneEntity}
+            compact
+            hide={{ actions: true, patterns: true }}
+          />
           {(resolvedSystems.length > 0 || resolvedModules.length > 0) && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {resolvedSystems.length > 0 && (
@@ -88,7 +92,7 @@ export function ReferenceEntityChassisAbilitiesContent({
               )}
             </div>
           )}
-        </ReferenceEntityDisplay>
+        </>
       )}
     </div>
   )
