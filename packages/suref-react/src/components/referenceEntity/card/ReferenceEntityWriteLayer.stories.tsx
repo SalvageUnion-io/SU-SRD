@@ -39,6 +39,13 @@ const choiceEquip = pick(
   (e) => e.name === 'Custom Sniper Rifle',
   'choice equipment'
 )
+// Auto-Turret carries BOTH a freeform choice (Name → sub-header) and a
+// multiple-choice one (A.I. Personality, a rollTable → inline in the body).
+const freeformEquip = pick(
+  SalvageUnionReference.Equipment.all(),
+  (e) => e.name === 'Auto-Turret',
+  'freeform choice equipment'
+)
 
 /**
  * Stacked comparison harness: the canonical card read-only (top — the baseline)
@@ -149,6 +156,29 @@ export const ChoiceEquipment: Story = () => {
           onSelectionChange={setSelections}
           effectiveTechLevel={techLevel}
           onTechLevelChange={setTechLevel}
+        />
+      }
+    />
+  )
+}
+
+/**
+ * FREEFORM vs MULTIPLE-CHOICE placement (Auto-Turret). A freeform choice (Name)
+ * is a simple text input: READ-ONLY it surfaces as a `Choose | Name` sub-header
+ * cell, never a body block. The multiple-choice A.I. Personality (a rollTable)
+ * renders inline in the body. EDITABLE moves the freeform Name into the body as
+ * a real text input alongside the interactive personality picker.
+ */
+export const FreeformChoices: Story = () => {
+  const [selections, setSelections] = useState<ChoiceSelections>({})
+  return (
+    <TwoUp
+      readOnly={<ReferenceEntityCard data={freeformEquip as unknown as SURefEntity} />}
+      editable={
+        <ReferenceEntityCard
+          data={freeformEquip as unknown as SURefEntity}
+          selections={selections}
+          onSelectionChange={setSelections}
         />
       }
     />
