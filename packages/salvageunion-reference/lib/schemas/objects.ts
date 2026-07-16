@@ -119,9 +119,17 @@ export const DataValueSchema = z
       .string()
       .describe('Optional unit shown after the value (e.g. damage type "SP")')
       .optional(),
+    perTechLevel: z
+      .number()
+      .describe(
+        'When set, this numeric value scales with the entity\'s effective tech level: it increases by this amount for each tech level above the first (e.g. Custom Sniper Rifle damage "+1 SP per Tech Level after the first")'
+      )
+      .optional(),
   })
   .strict()
-  .describe('A data value with label, optional value, optional type, and optional unit')
+  .describe(
+    'A data value with label, optional value, optional type, optional unit, and optional per-tech-level scaling'
+  )
 
 /**
  * Block of structured content for rendering (paragraph, heading, list item, etc.)
