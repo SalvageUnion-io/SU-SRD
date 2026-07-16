@@ -64,8 +64,20 @@ See Part 3 — the ordered, green-at-every-checkpoint stages.
   bubbles content/stats/traits; `datavalues` bubble to the sub-header; a
   `resolveChoiceView`-driven **"modified stats"** language gives choice-touched
   stats/traits a rust cell border.
-- **Legacy `ReferenceEntityDisplay` is untouched** — the apps still render through
-  it. **L3 is in progress.**
+- **Stage a LANDED** (`6a552f3b`, pushed to #466): the compat shim + barrel flip
+  are live — **every direct `ReferenceEntityDisplay` consumer now renders through
+  `NEWReferenceEntityCard`**. The 6 flip-surfaced deltas are all closed (see below).
+  Green: typecheck (4 pkgs) + lint + knip + validate:all; tests all pass
+  (suref-react 414, suref-web 989, ITUN 1321).
+- **Legacy render core is now reachable only through 3 internal suref-react
+  consumers** (the shim itself forwards to the new card, not legacy):
+  `ClassAbilityTreeDisplay` (imports `ReferenceEntityDisplay/index`),
+  `useDetailModal` (renders `ReferenceEntityDisplayContent` in its modal — the
+  hidden consumer), and `GuideEntityListing` (renders `ReferenceEntityDisplayContent`).
+  These three must be re-pointed to the new card before legacy can be deleted
+  (Stage d gate). Each renders in a context (class-ability tree, detail modal,
+  guide listing) that wants **screenshot verification** before locking in.
+- **L3 in progress — Stage a done; b/c/d remain.**
 
 ---
 
@@ -114,25 +126,25 @@ trips knip (unused export) — so it must land together with the barrel flip, on
 6 Stage-c deltas below are closed. To re-land: restore the shim file, re-export
 `NEWReferenceEntityCardProps`, flip barrel `index.ts` `ReferenceEntityDisplay` → the shim.
 
-**6 reconciliation deltas the flip surfaced (all in the choice path — Stage c):**
+**6 reconciliation deltas the flip surfaced — ALL CLOSED (`6a552f3b`):**
 
-1. **Crew NPC free-text → `IdentityFields`.** `CrawlerCrewStep` expects an expanded
-   crew bay's freeform Name/Background/Keepsake/Motto to render as click-to-edit
-   `IdentityFields` (Augmented A.I. shows Name/Background only). `NEWChoiceGroups`
-   renders free-text as a plain input/textarea → also throws a Base-UI "nativeButton"
-   runtime error. This is the **NPC-parity gap** — the NEW card needs the NPC
-   free-text-as-IdentityFields path (or `npcConfig` wired).
-2. **Modification cap counter.** `PilotSheet-crawler-level` "no crawler + no manual
-   level → unbounded (no counter)" (`queryByText(/^\d+\/\d+$/)` must be null). Verify
-   `scalingParent` threads into `NEWChoiceGroups`' `resolveMultiSelectCap` so an
-   absent scaling field yields no cap (not the entity's own techLevel).
-3. **Choice-card readOnly / aria-pressed / toggle-persistence markup** (4 tests:
-   `PilotSheet-equipment-choices`, `CrawlerSheet-bay-choices`). The tests assert the
-   legacy `ChoiceCard` markup (`aria-pressed`, click-to-toggle calling `store.update`,
-   readOnly not persisting). `NEWChoiceOption` uses a `<button aria-pressed>` (editable)
-   / `<div>` (readOnly) — reconcile the behaviour (readOnly still needs the chosen
-   state queryable; toggling must call `onSelectionChange`→store) or update the tests
-   to the new intentional markup.
+1. **Crew NPC choices double-rendered.** `CrawlerCrewStep` hides the card's choices
+   (`hide={{ choices: true }}`) and renders the NPC's crew facts (Name/Background/
+   Keepsake/Motto) as its own click-to-edit `IdentityFields`. But the card's nested
+   NPC **anchor** card didn't inherit the parent's `hide`, so it re-surfaced the same
+   "Keepsake"/"Motto" choices — colliding with the IdentityField buttons (a collision
+   the always-`button` option markup, delta 3, made visible via `getByRole`).
+   **Fix:** the nested NPC anchor card now inherits `hide={hide}`
+   (`NEWReferenceEntityCard.tsx`, anchor render). No `npcConfig` needed.
+2. **Modification cap counter.** **Fix:** `renderChoiceRegion` passes
+   `parent={scalingParent}` directly (was `scalingParent ?? entity`, which fell back
+   to the equipment's own `techLevel` and produced a spurious cap). Absent scaling
+   source ⇒ `resolveMultiSelectCap` returns undefined ⇒ no `n/max` counter.
+3. **Choice-card readOnly / aria-pressed markup.** **Fix:** `NEWChoiceOption` always
+   renders a `button[aria-pressed]` (queryable in both modes for the read-only
+   snapshot / share-link viewer); read-only just makes it inert (no toggle handler,
+   default cursor). Persistence stays gated by `onSelectionChange` (undefined in
+   read-only ⇒ a click can't reach the store).
 
 ### Stage b — migrate suref-web islands
 
@@ -159,6 +171,12 @@ OG screenshots + a11y. Risk: medium (SEO H1 + OG pixel compare).
   encounter, GlobalSearch, ClassAbilityTreeDisplay) — re-point it, don't just fix
   the direct JSX. Update every consumer test.
 - Risk: high for sheets — verify per surface with screenshots.
+
+> **NOTE (post-Stage-a):** the shim already routes every _direct_ consumer through
+> the new card. What remains for b/c is **visual verification** (surfaces render
+> correctly through the shim) + re-pointing the **3 legacy-core consumers**
+> (`ClassAbilityTreeDisplay`, `useDetailModal`, `GuideEntityListing`) that still
+> import the legacy render core directly — these are the Stage-d delete gate.
 
 ### Stage d — delete legacy + canonicalize stories
 
