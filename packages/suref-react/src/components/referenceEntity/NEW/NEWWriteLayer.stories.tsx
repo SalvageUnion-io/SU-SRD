@@ -170,6 +170,7 @@ export const EditableStats: Story = () => {
  */
 export const ChoiceEquipment: Story = () => {
   const [selections, setSelections] = useState<ChoiceSelections>({})
+  const [techLevel, setTechLevel] = useState(1)
   return (
     <ThreeUp
       legacy={
@@ -185,6 +186,43 @@ export const ChoiceEquipment: Story = () => {
           data={choiceEquip as unknown as SURefEntity}
           selections={selections}
           onSelectionChange={setSelections}
+          effectiveTechLevel={techLevel}
+          onTechLevelChange={setTechLevel}
+        />
+      }
+    />
+  )
+}
+
+/**
+ * TL-SCALING equipment (Custom Sniper Rifle): the effective tech level drives the
+ * Modification cap AND the `perTechLevel` Damage datavalue. Two contexts:
+ *  · CONTROLLED FROM WITHOUT — `effectiveTechLevel` set, no handler → the header
+ *    TL is read-only, but Damage + the Modification cap reflect it (rust border).
+ *  · EDITABLE IN PLACE — `onTechLevelChange` present → the header TL is an
+ *    editable +/- stepper (floors at the base TL1); Damage + cap update live.
+ */
+export const TechLevelScaling: Story = () => {
+  const [selections, setSelections] = useState<ChoiceSelections>({})
+  const [techLevel, setTechLevel] = useState(3)
+  return (
+    <ThreeUp
+      legacy={<ReferenceEntityDisplay data={choiceEquip} />}
+      readOnly={
+        // Controlled from without: TL3 supplied, header read-only, Damage 2→4.
+        <NEWReferenceEntityCard
+          data={choiceEquip as unknown as SURefEntity}
+          effectiveTechLevel={3}
+        />
+      }
+      editable={
+        // Editable in place: bump the header TL stepper to watch the cap + Damage grow.
+        <NEWReferenceEntityCard
+          data={choiceEquip as unknown as SURefEntity}
+          selections={selections}
+          onSelectionChange={setSelections}
+          effectiveTechLevel={techLevel}
+          onTechLevelChange={setTechLevel}
         />
       }
     />
