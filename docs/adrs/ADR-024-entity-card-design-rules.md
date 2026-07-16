@@ -74,7 +74,7 @@ labels). **Compact IS horizontal** — there is no separate "horizontal" mode/ax
 Editable stats grow a `+/-` stepper column in either mode. Pips are never nested
 inside a stat cell.
 
-- Demo: `Atoms/Stat Display` → **Shapes** / **EditSteppers**.
+- Demo: `Atoms/StatDisplay` → **Anatomies** / **ValueBox**.
 
 ### 5. "Modified stats" — the rust language
 
