@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { ControlButtons } from './ControlButtons'
-import { StatsBar } from './StatsBar'
 import { StatDisplay } from './StatDisplay'
 import type { StatItem } from './statsBarTypes'
 import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntity/referenceEntityHelpers'
@@ -117,6 +116,67 @@ type DisplayCardProps = {
 }
 
 const DEFAULT_TAB_KEY = '__default'
+
+/**
+ * The sub-header band's stat row — a tight, non-wrapping `[StatItem → StatDisplay]`
+ * cluster inside the wrapping band. Folded in from the former standalone `StatsBar`
+ * (DisplayCard was its only consumer): each item skips when its value is undefined,
+ * an `onChange` item renders the edit-mode +/- stepper (coercing a string value to
+ * a number), and tooltips gate on `suppressTooltips`.
+ */
+function SubHeaderStats({
+  stats,
+  compact = false,
+  suppressTooltips = false,
+}: {
+  stats: StatItem[]
+  compact?: boolean
+  suppressTooltips?: boolean
+}) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {stats.map((stat) => {
+        if (stat.value === undefined) return null
+
+        if (stat.onChange) {
+          return (
+            <StatDisplay
+              key={stat.key}
+              label={stat.label}
+              value={typeof stat.value === 'number' ? stat.value : parseInt(String(stat.value), 10)}
+              max={stat.outOfMax}
+              bottomLabel={stat.bottomLabel}
+              mode={(stat.canEdit ?? true) ? 'edit' : 'read'}
+              compact={compact}
+              onChange={stat.onChange}
+            />
+          )
+        }
+
+        return (
+          <StatDisplay
+            key={stat.key}
+            label={stat.label}
+            value={stat.value}
+            max={stat.outOfMax}
+            bottomLabel={stat.bottomLabel}
+            hoverText={suppressTooltips ? undefined : stat.hoverText}
+            inverse={stat.inverse}
+            bg={stat.bg}
+            valueColor={stat.valueColor}
+            borderColor={stat.borderColor}
+            isOverMax={stat.isOverMax}
+            flash={stat.flash}
+            disabled={stat.disabled}
+            ariaLabel={stat.ariaLabel}
+            compact={compact}
+            onClick={stat.onClick}
+          />
+        )
+      })}
+    </div>
+  )
+}
 
 export function DisplayCard({
   headerBg = '',
@@ -373,7 +433,7 @@ export function DisplayCard({
               style={{ backgroundColor: subHeaderBg }}
             >
               {subHeader}
-              {hasStats && <StatsBar stats={stats ?? []} compact={isCompact} />}
+              {hasStats && <SubHeaderStats stats={stats ?? []} compact={isCompact} />}
             </div>
           )}
 
