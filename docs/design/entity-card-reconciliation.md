@@ -174,9 +174,19 @@ OG screenshots + a11y. Risk: medium (SEO H1 + OG pixel compare).
 
 > **NOTE (post-Stage-a):** the shim already routes every _direct_ consumer through
 > the new card. What remains for b/c is **visual verification** (surfaces render
-> correctly through the shim) + re-pointing the **3 legacy-core consumers**
-> (`ClassAbilityTreeDisplay`, `useDetailModal`, `GuideEntityListing`) that still
+> correctly through the shim) + re-pointing the legacy-core consumers that still
 > import the legacy render core directly — these are the Stage-d delete gate.
+>
+> **UPDATE (`6575ebf6`) — legacy render core is now DEAD.** The indirect consumers
+> are re-pointed: `useDetailModal` (the hidden modal behind sheets/encounter/
+> GlobalSearch/ability-tree) + `ClassAbilityTreeDisplay` + `ReferenceEntityDisplayTooltip`
+> now render the shim; `GuideEntityListing` dies with the legacy body-part
+> `EntityBodySections` (no re-point needed). **Zero live imports of
+> `ReferenceEntityDisplay/index` or `ReferenceEntityDisplayContent` remain** outside
+> the legacy folder's own stories/tests. Green (typecheck+lint+knip+tests).
+> Delete gate is OPEN — but the detail modal / tooltip / ability tree now render
+> the NEW card, so do a **screenshot pass on those surfaces before the irreversible
+> Stage-d delete**.
 
 ### Stage d — delete legacy + canonicalize stories
 
