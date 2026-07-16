@@ -1,4 +1,4 @@
-import { Tag } from './Tag'
+import { Badge } from './Badge'
 import { cn } from '../../utils/cn'
 
 type TreeSepProps = {
@@ -20,8 +20,8 @@ export function TreeSep({ name, suffix = 'Tree', className }: TreeSepProps) {
     // biome-ignore lint/a11y/useSemanticElements: the divider must wrap the flanking rules and tree-name tags, which a void <hr> cannot contain
     <div className={cn('flex items-center gap-2', className)} role="separator">
       <span aria-hidden="true" className="h-[1.5px] flex-1 bg-[rgba(128,128,128,0.45)]" />
-      <Tag>{name}</Tag>
-      <Tag ghost>{suffix}</Tag>
+      <Badge>{name}</Badge>
+      <Badge surface="ghost">{suffix}</Badge>
       <span aria-hidden="true" className="h-[1.5px] flex-1 bg-[rgba(128,128,128,0.45)]" />
     </div>
   )

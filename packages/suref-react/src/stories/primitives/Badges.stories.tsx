@@ -5,7 +5,6 @@ import { Chip, Pill } from '../../components/chrome/Pill'
 import type { PillTone } from '../../components/chrome/Pill'
 import { StatusBadge } from '../../components/chrome/StatusBadge'
 import type { EntityStatus } from '../../components/chrome/StatusBadge'
-import { Tag } from '../../components/chrome/Tag'
 import { Badge, type BadgeTone } from '../../components/chrome/Badge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -69,7 +68,7 @@ const STATUSES: EntityStatus[] = ['intact', 'damaged', 'destroyed']
 const BADGE_TONES: BadgeTone[] = ['pilot', 'mech', 'crawler', 'ok', 'warn', 'bad']
 
 /**
- * The unified `Badge` — Tag / Pill / Chip are named presets over this one
+ * The unified `Badge` — Pill / Chip are named presets over this one
  * implementation (ruleset §6). Badges are LABEL-ONLY: a label+value readout is a
  * Stat (`Stat orientation="horizontal"`), never a badge (value-cell law).
  */
@@ -123,22 +122,23 @@ export const Chips: Story = () => (
   </div>
 )
 
-// Tag is a SINGLE keyword chip. Split label/value content is a Stat — render it
-export const Tags: Story = () => (
+// A keyword is a SINGLE stamped Badge (solid, the default). Split label/value
+// content is a Stat, not a Badge — render it with Stat orientation="horizontal".
+export const Keywords: Story = () => (
   <div className="bg-paper p-4">
     <ClusterLabel>Keyword (stamped ink chip)</ClusterLabel>
     <Row>
       {keywordTags.map((keyword) => (
-        <Tag key={keyword}>{keyword}</Tag>
+        <Badge key={keyword}>{keyword}</Badge>
       ))}
     </Row>
 
     <ClusterLabel>Ghost (inverted paper chip, inset ring)</ClusterLabel>
     <Row>
       {economyTags.map((economy) => (
-        <Tag key={economy} ghost>
+        <Badge key={economy} surface="ghost">
           {economy}
-        </Tag>
+        </Badge>
       ))}
     </Row>
   </div>

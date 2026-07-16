@@ -5,7 +5,7 @@ import { DualColumnLayout } from '../../components/shared/DualColumnLayout'
 import { MasonryColumns } from '../../components/shared/MasonryColumns'
 import { FilterRow } from '../../components/shared/FilterRow'
 import { DisplayCard } from '../../components/shared/DisplayCard'
-import { Tag } from '../../components/chrome/Tag'
+import { Badge } from '../../components/chrome/Badge'
 import { Stamp } from '../../components/chrome/Stamp'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -69,7 +69,7 @@ export const Filters: Story = () => (
   <div className="flex max-w-2xl flex-col gap-4 bg-paper p-4">
     <FilterRow label="Traits">
       {traits.map((t) => (
-        <Tag key={t}>{t}</Tag>
+        <Badge key={t}>{t}</Badge>
       ))}
     </FilterRow>
   </div>
