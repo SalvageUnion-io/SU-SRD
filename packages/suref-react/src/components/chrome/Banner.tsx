@@ -65,6 +65,7 @@ export function Banner({ warnings, onSaveAnyway, onFixIt, className }: BannerPro
       <ul className={cn('flex flex-col gap-1.5', hasActions && 'mb-3')}>
         {warnings.map((warning, index) => (
           <li
+            // biome-ignore lint/suspicious/noArrayIndexKey: warnings carry no id and may repeat a severity; severity+index is the stablest available key
             key={`${warning.severity}-${index}`}
             className={cn(
               'flex items-start gap-2 rounded-card border-chrome px-3 py-2',

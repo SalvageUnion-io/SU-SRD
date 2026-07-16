@@ -81,6 +81,7 @@ function TpBlock({
   editable: boolean
 }) {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: a framed TP readout is not a <fieldset>; role="group" carries the same grouping semantics
     <div
       role="group"
       aria-label={`TP ${value}`}

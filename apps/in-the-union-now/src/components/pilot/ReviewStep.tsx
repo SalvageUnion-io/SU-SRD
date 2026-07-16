@@ -106,6 +106,7 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
           <ReferenceEntityDisplay
             // Duplicates are legal picks (2× the same Tech 1 item), so the id
             // alone cannot key the list.
+            // biome-ignore lint/suspicious/noArrayIndexKey: id alone can't disambiguate duplicate picks; id+index is the stablest available key
             key={`${item.id}-${i}`}
             data={item as unknown as SURefEntity}
             compact

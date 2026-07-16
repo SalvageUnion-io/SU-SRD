@@ -48,6 +48,7 @@ const SURFACE: Record<StampSurface, string> = {
  * by `Slab`'s solid variant and `VitalGauge`'s label, so the poster ink-label
  * lives in one place instead of being re-inlined.
  */
+// biome-ignore lint/style/useComponentExportOnlyModules: POSTER_STAMP is the shared class string for the poster stamp, intentionally co-located with the Stamp atom it belongs to (consumed by Slab + VitalGauge)
 export const POSTER_STAMP =
   'box-decoration-clone inline bg-ink text-paper font-cond font-bold uppercase tracking-[0.09em]'
 
