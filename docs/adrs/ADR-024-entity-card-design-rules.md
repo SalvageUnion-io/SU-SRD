@@ -66,15 +66,20 @@ changing the _data shape_ over special-casing the renderer.
 - Demo: `Compositions/Reference Entity Write Layer` → **ChoiceEquipment**
   (multiple-choice) / **FreeformChoices** (freeform → sub-header).
 
-### 4. The stat atom has exactly two modes: Normal and Compact
+### 4. The stat atom has exactly two modes: Normal and Compact — and NO pips
 
 A `StatDisplay` in the card cluster is either **Normal** (the vertical value box,
 full labels) or **Compact** (the horizontal `[label | value]` cell, shortform
 labels). **Compact IS horizontal** — there is no separate "horizontal" mode/axis.
-Editable stats grow a `+/-` stepper column in either mode. Pips are never nested
-inside a stat cell.
+Editable stats grow a `+/-` stepper column in either mode.
 
-- Demo: `Atoms/StatDisplay` → **Anatomies** / **ValueBox**.
+**`StatDisplay` has no pip mode.** The framed pip tracker and the condensed
+pip-chip were retired: a value/max tracker is the plain value box (a fill bar is
+`VitalGauge`), and the crawler-bay condition tally is its own **`BayStatus`**
+primitive. Individual pips live only in `VitalGauge` / `BayStatus` — never inside
+a stat cell.
+
+- Demo: `Atoms/Stat Display` → **Anatomies** / **ValueBox**; `Atoms/Bay Status`.
 
 ### 5. "Modified stats" — the rust language
 
