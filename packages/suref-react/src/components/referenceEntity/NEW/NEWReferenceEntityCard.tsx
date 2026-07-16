@@ -25,6 +25,7 @@ import {
   parseContentBlockString,
   resolveActivationCurrency,
   resolveChoiceView,
+  resolveDataValueForTechLevel,
   resolveGrantedEntities,
 } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
@@ -140,6 +141,15 @@ export type NEWReferenceEntityCardProps = {
   /** Parent entity for choice-cap resolution (`scalesWithField`, e.g. techLevel) —
    * when a host (mech/pilot) supplies the scaling field instead of the entity. */
   scalingParent?: Record<string, unknown>
+  /** Write-layer: the effective tech level to scale by — drives the Modification
+   * choice cap AND `perTechLevel` datavalue scaling (e.g. Custom Sniper Rifle
+   * damage). Defaults to `scalingParent.techLevel`, else the entity's own base TL.
+   * For granted, TL-scalable pilot equipment this is the crawler level in ITUN. */
+  effectiveTechLevel?: number
+  /** Write-layer: when present on a TL-scalable entity, renders an editable "TL"
+   * stepper in the header (min = the entity's base TL). Raising it increases the
+   * modification count + scaled datavalues. */
+  onTechLevelChange?: (techLevel: number) => void
   /** Extra content on the accent field after the body box, before the footer
    * (legacy `expand` — e.g. a crawler bay's crew inset). */
   expand?: ReactNode
@@ -333,6 +343,8 @@ export function NEWReferenceEntityCard({
   cardStyle,
   titleAs,
   scalingParent,
+  effectiveTechLevel,
+  onTechLevelChange,
   expand,
 }: NEWReferenceEntityCardProps) {
   // `SalvageUnionReference.*.all()` entities carry a runtime `schemaName`
@@ -384,6 +396,53 @@ export function NEWReferenceEntityCard({
   // This entity's own tone base — threaded to its nested action cards as their host.
   const ownToneBase = borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-su-black)'
   const techLevel = getTechLevel(entity)
+  // EFFECTIVE TECH LEVEL — the value that scales this entity: the Modification
+  // choice cap (`scalesWithField: techLevel`) AND any `perTechLevel` datavalue
+  // (e.g. Custom Sniper Rifle damage). Priority: an explicit `effectiveTechLevel`
+  // (an in-place per-item override) → the host `scalingParent.techLevel`
+  // (controlled from without — the crawler level in ITUN) → the entity's own base
+  // TL. Floors at the base TL — a granted item is never below its own tech level.
+  // Both contexts are supported: pass `effectiveTechLevel` to control it from
+  // without (read-only display), and/or `onTechLevelChange` to edit it in place.
+  // The "modified stats" colour — a choice-touched or TL-scaled cell gets a rust
+  // border (and, for traits, a rust label ground).
+  const MODIFIED = 'var(--color-rust)'
+  const baseTechLevel = typeof techLevel === 'number' ? techLevel : undefined
+  const scalingTechLevel =
+    typeof scalingParent?.techLevel === 'number' ? (scalingParent.techLevel as number) : undefined
+  const resolvedTechLevel = effectiveTechLevel ?? scalingTechLevel ?? baseTechLevel
+  const effTechLevel =
+    resolvedTechLevel !== undefined && baseTechLevel !== undefined
+      ? Math.max(baseTechLevel, resolvedTechLevel)
+      : resolvedTechLevel
+  const entityChoices = getChoices(entity) ?? []
+  // A `perTechLevel` map (datavalue label → per-level increment) from the entity's
+  // OWN datavalues, so a scaled value is highlighted as "modified" (rust).
+  const perTechLevelByLabel = new Map<string, number>()
+  for (const block of 'content' in entity
+    ? ((entity.content ?? []) as SURefObjectContentBlock[])
+    : []) {
+    if (Array.isArray(block.value)) {
+      for (const dv of block.value) {
+        if (typeof dv.perTechLevel === 'number' && dv.label != null) {
+          perTechLevelByLabel.set(String(dv.label).toLowerCase(), dv.perTechLevel)
+        }
+      }
+    }
+  }
+  const isTechScalable =
+    perTechLevelByLabel.size > 0 ||
+    entityChoices.some((c) => typeof c.constraints?.scalesWithField === 'string')
+  // The header TL cell shows the EFFECTIVE level (base, or bumped by the external
+  // control / in-place override) and is editable in place only when a scalable
+  // entity is given an `onTechLevelChange` handler.
+  const techLevelEditable = !!onTechLevelChange && isTechScalable
+  const techLevelDisplay = isTechScalable ? (effTechLevel ?? techLevel) : techLevel
+  const techLevelModified =
+    isTechScalable &&
+    baseTechLevel !== undefined &&
+    effTechLevel !== undefined &&
+    effTechLevel > baseTechLevel
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
   const titleClass = titleSizeClass(size === 'listing' ? Math.max(depth, 1) : depth)
   // ARTWORK — `getAssetUrl` yields the entity's `.webp` when `hasArtwork`; the
@@ -482,7 +541,17 @@ export function NEWReferenceEntityCard({
           // full-size vertical value box renders two-line "Tech" / "Level".
           label: compact ? 'TL' : 'Tech',
           bottomLabel: compact ? undefined : 'Level',
-          value: String(techLevel),
+          value: String(techLevelDisplay),
+          // A TL-scalable item shows the EFFECTIVE level; rust when above base
+          // (controlled from without or overridden in place), and an editable
+          // +/- stepper when an in-place handler is supplied.
+          ...(techLevelModified ? { borderColor: MODIFIED } : {}),
+          ...(techLevelEditable
+            ? {
+                canEdit: true,
+                onChange: (next: number) => onTechLevelChange?.(Math.max(baseTechLevel ?? 1, next)),
+              }
+            : {}),
         }
       : undefined
   const headerStats: StatItem[] = [
@@ -510,7 +579,6 @@ export function NEWReferenceEntityCard({
   // SUB-HEADER cells — action range/damage/traits, else entity traits + the
   // CHOICES render in the BODY (read-only static, editable choosable) — never as
   // sub-header slots — so they read like every other nested thing.
-  const entityChoices = getChoices(entity) ?? []
   const editableChoices = !!onSelectionChange
   const choiceCells: NEWSubHeaderCell[] = []
   // A folded single action surfaces its type/range/damage/traits into the
@@ -538,7 +606,6 @@ export function NEWReferenceEntityCard({
   // trait (picking "Ballistic" → the Ballistic trait) and any datavalue an effect
   // UPGRADED (Damage 2→3, Range → Far; the value itself updates too). With no
   // selections this is just the base view — so Damage/Range still bubble normally.
-  const MODIFIED = 'var(--color-rust)'
   const resolvable = {
     content: dvSourceContent,
     traits: getTraits(entity) ?? [],
@@ -563,8 +630,20 @@ export function NEWReferenceEntityCard({
   const datavalueCells: NEWSubHeaderCell[] = resolvedView.datavalues
     .filter((d) => d.label != null && !existingLabels.has(String(d.label).toLowerCase()))
     .map((d) => {
-      const val = fmtDv(d)
-      const changed = baseDvMap.get(String(d.label).toLowerCase()) !== val
+      // TL scaling rides ON TOP of any choice effect already applied by
+      // `resolveChoiceView`: the resolved value is the effective TL1 value, and
+      // `perTechLevel` adds per tech level above the first. A scaled value is
+      // "modified" (rust border), same language as a choice-touched stat.
+      const perTechLevel = perTechLevelByLabel.get(String(d.label).toLowerCase())
+      const scaled =
+        perTechLevel !== undefined
+          ? resolveDataValueForTechLevel(
+              { label: d.label, value: d.value, unit: d.unit, perTechLevel },
+              effTechLevel
+            )
+          : { value: d.value, scaled: false }
+      const val = fmtDv({ value: scaled.value, unit: d.unit })
+      const changed = baseDvMap.get(String(d.label).toLowerCase()) !== val || scaled.scaled
       return {
         key: `dv-${d.label}`,
         label: String(d.label),
@@ -809,7 +888,7 @@ export function NEWReferenceEntityCard({
     <div key={`choice-region-${choice.id}`} className="[&:not(:last-child)]:mb-3">
       <NEWChoiceGroups
         choices={[choice]}
-        parent={scalingParent}
+        parent={effTechLevel !== undefined ? { techLevel: effTechLevel } : scalingParent}
         selections={selections}
         onSelectionChange={onSelectionChange}
         readOnly={!editableChoices}

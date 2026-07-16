@@ -13,8 +13,9 @@
  *      longer render on the pilot sheet body (#410).
  *   2. The effective level still feeds the Modification choice cap: the
  *      `n/max` counter resolves to the effective level from a linked crawler.
- *   3. With neither a crawler nor a manual level, the Modification cap is
- *      unbounded (no counter) — unchanged SRD-style behaviour.
+ *   3. With neither a crawler nor a manual level, the Modification cap floors at
+ *      the equipment's base tech level (Custom Sniper Rifle is TL1 → 0/1) — a
+ *      granted item is never below its own tech level.
  *
  * Uses the store-injection seam (no mock.module()). The injected store snapshot
  * is forwarded to useSoftLinks, so SoftLinks + crawler resolution run through
@@ -177,13 +178,14 @@ describe('PilotSheet — Crawler Level slab dropped (redesign D6, #410)', () => 
     expect(screen.getByText('0/3')).toBeTruthy()
   })
 
-  test('no crawler + no manual level: Modification cap is unbounded (no counter)', () => {
+  test('no crawler + no manual level: Modification cap floors at the base TL (0/1)', () => {
     const pilot = makePilot({ crawlerLevel: undefined })
     const { store } = makeStore({ pilot })
     render(<PilotSheet pilot={pilot} store={store} />)
 
-    // The Modification group renders, but with no resolved cap there is no
-    // "n/max" counter (unchanged SRD-style behaviour).
-    expect(screen.queryByText(/^\d+\/\d+$/)).toBeNull()
+    // Custom Sniper Rifle is TL1 (a granted item with no inherent rules tech
+    // level). Its effective tech level floors at that base, so with no crawler
+    // you still get one modification — a "0/1" counter, not unbounded.
+    expect(screen.getByText('0/1')).toBeTruthy()
   })
 })
