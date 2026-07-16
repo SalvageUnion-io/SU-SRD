@@ -1,12 +1,52 @@
-import type { SURefObjectContentBlock } from 'salvageunion-reference'
+import type { SURefObjectContentBlock, SURefObjectDataValue } from 'salvageunion-reference'
 import { Text } from '../base/Text'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { parseContentBlockString } from 'salvageunion-reference'
-import { DataValueDisplayView } from './DataValueDisplayView'
+import { StatDisplay } from '../shared/StatDisplay'
+import { ActivationCostBox } from '../shared/ActivationCostBox'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 import { cn } from '../../utils/cn'
 import { SectionSeparator } from './ReferenceEntityDisplay/SectionSeparator'
 import { StaticChoiceCard } from './choiceCard/StaticChoiceCard'
+
+/**
+ * A single `datavalues` item — rendered as a horizontal StatDisplay chip (the one
+ * canonical stat/value atom). A `cost` item ("3 AP") uses the ActivationCostBox
+ * atom; a `trait`/`keyword` item gets its entity hover-tooltip; everything else
+ * is a plain label|value cell (value + unit when present).
+ */
+function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?: boolean }) {
+  if (item.type === 'cost') {
+    let cost: string | number = item.label
+    let currency = item.value
+    if (!currency && typeof item.label === 'string') {
+      const parts = item.label.trim().split(/\s+/)
+      const last = parts[parts.length - 1]
+      if (last === 'AP' || last === 'EP' || last === 'XP') {
+        cost = parts.slice(0, -1).join(' ')
+        currency = last
+      }
+    }
+    return <ActivationCostBox cost={cost} currency={currency} compact={compact} />
+  }
+  const value = item.value != null && item.unit ? `${item.value} ${item.unit}` : item.value
+  const entityTooltip =
+    item.type === 'trait'
+      ? { schemaName: 'traits' as const, label: item.label }
+      : item.type === 'keyword'
+        ? { schemaName: 'keywords' as const, label: item.label }
+        : undefined
+  return (
+    <StatDisplay
+      orientation="horizontal"
+      label={item.label}
+      value={value}
+      compact={compact}
+      inline={false}
+      entityTooltip={entityTooltip}
+    />
+  )
+}
 
 type BlockContentRendererViewProps = {
   /** Content blocks to render */
@@ -192,7 +232,7 @@ function ContentBlock({
       <div className="flex flex-row flex-wrap items-center gap-1">
         {blockValue.map((item, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: datavalues come from static reference content blocks and never reorder
-          <DataValueDisplayView key={index} item={item} compact={compact} />
+          <DataValueChip key={index} item={item} compact={compact} />
         ))}
       </div>
     )
