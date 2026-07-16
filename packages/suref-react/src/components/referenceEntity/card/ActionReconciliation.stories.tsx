@@ -46,24 +46,32 @@ const chassis = pick(
   'chassis'
 )
 const chassisTone = parentToneBase(chassis as unknown as SURefEntity)
-const chassisAction = pick(
-  extractVisibleActions(chassis as unknown as SURefMetaEntity) ?? [],
-  () => true,
-  'chassis action'
-)
 const chassisAbility = pick(getChassisAbilities(chassis) ?? [], () => true, 'chassis ability')
+
+function pickAction(parent: SURefEntity) {
+  return pick(
+    extractVisibleActions(parent as unknown as SURefMetaEntity) ?? [],
+    () => true,
+    'action'
+  )
+}
 
 const system = pick(
   SalvageUnionReference.Systems.all(),
-  (s) => s.name === 'Salvaging Drill',
-  'system'
+  (s) => (extractVisibleActions(s as unknown as SURefMetaEntity) ?? []).length > 0,
+  'system with an action'
 )
 const systemTone = parentToneBase(system as unknown as SURefEntity)
-const systemAction = pick(
-  extractVisibleActions(system as unknown as SURefMetaEntity) ?? [],
-  () => true,
-  'system action'
+const systemAction = pickAction(system as unknown as SURefEntity)
+
+// A bio-titan reliably carries visible actions — the second action example.
+const titan = pick(
+  SalvageUnionReference.BioTitans.all(),
+  (b) => (extractVisibleActions(b as unknown as SURefMetaEntity) ?? []).length > 0,
+  'bio-titan with an action'
 )
+const titanTone = parentToneBase(titan as unknown as SURefEntity)
+const titanAction = pickAction(titan as unknown as SURefEntity)
 
 function Pair({
   label,
@@ -102,13 +110,10 @@ export const ActionCards: Story = () => (
       }
     />
     <Pair
-      label={`chassis action · ${chassis.name} → ${chassisAction.name}`}
-      legacy={<ActionCard data={chassisAction} parentHeaderBgColor={chassisTone} />}
+      label={`bio-titan action · ${titan.name} → ${titanAction.name}`}
+      legacy={<ActionCard data={titanAction} parentHeaderBgColor={titanTone} />}
       canonical={
-        <ReferenceEntityCard
-          data={chassisAction as unknown as SURefEntity}
-          hostTone={chassisTone}
-        />
+        <ReferenceEntityCard data={titanAction as unknown as SURefEntity} hostTone={titanTone} />
       }
     />
   </div>
