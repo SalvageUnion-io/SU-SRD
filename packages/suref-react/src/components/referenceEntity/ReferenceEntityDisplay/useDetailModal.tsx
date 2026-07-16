@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
-import { ReferenceEntityDisplayContent } from './components/ReferenceEntityDisplayContent'
+import { ReferenceEntityDisplay } from '../NEW/referenceEntityDisplayShim'
 import { DetailIcon } from './DetailIcon'
 import { useEntityHref, useEntityDetailLink } from './entityHrefContext'
 import type { ReferenceEntityControl } from './referenceEntityControlTypes'
@@ -54,7 +54,7 @@ export function useDetailModal(
 
   const schemaName =
     data && 'schemaName' in data && typeof data.schemaName === 'string'
-      ? (data.schemaName as Parameters<typeof ReferenceEntityDisplayContent>[0]['schemaName'])
+      ? data.schemaName
       : undefined
 
   const title =
@@ -91,11 +91,8 @@ export function useDetailModal(
               <div className="max-h-[calc(100vh-4rem)] overflow-y-auto pt-3">
                 <Dialog.Title className="sr-only">{title}</Dialog.Title>
                 <Dialog.Description className="sr-only">Entity display details</Dialog.Description>
-                <ReferenceEntityDisplayContent
+                <ReferenceEntityDisplay
                   data={data}
-                  schemaName={schemaName}
-                  compact={false}
-                  listing={false}
                   dimHeader={false}
                   disabled={false}
                   hide={options?.hide}
@@ -113,9 +110,8 @@ export function useDetailModal(
                   afterExtraContent={options?.afterExtraContent}
                   afterChoicesContent={options?.afterChoicesContent}
                   footerOverride={options?.footerOverride}
-                >
-                  {options?.children}
-                </ReferenceEntityDisplayContent>
+                />
+                {options?.children}
               </div>
             </div>
           </Dialog.Popup>
