@@ -5,7 +5,7 @@ import { ConditionSwatch } from '../../components/stat/ConditionSwatch'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Atoms/ConditionSwatch',
+  title: 'Atoms/Condition Swatch',
 }
 
 const STATES = ['intact', 'damaged', 'destroyed'] as const
