@@ -4,6 +4,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { StatDisplay } from '../components/shared/StatDisplay'
 import { VitalGauge } from '../components/stat/VitalGauge'
+import { BayStatus } from '../components/stat/BayStatus'
 import { Badge } from '../components/chrome/Badge'
 import { Tag } from '../components/chrome/Tag'
 import { Stamp } from '../components/chrome/Stamp'
@@ -57,10 +58,10 @@ const rows: MatrixRow[] = [
   },
   {
     role: 'Stat',
-    when: 'pips',
-    use: 'StatDisplay pips',
-    rule: 'Framed tracker, pip track; add mode="edit" to set pips.',
-    example: <StatDisplay pips label="SP" value={Math.ceil(sp * 0.7)} max={sp} tone="sp" />,
+    when: 'bay tally',
+    use: 'BayStatus',
+    rule: 'The crawler-bay condition tally (intact / damaged / destroyed) — its own primitive, not a StatDisplay mode.',
+    example: <BayStatus states={['intact', 'intact', 'damaged', 'destroyed']} />,
   },
   {
     role: 'Stat',

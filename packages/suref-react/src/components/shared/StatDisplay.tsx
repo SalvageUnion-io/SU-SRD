@@ -5,55 +5,35 @@ import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
 import { Tooltip } from '../ui/tooltip'
 import { ReferenceEntityDisplayTooltip } from '../referenceEntity/ReferenceEntityDisplayTooltip'
-import { StepBtn } from '../chrome/SmallButtons'
-import { statBlockRowStarts, pipClickValue, trackSegmentState } from '../stat/pipRows'
-import { heatDangerFrom, heatLevel } from '../stat/heatLevel'
-import { ConditionSwatch } from '../stat/ConditionSwatch'
 import type { EntityStatus } from './entityStatus'
 
 /**
- * The single canonical stat/value primitive (canonical primitive language §2).
- * One prop-controlled component that renders three anatomies — it absorbs the
- * former StatBlock (framed tracker), ValueDisplay (horizontal label|value) and
- * StatControl (box + steppers), and replaces MiniStat:
+ * The canonical stat/value primitive (canonical primitive language §2). One
+ * prop-controlled component with TWO anatomies — it absorbs the former
+ * ValueDisplay (horizontal label|value) and StatControl (box + steppers):
  *
  *   orientation="horizontal"  -> the horizontal black/white [label | value].
- *   pips (or states[])        -> the framed tracker: black code tab, big
- *                                numeral, pip track / bay tally, unit bar,
- *                                steppers, tones + heat escalation.
  *   (default)                 -> the centred value box with pseudoheader stamps
  *                                above/below; mode="edit" adds +/- steppers.
  *
- * The three renders are the verbatim originals behind one API, so migrating a
- * call site is a prop remap — no visual drift.
+ * StatDisplay has NO pip mode: pip trackers were retired (use the value box; a
+ * fill bar is `VitalGauge`), and the crawler-bay tally is its own `BayStatus`
+ * primitive. Individual pips live in `VitalGauge` / `BayStatus`, never here.
  */
 
-/** Pip / fill semantics: hp red, ap/ep rust, heat warn, cargo bronze, cw crawler pink, sp/default ink. */
+/** Stat tone (a public alias retained for consumers that key colour by stat). */
 export type StatTone = 'hp' | 'ap' | 'ep' | 'sp' | 'heat' | 'cargo' | 'cw' | 'default'
-/** Tri-state tally entry for the `states[]` mode (crawler bays). */
+/** A tri-state condition value (crawler-bay condition — see `BayStatus`). */
 export type StatState = EntityStatus
-
-const PIP_FILL: Record<StatTone, string> = {
-  hp: 'border-status-bad bg-status-bad',
-  ap: 'border-rust bg-rust',
-  ep: 'border-rust bg-rust',
-  heat: 'border-status-warn bg-status-warn',
-  cargo: 'border-cargo bg-cargo',
-  cw: 'border-crawler bg-crawler',
-  sp: 'border-ink bg-ink',
-  default: 'border-ink bg-ink',
-}
 
 type StatValue = number | string
 
 /**
- * StatDisplay is a discriminated union over its four mutually-exclusive
- * anatomies. The discriminants are `orientation` / `pips` / `states`:
+ * StatDisplay is a discriminated union over its two mutually-exclusive
+ * anatomies, keyed on `orientation`:
  *
- *   { orientation: 'horizontal' }             -> HorizontalValue (label|value)
- *   { orientation: 'horizontal', pips: true } -> InlineChip (label·pips·value)
- *   { pips: true } | { states }               -> FramedTracker (vertical)
- *   (default)                                 -> ValueBox (centred box)
+ *   { orientation: 'horizontal' } -> HorizontalValue (label|value)
+ *   (default)                     -> ValueBox (centred box)
  *
  * Every prop is scoped to the anatomy that reads it. `Exact<>` (below) then
  * forbids every OTHER anatomy's props with `?: never`, so mixing anatomies —
@@ -70,22 +50,12 @@ type StatPropKey =
   | 'max'
   | 'min'
   | 'bottomLabel'
-  | 'name'
-  | 'unit'
   | 'orientation'
-  | 'pips'
   | 'mode'
-  | 'size'
-  | 'tone'
-  | 'states'
   | 'inverse'
   | 'compact'
   | 'xs'
-  | 'init'
   | 'onChange'
-  | 'editable'
-  | 'showPips'
-  | 'onBay'
   | 'onClick'
   | 'hoverText'
   | 'entityTooltip'
@@ -114,7 +84,6 @@ type HorizontalValueProps = Exact<{
   /** Header code / label ('HP', 'Range', or a numeric tier). */
   label: StatValue
   orientation: 'horizontal'
-  pips?: false
   value?: StatValue
   /** Optional second label line — renders the label cell as a two-line stack
    * (`label` on top, `bottomLabel` below), e.g. "Tech" / "Level". */
@@ -143,55 +112,10 @@ type HorizontalValueProps = Exact<{
   className?: string
 }>
 
-/** [inline-chip] `orientation="horizontal"` with `pips` — the former MiniStat. */
-type InlineChipProps = Exact<{
-  label: StatValue
-  orientation: 'horizontal'
-  pips: true
-  value?: StatValue
-  max?: number
-  tone?: StatTone
-  className?: string
-}>
-
-/** Fields shared by both framed-tracker discriminants. */
-type FramedTrackerBase = {
-  label: StatValue
-  orientation?: 'vertical'
-  value?: StatValue
-  /** Muted right-side header name. */
-  name?: string
-  /** Black footer unit bar, e.g. 'POINTS'. */
-  unit?: string
-  tone?: StatTone
-  /** lg (sheet hero) or sm (rail / NPC / spec strip). */
-  size?: 'lg' | 'sm'
-  max?: number
-  /** Uncontrolled initial value (self-managed state). */
-  init?: number
-  onChange?: (value: number) => void
-  /** Force editability on/off; derived otherwise. */
-  editable?: boolean
-  mode?: 'read' | 'edit'
-  /** Set false to suppress the pip track even with a max. */
-  showPips?: boolean
-  /** Click handler per states[] pip. */
-  onBay?: (index: number) => void
-  className?: string
-}
-
-/** [tracker] numeric pip track (vertical). */
-type TrackerPipsProps = Exact<FramedTrackerBase & { pips: true; states?: undefined }>
-/** [tracker] tri-state bay tally (vertical) — replaces the numeric track. */
-type TrackerStatesProps = Exact<FramedTrackerBase & { pips?: false; states: StatState[] }>
-type FramedTrackerProps = TrackerPipsProps | TrackerStatesProps
-
 /** [box] the default centred value box; `mode="edit"` adds steppers (former StatControl). */
 type ValueBoxProps = Exact<{
   label: StatValue
   orientation?: 'vertical'
-  pips?: false
-  states?: undefined
   value?: StatValue
   max?: number
   /** Minimum for edit-mode steppers. */
@@ -217,7 +141,7 @@ type ValueBoxProps = Exact<{
   className?: string
 }>
 
-type StatDisplayProps = HorizontalValueProps | InlineChipProps | FramedTrackerProps | ValueBoxProps
+type StatDisplayProps = HorizontalValueProps | ValueBoxProps
 
 export function StatDisplay(props: StatDisplayProps) {
   const inner = renderStatDisplay(props)
@@ -244,11 +168,7 @@ export function StatDisplay(props: StatDisplayProps) {
 }
 
 function renderStatDisplay(props: StatDisplayProps) {
-  if (props.orientation === 'horizontal') {
-    return props.pips ? <InlineChip {...props} /> : <HorizontalValue {...props} />
-  }
-  if (props.pips) return <FramedTracker {...props} />
-  if (props.states !== undefined) return <FramedTracker {...props} />
+  if (props.orientation === 'horizontal') return <HorizontalValue {...props} />
   return <ValueBox {...props} />
 }
 
@@ -377,315 +297,6 @@ function HorizontalValue({
       >
         +
       </button>
-    </span>
-  )
-}
-
-/* ------------------------------------------------------------------ *
- * Inline chip — the former MiniStat. Condensed [label · pips · value]  *
- * for the live condensed bar; pips render only when max <= 12.         *
- * ------------------------------------------------------------------ */
-const CHIP_PIP_MAX = 12
-
-function InlineChip({ label, value, max, tone = 'default', className }: InlineChipProps) {
-  const v = typeof value === 'number' ? value : Number(value)
-  // Over-capacity honesty: the derived mech Hold (cargo tone) can exceed its
-  // soft cap — show the true value + red over-pips rather than clamping to a lie.
-  const isOver = tone === 'cargo' && max !== undefined && v > max
-  const clamped = isOver ? v : Math.max(0, max !== undefined ? Math.min(v, max) : v)
-  const total = isOver ? v : (max ?? 0)
-  const pipsVisible = max !== undefined && max > 0 && total <= CHIP_PIP_MAX
-
-  const level = tone === 'heat' ? heatLevel(clamped, max) : 'normal'
-  const heatDanger =
-    tone === 'heat' && max !== undefined && max > 0 ? heatDangerFrom(max) : Infinity
-
-  return (
-    // biome-ignore lint/a11y/useSemanticElements: a <fieldset> cannot render as an inline stat chip; role="group" carries the same semantics
-    <span
-      role="group"
-      aria-label={`${label} ${clamped}${max !== undefined ? ` of ${max}` : ''}${
-        isOver ? ' — over capacity' : ''
-      }`}
-      data-heat={level !== 'normal' ? level : undefined}
-      className={cn(
-        'inline-flex w-fit items-stretch whitespace-nowrap border',
-        level === 'critical' ? 'border-status-bad motion-safe:animate-heat-pulse' : 'border-ink',
-        className
-      )}
-    >
-      {/* Ink stamp label cell — the [RANGE | CLOSE] horizontal split-stat style. */}
-      <span className="flex items-center bg-ink px-1.5 font-cond text-label font-bold uppercase leading-none tracking-caps-tight text-paper">
-        {label}
-      </span>
-      {/* White value cell — the pips + value live in the white "close" section. */}
-      <span className="flex items-center gap-1.5 bg-paper px-1.5 py-0.5">
-        {pipsVisible && (
-          <span className="flex items-center gap-[3px]" aria-hidden="true">
-            {Array.from({ length: total }).map((_, i) => (
-              <span
-                // biome-ignore lint/suspicious/noArrayIndexKey: pips are positional — the index IS their identity
-                key={i}
-                data-pip={i < clamped ? 'on' : 'off'}
-                className={cn(
-                  'h-[7px] w-[7px] rounded-pip border-[1.25px]',
-                  i < clamped
-                    ? i >= (max ?? Infinity) || i >= heatDanger
-                      ? 'border-status-bad bg-status-bad'
-                      : PIP_FILL[tone]
-                    : 'border-ink bg-transparent'
-                )}
-              />
-            ))}
-          </span>
-        )}
-        <span
-          className={cn(
-            'font-body text-sm font-bold leading-none',
-            level !== 'normal' || isOver ? 'text-status-bad' : 'text-ink'
-          )}
-        >
-          {clamped}
-          {max !== undefined && (
-            <small className="text-label font-bold text-wk-muted">/{max}</small>
-          )}
-        </span>
-      </span>
-    </span>
-  )
-}
-
-/* ------------------------------------------------------------------ *
- * Framed tracker — the former StatBlock. Black code tab, numeral +    *
- * steppers, pip track / bay tally, black unit bar, tones + heat.      *
- * ------------------------------------------------------------------ */
-function FramedTracker({
-  label: code,
-  name,
-  unit,
-  tone = 'default',
-  size = 'lg',
-  max,
-  value: valueProp,
-  init,
-  onChange,
-  editable,
-  mode,
-  showPips = true,
-  states,
-  onBay,
-  className,
-}: FramedTrackerProps) {
-  const isControlled = valueProp !== undefined
-  const numericProp = typeof valueProp === 'number' ? valueProp : undefined
-  const [internal, setInternal] = useState(init ?? max ?? 0)
-  const rawValue = isControlled ? (numericProp ?? 0) : internal
-  const clamp = (v: number) => Math.max(0, max !== undefined ? Math.min(v, max) : v)
-
-  const isEditable = editable ?? (mode === 'edit' || onChange !== undefined || !isControlled)
-
-  const isOver = !isEditable && max !== undefined && rawValue > max
-  const value = isOver ? rawValue : clamp(rawValue)
-
-  const setValue = (next: number) => {
-    if (!isEditable) return
-    const clamped = clamp(next)
-    if (!isControlled) setInternal(clamped)
-    onChange?.(clamped)
-  }
-
-  const isStates = states !== undefined
-  const isSm = size === 'sm'
-  const showSteppers = !isStates && !isSm && isEditable
-  const pipsVisible = !isStates && showPips && max !== undefined && max > 0
-
-  const isHeat = tone === 'heat'
-  const level = isHeat && !isStates ? heatLevel(value, max) : 'normal'
-  const heatDanger = isHeat && max !== undefined && max > 0 ? heatDangerFrom(max) : Infinity
-
-  const pipFill = PIP_FILL[tone]
-  const pipBox = isSm
-    ? 'h-2 w-2 rounded-pip border-[1.25px]'
-    : 'h-[13px] w-[13px] rounded-badge border-chrome'
-
-  const tallies: { state: StatState; count: number }[] = isStates
-    ? (['intact', 'damaged', 'destroyed'] as const)
-        .map((state) => ({
-          state,
-          count: states.filter((s) => s === state).length,
-        }))
-        .filter((t) => t.count > 0)
-    : []
-
-  return (
-    // biome-ignore lint/a11y/useSemanticElements: a <fieldset> would break the inline-flex stat-block chrome; role="group" carries the same semantics
-    <span
-      role="group"
-      aria-label={
-        isStates
-          ? `${code} ${states.length} bays`
-          : `${code} ${value}${max !== undefined ? ` of ${max}` : ''}${
-              isOver ? ' — over capacity' : ''
-            }`
-      }
-      data-heat={level !== 'normal' ? level : undefined}
-      className={cn('inline-flex flex-col items-center', isSm && 'min-w-[96px]', className)}
-    >
-      {/* Code stamp riding the framed body's top border (StampSeam), not a header tab. */}
-      <span className="z-[1] -mb-2 self-center bg-ink px-1.5 py-0.5 font-cond text-xs font-bold uppercase leading-none tracking-caps-wide text-paper">
-        {code}
-      </span>
-      {name && (
-        <span className="-mb-1 font-cond text-micro uppercase leading-none text-wk-muted">
-          {name}
-        </span>
-      )}
-      {/* Framed body */}
-      <div
-        className={cn(
-          'flex w-full flex-col overflow-hidden rounded-card border-2 bg-paper pt-3 shadow-[0_2px_6px_-2px_rgba(40,32,25,0.4)]',
-          level === 'critical' ? 'border-status-bad motion-safe:animate-heat-pulse' : 'border-ink'
-        )}
-      >
-        {/* Main row: steppers + value, or the bay tally */}
-        {isStates ? (
-          <div className="flex items-center justify-center gap-3 px-2.5 py-1.5">
-            {tallies.map(({ state, count }) => (
-              <span key={state} className="flex items-center gap-1.5">
-                <ConditionSwatch state={state} aria-hidden="true" className="size-[11px]" />
-                <span className="font-body text-[17px] font-bold leading-none text-ink">
-                  {count}
-                </span>
-                <span className="font-cond text-[9.5px] uppercase leading-none text-wk-muted">
-                  {state}
-                </span>
-              </span>
-            ))}
-          </div>
-        ) : (
-          <div className="flex items-center justify-center gap-2 px-2.5 py-1.5">
-            {showSteppers && (
-              <StepBtn aria-label={`Decrease ${code}`} onClick={() => setValue(value - 1)}>
-                –
-              </StepBtn>
-            )}
-            <span
-              className={cn(
-                'font-body font-bold leading-none',
-                isSm ? 'text-base' : 'text-[23px]',
-                isOver ? 'text-status-bad' : 'text-ink'
-              )}
-            >
-              {value}
-              {max !== undefined && (
-                <small
-                  className={cn(
-                    'font-bold',
-                    isSm ? 'text-label' : 'text-caption',
-                    isOver ? 'text-status-bad' : 'text-wk-muted'
-                  )}
-                >
-                  /{max}
-                </small>
-              )}
-            </span>
-            {showSteppers && (
-              <StepBtn aria-label={`Increase ${code}`} onClick={() => setValue(value + 1)}>
-                +
-              </StepBtn>
-            )}
-          </div>
-        )}
-
-        {/* Pip track */}
-        {isStates ? (
-          <div className="flex flex-col items-center gap-1 px-2.5 pb-2">
-            {statBlockRowStarts(states.length).map(({ count, start }, r) => {
-              return (
-                // biome-ignore lint/suspicious/noArrayIndexKey: pip rows are positional — the row index IS their identity
-                <div key={r} className="flex justify-center gap-1">
-                  {Array.from({ length: count }).map((_, c) => {
-                    const i = start + c
-                    const state = states[i]
-                    if (!state) return null
-                    const title = `Bay ${i + 1} · ${state}`
-                    return onBay ? (
-                      <button
-                        key={i}
-                        type="button"
-                        title={title}
-                        aria-label={title}
-                        onClick={() => onBay(i)}
-                        className="inline-flex cursor-pointer"
-                      >
-                        <ConditionSwatch state={state} aria-hidden="true" className={pipBox} />
-                      </button>
-                    ) : (
-                      <span key={i} title={title} className="inline-flex">
-                        <ConditionSwatch state={state} aria-hidden="true" className={pipBox} />
-                      </span>
-                    )
-                  })}
-                </div>
-              )
-            })}
-          </div>
-        ) : (
-          pipsVisible && (
-            <div
-              className="flex flex-col items-center gap-1 px-2.5 pb-2"
-              role="img"
-              aria-label={`${value} of ${max}${isOver ? ' — over capacity' : ''}`}
-            >
-              {statBlockRowStarts(Math.max(max ?? 0, value)).map(({ count, start }, r) => {
-                return (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: pip rows are positional — the row index IS their identity
-                  <div key={r} className="flex justify-center gap-1">
-                    {Array.from({ length: count }).map((_, c) => {
-                      const i = start + c
-                      const state = trackSegmentState(
-                        i,
-                        value,
-                        max ?? Number.POSITIVE_INFINITY,
-                        heatDanger
-                      )
-                      const on = state !== 'off'
-                      const pipClass = cn(
-                        pipBox,
-                        state === 'off'
-                          ? 'border-ink bg-transparent'
-                          : state === 'danger'
-                            ? 'border-status-bad bg-status-bad'
-                            : pipFill
-                      )
-                      return isEditable ? (
-                        <button
-                          key={i}
-                          type="button"
-                          tabIndex={-1}
-                          aria-hidden="true"
-                          data-pip={on ? 'on' : 'off'}
-                          onClick={() => setValue(pipClickValue(i, value))}
-                          className={cn(pipClass, 'cursor-pointer')}
-                        />
-                      ) : (
-                        <span key={i} data-pip={on ? 'on' : 'off'} className={pipClass} />
-                      )
-                    })}
-                  </div>
-                )
-              })}
-            </div>
-          )
-        )}
-      </div>
-      {/* Unit stamp riding the framed body's BOTTOM border (StampSeam),
-          mirroring the code stamp on the top border. */}
-      {unit && (
-        <span className="z-[1] -mt-2 self-center bg-ink px-1.5 py-0.5 font-cond text-[9.5px] font-bold uppercase leading-none tracking-caps-wide text-paper">
-          {unit}
-        </span>
-      )}
     </span>
   )
 }

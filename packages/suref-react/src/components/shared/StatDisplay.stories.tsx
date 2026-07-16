@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { StatDisplay, type StatState } from './StatDisplay'
+import { StatDisplay } from './StatDisplay'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -21,14 +21,6 @@ const tl = chassis?.techLevel ?? 1
 const weaponAction = SalvageUnionReference.Actions.all()[0]
 const rangeLabel = weaponAction?.range?.[0] ?? 'Close'
 const traitLabel = weaponAction?.traits?.[0]?.type ?? 'ballistic'
-
-// Real crawler bays supply the tri-state bay tally.
-const bayStatePattern: StatState[] = ['intact', 'intact', 'damaged', 'destroyed', 'intact']
-const crawlerBays = SalvageUnionReference.CrawlerBays.all().slice(0, 5)
-const bayStates: StatState[] =
-  crawlerBays.length > 0
-    ? crawlerBays.map((_, i) => bayStatePattern[i % bayStatePattern.length] ?? 'intact')
-    : bayStatePattern
 
 const noop = () => {}
 
@@ -52,9 +44,9 @@ function Gallery({ rule, children }: { rule: string; children: ReactNode }) {
   )
 }
 
-/** All four anatomies at a glance — one component, picked by props. */
+/** Both anatomies at a glance — one component, picked by `orientation`. */
 export const Anatomies: Story = () => (
-  <Gallery rule="One component, four anatomies — the prop combo picks which renders. What to use, when.">
+  <Gallery rule="One component, TWO anatomies — the centred value box (default) and the horizontal [label | value] readout. No pip mode: use VitalGauge for a fill bar, BayStatus for a bay tally.">
     <Cell label="default → box">
       <StatDisplay label="SP" value={sp} />
     </Cell>
@@ -64,18 +56,22 @@ export const Anatomies: Story = () => (
     <Cell label='orientation="horizontal"'>
       <StatDisplay label="RANGE" value={rangeLabel} orientation="horizontal" />
     </Cell>
-    <Cell label="pips → framed tracker">
-      <StatDisplay label="SP" value={Math.ceil(sp * 0.5)} max={sp} pips tone="sp" />
-    </Cell>
-    <Cell label="states[] → bay tally">
-      <StatDisplay label="BAYS" states={bayStates} />
+    <Cell label='horizontal + mode="edit"'>
+      <StatDisplay
+        label="HP"
+        value={7}
+        max={10}
+        orientation="horizontal"
+        mode="edit"
+        onChange={noop}
+      />
     </Cell>
   </Gallery>
 )
 
-/** The centred value box (default). value/max, no pips; mode="edit" adds the stepper column. */
+/** The centred value box (default). value/max; mode="edit" adds the stepper column. */
 export const ValueBox: Story = () => (
-  <Gallery rule="The centred value box (default anatomy). value / max, no pip track; mode='edit' grows the +/- stepper column (the former StatControl).">
+  <Gallery rule="The centred value box (default anatomy). value / max; mode='edit' grows the +/- stepper column (the former StatControl).">
     <Cell label="read">
       <StatDisplay label="SP" value={sp} />
     </Cell>
@@ -124,7 +120,7 @@ export const ValueBox: Story = () => (
 
 /** The [label | value] readout — a Stat, never a badge (Tech level, Range, traits). */
 export const Horizontal: Story = () => (
-  <Gallery rule="orientation='horizontal' → the black/white [label | value] readout (the former ValueDisplay). A Stat, never a badge. Add 'pips' for the condensed inline chip (the former MiniStat).">
+  <Gallery rule="orientation='horizontal' → the black/white [label | value] readout (the former ValueDisplay). A Stat, never a badge. With mode='edit' it grows a compact +/- stepper column.">
     <Cell label="range">
       <StatDisplay label="RANGE" value={rangeLabel} orientation="horizontal" />
     </Cell>
@@ -134,58 +130,15 @@ export const Horizontal: Story = () => (
     <Cell label="inverse">
       <StatDisplay label="TRAIT" value={traitLabel} orientation="horizontal" inverse />
     </Cell>
-    <Cell label="+ pips → inline chip">
-      <StatDisplay label="HP" value={7} max={10} orientation="horizontal" pips tone="hp" />
-    </Cell>
-  </Gallery>
-)
-
-/** The framed pip tracker (the former StatBlock). Pips split ≤6/row bottom-heavy (§4.5). */
-export const Tracker: Story = () => (
-  <Gallery rule="pips → the framed tracker. Pips split ≤6/row, bottom-heavy (ruleset §4.5); tones encode ontology; heat escalates past the 70% line; showPips=false keeps the frame but drops the track.">
-    <Cell label="read (tone=sp)">
+    <Cell label='mode="edit" → + steppers'>
       <StatDisplay
-        label="SP"
-        value={Math.ceil(sp * 0.5)}
-        max={sp}
-        pips
-        tone="sp"
-        unit="Structure"
+        label="HP"
+        value={7}
+        max={10}
+        orientation="horizontal"
+        mode="edit"
+        onChange={noop}
       />
-    </Cell>
-    <Cell label="editable (click-to-set)">
-      <StatDisplay label="SP" value={Math.ceil(sp / 3)} max={sp} pips tone="sp" onChange={noop} />
-    </Cell>
-    <Cell label='size="sm"'>
-      <StatDisplay label="EP" value={Math.ceil(ep * 0.5)} max={ep} pips tone="ap" size="sm" />
-    </Cell>
-    <Cell label="tone=hp">
-      <StatDisplay label="HP" value={7} max={10} pips tone="hp" />
-    </Cell>
-    <Cell label="tone=heat (escalating)">
-      <StatDisplay
-        label="HEAT"
-        value={Math.ceil(heat * 0.8)}
-        max={heat}
-        pips
-        tone="heat"
-        name="Heat"
-      />
-    </Cell>
-    <Cell label="tone=cargo">
-      <StatDisplay label="CARGO" value={Math.ceil(cargo * 0.5)} max={cargo} pips tone="cargo" />
-    </Cell>
-    <Cell label="showPips=false">
-      <StatDisplay label="SYS" value={5} max={20} pips showPips={false} />
-    </Cell>
-  </Gallery>
-)
-
-/** The states[] tri-state tally (crawler bays): intact / damaged / destroyed. */
-export const BayTally: Story = () => (
-  <Gallery rule="states[] → the tri-state tally (crawler bays). Counts tallied per state; one ConditionSwatch pip per bay, split by the same ≤6/row rule.">
-    <Cell label="states[]">
-      <StatDisplay label="BAYS" states={bayStates} unit="Crawler Bays" />
     </Cell>
   </Gallery>
 )
