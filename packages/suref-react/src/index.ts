@@ -32,9 +32,8 @@ export type {
   EntityExternalLinkBuilder,
 } from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
 export { ReferenceEntityChassisAbilitiesContent } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChassisAbilitiesContent'
-export { NestedChassisAbility } from './components/referenceEntity/NestedChassisAbility'
 export { ClassAbilityTreeDisplay } from './components/referenceEntity/ClassAbilityTreeDisplay'
-export { ActionCard } from './components/referenceEntity/ActionCard'
+export { entityHostTone } from './components/referenceEntity/card/entityCardTone'
 export { getReferenceEntitySpacing } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
 
 // Entity controls

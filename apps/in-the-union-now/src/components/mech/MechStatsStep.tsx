@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { NestedChassisAbility, StatDisplay, TreeSep } from 'suref-react'
+import { ReferenceEntityDisplay, StatDisplay, TreeSep, entityHostTone } from 'suref-react'
+import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 
 type MechStatsStepProps = {
@@ -108,11 +109,12 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
           <TreeSep name="Chassis Ability" suffix={chassis.name} />
           <div className="max-w-2xl space-y-3">
             {chassisAbilities.map((ability) => (
-              <NestedChassisAbility
+              <ReferenceEntityDisplay
                 key={ability.id}
-                data={ability}
+                data={ability as unknown as SURefEntity}
                 compact
                 chassisName={chassis.name}
+                hostTone={entityHostTone(chassis as unknown as SURefMetaEntity)}
               />
             ))}
           </div>

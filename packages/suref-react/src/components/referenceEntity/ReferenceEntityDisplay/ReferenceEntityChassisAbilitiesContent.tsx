@@ -1,7 +1,7 @@
-import type { SURefMetaAction } from 'salvageunion-reference'
+import type { SURefEntity, SURefMetaAction, SURefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { NestedChassisAbility } from '../NestedChassisAbility'
 import { ReferenceEntityDisplay } from '../card/referenceEntityDisplayShim'
+import { entityHostTone } from '../card/entityCardTone'
 import { SectionSeparator } from './SectionSeparator'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 import { cn } from '../../../utils/cn'
@@ -30,6 +30,14 @@ export function ReferenceEntityChassisAbilitiesContent({
   const spacing = spacingProp ?? getReferenceEntitySpacing(compact)
   if (!chassisAbilities || chassisAbilities.length === 0) return null
 
+  // The owning chassis's tone — ghosted onto each ability card as its host tone.
+  const chassis = chassisName
+    ? SalvageUnionReference.Chassis.find((c) => c.name === chassisName)
+    : undefined
+  const abilityHostTone = chassis
+    ? entityHostTone(chassis as unknown as SURefMetaEntity)
+    : undefined
+
   const droneAbility = chassisAbilities.find((a) => a.drone)
   const droneEntity = droneAbility?.drone
     ? SalvageUnionReference.findIn('drones', (d) => d.name === droneAbility.drone)
@@ -56,11 +64,12 @@ export function ReferenceEntityChassisAbilitiesContent({
   return (
     <div className={cn('mt-4', spacing.smallSpaceYClass)}>
       {chassisAbilities.map((ability) => (
-        <NestedChassisAbility
-          compact={compact}
+        <ReferenceEntityDisplay
+          compact
           key={ability.id}
-          data={ability}
+          data={ability as unknown as SURefEntity}
           chassisName={chassisName}
+          hostTone={abilityHostTone}
         />
       ))}
       {droneEntity && !hideDrone && (
