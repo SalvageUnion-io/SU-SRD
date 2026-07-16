@@ -1,5 +1,9 @@
 import type { SURefEntity, SURefMetaEntity, SURefObjectPattern } from 'salvageunion-reference'
-import { SalvageUnionReference, resolveGrantedEntities } from 'salvageunion-reference'
+import {
+  SalvageUnionReference,
+  getChassisAbilities,
+  resolveGrantedEntities,
+} from 'salvageunion-reference'
 
 /** A single embedded chassis-ability object may name a drone configuration. */
 type ChassisAbilityLike = { drone?: unknown }
@@ -135,4 +139,74 @@ export function resolvePatternGroups(pattern: SURefObjectPattern): NEWNestedGrou
     )
 
   return [...groups.entries()].map(([label, entities]) => ({ label, entities }))
+}
+
+/** A drone plus its resolved systems/modules loadout — rendered as a compact
+ * drone card with listing rows for its systems + modules. */
+export type NEWDroneLoadout = {
+  drone: SURefEntity
+  systems: SURefEntity[]
+  modules: SURefEntity[]
+}
+
+function resolveLoadout(
+  drone: SURefEntity,
+  systemNames: string[],
+  moduleNames: string[]
+): NEWDroneLoadout {
+  const systems = systemNames.flatMap((name) => {
+    const found = SalvageUnionReference.findIn('systems', (s) => s.name === name)
+    return found ? [found as SURefEntity] : []
+  })
+  const modules = moduleNames.flatMap((name) => {
+    const found = SalvageUnionReference.findIn('modules', (m) => m.name === name)
+    return found ? [found as SURefEntity] : []
+  })
+  return { drone, systems, modules }
+}
+
+/** The drone a CHASSIS controls — named by a chassis ability's `drone` field;
+ * its systems/modules come from the drone entity's own loadout. */
+export function resolveChassisDrone(entity: SURefMetaEntity): NEWDroneLoadout | undefined {
+  const abilities = getChassisAbilities(entity) ?? []
+  const droneName = abilities
+    .map((ability) => (ability as { drone?: unknown }).drone)
+    .find((d): d is string => typeof d === 'string')
+  if (!droneName) return undefined
+  const drone = SalvageUnionReference.findIn('drones', (d) => d.name === droneName)
+  if (!drone) return undefined
+  const droneSystems = Array.isArray((drone as { systems?: unknown }).systems)
+    ? (drone as { systems: string[] }).systems
+    : []
+  const droneModules = Array.isArray((drone as { modules?: unknown }).modules)
+    ? (drone as { modules: string[] }).modules
+    : []
+  return resolveLoadout(drone as SURefEntity, droneSystems, droneModules)
+}
+
+/** The drone a PATTERN specifies — named + loadout come from `pattern.drones[0]`. */
+export function resolvePatternDrone(pattern: SURefObjectPattern): NEWDroneLoadout | undefined {
+  const config = pattern.drones?.[0]
+  if (!config) return undefined
+  const drone = SalvageUnionReference.findIn('drones', (d) => d.name === config.name)
+  if (!drone) return undefined
+  return resolveLoadout(drone as SURefEntity, config.systems ?? [], config.modules ?? [])
+}
+
+/** A drone's OWN systems/modules loadout (from its `systems`/`modules` name
+ * arrays) — used when a drone card renders standalone (no pattern override). */
+export function resolveDroneOwnLoadout(entity: SURefMetaEntity): {
+  systems: SURefEntity[]
+  modules: SURefEntity[]
+} {
+  const names = (key: 'systems' | 'modules'): string[] => {
+    const value = (entity as Record<string, unknown>)[key]
+    return Array.isArray(value) ? value.filter((n): n is string => typeof n === 'string') : []
+  }
+  const { systems, modules } = resolveLoadout(
+    entity as SURefEntity,
+    names('systems'),
+    names('modules')
+  )
+  return { systems, modules }
 }

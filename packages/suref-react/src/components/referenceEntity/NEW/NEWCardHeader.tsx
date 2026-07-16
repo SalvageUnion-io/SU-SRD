@@ -18,6 +18,8 @@ type NEWCardHeaderProps = {
   /** Top-right flavor slot — white hint text (an ability's `description`), shown
    * when the entity has no numeric vitals occupying the axis. */
   rightContent?: ReactNode
+  /** Listing mode: header stats render as horizontal cells (up to ~2 rows). */
+  listing?: boolean
   compact?: boolean
 }
 
@@ -37,6 +39,7 @@ export function NEWCardHeader({
   titleClass,
   stats,
   rightContent,
+  listing = false,
   compact = false,
 }: NEWCardHeaderProps) {
   const accent = accentSurface(bg, bgColor)
@@ -44,8 +47,12 @@ export function NEWCardHeader({
   return (
     <div
       className={cn(
+        // A FIRM minimum gap between the title and the stat/hint cluster so
+        // they can never collide, without being so wide the stats read detached.
         'flex w-full min-w-0 items-center justify-between gap-4',
-        compact ? 'gap-3 px-3 py-2' : 'px-4 py-3.5',
+        // px-3 (both sizes) so the title's left edge lines up with the seam
+        // stamp + sub-header content (all at border 3px + px-3 = 15px).
+        compact ? 'gap-3 px-3 py-1.5' : 'px-3 py-3',
         accent.className
       )}
       style={accent.style}
@@ -56,7 +63,7 @@ export function NEWCardHeader({
         className={cn(
           // `self-center` overrides the pseudoheader variant's built-in
           // `self-start` so the name-tab truly centers against the band height.
-          'w-fit self-center font-cond font-bold uppercase leading-none tracking-caps-tight',
+          'w-fit shrink-0 self-center font-cond font-bold uppercase leading-none tracking-caps-tight',
           titleClass
         )}
       >
@@ -65,7 +72,7 @@ export function NEWCardHeader({
       {(rightContent || stats.length > 0) && (
         <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
           {rightContent}
-          <NEWStatBox stats={stats} compact={compact} />
+          <NEWStatBox stats={stats} compact={compact} horizontal={listing} />
         </div>
       )}
     </div>
