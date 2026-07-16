@@ -16,7 +16,7 @@ import {
   getReferenceEntitySpacing,
 } from './referenceEntityDisplayTypes'
 import type { PatternOverrideData, ReferenceEntityHideConfig } from './referenceEntityDisplayTypes'
-import { DataValueDisplayView } from '../DataValueDisplayView'
+import { StatDisplay } from '../../shared/StatDisplay'
 import { SectionSeparator } from './SectionSeparator'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 
@@ -100,13 +100,24 @@ export function useChassisPatternConfig(
   const subtitleExtra = (
     <>
       {isLegalStartingMech && (
-        <DataValueDisplayView
-          item={{ label: 'Legal Starting Pattern', type: 'meta' }}
+        <StatDisplay
+          orientation="horizontal"
+          label="Legal Starting Pattern"
           compact={compact}
+          inline={false}
+          bgColor="var(--color-su-rust)"
+          textColor="var(--color-paper)"
+          borderColor="var(--color-su-rust)"
         />
       )}
       {chassisName && (
-        <DataValueDisplayView item={{ label: 'Chassis', value: chassisName }} compact={compact} />
+        <StatDisplay
+          orientation="horizontal"
+          label="Chassis"
+          value={chassisName}
+          compact={compact}
+          inline={false}
+        />
       )}
     </>
   )
