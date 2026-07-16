@@ -109,9 +109,13 @@ function NEWChoiceOption({
   )
   // Always a `button[aria-pressed]` so the chosen state stays queryable in BOTH
   // modes (the read-only snapshot / share-link viewer needs to see which option
-  // was chosen). Read-only just makes it inert — no toggle handler, default
-  // cursor — while keeping the same dim-until-chosen visual.
-  const wrap = cn('block rounded-card transition-opacity duration-150', !chosen && 'opacity-45')
+  // was chosen). Read-only is inert — no toggle handler, default cursor — and
+  // renders every option SOLID (the dim-until-chosen cue is an editable-only
+  // affordance; a static readout shows all options at full strength).
+  const wrap = cn(
+    'block rounded-card transition-opacity duration-150',
+    !readOnly && !chosen && 'opacity-45'
+  )
   return (
     <button
       type="button"
