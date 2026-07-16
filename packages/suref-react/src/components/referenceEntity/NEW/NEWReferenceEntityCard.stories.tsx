@@ -2,23 +2,11 @@ import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from '../ReferenceEntityDisplay/index'
-import {
-  EntityDetailLinkProvider,
-  EntityHrefProvider,
-} from '../ReferenceEntityDisplay/entityHrefContext'
 import { NEWReferenceEntityCard } from './NEWReferenceEntityCard'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'NEW/Reference Entity Card',
-}
-
-/** OLD-vs-NEW view selector (a Ladle radio control on every story). */
-type ViewMode = 'both' | 'old' | 'new'
-
-const viewArgTypes = {
-  view: { control: { type: 'radio' as const }, options: ['both', 'old', 'new'] as ViewMode[] },
 }
 
 /**
@@ -31,9 +19,9 @@ function pick<T>(list: T[], predicate: (item: T) => boolean, schemaName: string)
   return found
 }
 
-// Real SRD entities driving the OLD-vs-NEW comparison — one per schema in the
-// brief. Each falls back to the schema's first entry if the named lookup ever
-// comes up empty (data drift), so the story never renders blank.
+// Real SRD entities — one per schema in the brief. Each falls back to the
+// schema's first entry if the named lookup ever comes up empty (data drift), so
+// the story never renders blank.
 const ability = pick(
   SalvageUnionReference.Abilities.all(),
   (a) => a.name === 'Auto-Turret',
@@ -79,97 +67,30 @@ const surveyorPattern = pick(
   'Little Sestra pattern'
 )
 
-/** The legacy `ReferenceEntityDisplay`, wired exactly like the suref-web island. */
-function OldCard({ data }: { data: SURefEntity }): ReactNode {
-  return (
-    <EntityHrefProvider value={() => '#'}>
-      <EntityDetailLinkProvider value={true}>
-        <ReferenceEntityDisplay data={data} />
-      </EntityDetailLinkProvider>
-    </EntityHrefProvider>
-  )
-}
-
-/**
- * `Compare` — one entity under the `view` control:
- * - `both` — legacy OLD stacked ABOVE the NEW card (the default comparison).
- * - `old`  — only the legacy `ReferenceEntityDisplay`.
- * - `new`  — only `NEWReferenceEntityCard`.
- */
-function Compare({ entity, view }: { entity: SURefEntity; view: ViewMode }): ReactNode {
+/** One entity rendered as the canonical card. */
+function One({ entity }: { entity: SURefEntity }): ReactNode {
   return (
     <div className="flex flex-col gap-4 bg-paper p-4">
-      {(view === 'both' || view === 'old') && (
-        <div className="flex flex-col gap-1.5">
-          <code className="font-mono text-nano text-ink-2">OLD</code>
-          <OldCard data={entity} />
-        </div>
-      )}
-      {(view === 'both' || view === 'new') && (
-        <div className="flex flex-col gap-1.5">
-          <code className="font-mono text-nano text-ink-2">NEW</code>
-          <NEWReferenceEntityCard data={entity} />
-        </div>
-      )}
+      <NEWReferenceEntityCard data={entity} />
     </div>
   )
 }
 
-export const AbilityCard: Story<{ view: ViewMode }> = ({ view }) => (
-  <Compare entity={ability} view={view} />
-)
-AbilityCard.args = { view: 'both' }
-AbilityCard.argTypes = viewArgTypes
+export const AbilityCard: Story = () => <One entity={ability} />
+export const SystemCard: Story = () => <One entity={system} />
+export const ChassisCard: Story = () => <One entity={chassis} />
+export const BioTitanCard: Story = () => <One entity={bioTitan} />
+export const CrawlerCard: Story = () => <One entity={crawler} />
+export const EquipmentCard: Story = () => <One entity={equipment} />
+export const CrawlerBayCard: Story = () => <One entity={crawlerBay} />
 
-export const SystemCard: Story<{ view: ViewMode }> = ({ view }) => (
-  <Compare entity={system} view={view} />
-)
-SystemCard.args = { view: 'both' }
-SystemCard.argTypes = viewArgTypes
-
-export const ChassisCard: Story<{ view: ViewMode }> = ({ view }) => (
-  <Compare entity={chassis} view={view} />
-)
-ChassisCard.args = { view: 'both' }
-ChassisCard.argTypes = viewArgTypes
-
-export const BioTitanCard: Story<{ view: ViewMode }> = ({ view }) => (
-  <Compare entity={bioTitan} view={view} />
-)
-BioTitanCard.args = { view: 'both' }
-BioTitanCard.argTypes = viewArgTypes
-
-export const CrawlerCard: Story<{ view: ViewMode }> = ({ view }) => (
-  <Compare entity={crawler} view={view} />
-)
-CrawlerCard.args = { view: 'both' }
-CrawlerCard.argTypes = viewArgTypes
-
-export const EquipmentCard: Story<{ view: ViewMode }> = ({ view }) => (
-  <Compare entity={equipment} view={view} />
-)
-EquipmentCard.args = { view: 'both' }
-EquipmentCard.argTypes = viewArgTypes
-
-export const CrawlerBayCard: Story<{ view: ViewMode }> = ({ view }) => (
-  <Compare entity={crawlerBay} view={view} />
-)
-CrawlerBayCard.args = { view: 'both' }
-CrawlerBayCard.argTypes = viewArgTypes
-
-export const Gallery: Story<{ view: ViewMode }> = ({ view }) => (
-  <div className="flex flex-col gap-10">
-    <Compare entity={ability} view={view} />
-    <Compare entity={system} view={view} />
-    <Compare entity={chassis} view={view} />
-    <Compare entity={bioTitan} view={view} />
-    <Compare entity={crawler} view={view} />
-    <Compare entity={equipment} view={view} />
-    <Compare entity={crawlerBay} view={view} />
+export const Gallery: Story = () => (
+  <div className="flex flex-col gap-10 bg-paper p-4">
+    {[ability, system, chassis, bioTitan, crawler, equipment, crawlerBay].map((entity) => (
+      <NEWReferenceEntityCard key={('id' in entity && entity.id) || entity.name} data={entity} />
+    ))}
   </div>
 )
-Gallery.args = { view: 'both' }
-Gallery.argTypes = viewArgTypes
 
 /**
  * PATTERN rendering — the pattern is the subject: the chassis name ("Little
@@ -180,7 +101,7 @@ Gallery.argTypes = viewArgTypes
 export const PatternCard: Story = () => (
   <div className="flex flex-col gap-4 bg-paper p-4">
     <code className="font-mono text-nano text-ink-2">
-      NEW — {chassis.name} · {surveyorPattern.name}
+      {chassis.name} · {surveyorPattern.name}
     </code>
     <NEWReferenceEntityCard data={chassis} pattern={surveyorPattern} />
   </div>

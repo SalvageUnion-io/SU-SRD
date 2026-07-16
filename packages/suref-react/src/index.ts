@@ -82,13 +82,7 @@ export { ReferenceEntityCardSkeleton } from './components/skeleton/ReferenceEnti
 export { Skeleton } from './components/skeleton/Skeleton'
 export type { SkeletonMode } from './components/skeleton/Skeleton'
 
-// Guide display system
-export type {
-  GuideStepsInteractiveConfig,
-  GuideStepRollState,
-} from './components/referenceEntity/GuideStepsDisplay'
 export { BlockContentRendererView } from './components/referenceEntity/BlockContentRendererView'
-export { matchesFilter, enrichForFiltering } from './components/referenceEntity/guideStepsHelpers'
 export {
   borderColorFromHeaderBg,
   calculateBackgroundColor,
