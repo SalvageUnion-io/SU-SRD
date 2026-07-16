@@ -57,6 +57,7 @@ export {
   getParagraphString,
   replaceChassisPlaceholder,
   parseContentBlockString,
+  resolveDataValueForTechLevel,
 } from './contentBlockHelpers.js'
 
 export {
