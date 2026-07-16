@@ -189,3 +189,24 @@ export const BayTally: Story = () => (
     </Cell>
   </Gallery>
 )
+
+/** How a full mech's stats read as a compact header cluster — always TWO rows,
+ *  columns = ceil(count/2). Eight stats → 2 rows of 4 (the top-right axis on a
+ *  compact/nested card). Driven by the real chassis fixture. */
+export const CompactHeaderCluster: Story = () => (
+  <Gallery rule="A full mech's stats as the compact header cluster — always TWO rows, columns = ceil(count/2). Eight stats → 2 rows of 4 (the top-right axis on a compact/nested card).">
+    <div
+      className="grid w-fit justify-items-end gap-1"
+      style={{ gridTemplateColumns: 'repeat(4, max-content)' }}
+    >
+      <StatDisplay orientation="horizontal" label="TL" value={tl} compact />
+      <StatDisplay orientation="horizontal" label="SP" value={sp} compact />
+      <StatDisplay orientation="horizontal" label="EP" value={ep} compact />
+      <StatDisplay orientation="horizontal" label="SV" value={chassis?.salvageValue ?? 2} compact />
+      <StatDisplay orientation="horizontal" label="Sys" value={chassis?.systemSlots ?? 7} compact />
+      <StatDisplay orientation="horizontal" label="Mod" value={chassis?.moduleSlots ?? 2} compact />
+      <StatDisplay orientation="horizontal" label="Cargo" value={cargo} compact />
+      <StatDisplay orientation="horizontal" label="Heat" value={heat} compact />
+    </div>
+  </Gallery>
+)
