@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { Trash2 } from 'lucide-react'
 import { cn } from '../../utils/cn'
+import { Badge } from '../chrome/Badge'
 import { Btn } from '../chrome/Btn'
 import { btnVariants } from '../chrome/btnVariants'
 import { StatDisplay } from './StatDisplay'
@@ -41,7 +42,8 @@ type EntityRowProps = {
    * (see the stats-render-through-StatDisplay law, ruleset §3).
    */
   stats?: EntityRowStat[]
-  /** Optional muted prose caption beside the stats (e.g. a class/role line). */
+  /** Optional class/role label beside the stats — rendered as an ontology-toned
+   * Badge (pilot → orange, mech → green, crawler → pink), never plain prose. */
   meta?: ReactNode
   /** Destination for the View link. */
   sheetHref: string
@@ -104,7 +106,14 @@ export function EntityRow({
           </span>
           {(meta || (stats && stats.length > 0)) && (
             <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-              {meta && <span className="truncate font-body text-note text-wk-muted">{meta}</span>}
+              {/* Subheader info is only stats or toned badges — the class/role
+                  line is a badge keyed to the entity's ontology tone (pilot →
+                  orange, mech → green, crawler → pink). */}
+              {meta && (
+                <Badge surface="tone" tone={entityType} className="max-w-full truncate">
+                  {meta}
+                </Badge>
+              )}
               {stats?.map((stat) => (
                 <StatDisplay
                   key={String(stat.label)}
