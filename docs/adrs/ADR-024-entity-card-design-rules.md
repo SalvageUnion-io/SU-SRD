@@ -46,13 +46,25 @@ A `choice` **content-block marker** (`ContentBlock.choiceId`, schema in
 the renderer walks content and drops the choice group at its marker. Prefer
 changing the _data shape_ over special-casing the renderer.
 
+**Choice placement splits by kind:**
+
+- **Freeform choices** (`choiceType: "freeform"` — a simple free-text field, e.g.
+  a companion's Name / a crawler's Keepsake / Motto) are treated as **simple
+  inputs**. In **read-only** they surface as **`Choose | <name>` sub-header cells**
+  (a `StatDisplay` hint that there's a field to fill), never a body block. In
+  **editable** mode they stay in the body as a real text input (you type into it).
+- **Multiple-choice choices** (a `rollTable` / `choiceOptions` / `schema` /
+  `schemaEntities` / `constraints.scalesWithField` — "choose from the list below")
+  always render **inline in the body**, in both modes.
+
 - **Read-only choices render SOLID** — every option at full strength (a static,
   readable list). The **dim-until-chosen** affordance is **editable-only**: an
   unchosen option is dimmed, the chosen option un-dims and gains a **"Chosen"
   stampseal** (no rust selection ring). Options are always a
   `button[aria-pressed]` so the chosen state stays queryable in both modes
   (read-only is inert).
-- Demo: `Compositions/Reference Entity Write Layer` → **ChoiceEquipment**.
+- Demo: `Compositions/Reference Entity Write Layer` → **ChoiceEquipment**
+  (multiple-choice) / **FreeformChoices** (freeform → sub-header).
 
 ### 4. The stat atom has exactly two modes: Normal and Compact
 

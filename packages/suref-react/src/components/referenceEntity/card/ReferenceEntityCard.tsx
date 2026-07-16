@@ -579,11 +579,29 @@ export function ReferenceEntityCard({
       />
     ) : undefined
 
-  // SUB-HEADER cells — action range/damage/traits, else entity traits + the
-  // CHOICES render in the BODY (read-only static, editable choosable) — never as
-  // sub-header slots — so they read like every other nested thing.
+  // SUB-HEADER cells — action range/damage/traits, then entity traits, then any
+  // FREEFORM (simple text input) choices.
+  //
+  // CHOICE PLACEMENT splits by kind:
+  //   • FREEFORM (a free-text field, e.g. Name / Keepsake) is a "simple input".
+  //     In READ-ONLY it surfaces here as a "Choose | <name>" sub-header cell — a
+  //     hint that there's a field to fill — and NEVER as a body block. In EDITABLE
+  //     mode it stays in the body as a real text input (you have to type into it).
+  //   • MULTIPLE-CHOICE (rollTable / choiceOptions / schema / scalesWithField —
+  //     "choose from the list below") always renders inline in the BODY, both
+  //     modes (read-only static, editable choosable).
   const editableChoices = !!onSelectionChange
-  const choiceCells: EntityCardSubHeaderCell[] = []
+  const isFreeformChoice = (choice: SURefObjectChoice): boolean => choice.choiceType === 'freeform'
+  // Read-only-only: editable exposes the real inputs in the body instead, and
+  // `hide.choices` (e.g. a crawler bay rendering its crew facts as external
+  // IdentityFields) suppresses the choice in EVERY form — body and sub-header.
+  const subHeaderChoices =
+    editableChoices || hide?.choices ? [] : entityChoices.filter(isFreeformChoice)
+  const choiceCells: EntityCardSubHeaderCell[] = subHeaderChoices.map((choice) => ({
+    key: `choice-${choice.id}`,
+    label: 'Choose',
+    value: choice.name,
+  }))
   // A folded single action surfaces its type/range/damage/traits into the
   // sub-header; entity traits/choices follow, deduped so a shared trait (e.g.
   // "Explosive") isn't listed twice.
@@ -902,12 +920,13 @@ export function ReferenceEntityCard({
   )
 
   // The interleave walk runs in BOTH modes — read-only renders the same choice
-  // cards, static (readable); editable makes them selectable. Choices are never
-  // sub-header slots — they live in the body, like every other nested thing.
+  // cards, static (readable); editable makes them selectable. FREEFORM choices
+  // already shown as read-only sub-header cells are pre-marked rendered, so the
+  // walk skips them at both their marker and the trailing fallback.
   const bodyNodes: ReactNode[] = []
   {
     const choiceById = new Map(entityChoices.map((c) => [c.id, c] as const))
-    const rendered = new Set<string>()
+    const rendered = new Set<string>(subHeaderChoices.map((choice) => choice.id))
     let buffer: SURefObjectContentBlock[] = []
     let seg = 0
     const flush = () => {
