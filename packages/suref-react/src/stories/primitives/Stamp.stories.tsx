@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react'
-import type { ReactNode } from 'react'
+import { Caption } from '../_harness'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { Stamp } from '../../components/chrome/Stamp'
@@ -12,10 +12,6 @@ export default {
 const chassis = SalvageUnionReference.Chassis.all()[0]
 const chassisName = chassis?.name ?? 'Chassis'
 const tl = chassis?.techLevel ?? 1
-
-const Caption = ({ children }: { children: ReactNode }) => (
-  <div className="mb-1 font-cond text-label uppercase tracking-caps text-wk-muted">{children}</div>
-)
 
 /** surface — the plate the stamp sits on: on-ink / inverse / on-tone. */
 export const Surfaces: Story = () => (
