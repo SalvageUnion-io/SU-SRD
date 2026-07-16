@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { Inset } from './Inset'
 import { StatDisplay } from './StatDisplay'
 import { Btn } from '../chrome/Btn'
@@ -9,6 +10,11 @@ import { VitalGauge } from '../stat/VitalGauge'
 export default {
   title: 'Containers/Inset',
 }
+
+// A real Crawler type names the economy inset. The crew lead's name / keepsake /
+// motto are freeform player content (no reference entity backs a crew lead), so
+// they stay evocative literals — the SRD crew role + tags are real terms.
+const crawlerName = SalvageUnionReference.Crawlers.all()[0]?.name ?? 'Union Crawler'
 
 // Each story frames the primitive with the rule it embodies, then renders the
 // Inset the way ITUN actually mounts it — inside a parent card's expand slot.
@@ -83,11 +89,13 @@ export const CrewLead: Story = () => (
  * colour (Btn `primary`); the read-only Tech / Crew lozenges do not.
  */
 export const Economy: Story = () => (
-  <Stage rule="The crawler economy frame as an Inset. SP VitalGauge (Hamlet, SP 20/20) over the Tech/Upkeep/Upgrade/Crew lozenge grid. Rust lands ONLY on the true action controls — Pay and Fund.">
+  <Stage
+    rule={`The crawler economy frame as an Inset. SP VitalGauge (${crawlerName}, SP 20/20) over the Tech/Upkeep/Upgrade/Crew lozenge grid. Rust lands ONLY on the true action controls — Pay and Fund.`}
+  >
     {/* sheet--crawler resolves --tone / --tone-deep so the gauge fills pink,
         exactly as a live crawler sheet mounts it. */}
     <div className="sheet--crawler">
-      <Inset tone="crawler" tag="Econ" label="Hamlet" bodyClassName="flex flex-col gap-3">
+      <Inset tone="crawler" tag="Econ" label={crawlerName} bodyClassName="flex flex-col gap-3">
         <VitalGauge label="SP" value={20} max={20} caption={['Current', 'Max']} />
         <div className="grid grid-cols-[repeat(auto-fit,minmax(92px,1fr))] gap-2.5">
           <Loz label="Tech" value={1} />
