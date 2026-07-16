@@ -9,7 +9,7 @@ export default {
 const trigger = 'rounded-card bg-ink px-4 py-2 font-cond uppercase tracking-caps-tight text-paper'
 
 /** Sides, rich content, and delay — every Tooltip mode on one page (hover each). */
-export const Variants: Story = () => (
+export const Default: Story = () => (
   <div className="flex flex-col gap-6 bg-paper p-8 text-ink">
     <p className="max-w-2xl font-mono text-xs leading-relaxed text-ink-2">
       Hover a trigger. side positions the tip (top / right / bottom / left); content accepts rich

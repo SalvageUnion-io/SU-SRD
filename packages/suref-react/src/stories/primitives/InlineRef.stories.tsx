@@ -5,7 +5,7 @@ import { InlineRef } from '../../components/chrome/InlineRef'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Atoms/InlineRef',
+  title: 'Atoms/Inline Ref',
 }
 
 // A real SRD system drives the resolved reference + its slug href.
@@ -18,7 +18,7 @@ const systemSlug = systemName
 const systemHref = `/systems/${systemSlug}`
 
 /** Resolved vs unresolved references, in prose and standalone — on one page. */
-export const Variants: Story = () => (
+export const Default: Story = () => (
   <div className="flex flex-col gap-5 bg-paper p-5 text-ink">
     <p className="max-w-2xl font-mono text-xs leading-relaxed text-ink-2">
       An in-prose entity reference: resolved (rust border, a real keyboard-reachable link) or

@@ -6,7 +6,7 @@ import { VitalGauge } from '../../components/stat/VitalGauge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Atoms/VitalGauge',
+  title: 'Atoms/Vital Gauge',
 }
 
 const noop = () => {}
@@ -28,7 +28,7 @@ function Row({ label, skin, children }: { label: string; skin: string; children:
 }
 
 /** Every VitalGauge variant on one page — read-only through overridden-max. */
-export const Variants: Story = () => (
+export const Default: Story = () => (
   <div className="flex flex-col gap-5 bg-paper p-5 font-mono text-ink">
     <p className="max-w-2xl text-xs leading-relaxed text-ink-2">
       The segmented current/max gauge. readOnly is a static read-out; onChange makes segments

@@ -3,7 +3,7 @@ import { EntityRow } from './EntityRow'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/EntityRow',
+  title: 'Compositions/Entity Row',
 }
 
 /**
@@ -12,7 +12,7 @@ export default {
  * Ace (HP 16), the Mule chassis on its Hauler pattern (TL 1 · SP 12), and the
  * Hamlet crawler (TL 1 · SP 20).
  */
-export const Roster: Story = () => (
+export const Default: Story = () => (
   <div className="max-w-md bg-paper p-5">
     <ul className="flex list-none flex-col gap-2.5">
       <li>

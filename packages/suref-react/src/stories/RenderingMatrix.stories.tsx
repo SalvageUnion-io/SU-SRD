@@ -144,7 +144,7 @@ const rows: MatrixRow[] = [
   },
 ]
 
-export const Matrix: Story = () => (
+export const Default: Story = () => (
   <div className="bg-paper p-6 font-mono text-ink">
     <Stamp size="lg" as="span">
       Rendering Matrix

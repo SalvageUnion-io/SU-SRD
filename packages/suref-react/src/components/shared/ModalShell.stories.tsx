@@ -8,7 +8,7 @@ import { Text } from '../base/Text'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Modal',
+  title: 'Containers/Modal',
 }
 
 const chassis = SalvageUnionReference.Chassis.all()[0]
@@ -42,7 +42,7 @@ function Trigger({ headerBg, label }: { headerBg?: string; label: string }) {
 }
 
 /** The dialog shell — default vs rust header. Click a trigger; Esc / backdrop / × close it. */
-export const Variants: Story = () => (
+export const Default: Story = () => (
   <div className="flex flex-col gap-4 bg-paper p-5 text-ink">
     <p className="max-w-2xl font-mono text-xs leading-relaxed text-ink-2">
       A centered dialog on the DisplayCard shell. headerBg tones the header (bg-su-rust uses the

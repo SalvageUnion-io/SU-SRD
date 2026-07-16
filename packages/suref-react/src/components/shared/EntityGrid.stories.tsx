@@ -7,7 +7,7 @@ import { Text } from '../base/Text'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/EntityGrid',
+  title: 'Compositions/Entity Grid',
 }
 
 /** Header for a generic entity card — abstract, so the grid + economy read as the subject. */
@@ -50,7 +50,7 @@ const railFootMeta = [
  * rows. Mode 'card' folds the economy into the card foot; mode 'rail' puts the
  * 152px meta + action callout beside the card.
  */
-export const TwoColumn: Story = () => (
+export const Default: Story = () => (
   <Gallery rule="EntityGrid: 1 column on mobile, max 2 on desktop, equal-height rows (26px row gap / 18px column gap). Left row folds footMeta into the card foot ('card'); right row breaks the economy out into a 152px rail callout ('rail') — real .50 Cal Machine Gun activation cost, EP 2 / +HEAT 1, above stacked action buttons. Rust rides only the Use control.">
     <EntityGrid>
       <EntityGridRow footMeta={[{ label: 'SP', value: 12 }]}>
