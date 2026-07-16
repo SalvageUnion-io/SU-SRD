@@ -1,12 +1,12 @@
 import { describe, test, expect, afterEach } from 'bun:test'
 import { render, screen, cleanup } from '@testing-library/react'
-import { StatDisplay } from '../StatDisplay'
+import { Stat } from '../Stat'
 
-describe('StatDisplay', () => {
+describe('Stat', () => {
   afterEach(cleanup)
 
   test('default colors are text-su-black on bg-paper (16:1 contrast, WCAG AAA)', () => {
-    render(<StatDisplay label="HP" value={10} />)
+    render(<Stat label="HP" value={10} />)
     const group = screen.getByRole('group')
     expect(group).toBeTruthy()
     // The value box uses bg-paper and text-su-black by default,
@@ -20,7 +20,7 @@ describe('StatDisplay', () => {
     // When onClick is present but the stat is disabled, the surrounding group
     // gets opacity-60 so keyboard/screen-reader users see a visible disabled cue
     // while the 16:1 base contrast remains above AA (4.5:1) at ~9.6:1 effective.
-    const { getByRole } = render(<StatDisplay label="HP" value={10} onClick={() => {}} disabled />)
+    const { getByRole } = render(<Stat label="HP" value={10} onClick={() => {}} disabled />)
     const group = getByRole('group')
     expect(group.className).toContain('opacity-60')
     const button = getByRole('button')
@@ -29,7 +29,7 @@ describe('StatDisplay', () => {
   })
 
   test('interactive stat has focus-visible outline for keyboard users', () => {
-    const { getByRole } = render(<StatDisplay label="HP" value={10} onClick={() => {}} />)
+    const { getByRole } = render(<Stat label="HP" value={10} onClick={() => {}} />)
     const button = getByRole('button')
     expect(button.className).toContain('focus-visible:outline')
   })

@@ -40,7 +40,7 @@
  * - CONTENT_BUNDLE — every schema with its own `actions` field renders
  *   `ActionCard`, which needs `actions` (+ ALWAYS_CORE's `roll-tables`,
  *   already covered) resolved. `classes` entities additionally resolve
- *   their full ability tree via `ClassAbilityTreeDisplay` ->
+ *   their full ability tree via `ClassAbilityTree` ->
  *   `SalvageUnionReference.Abilities.all()` (unconditional LazyModel
  *   access), and `abilities` can `grant` equipment/npcs/vehicles
  *   (ReferenceEntityGrants). Simplest correct answer: give every
@@ -65,7 +65,7 @@
  *   "any route can render any cross-referenced entity" situation ADR-005
  *   describes for ITUN. Not safely narrowable; kept at `'all'`.
  * - Every other schema (no `actions` field, not chassis/classes/factions/
- *   guides) never reaches `ActionCard`/`ClassAbilityTreeDisplay`/chassis-
+ *   guides) never reaches `ActionCard`/`ClassAbilityTree`/chassis-
  *   pattern resolution, so it only needs ALWAYS_CORE. => LEAF schemas.
  */
 

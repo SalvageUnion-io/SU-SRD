@@ -1,14 +1,11 @@
 import { cn } from '../../utils/cn'
 
-type ReferenceEntityCardSkeletonProps = {
+type CardSkeletonProps = {
   compact?: boolean
   className?: string
 }
 
-export function ReferenceEntityCardSkeleton({
-  compact = false,
-  className,
-}: ReferenceEntityCardSkeletonProps) {
+export function CardSkeleton({ compact = false, className }: CardSkeletonProps) {
   return (
     <div
       role="status"

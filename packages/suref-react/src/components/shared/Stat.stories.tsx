@@ -1,11 +1,11 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { StatDisplay } from './StatDisplay'
+import { Stat } from './Stat'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Atoms/Stat Display',
+  title: 'Atoms/Stat',
 }
 
 // Real SRD content drives every anatomy below (reference data is preloaded by
@@ -48,23 +48,16 @@ function Gallery({ rule, children }: { rule: string; children: ReactNode }) {
 export const Anatomies: Story = () => (
   <Gallery rule="One component, TWO anatomies — the centred value box (default) and the horizontal [label | value] readout. No pip mode: use VitalGauge for a fill bar, BayStatus for a bay tally.">
     <Cell label="default → box">
-      <StatDisplay label="SP" value={sp} />
+      <Stat label="SP" value={sp} />
     </Cell>
     <Cell label='mode="edit" → box + steppers'>
-      <StatDisplay label="EP" value={Math.ceil(ep * 0.5)} max={ep} mode="edit" onChange={noop} />
+      <Stat label="EP" value={Math.ceil(ep * 0.5)} max={ep} mode="edit" onChange={noop} />
     </Cell>
     <Cell label='orientation="horizontal"'>
-      <StatDisplay label="RANGE" value={rangeLabel} orientation="horizontal" />
+      <Stat label="RANGE" value={rangeLabel} orientation="horizontal" />
     </Cell>
     <Cell label='horizontal + mode="edit"'>
-      <StatDisplay
-        label="HP"
-        value={7}
-        max={10}
-        orientation="horizontal"
-        mode="edit"
-        onChange={noop}
-      />
+      <Stat label="HP" value={7} max={10} orientation="horizontal" mode="edit" onChange={noop} />
     </Cell>
   </Gallery>
 )
@@ -73,31 +66,31 @@ export const Anatomies: Story = () => (
 export const ValueBox: Story = () => (
   <Gallery rule="The centred value box (default anatomy). value / max; mode='edit' grows the +/- stepper column (the former StatControl).">
     <Cell label="read">
-      <StatDisplay label="SP" value={sp} />
+      <Stat label="SP" value={sp} />
     </Cell>
     <Cell label="value / max">
-      <StatDisplay label="SP" value={Math.ceil(sp * 0.5)} max={sp} />
+      <Stat label="SP" value={Math.ceil(sp * 0.5)} max={sp} />
     </Cell>
     <Cell label="compact">
-      <StatDisplay label="SP" value={sp} compact />
+      <Stat label="SP" value={sp} compact />
     </Cell>
     <Cell label="disabled">
-      <StatDisplay label="SP" value={sp} disabled />
+      <Stat label="SP" value={sp} disabled />
     </Cell>
     <Cell label="inverse">
-      <StatDisplay label="SP" value={sp} inverse />
+      <Stat label="SP" value={sp} inverse />
     </Cell>
     <Cell label="onClick + bottomLabel">
-      <StatDisplay label="SP" value={sp} onClick={noop} bottomLabel="MAX" />
+      <Stat label="SP" value={sp} onClick={noop} bottomLabel="MAX" />
     </Cell>
     <Cell label="isOverMax">
-      <StatDisplay label="SP" value={sp + 2} max={sp} isOverMax />
+      <Stat label="SP" value={sp + 2} max={sp} isOverMax />
     </Cell>
     <Cell label="hoverText">
-      <StatDisplay label="SP" value={sp} hoverText="Structure Points: the mech's health" />
+      <Stat label="SP" value={sp} hoverText="Structure Points: the mech's health" />
     </Cell>
     <Cell label="colour overrides">
-      <StatDisplay
+      <Stat
         label="SP"
         value={sp}
         bg="bg-su-green"
@@ -106,7 +99,7 @@ export const ValueBox: Story = () => (
       />
     </Cell>
     <Cell label='mode="edit"'>
-      <StatDisplay
+      <Stat
         label="EP"
         value={Math.ceil(ep * 0.5)}
         max={ep}
@@ -122,23 +115,16 @@ export const ValueBox: Story = () => (
 export const Horizontal: Story = () => (
   <Gallery rule="orientation='horizontal' → the black/white [label | value] readout (the former ValueDisplay). A Stat, never a badge. With mode='edit' it grows a compact +/- stepper column.">
     <Cell label="range">
-      <StatDisplay label="RANGE" value={rangeLabel} orientation="horizontal" />
+      <Stat label="RANGE" value={rangeLabel} orientation="horizontal" />
     </Cell>
     <Cell label="tech level">
-      <StatDisplay label="TL" value={tl} orientation="horizontal" />
+      <Stat label="TL" value={tl} orientation="horizontal" />
     </Cell>
     <Cell label="inverse">
-      <StatDisplay label="TRAIT" value={traitLabel} orientation="horizontal" inverse />
+      <Stat label="TRAIT" value={traitLabel} orientation="horizontal" inverse />
     </Cell>
     <Cell label='mode="edit" → + steppers'>
-      <StatDisplay
-        label="HP"
-        value={7}
-        max={10}
-        orientation="horizontal"
-        mode="edit"
-        onChange={noop}
-      />
+      <Stat label="HP" value={7} max={10} orientation="horizontal" mode="edit" onChange={noop} />
     </Cell>
   </Gallery>
 )
@@ -152,14 +138,14 @@ export const CompactHeaderCluster: Story = () => (
       className="grid w-fit justify-items-end gap-1"
       style={{ gridTemplateColumns: 'repeat(4, max-content)' }}
     >
-      <StatDisplay orientation="horizontal" label="TL" value={tl} compact />
-      <StatDisplay orientation="horizontal" label="SP" value={sp} compact />
-      <StatDisplay orientation="horizontal" label="EP" value={ep} compact />
-      <StatDisplay orientation="horizontal" label="SV" value={chassis?.salvageValue ?? 2} compact />
-      <StatDisplay orientation="horizontal" label="Sys" value={chassis?.systemSlots ?? 7} compact />
-      <StatDisplay orientation="horizontal" label="Mod" value={chassis?.moduleSlots ?? 2} compact />
-      <StatDisplay orientation="horizontal" label="Cargo" value={cargo} compact />
-      <StatDisplay orientation="horizontal" label="Heat" value={heat} compact />
+      <Stat orientation="horizontal" label="TL" value={tl} compact />
+      <Stat orientation="horizontal" label="SP" value={sp} compact />
+      <Stat orientation="horizontal" label="EP" value={ep} compact />
+      <Stat orientation="horizontal" label="SV" value={chassis?.salvageValue ?? 2} compact />
+      <Stat orientation="horizontal" label="Sys" value={chassis?.systemSlots ?? 7} compact />
+      <Stat orientation="horizontal" label="Mod" value={chassis?.moduleSlots ?? 2} compact />
+      <Stat orientation="horizontal" label="Cargo" value={cargo} compact />
+      <Stat orientation="horizontal" label="Heat" value={heat} compact />
     </div>
   </Gallery>
 )

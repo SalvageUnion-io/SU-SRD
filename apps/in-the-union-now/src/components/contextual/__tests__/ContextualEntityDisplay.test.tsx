@@ -3,7 +3,7 @@
  *
  * Strategy:
  * - Tests are dependency-injected through mocking suref-react's
- *   ReferenceEntityDisplayTooltip so we don't need to render the full
+ *   EntityTooltip so we don't need to render the full
  *   entity card (which has complex layout / font dependencies).
  * - We verify: correct schemaName + entityId forwarded, byName lookup,
  *   graceful fallback when entity not found.
@@ -19,11 +19,11 @@ import { ContextualEntityDisplay } from '../ContextualEntityDisplay'
 import { must } from '../../__tests__/must'
 
 // ---------------------------------------------------------------------------
-// Mock ReferenceEntityDisplayTooltip to avoid rendering the full card
+// Mock EntityTooltip to avoid rendering the full card
 // ---------------------------------------------------------------------------
 
 mock.module('suref-react', () => ({
-  ReferenceEntityDisplayTooltip: ({
+  EntityTooltip: ({
     schemaName,
     entityId,
     children,
@@ -51,7 +51,7 @@ beforeAll(async () => {
 // ---------------------------------------------------------------------------
 
 describe('ContextualEntityDisplay — byId', () => {
-  it('passes schemaName and entityId to ReferenceEntityDisplayTooltip', () => {
+  it('passes schemaName and entityId to EntityTooltip', () => {
     const allClasses = SalvageUnionReference.Classes.all()
     const cls = must(allClasses[0])
 

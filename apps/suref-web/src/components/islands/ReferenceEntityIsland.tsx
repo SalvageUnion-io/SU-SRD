@@ -3,9 +3,9 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { isAbility } from 'salvageunion-reference'
 import {
   ReferenceEntityDisplay,
-  ReferenceEntityCardSkeleton,
+  CardSkeleton,
   getClassSelections,
-  ClassAbilityTreeDisplay,
+  ClassAbilityTree,
   EntityHrefProvider,
   EntityDetailLinkProvider,
 } from 'suref-react'
@@ -59,12 +59,12 @@ export function ReferenceEntityIsland({
         schemas={preloadSchemas}
         fallback={
           <div className="mx-auto w-full max-w-6xl p-4">
-            <ReferenceEntityCardSkeleton compact={compact} />
+            <CardSkeleton compact={compact} />
           </div>
         }
       >
         <div className="mx-auto w-full max-w-6xl p-4">
-          <Suspense fallback={<ReferenceEntityCardSkeleton compact={compact} />}>
+          <Suspense fallback={<CardSkeleton compact={compact} />}>
             <EntityHrefProvider value={srdEntityHref}>
               <EntityDetailLinkProvider value={true}>
                 <ReferenceEntityDisplay
@@ -72,7 +72,7 @@ export function ReferenceEntityIsland({
                   compact={compact}
                   titleAs={titleAs}
                   afterExtraContent={
-                    classEntity ? <ClassAbilityTreeDisplay classEntity={classEntity} /> : undefined
+                    classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
                   }
                   label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
                 />

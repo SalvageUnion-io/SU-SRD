@@ -30,7 +30,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { Pill, StatDisplay } from 'suref-react'
+import { Pill, Stat } from 'suref-react'
 import type { PillTone, StatTone } from 'suref-react'
 
 import { cn } from '../../lib/utils'
@@ -220,7 +220,7 @@ export function LiveSheet({
             <span className={BARNAME_STAMP_CLASS}>{name}</span>
             {pill && <Pill tone={pill.tone}>{pill.label}</Pill>}
             {stripItems.map((item) => (
-              <StatDisplay
+              <Stat
                 key={item.key}
                 orientation="horizontal"
                 label={item.label}

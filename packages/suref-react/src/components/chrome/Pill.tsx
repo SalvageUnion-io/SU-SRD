@@ -32,7 +32,7 @@ type ChipProps = {
 /**
  * Quiet keyword / status chip — the `Badge` `quiet` preset: borderless, wk-bg-2
  * ground, fixed 22px badge height. A single keyword — a label+value readout is
- * a Stat (`StatDisplay`), not a chip.
+ * a Stat (`Stat`), not a chip.
  */
 export function Chip({ children, className }: ChipProps) {
   return (

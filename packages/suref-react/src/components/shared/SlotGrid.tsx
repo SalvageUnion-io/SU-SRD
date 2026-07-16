@@ -26,7 +26,7 @@ type SlotGridProps = {
  * - **Over-cap** — a solid `status-bad` cell (state as a treatment, not a hue).
  *
  * `SlotGrid` measures fungible _quantity that has addresses_ — it never merges
- * with a scalar Gauge or a StatDisplay (ruleset §6, must-NOT-merge).
+ * with a scalar Gauge or a Stat (ruleset §6, must-NOT-merge).
  *
  * Cells lay out on the shared pip-row split (ruleset §4.5): ≤6 per row,
  * bottom-heavy, centred — the same rhythm as the gauge / statblock tracks.

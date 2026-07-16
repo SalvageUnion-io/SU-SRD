@@ -12,7 +12,7 @@ import {
   ReferenceEntityDisplay,
   EntityHrefProvider,
   EntityDetailLinkProvider,
-  ReferenceEntityCardSkeleton,
+  CardSkeleton,
 } from 'suref-react'
 import { getSchemaPreloadList } from '../schemaPreloadDeps'
 import { srdEntityHref } from '../entityHref'
@@ -48,7 +48,7 @@ function renderEntity(entity: SURefEntity): string {
   const { container, unmount } = render(
     <EntityHrefProvider value={srdEntityHref}>
       <EntityDetailLinkProvider value={true}>
-        <Suspense fallback={<ReferenceEntityCardSkeleton />}>
+        <Suspense fallback={<CardSkeleton />}>
           <ReferenceEntityDisplay data={entity} />
         </Suspense>
       </EntityDetailLinkProvider>

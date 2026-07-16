@@ -237,17 +237,17 @@ the display system for the Dashboard.
 
 ### 3.1 Reused verbatim from `suref-react`
 
-| Component (barrel export)                   | Path                                                                      | Role in Dashboard                                                                                              |
-| ------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `ReferenceEntityDisplay`                    | `components/referenceEntity/ReferenceEntityDisplay/index.tsx`             | The display's entity view — full SRD card for the focused mech/pilot/drone/crawler/ally                        |
-| `DisplayCard`                               | `components/shared/DisplayCard.tsx`                                       | The card primitive under it; `footActions`/`footMeta` are the economy injection points (§3.3)                  |
-| `ActionCard`                                | `components/referenceEntity/ActionCard.tsx`                               | Each resolvable action in the grouped actions section                                                          |
-| `NestedActionDisplay`                       | `components/referenceEntity/NestedActionDisplay.tsx`                      | Lighter action variant where an ActionCard is too heavy                                                        |
-| `ReferenceEntityActions`                    | `.../ReferenceEntityDisplay/ReferenceEntityActions.tsx`                   | Renders the grouped `SURefMetaAction[]` list (Chassis / Systems / Modules; Abilities / Equipment)              |
-| `RollTable`                                 | `components/shared/RollTable.tsx`                                         | SRD roll-table rendering (Core Mechanic, Reactor Overload, Critical, Trading, Deterioration, Salvage, Cantina) |
-| `StatBlock`, `VitalGauge`, `MiniStat`       | `components/stat/*`                                                       | HUD-flavored stat primitives — candidates for the bay gauges (see §3.4)                                        |
-| `StatsBar` / `StatDisplay` / `ValueDisplay` | `components/shared/*`                                                     | Stat readouts inside entity cards                                                                              |
-| `ActivationCostBox`                         | `components/shared/ActivationCostBox.tsx` (internal, not barrel-exported) | The AP/EP cost pennant on actions — the Dashboard's `costPennant()` in the mockup                              |
+| Component (barrel export)             | Path                                                                      | Role in Dashboard                                                                                              |
+| ------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `ReferenceEntityDisplay`              | `components/referenceEntity/ReferenceEntityDisplay/index.tsx`             | The display's entity view — full SRD card for the focused mech/pilot/drone/crawler/ally                        |
+| `DisplayCard`                         | `components/shared/DisplayCard.tsx`                                       | The card primitive under it; `footActions`/`footMeta` are the economy injection points (§3.3)                  |
+| `ActionCard`                          | `components/referenceEntity/ActionCard.tsx`                               | Each resolvable action in the grouped actions section                                                          |
+| `NestedActionDisplay`                 | `components/referenceEntity/NestedActionDisplay.tsx`                      | Lighter action variant where an ActionCard is too heavy                                                        |
+| `ReferenceEntityActions`              | `.../ReferenceEntityDisplay/ReferenceEntityActions.tsx`                   | Renders the grouped `SURefMetaAction[]` list (Chassis / Systems / Modules; Abilities / Equipment)              |
+| `RollTable`                           | `components/shared/RollTable.tsx`                                         | SRD roll-table rendering (Core Mechanic, Reactor Overload, Critical, Trading, Deterioration, Salvage, Cantina) |
+| `StatBlock`, `VitalGauge`, `MiniStat` | `components/stat/*`                                                       | HUD-flavored stat primitives — candidates for the bay gauges (see §3.4)                                        |
+| `StatsBar` / `Stat` / `ValueDisplay`  | `components/shared/*`                                                     | Stat readouts inside entity cards                                                                              |
+| `ActivationCostBox`                   | `components/shared/ActivationCostBox.tsx` (internal, not barrel-exported) | The AP/EP cost pennant on actions — the Dashboard's `costPennant()` in the mockup                              |
 
 The mockup's `srdCard()`, `srdActionCard()`, `actionsSection()`, `srdBox()`,
 `srdPill()`, `costPennant()`, `srdRollTable()` are **hand-rolled facsimiles** of

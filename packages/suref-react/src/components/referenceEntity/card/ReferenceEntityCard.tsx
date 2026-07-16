@@ -39,9 +39,9 @@ import { ActivationCostBox } from '../../shared/ActivationCostBox'
 import { CardImage } from '../../shared/CardImage'
 import { ControlButtons } from '../../shared/ControlButtons'
 import type { CardFootMeta } from '../../shared/DisplayCard'
-import { StatDisplay } from '../../shared/StatDisplay'
+import { Stat } from '../../shared/Stat'
 import type { StatItem } from '../../shared/statsBarTypes'
-import { BlockContentRendererView } from '../BlockContentRendererView'
+import { Content } from '../Content'
 import { ChoiceGroups } from '../choiceCard/ChoiceGroups'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import type { ReferenceEntityControl } from '../ReferenceEntityDisplay/referenceEntityControlTypes'
@@ -296,7 +296,7 @@ function firstParagraphText(content: SURefObjectContentBlock[] | undefined): str
  *   level, body shows nested groups).
  *
  * Every card has the same bands: seam (type stamp + axis pills) · header (black
- * name-tab + stats/AP axis) · sub-header (StatDisplay cells only) · body ·
+ * name-tab + stats/AP axis) · sub-header (Stat cells only) · body ·
  * footer (depth 0 only). Nested groups (Grants/Systems/Modules/Drones/NPCs/
  * Actions) each render a `Slab` separator + a 2-up grid of depth+1 cards;
  * actions are rust, always compact, AP via `ActivationCostBox`.
@@ -508,7 +508,7 @@ export function ReferenceEntityCard({
       {/* Type stamp on NESTED cards only — full cards show the type in the footer. */}
       {depth > 0 && seamType && <Stamp size="sm">{seamType}</Stamp>}
       {axisMarkers.map((marker) => (
-        <StatDisplay
+        <Stat
           key={marker.label}
           orientation="horizontal"
           label={marker.label}
@@ -786,7 +786,7 @@ export function ReferenceEntityCard({
     label || labelBadge ? (
       <div className={cn('absolute left-3 z-30', compact ? 'top-0 -translate-y-1/2' : '-mt-2')}>
         {label && labelBadge ? (
-          <StatDisplay orientation="horizontal" label={label} value={labelBadge} xs />
+          <Stat orientation="horizontal" label={label} value={labelBadge} xs />
         ) : (
           <Stamp size="sm">{label ?? labelBadge}</Stamp>
         )}
@@ -933,8 +933,8 @@ export function ReferenceEntityCard({
       if (buffer.length > 0 && !hide?.content && showBody) {
         bodyNodes.push(
           <div key={`seg-${seg}`} className="[&:not(:last-child)]:mb-3">
-            <BlockContentRendererView
-              content={buffer}
+            <Content
+              body={buffer}
               compact={compact}
               chassisName={resolvedChassisName}
               fontSize={compact ? 'text-xs' : 'text-sm'}
@@ -1225,7 +1225,7 @@ export function ReferenceEntityCard({
         >
           {anchorNode}
           {/* The interleave walk builds the WHOLE body — content segments (via
-              BlockContentRendererView) with choice cards dropped in at their
+              Content) with choice cards dropped in at their
               markers — in both read-only and editable. Content gets a clear gap
               (mb-3) before nested-card sections. */}
           {bodyNodes.length > 0 && <>{bodyNodes}</>}
@@ -1243,8 +1243,8 @@ export function ReferenceEntityCard({
                 {foldedAction?.name &&
                   foldedAction.name !== entityName &&
                   renderSectionHeading(foldedAction.name)}
-                <BlockContentRendererView
-                  content={foldedActionContent}
+                <Content
+                  body={foldedActionContent}
                   compact={compact}
                   chassisName={resolvedChassisName}
                   fontSize={compact ? 'text-xs' : 'text-sm'}

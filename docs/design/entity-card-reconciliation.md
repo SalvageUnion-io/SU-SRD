@@ -9,7 +9,7 @@ set, shared files). Supersedes the earlier `component-refresh-methodology.md` an
 > `NEW` prefix is dropped (`components/referenceEntity/card/`, `ReferenceEntityCard`);
 > every app renders through the card (via the `ReferenceEntityDisplay` compat shim);
 > stories live in the canonical Ladle groups (`Compositions/Reference Entity *`,
-> `Atoms/Stat Display`). The **design rules** settled during this work are enshrined
+> `Atoms/Stat`). The **design rules** settled during this work are enshrined
 > in [ADR-024](../adrs/ADR-024-entity-card-design-rules.md). This doc is retained
 > for the reusable **methodology** (Part 1) and the historical record.
 
@@ -79,7 +79,7 @@ See Part 3 — the ordered, green-at-every-checkpoint stages.
   (suref-react 414, suref-web 989, ITUN 1321).
 - **Legacy render core is now reachable only through 3 internal suref-react
   consumers** (the shim itself forwards to the new card, not legacy):
-  `ClassAbilityTreeDisplay` (imports `ReferenceEntityDisplay/index`),
+  `ClassAbilityTree` (imports `ReferenceEntityDisplay/index`),
   `useDetailModal` (renders `ReferenceEntityDisplayContent` in its modal — the
   hidden consumer), and `GuideEntityListing` (renders `ReferenceEntityDisplayContent`).
   These three must be re-pointed to the new card before legacy can be deleted
@@ -158,7 +158,7 @@ trips knip (unused export) — so it must land together with the barrel flip, on
 
 `ReferenceEntityIsland`, `SchemaViewerIsland`, `OgCardIsland`,
 `item/[itemId].astro`, `og-screenshots.ts`. Needs `titleAs`, `label` semantics,
-`afterExtraContent` (ClassAbilityTreeDisplay); `getClassSelections` stays. Verify
+`afterExtraContent` (ClassAbilityTree); `getClassSelections` stays. Verify
 OG screenshots + a11y. Risk: medium (SEO H1 + OG pixel compare).
 
 ### Stage c — migrate ITUN surface-by-surface (lowest-risk first)
@@ -176,7 +176,7 @@ OG screenshots + a11y. Risk: medium (SEO H1 + OG pixel compare).
 4. **Encounter/NPC** — `AddNpcControl`, `EncounterNpcCard` (gated on NPC parity).
 
 - **Hidden consumers:** `useDetailModal` renders RED _inside its modal_ (sheets,
-  encounter, GlobalSearch, ClassAbilityTreeDisplay) — re-point it, don't just fix
+  encounter, GlobalSearch, ClassAbilityTree) — re-point it, don't just fix
   the direct JSX. Update every consumer test.
 - Risk: high for sheets — verify per surface with screenshots.
 
@@ -187,7 +187,7 @@ OG screenshots + a11y. Risk: medium (SEO H1 + OG pixel compare).
 >
 > **UPDATE (`6575ebf6`) — legacy render core is now DEAD.** The indirect consumers
 > are re-pointed: `useDetailModal` (the hidden modal behind sheets/encounter/
-> GlobalSearch/ability-tree) + `ClassAbilityTreeDisplay` + `ReferenceEntityDisplayTooltip`
+> GlobalSearch/ability-tree) + `ClassAbilityTree` + `EntityTooltip`
 > now render the shim; `GuideEntityListing` dies with the legacy body-part
 > `EntityBodySections` (no re-point needed). **Zero live imports of
 > `ReferenceEntityDisplay/index` or `ReferenceEntityDisplayContent` remain** outside
@@ -209,9 +209,9 @@ Only once no consumer references the legacy render core:
   `referenceEntityStatsConfig` (`buildReferenceEntityStats`),
   `referenceEntityControlTypes` + `referenceEntityControls`, `entityHrefContext`,
   `SectionSeparator`, `components/CalloutMetaStamp`, `referenceEntityHelpers`,
-  `BlockContentRendererView`, `choiceCard/*`; and the independent siblings still
-  app-consumed: `ActionCard`, `ClassAbilityTreeDisplay`, `NestedChassisAbility`,
-  `NestedActionDisplay`, `ReferenceEntityDisplayTooltip`,
+  `Content`, `choiceCard/*`; and the independent siblings still
+  app-consumed: `ActionCard`, `ClassAbilityTree`, `NestedChassisAbility`,
+  `NestedActionDisplay`, `EntityTooltip`,
   `useChassisPatternConfig`/`useDetailModal`/`getClassSelections` (until their
   consumers no longer render RED).
 - Remove the compat shim; consumers call the canonical card directly.

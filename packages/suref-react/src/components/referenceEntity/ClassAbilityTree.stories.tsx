@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
-import { ClassAbilityTreeDisplay } from './ClassAbilityTreeDisplay'
+import { ClassAbilityTree } from './ClassAbilityTree'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -14,7 +14,7 @@ const classes = SalvageUnionReference.Classes.all()
 export const Default: Story = () =>
   classes[0] ? (
     <div className="max-w-2xl p-4">
-      <ClassAbilityTreeDisplay classEntity={classes[0]} />
+      <ClassAbilityTree classEntity={classes[0]} />
     </div>
   ) : null
 
@@ -22,6 +22,6 @@ export const Default: Story = () =>
 export const AnotherClass: Story = () =>
   classes[1] ? (
     <div className="max-w-2xl p-4">
-      <ClassAbilityTreeDisplay classEntity={classes[1]} />
+      <ClassAbilityTree classEntity={classes[1]} />
     </div>
   ) : null

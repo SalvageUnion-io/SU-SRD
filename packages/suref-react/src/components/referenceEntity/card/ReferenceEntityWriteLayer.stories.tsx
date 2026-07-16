@@ -118,7 +118,7 @@ export const StatusCycleItem: Story = () => {
 
 /**
  * EDITABLE SP/EP steppers: a live mech sheet card. The header stat axis carries
- * SP + EP `StatItem`s with `onChange`, which render the `StatDisplay` edit-mode
+ * SP + EP `StatItem`s with `onChange`, which render the `Stat` edit-mode
  * +/- stepper column. Legacy has no multi-stat editable path, so its column is
  * the plain reference card.
  */

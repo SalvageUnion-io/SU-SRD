@@ -1,12 +1,12 @@
 import type { Story } from '@ladle/react'
-import { ReferenceEntityDisplayTooltip } from './ReferenceEntityDisplayTooltip'
+import { EntityTooltip } from './EntityTooltip'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Text } from '../base/Text'
-import { StatDisplay } from '../shared/StatDisplay'
+import { Stat } from '../shared/Stat'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Reference Entity Tooltip',
+  title: 'Compositions/Entity Tooltip',
 }
 
 const system = SalvageUnionReference.Systems.all()[0]
@@ -19,17 +19,17 @@ export const Default: Story = () => (
       Wrap any trigger to summon a dense entity hovercard (schemaName + entityId). Hover each below.
     </p>
     <div className="flex flex-wrap items-start gap-8">
-      <ReferenceEntityDisplayTooltip schemaName="systems" entityId={system?.id ?? ''}>
+      <EntityTooltip schemaName="systems" entityId={system?.id ?? ''}>
         <Text variant="pseudoheader" className="cursor-help">
           Hover {system?.name}
         </Text>
-      </ReferenceEntityDisplayTooltip>
-      <ReferenceEntityDisplayTooltip schemaName="systems" entityId={system?.id ?? ''}>
-        <StatDisplay orientation="horizontal" label={system?.name ?? 'System'} value="TL 2" />
-      </ReferenceEntityDisplayTooltip>
-      <ReferenceEntityDisplayTooltip schemaName="traits" entityId={trait?.id ?? ''}>
-        <StatDisplay orientation="horizontal" label={trait?.name ?? 'Trait'} />
-      </ReferenceEntityDisplayTooltip>
+      </EntityTooltip>
+      <EntityTooltip schemaName="systems" entityId={system?.id ?? ''}>
+        <Stat orientation="horizontal" label={system?.name ?? 'System'} value="TL 2" />
+      </EntityTooltip>
+      <EntityTooltip schemaName="traits" entityId={trait?.id ?? ''}>
+        <Stat orientation="horizontal" label={trait?.name ?? 'Trait'} />
+      </EntityTooltip>
     </div>
   </div>
 )

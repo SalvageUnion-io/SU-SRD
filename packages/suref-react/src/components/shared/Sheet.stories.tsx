@@ -1,11 +1,11 @@
 import type { Story } from '@ladle/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { SheetDisplay } from './SheetDisplay'
+import { Sheet } from './Sheet'
 import { Text } from '../base/Text'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Atoms/Sheet Display',
+  title: 'Atoms/Sheet',
 }
 
 // Real chassis drives the label|value fields.
@@ -25,20 +25,20 @@ export const Fields: Story = () => (
     </p>
     <div className="flex flex-wrap gap-6">
       <div className="w-[240px]">
-        <SheetDisplay label="Chassis" value={name} />
+        <Sheet label="Chassis" value={name} />
       </div>
       <div className="w-[240px]">
-        <SheetDisplay label="Tech Level" value={String(tl)} compact />
+        <Sheet label="Tech Level" value={String(tl)} compact />
       </div>
       <div className="w-[240px]">
-        <SheetDisplay label="Chassis" value={name} labelColor="text-rust" />
+        <Sheet label="Chassis" value={name} labelColor="text-rust" />
       </div>
       <div className="w-[240px]">
-        <SheetDisplay label="Loadout">
+        <Sheet label="Loadout">
           <Text className="text-sm text-ink-2">
             Structure {sp} · Energy {ep} · Heat cap {heat}
           </Text>
-        </SheetDisplay>
+        </Sheet>
       </div>
     </div>
   </div>
@@ -49,13 +49,13 @@ export const StatRow: Story = () => (
   <div className="flex flex-col gap-4 bg-paper p-5">
     <div className="flex flex-wrap gap-4">
       <div className="w-[200px]">
-        <SheetDisplay label="Structure Points" value={`${sp} / ${sp}`} />
+        <Sheet label="Structure Points" value={`${sp} / ${sp}`} />
       </div>
       <div className="w-[200px]">
-        <SheetDisplay label="Energy Points" value={`${ep} / ${ep}`} />
+        <Sheet label="Energy Points" value={`${ep} / ${ep}`} />
       </div>
       <div className="w-[200px]">
-        <SheetDisplay label="Heat" value={`0 / ${heat}`} />
+        <Sheet label="Heat" value={`0 / ${heat}`} />
       </div>
     </div>
   </div>

@@ -28,7 +28,7 @@ import {
   Panel,
   Pill,
   Row,
-  StatDisplay,
+  Stat,
   VitalGauge,
   heatDangerFrom,
   toast,
@@ -434,12 +434,8 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
         name={pilot.name}
         meta={
           <>
-            <StatDisplay orientation="horizontal" label="Callsign" value={`“${pilot.callsign}”`} />
-            <StatDisplay
-              orientation="horizontal"
-              label="Class"
-              value={resolveClassName(pilot.classRef)}
-            />
+            <Stat orientation="horizontal" label="Callsign" value={`“${pilot.callsign}”`} />
+            <Stat orientation="horizontal" label="Class" value={resolveClassName(pilot.classRef)} />
           </>
         }
         identity={[
@@ -462,7 +458,7 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
               value={Math.min(pilot.currentAP ?? maxAP, maxAP)}
               readOnly
             />
-            <StatDisplay label="TP" value={pilot.trainingPoints ?? 0} />
+            <Stat label="TP" value={pilot.trainingPoints ?? 0} />
           </>
         }
       />
@@ -506,13 +502,13 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
         name={mech.name}
         meta={
           <>
-            <StatDisplay
+            <Stat
               orientation="horizontal"
               label="Chassis"
               value={chassis?.name ?? mech.chassisRef}
             />
             {chassis && typeof chassis.techLevel === 'number' && (
-              <StatDisplay orientation="horizontal" label="Tech LV" value={chassis.techLevel} />
+              <Stat orientation="horizontal" label="Tech LV" value={chassis.techLevel} />
             )}
           </>
         }
@@ -563,9 +559,7 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
       cat="Crawler"
       name={crawler.name}
       meta={
-        tl !== undefined ? (
-          <StatDisplay orientation="horizontal" label="Tech LV" value={tl} />
-        ) : undefined
+        tl !== undefined ? <Stat orientation="horizontal" label="Tech LV" value={tl} /> : undefined
       }
       trackers={
         <>

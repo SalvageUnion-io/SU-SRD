@@ -51,7 +51,7 @@ changing the _data shape_ over special-casing the renderer.
 - **Freeform choices** (`choiceType: "freeform"` — a simple free-text field, e.g.
   a companion's Name / a crawler's Keepsake / Motto) are treated as **simple
   inputs**. In **read-only** they surface as **`Choose | <name>` sub-header cells**
-  (a `StatDisplay` hint that there's a field to fill), never a body block. In
+  (a `Stat` hint that there's a field to fill), never a body block. In
   **editable** mode they stay in the body as a real text input (you type into it).
 - **Multiple-choice choices** (a `rollTable` / `choiceOptions` / `schema` /
   `schemaEntities` / `constraints.scalesWithField` — "choose from the list below")
@@ -68,18 +68,18 @@ changing the _data shape_ over special-casing the renderer.
 
 ### 4. The stat atom has exactly two modes: Normal and Compact — and NO pips
 
-A `StatDisplay` in the card cluster is either **Normal** (the vertical value box,
+A `Stat` in the card cluster is either **Normal** (the vertical value box,
 full labels) or **Compact** (the horizontal `[label | value]` cell, shortform
 labels). **Compact IS horizontal** — there is no separate "horizontal" mode/axis.
 Editable stats grow a `+/-` stepper column in either mode.
 
-**`StatDisplay` has no pip mode.** The framed pip tracker and the condensed
+**`Stat` has no pip mode.** The framed pip tracker and the condensed
 pip-chip were retired: a value/max tracker is the plain value box (a fill bar is
 `VitalGauge`), and the crawler-bay condition tally is its own **`BayStatus`**
 primitive. Individual pips live only in `VitalGauge` / `BayStatus` — never inside
 a stat cell.
 
-- Demo: `Atoms/Stat Display` → **Anatomies** / **ValueBox**; `Atoms/Bay Status`.
+- Demo: `Atoms/Stat` → **Anatomies** / **ValueBox**; `Atoms/Bay Status`.
 
 ### 5. "Modified stats" — the rust language
 
@@ -87,7 +87,7 @@ A stat/trait cell that a **choice touched** (e.g. picking a Weapon Type adds the
 Ballistic trait; a Modification sets Range → Far) OR that **tech-level scaling
 changed** gets the **rust "modified" border** (`--color-rust`); an added trait
 also gets a rust label ground. The value itself updates. This applies to
-**statblocks / `StatDisplay` cells only** — not `VitalGauge`.
+**statblocks / `Stat` cells only** — not `VitalGauge`.
 
 - Demo: `Compositions/Reference Entity Write Layer` → **ChoiceEquipment** /
   **TechLevelScaling**.
@@ -124,7 +124,7 @@ equipment was already TL1.)
 ## Consequences
 
 - The design rules are demonstrable and regression-guarded: each has a Ladle story
-  (canonical groups `Compositions/Reference Entity *` and `Atoms/Stat Display`),
+  (canonical groups `Compositions/Reference Entity *` and `Atoms/Stat`),
   and the story-coverage guard keeps every barrel-exported visual component
   storied.
 - Rule 7 is a shared-data change: it changes the tech-level badge on suref-web /

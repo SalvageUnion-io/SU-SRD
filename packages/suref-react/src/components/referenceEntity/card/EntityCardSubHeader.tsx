@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../../utils/cn'
-import { StatDisplay } from '../../shared/StatDisplay'
+import { Stat } from '../../shared/Stat'
 
-/** One sub-header cell — a horizontal StatDisplay `[label | value]` (value
+/** One sub-header cell — a horizontal Stat `[label | value]` (value
  * optional for label-only keywords, e.g. "Immobile"). The MODIFIED-STATS language
  * uses `borderColor` (an upgraded stat's cell border) and `labelBg` (an added /
  * modified trait's label fill). */
@@ -18,7 +18,7 @@ export type EntityCardSubHeaderCell = {
 
 /** A cohesive labelled stat group in the sub-header (e.g. "Bonus per Tech
  * Level" + its "+N" cells) — a label cell followed by "+N" cells, all the SAME
- * horizontal StatDisplay treatment as the trait cells (black border, same
+ * horizontal Stat treatment as the trait cells (black border, same
  * size/padding), wrapped in ONE container so the block line-breaks together. */
 export type EntityCardSubHeaderGroup = {
   label: string
@@ -46,7 +46,7 @@ type EntityCardSubHeaderProps = {
  * EntityCardSubHeader — the unified card's SUB-HEADER band, a darker shade of the tone.
  *
  * A feature of the card BASE: every card — entity, action, or NPC, full or
- * nested — renders this same band. Its content is horizontal StatDisplay cells
+ * nested — renders this same band. Its content is horizontal Stat cells
  * (entity TRAITS, or an action's range/damage/traits, plus read-only choices),
  * an optional `leading` node (an action's EP box), and an optional cohesive
  * `group` (a green-tinted label + "+N" cells that wrap together — same cell
@@ -72,7 +72,7 @@ export function EntityCardSubHeader({
     <>
       {leading}
       {cells.map((cell) => (
-        <StatDisplay
+        <Stat
           key={cell.key}
           orientation="horizontal"
           label={cell.label}
@@ -85,10 +85,10 @@ export function EntityCardSubHeader({
       ))}
       {hasGroup && (
         // One container → the label + all its cells wrap together as a unit, the
-        // EXACT same horizontal StatDisplay treatment as the trait cells. Only
+        // EXACT same horizontal Stat treatment as the trait cells. Only
         // the LABEL box is tinted GREEN (`status-ok`); the stat cells are BLACK.
         <span className="inline-flex flex-wrap items-center gap-1.5">
-          <StatDisplay
+          <Stat
             orientation="horizontal"
             label={group.label}
             bgColor="var(--color-status-ok)"
@@ -96,7 +96,7 @@ export function EntityCardSubHeader({
             compact={compact}
           />
           {group.cells.map((cell) => (
-            <StatDisplay
+            <Stat
               key={cell.key}
               orientation="horizontal"
               label={cell.label}

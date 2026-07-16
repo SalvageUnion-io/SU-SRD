@@ -4,7 +4,7 @@ import type { EntitySchemaName, SURefEnumSchemaName } from 'salvageunion-referen
 import { cn } from '../../utils/cn'
 import { Text } from '../base/Text'
 import { Tooltip } from '../ui/tooltip'
-import { ReferenceEntityDisplayTooltip } from '../referenceEntity/ReferenceEntityDisplayTooltip'
+import { EntityTooltip } from '../referenceEntity/EntityTooltip'
 import type { EntityStatus } from './entityStatus'
 
 /**
@@ -16,7 +16,7 @@ import type { EntityStatus } from './entityStatus'
  *   (default)                 -> the centred value box with pseudoheader stamps
  *                                above/below; mode="edit" adds +/- steppers.
  *
- * StatDisplay has NO pip mode: pip trackers were retired (use the value box; a
+ * Stat has NO pip mode: pip trackers were retired (use the value box; a
  * fill bar is `VitalGauge`), and the crawler-bay tally is its own `BayStatus`
  * primitive. Individual pips live in `VitalGauge` / `BayStatus`, never here.
  */
@@ -29,7 +29,7 @@ export type StatState = EntityStatus
 type StatValue = number | string
 
 /**
- * StatDisplay is a discriminated union over its two mutually-exclusive
+ * Stat is a discriminated union over its two mutually-exclusive
  * anatomies, keyed on `orientation`:
  *
  *   { orientation: 'horizontal' } -> HorizontalValue (label|value)
@@ -141,10 +141,10 @@ type ValueBoxProps = Exact<{
   className?: string
 }>
 
-type StatDisplayProps = HorizontalValueProps | ValueBoxProps
+type StatProps = HorizontalValueProps | ValueBoxProps
 
-export function StatDisplay(props: StatDisplayProps) {
-  const inner = renderStatDisplay(props)
+export function Stat(props: StatProps) {
+  const inner = renderStat(props)
   const entityTooltip = 'entityTooltip' in props ? props.entityTooltip : undefined
   if (entityTooltip) {
     // Resolve the trait/keyword to a real entity; wrap in the hover-tooltip when
@@ -158,16 +158,16 @@ export function StatDisplay(props: StatDisplayProps) {
       : undefined
     if (entity?.id) {
       return (
-        <ReferenceEntityDisplayTooltip schemaName={schemaName} entityId={entity.id} openDelay={300}>
+        <EntityTooltip schemaName={schemaName} entityId={entity.id} openDelay={300}>
           {inner}
-        </ReferenceEntityDisplayTooltip>
+        </EntityTooltip>
       )
     }
   }
   return inner
 }
 
-function renderStatDisplay(props: StatDisplayProps) {
+function renderStat(props: StatProps) {
   if (props.orientation === 'horizontal') return <HorizontalValue {...props} />
   return <ValueBox {...props} />
 }
@@ -302,7 +302,7 @@ function HorizontalValue({
 }
 
 /* ------------------------------------------------------------------ *
- * Centred value box — the former StatDisplay; mode="edit" grows the   *
+ * Centred value box — the former Stat; mode="edit" grows the   *
  * +/- stepper column (the former StatControl).                        *
  * ------------------------------------------------------------------ */
 function ValueBox({

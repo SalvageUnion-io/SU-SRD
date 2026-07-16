@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, StatDisplay, TreeSep, entityHostTone } from 'suref-react'
+import { ReferenceEntityDisplay, Stat, TreeSep, entityHostTone } from 'suref-react'
 import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 
@@ -35,23 +35,13 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
   return (
     <div className="w-full space-y-5">
       <div className="flex flex-wrap gap-4">
-        <StatDisplay
-          label="SP"
-          value={chassis.structurePoints}
-          max={chassis.structurePoints}
-          compact
-        />
-        <StatDisplay label="EP" value={chassis.energyPoints} max={chassis.energyPoints} compact />
-        <StatDisplay label="HEAT" value={chassis.heatCapacity} max={chassis.heatCapacity} compact />
-        <StatDisplay label="SYS" value={chassis.systemSlots} max={chassis.systemSlots} compact />
-        <StatDisplay label="MOD" value={chassis.moduleSlots} max={chassis.moduleSlots} compact />
-        <StatDisplay
-          label="CARGO"
-          value={chassis.cargoCapacity}
-          max={chassis.cargoCapacity}
-          compact
-        />
-        <StatDisplay label="SV" value={chassis.salvageValue} compact />
+        <Stat label="SP" value={chassis.structurePoints} max={chassis.structurePoints} compact />
+        <Stat label="EP" value={chassis.energyPoints} max={chassis.energyPoints} compact />
+        <Stat label="HEAT" value={chassis.heatCapacity} max={chassis.heatCapacity} compact />
+        <Stat label="SYS" value={chassis.systemSlots} max={chassis.systemSlots} compact />
+        <Stat label="MOD" value={chassis.moduleSlots} max={chassis.moduleSlots} compact />
+        <Stat label="CARGO" value={chassis.cargoCapacity} max={chassis.cargoCapacity} compact />
+        <Stat label="SV" value={chassis.salvageValue} compact />
       </div>
 
       {chassisAbilities.length > 0 && (

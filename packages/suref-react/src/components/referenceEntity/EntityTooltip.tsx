@@ -5,7 +5,7 @@ import { Tooltip } from '@base-ui/react/tooltip'
 import { ReferenceEntityDisplay } from './card/referenceEntityDisplayShim'
 import { Tooltip as SimpleTooltip } from '../ui/tooltip'
 
-type ReferenceEntityDisplayTooltipProps = {
+type EntityTooltipProps = {
   schemaName: SURefEnumSchemaName
   entityId: string
   children: ReactNode
@@ -34,16 +34,16 @@ function getKeywordDescription(entity: unknown): string | null {
 }
 
 /**
- * ReferenceEntityDisplayTooltip - Shows ReferenceEntityDisplay content in a hover card
+ * EntityTooltip - Shows ReferenceEntityDisplay content in a hover card
  * Wraps children and displays entity details on hover
  * Keywords render as a simple text tooltip; other entities render as a full card.
  *
  * @example
- * <ReferenceEntityDisplayTooltip schemaName="systems" entityId="laser-cannon-id">
+ * <EntityTooltip schemaName="systems" entityId="laser-cannon-id">
  *   <Text>Hover me to see details</Text>
- * </ReferenceEntityDisplayTooltip>
+ * </EntityTooltip>
  */
-export function ReferenceEntityDisplayTooltip({
+export function EntityTooltip({
   schemaName,
   entityId,
   children,
@@ -51,7 +51,7 @@ export function ReferenceEntityDisplayTooltip({
   openDelay = 200,
   closeDelay = 100,
   fullWidth = false,
-}: ReferenceEntityDisplayTooltipProps) {
+}: EntityTooltipProps) {
   const entity = SalvageUnionReference.get(schemaName, entityId)
 
   if (!entity) {

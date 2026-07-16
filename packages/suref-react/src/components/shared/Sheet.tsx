@@ -1,7 +1,7 @@
 import { cn } from '../../utils/cn'
 import type { ReactNode } from 'react'
 
-type SheetDisplayProps = {
+type SheetProps = {
   label?: string
   value?: string
   children?: ReactNode
@@ -10,14 +10,14 @@ type SheetDisplayProps = {
   className?: string
 }
 
-export function SheetDisplay({
+export function Sheet({
   label,
   value,
   children,
   labelColor = 'text-ink',
   compact = false,
   className,
-}: SheetDisplayProps) {
+}: SheetProps) {
   return (
     <div className={cn('w-full', className)}>
       {label && (

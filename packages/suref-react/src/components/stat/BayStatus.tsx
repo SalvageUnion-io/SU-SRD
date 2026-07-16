@@ -18,7 +18,7 @@ type BayStatusProps = {
 
 /**
  * BayStatus — the crawler-bay condition tally, a standalone primitive (NOT a
- * StatDisplay mode). A framed paper card with an ink header tab, a legend of
+ * Stat mode). A framed paper card with an ink header tab, a legend of
  * counts per state, and a per-bay `ConditionSwatch` grid (split ≤6/row,
  * bottom-heavy, like the sheet trackers). Each bay swatch is a button when
  * `onBayClick` is supplied, else a static glyph.

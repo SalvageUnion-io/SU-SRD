@@ -13,7 +13,7 @@ type ResolvedTrees = {
   legendaryTree: TreeGroup | null
 }
 
-type ClassAbilityTreeDisplayProps = {
+type ClassAbilityTreeProps = {
   classEntity: SURefClass
   activeAbilityIds?: Set<string>
 }
@@ -89,10 +89,7 @@ function TreeSection({
   )
 }
 
-export function ClassAbilityTreeDisplay({
-  classEntity,
-  activeAbilityIds,
-}: ClassAbilityTreeDisplayProps) {
+export function ClassAbilityTree({ classEntity, activeAbilityIds }: ClassAbilityTreeProps) {
   const trees = useMemo(() => resolveClassTrees(classEntity), [classEntity])
 
   const hasCoreTrees = trees.coreTrees.length > 0

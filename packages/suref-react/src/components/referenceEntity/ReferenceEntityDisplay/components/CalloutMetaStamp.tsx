@@ -17,7 +17,7 @@ export function CalloutMetaStamp({
   children: ReactNode
   rust?: boolean
   compact?: boolean
-  /** Extra-small (text-label / 10px) — the seam-tag size; matches StatDisplay xs. */
+  /** Extra-small (text-label / 10px) — the seam-tag size; matches Stat xs. */
   xs?: boolean
 }) {
   return (

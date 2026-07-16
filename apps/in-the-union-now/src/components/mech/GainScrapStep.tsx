@@ -1,4 +1,4 @@
-import { StatDisplay } from 'suref-react'
+import { Stat } from 'suref-react'
 import { MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 
 /**
@@ -10,12 +10,7 @@ import { MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 export function GainScrapStep() {
   return (
     <div className="flex flex-wrap items-start gap-4">
-      <StatDisplay
-        label="SCRAP"
-        value={MECH_CREATION_SCRAP_CAP}
-        max={MECH_CREATION_SCRAP_CAP}
-        compact
-      />
+      <Stat label="SCRAP" value={MECH_CREATION_SCRAP_CAP} max={MECH_CREATION_SCRAP_CAP} compact />
       <p className="m-0 max-w-[52ch] self-center font-body text-sm leading-relaxed text-current">
         Every purchase in this workshop — the Chassis, each System, each Module — debits this one
         pool. Whatever is left over banks to your Union Crawler when the build is done.
