@@ -3,7 +3,7 @@ import { Tooltip } from './tooltip'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/Tooltip',
+  title: 'Atoms/Tooltip',
 }
 
 const trigger = 'rounded-card bg-ink px-4 py-2 font-cond uppercase tracking-caps-tight text-paper'

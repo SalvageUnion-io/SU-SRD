@@ -174,7 +174,7 @@ export function BlockContentRendererView({
             {labelText && (
               <div
                 className={cn(
-                  'mb-2 break-words font-medium leading-snug whitespace-normal text-pretty text-su-black',
+                  'mb-2 break-words font-medium leading-snug whitespace-normal text-pretty text-ink',
                   fontSize
                 )}
               >
@@ -243,7 +243,7 @@ function ContentBlock({
       return (
         <div
           className={cn(
-            'mb-1 break-words font-medium leading-snug whitespace-normal text-pretty text-su-black',
+            'mb-1 break-words font-medium leading-snug whitespace-normal text-pretty text-ink',
             fontSize
           )}
           style={{ overflowWrap: 'break-word' }}
@@ -286,7 +286,7 @@ function ContentBlock({
       return (
         <div
           className={cn(
-            'max-w-full overflow-hidden break-words text-center font-normal italic leading-snug whitespace-normal text-pretty text-su-black',
+            'max-w-full overflow-hidden break-words text-center font-normal italic leading-snug whitespace-normal text-pretty text-ink',
             fontSize
           )}
           style={{ overflowWrap: 'break-word' }}
@@ -299,7 +299,7 @@ function ContentBlock({
       return (
         <div
           className={cn(
-            'mb-1 break-words font-normal italic leading-snug whitespace-normal text-pretty text-su-grey-dark',
+            'mb-1 break-words font-normal italic leading-snug whitespace-normal text-pretty text-ink-2',
             fontSize
           )}
           style={{ overflowWrap: 'break-word' }}
@@ -316,7 +316,7 @@ function ContentBlock({
               {block.label}
             </Text>
           )}
-          <div className={cn('font-medium leading-snug text-pretty text-su-black', fontSize)}>
+          <div className={cn('font-medium leading-snug text-pretty text-ink', fontSize)}>
             {parsedValue}
           </div>
         </div>
@@ -325,7 +325,7 @@ function ContentBlock({
     default:
       // Fallback for unknown types - render as paragraph
       return (
-        <div className={cn('font-medium leading-snug text-pretty text-su-black', fontSize)}>
+        <div className={cn('font-medium leading-snug text-pretty text-ink', fontSize)}>
           {parsedValue}
         </div>
       )

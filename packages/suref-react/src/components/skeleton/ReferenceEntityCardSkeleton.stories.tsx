@@ -3,7 +3,7 @@ import { ReferenceEntityCardSkeleton } from './ReferenceEntityCardSkeleton'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/Card Skeleton',
+  title: 'Containers/Card Skeleton',
 }
 
 /** The card loading placeholder — full, compact, and a stacked list. */

@@ -19,7 +19,7 @@ export function DualColumnLayout({ left, right, className }: DualColumnLayoutPro
       className={cn('grid grid-cols-1 gap-4', hasBoth && 'lg:grid-cols-[1fr_auto_1fr]', className)}
     >
       {hasLeft && left}
-      {hasBoth && <div className="hidden w-px bg-su-grey-light lg:block" />}
+      {hasBoth && <div className="hidden w-px bg-ink/15 lg:block" />}
       {hasRight && right}
     </div>
   )
