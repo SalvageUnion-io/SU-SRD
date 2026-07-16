@@ -10,6 +10,13 @@ const textVariants = cva('', {
         'block w-fit self-start bg-su-black text-paper px-1 py-0.5 font-cond font-bold uppercase leading-tight tracking-caps-tight',
       pseudoheaderInverse:
         'block w-fit self-start bg-paper text-su-black px-1 py-0.5 font-cond font-bold uppercase leading-tight tracking-caps-tight',
+      // Body prose — reference-content paragraphs / labelled values.
+      body: 'break-words font-medium leading-snug whitespace-normal text-pretty text-ink',
+      // Centered italic aside (a rules "hint" / tip).
+      hint: 'max-w-full overflow-hidden break-words text-center font-normal italic leading-snug whitespace-normal text-pretty text-ink',
+      // Muted italic flavour text.
+      flavor:
+        'break-words font-normal italic leading-snug whitespace-normal text-pretty text-ink-2',
     },
   },
   defaultVariants: {

@@ -6,7 +6,7 @@ import { StatDisplay } from '../shared/StatDisplay'
 import { ActivationCostBox } from '../shared/ActivationCostBox'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 import { cn } from '../../utils/cn'
-import { SectionSeparator } from './ReferenceEntityDisplay/SectionSeparator'
+import { Slab } from '../chrome/Slab'
 import { StaticChoiceCard } from './choiceCard/StaticChoiceCard'
 
 /**
@@ -172,14 +172,9 @@ export function BlockContentRendererView({
               />
             )}
             {labelText && (
-              <div
-                className={cn(
-                  'mb-2 break-words font-medium leading-snug whitespace-normal text-pretty text-ink',
-                  fontSize
-                )}
-              >
+              <Text variant="body" as="div" className={cn('mb-2', fontSize)}>
                 {labelText}
-              </div>
+              </Text>
             )}
             {contentBlocks.length > 0 && (
               <div>
@@ -241,29 +236,21 @@ function ContentBlock({
   switch (type) {
     case 'paragraph':
       return (
-        <div
-          className={cn(
-            'mb-1 break-words font-medium leading-snug whitespace-normal text-pretty text-ink',
-            fontSize
-          )}
+        <Text
+          variant="body"
+          as="div"
+          className={cn('mb-1', fontSize)}
           style={{ overflowWrap: 'break-word' }}
         >
           {parsedValue}
-        </div>
+        </Text>
       )
 
     case 'heading': {
+      // Section headings render as the canonical Slab separator — a level-1
+      // heading takes the solid poster-stamp shape, sub-levels the dashed rule.
       const level = block.level || 3
-      let headingFontSize: string
-      if (level === 1) {
-        headingFontSize = compact ? 'text-base' : 'text-lg'
-      } else if (level === 2) {
-        headingFontSize = compact ? 'text-sm' : 'text-base'
-      } else {
-        headingFontSize = compact ? 'text-xs' : 'text-sm'
-      }
-
-      return <SectionSeparator label={stringValue} fontSize={headingFontSize} />
+      return <Slab variant={level === 1 ? 'solid' : 'dashed'} label={stringValue} />
     }
 
     case 'list-item': {
@@ -284,28 +271,21 @@ function ContentBlock({
     }
     case 'hint':
       return (
-        <div
-          className={cn(
-            'max-w-full overflow-hidden break-words text-center font-normal italic leading-snug whitespace-normal text-pretty text-ink',
-            fontSize
-          )}
-          style={{ overflowWrap: 'break-word' }}
-        >
+        <Text variant="hint" as="div" className={fontSize} style={{ overflowWrap: 'break-word' }}>
           {parsedValue}
-        </div>
+        </Text>
       )
 
     case 'flavor':
       return (
-        <div
-          className={cn(
-            'mb-1 break-words font-normal italic leading-snug whitespace-normal text-pretty text-ink-2',
-            fontSize
-          )}
+        <Text
+          variant="flavor"
+          as="div"
+          className={cn('mb-1', fontSize)}
           style={{ overflowWrap: 'break-word' }}
         >
           {parsedValue}
-        </div>
+        </Text>
       )
 
     case 'label':
@@ -316,18 +296,18 @@ function ContentBlock({
               {block.label}
             </Text>
           )}
-          <div className={cn('font-medium leading-snug text-pretty text-ink', fontSize)}>
+          <Text variant="body" as="div" className={fontSize}>
             {parsedValue}
-          </div>
+          </Text>
         </div>
       )
 
     default:
-      // Fallback for unknown types - render as paragraph
+      // Fallback for unknown types — render as body prose.
       return (
-        <div className={cn('font-medium leading-snug text-pretty text-ink', fontSize)}>
+        <Text variant="body" as="div" className={fontSize}>
           {parsedValue}
-        </div>
+        </Text>
       )
   }
 }
