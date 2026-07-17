@@ -24,8 +24,8 @@ const PORTRAIT = `data:image/svg+xml,${encodeURIComponent(
 // --- shared fixture → new poster props -------------------------------------
 
 const fields: PosterField[] = [
-  // Callsign leads full-width at the top, one line, with a normal label.
-  { label: 'Callsign', value: pilotContent.callsign, fullWidth: true, clampLines: 1 },
+  // Callsign is a normal grid field beside the image, clamped to one line.
+  { label: 'Callsign', value: pilotContent.callsign, clampLines: 1 },
   { label: 'Name', value: pilotContent.name },
   { label: 'Class', value: pilotContent.className },
   // Background / Keepsake / Motto are once-per-downtime pilot resources — a

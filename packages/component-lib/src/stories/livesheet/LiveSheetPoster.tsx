@@ -293,13 +293,10 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
     readOnly,
   } = props
 
-  // A leading full-width field (Callsign) sits at the TOP; the remaining short
-  // fields fill an aligned 2-col grid beside the portrait; trailing full-width
+  // Short fields fill an aligned 2-col grid beside the portrait; full-width
   // fields (Appearance, Bio) stack full-width beneath.
-  const topField = fields[0]?.fullWidth ? fields[0] : undefined
-  const bodyFields = topField ? fields.slice(1) : fields
-  const gridFields = bodyFields.filter((f) => !f.fullWidth)
-  const bottomFields = bodyFields.filter((f) => f.fullWidth)
+  const gridFields = fields.filter((f) => !f.fullWidth)
+  const bottomFields = fields.filter((f) => f.fullWidth)
 
   return (
     <div
@@ -380,18 +377,20 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
             bodyPadding="p-4"
           >
             <div className="flex flex-col gap-3.5">
-              {/* Callsign — full-width at the top. */}
-              {topField && <Field {...topField} readOnly={readOnly} />}
-              {/* Portrait + the short fields in an aligned 2-col GRID (rows line
-                  up across columns; single column on mobile). */}
+              {/* Portrait (left) ∥ right region: the first field (Callsign) leads
+                  full-width ABOVE an aligned 2-col grid of the rest. Single column
+                  on mobile. */}
               <div className="flex flex-col gap-4 sm:flex-row sm:gap-5">
                 <div className="w-[140px] shrink-0">
                   <ImageSeat src={imageSrc} label={imageLabel} readOnly={readOnly} />
                 </div>
-                <div className="grid flex-1 grid-cols-1 content-start gap-x-5 gap-y-3.5 sm:grid-cols-2">
-                  {gridFields.map((f) => (
-                    <Field key={f.label} {...f} readOnly={readOnly} />
-                  ))}
+                <div className="flex flex-1 flex-col gap-3.5">
+                  {gridFields[0] && <Field {...gridFields[0]} readOnly={readOnly} />}
+                  <div className="grid grid-cols-1 content-start gap-x-5 gap-y-3.5 sm:grid-cols-2">
+                    {gridFields.slice(1).map((f) => (
+                      <Field key={f.label} {...f} readOnly={readOnly} />
+                    ))}
+                  </div>
                 </div>
               </div>
               {/* Appearance, Bio — full-width beneath, clamped (Bio expands to a modal). */}
