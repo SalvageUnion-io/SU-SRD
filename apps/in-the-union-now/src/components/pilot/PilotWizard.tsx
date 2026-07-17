@@ -22,7 +22,7 @@ import {
 import { enrichPilotSnapshot } from '../../lib/rules/pilotSnapshot'
 import { evaluatePilotWarnings } from '../../lib/rules/softWarnings'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../sheet/pilotInventory'
-import { SoftWarningBanner } from '../shared/SoftWarningBanner'
+import { SoftWarningBanner } from 'suref-react'
 import { OffRulesEscape } from '../wizard/OffRulesEscape'
 import { RuleBrief } from '../wizard/RuleBrief'
 import type { StepRule } from '../wizard/RuleBrief'

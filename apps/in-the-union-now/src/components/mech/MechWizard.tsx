@@ -27,7 +27,7 @@ import {
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { useMech } from '../../hooks/queries'
 import { useEntityStore } from '../../stores/entityStore'
-import { SoftWarningBanner } from '../shared/SoftWarningBanner'
+import { SoftWarningBanner } from 'suref-react'
 import { OffRulesEscape } from '../wizard/OffRulesEscape'
 import { RuleBrief } from '../wizard/RuleBrief'
 import type { StepRule } from '../wizard/RuleBrief'

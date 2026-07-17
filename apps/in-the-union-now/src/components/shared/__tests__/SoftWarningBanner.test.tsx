@@ -14,7 +14,7 @@ import '@testing-library/jest-dom'
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 
-import { SoftWarningBanner } from '../SoftWarningBanner'
+import { SoftWarningBanner } from 'suref-react'
 import type { SoftWarning } from '../../../lib/rules/types'
 
 // ---------------------------------------------------------------------------

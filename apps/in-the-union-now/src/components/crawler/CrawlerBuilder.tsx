@@ -37,7 +37,7 @@ import {
   wizardDraftKey,
 } from '../../lib/wizard/wizardDraft'
 import { useEntityStore } from '../../stores/entityStore'
-import { SoftWarningBanner } from '../shared/SoftWarningBanner'
+import { SoftWarningBanner } from 'suref-react'
 import { OffRulesEscape } from '../wizard/OffRulesEscape'
 import { RuleBrief } from '../wizard/RuleBrief'
 import type { StepRule } from '../wizard/RuleBrief'

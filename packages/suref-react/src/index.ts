@@ -58,6 +58,8 @@ export type {
 export { Footer } from './components/shared/Footer'
 export { HeaderShell } from './components/shared/HeaderShell'
 export { SectionCard } from './components/shared/SectionCard'
+export { SoftWarningBanner } from './components/shared/SoftWarningBanner'
+export type { SoftWarning, SoftWarningSeverity } from './components/shared/SoftWarningBanner'
 export { KofiButton } from './components/shared/KofiButton'
 export type { KofiButtonProps } from './components/shared/KofiButton'
 export { Stat } from './components/shared/Stat'
