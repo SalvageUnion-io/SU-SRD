@@ -25,7 +25,6 @@ import { Badge } from '../../components/chrome/Badge'
 import { Btn } from '../../components/chrome/Btn'
 import { EmptyState } from '../../components/chrome/EmptyState'
 import { Slab } from '../../components/chrome/Slab'
-import { ConditionSwatch } from '../../components/stat/ConditionSwatch'
 import { UsedPip } from '../../components/stat/UsedPip'
 import { VitalGauge } from '../../components/stat/VitalGauge'
 import { DisplayCard } from '../../components/shared/DisplayCard'
@@ -54,8 +53,10 @@ export type PosterField = {
   usable?: boolean
   /** Seed the used state for a `usable` field. */
   used?: boolean
+  /** Spans the full width, breaking out of the field columns (e.g. Bio). */
+  fullWidth?: boolean
 }
-export type PosterCondition = { label: string; state?: 'intact' | 'damaged' | 'destroyed' }
+export type PosterInjury = { label: string; severity: 'minor' | 'major' }
 export type PosterCollectionItem = {
   entity: SURefEntity
 }
@@ -79,7 +80,7 @@ export type LiveSheetPosterProps = {
   hp: { value: number; max: number }
   ap: { value: number; max: number }
   tp: number
-  conditions: PosterCondition[]
+  injuries: PosterInjury[]
   abilities: PosterCollectionItem[]
   inventory: PosterCollectionItem[]
   linked: PosterLink[]
@@ -264,7 +265,7 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
     hp,
     ap,
     tp,
-    conditions,
+    injuries,
     abilities,
     inventory,
     linked,
@@ -324,8 +325,10 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
 
       {/* ===== Poster ===== */}
       <div className="mx-auto flex max-w-[1180px] flex-col gap-4 px-4 pb-14 pt-5 sm:px-[30px]">
-        {/* Row 1: Identity ∥ Vitals */}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.55fr_1fr]">
+        {/* Row 1: Identity ∥ Vitals — `items-start` so the shorter Vitals card
+            keeps its natural height instead of stretching to the Identity card
+            (no empty card interior). */}
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1.55fr_1fr]">
           {/* Identity band — the section Edit control lives in the HEADER. */}
           <DisplayCard
             headerContent={
@@ -347,17 +350,28 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
             borderColor="var(--tone)"
             bodyPadding="p-4"
           >
-            {/* Fields FLOW around the floated portrait (magazine layout): each
-                field (a flex box, so it avoids the float) sits beside the image
-                while it's tall, then wraps full-width beneath it — no rigid grid
-                column, no whitespace gap beside a short image. */}
-            <div className="flow-root [&>*]:mb-3.5">
-              <div className="float-left mr-5 w-[150px]">
+            {/* Fields FLOW in TWO columns (CSS multi-column) around the floated
+                portrait; a `fullWidth` field (Bio) breaks out to span both
+                columns via column-span. `break-inside-avoid` keeps a field whole.
+                Single column on mobile. */}
+            <div className="gap-x-5 sm:columns-2">
+              <div className="float-left mb-3.5 mr-4 w-[140px]">
                 <ImageSeat src={imageSrc} label={imageLabel} readOnly={readOnly} />
               </div>
-              {fields.map((f) => (
-                <Field key={f.label} {...f} readOnly={readOnly} />
-              ))}
+              {fields
+                .filter((f) => !f.fullWidth)
+                .map((f) => (
+                  <div key={f.label} className="mb-3.5 break-inside-avoid">
+                    <Field {...f} readOnly={readOnly} />
+                  </div>
+                ))}
+              {fields
+                .filter((f) => f.fullWidth)
+                .map((f) => (
+                  <div key={f.label} className="break-inside-avoid [column-span:all]">
+                    <Field {...f} readOnly={readOnly} />
+                  </div>
+                ))}
             </div>
           </DisplayCard>
 
@@ -378,18 +392,34 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
               <hr className="my-1 border-0 border-t border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)]" />
               <div className="flex flex-wrap items-start gap-5">
                 <Stat label="Training" value={tp} bottomLabel="Points" />
+                {/* Pilots have no "conditions" in the rules — they track INJURIES
+                    (Critical Injury Table): each Minor/Major injury lowers max HP
+                    until healed at a Med Bay. */}
                 <div className="min-w-0 flex-1">
                   <Badge shape="stamp" size="sm">
-                    Conditions
+                    Injuries
                   </Badge>
-                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
-                    {conditions.map((c) => (
-                      <span key={c.label} className="inline-flex items-center gap-1.5">
-                        <ConditionSwatch state={c.state ?? 'intact'} />
-                        <span className="font-body text-sm text-ink">{c.label}</span>
-                      </span>
-                    ))}
-                  </div>
+                  {injuries.length === 0 ? (
+                    <p className="mt-2 font-body text-caption text-wk-muted">
+                      No injuries — max HP intact.
+                    </p>
+                  ) : (
+                    <div className="mt-2 flex flex-col gap-1.5">
+                      {injuries.map((inj) => (
+                        <span key={inj.label} className="inline-flex items-center gap-2">
+                          <Badge surface="tone" tone={inj.severity === 'major' ? 'bad' : 'warn'}>
+                            {inj.severity === 'major' ? 'Major' : 'Minor'}
+                          </Badge>
+                          <span className="min-w-0 flex-1 font-body text-sm text-ink">
+                            {inj.label}
+                          </span>
+                          <span className="shrink-0 font-body text-caption text-wk-muted">
+                            {inj.severity === 'major' ? '−2' : '−1'} max HP
+                          </span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

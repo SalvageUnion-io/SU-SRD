@@ -16,6 +16,7 @@ function pick(schema: 'Abilities' | 'Equipment', name: string, index: number): S
 }
 
 export type PilotFixtureCondition = { label: string; state?: 'intact' | 'damaged' | 'destroyed' }
+export type PilotFixtureInjury = { label: string; severity: 'minor' | 'major' }
 export type PilotFixtureLink = {
   kind: string
   name: string
@@ -37,11 +38,14 @@ export const pilotContent = {
   hp: { value: 7, max: 10 },
   ap: { value: 3, max: 5 },
   tp: 2,
+  // Legacy "before" capture kept the shipped freeform pilot conditions.
   conditions: [
     { label: 'Wounded', state: 'damaged' },
     { label: 'Dazed' },
     { label: 'Broken' },
   ] satisfies PilotFixtureCondition[],
+  // The new poster uses rules-accurate INJURIES (Critical Injury Table) instead.
+  injuries: [{ label: 'Cracked ribs', severity: 'minor' }] satisfies PilotFixtureInjury[],
   linked: [
     {
       kind: 'Mech',
