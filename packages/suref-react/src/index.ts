@@ -58,6 +58,7 @@ export type {
 export { Footer } from './components/shared/Footer'
 export { HeaderShell } from './components/shared/HeaderShell'
 export { AppHeader } from './components/shared/AppHeader'
+export { CatalogTile } from './components/shared/CatalogTile'
 export { SectionCard } from './components/shared/SectionCard'
 export { SoftWarningBanner } from './components/shared/SoftWarningBanner'
 export type { SoftWarning, SoftWarningSeverity } from './components/shared/SoftWarningBanner'
