@@ -44,14 +44,15 @@ export type PosterField = {
   /** Longer freeform text (appearance / motto / bio) — rendered full-width so it
    * never shares a grid row with a short field and leaves a ragged gap. */
   prose?: boolean
+  /** A once-per-downtime pilot resource (motto / keepsake / background): shows a
+   * UsedPip beside the label — the old identity card's UsedChip. */
+  usable?: boolean
+  /** Seed the used state for a `usable` field. */
+  used?: boolean
 }
 export type PosterCondition = { label: string; state?: 'intact' | 'damaged' | 'destroyed' }
 export type PosterCollectionItem = {
   entity: SURefEntity
-  /** A once-per-rest "detail resource" (e.g. an ability) — shows a live UsedPip. */
-  resource?: boolean
-  /** Seed the used state for a resource item. */
-  used?: boolean
 }
 export type PosterLink = { kind: string; name: string; href?: string }
 
@@ -133,12 +134,30 @@ function ImageSeat({ src, label, readOnly }: { src?: string; label: string; read
 // generous line-height, tabular values, airy gaps.
 // ---------------------------------------------------------------------------
 
-function Field({ label, value, accent }: PosterField) {
+function Field({
+  label,
+  value,
+  accent,
+  usable,
+  used: usedSeed,
+  readOnly,
+}: PosterField & { readOnly?: boolean }) {
+  const [used, setUsed] = useState(!!usedSeed)
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      <Badge shape="stamp" size="sm" surface={accent ? 'on-tone' : 'on-ink'}>
-        {label}
-      </Badge>
+      <span className="flex min-h-6 items-center justify-between gap-2">
+        <Badge shape="stamp" size="sm" surface={accent ? 'on-tone' : 'on-ink'}>
+          {label}
+        </Badge>
+        {/* Editable: an always-live toggle on every usable field. Read-only
+            (snapshot): the static pip only when spent — matching the old card. */}
+        {usable &&
+          (readOnly ? (
+            used && <UsedPip used />
+          ) : (
+            <UsedPip used={used} subject={label} onToggle={setUsed} />
+          ))}
+      </span>
       <div
         className={`min-w-0 border-b border-ink/15 pb-1 font-body text-ink ${
           accent ? 'text-lede font-semibold' : 'text-sm'
@@ -182,27 +201,12 @@ function CollectionSection({
       />
       {/* Only game entities render here — always the compact entity card. */}
       <div className="grid grid-cols-1 gap-3">
-        {items.map((item) => (
-          <ResourceCard key={item.entity.id} item={item} readOnly={readOnly} />
+        {items.map(({ entity }) => (
+          <ReferenceEntityCard key={entity.id} data={entity} size="compact" />
         ))}
       </div>
     </section>
   )
-}
-
-/**
- * One collection entity as a compact card. A "detail resource" (`resource`)
- * carries a UsedPip in its footer, shown in BOTH modes and correlated with the
- * used state: editable = an always-live toggle; read-only = the same pip static
- * (still shows used AND unused). The state seeds from the entity's used flag.
- */
-function ResourceCard({ item, readOnly }: { item: PosterCollectionItem; readOnly?: boolean }) {
-  const [used, setUsed] = useState(!!item.used)
-  const name = (item.entity as { name?: string }).name ?? 'this'
-  const footActions = item.resource ? (
-    <UsedPip used={used} subject={name} onToggle={readOnly ? undefined : setUsed} />
-  ) : undefined
-  return <ReferenceEntityCard data={item.entity} size="compact" footActions={footActions} />
 }
 
 // ---------------------------------------------------------------------------
@@ -343,7 +347,7 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
                 <ImageSeat src={imageSrc} label={imageLabel} readOnly={readOnly} />
                 <div className="grid grid-cols-2 content-start gap-x-4 gap-y-3">
                   {shortFields.map((f) => (
-                    <Field key={f.label} {...f} />
+                    <Field key={f.label} {...f} readOnly={readOnly} />
                   ))}
                 </div>
               </div>
@@ -352,7 +356,7 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
               {proseFields.length > 0 && (
                 <div className="flex flex-col gap-3">
                   {proseFields.map((f) => (
-                    <Field key={f.label} {...f} />
+                    <Field key={f.label} {...f} readOnly={readOnly} />
                   ))}
                 </div>
               )}
