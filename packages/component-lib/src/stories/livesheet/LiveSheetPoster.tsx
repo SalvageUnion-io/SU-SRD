@@ -28,6 +28,7 @@ import { Slab } from '../../components/chrome/Slab'
 import { UsedPip } from '../../components/stat/UsedPip'
 import { VitalGauge } from '../../components/stat/VitalGauge'
 import { DisplayCard } from '../../components/shared/DisplayCard'
+import { ModalShell } from '../../components/shared/ModalShell'
 import {
   EntityRow,
   type EntityRowStat,
@@ -43,18 +44,19 @@ import { ReferenceEntityCard } from '../../components/referenceEntity/card/Refer
 export type PosterField = {
   label: string
   value: string
-  /** Emphasised (the callsign) — larger accent value. */
+  /** Emphasised — larger accent value. */
   accent?: boolean
-  /** Longer freeform text (appearance / motto / bio) — rendered full-width so it
-   * never shares a grid row with a short field and leaves a ragged gap. */
-  prose?: boolean
   /** A once-per-downtime pilot resource (motto / keepsake / background): shows a
    * UsedPip beside the label — the old identity card's UsedChip. */
   usable?: boolean
   /** Seed the used state for a `usable` field. */
   used?: boolean
-  /** Spans the full width, breaking out of the field columns (e.g. Bio). */
+  /** Spans the full width, breaking out of the field columns (Callsign / Appearance / Bio). */
   fullWidth?: boolean
+  /** Clamp the value to N lines (1 for Callsign, 2 for Appearance / Bio). */
+  clampLines?: 1 | 2
+  /** Show an expand control that opens the full value in a modal (e.g. Bio). */
+  expandable?: boolean
 }
 export type PosterInjury = { label: string; severity: 'minor' | 'major' }
 export type PosterCollectionItem = {
@@ -154,28 +156,47 @@ function Field({
   accent,
   usable,
   used: usedSeed,
+  clampLines,
+  expandable,
   readOnly,
 }: PosterField & { readOnly?: boolean }) {
   const [used, setUsed] = useState(!!usedSeed)
+  const [open, setOpen] = useState(false)
+  const clampClass = clampLines === 1 ? 'line-clamp-1' : clampLines === 2 ? 'line-clamp-2' : ''
   return (
     <div className="flex min-w-0 flex-col gap-1">
       <span className="flex min-h-6 items-center justify-between gap-2">
         <Badge shape="stamp" size="sm" surface={accent ? 'on-tone' : 'on-ink'}>
           {label}
         </Badge>
-        {/* Every usable field shows its Used marker in BOTH modes: editable is
-            an always-live toggle; read-only is the same pip, static. */}
-        {usable && (
-          <UsedPip used={used} subject={label} onToggle={readOnly ? undefined : setUsed} />
-        )}
+        <span className="flex shrink-0 items-center gap-2">
+          {expandable && (
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              aria-label={`Read full ${label.toLowerCase()}`}
+              className="font-cond text-badge font-bold uppercase tracking-caps text-rust hover:text-rust-hi"
+            >
+              Read more
+            </button>
+          )}
+          {/* Usable fields show their Used marker in BOTH modes: editable is an
+              always-live toggle; read-only is the same pip, static. */}
+          {usable && (
+            <UsedPip used={used} subject={label} onToggle={readOnly ? undefined : setUsed} />
+          )}
+        </span>
       </span>
       <div
-        className={`min-w-0 border-b border-ink/15 pb-1 font-body text-ink ${
-          accent ? 'text-lede font-semibold' : 'text-sm'
-        }`}
+        className={`min-w-0 border-b border-ink/15 pb-1 font-body text-ink ${accent ? 'text-lede font-semibold' : 'text-sm'} ${clampClass}`}
       >
         {value}
       </div>
+      {expandable && (
+        <ModalShell open={open} onOpenChange={setOpen} title={label}>
+          <div className="bg-paper p-5 font-body text-sm leading-relaxed text-ink">{value}</div>
+        </ModalShell>
+      )}
     </div>
   )
 }
@@ -272,6 +293,14 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
     readOnly,
   } = props
 
+  // A leading full-width field (Callsign) sits at the TOP; the remaining short
+  // fields fill an aligned 2-col grid beside the portrait; trailing full-width
+  // fields (Appearance, Bio) stack full-width beneath.
+  const topField = fields[0]?.fullWidth ? fields[0] : undefined
+  const bodyFields = topField ? fields.slice(1) : fields
+  const gridFields = bodyFields.filter((f) => !f.fullWidth)
+  const bottomFields = bodyFields.filter((f) => f.fullWidth)
+
   return (
     <div
       className="sheet--pilot min-h-screen"
@@ -350,28 +379,25 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
             borderColor="var(--tone)"
             bodyPadding="p-4"
           >
-            {/* Fields FLOW in TWO columns (CSS multi-column) around the floated
-                portrait; a `fullWidth` field (Bio) breaks out to span both
-                columns via column-span. `break-inside-avoid` keeps a field whole.
-                Single column on mobile. */}
-            <div className="gap-x-5 sm:columns-2">
-              <div className="float-left mb-3.5 mr-4 w-[140px]">
-                <ImageSeat src={imageSrc} label={imageLabel} readOnly={readOnly} />
+            <div className="flex flex-col gap-3.5">
+              {/* Callsign — full-width at the top. */}
+              {topField && <Field {...topField} readOnly={readOnly} />}
+              {/* Portrait + the short fields in an aligned 2-col GRID (rows line
+                  up across columns; single column on mobile). */}
+              <div className="flex flex-col gap-4 sm:flex-row sm:gap-5">
+                <div className="w-[140px] shrink-0">
+                  <ImageSeat src={imageSrc} label={imageLabel} readOnly={readOnly} />
+                </div>
+                <div className="grid flex-1 grid-cols-1 content-start gap-x-5 gap-y-3.5 sm:grid-cols-2">
+                  {gridFields.map((f) => (
+                    <Field key={f.label} {...f} readOnly={readOnly} />
+                  ))}
+                </div>
               </div>
-              {fields
-                .filter((f) => !f.fullWidth)
-                .map((f) => (
-                  <div key={f.label} className="mb-3.5 break-inside-avoid">
-                    <Field {...f} readOnly={readOnly} />
-                  </div>
-                ))}
-              {fields
-                .filter((f) => f.fullWidth)
-                .map((f) => (
-                  <div key={f.label} className="break-inside-avoid [column-span:all]">
-                    <Field {...f} readOnly={readOnly} />
-                  </div>
-                ))}
+              {/* Appearance, Bio — full-width beneath, clamped (Bio expands to a modal). */}
+              {bottomFields.map((f) => (
+                <Field key={f.label} {...f} readOnly={readOnly} />
+              ))}
             </div>
           </DisplayCard>
 
