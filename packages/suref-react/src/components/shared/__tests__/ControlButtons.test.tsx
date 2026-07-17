@@ -29,7 +29,7 @@ describe('ControlButtons', () => {
   test('defaults to primary variant (black bg)', () => {
     render(<ControlButtons controls={[makeControl()]} />)
     const button = screen.getByRole('button')
-    expect(button.innerHTML).toContain('bg-su-black')
+    expect(button.innerHTML).toContain('bg-ink')
   })
 
   test('applies danger variant classes', () => {
@@ -112,7 +112,7 @@ describe('ControlButtons', () => {
     render(<ControlButtons controls={[makeControl({ disabled: true })]} />)
     const button = screen.getByRole('button')
     expect(button.className).toContain('cursor-not-allowed')
-    expect(button.innerHTML).toContain('bg-su-grey-light')
+    expect(button.innerHTML).toContain('bg-wk-faint')
   })
 
   test('disabled control does not fire onClick', () => {

@@ -159,7 +159,7 @@ export function entityHostTone(entity: SURefMetaEntity): string {
     | SURefEnumSchemaName
     | 'actions'
   const tone = resolveCardTone(schemaName, entity)
-  return borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-su-black)'
+  return borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-ink)'
 }
 
 /**

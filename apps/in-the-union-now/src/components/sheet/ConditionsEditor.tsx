@@ -171,7 +171,7 @@ export function ConditionsEditor({
             onBlur={() => {
               void commitAdd()
             }}
-            className="w-28 rounded-[2px] border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge uppercase tracking-wider text-ink focus:outline-none focus:ring-1 focus:ring-su-orange"
+            className="w-28 rounded-[2px] border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge uppercase tracking-caps text-ink focus:outline-none focus:ring-1 focus:ring-su-orange"
           />
         ) : (
           <button

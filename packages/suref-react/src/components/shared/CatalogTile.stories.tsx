@@ -25,7 +25,7 @@ export const Default: Story = () => (
     <CatalogTile
       href="/schema/npcs"
       name="NPCs"
-      catalogBg="var(--color-su-black)"
+      catalogBg="var(--color-ink)"
       catalogLabel="var(--color-su-orange-dark)"
     />
   </div>

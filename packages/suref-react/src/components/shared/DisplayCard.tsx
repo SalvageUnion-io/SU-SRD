@@ -201,7 +201,7 @@ export function DisplayCard({
   cardStyle,
   headerStyle: headerStyleProp,
   footerStyle: footerStyleProp,
-  borderColor: borderColorProp = 'var(--color-su-black)',
+  borderColor: borderColorProp = 'var(--color-ink)',
   headerTestId,
   stickyHeader = false,
   tabs,
@@ -239,14 +239,14 @@ export function DisplayCard({
 
   const actualHeaderBg = headerBg
   // Border colour equals the tone (header background) itself when a header bg is
-  // set, matching the codex "After" .a-card spec; falls back to the su-black
+  // set, matching the codex "After" .a-card spec; falls back to the ink
   // default (borderColorProp) when there is no header bg.
   const effectiveBorderColor = borderColorFromHeaderBg(headerBg, headerBgColor) ?? borderColorProp
 
   // Sub-header band (design-spec four-band model): a darker shade of the
   // header tone, sitting flush below the header content row. Optional —
   // populated by `subHeader` content and/or `stats`; no band when both are empty.
-  const subHeaderBg = accentDeepColor(headerBg, headerBgColor) ?? 'var(--color-su-black)'
+  const subHeaderBg = accentDeepColor(headerBg, headerBgColor) ?? 'var(--color-ink)'
   const hasStats = !!stats && stats.length > 0
   const hasSubHeader = !!subHeader || hasStats
 
@@ -299,7 +299,7 @@ export function DisplayCard({
         // so the outline stays visible on both light backgrounds (e.g., bg-paper)
         // and dark tech-level backgrounds (e.g., tl-5/tl-6).
         resolvedCardClick &&
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-su-black focus-visible:ring-offset-2 focus-visible:ring-offset-paper',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-paper',
         isCardHoverable &&
           'cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:-translate-y-0.5 md:hover:scale-[1.02]'
       )}
@@ -456,10 +456,8 @@ export function DisplayCard({
                     aria-selected={isActive}
                     className={cn(
                       tabBaseClass,
-                      !tab.borderColor && 'border-b border-su-grey-dark/30',
-                      isActive
-                        ? 'text-su-black'
-                        : 'bg-su-grey-light text-su-black hover:bg-su-grey-medium'
+                      !tab.borderColor && 'border-b border-ink-2/30',
+                      isActive ? 'text-ink' : 'bg-wk-faint text-ink hover:bg-wk-muted'
                     )}
                     style={{
                       ...(isActive && tabBg ? { backgroundColor: tabBg } : {}),
@@ -474,7 +472,7 @@ export function DisplayCard({
               }
 
               return (
-                <div className="flex flex-wrap divide-x divide-su-grey-dark/30" role="tablist">
+                <div className="flex flex-wrap divide-x divide-ink-2/30" role="tablist">
                   {beforeTabs.map(renderTabButton)}
                   <button
                     type="button"
@@ -482,10 +480,8 @@ export function DisplayCard({
                     aria-selected={isDefaultTab}
                     className={cn(
                       tabBaseClass,
-                      'border-b border-su-grey-dark/30',
-                      isDefaultTab
-                        ? 'text-su-black'
-                        : 'bg-su-grey-light text-su-black hover:bg-su-grey-medium'
+                      'border-b border-ink-2/30',
+                      isDefaultTab ? 'text-ink' : 'bg-wk-faint text-ink hover:bg-wk-muted'
                     )}
                     style={
                       isDefaultTab

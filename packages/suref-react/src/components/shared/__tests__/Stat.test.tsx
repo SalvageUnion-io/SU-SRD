@@ -5,15 +5,15 @@ import { Stat } from '../Stat'
 describe('Stat', () => {
   afterEach(cleanup)
 
-  test('default colors are text-su-black on bg-paper (16:1 contrast, WCAG AAA)', () => {
+  test('default colors are text-ink on bg-paper (16:1 contrast, WCAG AAA)', () => {
     render(<Stat label="HP" value={10} />)
     const group = screen.getByRole('group')
     expect(group).toBeTruthy()
-    // The value box uses bg-paper and text-su-black by default,
+    // The value box uses bg-paper and text-ink by default,
     // which gives 16:1 contrast ratio — well above WCAG AAA (7:1).
     const box = group.querySelector('.bg-paper')
     expect(box).toBeTruthy()
-    expect(box?.querySelector('.text-su-black')).toBeTruthy()
+    expect(box?.querySelector('.text-ink')).toBeTruthy()
   })
 
   test('disabled interactive stat shows visible disabled cue while keeping AA contrast', () => {

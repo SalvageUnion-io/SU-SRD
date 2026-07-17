@@ -22,7 +22,7 @@ type StaticEntityContentProps = {
 
 export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityContentProps) {
   return (
-    <div data-static-fallback className="mx-auto w-full max-w-6xl px-4 text-sm text-su-black">
+    <div data-static-fallback className="mx-auto w-full max-w-6xl px-4 text-sm text-ink">
       {/* SSR / no-JS heading. JS users get this whole block stripped by BaseLayout
           and the hydrated island supplies the real <h1>, so they never double up. */}
       <h1 className="mb-3 font-cond text-2xl font-bold uppercase tracking-tight">{summary.name}</h1>
@@ -70,7 +70,7 @@ export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityC
       )}
 
       {summary.source && (
-        <p className="text-xs text-su-grey-dark">
+        <p className="text-xs text-ink-2">
           Source: {summary.source}
           {summary.page ? `, p. ${summary.page}` : ''}
         </p>

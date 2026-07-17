@@ -45,7 +45,7 @@ export type StatState = EntityStatus
 export type StatBorderState = 'default' | 'good' | 'modified' | 'caution' | 'critical'
 
 const STATE_BORDER: Record<StatBorderState, string> = {
-  default: 'border-su-black',
+  default: 'border-ink',
   good: 'border-su-green',
   modified: 'border-rust',
   caution: 'border-status-warn',
@@ -278,10 +278,8 @@ function HorizontalValue({
   // Buttons sit SIDE BY SIDE after the value cell and stretch to its height, so
   // the stepper adds no vertical height to the row.
   const btnSize = compact ? 'w-4 text-xs' : 'w-5 text-sm'
-  const btnResting = inverse
-    ? 'border-paper bg-su-black text-paper'
-    : 'border-ink bg-paper text-ink'
-  const btnHover = inverse ? 'hover:bg-paper hover:text-su-black' : 'hover:bg-ink hover:text-paper'
+  const btnResting = inverse ? 'border-paper bg-ink text-paper' : 'border-ink bg-paper text-ink'
+  const btnHover = inverse ? 'hover:bg-paper hover:text-ink' : 'hover:bg-ink hover:text-paper'
   const btnBase =
     'flex min-h-11 items-center justify-center rounded-badge border border-ink font-mono font-bold leading-none transition-colors sm:min-h-0'
 
@@ -349,8 +347,8 @@ function ValueBox({
   const [isFlashing, setIsFlashing] = useState(false)
 
   const combinedAriaLabel = ariaLabel || (bottomLabel ? `${label} ${bottomLabel}` : String(label))
-  const trueBg = inverse ? 'bg-su-black' : 'bg-paper'
-  const trueValueColor = inverse ? 'text-paper' : 'text-su-black'
+  const trueBg = inverse ? 'bg-ink' : 'bg-paper'
+  const trueValueColor = inverse ? 'text-paper' : 'text-ink'
   const mutedMaxColor = inverse ? 'text-paper/70' : 'text-ink-2'
   const trueBorderColor = STATE_BORDER[state]
 
@@ -395,21 +393,19 @@ function ValueBox({
   const atMin = numericValue <= min
   const atMax = max !== undefined && numericValue >= max
   const btnSize = compact ? 'h-3 w-3 text-micro' : 'h-4 w-4 text-xs'
-  const btnResting = inverse
-    ? 'border-paper bg-su-black text-paper'
-    : 'border-ink bg-paper text-ink'
-  const btnHover = inverse ? 'hover:bg-paper hover:text-su-black' : 'hover:bg-ink hover:text-paper'
+  const btnResting = inverse ? 'border-paper bg-ink text-paper' : 'border-ink bg-paper text-ink'
+  const btnHover = inverse ? 'hover:bg-paper hover:text-ink' : 'hover:bg-ink hover:text-paper'
 
   const boxSize = compact ? 'h-8 min-w-8 px-0.5' : 'h-12 w-12'
   const boxRadius = compact ? 'rounded-card' : 'rounded-panel'
   // Disabled state: reduce overall opacity to signal disabled while preserving
-  // foreground/background contrast. The default bg-paper / text-su-black pair
+  // foreground/background contrast. The default bg-paper / text-ink pair
   // has a 16:1 base ratio; at 60% opacity the effective ratio is ~9.6:1, still
   // well above the WCAG AA threshold of 4.5:1 for normal text.
   const disabledClass = disabled ? 'opacity-60' : ''
 
   // The value readout: `current /max` (current prominent, /max muted) when a
-  // max is set, else the bare value. `text-su-black` (or paper, inverted) stays
+  // max is set, else the bare value. `text-ink` (or paper, inverted) stays
   // on the wrapper so the fill/value colour is constant across states.
   const valueReadout = (
     <span

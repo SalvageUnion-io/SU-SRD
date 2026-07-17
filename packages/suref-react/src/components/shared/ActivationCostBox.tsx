@@ -20,7 +20,7 @@ export function ActivationCostBox({
         className={cn(
           // py-0.5 matches the pseudoheader datavalue tags (TURN ACTION, …) so
           // the AP badge box is the same height as the other datavalue cells.
-          'z-[2] inline-flex items-center justify-center whitespace-nowrap bg-su-black py-0.5 uppercase leading-none text-paper',
+          'z-[2] inline-flex items-center justify-center whitespace-nowrap bg-ink py-0.5 uppercase leading-none text-paper',
           // Match the datavalue tags' weight (font-normal compact / semibold)
           compact ? 'px-1 text-xs font-normal' : 'px-1.5 text-sm font-semibold'
         )}
@@ -36,9 +36,7 @@ export function ActivationCostBox({
           // arrow matches the box and the neighbouring datavalue tags.
           borderTop: compact ? '8px solid transparent' : '9px solid transparent',
           borderBottom: compact ? '8px solid transparent' : '9px solid transparent',
-          borderLeft: compact
-            ? '7px solid var(--color-su-black)'
-            : '8px solid var(--color-su-black)',
+          borderLeft: compact ? '7px solid var(--color-ink)' : '8px solid var(--color-ink)',
         }}
       />
     </span>

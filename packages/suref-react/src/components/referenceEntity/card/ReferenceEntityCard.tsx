@@ -385,19 +385,19 @@ export function ReferenceEntityCard({
   const isDown = !!damaged || !!destroyed || !!hostDown
   const GREY_HEADER = '#969696'
   const GREY_DEEP = accentDeepColor(undefined, GREY_HEADER) ?? '#5a5a5a'
-  const ghost = isGhosted ? ghostActionTone(hostTone ?? 'var(--color-su-black)') : undefined
+  const ghost = isGhosted ? ghostActionTone(hostTone ?? 'var(--color-ink)') : undefined
   const darkTone = isDown
     ? GREY_DEEP
     : ghost
       ? ghost.sub
-      : (accentDeepColor(tone.bg, tone.bgColor) ?? 'var(--color-su-black)')
+      : (accentDeepColor(tone.bg, tone.bgColor) ?? 'var(--color-ink)')
   const frameColor = isDown
     ? GREY_DEEP
     : ghost
       ? ghost.frame
-      : (borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-su-black)')
+      : (borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-ink)')
   // This entity's own tone base — threaded to its nested action cards as their host.
-  const ownToneBase = borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-su-black)'
+  const ownToneBase = borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-ink)'
   const techLevel = getTechLevel(entity)
   // EFFECTIVE TECH LEVEL — the value that scales this entity: the Modification
   // choice cap (`scalesWithField: techLevel`) AND any `perTechLevel` datavalue
@@ -1105,7 +1105,7 @@ export function ReferenceEntityCard({
     <div className="flex items-center gap-2">
       <span aria-hidden="true" className="h-0 flex-1 border-t border-dashed border-ink/40" />
       <span
-        className="shrink-0 bg-su-black px-1 py-0.5 font-cond text-xs font-bold uppercase tracking-caps-tight text-paper"
+        className="shrink-0 bg-ink px-1 py-0.5 font-cond text-xs font-bold uppercase tracking-caps-tight text-paper"
         style={{ lineHeight: 1 }}
       >
         {label}
@@ -1188,7 +1188,7 @@ export function ReferenceEntityCard({
         {/* DAMAGE OVERLAY (write layer) — a translucent scrim + red danger box
             over the whole card body. Non-interactive; absent ⇒ nothing renders. */}
         {damageOverlayText && (
-          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-su-black/40 p-3">
+          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-ink/40 p-3">
             <span
               className="rounded-card px-3 py-1.5 text-center font-cond text-sm font-bold uppercase leading-tight tracking-caps-tight text-paper"
               style={{ backgroundColor: 'var(--color-status-bad)' }}
@@ -1273,7 +1273,7 @@ export function ReferenceEntityCard({
                 style={{ backgroundColor: damagedBands.header }}
               >
                 <span
-                  className="block bg-su-black px-1 py-0.5 font-cond text-xs font-bold uppercase tracking-caps-tight text-paper"
+                  className="block bg-ink px-1 py-0.5 font-cond text-xs font-bold uppercase tracking-caps-tight text-paper"
                   style={{ lineHeight: 1 }}
                 >
                   When Damaged

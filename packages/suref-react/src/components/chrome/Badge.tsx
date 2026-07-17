@@ -24,8 +24,8 @@ const BADGE_TONES: Record<BadgeTone, string> = {
 const BADGE_SURFACE: Record<BadgeSurface, string> = {
   solid: 'px-[7px] bg-ink text-paper tracking-caps-snug',
   ghost: 'px-[7px] bg-paper text-ink ring-1 ring-inset ring-ink/20 tracking-caps-snug',
-  outline: 'px-[9px] border-2 border-ink bg-paper text-ink tracking-wider',
-  tone: 'px-[9px] border-2 tracking-wider',
+  outline: 'px-[9px] border-2 border-ink bg-paper text-ink tracking-caps',
+  tone: 'px-[9px] border-2 tracking-caps',
   quiet: 'px-2 bg-wk-bg-2 text-ink-2',
 }
 

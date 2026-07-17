@@ -9,7 +9,7 @@ export default {
 /**
  * The site footer — Leyline Press copyright + Salvage Union OGL 1.0b attribution
  * + the "Powered by Salvage" logo, with an optional legal-links row. (Still on
- * pre-canon `su-grey`/`su-black` tokens — pending refresh + approval. The
+ * pre-canon `su-grey`/`ink` tokens — pending refresh + approval. The
  * `poweredBySalvageUrl` asset lives in each app's public dir, so the logo shows
  * broken here in the shared library.)
  */

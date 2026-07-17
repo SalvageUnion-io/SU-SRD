@@ -67,8 +67,8 @@ export function ModalShell({
                 <Dialog.Close
                   className={`flex shrink-0 cursor-pointer items-center justify-center rounded p-1 transition-colors ${
                     isLightClose
-                      ? 'text-paper/60 hover:bg-su-black/20 hover:text-paper'
-                      : 'text-su-black/60 hover:bg-su-black/20 hover:text-su-black'
+                      ? 'text-paper/60 hover:bg-ink/20 hover:text-paper'
+                      : 'text-ink/60 hover:bg-ink/20 hover:text-ink'
                   }`}
                 >
                   <X className="h-5 w-5" />

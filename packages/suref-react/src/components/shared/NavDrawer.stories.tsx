@@ -28,7 +28,7 @@ const CATEGORIES = [
       {
         id: 'traits',
         displayName: 'Traits',
-        catalogBg: 'var(--color-su-black)',
+        catalogBg: 'var(--color-ink)',
         catalogLabel: 'var(--color-su-orange-dark)',
       },
     ],

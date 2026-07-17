@@ -18,9 +18,7 @@ function choiceAccent(
   parentHeaderBg: string | undefined,
   parentHeaderBgColor: string | undefined
 ): string {
-  return (
-    borderColorFromHeaderBg(parentHeaderBg, parentHeaderBgColor) ?? 'var(--color-su-grey-light)'
-  )
+  return borderColorFromHeaderBg(parentHeaderBg, parentHeaderBgColor) ?? 'var(--color-wk-faint)'
 }
 
 /** Coloured frame colours: light tint body + full-accent border. */
@@ -108,7 +106,7 @@ export function StaticChoiceCard({
       {label && <StaticChoiceCardHeader label={label} compact={compact} />}
       {description && (
         <StaticChoiceCardBody accent={accent} compact={compact} topGap={!label}>
-          <Text as="span" className={cn('block text-su-black', fontSize)}>
+          <Text as="span" className={cn('block text-ink', fontSize)}>
             {parsedDescription}
           </Text>
         </StaticChoiceCardBody>
