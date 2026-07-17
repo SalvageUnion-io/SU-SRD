@@ -7,9 +7,9 @@ const textVariants = cva('', {
     variant: {
       default: 'font-mono text-[var(--foreground)]',
       pseudoheader:
-        'block w-fit self-start bg-su-black text-paper px-1 py-0.5 font-cond font-bold uppercase leading-tight tracking-caps-tight',
+        'block w-fit self-start bg-ink text-paper px-1 py-0.5 font-cond font-bold uppercase leading-tight tracking-caps-tight',
       pseudoheaderInverse:
-        'block w-fit self-start bg-paper text-su-black px-1 py-0.5 font-cond font-bold uppercase leading-tight tracking-caps-tight',
+        'block w-fit self-start bg-paper text-ink px-1 py-0.5 font-cond font-bold uppercase leading-tight tracking-caps-tight',
       // Body prose — reference-content paragraphs / labelled values.
       body: 'break-words font-medium leading-snug whitespace-normal text-pretty text-ink',
       // Centered italic aside (a rules "hint" / tip).

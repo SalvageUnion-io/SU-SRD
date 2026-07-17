@@ -13,8 +13,8 @@ type FooterProps = {
 
 export function Footer({ poweredBySalvageUrl, legalLinks }: FooterProps) {
   return (
-    <footer className="border-t border-su-grey-light bg-paper py-3 lg:shadow-sm">
-      <div className="mx-auto flex max-w-7xl flex-row flex-wrap items-center justify-center gap-4 text-xs text-su-black">
+    <footer className="border-t border-wk-faint bg-paper py-3 lg:shadow-sm">
+      <div className="mx-auto flex max-w-7xl flex-row flex-wrap items-center justify-center gap-4 text-xs text-ink">
         <div className="min-w-0 flex-1 text-center">
           <p>
             Salvage Union is copyrighted by{' '}
@@ -57,7 +57,7 @@ export function Footer({ poweredBySalvageUrl, legalLinks }: FooterProps) {
             <p className="mt-1">
               {legalLinks.map((link, i) => (
                 <span key={link.href}>
-                  {i > 0 && <span className="px-1.5 text-su-grey-light">·</span>}
+                  {i > 0 && <span className="px-1.5 text-wk-faint">·</span>}
                   <a href={link.href} className="underline hover:text-su-orange-dark">
                     {link.label}
                   </a>

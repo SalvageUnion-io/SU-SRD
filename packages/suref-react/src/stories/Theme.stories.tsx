@@ -62,12 +62,12 @@ const brandColors: Record<string, string> = {
   'su-blue-pale': 'rgb(230, 240, 245)',
   'su-brick': 'rgb(168, 89, 71)',
   'su-brick-pale': 'rgb(210, 160, 140)',
-  'su-black': 'rgb(40, 32, 25)',
+  ink: 'rgb(40, 32, 25)',
   paper: 'rgb(251, 248, 243)',
   'su-grey': 'rgb(150, 150, 150)',
-  'su-grey-light': 'rgb(199, 199, 199)',
-  'su-grey-medium': 'rgb(130, 130, 130)',
-  'su-grey-dark': 'rgb(80, 80, 80)',
+  'wk-faint': 'rgb(199, 199, 199)',
+  'wk-muted': 'rgb(130, 130, 130)',
+  'ink-2': 'rgb(80, 80, 80)',
   'su-input-bg': 'rgb(232, 229, 216)',
   'su-peach': 'rgb(245, 193, 163)',
   'su-sickly-yellow': 'rgb(215, 195, 125)',
@@ -101,7 +101,7 @@ const rollColors: Record<string, string> = {
 
 const cssVarMappings: Record<string, string> = {
   '--background': 'var(--color-paper)',
-  '--foreground': 'var(--color-su-black)',
+  '--foreground': 'var(--color-ink)',
 }
 
 function Swatch({ name, color }: { name: string; color: string }) {

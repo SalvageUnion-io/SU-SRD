@@ -26,7 +26,7 @@ describe('CardHeader', () => {
     render(<CardHeader title="My Title" />)
     const title = screen.getByText('My Title')
     expect(title).toBeTruthy()
-    expect(title.className).toContain('bg-su-black')
+    expect(title.className).toContain('bg-ink')
     expect(title.className).toContain('uppercase')
   })
 

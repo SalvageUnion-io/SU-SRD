@@ -9,7 +9,7 @@ import type {
 
 /** Tailwind classes for the primary segment of each variant */
 const VARIANT_BG: Record<ReferenceEntityControlVariant, string> = {
-  primary: 'bg-su-black',
+  primary: 'bg-ink',
   danger: 'bg-su-rust',
   ghost: 'bg-paper',
 }
@@ -17,19 +17,19 @@ const VARIANT_BG: Record<ReferenceEntityControlVariant, string> = {
 const VARIANT_TEXT: Record<ReferenceEntityControlVariant, string> = {
   primary: 'text-paper',
   danger: 'text-paper',
-  ghost: 'text-su-black',
+  ghost: 'text-ink',
 }
 
 /** Inverse segment colors (for segmentText) */
 const INVERSE_BG: Record<ReferenceEntityControlVariant, string> = {
   primary: 'bg-paper',
   danger: 'bg-paper',
-  ghost: 'bg-su-black',
+  ghost: 'bg-ink',
 }
 
 const INVERSE_TEXT: Record<ReferenceEntityControlVariant, string> = {
-  primary: 'text-su-black',
-  danger: 'text-su-black',
+  primary: 'text-ink',
+  danger: 'text-ink',
   ghost: 'text-paper',
 }
 
@@ -74,8 +74,8 @@ function ControlButton({
           'min-h-11 min-w-11 sm:min-h-0 sm:min-w-0',
           compact ? 'h-7 w-7' : 'h-8 w-8',
           isDisabled
-            ? 'cursor-not-allowed border-su-grey-medium text-su-grey-dark'
-            : 'cursor-pointer border-su-black bg-paper text-su-black hover:bg-su-black hover:text-paper',
+            ? 'cursor-not-allowed border-wk-muted text-ink-2'
+            : 'cursor-pointer border-ink bg-paper text-ink hover:bg-ink hover:text-paper',
           control.className
         )}
         title={control.ariaLabel}
@@ -94,10 +94,8 @@ function ControlButton({
       type="button"
       className={cn(
         'inline-flex shrink-0 items-stretch whitespace-nowrap border transition-colors',
-        isDisabled
-          ? 'cursor-not-allowed border-su-grey-medium'
-          : 'cursor-pointer hover:brightness-110',
-        !isDisabled && !control.borderColor && 'border-su-black',
+        isDisabled ? 'cursor-not-allowed border-wk-muted' : 'cursor-pointer hover:brightness-110',
+        !isDisabled && !control.borderColor && 'border-ink',
         control.className
       )}
       style={{
@@ -113,9 +111,7 @@ function ControlButton({
       <span
         className={cn(
           segmentClasses,
-          isDisabled
-            ? 'bg-su-grey-light text-su-grey-dark'
-            : !hasCustomColors && VARIANT_BG[variant],
+          isDisabled ? 'bg-wk-faint text-ink-2' : !hasCustomColors && VARIANT_BG[variant],
           !isDisabled && !hasCustomColors && VARIANT_TEXT[variant]
         )}
         style={{
@@ -131,7 +127,7 @@ function ControlButton({
         <span
           className={cn(
             segmentClasses,
-            isDisabled ? 'bg-su-grey-medium text-su-grey-dark' : INVERSE_BG[variant],
+            isDisabled ? 'bg-wk-muted text-ink-2' : INVERSE_BG[variant],
             !isDisabled && INVERSE_TEXT[variant]
           )}
           style={{ lineHeight: 1 }}

@@ -19,9 +19,9 @@ type CardImageProps = {
 }
 
 const TAG_SM =
-  'inline-flex items-center gap-1 border border-su-black bg-paper px-1 py-0 font-mono text-xs font-bold uppercase leading-none text-su-black transition-opacity hover:opacity-80'
+  'inline-flex items-center gap-1 border border-ink bg-paper px-1 py-0 font-mono text-xs font-bold uppercase leading-none text-ink transition-opacity hover:opacity-80'
 const TAG_SM_DANGER =
-  'inline-flex items-center gap-1 border border-su-black bg-su-rust px-1 py-0 font-mono text-xs font-bold uppercase leading-none text-paper transition-opacity hover:opacity-80'
+  'inline-flex items-center gap-1 border border-ink bg-su-rust px-1 py-0 font-mono text-xs font-bold uppercase leading-none text-paper transition-opacity hover:opacity-80'
 
 export function CardImage({ url, alt, compact, editable, width, height }: CardImageProps) {
   const [showImage, setShowImage] = useState(true)
@@ -103,7 +103,7 @@ export function CardImage({ url, alt, compact, editable, width, height }: CardIm
           />
         ) : editable ? (
           <div
-            className="flex items-center justify-center text-su-grey-dark/30"
+            className="flex items-center justify-center text-ink-2/30"
             style={{ width: containerWidth, height: containerWidth, maxWidth: '100%' }}
           >
             <svg
@@ -132,7 +132,7 @@ export function CardImage({ url, alt, compact, editable, width, height }: CardIm
         {editable && (
           <div
             className={cn(
-              'absolute inset-0 flex items-center justify-center gap-2 bg-su-black/50 transition-opacity',
+              'absolute inset-0 flex items-center justify-center gap-2 bg-ink/50 transition-opacity',
               editable.isUploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
             )}
           >

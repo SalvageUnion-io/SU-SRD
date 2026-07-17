@@ -398,7 +398,7 @@ describe('DisplayCard', () => {
     // Ring-based focus indicator with a contrasting offset color so the outline
     // remains visible on both light and dark tech-level backgrounds.
     expect(wrapper.className).toContain('focus-visible:ring-2')
-    expect(wrapper.className).toContain('focus-visible:ring-su-black')
+    expect(wrapper.className).toContain('focus-visible:ring-ink')
     expect(wrapper.className).toContain('focus-visible:ring-offset-2')
     expect(wrapper.className).toContain('focus-visible:ring-offset-paper')
   })

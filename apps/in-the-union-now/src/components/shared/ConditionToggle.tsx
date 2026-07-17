@@ -25,9 +25,9 @@ const LABELS: Record<ItemCondition, string> = {
 }
 
 const STYLES: Record<ItemCondition, string> = {
-  intact: 'bg-roll-success text-paper border-su-black',
-  damaged: 'bg-roll-failure text-su-black border-su-black',
-  destroyed: 'bg-roll-cascade text-paper border-su-black',
+  intact: 'bg-roll-success text-paper border-ink',
+  damaged: 'bg-roll-failure text-ink border-ink',
+  destroyed: 'bg-roll-cascade text-paper border-ink',
 }
 
 type ConditionToggleProps = {

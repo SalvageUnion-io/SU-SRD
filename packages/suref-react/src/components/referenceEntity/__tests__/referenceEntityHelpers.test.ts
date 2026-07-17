@@ -12,7 +12,7 @@ describe('calculateBackgroundColor', () => {
     3: 'bg-su-orange-dark',
   }
 
-  it('should return bg-su-grey-dark for guides schema with no headerColor', () => {
+  it('should return bg-ink-2 for guides schema with no headerColor', () => {
     const result = calculateBackgroundColor(
       'guides',
       '',
@@ -27,7 +27,7 @@ describe('calculateBackgroundColor', () => {
       },
       techLevelColors
     )
-    expect(result).toBe('bg-su-grey-dark')
+    expect(result).toBe('bg-ink-2')
   })
 
   it('should return headerColor for guides schema when provided', () => {
@@ -48,7 +48,7 @@ describe('calculateBackgroundColor', () => {
     expect(result).toBe('bg-su-pink')
   })
 
-  it('should return bg-su-grey-dark for black market items', () => {
+  it('should return bg-ink-2 for black market items', () => {
     const result = calculateBackgroundColor(
       'systems',
       '',
@@ -63,7 +63,7 @@ describe('calculateBackgroundColor', () => {
       },
       techLevelColors
     )
-    expect(result).toBe('bg-su-grey-dark')
+    expect(result).toBe('bg-ink-2')
   })
 
   it('should return bg-su-green for chassis schema', () => {

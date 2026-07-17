@@ -56,7 +56,7 @@ export function calculateBackgroundColor(
   techLevelColors: Record<number, string>
 ): string {
   if (isEntityData(data) && getBlackMarket(data) === true) {
-    return 'bg-su-grey-dark'
+    return 'bg-ink-2'
   }
 
   if (schemaName === 'chassis') return 'bg-su-green'
@@ -69,12 +69,12 @@ export function calculateBackgroundColor(
   if (schemaName === 'npcs') return headerColor || 'bg-su-rust'
   if (schemaName === 'meld') return headerColor || 'bg-su-rust'
   if (schemaName === 'squads') return headerColor || 'bg-su-rust'
-  if (schemaName === 'keywords') return headerColor || 'bg-su-grey-dark'
-  if (schemaName === 'distances') return headerColor || 'bg-su-grey-dark'
-  if (schemaName === 'traits') return headerColor || 'bg-su-grey-dark'
-  if (schemaName === 'guides') return headerColor || 'bg-su-grey-dark'
-  if (schemaName === 'roll-tables') return headerColor || 'bg-su-grey-dark'
-  if (schemaName === 'sources') return headerColor || 'bg-su-grey-dark'
+  if (schemaName === 'keywords') return headerColor || 'bg-ink-2'
+  if (schemaName === 'distances') return headerColor || 'bg-ink-2'
+  if (schemaName === 'traits') return headerColor || 'bg-ink-2'
+  if (schemaName === 'guides') return headerColor || 'bg-ink-2'
+  if (schemaName === 'roll-tables') return headerColor || 'bg-ink-2'
+  if (schemaName === 'sources') return headerColor || 'bg-ink-2'
   if (schemaName === 'classes' && !headerColor) {
     if (isEntityData(data)) {
       const isHybrid = isHybridClass(data)

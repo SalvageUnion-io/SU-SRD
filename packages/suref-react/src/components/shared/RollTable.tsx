@@ -100,7 +100,7 @@ function RollTableDescription({
 }) {
   const parsed = useParseTraitReferences(value)
   return (
-    <div className={cn('text-su-black', compact ? 'text-xs' : 'text-base')}>
+    <div className={cn('text-ink', compact ? 'text-xs' : 'text-base')}>
       {label && <span className="font-bold">{label}: </span>}
       {parsed}
     </div>
@@ -160,7 +160,7 @@ function ResultActionBar({
         type="button"
         onClick={handleCopy}
         className={cn(
-          'flex cursor-pointer items-center gap-1 border border-su-black bg-su-grey-light font-bold text-su-black hover:bg-su-grey-light/80',
+          'flex cursor-pointer items-center gap-1 border border-ink bg-wk-faint font-bold text-ink hover:bg-wk-faint/80',
           compact ? 'px-2 text-xs' : 'px-3 text-sm'
         )}
         aria-label="Copy result to clipboard"
@@ -173,7 +173,7 @@ function ResultActionBar({
           type="button"
           onClick={handleReroll}
           className={cn(
-            'flex cursor-pointer items-center gap-1 bg-su-black font-bold text-paper hover:bg-brand-srd',
+            'flex cursor-pointer items-center gap-1 bg-ink font-bold text-paper hover:bg-brand-srd',
             compact ? 'px-2 text-xs' : 'px-3 text-sm'
           )}
         >
@@ -257,7 +257,7 @@ function ColumnsRollTable({
 
       <div className="rounded-card border-2 border-su-orange-light">
         {showCommand && (
-          <div className="flex items-center justify-between gap-2 bg-su-black px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
+          <div className="flex items-center justify-between gap-2 bg-ink px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
             <span>{tableName || 'Roll table'}</span>
             {!disabled && (
               <span className="inline-flex items-center gap-2">
@@ -293,7 +293,7 @@ function ColumnsRollTable({
                     key={colKey}
                     scope="col"
                     className={cn(
-                      'text-left font-bold text-su-black',
+                      'text-left font-bold text-ink',
                       compact ? 'px-2 py-1 text-lg' : 'px-3 py-2 text-2xl'
                     )}
                   >
@@ -325,10 +325,10 @@ function ColumnsRollTable({
                           key={colKey + entryNum}
                           ref={isHighlighted ? highlightedRef : null}
                           className={cn(
-                            'relative text-left text-su-black transition-all duration-200',
+                            'relative text-left text-ink transition-all duration-200',
                             compact ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-base',
                             isHighlighted &&
-                              'z-[1] scale-[1.04] cursor-pointer outline-4 outline-su-black shadow-[0_14px_40px_rgba(0,0,0,0.85)]'
+                              'z-[1] scale-[1.04] cursor-pointer outline-4 outline-ink shadow-[0_14px_40px_rgba(0,0,0,0.85)]'
                           )}
                           onClick={isHighlighted ? handleClear : undefined}
                           onKeyDown={
@@ -428,7 +428,7 @@ function StandardRollTable({
 
       <div className="overflow-visible rounded-card border-2 border-su-orange-light transition-opacity duration-200">
         {showCommand && (
-          <div className="flex items-center justify-between gap-2 bg-su-black px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
+          <div className="flex items-center justify-between gap-2 bg-ink px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
             <span>{tableName || 'Roll table'}</span>
             {!disabled && (
               <span className="inline-flex items-center gap-2">
@@ -513,7 +513,7 @@ function StandardRollTable({
                   >
                     <Text
                       className={cn(
-                        'whitespace-nowrap text-center font-bold leading-none text-su-black',
+                        'whitespace-nowrap text-center font-bold leading-none text-ink',
                         compact ? 'text-sm' : 'text-lg'
                       )}
                     >

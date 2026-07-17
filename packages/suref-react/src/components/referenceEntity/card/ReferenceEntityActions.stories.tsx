@@ -46,7 +46,7 @@ function parentToneBase(parent: SURefEntity): string {
     | SURefEnumSchemaName
     | 'actions'
   const tone = resolveCardTone(schemaName, parent as SURefMetaEntity)
-  return borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-su-black)'
+  return borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-ink)'
 }
 
 /** Pick a named action off a parent via the same resolver the card uses. */
