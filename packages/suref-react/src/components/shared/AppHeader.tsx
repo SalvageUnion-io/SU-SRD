@@ -16,7 +16,34 @@ import type { ElementType } from 'react'
 import { Search } from 'lucide-react'
 
 import { HeaderShell } from './HeaderShell'
-import { AppHeaderMobileMenu } from './AppHeaderMobileMenu'
+import { NavDrawer, type NavDrawerItem } from './NavDrawer'
+
+/** ITUN's two-tone brand tag for the mobile drawer. */
+const ITUN_DRAWER_BRAND = (
+  <span className="inline-flex shrink-0 border border-ink font-cond text-sm font-bold uppercase leading-none tracking-tight">
+    <span className="bg-ink px-1.5 py-1 text-paper">In the Union</span>
+    <span className="bg-paper px-1.5 py-1 text-ink">Now</span>
+  </span>
+)
+
+const ALPHA_BADGE = (
+  <span className="ml-2 inline-block rounded bg-rust px-1.5 py-0.5 font-cond text-[11px] font-bold uppercase leading-none tracking-caps text-paper">
+    Alpha
+  </span>
+)
+
+const ITUN_NAV_ITEMS: NavDrawerItem[] = [
+  { label: 'Encounter', href: '/encounter', badge: ALPHA_BADGE },
+  { label: 'About', href: '/about' },
+  { label: 'Changelog', href: '/changelog' },
+  { label: 'Discord ↗', href: 'https://salvageunion.io/discord/', external: true },
+  { label: 'SalvageUnion.io SRD ↗', href: 'https://salvageunion.io', external: true },
+  {
+    label: 'Buy the game',
+    href: 'https://leyline.press/collections/salvage-union',
+    external: true,
+  },
+]
 
 // SRD `.nav-link` treatment (apps/suref-web/src/styles/global.css), replicated
 // as utilities so ITUN's links read identically to the reference site.
@@ -108,7 +135,13 @@ export function AppHeader({ onSearchClick, LinkComponent = 'a' }: AppHeaderProps
           Buy the game
         </a>
         <div className="lg:hidden">
-          <AppHeaderMobileMenu LinkComponent={LinkComponent} />
+          <NavDrawer
+            brand={ITUN_DRAWER_BRAND}
+            navItems={ITUN_NAV_ITEMS}
+            LinkComponent={LinkComponent}
+            triggerClassName="p-1.5"
+            panelClassName="w-72"
+          />
         </div>
       </div>
     </HeaderShell>
