@@ -274,9 +274,6 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
     readOnly,
   } = props
 
-  const shortFields = fields.filter((f) => !f.prose)
-  const proseFields = fields.filter((f) => f.prose)
-
   return (
     <div
       className="sheet--pilot min-h-screen"
@@ -309,15 +306,22 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
         <Badge shape="stamp" size="sm" surface="on-tone">
           {kind}
         </Badge>
+        {/* No global Edit here — each section owns its own edit control. The
+            action buttons match the 38px icon-button height for a level bar. */}
         <div className="ml-auto flex shrink-0 items-center gap-2.5">
-          {!readOnly && (
-            <Btn size="sm" variant="ghost" onClick={() => {}}>
-              &#9998; Edit
-            </Btn>
-          )}
-          <Btn size="sm" variant="ghost" onClick={() => {}}>
+          <button
+            type="button"
+            className="inline-flex h-[38px] shrink-0 items-center rounded-card border-chrome border-ink bg-paper px-3.5 font-body text-sm text-ink transition-colors hover:bg-wk-bg-2"
+          >
             Share
-          </Btn>
+          </button>
+          <span className={ICONBTN} aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="size-[18px]" aria-hidden="true">
+              <circle cx="5" cy="12" r="1.6" />
+              <circle cx="12" cy="12" r="1.6" />
+              <circle cx="19" cy="12" r="1.6" />
+            </svg>
+          </span>
         </div>
       </header>
 
@@ -346,27 +350,17 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
             borderColor="var(--tone)"
             bodyPadding="p-4"
           >
-            <div className="flex flex-col gap-4">
-              {/* Portrait + the SHORT single-line fields in an even 2-col grid.
-                  `items-start` keeps the portrait at its 3:4 size instead of
-                  stretching tall to the field column. */}
-              <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-[150px_1fr]">
+            {/* Fields FLOW around the floated portrait (magazine layout): each
+                field (a flex box, so it avoids the float) sits beside the image
+                while it's tall, then wraps full-width beneath it — no rigid grid
+                column, no whitespace gap beside a short image. */}
+            <div className="flow-root [&>*]:mb-3.5">
+              <div className="float-left mr-5 w-[150px]">
                 <ImageSeat src={imageSrc} label={imageLabel} readOnly={readOnly} />
-                <div className="grid grid-cols-2 content-start gap-x-4 gap-y-3">
-                  {shortFields.map((f) => (
-                    <Field key={f.label} {...f} readOnly={readOnly} />
-                  ))}
-                </div>
               </div>
-              {/* The longer freeform fields, each full-width so wrapping never
-                  leaves a ragged column gap beside a short field. */}
-              {proseFields.length > 0 && (
-                <div className="flex flex-col gap-3">
-                  {proseFields.map((f) => (
-                    <Field key={f.label} {...f} readOnly={readOnly} />
-                  ))}
-                </div>
-              )}
+              {fields.map((f) => (
+                <Field key={f.label} {...f} readOnly={readOnly} />
+              ))}
             </div>
           </DisplayCard>
 
