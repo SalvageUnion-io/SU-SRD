@@ -23,7 +23,7 @@ import {
   type CrawlerWizardFormState,
 } from '../../lib/wizard/crawlerFormState'
 import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
-import { ConfirmDialog } from '../shared/ConfirmDialog'
+import { ConfirmDialog } from 'suref-react'
 import { CrawlerTypeDetail, CrawlerTypeOptionList } from './CrawlerTypeStep'
 
 type CrawlerTypeEditModalProps = {

@@ -46,7 +46,7 @@ import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
-import { ConfirmDialog } from '../shared/ConfirmDialog'
+import { ConfirmDialog } from 'suref-react'
 import { AdvisoryText, freshEntity } from './controlPrimitives'
 
 /** Which economy dialog is open (the lozenge that was clicked). */

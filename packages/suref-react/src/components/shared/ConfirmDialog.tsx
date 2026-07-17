@@ -1,17 +1,18 @@
 /**
- * ConfirmDialog — ITUN's standard confirmation dialog.
+ * ConfirmDialog — a standard confirmation dialog (lifted from ITUN, pending
+ * review).
  *
- * Thin wrapper over suref-react's ModalShell (base-ui Dialog: portal, focus
- * trap, Escape/backdrop dismiss) so every confirm flow in the app shares one
- * shell, one backdrop, and one max-width instead of hand-rolling
- * `role="dialog"` + useDialogA11y (design-review T-3).
+ * A thin wrapper over `ModalShell` (base-ui Dialog: portal, focus trap,
+ * Escape/backdrop dismiss) so every confirm flow shares one shell, one
+ * backdrop, and one max-width instead of hand-rolling `role="dialog"`.
  *
  * `danger` switches the header to rust and the confirm button to the danger
  * variant for destructive actions (delete, unassign).
  */
 
 import type { ReactNode } from 'react'
-import { Btn, ModalShell } from 'suref-react'
+import { Btn } from '../chrome/Btn'
+import { ModalShell } from './ModalShell'
 
 type ConfirmDialogProps = {
   open: boolean

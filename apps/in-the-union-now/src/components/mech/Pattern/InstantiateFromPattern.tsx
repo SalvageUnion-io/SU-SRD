@@ -21,7 +21,7 @@ import { findChassisByRef } from '../../../lib/rules/derivedStats'
 import { useEntityStore } from '../../../stores/entityStore'
 import type { MechPattern } from '../../../lib/schemas/pattern'
 import { Btn } from 'suref-react'
-import { ConfirmDialog } from '../../shared/ConfirmDialog'
+import { ConfirmDialog } from 'suref-react'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern

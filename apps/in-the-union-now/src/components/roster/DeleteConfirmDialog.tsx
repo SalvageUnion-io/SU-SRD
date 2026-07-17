@@ -9,7 +9,7 @@
  * trap, Escape/backdrop dismiss).
  */
 
-import { ConfirmDialog } from '../shared/ConfirmDialog'
+import { ConfirmDialog } from 'suref-react'
 
 type DeleteConfirmDialogProps = {
   open: boolean

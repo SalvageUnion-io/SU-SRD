@@ -13,7 +13,7 @@
 import { useEffect, useState } from 'react'
 import { Btn, ModalShell } from 'suref-react'
 
-import { ConfirmDialog } from '../shared/ConfirmDialog'
+import { ConfirmDialog } from 'suref-react'
 import { ChassisDetail, ChassisOptionList } from './ChassisStep'
 
 type MechChassisPickerModalProps = {
