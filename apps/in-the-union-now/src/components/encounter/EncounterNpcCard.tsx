@@ -17,7 +17,7 @@ import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import type { EncounterNpc, MediatorRollResult } from '../../lib/schemas/encounterNpc'
 import type { useEncounterStore } from '../../stores/encounterStore'
 import { ConfirmDialog } from 'suref-react'
-import { SectionCard } from 'suref-react'
+import { DisplayCard } from 'suref-react'
 import { InlineEditField } from '../sheet/InlineEditField'
 import { MediatorRollControl } from './MediatorRollControl'
 import { ENCOUNTER_SCHEMA_LABEL, resolveCandidate } from './referenceNpcs'
@@ -72,126 +72,131 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
 
   return (
     <>
-      <SectionCard
-        variant="card"
-        // Head bar: schema tag + instance name + reference name; Details/Remove ride the hint slot.
-        title={
+      <DisplayCard
+        headerBg="bg-ink"
+        bodyPadding="p-2.5"
+        // Head bar: schema tag + instance name + reference name; Details/Remove ride the right slot.
+        headerContent={
           <>
-            <span className="rounded-[1px] bg-rust px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-paper">
-              {ENCOUNTER_SCHEMA_LABEL[npc.refSchema]}
-            </span>
-            <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-paper">
-              <InlineEditField
-                value={npc.name}
-                onSave={(next) => void patch({ name: String(next) })}
-                type="text"
-                ariaLabel={`Edit ${npc.name} instance name`}
-                className="text-paper"
-              />
-            </span>
-            {npc.name !== npc.refName && (
-              <span className="font-cond text-micro uppercase leading-none tracking-caps text-paper/60">
-                {npc.refName}
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <span className="rounded-[1px] bg-rust px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-paper">
+                {ENCOUNTER_SCHEMA_LABEL[npc.refSchema]}
               </span>
-            )}
-          </>
-        }
-        hint={
-          <>
-            {refEntity && (
-              <MiniBtn aria-label={`View ${npc.refName} details`} onClick={detailControl.onClick}>
-                Details
-              </MiniBtn>
-            )}
-            <MiniBtn
-              aria-label={`Remove ${npc.name} from the tray`}
-              onClick={() => setConfirmRemove(true)}
-            >
-              Remove
-            </MiniBtn>
-          </>
-        }
-        // Body: HP/SP block + conditions + Mediator rolls
-        bodyClassName="flex flex-wrap items-start gap-3"
-      >
-        {npc.maxHp > 0 && (
-          <Stat
-            label={npc.statKind === 'sp' ? 'SP' : 'HP'}
-            value={npc.currentHp}
-            max={npc.maxHp}
-            compact
-            mode="edit"
-            onChange={handleHpChange}
-          />
-        )}
-
-        <div className="min-w-0 flex-1 space-y-2">
-          {downed && (
-            <p className="m-0 font-cond text-xs font-bold uppercase text-status-bad" role="status">
-              {npc.statKind === 'sp' ? 'Destroyed / disabled' : 'Down'} — Mediator&rsquo;s call
-            </p>
-          )}
-
-          {/* Condition ticks */}
-          <div>
-            <span className="font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
-              Conditions
-            </span>
-            <div className="mt-1 flex flex-wrap items-center gap-1.5">
-              {npc.conditions.map((condition, index) => (
-                <span
-                  // biome-ignore lint/suspicious/noArrayIndexKey: conditions are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
-                  key={`${condition}-${index}`}
-                  className="inline-flex items-center gap-1 rounded-[2px] border-chrome border-status-warn bg-paper px-1.5 py-0.5 font-cond text-xs font-semibold uppercase text-rust"
-                >
-                  {condition}
-                  {/* 24px hit area (WCAG 2.5.8) — negative margin keeps the
-                      pill visually compact while the target stays tappable. */}
-                  <button
-                    type="button"
-                    aria-label={`Clear ${condition} on ${npc.name}`}
-                    onClick={() => removeCondition(index)}
-                    className="-my-1 -mr-1 inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-[2px] leading-none text-rust hover:bg-status-warn/20 hover:text-status-bad"
-                  >
-                    ×
-                  </button>
+              <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-paper">
+                <InlineEditField
+                  value={npc.name}
+                  onSave={(next) => void patch({ name: String(next) })}
+                  type="text"
+                  ariaLabel={`Edit ${npc.name} instance name`}
+                  className="text-paper"
+                />
+              </span>
+              {npc.name !== npc.refName && (
+                <span className="font-cond text-micro uppercase leading-none tracking-caps text-paper/60">
+                  {npc.refName}
                 </span>
-              ))}
-              <input
-                type="text"
-                value={conditionDraft}
-                onChange={(e) => setConditionDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    addCondition()
-                  }
-                }}
-                placeholder="Add condition…"
-                aria-label={`Add condition to ${npc.name}`}
-                className="w-32 rounded-[2px] border-chrome border-ink/40 bg-paper px-1.5 py-0.5 font-body text-xs text-ink placeholder:text-wk-muted focus:border-ink focus:outline-none"
-              />
+              )}
+            </div>
+            <div className="ml-auto flex shrink-0 items-center gap-1.5">
+              {refEntity && (
+                <MiniBtn aria-label={`View ${npc.refName} details`} onClick={detailControl.onClick}>
+                  Details
+                </MiniBtn>
+              )}
               <MiniBtn
-                aria-label={`Confirm new condition for ${npc.name}`}
-                onClick={addCondition}
-                disabled={conditionDraft.trim() === ''}
+                aria-label={`Remove ${npc.name} from the tray`}
+                onClick={() => setConfirmRemove(true)}
               >
-                Add
+                Remove
               </MiniBtn>
             </div>
-          </div>
+          </>
+        }
+      >
+        {/* Body: HP/SP block + conditions + Mediator rolls */}
+        <div className="flex flex-wrap items-start gap-3">
+          {npc.maxHp > 0 && (
+            <Stat
+              label={npc.statKind === 'sp' ? 'SP' : 'HP'}
+              value={npc.currentHp}
+              max={npc.maxHp}
+              compact
+              mode="edit"
+              onChange={handleHpChange}
+            />
+          )}
 
-          {/* Per-NPC Mediator rolls (persisted on the instance) */}
-          <MediatorRollControl
-            scopeLabel={npc.name}
-            compact
-            lastResult={npc.lastMediatorRoll ?? null}
-            onResult={handleRollResult}
-            roll={roll}
-            findTable={findTable}
-          />
+          <div className="min-w-0 flex-1 space-y-2">
+            {downed && (
+              <p
+                className="m-0 font-cond text-xs font-bold uppercase text-status-bad"
+                role="status"
+              >
+                {npc.statKind === 'sp' ? 'Destroyed / disabled' : 'Down'} — Mediator&rsquo;s call
+              </p>
+            )}
+
+            {/* Condition ticks */}
+            <div>
+              <span className="font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
+                Conditions
+              </span>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                {npc.conditions.map((condition, index) => (
+                  <span
+                    // biome-ignore lint/suspicious/noArrayIndexKey: conditions are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
+                    key={`${condition}-${index}`}
+                    className="inline-flex items-center gap-1 rounded-[2px] border-chrome border-status-warn bg-paper px-1.5 py-0.5 font-cond text-xs font-semibold uppercase text-rust"
+                  >
+                    {condition}
+                    {/* 24px hit area (WCAG 2.5.8) — negative margin keeps the
+                      pill visually compact while the target stays tappable. */}
+                    <button
+                      type="button"
+                      aria-label={`Clear ${condition} on ${npc.name}`}
+                      onClick={() => removeCondition(index)}
+                      className="-my-1 -mr-1 inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-[2px] leading-none text-rust hover:bg-status-warn/20 hover:text-status-bad"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  value={conditionDraft}
+                  onChange={(e) => setConditionDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      addCondition()
+                    }
+                  }}
+                  placeholder="Add condition…"
+                  aria-label={`Add condition to ${npc.name}`}
+                  className="w-32 rounded-[2px] border-chrome border-ink/40 bg-paper px-1.5 py-0.5 font-body text-xs text-ink placeholder:text-wk-muted focus:border-ink focus:outline-none"
+                />
+                <MiniBtn
+                  aria-label={`Confirm new condition for ${npc.name}`}
+                  onClick={addCondition}
+                  disabled={conditionDraft.trim() === ''}
+                >
+                  Add
+                </MiniBtn>
+              </div>
+            </div>
+
+            {/* Per-NPC Mediator rolls (persisted on the instance) */}
+            <MediatorRollControl
+              scopeLabel={npc.name}
+              compact
+              lastResult={npc.lastMediatorRoll ?? null}
+              onResult={handleRollResult}
+              roll={roll}
+              findTable={findTable}
+            />
+          </div>
         </div>
-      </SectionCard>
+      </DisplayCard>
 
       <ConfirmDialog
         open={confirmRemove}
