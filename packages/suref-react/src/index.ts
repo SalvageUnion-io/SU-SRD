@@ -57,6 +57,7 @@ export type {
 } from './components/shared/useSearchCombobox'
 export { Footer } from './components/shared/Footer'
 export { HeaderShell } from './components/shared/HeaderShell'
+export { AppHeader } from './components/shared/AppHeader'
 export { SectionCard } from './components/shared/SectionCard'
 export { SoftWarningBanner } from './components/shared/SoftWarningBanner'
 export type { SoftWarning, SoftWarningSeverity } from './components/shared/SoftWarningBanner'

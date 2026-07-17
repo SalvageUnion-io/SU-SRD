@@ -1,21 +1,21 @@
 /**
- * AppHeader — ITUN's brand chrome. It fills the shared HeaderShell
- * (packages/suref-react/.../HeaderShell.tsx) — the same container + brand
- * lockup the SRD reference site uses — with ITUN's own right-side actions,
- * styled to match the SRD site so the two read as siblings: nav links in the
- * SRD `.nav-link` treatment, a search box mirroring the SRD's search field,
- * an outbound SRD cross-link to the left of search, and a "Buy the game"
- * button (the SRD's `.btn.btn-active`).
+ * AppHeader — ITUN's brand chrome (lifted from ITUN, pending review). It fills
+ * the shared `HeaderShell` — the same container + brand lockup the SRD
+ * reference site uses — with ITUN's own right-side actions, styled to match the
+ * SRD site so the two read as siblings: nav links in the SRD `.nav-link`
+ * treatment, a search box mirroring the SRD's search field, an outbound SRD
+ * cross-link to the left of search, and a "Buy the game" button.
  *
- * Rendered from the root layout on every route EXCEPT the live-sheet and
- * snapshot surfaces (/sheet/*, /s/*) — those are edge-to-edge play surfaces
- * whose sticky bar is their own chrome (see routes/__root.tsx).
+ * Router-agnostic: internal nav links (brand/home, Encounter, About) render
+ * through the injected `LinkComponent` (ITUN passes its router-aware AppLink;
+ * defaults to a plain anchor), keeping the shared library free of a router
+ * dependency.
  */
 
+import type { ElementType } from 'react'
 import { Search } from 'lucide-react'
-import { HeaderShell } from 'suref-react'
 
-import { AppLink } from './AppLink'
+import { HeaderShell } from './HeaderShell'
 import { AppHeaderMobileMenu } from './AppHeaderMobileMenu'
 
 // SRD `.nav-link` treatment (apps/suref-web/src/styles/global.css), replicated
@@ -41,16 +41,18 @@ const ALPHA_TAG =
 type AppHeaderProps = {
   /** Opens the global reference search dialog (also bound to Cmd/Ctrl+K). */
   onSearchClick?: () => void
+  /** Link component for internal routes. Defaults to a plain anchor; ITUN passes AppLink. */
+  LinkComponent?: ElementType
 }
 
-export function AppHeader({ onSearchClick }: AppHeaderProps) {
+export function AppHeader({ onSearchClick, LinkComponent = 'a' }: AppHeaderProps) {
   return (
     <HeaderShell
       homeHref="/"
       wordmark="IN THE UNION NOW"
       badge="Beta"
       eyebrow="A Salvage Union Character Manager"
-      HomeLink={AppLink}
+      HomeLink={LinkComponent}
       brandShrink
     >
       {/* Right side: encounter link + outbound SRD cross-link (left of search) +
@@ -59,16 +61,16 @@ export function AppHeader({ onSearchClick }: AppHeaderProps) {
           (AppHeaderMobileMenu) so the row never overflows on a phone; search
           stays inline as its own icon button. */}
       <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-4 lg:gap-[26px]">
-        <AppLink href="/encounter" className={`${NAV_LINK} hidden lg:inline-flex`}>
+        <LinkComponent href="/encounter" className={`${NAV_LINK} hidden lg:inline-flex`}>
           Encounter
           <span className={ALPHA_TAG}>Alpha</span>
-        </AppLink>
-        <AppLink href="/about" className={`${NAV_LINK} hidden lg:inline-flex`}>
+        </LinkComponent>
+        <LinkComponent href="/about" className={`${NAV_LINK} hidden lg:inline-flex`}>
           About
-        </AppLink>
-        <AppLink href="/changelog" className={`${NAV_LINK} hidden lg:inline-flex`}>
+        </LinkComponent>
+        <LinkComponent href="/changelog" className={`${NAV_LINK} hidden lg:inline-flex`}>
           Changelog
-        </AppLink>
+        </LinkComponent>
         <a
           href="https://salvageunion.io/discord/"
           target="_blank"
@@ -106,7 +108,7 @@ export function AppHeader({ onSearchClick }: AppHeaderProps) {
           Buy the game
         </a>
         <div className="lg:hidden">
-          <AppHeaderMobileMenu />
+          <AppHeaderMobileMenu LinkComponent={LinkComponent} />
         </div>
       </div>
     </HeaderShell>

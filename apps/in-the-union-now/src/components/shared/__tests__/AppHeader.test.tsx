@@ -14,7 +14,7 @@ import '@testing-library/jest-dom'
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 
-import { AppHeader } from '../AppHeader'
+import { AppHeader } from 'suref-react'
 
 describe('AppHeader', () => {
   test('renders the "IN THE UNION NOW" wordmark with the Beta pill, linked home', () => {

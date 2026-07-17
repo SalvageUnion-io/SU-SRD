@@ -1,20 +1,22 @@
 /**
  * AppHeaderMobileMenu — the hamburger + slide-in drawer that holds AppHeader's
- * secondary nav below the `lg` breakpoint.
+ * secondary nav below the `lg` breakpoint (lifted from ITUN, pending review).
  *
- * Mirrors the SRD reference site's mobile pattern
- * (apps/suref-web/.../islands/MobileNavIsland.tsx): a base-ui `Dialog` with a
+ * Mirrors the SRD reference site's mobile pattern: a base-ui `Dialog` with a
  * hamburger `Dialog.Trigger`, a dimmed `Dialog.Backdrop`, and a full-height,
  * right-side `Dialog.Popup` that slides in via the shared
- * `animate-slide-in-right`/`-out` utilities (see src/index.css). Below `lg`,
- * AppHeader collapses its Encounter / SRD / Buy links in here so the header row
- * never overflows on a phone; search stays inline as its own icon button.
+ * `animate-slide-in-right`/`-out` utilities (defined in the consuming app's
+ * CSS). Below `lg`, AppHeader collapses its Encounter / SRD / Buy links in here
+ * so the header row never overflows on a phone; search stays inline.
+ *
+ * Router-agnostic: internal nav links render through the injected
+ * `LinkComponent` (ITUN passes its router-aware AppLink; defaults to a plain
+ * anchor), keeping the shared library free of a router dependency.
  */
 
+import type { ElementType } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 import { Menu, X } from 'lucide-react'
-
-import { AppLink } from './AppLink'
 
 // Full-width vertical restatements of AppHeader's `.nav-link`/buy-button looks,
 // sized up for touch targets inside the drawer.
@@ -28,7 +30,12 @@ const DRAWER_BUY =
 const ALPHA_TAG =
   'ml-2 inline-block rounded bg-rust px-1.5 py-0.5 font-cond text-[11px] font-bold uppercase leading-none tracking-caps text-su-paper'
 
-export function AppHeaderMobileMenu() {
+type AppHeaderMobileMenuProps = {
+  /** Link component for internal routes. Defaults to a plain anchor; ITUN passes AppLink. */
+  LinkComponent?: ElementType
+}
+
+export function AppHeaderMobileMenu({ LinkComponent = 'a' }: AppHeaderMobileMenuProps) {
   return (
     <Dialog.Root>
       <Dialog.Trigger
@@ -71,17 +78,17 @@ export function AppHeaderMobileMenu() {
           <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
             <Dialog.Close
               render={
-                <AppLink href="/encounter" className={DRAWER_LINK}>
+                <LinkComponent href="/encounter" className={DRAWER_LINK}>
                   Encounter
                   <span className={ALPHA_TAG}>Alpha</span>
-                </AppLink>
+                </LinkComponent>
               }
             />
             <Dialog.Close
               render={
-                <AppLink href="/about" className={DRAWER_LINK}>
+                <LinkComponent href="/about" className={DRAWER_LINK}>
                   About
-                </AppLink>
+                </LinkComponent>
               }
             />
             <Dialog.Close
