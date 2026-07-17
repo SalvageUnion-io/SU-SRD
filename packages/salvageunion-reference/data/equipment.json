@@ -1234,7 +1234,8 @@
             "label": "Damage",
             "type": "keyword",
             "value": 3,
-            "unit": "SP"
+            "unit": "SP",
+            "perTechLevel": 1
           },
           {
             "label": "Range",
