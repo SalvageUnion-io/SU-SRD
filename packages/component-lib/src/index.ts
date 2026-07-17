@@ -120,6 +120,9 @@ export { Btn } from './components/chrome/Btn'
 export { btnVariants } from './components/chrome/btnVariants'
 // EmptyState — dashed stamp-headline empty slot (ruleset §"Empty state")
 export { EmptyState } from './components/chrome/EmptyState'
+// Callout — accent-framed note (stamp header + accent-bar body); list-items,
+// "When Damaged" effects, and similar accented notes compose on it.
+export { Callout } from './components/chrome/Callout'
 // InlineRef — in-prose entity reference (resolved=rust / unresolved=ink)
 export { InlineRef } from './components/chrome/InlineRef'
 // Stamp — the one ink label/header atom (ruleset §5) + the StampSeam placement

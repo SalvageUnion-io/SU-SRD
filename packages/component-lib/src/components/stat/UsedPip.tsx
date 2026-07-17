@@ -17,18 +17,22 @@ type UsedPipProps = {
 
 // The PIP sits in the value cell: empty = a dashed off-white cell (whitespace =
 // fillable), used = a solid accent-toned cell (`--tone` on a sheet, else rust).
-const PIP = 'inline-block size-3.5 rounded-pip border-chrome transition-colors'
+const PIP = 'inline-block size-3 rounded-pip border-chrome transition-colors'
 const PIP_EMPTY = 'border-dashed border-ink/40 bg-paper'
 const PIP_FILLED = 'border-[color:var(--tone,var(--color-rust))] bg-[var(--tone,var(--color-rust))]'
 
-/** The compact-Stat cell: black `[label]` segment + a value segment holding the pip. */
+/**
+ * The compact-Stat cell: black `[label]` segment + a value segment holding the
+ * pip. The label segment matches the Badge stamp `sm` geometry (px-1 py-0.5
+ * text-badge) so the whole cell reads the SAME size as a field label stamp.
+ */
 function UsedCell({ used, label }: { used: boolean; label: string }) {
   return (
     <span className="inline-flex w-fit items-stretch overflow-hidden rounded-badge border border-ink">
-      <span className="flex items-center bg-ink px-1.5 font-cond text-badge font-bold uppercase leading-none tracking-caps text-paper">
+      <span className="flex items-center bg-ink px-1 py-0.5 font-cond text-badge font-bold uppercase leading-none tracking-caps-snug text-paper">
         {label}
       </span>
-      <span className="flex items-center bg-paper px-1.5 py-1">
+      <span className="flex items-center bg-paper px-1">
         <span className={cn(PIP, used ? PIP_FILLED : PIP_EMPTY)} />
       </span>
     </span>
