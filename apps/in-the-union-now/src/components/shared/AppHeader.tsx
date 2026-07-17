@@ -1,11 +1,10 @@
 import type { ElementType } from 'react'
 import { Search } from 'lucide-react'
-import { AppBar, type AppBarNavItem } from './AppBar'
-import { NavDrawer, type NavDrawerItem } from './NavDrawer'
+import { AppBar, type AppBarNavItem, NavDrawer, type NavDrawerItem } from 'suref-react'
 
 /**
- * AppHeader — the ITUN builder's masthead. A thin preset over the shared
- * `AppBar`: the "In the Union Now" brand, ITUN's nav (Encounter / About +
+ * AppHeader — the ITUN builder's masthead (app-local config over the shared
+ * `AppBar`): the "In the Union Now" brand, ITUN's nav (Encounter / About +
  * outbound Discord / SRD cross-links), a search-trigger button that opens the
  * global reference dialog, and the "Buy the game" button. Below `lg` the nav
  * collapses into the shared `NavDrawer`.
