@@ -594,25 +594,14 @@ export function ReferenceEntityCard({
   // FREEFORM (simple text input) choices.
   //
   // CHOICE PLACEMENT splits by kind:
-  //   • FREEFORM (a free-text field, e.g. Name / Keepsake) is a "simple input".
-  //     In READ-ONLY it surfaces here as a "Choose | <name>" sub-header cell — a
-  //     hint that there's a field to fill — and NEVER as a body block. In EDITABLE
-  //     mode it stays in the body as a real text input (you have to type into it).
-  //   • MULTIPLE-CHOICE (rollTable / choiceOptions / schema / scalesWithField —
-  //     "choose from the list below") always renders inline in the BODY, both
-  //     modes (read-only static, editable choosable).
+  // EVERYTHING INLINE (choice-plan Stage 7): every choice renders in the BODY,
+  // at its prose, in both modes — no choice is ever hoisted to the sub-header.
+  // The old "Choose | <name>" freeform sub-header cell is retired; the sub-header
+  // keeps only the general facet hoist (type/range/damage/traits). `hide.choices`
+  // still suppresses choices entirely.
   const editableChoices = !!onSelectionChange
-  const isFreeformChoice = (choice: SURefObjectChoice): boolean => choice.choiceType === 'freeform'
-  // Read-only-only: editable exposes the real inputs in the body instead, and
-  // `hide.choices` (e.g. a crawler bay rendering its crew facts as external
-  // IdentityFields) suppresses the choice in EVERY form — body and sub-header.
-  const subHeaderChoices =
-    editableChoices || hide?.choices ? [] : entityChoices.filter(isFreeformChoice)
-  const choiceCells: EntityCardSubHeaderCell[] = subHeaderChoices.map((choice) => ({
-    key: `choice-${choice.id}`,
-    label: 'Choose',
-    value: choice.name,
-  }))
+  const subHeaderChoices: SURefObjectChoice[] = []
+  const choiceCells: EntityCardSubHeaderCell[] = []
   // A folded single action surfaces its type/range/damage/traits into the
   // sub-header; entity traits/choices follow, deduped so a shared trait (e.g.
   // "Explosive") isn't listed twice.

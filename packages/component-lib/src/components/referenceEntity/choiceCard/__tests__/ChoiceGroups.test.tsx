@@ -176,3 +176,37 @@ describe('ChoiceGroups — empty', () => {
     expect(container.firstChild).toBeNull()
   })
 })
+
+// ---------------------------------------------------------------------------
+// TABLE choice render (Stage 7): A.I. Personality renders its prose + an
+// expandable real RollTable — NOT the old bare text box. Needs reference data
+// preloaded so the roll table resolves by name.
+// ---------------------------------------------------------------------------
+import { beforeAll } from 'bun:test'
+import { SalvageUnionReference } from 'salvageunion-reference'
+
+const tableChoice: SURefObjectChoice = {
+  id: 'ai-personality',
+  name: 'A.I. Personality',
+  content: [{ type: 'paragraph', value: 'Roll on the A.I. Personality Table or choose your own.' }],
+  source: { kind: 'table', rollTable: 'A.I. Personality', orChooseOwn: true },
+}
+
+describe('ChoiceGroups — table choice (A.I. Personality)', () => {
+  beforeAll(async () => {
+    await SalvageUnionReference.preload('all')
+  })
+
+  test('renders the cited table, not a bare text box', () => {
+    render(<ChoiceGroups choices={[tableChoice]} readOnly />)
+    // the prose cite renders (full sentence); getByText throws if absent
+    expect(screen.getByText('Roll on the A.I. Personality Table or choose your own.')).toBeTruthy()
+    // the expandable disclosure summary (exact) — the fix: a real table, not a
+    // lone textarea instructing you to consult a table it never showed
+    expect(screen.getByText('A.I. Personality Table')).toBeTruthy()
+    // the RollTable itself rendered
+    expect(screen.getAllByRole('table').length).toBeGreaterThan(0)
+    // read-only: no input
+    expect(screen.queryByRole('textbox')).toBeNull()
+  })
+})

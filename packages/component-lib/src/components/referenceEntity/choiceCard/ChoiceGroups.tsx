@@ -1,15 +1,18 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useCallback, useState } from 'react'
 import type { SURefObjectChoice } from 'salvageunion-reference'
-import { parseContentBlockString } from 'salvageunion-reference'
+import { parseContentBlockString, SalvageUnionReference } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Text } from '../../base/Text'
 import { Slab } from '../../chrome/Slab'
 import { Badge } from '../../chrome/Badge'
+import { RollTable } from '../../shared/RollTable'
 import {
   type ChoiceSelections,
   getChoiceCardOptions,
+  getChoiceSourceKind,
+  getChoiceTableName,
   isFreeTextChoice,
   isMultiSelectChoice,
   resolveMultiSelectCap,
@@ -152,6 +155,70 @@ function ChoiceOptionGroup({
   const frameColor = accentDeepColor(undefined, toneColor) ?? 'var(--color-ink)'
   // Colour the dashed Slab with the parent tone (it reads `--tone-deep`).
   const toneVar = { '--tone-deep': toneColor } as CSSProperties
+  const bandClass = cn('flex items-center', compact ? 'px-2 py-1' : 'px-2.5 py-1.5')
+  const labelClass = cn(
+    'w-fit font-cond font-bold uppercase leading-none tracking-caps-tight',
+    compact ? 'text-xs' : 'text-sm'
+  )
+  const promptOf = (c: SURefObjectChoice): string | undefined => {
+    const block = c.content?.find((b) => b.type === 'paragraph')
+    return block ? parseContentBlockString(block) : undefined
+  }
+
+  // TABLE — "roll on the {table}, or choose your own". Cite + expandable roll +
+  // a "choose your own" field (book-faithful: the book cites the table by page).
+  // Fixes the bug where A.I. Personality rendered as a bare text box.
+  if (getChoiceSourceKind(choice) === 'table') {
+    const tableName = getChoiceTableName(choice)
+    const tableEntity = tableName
+      ? SalvageUnionReference.RollTables.find((t) => t.name === tableName)
+      : undefined
+    const table = tableEntity && 'table' in tableEntity ? tableEntity.table : undefined
+    const description = promptOf(choice)
+    const value = selected[0] ?? ''
+    return (
+      <div style={toneVar}>
+        <Slab variant="dashed" label={choice.name} />
+        <div className="overflow-hidden rounded-card" style={{ border: `3px solid ${frameColor}` }}>
+          <div className={bandClass} style={{ backgroundColor: toneColor }}>
+            <Text variant="pseudoheader" as="span" className={labelClass}>
+              {choice.name}
+            </Text>
+          </div>
+          <div className="flex flex-col gap-2 bg-paper px-3 py-2">
+            {description && <p className="font-body text-xs text-ink">{description}</p>}
+            {readOnly
+              ? value && <p className="font-body text-xs font-bold text-ink">Chosen: {value}</p>
+              : !table && (
+                  <input
+                    aria-label={choice.name}
+                    className="w-full rounded border border-ink/20 bg-paper p-1.5 font-body text-xs text-ink focus:border-rust focus:outline-none"
+                    value={value}
+                    placeholder="Choose your own…"
+                    onChange={(e) => onFreeTextChange(e.target.value)}
+                  />
+                )}
+            {table && (
+              <details className="text-xs">
+                <summary className="cursor-pointer font-cond uppercase tracking-caps-tight text-ink/70">
+                  {tableName} Table
+                </summary>
+                <div className="mt-2">
+                  <RollTable
+                    table={table}
+                    tableName={tableName}
+                    compact
+                    showCommand={!readOnly}
+                    onRollResult={readOnly ? undefined : (text) => onFreeTextChange(text)}
+                  />
+                </div>
+              </details>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (isFreeTextChoice(choice)) {
     const promptBlock = choice.content?.find((b) => b.type === 'paragraph')
