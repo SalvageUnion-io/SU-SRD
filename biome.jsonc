@@ -5,10 +5,10 @@
 //   - Markdown & YAML: parsing/formatting "in development", not shipped.
 //     Prettier still runs on **/*.md and **/*.{yml,yaml} (root scripts +
 //     lefthook's format-prose command).
-//   - Astro (apps/suref-web/src/**/*.astro): support landed in v2.3.0 but
+//   - Astro (apps/srd/src/**/*.astro): support landed in v2.3.0 but
 //     is still explicitly "experimental" upstream. The OLD toolchain never
 //     covered .astro either (no prettier-plugin-astro was installed, and
-//     ESLint's suref-web config ignored *.astro outright) — so excluding it
+//     ESLint's srd config ignored *.astro outright) — so excluding it
 //     here preserves the status quo (zero coverage) rather than opting into
 //     an experimental linter/formatter for the first time in this PR.
 {
@@ -41,7 +41,7 @@
       // alone (verified: packages/salvageunion-reference/data/actions.json),
       // so keep this directory out of scope entirely, same as before.
       "!packages/salvageunion-reference/data",
-      "!apps/suref-web/package.json",
+      "!apps/srd/package.json",
       "!**/*.astro",
       "!**/*.md",
       "!**/*.mdx",
@@ -73,7 +73,7 @@
   },
   "css": {
     // Tailwind v4 CSS (@theme, @utility, @source, @plugin, @custom-variant)
-    // used in apps/in-the-union-now, apps/suref-web, packages/suref-react.
+    // used in apps/in-the-union-now, apps/srd, packages/component-lib.
     "parser": {
       "tailwindDirectives": true
     },
@@ -198,17 +198,17 @@
       "includes": [
         "apps/in-the-union-now/playwright.config.ts",
         "apps/in-the-union-now/e2e/**",
-        "apps/suref-web/playwright.config.ts",
-        "apps/suref-web/e2e/**",
-        "packages/suref-react/playwright.visual.config.ts",
-        "packages/suref-react/vite.config.ts"
+        "apps/srd/playwright.config.ts",
+        "apps/srd/e2e/**",
+        "packages/component-lib/playwright.visual.config.ts",
+        "packages/component-lib/vite.config.ts"
       ],
       "linter": {
         "enabled": false
       }
     },
     {
-      "includes": ["apps/in-the-union-now/**", "packages/suref-react/**"],
+      "includes": ["apps/in-the-union-now/**", "packages/component-lib/**"],
       "linter": {
         "rules": {
           "style": {
@@ -226,7 +226,7 @@
       }
     },
     {
-      "includes": ["apps/suref-web/**"],
+      "includes": ["apps/srd/**"],
       "linter": {
         "rules": {
           "suspicious": {
@@ -312,16 +312,16 @@
       }
     },
     {
-      // ADR-010 ("the shared library never persists"): suref-react must stay
+      // ADR-010 ("the shared library never persists"): component-lib must stay
       // free of storage-layer imports. `idb` is ITUN's IndexedDB wrapper (see
       // docs/architecture/package-contracts.md's in-the-union-now "Consumes"
       // list) — it doesn't belong in the shared component library. Zustand is
       // deliberately NOT blocked here: it's a state-management library, not
       // itself a storage layer (ADR-010's literal contract is "never
-      // persists"), and suref-react doesn't use it today — blocking it would
+      // persists"), and component-lib doesn't use it today — blocking it would
       // be scope creep past what ADR-010 actually requires.
       // Restates the root `zod` path + `@/*` pattern (see note above).
-      "includes": ["packages/suref-react/**"],
+      "includes": ["packages/component-lib/**"],
       "linter": {
         "rules": {
           "style": {
@@ -330,7 +330,7 @@
               "options": {
                 "paths": {
                   "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
-                  "idb": "packages/suref-react must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app (ITUN), passed down via props."
+                  "idb": "packages/component-lib must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app (ITUN), passed down via props."
                 },
                 "patterns": [
                   {
@@ -348,7 +348,7 @@
       // Same ADR-010 contract, for direct global storage API usage rather
       // than an import (e.g. `localStorage.setItem(...)` with no import
       // statement to catch).
-      "includes": ["packages/suref-react/**"],
+      "includes": ["packages/component-lib/**"],
       "linter": {
         "rules": {
           "style": {
@@ -356,9 +356,9 @@
               "level": "error",
               "options": {
                 "deniedGlobals": {
-                  "localStorage": "packages/suref-react must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app.",
-                  "sessionStorage": "packages/suref-react must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app.",
-                  "indexedDB": "packages/suref-react must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app."
+                  "localStorage": "packages/component-lib must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app.",
+                  "sessionStorage": "packages/component-lib must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app.",
+                  "indexedDB": "packages/component-lib must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app."
                 }
               }
             }

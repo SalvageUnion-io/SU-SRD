@@ -30,8 +30,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { Pill, Stat } from 'suref-react'
-import type { PillTone, StatTone } from 'suref-react'
+import { Pill, Stat } from 'component-lib'
+import type { PillTone, StatTone } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'

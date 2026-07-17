@@ -13,7 +13,7 @@
  */
 
 import { useState } from 'react'
-import { Btn, ModalShell } from 'suref-react'
+import { Btn, ModalShell } from 'component-lib'
 
 import { useEntityStore } from '../../stores/entityStore'
 import { cn } from '../../lib/utils'

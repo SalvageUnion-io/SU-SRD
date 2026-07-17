@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, Stat, TreeSep, entityHostTone } from 'suref-react'
+import { ReferenceEntityDisplay, Stat, TreeSep, entityHostTone } from 'component-lib'
 import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 

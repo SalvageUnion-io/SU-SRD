@@ -1,4 +1,4 @@
-import { Btn } from 'suref-react'
+import { Btn } from 'component-lib'
 import type { PilotRollField, RollTableDeps } from './rollTableHelpers'
 import { rollForPilotField } from './rollTableHelpers'
 

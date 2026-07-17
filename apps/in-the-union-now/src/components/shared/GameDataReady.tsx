@@ -1,6 +1,6 @@
 import { Suspense, use, type ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { EntityExternalLinkProvider } from 'suref-react'
+import { EntityExternalLinkProvider } from 'component-lib'
 
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 

@@ -8,7 +8,7 @@
  * prop surface are kept so Sheet.tsx and existing call sites don't churn.
  */
 
-import { btnVariants } from 'suref-react'
+import { btnVariants } from 'component-lib'
 
 import type { EntityRef } from '../../lib/schemas/entity'
 import { cn } from '../../lib/utils'

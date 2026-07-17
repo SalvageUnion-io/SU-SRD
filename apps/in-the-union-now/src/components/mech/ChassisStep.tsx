@@ -2,7 +2,7 @@ import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 
 import { matchesRef, resolveChassisRef } from '../../lib/rules/resolveRefs'
-import { OptRow, ReferenceEntityDisplay } from 'suref-react'
+import { OptRow, ReferenceEntityDisplay } from 'component-lib'
 
 type ChassisLike = {
   id: string

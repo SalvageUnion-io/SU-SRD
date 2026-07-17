@@ -8,8 +8,8 @@ Accepted
 
 Zod v4 ships a JIT object parser that compiles validators with `new Function(...)`
 for speed. `new Function` is an `eval`-family feature, so it is blocked by a
-strict Content Security Policy that omits `unsafe-eval`. `suref-web` serves a CSP
-that denies `eval` ([ADR-012](ADR-012-suref-web-astro-static.md)), and Zod is the
+strict Content Security Policy that omits `unsafe-eval`. `srd` serves a CSP
+that denies `eval` ([ADR-012](ADR-012-srd-astro-static.md)), and Zod is the
 backbone of the reference ORM ([ADR-005](ADR-005-reference-data-orm.md)) and
 ITUN's entity validation. Left at its default, Zod's JIT would throw a CSP
 violation at runtime in the browser.

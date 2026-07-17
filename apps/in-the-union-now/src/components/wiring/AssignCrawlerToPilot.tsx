@@ -14,7 +14,7 @@
  */
 
 import { useState } from 'react'
-import { Btn } from 'suref-react'
+import { Btn } from 'component-lib'
 
 import { useCrawlers } from '../../hooks/queries'
 import type { Crawler } from '../../lib/schemas/crawler'

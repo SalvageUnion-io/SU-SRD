@@ -6,7 +6,7 @@ import {
   legalStartingPatterns,
   MECH_CREATION_SCRAP_CAP,
 } from 'salvageunion-reference/rules'
-import { Sel, TreeSep, useChassisPatternConfig } from 'suref-react'
+import { Sel, TreeSep, useChassisPatternConfig } from 'component-lib'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 import { SelCard } from '../wizard/SelCard'
 import { SelMasonry } from '../wizard/SelMasonry'

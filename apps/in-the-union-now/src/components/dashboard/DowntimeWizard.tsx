@@ -22,7 +22,7 @@
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefObjectGuideStep, SURefObjectTable } from 'salvageunion-reference'
-import { Content, RollTable } from 'suref-react'
+import { Content, RollTable } from 'component-lib'
 
 import { bayGate, UPKEEP_SCRAP } from '../../lib/rules/crawlerEconomy'
 import { mechBayStatus, medBayStatus } from '../../lib/rules/downtime'

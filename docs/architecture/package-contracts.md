@@ -7,9 +7,9 @@ This document defines what each package exposes, what it consumes, and the rules
 ```
 salvageunion-reference (game data ORM, no build step)
   |
-  +---> suref-react (shared UI components, no build step)
+  +---> component-lib (shared UI components, no build step)
   |       |
-  |       +---> suref-web (static reference site, Astro 5)
+  |       +---> srd (static reference site, Astro 5)
   |       |
   |       +---> in-the-union-now (character builder, React 19 + Vite)
   |
@@ -30,10 +30,10 @@ All workspace dependencies use `workspace:*` protocol. React 19.2.0+ is aligned 
 **This package is private and workspace-internal — it is not published to npm.**
 It has no npm distribution and is consumed only within this monorepo via the
 `workspace:*` protocol. The dataset's actual public interface is the
-CORS-enabled JSON API served by `suref-web`
-(`apps/suref-web/src/pages/schema/[schemaId].json.ts`,
+CORS-enabled JSON API served by `srd`
+(`apps/srd/src/pages/schema/[schemaId].json.ts`,
 `schema/[schemaId].schema.json.ts`, `schema/[schemaId]/item/[itemId].json.ts`,
-documented at `apps/suref-web/src/pages/api.astro`). External consumers should
+documented at `apps/srd/src/pages/api.astro`). External consumers should
 use that API, not `npm install salvageunion-reference`. See
 [ADR-014](../adrs/ADR-014-json-api-public-interface-npm-retired.md) for the
 full rationale.
@@ -171,9 +171,9 @@ When storing cross-entity references in new JSON data files, always use the `"sc
 
 ---
 
-## suref-react
+## component-lib
 
-**Location:** `packages/suref-react/`
+**Location:** `packages/component-lib/`
 **Build required:** No (exports TypeScript source directly)
 
 ### Entry Points
@@ -221,15 +221,15 @@ Note: there is no exported `Tooltip` primitive — entity tooltips ship as
 
 ---
 
-## suref-web
+## srd
 
-**Location:** `apps/suref-web/`
+**Location:** `apps/srd/`
 **Framework:** Astro 5 + React 19 islands
 
 ### Consumes
 
 - `salvageunion-reference` (workspace:\*) — game data
-- `suref-react` (workspace:\*) — shared components + theme
+- `component-lib` (workspace:\*) — shared components + theme
 - `@radix-ui/react-dialog` — search modal
 
 ### Does Not Use
@@ -239,9 +239,9 @@ Note: there is no exported `Tooltip` primitive — entity tooltips ship as
 ### Tailwind Source Path
 
 ```css
-/* apps/suref-web/src/styles/global.css */
-@source "../../../../packages/suref-react/src";
-@import 'suref-react/styles/theme.css';
+/* apps/srd/src/styles/global.css */
+@source "../../../../packages/component-lib/src";
+@import 'component-lib/styles/theme.css';
 ```
 
 ---
@@ -254,7 +254,7 @@ Note: there is no exported `Tooltip` primitive — entity tooltips ship as
 ### Consumes
 
 - `salvageunion-reference` (workspace:\*) — game data
-- `suref-react` (workspace:\*) — shared components + theme
+- `component-lib` (workspace:\*) — shared components + theme
 - `idb` — IndexedDB wrapper for local-first persistence (`src/lib/db/`)
 - `@tanstack/react-router`, `@tanstack/react-query` — routing + async/derived data
 - `zustand` — write-through entity/workspace stores (`src/stores/`)
@@ -270,8 +270,8 @@ IndexedDB.
 
 ```css
 /* apps/in-the-union-now/src/index.css */
-@source "../../../packages/suref-react/src";
-@import 'suref-react/styles/theme.css';
+@source "../../../packages/component-lib/src";
+@import 'component-lib/styles/theme.css';
 ```
 
 ---
@@ -287,7 +287,7 @@ IndexedDB.
 
 ### Does Not Use
 
-- React, suref-react, Tailwind
+- React, component-lib, Tailwind
 
 ---
 
@@ -361,7 +361,7 @@ await SalvageUnionReference.preload('all')
 preload = ["./test/preload-reference.ts"]
 ```
 
-All existing consumer packages (`suref-react`, `suref-web`, `in-the-union-now`) follow this pattern. New packages that test any code touching `SalvageUnionReference` must do the same.
+All existing consumer packages (`component-lib`, `srd`, `in-the-union-now`) follow this pattern. New packages that test any code touching `SalvageUnionReference` must do the same.
 
 ---
 
@@ -378,11 +378,11 @@ When modifying shared packages, follow this checklist:
 - [ ] If adding a new schema, ALL of these registries must gain an entry together (they are hand-maintained in parallel today): `ModelFactory.ts` `dataLoaders` + `jsonSchemaLoaders` + `zodSchemaMap` + `schemaDisplayNames`; `index.ts` `LazyModel` instance + `lazyModelMap` + `SchemaToEntityMap` + `SCHEMA_REGISTRY` + static accessor; `tools/generateJsonSchemas.ts` map. Then verify `preload(['new-schema-id'])` resolves without error
 - [ ] Data integrity: `bun run validate:all` (includes `validate:slugs` — same-named entities in one file shadow each other's slug URLs and will fail the gate)
 
-### 2. After changing `suref-react`
+### 2. After changing `component-lib`
 
 - [ ] Update `src/index.ts` barrel if adding/removing exports
 - [ ] Run typecheck: `bun run typecheck` (checks all consumers)
-- [ ] Run component tests: `bun --filter suref-react test`
+- [ ] Run component tests: `bun --filter component-lib test`
 - [ ] Verify Tailwind `@source` paths in both apps still cover new files
 - [ ] If adding peer dependencies: update both `peerDependencies` and `devDependencies`
 

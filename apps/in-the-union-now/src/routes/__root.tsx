@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { createRootRoute, Outlet } from '@tanstack/react-router'
 import type { ErrorComponentProps } from '@tanstack/react-router'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { Btn, EntityHrefProvider, Toaster } from 'suref-react'
+import { Btn, EntityHrefProvider, Toaster } from 'component-lib'
 import { AppHeader } from '../components/shared/AppHeader'
 import { queryClient } from '../lib/queryClient'
 import { itunEntityHref } from '../lib/entityHref'
@@ -11,7 +11,7 @@ import { BlockedUpgradeError } from '../lib/db/index'
 import { GameDataReady } from '../components/shared/GameDataReady'
 import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { BackupNudgeToast } from '../components/shared/BackupNudgeToast'
-// Self-hosted Barlow superfamily (mirrors suref-web) — keeps fonts on-origin so
+// Self-hosted Barlow superfamily (mirrors srd) — keeps fonts on-origin so
 // the CSP needs no external font/style host and the offline PWA renders correctly.
 import '@fontsource/barlow/400.css'
 import '@fontsource/barlow/500.css'
@@ -31,7 +31,7 @@ export const Route = createRootRoute({
  * Top-level error boundary. Without this, a render-time exception anywhere in
  * the tree (e.g. a rejected game-data preload behind the root Suspense gate)
  * blanks the whole app. TanStack Router renders this component instead and
- * offers a recovery affordance. Mirrors suref-web's IslandErrorBoundary UX.
+ * offers a recovery affordance. Mirrors srd's IslandErrorBoundary UX.
  */
 function RootErrorComponent({ error }: ErrorComponentProps) {
   // A blocked IndexedDB upgrade (this site open in another tab on an older

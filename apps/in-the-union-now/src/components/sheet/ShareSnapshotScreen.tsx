@@ -32,8 +32,8 @@ import {
   VitalGauge,
   heatDangerFrom,
   toast,
-} from 'suref-react'
-import type { PillTone } from 'suref-react'
+} from 'component-lib'
+import type { PillTone } from 'component-lib'
 
 import { resolveClassName } from '../../lib/classRef'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'

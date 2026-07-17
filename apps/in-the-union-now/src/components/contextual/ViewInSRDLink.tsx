@@ -1,4 +1,4 @@
-import { deepLinkTo } from '../../lib/suref-web-deep-link'
+import { deepLinkTo } from '../../lib/srd-deep-link'
 
 type ViewInSRDLinkProps = {
   schemaName: string
@@ -9,7 +9,7 @@ type ViewInSRDLinkProps = {
 }
 
 /**
- * Link component that deep-links to a suref-web entity page.
+ * Link component that deep-links to a srd entity page.
  * Opens in a new tab.
  */
 export function ViewInSRDLink({ schemaName, slug, entityName, className }: ViewInSRDLinkProps) {

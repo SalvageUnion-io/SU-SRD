@@ -1,7 +1,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefClass } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
-import { TreeSep } from 'suref-react'
+import { TreeSep } from 'component-lib'
 import { SelCard } from '../wizard/SelCard'
 import { SelMasonry } from '../wizard/SelMasonry'
 import { selectableClasses } from './classOptions'

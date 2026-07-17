@@ -29,7 +29,7 @@ coverage-output.txt
 
 # Vite
 .vite
-apps/suref-web/.vite
+apps/srd/.vite
 
 # TanStack Router temporary files
 **/.tanstack

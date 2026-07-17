@@ -112,7 +112,7 @@ Prior ADRs on **orthogonal concerns remain in force on their own subjects** —
 on), [ADR-002](ADR-002-indexeddb-idb-zod.md)/[ADR-003](ADR-003-zustand-hydration.md)
 (persistence), [ADR-004](ADR-004-snapshot-netlify-functions.md) (snapshots),
 [ADR-005](ADR-005-reference-data-orm.md)/[ADR-006](ADR-006-pure-rules-logic.md)
-(data & rules math), [ADR-011](ADR-011-suref-react-source-no-build.md)–[ADR-014](ADR-014-json-api-public-interface-npm-retired.md)
+(data & rules math), [ADR-011](ADR-011-component-lib-source-no-build.md)–[ADR-014](ADR-014-json-api-public-interface-npm-retired.md)
 (infra). This ADR only takes precedence where a prior decision speaks to _how hard
 a rule is enforced on which surface_:
 

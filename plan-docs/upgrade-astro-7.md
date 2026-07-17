@@ -1,6 +1,6 @@
-# Upgrade Path: Astro 6 → 7 (suref-web)
+# Upgrade Path: Astro 6 → 7 (srd)
 
-**Status:** ✅ **Merged** in #365. suref-web now runs Astro 7 + Vite 8. This doc
+**Status:** ✅ **Merged** in #365. srd now runs Astro 7 + Vite 8. This doc
 is kept as the historical record of how the deferred blocker was resolved (the
 loader change and the `trailingSlash` decision are described under **Decisions
 for review** below). Two notes for anyone revisiting the loaders: `ssrEmitAssets`
@@ -10,7 +10,7 @@ attribute did, and was validated across all four consumers.
 ## What landed
 
 Four coordinated changes, all in one commit (Astro 7 hard-requires Vite 8, so
-this is all-or-nothing for `apps/suref-web`):
+this is all-or-nothing for `apps/srd`):
 
 1. **ORM JSON loaders made bundler-inline-safe** —
    `packages/salvageunion-reference/lib/ModelFactory.ts`. Dropped the
@@ -20,8 +20,8 @@ this is all-or-nothing for `apps/suref-web`):
 '../schemas/index.json' with { type: 'json' }` KEEPS its attribute — TS
    `NodeNext` requires it on static default imports (`TS1543`), and it was never
    part of the blocker.
-2. **Removed the suref-web Vite-7 pin** — deleted `vite` and `@tailwindcss/vite`
-   from `apps/suref-web/package.json` devDependencies; suref-web now rides the
+2. **Removed the srd Vite-7 pin** — deleted `vite` and `@tailwindcss/vite`
+   from `apps/srd/package.json` devDependencies; srd now rides the
    monorepo Vite 8 (root-hoisted `@tailwindcss/vite`).
 3. **Bumped the Astro stack** — `astro` → `^7.0.6`, `@astrojs/react` → `^6.0.1`.
    `@astrojs/check` (0.9.9) and `@astrojs/sitemap` (3.7.3) needed no bump —
@@ -54,7 +54,7 @@ four consumers were validated green with the attribute dropped:
 
 | Consumer    | Command                                    | Result                 |
 | ----------- | ------------------------------------------ | ---------------------- |
-| suref-web   | `astro build` (Astro 7 / Vite 8)           | ✅ 881 pages           |
+| srd         | `astro build` (Astro 7 / Vite 8)           | ✅ 881 pages           |
 | package     | `bun --filter salvageunion-reference test` | ✅ 605 pass / 0 fail   |
 | discord-bot | `bun run build:bot` (`bun build`)          | ✅ 165 modules bundled |
 | ITUN        | `bun run build:itun` (Vite 8)              | ✅ built + PWA         |
@@ -62,7 +62,7 @@ four consumers were validated green with the attribute dropped:
 Plus full `bun run check:all`: lint, format, typecheck (all 5 workspaces incl.
 `astro check`), **3,199 tests / 0 fail**, `validate:all` (27 files), knip — all
 green. The attribute is only required at **raw-Node-ESM runtime**; every consumer
-either bundles the JSON (suref-web / ITUN / bot) or runs via Bun (tests), so none
+either bundles the JSON (srd / ITUN / bot) or runs via Bun (tests), so none
 of them ever needs it.
 
 ## Blocker 2 (NEW — not anticipated by the original deferral) — trailingSlash
@@ -114,8 +114,8 @@ resolution then throws during static generation. Setting `trailingSlash:
 
 ## Verification checklist (definition of done)
 
-- [x] `astro build` in `apps/suref-web` completes (881 pages, no missing-module).
-- [x] ITUN + suref-react + bot still build (regression check).
+- [x] `astro build` in `apps/srd` completes (881 pages, no missing-module).
+- [x] ITUN + component-lib + bot still build (regression check).
 - [x] `bun run check:all` green; all workspace tests green.
 - [x] `data/*.json` no longer needed at prerender time (inlined into the chunk).
 - [x] Data endpoints emit at their fetched paths — `dist/schema/{id}.json` is a
@@ -123,7 +123,7 @@ resolution then throws during static generation. Setting `trailingSlash:
       HTML canonical/og/sitemap URLs unchanged (still trailing-slash).
 - [x] CSS serialization spot-check — SU theme uses hex/oklch, not CSS named
       colors, so Astro 7's named-color→hex change is a no-op here.
-- [x] `@vite-pwa/astro` 1.2.0 functions against Astro 7 (suref-web PWA emitted in
+- [x] `@vite-pwa/astro` 1.2.0 functions against Astro 7 (srd PWA emitted in
       the build; its stale `astro ^1–^5` peer is satisfied by a nested copy and
       is only a warning).
 - [x] Dependabot `ignore` for `astro` / `@astrojs/*` majors removed.

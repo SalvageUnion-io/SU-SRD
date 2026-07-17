@@ -106,7 +106,7 @@
    * .sheet-section:  top-level sections (PilotSheet/MechSheet/CrawlerSheet)
    *                  each render as <section> with aria-labelledby; we target
    *                  the rendered <section> element directly as well.
-   * .card:           DisplayCard-style containers in suref-react
+   * .card:           DisplayCard-style containers in component-lib
    * .stat-row:       stat grid rows
    * dl:              the stats <dl> in MechSheet
    * li:              individual list items (systems, modules, cargo)
@@ -131,7 +131,7 @@
     break-before: page;
   }
 
-  /* .card targets DisplayCard-style containers in suref-react;
+  /* .card targets DisplayCard-style containers in component-lib;
    * section[class*="border-ink"] targets the restyled SU panel sections. */
   .card,
   .stat-row,
@@ -171,7 +171,7 @@
   }
 
   /* -------------------------------------------------------------------------
-   * Stat pips (suref-react StatBlock + StatDisplay) — keep trackable boxes on paper.
+   * Stat pips (component-lib StatBlock + StatDisplay) — keep trackable boxes on paper.
    *
    * The global `*` reset above forces every background to white, which would
    * erase a filled pip's fill and make it indistinguishable from an empty one.

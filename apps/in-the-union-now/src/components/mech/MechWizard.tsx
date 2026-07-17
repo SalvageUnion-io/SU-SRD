@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
-import { toast } from 'suref-react'
+import { toast } from 'component-lib'
 import { computeMechCapacity } from '../../lib/rules/capacity'
 import {
   clampMechCreationDraft,
@@ -27,11 +27,11 @@ import {
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { useMech } from '../../hooks/queries'
 import { useEntityStore } from '../../stores/entityStore'
-import { Banner } from 'suref-react'
+import { Banner } from 'component-lib'
 import { OffRulesEscape } from '../wizard/OffRulesEscape'
 import { RuleBrief } from '../wizard/RuleBrief'
 import type { StepRule } from '../wizard/RuleBrief'
-import { WizShell, WizTracker } from 'suref-react'
+import { WizShell, WizTracker } from 'component-lib'
 import { CraftItemsStep } from './CraftItemsStep'
 import { GainScrapStep } from './GainScrapStep'
 import { InstallStep } from './InstallStep'

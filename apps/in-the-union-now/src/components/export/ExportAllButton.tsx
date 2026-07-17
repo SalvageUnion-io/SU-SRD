@@ -8,7 +8,7 @@
  */
 
 import { useState } from 'react'
-import { Btn, toast } from 'suref-react'
+import { Btn, toast } from 'component-lib'
 
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'

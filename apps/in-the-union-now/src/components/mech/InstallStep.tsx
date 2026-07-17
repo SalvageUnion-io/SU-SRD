@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { FilterChip } from 'suref-react'
+import { FilterChip } from 'component-lib'
 import type { TechLevel } from '../../lib/rules/types'
 import { SelMasonry } from '../wizard/SelMasonry'
 import { InstallCard } from './InstallCard'

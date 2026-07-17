@@ -4,7 +4,7 @@
 
 - Monorepo at `/Users/jarvis/Code/su-io/SU-SRD/`
 - Architecture docs: `docs/architecture/` (display-system, data-flow, seo-accessibility, package-contracts)
-- Shared theme: `packages/suref-react/src/styles/theme.css` (CSS custom properties, Fira Code font)
+- Shared theme: `packages/component-lib/src/styles/theme.css` (CSS custom properties, Fira Code font)
 - Game data: `packages/salvageunion-reference/` (ORM-like API, `SalvageUnionReference.get(schemaName, id)`)
 - ITUN app: `apps/in-the-union-now/` (React 19 + TanStack Router/Query + ShadCN + Tailwind v4)
 
@@ -14,8 +14,8 @@ See [dataviz-idioms.md](dataviz-idioms.md) — pip magnitude consistency, the UN
 
 ## Three-Layer Display System
 
-1. **DisplayCard** (`packages/suref-react/src/components/shared/DisplayCard.tsx`): Low-level card with two boolean props (`compact` for reduced spacing, `listing` for header-only), controls architecture, stats system (StatsBar), tabs, sticky headers
-2. **ReferenceEntityDisplay** (`packages/suref-react/src/components/referenceEntity/`): Entity renderer with generic slot props (titleOverride, subtitleExtra, statsOverride, abilitiesSection, afterExtraContent, footerOverride). Uses data-shape detection, not schema-name checks.
+1. **DisplayCard** (`packages/component-lib/src/components/shared/DisplayCard.tsx`): Low-level card with two boolean props (`compact` for reduced spacing, `listing` for header-only), controls architecture, stats system (StatsBar), tabs, sticky headers
+2. **ReferenceEntityDisplay** (`packages/component-lib/src/components/referenceEntity/`): Entity renderer with generic slot props (titleOverride, subtitleExtra, statsOverride, abilitiesSection, afterExtraContent, footerOverride). Uses data-shape detection, not schema-name checks.
 3. **Consumer hooks**: Return slot props to spread onto ReferenceEntityDisplay (e.g., `useChassisPatternConfig`)
 
 ## Key Shared Components
@@ -64,11 +64,11 @@ App is now built on a rigorous internal "design-spec" (§ references in every co
 
 Two canonical templates every new ITUN surface should match:
 
-- **Dialog family** = suref-react `ModalShell` (base-ui Dialog, backdrop `bg-black/80`, DisplayCard pseudoheader, close top-right). ITUN wrappers: `shared/ConfirmDialog.tsx` (body `flex flex-col gap-4 bg-paper p-5`, action row `flex justify-end gap-2`, ghost Cancel + primary/danger confirm, headerBg su-orange / su-rust danger) and `shared/SelectorDialog.tsx` (radio pick-one). Downtime/Crafting/ScrapMech/CrawlerEconomy/GlobalSearch route through ModalShell.
+- **Dialog family** = component-lib `ModalShell` (base-ui Dialog, backdrop `bg-black/80`, DisplayCard pseudoheader, close top-right). ITUN wrappers: `shared/ConfirmDialog.tsx` (body `flex flex-col gap-4 bg-paper p-5`, action row `flex justify-end gap-2`, ghost Cancel + primary/danger confirm, headerBg su-orange / su-rust danger) and `shared/SelectorDialog.tsx` (radio pick-one). Downtime/Crafting/ScrapMech/CrawlerEconomy/GlobalSearch route through ModalShell.
 - **Roll-prompt family** = `sheet/HeatCheckControl.tsx`: `<Slab label>` header, `Btn size="sm"` primary/danger, readout `<p role="status" className="font-body text-sm text-ink">`, advisory `<p role="alert" className="mt-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 ... text-rust">`, flags `font-cond text-xs font-bold uppercase text-status-bad/text-rust` + MiniBtn Clear. TakeDamage/PilotTakeDamage/Salvage-ClaimPicker/QuickRollFab-pushNote conform.
 - **Popover chrome** (non-modal): QuickRollFab + SheetActionsMenu share `z-30 rounded-[6px] border-2 border-ink bg-paper shadow-[0_14px_28px_-14px_rgba(40,32,25,0.55)]` + `shared/useDismiss.ts`.
 
-## suref-react chrome primitives (confirmed)
+## component-lib chrome primitives (confirmed)
 
 - `Btn` variants = `default` (paper/ink base — the CVA defaultVariant), `primary` (rust), `ghost`, `danger`; sizes sm/md/lg. `btnVariants` cva exported. `MiniBtn`/`StepBtn` in SmallButtons.
 - `Slab` = dashed-leader uppercase section header (NOT a black bar), `tracking-[0.12em]`, tone-deep color, optional `count`.

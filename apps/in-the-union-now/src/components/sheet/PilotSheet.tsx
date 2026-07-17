@@ -36,7 +36,7 @@ import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility } from 'salvageunion-reference'
-import { Panel, Stat, StepBtn, VitalGauge } from 'suref-react'
+import { Panel, Stat, StepBtn, VitalGauge } from 'component-lib'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'

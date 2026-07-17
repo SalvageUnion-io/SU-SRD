@@ -9,7 +9,7 @@
  * (redesign gap G10).
  */
 
-import type { PillTone, StatState } from 'suref-react'
+import type { PillTone, StatState } from 'component-lib'
 
 import {
   crawlerMaxSP,

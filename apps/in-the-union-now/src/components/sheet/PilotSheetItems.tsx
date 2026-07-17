@@ -8,8 +8,8 @@
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefEntity } from 'salvageunion-reference'
-import { Btn, Panel, ReferenceEntityDisplay, Stat, StatusBadge, Badge } from 'suref-react'
-import type { CardFootMeta, ChoiceSelections, EntityStatus } from 'suref-react'
+import { Btn, Panel, ReferenceEntityDisplay, Stat, StatusBadge, Badge } from 'component-lib'
+import type { CardFootMeta, ChoiceSelections, EntityStatus } from 'component-lib'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry } from '../../lib/schemas/pilot'

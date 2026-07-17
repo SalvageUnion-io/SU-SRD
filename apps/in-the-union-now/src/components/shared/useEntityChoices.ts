@@ -1,6 +1,6 @@
 /**
  * useEntityChoices — controlled-selection adapter between an entity's persisted
- * per-item choice map and suref-react's ReferenceEntityDisplay `selections` /
+ * per-item choice map and component-lib's ReferenceEntityDisplay `selections` /
  * `onSelectionChange` props.
  *
  * Given an entity (`entityType`/`entityId`), an item slug, the name of the field
@@ -30,7 +30,7 @@
 
 import { useCallback } from 'react'
 
-import type { ChoiceSelections } from 'suref-react'
+import type { ChoiceSelections } from 'component-lib'
 
 import { useEntityStore } from '../../stores/entityStore'
 import type { EntityType, EntityForType } from '../../stores/types'

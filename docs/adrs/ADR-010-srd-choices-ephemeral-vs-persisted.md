@@ -9,10 +9,10 @@ Accepted
 Some reference entities carry **choices**: a class ability that grants a "Custom
 Sniper Rifle" with options to pick, or free-text fields like a pilot's Name /
 Appearance / A.I. Personality. The same entity-display components in
-`suref-react` render in two very different surfaces:
+`component-lib` render in two very different surfaces:
 
-- **`suref-web` (the SRD reference)** — a static, read-only catalog
-  ([ADR-012](ADR-012-suref-web-astro-static.md)) with no user data and nowhere to
+- **`srd` (the SRD reference)** — a static, read-only catalog
+  ([ADR-012](ADR-012-srd-astro-static.md)) with no user data and nowhere to
   save a selection.
 - **ITUN (the live builder)** — where a player's selections are part of their
   character and must persist ([ADR-002](ADR-002-indexeddb-idb-zod.md),
@@ -29,7 +29,7 @@ The shared choice components are **agnostic to persistence**, and the consuming
 surface decides the behavior:
 
 - `ChoiceGroups` (selectable options) is **uncontrolled / ephemeral** in
-  `suref-web` and **controlled / persistence-wired** in ITUN — both via the same
+  `srd` and **controlled / persistence-wired** in ITUN — both via the same
   `selections` / `onSelectionChange` pair, owned by the parent display.
 - `FreeTextChoiceCard` takes a **`readOnly`** flag. The SRD reference and
   read-only snapshots pass `readOnly` so the card renders the prompt (or a saved
@@ -48,6 +48,6 @@ surface decides the behavior:
   provided the component stays persistence-agnostic.
 - The contract to preserve: **the shared library never persists.** Selection
   ownership and storage live in the consumer (ITUN), passed down through the
-  `selections` / `onSelectionChange` props. Don't push storage into `suref-react`.
+  `selections` / `onSelectionChange` props. Don't push storage into `component-lib`.
 - See `docs/architecture/display-system.md` for the full choice-card layer and
   resolved-data-row rendering.

@@ -18,7 +18,7 @@
  */
 
 import { useState } from 'react'
-import { btnVariants } from 'suref-react'
+import { btnVariants } from 'component-lib'
 
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { EntityRef } from '../../lib/schemas/entity'

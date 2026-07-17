@@ -8,7 +8,7 @@
  * degrades into the app's visual language.
  */
 
-import { btnVariants } from 'suref-react'
+import { btnVariants } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 import { AppLink } from './AppLink'

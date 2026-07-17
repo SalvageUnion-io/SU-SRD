@@ -13,7 +13,7 @@
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { ControlButtons } from 'suref-react'
+import { ControlButtons } from 'component-lib'
 
 import {
   HBtn,

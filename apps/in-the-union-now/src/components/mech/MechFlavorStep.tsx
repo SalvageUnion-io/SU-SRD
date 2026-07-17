@@ -1,4 +1,4 @@
-import { Btn } from 'suref-react'
+import { Btn } from 'component-lib'
 import { IdentityField } from '../sheet/IdentityField'
 import type { MechRollField, MechRollTableDeps } from './mechRollTables'
 import { rollForMechField } from './mechRollTables'

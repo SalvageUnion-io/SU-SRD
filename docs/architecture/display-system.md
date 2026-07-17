@@ -4,7 +4,7 @@ The entity rendering system is a three-layer stack: **DisplayCard** (flexible ca
 
 ## Layer 1: DisplayCard
 
-**File:** `packages/suref-react/src/components/shared/DisplayCard.tsx`
+**File:** `packages/component-lib/src/components/shared/DisplayCard.tsx`
 
 DisplayCard is the low-level card UI component used by both apps. It handles layout, controls, stats, tabs, and sticky headers.
 
@@ -113,7 +113,7 @@ When `stickyHeader: true`, the header sticks to the top of the scroll container.
 
 ## Layer 2: ReferenceEntityDisplay
 
-**Files:** `packages/suref-react/src/components/referenceEntity/ReferenceEntityDisplay/`
+**Files:** `packages/component-lib/src/components/referenceEntity/ReferenceEntityDisplay/`
 
 ReferenceEntityDisplay wraps DisplayCard with entity-aware rendering. It computes header colors, spacing, typography, and section visibility from entity data, then delegates layout to DisplayCard.
 
@@ -220,7 +220,7 @@ This layer sits between ReferenceEntityDisplay (the card frame) and the consumer
 
 ### Choice-Card Components (`choiceCard/`)
 
-**File:** `packages/suref-react/src/components/referenceEntity/choiceCard/`
+**File:** `packages/component-lib/src/components/referenceEntity/choiceCard/`
 
 Three exported variants, all sharing a coloured-header + white-inset-body visual language matching entity cards:
 
@@ -236,16 +236,16 @@ Three exported variants, all sharing a coloured-header + white-inset-body visual
 
 `ChoiceGroups` is the top-level interactive renderer for a set of choices. It accepts `choices: SURefObjectChoice[]` and owns the selection state, with two modes:
 
-- **Uncontrolled** (no `selections` / `onSelectionChange` props): self-manages ephemeral React state. Used by `suref-web` — no persistence, lost on refresh.
+- **Uncontrolled** (no `selections` / `onSelectionChange` props): self-manages ephemeral React state. Used by `srd` — no persistence, lost on refresh.
 - **Controlled** (`selections` + `onSelectionChange` props): caller owns state. Used by ITUN, which wires through its persistence stores.
 
 `ChoiceGroup` (singular) renders one choice — its heading + either option cards or a free-text card.
 
 ### choiceSelectionHelpers
 
-`packages/suref-react/src/components/referenceEntity/choiceCard/choiceSelectionHelpers.ts`
+`packages/component-lib/src/components/referenceEntity/choiceCard/choiceSelectionHelpers.ts`
 
-Pure helpers (no React), all exported from `suref-react`:
+Pure helpers (no React), all exported from `component-lib`:
 
 | Export                                               | Purpose                                                                      |
 | ---------------------------------------------------- | ---------------------------------------------------------------------------- |
@@ -289,9 +289,9 @@ Effects: `addDamage` bumps a Damage datavalue, `setRange` replaces Range, `addTr
 
 ### Entity href injection (route-agnostic)
 
-`packages/suref-react/src/components/referenceEntity/ReferenceEntityDisplay/entityHrefContext.ts`
+`packages/component-lib/src/components/referenceEntity/ReferenceEntityDisplay/entityHrefContext.ts`
 
-The shared library does not know app routes. `EntityHrefProvider` supplies an `EntityHrefBuilder` (`(entity) => string | undefined`); `ReferenceEntityGrants`'s nested "View Details" control reads it via `useEntityHref(entity)`. suref-web provides `srdEntityHref` (`/schema/<schema>/item/<slug>/`) at the island level; with no provider there is no link (correct for consumers like ITUN with different routing).
+The shared library does not know app routes. `EntityHrefProvider` supplies an `EntityHrefBuilder` (`(entity) => string | undefined`); `ReferenceEntityGrants`'s nested "View Details" control reads it via `useEntityHref(entity)`. srd provides `srdEntityHref` (`/schema/<schema>/item/<slug>/`) at the island level; with no provider there is no link (correct for consumers like ITUN with different routing).
 
 ### isGrantingAbility — Ability → Grants Collapse Pattern
 
@@ -310,7 +310,7 @@ The `lead` field on `ContentBlock` marks a granted entity's intro sentence. It r
 
 ### useChassisPatternConfig Hook
 
-**File:** `packages/suref-react/src/components/referenceEntity/ReferenceEntityDisplay/useChassisPatternConfig.tsx`
+**File:** `packages/component-lib/src/components/referenceEntity/ReferenceEntityDisplay/useChassisPatternConfig.tsx`
 
 Encapsulates all pattern-override display logic. Returns generic slot props to spread onto ReferenceEntityDisplay:
 
@@ -342,7 +342,7 @@ Renders equipment, abilities, and comrades with interactive stats and condition 
 - `stats` — Interactive stats with +/- via `ENTITY_STATS_CONFIG`
 - `afterChoicesContent` — `EntityModificationSlots` for modification tracking
 
-For granted-equipment choices (e.g. Custom Sniper Rifle), the new `ChoiceGroups` path is used instead: `ReferenceEntityResolvedChoices` (body) + `ReferenceEntityResolvedDataRow` (header subtitle) work together via controlled `selections` / `onSelectionChange` state. ITUN wires these to its persistence stores; suref-web uses the uncontrolled (ephemeral) mode.
+For granted-equipment choices (e.g. Custom Sniper Rifle), the new `ChoiceGroups` path is used instead: `ReferenceEntityResolvedChoices` (body) + `ReferenceEntityResolvedDataRow` (header subtitle) work together via controlled `selections` / `onSelectionChange` state. ITUN wires these to its persistence stores; srd uses the uncontrolled (ephemeral) mode.
 
 ### ReferenceEntityPickerModal (ITUN)
 

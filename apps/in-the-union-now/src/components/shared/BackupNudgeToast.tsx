@@ -8,7 +8,7 @@
  */
 
 import { useEffect } from 'react'
-import { toast } from 'suref-react'
+import { toast } from 'component-lib'
 
 import { getBackupNudgeState, subscribeBackupNudge } from '../../lib/backupNudge'
 import type { BackupNudgeState } from '../../lib/backupNudge'

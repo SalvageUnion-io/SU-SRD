@@ -23,7 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build & Validation
 
-This is a TypeScript monorepo with shared packages (suref-react, etc.). After any cross-package changes, always run typecheck, tests, and lint before considering a task complete. When modifying shared components, check all consuming apps for regressions (especially Tailwind @source paths and import changes).
+This is a TypeScript monorepo with shared packages (component-lib, etc.). After any cross-package changes, always run typecheck, tests, and lint before considering a task complete. When modifying shared components, check all consuming apps for regressions (especially Tailwind @source paths and import changes).
 
 ### Root Dev Dependencies (Intentional)
 
@@ -38,7 +38,7 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools, located in the `S
 
 The apps deploy to two platforms, each with an official MCP server wired up in the project-scoped [`.mcp.json`](.mcp.json) (committed; Claude Code prompts each contributor to approve it per-project):
 
-- **Netlify** — hosts `apps/suref-web` (static) and `apps/in-the-union-now` (static SPA + the snapshot backend Netlify Functions + Blobs; see `apps/*/netlify.toml` and [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md)). MCP server: official `@netlify/mcp` (stdio); authenticates via the Netlify CLI/OAuth — no token in the file.
+- **Netlify** — hosts `apps/srd` (static) and `apps/in-the-union-now` (static SPA + the snapshot backend Netlify Functions + Blobs; see `apps/*/netlify.toml` and [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md)). MCP server: official `@netlify/mcp` (stdio); authenticates via the Netlify CLI/OAuth — no token in the file.
 - **Render** — hosts `apps/discord-bot` as a worker (see `render.yaml`). MCP server: official hosted server at `https://mcp.render.com/mcp`; reads `RENDER_API_KEY` from your shell env.
 - **GitHub** — repo host + Actions CI + PR workflow. MCP server: official remote `https://api.githubcopilot.com/mcp/`; reads `GITHUB_PAT` from your shell env.
 
@@ -63,8 +63,8 @@ bun run test             # Run all tests, per workspace. NEVER raw `bun test` at
                          # root: it skips workspace bunfig preloads (fake-indexeddb,
                          # reference preload) and fails by the hundreds
 bun --filter salvageunion-reference test   # Test package only
-bun --filter suref-react test              # Test shared components only
-bun --filter suref-web test                # Test reference site only
+bun --filter component-lib test              # Test shared components only
+bun --filter srd test                # Test reference site only
 bun --filter in-the-union-now test         # Test ITUN app only
 
 # Code quality
@@ -94,23 +94,23 @@ bun run build:bot        # Build Discord bot
 
 **Workspace structure:**
 
-- `apps/suref-web/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4, Vite). No auth, no backend.
+- `apps/srd/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4, Vite). No auth, no backend.
 - `apps/in-the-union-now/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Vite). Local-first: IndexedDB persistence, no auth, no backend. Has dashboard, live sheets, snapshot sharing.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
-- `packages/suref-react/` - Shared React component library (ShadCN + Tailwind, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
+- `packages/component-lib/` - Shared React component library (ShadCN + Tailwind, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
 
 **Dependency graph:**
 
 ```
 salvageunion-reference (game data ORM)
-  └── suref-react (shared UI components)
-        ├── suref-web (static reference site)
+  └── component-lib (shared UI components)
+        ├── srd (static reference site)
         └── in-the-union-now (character builder + game manager)
 discord-bot (standalone, depends on salvageunion-reference)
 ```
 
-**Key dependency:** `salvageunion-reference` ships TypeScript source directly (like `suref-react`) — apps resolve `lib/index.ts` with no build step. `bun run build:package` now only regenerates `schemas/*.schema.json` from the Zod sources; run it after schema or data changes and commit the result (CI fails on drift). The Discord bot bundles the package source into its own `dist/` via `bun build`.
+**Key dependency:** `salvageunion-reference` ships TypeScript source directly (like `component-lib`) — apps resolve `lib/index.ts` with no build step. `bun run build:package` now only regenerates `schemas/*.schema.json` from the Zod sources; run it after schema or data changes and commit the result (CI fails on drift). The Discord bot bundles the package source into its own `dist/` via `bun build`.
 
 ### Architecture Reference
 
@@ -118,7 +118,7 @@ Detailed cross-cutting architecture docs live in `docs/architecture/`:
 
 - **[display-system.md](docs/architecture/display-system.md)** — Three-layer rendering stack: DisplayCard -> ReferenceEntityDisplay -> consumer patterns
 - **[data-flow.md](docs/architecture/data-flow.md)** — Reference data + player data resolution, TanStack Query patterns, IndexedDB hydration
-- **[seo-accessibility.md](docs/architecture/seo-accessibility.md)** — SEO strategy (suref-web) and WCAG 2.1 AA compliance patterns
+- **[seo-accessibility.md](docs/architecture/seo-accessibility.md)** — SEO strategy (srd) and WCAG 2.1 AA compliance patterns
 - **[package-contracts.md](docs/architecture/package-contracts.md)** — Package APIs, dependency rules, cross-package change checklist
 
 ### Code Conventions (from `.claude/rules/`)
@@ -139,7 +139,7 @@ All TypeScript source in `lib/` is hand-written (Zod schemas in `lib/schemas/`, 
 
 Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageUnionReference.{SchemaName}` static properties (e.g., `SalvageUnionReference.Chassis.find(...)`).
 
-### suref-react Package (Shared Components)
+### component-lib Package (Shared Components)
 
 - **No build step** - exports TypeScript source directly via `src/index.ts` barrel. Vite in consuming apps handles `.ts/.tsx`.
 - **Contents:** Theme system (colors, recipes), base typography (Heading, Text), UI primitives (Tooltip, Toaster), entity display system (~30 files), shared components (Card, ValueDisplay, SheetDisplay, RollTable, Modal, etc.), skeletons, utilities (slug, parseTraitReferences), constants.
@@ -147,12 +147,12 @@ Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageU
 - **Entity display** uses a render prop pattern (`classAbilitiesRenderer`) so consuming apps can inject app-specific renderers.
 - **Testing:** Own `bunfig.toml` with happy-dom preload (no backend env vars).
 
-### suref-web App (Static Reference Site)
+### srd App (Static Reference Site)
 
 - **Framework:** Astro 5 with React 19 islands architecture. Static output, no SSR.
 - **Routing:** File-based routing in `src/pages/` via Astro. Routes: `/` (landing), `/schema/[schemaId]`, `/schema/[schemaId]/item/[itemId]`, `/about`, `/404`.
 - **No auth, no backend, no user data.** Pure static reference site.
-- **UI:** Tailwind v4 with theme from `suref-react`. React islands for interactive components (search, schema viewer, entity display). Components import from `suref-react` for shared UI.
+- **UI:** Tailwind v4 with theme from `component-lib`. React islands for interactive components (search, schema viewer, entity display). Components import from `component-lib` for shared UI.
 - **Search:** In-memory search via `salvageunion-reference` package `search()` function. Cmd+K/Ctrl+K shortcut to focus.
 - **Testing:** Bun test runner with React Testing Library + happy-dom. No backend env vars needed.
 - **Deployment:** Netlify (static site, no server functions)
@@ -169,7 +169,7 @@ Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageU
 
 ### Development Workflow
 
-In the entity display system, card-level display state (compact, spacing, fontSize, damaged, disabled) flows through ReferenceEntityDisplayContext (packages/suref-react .../displayStateContext.ts) — nested components read it automatically, with explicit props as overrides. When adding NEW props that must reach nested components, verify the pass-through; run typecheck immediately after edits.
+In the entity display system, card-level display state (compact, spacing, fontSize, damaged, disabled) flows through ReferenceEntityDisplayContext (packages/component-lib .../displayStateContext.ts) — nested components read it automatically, with explicit props as overrides. When adding NEW props that must reach nested components, verify the pass-through; run typecheck immediately after edits.
 
 ### Debugging
 
@@ -187,6 +187,6 @@ When to reach for which skill (overlap explained):
 - `/build-package` — rebuild `salvageunion-reference` only (TS compile + regenerate `schemas/*.schema.json`). Use after Zod schema or data-file edits.
 - `/generate` — same as above **plus** `validate:all` (IDs, cross-refs, action refs). Use when you've changed JSON data and want integrity checks in one step.
 - `/validate` / `/verify` — run the full CI suite (`lint`, `format`, `typecheck`, `test`, `validate`). Both do the same thing; prefer `/validate`.
-- `/a11y-scan` — WCAG 2.1 AA scan via puppeteer (suref-web).
+- `/a11y-scan` — WCAG 2.1 AA scan via puppeteer (srd).
 - `/commit` — conventional commit with message drafting.
 - `/deploy-bot` — deploy Discord slash commands.

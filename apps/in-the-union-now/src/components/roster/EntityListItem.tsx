@@ -1,7 +1,7 @@
 /**
  * EntityListItem — single saved-build row in a roster entity column.
  *
- * Styled as a compact translation of the shared entity card (suref-react
+ * Styled as a compact translation of the shared entity card (component-lib
  * `DisplayCard`): a colour-coded left accent rail in the entity's deep sheet
  * tone, a faint type wash behind the row, a black pseudoheader name (the card's
  * signature condensed-uppercase title), and a hover-lift card frame — so a
@@ -18,7 +18,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import { Trash2 } from 'lucide-react'
-import { Btn, btnVariants } from 'suref-react'
+import { Btn, btnVariants } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
@@ -45,7 +45,7 @@ type EntityListItemProps = {
 }
 
 /**
- * Per-type sheet tones (see `--color-sheet-*` in suref-react theme.css).
+ * Per-type sheet tones (see `--color-sheet-*` in component-lib theme.css).
  * `deep` drives the accent rail; `wash` is a faint tint of the base tone mixed
  * into paper so the whole row is legibly coloured by type without fighting the
  * ink text / pseudoheader name.

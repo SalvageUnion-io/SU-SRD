@@ -116,7 +116,7 @@ const impl = await agent(
     '   Cite book + page/section for any rule the change depends on. (docs/rules/ digest is gitignored',
     '   and absent in a fresh worktree — the PDFs are canonical; Read them with the pages parameter.)',
     '3. Implement the SMALLEST change that addresses the feedback. Reuse existing shared components',
-    '   (EntityDisplay, DisplayCard, suref-react primitives) — do NOT add unrequested features, schema,',
+    '   (EntityDisplay, DisplayCard, component-lib primitives) — do NOT add unrequested features, schema,',
     '   or UI. ITUN is local-first (IndexedDB, no auth/backend); do not introduce a backend.',
     '4. Validate: run "bun run typecheck", "bun test", and "bun run lint" (or "bun run check:all").',
     '   If you touched the salvageunion-reference package, "bun run build:package" first.',

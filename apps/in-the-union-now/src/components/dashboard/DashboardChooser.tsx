@@ -27,7 +27,7 @@
 import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Btn, ModalShell } from 'suref-react'
+import { Btn, ModalShell } from 'component-lib'
 
 import { useCrawlers, useMechs, usePilots, useSoftLinkList } from '../../hooks/queries'
 import type { Crawler } from '../../lib/schemas/crawler'

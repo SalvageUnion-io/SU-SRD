@@ -8,7 +8,7 @@
  * Rendered through a ModalShell (portal, focus trap, Escape/backdrop dismiss).
  */
 
-import { Btn, ModalShell } from 'suref-react'
+import { Btn, ModalShell } from 'component-lib'
 
 type DeleteConfirmDialogProps = {
   open: boolean

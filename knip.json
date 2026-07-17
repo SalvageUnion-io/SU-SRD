@@ -12,10 +12,10 @@
       "entry": ["tools/**/*.ts"],
       "project": ["lib/**/*.ts", "tools/**/*.ts"]
     },
-    "packages/suref-react": {
+    "packages/component-lib": {
       "project": ["src/**/*.{ts,tsx}"]
     },
-    "apps/suref-web": {
+    "apps/srd": {
       "entry": ["src/pages/**/*.{astro,ts,tsx}"],
       "project": ["src/**/*.{ts,tsx,astro}"]
     },

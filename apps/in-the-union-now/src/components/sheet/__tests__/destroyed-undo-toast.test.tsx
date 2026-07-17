@@ -10,7 +10,7 @@
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Toaster, toast } from 'suref-react'
+import { Toaster, toast } from 'component-lib'
 
 import { MechSheet } from '../MechSheet'
 import type { Mech } from '../../../lib/schemas/mech'

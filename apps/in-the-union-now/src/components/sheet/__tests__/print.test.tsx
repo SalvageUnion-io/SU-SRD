@@ -185,7 +185,7 @@ describe('Print markup — MechSheet', () => {
         softLinkStore={makeEmptySoftLinkStore()}
       />
     )
-    // MechSheet renders stat blocks (suref-react StatBlock after the Header C rebuild)
+    // MechSheet renders stat blocks (component-lib StatBlock after the Header C rebuild)
     // — print stylesheet's section/card selectors target the encompassing structure.
     // Confirm the mech section renders at all.
     const mechSection = container.querySelector('[aria-labelledby], section, article')

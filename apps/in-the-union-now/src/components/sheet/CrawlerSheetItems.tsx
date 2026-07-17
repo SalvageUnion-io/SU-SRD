@@ -6,8 +6,8 @@
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Btn, ReferenceEntityDisplay, useDetailModal } from 'suref-react'
-import type { CardFootMeta, ChoiceSelections } from 'suref-react'
+import { Btn, ReferenceEntityDisplay, useDetailModal } from 'component-lib'
+import type { CardFootMeta, ChoiceSelections } from 'component-lib'
 
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { Crawler } from '../../lib/schemas/crawler'

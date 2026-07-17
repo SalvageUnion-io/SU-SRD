@@ -1,9 +1,9 @@
 # Contributing to SURef
 
 A Bun monorepo for **Salvage Union** tools: a static SRD reference site
-(`apps/suref-web`), a local-first character builder (`apps/in-the-union-now`), a
+(`apps/srd`), a local-first character builder (`apps/in-the-union-now`), a
 Discord dice bot (`apps/discord-bot`), and two shared packages
-(`packages/salvageunion-reference`, `packages/suref-react`).
+(`packages/salvageunion-reference`, `packages/component-lib`).
 
 ## Prerequisites
 
@@ -49,11 +49,11 @@ if you touched build config.
 ### Common workspace-scoped commands
 
 ```bash
-bun run dev            # build:package + suref-web dev server
+bun run dev            # build:package + srd dev server
 bun run dev:itun       # build:package + ITUN dev server
 bun run dev:bot        # build:package + Discord bot (local)
 
-bun --filter suref-web test          # test one workspace
+bun --filter srd test          # test one workspace
 bun run typecheck:itun               # typecheck one workspace
 ```
 

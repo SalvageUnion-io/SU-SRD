@@ -3,7 +3,7 @@
 Confirmed pip/track/badge conventions across the stat surfaces. All live-play
 readouts are read on phones mid-combat — glanceability is the metric.
 
-## Pip primitives (`packages/suref-react/src/components/stat/`)
+## Pip primitives (`packages/component-lib/src/components/stat/`)
 
 - 1 pip == 1 unit EVERYWHERE (SP/EP/Heat/cargo/slot) — magnitude is consistent
   across contexts. Pip weight is 1.5px everywhere (StatBlock hardcodes
@@ -33,7 +33,7 @@ reads red, never clamp the measurement. Present in:
 
 `high` at ≥70% of cap (lit pips past `heatDangerFrom` go red), `critical` at cap
 (red border + `motion-safe:animate-heat-pulse`). StatBlock reddens pips+border
-only; MiniStat also reddens the number. Inert without a positive max (suref-web).
+only; MiniStat also reddens the number. Inert without a positive max (srd).
 Over-capacity red and heat-danger red compose in the same pip loop.
 
 ## Roll-result readouts — severity colour (dataviz pass)

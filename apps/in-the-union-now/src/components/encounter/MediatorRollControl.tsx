@@ -12,7 +12,7 @@
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Btn, MiniBtn } from 'suref-react'
+import { Btn, MiniBtn } from 'component-lib'
 
 import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { Roll } from '../../lib/rules/heatCheck'

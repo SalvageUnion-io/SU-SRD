@@ -25,12 +25,12 @@
  *
  * On foot (`mount === 'pilot'`) the deck is the pilot's abilities + equipment on
  * the AP economy; boarded, it is the mech's chassis + systems + modules on EP.
- * Each card reuses suref-react's `ActionCard` verbatim in the resolve panel — the
+ * Each card reuses component-lib's `ActionCard` verbatim in the resolve panel — the
  * deck layers Dashboard controls around it, never replaces it.
  */
 
 import { useState } from 'react'
-import { ReferenceEntityDisplay } from 'suref-react'
+import { ReferenceEntityDisplay } from 'component-lib'
 import { canActivateAction } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 

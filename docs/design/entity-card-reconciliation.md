@@ -60,7 +60,7 @@ See Part 3 — the ordered, green-at-every-checkpoint stages.
 
 ## Part 2 — Where we are now
 
-- **L1 + L2 complete.** The `NEW*` card system (`packages/suref-react/src/components/referenceEntity/NEW/`)
+- **L1 + L2 complete.** The `NEW*` card system (`packages/component-lib/src/components/referenceEntity/NEW/`)
   is built with the full read-only design + the write layer, and iterated in the
   `NEW/*` Ladle stories.
 - **Committed & pushed to PR #466** (branch `worktree-entity-card-capture`): read-only
@@ -76,8 +76,8 @@ See Part 3 — the ordered, green-at-every-checkpoint stages.
   are live — **every direct `ReferenceEntityDisplay` consumer now renders through
   `NEWReferenceEntityCard`**. The 6 flip-surfaced deltas are all closed (see below).
   Green: typecheck (4 pkgs) + lint + knip + validate:all; tests all pass
-  (suref-react 414, suref-web 989, ITUN 1321).
-- **Legacy render core is now reachable only through 3 internal suref-react
+  (component-lib 414, srd 989, ITUN 1321).
+- **Legacy render core is now reachable only through 3 internal component-lib
   consumers** (the shim itself forwards to the new card, not legacy):
   `ClassAbilityTree` (imports `ReferenceEntityDisplay/index`),
   `useDetailModal` (renders `ReferenceEntityDisplayContent` in its modal — the
@@ -102,7 +102,7 @@ read-only stays identical). The gaps (widest first = critical path):
 | `cardStyle: {className, style}` (NEW has only `className`)     | MechItemCard, CrawlerSheet, PilotSheetItems                    | pending                                    |
 | `expand` slot (accent field, before footer)                    | CrawlerSheetItems (bay crew)                                   | pending                                    |
 | `scalingParent` → choice-cap resolver in `NEWChoiceGroups`     | PilotSheet(Items) (per-Tech-Level caps)                        | pending                                    |
-| `titleAs: 'span'\|'h1'` on `NEWCardHeader` (SEO)               | suref-web islands, OG, `[itemId].astro`                        | pending                                    |
+| `titleAs: 'span'\|'h1'` on `NEWCardHeader` (SEO)               | srd islands, OG, `[itemId].astro`                              | pending                                    |
 | `statsOverride` `{value,bottomLabel}` → `StatItem[]` adapter   | `useChassisPatternConfig` (or switch to native `pattern` prop) | pending                                    |
 | NPC parity (`npcConfig` reserved/no-op)                        | encounter/sheet NPC insets                                     | decide: implement or confirm native path   |
 | `mode`/`compact`/`listing` → `size`                            | ~everywhere                                                    | handled by the Stage-a shim                |
@@ -119,12 +119,12 @@ Also not-yet-implemented on the card (confirm no app dependence, else close):
   `ReferenceEntityDisplay` that maps `compact`/`listing`/`mode` → `size` (+ the
   `statsOverride` shape) and forwards to the canonical card. Now every consumer
   renders through the new card at once, no call-site rewrites yet.
-- Flip the barrel (`packages/suref-react/src/index.ts:19`).
+- Flip the barrel (`packages/component-lib/src/index.ts:19`).
 - Risk: low (additive; legacy still present).
 
 **PROVEN (this session, then reverted to keep the tree green):** the compat shim was
 built and the barrel flipped — result: **typecheck clean across all 4 packages**, and
-**suref-react (414) + salvageunion-reference (876) + suref-web tests all pass** through
+**component-lib (414) + salvageunion-reference (876) + srd tests all pass** through
 the shim. So the shim + flip are correct; the exact shim is saved at
 `~/.claude/jobs/.../tmp/referenceEntityDisplayShim.tsx` (60 lines: maps
 `mode`/`compact`/`listing`→`size` via `resolveDisplayMode`, folds `status`
@@ -154,7 +154,7 @@ trips knip (unused export) — so it must land together with the barrel flip, on
    default cursor). Persistence stays gated by `onSelectionChange` (undefined in
    read-only ⇒ a click can't reach the store).
 
-### Stage b — migrate suref-web islands
+### Stage b — migrate srd islands
 
 `ReferenceEntityIsland`, `SchemaViewerIsland`, `OgCardIsland`,
 `item/[itemId].astro`, `og-screenshots.ts`. Needs `titleAs`, `label` semantics,

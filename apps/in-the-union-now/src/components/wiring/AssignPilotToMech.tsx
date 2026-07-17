@@ -13,7 +13,7 @@
  */
 
 import { useState } from 'react'
-import { Btn } from 'suref-react'
+import { Btn } from 'component-lib'
 
 import { usePilots } from '../../hooks/queries'
 import type { Pilot } from '../../lib/schemas/pilot'

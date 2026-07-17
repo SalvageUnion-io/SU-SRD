@@ -89,7 +89,7 @@ export default defineConfig({
   // Without this, vite dev serves those JSON modules as `text/javascript`, which
   // strict browsers reject under import-attribute enforcement ("Failed to fetch
   // dynamically imported module"), breaking all reference-data loading in dev.
-  // Mirrors the suref-web astro.config optimizeDeps fix (#260).
+  // Mirrors the srd astro.config optimizeDeps fix (#260).
   //
   // List EVERY imported entry point of salvageunion-reference (main + each
   // subpath), not just '.'. The package's stateful ORM singletons — the

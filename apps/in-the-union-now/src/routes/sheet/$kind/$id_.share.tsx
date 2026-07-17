@@ -8,7 +8,7 @@
  */
 
 import { createFileRoute, notFound } from '@tanstack/react-router'
-import { btnVariants } from 'suref-react'
+import { btnVariants } from 'component-lib'
 
 import { ShareSnapshotScreen } from '../../../components/sheet/ShareSnapshotScreen'
 import { AppLink } from '../../../components/shared/AppLink'

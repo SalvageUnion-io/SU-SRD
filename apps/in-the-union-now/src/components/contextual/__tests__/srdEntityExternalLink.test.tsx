@@ -4,7 +4,7 @@
  * The builder is ITUN's app-wide EntityExternalLinkProvider value: full entity
  * cards + detail modals render its node in their foot band. It must produce a
  * ViewInSRDLink for real catalog entities and nothing for entities whose
- * schema has no suref-web page.
+ * schema has no srd page.
  */
 
 import { beforeAll, describe, expect, it } from 'bun:test'

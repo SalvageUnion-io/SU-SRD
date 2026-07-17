@@ -15,7 +15,7 @@
  */
 
 import type { ReactNode, Ref } from 'react'
-import { Stat } from 'suref-react'
+import { Stat } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 

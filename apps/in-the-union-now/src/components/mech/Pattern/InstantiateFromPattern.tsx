@@ -20,7 +20,7 @@ import { useState } from 'react'
 import { findChassisByRef } from '../../../lib/rules/derivedStats'
 import { useEntityStore } from '../../../stores/entityStore'
 import type { MechPattern } from '../../../lib/schemas/pattern'
-import { Btn, ModalShell } from 'suref-react'
+import { Btn, ModalShell } from 'component-lib'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern

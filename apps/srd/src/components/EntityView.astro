@@ -1,0 +1,34 @@
+---
+import type { SURefEntity } from 'salvageunion-reference'
+import { ReferenceEntityIsland } from './islands/ReferenceEntityIsland'
+import { StaticEntityContent } from 'component-lib'
+import { extractStaticEntitySummary } from '../lib/gameData'
+import { getSchemaPreloadList } from '../lib/schemaPreloadDeps'
+import { resolveTraitHref } from '../lib/staticLinks'
+
+/**
+ * EntityView — the reference entity as ONE render unit: the interactive island
+ * card plus its own static SEO / no-JS sub-content, rendered alongside it.
+ *
+ * The static block is the Entity's sub-content, not a separate page concern:
+ * BaseLayout's pre-paint `.js` class hides `[data-static-fallback]` for JS
+ * users via global.css (no text flash), and the island removes it once game
+ * data is ready — no-JS users and crawlers keep the content for SEO.
+ */
+
+type Props = {
+  item: SURefEntity
+  schemaId: string
+}
+
+const { item, schemaId } = Astro.props
+const staticSummary = extractStaticEntitySummary(item)
+---
+
+<ReferenceEntityIsland
+  client:visible
+  item={item}
+  titleAs="h1"
+  preloadSchemas={getSchemaPreloadList(schemaId)}
+/>
+<StaticEntityContent summary={staticSummary} resolveTraitHref={resolveTraitHref} />

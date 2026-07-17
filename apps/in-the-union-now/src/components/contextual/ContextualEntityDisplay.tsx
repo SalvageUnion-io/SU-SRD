@@ -1,7 +1,7 @@
 /**
  * ContextualEntityDisplay — shows full entity data inline in builder flows.
  *
- * Wraps children in a EntityTooltip from suref-react.
+ * Wraps children in a EntityTooltip from component-lib.
  * Supports two resolution strategies:
  *   - byId: pass entityId directly (classes, abilities)
  *   - byName: resolve id from a name lookup (chassis, systems, modules — which
@@ -12,7 +12,7 @@
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
-import { EntityTooltip } from 'suref-react'
+import { EntityTooltip } from 'component-lib'
 
 type ById = {
   schemaName: SURefEnumSchemaName

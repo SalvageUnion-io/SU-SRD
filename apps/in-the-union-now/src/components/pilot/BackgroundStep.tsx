@@ -1,4 +1,4 @@
-import { Field } from 'suref-react'
+import { Field } from 'component-lib'
 import type { RollTableDeps } from './rollTableHelpers'
 import { RollTableButton } from './RollTableButton'
 

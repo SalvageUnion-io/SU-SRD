@@ -9,7 +9,7 @@
 
 import { cn } from '../../lib/utils'
 
-/** Row-shaped shimmer placeholder matching suref-react's `Row` frame. */
+/** Row-shaped shimmer placeholder matching component-lib's `Row` frame. */
 function SkeletonRow() {
   return (
     <li className="list-none">

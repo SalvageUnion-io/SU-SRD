@@ -13,7 +13,7 @@
  */
 
 import { useRef, useState } from 'react'
-import { Btn, toast } from 'suref-react'
+import { Btn, toast } from 'component-lib'
 
 import { mergeImport } from '../../lib/export/mergeImport'
 import { parseImportBundle } from '../../lib/export/parseImportBundle'

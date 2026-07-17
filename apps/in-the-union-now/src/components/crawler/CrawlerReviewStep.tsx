@@ -5,7 +5,7 @@ import type {
   SURefSystem,
 } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
-import { ReferenceEntityDisplay } from 'suref-react'
+import { ReferenceEntityDisplay } from 'component-lib'
 import { LAYOUT } from '../../lib/layout'
 import { cn } from '../../lib/utils'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'

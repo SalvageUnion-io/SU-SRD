@@ -1,6 +1,6 @@
 import type { ElementType } from 'react'
 import { Search } from 'lucide-react'
-import { AppBar, type AppBarNavItem, NavDrawer, type NavDrawerItem } from 'suref-react'
+import { AppBar, type AppBarNavItem, NavDrawer, type NavDrawerItem } from 'component-lib'
 
 /**
  * AppHeader — the ITUN builder's masthead (app-local config over the shared

@@ -9,24 +9,24 @@ Accepted
 `packages/salvageunion-reference` was historically published to npm (133
 versions exist on the registry, latest `2.4.0` at the time of writing). The
 package ships TypeScript source directly and has no compile step
-([ADR-011](ADR-011-suref-react-source-no-build.md) established this pattern
-for `suref-react`; `salvageunion-reference` follows the same shape) — `bun run
+([ADR-011](ADR-011-component-lib-source-no-build.md) established this pattern
+for `component-lib`; `salvageunion-reference` follows the same shape) — `bun run
 build:package` only regenerates `schemas/*.schema.json` from the Zod source
 ([ADR-005](ADR-005-reference-data-orm.md)). Publishing TypeScript source to
 npm as a library was never a good fit for external consumers, and the repo
 owner has decided to stop publishing it altogether.
 
-Since `apps/suref-web` added `/schema/v1` JSON API endpoints (#107), it has
+Since `apps/srd` added `/schema/v1` JSON API endpoints (#107), it has
 served the same dataset publicly as a CORS-enabled JSON API — one JSON
 document and one JSON Schema document per schema, plus per-item lookups:
 
-- `apps/suref-web/src/pages/schema/[schemaId].json.ts` — full dataset for a
+- `apps/srd/src/pages/schema/[schemaId].json.ts` — full dataset for a
   schema
-- `apps/suref-web/src/pages/schema/[schemaId].schema.json.ts` — the schema's
+- `apps/srd/src/pages/schema/[schemaId].schema.json.ts` — the schema's
   JSON Schema
-- `apps/suref-web/src/pages/schema/[schemaId]/item/[itemId].json.ts` —
+- `apps/srd/src/pages/schema/[schemaId]/item/[itemId].json.ts` —
   single-item lookup
-- `apps/suref-web/src/pages/api.astro` — human-readable documentation of the
+- `apps/srd/src/pages/api.astro` — human-readable documentation of the
   above, plus `llms.txt` for machine discovery
 
 This API requires no install, no auth, and no build step — it is strictly
@@ -60,7 +60,7 @@ repo's history. This ADR does not change the local `version` field.
 
 ## Decision
 
-- The dataset's public interface is the `suref-web` JSON API, not an npm
+- The dataset's public interface is the `srd` JSON API, not an npm
   package. External consumers should fetch
   `https://salvageunion.io/schema/{schemaId}.json` (and the sibling
   `.schema.json` / item endpoints), not `npm install salvageunion-reference`.

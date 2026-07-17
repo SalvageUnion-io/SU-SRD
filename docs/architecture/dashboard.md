@@ -191,7 +191,7 @@ treatment (fill / hatch / strike / redline / stamp), never a second hue.
   pulse near cap; damaged = hatched; destroyed = struck-in-place; roll bands use
   `--cascade/--failure/--tough/--success/--nailed`.
 
-These map to the real repo tokens in `packages/suref-react/src/styles/theme.css`
+These map to the real repo tokens in `packages/component-lib/src/styles/theme.css`
 (`--color-sheet-pilot/-mech/-crawler`, `--color-cargo`, `--color-rust`,
 `--color-tl-1..6`, `--color-roll-*`). Fonts are the repo's **Barlow** (body) +
 **Barlow Semi Condensed** (stamps/labels), both already embedded via
@@ -229,13 +229,13 @@ idx 0). The active family drives the whole-screen background tint
 
 ---
 
-## 3. Reuse contract — `suref-react` vs new Dashboard components
+## 3. Reuse contract — `component-lib` vs new Dashboard components
 
 The governing rule (design record v53, user's explicit ask): **the display
 reuses the faithful entity-display system; the instruments are new.** Do not fork
 the display system for the Dashboard.
 
-### 3.1 Reused verbatim from `suref-react`
+### 3.1 Reused verbatim from `component-lib`
 
 | Component (barrel export)             | Path                                                                      | Role in Dashboard                                                                                              |
 | ------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -267,7 +267,7 @@ Everything that is _instrument_, not _document_, is new and lives under
   (statful/statless), `DialConfig`, and the overlays (`StorageOverlay`,
   `TablePickerOverlay`, `DowntimeWizard`). Full tree in §6.
 - The segmented "instrument gauge" (`vbar`/`segGauge`/`gcells` in the mockup) is
-  a Dashboard primitive. **Decision point:** evaluate `suref-react`'s `VitalGauge`
+  a Dashboard primitive. **Decision point:** evaluate `component-lib`'s `VitalGauge`
   first — if it can express the segmented-pip + redline + projection needle
   (Push +2) look, reuse/extend it rather than adding a parallel gauge. The
   mockup's gauge and `VitalGauge.tsx` are close cousins; do not ship two.
@@ -654,7 +654,7 @@ desktop? Leaning yes — treat "needs bigger text" as a reflow trigger, not just
   React must not. Memoize per-surface; verify a Heat tick doesn't re-render the
   SRD card. Measure before shipping phase 5.
 - **`VitalGauge` reuse vs new gauge.** Decide in phase 2 whether the Dashboard gauge
-  is `suref-react`'s `VitalGauge` extended or a Dashboard primitive — do not ship
+  is `component-lib`'s `VitalGauge` extended or a Dashboard primitive — do not ship
   two gauge systems.
 - **Stand-in mech / default crawler persistence.** Session stand-ins must be
   ephemeral unless saved; define the boundary in phase 8.
@@ -717,7 +717,7 @@ load-bearing; the ADR files are the authoritative records.
 
 - **Decision.** The display renders the **actual** `ReferenceEntityDisplay` +
   `ActionCard` / `NestedActionDisplay` + `ReferenceEntityActions` + `RollTable`
-  from `suref-react` — the same light "workshop paperwork" reference document the
+  from `component-lib` — the same light "workshop paperwork" reference document the
   rest of the app shows. Action economy is injected through the existing
   `Erow` / `ActionCardErow` + `DisplayCard.footActions`/`footMeta` pattern, **not**
   a new schema-specific renderer. Only the _instruments_ (gauges, bays, dial,
@@ -791,8 +791,8 @@ load-bearing; the ADR files are the authoritative records.
 | `TABLES`                                               | `SalvageUnionReference.RollTables.all()`                                                 |
 | `DOWNTIME`                                             | `src/lib/rules/downtime.ts` (`allDowntimeSteps` + scope/gating)                          |
 | `srdCard()`/`srdActionCard()`/`actionsSection()`       | `ReferenceEntityDisplay` + `ActionCard`/`NestedActionDisplay` + `ReferenceEntityActions` |
-| `srdRollTable()`/`tablesRollerView()`                  | `RollTable` (`suref-react`)                                                              |
-| `vbar()`/`segGauge()`/`gcells()`                       | Dashboard `VitalGauge` (evaluate reusing `suref-react` `VitalGauge`)                     |
+| `srdRollTable()`/`tablesRollerView()`                  | `RollTable` (`component-lib`)                                                            |
+| `vbar()`/`segGauge()`/`gcells()`                       | Dashboard `VitalGauge` (evaluate reusing `component-lib` `VitalGauge`)                   |
 | `metaButtons()`/`metaAct()` (Activate/Roll/Push/Apply) | `ActionResolver` calling `heatCheck.ts`/`takeDamage.ts`/`itemEconomy()`                  |
 | `performPush`/`Heat Check`/`Reactor Overload`          | `performPush`, `performHeatCheck`, `reactorOverloadOutcome` (`heatCheck.ts`)             |
 | foot-meta economy                                      | `Erow`/`ActionCardErow` + `DisplayCard.footActions`/`footMeta`                           |
@@ -806,5 +806,5 @@ load-bearing; the ADR files are the authoritative records.
 [adr-006]: ../adrs/ADR-006-pure-rules-logic.md
 [adr-007]: ../adrs/ADR-007-automation-boundary.md
 [adr-010]: ../adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md
-[adr-011]: ../adrs/ADR-011-suref-react-source-no-build.md
+[adr-011]: ../adrs/ADR-011-component-lib-source-no-build.md
 [adr-013]: ../adrs/ADR-013-csp-zod-jitless.md

@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, Sel, StepBtn } from 'suref-react'
+import { ReferenceEntityDisplay, Sel, StepBtn } from 'component-lib'
 import { cn } from '../../lib/utils'
 
 type SelCardProps = {

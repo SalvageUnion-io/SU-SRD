@@ -1,5 +1,5 @@
 {
-  "name": "@suref/discord-bot",
+  "name": "discord-bot",
   "private": true,
   "version": "0.0.1",
   "type": "module",

@@ -10,7 +10,7 @@
  * `PilotSheet` as `linkedUnits`.
  */
 
-import { Pill, Stat } from 'suref-react'
+import { Pill, Stat } from 'component-lib'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'

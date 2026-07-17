@@ -15,7 +15,7 @@
  */
 
 import { useState } from 'react'
-import { Stat, VitalGauge } from 'suref-react'
+import { Stat, VitalGauge } from 'component-lib'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
