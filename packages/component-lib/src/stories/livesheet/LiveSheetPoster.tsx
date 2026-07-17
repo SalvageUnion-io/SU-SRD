@@ -18,12 +18,13 @@
  * dropzone assembled from Badge + Btn — the user-image feature is not built yet).
  */
 
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 
 import { Badge } from '../../components/chrome/Badge'
 import { Btn } from '../../components/chrome/Btn'
 import { EmptyState } from '../../components/chrome/EmptyState'
+import { Input } from '../../components/chrome/Field'
 import { Slab } from '../../components/chrome/Slab'
 import { UsedPip } from '../../components/stat/UsedPip'
 import { VitalGauge } from '../../components/stat/VitalGauge'
@@ -36,6 +37,7 @@ import {
 } from '../../components/shared/EntityRow'
 import { Stat } from '../../components/shared/Stat'
 import { ReferenceEntityCard } from '../../components/referenceEntity/card/ReferenceEntityCard'
+import { cn } from '../../utils/cn'
 
 // ---------------------------------------------------------------------------
 // Data shapes (props — real ORM entities in, no store)
@@ -298,6 +300,15 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
   const gridFields = fields.filter((f) => !f.fullWidth)
   const bottomFields = fields.filter((f) => f.fullWidth)
 
+  // Injuries are locally editable (Add via modal, Remove per row) so the
+  // editable poster demonstrates the flow; seeded from props. Each row carries
+  // a stable key (labels can repeat) minted from a monotonic counter.
+  const injuryKey = useRef(0)
+  const [injuryList, setInjuryList] = useState<(PosterInjury & { _k: number })[]>(() =>
+    injuries.map((inj) => ({ ...inj, _k: injuryKey.current++ }))
+  )
+  const [injuryModalOpen, setInjuryModalOpen] = useState(false)
+
   return (
     <div
       className="sheet--pilot min-h-screen"
@@ -421,17 +432,29 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
                     (Critical Injury Table): each Minor/Major injury lowers max HP
                     until healed at a Med Bay. */}
                 <div className="min-w-0 flex-1">
-                  <Badge shape="stamp" size="sm">
-                    Injuries
-                  </Badge>
-                  {injuries.length === 0 ? (
+                  <div className="flex items-center justify-between gap-2">
+                    <Badge shape="stamp" size="sm">
+                      Injuries
+                    </Badge>
+                    {!readOnly && (
+                      <Btn
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setInjuryModalOpen(true)}
+                        aria-label="Add injury"
+                      >
+                        + Add
+                      </Btn>
+                    )}
+                  </div>
+                  {injuryList.length === 0 ? (
                     <p className="mt-2 font-body text-caption text-wk-muted">
                       No injuries — max HP intact.
                     </p>
                   ) : (
                     <div className="mt-2 flex flex-col gap-1.5">
-                      {injuries.map((inj) => (
-                        <span key={inj.label} className="inline-flex items-center gap-2">
+                      {injuryList.map((inj, i) => (
+                        <span key={inj._k} className="inline-flex items-center gap-2">
                           <Badge surface="tone" tone={inj.severity === 'major' ? 'bad' : 'warn'}>
                             {inj.severity === 'major' ? 'Major' : 'Minor'}
                           </Badge>
@@ -441,6 +464,18 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
                           <span className="shrink-0 font-body text-caption text-wk-muted">
                             {inj.severity === 'major' ? '−2' : '−1'} max HP
                           </span>
+                          {!readOnly && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setInjuryList((list) => list.filter((_, j) => j !== i))
+                              }
+                              aria-label={`Remove ${inj.label}`}
+                              className="shrink-0 font-cond text-badge font-bold uppercase tracking-caps text-wk-muted hover:text-status-bad"
+                            >
+                              ✕
+                            </button>
+                          )}
                         </span>
                       ))}
                     </div>
@@ -472,6 +507,115 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
         {/* Row 3: Linked units */}
         <LinkedUnits linked={linked} />
       </div>
+
+      <InjuryModal
+        open={injuryModalOpen}
+        onOpenChange={setInjuryModalOpen}
+        onAdd={(inj) => setInjuryList((list) => [...list, { ...inj, _k: injuryKey.current++ }])}
+      />
     </div>
+  )
+}
+
+/**
+ * InjuryModal — add a specific Critical-Injury-Table injury: a name + a
+ * Minor/Major severity. Built from the shared `ModalShell` + `Input` + `Btn`
+ * primitives; the severity choice reuses the `Badge` tone stamps the row uses.
+ */
+function InjuryModal({
+  open,
+  onOpenChange,
+  onAdd,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onAdd: (injury: PosterInjury) => void
+}) {
+  const [label, setLabel] = useState('')
+  const [severity, setSeverity] = useState<PosterInjury['severity']>('minor')
+
+  const reset = () => {
+    setLabel('')
+    setSeverity('minor')
+  }
+  const submit = () => {
+    const trimmed = label.trim()
+    if (!trimmed) return
+    onAdd({ label: trimmed, severity })
+    reset()
+    onOpenChange(false)
+  }
+
+  return (
+    <ModalShell
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) reset()
+        onOpenChange(next)
+      }}
+      title="Add Injury"
+      subtitle="Critical Injury Table — Minor lowers max HP by 1, Major by 2 until healed at a Med Bay."
+      maxWidth="max-w-md"
+    >
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="injury-name" className="w-fit">
+            <Badge shape="stamp" size="sm">
+              Injury
+            </Badge>
+          </label>
+          <Input
+            id="injury-name"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="e.g. Cracked ribs"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') submit()
+            }}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Badge shape="stamp" size="sm">
+            Severity
+          </Badge>
+          <div className="flex gap-2">
+            {(['minor', 'major'] as const).map((sev) => {
+              const active = severity === sev
+              return (
+                <button
+                  key={sev}
+                  type="button"
+                  onClick={() => setSeverity(sev)}
+                  aria-pressed={active}
+                  className={cn(
+                    'flex flex-1 items-center justify-center gap-2 rounded-card border-chrome px-3 py-2 font-cond text-sm font-bold uppercase tracking-caps transition-colors',
+                    active
+                      ? sev === 'major'
+                        ? 'border-status-bad bg-status-bad text-paper'
+                        : 'border-status-warn bg-status-warn text-paper'
+                      : 'border-ink bg-paper text-ink hover:bg-wk-bg-2'
+                  )}
+                >
+                  {sev === 'major' ? 'Major' : 'Minor'}
+                  <span className="font-body text-caption font-normal normal-case">
+                    {sev === 'major' ? '−2 max HP' : '−1 max HP'}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-1">
+          <Btn variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Btn>
+          <Btn variant="primary" size="sm" onClick={submit} disabled={!label.trim()}>
+            Add Injury
+          </Btn>
+        </div>
+      </div>
+    </ModalShell>
   )
 }

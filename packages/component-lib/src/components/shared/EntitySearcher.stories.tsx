@@ -37,6 +37,31 @@ export const Default: Story = () => {
   )
 }
 
+/**
+ * The new EntityChoice paradigm (`resultsFloating`): the pool fills the full
+ * content width and the "Results" rail floats in a sticky bottom-right box above
+ * the content — the layout the CatalogChoiceModal now uses.
+ */
+export const Floating: Story = () => {
+  const [selected, setSelected] = useState<string[]>([])
+  const toggle = (ref: string) =>
+    setSelected((s) => (s.includes(ref) ? s.filter((r) => r !== ref) : [...s, ref]))
+  return (
+    <div className="flex flex-col gap-3">
+      <Caption>
+        resultsFloating — pool fills the width; the Results box floats bottom-right above it.
+      </Caption>
+      <EntitySearcher
+        schema="equipment"
+        selected={selected}
+        onToggle={toggle}
+        chosenLabel="Chosen"
+        resultsFloating
+      />
+    </div>
+  )
+}
+
 export const Cells: Story = () => {
   const [chosen, setChosen] = useState<string>('')
   const items = SalvageUnionReference.Equipment.all().slice(0, 4)

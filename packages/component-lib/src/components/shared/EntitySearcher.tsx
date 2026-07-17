@@ -89,6 +89,13 @@ type EntitySearcherProps = {
   chosenLabel?: string
   /** Copy shown when nothing matches the filters. */
   emptyMessage?: string
+  /**
+   * New-paradigm layout: the entity pool fills the full content width and the
+   * selection "Results" rail floats in a sticky bottom-right box ABOVE the
+   * content, instead of taking a fixed side column. Used by the EntityChoice
+   * (Catalog) modal; the wizard / sheet pickers keep the side rail.
+   */
+  resultsFloating?: boolean
 }
 
 const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
@@ -122,6 +129,7 @@ export function EntitySearcher({
   railName,
   chosenLabel = 'Selected',
   emptyMessage = 'Nothing found.',
+  resultsFloating = false,
 }: EntitySearcherProps) {
   const [query, setQuery] = useState('')
   const [activeTls, setActiveTls] = useState<Set<TechLevel>>(() => new Set())
@@ -329,57 +337,94 @@ export function EntitySearcher({
         </div>
       )}
 
-      {/* Split: pool masonry + selection rail */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="min-w-0">
-          <SelMasonry>
-            {visible.map((item) => {
-              const count = countOf(item)
-              if (mode === 'count') {
+      {/* Pool masonry + selection ("Results") rail. Two layouts:
+          · default   — a fixed 280px side column (wizard / sheet pickers).
+          · floating  — the pool fills the full content width and the Results
+            rail floats in a sticky bottom-right box ABOVE the content
+            (the EntityChoice / Catalog modal). */}
+      {(() => {
+        const pool = (
+          <div className="min-w-0">
+            <SelMasonry>
+              {visible.map((item) => {
+                const count = countOf(item)
+                if (mode === 'count') {
+                  return (
+                    <CountCard
+                      key={item.id}
+                      entity={item}
+                      count={count}
+                      onAdd={() => onAdd?.(idOf(item))}
+                    />
+                  )
+                }
+                const isSelected = count > 0
                 return (
-                  <CountCard
+                  <SelCard
                     key={item.id}
                     entity={item}
-                    count={count}
-                    onAdd={() => onAdd?.(idOf(item))}
+                    name={item.name}
+                    selected={isSelected}
+                    onToggle={() =>
+                      onToggle?.(isSelected ? (matchedRef(item) ?? idOf(item)) : idOf(item))
+                    }
+                    entityProps={
+                      isSelected ? { footActions: <Badge>{`${chosenLabel} ✓`}</Badge> } : undefined
+                    }
                   />
                 )
-              }
-              const isSelected = count > 0
-              return (
-                <SelCard
-                  key={item.id}
-                  entity={item}
-                  name={item.name}
-                  selected={isSelected}
-                  onToggle={() =>
-                    onToggle?.(isSelected ? (matchedRef(item) ?? idOf(item)) : idOf(item))
-                  }
-                  entityProps={
-                    isSelected ? { footActions: <Badge>{`${chosenLabel} ✓`}</Badge> } : undefined
-                  }
-                />
-              )
-            })}
-          </SelMasonry>
-          {visible.length === 0 && (
-            <p className="mt-3 font-body text-sm text-wk-muted">{emptyMessage}</p>
-          )}
-        </div>
+              })}
+            </SelMasonry>
+            {visible.length === 0 && (
+              <p className="mt-3 font-body text-sm text-wk-muted">{emptyMessage}</p>
+            )}
+          </div>
+        )
 
-        <SelectionRail
-          name={railName}
-          chosenLabel={chosenLabel}
-          count={selectedCount}
-          schema={schema}
-          selected={selected}
-          budget={budget}
-          mode={mode}
-          onToggle={onToggle}
-          onRemove={onRemove}
-          className="lg:sticky lg:top-2"
-        />
-      </div>
+        if (resultsFloating) {
+          return (
+            <div className="relative">
+              {pool}
+              {/* Sticky wrapper is click-through; only the rail box itself
+                  captures pointer events, so it never masks the pool beneath. */}
+              <div className="pointer-events-none sticky bottom-3 z-20 mt-6 flex justify-end">
+                <div className="pointer-events-auto w-[300px] max-w-full">
+                  <SelectionRail
+                    name={railName}
+                    chosenLabel={chosenLabel}
+                    count={selectedCount}
+                    schema={schema}
+                    selected={selected}
+                    budget={budget}
+                    mode={mode}
+                    onToggle={onToggle}
+                    onRemove={onRemove}
+                    className="max-h-[55vh] overflow-y-auto shadow-[0_6px_24px_rgba(40,32,25,0.28)]"
+                  />
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        return (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+            {pool}
+            <SelectionRail
+              name={railName}
+              chosenLabel={chosenLabel}
+              count={selectedCount}
+              schema={schema}
+              selected={selected}
+              budget={budget}
+              mode={mode}
+              onToggle={onToggle}
+              onRemove={onRemove}
+              className="lg:sticky lg:top-2"
+            />
+          </div>
+        )
+      })()}
     </div>
   )
 }
