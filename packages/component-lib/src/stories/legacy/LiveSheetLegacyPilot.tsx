@@ -29,7 +29,6 @@
 import type { ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 
-import { Badge } from '../../components/chrome/Badge'
 import { Btn } from '../../components/chrome/Btn'
 import { Pill } from '../../components/chrome/Pill'
 import { DisplayCard, type CardFootMeta } from '../../components/shared/DisplayCard'
@@ -262,18 +261,40 @@ function RailChip({ kind, name, spec }: { kind: string; name: string; spec: stri
 export type LegacyAbility = { entity: SURefEntity; apCost: number | string; used?: boolean }
 export type LegacyEquipment = { entity: SURefEntity; slots: number | string }
 
+export type LegacyPilotContent = {
+  callsign: string
+  name: string
+  className: string
+  background: string
+  appearance: string
+  keepsake: string
+  motto: string
+  bio: string
+  hp: { value: number; max: number }
+  ap: { value: number; max: number }
+  tp: number
+  conditions: { label: string; warn?: boolean }[]
+  linked: { kind: string; name: string; spec: string }[]
+}
+
 export type LiveSheetLegacyPilotProps = {
+  pilot: LegacyPilotContent
   abilities: LegacyAbility[]
   equipment: LegacyEquipment[]
+  slotsUsed?: number
+  slotsCap?: number
 }
 
 const ICONBTN =
   'flex size-[38px] shrink-0 items-center justify-center rounded-[3px] border-chrome border-ink bg-paper text-ink'
 
-export function LiveSheetLegacyPilot({ abilities, equipment }: LiveSheetLegacyPilotProps) {
-  const slotsUsed = 4
-  const slotsCap = 6
-
+export function LiveSheetLegacyPilot({
+  pilot,
+  abilities,
+  equipment,
+  slotsUsed = 4,
+  slotsCap = 6,
+}: LiveSheetLegacyPilotProps) {
   return (
     <div
       className="sheet--pilot min-h-screen"
@@ -318,7 +339,7 @@ export function LiveSheetLegacyPilot({ abilities, equipment }: LiveSheetLegacyPi
       {/* ===== Hero name band (← SheetHero.tsx) ===== */}
       <div className="px-4 pb-1.5 pt-4 sm:px-[30px] sm:pt-[22px]">
         <section
-          aria-label="Vesper-9 sheet header"
+          aria-label={`${pilot.callsign} sheet header`}
           className="relative overflow-hidden rounded-[3px] border-entity border-ink"
           style={{ background: 'var(--tone)' }}
         >
@@ -328,11 +349,10 @@ export function LiveSheetLegacyPilot({ abilities, equipment }: LiveSheetLegacyPi
           <div className="flex flex-col gap-[18px] px-4 py-[18px] sm:px-5">
             <div className="min-w-0">
               <h1 className="m-0 inline bg-ink box-decoration-clone px-2 font-cond text-[26px] font-bold uppercase leading-[1.28] text-paper sm:text-[31px]">
-                Vesper-9 &ldquo;Ghost&rdquo;
+                {pilot.callsign}
               </h1>
               <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                <Pill>Hybrid Wolf</Pill>
-                <Badge>Rank 2</Badge>
+                <Pill>{pilot.className}</Pill>
               </div>
             </div>
           </div>
@@ -342,7 +362,7 @@ export function LiveSheetLegacyPilot({ abilities, equipment }: LiveSheetLegacyPi
       {/* ===== Body poster grid (← PilotSheet.tsx) ===== */}
       <div className="px-4 pb-[34px] pt-[18px] sm:px-[30px] sm:pb-[60px] sm:pt-6">
         <section
-          aria-label="Vesper-9 pilot details"
+          aria-label={`${pilot.callsign} pilot details`}
           className="sheet-section @container flex flex-col gap-6"
         >
           {/* R1: Identity ∥ Vitals */}
@@ -352,40 +372,24 @@ export function LiveSheetLegacyPilot({ abilities, equipment }: LiveSheetLegacyPi
                 <div className="min-w-0">
                   <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
                     <div className="flex min-w-0 flex-col gap-3">
-                      <IdentityField label="Name" value="Vesper-9" />
-                      <IdentityField label="Callsign" value="Ghost" />
-                      <IdentityField label="Class" value="Hybrid Wolf" />
-                      <IdentityField
-                        label="Appearance"
-                        value="Wiry, hollow-cheeked; a salvaged optic where the left eye was."
-                        multiline
-                      />
+                      <IdentityField label="Name" value={pilot.name} />
+                      <IdentityField label="Callsign" value={pilot.callsign} />
+                      <IdentityField label="Class" value={pilot.className} />
+                      <IdentityField label="Appearance" value={pilot.appearance} multiline />
                     </div>
                     <div className="flex min-w-0 flex-col gap-3">
                       <IdentityField
                         label="Motto"
-                        value="&ldquo;I was never here.&rdquo;"
+                        value={pilot.motto}
                         multiline
                         labelAction={<UsedStamp />}
                       />
-                      <IdentityField
-                        label="Keepsake"
-                        value="A cracked dog-tag, name filed off."
-                        multiline
-                      />
-                      <IdentityField
-                        label="Background"
-                        value="Union scout, went dark after the Vail-3 collapse."
-                        multiline
-                      />
+                      <IdentityField label="Keepsake" value={pilot.keepsake} multiline />
+                      <IdentityField label="Background" value={pilot.background} multiline />
                     </div>
                   </div>
                   <div className="mt-3">
-                    <IdentityField
-                      label="Bio"
-                      value="Runs point for the crew. Trusts the mech more than the people in it."
-                      multiline
-                    />
+                    <IdentityField label="Bio" value={pilot.bio} multiline />
                   </div>
                 </div>
               </SectionCard>
@@ -394,11 +398,11 @@ export function LiveSheetLegacyPilot({ abilities, equipment }: LiveSheetLegacyPi
             <div className="@5xl:col-span-5">
               <SectionCard title="Vitals">
                 <div className="flex w-full flex-col [&>*+*]:mt-[14px] [&>*+*]:border-t [&>*+*]:border-dashed [&>*+*]:border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] [&>*+*]:pt-[14px]">
-                  <VitalGauge label="HP" value={8} max={10} readOnly />
-                  <VitalGauge label="AP" value={3} max={5} readOnly />
+                  <VitalGauge label="HP" value={pilot.hp.value} max={pilot.hp.max} readOnly />
+                  <VitalGauge label="AP" value={pilot.ap.value} max={pilot.ap.max} readOnly />
                 </div>
                 <div className="mt-4 flex flex-wrap gap-4 border-t border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pt-[14px]">
-                  <TpBlock value={4} />
+                  <TpBlock value={pilot.tp} />
                   <div className="w-full min-w-0 flex-1">
                     <span
                       className="mb-2 block font-cond text-label font-bold uppercase leading-none tracking-caps"
@@ -406,9 +410,7 @@ export function LiveSheetLegacyPilot({ abilities, equipment }: LiveSheetLegacyPi
                     >
                       Conditions
                     </span>
-                    <ConditionsRead
-                      conditions={[{ label: 'Exposed', warn: true }, { label: 'Prone' }]}
-                    />
+                    <ConditionsRead conditions={pilot.conditions} />
                   </div>
                 </div>
               </SectionCard>
@@ -464,8 +466,9 @@ export function LiveSheetLegacyPilot({ abilities, equipment }: LiveSheetLegacyPi
               />
             </div>
             <div className="flex flex-col gap-4">
-              <RailChip kind="Mech" name="Iron Mongrel" spec="SP 12 · EP 6" />
-              <RailChip kind="Crawler" name="The Rust Kettle" spec="TL 3" />
+              {pilot.linked.map((l) => (
+                <RailChip key={`${l.kind}-${l.name}`} kind={l.kind} name={l.name} spec={l.spec} />
+              ))}
             </div>
           </div>
         </section>

@@ -88,6 +88,13 @@ same arc the entity card followed.
   `ConditionSwatch`, `EmptyState` (the empty image seat). Read-only + editable +
   390px mobile stories on real ORM data. Whitespace/legibility-first; the
   linked-player-entity rail stays at the bottom. Ladle-only, not barrel-exported.
+  Both identity + vitals bands carry the accent header.
+- **L2 Legacy → New comparison — DONE.** A shared `pilotFixture` (one pilot +
+  real ORM abilities/equipment) drives BOTH the legacy capture and the new
+  poster (the legacy capture is now prop-driven), and the
+  `Compositions/Live Sheet → Comparison` story stacks the three-way on one page —
+  **before (today) · after read-only · after editable** — same pilot throughout,
+  so the eye compares the shell, not the content.
 - **Mech + Crawler target — TODO.** Pilot is the reference implementation; mech
   (Identity + ChassisStats ∥ SP/EP/Heat vitals — Heat gauge redlines near cap;
   **Chassis Ability rendered through `ReferenceEntityCard`, matching the SRD

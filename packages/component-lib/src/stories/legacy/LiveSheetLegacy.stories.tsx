@@ -1,58 +1,50 @@
 import type { Story } from '@ladle/react'
-import { SalvageUnionReference, type SURefEntity } from 'salvageunion-reference'
 
-import {
-  LiveSheetLegacyPilot,
-  type LegacyAbility,
-  type LegacyEquipment,
-} from './LiveSheetLegacyPilot'
+import { abilityPicks, equipmentPicks, pilotContent } from '../livesheet/pilotFixture'
+import { type LegacyPilotContent, LiveSheetLegacyPilot } from './LiveSheetLegacyPilot'
 
 /**
- * Legacy/Live Sheet — the "before" capture for the live-sheet reconciliation.
- *
- * A faithful, presentational reproduction of ITUN's CURRENT Pilot live sheet,
- * rebuilt inside component-lib (which cannot import the ITUN app) from real ORM
- * data. It stakes the L1 baseline the reconciliation converges away from — see
- * `docs/design/livesheet-reconciliation.md`. Mech + Crawler captures follow as
- * parity increments; Pilot is the reference implementation.
+ * Legacy/Live Sheet — the "before" capture for the live-sheet reconciliation:
+ * a faithful, presentational reproduction of ITUN's CURRENT Pilot live sheet,
+ * rebuilt inside component-lib (which cannot import the ITUN app) from the
+ * shared `pilotFixture`. The SAME fixture drives `Compositions/Live Sheet`, so
+ * the two read as a true before/after. See `docs/design/livesheet-reconciliation.md`.
  */
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Legacy/Live Sheet',
 }
 
-/**
- * Named pick with an INDEX fallback (mirrors the composition story's `pick`,
- * but the index keeps the three cards distinct even when a named entity is
- * absent from the current dataset — no duplicate React keys).
- */
-function pick(schema: 'Abilities' | 'Equipment', name: string, index: number): SURefEntity {
-  const all = SalvageUnionReference[schema].all() as ReadonlyArray<SURefEntity>
-  if (all.length === 0) throw new Error(`Legacy/Live Sheet: ${schema} is empty (data drift)`)
-  return (all.find((e) => (e as { name?: string }).name === name) ??
-    all[index % all.length]) as SURefEntity
+/** Shared fixture → the legacy component's content shape. */
+const legacyPilot: LegacyPilotContent = {
+  callsign: pilotContent.callsign,
+  name: pilotContent.name,
+  className: pilotContent.className,
+  background: pilotContent.background,
+  appearance: pilotContent.appearance,
+  keepsake: pilotContent.keepsake,
+  motto: pilotContent.motto,
+  bio: pilotContent.bio,
+  hp: pilotContent.hp,
+  ap: pilotContent.ap,
+  tp: pilotContent.tp,
+  // Legacy conditions render an amber (warn) or ink chip; map the shared
+  // `state` onto the legacy warn flag so the same conditions show in both.
+  conditions: pilotContent.conditions.map((c) => ({ label: c.label, warn: c.state === 'damaged' })),
+  linked: pilotContent.linked,
 }
 
-const abilities: LegacyAbility[] = [
-  { entity: pick('Abilities', 'Auto-Turret', 0), apCost: 1 },
-  { entity: pick('Abilities', 'Overclock', 1), apCost: 2, used: true },
-  { entity: pick('Abilities', 'Field Medic', 2), apCost: '—' },
-]
-
-const equipment: LegacyEquipment[] = [
-  { entity: pick('Equipment', 'Combat Knife', 0), slots: 1 },
-  { entity: pick('Equipment', 'Med Kit', 1), slots: 1 },
-  { entity: pick('Equipment', 'Rope', 2), slots: 1 },
-]
+const abilities = abilityPicks
+const equipment = equipmentPicks.map((e) => ({ entity: e.entity, slots: e.slots }))
 
 /** Desktop poster (wide `@container` → 12-col region grid). */
 export const Pilot: Story = () => (
-  <LiveSheetLegacyPilot abilities={abilities} equipment={equipment} />
+  <LiveSheetLegacyPilot pilot={legacyPilot} abilities={abilities} equipment={equipment} />
 )
 
 /** Phone width (~390px) — the `@container` grid collapses to a single column. */
 export const PilotMobile: Story = () => (
   <div className="mx-auto w-[390px] overflow-hidden rounded-[6px] border-2 border-ink/30 shadow-lg">
-    <LiveSheetLegacyPilot abilities={abilities} equipment={equipment} />
+    <LiveSheetLegacyPilot pilot={legacyPilot} abilities={abilities} equipment={equipment} />
   </div>
 )
