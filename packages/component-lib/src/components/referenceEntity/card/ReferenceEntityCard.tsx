@@ -140,6 +140,17 @@ export type ReferenceEntityCardProps = {
   onCardClick?: () => void
   /** Enable the hover-enlarge/role=button affordance without a click handler. */
   cardClickable?: boolean
+  /**
+   * Selection a11y for a whole-card toggle (picker cells). When set alongside
+   * `selected` + a card click, the interactive wrapper announces the selection
+   * state natively: `'toggle'` → `role="button"` + `aria-pressed`, `'radio'` →
+   * `role="radio"` + `aria-checked` (pair with a `role="radiogroup"` parent).
+   * Navigation/add cards leave it unset and stay a plain `role="button"`.
+   */
+  selectionRole?: 'toggle' | 'radio'
+  /** Accessible name for the interactive wrapper (e.g. the entity name), so a
+   * whole-card toggle reads as its title instead of its full text content. */
+  cardClickLabel?: string
   /** Top-right overlay controls (reuse ControlButtons shapes/variants). */
   controls?: ReferenceEntityControl[]
   /** Controlled interactive-choice state (renders `ChoiceGroups` in the body). */
@@ -466,6 +477,8 @@ export function ReferenceEntityCard({
   selectable,
   onCardClick,
   cardClickable,
+  selectionRole,
+  cardClickLabel,
   controls,
   selections,
   onSelectionChange,
@@ -911,12 +924,23 @@ export function ReferenceEntityCard({
     className,
     cardStyle?.className
   )
+  // Base a11y for a clickable card. A selection toggle (selectionRole set)
+  // additionally announces its state: radio → role=radio + aria-checked, toggle
+  // → aria-pressed. `cardClickLabel` gives the wrapper an accessible name (the
+  // entity title) instead of its full text content. Navigation/add cards leave
+  // both unset and stay a plain role=button, byte-identical to before.
   const outerInteraction = resolvedCardClick
     ? {
-        role: 'button' as const,
+        role: selectionRole === 'radio' ? ('radio' as const) : ('button' as const),
         tabIndex: 0,
         onClick: resolvedCardClick,
         onKeyDown: activateOnKey(resolvedCardClick),
+        ...(cardClickLabel ? { 'aria-label': cardClickLabel } : {}),
+        ...(selectionRole && selected !== undefined
+          ? selectionRole === 'radio'
+            ? { 'aria-checked': selected }
+            : { 'aria-pressed': selected }
+          : {}),
       }
     : {}
   // Selection state — the canonical rust SELECTION_RING (chrome/interaction.ts),

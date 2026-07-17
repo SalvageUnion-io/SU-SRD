@@ -2,7 +2,6 @@ import type { ComponentProps } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
-import { Sel } from '../chrome/Sel'
 import { StepBtn } from '../chrome/SmallButtons'
 import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
 
@@ -129,6 +128,11 @@ export function SelCard({
     </span>
   ) : undefined
 
+  // Selection is the EntityCard's OWN native affordance now — its `selected`
+  // rust border/ring, its whole-card click (`onCardClick`), and its toggle/radio
+  // a11y (`selectionRole` + `cardClickLabel`). SelCard no longer re-invents a
+  // ring wrapper; it only maps picker semantics (count stepper, disabled reason,
+  // the corner "chosen" seal) onto the card.
   return (
     <div className={cn('relative', isOff && 'pointer-events-none opacity-50 saturate-50')}>
       {selected && selectedStamp && (
@@ -136,30 +140,26 @@ export function SelCard({
           <Badge surface="tone" tone="ok">{`${selectedStamp} ✓`}</Badge>
         </div>
       )}
-      <Sel
+      <ReferenceEntityDisplay
+        data={entity as SURefEntity}
+        compact
         selected={selected}
-        onToggle={isOff ? undefined : onToggle}
-        ariaLabel={name}
-        radio={radio}
-        className={cn(selected && 'shadow-[0_0_0_3px_var(--ground),0_0_0_6px_var(--color-ink)]')}
-      >
-        <ReferenceEntityDisplay
-          data={entity as SURefEntity}
-          compact
-          disabled={isOff}
-          hide={{ actions: true, choices: true }}
-          label={label}
-          {...entityProps}
-          footMeta={
-            disabledReason
-              ? // Append the reason UNDER the existing COSTS/SV line (mockup
-                // Screen 02) — don't replace it; the player still sees the price.
-                [...(entityProps?.footMeta ?? []), { label: disabledReason, value: '' }]
-              : entityProps?.footMeta
-          }
-          footActions={counter ?? entityProps?.footActions}
-        />
-      </Sel>
+        selectionRole={radio ? 'radio' : 'toggle'}
+        cardClickLabel={name}
+        onCardClick={isOff ? undefined : onToggle}
+        disabled={isOff}
+        hide={{ actions: true, choices: true }}
+        label={label}
+        {...entityProps}
+        footMeta={
+          disabledReason
+            ? // Append the reason UNDER the existing COSTS/SV line (mockup
+              // Screen 02) — don't replace it; the player still sees the price.
+              [...(entityProps?.footMeta ?? []), { label: disabledReason, value: '' }]
+            : entityProps?.footMeta
+        }
+        footActions={counter ?? entityProps?.footActions}
+      />
     </div>
   )
 }
