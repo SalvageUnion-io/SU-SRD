@@ -24,16 +24,18 @@ const PORTRAIT = `data:image/svg+xml,${encodeURIComponent(
 // --- shared fixture → new poster props -------------------------------------
 
 const fields: PosterField[] = [
-  { label: 'Callsign', value: pilotContent.callsign, accent: true },
+  // Callsign leads full-width at the top, one line, with a normal label.
+  { label: 'Callsign', value: pilotContent.callsign, fullWidth: true, clampLines: 1 },
   { label: 'Name', value: pilotContent.name },
   { label: 'Class', value: pilotContent.className },
-  // Background / Motto / Keepsake are once-per-downtime pilot resources — a
+  // Background / Keepsake / Motto are once-per-downtime pilot resources — a
   // UsedPip sits beside the label (Motto shown already spent).
   { label: 'Background', value: pilotContent.background, usable: true },
-  { label: 'Appearance', value: pilotContent.appearance, prose: true },
-  { label: 'Keepsake', value: pilotContent.keepsake, prose: true, usable: true },
-  { label: 'Motto', value: pilotContent.motto, prose: true, usable: true, used: true },
-  { label: 'Bio', value: pilotContent.bio, prose: true, fullWidth: true },
+  { label: 'Keepsake', value: pilotContent.keepsake, usable: true },
+  { label: 'Motto', value: pilotContent.motto, usable: true, used: true },
+  // Appearance + Bio span full-width beneath, clamped to 2 lines; Bio expands.
+  { label: 'Appearance', value: pilotContent.appearance, fullWidth: true, clampLines: 2 },
+  { label: 'Bio', value: pilotContent.bio, fullWidth: true, clampLines: 2, expandable: true },
 ]
 
 const abilities: PosterCollectionItem[] = abilityPicks.map((a) => ({ entity: a.entity }))
