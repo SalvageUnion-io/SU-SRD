@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { SearchResult } from 'salvageunion-reference'
-import { FilterChip, FilterRow } from 'suref-react'
+import { FilterChip, FilterRow, SearchField } from 'suref-react'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
@@ -56,34 +56,17 @@ export function SearchResultsIsland() {
       <div className="mx-auto flex w-full max-w-[900px] flex-col gap-6">
         {/* biome-ignore lint/a11y/useSemanticElements: role="search" on <form> is the established search-landmark pattern; the <search> element is not a form, so swapping would change Enter-key submit semantics */}
         <form role="search" onSubmit={(e) => e.preventDefault()}>
-          <div className="flex items-center gap-2 rounded border border-su-black bg-paper px-3 py-2 font-mono text-sm text-su-grey-dark focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-su-orange">
-            <svg
-              aria-hidden="true"
-              width={16}
-              height={16}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="shrink-0 opacity-60"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="search"
-              name="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search the SRD…"
-              aria-label="Search the SRD"
-              // biome-ignore lint/a11y/noAutofocus: search is the page's sole purpose — focusing the input on load is the expected UX
-              autoFocus
-              className="w-full bg-transparent text-su-black placeholder:text-su-grey-dark focus:outline-none"
-            />
-          </div>
+          <SearchField
+            type="search"
+            name="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search the SRD…"
+            aria-label="Search the SRD"
+            glyphSize={16}
+            containerClassName="py-2 text-sm"
+            autoFocus
+          />
         </form>
 
         {ready ? (

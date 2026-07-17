@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
-import { useSearchCombobox } from 'suref-react'
+import { SearchField, useSearchCombobox } from 'suref-react'
 import type { SearchComboboxResult } from 'suref-react'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
@@ -125,47 +125,28 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
         <div className="sr-only" aria-live="polite">
           {announcement}
         </div>
-        {/* Search container — .srd-search treatment: bordered su-black, tight radius, font-mono.
+        {/* Search container — .srd-search treatment via the shared SearchField.
           The inner input keeps focus:outline-none, so the container carries the
           visible keyboard-focus indicator via focus-within (WCAG 2.4.7). */}
-        <div className="flex items-center gap-2 rounded border border-su-black bg-paper px-3 py-[7px] font-mono text-[13px] text-su-grey-dark focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-su-orange">
-          {/* Search glyph */}
-          <svg
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            width={14}
-            height={14}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="shrink-0 opacity-60"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            ref={inputRef}
-            type="text"
-            name="srd-search"
-            placeholder="Search…"
-            value={query}
-            onChange={(e) => onInput(e.target.value)}
-            onKeyDown={onKeyDown}
-            onFocus={() => {
-              load()
-              setDismissedResults(null)
-            }}
-            className="w-52 bg-transparent font-mono text-[13px] text-su-black placeholder:text-su-grey-dark focus:outline-none"
-            {...inputProps}
-            aria-label="Search the SRD"
-            role="combobox"
-            aria-expanded={isOpen}
-            aria-controls={listboxId}
-          />
-        </div>
+        <SearchField
+          ref={inputRef}
+          type="text"
+          name="srd-search"
+          placeholder="Search…"
+          value={query}
+          onChange={(e) => onInput(e.target.value)}
+          onKeyDown={onKeyDown}
+          onFocus={() => {
+            load()
+            setDismissedResults(null)
+          }}
+          className="w-52"
+          {...inputProps}
+          aria-label="Search the SRD"
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-controls={listboxId}
+        />
 
         {isOpen && (
           <div
