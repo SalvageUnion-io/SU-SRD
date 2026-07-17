@@ -1,6 +1,4 @@
-import { useState, useCallback } from 'react'
-import { Dialog } from '@base-ui/react/dialog'
-import { btnVariants, cn } from 'suref-react'
+import { MobileNavDrawer } from 'suref-react'
 import { SearchIsland } from './SearchIsland'
 import { ITUN_URL } from '../../lib/constants'
 
@@ -22,167 +20,19 @@ type MobileNavIslandProps = {
   currentPath: string
 }
 
+/**
+ * Hydrates the shared MobileNavDrawer for the SRD top nav, wiring in the site's
+ * live SearchIsland combobox and the outbound builder URL. The drawer chrome
+ * itself lives in suref-react; this island supplies the SRD-specific data +
+ * search behaviour.
+ */
 export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProps) {
-  const [open, setOpen] = useState(false)
-
-  const isActive = useCallback((path: string) => currentPath.startsWith(path), [currentPath])
-
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger
-        render={
-          <button type="button" className="rounded-md p-2 text-paper" aria-label="Open menu">
-            <svg
-              width="24"
-              height="24"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
-        }
-      />
-
-      <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50" />
-        <Dialog.Popup className="fixed inset-y-0 right-0 z-50 flex w-full flex-col bg-paper p-4 shadow-lg data-[open]:animate-slide-in-right data-[closed]:animate-slide-out-right">
-          <Dialog.Title className="sr-only">Navigation Menu</Dialog.Title>
-
-          {/* Header row: Logo | Close */}
-          <div className="mb-2 flex items-center justify-between">
-            <a href="/" onClick={() => setOpen(false)}>
-              <span className="inline-flex shrink-0 cursor-pointer border border-su-black font-mono text-xl font-bold uppercase leading-none tracking-tight">
-                <span className="bg-su-black px-1 py-0.5 text-paper">Salvage Union</span>
-                <span className="bg-paper px-1 py-0.5 text-su-black">SRD</span>
-              </span>
-            </a>
-            <Dialog.Close
-              render={
-                <button type="button" className="rounded-md p-1" aria-label="Close menu">
-                  <svg
-                    width="24"
-                    height="24"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              }
-            />
-          </div>
-
-          {/* Search */}
-          <div className="mb-3 [&_input]:w-full [&_input]:focus:w-full">
-            <SearchIsland />
-          </div>
-
-          {/* Nav links */}
-          <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
-            {/* Schema list */}
-            {categories.map((cat) => (
-              <div key={cat.label} className="mb-2 flex flex-col gap-2">
-                <div className="catalog-header">
-                  <span
-                    className="bg-su-black px-1 font-mono font-bold uppercase tracking-tight text-paper"
-                    style={{ lineHeight: 1 }}
-                  >
-                    {cat.label}
-                  </span>
-                </div>
-                {cat.schemas.map((schema) => (
-                  <a
-                    key={schema.id}
-                    href={schema.href || `/schema/${schema.id}/`}
-                    className="btn catalog-item block text-center text-sm"
-                    style={
-                      {
-                        '--catalog-bg': schema.catalogBg,
-                        ...(schema.catalogLabel ? { '--catalog-label': schema.catalogLabel } : {}),
-                      } as React.CSSProperties
-                    }
-                    onClick={() => setOpen(false)}
-                  >
-                    {schema.catalogLabel ? (
-                      <span className="catalog-item-label">{schema.displayName}</span>
-                    ) : (
-                      schema.displayName
-                    )}
-                  </a>
-                ))}
-              </div>
-            ))}
-
-            {/* Bottom links — the shared `btnVariants` button styling as links
-                (active = primary/rust, inactive = ghost). */}
-            <div className="mt-auto flex flex-col gap-2 border-t border-su-grey-light pt-4">
-              <a
-                href="/about/"
-                className={cn(
-                  btnVariants({ variant: isActive('/about') ? 'primary' : 'ghost' }),
-                  'w-full'
-                )}
-                onClick={() => setOpen(false)}
-              >
-                ABOUT
-              </a>
-              <a
-                href="/changelog/"
-                className={cn(
-                  btnVariants({ variant: isActive('/changelog') ? 'primary' : 'ghost' }),
-                  'w-full'
-                )}
-                onClick={() => setOpen(false)}
-              >
-                CHANGELOG
-              </a>
-              <a
-                href="/discord/"
-                className={cn(
-                  btnVariants({ variant: isActive('/discord') ? 'primary' : 'ghost' }),
-                  'w-full'
-                )}
-                onClick={() => setOpen(false)}
-              >
-                DISCORD
-              </a>
-              <a
-                href={ITUN_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(btnVariants({ variant: 'ghost' }), 'w-full')}
-                onClick={() => setOpen(false)}
-              >
-                BUILDER ↗
-              </a>
-              <a
-                href="https://leyline.press/collections/salvage-union"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(btnVariants({ variant: 'ghost' }), 'w-full')}
-                onClick={() => setOpen(false)}
-              >
-                BUY THE GAME
-              </a>
-            </div>
-          </div>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+    <MobileNavDrawer
+      categories={categories}
+      currentPath={currentPath}
+      itunUrl={ITUN_URL}
+      search={<SearchIsland />}
+    />
   )
 }
