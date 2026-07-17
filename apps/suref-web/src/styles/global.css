@@ -408,7 +408,7 @@ body {
   }
   /* Browsers strip backgrounds when printing, so light-on-dark labels
      (pseudoheaders, NPC name spans) would print white-on-white. Force dark. */
-  main .text-su-white {
+  main .text-paper {
     /* biome-ignore lint/complexity/noImportantStyles: must out-rank the Tailwind utility it deliberately inverts for print */
     color: #000 !important;
   }

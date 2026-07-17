@@ -132,10 +132,10 @@
   }
 
   /* .card targets DisplayCard-style containers in suref-react;
-   * section[class*="border-su-black"] targets the restyled SU panel sections. */
+   * section[class*="border-ink"] targets the restyled SU panel sections. */
   .card,
   .stat-row,
-  section[class*='border-su-black'] {
+  section[class*='border-ink'] {
     page-break-inside: avoid;
     break-inside: avoid;
   }

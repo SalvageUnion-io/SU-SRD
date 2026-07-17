@@ -17,13 +17,13 @@
 :root {
   /* Page shell + body */
   --background: var(--color-paper);
-  --foreground: var(--color-su-black);
+  --foreground: var(--color-ink);
 
   /* Cards / popovers */
   --card: var(--color-paper);
-  --card-foreground: var(--color-su-black);
+  --card-foreground: var(--color-ink);
   --popover: var(--color-paper);
-  --popover-foreground: var(--color-su-black);
+  --popover-foreground: var(--color-ink);
 
   /* Primary — Salvage orange. Mirrors `.btn-active` on the SRD. */
   --primary: var(--color-su-orange-dark);
@@ -31,23 +31,23 @@
 
   /* Secondary — pale blue (matches the SRD main-area chrome). */
   --secondary: var(--color-su-blue-pale);
-  --secondary-foreground: var(--color-su-black);
+  --secondary-foreground: var(--color-ink);
 
   /* Muted — used for subtle backgrounds + muted text. */
   --muted: var(--color-su-blue-pale);
-  --muted-foreground: var(--color-su-grey-dark);
+  --muted-foreground: var(--color-ink-2);
 
   /* Accent — orange-light for hover halos and selected list items. */
   --accent: var(--color-su-orange-light);
-  --accent-foreground: var(--color-su-black);
+  --accent-foreground: var(--color-ink);
 
   /* Destructive — rust, not red. */
   --destructive: var(--color-su-rust);
   --destructive-foreground: var(--color-paper);
 
   /* Borders / inputs / focus rings. */
-  --border: var(--color-su-grey-light);
-  --input: var(--color-su-grey-light);
+  --border: var(--color-wk-faint);
+  --input: var(--color-wk-faint);
   --ring: var(--color-su-orange);
 
   /* Radius — keep ShadCN defaults; SRD cards rely on their own borders. */
@@ -120,7 +120,7 @@ body {
    * sits over it.
    */
   background-color: var(--color-su-blue-pale);
-  color: var(--color-su-black);
+  color: var(--color-ink);
   font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -158,7 +158,7 @@ h6 {
   content: '';
   flex: 1;
   height: 1px;
-  background: var(--color-su-grey-light);
+  background: var(--color-wk-faint);
 }
 
 /*
