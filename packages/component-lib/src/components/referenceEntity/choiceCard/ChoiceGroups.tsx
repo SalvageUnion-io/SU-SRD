@@ -152,12 +152,16 @@ function ChoiceOptionGroup({
   const kind = getChoiceSourceKind(choice)
   const value = selected[0] ?? ''
 
-  // TEXT — an editable field; in READ-ONLY just the chosen value as prose (no
-  // box, no repeated prompt: the choice is anchored right after the sentence that
-  // introduces it, so the field/value is all that's needed).
+  // TEXT — an editable field; in READ-ONLY the chosen value as prose, or (when
+  // empty) the field NAME as a reference so a blank crew field (Name / Motto /
+  // Keepsake) still shows what there is to fill. No box, no repeated prompt.
   if (kind === 'text') {
     if (readOnly) {
-      return value ? <p className="font-body text-xs font-bold text-ink">{value}</p> : null
+      return value ? (
+        <p className="font-body text-xs font-bold text-ink">{value}</p>
+      ) : (
+        <p className="font-body text-xs font-bold text-ink/60">{choice.name}</p>
+      )
     }
     const multiline = choice.name.toLowerCase() !== 'name'
     return multiline ? (
@@ -190,17 +194,19 @@ function ChoiceOptionGroup({
     const table = tableEntity && 'table' in tableEntity ? tableEntity.table : undefined
     return (
       <div className="flex flex-col gap-1.5">
-        {readOnly
-          ? value && <p className="font-body text-xs font-bold text-ink">{value}</p>
-          : !table && (
-              <input
-                aria-label={choice.name}
-                className={inputClass}
-                value={value}
-                placeholder="Choose your own…"
-                onChange={(e) => onFreeTextChange(e.target.value)}
-              />
-            )}
+        {readOnly ? (
+          value && <p className="font-body text-xs font-bold text-ink">{value}</p>
+        ) : (
+          // The field ALWAYS shows in editable — it holds the chosen value, and
+          // rolling the expanded table below fills it (RollTable.onRollResult).
+          <input
+            aria-label={choice.name}
+            className={inputClass}
+            value={value}
+            placeholder="Roll or choose your own…"
+            onChange={(e) => onFreeTextChange(e.target.value)}
+          />
+        )}
         {table && (
           <details className="text-xs">
             <summary className="cursor-pointer font-cond uppercase tracking-caps-tight text-ink/70">

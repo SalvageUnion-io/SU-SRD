@@ -423,13 +423,23 @@ export function ReferenceEntityCard({
   // A `perTechLevel` map (datavalue label → per-level increment) from the entity's
   // OWN datavalues, so a scaled value is highlighted as "modified" (rust).
   const perTechLevelByLabel = new Map<string, number>()
+  // A datavalue that scales per Tech Level (e.g. Custom Sniper/Missile Damage
+  // "+1 SP per Tech Level") is ALSO a Bonus-per-Tech-Level box (label / +N / unit).
+  const dataValueBonuses: BonusCell[] = []
   for (const block of 'content' in entity
     ? ((entity.content ?? []) as SURefObjectContentBlock[])
     : []) {
     if (Array.isArray(block.value)) {
       for (const dv of block.value) {
         if (typeof dv.perTechLevel === 'number' && dv.label != null) {
-          perTechLevelByLabel.set(String(dv.label).toLowerCase(), dv.perTechLevel)
+          const label = String(dv.label)
+          perTechLevelByLabel.set(label.toLowerCase(), dv.perTechLevel)
+          dataValueBonuses.push({
+            key: `dvbonus-${label.toLowerCase()}`,
+            label,
+            bottomLabel: typeof dv.unit === 'string' ? dv.unit : '',
+            value: `+${dv.perTechLevel}`,
+          })
         }
       }
     }
@@ -1038,7 +1048,10 @@ export function ReferenceEntityCard({
     'bonusPerTechLevel' in entity && entity.bonusPerTechLevel
       ? (entity.bonusPerTechLevel as SURefObjectBonusPerTechLevel)
       : undefined
-  const bonusCellList = bonusPerTechLevel ? bonusCells(bonusPerTechLevel) : []
+  const bonusCellList = [
+    ...(bonusPerTechLevel ? bonusCells(bonusPerTechLevel) : []),
+    ...dataValueBonuses,
+  ]
   if (bonusCellList.length > 0 && !hide?.stats) {
     bodyNodes.push(
       <div key="bonus-per-tech" className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
@@ -1267,6 +1280,11 @@ export function ReferenceEntityCard({
             data={npc}
             hostTone={ownToneBase}
             chassisName={resolvedChassisName}
+            // Thread the write-layer so the NPC's crew choices (Name / Motto /
+            // Keepsake) render as real inputs in editable mode — they share the
+            // parent's id-keyed selections map (distinct choice ids, no clash).
+            selections={selections}
+            onSelectionChange={onSelectionChange}
             // The parent's visibility config governs its identity NPC too — a bay
             // that hides choices (rendering the NPC's crew facts as external
             // IdentityFields) must not also surface those same choices here.
