@@ -38,9 +38,11 @@ export const Default: Story = () => {
 }
 
 /**
- * The new EntityChoice paradigm (`resultsFloating`): the pool fills the full
- * content width and the "Results" rail floats in a sticky bottom-right box above
- * the content — the layout the CatalogChoiceModal now uses.
+ * The new EntityChoice paradigm (`resultsFloating`): a self-contained DisplayCard
+ * — search + close badge in the header, filters in the sub-header band, the pool
+ * filling a padded internally-scrolling body, and the "Results" box pinned
+ * floating bottom-right. This is the layout the CatalogChoiceModal now uses (in a
+ * bare ModalShell).
  */
 export const Floating: Story = () => {
   const [selected, setSelected] = useState<string[]>([])
@@ -49,15 +51,20 @@ export const Floating: Story = () => {
   return (
     <div className="flex flex-col gap-3">
       <Caption>
-        resultsFloating — pool fills the width; the Results box floats bottom-right above it.
+        resultsFloating — search in the header, filters in the sub-header, pool fills the body, the
+        Results box floats pinned bottom-right.
       </Caption>
-      <EntitySearcher
-        schema="equipment"
-        selected={selected}
-        onToggle={toggle}
-        chosenLabel="Chosen"
-        resultsFloating
-      />
+      <div className="mx-auto w-full max-w-5xl">
+        <EntitySearcher
+          schema="equipment"
+          selected={selected}
+          onToggle={toggle}
+          chosenLabel="Chosen"
+          resultsFloating
+          title="Choose Equipment"
+          onClose={() => {}}
+        />
+      </div>
     </div>
   )
 }

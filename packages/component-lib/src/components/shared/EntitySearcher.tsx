@@ -27,6 +27,7 @@ import { Panel } from '../chrome/Panel'
 import { MiniBtn } from '../chrome/SmallButtons'
 import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
 import { statBlockRowStarts } from '../stat/pipRows'
+import { DisplayCard } from './DisplayCard'
 import { FilterChip } from './FilterChip'
 import { SelCard } from './SelCard'
 import { SelMasonry } from './SelMasonry'
@@ -90,12 +91,20 @@ type EntitySearcherProps = {
   /** Copy shown when nothing matches the filters. */
   emptyMessage?: string
   /**
-   * New-paradigm layout: the entity pool fills the full content width and the
-   * selection "Results" rail floats in a sticky bottom-right box ABOVE the
-   * content, instead of taking a fixed side column. Used by the EntityChoice
-   * (Catalog) modal; the wizard / sheet pickers keep the side rail.
+   * New-paradigm layout: the searcher becomes a self-contained `DisplayCard`
+   * — search in the header (beside a close badge), all filters in the
+   * sub-header band, the pool filling a padded, internally-scrolling body, and
+   * the selection "Results" box pinned floating in the bottom-right corner
+   * (above the content, never scrolling). Used by the EntityChoice (Catalog)
+   * modal via a bare `ModalShell`; the wizard / sheet pickers keep the side rail.
    */
   resultsFloating?: boolean
+  /** Floating layout only: the title rendered in the DisplayCard header. */
+  title?: string
+  /** Floating layout only: close handler — renders the header's close badge. */
+  onClose?: () => void
+  /** Floating layout only: header tone background class (default `bg-su-orange`). */
+  headerBg?: string
 }
 
 const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
@@ -130,6 +139,9 @@ export function EntitySearcher({
   chosenLabel = 'Selected',
   emptyMessage = 'Nothing found.',
   resultsFloating = false,
+  title,
+  onClose,
+  headerBg = 'bg-su-orange',
 }: EntitySearcherProps) {
   const [query, setQuery] = useState('')
   const [activeTls, setActiveTls] = useState<Set<TechLevel>>(() => new Set())
@@ -251,165 +263,180 @@ export function EntitySearcher({
 
   const anyFacet = showTl || showTraits || showCat || showStatus
 
-  return (
-    <div className="flex flex-col gap-4">
-      {/* Search + summary */}
-      <div className="flex flex-wrap items-center gap-3">
-        <label className="flex min-w-[240px] flex-1 items-center gap-2 rounded-[4px] border-chrome border-ink bg-paper px-3 py-2 focus-within:ring-[3px] focus-within:ring-rust/[0.22]">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="opacity-70">
-            <circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" strokeWidth="2" />
-            <line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" strokeWidth="2" />
-          </svg>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name or trait…"
-            aria-label="Search"
-            autoComplete="off"
-            className="w-full bg-transparent font-body text-sm text-ink outline-none placeholder:text-wk-muted"
-          />
-        </label>
-        <span className="whitespace-nowrap font-cond text-label font-bold uppercase tracking-caps text-wk-muted">
-          <span className="text-rust">{totalOnSheet}</span> on sheet · showing {visible.length} of{' '}
-          {pool.length}
-        </span>
-      </div>
-
-      {/* Facet chip rows */}
-      {anyFacet && (
-        <div className="flex flex-col gap-2">
-          {showTl && (
-            <FacetRow label="Tech level">
-              {tlOptions.map((tl) => (
-                <FilterChip
-                  key={String(tl)}
-                  label={tlLabel(tl)}
-                  active={activeTls.has(tl)}
-                  onClick={() => toggleIn(activeTls, tl, setActiveTls)}
-                  swatchStyle={tlSwatch(tl)}
-                />
-              ))}
-            </FacetRow>
-          )}
-          {showCat && facets?.category && (
-            <FacetRow label={facets.category.label}>
-              {catOptions.map((c) => (
-                <FilterChip
-                  key={c}
-                  label={c}
-                  active={activeCats.has(c)}
-                  onClick={() => toggleIn(activeCats, c, setActiveCats)}
-                />
-              ))}
-            </FacetRow>
-          )}
-          {showTraits && (
-            <FacetRow label="Traits">
-              {traitOptions.map((t) => (
-                <FilterChip
-                  key={t}
-                  label={t}
-                  active={activeTraits.has(t)}
-                  onClick={() => toggleIn(activeTraits, t, setActiveTraits)}
-                />
-              ))}
-            </FacetRow>
-          )}
-          {showStatus && (
-            <FacetRow label="Show">
-              {(
-                [
-                  ['all', 'All'],
-                  ['equipped', `${chosenLabel} only`],
-                  ['available', 'Not yet added'],
-                ] as const
-              ).map(([value, label]) => (
-                <FilterChip
-                  key={value}
-                  label={label}
-                  active={status === value}
-                  onClick={() => setStatus(value)}
-                />
-              ))}
-            </FacetRow>
-          )}
-        </div>
+  // ---- Shared pieces, placed differently per layout ----
+  const searchInput = (
+    <label
+      className={cn(
+        'flex items-center gap-2 rounded-[4px] border-chrome border-ink bg-paper px-3 py-2 focus-within:ring-[3px] focus-within:ring-rust/[0.22]',
+        resultsFloating ? 'w-full' : 'min-w-[240px] flex-1'
       )}
+    >
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="opacity-70">
+        <circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" strokeWidth="2" />
+        <line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" strokeWidth="2" />
+      </svg>
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search by name or trait…"
+        aria-label="Search"
+        autoComplete="off"
+        className="w-full bg-transparent font-body text-sm text-ink outline-none placeholder:text-wk-muted"
+      />
+    </label>
+  )
 
-      {/* Pool masonry + selection ("Results") rail. Two layouts:
-          · default   — a fixed 280px side column (wizard / sheet pickers).
-          · floating  — the pool fills the full content width and the Results
-            rail floats in a sticky bottom-right box ABOVE the content
-            (the EntityChoice / Catalog modal). */}
-      {(() => {
-        const pool = (
-          <div className="min-w-0">
-            <SelMasonry>
-              {visible.map((item) => {
-                const count = countOf(item)
-                if (mode === 'count') {
-                  return (
-                    <CountCard
-                      key={item.id}
-                      entity={item}
-                      count={count}
-                      onAdd={() => onAdd?.(idOf(item))}
-                    />
-                  )
-                }
-                const isSelected = count > 0
-                return (
-                  <SelCard
-                    key={item.id}
-                    entity={item}
-                    name={item.name}
-                    selected={isSelected}
-                    onToggle={() =>
-                      onToggle?.(isSelected ? (matchedRef(item) ?? idOf(item)) : idOf(item))
-                    }
-                    entityProps={
-                      isSelected ? { footActions: <Badge>{`${chosenLabel} ✓`}</Badge> } : undefined
-                    }
-                  />
-                )
-              })}
-            </SelMasonry>
-            {visible.length === 0 && (
-              <p className="mt-3 font-body text-sm text-wk-muted">{emptyMessage}</p>
-            )}
-          </div>
-        )
+  const summaryNode = (
+    <span className="whitespace-nowrap font-cond text-label font-bold uppercase tracking-caps text-wk-muted">
+      <span className="text-rust">{totalOnSheet}</span> on sheet · showing {visible.length} of{' '}
+      {pool.length}
+    </span>
+  )
 
-        if (resultsFloating) {
+  const facetRows = anyFacet ? (
+    <div className="flex w-full flex-col gap-2">
+      {showTl && (
+        <FacetRow label="Tech level">
+          {tlOptions.map((tl) => (
+            <FilterChip
+              key={String(tl)}
+              label={tlLabel(tl)}
+              active={activeTls.has(tl)}
+              onClick={() => toggleIn(activeTls, tl, setActiveTls)}
+              swatchStyle={tlSwatch(tl)}
+            />
+          ))}
+        </FacetRow>
+      )}
+      {showCat && facets?.category && (
+        <FacetRow label={facets.category.label}>
+          {catOptions.map((c) => (
+            <FilterChip
+              key={c}
+              label={c}
+              active={activeCats.has(c)}
+              onClick={() => toggleIn(activeCats, c, setActiveCats)}
+            />
+          ))}
+        </FacetRow>
+      )}
+      {showTraits && (
+        <FacetRow label="Traits">
+          {traitOptions.map((t) => (
+            <FilterChip
+              key={t}
+              label={t}
+              active={activeTraits.has(t)}
+              onClick={() => toggleIn(activeTraits, t, setActiveTraits)}
+            />
+          ))}
+        </FacetRow>
+      )}
+      {showStatus && (
+        <FacetRow label="Show">
+          {(
+            [
+              ['all', 'All'],
+              ['equipped', `${chosenLabel} only`],
+              ['available', 'Not yet added'],
+            ] as const
+          ).map(([value, label]) => (
+            <FilterChip
+              key={value}
+              label={label}
+              active={status === value}
+              onClick={() => setStatus(value)}
+            />
+          ))}
+        </FacetRow>
+      )}
+    </div>
+  ) : null
+
+  const poolNode = (
+    <div className="min-w-0">
+      <SelMasonry>
+        {visible.map((item) => {
+          const count = countOf(item)
+          if (mode === 'count') {
+            return (
+              <CountCard
+                key={item.id}
+                entity={item}
+                count={count}
+                onAdd={() => onAdd?.(idOf(item))}
+              />
+            )
+          }
+          const isSelected = count > 0
           return (
-            <div className="relative">
-              {pool}
-              {/* Sticky wrapper is click-through; only the rail box itself
-                  captures pointer events, so it never masks the pool beneath. */}
-              <div className="pointer-events-none sticky bottom-3 z-20 mt-6 flex justify-end">
-                <div className="pointer-events-auto w-[300px] max-w-full">
-                  <SelectionRail
-                    name={railName}
-                    chosenLabel={chosenLabel}
-                    count={selectedCount}
-                    schema={schema}
-                    selected={selected}
-                    budget={budget}
-                    mode={mode}
-                    onToggle={onToggle}
-                    onRemove={onRemove}
-                    className="max-h-[55vh] overflow-y-auto shadow-[0_6px_24px_rgba(40,32,25,0.28)]"
-                  />
-                </div>
+            <SelCard
+              key={item.id}
+              entity={item}
+              name={item.name}
+              selected={isSelected}
+              onToggle={() =>
+                onToggle?.(isSelected ? (matchedRef(item) ?? idOf(item)) : idOf(item))
+              }
+              entityProps={
+                isSelected ? { footActions: <Badge>{`${chosenLabel} ✓`}</Badge> } : undefined
+              }
+            />
+          )
+        })}
+      </SelMasonry>
+      {visible.length === 0 && (
+        <p className="mt-3 font-body text-sm text-wk-muted">{emptyMessage}</p>
+      )}
+    </div>
+  )
+
+  // ===== Floating (EntityChoice / Catalog modal) layout =====
+  // A self-contained DisplayCard: search + close badge in the header, all
+  // filters in the sub-header band, the pool filling a padded internally-
+  // scrolling body, and the "Results" box pinned floating bottom-right.
+  if (resultsFloating) {
+    return (
+      <div className="relative">
+        <DisplayCard
+          headerBg={headerBg}
+          bodyPadding="p-0"
+          headerContent={
+            <div className="flex w-full items-center gap-3">
+              <span className="min-w-0 shrink-0 font-cond text-lg font-bold uppercase leading-none tracking-caps-tight text-paper">
+                {title}
+              </span>
+              <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-2">
+                <div className="min-w-0 max-w-[280px] flex-1">{searchInput}</div>
+                {onClose && (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    aria-label="Close"
+                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-badge border-chrome border-ink bg-paper font-cond text-base font-bold leading-none text-ink transition-colors hover:bg-wk-bg-2"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
             </div>
-          )
-        }
+          }
+          subHeader={facetRows ?? undefined}
+        >
+          {/* Internally-scrolling body; extra bottom padding clears the pinned
+              Results box so the last rows are never hidden beneath it. */}
+          <div className="max-h-[min(62vh,640px)] overflow-y-auto p-4 pb-28">
+            <div className="mb-3">{summaryNode}</div>
+            {poolNode}
+          </div>
+        </DisplayCard>
 
-        return (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
-            {pool}
+        {/* Pinned floating "Results" box — absolute to the card frame (NOT the
+            scrolling body), so it stays put in the bottom-right above content.
+            The wrapper is click-through; only the box captures pointer events. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-end p-4">
+          <div className="pointer-events-auto w-[300px] max-w-[calc(100%-2rem)]">
             <SelectionRail
               name={railName}
               chosenLabel={chosenLabel}
@@ -420,11 +447,37 @@ export function EntitySearcher({
               mode={mode}
               onToggle={onToggle}
               onRemove={onRemove}
-              className="lg:sticky lg:top-2"
+              className="max-h-[45vh] overflow-y-auto shadow-[0_6px_24px_rgba(40,32,25,0.28)]"
             />
           </div>
-        )
-      })()}
+        </div>
+      </div>
+    )
+  }
+
+  // ===== Default (wizard / sheet picker) layout — pool + fixed side rail =====
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-3">
+        {searchInput}
+        {summaryNode}
+      </div>
+      {facetRows}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+        {poolNode}
+        <SelectionRail
+          name={railName}
+          chosenLabel={chosenLabel}
+          count={selectedCount}
+          schema={schema}
+          selected={selected}
+          budget={budget}
+          mode={mode}
+          onToggle={onToggle}
+          onRemove={onRemove}
+          className="lg:sticky lg:top-2"
+        />
+      </div>
     </div>
   )
 }

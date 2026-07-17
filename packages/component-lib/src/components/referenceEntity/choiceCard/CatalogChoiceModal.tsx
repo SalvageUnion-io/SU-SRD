@@ -55,6 +55,7 @@ export function CatalogChoiceModal({
       }}
       title={choice.name}
       maxWidth="max-w-5xl"
+      bare
     >
       <EntitySearcher
         schema={schema as EntitySchemaName}
@@ -64,6 +65,8 @@ export function CatalogChoiceModal({
         chosenLabel="Chosen"
         emptyMessage="No matching entities."
         resultsFloating
+        title={choice.name}
+        onClose={onClose}
       />
     </ModalShell>
   )

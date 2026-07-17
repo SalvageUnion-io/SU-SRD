@@ -18,6 +18,13 @@ type ModalShellProps = {
    *  tabbable — the header close button). Pass a ref for input-first dialogs
    *  like search. */
   initialFocus?: RefObject<HTMLElement | null>
+  /**
+   * Chromeless: skip the DisplayCard header/frame and render `children` as the
+   * entire modal body inside a NON-scrolling, fit-height popup. The child owns
+   * its own frame + header + close control + any internal scroll (e.g. the
+   * floating EntitySearcher). `title` is still used for the sr-only a11y label.
+   */
+  bare?: boolean
   children?: ReactNode
 }
 
@@ -31,9 +38,14 @@ export function ModalShell({
   maxWidth = 'max-w-3xl',
   align = 'top',
   initialFocus,
+  bare = false,
   children,
 }: ModalShellProps) {
   const isLightClose = headerBg === 'bg-su-rust'
+
+  // Bare mode: a fit-height, non-scrolling popup — the child owns its frame and
+  // any internal scroll. Default: a scrolling popup wrapping the DisplayCard.
+  const overflow = bare ? 'overflow-hidden' : 'overflow-y-auto'
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -41,44 +53,48 @@ export function ModalShell({
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/80 data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0" />
         <Dialog.Popup
           initialFocus={initialFocus}
-          className={`fixed inset-0 z-50 h-fit max-h-[calc(100vh-4rem)] w-full ${maxWidth} overflow-y-auto bg-transparent outline-none ${align === 'center' ? 'm-auto' : 'mx-auto mt-8 mb-auto'}`}
+          className={`fixed inset-0 z-50 h-fit max-h-[calc(100vh-4rem)] w-full ${maxWidth} ${overflow} bg-transparent outline-none ${align === 'center' ? 'm-auto' : 'mx-auto mt-8 mb-auto'}`}
         >
           <Dialog.Title className="sr-only">{title}</Dialog.Title>
           <Dialog.Description className="sr-only">{description ?? title}</Dialog.Description>
 
-          <DisplayCard
-            headerBg={headerBg}
-            headerContent={
-              <div className="flex w-full items-center justify-between gap-2">
-                <div className="flex min-w-0 flex-col gap-0.5">
-                  <Text
-                    as="span"
-                    variant="pseudoheader"
-                    className={`${headerBg === 'bg-su-rust' ? 'text-xl' : 'text-[1.75rem]'} text-paper`}
-                  >
-                    {title}
-                  </Text>
-                  {subtitle && (
-                    <Text as="span" variant="pseudoheader" className="text-xs text-paper/80">
-                      {subtitle}
+          {bare ? (
+            children
+          ) : (
+            <DisplayCard
+              headerBg={headerBg}
+              headerContent={
+                <div className="flex w-full items-center justify-between gap-2">
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <Text
+                      as="span"
+                      variant="pseudoheader"
+                      className={`${headerBg === 'bg-su-rust' ? 'text-xl' : 'text-[1.75rem]'} text-paper`}
+                    >
+                      {title}
                     </Text>
-                  )}
+                    {subtitle && (
+                      <Text as="span" variant="pseudoheader" className="text-xs text-paper/80">
+                        {subtitle}
+                      </Text>
+                    )}
+                  </div>
+                  <Dialog.Close
+                    className={`flex shrink-0 cursor-pointer items-center justify-center rounded p-1 transition-colors ${
+                      isLightClose
+                        ? 'text-paper/60 hover:bg-ink/20 hover:text-paper'
+                        : 'text-ink/60 hover:bg-ink/20 hover:text-ink'
+                    }`}
+                  >
+                    <X className="h-5 w-5" />
+                    <span className="sr-only">Close</span>
+                  </Dialog.Close>
                 </div>
-                <Dialog.Close
-                  className={`flex shrink-0 cursor-pointer items-center justify-center rounded p-1 transition-colors ${
-                    isLightClose
-                      ? 'text-paper/60 hover:bg-ink/20 hover:text-paper'
-                      : 'text-ink/60 hover:bg-ink/20 hover:text-ink'
-                  }`}
-                >
-                  <X className="h-5 w-5" />
-                  <span className="sr-only">Close</span>
-                </Dialog.Close>
-              </div>
-            }
-          >
-            {children}
-          </DisplayCard>
+              }
+            >
+              {children}
+            </DisplayCard>
+          )}
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>
