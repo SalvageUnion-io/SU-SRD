@@ -33,7 +33,7 @@ const fields: PosterField[] = [
   { label: 'Appearance', value: pilotContent.appearance, prose: true },
   { label: 'Keepsake', value: pilotContent.keepsake, prose: true, usable: true },
   { label: 'Motto', value: pilotContent.motto, prose: true, usable: true, used: true },
-  { label: 'Bio', value: pilotContent.bio, prose: true },
+  { label: 'Bio', value: pilotContent.bio, prose: true, fullWidth: true },
 ]
 
 const abilities: PosterCollectionItem[] = abilityPicks.map((a) => ({ entity: a.entity }))
@@ -47,7 +47,7 @@ const posterCommon = {
   hp: pilotContent.hp,
   ap: pilotContent.ap,
   tp: pilotContent.tp,
-  conditions: pilotContent.conditions,
+  injuries: pilotContent.injuries,
   abilities,
   inventory,
   linked: pilotContent.linked,
