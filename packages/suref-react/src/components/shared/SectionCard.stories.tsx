@@ -4,14 +4,16 @@ import { Badge } from '../chrome/Badge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/ITUN/Section Card',
+  title: 'Containers/Section Card',
 }
 
 /**
- * ITUN's black-header card (lifted from the app, pending approval). Two variants:
- * `panel` (default) frames self-contained tool panels — 2px ink frame, caps
- * title, muted hint; `card` frames tracked-entity insets — chrome frame, a raw
- * composed title (tag + name), hint pushed to the bar's right edge.
+ * The "black-header card" (canonical container). Two variants: `panel` (default)
+ * frames self-contained tool panels — 2px ink frame, caps title, muted hint;
+ * `card` frames tracked-entity insets — chrome frame, a raw composed title (tag
+ * + name), hint pushed to the bar's right edge. A deliberately distinct closed-
+ * ink-bar dialect from `Slab`'s open inline-section leader — the two are NOT
+ * unified (see SectionCard's ruling).
  */
 export const Default: Story = () => (
   <div className="flex flex-col gap-6">

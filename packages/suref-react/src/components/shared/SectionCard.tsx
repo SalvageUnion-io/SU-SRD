@@ -87,7 +87,7 @@ export function SectionCard({
     <Root aria-label={ariaLabel} className={cn(FRAME[variant], className)}>
       <div className={HEAD[variant]}>
         {variant === 'panel' ? (
-          <TitleTag className="m-0 font-cond text-xs font-bold uppercase tracking-wider text-paper">
+          <TitleTag className="m-0 font-cond text-xs font-bold uppercase tracking-caps text-paper">
             {title}
           </TitleTag>
         ) : (
