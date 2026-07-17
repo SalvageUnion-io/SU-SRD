@@ -8,11 +8,13 @@ canonical (`ReferenceEntityCard`); this pass is the **frame, top bar, identity
 band, vitals/gauges, section framing, region arrangement, image affordance, and
 the responsive story** — never an entity-card rewrite.
 
-> **STATUS: L2 in progress (Pilot).** The Pilot "before" is captured
-> (`Legacy/Live Sheet`); the brainstorm target is mocked
-> (`docs/design/livesheet-mockup.html`); and the **target Pilot poster is built
-> from existing primitives** as `Compositions/Live Sheet` (read-only + editable +
-> mobile), Ladle-only. Mech + Crawler parity + L3 cutover remain.
+> **STATUS: direction committed (Pilot).** The Pilot poster is built from
+> existing primitives as `Compositions/Live Sheet` (read-only + editable +
+> mobile), still Ladle-only. The **legacy "before" capture and the Legacy → New
+> comparison have been removed** — we've committed to the new direction. The L1
+> brainstorm record stays at `docs/design/livesheet-mockup.html`. Remaining: the
+> mech and crawler poster parity, then the L3 app cutover (promote the poster to
+> a real component wired to ITUN data/store).
 
 ---
 
@@ -69,12 +71,10 @@ same arc the entity card followed.
 
 ## Where we are now
 
-- **L1 Pilot before — DONE.** `packages/component-lib/src/stories/legacy/`
-  (`LiveSheetLegacyPilot.tsx` + `LiveSheetLegacy.stories.tsx`), titled
-  `Legacy/Live Sheet` (the `Legacy/*` group is exactly the drain for
-  un-refreshed, pre-canon-token components). Renders the resting/read-only Pilot
-  sheet from real `SalvageUnionReference.*` abilities/equipment, desktop poster
-  plus a 390px phone frame. Story-only, not barrel-exported.
+- **L1 Pilot before — DONE, then REMOVED.** The `Legacy/Live Sheet` capture
+  (`stories/legacy/`) reproduced the shipped Pilot sheet from real ORM data and
+  served as the "before". Once the direction was committed it was **deleted**
+  along with the comparison — the new poster is the single source of truth.
 - **L1 brainstorm mockup — DONE.** `docs/design/livesheet-mockup.html` — a
   Fable-authored design deck exploring the reconciled direction for all three
   sheets (desktop + mobile), the image affordance (empty + filled), and a
@@ -89,12 +89,11 @@ same arc the entity card followed.
   390px mobile stories on real ORM data. Whitespace/legibility-first; the
   linked-player-entity rail stays at the bottom. Ladle-only, not barrel-exported.
   Both identity + vitals bands carry the accent header.
-- **L2 Legacy → New comparison — DONE.** A shared `pilotFixture` (one pilot +
-  real ORM abilities/equipment) drives BOTH the legacy capture and the new
-  poster (the legacy capture is now prop-driven), and the
-  `Compositions/Live Sheet → Comparison` story stacks the three-way on one page —
-  **before (today) · after read-only · after editable** — same pilot throughout,
-  so the eye compares the shell, not the content.
+- **L2 Legacy → New comparison — DONE, then REMOVED.** The three-way
+  `Comparison` story (before · new read-only · new editable, one shared
+  `pilotFixture`) served the review; it was deleted with the legacy capture on
+  committing to the direction. The poster stories are now `Compositions/Live
+Sheet` → `Pilot` (read-only) · `Editable` · `Mobile`.
 - **Mech + Crawler target — TODO.** Pilot is the reference implementation; mech
   (Identity + ChassisStats ∥ SP/EP/Heat vitals — Heat gauge redlines near cap;
   **Chassis Ability rendered through `ReferenceEntityCard`, matching the SRD

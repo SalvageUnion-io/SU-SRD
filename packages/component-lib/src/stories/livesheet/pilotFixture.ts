@@ -1,8 +1,7 @@
 /**
- * Shared Pilot fixture for the live-sheet reconciliation L2 comparison — ONE
- * pilot + one set of real ORM abilities/equipment, consumed by BOTH the legacy
- * "before" capture and the new "Union Poster" target so the Ladle three-way
- * compares the SHELL, not the content. Real `SalvageUnionReference.*` data.
+ * Shared Pilot fixture for the live sheet — ONE pilot + one set of real ORM
+ * abilities/equipment driving the poster stories. Real `SalvageUnionReference.*`
+ * data.
  */
 
 import { SalvageUnionReference, type SURefEntity } from 'salvageunion-reference'
@@ -15,7 +14,6 @@ function pick(schema: 'Abilities' | 'Equipment', name: string, index: number): S
     all[index % all.length]) as SURefEntity
 }
 
-export type PilotFixtureCondition = { label: string; state?: 'intact' | 'damaged' | 'destroyed' }
 export type PilotFixtureInjury = { label: string; severity: 'minor' | 'major' }
 export type PilotFixtureLink = {
   kind: string
@@ -38,13 +36,7 @@ export const pilotContent = {
   hp: { value: 7, max: 10 },
   ap: { value: 3, max: 5 },
   tp: 2,
-  // Legacy "before" capture kept the shipped freeform pilot conditions.
-  conditions: [
-    { label: 'Wounded', state: 'damaged' },
-    { label: 'Dazed' },
-    { label: 'Broken' },
-  ] satisfies PilotFixtureCondition[],
-  // The new poster uses rules-accurate INJURIES (Critical Injury Table) instead.
+  // Rules-accurate INJURIES (Critical Injury Table) — pilots have no "conditions".
   injuries: [{ label: 'Cracked ribs', severity: 'minor' }] satisfies PilotFixtureInjury[],
   linked: [
     {
