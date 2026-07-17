@@ -4,11 +4,11 @@ import { StaticEntityContent } from './StaticEntityContent'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/Site/Static Entity Content',
+  title: 'Compositions/Static Entity Content',
 }
 
 /**
- * The SSR / no-JS entity fallback (converted from srd, pending review),
+ * The SSR / no-JS entity fallback (converted from srd),
  * built from a real Equipment summary via `extractStaticEntitySummary` — the
  * same path the static site uses. Traits link out through the injected
  * `resolveTraitHref` (here a slug approximation of the reference site's route).

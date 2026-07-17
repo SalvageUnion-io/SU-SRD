@@ -3,7 +3,7 @@ import { KofiButton } from './KofiButton'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/Site/Kofi Button',
+  title: 'Atoms/Kofi Button',
 }
 
 /**
