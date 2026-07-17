@@ -224,27 +224,9 @@ export function resolveAxisMarkers(entity: SURefMetaEntity): NEWAxisMarker[] {
  * uses short glyphs, not full names. Applied to a StatItem's `label`, with the
  * `bottomLabel` cleared so the box shows just the short label + value.
  */
-const STAT_LABEL_ABBR: Record<string, string> = {
-  // The single compact-label map (full top-label → shortform). Compact drops the
-  // bottom label entirely; each stat becomes ONE short token. The cell uppercases,
-  // so case here is cosmetic. Tech Level → "TL" is handled where the stat is built.
-  Slots: 'SLOTS',
-  Structure: 'SP',
-  Hit: 'HP',
-  Energy: 'EP',
-  Salvage: 'SV',
-  Bio: 'BIO SV',
-  'BIO-SALVAGE': 'BIO SV',
-  System: 'SYS',
-  Module: 'MOD',
-  Cargo: 'CARGO',
-  Heat: 'HEAT',
-}
-
-/** Abbreviate a header stat's label (Structure Points → SP, …) and drop the
- * bottom label. Unknown labels pass through untouched. */
+/** Compact a header stat to its TOP label only — the whole first word (Structure
+ * Points → Structure, Energy Points → Energy, Salvage Value → Salvage, System
+ * Slots → System, Bio SV → Bio, …); the bottom label is dropped. */
 export function abbreviateStat(stat: StatItem): StatItem {
-  const short = STAT_LABEL_ABBR[stat.label]
-  if (!short) return stat
-  return { ...stat, label: short, bottomLabel: undefined }
+  return stat.bottomLabel !== undefined ? { ...stat, bottomLabel: undefined } : stat
 }
