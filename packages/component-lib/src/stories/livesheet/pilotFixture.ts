@@ -16,7 +16,14 @@ function pick(schema: 'Abilities' | 'Equipment', name: string, index: number): S
 }
 
 export type PilotFixtureCondition = { label: string; state?: 'intact' | 'damaged' | 'destroyed' }
-export type PilotFixtureLink = { kind: string; name: string; spec: string }
+export type PilotFixtureLink = {
+  kind: string
+  name: string
+  /** Chassis/type label (the EntityRow's toned meta badge). */
+  meta: string
+  /** At-a-glance stats for the row subheader. */
+  stats: { label: string; value: number }[]
+}
 
 export const pilotContent = {
   callsign: 'Magpie',
@@ -36,8 +43,21 @@ export const pilotContent = {
     { label: 'Broken' },
   ] satisfies PilotFixtureCondition[],
   linked: [
-    { kind: 'Mech', name: 'Scrapdog', spec: 'SP 12 · EP 6' },
-    { kind: 'Crawler', name: 'The Long Haul', spec: 'TL 3' },
+    {
+      kind: 'Mech',
+      name: 'Scrapdog',
+      meta: 'Goliath',
+      stats: [
+        { label: 'SP', value: 12 },
+        { label: 'EP', value: 6 },
+      ],
+    },
+    {
+      kind: 'Crawler',
+      name: 'The Long Haul',
+      meta: 'Union Crawler',
+      stats: [{ label: 'TL', value: 3 }],
+    },
   ] satisfies PilotFixtureLink[],
 }
 

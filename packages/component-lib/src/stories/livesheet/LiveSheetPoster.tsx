@@ -29,6 +29,11 @@ import { ConditionSwatch } from '../../components/stat/ConditionSwatch'
 import { UsedPip } from '../../components/stat/UsedPip'
 import { VitalGauge } from '../../components/stat/VitalGauge'
 import { DisplayCard } from '../../components/shared/DisplayCard'
+import {
+  EntityRow,
+  type EntityRowStat,
+  type EntityRowType,
+} from '../../components/shared/EntityRow'
 import { Stat } from '../../components/shared/Stat'
 import { ReferenceEntityCard } from '../../components/referenceEntity/card/ReferenceEntityCard'
 
@@ -54,7 +59,15 @@ export type PosterCondition = { label: string; state?: 'intact' | 'damaged' | 'd
 export type PosterCollectionItem = {
   entity: SURefEntity
 }
-export type PosterLink = { kind: string; name: string; href?: string }
+export type PosterLink = {
+  kind: string
+  name: string
+  /** Class/role/chassis label — the EntityRow's toned meta badge. */
+  meta?: string
+  /** At-a-glance stats (SP/EP/TL) in the row's subheader. */
+  stats?: EntityRowStat[]
+  href?: string
+}
 
 export type LiveSheetPosterProps = {
   name: string
@@ -210,34 +223,27 @@ function CollectionSection({
 }
 
 // ---------------------------------------------------------------------------
-// Linked units — the bottom rail: keep linking to existing player entities.
-// Rust = navigational (the one action colour).
+// Linked units — the pilot's linked mech + crawler as real ENTITY ROWS, via the
+// shared EntityRow primitive (header-only listing row: ontology accent rail +
+// black name-tab + toned meta badge + at-a-glance stats + View/unlink). They're
+// PLAYER entities; in the app these resolve to real records.
 // ---------------------------------------------------------------------------
 
 function LinkedUnits({ linked }: { linked: PosterLink[] }) {
   return (
     <section className="flex flex-col gap-3">
       <Slab label="Linked Units" />
-      {/* The pilot's linked mech + crawler as entity ROWS (not chips): each a
-          navigational entity-card row → the linked unit's own sheet. In the app
-          these resolve to real player records; here they're fixture stand-ins. */}
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {linked.map((l) => (
-          <a
+          <EntityRow
             key={`${l.kind}-${l.name}`}
-            href={l.href ?? '#'}
-            className="group flex items-center gap-3 rounded-card border-entity border-ink bg-paper px-3.5 py-3 no-underline transition-colors hover:bg-wk-bg-2"
-          >
-            <Badge shape="stamp" size="sm" surface="on-tone">
-              {l.kind}
-            </Badge>
-            <span className="min-w-0 flex-1 truncate font-cond text-lede font-bold uppercase tracking-caps text-ink">
-              {l.name}
-            </span>
-            <span className="shrink-0 font-cond text-badge font-bold uppercase tracking-caps text-rust">
-              Open &#8599;
-            </span>
-          </a>
+            entityType={l.kind.toLowerCase() as EntityRowType}
+            name={l.name}
+            meta={l.meta}
+            stats={l.stats}
+            sheetHref={l.href ?? '#'}
+            onDeleteClick={() => {}}
+          />
         ))}
       </div>
     </section>
