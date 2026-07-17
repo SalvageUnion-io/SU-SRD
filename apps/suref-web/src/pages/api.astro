@@ -60,9 +60,9 @@ const baseUrl = SITE_URL
         <h2 class="page-subheading">Endpoints</h2>
 
         <!-- Schema data array -->
-        <div class="rounded-panel border-2 border-su-grey-light bg-paper">
-          <div class="border-b-2 border-su-grey-light px-5 py-3">
-            <p class="font-mono text-sm font-bold uppercase tracking-wide text-su-grey-dark">GET</p>
+        <div class="rounded-panel border-2 border-wk-faint bg-paper">
+          <div class="border-b-2 border-wk-faint px-5 py-3">
+            <p class="font-mono text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
             <p class="mt-1 font-mono text-base font-bold">
               /schema/<span class="text-su-orange-dark">{'{schemaId}'}</span>.json
             </p>
@@ -94,9 +94,9 @@ const baseUrl = SITE_URL
         </div>
 
         <!-- JSON Schema definition -->
-        <div class="rounded-panel border-2 border-su-grey-light bg-paper">
-          <div class="border-b-2 border-su-grey-light px-5 py-3">
-            <p class="font-mono text-sm font-bold uppercase tracking-wide text-su-grey-dark">GET</p>
+        <div class="rounded-panel border-2 border-wk-faint bg-paper">
+          <div class="border-b-2 border-wk-faint px-5 py-3">
+            <p class="font-mono text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
             <p class="mt-1 font-mono text-base font-bold">
               /schema/<span class="text-su-orange-dark">{'{schemaId}'}</span>.schema.json
             </p>
@@ -130,9 +130,9 @@ const baseUrl = SITE_URL
         </div>
 
         <!-- Individual entity -->
-        <div class="rounded-panel border-2 border-su-grey-light bg-paper">
-          <div class="border-b-2 border-su-grey-light px-5 py-3">
-            <p class="font-mono text-sm font-bold uppercase tracking-wide text-su-grey-dark">GET</p>
+        <div class="rounded-panel border-2 border-wk-faint bg-paper">
+          <div class="border-b-2 border-wk-faint px-5 py-3">
+            <p class="font-mono text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
             <p class="mt-1 font-mono text-base font-bold">
               /schema/<span class="text-su-orange-dark">{'{schemaId}'}</span>/item/<span class="text-su-orange-dark">{'{itemId}'}</span>.json
             </p>
@@ -181,10 +181,10 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
           The following schema IDs are available. Use them in the endpoint patterns above.
         </p>
 
-        <div class="overflow-hidden rounded-panel border-2 border-su-grey-light">
+        <div class="overflow-hidden rounded-panel border-2 border-wk-faint">
           <table class="w-full text-sm">
             <thead>
-              <tr class="border-b-2 border-su-grey-light bg-ink text-paper">
+              <tr class="border-b-2 border-wk-faint bg-ink text-paper">
                 <th class="px-4 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide">Schema ID</th>
                 <th class="px-4 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide">Name</th>
                 <th class="px-4 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide hidden sm:table-cell">Description</th>
@@ -193,7 +193,7 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
             </thead>
             <tbody>
               {schemas.map((schema, i) => (
-                <tr class:list={['border-b border-su-grey-light', i % 2 === 0 ? 'bg-paper' : 'bg-su-blue-pale']}>
+                <tr class:list={['border-b border-wk-faint', i % 2 === 0 ? 'bg-paper' : 'bg-su-blue-pale']}>
                   <td class="px-4 py-2">
                     <a
                       href={`/schema/${schema.id}/`}
@@ -203,7 +203,7 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
                     </a>
                   </td>
                   <td class="px-4 py-2 font-medium">{schema.displayNamePlural}</td>
-                  <td class="px-4 py-2 text-su-grey-dark hidden sm:table-cell">{schema.description}</td>
+                  <td class="px-4 py-2 text-ink-2 hidden sm:table-cell">{schema.description}</td>
                   <td class="px-4 py-2 text-right font-mono">{schema.itemCount}</td>
                 </tr>
               ))}

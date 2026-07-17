@@ -72,7 +72,7 @@ export function SearchResultsIsland() {
         {ready ? (
           <SearchResults query={query} index={index} />
         ) : (
-          <p className="text-sm text-su-grey-dark">Loading search index…</p>
+          <p className="text-sm text-ink-2">Loading search index…</p>
         )}
       </div>
     </IslandErrorBoundary>
@@ -111,12 +111,12 @@ function SearchResults({ query, index }: { query: string; index: CompactSearchEn
   const visible = activeFacet ? results.filter((r) => r.schemaName === activeFacet) : results
 
   if (!trimmed) {
-    return <p className="text-sm text-su-grey-dark">Enter a search term to see results.</p>
+    return <p className="text-sm text-ink-2">Enter a search term to see results.</p>
   }
 
   if (results.length === 0) {
     return (
-      <p className="text-sm text-su-grey-dark" aria-live="polite">
+      <p className="text-sm text-ink-2" aria-live="polite">
         No results found for “{trimmed}”.
       </p>
     )
@@ -124,7 +124,7 @@ function SearchResults({ query, index }: { query: string; index: CompactSearchEn
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-su-grey-dark" aria-live="polite">
+      <p className="text-sm text-ink-2" aria-live="polite">
         {results.length} result{results.length === 1 ? '' : 's'} for “{trimmed}”
       </p>
 
@@ -146,7 +146,7 @@ function SearchResults({ query, index }: { query: string; index: CompactSearchEn
         </FilterRow>
       )}
 
-      <ul className="flex flex-col divide-y divide-su-grey-light rounded-card border border-su-grey-light bg-paper">
+      <ul className="flex flex-col divide-y divide-wk-faint rounded-card border border-wk-faint bg-paper">
         {visible.map((result) => (
           <li key={result.entityId}>
             <a
@@ -154,7 +154,7 @@ function SearchResults({ query, index }: { query: string; index: CompactSearchEn
               className="flex items-center justify-between gap-3 px-4 py-3 no-underline transition-colors hover:bg-su-blue-pale"
             >
               <span className="font-medium text-ink">{result.entityName}</span>
-              <span className="shrink-0 font-mono text-xs uppercase tracking-wide text-su-grey-dark">
+              <span className="shrink-0 font-mono text-xs uppercase tracking-wide text-ink-2">
                 {schemaLabel(result)}
               </span>
             </a>

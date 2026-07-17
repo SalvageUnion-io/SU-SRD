@@ -152,10 +152,10 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
           <div
             id={listboxId}
             role="listbox"
-            className="absolute right-0 top-full z-50 mt-1 max-h-96 w-80 overflow-y-auto rounded-panel border border-su-grey-light bg-paper shadow-lg"
+            className="absolute right-0 top-full z-50 mt-1 max-h-96 w-80 overflow-y-auto rounded-panel border border-wk-faint bg-paper shadow-lg"
           >
             {!ready ? (
-              <div className="px-4 py-3 text-sm text-su-grey-dark">Loading search index…</div>
+              <div className="px-4 py-3 text-sm text-ink-2">Loading search index…</div>
             ) : results.length > 0 ? (
               results.map((result, index) => (
                 <a
@@ -169,11 +169,11 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
                   }`}
                 >
                   <div className="font-medium text-ink">{result.title}</div>
-                  <div className="mt-0.5 text-xs text-su-grey-dark">{result.group}</div>
+                  <div className="mt-0.5 text-xs text-ink-2">{result.group}</div>
                 </a>
               ))
             ) : (
-              <div className="px-4 py-3 text-sm text-su-grey-dark">No results found</div>
+              <div className="px-4 py-3 text-sm text-ink-2">No results found</div>
             )}
           </div>
         )}
