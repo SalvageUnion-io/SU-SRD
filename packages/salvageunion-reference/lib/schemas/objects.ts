@@ -548,8 +548,11 @@ const CardinalitySchema = z
  * - `table`         — roll on a named table, or choose your own.
  * - `options`       — an inline structured option list (was: choiceOptions).
  * - `catalog`       — pick a card-bearing entity from schema collection(s),
- *                     optionally a named shortlist and/or a field filter;
+ *                     optionally a named shortlist and/or a filter (a numeric
+ *                     `field` range, or `damageType` — keep only systems whose
+ *                     actions deal that damage type, i.e. Weapons Systems);
  *                     `reveals` flips index visibility (was: setIndexable).
+ *                     Schema-only (no shortlist) → resolved to an entity listing.
  * - `systemVariant` — pick from inline custom System/Module variants.
  */
 const ChoiceSourceSchema = z.discriminatedUnion('kind', [
@@ -569,9 +572,10 @@ const ChoiceSourceSchema = z.discriminatedUnion('kind', [
       entities: z.array(z.string()).optional(),
       filter: z
         .object({
-          field: z.string(),
+          field: z.string().optional(),
           min: NonNegativeIntegerSchema.optional(),
           max: NonNegativeIntegerSchema.optional(),
+          damageType: DamageTypeSchema.optional(),
         })
         .strict()
         .optional(),

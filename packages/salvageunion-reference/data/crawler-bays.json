@@ -316,7 +316,10 @@
           "kind": "catalog",
           "schema": [
             "systems"
-          ]
+          ],
+          "filter": {
+            "damageType": "SP"
+          }
         },
         "name": "Armament Bay Weapons System",
         "choiceType": "permanent",

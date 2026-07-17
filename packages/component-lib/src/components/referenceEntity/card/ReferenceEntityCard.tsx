@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { useState } from 'react'
 import type {
   SURefEntity,
   SURefEnumSchemaName,
@@ -28,6 +29,10 @@ import {
   resolveDataValueForTechLevel,
   resolveGrantedEntities,
 } from 'salvageunion-reference'
+import {
+  isSchemaOnlyCatalogChoice,
+  resolveCatalogChoiceEntities,
+} from 'salvageunion-reference/rules'
 import { cn } from '../../../utils/cn'
 import type { EntityStatus } from '../../shared/entityStatus'
 import { FOCUS_RING, activateOnKey } from '../../chrome/interaction'
@@ -283,6 +288,98 @@ function bonusCells(bonus: SURefObjectBonusPerTechLevel): BonusCell[] {
 function firstParagraphText(content: SURefObjectContentBlock[] | undefined): string | undefined {
   const paragraph = content?.find((block) => block?.type === 'paragraph')
   return paragraph ? parseContentBlockString(paragraph) : undefined
+}
+
+/**
+ * A SCHEMA-ONLY catalog choice — "pick any entity from the collection" (the
+ * Armament Bay's Weapons System = any Mech System dealing SP damage) — rendered
+ * as an expandable listing of the qualifying entities, each a real
+ * `ReferenceEntityCard` (listing/header-only) with the canonical select layer on
+ * top: never a synthetic option card. Read-only (no `onSelectionChange`) is a
+ * static reference listing; editable makes each row a single-select picker
+ * (rust ring on the chosen one).
+ *
+ * The collection is resolved LAZILY — only once the listing is expanded — so the
+ * default (collapsed) render touches no cross-schema collection (the target
+ * schema, e.g. `systems`/`chassis`, need not be preloaded to show a bay/system).
+ * Resolution is guarded: if the target schema is not loaded, the listing renders
+ * empty rather than throwing.
+ */
+function CatalogChoiceListing({
+  choice,
+  techLevel,
+  depth,
+  hostTone,
+  chassisName,
+  selections,
+  onSelectionChange,
+}: {
+  choice: SURefObjectChoice
+  techLevel?: number
+  depth: number
+  hostTone?: string
+  chassisName?: string
+  selections?: ChoiceSelections
+  onSelectionChange?: (selections: ChoiceSelections) => void
+}): ReactNode {
+  const [open, setOpen] = useState(false)
+  const editable = !!onSelectionChange
+  const chosen = selections?.[choice.id]?.[0]
+  const toggle = (name: string) => {
+    if (!onSelectionChange) return
+    onSelectionChange({ ...(selections ?? {}), [choice.id]: chosen === name ? [] : [name] })
+  }
+  // Resolve only when expanded, and never let an unloaded target schema throw.
+  let entities: SURefEntity[] = []
+  if (open) {
+    try {
+      entities = resolveCatalogChoiceEntities(
+        choice,
+        typeof techLevel === 'number' ? { techLevel } : undefined
+      ) as unknown as SURefEntity[]
+    } catch {
+      entities = []
+    }
+  }
+  const summary = chosen ? `${choice.name}: ${chosen}` : choice.name
+  // The choice owns its prompt prose (the content data owns the prose) — render
+  // it above the picker.
+  const prompt = firstParagraphText(choice.content)
+  return (
+    <div className="flex flex-col gap-1.5">
+      {prompt && <p className="font-body text-xs text-ink/70">{prompt}</p>}
+      <details
+        open={open}
+        onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
+        className="text-xs"
+      >
+        <summary className="cursor-pointer font-cond uppercase leading-none tracking-caps-tight text-ink/70">
+          {summary}
+        </summary>
+        {open && (
+          <div className="mt-2 flex flex-col gap-1.5">
+            {entities.map((entity, index) => {
+              const name = typeof entity.name === 'string' ? entity.name : ''
+              const key =
+                'id' in entity && typeof entity.id === 'string' ? entity.id : `${name}-${index}`
+              return (
+                <ReferenceEntityCard
+                  key={key}
+                  size="listing"
+                  depth={depth + 1}
+                  data={entity}
+                  hostTone={hostTone}
+                  chassisName={chassisName}
+                  selected={editable && chosen === name}
+                  onCardClick={editable ? () => toggle(name) : undefined}
+                />
+              )
+            })}
+          </div>
+        )}
+      </details>
+    </div>
+  )
 }
 
 /**
@@ -938,19 +1035,42 @@ export function ReferenceEntityCard({
   // ChoiceGroups (rust-bordered) exactly where it sits in the data. Choices with
   // no marker render at the natural END position (trailing fallback). Read-only
   // (no `onSelectionChange`) never enters this branch.
-  const renderChoiceRegion = (choice: SURefObjectChoice): ReactNode => (
-    <div key={`choice-region-${choice.id}`} className="[&:not(:last-child)]:mb-3">
-      <ChoiceGroups
-        choices={[choice]}
-        parent={effTechLevel !== undefined ? { techLevel: effTechLevel } : scalingParent}
-        selections={selections}
-        onSelectionChange={onSelectionChange}
-        readOnly={!editableChoices}
-        compact={compact}
-        toneColor={tone.bgColor}
-      />
-    </div>
-  )
+  const renderChoiceRegion = (choice: SURefObjectChoice): ReactNode => {
+    // SCHEMA-ONLY catalog ("pick any X from the collection", e.g. the Armament
+    // Bay's Weapons System) → an expandable entity listing, capped to the
+    // effective tech level. The collection is resolved lazily inside the
+    // listing (on expand), so this branch touches no cross-schema data. A
+    // shortlist catalog (Ballistic / Energy) and every other kind fall through
+    // to ChoiceGroups.
+    if (isSchemaOnlyCatalogChoice(choice)) {
+      return (
+        <div key={`choice-region-${choice.id}`} className="[&:not(:last-child)]:mb-3">
+          <CatalogChoiceListing
+            choice={choice}
+            techLevel={typeof effTechLevel === 'number' ? effTechLevel : undefined}
+            depth={depth}
+            hostTone={ownToneBase}
+            chassisName={resolvedChassisName}
+            selections={selections}
+            onSelectionChange={editableChoices ? onSelectionChange : undefined}
+          />
+        </div>
+      )
+    }
+    return (
+      <div key={`choice-region-${choice.id}`} className="[&:not(:last-child)]:mb-3">
+        <ChoiceGroups
+          choices={[choice]}
+          parent={effTechLevel !== undefined ? { techLevel: effTechLevel } : scalingParent}
+          selections={selections}
+          onSelectionChange={onSelectionChange}
+          readOnly={!editableChoices}
+          compact={compact}
+          toneColor={tone.bgColor}
+        />
+      </div>
+    )
+  }
 
   // AUTO-ANCHOR unmarked choices to the prose that introduces them: for a choice
   // with no explicit `{type:'choice'}` marker, inject one right after the LAST
@@ -982,7 +1102,8 @@ export function ReferenceEntityCard({
       if (kws.length === 0) continue
       let idx = -1
       for (let i = 0; i < anchoredBlocks.length; i++) {
-        const t = blockLowerText(anchoredBlocks[i])
+        const block = anchoredBlocks[i]
+        const t = block ? blockLowerText(block) : ''
         if (t && kws.some((k) => t.includes(k))) idx = i
       }
       if (idx >= 0) {

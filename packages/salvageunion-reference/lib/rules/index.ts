@@ -63,6 +63,10 @@ export {
 } from './softWarnings.js'
 export { isWeaponSystem } from './crawlerSystems.js'
 export {
+  resolveCatalogChoiceEntities,
+  isSchemaOnlyCatalogChoice,
+} from './choiceCatalog.js'
+export {
   matchesRef,
   resolveChassisRef,
   resolveSystemRef,

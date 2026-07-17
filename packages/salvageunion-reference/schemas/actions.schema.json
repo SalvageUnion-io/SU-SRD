@@ -797,9 +797,13 @@
                           "minimum": 0,
                           "maximum": 9007199254740991,
                           "description": "Non-negative integer (0 or greater)"
+                        },
+                        "damageType": {
+                          "type": "string",
+                          "enum": ["HP", "SP"],
+                          "description": "Type of damage (HP or SP)"
                         }
                       },
-                      "required": ["field"],
                       "additionalProperties": false
                     },
                     "reveals": { "type": "boolean" }
