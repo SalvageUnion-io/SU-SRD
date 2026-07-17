@@ -1,7 +1,9 @@
 import type { ComponentProps } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, Sel, StepBtn } from 'component-lib'
-import { cn } from '../../lib/utils'
+import { cn } from '../../utils/cn'
+import { Sel } from '../chrome/Sel'
+import { StepBtn } from '../chrome/SmallButtons'
+import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
 
 type SelCardProps = {
   /** The reference entity to render as a compact card. */

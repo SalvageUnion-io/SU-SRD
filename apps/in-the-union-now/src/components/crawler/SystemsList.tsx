@@ -1,6 +1,6 @@
 import type { SURefSystem } from 'salvageunion-reference'
-import { SelCard } from '../wizard/SelCard'
-import { SelMasonry } from '../wizard/SelMasonry'
+import { SelCard } from 'component-lib'
+import { SelMasonry } from 'component-lib'
 
 type SystemsListProps = {
   /** Weapons systems available to install, already filtered by the parent. */

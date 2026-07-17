@@ -33,6 +33,35 @@ type RollTableDisplayProps = {
   singleRoll?: boolean
   /** Called with the result text (and roll key) when the built-in roll button is used */
   onRollResult?: (text: string, key: string) => void
+  /**
+   * Collapsible mode: the header (title + Roll button) is always shown, and the
+   * table rows collapse behind a "Show/Hide table" toggle (rolling still works
+   * from the header and auto-expands to reveal the result). Implies the header.
+   */
+  collapsible?: boolean
+}
+
+/** The expand/collapse control shown in a collapsible roll-table header. */
+function ExpandToggle({ expanded, onToggle }: { expanded: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={expanded}
+      className="inline-flex items-center gap-1 font-cond text-badge font-bold uppercase tracking-caps-tight text-paper/80 hover:text-paper"
+    >
+      {expanded ? 'Hide' : 'Show'}
+      <svg
+        width="10"
+        height="10"
+        viewBox="0 0 12 12"
+        aria-hidden="true"
+        className={cn('transition-transform', expanded && 'rotate-180')}
+      >
+        <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    </button>
+  )
 }
 
 function digestRollTable(table: RollTableType): DigestedRollTable[] {
@@ -209,11 +238,14 @@ function ColumnsRollTable({
   tableName,
   singleRoll = false,
   onRollResult,
+  collapsible = false,
 }: RollTableDisplayProps) {
   const [result, setResult] = useState<ColumnsRollResult | null>(null)
   const [rollAnnouncement, setRollAnnouncement] = useState('')
   const [hasRolled, setHasRolled] = useState(false)
+  const [expanded, setExpanded] = useState(!collapsible)
   const highlightedRef = useRef<HTMLTableCellElement>(null)
+  const showHeader = showCommand || collapsible
 
   useEffect(() => {
     if (result && highlightedRef.current) {
@@ -225,6 +257,7 @@ function ColumnsRollTable({
 
   const handleRoll = () => {
     if (singleRoll && hasRolled) return
+    if (collapsible) setExpanded(true)
     setResult(null)
     setRollAnnouncement('')
     const colRoll = roll('1d20').total
@@ -256,9 +289,14 @@ function ColumnsRollTable({
       </div>
 
       <div className="rounded-card border-2 border-su-orange-light">
-        {showCommand && (
+        {showHeader && (
           <div className="flex items-center justify-between gap-2 bg-ink px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
-            <span>{tableName || 'Roll table'}</span>
+            <span className="inline-flex items-center gap-3">
+              {collapsible && (
+                <ExpandToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
+              )}
+              {tableName || 'Roll table'}
+            </span>
             {!disabled && (
               <span className="inline-flex items-center gap-2">
                 Roll the Die
@@ -283,85 +321,87 @@ function ColumnsRollTable({
           </div>
         )}
 
-        <div className="overflow-visible">
-          <table className="w-full border-collapse">
-            <caption className="sr-only">{tableName || 'Columns roll table'}</caption>
-            <thead>
-              <tr>
-                {COLUMN_KEYS.map((colKey) => (
-                  <th
-                    key={colKey}
-                    scope="col"
-                    className={cn(
-                      'text-left font-bold text-ink',
-                      compact ? 'px-2 py-1 text-lg' : 'px-3 py-2 text-2xl'
-                    )}
-                  >
-                    ({colKey.replace('-', ' - ')})
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {Array.from({ length: 20 }, (_, i) => {
-                const entryNum = (i + 1).toString()
-                return (
-                  <tr
-                    key={entryNum}
-                    className={cn(
-                      // Codex `.a-rt` alternating bands: tone tint / warm paper + row hairline.
-                      'border-b border-ink/10',
-                      i % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-paper'
-                    )}
-                  >
-                    {COLUMN_KEYS.map((colKey) => {
-                      const entry = getColumnEntry(tableData, colKey, entryNum)
-                      const isHighlighted =
-                        result?.columnKey === colKey && result?.entryKey === entryNum
+        {expanded && (
+          <div className="overflow-visible">
+            <table className="w-full border-collapse">
+              <caption className="sr-only">{tableName || 'Columns roll table'}</caption>
+              <thead>
+                <tr>
+                  {COLUMN_KEYS.map((colKey) => (
+                    <th
+                      key={colKey}
+                      scope="col"
+                      className={cn(
+                        'text-left font-bold text-ink',
+                        compact ? 'px-2 py-1 text-lg' : 'px-3 py-2 text-2xl'
+                      )}
+                    >
+                      ({colKey.replace('-', ' - ')})
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 20 }, (_, i) => {
+                  const entryNum = (i + 1).toString()
+                  return (
+                    <tr
+                      key={entryNum}
+                      className={cn(
+                        // Codex `.a-rt` alternating bands: tone tint / warm paper + row hairline.
+                        'border-b border-ink/10',
+                        i % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-paper'
+                      )}
+                    >
+                      {COLUMN_KEYS.map((colKey) => {
+                        const entry = getColumnEntry(tableData, colKey, entryNum)
+                        const isHighlighted =
+                          result?.columnKey === colKey && result?.entryKey === entryNum
 
-                      return (
-                        // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-selected marks the rolled result cell; restructuring the table to a grid role would change its announced semantics
-                        <td
-                          key={colKey + entryNum}
-                          ref={isHighlighted ? highlightedRef : null}
-                          className={cn(
-                            'relative text-left text-ink transition-all duration-200',
-                            compact ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-base',
-                            isHighlighted &&
-                              'z-[1] scale-[1.04] cursor-pointer outline-4 outline-ink shadow-[0_14px_40px_rgba(0,0,0,0.85)]'
-                          )}
-                          onClick={isHighlighted ? handleClear : undefined}
-                          onKeyDown={
-                            isHighlighted
-                              ? (e: React.KeyboardEvent) => {
-                                  if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault()
-                                    handleClear()
+                        return (
+                          // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-selected marks the rolled result cell; restructuring the table to a grid role would change its announced semantics
+                          <td
+                            key={colKey + entryNum}
+                            ref={isHighlighted ? highlightedRef : null}
+                            className={cn(
+                              'relative text-left text-ink transition-all duration-200',
+                              compact ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-base',
+                              isHighlighted &&
+                                'z-[1] scale-[1.04] cursor-pointer outline-4 outline-ink shadow-[0_14px_40px_rgba(0,0,0,0.85)]'
+                            )}
+                            onClick={isHighlighted ? handleClear : undefined}
+                            onKeyDown={
+                              isHighlighted
+                                ? (e: React.KeyboardEvent) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault()
+                                      handleClear()
+                                    }
                                   }
-                                }
-                              : undefined
-                          }
-                          aria-selected={isHighlighted || undefined}
-                          tabIndex={isHighlighted ? 0 : undefined}
-                        >
-                          <span className="font-bold">{entryNum}:</span> {entry?.value}
-                          {isHighlighted && (
-                            <ResultActionBar
-                              compact={compact}
-                              resultText={entry?.value ?? ''}
-                              onReroll={handleRoll}
-                              hideReroll={singleRoll}
-                            />
-                          )}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+                                : undefined
+                            }
+                            aria-selected={isHighlighted || undefined}
+                            tabIndex={isHighlighted ? 0 : undefined}
+                          >
+                            <span className="font-bold">{entryNum}:</span> {entry?.value}
+                            {isHighlighted && (
+                              <ResultActionBar
+                                compact={compact}
+                                resultText={entry?.value ?? ''}
+                                onReroll={handleRoll}
+                                hideReroll={singleRoll}
+                              />
+                            )}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -382,12 +422,15 @@ function StandardRollTable({
   tableName,
   singleRoll = false,
   onRollResult,
+  collapsible = false,
 }: RollTableDisplayProps) {
   const digestedTable = digestRollTable(table)
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null)
   const [hasRolled, setHasRolled] = useState(false)
   const [rollAnnouncement, setRollAnnouncement] = useState('')
+  const [expanded, setExpanded] = useState(!collapsible)
   const highlightedRowRef = useRef<HTMLTableRowElement>(null)
+  const showHeader = showCommand || collapsible
 
   useEffect(() => {
     if (highlightedKey && highlightedRowRef.current) {
@@ -397,6 +440,7 @@ function StandardRollTable({
 
   const handleRoll = () => {
     if (singleRoll && hasRolled) return
+    if (collapsible) setExpanded(true)
     setHighlightedKey(null)
     setRollAnnouncement('')
     const { key } = resultForTable(table as SURefObjectTable, roll('1d20').total)
@@ -427,9 +471,14 @@ function StandardRollTable({
       </div>
 
       <div className="overflow-visible rounded-card border-2 border-su-orange-light transition-opacity duration-200">
-        {showCommand && (
+        {showHeader && (
           <div className="flex items-center justify-between gap-2 bg-ink px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
-            <span>{tableName || 'Roll table'}</span>
+            <span className="inline-flex items-center gap-3">
+              {collapsible && (
+                <ExpandToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
+              )}
+              {tableName || 'Roll table'}
+            </span>
             {!disabled && (
               <span className="inline-flex items-center gap-2">
                 Roll the Die
@@ -453,86 +502,88 @@ function StandardRollTable({
             )}
           </div>
         )}
-        <table className="w-full border-collapse">
-          <caption className="sr-only">{tableName || 'Roll table'}</caption>
-          <thead className="sr-only">
-            <tr>
-              <th scope="col">Roll</th>
-              <th scope="col">Result</th>
-            </tr>
-          </thead>
-          <tbody>
-            {digestedTable.map(({ label, value, key }, index) => {
-              if (key === 'type') return null
-              const isHighlighted = highlightedKey === key
-              // Codex `.a-rt` alternating full-row bands: tone tint / warm paper.
-              const bgColor = index % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-paper'
+        {expanded && (
+          <table className="w-full border-collapse">
+            <caption className="sr-only">{tableName || 'Roll table'}</caption>
+            <thead className="sr-only">
+              <tr>
+                <th scope="col">Roll</th>
+                <th scope="col">Result</th>
+              </tr>
+            </thead>
+            <tbody>
+              {digestedTable.map(({ label, value, key }, index) => {
+                if (key === 'type') return null
+                const isHighlighted = highlightedKey === key
+                // Codex `.a-rt` alternating full-row bands: tone tint / warm paper.
+                const bgColor = index % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-paper'
 
-              return (
-                <tr
-                  ref={isHighlighted ? highlightedRowRef : null}
-                  key={key}
-                  aria-selected={isHighlighted || undefined}
-                  tabIndex={isHighlighted ? 0 : undefined}
-                  className={cn(
-                    'relative flex flex-row flex-wrap border-b border-ink/10 transition-all duration-200',
-                    bgColor,
-                    isHighlighted &&
-                      'z-[1] scale-[1.04] cursor-pointer shadow-[0_0_0_4px_rgba(0,0,0,0.9),0_14px_40px_rgba(0,0,0,0.85)]',
-                    compact ? 'gap-1' : 'gap-2'
-                  )}
-                  onClick={isHighlighted ? handleClearHighlight : undefined}
-                  onKeyDown={
-                    isHighlighted
-                      ? (e: React.KeyboardEvent) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            handleClearHighlight()
-                          }
-                        }
-                      : undefined
-                  }
-                >
-                  {isHighlighted && (
-                    <td className="contents">
-                      <ResultActionBar
-                        compact={compact}
-                        resultText={label ? `${label}: ${value}` : value}
-                        onReroll={handleRoll}
-                        hideReroll={singleRoll}
-                      />
-                    </td>
-                  )}
-                  <th
-                    scope="row"
+                return (
+                  <tr
+                    ref={isHighlighted ? highlightedRowRef : null}
+                    key={key}
+                    aria-selected={isHighlighted || undefined}
+                    tabIndex={isHighlighted ? 0 : undefined}
                     className={cn(
-                      // Codex `.a-rt .band`: fixed 52px roll column, centred, with a right hairline.
-                      'flex w-[52px] shrink-0 flex-col items-center justify-center self-stretch border-r border-ink/20 font-normal tabular-nums',
-                      compact ? 'py-1' : 'py-2'
+                      'relative flex flex-row flex-wrap border-b border-ink/10 transition-all duration-200',
+                      bgColor,
+                      isHighlighted &&
+                        'z-[1] scale-[1.04] cursor-pointer shadow-[0_0_0_4px_rgba(0,0,0,0.9),0_14px_40px_rgba(0,0,0,0.85)]',
+                      compact ? 'gap-1' : 'gap-2'
                     )}
+                    onClick={isHighlighted ? handleClearHighlight : undefined}
+                    onKeyDown={
+                      isHighlighted
+                        ? (e: React.KeyboardEvent) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              handleClearHighlight()
+                            }
+                          }
+                        : undefined
+                    }
                   >
-                    <Text
+                    {isHighlighted && (
+                      <td className="contents">
+                        <ResultActionBar
+                          compact={compact}
+                          resultText={label ? `${label}: ${value}` : value}
+                          onReroll={handleRoll}
+                          hideReroll={singleRoll}
+                        />
+                      </td>
+                    )}
+                    <th
+                      scope="row"
                       className={cn(
-                        'whitespace-nowrap text-center font-bold leading-none text-ink',
-                        compact ? 'text-sm' : 'text-lg'
+                        // Codex `.a-rt .band`: fixed 52px roll column, centred, with a right hairline.
+                        'flex w-[52px] shrink-0 flex-col items-center justify-center self-stretch border-r border-ink/20 font-normal tabular-nums',
+                        compact ? 'py-1' : 'py-2'
                       )}
                     >
-                      {key}
-                    </Text>
-                  </th>
-                  <td
-                    className={cn(
-                      'flex flex-[4] flex-row flex-wrap items-center',
-                      compact ? 'py-0.5' : 'py-1'
-                    )}
-                  >
-                    <RollTableDescription label={label} value={value} compact={compact} />
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                      <Text
+                        className={cn(
+                          'whitespace-nowrap text-center font-bold leading-none text-ink',
+                          compact ? 'text-sm' : 'text-lg'
+                        )}
+                      >
+                        {key}
+                      </Text>
+                    </th>
+                    <td
+                      className={cn(
+                        'flex flex-[4] flex-row flex-wrap items-center',
+                        compact ? 'py-0.5' : 'py-1'
+                      )}
+                    >
+                      <RollTableDescription label={label} value={value} compact={compact} />
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   )

@@ -113,6 +113,13 @@ export const CHASSIS_BUNDLE: readonly string[] = [
   ...ALWAYS_CORE,
 ]
 
+/** `crawler-bays` — the Armament Bay's Weapons System choice is a schema-only
+ *  catalog resolved at render time (`resolveCatalogChoiceEntities`): it reads
+ *  the whole `systems` collection and filters by referenced-action damage type
+ *  (`actions`). The resolver runs even for the collapsed listing (to count the
+ *  options), so both schemas must be loaded whenever a bay renders. */
+export const CRAWLER_BAY_BUNDLE: readonly string[] = ['systems', 'actions', ...ALWAYS_CORE]
+
 /** Schemas whose entities are data-driven, arbitrary cross-references into
  *  any other schema (guide steps) — not safely narrowable. */
 const ARBITRARY_SCHEMAS: ReadonlySet<string> = new Set(['guides'])
@@ -133,8 +140,9 @@ const SCHEMA_PRELOAD_DEPS: Readonly<Record<string, readonly string[]>> = {
   squads: CONTENT_BUNDLE,
   systems: CONTENT_BUNDLE,
   vehicles: CONTENT_BUNDLE,
+  // crawler-bays: resolves a Weapons System catalog (systems + actions).
+  'crawler-bays': CRAWLER_BAY_BUNDLE,
   // Leaf schemas: ALWAYS_CORE only (see file header).
-  'crawler-bays': ALWAYS_CORE,
   'crawler-tech-levels': ALWAYS_CORE,
   distances: ALWAYS_CORE,
   keywords: ALWAYS_CORE,

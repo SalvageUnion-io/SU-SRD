@@ -681,6 +681,11 @@
     "choices": [
       {
         "id": "6a3f61f2-950c-4fc6-b3ee-07ad6817aad6",
+        "source": {
+          "kind": "table",
+          "rollTable": "A.I. Personality",
+          "orChooseOwn": true
+        },
         "name": "A.I. Personality",
         "choiceType": "permanent",
         "rollTable": "A.I. Personality",
@@ -739,6 +744,9 @@
     "choices": [
       {
         "id": "e4c7a1d3-9f28-4b6e-8a15-3d7c2e9f0b1a",
+        "source": {
+          "kind": "text"
+        },
         "name": "Name",
         "choiceType": "freeform",
         "content": [
@@ -750,6 +758,11 @@
       },
       {
         "id": "a2a51b8e-c63d-4665-a4eb-19eefed59c2d",
+        "source": {
+          "kind": "table",
+          "rollTable": "A.I. Personality",
+          "orChooseOwn": true
+        },
         "name": "A.I. Personality",
         "choiceType": "permanent",
         "rollTable": "A.I. Personality",
@@ -769,6 +782,11 @@
     "choices": [
       {
         "id": "8568b4f0-808e-4398-b20c-009c4d429da0",
+        "source": {
+          "kind": "table",
+          "rollTable": "A.I. Personality",
+          "orChooseOwn": true
+        },
         "name": "A.I. Personality",
         "choiceType": "permanent",
         "rollTable": "A.I. Personality",
@@ -781,6 +799,44 @@
       },
       {
         "id": "c05fd7f4-cd5a-4c0d-8518-3566cece416d",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Choose your Automated Turret from the following turret types."
+          }
+        ],
+        "source": {
+          "kind": "systemVariant",
+          "options": [
+            {
+              "name": "Automated Machine Gun Turret",
+              "techLevel": 4,
+              "slotsRequired": 5,
+              "salvageValue": 2,
+              "actions": [
+                "Automated Machine Gun Turret"
+              ]
+            },
+            {
+              "name": "Automated Green Laser Turret",
+              "techLevel": 4,
+              "slotsRequired": 9,
+              "salvageValue": 4,
+              "actions": [
+                "Automated Green Laser Turret"
+              ]
+            },
+            {
+              "name": "Automated 120mm Cannon Turret",
+              "techLevel": 4,
+              "slotsRequired": 7,
+              "salvageValue": 3,
+              "actions": [
+                "Automated 120mm Cannon Turret"
+              ]
+            }
+          ]
+        },
         "name": "Turret Model",
         "choiceType": "permanent",
         "customSystemOptions": [
@@ -1196,6 +1252,23 @@
     "choices": [
       {
         "id": "0cbc2a80-bf97-4acb-ad26-9e2f8f5ed0d7",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Choose your integrated optics — Thermal Optics, Zoom Optics, or IR Night Vision Optics. You gain all of the chosen Module’s Abilities, spending AP instead of EP to use them."
+          }
+        ],
+        "source": {
+          "kind": "catalog",
+          "schema": [
+            "modules"
+          ],
+          "entities": [
+            "Thermal Optics",
+            "Zoom Optics",
+            "IR Night Vision Optics"
+          ]
+        },
         "name": "Bionic Senses",
         "choiceType": "permanent",
         "schemaEntities": ["Thermal Optics", "Zoom Optics", "IR Night Vision Optics"],
@@ -1271,6 +1344,24 @@
     "choices": [
       {
         "id": "64c7bec9-fe16-4c57-af5c-5441e6fc961d",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Choose which Black Market Modules your Union Crawler can access. You may purchase them for Scrap equal to their Salvage Value at their Tech Level or higher."
+          }
+        ],
+        "source": {
+          "kind": "catalog",
+          "schema": [
+            "modules"
+          ],
+          "entities": [
+            "Goflow Plant Growing System",
+            "Corrupted Neuralink Module"
+          ],
+          "reveals": true
+        },
+        "lifetime": "session",
         "name": "Black Market Modules",
         "choiceType": "session",
         "schema": ["modules"],
@@ -1279,6 +1370,24 @@
       },
       {
         "id": "ae51286a-64c8-416f-a052-81ef0869d4cc",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Choose which Black Market Systems your Union Crawler can access. You may purchase them for Scrap equal to their Salvage Value at their Tech Level or higher."
+          }
+        ],
+        "source": {
+          "kind": "catalog",
+          "schema": [
+            "systems"
+          ],
+          "entities": [
+            "Napalm Launcher",
+            "Rad Wave Generator"
+          ],
+          "reveals": true
+        },
+        "lifetime": "session",
         "name": "Black Market Systems",
         "choiceType": "session",
         "schema": ["systems"],
@@ -1287,6 +1396,23 @@
       },
       {
         "id": "3df10ce5-ef5d-44a5-8a64-949a6e56bed6",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Choose which Black Market Pilot Equipment your Union Crawler can access. You may purchase them for Scrap equal to their Salvage Value at their Tech Level or higher."
+          }
+        ],
+        "source": {
+          "kind": "catalog",
+          "schema": [
+            "equipment"
+          ],
+          "entities": [
+            "Blinding Blue Laser Rifle"
+          ],
+          "reveals": true
+        },
+        "lifetime": "session",
         "name": "Black Market Pilot Equipment",
         "choiceType": "session",
         "schema": ["equipment"],
@@ -2064,6 +2190,23 @@
       {
         "schema": ["chassis"],
         "id": "8286393e-daf8-4a1d-8b91-dd8457da6251",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Choose any Tech 3 or 4 Mech, or any corpo design of your choice, for your Mech’s skin to appear as."
+          }
+        ],
+        "source": {
+          "kind": "catalog",
+          "schema": [
+            "chassis"
+          ],
+          "filter": {
+            "field": "techLevel",
+            "min": 3,
+            "max": 4
+          }
+        },
         "name": "Chassis Choice",
         "choiceType": "permanent",
         "constraints": {
@@ -2204,7 +2347,9 @@
           {
             "label": "Damage",
             "type": "keyword",
-            "value": 3
+            "value": 3,
+            "perTechLevel": 1,
+            "unit": "SP"
           },
           {
             "label": "Range",
@@ -2225,50 +2370,6 @@
             "type": "trait"
           }
         ]
-      },
-      {
-        "type": "paragraph",
-        "value": "At each Tech Level you may choose an additional modification for your Custom Missile Launcher."
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Missile increases its Range to Long.",
-        "label": "Rangefinder"
-      },
-      {
-        "type": "list-item",
-        "value": "You may spend 2 AP to automatically hit with the Custom Missile Launcher. This attack counts as having the [[Targeter]] Trait.",
-        "label": "Laser Guidance"
-      },
-      {
-        "type": "list-item",
-        "value": "You may spend 1 AP to give the Custom Missile Launcher the [[Guided]] Trait for the next attack. This attack counts as having the [[Targeter]] Trait.",
-        "label": "A.I. Tracking"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Missile Launcher gains the Anti-Organic and [[[Burn] (1)]] Trait.",
-        "label": "Napalm Rounds"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Missile Launcher gains the [[[Explosive] (2)]] Trait.",
-        "label": "Bigger Boom"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Missile Launcher gains the [[Flashy]] Trait.",
-        "label": "Flashy"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Missile Launcher deals an additional 1 SP damage.",
-        "label": "Expanded Warhead"
-      },
-      {
-        "type": "list-item",
-        "value": "The Custom Missile Launcher loses the [[Heavy]] Trait.",
-        "label": "Portable"
       },
       {
         "type": "paragraph",
@@ -2304,7 +2405,9 @@
           {
             "label": "Damage",
             "type": "keyword",
-            "value": 2
+            "value": 2,
+            "perTechLevel": 1,
+            "unit": "SP"
           },
           {
             "label": "Range",
@@ -4036,6 +4139,9 @@
       {
         "name": "Name",
         "id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+        "source": {
+          "kind": "text"
+        },
         "choiceType": "freeform",
         "content": [
           {
@@ -4046,6 +4152,11 @@
       },
       {
         "id": "f2ab850e-d3fe-4fb1-80c4-c1f413e5c74b",
+        "source": {
+          "kind": "table",
+          "rollTable": "A.I. Personality",
+          "orChooseOwn": true
+        },
         "name": "A.I. Personality",
         "choiceType": "permanent",
         "rollTable": "A.I. Personality",
@@ -4254,6 +4365,12 @@
     "choices": [
       {
         "id": "49dbf700-b4b4-4718-8847-5f24dbf033a2",
+        "source": {
+          "kind": "catalog",
+          "schema": [
+            "systems"
+          ]
+        },
         "name": "Additional Armament Bay Weapons System",
         "choiceType": "permanent",
         "schema": ["systems"],
@@ -4456,6 +4573,23 @@
         "choiceType": "permanent",
         "schema": ["chassis"],
         "id": "ed8cb1b3-3b38-4c92-9f0c-2638356edfc7",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Choose any Tech 1 or 2 Mech, or any design of your choice, for your Mech’s skin to appear as."
+          }
+        ],
+        "source": {
+          "kind": "catalog",
+          "schema": [
+            "chassis"
+          ],
+          "filter": {
+            "field": "techLevel",
+            "min": 1,
+            "max": 2
+          }
+        },
         "constraints": {
           "field": "techLevel",
           "min": 1,
@@ -5415,6 +5549,10 @@
       {
         "name": "Melee Weapon",
         "id": "1d0f3be8-3cf9-4c3a-a6d1-d2f221b02832",
+        "source": {
+          "kind": "text",
+          "multiline": true
+        },
         "choiceType": "freeform",
         "content": [
           {
@@ -5556,6 +5694,11 @@
     "choices": [
       {
         "id": "b8fac677-1a43-4b66-8fe7-37916e91b0f8",
+        "source": {
+          "kind": "table",
+          "rollTable": "A.I. Personality",
+          "orChooseOwn": true
+        },
         "name": "A.I. Personality",
         "choiceType": "permanent",
         "rollTable": "A.I. Personality",
@@ -8513,6 +8656,11 @@
     "choices": [
       {
         "id": "fb497067-ac0a-489b-bdf1-237c4515777f",
+        "source": {
+          "kind": "table",
+          "rollTable": "A.I. Personality",
+          "orChooseOwn": true
+        },
         "name": "A.I. Personality",
         "choiceType": "permanent",
         "rollTable": "A.I. Personality",

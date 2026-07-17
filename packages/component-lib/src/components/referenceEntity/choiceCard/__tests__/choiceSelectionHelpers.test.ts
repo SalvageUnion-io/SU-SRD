@@ -2,6 +2,7 @@ import { describe, test, expect } from 'bun:test'
 import type { SURefObjectChoice } from 'salvageunion-reference'
 import {
   getChoiceCardOptions,
+  getChoiceSourceKind,
   isFreeTextChoice,
   isMultiSelectChoice,
   resolveMultiSelectCap,
@@ -104,5 +105,93 @@ describe('toggleSelection', () => {
   })
   test('multi-select: still allows deselect at cap', () => {
     expect(toggleSelection(['a'], 'a', true, 1)).toEqual([])
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Unified `source` model (choice-plan Stage 7) — the discriminant the renderer
+// switches on. The headline fix: a table choice (A.I. Personality) is NOT
+// free-text, so it stops rendering as a bare input.
+// ---------------------------------------------------------------------------
+describe('getChoiceSourceKind — the discriminated source', () => {
+  const bySource = (source: SURefObjectChoice['source']): SURefObjectChoice => ({
+    id: 'x',
+    name: 'X',
+    source,
+  })
+
+  test('reads source.kind when present', () => {
+    expect(getChoiceSourceKind(bySource({ kind: 'text' }))).toBe('text')
+    expect(getChoiceSourceKind(bySource({ kind: 'table', rollTable: 'A.I. Personality' }))).toBe(
+      'table'
+    )
+    expect(getChoiceSourceKind(bySource({ kind: 'options', options: [] }))).toBe('options')
+    expect(getChoiceSourceKind(bySource({ kind: 'catalog', schema: ['systems'] }))).toBe('catalog')
+    expect(getChoiceSourceKind(bySource({ kind: 'systemVariant', options: [] }))).toBe(
+      'systemVariant'
+    )
+  })
+
+  test('a table choice is NOT free-text (the A.I. Personality bug fix)', () => {
+    const aiPersonality = bySource({ kind: 'table', rollTable: 'A.I. Personality' })
+    expect(isFreeTextChoice(aiPersonality)).toBe(false)
+    expect(getChoiceSourceKind(aiPersonality)).toBe('table')
+  })
+
+  test('falls back to legacy fields when source is absent', () => {
+    expect(getChoiceSourceKind({ id: 'n', name: 'Name', choiceType: 'freeform' })).toBe('text')
+    expect(getChoiceSourceKind({ id: 't', name: 'AI', rollTable: 'A.I. Personality' })).toBe(
+      'table'
+    )
+  })
+})
+
+describe('source-aware options + cardinality', () => {
+  test('getChoiceCardOptions reads source.options', () => {
+    const choice: SURefObjectChoice = {
+      id: 'mod',
+      name: 'Modification',
+      source: {
+        kind: 'options',
+        options: [{ label: 'Rangefinder', value: 'Rangefinder', description: 'Range → Far' }],
+      },
+    }
+    expect(getChoiceCardOptions(choice)).toEqual([
+      { value: 'Rangefinder', label: 'Rangefinder', description: 'Range → Far' },
+    ])
+  })
+
+  test('getChoiceCardOptions reads catalog entities', () => {
+    const choice: SURefObjectChoice = {
+      id: 'wt',
+      name: 'Weapon Type',
+      source: { kind: 'catalog', schema: ['traits'], entities: ['Ballistic', 'Energy'] },
+    }
+    expect(getChoiceCardOptions(choice)).toEqual([
+      { value: 'Ballistic', label: 'Ballistic', schema: 'traits' },
+      { value: 'Energy', label: 'Energy', schema: 'traits' },
+    ])
+  })
+
+  test('cardinality.scalesWith → multi-select, cap resolved on parent', () => {
+    const choice: SURefObjectChoice = {
+      id: 'mod',
+      name: 'Modification',
+      source: { kind: 'options', options: [] },
+      cardinality: { min: 0, max: { scalesWith: 'techLevel' } },
+    }
+    expect(isMultiSelectChoice(choice)).toBe(true)
+    expect(resolveMultiSelectCap(choice, { techLevel: 3 })).toBe(3)
+  })
+
+  test('cardinality max:1 is single-select with no cap', () => {
+    const choice: SURefObjectChoice = {
+      id: 'wt',
+      name: 'Weapon Type',
+      source: { kind: 'catalog', schema: ['traits'], entities: ['Ballistic', 'Energy'] },
+      cardinality: { min: 1, max: 1 },
+    }
+    expect(isMultiSelectChoice(choice)).toBe(false)
+    expect(resolveMultiSelectCap(choice, undefined)).toBeUndefined()
   })
 })

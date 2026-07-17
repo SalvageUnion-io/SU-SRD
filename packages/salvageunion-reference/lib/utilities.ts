@@ -820,119 +820,62 @@ export function filterActionsExcludingName(
  * @param entity - The entity to extract activation cost from
  * @returns The activation cost or undefined if not present
  */
-export function getActivationCost(entity: SURefMetaEntity): number | string | undefined {
-  // Check base level first
-  if (
-    'activationCost' in entity &&
-    (typeof entity.activationCost === 'number' || typeof entity.activationCost === 'string')
-  ) {
-    return entity.activationCost
+/**
+ * Resolve a facet field from an entity, falling back to its self-action.
+ * The combat facets (activationCost/actionType/range/damage) live only on
+ * actions in the data; the entity-level view is derived here. One helper
+ * replaces four byte-identical getters (each of whose entity-first branch is
+ * dead for every entity in the repo — kept only for a raw action passed in).
+ */
+function selfActionField<T>(
+  entity: SURefMetaEntity,
+  key: string,
+  valid: (v: unknown) => v is T
+): T | undefined {
+  const ev = (entity as Record<string, unknown>)[key]
+  if (key in entity && valid(ev)) {
+    return ev
   }
-
-  // Check action property (only if action name matches entity name)
   const matchingAction = findMatchingAction(entity)
-  if (
-    matchingAction !== undefined &&
-    matchingAction !== null &&
-    typeof matchingAction === 'object' &&
-    'activationCost' in matchingAction &&
-    (typeof matchingAction.activationCost === 'number' ||
-      typeof matchingAction.activationCost === 'string')
-  ) {
-    return matchingAction.activationCost
+  if (matchingAction && typeof matchingAction === 'object') {
+    const av = (matchingAction as Record<string, unknown>)[key]
+    if (key in matchingAction && valid(av)) {
+      return av
+    }
   }
-
   return undefined
 }
 
+const isNumberOrString = (v: unknown): v is number | string =>
+  typeof v === 'number' || typeof v === 'string'
+const isString = (v: unknown): v is string => typeof v === 'string'
+const isStringArray = (v: unknown): v is string[] => Array.isArray(v)
+type DamageValue = { damageType: string; amount: number | string }
+const isDamage = (v: unknown): v is DamageValue => v !== null && typeof v === 'object'
+
+export function getActivationCost(entity: SURefMetaEntity): number | string | undefined {
+  return selfActionField(entity, 'activationCost', isNumberOrString)
+}
+
 /**
- * Get action type from an entity
- * Checks base level first, then action if action name matches entity name
- * @param entity - The entity to extract action type from
- * @returns The action type or undefined if not present
+ * Get action type from an entity (self-action fallback).
  */
 export function getActionType(entity: SURefMetaEntity): string | undefined {
-  // Check base level first
-  if ('actionType' in entity && typeof entity.actionType === 'string') {
-    return entity.actionType
-  }
-
-  // Check action property (only if action name matches entity name)
-  const matchingAction = findMatchingAction(entity)
-  if (
-    matchingAction !== undefined &&
-    matchingAction !== null &&
-    typeof matchingAction === 'object' &&
-    'actionType' in matchingAction &&
-    typeof matchingAction.actionType === 'string'
-  ) {
-    return matchingAction.actionType
-  }
-
-  return undefined
+  return selfActionField(entity, 'actionType', isString)
 }
 
 /**
- * Get range from an entity
- * Checks base level first, then action if action name matches entity name
- * @param entity - The entity to extract range from
- * @returns The range array or undefined if not present
+ * Get range from an entity (self-action fallback).
  */
 export function getRange(entity: SURefMetaEntity): string[] | undefined {
-  // Check base level first
-  if ('range' in entity && Array.isArray(entity.range)) {
-    return entity.range
-  }
-
-  // Check action property (only if action name matches entity name)
-  const matchingAction = findMatchingAction(entity)
-  if (
-    matchingAction !== undefined &&
-    matchingAction !== null &&
-    typeof matchingAction === 'object' &&
-    'range' in matchingAction &&
-    Array.isArray(matchingAction.range)
-  ) {
-    return matchingAction.range
-  }
-
-  return undefined
+  return selfActionField(entity, 'range', isStringArray)
 }
 
 /**
- * Get damage from an entity
- * Checks base level first, then action if action name matches entity name
- * @param entity - The entity to extract damage from
- * @returns The damage object or undefined if not present
+ * Get damage from an entity (self-action fallback).
  */
-export function getDamage(entity: SURefMetaEntity):
-  | {
-      damageType: string
-      amount: number | string
-    }
-  | undefined {
-  // Check base level first
-  if ('damage' in entity && entity.damage !== null && typeof entity.damage === 'object') {
-    return entity.damage as { damageType: string; amount: number | string }
-  }
-
-  // Check action property (only if action name matches entity name)
-  const matchingAction = findMatchingAction(entity)
-  if (
-    matchingAction !== undefined &&
-    matchingAction !== null &&
-    typeof matchingAction === 'object' &&
-    'damage' in matchingAction &&
-    matchingAction.damage !== null &&
-    typeof matchingAction.damage === 'object'
-  ) {
-    return matchingAction.damage as {
-      damageType: string
-      amount: number | string
-    }
-  }
-
-  return undefined
+export function getDamage(entity: SURefMetaEntity): DamageValue | undefined {
+  return selfActionField(entity, 'damage', isDamage)
 }
 
 /**

@@ -3,8 +3,8 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
 import { Pill, TreeSep } from 'component-lib'
 import { matchesRef } from '../../lib/rules/resolveRefs'
-import { SelCard } from '../wizard/SelCard'
-import { SelMasonry } from '../wizard/SelMasonry'
+import { SelCard } from 'component-lib'
+import { SelMasonry } from 'component-lib'
 
 type CraftItemsStepProps = {
   /** Which dataset this step crafts from (against its own slot budget). */

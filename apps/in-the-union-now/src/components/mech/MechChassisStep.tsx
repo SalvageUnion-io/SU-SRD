@@ -8,8 +8,8 @@ import {
 } from 'salvageunion-reference/rules'
 import { Sel, TreeSep, useChassisPatternConfig } from 'component-lib'
 import { matchesRef } from '../../lib/rules/resolveRefs'
-import { SelCard } from '../wizard/SelCard'
-import { SelMasonry } from '../wizard/SelMasonry'
+import { SelCard } from 'component-lib'
+import { SelMasonry } from 'component-lib'
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
 export type ChassisPattern = SURefChassis['patterns'][number]

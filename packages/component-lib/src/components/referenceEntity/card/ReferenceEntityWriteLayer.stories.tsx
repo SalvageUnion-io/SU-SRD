@@ -39,8 +39,8 @@ const choiceEquip = pick(
   (e) => e.name === 'Custom Sniper Rifle',
   'choice equipment'
 )
-// Auto-Turret carries BOTH a freeform choice (Name → sub-header) and a
-// multiple-choice one (A.I. Personality, a rollTable → inline in the body).
+// Auto-Turret carries BOTH a freeform choice (Name) and a table choice (A.I.
+// Personality, a rollTable) — both now render INLINE in the body (Stage 7).
 const freeformEquip = pick(
   SalvageUnionReference.Equipment.all(),
   (e) => e.name === 'Auto-Turret',
@@ -138,10 +138,10 @@ export const EditableStats: Story = () => {
 }
 
 /**
- * CHOICE-GRANTING equipment: in editable mode (`onSelectionChange` present) the
- * read-only sub-header choice slots are dropped and the real interactive
- * `ChoiceGroups` render in the body. The read-only column keeps the sub-header
- * slots exactly as today.
+ * CHOICE-GRANTING equipment (Custom Sniper Rifle): the Weapon Type and
+ * Modification choices render inline in the body in BOTH modes — read-only shows
+ * every option solid (readable), editable makes them selectable (dim-until-chosen
+ * + a "Chosen" stampseal, with the Modification cap counter).
  */
 export const ChoiceEquipment: Story = () => {
   const [selections, setSelections] = useState<ChoiceSelections>({})
@@ -163,13 +163,15 @@ export const ChoiceEquipment: Story = () => {
 }
 
 /**
- * FREEFORM vs MULTIPLE-CHOICE placement (Auto-Turret). A freeform choice (Name)
- * is a simple text input: READ-ONLY it surfaces as a `Choose | Name` sub-header
- * cell, never a body block. The multiple-choice A.I. Personality (a rollTable)
- * renders inline in the body. EDITABLE moves the freeform Name into the body as
- * a real text input alongside the interactive personality picker.
+ * EVERYTHING INLINE (Auto-Turret, Stage 7). Both choices render in the body, at
+ * their prose, in BOTH modes — nothing is hoisted to the sub-header:
+ *  · Name (source.kind 'text') → a free-text field (read-only shows the value).
+ *  · A.I. Personality (source.kind 'table') → its prose + an expandable
+ *    "A.I. Personality Table" (a real RollTable with a Roll control), NOT the old
+ *    bare text box that cited a table it never showed.
+ * The sub-header keeps only the facet hoist (traits) — no "Choose | Name" cell.
  */
-export const FreeformChoices: Story = () => {
+export const InlineChoices: Story = () => {
   const [selections, setSelections] = useState<ChoiceSelections>({})
   return (
     <TwoUp

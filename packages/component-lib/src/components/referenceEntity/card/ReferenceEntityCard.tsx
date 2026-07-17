@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { useMemo, useState } from 'react'
 import type {
   SURefEntity,
   SURefEnumSchemaName,
@@ -28,7 +29,12 @@ import {
   resolveDataValueForTechLevel,
   resolveGrantedEntities,
 } from 'salvageunion-reference'
+import {
+  isSchemaOnlyCatalogChoice,
+  resolveCatalogChoiceEntities,
+} from 'salvageunion-reference/rules'
 import { cn } from '../../../utils/cn'
+import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { EntityStatus } from '../../shared/entityStatus'
 import { FOCUS_RING, activateOnKey } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
@@ -44,6 +50,7 @@ import type { StatItem } from '../../shared/statsBarTypes'
 import { Content } from '../Content'
 import { ChoiceGroups } from '../choiceCard/ChoiceGroups'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
+import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
 import type { ReferenceEntityControl } from '../ReferenceEntityDisplay/referenceEntityControlTypes'
 import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { buildReferenceEntityStats } from '../ReferenceEntityDisplay/referenceEntityStatsConfig'
@@ -51,6 +58,7 @@ import { EntityCardHeader } from './EntityCardHeader'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
 import { EntityCardSubHeader } from './EntityCardSubHeader'
 import type { EntityCardSubHeaderCell } from './EntityCardSubHeader'
+import { resolveFoldedAction } from './resolveFoldedAction'
 import {
   abbreviateStat,
   ghostActionTone,
@@ -254,26 +262,26 @@ function actionCells(action: ActionFields): EntityCardSubHeaderCell[] {
   return cells
 }
 
-/** `bonusPerTechLevel` fields → "+N" cells (zeros/absent dropped). Labels are
- * size-aware: [field, FULL label (non-compact), ABBR label (compact)]. */
+/** `bonusPerTechLevel` fields → "+N" vertical stat boxes (zeros/absent dropped).
+ * The label splits top/bottom around the value: [field, TOP word, BOTTOM word]
+ * (e.g. "Structure" / "Points"), the same two-line treatment as "Tech" / "Level". */
 const BONUS_LABELS: [keyof SURefObjectBonusPerTechLevel, string, string][] = [
-  ['structurePoints', 'Structure Points', 'Structure'],
-  ['energyPoints', 'Energy Points', 'Energy'],
-  ['heatCapacity', 'Heat Capacity', 'Heat'],
-  ['systemSlots', 'System Slots', 'System'],
-  ['moduleSlots', 'Module Slots', 'Module'],
-  ['cargoCapacity', 'Cargo Capacity', 'Cargo'],
-  ['salvageValue', 'Salvage Value', 'Salvage'],
+  ['structurePoints', 'Structure', 'Points'],
+  ['energyPoints', 'Energy', 'Points'],
+  ['heatCapacity', 'Heat', 'Capacity'],
+  ['systemSlots', 'System', 'Slots'],
+  ['moduleSlots', 'Module', 'Slots'],
+  ['cargoCapacity', 'Cargo', 'Capacity'],
+  ['salvageValue', 'Salvage', 'Value'],
 ]
 
-function bonusCells(
-  bonus: SURefObjectBonusPerTechLevel,
-  compact: boolean
-): EntityCardSubHeaderCell[] {
-  return BONUS_LABELS.flatMap(([field, full, abbr]) => {
+type BonusCell = { key: string; label: string; bottomLabel: string; value: string }
+
+function bonusCells(bonus: SURefObjectBonusPerTechLevel): BonusCell[] {
+  return BONUS_LABELS.flatMap(([field, top, bottom]) => {
     const amount = bonus[field]
     return typeof amount === 'number' && amount !== 0
-      ? [{ key: `bonus-${field}`, label: compact ? abbr : full, value: `+${amount}` }]
+      ? [{ key: `bonus-${field}`, label: top, bottomLabel: bottom, value: `+${amount}` }]
       : []
   })
 }
@@ -282,6 +290,141 @@ function bonusCells(
 function firstParagraphText(content: SURefObjectContentBlock[] | undefined): string | undefined {
   const paragraph = content?.find((block) => block?.type === 'paragraph')
   return paragraph ? parseContentBlockString(paragraph) : undefined
+}
+
+/**
+ * A SCHEMA-ONLY catalog choice — "pick any entity from the collection" (the
+ * Armament Bay's Weapons System = any Mech System dealing SP damage). Two faces:
+ *
+ * - **Editable** launches the shared `CatalogChoiceModal` (search + facets +
+ *   rail) via a "Choose…" button, and shows the current pick as a real listing
+ *   card. Single-select — the modal owns the pool (filtered to the catalog).
+ * - **Read-only** is a static reference: an expandable listing of the qualifying
+ *   entities, each a real `ReferenceEntityCard` (listing/header-only).
+ *
+ * The collection is resolved LAZILY — only when the picker/listing is opened —
+ * so the default render touches no cross-schema collection (the target schema,
+ * e.g. `systems`/`chassis`, need not be preloaded to show a bay/system).
+ * Resolution is guarded: an unloaded target schema resolves to empty, never a
+ * throw.
+ */
+function CatalogChoiceListing({
+  choice,
+  techLevel,
+  depth,
+  hostTone,
+  chassisName,
+  selections,
+  onSelectionChange,
+}: {
+  choice: SURefObjectChoice
+  techLevel?: number
+  depth: number
+  hostTone?: string
+  chassisName?: string
+  selections?: ChoiceSelections
+  onSelectionChange?: (selections: ChoiceSelections) => void
+}): ReactNode {
+  const [open, setOpen] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+  const editable = !!onSelectionChange
+  const chosen = selections?.[choice.id]?.[0]
+  // The choice owns its prompt prose (the content data owns the prose).
+  const prompt = firstParagraphText(choice.content)
+
+  // The chosen entity (editable), resolved on demand and guarded — shown as a
+  // real listing card so the pick reads like every other entity on the sheet.
+  const chosenEntity = useMemo(() => {
+    if (!chosen) return undefined
+    try {
+      return resolveCatalogChoiceEntities(
+        choice,
+        typeof techLevel === 'number' ? { techLevel } : undefined
+      ).find((e) => e.name === chosen) as unknown as SURefEntity | undefined
+    } catch {
+      return undefined
+    }
+  }, [choice, chosen, techLevel])
+
+  // EDITABLE — the modal picker (launched by a button), plus the current pick.
+  if (editable) {
+    return (
+      <div className="flex flex-col gap-1.5">
+        {prompt && <p className="font-body text-xs text-ink/70">{prompt}</p>}
+        {chosenEntity && (
+          <ReferenceEntityCard
+            size="listing"
+            depth={depth + 1}
+            data={chosenEntity}
+            hostTone={hostTone}
+            chassisName={chassisName}
+          />
+        )}
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          className="w-fit rounded-badge border-2 border-rust bg-rust px-3 py-1 font-cond text-badge font-bold uppercase tracking-caps-tight text-paper hover:border-rust-hi hover:bg-rust-hi"
+        >
+          {chosen ? `Change — ${chosen}` : `Choose ${choice.name}…`}
+        </button>
+        <CatalogChoiceModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          choice={choice}
+          techLevel={techLevel}
+          selected={selections?.[choice.id] ?? []}
+          onSelect={(values) => onSelectionChange?.({ ...(selections ?? {}), [choice.id]: values })}
+        />
+      </div>
+    )
+  }
+
+  // READ-ONLY — a static reference listing, resolved lazily on expand.
+  let entities: SURefEntity[] = []
+  if (open) {
+    try {
+      entities = resolveCatalogChoiceEntities(
+        choice,
+        typeof techLevel === 'number' ? { techLevel } : undefined
+      ) as unknown as SURefEntity[]
+    } catch {
+      entities = []
+    }
+  }
+  const summary = chosen ? `${choice.name}: ${chosen}` : choice.name
+  return (
+    <div className="flex flex-col gap-1.5">
+      {prompt && <p className="font-body text-xs text-ink/70">{prompt}</p>}
+      <details
+        open={open}
+        onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
+        className="text-xs"
+      >
+        <summary className="cursor-pointer font-cond uppercase leading-none tracking-caps-tight text-ink/70">
+          {summary}
+        </summary>
+        {open && (
+          <div className="mt-2 flex flex-col gap-1.5">
+            {entities.map((entity, index) => {
+              const name = typeof entity.name === 'string' ? entity.name : ''
+              const key =
+                'id' in entity && typeof entity.id === 'string' ? entity.id : `${name}-${index}`
+              return (
+                <ReferenceEntityCard
+                  key={key}
+                  size="listing"
+                  depth={depth + 1}
+                  data={entity}
+                  hostTone={hostTone}
+                  chassisName={chassisName}
+                />
+              )
+            })}
+          </div>
+        )}
+      </details>
+    </div>
+  )
 }
 
 /**
@@ -422,13 +565,23 @@ export function ReferenceEntityCard({
   // A `perTechLevel` map (datavalue label → per-level increment) from the entity's
   // OWN datavalues, so a scaled value is highlighted as "modified" (rust).
   const perTechLevelByLabel = new Map<string, number>()
+  // A datavalue that scales per Tech Level (e.g. Custom Sniper/Missile Damage
+  // "+1 SP per Tech Level") is ALSO a Bonus-per-Tech-Level box (label / +N / unit).
+  const dataValueBonuses: BonusCell[] = []
   for (const block of 'content' in entity
     ? ((entity.content ?? []) as SURefObjectContentBlock[])
     : []) {
     if (Array.isArray(block.value)) {
       for (const dv of block.value) {
         if (typeof dv.perTechLevel === 'number' && dv.label != null) {
-          perTechLevelByLabel.set(String(dv.label).toLowerCase(), dv.perTechLevel)
+          const label = String(dv.label)
+          perTechLevelByLabel.set(label.toLowerCase(), dv.perTechLevel)
+          dataValueBonuses.push({
+            key: `dvbonus-${label.toLowerCase()}`,
+            label,
+            bottomLabel: typeof dv.unit === 'string' ? dv.unit : '',
+            value: `+${dv.perTechLevel}`,
+          })
         }
       }
     }
@@ -495,7 +648,10 @@ export function ReferenceEntityCard({
     !(isAbility(entity) && resolveGrantedEntities(entity as SURefEntity).length > 0)
       ? (extractVisibleActions(entity) ?? []).filter((a) => !isTitanicAction(a))
       : []
-  const foldedAction = foldableActions.length === 1 ? foldableActions[0] : undefined
+  // Fold the SELF-action (same-named) regardless of the entity's action count;
+  // otherwise a lone action still folds its facets. Siblings render as their own
+  // cards below (gridActions). See resolveFoldedAction for the full rule.
+  const foldedAction = resolveFoldedAction(foldableActions, entityName)
   const foldedActionFields = foldedAction ? (foldedAction as unknown as ActionFields) : undefined
 
   const seam = (
@@ -590,25 +746,14 @@ export function ReferenceEntityCard({
   // FREEFORM (simple text input) choices.
   //
   // CHOICE PLACEMENT splits by kind:
-  //   • FREEFORM (a free-text field, e.g. Name / Keepsake) is a "simple input".
-  //     In READ-ONLY it surfaces here as a "Choose | <name>" sub-header cell — a
-  //     hint that there's a field to fill — and NEVER as a body block. In EDITABLE
-  //     mode it stays in the body as a real text input (you have to type into it).
-  //   • MULTIPLE-CHOICE (rollTable / choiceOptions / schema / scalesWithField —
-  //     "choose from the list below") always renders inline in the BODY, both
-  //     modes (read-only static, editable choosable).
+  // EVERYTHING INLINE (choice-plan Stage 7): every choice renders in the BODY,
+  // at its prose, in both modes — no choice is ever hoisted to the sub-header.
+  // The old "Choose | <name>" freeform sub-header cell is retired; the sub-header
+  // keeps only the general facet hoist (type/range/damage/traits). `hide.choices`
+  // still suppresses choices entirely.
   const editableChoices = !!onSelectionChange
-  const isFreeformChoice = (choice: SURefObjectChoice): boolean => choice.choiceType === 'freeform'
-  // Read-only-only: editable exposes the real inputs in the body instead, and
-  // `hide.choices` (e.g. a crawler bay rendering its crew facts as external
-  // IdentityFields) suppresses the choice in EVERY form — body and sub-header.
-  const subHeaderChoices =
-    editableChoices || hide?.choices ? [] : entityChoices.filter(isFreeformChoice)
-  const choiceCells: EntityCardSubHeaderCell[] = subHeaderChoices.map((choice) => ({
-    key: `choice-${choice.id}`,
-    label: 'Choose',
-    value: choice.name,
-  }))
+  const subHeaderChoices: SURefObjectChoice[] = []
+  const choiceCells: EntityCardSubHeaderCell[] = []
   // A folded single action surfaces its type/range/damage/traits into the
   // sub-header; entity traits/choices follow, deduped so a shared trait (e.g.
   // "Explosive") isn't listed twice.
@@ -827,7 +972,6 @@ export function ReferenceEntityCard({
   const grantedCount = resolveGrantedEntities(entity as SURefEntity).length
   const isGrantingAbility = isAbility(entity) && grantedCount > 0
   const content = 'content' in entity ? entity.content : undefined
-  const showContent = !isGrantingAbility && !isTitanicMeta && !!content && content.length > 0
   // The crawler-bay damaged-effect string also appears as the last content
   // paragraph; it renders in the "WHEN DAMAGED" callout, so it's filtered out of
   // the body prose below to avoid duplication.
@@ -891,53 +1035,210 @@ export function ReferenceEntityCard({
   // body; its stats already merged into the sub-header. 2+ → an actions grid.
   const foldSingleAction = !!foldedAction
   const foldedActionContent = foldedAction?.content ?? undefined
-  const gridActions = foldSingleAction ? [] : normalActions
+  // Every action EXCEPT the folded self-action renders as its own grid card — so
+  // a multi-action entity keeps its siblings (was `[]`, which dropped them once
+  // the length-1 gate was removed).
+  const gridActions = foldedAction
+    ? normalActions.filter((a) => a.name !== foldedAction.name)
+    : normalActions
 
   // A SELF-action (a single folded action named like the entity — e.g. Custom
   // Sniper Rifle's own action) carries the entity's real prose AND its choice
   // markers interwoven. Render ITS content as the body so the choices interleave
   // there; the entity's own thin content duplicates it (dropped), and the action
   // is NOT rendered a second time below.
+  // CONCATENATE, don't replace: the fold merges the entity's own prose with the
+  // self-action's prose (identity, then behaviour). Blocks whose text the
+  // self-action already contains are dropped so the ~13 equipment whose entity
+  // content duplicates the action's don't double-render, while complementary
+  // content (unique identity prose, e.g. Water Purification / Hydraulic Shunter)
+  // and a self-action-only description (e.g. Grappling Harpoon, whose entity
+  // content is empty) are both preserved.
   const isSelfAction = foldSingleAction && foldedAction?.name === entityName
-  const bodyBlocks = (
-    isSelfAction && foldedActionContent && foldedActionContent.length > 0
-      ? foldedActionContent
-      : bodyContent
-  )?.filter((b) => b?.type !== 'datavalues')
-  // A SELF-action's content IS this entity's body: an ability whose rules live
-  // entirely in its like-named action has NO own `content` (showContent=false),
-  // but its folded action carries the real prose (and any choice markers). Honour
-  // that so the action content bubbles into the body — not just its cost/type
-  // into the sub-header. (Choices authored on the action bubble with it.)
-  const hasSelfActionBody = isSelfAction && !!foldedActionContent && foldedActionContent.length > 0
+  const blockPlainText = (b: SURefObjectContentBlock): string =>
+    b && b.type !== 'choice' && typeof (b as { value?: unknown }).value === 'string'
+      ? String((b as { value: string }).value)
+      : ''
+  const entityBodyBlocks = (bodyContent ?? []).filter((b) => b?.type !== 'datavalues')
+  const selfActionBlocks =
+    isSelfAction && foldedActionContent
+      ? foldedActionContent.filter((b) => b?.type !== 'datavalues')
+      : []
+  const selfActionText = selfActionBlocks.map(blockPlainText).join('\n')
+  const dedupedEntityBlocks = selfActionBlocks.length
+    ? entityBodyBlocks.filter((b) => {
+        const t = blockPlainText(b).trim()
+        return t.length === 0 || !selfActionText.includes(t.slice(0, 40))
+      })
+    : entityBodyBlocks
+  const bodyBlocks = [...dedupedEntityBlocks, ...selfActionBlocks] as SURefObjectContentBlock[]
   const showBody =
-    isPattern || isTitanicMeta
-      ? !!bodyBlocks && bodyBlocks.length > 0
-      : (showContent || hasSelfActionBody) && !!bodyBlocks && bodyBlocks.length > 0
+    isPattern || isTitanicMeta ? bodyBlocks.length > 0 : !isGrantingAbility && bodyBlocks.length > 0
+
+  // A read-only choice that renders NOTHING (a simple text input with no chosen
+  // value — Name / Motto in the SRD) must not emit its wrapper region either, or
+  // it leaves an empty margin gap in the prose. Only text choices go empty;
+  // table/options/catalog always render a reference.
+  const choiceRendersNothing = (choice: SURefObjectChoice): boolean => {
+    if (editableChoices) return false
+    return getChoiceSourceKind(choice) === 'text' && !selections?.[choice.id]?.[0]
+  }
+
+  // BONUS PER TECH LEVEL — its own distinct rendering, anchored INLINE at the
+  // prose that describes it (choice-plan): the green "Bonus per Tech Level" label
+  // + the "+N" deltas. Damage rides HORIZONTAL (as everywhere), other stats are
+  // vertical value boxes. Built here so the interleave walk can anchor it.
+  const bonusPerTechLevel =
+    'bonusPerTechLevel' in entity && entity.bonusPerTechLevel
+      ? (entity.bonusPerTechLevel as SURefObjectBonusPerTechLevel)
+      : undefined
+  const bonusCellList: BonusCell[] = [
+    ...(bonusPerTechLevel ? bonusCells(bonusPerTechLevel) : []),
+    ...dataValueBonuses,
+  ]
+  const bonusNode: ReactNode =
+    bonusCellList.length > 0 && !hide?.stats ? (
+      <div key="bonus-per-tech" className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
+        <Stat
+          orientation="horizontal"
+          label="Bonus per Tech Level"
+          bgColor="var(--color-status-ok)"
+          textColor="var(--color-paper)"
+          compact={compact}
+        />
+        <div className="flex flex-wrap items-start gap-1.5">
+          {bonusCellList.map((cell) =>
+            cell.label.toLowerCase() === 'damage' ? (
+              // Damage is always horizontal (label | +N SP), matching every other
+              // Damage cell; the unit rides into the value.
+              <Stat
+                key={cell.key}
+                orientation="horizontal"
+                label={cell.label}
+                value={`${cell.value}${cell.bottomLabel ? ` ${cell.bottomLabel}` : ''}`}
+                compact={compact}
+              />
+            ) : (
+              <Stat
+                key={cell.key}
+                label={cell.label}
+                bottomLabel={cell.bottomLabel}
+                value={cell.value}
+                compact={compact}
+              />
+            )
+          )}
+        </div>
+      </div>
+    ) : null
 
   // WRITE LAYER — editable choices interleave with content by a plain in-order
   // walk of `bodyContent`: a `{type:'choice'}` marker renders that choice's
   // ChoiceGroups (rust-bordered) exactly where it sits in the data. Choices with
   // no marker render at the natural END position (trailing fallback). Read-only
   // (no `onSelectionChange`) never enters this branch.
-  const renderChoiceRegion = (choice: SURefObjectChoice): ReactNode => (
-    <div key={`choice-region-${choice.id}`} className="[&:not(:last-child)]:mb-3">
-      <ChoiceGroups
-        choices={[choice]}
-        parent={effTechLevel !== undefined ? { techLevel: effTechLevel } : scalingParent}
-        selections={selections}
-        onSelectionChange={onSelectionChange}
-        readOnly={!editableChoices}
-        compact={compact}
-        toneColor={tone.bgColor}
-      />
-    </div>
-  )
+  const renderChoiceRegion = (choice: SURefObjectChoice): ReactNode => {
+    // SCHEMA-ONLY catalog ("pick any X from the collection", e.g. the Armament
+    // Bay's Weapons System) → an expandable entity listing, capped to the
+    // effective tech level. The collection is resolved lazily inside the
+    // listing (on expand), so this branch touches no cross-schema data. A
+    // shortlist catalog (Ballistic / Energy) and every other kind fall through
+    // to ChoiceGroups.
+    if (isSchemaOnlyCatalogChoice(choice)) {
+      return (
+        <div key={`choice-region-${choice.id}`} className="[&:not(:last-child)]:mb-3">
+          <CatalogChoiceListing
+            choice={choice}
+            techLevel={typeof effTechLevel === 'number' ? effTechLevel : undefined}
+            depth={depth}
+            hostTone={ownToneBase}
+            chassisName={resolvedChassisName}
+            selections={selections}
+            onSelectionChange={editableChoices ? onSelectionChange : undefined}
+          />
+        </div>
+      )
+    }
+    return (
+      <div key={`choice-region-${choice.id}`} className="[&:not(:last-child)]:mb-3">
+        <ChoiceGroups
+          choices={[choice]}
+          parent={effTechLevel !== undefined ? { techLevel: effTechLevel } : scalingParent}
+          selections={selections}
+          onSelectionChange={onSelectionChange}
+          readOnly={!editableChoices}
+          compact={compact}
+          toneColor={tone.bgColor}
+        />
+      </div>
+    )
+  }
+
+  // AUTO-ANCHOR unmarked choices to the prose that introduces them: for a choice
+  // with no explicit `{type:'choice'}` marker, inject one right after the LAST
+  // content block that mentions the choice (a significant word from its name), so
+  // it renders inline at its describing sentence — e.g. A.I. Personality after
+  // "…the A.I. Personality Table for this or consider your own." A choice that
+  // matches nothing falls to the trailing position below.
+  const STOP_WORDS = new Set(['ai', 'the', 'and', 'for', 'your', 'you'])
+  const choiceKeywords = (name: string): string[] =>
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length > 2 && !STOP_WORDS.has(w))
+  const blockLowerText = (b: SURefObjectContentBlock): string =>
+    b && b.type !== 'choice' && typeof (b as { value?: unknown }).value === 'string'
+      ? String((b as { value: string }).value).toLowerCase()
+      : ''
+  const anchoredBlocks: SURefObjectContentBlock[] = [...bodyBlocks]
+  if (!hide?.choices) {
+    const marked = new Set(
+      anchoredBlocks
+        .map((b) => (b?.type === 'choice' ? (b as { choiceId?: string }).choiceId : undefined))
+        .filter((id): id is string => !!id)
+    )
+    for (const choice of entityChoices) {
+      if (marked.has(choice.id)) continue
+      const kws = choiceKeywords(choice.name)
+      if (kws.length === 0) continue
+      let idx = -1
+      for (let i = 0; i < anchoredBlocks.length; i++) {
+        const block = anchoredBlocks[i]
+        const t = block ? blockLowerText(block) : ''
+        if (t && kws.some((k) => t.includes(k))) idx = i
+      }
+      if (idx >= 0) {
+        anchoredBlocks.splice(idx + 1, 0, {
+          type: 'choice',
+          choiceId: choice.id,
+        } as SURefObjectContentBlock)
+        marked.add(choice.id)
+      }
+    }
+  }
+
+  // Anchor the BONUS-PER-TECH-LEVEL box right after the prose that describes it
+  // (e.g. "…its damage increases by 1 SP per Tech Level…"), so it sits WITH its
+  // prose instead of trailing at the card's foot. Falls back to the trailing
+  // position when no describing block is found.
+  let bonusAnchored = false
+  if (bonusNode) {
+    const bonusKws = ['per tech level', 'tech level']
+    let bIdx = -1
+    for (let i = 0; i < anchoredBlocks.length; i++) {
+      const block = anchoredBlocks[i]
+      const t = block ? blockLowerText(block) : ''
+      if (t && bonusKws.some((k) => t.includes(k))) bIdx = i
+    }
+    if (bIdx >= 0) {
+      anchoredBlocks.splice(bIdx + 1, 0, { type: 'bonus' } as unknown as SURefObjectContentBlock)
+      bonusAnchored = true
+    }
+  }
 
   // The interleave walk runs in BOTH modes — read-only renders the same choice
-  // cards, static (readable); editable makes them selectable. FREEFORM choices
-  // already shown as read-only sub-header cells are pre-marked rendered, so the
-  // walk skips them at both their marker and the trailing fallback.
+  // cards, static (readable); editable makes them selectable.
   const bodyNodes: ReactNode[] = []
   {
     const choiceById = new Map(entityChoices.map((c) => [c.id, c] as const))
@@ -962,33 +1263,35 @@ export function ReferenceEntityCard({
       buffer = []
       seg += 1
     }
-    for (const block of bodyBlocks ?? []) {
+    for (const block of anchoredBlocks) {
       if (block?.type === 'choice') {
         const choice = block.choiceId ? choiceById.get(block.choiceId) : undefined
-        if (choice && !hide?.choices && !rendered.has(choice.id)) {
+        if (choice && !hide?.choices && !rendered.has(choice.id) && !choiceRendersNothing(choice)) {
           flush()
           bodyNodes.push(renderChoiceRegion(choice))
           rendered.add(choice.id)
         }
         continue // markers never contribute body text
       }
+      if ((block as { type?: string })?.type === 'bonus') {
+        flush()
+        if (bonusNode) bodyNodes.push(bonusNode)
+        continue
+      }
       buffer.push(block)
     }
     flush()
     if (!hide?.choices) {
       for (const choice of entityChoices) {
-        if (!rendered.has(choice.id)) bodyNodes.push(renderChoiceRegion(choice))
+        if (!rendered.has(choice.id) && !choiceRendersNothing(choice))
+          bodyNodes.push(renderChoiceRegion(choice))
       }
     }
+    // Bonus box that wasn't anchored to any prose → trailing position.
+    if (bonusNode && !bonusAnchored) bodyNodes.push(bonusNode)
   }
 
-  // Leaf data — bonus-per-tech-level stat increases (choices now live in the
-  // sub-header, so no "Choices" body section).
-  const bonusPerTechLevel =
-    'bonusPerTechLevel' in entity && entity.bonusPerTechLevel
-      ? (entity.bonusPerTechLevel as SURefObjectBonusPerTechLevel)
-      : undefined
-  const bonusCellList = bonusPerTechLevel ? bonusCells(bonusPerTechLevel, compact) : []
+  // (The BONUS-PER-TECH-LEVEL box is built + anchored earlier, in the body walk.)
 
   // CRAWLER BAY damaged effect → a red-ghosted, action-card-style callout (the
   // string is filtered out of the body prose above). RED token: `--color-status-bad`.
@@ -1192,6 +1495,11 @@ export function ReferenceEntityCard({
             data={npc}
             hostTone={ownToneBase}
             chassisName={resolvedChassisName}
+            // Thread the write-layer so the NPC's crew choices (Name / Motto /
+            // Keepsake) render as real inputs in editable mode — they share the
+            // parent's id-keyed selections map (distinct choice ids, no clash).
+            selections={selections}
+            onSelectionChange={onSelectionChange}
             // The parent's visibility config governs its identity NPC too — a bay
             // that hides choices (rendering the NPC's crew facts as external
             // IdentityFields) must not also surface those same choices here.
@@ -1238,11 +1546,6 @@ export function ReferenceEntityCard({
           bgColor={darkTone}
           cells={cells}
           leading={costNode}
-          group={
-            bonusCellList.length > 0
-              ? { label: 'Bonus per Tech Level', cells: bonusCellList }
-              : undefined
-          }
           trailing={statusNode}
           compact={compact}
         />
@@ -1366,7 +1669,8 @@ export function ReferenceEntityCard({
             renderGroup(
               'Actions',
               gridActions as unknown as SURefEntity[],
-              { hostTone: ownToneBase },
+              // No "Actions" Slab — the action cards render on their own.
+              { hostTone: ownToneBase, slab: false },
               flat
             )}
 

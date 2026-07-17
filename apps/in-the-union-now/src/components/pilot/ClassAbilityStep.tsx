@@ -2,8 +2,8 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefClass } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
 import { TreeSep } from 'component-lib'
-import { SelCard } from '../wizard/SelCard'
-import { SelMasonry } from '../wizard/SelMasonry'
+import { SelCard } from 'component-lib'
+import { SelMasonry } from 'component-lib'
 import { selectableClasses } from './classOptions'
 
 type SURClassesAccessor = {
