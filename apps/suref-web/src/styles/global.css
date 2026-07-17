@@ -38,7 +38,7 @@
 }
 
 .btn-inactive {
-  color: var(--color-su-black);
+  color: var(--color-ink);
 }
 
 .btn-inactive:hover {
@@ -56,8 +56,8 @@
 .nav-link {
   font-family: var(--font-cond);
   font-weight: 600;
-  font-size: 15px;
-  letter-spacing: 0.04em;
+  font-size: var(--text-lede);
+  letter-spacing: var(--tracking-caps-tight);
   text-transform: uppercase;
   color: var(--color-su-muted);
   text-decoration: none;
@@ -104,8 +104,8 @@
 .catalog-group-title {
   font-family: var(--font-cond);
   font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.12em;
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-caps-wide);
   text-transform: uppercase;
   color: var(--color-su-orange-dark);
   line-height: 1;
@@ -119,8 +119,8 @@
   align-items: center;
   justify-content: center;
   min-height: 54px;
-  border: 1.5px solid var(--color-su-black);
-  border-radius: 3px;
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
   background: var(--catalog-bg);
   color: var(--color-paper);
   padding: 13px 15px;
@@ -145,7 +145,7 @@
    .catalog-item: class="catalog-item catalog-item--ghost". */
 .catalog-item--ghost {
   background: var(--color-paper);
-  color: var(--color-su-black);
+  color: var(--color-ink);
   font-family: var(--font-cond);
   font-size: 1.125rem;
   font-weight: 700;
@@ -158,7 +158,7 @@
 .page-heading {
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
-  background: var(--color-su-black);
+  background: var(--color-ink);
   color: var(--color-paper);
   padding: 0.25rem 0.5rem;
   font-family: var(--font-cond);
@@ -201,7 +201,7 @@
 .catalog-item-label {
   display: inline-block;
   padding: 2px 10px;
-  border-radius: 2px;
+  border-radius: var(--radius-badge);
   background: var(--catalog-label);
   text-shadow: none;
 }

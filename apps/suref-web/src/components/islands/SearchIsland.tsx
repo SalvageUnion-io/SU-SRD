@@ -152,7 +152,7 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
           <div
             id={listboxId}
             role="listbox"
-            className="absolute right-0 top-full z-50 mt-1 max-h-96 w-80 overflow-y-auto rounded-md border border-su-grey-light bg-paper shadow-lg"
+            className="absolute right-0 top-full z-50 mt-1 max-h-96 w-80 overflow-y-auto rounded-panel border border-su-grey-light bg-paper shadow-lg"
           >
             {!ready ? (
               <div className="px-4 py-3 text-sm text-su-grey-dark">Loading search index…</div>
@@ -168,7 +168,7 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
                     index === selectedIndex ? 'bg-su-blue-pale' : 'hover:bg-su-blue-pale'
                   }`}
                 >
-                  <div className="font-medium text-su-black">{result.title}</div>
+                  <div className="font-medium text-ink">{result.title}</div>
                   <div className="mt-0.5 text-xs text-su-grey-dark">{result.group}</div>
                 </a>
               ))

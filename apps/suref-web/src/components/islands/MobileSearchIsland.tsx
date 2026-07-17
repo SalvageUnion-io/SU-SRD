@@ -20,7 +20,7 @@ export function MobileSearchIsland() {
           // size-11 = 44px — meets the WCAG 2.5.5 minimum touch-target size.
           <button
             type="button"
-            className="flex size-11 items-center justify-center rounded-md text-paper"
+            className="flex size-11 items-center justify-center rounded-panel text-paper"
             aria-label="Search the SRD"
           >
             <svg
@@ -42,17 +42,17 @@ export function MobileSearchIsland() {
       />
 
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50" />
+        <Dialog.Backdrop className="fixed inset-0 z-50 bg-ink/50" />
         <Dialog.Popup className="fixed inset-x-0 top-0 z-50 flex flex-col gap-3 bg-paper p-4 shadow-lg data-[open]:animate-slide-in-right data-[closed]:animate-slide-out-right">
           <div className="flex items-center justify-between">
-            <Dialog.Title className="font-mono text-sm font-bold uppercase text-su-black">
+            <Dialog.Title className="font-mono text-sm font-bold uppercase text-ink">
               Search
             </Dialog.Title>
             <Dialog.Close
               render={
                 <button
                   type="button"
-                  className="flex size-11 items-center justify-center rounded-md text-su-black"
+                  className="flex size-11 items-center justify-center rounded-panel text-ink"
                   aria-label="Close search"
                 >
                   <svg
