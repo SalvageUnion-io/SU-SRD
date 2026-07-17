@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useCallback, useState } from 'react'
 import type { SURefObjectChoice } from 'salvageunion-reference'
-import { parseContentBlockString, SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Text } from '../../base/Text'
@@ -121,6 +121,66 @@ function ChoiceOption({
   )
 }
 
+/**
+ * A free-text choice input with an xs stampseal LABEL riding the upper border.
+ * The label floats: while the field is empty and unfocused it sits inside the
+ * field (acting as the placeholder); on focus or once there's a value it rides
+ * the top border, out of the way of what's being typed. Peer-driven, no JS.
+ */
+function StampsealField({
+  label,
+  value,
+  multiline,
+  onChange,
+}: {
+  label: string
+  value: string
+  multiline?: boolean
+  onChange: (value: string) => void
+}): ReactNode {
+  const fieldClass =
+    'peer w-full rounded border border-ink/20 bg-paper px-2 pt-3.5 pb-1 font-body text-xs text-ink focus:border-rust focus:outline-none'
+  const badge = (
+    // A single space placeholder makes `:placeholder-shown` track "is empty".
+    <span
+      className={cn(
+        'pointer-events-none absolute left-2 top-0 -translate-y-1/2 transition-all duration-150',
+        // Empty + unfocused → sit inside the field like a placeholder…
+        'peer-placeholder-shown:top-3.5 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:opacity-60',
+        // …focused → snap back up to ride the border.
+        'peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:opacity-100'
+      )}
+    >
+      <Badge shape="stamp" size="sm">
+        {label}
+      </Badge>
+    </span>
+  )
+  return (
+    <div className="relative">
+      {multiline ? (
+        <textarea
+          aria-label={label}
+          className={fieldClass}
+          rows={2}
+          value={value}
+          placeholder=" "
+          onChange={(e) => onChange(e.target.value)}
+        />
+      ) : (
+        <input
+          aria-label={label}
+          className={fieldClass}
+          value={value}
+          placeholder=" "
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )}
+      {badge}
+    </div>
+  )
+}
+
 /** One choice group: a dashed Slab (name + optional n/max) over the option cards,
  *  or a single NEW-chrome input card for a free-text choice (Name / Motto / …). */
 function ChoiceOptionGroup({
@@ -143,12 +203,6 @@ function ChoiceOptionGroup({
   toneColor?: string
 }): ReactNode {
   const toneVar = { '--tone-deep': toneColor } as CSSProperties
-  const inputClass =
-    'w-full rounded border border-ink/20 bg-paper p-1.5 font-body text-xs text-ink focus:border-rust focus:outline-none'
-  const promptOf = (c: SURefObjectChoice): string | undefined => {
-    const block = c.content?.find((b) => b.type === 'paragraph')
-    return block ? parseContentBlockString(block) : undefined
-  }
   const kind = getChoiceSourceKind(choice)
   const value = selected[0] ?? ''
 
@@ -159,23 +213,12 @@ function ChoiceOptionGroup({
     if (readOnly) {
       return value ? <p className="font-body text-xs font-bold text-ink">{value}</p> : null
     }
-    const multiline = choice.name.toLowerCase() !== 'name'
-    return multiline ? (
-      <textarea
-        aria-label={choice.name}
-        className={inputClass}
-        rows={2}
+    return (
+      <StampsealField
+        label={choice.name}
         value={value}
-        placeholder={promptOf(choice)}
-        onChange={(e) => onFreeTextChange(e.target.value)}
-      />
-    ) : (
-      <input
-        aria-label={choice.name}
-        className={inputClass}
-        value={value}
-        placeholder={promptOf(choice)}
-        onChange={(e) => onFreeTextChange(e.target.value)}
+        multiline={choice.name.toLowerCase() !== 'name'}
+        onChange={onFreeTextChange}
       />
     )
   }
@@ -197,13 +240,7 @@ function ChoiceOptionGroup({
         ) : (
           // The field ALWAYS shows in editable — it holds the chosen value, and
           // rolling the table below fills it (RollTable.onRollResult).
-          <input
-            aria-label={choice.name}
-            className={inputClass}
-            value={value}
-            placeholder="Roll or choose your own…"
-            onChange={(e) => onFreeTextChange(e.target.value)}
-          />
+          <StampsealField label={choice.name} value={value} onChange={onFreeTextChange} />
         )}
         {table && (
           <RollTable

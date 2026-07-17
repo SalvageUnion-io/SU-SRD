@@ -50,7 +50,7 @@ function ExpandToggle({ expanded, onToggle }: { expanded: boolean; onToggle: () 
       aria-expanded={expanded}
       className="inline-flex items-center gap-1 font-cond text-badge font-bold uppercase tracking-caps-tight text-paper/80 hover:text-paper"
     >
-      {expanded ? 'Hide table' : 'Show table'}
+      {expanded ? 'Hide' : 'Show'}
       <svg
         width="10"
         height="10"
@@ -292,10 +292,10 @@ function ColumnsRollTable({
         {showHeader && (
           <div className="flex items-center justify-between gap-2 bg-ink px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
             <span className="inline-flex items-center gap-3">
-              {tableName || 'Roll table'}
               {collapsible && (
                 <ExpandToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
               )}
+              {tableName || 'Roll table'}
             </span>
             {!disabled && (
               <span className="inline-flex items-center gap-2">
@@ -474,10 +474,10 @@ function StandardRollTable({
         {showHeader && (
           <div className="flex items-center justify-between gap-2 bg-ink px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
             <span className="inline-flex items-center gap-3">
-              {tableName || 'Roll table'}
               {collapsible && (
                 <ExpandToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
               )}
+              {tableName || 'Roll table'}
             </span>
             {!disabled && (
               <span className="inline-flex items-center gap-2">

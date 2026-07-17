@@ -17,7 +17,7 @@ import { SelMasonry } from './SelMasonry'
  */
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Entity Searcher',
+  title: 'Legacy/Entity Searcher',
 }
 
 export const Default: Story = () => {

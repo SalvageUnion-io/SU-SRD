@@ -209,10 +209,10 @@ describe('ChoiceGroups — table choice (A.I. Personality)', () => {
     expect(screen.queryByRole('textbox')).toBeNull()
   })
 
-  test('expands the table rows via the Show table toggle', () => {
+  test('expands the table rows via the Show toggle', () => {
     render(<ChoiceGroups choices={[tableChoice]} readOnly />)
     expect(screen.queryAllByRole('table').length).toBe(0)
-    fireEvent.click(screen.getByRole('button', { name: /Show table/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Show' }))
     expect(screen.getAllByRole('table').length).toBeGreaterThan(0)
   })
 })

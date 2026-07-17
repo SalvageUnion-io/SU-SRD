@@ -50,6 +50,7 @@ import type { StatItem } from '../../shared/statsBarTypes'
 import { Content } from '../Content'
 import { ChoiceGroups } from '../choiceCard/ChoiceGroups'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
+import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
 import type { ReferenceEntityControl } from '../ReferenceEntityDisplay/referenceEntityControlTypes'
 import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { buildReferenceEntityStats } from '../ReferenceEntityDisplay/referenceEntityStatsConfig'
@@ -1074,6 +1075,63 @@ export function ReferenceEntityCard({
   const showBody =
     isPattern || isTitanicMeta ? bodyBlocks.length > 0 : !isGrantingAbility && bodyBlocks.length > 0
 
+  // A read-only choice that renders NOTHING (a simple text input with no chosen
+  // value — Name / Motto in the SRD) must not emit its wrapper region either, or
+  // it leaves an empty margin gap in the prose. Only text choices go empty;
+  // table/options/catalog always render a reference.
+  const choiceRendersNothing = (choice: SURefObjectChoice): boolean => {
+    if (editableChoices) return false
+    return getChoiceSourceKind(choice) === 'text' && !selections?.[choice.id]?.[0]
+  }
+
+  // BONUS PER TECH LEVEL — its own distinct rendering, anchored INLINE at the
+  // prose that describes it (choice-plan): the green "Bonus per Tech Level" label
+  // + the "+N" deltas. Damage rides HORIZONTAL (as everywhere), other stats are
+  // vertical value boxes. Built here so the interleave walk can anchor it.
+  const bonusPerTechLevel =
+    'bonusPerTechLevel' in entity && entity.bonusPerTechLevel
+      ? (entity.bonusPerTechLevel as SURefObjectBonusPerTechLevel)
+      : undefined
+  const bonusCellList: BonusCell[] = [
+    ...(bonusPerTechLevel ? bonusCells(bonusPerTechLevel) : []),
+    ...dataValueBonuses,
+  ]
+  const bonusNode: ReactNode =
+    bonusCellList.length > 0 && !hide?.stats ? (
+      <div key="bonus-per-tech" className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
+        <Stat
+          orientation="horizontal"
+          label="Bonus per Tech Level"
+          bgColor="var(--color-status-ok)"
+          textColor="var(--color-paper)"
+          compact={compact}
+        />
+        <div className="flex flex-wrap items-start gap-1.5">
+          {bonusCellList.map((cell) =>
+            cell.label.toLowerCase() === 'damage' ? (
+              // Damage is always horizontal (label | +N SP), matching every other
+              // Damage cell; the unit rides into the value.
+              <Stat
+                key={cell.key}
+                orientation="horizontal"
+                label={cell.label}
+                value={`${cell.value}${cell.bottomLabel ? ` ${cell.bottomLabel}` : ''}`}
+                compact={compact}
+              />
+            ) : (
+              <Stat
+                key={cell.key}
+                label={cell.label}
+                bottomLabel={cell.bottomLabel}
+                value={cell.value}
+                compact={compact}
+              />
+            )
+          )}
+        </div>
+      </div>
+    ) : null
+
   // WRITE LAYER — editable choices interleave with content by a plain in-order
   // walk of `bodyContent`: a `{type:'choice'}` marker renders that choice's
   // ChoiceGroups (rust-bordered) exactly where it sits in the data. Choices with
@@ -1160,6 +1218,25 @@ export function ReferenceEntityCard({
     }
   }
 
+  // Anchor the BONUS-PER-TECH-LEVEL box right after the prose that describes it
+  // (e.g. "…its damage increases by 1 SP per Tech Level…"), so it sits WITH its
+  // prose instead of trailing at the card's foot. Falls back to the trailing
+  // position when no describing block is found.
+  let bonusAnchored = false
+  if (bonusNode) {
+    const bonusKws = ['per tech level', 'tech level']
+    let bIdx = -1
+    for (let i = 0; i < anchoredBlocks.length; i++) {
+      const block = anchoredBlocks[i]
+      const t = block ? blockLowerText(block) : ''
+      if (t && bonusKws.some((k) => t.includes(k))) bIdx = i
+    }
+    if (bIdx >= 0) {
+      anchoredBlocks.splice(bIdx + 1, 0, { type: 'bonus' } as unknown as SURefObjectContentBlock)
+      bonusAnchored = true
+    }
+  }
+
   // The interleave walk runs in BOTH modes — read-only renders the same choice
   // cards, static (readable); editable makes them selectable.
   const bodyNodes: ReactNode[] = []
@@ -1189,59 +1266,32 @@ export function ReferenceEntityCard({
     for (const block of anchoredBlocks) {
       if (block?.type === 'choice') {
         const choice = block.choiceId ? choiceById.get(block.choiceId) : undefined
-        if (choice && !hide?.choices && !rendered.has(choice.id)) {
+        if (choice && !hide?.choices && !rendered.has(choice.id) && !choiceRendersNothing(choice)) {
           flush()
           bodyNodes.push(renderChoiceRegion(choice))
           rendered.add(choice.id)
         }
         continue // markers never contribute body text
       }
+      if ((block as { type?: string })?.type === 'bonus') {
+        flush()
+        if (bonusNode) bodyNodes.push(bonusNode)
+        continue
+      }
       buffer.push(block)
     }
     flush()
     if (!hide?.choices) {
       for (const choice of entityChoices) {
-        if (!rendered.has(choice.id)) bodyNodes.push(renderChoiceRegion(choice))
+        if (!rendered.has(choice.id) && !choiceRendersNothing(choice))
+          bodyNodes.push(renderChoiceRegion(choice))
       }
     }
+    // Bonus box that wasn't anchored to any prose → trailing position.
+    if (bonusNode && !bonusAnchored) bodyNodes.push(bonusNode)
   }
 
-  // BONUS PER TECH LEVEL — its own distinct rendering, INLINE in the body flow
-  // (choice-plan) at the prose that describes it, NOT hoisted to the sub-header:
-  // the green "Bonus per Tech Level" label + the "+N" stat-delta cells.
-  const bonusPerTechLevel =
-    'bonusPerTechLevel' in entity && entity.bonusPerTechLevel
-      ? (entity.bonusPerTechLevel as SURefObjectBonusPerTechLevel)
-      : undefined
-  const bonusCellList = [
-    ...(bonusPerTechLevel ? bonusCells(bonusPerTechLevel) : []),
-    ...dataValueBonuses,
-  ]
-  if (bonusCellList.length > 0 && !hide?.stats) {
-    bodyNodes.push(
-      <div key="bonus-per-tech" className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
-        <Stat
-          orientation="horizontal"
-          label="Bonus per Tech Level"
-          bgColor="var(--color-status-ok)"
-          textColor="var(--color-paper)"
-          compact={compact}
-        />
-        {/* the deltas as VERTICAL stat boxes (label over value), not horizontal cells */}
-        <div className="flex flex-wrap gap-1.5">
-          {bonusCellList.map((cell) => (
-            <Stat
-              key={cell.key}
-              label={cell.label}
-              bottomLabel={cell.bottomLabel}
-              value={cell.value}
-              compact={compact}
-            />
-          ))}
-        </div>
-      </div>
-    )
-  }
+  // (The BONUS-PER-TECH-LEVEL box is built + anchored earlier, in the body walk.)
 
   // CRAWLER BAY damaged effect → a red-ghosted, action-card-style callout (the
   // string is filtered out of the body prose above). RED token: `--color-status-bad`.
