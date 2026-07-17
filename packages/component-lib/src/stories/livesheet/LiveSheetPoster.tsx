@@ -123,13 +123,13 @@ function ImageSeat({ src, label, readOnly }: { src?: string; label: string; read
     )
   }
   // Empty dropzone — the shared EmptyState primitive (dashed panel + stamp
-  // headline + rust action), sized to the portrait seat so the poster never
-  // reflows between empty and filled.
+  // headline + rust action), the SAME 3:4 portrait size as the filled state so
+  // the poster never reflows and the seat never balloons past the fields.
   return (
-    <div className="min-h-[192px] w-full [&>*]:h-full">
+    <div className="aspect-[3/4] w-full [&>*]:h-full">
       <EmptyState
         headline={`Add ${label}`}
-        body="PNG or JPG — seats in the identity band"
+        body="PNG or JPG"
         action={
           readOnly ? undefined : (
             <Btn size="sm" variant="primary" onClick={() => {}}>
@@ -325,31 +325,32 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
       <div className="mx-auto flex max-w-[1180px] flex-col gap-4 px-4 pb-14 pt-5 sm:px-[30px]">
         {/* Row 1: Identity ∥ Vitals */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.55fr_1fr]">
-          {/* Identity band */}
+          {/* Identity band — the section Edit control lives in the HEADER. */}
           <DisplayCard
             headerContent={
-              <span className="font-cond text-sm font-bold uppercase tracking-caps text-paper">
-                Pilot Identity
-              </span>
+              <div className="flex w-full items-center justify-between gap-3">
+                <span className="font-cond text-sm font-bold uppercase tracking-caps text-paper">
+                  Pilot Identity
+                </span>
+                {!readOnly && (
+                  <button
+                    type="button"
+                    className="shrink-0 font-cond text-badge font-bold uppercase tracking-caps text-paper/80 hover:text-paper"
+                  >
+                    &#9998; Edit
+                  </button>
+                )}
+              </div>
             }
             headerBg="bg-[var(--tone-deep)]"
             borderColor="var(--tone)"
             bodyPadding="p-4"
-            footMeta={[{ label: 'Advance', value: `${tp} TP banked` }]}
-            footActions={
-              readOnly ? undefined : (
-                <button
-                  type="button"
-                  className="font-cond text-badge font-bold uppercase tracking-caps text-rust"
-                >
-                  &#9998; Edit identity
-                </button>
-              )
-            }
           >
             <div className="flex flex-col gap-4">
-              {/* Portrait + the SHORT single-line fields in an even 2-col grid. */}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-[150px_1fr]">
+              {/* Portrait + the SHORT single-line fields in an even 2-col grid.
+                  `items-start` keeps the portrait at its 3:4 size instead of
+                  stretching tall to the field column. */}
+              <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-[150px_1fr]">
                 <ImageSeat src={imageSrc} label={imageLabel} readOnly={readOnly} />
                 <div className="grid grid-cols-2 content-start gap-x-4 gap-y-3">
                   {shortFields.map((f) => (
