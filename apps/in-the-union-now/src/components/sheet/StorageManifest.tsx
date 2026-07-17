@@ -26,7 +26,7 @@ import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import { cn } from '../../lib/utils'
-import { SectionCard } from '../shared/SectionCard'
+import { SectionCard } from 'suref-react'
 
 type StorageManifestSide = 'mech' | 'crawler'
 
