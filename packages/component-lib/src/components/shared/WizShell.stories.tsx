@@ -4,13 +4,13 @@ import { WizShell, WizTracker } from './WizShell'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/ITUN/Wiz Shell',
+  title: 'Compositions/Wiz Shell',
 }
 
 const STEPS = ['Class', 'Callsign', 'Abilities', 'Equipment', 'Review'] as const
 
 /**
- * The shared wizard skeleton (lifted from ITUN, pending review) — poster band,
+ * The shared wizard skeleton (lifted from ITUN) — poster band,
  * connector-pipe stepper rail, optional option pane, and a sticky ink action
  * pill. Layout-only: all wizard state lives in the caller. Shown mid-build on
  * the Pilot creation flow with live budget trackers and a gate note.

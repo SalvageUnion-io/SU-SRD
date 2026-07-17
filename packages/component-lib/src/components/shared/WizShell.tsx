@@ -82,9 +82,9 @@ type WizShellProps = {
  */
 export function WizTracker({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <span className="inline-flex items-baseline gap-2 whitespace-nowrap rounded-[2px] bg-ink px-3 py-1.5 font-cond text-[13px] font-bold uppercase leading-none tracking-caps text-paper shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.28)]">
+    <span className="inline-flex items-baseline gap-2 whitespace-nowrap rounded-badge bg-ink px-3 py-1.5 font-cond text-caption font-bold uppercase leading-none tracking-caps text-paper shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.28)]">
       <span>{label}</span>
-      <span className="text-[15px] tracking-caps-tight text-su-orange">{value}</span>
+      <span className="text-lede tracking-caps-tight text-su-orange">{value}</span>
     </span>
   )
 }
@@ -121,7 +121,7 @@ function RailStep({
       <span
         aria-hidden="true"
         className={cn(
-          'grid shrink-0 place-items-center rounded-[2px] font-cond font-bold',
+          'grid shrink-0 place-items-center rounded-badge font-cond font-bold',
           active
             ? 'h-11 w-11 bg-ink text-[23px] text-paper shadow-[0_0_0_4px_var(--tone)] lg:-ml-[5px]'
             : 'h-[34px] w-[34px]',
@@ -136,7 +136,7 @@ function RailStep({
       <span
         className={cn(
           'hidden font-cond font-bold uppercase leading-[1.15] tracking-caps-snug text-ink min-[721px]:block',
-          active ? 'text-[13px]' : 'text-[11.5px]',
+          active ? 'text-caption' : 'text-[11.5px]',
           done && !active && 'opacity-80',
           !done && !active && 'opacity-[0.66]'
         )}
@@ -291,7 +291,7 @@ export function WizShell({
               >
                 <span
                   aria-hidden="true"
-                  className="absolute -left-5 top-6 hidden h-16 w-14 place-items-center rounded-[2px] bg-ink font-cond text-[38px] font-extrabold leading-none text-paper shadow-[0_8px_14px_-8px_rgba(0,0,0,0.55)] sm:grid"
+                  className="absolute -left-5 top-6 hidden h-16 w-14 place-items-center rounded-badge bg-ink font-cond text-[38px] font-extrabold leading-none text-paper shadow-[0_8px_14px_-8px_rgba(0,0,0,0.55)] sm:grid"
                 >
                   {active + 1}
                 </span>
