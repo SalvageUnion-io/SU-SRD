@@ -18,7 +18,7 @@
  * dropzone assembled from Badge + Btn — the user-image feature is not built yet).
  */
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 
 import { Badge } from '../../components/chrome/Badge'
@@ -26,8 +26,9 @@ import { Btn } from '../../components/chrome/Btn'
 import { EmptyState } from '../../components/chrome/EmptyState'
 import { Slab } from '../../components/chrome/Slab'
 import { ConditionSwatch } from '../../components/stat/ConditionSwatch'
+import { UsedPip } from '../../components/stat/UsedPip'
 import { VitalGauge } from '../../components/stat/VitalGauge'
-import { DisplayCard, type CardFootMeta } from '../../components/shared/DisplayCard'
+import { DisplayCard } from '../../components/shared/DisplayCard'
 import { Stat } from '../../components/shared/Stat'
 import { ReferenceEntityCard } from '../../components/referenceEntity/card/ReferenceEntityCard'
 
@@ -35,11 +36,22 @@ import { ReferenceEntityCard } from '../../components/referenceEntity/card/Refer
 // Data shapes (props — real ORM entities in, no store)
 // ---------------------------------------------------------------------------
 
-export type PosterField = { label: string; value: string; accent?: boolean; span?: 1 | 2 | 3 }
+export type PosterField = {
+  label: string
+  value: string
+  /** Emphasised (the callsign) — larger accent value. */
+  accent?: boolean
+  /** Longer freeform text (appearance / motto / bio) — rendered full-width so it
+   * never shares a grid row with a short field and leaves a ragged gap. */
+  prose?: boolean
+}
 export type PosterCondition = { label: string; state?: 'intact' | 'damaged' | 'destroyed' }
 export type PosterCollectionItem = {
   entity: SURefEntity
-  footMeta: CardFootMeta[]
+  /** A once-per-rest "detail resource" (e.g. an ability) — shows a live UsedPip. */
+  resource?: boolean
+  /** Seed the used state for a resource item. */
+  used?: boolean
 }
 export type PosterLink = { kind: string; name: string; href?: string }
 
@@ -121,10 +133,9 @@ function ImageSeat({ src, label, readOnly }: { src?: string; label: string; read
 // generous line-height, tabular values, airy gaps.
 // ---------------------------------------------------------------------------
 
-function Field({ label, value, accent, span }: PosterField) {
-  const spanClass = span === 3 ? 'sm:col-span-3' : span === 2 ? 'sm:col-span-2' : ''
+function Field({ label, value, accent }: PosterField) {
   return (
-    <div className={`flex min-w-0 flex-col gap-1 ${spanClass}`}>
+    <div className="flex min-w-0 flex-col gap-1">
       <Badge shape="stamp" size="sm" surface={accent ? 'on-tone' : 'on-ink'}>
         {label}
       </Badge>
@@ -171,12 +182,33 @@ function CollectionSection({
       />
       {/* Only game entities render here — always the compact entity card. */}
       <div className="grid grid-cols-1 gap-3">
-        {items.map(({ entity }) => (
-          <ReferenceEntityCard key={entity.id} data={entity} size="compact" />
+        {items.map((item) => (
+          <ResourceCard key={item.entity.id} item={item} readOnly={readOnly} />
         ))}
       </div>
     </section>
   )
+}
+
+/**
+ * One collection entity as a compact card. A "detail resource" (`resource`) also
+ * carries an always-live UsedPip in its footer; read-only shows the used state
+ * statically (only when spent), matching a published snapshot.
+ */
+function ResourceCard({ item, readOnly }: { item: PosterCollectionItem; readOnly?: boolean }) {
+  const [used, setUsed] = useState(!!item.used)
+  const name = (item.entity as { name?: string }).name ?? 'this'
+  let footActions: ReactNode
+  if (item.resource) {
+    footActions = readOnly ? (
+      used ? (
+        <UsedPip used />
+      ) : undefined
+    ) : (
+      <UsedPip used={used} subject={name} onToggle={setUsed} />
+    )
+  }
+  return <ReferenceEntityCard data={item.entity} size="compact" footActions={footActions} />
 }
 
 // ---------------------------------------------------------------------------
@@ -237,6 +269,9 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
     linked,
     readOnly,
   } = props
+
+  const shortFields = fields.filter((f) => !f.prose)
+  const proseFields = fields.filter((f) => f.prose)
 
   return (
     <div
@@ -308,13 +343,25 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
               )
             }
           >
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[150px_1fr]">
-              <ImageSeat src={imageSrc} label={imageLabel} readOnly={readOnly} />
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 sm:grid-cols-3">
-                {fields.map((f) => (
-                  <Field key={f.label} {...f} />
-                ))}
+            <div className="flex flex-col gap-4">
+              {/* Portrait + the SHORT single-line fields in an even 2-col grid. */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-[150px_1fr]">
+                <ImageSeat src={imageSrc} label={imageLabel} readOnly={readOnly} />
+                <div className="grid grid-cols-2 content-start gap-x-4 gap-y-3">
+                  {shortFields.map((f) => (
+                    <Field key={f.label} {...f} />
+                  ))}
+                </div>
               </div>
+              {/* The longer freeform fields, each full-width so wrapping never
+                  leaves a ragged column gap beside a short field. */}
+              {proseFields.length > 0 && (
+                <div className="flex flex-col gap-3">
+                  {proseFields.map((f) => (
+                    <Field key={f.label} {...f} />
+                  ))}
+                </div>
+              )}
             </div>
           </DisplayCard>
 
