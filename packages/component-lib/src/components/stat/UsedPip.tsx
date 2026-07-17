@@ -5,68 +5,52 @@ type UsedPipProps = {
   used: boolean
   /**
    * Toggle handler. Present ⇒ ALWAYS-LIVE (like a VitalGauge — togglable without
-   * any edit mode). Omit for a read-only pip (published snapshots): it shows the
-   * state statically and never toggles.
+   * any edit mode). Omit for a read-only pip: it shows the state statically.
    */
   onToggle?: (next: boolean) => void
-  /** Pill text — default "Used". */
-  label?: string
-  /** Accessible subject for the toggle label, e.g. the ability name. */
+  /** Accessible subject, e.g. the field / ability name. */
   subject?: string
   className?: string
 }
 
-// Matches our Stat cell styling: `rounded-badge` + 1px border (not a rounded-full
-// pill), ink-filled when ON like a stat's label segment.
-const BASE =
-  'inline-flex min-h-6 items-center gap-1.5 rounded-badge border px-2 py-1 font-cond text-badge font-bold uppercase leading-none tracking-caps'
-
-/** The leading dot — filled with the sheet accent (`--tone`, else rust) when used. */
-function Dot({ used }: { used: boolean }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        'h-2.5 w-2.5 shrink-0 rounded-full border-2',
-        used
-          ? 'border-[color:var(--tone,var(--color-rust))] bg-[var(--tone,var(--color-rust))]'
-          : 'border-current'
-      )}
-    />
-  )
-}
+// A single addressable PIP in the shared pip-cell language (SlotGrid / gauge
+// cells): empty = a dashed off-white cell (whitespace = fillable), used = a solid
+// accent-toned cell. `--tone` on a sheet, else rust.
+const CELL = 'inline-block size-5 shrink-0 rounded-badge border-chrome transition-colors'
+const EMPTY = 'border-dashed border-ink/40 bg-paper'
+const FILLED = 'border-[color:var(--tone,var(--color-rust))] bg-[var(--tone,var(--color-rust))]'
 
 /**
- * UsedPip — the once-per-rest "detail resource used" indicator (design: the
- * `● USED` pill). ON = ink pill + accent dot + paper text; OFF = a muted outline
- * with a hollow dot. Always-live when `onToggle` is supplied (no edit mode);
- * read-only (no handler) renders the state as a static pill.
+ * UsedPip — the once-per-rest "detail resource used" marker as a single PIP: the
+ * empty (whitespace) cell is the resting state; interacting fills it (used).
+ * Always-live when `onToggle` is supplied (no edit mode); read-only (no handler)
+ * renders the pip statically.
  */
-export function UsedPip({ used, onToggle, label = 'Used', subject, className }: UsedPipProps) {
-  const onClasses = 'border-ink bg-ink text-paper'
+export function UsedPip({ used, onToggle, subject, className }: UsedPipProps) {
+  const stateCell = used ? FILLED : EMPTY
   if (!onToggle) {
     return (
-      <span className={cn(BASE, used ? onClasses : 'border-ink/40 text-ink/50', className)}>
-        <Dot used={used} />
-        {label}
-      </span>
+      <span
+        role="img"
+        aria-label={`${subject ?? 'Resource'} ${used ? 'used' : 'unused'}`}
+        className={cn(CELL, stateCell, className)}
+      />
     )
   }
   return (
     <button
       type="button"
       aria-pressed={used}
-      aria-label={used ? `Mark ${subject ?? label} unused` : `Mark ${subject ?? label} used`}
+      aria-label={
+        used ? `Mark ${subject ?? 'resource'} unused` : `Mark ${subject ?? 'resource'} used`
+      }
       onClick={() => onToggle(!used)}
       className={cn(
-        BASE,
-        'cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rust/40',
-        used ? onClasses : 'border-ink/40 bg-paper text-ink/50 hover:border-ink hover:text-ink',
+        'inline-flex min-h-6 cursor-pointer items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rust/40',
         className
       )}
     >
-      <Dot used={used} />
-      {label}
+      <span className={cn(CELL, stateCell, 'hover:border-ink')} />
     </button>
   )
 }
