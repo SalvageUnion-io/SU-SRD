@@ -66,7 +66,7 @@ const NAV_LINK_ACTIVE = 'text-su-paper'
 const BUY_BUTTON =
   'inline-flex shrink-0 items-center rounded-md border border-su-orange-dark bg-su-orange-dark px-4 py-1.5 font-cond text-[13px] font-medium uppercase tracking-[0.06em] text-paper no-underline transition-colors'
 
-const BREADCRUMB_TEXT = 'font-cond text-xs uppercase tracking-[0.14em] text-su-grey-dark'
+const BREADCRUMB_TEXT = 'font-cond text-xs uppercase tracking-[0.14em] text-ink-2'
 
 export function AppBar({
   wordmark,
@@ -149,19 +149,19 @@ export function AppBar({
         <>
           <nav
             aria-label="Breadcrumb"
-            className="sticky top-0 z-40 flex flex-wrap items-baseline gap-x-2 gap-y-1 border-b border-su-grey-light bg-paper px-5 py-2 shadow-sm sm:px-[34px]"
+            className="sticky top-0 z-40 flex flex-wrap items-baseline gap-x-2 gap-y-1 border-b border-wk-faint bg-paper px-5 py-2 shadow-sm sm:px-[34px]"
           >
             <ol className={cn(BREADCRUMB_TEXT, 'flex flex-wrap items-center gap-1.5')}>
               {breadcrumbs.map((item, index) => (
                 <Fragment key={item.url}>
                   {index > 0 && (
-                    <li aria-hidden="true" className="select-none text-su-grey-medium">
+                    <li aria-hidden="true" className="select-none text-ink-2">
                       /
                     </li>
                   )}
                   <li>
                     {index === breadcrumbs.length - 1 ? (
-                      <span aria-current="page" className="font-semibold text-su-black">
+                      <span aria-current="page" className="font-semibold text-ink">
                         {item.name}
                       </span>
                     ) : (

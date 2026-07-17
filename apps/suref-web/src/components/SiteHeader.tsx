@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react'
-import { AppBar, type AppBarNavItem } from './AppBar'
+import { AppBar, type AppBarNavItem } from 'suref-react'
 
 /**
- * SiteHeader — the SRD reference site's masthead. A thin preset over the shared
- * `AppBar`: the SalvageUnion.io brand, the SRD nav (SRD / About / Changelog /
- * Discord / API + outbound Builder cross-link), the "Buy the game" button, and
- * an optional breadcrumb bar with JSON-LD. The interactive search + mobile-nav
- * pieces are slotted (`search` / `mobile`) so the consuming Astro page hydrates
- * them independently.
+ * SiteHeader — the SRD reference site's masthead (app-local config over the
+ * shared `AppBar`): the SalvageUnion.io brand, the SRD nav (SRD / About /
+ * Changelog / Discord / API + outbound Builder cross-link), the "Buy the game"
+ * button, and an optional breadcrumb bar with JSON-LD. The interactive search +
+ * mobile-nav pieces are slotted (`search` / `mobile`) so the consuming Astro
+ * page hydrates them independently.
  */
 
 type BreadcrumbItem = {
