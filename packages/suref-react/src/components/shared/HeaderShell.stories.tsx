@@ -4,7 +4,7 @@ import { Badge } from '../chrome/Badge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/Header Shell',
+  title: 'Legacy/Site/Header Shell',
 }
 
 /**
