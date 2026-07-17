@@ -799,6 +799,12 @@
       },
       {
         "id": "c05fd7f4-cd5a-4c0d-8518-3566cece416d",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Choose your Automated Turret from the following turret types."
+          }
+        ],
         "source": {
           "kind": "systemVariant",
           "options": [
@@ -1246,6 +1252,12 @@
     "choices": [
       {
         "id": "0cbc2a80-bf97-4acb-ad26-9e2f8f5ed0d7",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Choose your integrated optics — Thermal Optics, Zoom Optics, or IR Night Vision Optics. You gain all of the chosen Module’s Abilities, spending AP instead of EP to use them."
+          }
+        ],
         "source": {
           "kind": "catalog",
           "schema": [
@@ -1332,6 +1344,12 @@
     "choices": [
       {
         "id": "64c7bec9-fe16-4c57-af5c-5441e6fc961d",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Choose which Black Market Modules your Union Crawler can access. You may purchase them for Scrap equal to their Salvage Value at their Tech Level or higher."
+          }
+        ],
         "source": {
           "kind": "catalog",
           "schema": [
@@ -1352,6 +1370,12 @@
       },
       {
         "id": "ae51286a-64c8-416f-a052-81ef0869d4cc",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Choose which Black Market Systems your Union Crawler can access. You may purchase them for Scrap equal to their Salvage Value at their Tech Level or higher."
+          }
+        ],
         "source": {
           "kind": "catalog",
           "schema": [
@@ -1372,6 +1396,12 @@
       },
       {
         "id": "3df10ce5-ef5d-44a5-8a64-949a6e56bed6",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Choose which Black Market Pilot Equipment your Union Crawler can access. You may purchase them for Scrap equal to their Salvage Value at their Tech Level or higher."
+          }
+        ],
         "source": {
           "kind": "catalog",
           "schema": [
@@ -2160,6 +2190,12 @@
       {
         "schema": ["chassis"],
         "id": "8286393e-daf8-4a1d-8b91-dd8457da6251",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Choose any Tech 3 or 4 Mech, or any corpo design of your choice, for your Mech’s skin to appear as."
+          }
+        ],
         "source": {
           "kind": "catalog",
           "schema": [
@@ -4577,6 +4613,12 @@
         "choiceType": "permanent",
         "schema": ["chassis"],
         "id": "ed8cb1b3-3b38-4c92-9f0c-2638356edfc7",
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Choose any Tech 1 or 2 Mech, or any design of your choice, for your Mech’s skin to appear as."
+          }
+        ],
         "source": {
           "kind": "catalog",
           "schema": [
