@@ -52,6 +52,7 @@ export function EntityCardStatBox({ stats, compact = false }: EntityCardStatBoxP
               value={stat.value}
               bottomLabel={stat.bottomLabel}
               compact
+              state={stat.state}
               onChange={stat.onChange}
               mode={stat.onChange ? editMode : 'read'}
               max={stat.outOfMax}
@@ -68,6 +69,7 @@ export function EntityCardStatBox({ stats, compact = false }: EntityCardStatBoxP
             }
             max={stat.outOfMax}
             bottomLabel={stat.bottomLabel}
+            state={stat.state}
             mode={editMode}
             onChange={stat.onChange}
           />
@@ -77,6 +79,7 @@ export function EntityCardStatBox({ stats, compact = false }: EntityCardStatBoxP
             label={stat.label}
             value={stat.value}
             bottomLabel={stat.bottomLabel}
+            state={stat.state}
             hoverText={stat.hoverText}
           />
         )

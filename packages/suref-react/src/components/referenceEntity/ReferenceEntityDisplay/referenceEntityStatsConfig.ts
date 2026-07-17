@@ -226,9 +226,6 @@ export function buildReferenceEntityStats(
         bottomLabel: compact ? '' : 'VALUE',
         value: displayValue,
         hoverText: suppressTooltips ? undefined : config.tooltip,
-        bg: 'bg-su-sickly-yellow',
-        valueColor: 'text-su-black',
-        inverse: false,
       })
       continue
     }

@@ -62,13 +62,13 @@ export const Anatomies: Story = () => (
   </Gallery>
 )
 
-/** The centred value box (default). value/max; mode="edit" adds the stepper column. */
+/** The centred value box (default). A `max` reads as `current /max`; mode="edit" adds steppers. */
 export const ValueBox: Story = () => (
-  <Gallery rule="The centred value box (default anatomy). value / max; mode='edit' grows the +/- stepper column (the former StatControl).">
+  <Gallery rule="The centred value box (default anatomy) — rounded, ink on paper. A max renders as current /max (current prominent, /max muted); a bare value centres. mode='edit' grows the +/- stepper column (the former StatControl).">
     <Cell label="read">
       <Stat label="SP" value={sp} />
     </Cell>
-    <Cell label="value / max">
+    <Cell label="current / max">
       <Stat label="SP" value={Math.ceil(sp * 0.5)} max={sp} />
     </Cell>
     <Cell label="compact">
@@ -83,20 +83,8 @@ export const ValueBox: Story = () => (
     <Cell label="onClick + bottomLabel">
       <Stat label="SP" value={sp} onClick={noop} bottomLabel="MAX" />
     </Cell>
-    <Cell label="isOverMax">
-      <Stat label="SP" value={sp + 2} max={sp} isOverMax />
-    </Cell>
     <Cell label="hoverText">
       <Stat label="SP" value={sp} hoverText="Structure Points: the mech's health" />
-    </Cell>
-    <Cell label="colour overrides">
-      <Stat
-        label="SP"
-        value={sp}
-        bg="bg-su-green"
-        valueColor="text-paper"
-        borderColor="border-su-green"
-      />
     </Cell>
     <Cell label='mode="edit"'>
       <Stat
@@ -111,14 +99,41 @@ export const ValueBox: Story = () => (
   </Gallery>
 )
 
+/** State lives in the border — the ONLY thing that changes between states. */
+export const States: Story = () => (
+  <Gallery rule="State is carried entirely by the border colour via the `state` prop; fill, value and stamp stay constant. Default = ink · good (full/at-cap) = su-green · modified = rust · caution = status-warn · critical = status-bad. Which value maps to which state is the consumer's call.">
+    <Cell label="default">
+      <Stat label="SP" value={Math.ceil(sp * 0.5)} max={sp} />
+    </Cell>
+    <Cell label='state="good"'>
+      <Stat label="SP" value={sp} max={sp} state="good" />
+    </Cell>
+    <Cell label='state="modified"'>
+      <Stat label="TL" value={2} state="modified" />
+    </Cell>
+    <Cell label='state="caution"'>
+      <Stat label="Heat" value={heat - 1} max={heat} state="caution" />
+    </Cell>
+    <Cell label='state="critical"'>
+      <Stat label="Heat" value={heat} max={heat} state="critical" />
+    </Cell>
+    <Cell label="compact · critical">
+      <Stat label="Heat" value={heat} max={heat} orientation="horizontal" state="critical" />
+    </Cell>
+  </Gallery>
+)
+
 /** The [label | value] readout — a Stat, never a badge (Tech level, Range, traits). */
 export const Horizontal: Story = () => (
-  <Gallery rule="orientation='horizontal' → the black/white [label | value] readout (the former ValueDisplay). A Stat, never a badge. With mode='edit' it grows a compact +/- stepper column.">
+  <Gallery rule="orientation='horizontal' → the rounded [label | value] cell (the former ValueDisplay). Ink on paper, a max reads as value /max, state rides the border. With mode='edit' it grows a compact +/- stepper column.">
     <Cell label="range">
       <Stat label="RANGE" value={rangeLabel} orientation="horizontal" />
     </Cell>
     <Cell label="tech level">
       <Stat label="TL" value={tl} orientation="horizontal" />
+    </Cell>
+    <Cell label="value / max">
+      <Stat label="Heat" value={heat} max={heat} orientation="horizontal" />
     </Cell>
     <Cell label="inverse">
       <Stat label="TRAIT" value={traitLabel} orientation="horizontal" inverse />
