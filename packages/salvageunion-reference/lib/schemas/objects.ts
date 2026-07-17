@@ -527,6 +527,61 @@ const ChoiceConstraintsSchema = z
 const ChoiceTypeSchema = z.enum(['permanent', 'session', 'freeform'])
 
 /**
+ * Choice cardinality — how many picks a choice grants.
+ * `max` is either a fixed number or `{ scalesWith }`, a field name resolved on
+ * the parent entity (e.g. `techLevel`). Replaces `multiSelect` +
+ * `constraints.min/max` + `constraints.scalesWithField`.
+ */
+const CardinalitySchema = z
+  .object({
+    min: NonNegativeIntegerSchema,
+    max: z.union([NonNegativeIntegerSchema, z.object({ scalesWith: z.string() }).strict()]),
+  })
+  .strict()
+
+/**
+ * Choice source — the discriminated "where do the options come from" axis
+ * ([ADR ref] the unified choice model). Exactly one `kind`; the renderer
+ * switches on it and never probes optional fields.
+ *
+ * - `text`          — a free-text field (was: no option source).
+ * - `table`         — roll on a named table, or choose your own.
+ * - `options`       — an inline structured option list (was: choiceOptions).
+ * - `catalog`       — pick a card-bearing entity from schema collection(s),
+ *                     optionally a named shortlist and/or a field filter;
+ *                     `reveals` flips index visibility (was: setIndexable).
+ * - `systemVariant` — pick from inline custom System/Module variants.
+ */
+const ChoiceSourceSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('text'), multiline: z.boolean().optional() }).strict(),
+  z
+    .object({
+      kind: z.literal('table'),
+      rollTable: z.string(),
+      orChooseOwn: z.boolean().optional(),
+    })
+    .strict(),
+  z.object({ kind: z.literal('options'), options: z.array(ChoiceOptionSchema) }).strict(),
+  z
+    .object({
+      kind: z.literal('catalog'),
+      schema: z.array(SchemaNameSchema).optional(),
+      entities: z.array(z.string()).optional(),
+      filter: z
+        .object({
+          field: z.string(),
+          min: NonNegativeIntegerSchema.optional(),
+          max: NonNegativeIntegerSchema.optional(),
+        })
+        .strict()
+        .optional(),
+      reveals: z.boolean().optional(),
+    })
+    .strict(),
+  z.object({ kind: z.literal('systemVariant'), options: z.array(SystemModuleSchema) }).strict(),
+])
+
+/**
  * Choice schema (using z.lazy() for recursive reference to ContentSchema)
  */
 export const ChoiceSchema: z.ZodType<{
@@ -542,6 +597,9 @@ export const ChoiceSchema: z.ZodType<{
   multiSelect?: boolean
   choiceOptions?: z.infer<typeof ChoiceOptionSchema>[]
   constraints?: z.infer<typeof ChoiceConstraintsSchema>
+  source?: z.infer<typeof ChoiceSourceSchema>
+  cardinality?: z.infer<typeof CardinalitySchema>
+  lifetime?: 'permanent' | 'session'
 }> = z
   .lazy(() =>
     z
@@ -575,6 +633,16 @@ export const ChoiceSchema: z.ZodType<{
           .describe('Structured options for this choice (similar to actionOptions)')
           .optional(),
         constraints: ChoiceConstraintsSchema.describe('Constraints on selection count').optional(),
+        source: ChoiceSourceSchema.describe(
+          'Discriminated option source (text/table/options/catalog/systemVariant) — the unified axis'
+        ).optional(),
+        cardinality: CardinalitySchema.describe(
+          'How many picks this choice grants (replaces multiSelect + constraints)'
+        ).optional(),
+        lifetime: z
+          .enum(['permanent', 'session'])
+          .describe('permanent: recorded on sheet; session: made during gameplay')
+          .optional(),
       })
       .strict()
   )
