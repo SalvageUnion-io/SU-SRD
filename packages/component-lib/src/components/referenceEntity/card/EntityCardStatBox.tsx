@@ -23,21 +23,18 @@ type EntityCardStatBoxProps = {
 export function EntityCardStatBox({ stats, compact = false }: EntityCardStatBoxProps) {
   if (stats.length === 0) return null
 
-  // ATOM MODEL: COMPACT header stats lay out as (at most) TWO rows — columns =
-  // ceil(count/2), so 8 stats → 2 rows of 4, 6 → 2 rows of 3, etc. The cells flow
-  // row-wise (reading order) and right-align. NORMAL vertical boxes flex-wrap and
-  // right-align. Same inter-cell gap (gap-1) at both sizes.
-  const cols = Math.max(1, Math.ceil(stats.length / 2))
+  // COMPACT header stats FLOW naturally — a left-aligned flex-wrap row that packs
+  // cells left-to-right and wraps only when it runs out of width (no rigid grid
+  // columns, so varying label widths never leave alignment gaps). The compact
+  // cluster sits full-width below the title, so it fills toward the RIGHT as it
+  // flows. NORMAL vertical boxes flex-wrap and right-align in the header row.
 
   return (
     <div
       className={cn(
-        'shrink-0 gap-1',
-        compact
-          ? 'grid w-fit justify-items-end justify-self-end'
-          : 'flex flex-wrap items-start justify-end'
+        'flex flex-wrap gap-1',
+        compact ? 'w-full items-center justify-start' : 'shrink-0 items-start justify-end'
       )}
-      style={compact ? { gridTemplateColumns: `repeat(${cols}, max-content)` } : undefined}
     >
       {stats.map((stat) => {
         const editMode = (stat.canEdit ?? true) ? 'edit' : 'read'
