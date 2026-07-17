@@ -22,7 +22,7 @@ type SiteHeaderProps = {
   itunUrl: string
   breadcrumbs?: BreadcrumbItem[]
   breadcrumbDescription?: string
-  /** Stable `view-transition-name` forwarded to HeaderShell (Astro ClientRouter). */
+  /** Stable `view-transition-name` forwarded to AppBar (Astro ClientRouter). */
   viewTransitionName?: string
   /** Desktop search trigger (srd slots its SearchIsland here). */
   search?: ReactNode

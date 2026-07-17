@@ -56,7 +56,6 @@ export type {
   UseSearchComboboxOptions,
 } from './components/shared/useSearchCombobox'
 export { Footer } from './components/shared/Footer'
-export { HeaderShell } from './components/shared/HeaderShell'
 export { AppBar } from './components/shared/AppBar'
 export type { AppBarNavItem } from './components/shared/AppBar'
 export { CatalogTile } from './components/shared/CatalogTile'
