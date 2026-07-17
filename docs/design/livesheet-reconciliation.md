@@ -8,9 +8,11 @@ canonical (`ReferenceEntityCard`); this pass is the **frame, top bar, identity
 band, vitals/gauges, section framing, region arrangement, image affordance, and
 the responsive story** — never an entity-card rewrite.
 
-> **STATUS: L1 in progress.** The Pilot "before" is captured as a Ladle story
+> **STATUS: L2 in progress (Pilot).** The Pilot "before" is captured
 > (`Legacy/Live Sheet`); the brainstorm target is mocked
-> (`docs/design/livesheet-mockup.html`). Convergence (L2/L3) is not started.
+> (`docs/design/livesheet-mockup.html`); and the **target Pilot poster is built
+> from existing primitives** as `Compositions/Live Sheet` (read-only + editable +
+> mobile), Ladle-only. Mech + Crawler parity + L3 cutover remain.
 
 ---
 
@@ -77,11 +79,22 @@ same arc the entity card followed.
   Fable-authored design deck exploring the reconciled direction for all three
   sheets (desktop + mobile), the image affordance (empty + filled), and a
   decisions/variations panel. Built from the canonical vocabulary + tokens.
-- **Mech + Crawler before — TODO.** Pilot is the reference implementation (per
-  the redesign plan); mech (Identity + ChassisStats ∥ SP/EP/Heat vitals;
-  Systems ∥ Modules; Hold) and crawler (Identity + Economy ∥ full-height Storage
-  rail; Bays; Weapons) captures follow as parity increments.
-- **L2 / L3 — not started.**
+- **L2 Pilot target — DONE.** `packages/component-lib/src/stories/livesheet/`
+  (`LiveSheetPoster.tsx` + `LiveSheetPoster.stories.tsx`), titled
+  `Compositions/Live Sheet`. The "Union Poster" **assembled entirely from
+  existing primitives** — `DisplayCard` (identity + vitals bands), `VitalGauge`
+  (kept — segmented), `Stat` (TP box), `Badge` stamp (field labels), `Slab`
+  (section headers), `ReferenceEntityCard` (ability/equipment rows, compact),
+  `ConditionSwatch`, `EmptyState` (the empty image seat). Read-only + editable +
+  390px mobile stories on real ORM data. Whitespace/legibility-first; the
+  linked-player-entity rail stays at the bottom. Ladle-only, not barrel-exported.
+- **Mech + Crawler target — TODO.** Pilot is the reference implementation; mech
+  (Identity + ChassisStats ∥ SP/EP/Heat vitals — Heat gauge redlines near cap;
+  **Chassis Ability rendered through `ReferenceEntityCard`, matching the SRD
+  reference-entity chassis-ability rendering**; Systems ∥ Modules; Hold) and
+  crawler (Identity + Economy ∥ full-height Storage rail; Bays; Weapons) reuse
+  the same parts. Legacy before-captures for mech/crawler follow alongside.
+- **L3 — not started.**
 
 ---
 
@@ -104,31 +117,40 @@ From the redesign plan + this round's additions:
   collections have an always-visible rule-gated `+ Add`; vitals gauges always
   live. Three edit archetypes (Add/Remove · click-to-edit field · dots/pips).
 - **Image affordance** — a reserved region per sheet with an empty (dashed drop
-  zone) and filled (framed art) state; the poster is complete without it.
+  zone, the `EmptyState` primitive) and filled (framed art) state, same size so
+  the poster never reflows between them; complete without it.
+- **Whitespace + legibility first** — readable and playable **without zoom**;
+  airy gaps, generous line-height, larger value type. **Assemble from existing
+  parts** — very little should be created wholesale.
+- **Keep the segmented `VitalGauge`** (decision resolved — no dial/ring).
+- **Chassis Ability (mech) renders through `ReferenceEntityCard`**, matching the
+  SRD reference-entity chassis-ability rendering — never a bespoke render.
 - Live-play interactivity + the three modes (read-only snapshot / editable
   live-play / per-section build edit) from `sheetViewProps.ts`; snapshot + print
   support; ADR-007 automation boundary. SRD reference site untouched.
 
 ---
 
-## Open decisions (converge in L2)
+## Decisions — RESOLVED this round
 
-Surfaced by the mockup — resolve before building the canonical shape:
+1. **Image placement** ✅ — a reserved seat inside the identity `DisplayCard`:
+   a 3:4 **portrait-left** for pilots; the same seat stretches to a **banner**
+   for mech/crawler art. Empty = the same seat as an `EmptyState` dropzone.
+2. **Vitals gauge** ✅ — **keep the segmented `VitalGauge`** (no dial/ring). Heat
+   redlines its top segments near cap (mech).
+3. **Section framing** ✅ — lighter **`Slab`** headers for collection sections;
+   `DisplayCard` only frames the identity + vitals bands.
+4. **Where the canonical primitive lives** ✅ — one **shell, three variants**
+   ("so the three screens cannot drift apart," matching today's `LiveSheet`).
+   The Pilot poster's sub-parts (image seat, field grid, vitals band, collection
+   section, linked rail) are variant-agnostic and reused for mech/crawler.
 
-1. **Image placement** — portrait-left in the identity band vs. an identity
-   banner vs. a floating corner. (Mockup recommends one; confirm per sheet.)
-2. **Vitals gauge** — keep the current `VitalGauge` **segmented bar**, or move to
-   a pip-dial / ring for the poster's "Max ▸ Current" dial feel. A gauge change
-   is a **shared** `stat/` change → regression-check the SRD site (inert there
-   without a `max`) and heat escalation (mech Heat near cap → red).
-3. **Identity band composition** — field density, where callsign/class/chassis
-   sit, and how the source-pattern (mech) reads as secondary meta.
-4. **Section framing** — keep the `SheetSectionCard` accent header + deep-tone
-   left rule, or move to `Slab` section headers for lighter regions.
-5. **Where the canonical primitive lives** — a single `Compositions/Live Sheet`
-   shell with `variant="pilot|mech|crawler"` slots, vs. per-sheet compositions
-   over a shared frame. (Lean: one shell, three variants — "so the three screens
-   cannot drift apart," matching today's `LiveSheet`.)
+### Still open (refine in mech/crawler)
+
+- **Identity band composition** — field density; how the mech **source-pattern**
+  reads as secondary meta under the prominent pattern name.
+- **Filled-image treatment** — the real user-image render (this pass ships the
+  seat + empty state; filled uses a placeholder until the feature lands).
 
 ---
 
