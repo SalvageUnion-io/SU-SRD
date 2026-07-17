@@ -14,16 +14,12 @@ const SRC = import.meta.dir
 
 /** Barrel-exported components that intentionally have no standalone story. */
 const ALLOWLIST = new Set([
-  // DisplayCard internals — demonstrated via DisplayCard's stories.
+  // DisplayCard internal sub-parts — demonstrated via DisplayCard's stories.
   'CardHeader',
   'CardImage',
-  'Footer',
-  'HeaderShell',
   // Sub-parts / slots demonstrated via their parent composition.
   'ControlButtons', // rendered via DisplayCard foot actions
   'ReferenceEntityChassisAbilitiesContent', // render-prop slot
-  // External integration chrome, not a design primitive.
-  'KofiButton',
   // Redundant with the canonical Slab (ruleset: "slabs section"); pending
   // retirement — its Separators story was dropped as a duplicate.
   'SectionSeparator',
