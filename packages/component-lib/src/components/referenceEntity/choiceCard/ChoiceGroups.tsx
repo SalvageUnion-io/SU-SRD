@@ -48,7 +48,8 @@ type ChoiceGroupsProps = {
 }
 
 /** A selectable OPTION card — the NEW compact-card chrome (tone band + black
- *  name-tab + paper body), dim-until-chosen with the rust ring when chosen. */
+ *  name-tab + paper body), dim-until-chosen with the rust ring when chosen.
+ *  The card grid is a deliberate break from the book's prose list. */
 function ChoiceOption({
   label,
   description,
@@ -67,10 +68,6 @@ function ChoiceOption({
   compact?: boolean
 }): ReactNode {
   const parsedDescription = useParseTraitReferences(description ?? '')
-  // ONE consistent tone (the parent entity's), conveying state purely by DIM →
-  // UNDIM: an unchosen option is dimmed (like an action's dimmer version) with no
-  // stamp; the chosen option un-dims to full strength and gains a "Chosen"
-  // stampseal riding its top border. No selection ring.
   const frameColor = accentDeepColor(undefined, toneColor) ?? 'var(--color-ink)'
   const card = (
     <div className="relative">
@@ -108,11 +105,6 @@ function ChoiceOption({
       </div>
     </div>
   )
-  // Always a `button[aria-pressed]` so the chosen state stays queryable in BOTH
-  // modes (the read-only snapshot / share-link viewer needs to see which option
-  // was chosen). Read-only is inert — no toggle handler, default cursor — and
-  // renders every option SOLID (the dim-until-chosen cue is an editable-only
-  // affordance; a static readout shows all options at full strength).
   const wrap = cn(
     'block rounded-card transition-opacity duration-150',
     !readOnly && !chosen && 'opacity-45'
