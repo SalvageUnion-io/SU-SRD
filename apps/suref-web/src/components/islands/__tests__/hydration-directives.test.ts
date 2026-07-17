@@ -10,8 +10,8 @@ function readAstroFile(relativePath: string): string {
 
 describe('hydration directives', () => {
   describe('below-fold islands use client:visible', () => {
-    it('ReferenceEntityIsland in item page uses client:visible', () => {
-      const content = readAstroFile('src/pages/schema/[schemaId]/item/[itemId].astro')
+    it('ReferenceEntityIsland in EntityView uses client:visible', () => {
+      const content = readAstroFile('src/components/EntityView.astro')
       expect(content).toContain('ReferenceEntityIsland')
       expect(content).toContain('client:visible')
       expect(content).not.toMatch(/ReferenceEntityIsland[^>]*client:idle/)
