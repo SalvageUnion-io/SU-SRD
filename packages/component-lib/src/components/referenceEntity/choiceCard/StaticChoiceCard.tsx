@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Badge } from '../../chrome/Badge'
 import { Text } from '../../base/Text'
 import { cn } from '../../../utils/cn'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
@@ -31,17 +32,13 @@ function choiceCardColors(
   return { backgroundColor: light, borderColor: accent }
 }
 
-/** The black-stamp title on the coloured header, matching the entity-card pseudoheader. */
+/** The black-stamp title on the coloured header — the canonical Badge stamp atom. */
 function StaticChoiceCardHeader({ label, compact }: { label: string; compact: boolean }) {
   return (
     <div className={cn(compact ? 'px-2 py-1.5' : 'px-3 py-2')}>
-      <Text
-        variant="pseudoheader"
-        as="span"
-        className={cn('w-fit', compact ? 'text-sm' : 'text-base')}
-      >
+      <Badge shape="stamp" size={compact ? 'sm' : 'md'}>
         {label}
-      </Text>
+      </Badge>
     </div>
   )
 }
