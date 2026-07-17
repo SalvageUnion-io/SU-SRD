@@ -3,12 +3,12 @@ import { CatalogTile } from './CatalogTile'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/Site/Catalog Tile',
+  title: 'Atoms/Catalog Tile',
 }
 
 /**
- * The SRD landing/404 catalog-tile link (converted from suref-web, pending
- * review). Tile fill comes from the caller's `catalogBg`; an optional
+ * The SRD landing/404 catalog-tile link (canonical). Tile fill comes from the
+ * caller's `catalogBg`; an optional
  * `catalogLabel` renders the name as a filled chip (the reference site uses this
  * for grouped sub-categories).
  */

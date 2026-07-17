@@ -4,8 +4,8 @@ import { Search } from 'lucide-react'
 import { cn } from '../../utils/cn'
 
 /**
- * SearchField — the SRD reference site's search box (hoisted from the search
- * islands, pending review). A bordered, mono, paper-ground field with a leading
+ * SearchField — the shared search box (canonical; hoisted from the SRD search
+ * islands). A bordered, mono, paper-ground field with a leading
  * magnifier glyph; the container carries the keyboard-focus ring via
  * `focus-within` so the inner input can stay `focus:outline-none`.
  *
@@ -30,7 +30,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
   return (
     <div
       className={cn(
-        'flex items-center gap-2 rounded border border-su-black bg-paper px-3 py-[7px] font-mono text-[13px] text-su-grey-dark focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-su-orange',
+        'flex items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-mono text-[13px] text-ink-2 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-su-orange',
         containerClassName
       )}
     >
@@ -43,7 +43,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
       <input
         ref={ref}
         className={cn(
-          'w-full bg-transparent text-su-black placeholder:text-su-grey-dark focus:outline-none',
+          'w-full bg-transparent text-ink placeholder:text-ink-2 focus:outline-none',
           className
         )}
         {...inputProps}

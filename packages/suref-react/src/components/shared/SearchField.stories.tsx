@@ -4,11 +4,11 @@ import { SearchField } from './SearchField'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/Site/Search Field',
+  title: 'Atoms/Search Field',
 }
 
 /**
- * The SRD search box (hoisted from the search islands, pending review). Top: the
+ * The shared search box (canonical). Top: the
  * header's compact `.srd-search` default (fixed-width combobox trigger). Bottom:
  * the full-width, larger `/search` page variant (taller padding, 16px glyph).
  */
