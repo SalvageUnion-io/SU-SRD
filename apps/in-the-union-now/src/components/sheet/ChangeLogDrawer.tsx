@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useState } from 'react'
-import { ModalShell } from 'suref-react'
+import { ModalShell } from 'component-lib'
 
 import { changeLog } from '../../lib/db/index'
 import type { ChangeLogEntry, ChangeLogKind } from '../../lib/schemas/changeLog'

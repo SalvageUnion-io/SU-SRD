@@ -16,7 +16,7 @@
  */
 
 import { useState } from 'react'
-import { Btn, Input, ModalShell } from 'suref-react'
+import { Btn, Input, ModalShell } from 'component-lib'
 
 import { useWorkspaceActions, useWorkspaces } from '../../hooks/queries'
 import { DEFAULT_WORKSPACE_ID } from '../../lib/defaultWorkspace'

@@ -25,8 +25,8 @@
 
 import { useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Btn, ReferenceEntityDisplay, StatusBadge, StepBtn } from 'suref-react'
-import type { CardFootMeta } from 'suref-react'
+import { Btn, ReferenceEntityDisplay, StatusBadge, StepBtn } from 'component-lib'
+import type { CardFootMeta } from 'component-lib'
 
 import type { ScrapPool } from '../../lib/schemas/crawler'
 import type { ItemCondition } from '../../lib/schemas/mech'

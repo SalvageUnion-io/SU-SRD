@@ -3,12 +3,12 @@
  *
  * Static content page: what ITUN is, its local-first stance, links to the SRD
  * and the official game, and the official Ko-fi support widget (shared
- * KofiButton from suref-react). Styled in the ITUN paper/ink Workshop-Manual
+ * KofiButton from component-lib). Styled in the ITUN paper/ink Workshop-Manual
  * idiom (mirrors the Roster main layout) rather than the SRD reference-site
  * look, so it reads as part of this app.
  */
 
-import { KofiButton } from 'suref-react'
+import { KofiButton } from 'component-lib'
 
 import { version } from '../../../package.json'
 

@@ -30,8 +30,8 @@ const rootPkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8')) as
 
 const surfaces: Surface[] = [
   {
-    label: 'apps/suref-web/netlify.toml BUN_VERSION',
-    actual: netlifyBunVersion('apps/suref-web/netlify.toml'),
+    label: 'apps/srd/netlify.toml BUN_VERSION',
+    actual: netlifyBunVersion('apps/srd/netlify.toml'),
   },
   {
     label: 'apps/in-the-union-now/netlify.toml BUN_VERSION',

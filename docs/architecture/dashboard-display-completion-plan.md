@@ -15,7 +15,7 @@
 >   only source of truth for the intended Display behavior.
 > - **The prose spec** — [`dashboard.md`](dashboard.md) §2.2.D + §6 (describes the
 >   mockup by function name but does not reproduce its controls in full).
-> - The `suref-react` render stack the Display reuses:
+> - The `component-lib` render stack the Display reuses:
 >   [`display-system.md`](display-system.md); the play-state model the resolve flow
 >   drives: [`combat-loop.md`](combat-loop.md); and ADRs
 >   [016](../adrs/ADR-016-dashboard-rotary-dial-instrument-split.md) /
@@ -177,7 +177,7 @@ widened beyond today's primary-action-per-item (`dashboardRules.ts:249`).
   game-rules `Actions` masonry. To keep the built-in actions, don't `hide.actions`;
   to inject entity-level buttons use `afterExtraContent`/`footerOverride`.
 - **`ReferenceEntityActions` and `displayStateContext` are internal** (not in the
-  `suref-react` barrel) — reach them _through_ `ReferenceEntityDisplay`, don't import
+  `component-lib` barrel) — reach them _through_ `ReferenceEntityDisplay`, don't import
   internals. Density is a `compact`/`mode` prop, not a context knob.
 - **`RollTable`** is interactive but its Roll button needs **`showCommand` + a truthy
   `tableName`** (else static grid). Roll math: `rollOnTable`/`resultForTable`

@@ -1,0 +1,276 @@
+/*
+ * Salvage Union Design System - Tailwind v4 Theme
+ * Colors ported from the official Salvage Union aesthetic
+ */
+@theme {
+  /* === Typography === */
+  --font-mono: 'Barlow', system-ui, -apple-system, sans-serif;
+  /* Preferred alias for Barlow (it is NOT a monospace — design-spec §1.2).
+     New code should use `font-body`; `--font-mono` stays for existing usage. */
+  --font-body: 'Barlow', system-ui, -apple-system, sans-serif;
+  --font-cond: 'Barlow Semi Condensed', 'Barlow', system-ui, -apple-system, sans-serif;
+
+  /* === Caps tracking steps (canonical primitive language §3) ===
+     Promoted up from the ITUN app so BOTH apps (and the shared components they
+     render) resolve the same letter-spacing ladder. `tracking-caps-tight`
+     (0.04em) is the canonical Stamp/label tracking. Slots around Tailwind's
+     built-ins (wide 0.025 / wider 0.05 / widest 0.1). */
+  --tracking-caps-tight: 0.04em;
+  --tracking-caps-snug: 0.06em;
+  --tracking-caps: 0.08em;
+  --tracking-caps-wide: 0.12em;
+  --tracking-eyebrow: 0.22em;
+
+  /* Radius scale (ruleset §4.4 — the ONE radius vocabulary; never rounded-[Npx]):
+     pip = tracker pips · badge = the stamp-chip family · card = cards, inputs,
+     buttons (the outer 3px) · panel = app-chrome panels & pick cards. Stamps are
+     square (no radius). These generate rounded-pip/badge/card/panel utilities. */
+  --radius-pip: 1px;
+  --radius-badge: 2px;
+  --radius-card: 3px;
+  --radius-panel: 6px;
+
+  /* Semantic type scale (ruleset §4.2 — the ONE font-size ladder; never
+     text-[Npx] for these steps). Shared by every surface (was ITUN-local):
+       nano     8px    smallest markers — TL glyphs, unit suffixes
+       micro    9px    dense caps meta labels (NPC insets, encounter cards)
+       label    10px   standard uppercase font-cond field/section label
+       label-lg 10.5px pseudoheader / rail caps label
+       badge    11px   badges, pills, compact caps values
+       note     11.5px small body copy in rails and insets
+       caption  13px   small body copy — hints, empty states, subtitles
+       lede     15px   emphasized inline values, inset titles
+     Generates text-nano … text-lede. */
+  --text-nano: 8px;
+  --text-micro: 9px;
+  --text-label: 10px;
+  --text-label-lg: 10.5px;
+  --text-badge: 11px;
+  --text-note: 11.5px;
+  --text-caption: 13px;
+  --text-lede: 15px;
+
+  /* === Brand Colors === */
+  --color-su-orange: rgb(239, 137, 79);
+  --color-su-orange-dark: rgb(168, 82, 34);
+  --color-su-orange-light: rgb(245, 193, 163);
+  --color-su-green: rgb(122, 151, 138);
+  --color-su-green-dark: rgb(92, 121, 108);
+  --color-su-pink: rgb(206, 88, 152);
+  --color-su-blue: rgb(143, 195, 216);
+  --color-su-blue-game: rgb(125, 206, 235);
+  --color-su-blue-light: rgb(199, 223, 231);
+  --color-su-blue-pale: rgb(230, 240, 245);
+  --color-su-brick: rgb(168, 89, 71);
+  --color-su-brick-pale: rgb(210, 160, 140);
+  --color-su-rust: rgb(140, 75, 56);
+  --color-su-black: rgb(40, 32, 25);
+  /* Cargo brand header tokens (Claude Design handoff): warm off-white "paper",
+     the dark header ground, and the muted nav-link ink on that ground. */
+  --color-su-paper: rgb(243, 237, 226);
+  --color-su-ink-dark: rgb(27, 23, 18);
+  --color-su-muted: rgb(155, 148, 136);
+  --color-su-grey: rgb(150, 150, 150);
+  --color-su-grey-light: rgb(199, 199, 199);
+  --color-su-grey-medium: rgb(130, 130, 130);
+  --color-su-grey-dark: rgb(80, 80, 80);
+  --color-su-input-bg: rgb(232, 229, 216);
+  --color-su-peach: rgb(245, 193, 163);
+  --color-su-sickly-yellow: rgb(215, 195, 125);
+  --color-su-silver: rgb(192, 192, 192);
+  --color-su-sand: rgb(235, 231, 222);
+
+  /* Tech Level Blues */
+  --color-tl-1: rgb(115, 201, 230);
+  --color-tl-2: rgb(87, 169, 200);
+  --color-tl-3: rgb(68, 135, 162);
+  --color-tl-4: rgb(48, 107, 128);
+  --color-tl-5: rgb(30, 83, 100);
+  --color-tl-6: rgb(6, 52, 65);
+  /* Non-numeric equipment tiers (Core Book p.3 "TECH LEVELS"): Bio + Nanite.
+     Lowercase keys (kebab convention) so the `var(--color-tl-${tl})` swatch
+     interpolation stays case-stable — CSS custom-property names are
+     case-sensitive. */
+  --color-tl-b: rgb(86, 156, 104);
+  --color-tl-n: rgb(146, 109, 184);
+
+  /* Entity colors (semantic) */
+  --color-pilot: var(--color-su-orange);
+  --color-pilot-light: var(--color-su-orange-light);
+  --color-mech: var(--color-su-green);
+  --color-mech-dark: var(--color-su-green-dark);
+  --color-crawler: var(--color-su-pink);
+
+  /* Roll result tiers — canonical warm state palette (canonical primitive
+     language §3). Re-toned off the old stock-Material hues so damaged/destroyed
+     state (via the --color-status-* aliases below) and the Discord bot's roll
+     outcomes share ONE warm ramp. Web surfaces never colour roll outcomes —
+     tier colour is a bot-only affordance. */
+  --color-roll-cascade: rgb(176, 67, 43); /* #b0432b */
+  --color-roll-failure: rgb(192, 122, 47); /* #c07a2f */
+  --color-roll-tough: rgb(193, 154, 62); /* #c19a3e */
+  --color-roll-success: rgb(111, 138, 74); /* #6f8a4a */
+  --color-roll-nailed: rgb(75, 134, 160); /* #4b86a0 */
+
+  /* === ITUN design-handoff tokens (design-spec §1.1) === */
+  /* Ink / paper / action */
+  --color-ink: var(--color-su-black);
+  --color-ink-2: rgb(70, 61, 49); /* #463d31 secondary ink */
+  /* Paper — the ONE light surface (ruleset §4.1). NOT pure white and NOT cream:
+     a near-white warm paper. Pure white is retired from the UI — paper is used
+     universally (surfaces, value cells, and text on ink). The only remaining
+     #ffffff are scoped exceptions: the @media print sheet (physical paper) and
+     the dark Dashboard instrument skin. */
+  --color-paper: rgb(251, 250, 247); /* #fbfaf7 */
+  --color-rust: var(--color-su-orange-dark); /* THE single action color */
+  --color-rust-hi: rgb(138, 64, 25); /* #8a4019 primary hover */
+  --color-danger: rgb(154, 70, 51); /* #9a4633 .btn--danger */
+
+  /* Workshop (light) ground — canonical light ground is su-blue-pale #e6f0f5 */
+  --color-wk-bg: var(--color-su-blue-pale);
+  --color-wk-bg-2: rgb(215, 230, 238); /* #d7e6ee */
+  --color-wk-muted: rgb(108, 119, 128); /* #6c7780 */
+  --color-wk-faint: rgb(167, 180, 189); /* #a7b4bd */
+
+  /* Status (Intact / Damaged / Destroyed) — aliases of the roll tiers */
+  --color-status-ok: var(--color-roll-success);
+  --color-status-warn: var(--color-roll-failure);
+  --color-status-bad: var(--color-roll-cascade);
+
+  /* Cargo (storage) accent triplet */
+  --color-cargo: rgb(156, 122, 62); /* #9c7a3e */
+  --color-cargo-deep: rgb(111, 85, 39); /* #6f5527 */
+  --color-cargo-pale: rgb(239, 230, 212); /* #efe6d4 */
+
+  /* Sheet tones (Header C live sheets) — base + deep pairs */
+  --color-sheet-pilot: var(--color-su-orange); /* #ef894f */
+  --color-sheet-pilot-deep: var(--color-su-orange-dark); /* #a85222 */
+  --color-sheet-mech: var(--color-su-green); /* #7a978a */
+  --color-sheet-mech-deep: rgb(47, 67, 56); /* #2f4338 */
+  --color-sheet-crawler: var(--color-su-pink); /* #ce5898 */
+  --color-sheet-crawler-deep: rgb(126, 42, 91); /* #7e2a5b */
+
+  /* Heat-at-cap pulse (design review U-1): a subtle status-bad ring that
+     breathes outward. Use as `motion-safe:animate-heat-pulse` so
+     prefers-reduced-motion suppresses it. */
+  --animate-heat-pulse: heat-pulse 1.5s ease-in-out infinite;
+  @keyframes heat-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-status-bad) 45%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-status-bad) 0%, transparent);
+    }
+  }
+}
+
+/*
+ * Base CSS custom properties used by body styles and components.
+ * Keep minimal — only define variables that are actually referenced.
+ */
+:root {
+  --background: var(--color-paper);
+  --foreground: var(--color-su-black);
+
+  /* Border-weight semantic tokens (design-spec §1.3 — load-bearing system):
+     entity = entity cards + hero header; rail = rail cards & Hold frames;
+     pill = pills / status badges / dividers / statins / sblock / counterpart
+     panels; chrome = everything else (buttons, inputs, panels, rows, pips). */
+  --bw-entity: 3px;
+  --bw-rail: 2.5px;
+  --bw-pill: 2px;
+  --bw-chrome: 1.5px;
+}
+
+/*
+ * === Semantic border-width utilities (canonical primitive language §3) ===
+ *
+ * Promoted up from the ITUN app so every surface (srd + ITUN + the shared
+ * components) names border weights by role instead of hardcoding pixels. Only
+ * the NON-native weights get a utility — hairline 1px is native `border`, pill
+ * 2px is native `border-2`; these fill chrome 1.5px / rail 2.5px / entity 3px.
+ * This is the ONE border vocabulary — never `border-[1.5px]`.
+ */
+@utility border-chrome {
+  border-width: var(--bw-chrome);
+}
+@utility border-t-chrome {
+  border-top-width: var(--bw-chrome);
+}
+@utility border-b-chrome {
+  border-bottom-width: var(--bw-chrome);
+}
+@utility border-l-chrome {
+  border-left-width: var(--bw-chrome);
+}
+@utility border-r-chrome {
+  border-right-width: var(--bw-chrome);
+}
+@utility border-rail {
+  border-width: var(--bw-rail);
+}
+@utility border-entity {
+  border-width: var(--bw-entity);
+}
+@utility border-b-entity {
+  border-bottom-width: var(--bw-entity);
+}
+
+/* Per-sheet one-variable theming (design-spec §1.4): each sheet class sets its
+   tone pair and derives the two ground colors via OKLCH relative color.
+   `--sheet-tone` overrides the tone without redefining the grounds. */
+.sheet--pilot,
+.sheet--mech,
+.sheet--crawler {
+  --tone: var(--sheet-tone, var(--tone-default));
+}
+
+.sheet--pilot {
+  --tone-default: var(--color-sheet-pilot);
+  --tone-deep: var(--color-sheet-pilot-deep);
+  --ground: oklch(from var(--tone) 0.955 0.03 h);
+  --ground-2: oklch(from var(--tone) 0.985 0.012 h);
+  /* Wizard step-card fill (wizard-refresh mockup): the sky-blue step cards of
+     the printed Pilot Bay spread, pp.18–19 (#6BB8D6). Opt-in via WizShell's
+     tintedStepCard — only book-order wizards render it. Sky blue is light
+     enough for dark ink. */
+  --tone-card: rgb(107, 184, 214);
+  --tone-card-ink: var(--color-ink);
+}
+
+.sheet--mech {
+  --tone-default: var(--color-sheet-mech);
+  --tone-deep: var(--color-sheet-mech-deep);
+  --ground: oklch(from var(--tone) 0.955 0.022 h);
+  --ground-2: oklch(from var(--tone) 0.985 0.01 h);
+  /* Mech Workshop step-card rust, pp.94–95 (#B0553A). Rust is too dark for
+     ink text — the card ink is WHITE (matching the printed spread's white
+     body copy on the rust step cards). */
+  --tone-card: rgb(176, 85, 58);
+  --tone-card-ink: var(--color-paper);
+}
+
+.sheet--crawler {
+  --tone-default: var(--color-sheet-crawler);
+  --tone-deep: var(--color-sheet-crawler-deep);
+  --ground: oklch(from var(--tone) 0.955 0.03 h);
+  --ground-2: oklch(from var(--tone) 0.985 0.012 h);
+  /* Union Crawler step-card peach, pp.212–213 (#EC9C67) — unused until the
+     crawler wizard's book-order phase opts in. Peach is light enough for
+     dark ink. */
+  --tone-card: rgb(236, 156, 103);
+  --tone-card-ink: var(--color-ink);
+}
+
+/* Mobile-first touch targets */
+@media (pointer: coarse) {
+  button,
+  [role='button'],
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

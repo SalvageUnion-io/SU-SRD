@@ -1,4 +1,4 @@
-import { Stat } from 'suref-react'
+import { Stat } from 'component-lib'
 import { MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 
 /**

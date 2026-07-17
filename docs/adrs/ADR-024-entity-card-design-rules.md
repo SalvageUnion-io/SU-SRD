@@ -127,7 +127,7 @@ equipment was already TL1.)
   (canonical groups `Compositions/Reference Entity *` and `Atoms/Stat`),
   and the story-coverage guard keeps every barrel-exported visual component
   storied.
-- Rule 7 is a shared-data change: it changes the tech-level badge on suref-web /
+- Rule 7 is a shared-data change: it changes the tech-level badge on srd /
   the Discord bot as well as ITUN. It is a data ruling, not a computed value —
   future granted-only equipment should be authored at TL1 directly.
 - The compat shim (rule 1) is intentionally retained; there is no plan to rewrite

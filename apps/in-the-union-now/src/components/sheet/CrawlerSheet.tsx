@@ -63,7 +63,7 @@
 
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { ReferenceEntityDisplay } from 'suref-react'
+import { ReferenceEntityDisplay } from 'component-lib'
 
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'

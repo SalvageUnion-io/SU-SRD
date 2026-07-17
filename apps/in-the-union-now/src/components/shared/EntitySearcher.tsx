@@ -28,7 +28,7 @@ import {
   ReferenceEntityDisplay,
   Badge,
   statBlockRowStarts,
-} from 'suref-react'
+} from 'component-lib'
 import { cn } from '../../lib/utils'
 import type { TechLevel } from '../../lib/rules/types'
 import { SelCard } from '../wizard/SelCard'

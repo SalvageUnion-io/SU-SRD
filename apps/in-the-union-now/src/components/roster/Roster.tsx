@@ -21,7 +21,7 @@ import { Fragment, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
-import { Btn, btnVariants, Empty } from 'suref-react'
+import { Btn, btnVariants, Empty } from 'component-lib'
 
 import {
   setActiveWorkspaceId,

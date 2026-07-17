@@ -1,0 +1,49 @@
+{
+  "name": "component-lib",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "license": "Salvage Union Open Game Licence 1.0b",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles/theme.css": "./src/styles/theme.css"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint .",
+    "format": "biome format --write . && prettier --write '**/*.md' --ignore-unknown --log-level=warn",
+    "format:check": "biome format . && prettier --check '**/*.md' --ignore-unknown --log-level=warn",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
+    "test:watch": "bun test --watch",
+    "ladle": "ladle serve",
+    "ladle:build": "ladle build"
+  },
+  "peerDependencies": {
+    "@base-ui/react": "^1.2.0",
+    "@randsum/roller": "^4.0.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.18.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "salvageunion-reference": "workspace:*",
+    "sonner": "^2.0.3",
+    "tailwind-merge": "^3.0.2"
+  },
+  "devDependencies": {
+    "@base-ui/react": "1.6.0",
+    "@ladle/react": "^5.1.1",
+    "@randsum/roller": "^4.0.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.24.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "salvageunion-reference": "workspace:*",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.6.0",
+    "vite": "^8.1.4"
+  },
+  "dependencies": {}
+}

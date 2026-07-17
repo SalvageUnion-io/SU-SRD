@@ -21,7 +21,7 @@ import type { SnapshotPayload } from '../../lib/snapshot/client'
 import { AppLink } from '../../components/shared/AppLink'
 import { SheetSkeleton } from '../../components/sheet/SheetSkeleton'
 import { SnapshotSheet } from '../../components/sheet/SnapshotSheet'
-import { btnVariants } from 'suref-react'
+import { btnVariants } from 'component-lib'
 import { cn } from '../../lib/utils'
 
 // ---------------------------------------------------------------------------

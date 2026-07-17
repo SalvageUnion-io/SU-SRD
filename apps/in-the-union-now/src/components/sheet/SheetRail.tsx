@@ -19,8 +19,8 @@
 import type { MouseEvent, ReactNode } from 'react'
 import { Bot, ChevronRight, UserRound, Warehouse } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { MiniBtn, Pill } from 'suref-react'
-import type { PillTone } from 'suref-react'
+import { MiniBtn, Pill } from 'component-lib'
+import type { PillTone } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'

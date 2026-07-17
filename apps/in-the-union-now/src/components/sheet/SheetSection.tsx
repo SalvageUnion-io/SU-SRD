@@ -17,8 +17,8 @@
  */
 
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { MiniBtn, ModalShell } from 'suref-react'
-import type { ReferenceEntityControl } from 'suref-react'
+import { MiniBtn, ModalShell } from 'component-lib'
+import type { ReferenceEntityControl } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 

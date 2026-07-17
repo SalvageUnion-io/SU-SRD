@@ -33,7 +33,7 @@ packages/salvageunion-reference/.api-dts/
 
 # Vite
 .vite
-apps/suref-web/.vite
+apps/srd/.vite
 
 # TanStack Router temporary files
 **/.tanstack

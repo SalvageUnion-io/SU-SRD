@@ -1,7 +1,7 @@
 ---
 paths:
-  - packages/suref-react/src/components/shared/DisplayCard*
-  - packages/suref-react/src/components/referenceEntity/**
+  - packages/component-lib/src/components/shared/DisplayCard*
+  - packages/component-lib/src/components/referenceEntity/**
 ---
 
 # Display System Rules
@@ -57,7 +57,7 @@ For entities with `choices` (e.g. Custom Sniper Rifle granted by a class ability
 - `ReferenceEntityResolvedChoices` renders the interactive `ChoiceGroups` in the card body.
 - `ReferenceEntityResolvedDataRow` renders live resolved stat tags in the header (base datavalues + applied choice effects + trait list + unresolved "Choose: …" prompts), via `resolveChoiceView` from `salvageunion-reference`.
 - Both components share a single `selections: ChoiceSelections` / `onSelectionChange` pair owned by the parent display.
-- `ChoiceGroups` is uncontrolled (ephemeral state) in suref-web; controlled (persistence-wired) in ITUN.
+- `ChoiceGroups` is uncontrolled (ephemeral state) in srd; controlled (persistence-wired) in ITUN.
 - `StaticChoiceCard` is the display-only variant used by `BlockContentRendererView` to render `list-item` content blocks with the same bordered frame (no toggle/status).
 - `ReferenceEntityGrants` renders a `Grants` section + compact nested `ReferenceEntityDisplay` cards, resolved by `resolveGrantedEntities` from `salvageunion-reference`.
 

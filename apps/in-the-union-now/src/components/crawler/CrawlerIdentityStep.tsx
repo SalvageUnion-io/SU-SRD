@@ -1,4 +1,4 @@
-import { Btn, Field, Input } from 'suref-react'
+import { Btn, Field, Input } from 'component-lib'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
 import { IdentityField } from '../sheet/IdentityField'
 import { rollCrawlerName } from './crawlerRollTables'

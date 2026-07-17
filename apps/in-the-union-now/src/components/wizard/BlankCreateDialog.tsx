@@ -10,13 +10,13 @@
  *   Crawler: Name*, Tech Level 1–6 (default 1 — bare stats derive from
  *            crawler-tech-levels.json; the default SRD bays are seeded).
  *
- * Reuses the app's standard dialog shell (suref-react ModalShell — the same
+ * Reuses the app's standard dialog shell (component-lib ModalShell — the same
  * shell behind ConfirmDialog/SelectorDialog) and Field/Input chrome.
  */
 
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { Btn, Field, Input, ModalShell } from 'suref-react'
+import { Btn, Field, Input, ModalShell } from 'component-lib'
 
 import { createBlank } from '../../lib/wizard/blankCreate'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'

@@ -1,6 +1,6 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { MiniBtn, Panel, ReferenceEntityDisplay, statBlockRowStarts } from 'suref-react'
+import { MiniBtn, Panel, ReferenceEntityDisplay, statBlockRowStarts } from 'component-lib'
 import { cn } from '../../lib/utils'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 

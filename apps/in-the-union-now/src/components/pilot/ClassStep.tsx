@@ -1,5 +1,5 @@
 import type { SURefClass, SURefEntity } from 'salvageunion-reference'
-import { ClassAbilityTree, OptRow, ReferenceEntityDisplay } from 'suref-react'
+import { ClassAbilityTree, OptRow, ReferenceEntityDisplay } from 'component-lib'
 import { classDescription } from './classOptions'
 
 type ClassOptionListProps = {

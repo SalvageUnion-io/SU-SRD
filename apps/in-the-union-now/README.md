@@ -3,7 +3,7 @@
 Local-first character builder and game manager for [Salvage Union](https://leyline.press/).
 React 19 + TanStack Router, Tailwind v4, Zustand write-through stores over
 IndexedDB (`idb`). No auth, no backend for user data — everything lives in the
-browser. Shared UI comes from `suref-react`; game data from
+browser. Shared UI comes from `component-lib`; game data from
 `salvageunion-reference`.
 
 ## Development

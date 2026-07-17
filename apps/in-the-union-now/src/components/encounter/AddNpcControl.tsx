@@ -10,7 +10,7 @@
  */
 
 import { useMemo, useState } from 'react'
-import { Btn, FilterChip, ReferenceEntityDisplay } from 'suref-react'
+import { Btn, FilterChip, ReferenceEntityDisplay } from 'component-lib'
 
 import { ENCOUNTER_REF_SCHEMAS } from '../../lib/schemas/encounterNpc'
 import type { EncounterRefSchema } from '../../lib/schemas/encounterNpc'

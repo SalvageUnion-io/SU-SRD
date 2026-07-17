@@ -15,7 +15,7 @@
  */
 
 import { useState } from 'react'
-import { Btn, Field, Input, ModalShell, toast } from 'suref-react'
+import { Btn, Field, Input, ModalShell, toast } from 'component-lib'
 import type { CargoLot } from '../../../lib/schemas/cargoLot'
 import { cn } from '../../../lib/utils'
 import { usePatternStore } from '../../../stores/patternStore'

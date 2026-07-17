@@ -44,7 +44,7 @@ conventions, then the relevant architecture doc below.
 | [rules-engine-boundary.md](architecture/rules-engine-boundary.md) | **Rules & the ITUN Surfaces** — enforcement mode × rule-class matrix       |
 | [dashboard.md](architecture/dashboard.md)                         | The Dashboard (Guided-Play surface) design — layout, instruments, canvas   |
 | [combat-loop.md](architecture/combat-loop.md)                     | Action activation, heat checks, conditions — current local-first flow      |
-| [seo-accessibility.md](architecture/seo-accessibility.md)         | SEO strategy (suref-web) + WCAG 2.1 AA patterns                            |
+| [seo-accessibility.md](architecture/seo-accessibility.md)         | SEO strategy (srd) + WCAG 2.1 AA patterns                                  |
 
 ### `docs/rules/` — Agent-readable rules digest (generated, gitignored)
 
@@ -81,8 +81,8 @@ Read the matching ADR before proposing alternatives.
 | [ADR-008](adrs/ADR-008-sequential-mutations.md)                      | Sequential client-side mutations for action execution                                                           |
 | [ADR-009](adrs/ADR-009-condition-model-destroyed-color.md)           | Item condition model + destroyed semantic color                                                                 |
 | [ADR-010](adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md)        | Choices — ephemeral in the SRD, persisted in ITUN                                                               |
-| [ADR-011](adrs/ADR-011-suref-react-source-no-build.md)               | `suref-react` ships as TypeScript source (no build step)                                                        |
-| [ADR-012](adrs/ADR-012-suref-web-astro-static.md)                    | `suref-web` as an Astro static site with React islands                                                          |
+| [ADR-011](adrs/ADR-011-component-lib-source-no-build.md)             | `component-lib` ships as TypeScript source (no build step)                                                      |
+| [ADR-012](adrs/ADR-012-srd-astro-static.md)                          | `srd` as an Astro static site with React islands                                                                |
 | [ADR-013](adrs/ADR-013-csp-zod-jitless.md)                           | CSP-compliant Zod (jitless) constraint                                                                          |
 | [ADR-014](adrs/ADR-014-json-api-public-interface-npm-retired.md)     | Dataset public interface is the JSON API; npm publishing retired                                                |
 | [ADR-015](adrs/ADR-015-dashboard-distinct-play-surface.md)           | Dashboard is a distinct actual-play surface, separate from live sheets (built)                                  |
@@ -109,10 +109,10 @@ Read the matching ADR before proposing alternatives.
 Each app and shared package has its own `CLAUDE.md` with stack-specific
 conventions:
 
-- [`apps/suref-web/CLAUDE.md`](../apps/suref-web/CLAUDE.md) — Static reference site (Astro + islands)
+- [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md) — Static reference site (Astro + islands)
 - [`apps/in-the-union-now/CLAUDE.md`](../apps/in-the-union-now/CLAUDE.md) — Character builder (React, local-first)
 - [`apps/discord-bot/CLAUDE.md`](../apps/discord-bot/CLAUDE.md) — Discord.js bot
 - [`packages/salvageunion-reference/CLAUDE.md`](../packages/salvageunion-reference/CLAUDE.md) — Game data ORM + schemas
-- [`packages/suref-react/CLAUDE.md`](../packages/suref-react/CLAUDE.md) — Shared component library
+- [`packages/component-lib/CLAUDE.md`](../packages/component-lib/CLAUDE.md) — Shared component library
 
 Plus the agent-readable convention digests in [`.claude/rules/`](../.claude/rules/).

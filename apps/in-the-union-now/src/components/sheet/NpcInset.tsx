@@ -13,9 +13,9 @@
  * choice (see CrawlerSheet). readOnly renders plain text, no edit affordances.
  */
 
-import { Stat } from 'suref-react'
+import { Stat } from 'component-lib'
 
-import { DisplayCard } from 'suref-react'
+import { DisplayCard } from 'component-lib'
 import { InlineEditField } from './InlineEditField'
 import { InlineEditTextArea } from './InlineEditTextArea'
 import { NpcFactsEditor } from './NpcFactsEditor'

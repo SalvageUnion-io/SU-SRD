@@ -13,10 +13,10 @@
       "project": ["lib/**/*.ts", "tools/**/*.ts"],
       "ignore": ["etc/**"]
     },
-    "packages/suref-react": {
+    "packages/component-lib": {
       "project": ["src/**/*.{ts,tsx}"]
     },
-    "apps/suref-web": {
+    "apps/srd": {
       "entry": ["src/pages/**/*.{astro,ts,tsx}"],
       "project": ["src/**/*.{ts,tsx,astro}"]
     },

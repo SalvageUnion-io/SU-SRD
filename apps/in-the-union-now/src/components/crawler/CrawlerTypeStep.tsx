@@ -1,6 +1,6 @@
 import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
-import { OptRow, ReferenceEntityDisplay, TreeSep } from 'suref-react'
+import { OptRow, ReferenceEntityDisplay, TreeSep } from 'component-lib'
 import { SelCard } from '../wizard/SelCard'
 import { SelMasonry } from '../wizard/SelMasonry'
 

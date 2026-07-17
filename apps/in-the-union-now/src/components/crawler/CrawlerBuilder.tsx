@@ -8,7 +8,7 @@ import type {
   SURefSystem,
 } from 'salvageunion-reference'
 import { isLegalCreationCrawlerWeapon } from 'salvageunion-reference/rules'
-import { toast } from 'suref-react'
+import { toast } from 'component-lib'
 
 import { useMechs, usePilots } from '../../hooks/queries'
 import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
@@ -37,11 +37,11 @@ import {
   wizardDraftKey,
 } from '../../lib/wizard/wizardDraft'
 import { useEntityStore } from '../../stores/entityStore'
-import { Banner } from 'suref-react'
+import { Banner } from 'component-lib'
 import { OffRulesEscape } from '../wizard/OffRulesEscape'
 import { RuleBrief } from '../wizard/RuleBrief'
 import type { StepRule } from '../wizard/RuleBrief'
-import { WizShell, WizTracker } from 'suref-react'
+import { WizShell, WizTracker } from 'component-lib'
 import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
 import { CrawlerReviewStep } from './CrawlerReviewStep'

@@ -23,7 +23,7 @@
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from 'suref-react'
+import { ReferenceEntityDisplay } from 'component-lib'
 
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { Crawler } from '../../lib/schemas/crawler'

@@ -22,7 +22,7 @@ import type { Crawler, CrawlerNpcState, ScrapPool } from '../schemas/crawler'
 import { parseCrawlerTechLevel } from '../crawlerLevel'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../crawlerRefs'
 import type { ResolvedNpc } from '../crawlerRefs'
-import type { ChoiceSelections } from 'suref-react'
+import type { ChoiceSelections } from 'component-lib'
 
 type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 

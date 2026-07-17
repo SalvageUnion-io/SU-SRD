@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
-import { Pill, TreeSep } from 'suref-react'
+import { Pill, TreeSep } from 'component-lib'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 import { SelCard } from '../wizard/SelCard'
 import { SelMasonry } from '../wizard/SelMasonry'

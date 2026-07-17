@@ -2,7 +2,7 @@
 
 > **Status:** Plan / design record. This document is the plan for unifying the
 > SU-SRD UI onto **one canonical primitive language** — no more "legacy vs
-> canon." Every surface (suref-web, in-the-union-now, suref-react) conforms to
+> canon." Every surface (srd, in-the-union-now, component-lib) conforms to
 > the same vocabulary, tokens, and prop APIs described here.
 >
 > **Companion:** the visual codex (live before/after + variant gallery + prop
@@ -50,11 +50,11 @@ extra rows of (base+1), then the rest of base` (6→6, 8→4+4, 10→5+5, 12→6
 ## Progress
 
 Landed on the `worktree-entity-card-capture` branch (PR #466), each increment
-green (typecheck 0 · suref-react + ITUN tests · both apps build) and behind the
+green (typecheck 0 · component-lib + ITUN tests · both apps build) and behind the
 draft PR pending your screenshot review of the visual deltas:
 
 - **Phase 0 — foundations.** One tokenset: the caps-tracking ladder and the
-  semantic border-width `@utilities` promoted into suref-react and deleted from
+  semantic border-width `@utilities` promoted into component-lib and deleted from
   ITUN; `--color-paper` → `#fbfaf7`; warm roll/status re-tone. _(Reinvented
   `border-hairline` caught + removed — native `border` is already 1px.)_
 - **Phase B — token sweep.** 26 tracking + 28 border drifting arbitraries
@@ -87,7 +87,7 @@ draft PR pending your screenshot review of the visual deltas:
   prop/variant on real SRD data.
 
 **Visual-review checklist (draft PR):** paper flip to `#fbfaf7`; warm state
-re-tone (damaged/destroyed reads a warm brick red); suref-web gaining
+re-tone (damaged/destroyed reads a warm brick red); srd gaining
 `tracking-caps` where it was previously a silent no-op; and the fused
 Stat renders (all four anatomies) via the Ladle stories.
 
@@ -95,7 +95,7 @@ Stat renders (all four anatomies) via the Ladle stories.
 
 Every primitive now has a story under one **`Primitives/*`** namespace
 (`bun run ladle`) — a dev-tool catalog living centrally in
-`packages/suref-react/src/stories/primitives/` (Badges · Buttons · Chrome ·
+`packages/component-lib/src/stories/primitives/` (Badges · Buttons · Chrome ·
 VitalGauge) plus the retitled Stat / DisplayCard / RollTable / Stamp&Text
 / Tooltip / Toaster / ActivationCostBox. Stories only render the shipped
 components, so the catalog is ground truth. `ladle build` passes.
@@ -118,7 +118,7 @@ These catalog-surfaced off-system spots have been reconciled:
   `rounded-[Npx]` across the primitives migrated. Stamps stay square.
 - **Input focus ring** ✅ — `ring-rust/[0.22]` → the shared `ring-rust/25`.
 - **One type scale** ✅ — the semantic ladder (`--text-nano … --text-lede`)
-  promoted from ITUN-local into the suref-react `@theme`, generating
+  promoted from ITUN-local into the component-lib `@theme`, generating
   `text-nano … text-lede` on every surface; matching arbitrary `text-[Npx]` in
   the primitives migrated (`text-[11px]` → `text-badge`, etc.).
 - **One radius scale** ✅ and **pure white retired** ✅ — see the paper flip
@@ -133,7 +133,7 @@ solid `border-ink/35`) — deliberate control-panel shapes on ink tokens, kept._
 Every merged component collapses into one file with a prop-controlled API. Old
 exports become thin deprecated aliases during migration, then are deleted.
 
-| Component           | File (`packages/suref-react/src/…`)   | Absorbs                                                                                                               | Key props                                                                                                                                                                                                                                            |
+| Component           | File (`packages/component-lib/src/…`) | Absorbs                                                                                                               | Key props                                                                                                                                                                                                                                            |
 | ------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Stamp**           | `components/chrome/Stamp.tsx`         | `base/Text` pseudoheader                                                                                              | `size` · `surface` (on-tone / on-ink / inverse) · `as`                                                                                                                                                                                               |
 | **Stat** ✅         | `components/shared/Stat.tsx`          | StatControl · StatBlock · MiniStat · ValueDisplay — **all fused + deleted**. (Field/Input · InlineEditField deferred) | `label` · `value` · `max` (bottom label, bigger) · `bottomLabel` · `mode` (read/edit → edit adds steppers) · **`pips`** (default `false` → box goes rectangular) · `orientation` (vertical / horizontal = ValueDisplay) · `tone` · `min` · `inverse` |
@@ -168,9 +168,9 @@ One PR, pixel-safe where possible:
   from reading surfaces; keep white only for stamp text + the ValueDisplay value
   cell.
 - Wire the dead `--bw-entity/rail/pill/chrome` tokens; add `--bw-hairline: 1px`.
-  Promote ITUN's `@utility border-*` block into suref-react.
+  Promote ITUN's `@utility border-*` block into component-lib.
 - Promote `--tracking-label: 0.04em` (+ display `0.01`, eyebrow `0.22`) into
-  suref-react; retire the 8 drifting tracking values.
+  component-lib; retire the 8 drifting tracking values.
 - Re-tone the status / roll tokens to the warm palette (`status-bad #b0432b`,
   `warn #c07a2f`, `ok #6f8a4a`; roll tiers add `tough #c19a3e`, `nailed #4b86a0`).
   Exact hex pending sign-off.
@@ -197,7 +197,7 @@ screenshots gate anything with a visible delta.
    `Theme.stories.tsx` exists; add `Stat.stories` (every variant row from
    the codex), `Badge`, `VitalGauge`, `DisplayCard`, `RollTable`, `Modal`, …
    Keep the Ladle `bun patch` intact ([[ts7-upgrade-ts6-footholds]]).
-4. **Migrate consumers** — grep the call sites across suref-web + ITUN; swap to
+4. **Migrate consumers** — grep the call sites across srd + ITUN; swap to
    the unified props (StatBlock → Stat `pips`, ValueDisplay →
    `orientation="horizontal"`, DashboardGauge → VitalGauge `skin="instrument"`,
    Tag/Pill → Badge). Remove the aliases when clean. This is where "legacy/canon"
@@ -218,7 +218,7 @@ screenshots gate anything with a visible delta.
 ## 5. Constraints (unchanged)
 
 Local-first, strict CSP (no CDN / eval), Tailwind v4 (CSS-configured),
-`suref-react` ships TS source (no build step), Barlow inlined. The **logo** is
+`component-lib` ships TS source (no build step), Barlow inlined. The **logo** is
 off-limits. The **wizards** inherit primitive updates only — no wizard-specific
 anatomy ships, and the wizard step-card `--tone-card` palette (pilot blue / mech
 rust / crawler peach) is a named exemption from hue=ontology

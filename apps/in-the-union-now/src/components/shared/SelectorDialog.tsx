@@ -1,13 +1,13 @@
 /**
  * SelectorDialog — ITUN's standard pick-one-then-confirm dialog.
  *
- * Generic radio-list selector over suref-react's ModalShell, factored out of
+ * Generic radio-list selector over component-lib's ModalShell, factored out of
  * the formerly copy-pasted AssignPilotToMech / AssignCrawlerToPilot dialogs
  * (design-review T-2/T-3). The caller owns all state (selection, pending,
  * error) — this component is a controlled, dumb view.
  */
 
-import { Btn, ModalShell } from 'suref-react'
+import { Btn, ModalShell } from 'component-lib'
 
 type SelectorOption = {
   id: string

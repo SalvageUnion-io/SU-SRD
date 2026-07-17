@@ -10,13 +10,13 @@
  */
 
 import { useMemo, useState } from 'react'
-import { Btn, MiniBtn, ModalShell, Stat, useDetailModal } from 'suref-react'
+import { Btn, MiniBtn, ModalShell, Stat, useDetailModal } from 'component-lib'
 
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import type { EncounterNpc, MediatorRollResult } from '../../lib/schemas/encounterNpc'
 import type { useEncounterStore } from '../../stores/encounterStore'
-import { DisplayCard } from 'suref-react'
+import { DisplayCard } from 'component-lib'
 import { InlineEditField } from '../sheet/InlineEditField'
 import { MediatorRollControl } from './MediatorRollControl'
 import { ENCOUNTER_SCHEMA_LABEL, resolveCandidate } from './referenceNpcs'

@@ -40,7 +40,7 @@ You are designing for a Bun monorepo with:
 - **React 19** with **TanStack Router/Query**
 - **ShadCN + Tailwind v4 + Radix UI** as the component system (ShadCN primitives in `src/components/ui/`, custom theme via CSS variables in Tailwind v4 `@theme` blocks)
 - **Vite** for bundling
-- A shared component library (`suref-react`) that provides the three-layer display system (DisplayCard -> ReferenceEntityDisplay -> consumer hooks), base typography (Text), UI primitives (Toaster, FilterChip), and theme CSS (`styles/theme.css`). No build step — exports TypeScript source.
+- A shared component library (`component-lib`) that provides the three-layer display system (DisplayCard -> ReferenceEntityDisplay -> consumer hooks), base typography (Text), UI primitives (Toaster, FilterChip), and theme CSS (`styles/theme.css`). No build step — exports TypeScript source.
 - A data package (`salvageunion-reference`) that provides typed game data via an ORM-like API (`SalvageUnionReference.get(schemaName, id)`)
 - **Local-first persistence** (IndexedDB via `idb`) in the builder app — no auth, no backend
 - **Zustand** for workspace/entity stores, **TanStack Query** for async/derived data
@@ -75,7 +75,7 @@ Prefer composing from existing shared components (DisplayCard, FilterChip, Text,
 ### When Asked About Visual Design:
 
 1. **Reference the game's aesthetic** — Salvage Union is industrial and rugged; design should reflect that without sacrificing clarity.
-2. **Work within the theme system** — Recommend colors, spacing, and typography that align with the existing `suref-react` theme.
+2. **Work within the theme system** — Recommend colors, spacing, and typography that align with the existing `component-lib` theme.
 3. **Provide specific values** when possible — spacing tokens, color tokens, font sizes, border radii.
 4. **Show contrast and hierarchy** — Use visual weight to guide attention.
 
@@ -114,7 +114,7 @@ Not every response needs all sections — use judgment. Quick questions get quic
 
 Examples of what to record:
 
-- Existing component patterns and how entity display is structured in `suref-react`
+- Existing component patterns and how entity display is structured in `component-lib`
 - Theme tokens, color schemes, and spacing conventions
 - Layout patterns used in dashboard, sheets, and detail views
 - Navigation patterns and routing structure

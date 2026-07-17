@@ -14,7 +14,7 @@ Functions ([ADR-001](../../docs/adrs/ADR-001-local-first-no-backend.md),
   **Not** the persistence cache — see below.
 - **Zustand** stores for persistent client state (`src/stores/`).
 - **ShadCN + Tailwind v4** — UI primitives in `src/components/ui/`; SU brand
-  theme in `src/index.css` (`@theme` block) + `suref-react` theme.
+  theme in `src/index.css` (`@theme` block) + `component-lib` theme.
 - **PWA** (`vite-plugin-pwa`, autoUpdate) — installable, offline-capable.
 
 ## Persistence (read before touching data)
@@ -57,7 +57,7 @@ Functions ([ADR-001](../../docs/adrs/ADR-001-local-first-no-backend.md),
 
 - Relative imports only (no `@/`); `type` over `interface`; named exports
   (route components may default-export for TanStack Router).
-- Reuse `suref-react` components before building new UI; choices stay
+- Reuse `component-lib` components before building new UI; choices stay
   persistence-agnostic in the shared library — ITUN owns the selections
   ([ADR-010](../../docs/adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md)).
 - Backup nudge (`src/lib/backupNudge.ts`) tracks un-exported writes — the

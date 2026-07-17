@@ -19,7 +19,7 @@
  */
 
 import { useState } from 'react'
-import { Btn, ModalShell, Slab, StepBtn } from 'suref-react'
+import { Btn, ModalShell, Slab, StepBtn } from 'component-lib'
 
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'

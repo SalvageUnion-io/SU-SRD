@@ -14,7 +14,7 @@
 
 import { cloneElement } from 'react'
 import type { ReactElement, ReactNode } from 'react'
-import type { CardFootMeta } from 'suref-react'
+import type { CardFootMeta } from 'component-lib'
 
 import { LAYOUT } from '../../lib/layout'
 import { cn } from '../../lib/utils'

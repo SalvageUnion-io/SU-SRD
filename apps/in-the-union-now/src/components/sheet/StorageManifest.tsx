@@ -20,13 +20,13 @@
  * buttons entirely.
  */
 
-import { Stat } from 'suref-react'
+import { Stat } from 'component-lib'
 
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import { cn } from '../../lib/utils'
-import { DisplayCard } from 'suref-react'
+import { DisplayCard } from 'component-lib'
 
 type StorageManifestSide = 'mech' | 'crawler'
 

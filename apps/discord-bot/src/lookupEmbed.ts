@@ -79,7 +79,7 @@ function entityLink(schema: SURefEnumSchemaName, name: string): string {
 
 /**
  * Inline trait references in body text, in the two bracket forms the data uses
- * (mirrors suref-react's parseTraitReferences):
+ * (mirrors component-lib's parseTraitReferences):
  *   [[Trait Name]]              → link to the trait's page
  *   [[[Trait Name] (param)]]    → link + the parameter (e.g. "[[[Melee] (2)]]")
  * Every ref resolves against the `traits` schema, exactly as the web does; an

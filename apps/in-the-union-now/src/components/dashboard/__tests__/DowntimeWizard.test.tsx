@@ -10,7 +10,7 @@
 
 import { beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render } from '@testing-library/react'
-import { EntityHrefProvider } from 'suref-react'
+import { EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import type { Crawler } from '../../../lib/schemas/crawler'

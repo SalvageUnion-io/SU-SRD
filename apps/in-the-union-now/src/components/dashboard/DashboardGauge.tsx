@@ -4,7 +4,7 @@
  * segments (filled up to `value` in the tone colour, empty recessed), and the
  * value/max numeral.
  *
- * Deliberately NOT `suref-react`'s VitalGauge: that gauge is light-themed
+ * Deliberately NOT `component-lib`'s VitalGauge: that gauge is light-themed
  * (ink text, paper segments) for the sheet/display. The Dashboard instruments are
  * bespoke and dark (proposed ADR-017/018); VitalGauge is reused in the light
  * display surface instead (Phase 4). Read-only here — Phase 2 is read-mostly.

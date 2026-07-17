@@ -186,7 +186,7 @@ Three tracking values, down from 15:
 | `--tracking-eyebrow` | `0.22em` | brand caption only        |
 
 The wide "instrument HUD" stamps (`0.09 / 0.12 / 0.14`) conform **down** to
-`0.04em`. Promoting these tokens into suref-react fixes a real cross-app bug:
+`0.04em`. Promoting these tokens into component-lib fixes a real cross-app bug:
 `tracking-caps` silently renders untracked outside ITUN.
 
 ### 4.3 The border map (weights = tokens, one meaning each)
@@ -334,4 +334,4 @@ _One kind, one context, one primitive — the older entity-display canon, unifie
 and warmed toward the book, with every "before" a real render and every change
 earned. Logo off-limits · wizards near-frozen (their `--tone-card` fills are a
 protected book aesthetic, [[wizard-info-colors]]) · CSP-safe · Tailwind v4 ·
-`suref-react` stays no-build._
+`component-lib` stays no-build._

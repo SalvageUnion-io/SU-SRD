@@ -2,7 +2,7 @@
  * Tests for ContextualEntityDisplay (AC-3, cycle-2).
  *
  * Strategy:
- * - Tests are dependency-injected through mocking suref-react's
+ * - Tests are dependency-injected through mocking component-lib's
  *   EntityTooltip so we don't need to render the full
  *   entity card (which has complex layout / font dependencies).
  * - We verify: correct schemaName + entityId forwarded, byName lookup,
@@ -22,7 +22,7 @@ import { must } from '../../__tests__/must'
 // Mock EntityTooltip to avoid rendering the full card
 // ---------------------------------------------------------------------------
 
-mock.module('suref-react', () => ({
+mock.module('component-lib', () => ({
   EntityTooltip: ({
     schemaName,
     entityId,

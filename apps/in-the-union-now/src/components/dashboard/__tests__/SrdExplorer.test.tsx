@@ -7,7 +7,7 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { fireEvent, render, waitFor } from '@testing-library/react'
-import { EntityHrefProvider } from 'suref-react'
+import { EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { SrdExplorer } from '../SrdExplorer'

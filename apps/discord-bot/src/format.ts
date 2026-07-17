@@ -127,7 +127,7 @@ export function buildCheckEmbedData(input: string, result: RollerRollResult<unkn
   }
 }
 
-/** Item-page URL on the reference site (matches suref-web staticPaths). */
+/** Item-page URL on the reference site (matches srd staticPaths). */
 export function entityUrl(schemaName: string, entity: SURefEntity): string {
   return `${SUREF_WEB_BASE_URL}/schema/${schemaName}/item/${getEntitySlug(entity)}`
 }

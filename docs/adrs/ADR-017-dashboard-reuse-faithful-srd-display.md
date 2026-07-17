@@ -14,7 +14,7 @@ existing display system.
 ## Decision
 
 The display renders the **actual** `ReferenceEntityDisplay` + `ActionCard` /
-`NestedActionDisplay` + `ReferenceEntityActions` + `RollTable` from `suref-react` —
+`NestedActionDisplay` + `ReferenceEntityActions` + `RollTable` from `component-lib` —
 the same light "workshop paperwork" reference document the rest of the app shows.
 Action economy is injected through the existing
 `Erow` / `ActionCardErow` + `DisplayCard.footActions`/`footMeta` pattern, **not** a
@@ -26,7 +26,7 @@ are new Dashboard components.
 One display system, one place to fix reference rendering, and the Dashboard's
 reference view stays byte-for-byte identical to the sheet's. The foot-meta
 vocabulary already carries action economy in the sheet; extending it avoids forking
-the display ([ADR-011](ADR-011-suref-react-source-no-build.md)).
+the display ([ADR-011](ADR-011-component-lib-source-no-build.md)).
 
 ## Alternatives rejected
 

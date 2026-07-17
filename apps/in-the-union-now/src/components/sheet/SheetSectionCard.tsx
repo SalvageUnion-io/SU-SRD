@@ -21,7 +21,7 @@
  */
 
 import type { ReactNode } from 'react'
-import { DisplayCard } from 'suref-react'
+import { DisplayCard } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 

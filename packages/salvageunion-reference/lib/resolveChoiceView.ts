@@ -17,7 +17,7 @@
  *   e.g. { choiceId, label, text: 'Choose: Ballistic or Energy' }.
  *
  * The function is deterministic and performs no I/O. It is the single source
- * of truth shared by suref-web (ephemeral selection state) and ITUN
+ * of truth shared by srd (ephemeral selection state) and ITUN
  * (persisted selection state).
  */
 

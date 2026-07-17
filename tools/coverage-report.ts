@@ -51,8 +51,8 @@ type WorkspaceCoverage = {
 
 const WORKSPACES = [
   'packages/salvageunion-reference',
-  'packages/suref-react',
-  'apps/suref-web',
+  'packages/component-lib',
+  'apps/srd',
   'apps/in-the-union-now',
   'apps/discord-bot',
 ]

@@ -1,5 +1,5 @@
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from 'suref-react'
+import { ReferenceEntityDisplay } from 'component-lib'
 import { LAYOUT } from '../../lib/layout'
 import { cn } from '../../lib/utils'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'

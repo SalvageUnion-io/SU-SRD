@@ -1,5 +1,5 @@
 import type { SURefEntity } from 'salvageunion-reference'
-import { MiniBtn, ReferenceEntityDisplay } from 'suref-react'
+import { MiniBtn, ReferenceEntityDisplay } from 'component-lib'
 import { cn } from '../../lib/utils'
 
 type InstallCardProps = {

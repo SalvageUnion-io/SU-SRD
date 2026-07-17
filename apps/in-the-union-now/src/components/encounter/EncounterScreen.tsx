@@ -18,7 +18,7 @@
 
 import { useState } from 'react'
 import { Users } from 'lucide-react'
-import { Empty } from 'suref-react'
+import { Empty } from 'component-lib'
 
 import { setActiveWorkspaceId, useActiveWorkspaceId } from '../../hooks/queries'
 import { useHydrateOnMount } from '../../hooks/queries/useHydrateEntities'
@@ -27,7 +27,7 @@ import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import type { MediatorRollResult } from '../../lib/schemas/encounterNpc'
 import { useEncounterStore } from '../../stores/encounterStore'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
-import { DisplayCard } from 'suref-react'
+import { DisplayCard } from 'component-lib'
 import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher'
 import { AddNpcControl } from './AddNpcControl'
 import { EncounterNpcCard } from './EncounterNpcCard'

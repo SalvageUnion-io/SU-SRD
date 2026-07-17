@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react'
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefCrawler } from 'salvageunion-reference'
-import { Btn, ModalShell, toast } from 'suref-react'
+import { Btn, ModalShell, toast } from 'component-lib'
 
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { EntityState } from '../../stores/entityStore'

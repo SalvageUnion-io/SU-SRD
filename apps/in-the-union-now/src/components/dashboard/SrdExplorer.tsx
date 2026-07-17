@@ -3,7 +3,7 @@
  *
  * Replaces the old hard stub in `DisplayView`'s `srd` branch. Two ways in:
  *
- *  1. A **search box** over the whole SRD, driven by suref-react's shared
+ *  1. A **search box** over the whole SRD, driven by component-lib's shared
  *     `useSearchCombobox` (the same hook behind the global search) — schema hits
  *     open a category list, entity hits drill straight into the card.
  *  2. **8 category tiles** (Chassis / Systems / Modules / Pilot Abilities /
@@ -20,7 +20,7 @@ import { useEffect, useState } from 'react'
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, useSearchCombobox } from 'suref-react'
+import { ReferenceEntityDisplay, useSearchCombobox } from 'component-lib'
 
 const HIDE_CHOICES = { choices: true } as const
 

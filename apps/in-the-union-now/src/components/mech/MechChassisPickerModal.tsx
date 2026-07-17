@@ -11,7 +11,7 @@
  */
 
 import { useEffect, useState } from 'react'
-import { Btn, ModalShell } from 'suref-react'
+import { Btn, ModalShell } from 'component-lib'
 
 import { ChassisDetail, ChassisOptionList } from './ChassisStep'
 

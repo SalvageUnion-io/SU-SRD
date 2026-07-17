@@ -2,13 +2,13 @@
  * GlobalSearch — app-wide reference search (design-review P-2).
  *
  * The combobox logic (debounce, category+entity blending, keyboard
- * selection, ARIA wiring) lives in suref-react's useSearchCombobox — shared
- * with suref-web's SearchIsland (audit item 11). This shell owns what's
+ * selection, ARIA wiring) lives in component-lib's useSearchCombobox — shared
+ * with srd's SearchIsland (audit item 11). This shell owns what's
  * ITUN-specific:
  * - The dropdown-under-input becomes a ModalShell dialog (the Phase-1 dialog
  *   standard) opened by Cmd/Ctrl+K or the AppHeader trigger.
  * - Selecting an entity opens ITUN's canonical detail affordance —
- *   suref-react's useDetailModal — instead of navigating to an SRD page.
+ *   component-lib's useDetailModal — instead of navigating to an SRD page.
  * - Category rows (schema matches) have no in-app destination, so they open
  *   the SRD site's schema index in a new tab.
  * - ITUN's whole tree renders behind GameDataReady (root layout), so
@@ -20,10 +20,10 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { ModalShell, useDetailModal, useSearchCombobox } from 'suref-react'
-import type { SearchComboboxResult } from 'suref-react'
+import { ModalShell, useDetailModal, useSearchCombobox } from 'component-lib'
+import type { SearchComboboxResult } from 'component-lib'
 
-import { deepLinkToSchema } from '../../lib/suref-web-deep-link'
+import { deepLinkToSchema } from '../../lib/srd-deep-link'
 
 type GlobalSearchProps = {
   open: boolean

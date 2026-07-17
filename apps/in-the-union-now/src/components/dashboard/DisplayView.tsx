@@ -1,7 +1,7 @@
 /**
  * DisplayView — the Dashboard's main display: the ONE surface that reads
  * "forward". It renders the faithful light SRD reference document for whatever
- * the Dial is focused on (focus→display sync), reusing suref-react's
+ * the Dial is focused on (focus→display sync), reusing component-lib's
  * ReferenceEntityDisplay / RollTable verbatim — the same components the live
  * sheet and reference site show (ADR-017).
  *
@@ -19,7 +19,7 @@ import { useRef, useState } from 'react'
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, RollTable } from 'suref-react'
+import { ReferenceEntityDisplay, RollTable } from 'component-lib'
 
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'

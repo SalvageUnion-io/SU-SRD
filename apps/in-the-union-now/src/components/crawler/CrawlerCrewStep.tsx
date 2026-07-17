@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, navigateControl } from 'suref-react'
+import { ReferenceEntityDisplay, navigateControl } from 'component-lib'
 
 import { findNpcChoiceByName } from '../../lib/crawlerRefs'
 import type { ResolvedNpc } from '../../lib/crawlerRefs'

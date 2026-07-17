@@ -13,7 +13,7 @@ reference (abilities, systems, modules, equipment, bays) keeps rendering through
 `ReferenceEntityDisplay` system. The result should feel **professional, clean, and unified**: the
 simplicity of the printed sheets carrying the design language of the SRD.
 
-**Hard constraint:** no visual changes to the SRD reference site (`suref-web`) or the shared
+**Hard constraint:** no visual changes to the SRD reference site (`srd`) or the shared
 reference display as it appears there. This is an ITUN-only shell/layout pass.
 
 ## Where we're starting
@@ -113,23 +113,23 @@ reviewed the official PDFs and **converged on a single target**:
 - Live-play interactivity (gauges editable, conditions toggle) and the three modes
   (read-only snapshot / editable live-play / editing build) from `sheetViewProps.ts`.
 - ADR-007 automation boundary, snapshot + print support.
-- No changes to `suref-web` / the SRD reference display.
+- No changes to `srd` / the SRD reference display.
 
 ## Implementation phasing (after a direction is chosen)
 
 1. **Shared shell primitives** — edge wordmark, poster grid in `LiveSheet` / `SheetHero`, and (if the
-   chosen direction uses them) a gauge component in `suref-react` `components/stat/`.
+   chosen direction uses them) a gauge component in `component-lib` `components/stat/`.
 2. **Pilot sheet** to spec (hero regions + body slabs re-gridded) as the reference implementation.
 3. **Mech + Crawler** parity.
 4. **Footer iconography** for ability/system cards (AP cost / action-type / rest) — shared, so
-   regression-check `suref-web`.
+   regression-check `srd`.
 5. **Responsive + print + snapshot** passes, `/a11y-scan`, full CI (`/validate`).
 
 ## Risks / open questions
 
 - The two-column poster fights the current **condense-on-scroll sticky bar + mobile segmented
   switch** → each direction needs an explicit desktop-poster / mobile-stack strategy.
-- A gauge component is a **shared** `stat/` change → regression-check `suref-web` (inert there
+- A gauge component is a **shared** `stat/` change → regression-check `srd` (inert there
   without a `max`).
 - Paper texture must stay CSP- and print-safe.
 </content>

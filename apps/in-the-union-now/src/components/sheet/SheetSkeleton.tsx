@@ -11,7 +11,7 @@
 function SkeletonSlab() {
   return (
     <div className="mt-7 first:mt-0">
-      {/* Slab header: label + dashed leader (suref-react `Slab` shape) */}
+      {/* Slab header: label + dashed leader (component-lib `Slab` shape) */}
       <div className="mb-3.5 flex items-center gap-3">
         <div className="h-4 w-28 rounded bg-ink/15" />
         <div className="h-0.5 flex-1 rounded bg-ink/10" />

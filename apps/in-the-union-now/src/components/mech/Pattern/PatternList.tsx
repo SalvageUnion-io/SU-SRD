@@ -13,7 +13,7 @@
  * route boundary.
  */
 
-import { Pill } from 'suref-react'
+import { Pill } from 'component-lib'
 import { usePatternStore } from '../../../stores/patternStore'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 

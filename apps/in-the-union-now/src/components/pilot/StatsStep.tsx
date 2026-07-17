@@ -1,4 +1,4 @@
-import { Stat } from 'suref-react'
+import { Stat } from 'component-lib'
 import {
   PILOT_BASE_AP,
   PILOT_BASE_HP,

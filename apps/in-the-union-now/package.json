@@ -35,7 +35,7 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "salvageunion-reference": "workspace:*",
-    "suref-react": "workspace:*",
+    "component-lib": "workspace:*",
     "tailwind-merge": "^3.6.0",
     "zustand": "^5.0.14"
   },

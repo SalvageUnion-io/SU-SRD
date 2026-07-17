@@ -12,7 +12,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefCrawler, SURefSystem } from 'salvageunion-reference'
-import { ModalShell } from 'suref-react'
+import { ModalShell } from 'component-lib'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'

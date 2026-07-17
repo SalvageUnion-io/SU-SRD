@@ -9,8 +9,8 @@
 
 import type { ReactNode } from 'react'
 import type { SURefEntity, SURefMetaAction } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from 'suref-react'
-import type { CardFootMeta } from 'suref-react'
+import { ReferenceEntityDisplay } from 'component-lib'
+import type { CardFootMeta } from 'component-lib'
 
 import { Erow } from './Erow'
 

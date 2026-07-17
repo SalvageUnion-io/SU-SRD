@@ -21,7 +21,7 @@
 
 import { useState } from 'react'
 import type { SURefClass } from 'salvageunion-reference'
-import { Btn } from 'suref-react'
+import { Btn } from 'component-lib'
 
 import { resolveClassName } from '../../lib/classRef'
 import type { Pilot } from '../../lib/schemas/pilot'

@@ -1,17 +1,17 @@
 @import 'tailwindcss';
-@import 'suref-react/styles/theme.css';
+@import 'component-lib/styles/theme.css';
 @import './styles/print.css';
 
-@source '../../../packages/suref-react/src';
+@source '../../../packages/component-lib/src';
 
 /*
  * ShadCN runtime tokens — map to SU brand colors so generic ShadCN
  * components (Button, Dialog, Input, etc.) inherit the same look as the
- * suref-web SRD site instead of falling back to Tailwind defaults.
+ * srd SRD site instead of falling back to Tailwind defaults.
  *
  * Keep names ShadCN expects (no `--color-` prefix). Tailwind v4 picks
  * these up through the `bg-background` / `text-foreground` shorthand via
- * the suref-react theme `@theme` block; this :root block is the override
+ * the component-lib theme `@theme` block; this :root block is the override
  * layer that points each one at an SU brand variable.
  */
 :root {
@@ -72,7 +72,7 @@
 
   /*
    * Mobile nav drawer slide (AppHeaderMobileMenu) — mirrors the SRD reference
-   * site's `animate-slide-in-right`/`-out` (apps/suref-web/.../global.css) so
+   * site's `animate-slide-in-right`/`-out` (apps/srd/.../global.css) so
    * the two headers' hamburger drawers animate identically.
    */
   --animate-slide-in-right: slide-in-right 0.2s ease-out;
@@ -97,11 +97,11 @@
   }
 
   /* The semantic type scale (--text-nano … --text-lede), caps tracking steps,
-     and brand eyebrow are now promoted to the suref-react theme (ruleset §4.2)
+     and brand eyebrow are now promoted to the component-lib theme (ruleset §4.2)
      so both apps share one ladder — imported at the top of this file. */
 }
 
-/* Semantic border-width utilities are now promoted to the suref-react theme
+/* Semantic border-width utilities are now promoted to the component-lib theme
    (canonical primitive language §3) — one border vocabulary for both apps. */
 
 /* === Base layout === */
