@@ -163,6 +163,28 @@
       box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-status-bad) 0%, transparent);
     }
   }
+
+  /* Mobile nav-drawer slide — the shared NavDrawer + the SRD mobile-search
+     sheet. Lives here (not in each app's CSS) so the shared drawer animates
+     identically in both apps AND in Ladle. */
+  --animate-slide-in-right: slide-in-right 0.2s ease-out;
+  --animate-slide-out-right: slide-out-right 0.2s ease-in;
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+  @keyframes slide-out-right {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
 }
 
 /*

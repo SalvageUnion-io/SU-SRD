@@ -70,31 +70,8 @@
     }
   }
 
-  /*
-   * Mobile nav drawer slide (AppHeaderMobileMenu) — mirrors the SRD reference
-   * site's `animate-slide-in-right`/`-out` (apps/srd/.../global.css) so
-   * the two headers' hamburger drawers animate identically.
-   */
-  --animate-slide-in-right: slide-in-right 0.2s ease-out;
-  --animate-slide-out-right: slide-out-right 0.2s ease-in;
-
-  @keyframes slide-in-right {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes slide-out-right {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(100%);
-    }
-  }
+  /* The nav-drawer slide (--animate-slide-in-right/-out) now lives in the
+     component-lib theme so the shared NavDrawer animates from one source. */
 
   /* The semantic type scale (--text-nano … --text-lede), caps tracking steps,
      and brand eyebrow are now promoted to the component-lib theme (ruleset §4.2)
