@@ -39,7 +39,7 @@ describe('Armament Bay — Weapons System catalog listing', () => {
     expect(screen.getByText('Red Laser')).toBeTruthy()
   })
 
-  test('editable: clicking a system reports it as the selection', () => {
+  test('editable: a Choose button launches the picker modal', () => {
     const calls: ChoiceSelections[] = []
     render(
       <ReferenceEntityCard
@@ -48,10 +48,13 @@ describe('Armament Bay — Weapons System catalog listing', () => {
         onSelectionChange={(next) => calls.push(next)}
       />
     )
-    fireEvent.click(screen.getByText('Armament Bay Weapons System'))
-    fireEvent.click(screen.getByText('Red Laser'))
-    expect(calls.length).toBe(1)
-    const values = Object.values(calls[0] ?? {}).flat()
-    expect(values).toContain('Red Laser')
+    // editable shows a launcher button, not the inline read-only listing
+    const launch = screen.getByRole('button', {
+      name: /Choose Armament Bay Weapons System/i,
+    })
+    fireEvent.click(launch)
+    // the modal (EntitySearcher) opens: its search field + the weapons pool appear
+    expect(screen.getByLabelText('Search')).toBeTruthy()
+    expect(screen.getByText('Red Laser')).toBeTruthy()
   })
 })

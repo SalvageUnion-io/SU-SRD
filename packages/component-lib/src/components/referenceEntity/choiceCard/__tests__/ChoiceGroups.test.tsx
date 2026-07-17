@@ -178,9 +178,10 @@ describe('ChoiceGroups — empty', () => {
 })
 
 // ---------------------------------------------------------------------------
-// TABLE choice render (Stage 7): A.I. Personality renders its prose + an
-// expandable real RollTable — NOT the old bare text box. Needs reference data
-// preloaded so the roll table resolves by name.
+// TABLE choice render (Stage 7): A.I. Personality renders via the roll-table
+// HEADER (title + Roll button), rows collapsed behind a Show/Hide toggle —
+// NOT the old bare text box. Needs reference data preloaded so the roll table
+// resolves by name.
 // ---------------------------------------------------------------------------
 import { beforeAll } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -197,15 +198,21 @@ describe('ChoiceGroups — table choice (A.I. Personality)', () => {
     await SalvageUnionReference.preload('all')
   })
 
-  test('renders the cited table, not a bare text box', () => {
+  test('renders the cited table header (title + roll), rows collapsed', () => {
     render(<ChoiceGroups choices={[tableChoice]} readOnly />)
-    // read-only shows the roll table as an expansion (no box, no repeated prompt)
-    // the expandable disclosure summary (exact) — the fix: a real table, not a
-    // lone textarea instructing you to consult a table it never showed
+    // the header names the table and exposes the Roll button…
     expect(screen.getByText('A.I. Personality Table')).toBeTruthy()
-    // the RollTable itself rendered
-    expect(screen.getAllByRole('table').length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: /Roll on this table/i })).toBeTruthy()
+    // …but the rows are collapsed by default (no <table> in the DOM yet)
+    expect(screen.queryAllByRole('table').length).toBe(0)
     // read-only: no input
     expect(screen.queryByRole('textbox')).toBeNull()
+  })
+
+  test('expands the table rows via the Show table toggle', () => {
+    render(<ChoiceGroups choices={[tableChoice]} readOnly />)
+    expect(screen.queryAllByRole('table').length).toBe(0)
+    fireEvent.click(screen.getByRole('button', { name: /Show table/i }))
+    expect(screen.getAllByRole('table').length).toBeGreaterThan(0)
   })
 })

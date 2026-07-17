@@ -1,7 +1,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
-import { SelCard } from '../wizard/SelCard'
-import { SelMasonry } from '../wizard/SelMasonry'
+import { SelCard } from 'component-lib'
+import { SelMasonry } from 'component-lib'
 
 type SUREquipmentAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]

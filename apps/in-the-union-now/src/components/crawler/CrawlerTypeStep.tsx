@@ -1,8 +1,8 @@
 import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
 import { OptRow, ReferenceEntityDisplay, TreeSep } from 'component-lib'
-import { SelCard } from '../wizard/SelCard'
-import { SelMasonry } from '../wizard/SelMasonry'
+import { SelCard } from 'component-lib'
+import { SelMasonry } from 'component-lib'
 
 type CrawlerTypeOptionListProps = {
   types: SURefCrawler[]

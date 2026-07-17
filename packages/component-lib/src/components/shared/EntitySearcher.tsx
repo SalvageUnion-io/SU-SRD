@@ -20,19 +20,16 @@
 import { type ReactNode, useMemo, useState } from 'react'
 import { SalvageUnionReference, searchIn } from 'salvageunion-reference'
 import type { EntitySchemaName, SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
-import { matchesRef } from 'salvageunion-reference/rules'
-import {
-  FilterChip,
-  MiniBtn,
-  Panel,
-  ReferenceEntityDisplay,
-  Badge,
-  statBlockRowStarts,
-} from 'component-lib'
-import { cn } from '../../lib/utils'
-import type { TechLevel } from '../../lib/rules/types'
-import { SelCard } from '../wizard/SelCard'
-import { SelMasonry } from '../wizard/SelMasonry'
+import { matchesRef, type TechLevel } from 'salvageunion-reference/rules'
+import { cn } from '../../utils/cn'
+import { Badge } from '../chrome/Badge'
+import { Panel } from '../chrome/Panel'
+import { MiniBtn } from '../chrome/SmallButtons'
+import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
+import { statBlockRowStarts } from '../stat/pipRows'
+import { FilterChip } from './FilterChip'
+import { SelCard } from './SelCard'
+import { SelMasonry } from './SelMasonry'
 
 /** The minimum shape the searcher reads off a reference entity. */
 type EntityLike = {

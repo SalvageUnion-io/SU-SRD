@@ -152,16 +152,12 @@ function ChoiceOptionGroup({
   const kind = getChoiceSourceKind(choice)
   const value = selected[0] ?? ''
 
-  // TEXT — an editable field; in READ-ONLY the chosen value as prose, or (when
-  // empty) the field NAME as a reference so a blank crew field (Name / Motto /
-  // Keepsake) still shows what there is to fill. No box, no repeated prompt.
+  // TEXT — an editable field; in READ-ONLY the chosen value as prose, or NOTHING
+  // when empty (a simple input has no reference content of its own to show). No
+  // box, no label, no repeated prompt.
   if (kind === 'text') {
     if (readOnly) {
-      return value ? (
-        <p className="font-body text-xs font-bold text-ink">{value}</p>
-      ) : (
-        <p className="font-body text-xs font-bold text-ink/60">{choice.name}</p>
-      )
+      return value ? <p className="font-body text-xs font-bold text-ink">{value}</p> : null
     }
     const multiline = choice.name.toLowerCase() !== 'name'
     return multiline ? (
@@ -184,8 +180,9 @@ function ChoiceOptionGroup({
     )
   }
 
-  // TABLE — the roll table as an expandable section, NO box. Read-only shows the
-  // chosen value; editable adds a "choose your own" field.
+  // TABLE — the roll table via its own header (title + Roll button always shown)
+  // with the rows collapsed behind a Show/Hide toggle. Editable adds a "choose
+  // your own" field that a roll fills; read-only just exposes the rollable table.
   if (kind === 'table') {
     const tableName = getChoiceTableName(choice)
     const tableEntity = tableName
@@ -195,10 +192,11 @@ function ChoiceOptionGroup({
     return (
       <div className="flex flex-col gap-1.5">
         {readOnly ? (
+          // A previously-chosen value (e.g. a snapshot) still shows as prose.
           value && <p className="font-body text-xs font-bold text-ink">{value}</p>
         ) : (
           // The field ALWAYS shows in editable — it holds the chosen value, and
-          // rolling the expanded table below fills it (RollTable.onRollResult).
+          // rolling the table below fills it (RollTable.onRollResult).
           <input
             aria-label={choice.name}
             className={inputClass}
@@ -208,20 +206,13 @@ function ChoiceOptionGroup({
           />
         )}
         {table && (
-          <details className="text-xs">
-            <summary className="cursor-pointer font-cond uppercase tracking-caps-tight text-ink/70">
-              {tableName} Table
-            </summary>
-            <div className="mt-2">
-              <RollTable
-                table={table}
-                tableName={tableName}
-                compact
-                showCommand={!readOnly}
-                onRollResult={readOnly ? undefined : (text) => onFreeTextChange(text)}
-              />
-            </div>
-          </details>
+          <RollTable
+            table={table}
+            tableName={`${tableName} Table`}
+            compact
+            collapsible
+            onRollResult={readOnly ? undefined : (text) => onFreeTextChange(text)}
+          />
         )}
       </div>
     )

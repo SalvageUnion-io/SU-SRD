@@ -18,7 +18,7 @@ import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
 import { isWeaponSystem } from '../../lib/rules/crawlerSystems'
 import type { Crawler } from '../../lib/schemas/crawler'
-import { EntitySearcher } from '../shared/EntitySearcher'
+import { EntitySearcher } from 'component-lib'
 
 type CrawlerSystemsEditModalProps = {
   open: boolean
