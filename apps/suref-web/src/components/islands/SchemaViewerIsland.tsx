@@ -301,12 +301,12 @@ export function SchemaViewerIsland({
           <div className="w-full min-w-0 px-2 pb-6 md:px-6">
             {filteredData.length === 0 ? (
               <div className="flex flex-col items-start gap-3 p-4">
-                <p className="text-sm text-su-grey-dark">No items match the current filters.</p>
+                <p className="text-sm text-ink-2">No items match the current filters.</p>
                 {hasActiveFilters && (
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="cursor-pointer rounded-card px-2 py-0.5 font-mono text-xs font-semibold uppercase transition-colors bg-su-grey-light text-ink hover:bg-su-grey-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange"
+                    className="cursor-pointer rounded-card px-2 py-0.5 font-mono text-xs font-semibold uppercase transition-colors bg-wk-faint text-ink hover:bg-wk-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange"
                   >
                     Clear filters
                   </button>

@@ -82,7 +82,7 @@
   font-size: 0.75rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-su-grey-dark);
+  color: var(--color-ink-2);
 }
 
 /* Catalog category headers — line / [PSEUDOHEADER] / line */
@@ -97,7 +97,7 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: var(--color-su-grey-light);
+  background: var(--color-wk-faint);
 }
 
 /* Group title label — rust/orange-dark, condensed, wide tracking */
