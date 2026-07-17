@@ -1,0 +1,144 @@
+# Live Sheet Reconciliation — Working Reference
+
+The reconciliation of ITUN's **live sheets** (pilot / mech / crawler) onto the
+canonical primitive language — the same three-level loop that produced the
+entity card ([`entity-card-reconciliation.md`](./entity-card-reconciliation.md)),
+applied to the sheet **shell**. The entity cards inside the sheets are already
+canonical (`ReferenceEntityCard`); this pass is the **frame, top bar, identity
+band, vitals/gauges, section framing, region arrangement, image affordance, and
+the responsive story** — never an entity-card rewrite.
+
+> **STATUS: L1 in progress.** The Pilot "before" is captured as a Ladle story
+> (`Legacy/Live Sheet`); the brainstorm target is mocked
+> (`docs/design/livesheet-mockup.html`). Convergence (L2/L3) is not started.
+
+---
+
+## Why this pass
+
+Three drivers, all confirmed this round:
+
+1. **Harmonize with the canon.** After the style-unification + entity-card
+   refresh (PR #466), the sheet shell should read as a sibling of the rest of
+   the system — one paper, one action colour (rust), the shared border/type/
+   radius scales, `Stamp`/`Slab`/`DisplayCard`/`Stat`/`VitalGauge`. Today the
+   sheet shell still carries pre-canon drift (arbitrary `text-[30px]` /
+   `tracking-widest` / `rounded-[8px]`, local `TpBlock`, hand-rolled rows).
+2. **Resemble the official Starter Set sheets.** A two-column poster of labeled
+   regions, single-accent monochrome, current/max vitals — rendered **in our
+   primitives**, not a photocopy of the PDF. (See
+   [`ITUN-SHEET-REDESIGN-PLAN.md`](../../ITUN-SHEET-REDESIGN-PLAN.md) for the
+   region-for-region gap analysis and the confirmed direction.)
+3. **Reserve for a user image.** NEW this pass: every sheet must anticipate a
+   user-provided image (pilot portrait / mech art / crawler art) — a feature not
+   yet built. The poster must look intentional both empty (a dashed
+   `EmptyState`-style drop zone) and filled (framed art in the identity region),
+   and must never distort the grid when absent.
+
+---
+
+## The methodology (same three-level loop)
+
+- **L1 — real "before" + brainstorm mockup.** The "before" is the _actual_
+  current sheet reproduced from real code + real ORM data (never a caricature);
+  the target is designed as an artifact.
+- **L2 — build the target alongside as canonical primitives**, iterated in
+  three-way Ladle stories (old · new read-only · new editable), Ladle-only (no
+  consumers) so iteration is zero-risk.
+- **L3 — reconciliation / cutover**, green at every checkpoint, on explicit
+  command.
+
+**Invariants:** read-only-first; real data everywhere; green at every checkpoint
+(typecheck + lint + tests + `validate:all`); prefer data-shape changes over
+renderer special-cases; the SRD reference site is untouched (ITUN-only shell).
+
+### Dependency-graph constraint (why the "before" is a reproduction)
+
+The sheets live in **`apps/in-the-union-now`**; component-lib **cannot import the
+app** (the dependency runs app → lib), and ITUN has **no Ladle** of its own. So
+the L1 "before" is a _faithful presentational reproduction_ built inside
+component-lib from real ORM data — every region, class string, and primitive
+mirrors the shipped sheet (with file anchors in the source header). This is also
+the seed that L2/L3 converge into a shared **`Compositions/Live Sheet`**
+primitive: the endgame is the sheet _becoming_ a component-lib composition, the
+same arc the entity card followed.
+
+---
+
+## Where we are now
+
+- **L1 Pilot before — DONE.** `packages/component-lib/src/stories/legacy/`
+  (`LiveSheetLegacyPilot.tsx` + `LiveSheetLegacy.stories.tsx`), titled
+  `Legacy/Live Sheet` (the `Legacy/*` group is exactly the drain for
+  un-refreshed, pre-canon-token components). Renders the resting/read-only Pilot
+  sheet from real `SalvageUnionReference.*` abilities/equipment, desktop poster
+  plus a 390px phone frame. Story-only, not barrel-exported.
+- **L1 brainstorm mockup — DONE.** `docs/design/livesheet-mockup.html` — a
+  Fable-authored design deck exploring the reconciled direction for all three
+  sheets (desktop + mobile), the image affordance (empty + filled), and a
+  decisions/variations panel. Built from the canonical vocabulary + tokens.
+- **Mech + Crawler before — TODO.** Pilot is the reference implementation (per
+  the redesign plan); mech (Identity + ChassisStats ∥ SP/EP/Heat vitals;
+  Systems ∥ Modules; Hold) and crawler (Identity + Economy ∥ full-height Storage
+  rail; Bays; Weapons) captures follow as parity increments.
+- **L2 / L3 — not started.**
+
+---
+
+## The target constraints (fixed)
+
+From the redesign plan + this round's additions:
+
+- **One accent per sheet** from the `--tone` tokens (pilot orange / mech teal /
+  crawler magenta), via the `.sheet--{pilot,mech,crawler}` classes (now sourced
+  in component-lib `theme.css`).
+- **Entities are always entity-cards** (`ReferenceEntityCard`), max **2 columns**
+  on desktop, **1** on mobile; default to compact header-only clickable rows.
+  The only non-entity-card UI is the sheet **shell** (frame, top bar, gauges,
+  identity fields, image affordance).
+- **No vertical edge wordmark** — the slim top bar stays as the sheet's chrome.
+- **Mobile = single-column** stack in poster reading order (identity → image →
+  vitals → abilities → inventory for pilot; analogous for mech/crawler). No
+  horizontal scroll; ≥44px tap targets.
+- **Click-to-edit per container** — no global edit mode, no always-open inputs;
+  collections have an always-visible rule-gated `+ Add`; vitals gauges always
+  live. Three edit archetypes (Add/Remove · click-to-edit field · dots/pips).
+- **Image affordance** — a reserved region per sheet with an empty (dashed drop
+  zone) and filled (framed art) state; the poster is complete without it.
+- Live-play interactivity + the three modes (read-only snapshot / editable
+  live-play / per-section build edit) from `sheetViewProps.ts`; snapshot + print
+  support; ADR-007 automation boundary. SRD reference site untouched.
+
+---
+
+## Open decisions (converge in L2)
+
+Surfaced by the mockup — resolve before building the canonical shape:
+
+1. **Image placement** — portrait-left in the identity band vs. an identity
+   banner vs. a floating corner. (Mockup recommends one; confirm per sheet.)
+2. **Vitals gauge** — keep the current `VitalGauge` **segmented bar**, or move to
+   a pip-dial / ring for the poster's "Max ▸ Current" dial feel. A gauge change
+   is a **shared** `stat/` change → regression-check the SRD site (inert there
+   without a `max`) and heat escalation (mech Heat near cap → red).
+3. **Identity band composition** — field density, where callsign/class/chassis
+   sit, and how the source-pattern (mech) reads as secondary meta.
+4. **Section framing** — keep the `SheetSectionCard` accent header + deep-tone
+   left rule, or move to `Slab` section headers for lighter regions.
+5. **Where the canonical primitive lives** — a single `Compositions/Live Sheet`
+   shell with `variant="pilot|mech|crawler"` slots, vs. per-sheet compositions
+   over a shared frame. (Lean: one shell, three variants — "so the three screens
+   cannot drift apart," matching today's `LiveSheet`.)
+
+---
+
+## Next steps
+
+1. Screenshot-review the Pilot `Legacy/Live Sheet` story + the mockup deck; pick
+   the primary direction and settle the open decisions above.
+2. L2: build the target shell as canonical primitives in component-lib
+   (Ladle-only), three-way stories, Pilot first.
+3. Mech + Crawler before-captures + target parity.
+4. L3 cutover: migrate ITUN's `LiveSheet`/`SheetHero`/`*Sheet` onto the shared
+   composition, delete the pre-canon local shell pieces (`TpBlock`, hand-rolled
+   identity/conditions markup), green at every checkpoint.
