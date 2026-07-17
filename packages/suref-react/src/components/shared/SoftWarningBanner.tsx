@@ -1,41 +1,31 @@
+import { Btn } from '../chrome/Btn'
+import { cn } from '../../utils/cn'
+
 /**
- * SoftWarningBanner — advisory non-blocking strip for soft-warning display.
+ * SoftWarningBanner — advisory, non-blocking soft-warning strip (lifted from ITUN,
+ * pending review — overlaps `Banner`; a merge is a later migration decision).
  *
- * Renders nothing when `warnings` is empty (zero DOM footprint).
- * When warnings are present, renders each warning with an icon, message, and
- * severity-based colour, plus "Save anyway" and "Fix it" action buttons.
- *
- * This is a controlled, dumb component — all state lives in the caller
- * (typically useSoftWarnings). It never calls entityStore directly.
- *
- * Wire-in note: Not wired into mech/pilot/crawler edit views in Wave 4.
- * That is deferred to Wave 5 polish (see cycle-3.md).
+ * Renders nothing when `warnings` is empty. A controlled, dumb component — all
+ * state lives in the caller. Omit BOTH actions for the passive pre-save variant
+ * (warnings render purely as information; the caller's own CTA proceeds).
  */
 
-import { Btn } from 'suref-react'
+/** Soft-warning severity — mirrors ITUN's rules vocabulary structurally. */
+export type SoftWarningSeverity = 'info' | 'warn'
 
-import { cn } from '../../lib/utils'
-import type { SoftWarning, SoftWarningSeverity } from '../../lib/rules/types'
-
-// ---------------------------------------------------------------------------
-// Props
-// ---------------------------------------------------------------------------
+/** A single advisory warning (structural — ITUN passes its rules `SoftWarning`). */
+export type SoftWarning = {
+  code: string
+  severity: SoftWarningSeverity
+  message: string
+}
 
 type SoftWarningBannerProps = {
   warnings: SoftWarning[]
-  /**
-   * Optional confirm-and-proceed actions. Omit BOTH for the passive pre-save
-   * variant (wizard Review step): warnings render purely as information and
-   * the wizard's own CTA proceeds regardless — never blocking (plan 3.4).
-   */
   onSaveAnyway?: () => void
   onFixIt?: () => void
   className?: string
 }
-
-// ---------------------------------------------------------------------------
-// Styling helpers
-// ---------------------------------------------------------------------------
 
 const SEVERITY_STRIP: Record<SoftWarningSeverity, string> = {
   info: 'border-su-blue bg-su-blue-pale text-su-black',
@@ -46,10 +36,6 @@ const SEVERITY_ICON: Record<SoftWarningSeverity, string> = {
   info: 'ℹ',
   warn: '⚠',
 }
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 export function SoftWarningBanner({
   warnings,
