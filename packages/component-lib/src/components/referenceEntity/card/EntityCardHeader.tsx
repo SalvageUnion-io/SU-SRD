@@ -71,23 +71,23 @@ export function EntityCardHeader({
   const statsNode =
     stats.length > 0 ? <EntityCardStatBox stats={stats} compact={compact || listing} /> : null
 
-  // COMPACT: title + the flavor/stat cluster on ONE line when they FIT (the outer
-  // flex-wraps), and the cluster drops to a full-width row BENEATH the title only
-  // when there isn't room — so a wide card keeps everything inline while a narrow
-  // one with a multi-row stat cluster never collides. FULL: one row (firm gap).
+  // COMPACT: the title + flavor/stat cluster ALWAYS share ONE row and split the
+  // width dynamically — the cluster never wraps beneath the title, each side wraps
+  // WITHIN its own space. The title takes up to 60% (favoured when both need the
+  // room); the cluster takes the rest (≥40%). FULL: one row (firm gap).
   if (compact) {
     return (
       <div
         className={cn(
-          'flex w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-1.5',
+          'flex w-full min-w-0 items-start gap-3 px-3 py-1.5',
           dim && 'opacity-60',
           accent.className
         )}
         style={accent.style}
       >
-        {titleNode}
+        <div className="min-w-0 max-w-[60%]">{titleNode}</div>
         {(rightContent || statsNode) && (
-          <div className="flex min-w-0 grow flex-wrap items-center justify-end gap-2">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
             {rightContent}
             {statsNode}
           </div>
