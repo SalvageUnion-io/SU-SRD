@@ -31,13 +31,13 @@ const schemaColors: Record<string, string> = {
   npcs: 'var(--color-su-rust)',
   meld: 'var(--color-su-rust)',
   squads: 'var(--color-su-rust)',
-  'roll-tables': 'var(--color-su-grey-dark)',
-  keywords: 'var(--color-su-grey-dark)',
-  distances: 'var(--color-su-grey-dark)',
-  sources: 'var(--color-su-grey-dark)',
-  'tech-levels': 'var(--color-su-grey-dark)',
-  traits: 'var(--color-su-grey-dark)',
-  guides: 'var(--color-su-grey-dark)',
+  'roll-tables': 'var(--color-ink-2)',
+  keywords: 'var(--color-ink-2)',
+  distances: 'var(--color-ink-2)',
+  sources: 'var(--color-ink-2)',
+  'tech-levels': 'var(--color-ink-2)',
+  traits: 'var(--color-ink-2)',
+  guides: 'var(--color-ink-2)',
 }
 
 export function getCatalogBg(schemaId: string): string {
