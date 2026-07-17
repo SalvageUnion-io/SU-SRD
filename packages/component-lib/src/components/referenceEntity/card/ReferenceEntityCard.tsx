@@ -1041,25 +1041,20 @@ export function ReferenceEntityCard({
   const bonusCellList = bonusPerTechLevel ? bonusCells(bonusPerTechLevel, compact) : []
   if (bonusCellList.length > 0 && !hide?.stats) {
     bodyNodes.push(
-      <div key="bonus-per-tech" className="[&:not(:last-child)]:mb-3">
-        <span className="inline-flex flex-wrap items-center gap-1.5">
-          <Stat
-            orientation="horizontal"
-            label="Bonus per Tech Level"
-            bgColor="var(--color-status-ok)"
-            textColor="var(--color-paper)"
-            compact={compact}
-          />
+      <div key="bonus-per-tech" className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
+        <Stat
+          orientation="horizontal"
+          label="Bonus per Tech Level"
+          bgColor="var(--color-status-ok)"
+          textColor="var(--color-paper)"
+          compact={compact}
+        />
+        {/* the deltas as VERTICAL stat boxes (label over value), not horizontal cells */}
+        <div className="flex flex-wrap gap-1.5">
           {bonusCellList.map((cell) => (
-            <Stat
-              key={cell.key}
-              orientation="horizontal"
-              label={cell.label}
-              value={cell.value}
-              compact={compact}
-            />
+            <Stat key={cell.key} label={cell.label} value={cell.value} compact={compact} />
           ))}
-        </span>
+        </div>
       </div>
     )
   }

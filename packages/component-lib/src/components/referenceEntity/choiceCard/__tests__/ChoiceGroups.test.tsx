@@ -199,8 +199,7 @@ describe('ChoiceGroups — table choice (A.I. Personality)', () => {
 
   test('renders the cited table, not a bare text box', () => {
     render(<ChoiceGroups choices={[tableChoice]} readOnly />)
-    // the prose cite renders (full sentence); getByText throws if absent
-    expect(screen.getByText('Roll on the A.I. Personality Table or choose your own.')).toBeTruthy()
+    // read-only shows the roll table as an expansion (no box, no repeated prompt)
     // the expandable disclosure summary (exact) — the fix: a real table, not a
     // lone textarea instructing you to consult a table it never showed
     expect(screen.getByText('A.I. Personality Table')).toBeTruthy()

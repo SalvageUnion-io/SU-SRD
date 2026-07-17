@@ -12,7 +12,6 @@ import {
   getChoiceCardOptions,
   getChoiceSourceKind,
   getChoiceTableName,
-  isFreeTextChoice,
   isMultiSelectChoice,
   resolveMultiSelectCap,
   toggleSelection,
@@ -151,139 +150,94 @@ function ChoiceOptionGroup({
   compact?: boolean
   toneColor?: string
 }): ReactNode {
-  const frameColor = accentDeepColor(undefined, toneColor) ?? 'var(--color-ink)'
-  // Colour the dashed Slab with the parent tone (it reads `--tone-deep`).
   const toneVar = { '--tone-deep': toneColor } as CSSProperties
-  const bandClass = cn('flex items-center', compact ? 'px-2 py-1' : 'px-2.5 py-1.5')
-  const labelClass = cn(
-    'w-fit font-cond font-bold uppercase leading-none tracking-caps-tight',
-    compact ? 'text-xs' : 'text-sm'
-  )
+  const inputClass =
+    'w-full rounded border border-ink/20 bg-paper p-1.5 font-body text-xs text-ink focus:border-rust focus:outline-none'
   const promptOf = (c: SURefObjectChoice): string | undefined => {
     const block = c.content?.find((b) => b.type === 'paragraph')
     return block ? parseContentBlockString(block) : undefined
   }
+  const kind = getChoiceSourceKind(choice)
+  const value = selected[0] ?? ''
 
-  // TABLE — "roll on the {table}, or choose your own". Cite + expandable roll +
-  // a "choose your own" field (book-faithful: the book cites the table by page).
-  // Fixes the bug where A.I. Personality rendered as a bare text box.
-  if (getChoiceSourceKind(choice) === 'table') {
+  // TEXT — an editable field; in READ-ONLY just the chosen value as prose (no
+  // box, no repeated prompt: the choice is anchored right after the sentence that
+  // introduces it, so the field/value is all that's needed).
+  if (kind === 'text') {
+    if (readOnly) {
+      return value ? <p className="font-body text-xs font-bold text-ink">{value}</p> : null
+    }
+    const multiline = choice.name.toLowerCase() !== 'name'
+    return multiline ? (
+      <textarea
+        aria-label={choice.name}
+        className={inputClass}
+        rows={2}
+        value={value}
+        placeholder={promptOf(choice)}
+        onChange={(e) => onFreeTextChange(e.target.value)}
+      />
+    ) : (
+      <input
+        aria-label={choice.name}
+        className={inputClass}
+        value={value}
+        placeholder={promptOf(choice)}
+        onChange={(e) => onFreeTextChange(e.target.value)}
+      />
+    )
+  }
+
+  // TABLE — the roll table as an expandable section, NO box. Read-only shows the
+  // chosen value; editable adds a "choose your own" field.
+  if (kind === 'table') {
     const tableName = getChoiceTableName(choice)
     const tableEntity = tableName
       ? SalvageUnionReference.RollTables.find((t) => t.name === tableName)
       : undefined
     const table = tableEntity && 'table' in tableEntity ? tableEntity.table : undefined
-    const description = promptOf(choice)
-    const value = selected[0] ?? ''
     return (
-      <div style={toneVar}>
-        <div className="overflow-hidden rounded-card" style={{ border: `3px solid ${frameColor}` }}>
-          <div className={bandClass} style={{ backgroundColor: toneColor }}>
-            <Text variant="pseudoheader" as="span" className={labelClass}>
-              {choice.name}
-            </Text>
-          </div>
-          <div className="flex flex-col gap-2 bg-paper px-3 py-2">
-            {description && <p className="font-body text-xs text-ink">{description}</p>}
-            {readOnly
-              ? value && <p className="font-body text-xs font-bold text-ink">Chosen: {value}</p>
-              : !table && (
-                  <input
-                    aria-label={choice.name}
-                    className="w-full rounded border border-ink/20 bg-paper p-1.5 font-body text-xs text-ink focus:border-rust focus:outline-none"
-                    value={value}
-                    placeholder="Choose your own…"
-                    onChange={(e) => onFreeTextChange(e.target.value)}
-                  />
-                )}
-            {table && (
-              <details className="text-xs">
-                <summary className="cursor-pointer font-cond uppercase tracking-caps-tight text-ink/70">
-                  {tableName} Table
-                </summary>
-                <div className="mt-2">
-                  <RollTable
-                    table={table}
-                    tableName={tableName}
-                    compact
-                    showCommand={!readOnly}
-                    onRollResult={readOnly ? undefined : (text) => onFreeTextChange(text)}
-                  />
-                </div>
-              </details>
-            )}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (isFreeTextChoice(choice)) {
-    const promptBlock = choice.content?.find((b) => b.type === 'paragraph')
-    const description = promptBlock ? parseContentBlockString(promptBlock) : undefined
-    const value = selected[0] ?? ''
-    const multiline = choice.name.toLowerCase() !== 'name'
-    return (
-      <div style={toneVar}>
-        <div className="overflow-hidden rounded-card" style={{ border: `3px solid ${frameColor}` }}>
-          <div
-            className={cn('flex items-center', compact ? 'px-2 py-1' : 'px-2.5 py-1.5')}
-            style={{ backgroundColor: toneColor }}
-          >
-            <Text
-              variant="pseudoheader"
-              as="span"
-              className={cn(
-                'w-fit font-cond font-bold uppercase leading-none tracking-caps-tight',
-                compact ? 'text-xs' : 'text-sm'
-              )}
-            >
-              {choice.name}
-            </Text>
-          </div>
-          <div className="bg-paper px-3 py-2">
-            {readOnly ? (
-              <p className="font-body text-xs text-ink">{value || description || '—'}</p>
-            ) : multiline ? (
-              <textarea
-                aria-label={choice.name}
-                className="w-full rounded border border-ink/20 bg-paper p-1.5 font-body text-xs text-ink focus:border-rust focus:outline-none"
-                rows={2}
-                value={value}
-                placeholder={description}
-                onChange={(e) => onFreeTextChange(e.target.value)}
-              />
-            ) : (
+      <div className="flex flex-col gap-1.5">
+        {readOnly
+          ? value && <p className="font-body text-xs font-bold text-ink">{value}</p>
+          : !table && (
               <input
                 aria-label={choice.name}
-                className="w-full rounded border border-ink/20 bg-paper p-1.5 font-body text-xs text-ink focus:border-rust focus:outline-none"
+                className={inputClass}
                 value={value}
-                placeholder={description}
+                placeholder="Choose your own…"
                 onChange={(e) => onFreeTextChange(e.target.value)}
               />
             )}
-          </div>
-        </div>
+        {table && (
+          <details className="text-xs">
+            <summary className="cursor-pointer font-cond uppercase tracking-caps-tight text-ink/70">
+              {tableName} Table
+            </summary>
+            <div className="mt-2">
+              <RollTable
+                table={table}
+                tableName={tableName}
+                compact
+                showCommand={!readOnly}
+                onRollResult={readOnly ? undefined : (text) => onFreeTextChange(text)}
+              />
+            </div>
+          </details>
+        )}
       </div>
     )
   }
 
+  // OPTIONS / catalog / systemVariant — the option cards. No group Slab or band
+  // label (the anchored prose introduces them); an editable multi-select shows a
+  // small n/max counter.
   const multi = isMultiSelectChoice(choice)
   const counter = multi && typeof cap === 'number' ? `${selected.length}/${cap}` : undefined
   const options = getChoiceCardOptions(choice)
   return (
     <div style={toneVar}>
-      {/* The options have no per-card name tab, so the group keeps a band header
-          (choice name + optional n/max counter) — no dashed Slab. */}
-      <div
-        className={cn(bandClass, 'mb-1.5 justify-between')}
-        style={{ backgroundColor: toneColor }}
-      >
-        <Text variant="pseudoheader" as="span" className={labelClass}>
-          {choice.name}
-        </Text>
-        {counter && <span className="font-mono text-nano text-paper/80">{counter}</span>}
-      </div>
+      {counter && !readOnly && <div className="mb-1 font-mono text-nano text-ink-2">{counter}</div>}
       <div className={cn('gap-1.5', compact ? 'columns-1' : 'columns-1 sm:columns-2')}>
         {options.map((option) => (
           <div key={option.value} className="mb-1.5 break-inside-avoid pt-2.5">
