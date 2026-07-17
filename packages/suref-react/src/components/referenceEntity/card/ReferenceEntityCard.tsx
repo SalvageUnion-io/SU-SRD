@@ -257,13 +257,13 @@ function actionCells(action: ActionFields): EntityCardSubHeaderCell[] {
 /** `bonusPerTechLevel` fields → "+N" cells (zeros/absent dropped). Labels are
  * size-aware: [field, FULL label (non-compact), ABBR label (compact)]. */
 const BONUS_LABELS: [keyof SURefObjectBonusPerTechLevel, string, string][] = [
-  ['structurePoints', 'Structure Points', 'SP'],
-  ['energyPoints', 'Energy Points', 'EP'],
+  ['structurePoints', 'Structure Points', 'Structure'],
+  ['energyPoints', 'Energy Points', 'Energy'],
   ['heatCapacity', 'Heat Capacity', 'Heat'],
-  ['systemSlots', 'System Slots', 'Sys'],
-  ['moduleSlots', 'Module Slots', 'Mod'],
+  ['systemSlots', 'System Slots', 'System'],
+  ['moduleSlots', 'Module Slots', 'Module'],
   ['cargoCapacity', 'Cargo Capacity', 'Cargo'],
-  ['salvageValue', 'Salvage Value', 'SV'],
+  ['salvageValue', 'Salvage Value', 'Salvage'],
 ]
 
 function bonusCells(
@@ -544,9 +544,9 @@ export function ReferenceEntityCard({
     !isAction && !isPatternListing && techLevel != null
       ? {
           key: 'tech-level',
-          // ATOM MODEL: COMPACT (horizontal) renders the abbreviation "TL"; a
-          // full-size vertical value box renders two-line "Tech" / "Level".
-          label: compact ? 'TL' : 'Tech',
+          // Compact (horizontal) renders "Tech"; the full-size vertical value box
+          // renders two-line "Tech" / "Level".
+          label: 'Tech',
           bottomLabel: compact ? undefined : 'Level',
           value: String(techLevelDisplay),
           // A TL-scalable item shows the EFFECTIVE level; a rust `modified`

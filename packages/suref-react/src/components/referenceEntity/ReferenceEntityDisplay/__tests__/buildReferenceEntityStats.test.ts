@@ -52,13 +52,14 @@ describe('buildReferenceEntityStats', () => {
     expect(byLabel(stats, 'System')).toBeUndefined()
   })
 
-  test('compact mode swaps in the short labels', () => {
+  test('compact mode uses the top label only (drops the bottom label)', () => {
     const stats = buildReferenceEntityStats(mule, { compact: true })
-    expect(byLabel(stats, 'SP')?.value).toBe('12')
-    expect(byLabel(stats, 'EP')?.value).toBe('4')
-    expect(byLabel(stats, 'Sys')?.value).toBe('16')
-    // The normal-mode label is absent in compact mode.
-    expect(byLabel(stats, 'Structure')).toBeUndefined()
+    // Compact keeps the whole top label (Structure Points → Structure, …).
+    expect(byLabel(stats, 'Structure')?.value).toBe('12')
+    expect(byLabel(stats, 'Energy')?.value).toBe('4')
+    expect(byLabel(stats, 'System')?.value).toBe('16')
+    // …and drops the bottom label.
+    expect(byLabel(stats, 'Structure')?.bottomLabel).toBeUndefined()
   })
 
   test('svOverride replaces the Salvage value and its bottom label', () => {

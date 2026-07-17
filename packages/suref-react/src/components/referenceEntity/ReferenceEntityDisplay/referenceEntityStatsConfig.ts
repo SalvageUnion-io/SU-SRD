@@ -222,8 +222,8 @@ export function buildReferenceEntityStats(
     if (isSalvageValue && hasBioSalvage) {
       items.push({
         key: `ref-stat-${i}`,
-        label: compact ? 'BSV' : 'BIO-SALVAGE',
-        bottomLabel: compact ? '' : 'VALUE',
+        label: compact ? 'Bio' : 'BIO-SALVAGE',
+        bottomLabel: compact ? undefined : 'VALUE',
         value: displayValue,
         hoverText: suppressTooltips ? undefined : config.tooltip,
       })
@@ -232,8 +232,9 @@ export function buildReferenceEntityStats(
 
     items.push({
       key: `ref-stat-${i}`,
-      label: compact ? config.compactLabel : config.normalLabel,
-      bottomLabel: compact ? config.compactBottomLabel : config.normalBottomLabel,
+      // Compact shows only the TOP label (the whole first word), no bottom label.
+      label: config.normalLabel,
+      bottomLabel: compact ? undefined : config.normalBottomLabel,
       value: displayValue,
       hoverText: suppressTooltips ? undefined : config.tooltip,
     })
