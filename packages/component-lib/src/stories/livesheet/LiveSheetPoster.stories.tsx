@@ -28,21 +28,20 @@ const fields: PosterField[] = [
   { label: 'Name', value: pilotContent.name },
   { label: 'Class', value: pilotContent.className },
   { label: 'Background', value: pilotContent.background },
-  { label: 'Appearance', value: pilotContent.appearance },
-  { label: 'Keepsake', value: pilotContent.keepsake },
-  { label: 'Motto', value: pilotContent.motto, span: 2 },
-  { label: 'Bio', value: pilotContent.bio, span: 3 },
+  { label: 'Appearance', value: pilotContent.appearance, prose: true },
+  { label: 'Keepsake', value: pilotContent.keepsake, prose: true },
+  { label: 'Motto', value: pilotContent.motto, prose: true },
+  { label: 'Bio', value: pilotContent.bio, prose: true },
 ]
 
+// Abilities are once-per-rest "detail resources" — they carry a live UsedPip.
 const abilities: PosterCollectionItem[] = abilityPicks.map((a) => ({
   entity: a.entity,
-  footMeta: [{ label: 'AP Cost', value: a.apCost }],
+  resource: true,
+  used: a.used,
 }))
 
-const inventory: PosterCollectionItem[] = equipmentPicks.map((e) => ({
-  entity: e.entity,
-  footMeta: [{ label: 'Slots', value: e.slots }],
-}))
+const inventory: PosterCollectionItem[] = equipmentPicks.map((e) => ({ entity: e.entity }))
 
 const posterCommon = {
   name: pilotContent.callsign,
