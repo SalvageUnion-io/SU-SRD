@@ -22,7 +22,6 @@ import { SalvageUnionReference, searchIn } from 'salvageunion-reference'
 import type { EntitySchemaName, SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { matchesRef, type TechLevel } from 'salvageunion-reference/rules'
 import { cn } from '../../utils/cn'
-import { Badge } from '../chrome/Badge'
 import { Panel } from '../chrome/Panel'
 import { MiniBtn } from '../chrome/SmallButtons'
 import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
@@ -297,7 +296,7 @@ export function EntitySearcher({
   const facetRows = anyFacet ? (
     <div className="flex w-full flex-col gap-2">
       {showTl && (
-        <FacetRow label="Tech level">
+        <FacetRow label="Tech level" onDark={resultsFloating}>
           {tlOptions.map((tl) => (
             <FilterChip
               key={String(tl)}
@@ -310,7 +309,7 @@ export function EntitySearcher({
         </FacetRow>
       )}
       {showCat && facets?.category && (
-        <FacetRow label={facets.category.label}>
+        <FacetRow label={facets.category.label} onDark={resultsFloating}>
           {catOptions.map((c) => (
             <FilterChip
               key={c}
@@ -322,7 +321,7 @@ export function EntitySearcher({
         </FacetRow>
       )}
       {showTraits && (
-        <FacetRow label="Traits">
+        <FacetRow label="Traits" onDark={resultsFloating}>
           {traitOptions.map((t) => (
             <FilterChip
               key={t}
@@ -334,7 +333,7 @@ export function EntitySearcher({
         </FacetRow>
       )}
       {showStatus && (
-        <FacetRow label="Show">
+        <FacetRow label="Show" onDark={resultsFloating}>
           {(
             [
               ['all', 'All'],
@@ -379,9 +378,7 @@ export function EntitySearcher({
               onToggle={() =>
                 onToggle?.(isSelected ? (matchedRef(item) ?? idOf(item)) : idOf(item))
               }
-              entityProps={
-                isSelected ? { footActions: <Badge>{`${chosenLabel} ✓`}</Badge> } : undefined
-              }
+              selectedStamp={chosenLabel}
             />
           )
         })}
@@ -486,7 +483,17 @@ export function EntitySearcher({
 // Facet row
 // ---------------------------------------------------------------------------
 
-function FacetRow({ label, children }: { label: string; children: ReactNode }) {
+function FacetRow({
+  label,
+  children,
+  onDark = false,
+}: {
+  label: string
+  children: ReactNode
+  /** Label sits on a dark tone band (the floating modal sub-header) — switch it
+   * to paper so it stays legible instead of the light-bg muted grey. */
+  onDark?: boolean
+}) {
   return (
     // biome-ignore lint/a11y/useSemanticElements: a fieldset+legend carries min-content sizing quirks in this chip row; role="group" + aria-label conveys the same semantics (matches InstallStep)
     <div
@@ -494,7 +501,12 @@ function FacetRow({ label, children }: { label: string; children: ReactNode }) {
       role="group"
       aria-label={`Filter by ${label}`}
     >
-      <span className="min-w-[64px] font-cond text-label font-bold uppercase tracking-caps text-wk-muted">
+      <span
+        className={cn(
+          'min-w-[64px] font-cond text-label font-bold uppercase tracking-caps',
+          onDark ? 'text-paper/85' : 'text-wk-muted'
+        )}
+      >
         {label}
       </span>
       {children}

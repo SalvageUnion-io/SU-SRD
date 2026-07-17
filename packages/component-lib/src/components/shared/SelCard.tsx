@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { cn } from '../../utils/cn'
+import { Badge } from '../chrome/Badge'
 import { Sel } from '../chrome/Sel'
 import { StepBtn } from '../chrome/SmallButtons'
 import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
@@ -46,6 +47,12 @@ type SelCardProps = {
   onCountChange?: (next: number) => void
   /** Ceiling for `count` given the shared budget; `+` disables at it. */
   maxCount?: number
+  /**
+   * When set, a selected card shows this label as a corner "seal" stamp in the
+   * upper-right (like other selection surfaces) instead of anything folded into
+   * the footer. Nothing is ever added to the card footer.
+   */
+  selectedStamp?: string
 }
 
 /**
@@ -73,6 +80,7 @@ export function SelCard({
   count,
   onCountChange,
   maxCount,
+  selectedStamp,
 }: SelCardProps) {
   const isOff = disabled || disabledReason !== undefined
   const hasCounter = count !== undefined && onCountChange !== undefined
@@ -122,7 +130,12 @@ export function SelCard({
   ) : undefined
 
   return (
-    <div className={cn(isOff && 'pointer-events-none opacity-50 saturate-50')}>
+    <div className={cn('relative', isOff && 'pointer-events-none opacity-50 saturate-50')}>
+      {selected && selectedStamp && (
+        <div className="pointer-events-none absolute -top-2 right-2 z-20">
+          <Badge surface="tone" tone="ok">{`${selectedStamp} ✓`}</Badge>
+        </div>
+      )}
       <Sel
         selected={selected}
         onToggle={isOff ? undefined : onToggle}
