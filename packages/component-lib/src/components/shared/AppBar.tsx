@@ -1,12 +1,11 @@
 import { Fragment } from 'react'
 import type { ElementType, ReactNode } from 'react'
-import { HeaderShell } from './HeaderShell'
 import { cn } from '../../utils/cn'
 
 /**
  * AppBar — the shared masthead both SU surfaces are built from (the internal
  * implementation behind the SRD `SiteHeader` and the ITUN `AppHeader` presets).
- * Fills `HeaderShell` with a config-driven right-side cluster: desktop nav
+ * Renders the SU brand lockup + a config-driven right-side cluster: desktop nav
  * links + a search slot + an optional "Buy the game" button, a mobile slot that
  * collapses the nav into a drawer below `lg`, and an optional breadcrumb bar
  * with JSON-LD.
@@ -34,7 +33,7 @@ type BreadcrumbItem = {
 }
 
 type AppBarProps = {
-  // Brand (→ HeaderShell)
+  // Brand
   wordmark: string
   wordmarkAccent?: string
   badge?: string
@@ -87,16 +86,48 @@ export function AppBar({
 }: AppBarProps) {
   return (
     <>
-      <HeaderShell
-        homeHref={homeHref}
-        wordmark={wordmark}
-        wordmarkAccent={wordmarkAccent}
-        badge={badge}
-        eyebrow={eyebrow}
-        HomeLink={LinkComponent}
-        brandShrink={brandShrink}
-        viewTransitionName={viewTransitionName}
+      <header
+        className="z-50 flex items-center gap-[14px] border-b-entity border-su-orange-dark bg-su-ink-dark px-5 py-3 sm:px-[34px] sm:py-[14px]"
+        style={viewTransitionName ? { viewTransitionName } : undefined}
       >
+        {/* Brand lockup: SU cargo mark + wordmark (+ optional accent/badge) +
+            tracked eyebrow. `brandShrink` lets a long wordmark/eyebrow wrap
+            instead of forcing horizontal overflow. */}
+        <LinkComponent
+          href={homeHref}
+          className={cn(
+            'flex items-center gap-[14px] no-underline',
+            brandShrink ? 'min-w-0' : 'shrink-0'
+          )}
+        >
+          <img
+            src="/logos/su-cargo-dark.svg"
+            alt="Salvage Union"
+            width={64}
+            height={64}
+            className="block size-12 shrink-0 rounded-xl sm:size-16"
+          />
+          <span className="flex min-w-0 flex-col">
+            <span className="font-cond text-[26px] font-bold leading-[0.98] tracking-[0.005em] text-su-paper sm:text-[34px]">
+              {wordmark}
+              {wordmarkAccent && <span className="text-su-orange-dark">{wordmarkAccent}</span>}
+              {badge && (
+                <span className="ml-2 inline-block rounded bg-rust px-1.5 py-0.5 align-[0.32em] font-cond text-caption font-bold uppercase leading-none tracking-caps text-su-paper">
+                  {badge}
+                </span>
+              )}
+            </span>
+            <span
+              className={cn(
+                'mt-[7px] font-cond text-caption font-semibold uppercase tracking-eyebrow text-su-orange sm:mt-[9px]',
+                brandShrink ? 'leading-tight' : 'whitespace-nowrap leading-none'
+              )}
+            >
+              {eyebrow}
+            </span>
+          </span>
+        </LinkComponent>
+
         {/* Desktop nav cluster — links + search + buy, pushed right. */}
         <nav
           aria-label="Main navigation"
@@ -143,7 +174,7 @@ export function AppBar({
 
         {/* Mobile: search trigger + hamburger, below `lg`. */}
         {mobile && <div className="ml-auto flex items-center gap-1 lg:hidden">{mobile}</div>}
-      </HeaderShell>
+      </header>
 
       {breadcrumbs && breadcrumbs.length > 0 && (
         <>

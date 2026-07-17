@@ -8,7 +8,7 @@ export default {
 }
 
 /**
- * The shared masthead both SU surfaces are built from — HeaderShell brand + a
+ * The shared masthead both SU surfaces are built from — SU brand lockup + a
  * config-driven right-side cluster (nav links + search slot + Buy button) and
  * an optional breadcrumb bar. The SRD `SiteHeader` and ITUN `AppHeader` are
  * thin presets over this. Shown in the SRD configuration on a schema item route
