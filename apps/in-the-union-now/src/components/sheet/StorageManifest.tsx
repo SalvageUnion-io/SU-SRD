@@ -26,7 +26,7 @@ import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import { cn } from '../../lib/utils'
-import { SectionCard } from 'suref-react'
+import { DisplayCard } from 'suref-react'
 
 type StorageManifestSide = 'mech' | 'crawler'
 
@@ -244,11 +244,20 @@ export function StorageManifest({
       data-storage-side={side}
     >
       {/* Hold panel */}
-      <SectionCard
-        title={side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}
-        hint={side === 'mech' ? mechName : crawlerName}
-        className="shadow-[0_2px_8px_-3px_rgba(40,32,25,0.4)]"
-        unpaddedBody
+      <DisplayCard
+        headerBg="bg-ink"
+        headerContent={
+          <>
+            <span className="m-0 font-cond text-xs font-bold uppercase tracking-caps text-paper">
+              {side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}
+            </span>
+            <span className="min-w-0 truncate font-cond text-xs uppercase text-paper/60">
+              {side === 'mech' ? mechName : crawlerName}
+            </span>
+          </>
+        }
+        cardStyle={{ className: 'shadow-[0_2px_8px_-3px_rgba(40,32,25,0.4)]' }}
+        bodyPadding="p-0"
       >
         {/* Capacity strip */}
         <div
@@ -355,7 +364,7 @@ export function StorageManifest({
             ))}
           </ul>
         )}
-      </SectionCard>
+      </DisplayCard>
 
       {/* Counterpart panel */}
       <div

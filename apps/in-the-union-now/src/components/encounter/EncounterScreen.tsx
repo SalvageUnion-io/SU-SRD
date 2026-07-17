@@ -27,7 +27,7 @@ import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import type { MediatorRollResult } from '../../lib/schemas/encounterNpc'
 import { useEncounterStore } from '../../stores/encounterStore'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
-import { SectionCard } from 'suref-react'
+import { DisplayCard } from 'suref-react'
 import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher'
 import { AddNpcControl } from './AddNpcControl'
 import { EncounterNpcCard } from './EncounterNpcCard'
@@ -43,7 +43,7 @@ type EncounterScreenProps = {
   findTable?: FindRollTable
 }
 
-/** Section frame: SectionCard panel as an h2 document-outline section. */
+/** Section frame: a DisplayCard panel as an h2 document-outline section. */
 function Section({
   title,
   hint,
@@ -54,9 +54,26 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <SectionCard as="section" titleAs="h2" title={title} hint={hint}>
-      {children}
-    </SectionCard>
+    <section>
+      <DisplayCard
+        headerBg="bg-ink"
+        headerContent={
+          <>
+            <h2 className="m-0 font-cond text-xs font-bold uppercase tracking-caps text-paper">
+              {title}
+            </h2>
+            {hint && (
+              <span className="min-w-0 truncate font-cond text-xs uppercase text-paper/60">
+                {hint}
+              </span>
+            )}
+          </>
+        }
+        bodyPadding="px-3 py-2.5"
+      >
+        {children}
+      </DisplayCard>
+    </section>
   )
 }
 
