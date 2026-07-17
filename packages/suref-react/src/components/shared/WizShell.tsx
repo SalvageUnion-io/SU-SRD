@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Btn } from '../chrome/Btn'
 import { cn } from '../../utils/cn'
-import { ConfirmDialog } from './ConfirmDialog'
+import { ModalShell } from './ModalShell'
 
 /** Sheet tone context — picks the `.sheet--{kind}` poster theming. */
 export type WizKind = 'pilot' | 'mech' | 'crawler'
@@ -363,20 +363,37 @@ export function WizShell({
                 >
                   Cancel
                 </Btn>
-                <ConfirmDialog
+                <ModalShell
                   open={confirmingCancel}
-                  title="Discard this draft?"
-                  confirmLabel="Discard"
-                  cancelLabel="Keep editing"
-                  danger
-                  onConfirm={() => {
-                    setConfirmingCancel(false)
-                    onCancel()
+                  onOpenChange={(next) => {
+                    if (!next) setConfirmingCancel(false)
                   }}
-                  onCancel={() => setConfirmingCancel(false)}
+                  title="Discard this draft?"
+                  headerBg="bg-su-rust"
+                  maxWidth="max-w-md"
+                  align="center"
                 >
-                  Your unsaved changes will be lost.
-                </ConfirmDialog>
+                  <div className="flex flex-col gap-4 bg-paper p-5">
+                    <div className="font-body text-sm text-wk-muted">
+                      Your unsaved changes will be lost.
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Btn variant="ghost" size="sm" onClick={() => setConfirmingCancel(false)}>
+                        Keep editing
+                      </Btn>
+                      <Btn
+                        variant="danger"
+                        size="sm"
+                        onClick={() => {
+                          setConfirmingCancel(false)
+                          onCancel()
+                        }}
+                      >
+                        Discard
+                      </Btn>
+                    </div>
+                  </div>
+                </ModalShell>
               </div>
               {/* Locked CTA (mockup `.next.locked`): hollow, dashed, dimmed
                   weight — the blocking reason lives in the footerNote text. */}

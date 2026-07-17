@@ -2,8 +2,7 @@
  * UnassignLinkButton — confirm dialog → entityStore.delete('softLink', linkId).
  *
  * Surfaces copy explaining that removing the link does NOT delete either
- * endpoint entity. Confirmation runs through the shared ConfirmDialog
- * (ModalShell-based).
+ * endpoint entity. Confirmation runs through an inline ModalShell.
  *
  * Props:
  *   linkId      — id of the SoftLink to remove
@@ -14,10 +13,9 @@
  */
 
 import { useState } from 'react'
-import { Btn } from 'suref-react'
+import { Btn, ModalShell } from 'suref-react'
 
 import { useEntityStore } from '../../stores/entityStore'
-import { ConfirmDialog } from 'suref-react'
 import { cn } from '../../lib/utils'
 
 /** Minimal store slice needed by UnassignLinkButton. */
@@ -82,21 +80,42 @@ export function UnassignLinkButton({
         {label}
       </Btn>
 
-      <ConfirmDialog
+      <ModalShell
         open={open}
+        onOpenChange={(next) => {
+          if (!next) closeConfirm()
+        }}
         title="Remove assignment?"
-        danger
-        confirmLabel="Remove link"
-        pendingLabel="Removing…"
-        confirmAriaLabel="Confirm unassign"
-        pending={pending}
-        error={error}
-        onConfirm={() => void handleConfirm()}
-        onCancel={closeConfirm}
+        headerBg="bg-su-rust"
+        maxWidth="max-w-md"
+        align="center"
       >
-        This only removes the link between the entities &mdash; it does <strong>not</strong> delete
-        either the pilot, mech, or crawler.
-      </ConfirmDialog>
+        <div className="flex flex-col gap-4 bg-paper p-5">
+          <div className="font-body text-sm text-wk-muted">
+            This only removes the link between the entities &mdash; it does <strong>not</strong>{' '}
+            delete either the pilot, mech, or crawler.
+          </div>
+          {error && (
+            <p className="font-body text-sm text-danger" role="alert">
+              {error}
+            </p>
+          )}
+          <div className="flex justify-end gap-2">
+            <Btn variant="ghost" size="sm" onClick={closeConfirm} disabled={pending}>
+              Cancel
+            </Btn>
+            <Btn
+              variant="danger"
+              size="sm"
+              onClick={() => void handleConfirm()}
+              disabled={pending}
+              aria-label="Confirm unassign"
+            >
+              {pending ? 'Removing…' : 'Remove link'}
+            </Btn>
+          </div>
+        </div>
+      </ModalShell>
     </>
   )
 }

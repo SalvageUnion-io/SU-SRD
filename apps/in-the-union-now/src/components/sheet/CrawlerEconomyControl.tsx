@@ -46,7 +46,6 @@ import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
-import { ConfirmDialog } from 'suref-react'
 import { AdvisoryText, freshEntity } from './controlPrimitives'
 
 /** Which economy dialog is open (the lozenge that was clicked). */
@@ -302,73 +301,92 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
   }
 
   return (
-    <ConfirmDialog
+    <ModalShell
       open
-      title="Upgrade Crawler"
-      confirmLabel={quote ? `Upgrade to Tech ${quote.toTl}` : 'Upgrade'}
-      confirmDisabled={!quote?.affordable}
-      onConfirm={() => {
-        void handleUpgrade()
+      onOpenChange={(next) => {
+        if (!next) onClose()
       }}
-      onCancel={onClose}
+      title="Upgrade Crawler"
+      headerBg="bg-su-orange"
+      maxWidth="max-w-md"
+      align="center"
     >
-      {quote ? (
-        <div className="flex flex-col gap-3">
-          <p>
-            Upgrading from Tech {quote.fromTl} to Tech {quote.toTl} consumes{' '}
-            <strong>{quote.cost}</strong> from the Upgrade Pool (currently{' '}
-            <strong>{upgradePool}</strong>). Damaged Bays are repaired during the upgrade; Upkeep
-            rises to {UPKEEP_SCRAP}× Tech {quote.toTl} Scrap.
-          </p>
-          {!quote.affordable && (
-            <p className="text-rust" role="alert">
-              The Upgrade Pool is {quote.cost - upgradePool} short. Pay Upkeep or contribute scrap
-              below to fill it.
+      <div className="flex flex-col gap-4 bg-paper p-5">
+        {quote ? (
+          <div className="flex flex-col gap-3">
+            <p>
+              Upgrading from Tech {quote.fromTl} to Tech {quote.toTl} consumes{' '}
+              <strong>{quote.cost}</strong> from the Upgrade Pool (currently{' '}
+              <strong>{upgradePool}</strong>). Damaged Bays are repaired during the upgrade; Upkeep
+              rises to {UPKEEP_SCRAP}× Tech {quote.toTl} Scrap.
             </p>
-          )}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-cond text-xs font-bold uppercase tracking-caps-snug text-ink">
-              Contribute scrap (Tech {tl}+)
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <StepBtn
-                aria-label="Decrease contribution"
-                disabled={contribution <= 1}
-                onClick={() => setContribution((c) => Math.max(1, c - 1))}
-              >
-                &ndash;
-              </StepBtn>
-              <span className="min-w-6 text-center font-body text-sm font-bold text-ink">
-                {contribution}
+            {!quote.affordable && (
+              <p className="text-rust" role="alert">
+                The Upgrade Pool is {quote.cost - upgradePool} short. Pay Upkeep or contribute scrap
+                below to fill it.
+              </p>
+            )}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-cond text-xs font-bold uppercase tracking-caps-snug text-ink">
+                Contribute scrap (Tech {tl}+)
               </span>
-              <StepBtn
-                aria-label="Increase contribution"
-                disabled={contribution >= contributable}
-                onClick={() => setContribution((c) => Math.min(contributable, c + 1))}
+              <span className="inline-flex items-center gap-1.5">
+                <StepBtn
+                  aria-label="Decrease contribution"
+                  disabled={contribution <= 1}
+                  onClick={() => setContribution((c) => Math.max(1, c - 1))}
+                >
+                  &ndash;
+                </StepBtn>
+                <span className="min-w-6 text-center font-body text-sm font-bold text-ink">
+                  {contribution}
+                </span>
+                <StepBtn
+                  aria-label="Increase contribution"
+                  disabled={contribution >= contributable}
+                  onClick={() => setContribution((c) => Math.min(contributable, c + 1))}
+                >
+                  +
+                </StepBtn>
+              </span>
+              <Btn
+                size="sm"
+                variant="default"
+                disabled={contributable === 0 || contribution > contributable}
+                title={`Move ${contribution} scrap (Tech ${tl} or higher) from the pool into the Upgrade Pool`}
+                onClick={() => {
+                  void handleContribute()
+                }}
               >
-                +
-              </StepBtn>
-            </span>
-            <Btn
-              size="sm"
-              variant="default"
-              disabled={contributable === 0 || contribution > contributable}
-              title={`Move ${contribution} scrap (Tech ${tl} or higher) from the pool into the Upgrade Pool`}
-              onClick={() => {
-                void handleContribute()
-              }}
-            >
-              Add to Upgrade Pool
-            </Btn>
+                Add to Upgrade Pool
+              </Btn>
+            </div>
+            <p className="text-xs">
+              Pool holds {contributable} scrap at Tech {tl}+.
+            </p>
           </div>
-          <p className="text-xs">
-            Pool holds {contributable} scrap at Tech {tl}+.
+        ) : (
+          <p>
+            Tech 6 is the highest level of Union Crawler — it cannot be upgraded further (p.218).
           </p>
+        )}
+        <div className="flex justify-end gap-2">
+          <Btn variant="ghost" size="sm" onClick={onClose}>
+            Cancel
+          </Btn>
+          <Btn
+            variant="primary"
+            size="sm"
+            onClick={() => {
+              void handleUpgrade()
+            }}
+            disabled={!quote?.affordable}
+          >
+            {quote ? `Upgrade to Tech ${quote.toTl}` : 'Upgrade'}
+          </Btn>
         </div>
-      ) : (
-        <p>Tech 6 is the highest level of Union Crawler — it cannot be upgraded further (p.218).</p>
-      )}
-    </ConfirmDialog>
+      </div>
+    </ModalShell>
   )
 }
 

@@ -20,8 +20,7 @@ import { useState } from 'react'
 import { findChassisByRef } from '../../../lib/rules/derivedStats'
 import { useEntityStore } from '../../../stores/entityStore'
 import type { MechPattern } from '../../../lib/schemas/pattern'
-import { Btn } from 'suref-react'
-import { ConfirmDialog } from 'suref-react'
+import { Btn, ModalShell } from 'suref-react'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern
@@ -71,20 +70,38 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
       >
         {isInstantiating ? 'Creating…' : 'Instantiate'}
       </Btn>
-      <ConfirmDialog
+      <ModalShell
         open={confirming}
-        title={`Instantiate ${pattern.name}?`}
-        confirmLabel="Instantiate"
-        cancelLabel="Cancel"
-        onConfirm={() => {
-          setConfirming(false)
-          void handleInstantiate()
+        onOpenChange={(next) => {
+          if (!next) setConfirming(false)
         }}
-        onCancel={() => setConfirming(false)}
+        title={`Instantiate ${pattern.name}?`}
+        headerBg="bg-su-orange"
+        maxWidth="max-w-md"
+        align="center"
       >
-        This may exceed the starting rules — a freeform build, like Blank. It stamps the mech
-        exactly as saved; edit freely on its live sheet.
-      </ConfirmDialog>
+        <div className="flex flex-col gap-4 bg-paper p-5">
+          <div className="font-body text-sm text-wk-muted">
+            This may exceed the starting rules — a freeform build, like Blank. It stamps the mech
+            exactly as saved; edit freely on its live sheet.
+          </div>
+          <div className="flex justify-end gap-2">
+            <Btn variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+              Cancel
+            </Btn>
+            <Btn
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                setConfirming(false)
+                void handleInstantiate()
+              }}
+            >
+              Instantiate
+            </Btn>
+          </div>
+        </div>
+      </ModalShell>
       {error && (
         <p className="text-xs text-danger" role="alert">
           {error}

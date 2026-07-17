@@ -10,13 +10,12 @@
  */
 
 import { useMemo, useState } from 'react'
-import { MiniBtn, Stat, useDetailModal } from 'suref-react'
+import { Btn, MiniBtn, ModalShell, Stat, useDetailModal } from 'suref-react'
 
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import type { EncounterNpc, MediatorRollResult } from '../../lib/schemas/encounterNpc'
 import type { useEncounterStore } from '../../stores/encounterStore'
-import { ConfirmDialog } from 'suref-react'
 import { DisplayCard } from 'suref-react'
 import { InlineEditField } from '../sheet/InlineEditField'
 import { MediatorRollControl } from './MediatorRollControl'
@@ -198,20 +197,38 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
         </div>
       </DisplayCard>
 
-      <ConfirmDialog
+      <ModalShell
         open={confirmRemove}
-        title={`Remove ${npc.name}?`}
-        confirmLabel="Remove"
-        danger
-        onConfirm={() => {
-          setConfirmRemove(false)
-          void storeState.delete(npc.id)
+        onOpenChange={(next) => {
+          if (!next) setConfirmRemove(false)
         }}
-        onCancel={() => setConfirmRemove(false)}
+        title={`Remove ${npc.name}?`}
+        headerBg="bg-su-rust"
+        maxWidth="max-w-md"
+        align="center"
       >
-        Removes this tracked instance from the tray. The reference{' '}
-        {ENCOUNTER_SCHEMA_LABEL[npc.refSchema]} itself is unaffected.
-      </ConfirmDialog>
+        <div className="flex flex-col gap-4 bg-paper p-5">
+          <div className="font-body text-sm text-wk-muted">
+            Removes this tracked instance from the tray. The reference{' '}
+            {ENCOUNTER_SCHEMA_LABEL[npc.refSchema]} itself is unaffected.
+          </div>
+          <div className="flex justify-end gap-2">
+            <Btn variant="ghost" size="sm" onClick={() => setConfirmRemove(false)}>
+              Cancel
+            </Btn>
+            <Btn
+              variant="danger"
+              size="sm"
+              onClick={() => {
+                setConfirmRemove(false)
+                void storeState.delete(npc.id)
+              }}
+            >
+              Remove
+            </Btn>
+          </div>
+        </div>
+      </ModalShell>
 
       {detailModal}
     </>
