@@ -191,23 +191,17 @@ function CollectionSection({
 }
 
 /**
- * One collection entity as a compact card. A "detail resource" (`resource`) also
- * carries an always-live UsedPip in its footer; read-only shows the used state
- * statically (only when spent), matching a published snapshot.
+ * One collection entity as a compact card. A "detail resource" (`resource`)
+ * carries a UsedPip in its footer, shown in BOTH modes and correlated with the
+ * used state: editable = an always-live toggle; read-only = the same pip static
+ * (still shows used AND unused). The state seeds from the entity's used flag.
  */
 function ResourceCard({ item, readOnly }: { item: PosterCollectionItem; readOnly?: boolean }) {
   const [used, setUsed] = useState(!!item.used)
   const name = (item.entity as { name?: string }).name ?? 'this'
-  let footActions: ReactNode
-  if (item.resource) {
-    footActions = readOnly ? (
-      used ? (
-        <UsedPip used />
-      ) : undefined
-    ) : (
-      <UsedPip used={used} subject={name} onToggle={setUsed} />
-    )
-  }
+  const footActions = item.resource ? (
+    <UsedPip used={used} subject={name} onToggle={readOnly ? undefined : setUsed} />
+  ) : undefined
   return <ReferenceEntityCard data={item.entity} size="compact" footActions={footActions} />
 }
 
