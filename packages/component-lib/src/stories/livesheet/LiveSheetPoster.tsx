@@ -40,10 +40,7 @@ export type PosterCondition = { label: string; state?: 'intact' | 'damaged' | 'd
 export type PosterCollectionItem = {
   entity: SURefEntity
   footMeta: CardFootMeta[]
-  /** Render this row expanded (full card) instead of the compact header row. */
-  expanded?: boolean
 }
-export type PosterGenericItem = { name: string; slots: number }
 export type PosterLink = { kind: string; name: string; href?: string }
 
 export type LiveSheetPosterProps = {
@@ -59,9 +56,6 @@ export type LiveSheetPosterProps = {
   conditions: PosterCondition[]
   abilities: PosterCollectionItem[]
   inventory: PosterCollectionItem[]
-  genericInventory: PosterGenericItem[]
-  slotsUsed: number
-  slotsCap: number
   linked: PosterLink[]
   /** Read-only (published snapshot) hides every edit affordance. */
   readOnly?: boolean
@@ -153,14 +147,12 @@ function CollectionSection({
   title,
   count,
   items,
-  generic,
   readOnly,
   addLabel,
 }: {
   title: string
   count: ReactNode
   items: PosterCollectionItem[]
-  generic?: PosterGenericItem[]
   readOnly?: boolean
   addLabel: string
 }) {
@@ -169,7 +161,6 @@ function CollectionSection({
       <Slab
         label={title}
         count={count}
-        variant="solid"
         actions={
           readOnly ? undefined : (
             <Btn size="sm" variant="default" onClick={() => {}}>
@@ -178,23 +169,10 @@ function CollectionSection({
           )
         }
       />
+      {/* Only game entities render here — always the compact entity card. */}
       <div className="grid grid-cols-1 gap-3">
-        {items.map(({ entity, footMeta, expanded }) => (
-          <ReferenceEntityCard
-            key={entity.id}
-            data={entity}
-            size={expanded ? 'full' : 'compact'}
-            footMeta={footMeta}
-          />
-        ))}
-        {generic?.map((g) => (
-          <div
-            key={g.name}
-            className="flex items-center justify-between gap-3 rounded-card border-chrome border-ink/25 bg-paper px-3 py-2"
-          >
-            <span className="min-w-0 truncate font-body text-sm text-ink">{g.name}</span>
-            <Badge>Slots {g.slots}</Badge>
-          </div>
+        {items.map(({ entity }) => (
+          <ReferenceEntityCard key={entity.id} data={entity} size="compact" />
         ))}
       </div>
     </section>
@@ -209,17 +187,26 @@ function CollectionSection({
 function LinkedUnits({ linked }: { linked: PosterLink[] }) {
   return (
     <section className="flex flex-col gap-3">
-      <Slab label="Linked Units" variant="solid" />
-      <div className="flex flex-wrap gap-2.5">
+      <Slab label="Linked Units" />
+      {/* The pilot's linked mech + crawler as entity ROWS (not chips): each a
+          navigational entity-card row → the linked unit's own sheet. In the app
+          these resolve to real player records; here they're fixture stand-ins. */}
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {linked.map((l) => (
           <a
             key={`${l.kind}-${l.name}`}
             href={l.href ?? '#'}
-            className="inline-flex items-center gap-2 rounded-card border-2 border-rust bg-paper px-3 py-2 font-body text-sm text-rust no-underline hover:bg-rust hover:text-paper"
+            className="group flex items-center gap-3 rounded-card border-entity border-ink bg-paper px-3.5 py-3 no-underline transition-colors hover:bg-wk-bg-2"
           >
-            <span className="font-cond text-badge font-bold uppercase tracking-caps">{l.kind}</span>
-            <span className="font-semibold">{l.name}</span>
-            <span aria-hidden="true">&#8599;</span>
+            <Badge shape="stamp" size="sm" surface="on-tone">
+              {l.kind}
+            </Badge>
+            <span className="min-w-0 flex-1 truncate font-cond text-lede font-bold uppercase tracking-caps text-ink">
+              {l.name}
+            </span>
+            <span className="shrink-0 font-cond text-badge font-bold uppercase tracking-caps text-rust">
+              Open &#8599;
+            </span>
           </a>
         ))}
       </div>
@@ -247,9 +234,6 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
     conditions,
     abilities,
     inventory,
-    genericInventory,
-    slotsUsed,
-    slotsCap,
     linked,
     readOnly,
   } = props
@@ -344,18 +328,13 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
             headerBg="bg-[var(--tone-deep)]"
             borderColor="var(--tone)"
             bodyPadding="p-4"
-            footerContent={
-              <span className="font-cond text-[10px] font-semibold uppercase tracking-caps text-ink/85">
-                Gauges always live — tap a segment
-              </span>
-            }
           >
             <div className="flex flex-col gap-3.5">
               <VitalGauge label="HP" value={hp.value} max={hp.max} readOnly={readOnly} />
               <VitalGauge label="AP" value={ap.value} max={ap.max} readOnly={readOnly} />
               <hr className="my-1 border-0 border-t border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)]" />
               <div className="flex flex-wrap items-start gap-5">
-                <Stat label="TP" value={tp} bottomLabel="Training pts" />
+                <Stat label="Training" value={tp} bottomLabel="Points" />
                 <div className="min-w-0 flex-1">
                   <Badge shape="stamp" size="sm">
                     Conditions
@@ -374,7 +353,7 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
           </DisplayCard>
         </div>
 
-        {/* Row 2: Abilities ∥ Inventory */}
+        {/* Row 2: Abilities ∥ Pilot Equipment */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <CollectionSection
             title="Abilities"
@@ -384,10 +363,9 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
             addLabel="ability"
           />
           <CollectionSection
-            title="Inventory"
-            count={`${slotsUsed} / ${slotsCap} slots`}
+            title="Pilot Equipment"
+            count={inventory.length}
             items={inventory}
-            generic={genericInventory}
             readOnly={readOnly}
             addLabel="equipment"
           />

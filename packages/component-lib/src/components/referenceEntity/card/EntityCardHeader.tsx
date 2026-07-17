@@ -53,38 +53,63 @@ export function EntityCardHeader({
 }: EntityCardHeaderProps) {
   const accent = accentSurface(bg, bgColor)
 
+  const titleNode = titleSlot ?? (
+    <Text
+      variant="pseudoheader"
+      as={titleAs ?? 'span'}
+      className={cn(
+        // `self-center` overrides the pseudoheader variant's built-in `self-start`
+        // so the name-tab centers against the band height. The title always sits
+        // LEFT (its row uses justify-between); self-* is cross-axis only.
+        'w-fit shrink-0 self-center font-cond font-bold uppercase leading-none tracking-caps-tight',
+        titleClass
+      )}
+    >
+      {title}
+    </Text>
+  )
+  const statsNode =
+    stats.length > 0 ? <EntityCardStatBox stats={stats} compact={compact || listing} /> : null
+
+  // COMPACT: two rows — [title | flavor/description] on top, the STAT cluster
+  // flowing full-width UNDERNEATH (so a narrow card never collides the title with
+  // a multi-row stat cluster). The flavor/description stays top-right beside the
+  // title. FULL: one row — title left, flavor + stats right (firm min gap).
+  if (compact) {
+    return (
+      <div
+        className={cn(
+          'flex w-full min-w-0 flex-col gap-1.5 px-3 py-1.5',
+          dim && 'opacity-60',
+          accent.className
+        )}
+        style={accent.style}
+      >
+        <div className="flex w-full min-w-0 items-center justify-between gap-3">
+          {titleNode}
+          {rightContent && <div className="flex min-w-0 flex-1 justify-end">{rightContent}</div>}
+        </div>
+        {statsNode && (
+          <div className="flex w-full flex-wrap items-center justify-start gap-2">{statsNode}</div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div
       className={cn(
-        // A FIRM minimum gap between the title and the stat/hint cluster so
-        // they can never collide, without being so wide the stats read detached.
-        'flex w-full min-w-0 items-center justify-between gap-4',
-        // px-3 (both sizes) so the title's left edge lines up with the seam
-        // stamp + sub-header content (all at border 3px + px-3 = 15px).
-        compact ? 'gap-3 px-3 py-1.5' : 'px-3 py-3',
+        'flex w-full min-w-0 items-center justify-between gap-4 px-3 py-3',
         dim && 'opacity-60',
         accent.className
       )}
       style={accent.style}
     >
-      {titleSlot ?? (
-        <Text
-          variant="pseudoheader"
-          as={titleAs ?? 'span'}
-          className={cn(
-            // `self-center` overrides the pseudoheader variant's built-in
-            // `self-start` so the name-tab truly centers against the band height.
-            'w-fit shrink-0 self-center font-cond font-bold uppercase leading-none tracking-caps-tight',
-            titleClass
-          )}
-        >
-          {title}
-        </Text>
-      )}
-      {(rightContent || stats.length > 0) && (
+      {titleNode}
+      {(rightContent || statsNode) && (
         <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
           {rightContent}
-          <EntityCardStatBox stats={stats} compact={compact || listing} />
+          {statsNode}
         </div>
       )}
     </div>

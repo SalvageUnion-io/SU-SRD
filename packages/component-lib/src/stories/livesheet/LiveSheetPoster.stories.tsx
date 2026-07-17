@@ -34,10 +34,9 @@ const fields: PosterField[] = [
   { label: 'Bio', value: pilotContent.bio, span: 3 },
 ]
 
-const abilities: PosterCollectionItem[] = abilityPicks.map((a, i) => ({
+const abilities: PosterCollectionItem[] = abilityPicks.map((a) => ({
   entity: a.entity,
   footMeta: [{ label: 'AP Cost', value: a.apCost }],
-  expanded: i === 0,
 }))
 
 const inventory: PosterCollectionItem[] = equipmentPicks.map((e) => ({
@@ -56,13 +55,6 @@ const posterCommon = {
   conditions: pilotContent.conditions,
   abilities,
   inventory,
-  genericInventory: [
-    { name: 'Rations ×4', slots: 1 },
-    { name: 'Rope, 50 m', slots: 1 },
-    { name: 'Signal flares ×2', slots: 1 },
-  ],
-  slotsUsed: 7,
-  slotsCap: 10,
   linked: pilotContent.linked.map((l) => ({ kind: l.kind, name: l.name })),
 }
 

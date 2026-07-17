@@ -447,7 +447,10 @@ export function ReferenceEntityCard({
     effTechLevel !== undefined &&
     effTechLevel > baseTechLevel
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
-  const titleClass = titleSizeClass(size === 'listing' ? Math.max(depth, 1) : depth)
+  // Title size steps down with depth; a solo COMPACT/LISTING card (depth 0) floors
+  // to rung 1 (text-xl, not the full text-5xl) so "compact" actually compacts the
+  // title. `full` keeps the depth-driven size (srd renders full → unaffected).
+  const titleClass = titleSizeClass(size === 'full' ? depth : Math.max(depth, 1))
   // ARTWORK — `getAssetUrl` yields the entity's `.webp` when `hasArtwork`; the
   // chassis art also stands in for its full PATTERN view (but not the tight
   // pattern-summary list rows).
@@ -901,10 +904,16 @@ export function ReferenceEntityCard({
       ? foldedActionContent
       : bodyContent
   )?.filter((b) => b?.type !== 'datavalues')
+  // A SELF-action's content IS this entity's body: an ability whose rules live
+  // entirely in its like-named action has NO own `content` (showContent=false),
+  // but its folded action carries the real prose (and any choice markers). Honour
+  // that so the action content bubbles into the body — not just its cost/type
+  // into the sub-header. (Choices authored on the action bubble with it.)
+  const hasSelfActionBody = isSelfAction && !!foldedActionContent && foldedActionContent.length > 0
   const showBody =
     isPattern || isTitanicMeta
       ? !!bodyBlocks && bodyBlocks.length > 0
-      : showContent && !!bodyBlocks && bodyBlocks.length > 0
+      : (showContent || hasSelfActionBody) && !!bodyBlocks && bodyBlocks.length > 0
 
   // WRITE LAYER — editable choices interleave with content by a plain in-order
   // walk of `bodyContent`: a `{type:'choice'}` marker renders that choice's
@@ -1032,6 +1041,27 @@ export function ReferenceEntityCard({
           />
         </div>
       ))
+    }
+    // COMPACT parent → nested entities stack as a SINGLE column (one per row): a
+    // compact card is narrow, so a 2-up masonry cramps its nested cards. Full
+    // cards keep the 2-col masonry below.
+    if (compact) {
+      return (
+        <div className="flex flex-col gap-1.5">
+          {entities.map((nested, index) => (
+            <ReferenceEntityCard
+              key={cardKey(nested, index)}
+              size="compact"
+              depth={depth + 1}
+              hostDown={isDown}
+              data={nested}
+              parentSeal={seal}
+              hostTone={childHostTone}
+              chassisName={resolvedChassisName}
+            />
+          ))}
+        </div>
+      )
     }
     const isOdd = entities.length % 2 === 1
     const columnCards = isOdd ? entities.slice(0, -1) : entities
