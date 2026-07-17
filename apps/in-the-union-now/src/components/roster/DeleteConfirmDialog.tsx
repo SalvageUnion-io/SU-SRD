@@ -5,11 +5,10 @@
  * dismissal. The parent is responsible for calling entityStore.delete() inside
  * onConfirm.
  *
- * Rendered through the shared ConfirmDialog (ModalShell-based: portal, focus
- * trap, Escape/backdrop dismiss).
+ * Rendered through a ModalShell (portal, focus trap, Escape/backdrop dismiss).
  */
 
-import { ConfirmDialog } from 'suref-react'
+import { Btn, ModalShell } from 'suref-react'
 
 type DeleteConfirmDialogProps = {
   open: boolean
@@ -25,15 +24,29 @@ export function DeleteConfirmDialog({
   onCancel,
 }: DeleteConfirmDialogProps) {
   return (
-    <ConfirmDialog
+    <ModalShell
       open={open}
+      onOpenChange={(next) => {
+        if (!next) onCancel()
+      }}
       title={`Delete ${entityName}?`}
-      danger
-      confirmLabel="Delete"
-      onConfirm={onConfirm}
-      onCancel={onCancel}
+      headerBg="bg-su-rust"
+      maxWidth="max-w-md"
+      align="center"
     >
-      This action cannot be undone. {entityName} will be permanently removed.
-    </ConfirmDialog>
+      <div className="flex flex-col gap-4 bg-paper p-5">
+        <div className="font-body text-sm text-wk-muted">
+          This action cannot be undone. {entityName} will be permanently removed.
+        </div>
+        <div className="flex justify-end gap-2">
+          <Btn variant="ghost" size="sm" onClick={onCancel}>
+            Cancel
+          </Btn>
+          <Btn variant="danger" size="sm" onClick={onConfirm}>
+            Delete
+          </Btn>
+        </div>
+      </div>
+    </ModalShell>
   )
 }

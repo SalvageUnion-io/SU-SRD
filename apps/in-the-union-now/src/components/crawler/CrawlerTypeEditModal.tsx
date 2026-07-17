@@ -23,7 +23,6 @@ import {
   type CrawlerWizardFormState,
 } from '../../lib/wizard/crawlerFormState'
 import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
-import { ConfirmDialog } from 'suref-react'
 import { CrawlerTypeDetail, CrawlerTypeOptionList } from './CrawlerTypeStep'
 
 type CrawlerTypeEditModalProps = {
@@ -126,21 +125,33 @@ export function CrawlerTypeEditModal({
         </div>
       </ModalShell>
 
-      {/* Destructive-change confirm — shared ConfirmDialog, like the mech pickers. */}
-      <ConfirmDialog
+      {/* Destructive-change confirm — inline ModalShell, like the mech pickers. */}
+      <ModalShell
         open={confirming && changed}
+        onOpenChange={(next) => {
+          if (!next) setConfirming(false)
+        }}
         title="Change crawler type?"
-        confirmLabel="Change Type"
-        pendingLabel="Changing…"
-        pending={busy}
-        danger
-        onConfirm={() => void applyChange()}
-        onCancel={() => setConfirming(false)}
+        headerBg="bg-su-rust"
+        maxWidth="max-w-md"
+        align="center"
       >
-        Change to <strong>{selectedEntity?.name}</strong>? This resets the crawler's special NPC to
-        the new type's default (its name, description and HP are cleared) and drops the old type's
-        Keepsake/Motto. Your bays and their crew are kept.
-      </ConfirmDialog>
+        <div className="flex flex-col gap-4 bg-paper p-5">
+          <div className="font-body text-sm text-wk-muted">
+            Change to <strong>{selectedEntity?.name}</strong>? This resets the crawler's special NPC
+            to the new type's default (its name, description and HP are cleared) and drops the old
+            type's Keepsake/Motto. Your bays and their crew are kept.
+          </div>
+          <div className="flex justify-end gap-2">
+            <Btn variant="ghost" size="sm" onClick={() => setConfirming(false)} disabled={busy}>
+              Cancel
+            </Btn>
+            <Btn variant="danger" size="sm" onClick={() => void applyChange()} disabled={busy}>
+              {busy ? 'Changing…' : 'Change Type'}
+            </Btn>
+          </div>
+        </div>
+      </ModalShell>
     </>
   )
 }

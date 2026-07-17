@@ -13,7 +13,6 @@
 import { useEffect, useState } from 'react'
 import { Btn, ModalShell } from 'suref-react'
 
-import { ConfirmDialog } from 'suref-react'
 import { ChassisDetail, ChassisOptionList } from './ChassisStep'
 
 type MechChassisPickerModalProps = {
@@ -85,16 +84,30 @@ export function MechChassisPickerModal({
         </div>
       </ModalShell>
 
-      <ConfirmDialog
+      <ModalShell
         open={confirming}
+        onOpenChange={(next) => {
+          if (!next) setConfirming(false)
+        }}
         title="Change chassis?"
-        confirmLabel="Change chassis"
-        danger
-        onConfirm={confirmChange}
-        onCancel={() => setConfirming(false)}
+        headerBg="bg-su-rust"
+        maxWidth="max-w-md"
+        align="center"
       >
-        Changing chassis clears the current loadout (pattern, systems, and modules). Continue?
-      </ConfirmDialog>
+        <div className="flex flex-col gap-4 bg-paper p-5">
+          <div className="font-body text-sm text-wk-muted">
+            Changing chassis clears the current loadout (pattern, systems, and modules). Continue?
+          </div>
+          <div className="flex justify-end gap-2">
+            <Btn variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+              Cancel
+            </Btn>
+            <Btn variant="danger" size="sm" onClick={confirmChange}>
+              Change chassis
+            </Btn>
+          </div>
+        </div>
+      </ModalShell>
     </>
   )
 }
