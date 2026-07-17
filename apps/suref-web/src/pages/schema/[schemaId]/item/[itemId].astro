@@ -4,7 +4,8 @@ import { getItemStaticPaths } from '../../../../lib/staticPaths'
 import { ReferenceEntityIsland } from '../../../../components/islands/ReferenceEntityIsland'
 import { getReferenceEntityData, extractStaticEntitySummary } from '../../../../lib/gameData'
 import { getSchemaPreloadList } from '../../../../lib/schemaPreloadDeps'
-import StaticEntityContent from '../../../../components/StaticEntityContent.astro'
+import { StaticEntityContent } from 'suref-react'
+import { resolveTraitHref } from '../../../../lib/staticLinks'
 import { SITE_URL } from '../../../../lib/constants'
 
 export function getStaticPaths() {
@@ -117,6 +118,6 @@ const ogImage = `/schema/${schemaId}/item/${itemId}.og.png`
         hides this for JS users via global.css before first paint (no text
         flash); the island removes it once game data is ready. No-JS users and
         crawlers keep the content. */}
-    {staticSummary && <StaticEntityContent summary={staticSummary} />}
+    {staticSummary && <StaticEntityContent summary={staticSummary} resolveTraitHref={resolveTraitHref} />}
   </article>
 </BaseLayout>
