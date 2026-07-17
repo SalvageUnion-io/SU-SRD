@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
+import { btnVariants, cn } from 'suref-react'
 import { SearchIsland } from './SearchIsland'
-import { Button } from '../Button'
 import { ITUN_URL } from '../../lib/constants'
 
 type SchemaLink = {
@@ -128,37 +128,44 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
               </div>
             ))}
 
-            {/* Bottom links */}
+            {/* Bottom links — the shared `btnVariants` button styling as links
+                (active = primary/rust, inactive = ghost). */}
             <div className="mt-auto flex flex-col gap-2 border-t border-su-grey-light pt-4">
-              <Button
+              <a
                 href="/about/"
-                active={isActive('/about')}
-                className="block text-sm"
+                className={cn(
+                  btnVariants({ variant: isActive('/about') ? 'primary' : 'ghost' }),
+                  'w-full'
+                )}
                 onClick={() => setOpen(false)}
               >
                 ABOUT
-              </Button>
-              <Button
+              </a>
+              <a
                 href="/changelog/"
-                active={isActive('/changelog')}
-                className="block text-sm"
+                className={cn(
+                  btnVariants({ variant: isActive('/changelog') ? 'primary' : 'ghost' }),
+                  'w-full'
+                )}
                 onClick={() => setOpen(false)}
               >
                 CHANGELOG
-              </Button>
-              <Button
+              </a>
+              <a
                 href="/discord/"
-                active={isActive('/discord')}
-                className="block text-sm"
+                className={cn(
+                  btnVariants({ variant: isActive('/discord') ? 'primary' : 'ghost' }),
+                  'w-full'
+                )}
                 onClick={() => setOpen(false)}
               >
                 DISCORD
-              </Button>
+              </a>
               <a
                 href={ITUN_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn btn-inactive block text-center text-sm"
+                className={cn(btnVariants({ variant: 'ghost' }), 'w-full')}
                 onClick={() => setOpen(false)}
               >
                 BUILDER ↗
@@ -167,7 +174,7 @@ export function MobileNavIsland({ categories, currentPath }: MobileNavIslandProp
                 href="https://leyline.press/collections/salvage-union"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn btn-inactive block text-center text-sm"
+                className={cn(btnVariants({ variant: 'ghost' }), 'w-full')}
                 onClick={() => setOpen(false)}
               >
                 BUY THE GAME
