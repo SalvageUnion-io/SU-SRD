@@ -1,0 +1,286 @@
+<style>
+  /* ================================================================
+     STAT — CURRENT/MAX CELL (refined)  ·  PR #466
+     Chosen direction: the Current/Max cell, canonicalised.
+       - no hatch: plain paper fill
+       - one ink treatment for every stat (no per-domain tone)
+       - STATE is carried by the border colour, nothing else
+     Tokens are the real theme.css values; the "Today" baseline is
+     faithful to the confirmed rendered DOM.
+
+     One axis, two sizes:
+       FULL    = the vertical value box
+       COMPACT = the horizontal [label | value] cell (compact === horizontal)
+     ================================================================ */
+  :root {
+    --paper: #fbfaf7;
+    --ink: #282019;
+    --ink-2: #463d31;
+    --rust: #a85222;              /* modified */
+    --status-ok: #6f8a4a;         /* full / at-cap-good */
+    --status-warn: #c07a2f;       /* caution */
+    --status-bad: #b0432b;        /* critical */
+
+    --r-badge: 2px;
+    --r-card: 3px;
+    --r-panel: 6px;
+
+    --bw-chrome: 1.5px;
+    --bw-pill: 2px;
+    --bw-rail: 2.5px;
+
+    --caps: 0.04em;
+
+    --page-bg: #ece7dc;
+    --page-panel: var(--paper);
+    --page-ink: var(--ink);
+    --page-ink-soft: #5c5344;
+    --page-line: #d8d0c2;
+    --page-accent: var(--rust);
+    --swatch-bg: #f6f2e9;
+  }
+  :root[data-theme="dark"], html.dark {
+    --page-bg: #1b1712; --page-panel: #241f19; --page-ink: #ece7dc;
+    --page-ink-soft: #a99e8c; --page-line: #3a3229; --swatch-bg: #2c2620;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page-bg: #1b1712; --page-panel: #241f19; --page-ink: #ece7dc;
+      --page-ink-soft: #a99e8c; --page-line: #3a3229; --swatch-bg: #2c2620;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page-bg); color: var(--page-ink);
+    font-family: -apple-system, "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+    line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 40px 28px 96px; }
+
+  .eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.22em; color: var(--page-accent); margin: 0 0 10px; }
+  h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; line-height: 1.02;
+    letter-spacing: -0.02em; margin: 0 0 14px; text-wrap: balance; }
+  .lede { font-size: 17px; color: var(--page-ink-soft); max-width: 64ch; margin: 0 0 6px; }
+  h2 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em;
+    margin: 0 0 4px; display: flex; align-items: baseline; gap: 10px; }
+  h2 .num { font-size: 11px; font-weight: 700; color: var(--page-accent); font-variant-numeric: tabular-nums; }
+  .section { margin-top: 54px; }
+  .section > .sub { color: var(--page-ink-soft); max-width: 68ch; margin: 8px 0 0; font-size: 14.5px; }
+
+  .panel { background: var(--page-panel); border: 1px solid var(--page-line);
+    border-radius: var(--r-panel); padding: 22px 24px 24px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+
+  .stage { background: var(--swatch-bg); border: 1px solid var(--page-line); border-radius: var(--r-card);
+    padding: 22px 20px; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 26px 30px; }
+  .cellcap { display: flex; flex-direction: column; align-items: center; gap: 9px; }
+  .cellcap > .rig { min-height: 62px; display: flex; align-items: center; }
+  .cellcap code, .cellcap .cap2 { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10px;
+    color: var(--page-ink-soft); background: color-mix(in srgb, var(--page-ink) 7%, transparent);
+    padding: 2px 6px; border-radius: 3px; letter-spacing: 0.01em; text-align: center; }
+  .cellcap .cap2 { background: none; padding: 0; }
+
+  .sizepill { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.09em; color: var(--page-ink-soft);
+    border: 1px solid var(--page-line); border-radius: 999px; padding: 3px 9px; background: var(--page-panel); }
+  .sizerow { display: flex; align-items: center; gap: 14px; margin: 0 0 14px; }
+  .sizerow .lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--page-ink-soft); }
+  .sizerow .hint { font-size: 12px; color: var(--page-ink-soft); }
+
+  .callout { border-left: 3px solid var(--page-accent);
+    background: color-mix(in srgb, var(--page-accent) 8%, transparent);
+    padding: 12px 16px; border-radius: 0 var(--r-card) var(--r-card) 0; font-size: 14px; margin-top: 16px; }
+
+  .swatchrow { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-top: 14px; font-size: 13px; color: var(--page-ink-soft); }
+  .swatchrow span { display: inline-flex; align-items: center; gap: 8px; }
+  .sw { width: 26px; height: 14px; border-radius: 3px; background: var(--paper);
+    border: var(--bw-rail) solid var(--ink); display: inline-block; }
+  .foot { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--page-line); font-size: 13px; color: var(--page-ink-soft); }
+
+  /* ===================== RENDITIONS ===================== */
+  .su { font-family: "Barlow", -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  .stamp { display: block; width: fit-content; align-self: center; background: var(--ink); color: var(--paper);
+    padding: 2px 4px; font-weight: 700; text-transform: uppercase; letter-spacing: var(--caps);
+    line-height: 1; white-space: nowrap; font-stretch: 90%; font-size: 12px; }
+
+  /* ---- TODAY baseline (faithful) ---- */
+  .t-box { display: flex; flex-direction: column; align-items: center; }
+  .t-box .stamp { position: relative; z-index: 1; }
+  .t-box .stamp.top { margin-bottom: -8px; }
+  .t-box .well { height: 48px; width: 48px; background: var(--paper); border: var(--bw-chrome) solid var(--ink);
+    display: flex; align-items: center; justify-content: center; }
+  .t-box .well b { font-weight: 700; color: var(--ink); font-size: 13.6px; }
+  .t-h { display: inline-flex; width: fit-content; border: 1px solid var(--ink); white-space: nowrap; align-items: stretch; }
+  .t-h .lab, .t-h .val { padding: 2px 5px; font-size: 12px; font-weight: 400; text-transform: uppercase;
+    letter-spacing: var(--caps); line-height: 1; display: flex; align-items: center; font-stretch: 90%; }
+  .t-h .lab { background: var(--ink); color: var(--paper); }
+  .t-h .val { background: var(--paper); color: var(--ink); }
+
+  /* ============================================================
+     THE STAT — refined Current/Max cell
+     `--state` is the ONLY thing that changes between states.
+     ============================================================ */
+  .gz { --state: var(--ink); }
+  .gz.good { --state: var(--status-ok); }
+  .gz.mod  { --state: var(--rust); }
+  .gz.warn { --state: var(--status-warn); }
+  .gz.crit { --state: var(--status-bad); }
+
+  /* FULL — vertical cell, ink stamp tab, current numeral, /max */
+  .g-cell { display: inline-flex; align-items: stretch; gap: 5px; }
+  .g-well { position: relative; width: 52px; height: 52px; border-radius: var(--r-panel);
+    border: var(--bw-rail) solid var(--state); background: var(--paper); overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 6px; }
+  .g-tab { position: absolute; top: 0; left: 0; right: 0; background: var(--ink); color: var(--paper);
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; text-align: center;
+    padding: 1.5px 0; font-stretch: 90%; }
+  .g-num { display: flex; align-items: baseline; gap: 1px; }
+  .g-num .cur { font-weight: 800; font-size: 21px; color: var(--ink); line-height: 0.9; font-variant-numeric: tabular-nums; }
+  .g-num .mx { font-weight: 700; font-size: 11px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .g-side { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 8px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-2); display: flex; align-items: center; justify-content: center; }
+  /* single value (no max): centre it */
+  .g-well.solo { justify-content: center; padding-bottom: 0; padding-top: 8px; }
+
+  /* edit steppers */
+  .stepcol { display: flex; flex-direction: column; gap: 2px; }
+  .stepcol button, .steprow button { height: 16px; width: 16px; font-size: 12px; font-weight: 700; line-height: 1;
+    border: var(--bw-chrome) solid var(--ink); background: var(--paper); color: var(--ink); border-radius: var(--r-badge);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: ui-monospace, monospace; }
+  .editwrap { display: inline-flex; align-items: center; gap: 3px; }
+  .steprow { display: inline-flex; gap: 2px; }
+
+  /* COMPACT — horizontal cell, ink label, paper value, /max small; border = state */
+  .g-h { display: inline-flex; width: fit-content; border: var(--bw-chrome) solid var(--state);
+    border-radius: var(--r-badge); overflow: hidden; white-space: nowrap; align-items: stretch; }
+  .g-h .lab { background: var(--ink); color: var(--paper); padding: 2px 6px; font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: var(--caps); display: flex; align-items: center; font-stretch: 90%; }
+  .g-h .val { background: var(--paper); color: var(--ink); padding: 2px 7px; font-size: 12px; font-weight: 800;
+    display: flex; align-items: baseline; gap: 1px; font-variant-numeric: tabular-nums; }
+  .g-h .val small { font-weight: 700; color: var(--ink-2); font-size: 10px; }
+</style>
+
+<div class="wrap">
+
+  <p class="eyebrow">Salvage Union · suref-react · PR #466</p>
+  <h1>The Stat — Current / Max cell</h1>
+  <p class="lede">The chosen direction, canonicalised. One ink-on-paper cell renders every stat — SP, EP, Heat, Cargo, TL — at both sizes. No hatch, no per-stat colour. <strong>State is carried entirely by the border colour</strong>, the way stats already flag over-cap and modified values.</p>
+  <p class="lede" style="font-size:14px;">Data is the real <strong>Mule</strong> chassis (<code>Workshop Manual p.100</code>): SP 12 · EP 4 · Heat 6 · Cargo 16 · Sys 16 · Mod 2 · TL 1 · SV 7. <strong>Full</strong> = the vertical value cell; <strong>Compact</strong> = the horizontal <code>[label | value]</code> cell (compact === horizontal).</p>
+
+  <!-- =================== THE CELL =================== -->
+  <div class="section">
+    <h2><span class="num">01</span> The cell</h2>
+    <p class="sub">A rounded paper cell. Full carries an ink code-tab, the current value big, and a small <code>/max</code>; a single-value stat (no max) just centres its number. Compact is the horizontal cell — ink label, paper value, small <code>/max</code>. Everything is ink on paper — the border is where state will speak (next section).</p>
+    <div class="panel su" style="margin-top:16px;">
+      <div class="sizerow"><span class="lbl">Full</span><span class="sizepill">value cell</span></div>
+      <div class="stage" style="gap:22px 26px;">
+        <div class="cellcap"><div class="rig"><div class="g-cell gz"><div class="g-well"><div class="g-tab">SP</div><div class="g-num"><span class="cur">12</span><span class="mx">/12</span></div></div><div class="g-side">Current</div></div></div><code>SP · with max</code></div>
+        <div class="cellcap"><div class="rig"><div class="g-cell gz"><div class="g-well"><div class="g-tab">EP</div><div class="g-num"><span class="cur">2</span><span class="mx">/4</span></div></div><div class="g-side">Current</div></div></div><code>EP · spent</code></div>
+        <div class="cellcap"><div class="rig"><div class="g-cell gz"><div class="g-well solo"><div class="g-tab">SV</div><div class="g-num"><span class="cur">7</span></div></div></div></div><code>SV · single value</code></div>
+        <div class="cellcap"><div class="rig"><div class="g-cell gz"><div class="g-well solo"><div class="g-tab">Cargo</div><div class="g-num"><span class="cur">16</span></div></div></div></div><code>Cargo · single value</code></div>
+        <div class="cellcap"><div class="rig"><div class="editwrap"><div class="g-cell gz"><div class="g-well"><div class="g-tab">EP</div><div class="g-num"><span class="cur">2</span><span class="mx">/4</span></div></div></div><div class="stepcol"><button>+</button><button>−</button></div></div></div><code>edit</code></div>
+      </div>
+      <div class="sizerow" style="margin-top:24px;"><span class="lbl">Compact</span><span class="sizepill">horizontal cell</span><span class="hint">compact === horizontal</span></div>
+      <div class="stage">
+        <div class="cellcap"><div class="rig"><div class="g-h gz"><span class="lab">SP</span><span class="val">12<small>/12</small></span></div></div><code>with max</code></div>
+        <div class="cellcap"><div class="rig"><div class="g-h gz"><span class="lab">EP</span><span class="val">2<small>/4</small></span></div></div><code>spent</code></div>
+        <div class="cellcap"><div class="rig"><div class="g-h gz"><span class="lab">SV</span><span class="val">7</span></div></div><code>single value</code></div>
+        <div class="cellcap"><div class="rig"><div class="g-h gz"><span class="lab">TL</span><span class="val">1</span></div></div><code>single value</code></div>
+        <div class="cellcap"><div class="rig"><div class="editwrap"><div class="g-h gz"><span class="lab">HP</span><span class="val">7<small>/10</small></span></div><div class="steprow"><button>−</button><button>+</button></div></div></div><code>edit</code></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== STATE = BORDER =================== -->
+  <div class="section">
+    <h2><span class="num">02</span> State lives in the border</h2>
+    <p class="sub">The fill, text, label and tab never change — only the <strong>border colour</strong> encodes state. This extends what the component already does (ink default, green at/over max, rust for choice-modified) into one consistent vocabulary, drawn from the warm status ramp. Colour is a treatment overlay, never a second identity hue.</p>
+    <div class="panel su" style="margin-top:16px;">
+      <div class="sizerow"><span class="lbl">Full</span><span class="sizepill">border = state</span></div>
+      <div class="stage" style="gap:22px 26px;">
+        <div class="cellcap"><div class="rig"><div class="g-cell gz"><div class="g-well"><div class="g-tab">SP</div><div class="g-num"><span class="cur">8</span><span class="mx">/12</span></div></div></div></div><span class="cap2">Default</span></div>
+        <div class="cellcap"><div class="rig"><div class="g-cell gz good"><div class="g-well"><div class="g-tab">SP</div><div class="g-num"><span class="cur">12</span><span class="mx">/12</span></div></div></div></div><span class="cap2">Full / at cap</span></div>
+        <div class="cellcap"><div class="rig"><div class="g-cell gz mod"><div class="g-well solo"><div class="g-tab">EP</div><div class="g-num"><span class="cur">6</span></div></div></div></div><span class="cap2">Modified</span></div>
+        <div class="cellcap"><div class="rig"><div class="g-cell gz warn"><div class="g-well"><div class="g-tab">Heat</div><div class="g-num"><span class="cur">5</span><span class="mx">/6</span></div></div></div></div><span class="cap2">Caution</span></div>
+        <div class="cellcap"><div class="rig"><div class="g-cell gz crit"><div class="g-well"><div class="g-tab">Heat</div><div class="g-num"><span class="cur">6</span><span class="mx">/6</span></div></div></div></div><span class="cap2">Critical</span></div>
+      </div>
+      <div class="sizerow" style="margin-top:24px;"><span class="lbl">Compact</span><span class="sizepill">border = state</span></div>
+      <div class="stage">
+        <div class="cellcap"><div class="rig"><div class="g-h gz"><span class="lab">SP</span><span class="val">8<small>/12</small></span></div></div><span class="cap2">Default</span></div>
+        <div class="cellcap"><div class="rig"><div class="g-h gz good"><span class="lab">SP</span><span class="val">12<small>/12</small></span></div></div><span class="cap2">Full / at cap</span></div>
+        <div class="cellcap"><div class="rig"><div class="g-h gz mod"><span class="lab">EP</span><span class="val">6</span></div></div><span class="cap2">Modified</span></div>
+        <div class="cellcap"><div class="rig"><div class="g-h gz warn"><span class="lab">Heat</span><span class="val">5<small>/6</small></span></div></div><span class="cap2">Caution</span></div>
+        <div class="cellcap"><div class="rig"><div class="g-h gz crit"><span class="lab">Heat</span><span class="val">6<small>/6</small></span></div></div><span class="cap2">Critical</span></div>
+      </div>
+    </div>
+    <div class="swatchrow">
+      <span><i class="sw" style="border-color:var(--ink)"></i> Default — ink</span>
+      <span><i class="sw" style="border-color:var(--status-ok)"></i> Full / at cap — <code>status-ok</code></span>
+      <span><i class="sw" style="border-color:var(--rust)"></i> Modified — <code>rust</code></span>
+      <span><i class="sw" style="border-color:var(--status-warn)"></i> Caution — <code>status-warn</code></span>
+      <span><i class="sw" style="border-color:var(--status-bad)"></i> Critical — <code>status-bad</code></span>
+    </div>
+    <div class="callout">Which value maps to which state stays the consumer's call — “at cap” is good for SP but critical for Heat. The <em>cell</em> only exposes one lever, <code>--state</code>; the sheet/dashboard decides the mapping.</div>
+  </div>
+
+  <!-- =================== TODAY / COMPARE =================== -->
+  <div class="section">
+    <h2><span class="num">03</span> Against today</h2>
+    <p class="sub">Today's <code>Stat</code> (faithful to the rendered DOM) beside the refined cell — same Mule numbers. The move: square → rounded, a real <code>/max</code> readout, and state promoted out of ad-hoc fills into one border lever.</p>
+    <div class="cols" style="margin-top:16px;">
+      <div class="panel su">
+        <div class="sizerow"><span class="lbl">Today</span><span class="sizepill">square · monochrome</span></div>
+        <div class="stage" style="gap:24px;">
+          <div class="cellcap"><div class="rig"><div class="t-box"><span class="stamp top">SP</span><div class="well"><b>6/12</b></div></div></div><code>full</code></div>
+          <div class="cellcap"><div class="rig"><div class="t-h"><span class="lab">SP</span><span class="val">12</span></div></div><code>compact</code></div>
+        </div>
+      </div>
+      <div class="panel su">
+        <div class="sizerow"><span class="lbl">Refined</span><span class="sizepill">rounded · border-state</span></div>
+        <div class="stage" style="gap:24px;">
+          <div class="cellcap"><div class="rig"><div class="g-cell gz"><div class="g-well"><div class="g-tab">SP</div><div class="g-num"><span class="cur">6</span><span class="mx">/12</span></div></div></div></div><code>full</code></div>
+          <div class="cellcap"><div class="rig"><div class="g-h gz"><span class="lab">SP</span><span class="val">12<small>/12</small></span></div></div><code>compact</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== IN CONTEXT =================== -->
+  <div class="section">
+    <h2><span class="num">04</span> In context — the Mule's card header</h2>
+    <p class="sub">The compact cells in their home: the top-right cluster of a mech card (<code>EntityCardStatBox</code>) — two rows, columns = ceil(count/2). All ink; borders stay neutral until a stat has state — here Heat is at cap (critical), SP shown full (good), the rest default.</p>
+    <div class="panel su" style="margin-top:16px;">
+      <div class="stage" style="justify-content:flex-start;">
+        <div style="display:grid; grid-template-columns:repeat(4,max-content); gap:6px;">
+          <div class="g-h gz"><span class="lab">TL</span><span class="val">1</span></div>
+          <div class="g-h gz good"><span class="lab">SP</span><span class="val">12<small>/12</small></span></div>
+          <div class="g-h gz"><span class="lab">EP</span><span class="val">4<small>/4</small></span></div>
+          <div class="g-h gz"><span class="lab">SV</span><span class="val">7</span></div>
+          <div class="g-h gz"><span class="lab">Sys</span><span class="val">16</span></div>
+          <div class="g-h gz"><span class="lab">Mod</span><span class="val">2</span></div>
+          <div class="g-h gz"><span class="lab">Crgo</span><span class="val">16</span></div>
+          <div class="g-h gz crit"><span class="lab">Heat</span><span class="val">6<small>/6</small></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="callout">One neutral treatment keeps the cluster calm; the two coloured borders are the only things that pull the eye — exactly the stats that need attention.</div>
+  </div>
+
+  <!-- =================== NOTES =================== -->
+  <div class="section">
+    <h2><span class="num">05</span> Build notes</h2>
+    <p class="sub" style="max-width:70ch;">Turning this into the <code>Stat</code> atom:</p>
+    <ul style="max-width:70ch; color:var(--page-ink-soft); font-size:14px; line-height:1.7;">
+      <li><strong>One state lever.</strong> Replace the ad-hoc <code>bg</code>/<code>valueColor</code>/<code>isOverMax</code> overrides with a single <code>state</code> prop (<code>'default' | 'good' | 'modified' | 'caution' | 'critical'</code>) that only drives the border colour. Fill/text/tab are constant.</li>
+      <li><strong>Radius.</strong> Full uses <code>rounded-panel</code> (6px), compact uses <code>rounded-badge</code> (2px) — staying inside the canonical radius ladder. If we want the book's rounder look, that's a one-token change to discuss, not a per-component hack.</li>
+      <li><strong>Max is optional.</strong> With a <code>max</code> → tab + <code>current/max</code>; without → a single centred value. Same component.</li>
+      <li><strong>Rotated “Current”.</strong> Shown on Full where it reads like the book's live column; drop it for static stats or when space is tight.</li>
+      <li><strong>Border weight.</strong> Full <code>border-rail</code> (2.5px) so the state colour is legible; compact <code>border-chrome</code> (1.5px).</li>
+    </ul>
+    <div class="foot">
+      Mockup only — no component code changed. Renditions are token-faithful to <code>theme.css</code> and, for “Today”, to the confirmed rendered DOM of the current <code>Stat</code>. Type is a system stack standing in for Barlow / Barlow Semi Condensed. Real data: the Mule, <em>Salvage Union Workshop Manual</em> p.100.
+    </div>
+  </div>
+
+</div>
