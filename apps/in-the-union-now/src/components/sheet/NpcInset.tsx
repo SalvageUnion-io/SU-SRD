@@ -15,7 +15,7 @@
 
 import { Stat } from 'suref-react'
 
-import { SectionCard } from '../shared/SectionCard'
+import { SectionCard } from 'suref-react'
 import { InlineEditField } from './InlineEditField'
 import { InlineEditTextArea } from './InlineEditTextArea'
 import { NpcFactsEditor } from './NpcFactsEditor'
