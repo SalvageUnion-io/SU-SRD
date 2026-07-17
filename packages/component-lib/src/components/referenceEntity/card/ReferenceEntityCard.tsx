@@ -255,26 +255,26 @@ function actionCells(action: ActionFields): EntityCardSubHeaderCell[] {
   return cells
 }
 
-/** `bonusPerTechLevel` fields → "+N" cells (zeros/absent dropped). Labels are
- * size-aware: [field, FULL label (non-compact), ABBR label (compact)]. */
+/** `bonusPerTechLevel` fields → "+N" vertical stat boxes (zeros/absent dropped).
+ * The label splits top/bottom around the value: [field, TOP word, BOTTOM word]
+ * (e.g. "Structure" / "Points"), the same two-line treatment as "Tech" / "Level". */
 const BONUS_LABELS: [keyof SURefObjectBonusPerTechLevel, string, string][] = [
-  ['structurePoints', 'Structure Points', 'Structure'],
-  ['energyPoints', 'Energy Points', 'Energy'],
-  ['heatCapacity', 'Heat Capacity', 'Heat'],
-  ['systemSlots', 'System Slots', 'System'],
-  ['moduleSlots', 'Module Slots', 'Module'],
-  ['cargoCapacity', 'Cargo Capacity', 'Cargo'],
-  ['salvageValue', 'Salvage Value', 'Salvage'],
+  ['structurePoints', 'Structure', 'Points'],
+  ['energyPoints', 'Energy', 'Points'],
+  ['heatCapacity', 'Heat', 'Capacity'],
+  ['systemSlots', 'System', 'Slots'],
+  ['moduleSlots', 'Module', 'Slots'],
+  ['cargoCapacity', 'Cargo', 'Capacity'],
+  ['salvageValue', 'Salvage', 'Value'],
 ]
 
-function bonusCells(
-  bonus: SURefObjectBonusPerTechLevel,
-  compact: boolean
-): EntityCardSubHeaderCell[] {
-  return BONUS_LABELS.flatMap(([field, full, abbr]) => {
+type BonusCell = { key: string; label: string; bottomLabel: string; value: string }
+
+function bonusCells(bonus: SURefObjectBonusPerTechLevel): BonusCell[] {
+  return BONUS_LABELS.flatMap(([field, top, bottom]) => {
     const amount = bonus[field]
     return typeof amount === 'number' && amount !== 0
-      ? [{ key: `bonus-${field}`, label: compact ? abbr : full, value: `+${amount}` }]
+      ? [{ key: `bonus-${field}`, label: top, bottomLabel: bottom, value: `+${amount}` }]
       : []
   })
 }
@@ -1038,7 +1038,7 @@ export function ReferenceEntityCard({
     'bonusPerTechLevel' in entity && entity.bonusPerTechLevel
       ? (entity.bonusPerTechLevel as SURefObjectBonusPerTechLevel)
       : undefined
-  const bonusCellList = bonusPerTechLevel ? bonusCells(bonusPerTechLevel, compact) : []
+  const bonusCellList = bonusPerTechLevel ? bonusCells(bonusPerTechLevel) : []
   if (bonusCellList.length > 0 && !hide?.stats) {
     bodyNodes.push(
       <div key="bonus-per-tech" className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
@@ -1052,7 +1052,13 @@ export function ReferenceEntityCard({
         {/* the deltas as VERTICAL stat boxes (label over value), not horizontal cells */}
         <div className="flex flex-wrap gap-1.5">
           {bonusCellList.map((cell) => (
-            <Stat key={cell.key} label={cell.label} value={cell.value} compact={compact} />
+            <Stat
+              key={cell.key}
+              label={cell.label}
+              bottomLabel={cell.bottomLabel}
+              value={cell.value}
+              compact={compact}
+            />
           ))}
         </div>
       </div>
