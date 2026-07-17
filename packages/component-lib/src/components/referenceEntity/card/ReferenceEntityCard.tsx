@@ -51,6 +51,7 @@ import { EntityCardHeader } from './EntityCardHeader'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
 import { EntityCardSubHeader } from './EntityCardSubHeader'
 import type { EntityCardSubHeaderCell } from './EntityCardSubHeader'
+import { resolveFoldedAction } from './resolveFoldedAction'
 import {
   abbreviateStat,
   ghostActionTone,
@@ -495,7 +496,10 @@ export function ReferenceEntityCard({
     !(isAbility(entity) && resolveGrantedEntities(entity as SURefEntity).length > 0)
       ? (extractVisibleActions(entity) ?? []).filter((a) => !isTitanicAction(a))
       : []
-  const foldedAction = foldableActions.length === 1 ? foldableActions[0] : undefined
+  // Fold the SELF-action (same-named) regardless of the entity's action count;
+  // otherwise a lone action still folds its facets. Siblings render as their own
+  // cards below (gridActions). See resolveFoldedAction for the full rule.
+  const foldedAction = resolveFoldedAction(foldableActions, entityName)
   const foldedActionFields = foldedAction ? (foldedAction as unknown as ActionFields) : undefined
 
   const seam = (
@@ -891,7 +895,12 @@ export function ReferenceEntityCard({
   // body; its stats already merged into the sub-header. 2+ → an actions grid.
   const foldSingleAction = !!foldedAction
   const foldedActionContent = foldedAction?.content ?? undefined
-  const gridActions = foldSingleAction ? [] : normalActions
+  // Every action EXCEPT the folded self-action renders as its own grid card — so
+  // a multi-action entity keeps its siblings (was `[]`, which dropped them once
+  // the length-1 gate was removed).
+  const gridActions = foldedAction
+    ? normalActions.filter((a) => a.name !== foldedAction.name)
+    : normalActions
 
   // A SELF-action (a single folded action named like the entity — e.g. Custom
   // Sniper Rifle's own action) carries the entity's real prose AND its choice
