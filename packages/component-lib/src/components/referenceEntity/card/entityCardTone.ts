@@ -87,12 +87,16 @@ export function resolveDomainTone(
         onToneText: resolveOnToneText('gear', bg, undefined),
       }
     }
-    const bgColor = `var(--color-tl-${String(techLevel).toLowerCase()})`
+    // Non-numeric tiers (Bio / Nanite) use the bg-tl-b / bg-tl-n UTILITY classes
+    // — LITERAL strings so Tailwind actually emits them, matching how numeric
+    // TLs use bg-tl-1..6. An inline `var(--color-tl-n)` was never emitted as a
+    // utility, so it failed to resolve and the band fell back to ink.
+    const bg = techLevel === 'B' ? 'bg-tl-b' : 'bg-tl-n'
     return {
       domain: 'gear',
-      bg: undefined,
-      bgColor,
-      onToneText: resolveOnToneText('gear', undefined, bgColor),
+      bg,
+      bgColor: undefined,
+      onToneText: resolveOnToneText('gear', bg, undefined),
     }
   }
 

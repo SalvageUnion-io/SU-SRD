@@ -1435,7 +1435,8 @@ export function ReferenceEntityCard({
             renderGroup(
               'Actions',
               gridActions as unknown as SURefEntity[],
-              { hostTone: ownToneBase },
+              // No "Actions" Slab — the action cards render on their own.
+              { hostTone: ownToneBase, slab: false },
               flat
             )}
 

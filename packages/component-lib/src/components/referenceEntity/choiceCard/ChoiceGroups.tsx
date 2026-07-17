@@ -5,7 +5,6 @@ import { parseContentBlockString, SalvageUnionReference } from 'salvageunion-ref
 import { cn } from '../../../utils/cn'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Text } from '../../base/Text'
-import { Slab } from '../../chrome/Slab'
 import { Badge } from '../../chrome/Badge'
 import { RollTable } from '../../shared/RollTable'
 import {
@@ -178,7 +177,6 @@ function ChoiceOptionGroup({
     const value = selected[0] ?? ''
     return (
       <div style={toneVar}>
-        {!readOnly && <Slab variant="dashed" label={choice.name} />}
         <div className="overflow-hidden rounded-card" style={{ border: `3px solid ${frameColor}` }}>
           <div className={bandClass} style={{ backgroundColor: toneColor }}>
             <Text variant="pseudoheader" as="span" className={labelClass}>
@@ -227,7 +225,6 @@ function ChoiceOptionGroup({
     const multiline = choice.name.toLowerCase() !== 'name'
     return (
       <div style={toneVar}>
-        {!readOnly && <Slab variant="dashed" label={choice.name} />}
         <div className="overflow-hidden rounded-card" style={{ border: `3px solid ${frameColor}` }}>
           <div
             className={cn('flex items-center', compact ? 'px-2 py-1' : 'px-2.5 py-1.5')}
@@ -276,7 +273,17 @@ function ChoiceOptionGroup({
   const options = getChoiceCardOptions(choice)
   return (
     <div style={toneVar}>
-      {!readOnly && <Slab variant="dashed" label={choice.name} count={counter} />}
+      {/* The options have no per-card name tab, so the group keeps a band header
+          (choice name + optional n/max counter) — no dashed Slab. */}
+      <div
+        className={cn(bandClass, 'mb-1.5 justify-between')}
+        style={{ backgroundColor: toneColor }}
+      >
+        <Text variant="pseudoheader" as="span" className={labelClass}>
+          {choice.name}
+        </Text>
+        {counter && <span className="font-mono text-nano text-paper/80">{counter}</span>}
+      </div>
       <div className={cn('gap-1.5', compact ? 'columns-1' : 'columns-1 sm:columns-2')}>
         {options.map((option) => (
           <div key={option.value} className="mb-1.5 break-inside-avoid pt-2.5">
