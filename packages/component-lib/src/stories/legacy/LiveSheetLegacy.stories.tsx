@@ -31,7 +31,11 @@ const legacyPilot: LegacyPilotContent = {
   // Legacy conditions render an amber (warn) or ink chip; map the shared
   // `state` onto the legacy warn flag so the same conditions show in both.
   conditions: pilotContent.conditions.map((c) => ({ label: c.label, warn: c.state === 'damaged' })),
-  linked: pilotContent.linked,
+  linked: pilotContent.linked.map((l) => ({
+    kind: l.kind,
+    name: l.name,
+    spec: [l.meta, ...l.stats.map((s) => `${s.label} ${s.value}`)].join(' · '),
+  })),
 }
 
 const abilities = abilityPicks

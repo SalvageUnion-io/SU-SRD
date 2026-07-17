@@ -16,8 +16,10 @@ type UsedPipProps = {
   className?: string
 }
 
+// Matches our Stat cell styling: `rounded-badge` + 1px border (not a rounded-full
+// pill), ink-filled when ON like a stat's label segment.
 const BASE =
-  'inline-flex min-h-6 items-center gap-1.5 rounded-full border-2 px-2.5 py-1 font-cond text-badge font-bold uppercase leading-none tracking-caps'
+  'inline-flex min-h-6 items-center gap-1.5 rounded-badge border px-2 py-1 font-cond text-badge font-bold uppercase leading-none tracking-caps'
 
 /** The leading dot — filled with the sheet accent (`--tone`, else rust) when used. */
 function Dot({ used }: { used: boolean }) {

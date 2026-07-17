@@ -50,7 +50,7 @@ const posterCommon = {
   conditions: pilotContent.conditions,
   abilities,
   inventory,
-  linked: pilotContent.linked.map((l) => ({ kind: l.kind, name: l.name })),
+  linked: pilotContent.linked,
 }
 
 // --- shared fixture → legacy ("before") props ------------------------------
@@ -68,7 +68,11 @@ const legacyPilot: LegacyPilotContent = {
   ap: pilotContent.ap,
   tp: pilotContent.tp,
   conditions: pilotContent.conditions.map((c) => ({ label: c.label, warn: c.state === 'damaged' })),
-  linked: pilotContent.linked,
+  linked: pilotContent.linked.map((l) => ({
+    kind: l.kind,
+    name: l.name,
+    spec: [l.meta, ...l.stats.map((s) => `${s.label} ${s.value}`)].join(' · '),
+  })),
 }
 const legacyAbilities = abilityPicks
 const legacyEquipment = equipmentPicks.map((e) => ({ entity: e.entity, slots: e.slots }))
