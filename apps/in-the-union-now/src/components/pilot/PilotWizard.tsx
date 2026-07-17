@@ -22,7 +22,7 @@ import {
 import { enrichPilotSnapshot } from '../../lib/rules/pilotSnapshot'
 import { evaluatePilotWarnings } from '../../lib/rules/softWarnings'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../sheet/pilotInventory'
-import { SoftWarningBanner } from 'suref-react'
+import { Banner } from 'suref-react'
 import { OffRulesEscape } from '../wizard/OffRulesEscape'
 import { RuleBrief } from '../wizard/RuleBrief'
 import type { StepRule } from '../wizard/RuleBrief'
@@ -161,7 +161,7 @@ function pilotEditStepGate(step: PilotWizardStepId, form: PilotWizardFormState):
  *     unmet requirement renders in the footerNote;
  *   - cross-step invalidation (class change clears a now-illegal ability) and
  *     draft-restore clamping are deterministic and always announced by toast;
- *   - SoftWarningBanner is REMOVED from the create flow — nothing can be in
+ *   - Banner is REMOVED from the create flow — nothing can be in
  *     violation. Edit mode keeps the soft regime (§5.2): presence gates,
  *     lifted filters, advisory warnings on Review.
  */
@@ -515,9 +515,7 @@ export function PilotWizard({
       }}
       title={STEP_TITLES[step]}
       tintedStepCard
-      notice={
-        isEdit && step === 'review' ? <SoftWarningBanner warnings={softWarnings} /> : undefined
-      }
+      notice={isEdit && step === 'review' ? <Banner warnings={softWarnings} /> : undefined}
       trackers={trackers}
       footerNote={gate.ok ? undefined : gate.reason}
       escapeAction={

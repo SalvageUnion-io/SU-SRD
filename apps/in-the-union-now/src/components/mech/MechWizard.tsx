@@ -27,7 +27,7 @@ import {
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { useMech } from '../../hooks/queries'
 import { useEntityStore } from '../../stores/entityStore'
-import { SoftWarningBanner } from 'suref-react'
+import { Banner } from 'suref-react'
 import { OffRulesEscape } from '../wizard/OffRulesEscape'
 import { RuleBrief } from '../wizard/RuleBrief'
 import type { StepRule } from '../wizard/RuleBrief'
@@ -156,7 +156,7 @@ function slotPips(used: number, max: number): string {
  *   - chassis change refunds + wipes the loadout with a toast; draft-restore
  *     clamping is a deterministic knapsack (newest copies dropped first),
  *     always announced by toast;
- *   - SoftWarningBanner is REMOVED from the create flow — nothing can be in
+ *   - Banner is REMOVED from the create flow — nothing can be in
  *     violation. Edit mode keeps the soft regime (§5.2).
  *
  * Guaranteed invariant at creation: chassis TL1 ∧ all items TL1 ∧
@@ -565,11 +565,7 @@ export function MechWizard({
       }}
       title={STEP_TITLES[step]}
       tintedStepCard
-      notice={
-        isEdit && editWarnings.length > 0 ? (
-          <SoftWarningBanner warnings={editWarnings} />
-        ) : undefined
-      }
+      notice={isEdit && editWarnings.length > 0 ? <Banner warnings={editWarnings} /> : undefined}
       trackers={trackers}
       footerNote={footerNote}
       escapeAction={

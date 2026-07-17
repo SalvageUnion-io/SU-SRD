@@ -37,7 +37,7 @@ import {
   wizardDraftKey,
 } from '../../lib/wizard/wizardDraft'
 import { useEntityStore } from '../../stores/entityStore'
-import { SoftWarningBanner } from 'suref-react'
+import { Banner } from 'suref-react'
 import { OffRulesEscape } from '../wizard/OffRulesEscape'
 import { RuleBrief } from '../wizard/RuleBrief'
 import type { StepRule } from '../wizard/RuleBrief'
@@ -147,7 +147,7 @@ function slotPips(used: number, max: number): string {
  *     appear; NPC HP is fixed by data; crew flavor is optional;
  *   - the name is required; `upgradePool` is fixed at 0 (input removed);
  *     `scrapPool` is an explicit optional input relocated to step 5;
- *   - SoftWarningBanner is REMOVED from the create flow — nothing can be in
+ *   - Banner is REMOVED from the create flow — nothing can be in
  *     violation. Edit mode keeps the soft regime (§5.2): Statistics hidden,
  *     budgets undefined, TL filter lifted, gates relaxed to presence checks,
  *     advisory warnings remain.
@@ -381,7 +381,7 @@ export function CrawlerBuilder({
   }).length
 
   // Edit-mode advisory capacity warning (soft — never blocks; §5.2). The
-  // create flow renders NO SoftWarningBanner: violations are impossible by
+  // create flow renders NO Banner: violations are impossible by
   // construction.
   const crawlerCapacity = useMemo(() => {
     const weaponSystems = form.systems.filter((id) => {
@@ -410,7 +410,7 @@ export function CrawlerBuilder({
     : []
   const capacityNotice =
     isEdit && (step === 'weapons' || step === 'review') ? (
-      <SoftWarningBanner warnings={capacityWarnings} />
+      <Banner warnings={capacityWarnings} />
     ) : undefined
 
   // Next-gating (§5.3): guided create runs the hard step gates; edit runs
