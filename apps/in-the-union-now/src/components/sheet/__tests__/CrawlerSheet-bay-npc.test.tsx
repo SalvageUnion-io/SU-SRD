@@ -241,8 +241,9 @@ describe('CrawlerSheet — crew HP editing (NpcInset)', () => {
     const inset = screen.getByLabelText('Command Bay crew lead')
     expect(within(inset).queryByRole('button', { name: 'Decrease HP' })).toBeNull()
     expect(within(inset).queryByRole('button', { name: 'Increase HP' })).toBeNull()
-    // The HP value still renders (value / max).
-    expect(within(inset).getByText('4/4')).toBeTruthy()
+    // The HP value still renders (value / max). The Stat splits value and the
+    // muted /max into separate nodes, so assert on the inset's combined text.
+    expect(inset.textContent).toContain('4/4')
   })
 })
 

@@ -162,10 +162,7 @@ function SubHeaderStats({
             bottomLabel={stat.bottomLabel}
             hoverText={suppressTooltips ? undefined : stat.hoverText}
             inverse={stat.inverse}
-            bg={stat.bg}
-            valueColor={stat.valueColor}
-            borderColor={stat.borderColor}
-            isOverMax={stat.isOverMax}
+            state={stat.state}
             flash={stat.flash}
             disabled={stat.disabled}
             ariaLabel={stat.ariaLabel}

@@ -105,9 +105,7 @@ export function useChassisPatternConfig(
           label="Legal Starting Pattern"
           compact={compact}
           inline={false}
-          bgColor="var(--color-su-rust)"
-          textColor="var(--color-paper)"
-          borderColor="var(--color-su-rust)"
+          state="modified"
         />
       )}
       {chassisName && (

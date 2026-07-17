@@ -77,7 +77,7 @@ export function EntityCardSubHeader({
           orientation="horizontal"
           label={cell.label}
           value={cell.value}
-          borderColor={cell.borderColor}
+          state={cell.borderColor ? 'modified' : undefined}
           bgColor={cell.labelBg}
           textColor={cell.labelBg ? 'var(--color-paper)' : undefined}
           compact={compact}

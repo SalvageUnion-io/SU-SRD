@@ -177,10 +177,11 @@ describe('LiveSheet — strip values and syncStats', () => {
     })
     // Priority readout always visible; non-priority carries the fold classes.
     // The fold class rides the outer stat cell (the value text's parent).
-    expect(must(screen.getByText('5/8').parentElement).className).not.toContain('hidden')
+    // Use classList tokens, not substring — the cell also carries `overflow-hidden`.
+    expect(must(screen.getByText('5/8').parentElement).classList.contains('hidden')).toBe(false)
     const folded = must(screen.getByText('3/4').parentElement)
-    expect(folded.className).toContain('hidden')
-    expect(folded.className).toContain('sm:inline-flex')
+    expect(folded.classList.contains('hidden')).toBe(true)
+    expect(folded.classList.contains('sm:inline-flex')).toBe(true)
   })
 })
 

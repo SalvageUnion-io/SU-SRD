@@ -549,10 +549,10 @@ export function ReferenceEntityCard({
           label: compact ? 'TL' : 'Tech',
           bottomLabel: compact ? undefined : 'Level',
           value: String(techLevelDisplay),
-          // A TL-scalable item shows the EFFECTIVE level; rust when above base
-          // (controlled from without or overridden in place), and an editable
-          // +/- stepper when an in-place handler is supplied.
-          ...(techLevelModified ? { borderColor: MODIFIED } : {}),
+          // A TL-scalable item shows the EFFECTIVE level; a rust `modified`
+          // border when above base (controlled from without or overridden in
+          // place), and an editable +/- stepper when an in-place handler is supplied.
+          ...(techLevelModified ? { state: 'modified' as const } : {}),
           ...(techLevelEditable
             ? {
                 canEdit: true,

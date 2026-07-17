@@ -1,3 +1,5 @@
+import type { StatBorderState } from './Stat'
+
 export type StatItem = {
   key: string
   label: string
@@ -7,10 +9,8 @@ export type StatItem = {
   // Visual
   hoverText?: string
   inverse?: boolean
-  bg?: string
-  valueColor?: string
-  borderColor?: string
-  isOverMax?: boolean
+  /** State overlay — drives the Stat cell's border colour only (see StatBorderState). */
+  state?: StatBorderState
   flash?: boolean
   disabled?: boolean
   ariaLabel?: string
