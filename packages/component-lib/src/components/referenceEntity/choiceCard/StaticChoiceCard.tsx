@@ -44,7 +44,9 @@ export function StaticChoiceCard({
   return (
     <Callout label={label} accent={accent} headerBg={headerBg} compact={compact}>
       {description ? (
-        <Text as="span" className="block">
+        // `variant="body"` so the text inherits the same content font as the
+        // surrounding Content paragraphs (the default variant forces font-mono).
+        <Text variant="body" as="span" className="block">
           {parsedDescription}
         </Text>
       ) : undefined}
