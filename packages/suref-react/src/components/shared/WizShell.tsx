@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { Btn } from 'suref-react'
-import { ConfirmDialog } from '../shared/ConfirmDialog'
-import { LAYOUT } from '../../lib/layout'
-import { cn } from '../../lib/utils'
+import { Btn } from '../chrome/Btn'
+import { cn } from '../../utils/cn'
+import { ConfirmDialog } from './ConfirmDialog'
 
 /** Sheet tone context — picks the `.sheet--{kind}` poster theming. */
 export type WizKind = 'pilot' | 'mech' | 'crawler'
@@ -227,7 +226,7 @@ export function WizShell({
         <aside
           className={cn(
             'shrink-0 border-b-chrome border-ink px-4 py-4 lg:border-b-0 lg:border-r-0 lg:px-4 lg:py-7',
-            LAYOUT.stepperRail
+            'lg:w-[196px]'
           )}
         >
           <nav
@@ -267,7 +266,7 @@ export function WizShell({
           <section
             className={cn(
               'shrink-0 border-b-chrome border-ink px-5 py-5 lg:overflow-y-auto lg:border-b-0 lg:border-r-chrome lg:px-6 lg:py-9',
-              LAYOUT.optionPane
+              'lg:w-[320px]'
             )}
           >
             {optionPane}

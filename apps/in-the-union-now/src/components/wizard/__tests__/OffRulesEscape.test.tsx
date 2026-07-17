@@ -7,7 +7,7 @@ import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 import { OffRulesEscape } from '../OffRulesEscape'
-import { WizShell } from '../WizShell'
+import { WizShell } from 'suref-react'
 
 afterEach(cleanup)
 

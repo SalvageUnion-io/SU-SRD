@@ -17,7 +17,7 @@ import { useState } from 'react'
 import { Btn } from 'suref-react'
 
 import { useEntityStore } from '../../stores/entityStore'
-import { ConfirmDialog } from '../shared/ConfirmDialog'
+import { ConfirmDialog } from 'suref-react'
 import { cn } from '../../lib/utils'
 
 /** Minimal store slice needed by UnassignLinkButton. */
