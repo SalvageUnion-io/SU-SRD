@@ -57,6 +57,7 @@ export type {
 } from './components/shared/useSearchCombobox'
 export { Footer } from './components/shared/Footer'
 export { HeaderShell } from './components/shared/HeaderShell'
+export { SiteHeader } from './components/shared/SiteHeader'
 export { AppHeader } from './components/shared/AppHeader'
 export { CatalogTile } from './components/shared/CatalogTile'
 export { StaticEntityContent } from './components/shared/StaticEntityContent'
