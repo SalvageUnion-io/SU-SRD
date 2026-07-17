@@ -146,7 +146,7 @@ function SearchResults({ query, index }: { query: string; index: CompactSearchEn
         </FilterRow>
       )}
 
-      <ul className="flex flex-col divide-y divide-su-grey-light rounded border border-su-grey-light bg-paper">
+      <ul className="flex flex-col divide-y divide-su-grey-light rounded-card border border-su-grey-light bg-paper">
         {visible.map((result) => (
           <li key={result.entityId}>
             <a

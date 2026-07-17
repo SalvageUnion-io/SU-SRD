@@ -41,17 +41,17 @@ const baseUrl = SITE_URL
           All game data on salvageunion.io is available as machine-readable JSON. The API is static — every endpoint is a plain file served directly from the site. No authentication is required.
         </p>
         <p>
-          CORS is fully open (<code class="rounded bg-su-blue-pale px-1 py-0.5">Access-Control-Allow-Origin: *</code>), so you can fetch from any origin, including browser JavaScript.
+          CORS is fully open (<code class="rounded-card bg-su-blue-pale px-1 py-0.5">Access-Control-Allow-Origin: *</code>), so you can fetch from any origin, including browser JavaScript.
         </p>
         <p>
           <strong>Base URL:</strong>{' '}
-          <code class="rounded bg-su-blue-pale px-1 py-0.5">{baseUrl}</code>
+          <code class="rounded-card bg-su-blue-pale px-1 py-0.5">{baseUrl}</code>
         </p>
         <p class="rounded-panel border-l-4 border-su-orange-dark bg-su-blue-pale px-4 py-3">
-          <strong>Tip:</strong> appending <code class="rounded bg-paper px-1 py-0.5">.json</code> to any schema URL on this site returns the underlying data. For example,{' '}
-          <code class="rounded bg-paper px-1 py-0.5">/schema/chassis</code> renders the HTML index, and{' '}
-          <code class="rounded bg-paper px-1 py-0.5">/schema/chassis.json</code> serves the raw array. The same applies to individual entities:{' '}
-          <code class="rounded bg-paper px-1 py-0.5">/schema/chassis/item/iron-mongrel.json</code>.
+          <strong>Tip:</strong> appending <code class="rounded-card bg-paper px-1 py-0.5">.json</code> to any schema URL on this site returns the underlying data. For example,{' '}
+          <code class="rounded-card bg-paper px-1 py-0.5">/schema/chassis</code> renders the HTML index, and{' '}
+          <code class="rounded-card bg-paper px-1 py-0.5">/schema/chassis.json</code> serves the raw array. The same applies to individual entities:{' '}
+          <code class="rounded-card bg-paper px-1 py-0.5">/schema/chassis/item/iron-mongrel.json</code>.
         </p>
       </section>
 
@@ -80,7 +80,7 @@ const baseUrl = SITE_URL
                 {baseUrl}/schema/chassis.json
               </a>
             </p>
-            <pre class="overflow-x-auto rounded bg-su-blue-pale p-3 text-xs leading-relaxed"><code>[
+            <pre class="overflow-x-auto rounded-card bg-su-blue-pale p-3 text-xs leading-relaxed"><code>[
   {'{'}
     "id": "iron-mongrel",
     "name": "Iron Mongrel",
@@ -114,7 +114,7 @@ const baseUrl = SITE_URL
                 {baseUrl}/schema/chassis.schema.json
               </a>
             </p>
-            <pre class="overflow-x-auto rounded bg-su-blue-pale p-3 text-xs leading-relaxed"><code>{'{'}
+            <pre class="overflow-x-auto rounded-card bg-su-blue-pale p-3 text-xs leading-relaxed"><code>{'{'}
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "array",
   "items": {'{'}
@@ -139,7 +139,7 @@ const baseUrl = SITE_URL
           </div>
           <div class="flex flex-col gap-3 px-5 py-4 text-sm leading-relaxed">
             <p>
-              Returns a single entity by its slug. Entity slugs are lowercase, hyphen-separated versions of the entity name (e.g., <code class="rounded bg-su-blue-pale px-1 py-0.5">Iron Mongrel</code> becomes <code class="rounded bg-su-blue-pale px-1 py-0.5">iron-mongrel</code>). Slugs match the URLs used on the reference site.
+              Returns a single entity by its slug. Entity slugs are lowercase, hyphen-separated versions of the entity name (e.g., <code class="rounded-card bg-su-blue-pale px-1 py-0.5">Iron Mongrel</code> becomes <code class="rounded-card bg-su-blue-pale px-1 py-0.5">iron-mongrel</code>). Slugs match the URLs used on the reference site.
             </p>
             <p>
               <strong>Example:</strong>{' '}
@@ -152,7 +152,7 @@ const baseUrl = SITE_URL
                 {baseUrl}/schema/chassis/item/iron-mongrel.json
               </a>
             </p>
-            <pre class="overflow-x-auto rounded bg-su-blue-pale p-3 text-xs leading-relaxed"><code>{'{'}
+            <pre class="overflow-x-auto rounded-card bg-su-blue-pale p-3 text-xs leading-relaxed"><code>{'{'}
   "id": "iron-mongrel",
   "name": "Iron Mongrel",
   "hull": 30,
@@ -169,7 +169,7 @@ const baseUrl = SITE_URL
         <p class="text-sm leading-relaxed">
           Fetch all chassis data in browser JavaScript:
         </p>
-        <pre class="overflow-x-auto rounded bg-su-blue-pale p-4 text-xs leading-relaxed"><code>{`const response = await fetch('${SITE_URL}/schema/chassis.json')
+        <pre class="overflow-x-auto rounded-card bg-su-blue-pale p-4 text-xs leading-relaxed"><code>{`const response = await fetch('${SITE_URL}/schema/chassis.json')
 const chassis = await response.json()
 console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
       </section>
@@ -216,9 +216,9 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
       <section class="flex flex-col gap-3">
         <h2 class="page-subheading">CORS Policy</h2>
         <p class="text-sm leading-relaxed">
-          All <code class="rounded bg-su-blue-pale px-1 py-0.5">/schema/</code> endpoints include the following response headers:
+          All <code class="rounded-card bg-su-blue-pale px-1 py-0.5">/schema/</code> endpoints include the following response headers:
         </p>
-        <pre class="overflow-x-auto rounded bg-su-blue-pale p-4 text-xs leading-relaxed"><code>Access-Control-Allow-Origin: *
+        <pre class="overflow-x-auto rounded-card bg-su-blue-pale p-4 text-xs leading-relaxed"><code>Access-Control-Allow-Origin: *
 Access-Control-Allow-Methods: GET
 Content-Type: application/json</code></pre>
         <p class="text-sm leading-relaxed">
