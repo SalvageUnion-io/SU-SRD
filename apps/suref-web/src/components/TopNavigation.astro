@@ -1,5 +1,5 @@
 ---
-import { HeaderShell } from 'suref-react'
+import { SiteHeader } from 'suref-react'
 import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from '../lib/gameData'
 import { MobileNavIsland } from './islands/MobileNavIsland'
 import { MobileSearchIsland } from './islands/MobileSearchIsland'
@@ -35,100 +35,21 @@ const categories = buildCatalogCategories({
   getCatalogBg,
   getCatalogLabel,
 })
-
-function isActive(path: string) {
-  return currentPath.startsWith(path)
-}
 ---
 
-<!-- Cargo brand header via the shared HeaderShell (also used by the ITUN builder):
-     SU mark + SalvageUnion.io wordmark on the left, SRD-specific nav pushed right. -->
-<HeaderShell
-  homeHref="/"
-  wordmark="SalvageUnion"
-  wordmarkAccent=".io"
-  eyebrow="The Salvage Union SRD"
+<!-- Static brand chrome via the shared React SiteHeader; the interactive search
+     + mobile nav are slotted in as independently-hydrated islands so the shared
+     component ships no client JS of its own. -->
+<SiteHeader
+  currentPath={currentPath}
+  itunUrl={ITUN_URL}
+  breadcrumbs={breadcrumbs}
+  breadcrumbDescription={breadcrumbDescription}
   viewTransitionName="nav"
 >
-  <!-- Existing nav links + BUILDER cross-link + search + buy — pushed right -->
-  <nav aria-label="Main navigation" class="ml-auto hidden items-center gap-[26px] lg:flex">
-    <a href="/" class:list={['nav-link', isActive('/schema') || currentPath === '/' ? 'nav-link-active' : '']} aria-current={isActive('/schema') || currentPath === '/' ? 'page' : undefined}>
-      SRD
-    </a>
-
-    <a href="/about/" class:list={['nav-link', isActive('/about') ? 'nav-link-active' : '']} aria-current={isActive('/about') ? 'page' : undefined}>
-      ABOUT
-    </a>
-
-    <a href="/changelog/" class:list={['nav-link', isActive('/changelog') ? 'nav-link-active' : '']} aria-current={isActive('/changelog') ? 'page' : undefined}>
-      CHANGELOG
-    </a>
-
-    <a href="/discord/" class:list={['nav-link', isActive('/discord') ? 'nav-link-active' : '']} aria-current={isActive('/discord') ? 'page' : undefined}>
-      DISCORD
-    </a>
-
-    <a href="/api/" class:list={['nav-link', isActive('/api') ? 'nav-link-active' : '']} aria-current={isActive('/api') ? 'page' : undefined}>
-      API
-    </a>
-
-    <!-- Cross-link out to the ITUN character builder (external) -->
-    <a href={ITUN_URL} target="_blank" rel="noopener noreferrer" class="nav-link">
-      BUILDER&nbsp;&#8599;
-    </a>
-
-    <SearchIsland client:idle />
-    <a href="https://leyline.press/collections/salvage-union" target="_blank" rel="noopener noreferrer" class="btn btn-active shrink-0 font-cond text-[13px] uppercase tracking-[0.06em]">
-      BUY THE GAME
-    </a>
-  </nav>
-
-  <!-- Mobile: persistent search trigger + hamburger -->
-  <div class="flex lg:hidden items-center gap-1 ml-auto">
+  <SearchIsland client:idle slot="search" />
+  <Fragment slot="mobile">
     <MobileSearchIsland client:idle />
-    <MobileNavIsland
-      client:idle
-      categories={categories}
-      currentPath={currentPath}
-    />
-  </div>
-</HeaderShell>
-
-{breadcrumbs && breadcrumbs.length > 0 && (
-  <>
-    <nav aria-label="Breadcrumb" class="sticky top-0 z-40 flex flex-wrap items-baseline gap-x-2 gap-y-1 border-b border-su-grey-light bg-paper px-5 py-2 shadow-sm sm:px-[34px]">
-      <ol class="breadcrumb-text flex flex-wrap items-center gap-1.5">
-        {breadcrumbs.map((item, index) => (
-          <>
-            {index > 0 && <li aria-hidden="true" class="select-none text-su-grey-medium">/</li>}
-            <li>
-              {index === breadcrumbs.length - 1 ? (
-                <span aria-current="page" class="font-semibold text-su-black">{item.name}</span>
-              ) : (
-                <a href={item.url} class="transition-colors hover:text-su-orange-dark">{item.name}</a>
-              )}
-            </li>
-          </>
-        ))}
-      </ol>
-      {breadcrumbDescription && (
-        <span class="breadcrumb-text">— {breadcrumbDescription}</span>
-      )}
-    </nav>
-
-    <script
-      is:inline
-      type="application/ld+json"
-      set:html={JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'BreadcrumbList',
-        itemListElement: breadcrumbs.map((item, index) => ({
-          '@type': 'ListItem',
-          position: index + 1,
-          name: item.name,
-          item: item.url,
-        })),
-      })}
-    />
-  </>
-)}
+    <MobileNavIsland client:idle categories={categories} currentPath={currentPath} />
+  </Fragment>
+</SiteHeader>
