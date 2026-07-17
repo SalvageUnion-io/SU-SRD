@@ -309,7 +309,7 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
                 Pilot Identity
               </span>
             }
-            headerBg="bg-ink"
+            headerBg="bg-[var(--tone-deep)]"
             borderColor="var(--tone)"
             bodyPadding="p-4"
             footMeta={[{ label: 'Advance', value: `${tp} TP banked` }]}
