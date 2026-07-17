@@ -2,8 +2,8 @@ import type { CSSProperties } from 'react'
 import { cn } from '../../utils/cn'
 
 /**
- * CatalogTile — the shared catalog-tile link (converted from suref-web's
- * CatalogTile.astro, pending review). Callers resolve the colours/href/name and
+ * CatalogTile — the shared catalog-tile link (canonical; converted from
+ * suref-web's CatalogTile.astro). Callers resolve the colours/href/name and
  * pass them in; this owns the tile markup so the landing + 404 grids don't
  * duplicate it.
  *
@@ -26,7 +26,7 @@ type CatalogTileProps = {
 }
 
 const TILE =
-  'flex min-h-[54px] flex-col items-center justify-center rounded-[3px] border-[1.5px] border-su-black bg-[var(--catalog-bg)] px-[15px] py-[13px] text-paper no-underline transition-[box-shadow,transform] duration-[120ms] hover:-translate-y-0.5 hover:shadow-[0_5px_18px_rgba(34,30,23,0.18)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
+  'flex min-h-[54px] flex-col items-center justify-center rounded-[3px] border-[1.5px] border-ink bg-[var(--catalog-bg)] px-[15px] py-[13px] text-paper no-underline transition-[box-shadow,transform] duration-[120ms] hover:-translate-y-0.5 hover:shadow-[0_5px_18px_rgba(34,30,23,0.18)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
 
 const NAME =
   'font-cond text-[16px] font-semibold uppercase leading-[1.2] tracking-[0.02em] text-paper [text-shadow:0_1px_2px_rgba(0,0,0,0.75)]'
