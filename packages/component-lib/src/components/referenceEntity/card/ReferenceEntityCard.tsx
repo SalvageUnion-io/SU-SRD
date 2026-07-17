@@ -820,7 +820,6 @@ export function ReferenceEntityCard({
   const grantedCount = resolveGrantedEntities(entity as SURefEntity).length
   const isGrantingAbility = isAbility(entity) && grantedCount > 0
   const content = 'content' in entity ? entity.content : undefined
-  const showContent = !isGrantingAbility && !isTitanicMeta && !!content && content.length > 0
   // The crawler-bay damaged-effect string also appears as the last content
   // paragraph; it renders in the "WHEN DAMAGED" callout, so it's filtered out of
   // the body prose below to avoid duplication.
@@ -896,22 +895,33 @@ export function ReferenceEntityCard({
   // markers interwoven. Render ITS content as the body so the choices interleave
   // there; the entity's own thin content duplicates it (dropped), and the action
   // is NOT rendered a second time below.
+  // CONCATENATE, don't replace: the fold merges the entity's own prose with the
+  // self-action's prose (identity, then behaviour). Blocks whose text the
+  // self-action already contains are dropped so the ~13 equipment whose entity
+  // content duplicates the action's don't double-render, while complementary
+  // content (unique identity prose, e.g. Water Purification / Hydraulic Shunter)
+  // and a self-action-only description (e.g. Grappling Harpoon, whose entity
+  // content is empty) are both preserved.
   const isSelfAction = foldSingleAction && foldedAction?.name === entityName
-  const bodyBlocks = (
-    isSelfAction && foldedActionContent && foldedActionContent.length > 0
-      ? foldedActionContent
-      : bodyContent
-  )?.filter((b) => b?.type !== 'datavalues')
-  // A SELF-action's content IS this entity's body: an ability whose rules live
-  // entirely in its like-named action has NO own `content` (showContent=false),
-  // but its folded action carries the real prose (and any choice markers). Honour
-  // that so the action content bubbles into the body — not just its cost/type
-  // into the sub-header. (Choices authored on the action bubble with it.)
-  const hasSelfActionBody = isSelfAction && !!foldedActionContent && foldedActionContent.length > 0
+  const blockPlainText = (b: SURefObjectContentBlock): string =>
+    b && b.type !== 'choice' && typeof (b as { value?: unknown }).value === 'string'
+      ? String((b as { value: string }).value)
+      : ''
+  const entityBodyBlocks = (bodyContent ?? []).filter((b) => b?.type !== 'datavalues')
+  const selfActionBlocks =
+    isSelfAction && foldedActionContent
+      ? foldedActionContent.filter((b) => b?.type !== 'datavalues')
+      : []
+  const selfActionText = selfActionBlocks.map(blockPlainText).join('\n')
+  const dedupedEntityBlocks = selfActionBlocks.length
+    ? entityBodyBlocks.filter((b) => {
+        const t = blockPlainText(b).trim()
+        return t.length === 0 || !selfActionText.includes(t.slice(0, 40))
+      })
+    : entityBodyBlocks
+  const bodyBlocks = [...dedupedEntityBlocks, ...selfActionBlocks] as SURefObjectContentBlock[]
   const showBody =
-    isPattern || isTitanicMeta
-      ? !!bodyBlocks && bodyBlocks.length > 0
-      : (showContent || hasSelfActionBody) && !!bodyBlocks && bodyBlocks.length > 0
+    isPattern || isTitanicMeta ? bodyBlocks.length > 0 : !isGrantingAbility && bodyBlocks.length > 0
 
   // WRITE LAYER — editable choices interleave with content by a plain in-order
   // walk of `bodyContent`: a `{type:'choice'}` marker renders that choice's
@@ -932,10 +942,51 @@ export function ReferenceEntityCard({
     </div>
   )
 
+  // AUTO-ANCHOR unmarked choices to the prose that introduces them: for a choice
+  // with no explicit `{type:'choice'}` marker, inject one right after the LAST
+  // content block that mentions the choice (a significant word from its name), so
+  // it renders inline at its describing sentence — e.g. A.I. Personality after
+  // "…the A.I. Personality Table for this or consider your own." A choice that
+  // matches nothing falls to the trailing position below.
+  const STOP_WORDS = new Set(['ai', 'the', 'and', 'for', 'your', 'you'])
+  const choiceKeywords = (name: string): string[] =>
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length > 2 && !STOP_WORDS.has(w))
+  const blockLowerText = (b: SURefObjectContentBlock): string =>
+    b && b.type !== 'choice' && typeof (b as { value?: unknown }).value === 'string'
+      ? String((b as { value: string }).value).toLowerCase()
+      : ''
+  const anchoredBlocks: SURefObjectContentBlock[] = [...bodyBlocks]
+  if (!hide?.choices) {
+    const marked = new Set(
+      anchoredBlocks
+        .map((b) => (b?.type === 'choice' ? (b as { choiceId?: string }).choiceId : undefined))
+        .filter((id): id is string => !!id)
+    )
+    for (const choice of entityChoices) {
+      if (marked.has(choice.id)) continue
+      const kws = choiceKeywords(choice.name)
+      if (kws.length === 0) continue
+      let idx = -1
+      for (let i = 0; i < anchoredBlocks.length; i++) {
+        const t = blockLowerText(anchoredBlocks[i])
+        if (t && kws.some((k) => t.includes(k))) idx = i
+      }
+      if (idx >= 0) {
+        anchoredBlocks.splice(idx + 1, 0, {
+          type: 'choice',
+          choiceId: choice.id,
+        } as SURefObjectContentBlock)
+        marked.add(choice.id)
+      }
+    }
+  }
+
   // The interleave walk runs in BOTH modes — read-only renders the same choice
-  // cards, static (readable); editable makes them selectable. FREEFORM choices
-  // already shown as read-only sub-header cells are pre-marked rendered, so the
-  // walk skips them at both their marker and the trailing fallback.
+  // cards, static (readable); editable makes them selectable.
   const bodyNodes: ReactNode[] = []
   {
     const choiceById = new Map(entityChoices.map((c) => [c.id, c] as const))
@@ -960,7 +1011,7 @@ export function ReferenceEntityCard({
       buffer = []
       seg += 1
     }
-    for (const block of bodyBlocks ?? []) {
+    for (const block of anchoredBlocks) {
       if (block?.type === 'choice') {
         const choice = block.choiceId ? choiceById.get(block.choiceId) : undefined
         if (choice && !hide?.choices && !rendered.has(choice.id)) {
@@ -980,13 +1031,38 @@ export function ReferenceEntityCard({
     }
   }
 
-  // Leaf data — bonus-per-tech-level stat increases (choices now live in the
-  // sub-header, so no "Choices" body section).
+  // BONUS PER TECH LEVEL — its own distinct rendering, INLINE in the body flow
+  // (choice-plan) at the prose that describes it, NOT hoisted to the sub-header:
+  // the green "Bonus per Tech Level" label + the "+N" stat-delta cells.
   const bonusPerTechLevel =
     'bonusPerTechLevel' in entity && entity.bonusPerTechLevel
       ? (entity.bonusPerTechLevel as SURefObjectBonusPerTechLevel)
       : undefined
   const bonusCellList = bonusPerTechLevel ? bonusCells(bonusPerTechLevel, compact) : []
+  if (bonusCellList.length > 0 && !hide?.stats) {
+    bodyNodes.push(
+      <div key="bonus-per-tech" className="[&:not(:last-child)]:mb-3">
+        <span className="inline-flex flex-wrap items-center gap-1.5">
+          <Stat
+            orientation="horizontal"
+            label="Bonus per Tech Level"
+            bgColor="var(--color-status-ok)"
+            textColor="var(--color-paper)"
+            compact={compact}
+          />
+          {bonusCellList.map((cell) => (
+            <Stat
+              key={cell.key}
+              orientation="horizontal"
+              label={cell.label}
+              value={cell.value}
+              compact={compact}
+            />
+          ))}
+        </span>
+      </div>
+    )
+  }
 
   // CRAWLER BAY damaged effect → a red-ghosted, action-card-style callout (the
   // string is filtered out of the body prose above). RED token: `--color-status-bad`.
@@ -1236,11 +1312,6 @@ export function ReferenceEntityCard({
           bgColor={darkTone}
           cells={cells}
           leading={costNode}
-          group={
-            bonusCellList.length > 0
-              ? { label: 'Bonus per Tech Level', cells: bonusCellList }
-              : undefined
-          }
           trailing={statusNode}
           compact={compact}
         />
