@@ -52,38 +52,8 @@
   outline-offset: 2px;
 }
 
-/* Top nav link — dark-bar treatment (muted grey → white on hover/active) */
-.nav-link {
-  font-family: var(--font-cond);
-  font-weight: 600;
-  font-size: var(--text-lede);
-  letter-spacing: var(--tracking-caps-tight);
-  text-transform: uppercase;
-  color: var(--color-su-muted);
-  text-decoration: none;
-  transition: color 0.12s;
-}
-
-.nav-link:hover,
-.nav-link.nav-link-active {
-  color: var(--color-su-paper);
-}
-
-.nav-link:focus-visible {
-  outline: 2px solid var(--color-su-orange);
-  outline-offset: 2px;
-}
-
-/* Breadcrumb trail font tokens — shared by the crumb <ol> and the description
-   <span>; both are uppercase to read as one band. Layout utilities (flex/gap)
-   stay inline on each element. */
-.breadcrumb-text {
-  font-family: var(--font-cond);
-  font-size: 0.75rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-ink-2);
-}
+/* (.nav-link and .breadcrumb-text were retired — the masthead is the shared
+   component-lib AppBar, which owns those treatments as utilities.) */
 
 /* Catalog category headers — line / [PSEUDOHEADER] / line */
 .catalog-header {
@@ -349,32 +319,8 @@
   filter: url(#paint-peel);
 }
 
-/* Mobile drawer slide animation */
-@keyframes slide-in-right {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-@keyframes slide-out-right {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(100%);
-  }
-}
-
-@utility animate-slide-in-right {
-  animation: slide-in-right 0.2s ease-out;
-}
-
-@utility animate-slide-out-right {
-  animation: slide-out-right 0.2s ease-in;
-}
+/* The mobile-drawer slide (animate-slide-in-right/-out) now lives in the
+   component-lib theme so the shared NavDrawer animates from one source. */
 
 /* Base styles */
 body {
