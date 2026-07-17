@@ -79,7 +79,9 @@ export function EntityCardHeader({
     return (
       <div
         className={cn(
-          'flex w-full min-w-0 items-start gap-3 px-3 py-1.5',
+          // items-center so the (usually one-line) title centers vertically
+          // against a taller wrapped flavor/stat cluster.
+          'flex w-full min-w-0 items-center gap-3 px-3 py-1.5',
           dim && 'opacity-60',
           accent.className
         )}
