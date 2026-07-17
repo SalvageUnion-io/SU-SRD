@@ -229,9 +229,10 @@ function HorizontalValue({
         variant={mainVariant}
         as="span"
         className={cn(
-          // Stretch to the cell height and center vertically (no whitespace above/
-          // below the label); the value cell already centers the same way.
-          'flex items-center justify-center uppercase',
+          // Stretch to the FULL cell height (overriding the pseudoheader variant's
+          // self-start) so the label's ink background always covers the whole cell,
+          // and center the text vertically — even when the row stretches the cell.
+          'flex items-center justify-center self-stretch uppercase',
           fontSize,
           fontWeight,
           // Two-line label cell (e.g. "Tech" / "Level") when a bottomLabel is set.
@@ -252,7 +253,7 @@ function HorizontalValue({
         <Text
           variant={valueVariant}
           as="span"
-          className={cn('flex items-baseline gap-px uppercase', fontSize, fontWeight)}
+          className={cn('flex items-center gap-px self-stretch uppercase', fontSize, fontWeight)}
         >
           {value}
           {max !== undefined && (
