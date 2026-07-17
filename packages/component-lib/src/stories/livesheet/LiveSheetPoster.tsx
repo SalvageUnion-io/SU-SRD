@@ -162,14 +162,11 @@ function Field({
         <Badge shape="stamp" size="sm" surface={accent ? 'on-tone' : 'on-ink'}>
           {label}
         </Badge>
-        {/* Editable: an always-live toggle on every usable field. Read-only
-            (snapshot): the static pip only when spent — matching the old card. */}
-        {usable &&
-          (readOnly ? (
-            used && <UsedPip used />
-          ) : (
-            <UsedPip used={used} subject={label} onToggle={setUsed} />
-          ))}
+        {/* Every usable field shows its Used marker in BOTH modes: editable is
+            an always-live toggle; read-only is the same pip, static. */}
+        {usable && (
+          <UsedPip used={used} subject={label} onToggle={readOnly ? undefined : setUsed} />
+        )}
       </span>
       <div
         className={`min-w-0 border-b border-ink/15 pb-1 font-body text-ink ${
