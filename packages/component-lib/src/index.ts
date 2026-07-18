@@ -117,7 +117,8 @@ export {
 export type { ChoiceSelections } from './components/referenceEntity/choiceCard/choiceSelectionHelpers'
 
 // Chrome primitives (ITUN design handoff — design-spec §2)
-// Badge — the unified stamp-chip family; Tag/Pill/Chip are its presets (ruleset §6)
+// Badge — the unified stamp-chip family; Chip is its one remaining named preset
+// (use `Badge surface="outline"`/`"tone"` directly for the former Pill).
 export { Badge } from './components/chrome/Badge'
 export type { BadgeTone, BadgeSurface } from './components/chrome/Badge'
 export { Btn } from './components/chrome/Btn'
@@ -141,8 +142,7 @@ export type { GlyphName } from './components/chrome/glyphs'
 // with the default config, which drops them as unknown "colors").
 export { cn } from './utils/cn'
 export { Field, Input } from './components/chrome/Field'
-export { Pill, Chip } from './components/chrome/Pill'
-export type { PillTone } from './components/chrome/Pill'
+export { Chip } from './components/chrome/Chip'
 export { PickCard } from './components/chrome/PickCard'
 export { Sel } from './components/chrome/Sel'
 export { OptRow } from './components/chrome/OptRow'

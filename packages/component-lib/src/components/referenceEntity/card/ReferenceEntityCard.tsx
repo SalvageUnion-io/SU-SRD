@@ -40,6 +40,7 @@ import { FOCUS_RING, activateOnKey } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
 import { StatusBadge } from '../../chrome/StatusBadge'
 import { Badge } from '../../chrome/Badge'
+import { CountStepper } from '../../chrome/CountStepper'
 import { STAMP_SEAM } from '../../chrome/stampSeam'
 import { ActivationCostBox } from '../../shared/ActivationCostBox'
 import { CardImage } from '../../shared/CardImage'
@@ -52,7 +53,7 @@ import { ChoiceGroups } from '../choiceCard/ChoiceGroups'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
 import type { ReferenceEntityControl } from '../ReferenceEntityDisplay/referenceEntityControlTypes'
-import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntityHelpers'
+import { accentDeepColor, accentSurface, borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { buildReferenceEntityStats } from '../ReferenceEntityDisplay/referenceEntityStatsConfig'
 import { EntityCardHeader } from './EntityCardHeader'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
@@ -137,6 +138,18 @@ export type ReferenceEntityCardProps = {
   /** When `selected`, stamp this label as an `ok`-tone "chosen" seal riding the
    * top-right frame (e.g. "Equipped ✓"). Picker-cell affordance. */
   selectionSeal?: string
+  /** A rust "Suggested" stamp leading the sub-header — a recommended pick. */
+  suggested?: boolean
+  /** MULTI-SELECT: the chosen quantity. With `onCountChange` present the card
+   * renders a "Chosen" seal + `[− n +]` `CountStepper` overlay (mutually
+   * exclusive with the single-select `selectionSeal`), and `count >= 1` reads as
+   * selected (rust ring) unless `selected` is set explicitly. */
+  count?: number
+  /** MULTI-SELECT: emit the next chosen quantity (already clamped by the caller).
+   * Its presence turns the card into a duplicate-allowed multi-select cell. */
+  onCountChange?: (next: number) => void
+  /** MULTI-SELECT: the stepper ceiling (`+` disables here). */
+  countMax?: number
   /** When off in a picker: dim + desaturate (opacity-50 saturate-50). */
   selectable?: boolean
   /** Whole-card click → role=button + hover-enlarge + focus ring. */
@@ -476,8 +489,12 @@ export function ReferenceEntityCard({
   destroyed,
   damageOverlayText,
   disabled,
-  selected,
+  selected: selectedProp,
   selectionSeal,
+  suggested,
+  count,
+  onCountChange,
+  countMax,
   selectable,
   onCardClick,
   cardClickable,
@@ -510,6 +527,13 @@ export function ReferenceEntityCard({
   onTechLevelChange,
   expand,
 }: ReferenceEntityCardProps) {
+  // MULTI-SELECT: a card driven by `onCountChange` reads as selected whenever its
+  // chosen quantity is ≥ 1, unless `selected` is set explicitly. Single-select
+  // cards keep passing `selected` directly (unchanged).
+  const countValue = count ?? 0
+  const isMultiSelect = !!onCountChange
+  const selected = selectedProp ?? (isMultiSelect ? countValue >= 1 : undefined)
+
   // `SalvageUnionReference.*.all()` entities carry a runtime `schemaName`
   // discriminant that isn't reflected in the static `SURefEntity` union type —
   // the same cast-at-the-boundary pattern used throughout the display system.
@@ -759,6 +783,24 @@ export function ReferenceEntityCard({
       />
     ) : undefined
 
+  // SUGGESTED — a rust stamp that LEADS the sub-header row (before the cost box),
+  // marking a recommended pick. Rust ground, paper text (the on-ink stamp's bg
+  // overridden to rust via tailwind-merge).
+  const suggestedNode: ReactNode = suggested ? (
+    <Badge shape="stamp" size="sm" className="bg-rust text-paper">
+      Suggested
+    </Badge>
+  ) : undefined
+  // Compose the sub-header leading: the Suggested stamp first, then any cost box.
+  const subHeaderLeading: ReactNode = suggestedNode ? (
+    <>
+      {suggestedNode}
+      {costNode}
+    </>
+  ) : (
+    costNode
+  )
+
   // SUB-HEADER cells — action range/damage/traits, then entity traits, then any
   // FREEFORM (simple text input) choices.
   //
@@ -987,6 +1029,84 @@ export function ReferenceEntityCard({
         <Badge surface="tone" tone="ok">{`${selectionSeal} ✓`}</Badge>
       </div>
     ) : null
+  // MULTI-SELECT seal — a "Chosen" stamp + `[− n +]` CountStepper riding the
+  // top-right frame, the duplicate-allowed counterpart to the single-select
+  // seal. Shown whenever the card is a multi-select cell (`onCountChange` set);
+  // the "Chosen" stamp only lights once at least one copy is picked.
+  const countSealNode = isMultiSelect ? (
+    <div
+      className={cn(
+        'absolute right-2 z-30 flex items-center gap-1.5',
+        compact ? 'top-0 -translate-y-1/2' : '-mt-2'
+      )}
+    >
+      {countValue >= 1 && (
+        <Badge surface="tone" tone="ok">
+          Chosen
+        </Badge>
+      )}
+      <CountStepper
+        subject={cardClickLabel ?? name}
+        count={countValue}
+        max={countMax}
+        onChange={(next) => onCountChange?.(next)}
+      />
+    </div>
+  ) : null
+
+  // BADGE — the SHORTFORM token: a single tone-filled pill with the type stamp,
+  // the name, and the classification tail (TL for gear/chassis, Ability Tree ·
+  // Level for abilities). Reuses the same interaction/frame plumbing as every
+  // other size but collapses the whole card to one line. Actions render it too:
+  // their type reads "Action" and, carrying no TL/tree, they show no tail.
+  if (size === 'badge') {
+    const badgeType = isPattern ? 'Pattern' : resolveEyebrow(schemaName).type
+    // Text sits directly on the tone: ghosted/greyed bands are light → ink; else
+    // the domain's computed on-tone colour (paper on dark tones, ink on light).
+    const badgeTextClass = isDown || isGhosted ? 'text-ink' : tone.onToneText
+    const badgeAccent = accentSurface(headerBg, headerBgColor)
+    // The classification tail — abilities show <Tree> · L<n>; a TL-bearing entity
+    // shows TL <n>; everything else (actions, actors) shows nothing.
+    const badgeTail =
+      axisMarkers.length > 0
+        ? axisMarkers.map((m) => (m.label === 'Level' ? `L${m.value}` : m.value)).join(' · ')
+        : techLevel != null
+          ? `TL ${techLevel}`
+          : undefined
+    return (
+      <div className={outerClassName} style={cardStyle?.style} {...outerInteraction}>
+        <div
+          className={cn(
+            'inline-flex max-w-full items-center gap-2 self-start overflow-hidden rounded-card px-2 py-1',
+            badgeAccent.className
+          )}
+          style={{ ...badgeAccent.style, ...frameStyle }}
+        >
+          <Badge shape="stamp" size="sm">
+            {badgeType}
+          </Badge>
+          <span
+            className={cn(
+              'min-w-0 truncate font-cond text-sm font-bold uppercase leading-none tracking-caps-tight',
+              badgeTextClass
+            )}
+          >
+            {name}
+          </span>
+          {badgeTail && (
+            <span
+              className={cn(
+                'shrink-0 font-cond text-badge font-semibold uppercase leading-none tracking-caps-tight opacity-90',
+                badgeTextClass
+              )}
+            >
+              {badgeTail}
+            </span>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   // Frame lives on the INNER clipping element (3px tone, radius + clip on one
   // element — the mockup `.ec`). The OUTER div is overflow-visible only so the
@@ -998,6 +1118,7 @@ export function ReferenceEntityCard({
         {labelCallout}
         {controlsOverlay}
         {selectionSealNode}
+        {countSealNode}
         <div
           className="flex flex-1 flex-col overflow-hidden rounded-card bg-paper"
           style={frameStyle}
@@ -1557,6 +1678,7 @@ export function ReferenceEntityCard({
       {labelCallout}
       {controlsOverlay}
       {selectionSealNode}
+      {countSealNode}
       <div
         className={cn(
           'flex flex-1 flex-col overflow-hidden rounded-card bg-paper',
@@ -1588,7 +1710,7 @@ export function ReferenceEntityCard({
         <EntityCardSubHeader
           bgColor={darkTone}
           cells={cells}
-          leading={costNode}
+          leading={subHeaderLeading}
           trailing={statusNode}
           compact={compact}
         />

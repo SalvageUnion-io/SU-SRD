@@ -17,8 +17,8 @@
 
 import type { MouseEvent, ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { Btn, Pill } from 'component-lib'
-import type { PillTone } from 'component-lib'
+import { Badge, Btn } from 'component-lib'
+import type { BadgeTone } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
@@ -39,7 +39,7 @@ type RailChipProps = {
   href: string
   /** Optional 26px black TL badge. */
   tl?: number
-  status?: { label: string; tone?: PillTone }
+  status?: { label: string; tone?: BadgeTone }
   /** Live mini stats of the linked entity (sm StatBlocks). */
   stats?: ReactNode
   /** Renders the '⇄ Swap' minibtn when provided (stops navigation). */
@@ -100,7 +100,11 @@ export function RailChip({
           </span>
         </span>
         <span className="flex shrink-0 items-center gap-1.5 pt-0.5">
-          {status && <Pill tone={status.tone}>{status.label}</Pill>}
+          {status && (
+            <Badge surface={status.tone ? 'tone' : 'outline'} tone={status.tone}>
+              {status.label}
+            </Badge>
+          )}
           <ChevronRight aria-hidden="true" className="size-4 text-ink/80" />
         </span>
       </span>

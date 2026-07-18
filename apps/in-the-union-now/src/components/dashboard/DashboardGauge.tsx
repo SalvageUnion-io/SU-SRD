@@ -1,16 +1,17 @@
 /**
- * DashboardGauge — the bespoke DARK instrument readout for the Active Item and
- * (later) the dial. A horizontal segmented bar: label stamp, one flex row of
- * segments (filled up to `value` in the tone colour, empty recessed), and the
- * value/max numeral.
+ * DashboardGauge — the Active Item / dial instrument readout. A thin wrapper over
+ * `component-lib`'s `VitalGauge` in its single-row `compact` + `instrument`
+ * surface mode: the segmented-bar rendering now lives in the shared primitive
+ * (one implementation for the sheet AND the dashboard), and this component only
+ * maps the dashboard's tone palette onto the gauge's `--tone` vars.
  *
- * Deliberately NOT `component-lib`'s VitalGauge: that gauge is light-themed
- * (ink text, paper segments) for the sheet/display. The Dashboard instruments are
- * bespoke and dark (proposed ADR-017/018); VitalGauge is reused in the light
- * display surface instead (Phase 4). Read-only here — Phase 2 is read-mostly.
+ * The instrument palette (`--pc-*`) keeps the dashboard's current dark look;
+ * bringing it into full aesthetic match with the light sheet is a later flip of
+ * these tone vars (or dropping `surface="instrument"`), not a re-implementation.
  */
 
 import type { CSSProperties } from 'react'
+import { VitalGauge } from 'component-lib'
 
 export type GaugeTone = 'mech' | 'pilot' | 'crawler'
 
@@ -30,24 +31,17 @@ type DashboardGaugeProps = {
 }
 
 export function DashboardGauge({ label, value, max, tone = 'mech', danger }: DashboardGaugeProps) {
-  const total = Math.max(max, value, 0)
   const [t, td] = TONES[tone]
-  const segs = []
-  for (let i = 0; i < total; i++) {
-    const filled = i < value
-    const isDanger = danger !== undefined && i >= danger
-    let cls = 'pc-seg'
-    if (filled) cls += isDanger ? ' danger' : ' on'
-    segs.push(<span key={i} className={cls} />)
-  }
-  const style = { '--pc-gtone': t, '--pc-gtone-deep': td } as CSSProperties
   return (
-    <div className="pc-gauge" style={style} role="img" aria-label={`${label} ${value} of ${max}`}>
-      <span className="pc-gauge-lab">{label}</span>
-      <div className="pc-gauge-track">{segs}</div>
-      <span className="pc-gauge-num">
-        {value}/{max}
-      </span>
-    </div>
+    <VitalGauge
+      compact
+      surface="instrument"
+      readOnly
+      label={label}
+      value={value}
+      max={max}
+      danger={danger}
+      style={{ '--tone': t, '--tone-deep': td } as CSSProperties}
+    />
   )
 }

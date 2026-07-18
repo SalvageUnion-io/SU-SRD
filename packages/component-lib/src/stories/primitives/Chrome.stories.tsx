@@ -4,7 +4,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { Conditions, ConditionChip } from '../../components/chrome/Conditions'
 import { OptRow } from '../../components/chrome/OptRow'
 import { PickCard } from '../../components/chrome/PickCard'
-import { Chip } from '../../components/chrome/Pill'
+import { Chip } from '../../components/chrome/Chip'
 import { Stepper } from '../../components/chrome/Stepper'
 import { TreeSep } from '../../components/chrome/TreeSep'
 

@@ -1,7 +1,7 @@
 import { describe, test, expect, afterEach, mock } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { Field, Input } from '../Field'
-import { Pill, Chip } from '../Pill'
+import { Chip } from '../Chip'
 import { Panel, Row, Empty } from '../Panel'
 import { Slab } from '../Slab'
 import { Conditions, ConditionChip } from '../Conditions'
@@ -32,17 +32,29 @@ describe('Field / Input', () => {
   })
 })
 
-describe('Pill / Chip', () => {
+describe('Badge tone / Chip', () => {
   test('kind fills: crawler is white-on-pink, pilot is ink-on-orange', () => {
-    render(<Pill tone="crawler">Crawler</Pill>)
+    render(
+      <Badge surface="tone" tone="crawler">
+        Crawler
+      </Badge>
+    )
     expect(screen.getByText('Crawler').className).toContain('text-paper')
     cleanup()
-    render(<Pill tone="pilot">Pilot</Pill>)
+    render(
+      <Badge surface="tone" tone="pilot">
+        Pilot
+      </Badge>
+    )
     expect(screen.getByText('Pilot').className).toContain('bg-su-orange')
   })
 
   test('status fills match border to fill', () => {
-    render(<Pill tone="warn">Damaged</Pill>)
+    render(
+      <Badge surface="tone" tone="warn">
+        Damaged
+      </Badge>
+    )
     const pill = screen.getByText('Damaged')
     expect(pill.className).toContain('bg-status-warn')
     expect(pill.className).toContain('border-status-warn')

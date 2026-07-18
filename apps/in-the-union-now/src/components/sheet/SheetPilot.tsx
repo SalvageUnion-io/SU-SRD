@@ -10,7 +10,7 @@
  * `PilotSheet` as `linkedUnits`.
  */
 
-import { EntityRow, Pill, Stat } from 'component-lib'
+import { Badge, EntityRow, Stat } from 'component-lib'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
@@ -155,7 +155,13 @@ export function SheetPilot({
           heroRef={heroRef}
           cat="Pilot"
           name={pilot.name}
-          meta={dead ? <Pill tone="bad">Dead</Pill> : undefined}
+          meta={
+            dead ? (
+              <Badge surface="tone" tone="bad">
+                Dead
+              </Badge>
+            ) : undefined
+          }
         />
       )}
       renderBody={() => (

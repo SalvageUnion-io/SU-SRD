@@ -1,8 +1,7 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Chip, Pill } from '../../components/chrome/Pill'
-import type { PillTone } from '../../components/chrome/Pill'
+import { Chip } from '../../components/chrome/Chip'
 import { StatusBadge } from '../../components/chrome/StatusBadge'
 import type { EntityStatus } from '../../components/chrome/StatusBadge'
 import { Badge, type BadgeTone } from '../../components/chrome/Badge'
@@ -40,8 +39,8 @@ const economyTags = [`${actionType('Turn')} Action`, actionType('Passive'), acti
 // Real Salvage Union condition vocabulary (rules keywords: prone / blind / irradiated / shutdown).
 const activeConditions = ['Prone', 'Blind', 'Irradiated']
 
-// One real, proper-cased label per Pill tone so every tone still renders.
-const PILL_TONE_LABELS: Record<PillTone, string> = {
+// One real, proper-cased label per Badge tone so every tone still renders.
+const TONE_LABELS: Record<BadgeTone, string> = {
   pilot: pilotLabel,
   mech: chassisName,
   crawler: crawlerName,
@@ -63,7 +62,6 @@ function Row({ children }: { children: ReactNode }) {
   return <div className="flex flex-wrap items-start gap-3">{children}</div>
 }
 
-const PILL_TONES: PillTone[] = ['pilot', 'mech', 'crawler', 'ok', 'warn', 'bad']
 const STATUSES: EntityStatus[] = ['intact', 'damaged', 'destroyed']
 const BADGE_TONES: BadgeTone[] = ['pilot', 'mech', 'crawler', 'ok', 'warn', 'bad']
 
@@ -85,28 +83,14 @@ export const Unified: Story = () => (
     <Row>
       {BADGE_TONES.map((tone) => (
         <Badge key={tone} surface="tone" tone={tone}>
-          {PILL_TONE_LABELS[tone]}
+          {TONE_LABELS[tone]}
         </Badge>
       ))}
     </Row>
-  </div>
-)
-
-export const Pills: Story = () => (
-  <div className="bg-paper p-4">
-    <ClusterLabel>Default (ink-on-paper outline)</ClusterLabel>
+    <ClusterLabel>surface=outline · the former Pill (ink-on-paper)</ClusterLabel>
     <Row>
-      <Pill>Legal Starting</Pill>
-      <Pill>{techLabel}</Pill>
-    </Row>
-
-    <ClusterLabel>Every tone</ClusterLabel>
-    <Row>
-      {PILL_TONES.map((tone) => (
-        <Pill key={tone} tone={tone}>
-          {PILL_TONE_LABELS[tone]}
-        </Pill>
-      ))}
+      <Badge surface="outline">Legal Starting</Badge>
+      <Badge surface="outline">{techLabel}</Badge>
     </Row>
   </div>
 )

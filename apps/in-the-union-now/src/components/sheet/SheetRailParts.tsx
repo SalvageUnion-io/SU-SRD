@@ -9,7 +9,7 @@
  * (redesign gap G10).
  */
 
-import type { PillTone, StatState } from 'component-lib'
+import type { BadgeTone, StatState } from 'component-lib'
 
 import {
   crawlerMaxSP,
@@ -130,7 +130,7 @@ export function bayStates(crawler: Crawler): StatState[] {
 
 /** Destroyed > Damaged > Intact status pill for a mech. */
 // biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
-export function mechStatusPill(mech: Mech): { label: string; tone: PillTone } {
+export function mechStatusPill(mech: Mech): { label: string; tone: BadgeTone } {
   if (mech.destroyed) return { label: 'Destroyed', tone: 'bad' }
   const anyDamaged = [
     ...Object.values(mech.systemConditions ?? {}),

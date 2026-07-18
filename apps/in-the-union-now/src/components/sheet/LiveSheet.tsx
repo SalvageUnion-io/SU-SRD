@@ -30,8 +30,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { Badge, Pill, Stat } from 'component-lib'
-import type { PillTone, StatTone } from 'component-lib'
+import { Badge, Stat } from 'component-lib'
+import type { BadgeTone, StatTone } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
@@ -81,7 +81,7 @@ type LiveSheetProps = {
   strip?: LiveSheetStripItem[]
   back?: { href: string; label: string }
   /** Kind/status pill shown next to the name stamp in the condensed bar. */
-  pill?: { label: string; tone?: PillTone }
+  pill?: { label: string; tone?: BadgeTone }
   /** Linked-entity rail content (RailChip / RailEmpty row) — slotted into the hero by the caller. */
   rail?: ReactNode
   /**
@@ -216,7 +216,11 @@ export function LiveSheet({
             <Badge shape="stamp" size="lg" className="block max-w-full truncate">
               {name}
             </Badge>
-            {pill && <Pill tone={pill.tone}>{pill.label}</Pill>}
+            {pill && (
+              <Badge surface={pill.tone ? 'tone' : 'outline'} tone={pill.tone}>
+                {pill.label}
+              </Badge>
+            )}
             {stripItems.map((item) => (
               <Stat
                 key={item.key}

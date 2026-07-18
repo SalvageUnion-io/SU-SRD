@@ -8,8 +8,8 @@ import {
   matchesRef,
   MECH_CREATION_SCRAP_CAP,
 } from 'salvageunion-reference/rules'
+import { Badge } from '../../components/chrome/Badge'
 import { CountStepper } from '../../components/chrome/CountStepper'
-import { Pill } from '../../components/chrome/Pill'
 import { TreeSep } from '../../components/chrome/TreeSep'
 import { MasonryColumns } from '../../components/shared/MasonryColumns'
 import { ReferenceEntityDisplay } from '../../components/referenceEntity/card/referenceEntityDisplayShim'
@@ -121,7 +121,7 @@ function LegacyCraftItemsStep({ kind }: { kind: 'systems' | 'modules' }) {
               ]}
               subtitleExtra={
                 'recommended' in item && item.recommended === true ? (
-                  <Pill>Suggested</Pill>
+                  <Badge surface="outline">Suggested</Badge>
                 ) : undefined
               }
             />

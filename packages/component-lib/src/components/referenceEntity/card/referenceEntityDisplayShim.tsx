@@ -42,8 +42,11 @@ export function ReferenceEntityDisplay({
 }: ReferenceEntityDisplayProps): ReactNode {
   if (!data) return null
 
+  // `badge` is its own card size (a shortform token), not a compact/listing
+  // boolean pair — pass it straight through; everything else resolves to a size
+  // from the mode / compact / listing sugar.
   const { compact, listing } = resolveDisplayMode(mode, compactProp, listingProp)
-  const size = listing ? 'listing' : compact ? 'compact' : 'full'
+  const size = mode === 'badge' ? 'badge' : listing ? 'listing' : compact ? 'compact' : 'full'
   // `status` supersets `damaged` — a damaged/destroyed status greys the header the
   // same way the boolean always has (legacy `ReferenceEntityDisplay` behaviour).
   const effectiveDamaged = damaged || status === 'damaged' || status === 'destroyed'

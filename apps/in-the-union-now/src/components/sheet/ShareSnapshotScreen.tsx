@@ -22,18 +22,18 @@
 
 import { useEffect, useState } from 'react'
 import {
+  Badge,
   BayStatus,
   Btn,
   Input,
   Panel,
-  Pill,
   Row,
   Stat,
   VitalGauge,
   heatDangerFrom,
   toast,
 } from 'component-lib'
-import type { PillTone } from 'component-lib'
+import type { BadgeTone } from 'component-lib'
 
 import { resolveClassName } from '../../lib/classRef'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
@@ -93,7 +93,7 @@ type PublishState =
   | { status: 'published'; shareUrl: string }
   | { status: 'error'; message: string }
 
-const KIND_PILL: Record<EntityRef['type'], { label: string; tone: PillTone }> = {
+const KIND_PILL: Record<EntityRef['type'], { label: string; tone: BadgeTone }> = {
   pilot: { label: 'Pilot', tone: 'pilot' },
   mech: { label: 'Mech', tone: 'mech' },
   crawler: { label: 'Crawler', tone: 'crawler' },
@@ -259,7 +259,9 @@ export function ShareSnapshotScreen({
           Share snapshot
         </h1>
         <span className="ml-auto">
-          <Pill tone={KIND_PILL[kind].tone}>{KIND_PILL[kind].label}</Pill>
+          <Badge surface="tone" tone={KIND_PILL[kind].tone}>
+            {KIND_PILL[kind].label}
+          </Badge>
         </span>
       </header>
 

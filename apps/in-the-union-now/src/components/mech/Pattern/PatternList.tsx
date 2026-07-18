@@ -13,7 +13,7 @@
  * route boundary.
  */
 
-import { EmptyState, Pill } from 'component-lib'
+import { Badge, EmptyState } from 'component-lib'
 import { usePatternStore } from '../../../stores/patternStore'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 
@@ -74,7 +74,9 @@ export function PatternList({ onInstantiated }: PatternListProps) {
                 the flag is NEVER computed — project data convention), so the
                 Blank-family caveat badges every card. Presentation only
                 (wizard-refresh plan §5.2 / Phase 4 D). */}
-            <Pill className="w-fit">Not a legal starting mech</Pill>
+            <Badge surface="outline" className="w-fit">
+              Not a legal starting mech
+            </Badge>
           </div>
           <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
         </li>

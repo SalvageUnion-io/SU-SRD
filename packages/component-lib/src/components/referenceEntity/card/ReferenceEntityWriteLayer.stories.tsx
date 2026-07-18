@@ -46,6 +46,8 @@ const freeformEquip = pick(
   (e) => e.name === 'Auto-Turret',
   'freeform choice equipment'
 )
+// An ability drives the badge's Tree · Level tail (gear drives the TL tail).
+const ability = pick(SalvageUnionReference.Abilities.all(), () => true, 'ability')
 
 /**
  * Stacked comparison harness: the canonical card read-only (top — the baseline)
@@ -181,6 +183,55 @@ export const InlineChoices: Story = () => {
           data={freeformEquip as unknown as SURefEntity}
           selections={selections}
           onSelectionChange={setSelections}
+        />
+      }
+    />
+  )
+}
+
+/**
+ * BADGE MODE (`size="badge"`) — the shortform token: a single tone-filled pill
+ * with the type stamp, the name, and the classification tail. Gear/chassis show
+ * `TL <n>`, abilities show `<Tree> · L<n>`, actions carry the "Action" stamp and
+ * no tail. The whole entity collapses to one line, tone-coloured like the card.
+ */
+export const BadgeMode: Story = () => (
+  <div className="flex flex-wrap items-start gap-3 bg-paper p-4">
+    <ReferenceEntityCard data={chassis} size="badge" />
+    <ReferenceEntityCard data={system} size="badge" />
+    <ReferenceEntityCard data={ability as unknown as SURefEntity} size="badge" />
+  </div>
+)
+
+/**
+ * SUGGESTED — a rust "Suggested" stamp leading the sub-header, marking a
+ * recommended pick (replaces the old `subtitleExtra` Pill).
+ */
+export const SuggestedItem: Story = () => (
+  <TwoUp
+    readOnly={<ReferenceEntityCard data={system} size="compact" />}
+    editable={<ReferenceEntityCard data={system} size="compact" suggested />}
+  />
+)
+
+/**
+ * MULTI-SELECT — a duplicate-allowed picker cell. `onCountChange` renders a
+ * "Chosen" seal + `[− n +]` CountStepper riding the top-right frame; `count ≥ 1`
+ * lights the rust selection ring. The step buttons never trigger a card click.
+ */
+export const MultiSelectCard: Story = () => {
+  const [count, setCount] = useState(0)
+  return (
+    <TwoUp
+      readOnly={<ReferenceEntityCard data={system} size="compact" />}
+      editable={
+        <ReferenceEntityCard
+          data={system}
+          size="compact"
+          count={count}
+          countMax={5}
+          onCountChange={setCount}
+          cardClickLabel={system.name ?? undefined}
         />
       }
     />

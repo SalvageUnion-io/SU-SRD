@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { KeyboardEvent } from 'react'
+import type { CSSProperties, KeyboardEvent } from 'react'
 
 import { cn } from '../../utils/cn'
 import { POSTER_STAMP } from '../chrome/posterStamp'
@@ -38,6 +38,22 @@ export type VitalGaugeProps = {
   readOnly?: boolean
   /** First 0-based segment index that reads as danger (status-bad) when lit. */
   danger?: number
+  /**
+   * Single-row COMPACT layout (the dashboard-instrument cue): label · one
+   * segment row · value/max, all on one line — no big numeral, no caption, no
+   * multi-row split. The full poster gauge is the default (compact unset).
+   */
+  compact?: boolean
+  /**
+   * Surface skin (RenderingMatrix `skin sheet|instrument`): `sheet` (default,
+   * light paper ground — ink label + numeral) or `instrument` (a dark ground —
+   * light label + numeral, recessed empty segments). Only the text/empty-segment
+   * treatment changes; filled segments always use the `--tone` accent.
+   */
+  surface?: 'sheet' | 'instrument'
+  /** Extra inline style on the root — chiefly to pin the `--tone` / `--tone-deep`
+   * vars for a one-off tone (the dashboard instruments pass their tone here). */
+  style?: CSSProperties
   className?: string
 }
 
@@ -65,8 +81,12 @@ export function VitalGauge({
   dense,
   readOnly,
   danger,
+  compact,
+  surface = 'sheet',
+  style,
   className,
 }: VitalGaugeProps) {
+  const onDark = surface === 'instrument'
   const editable = !readOnly && onChange !== undefined
   const editableMax = !readOnly && onMaxChange !== undefined
   const isOverridden = overriddenFrom !== undefined && overriddenFrom !== max
@@ -145,6 +165,75 @@ export function VitalGauge({
     if (handled) event.preventDefault()
   }
 
+  // Empty-segment fill differs by surface: recessed outline on a dark instrument
+  // ground, paper on the light sheet.
+  const emptyFill = onDark
+    ? 'border-[rgba(190,185,175,0.35)] bg-transparent'
+    : 'border-[rgba(40,32,25,0.5)] bg-paper'
+  const segFill = (state: ReturnType<typeof trackSegmentState>): string =>
+    state === 'off'
+      ? emptyFill
+      : state === 'danger'
+        ? 'border-status-bad bg-status-bad'
+        : 'border-[var(--tone-deep)] bg-[var(--tone)]'
+
+  // COMPACT — the single-row instrument bar (dashboard cue): label · one segment
+  // row · value/max on one line. No big numeral, caption, or multi-row split.
+  if (compact) {
+    return (
+      // biome-ignore lint/a11y/noStaticElementInteractions: role=group is a keyboard widget (arrow keys adjust the value); the segment buttons carry the click semantics
+      // biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is dynamically group|img — both support aria-label — but biome can't resolve the ternary
+      <div
+        role={editable ? 'group' : 'img'}
+        aria-label={summary}
+        onKeyDown={editable ? onKeyDown : undefined}
+        className={cn('flex w-full items-center gap-2', className)}
+        style={style}
+      >
+        <span
+          className={cn(
+            'shrink-0 font-cond text-label font-bold uppercase leading-none tracking-caps',
+            onDark ? 'text-paper' : 'text-ink'
+          )}
+        >
+          {label}
+        </span>
+        <div className="flex min-w-0 flex-1 gap-[3px]">
+          {Array.from({ length: segCount }, (_, i) => ({
+            i,
+            state: trackSegmentState(i, shown, max, dangerFrom),
+          })).map(({ i, state }) => {
+            const on = state !== 'off'
+            const segClass = cn('h-[10px] min-w-0 flex-1 rounded-[2px] border', segFill(state))
+            return editable ? (
+              <button
+                key={i}
+                type="button"
+                data-pip={on ? 'on' : 'off'}
+                aria-label={`Set ${label} to ${i + 1}`}
+                onClick={() => setValue(pipClickValue(i, shown))}
+                className={cn(
+                  segClass,
+                  'cursor-pointer p-0 transition-transform duration-[120ms] motion-safe:hover:-translate-y-px'
+                )}
+              />
+            ) : (
+              <span key={i} data-pip={on ? 'on' : 'off'} className={segClass} />
+            )
+          })}
+        </div>
+        <span
+          className={cn(
+            'shrink-0 whitespace-nowrap font-cond text-caption font-bold leading-none tabular-nums',
+            isOver ? 'text-status-bad' : onDark ? 'text-paper' : 'text-ink'
+          )}
+        >
+          {shown}/{max}
+        </span>
+      </div>
+    )
+  }
+
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: role=group is a keyboard widget (arrow keys adjust the value); the segment buttons carry the click semantics
     // biome-ignore lint/a11y/useAriaPropsSupportedByRole: the role is dynamically group|img — both support aria-label — but biome can't resolve the ternary
@@ -153,6 +242,7 @@ export function VitalGauge({
       aria-label={summary}
       onKeyDown={editable ? onKeyDown : undefined}
       className={cn('w-full py-1', className)}
+      style={style}
     >
       {/* Label stamp + big numeral */}
       <div className="mb-2 flex items-baseline justify-between gap-2.5">
@@ -249,16 +339,10 @@ export function VitalGauge({
               const i = segRow.start + c
               const state = trackSegmentState(i, shown, max, dangerFrom)
               const on = state !== 'off'
-              const fill =
-                state === 'off'
-                  ? 'border-[rgba(40,32,25,0.5)] bg-paper'
-                  : state === 'danger'
-                    ? 'border-status-bad bg-status-bad'
-                    : 'border-[var(--tone-deep)] bg-[var(--tone)]'
               const segClass = cn(
                 'min-h-0 min-w-0 flex-1 border-chrome p-0',
                 isDense ? 'h-[18px] rounded-badge' : 'h-[22px] rounded-card',
-                fill
+                segFill(state)
               )
               return editable ? (
                 <button

@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
-import { CountStepper, MasonryColumns, Pill, ReferenceEntityDisplay, TreeSep } from 'component-lib'
+import { CountStepper, MasonryColumns, ReferenceEntityDisplay, TreeSep } from 'component-lib'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 
 type CraftItemsStepProps = {
@@ -27,8 +27,8 @@ type CraftItemsStepProps = {
  * disables the moment one more copy would overspend either budget, and a
  * card whose FIRST copy no longer fits dims with the reason chip (mockup
  * Screen 02 `NEEDS 6 SLOTS · 2 LEFT`) — visible, never hidden, so the
- * player sees what they can't yet afford. `recommended` items carry a
- * SUGGESTED Pill. Zero picks never blocks Next — installs are optional.
+ * player sees what they can't yet afford. `recommended` items carry the card's
+ * rust SUGGESTED sub-header stamp. Zero picks never blocks Next — installs are optional.
  */
 export function CraftItemsStep({
   kind,
@@ -103,11 +103,7 @@ export function CraftItemsStep({
                 { label: 'Costs', value: `${sv} scrap` },
                 ...(disabledReason ? [{ label: disabledReason, value: '' }] : []),
               ]}
-              subtitleExtra={
-                'recommended' in item && item.recommended === true ? (
-                  <Pill>Suggested</Pill>
-                ) : undefined
-              }
+              suggested={'recommended' in item && item.recommended === true}
             />
           )
         })}

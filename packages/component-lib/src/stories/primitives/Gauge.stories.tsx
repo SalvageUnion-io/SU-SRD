@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { VitalGauge } from '../../components/stat/VitalGauge'
@@ -82,5 +82,49 @@ export const Default: Story = () => (
         onRevertOverride={noop}
       />
     </Row>
+  </div>
+)
+
+/** COMPACT — the single-row instrument bar (label · one segment row · value/max).
+ *  `surface="sheet"` (light, default) and `surface="instrument"` (dark ground):
+ *  the same primitive the dashboard now renders in place of its bespoke gauge. */
+export const Compact: Story = () => (
+  <div className="flex flex-col gap-5 bg-paper p-5 font-mono text-ink">
+    <p className="max-w-2xl text-xs leading-relaxed text-ink-2">
+      The single-row compact gauge: label, one segment row, and value/max on one line — no big
+      numeral, caption, or multi-row split. Filled segments use the sheet's <code>--tone</code>, and
+      Heat redlines at its danger index. The dashboard instruments render this (dark instrument
+      surface) instead of a bespoke bar.
+    </p>
+    <Row label="compact · sheet surface" skin="sheet--mech">
+      <VitalGauge label="Heat" value={heat - 1} max={heat} danger={Math.max(1, heat - 2)} compact />
+    </Row>
+    <Row label="compact · editable" skin="sheet--pilot">
+      <VitalGauge label="EP" value={Math.ceil(ep / 2)} max={ep} compact onChange={noop} />
+    </Row>
+    <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2 rounded-card bg-[#1b1712] p-3">
+        <VitalGauge
+          label="SP"
+          value={12}
+          max={15}
+          compact
+          surface="instrument"
+          readOnly
+          style={{ '--tone': '#8fb996', '--tone-deep': '#4f6b55' } as CSSProperties}
+        />
+        <VitalGauge
+          label="Heat"
+          value={5}
+          max={6}
+          danger={4}
+          compact
+          surface="instrument"
+          readOnly
+          style={{ '--tone': '#c98b5e', '--tone-deep': '#7d4f2f' } as CSSProperties}
+        />
+      </div>
+      <code className="text-nano text-ink-2">compact · instrument surface (dark ground)</code>
+    </div>
   </div>
 )
