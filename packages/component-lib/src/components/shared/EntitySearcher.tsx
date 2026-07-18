@@ -293,65 +293,87 @@ export function EntitySearcher({
     </span>
   )
 
+  // Facet rows as individual nodes so both layouts can place them (the floating
+  // sub-header spaces the search opposite the "Show" row).
+  const tlRow = showTl ? (
+    <FacetRow label="Tech level" onDark={resultsFloating}>
+      {tlOptions.map((tl) => (
+        <FilterChip
+          key={String(tl)}
+          label={tlLabel(tl)}
+          active={activeTls.has(tl)}
+          onClick={() => toggleIn(activeTls, tl, setActiveTls)}
+          swatchStyle={tlSwatch(tl)}
+        />
+      ))}
+    </FacetRow>
+  ) : null
+  const catRow =
+    showCat && facets?.category ? (
+      <FacetRow label={facets.category.label} onDark={resultsFloating}>
+        {catOptions.map((c) => (
+          <FilterChip
+            key={c}
+            label={c}
+            active={activeCats.has(c)}
+            onClick={() => toggleIn(activeCats, c, setActiveCats)}
+          />
+        ))}
+      </FacetRow>
+    ) : null
+  const traitsRow = showTraits ? (
+    <FacetRow label="Traits" onDark={resultsFloating}>
+      {traitOptions.map((t) => (
+        <FilterChip
+          key={t}
+          label={t}
+          active={activeTraits.has(t)}
+          onClick={() => toggleIn(activeTraits, t, setActiveTraits)}
+        />
+      ))}
+    </FacetRow>
+  ) : null
+  const showRow = showStatus ? (
+    <FacetRow label="Show" onDark={resultsFloating}>
+      {(
+        [
+          ['all', 'All'],
+          ['equipped', `${chosenLabel} only`],
+          ['available', 'Not yet added'],
+        ] as const
+      ).map(([value, label]) => (
+        <FilterChip
+          key={value}
+          label={label}
+          active={status === value}
+          onClick={() => setStatus(value)}
+        />
+      ))}
+    </FacetRow>
+  ) : null
+
   const facetRows = anyFacet ? (
     <div className="flex w-full flex-col gap-2">
-      {showTl && (
-        <FacetRow label="Tech level" onDark={resultsFloating}>
-          {tlOptions.map((tl) => (
-            <FilterChip
-              key={String(tl)}
-              label={tlLabel(tl)}
-              active={activeTls.has(tl)}
-              onClick={() => toggleIn(activeTls, tl, setActiveTls)}
-              swatchStyle={tlSwatch(tl)}
-            />
-          ))}
-        </FacetRow>
-      )}
-      {showCat && facets?.category && (
-        <FacetRow label={facets.category.label} onDark={resultsFloating}>
-          {catOptions.map((c) => (
-            <FilterChip
-              key={c}
-              label={c}
-              active={activeCats.has(c)}
-              onClick={() => toggleIn(activeCats, c, setActiveCats)}
-            />
-          ))}
-        </FacetRow>
-      )}
-      {showTraits && (
-        <FacetRow label="Traits" onDark={resultsFloating}>
-          {traitOptions.map((t) => (
-            <FilterChip
-              key={t}
-              label={t}
-              active={activeTraits.has(t)}
-              onClick={() => toggleIn(activeTraits, t, setActiveTraits)}
-            />
-          ))}
-        </FacetRow>
-      )}
-      {showStatus && (
-        <FacetRow label="Show" onDark={resultsFloating}>
-          {(
-            [
-              ['all', 'All'],
-              ['equipped', `${chosenLabel} only`],
-              ['available', 'Not yet added'],
-            ] as const
-          ).map(([value, label]) => (
-            <FilterChip
-              key={value}
-              label={label}
-              active={status === value}
-              onClick={() => setStatus(value)}
-            />
-          ))}
-        </FacetRow>
-      )}
+      {tlRow}
+      {catRow}
+      {traitsRow}
+      {showRow}
     </div>
   ) : null
+
+  // Floating sub-header: the facet rows, with the search field on the final row
+  // spaced OPPOSITE the "Show" facet.
+  const floatingSubHeader = (
+    <div className="flex w-full flex-col gap-2">
+      {tlRow}
+      {catRow}
+      {traitsRow}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        {showRow ?? <span aria-hidden="true" />}
+        <div className="w-full sm:w-[280px]">{searchInput}</div>
+      </div>
+    </div>
+  )
 
   const poolNode = (
     <div className="min-w-0">
@@ -401,25 +423,22 @@ export function EntitySearcher({
           bodyPadding="p-0"
           headerContent={
             <div className="flex w-full items-center gap-3">
-              <span className="min-w-0 shrink-0 font-cond text-lg font-bold uppercase leading-none tracking-caps-tight text-paper">
+              <span className="min-w-0 flex-1 truncate font-cond text-lg font-bold uppercase leading-none tracking-caps-tight text-paper">
                 {title}
               </span>
-              <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-2">
-                <div className="min-w-0 max-w-[280px] flex-1">{searchInput}</div>
-                {onClose && (
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    aria-label="Close"
-                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-badge border-chrome border-ink bg-paper font-cond text-base font-bold leading-none text-ink transition-colors hover:bg-wk-bg-2"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label="Close"
+                  className="inline-flex size-8 shrink-0 items-center justify-center rounded-badge border-chrome border-ink bg-paper font-cond text-base font-bold leading-none text-ink transition-colors hover:bg-wk-bg-2"
+                >
+                  ✕
+                </button>
+              )}
             </div>
           }
-          subHeader={facetRows ?? undefined}
+          subHeader={floatingSubHeader}
         >
           {/* Internally-scrolling body; extra bottom padding clears the pinned
               Results box so the last rows are never hidden beneath it. */}
@@ -433,7 +452,7 @@ export function EntitySearcher({
             scrolling body), so it stays put in the bottom-right above content.
             The wrapper is click-through; only the box captures pointer events. */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-end p-4">
-          <div className="pointer-events-auto w-[300px] max-w-[calc(100%-2rem)]">
+          <div className="pointer-events-auto w-[360px] max-w-[calc(100%-2rem)]">
             <SelectionRail
               name={railName}
               chosenLabel={chosenLabel}
