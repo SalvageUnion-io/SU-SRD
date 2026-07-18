@@ -4,9 +4,19 @@ export type ReferenceEntityControlVariant = 'primary' | 'danger' | 'ghost'
 
 export type ReferenceEntityControl = {
   key: string
+  /**
+   * Arbitrary content rendered in the control strip instead of a button — e.g. a
+   * CountStepper, a status Badge, or a nav link. When set, the button fields
+   * (label / onClick / ariaLabel / segmentText / icon / variant) are ignored.
+   * This is the escape hatch that lets `controls` carry everything the old
+   * `footActions` slot did, so no action ever renders in the footer.
+   */
+  node?: ReactNode
   label?: string
-  onClick: () => void
-  ariaLabel: string
+  /** Required for button controls (omit only when `node` is set). */
+  onClick?: () => void
+  /** Required for button controls (omit only when `node` is set). */
+  ariaLabel?: string
   icon?: (props: { className?: string }) => ReactNode
   variant?: ReferenceEntityControlVariant
   disabled?: boolean

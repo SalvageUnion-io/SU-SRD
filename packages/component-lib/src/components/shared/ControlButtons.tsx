@@ -48,9 +48,17 @@ function ControlButton({
   compact: boolean
   onClickWithStop: (e: React.MouseEvent, onClick: () => void) => void
 }) {
+  // Node control (escape hatch): render arbitrary content in the strip instead
+  // of a button — a CountStepper, a status Badge, a nav link. Ignores all the
+  // button fields.
+  if (control.node !== undefined) {
+    return <>{control.node}</>
+  }
+
   const variant = control.variant ?? 'primary'
   const isDisabled = !!control.disabled
   const hasCustomColors = !!(control.bgColor || control.textColor)
+  const onClick = control.onClick ?? (() => {})
 
   const segmentClasses = cn(
     'px-1 font-mono font-bold uppercase tracking-tight',
@@ -81,7 +89,7 @@ function ControlButton({
         title={control.ariaLabel}
         aria-label={control.ariaLabel}
         aria-disabled={isDisabled || undefined}
-        onClick={isDisabled ? undefined : (e) => onClickWithStop(e, control.onClick)}
+        onClick={isDisabled ? undefined : (e) => onClickWithStop(e, onClick)}
       >
         <Icon className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} />
       </button>
@@ -105,7 +113,7 @@ function ControlButton({
       title={control.ariaLabel}
       aria-label={control.ariaLabel}
       aria-disabled={isDisabled || undefined}
-      onClick={isDisabled ? undefined : (e) => onClickWithStop(e, control.onClick)}
+      onClick={isDisabled ? undefined : (e) => onClickWithStop(e, onClick)}
     >
       {/* Primary segment */}
       <span
