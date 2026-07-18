@@ -108,8 +108,9 @@ function ControlButton({
             : 'cursor-pointer border-ink bg-paper text-ink hover:bg-ink hover:text-paper',
           control.className
         )}
-        title={control.ariaLabel}
+        title={control.title ?? control.ariaLabel}
         aria-label={control.ariaLabel}
+        disabled={isDisabled}
         aria-disabled={isDisabled || undefined}
         onClick={isDisabled ? undefined : (e) => onClickWithStop(e, onClick)}
       >
@@ -132,8 +133,9 @@ function ControlButton({
         ...(control.borderColor && !isDisabled ? { borderColor: control.borderColor } : {}),
         lineHeight: 1,
       }}
-      title={control.ariaLabel}
+      title={control.title ?? control.ariaLabel}
       aria-label={control.ariaLabel}
+      disabled={isDisabled}
       aria-disabled={isDisabled || undefined}
       onClick={isDisabled ? undefined : (e) => onClickWithStop(e, onClick)}
     >

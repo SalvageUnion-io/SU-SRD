@@ -6,7 +6,7 @@
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Button, ReferenceEntityDisplay, useDetailModal } from 'component-lib'
+import { type ReferenceEntityControl, ReferenceEntityDisplay, useDetailModal } from 'component-lib'
 import type { CardFootMeta, ChoiceSelections } from 'component-lib'
 
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
@@ -191,40 +191,34 @@ export function CrawlerBayCard({
     ...(damaged ? [{ label: 'Repair', value: `5·T${crawlerTl}` }] : []),
   ]
 
-  // Damaged disables the function action and promotes Repair to primary
-  // (design §4.4 / interaction pattern 8).
-  const footActions = (
-    <>
-      <Button
-        size="sm"
-        variant={damaged ? 'default' : 'primary'}
-        disabled={damaged}
-        title={
-          damaged
-            ? `${bay.name} is damaged — its function is offline until repaired.`
-            : `${functionLabel} — open the ${bay.name} rules`
-        }
-        onClick={() => detail.control.onClick?.()}
-      >
-        {functionLabel}
-      </Button>
-      <Button
-        size="sm"
-        variant={damaged ? 'primary' : 'ghost'}
-        disabled={!damaged || readOnly}
-        title={
-          damaged
-            ? repairShortfall > 0
-              ? `Costs ${BAY_REPAIR_COST} Scrap (Tech ${crawlerTl} or higher) — pool is ${repairShortfall} short; repairing anyway is the table's call.`
-              : `Costs ${BAY_REPAIR_COST} Scrap (Tech ${crawlerTl} or higher) from the pool.`
-            : `${bay.name} is intact — nothing to repair.`
-        }
-        onClick={() => onRepair(entry, index)}
-      >
-        Repair
-      </Button>
-    </>
-  )
+  // Damaged disables the function action and promotes Repair (design §4.4 /
+  // interaction pattern 8). Both ride the standard controls overlay — no footer.
+  const controls: ReferenceEntityControl[] = [
+    {
+      key: 'function',
+      label: functionLabel,
+      ariaLabel: functionLabel,
+      title: damaged
+        ? `${bay.name} is damaged — its function is offline until repaired.`
+        : `${functionLabel} — open the ${bay.name} rules`,
+      onClick: () => detail.control.onClick?.(),
+      variant: 'primary',
+      disabled: damaged,
+    },
+    {
+      key: 'repair',
+      label: 'Repair',
+      ariaLabel: 'Repair',
+      title: damaged
+        ? repairShortfall > 0
+          ? `Costs ${BAY_REPAIR_COST} Scrap (Tech ${crawlerTl} or higher) — pool is ${repairShortfall} short; repairing anyway is the table's call.`
+          : `Costs ${BAY_REPAIR_COST} Scrap (Tech ${crawlerTl} or higher) from the pool.`
+        : `${bay.name} is intact — nothing to repair.`,
+      onClick: () => onRepair(entry, index),
+      variant: 'danger',
+      disabled: !damaged || readOnly,
+    },
+  ]
 
   // The card renders WITHOUT the SRD npc block — the crew lead lives in the
   // expand inset instead (design §4.4); the rules text lives in the modal.
@@ -240,7 +234,7 @@ export function CrawlerBayCard({
         onStatusClick={readOnly ? undefined : toggleCondition}
         selections={selections}
         onSelectionChange={readOnly ? undefined : setSelections}
-        footActions={footActions}
+        controls={controls}
         footMeta={footMeta}
         expand={crew}
       />

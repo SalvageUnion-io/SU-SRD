@@ -30,6 +30,9 @@ export type ReferenceEntityControl = {
   onClick?: () => void
   /** Required for button controls (omit for the item variants above). */
   ariaLabel?: string
+  /** Tooltip text (the `title` attribute). Defaults to `ariaLabel` when unset —
+   * set it when you want a richer hover hint than the concise accessible name. */
+  title?: string
   icon?: (props: { className?: string }) => ReactNode
   variant?: ReferenceEntityControlVariant
   disabled?: boolean
