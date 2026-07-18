@@ -567,10 +567,8 @@ export function ReferenceEntityCard({
   // DAMAGED/DESTROYED (write layer): grey the whole tone. The header goes flat
   // grey #969696; sub-header + footer + frame use the darker grey shade.
   const isDown = !!damaged || !!destroyed || !!hostDown
-  // A mid-dark grey (not a light grey): the header carries a CREAM title, so the
-  // damaged/destroyed band must stay dark enough for that title to read.
-  const GREY_HEADER = '#6b6862'
-  const GREY_DEEP = accentDeepColor(undefined, GREY_HEADER) ?? '#4a4844'
+  const GREY_HEADER = '#969696'
+  const GREY_DEEP = accentDeepColor(undefined, GREY_HEADER) ?? '#5a5a5a'
   const ghost = isGhosted ? ghostActionTone(hostTone ?? 'var(--color-ink)') : undefined
   const darkTone = isDown
     ? GREY_DEEP
@@ -914,9 +912,8 @@ export function ReferenceEntityCard({
         // Fill the header's right side and wrap across the band (no narrow cap),
         // so the description occupies the space instead of leaving a big gap.
         'min-w-0 flex-1 text-right font-body italic leading-snug',
-        // Every header band (ghosted actions included) is now dark enough for
-        // cream text — the flavor hint rides it in paper, same as the title.
-        'text-paper',
+        // The light-faded action header → ink text; entity tones → paper.
+        isAction ? 'text-ink' : 'text-paper',
         compact ? 'text-sm' : 'text-base'
       )}
     >
@@ -942,12 +939,15 @@ export function ReferenceEntityCard({
   const statusNode: ReactNode = status ? (
     <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject ?? entityName} />
   ) : undefined
-  // The title sits directly on the header band (no ink name-tab block) and is
-  // always rendered CREAM (paper). Legibility is guaranteed on the BAND side
-  // instead: the derived tones (ghosted actions, damaged grey) are floored so no
-  // header band is ever light enough to swallow cream text (see ghostActionTone
-  // and GREY_HEADER below).
-  const titleTextClass = 'text-paper'
+  // Title colour by SIZE. The MAIN (full) card's title is always cream (paper).
+  // A COMPACT/nested title is contrast-aware: ink on the light bands (the
+  // light-faded ghosted actions, damaged grey, and pale domain/tech-level tones
+  // `onToneText` flags), cream on the dark ones (TL3-6 gear, navy actors).
+  const titleTextClass = compact
+    ? isDown || isGhosted
+      ? 'text-ink'
+      : tone.onToneText
+    : 'text-paper'
   const header = (
     <EntityCardHeader
       title={name}
