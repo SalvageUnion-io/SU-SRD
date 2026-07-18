@@ -64,9 +64,10 @@ MADR-style records of architecturally significant decisions. ADR-001–014 are
 **live in the code today**. ADR-015–020 are **Accepted** — the Dashboard play
 surface, **built** as the Play Cockpit (`components/play/`, routed at `/play/$id`).
 ADR-021 is the **governing** surface/mode taxonomy and ADR-022 its Change Log
-companion — a target the code is still moving toward. ADR-023–025 are
+companion — a target the code is still moving toward. ADR-023–026 are
 **Accepted**; ADR-024–025 (derived release changelogs + the ref surface gate)
-are being implemented together. Each says so in its Status.
+are being implemented together, and ADR-026 (entity card design rules) is
+**built**. Each says so in its Status.
 Read the matching ADR before proposing alternatives.
 
 | ADR                                                                  | Topic                                                                                                           |
@@ -95,8 +96,8 @@ Read the matching ADR before proposing alternatives.
 | [ADR-022](adrs/ADR-022-provenance-log-and-overrides.md)              | Per-entity **Change Log** (provenance, behind a menu) + non-destructive stat overrides (target)                 |
 | [ADR-023](adrs/ADR-023-drone-equipment-installed-loadout.md)         | Granted drone/companion equipment hosts a real installed Systems/Modules loadout (built)                        |
 | [ADR-024](adrs/ADR-024-derived-release-changelogs.md)                | Derived, per-app release changelogs (release-please) + on-site history; supersedes the web hand-changelog       |
-| [ADR-024](adrs/ADR-024-entity-card-design-rules.md)                  | **Entity card design rules** — one renderer (shim), choice/stat-atom/modified-stats/tech-level rules (built)    |
 | [ADR-025](adrs/ADR-025-reference-versioned-releases-surface-gate.md) | Versioned internal releases + public-surface (TS + schema) gate for the ref; partially supersedes ADR-014       |
+| [ADR-026](adrs/ADR-026-entity-card-design-rules.md)                  | **Entity card design rules** — one renderer (shim), choice/stat-atom/modified-stats/tech-level rules (built)    |
 
 > ADR-021 is the governing decision for rules enforcement and takes precedence
 > over prior ADRs where they conflict on _how hard a rule is enforced on which

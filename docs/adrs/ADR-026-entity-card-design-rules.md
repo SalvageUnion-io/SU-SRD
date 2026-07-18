@@ -1,4 +1,4 @@
-# ADR-024: Entity Card Design Rules (the single reference-entity renderer)
+# ADR-026: Entity Card Design Rules (the single reference-entity renderer)
 
 ## Status
 

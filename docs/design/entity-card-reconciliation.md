@@ -10,7 +10,7 @@ set, shared files). Supersedes the earlier `component-refresh-methodology.md` an
 > every app renders through the card (via the `ReferenceEntityDisplay` compat shim);
 > stories live in the canonical Ladle groups (`Compositions/Reference Entity *`,
 > `Atoms/Stat`). The **design rules** settled during this work are enshrined
-> in [ADR-024](../adrs/ADR-024-entity-card-design-rules.md). This doc is retained
+> in [ADR-026](../adrs/ADR-026-entity-card-design-rules.md). This doc is retained
 > for the reusable **methodology** (Part 1) and the historical record.
 
 ---
