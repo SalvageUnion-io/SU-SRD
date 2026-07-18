@@ -15,7 +15,7 @@
  */
 
 import { useState } from 'react'
-import { Stat, VitalGauge } from 'component-lib'
+import { EntityRow, Stat, VitalGauge } from 'component-lib'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
@@ -29,7 +29,7 @@ import { CrawlerSheet } from './CrawlerSheet'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { SheetHero } from './SheetHero'
-import { RailChip, RailEmpty } from './SheetRail'
+import { RailChip } from './SheetRail'
 import { MechRailStats, PilotRailStats, RailCta, bayStates, mechStatusPill } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
@@ -164,8 +164,10 @@ export function SheetCrawler({
           stats={<MechRailStats mech={composition.mech} />}
         />
       ) : (
-        <RailEmpty
-          tone="mech"
+        <EntityRow
+          empty
+          entityType="mech"
+          className="flex-[1_1_0%]"
           roleLabel="Docked Mech"
           message="No mech in the bay — dock one to repair, re-arm and track it from here."
           actions={editable ? <RailCta href="/mechs/new" label="+ Create" primary /> : undefined}
@@ -182,8 +184,10 @@ export function SheetCrawler({
           onUnassign={unassignLeadPilot}
         />
       ) : (
-        <RailEmpty
-          tone="pilot"
+        <EntityRow
+          empty
+          entityType="pilot"
+          className="flex-[1_1_0%]"
           roleLabel="Lead Pilot"
           message="No lead pilot set. Assign a crew member to speak for the crawler."
           actions={editable ? <RailCta href="/pilots/new" label="+ Create" primary /> : undefined}

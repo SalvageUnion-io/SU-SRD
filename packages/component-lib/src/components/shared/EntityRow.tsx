@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Bot, type LucideIcon, Trash2, UserRound, Warehouse } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { Btn } from '../chrome/Btn'
@@ -31,9 +31,12 @@ export type EntityRowStat = {
   value: string | number
 }
 
-type EntityRowProps = {
+/** The filled row: a linked player entity. */
+type FilledEntityRowProps = {
   /** Entity ontology driving the accent rail + tone wash. */
   entityType: EntityRowType
+  /** Filled is the default; omit or pass `false`. */
+  empty?: false
   /** Entity name rendered in the black pseudoheader name tab. */
   name: string
   /**
@@ -50,6 +53,30 @@ type EntityRowProps = {
   /** Fired when the ghost trash Delete button is pressed. */
   onDeleteClick: () => void
 }
+
+/**
+ * The EMPTY row: a dashed placeholder slot for an unfilled link (e.g. a pilot
+ * with no assigned mech). Keeps the ontology tone wash + a black role tab, over
+ * a helper message and optional create/link actions.
+ */
+type EmptyEntityRowProps = {
+  entityType: EntityRowType
+  empty: true
+  /** Black role tab kept even when empty, e.g. 'ASSIGNED MECH'. */
+  roleLabel: string
+  /** Helper message, e.g. 'No mech in the bay — dock one to track it here.' */
+  message: ReactNode
+  /** Override the default per-ontology missing-entity glyph (pilot → UserRound,
+   * mech → Bot, crawler → Warehouse, toned to the deep tone). */
+  glyph?: ReactNode
+  /** Optional inline mock control (e.g. a hand-set Crawler Level stepper). */
+  mock?: ReactNode
+  /** Optional create/link CTAs, stretched across the dashed foot. */
+  actions?: ReactNode
+  className?: string
+}
+
+type EntityRowProps = FilledEntityRowProps | EmptyEntityRowProps
 
 /**
  * Per-ontology tone pair (see `--color-sheet-*` in theme.css): `rail` is the
@@ -71,15 +98,57 @@ const TONE: Record<EntityRowType, { rail: string; wash: string }> = {
   },
 }
 
-export function EntityRow({
-  entityType,
-  name,
-  stats,
-  meta,
-  sheetHref,
-  onDeleteClick,
-}: EntityRowProps) {
-  const tone = TONE[entityType]
+/** Per-ontology "missing entity" glyph for the empty variant (decorative). */
+const EMPTY_GLYPH: Record<EntityRowType, LucideIcon> = {
+  pilot: UserRound,
+  mech: Bot,
+  crawler: Warehouse,
+}
+
+export function EntityRow(props: EntityRowProps) {
+  const tone = TONE[props.entityType]
+
+  // Empty variant — the dashed placeholder slot.
+  if (props.empty) {
+    const { roleLabel, message, glyph, mock, actions, className } = props
+    const DefaultGlyph = EMPTY_GLYPH[props.entityType]
+    return (
+      <div
+        className={cn(
+          'flex min-w-0 flex-col overflow-hidden rounded-card border-2 border-dashed border-ink',
+          className
+        )}
+        style={{ background: tone.wash }}
+      >
+        <span className="self-start bg-ink px-2 pb-0.5 pt-[3px] font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide text-paper">
+          {roleLabel}
+        </span>
+        <div className="flex flex-wrap items-center gap-3 px-2.5 py-2">
+          {glyph ?? (
+            <DefaultGlyph
+              aria-hidden="true"
+              className="size-6 shrink-0"
+              style={{ color: tone.rail }}
+            />
+          )}
+          {mock}
+          <p
+            className="m-0 min-w-[140px] flex-1 font-body text-note leading-snug"
+            style={{ color: tone.rail }}
+          >
+            {message}
+          </p>
+        </div>
+        {actions && (
+          <div className="mt-auto flex items-stretch gap-2 border-t-2 border-dashed border-ink px-2.5 py-1.5 *:flex-1">
+            {actions}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const { entityType, name, stats, meta, sheetHref, onDeleteClick } = props
   const frameStyle: CSSProperties = { background: tone.wash }
 
   return (

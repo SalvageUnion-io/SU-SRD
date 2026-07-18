@@ -10,7 +10,7 @@
  * `PilotSheet` as `linkedUnits`.
  */
 
-import { Pill, Stat } from 'component-lib'
+import { EntityRow, Pill, Stat } from 'component-lib'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
@@ -21,7 +21,7 @@ import type { LiveSheetStripItem } from './LiveSheet'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { PilotSheet } from './PilotSheet'
 import { SheetHero } from './SheetHero'
-import { RailChip, RailEmpty } from './SheetRail'
+import { RailChip } from './SheetRail'
 import { CrawlerRailStats, MechRailStats, RailCta, mechStatusPill } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
@@ -79,8 +79,10 @@ export function SheetPilot({
           onUnassign={unassign(mechLinkId)}
         />
       ) : (
-        <RailEmpty
-          tone="mech"
+        <EntityRow
+          empty
+          entityType="mech"
+          className="flex-[1_1_0%]"
           roleLabel="Assigned Mech"
           message="No mech assigned — build one to track its loadout and heat from here."
           actions={editable ? <RailCta href="/mechs/new" label="+ Create" primary /> : undefined}
@@ -97,8 +99,10 @@ export function SheetPilot({
           onUnassign={unassign(crawlerLinkId)}
         />
       ) : (
-        <RailEmpty
-          tone="crawler"
+        <EntityRow
+          empty
+          entityType="crawler"
+          className="flex-[1_1_0%]"
           roleLabel="Home Crawler"
           message="No crawler linked. Set the crawler level by hand until your union home is wired in."
           mock={

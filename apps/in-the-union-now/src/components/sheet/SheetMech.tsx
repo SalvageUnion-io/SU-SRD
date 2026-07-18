@@ -23,7 +23,8 @@ import type { LiveSheetStripItem } from './LiveSheet'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { MechSheet } from './MechSheet'
 import { SheetHero } from './SheetHero'
-import { RailChip, RailEmpty } from './SheetRail'
+import { EntityRow } from 'component-lib'
+import { RailChip } from './SheetRail'
 import { CrawlerRailStats, PilotRailStats, RailCta, mechStatusPill } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
@@ -91,8 +92,10 @@ export function SheetMech({
           onUnassign={unassignPilot}
         />
       ) : (
-        <RailEmpty
-          tone="pilot"
+        <EntityRow
+          empty
+          entityType="pilot"
+          className="flex-[1_1_0%]"
           roleLabel="Assigned Pilot"
           message="No pilot assigned. Link a pilot to speak for this machine."
           actions={
@@ -115,8 +118,10 @@ export function SheetMech({
           stats={<CrawlerRailStats crawler={composition.crawler} />}
         />
       ) : (
-        <RailEmpty
-          tone="crawler"
+        <EntityRow
+          empty
+          entityType="crawler"
+          className="flex-[1_1_0%]"
           roleLabel="Home Crawler"
           message="No crawler linked — the assigned pilot's home crawler appears here."
           actions={editable ? <RailCta href="/crawlers/new" label="+ Create" primary /> : undefined}

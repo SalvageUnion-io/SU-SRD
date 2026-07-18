@@ -11,14 +11,12 @@
  * and stats, never raw IDs [gap 10]). The whole card navigates ("Open sheet
  * →" foot); the optional '⇄ Swap' minibtn intercepts.
  *
- * RailEmpty: the same frame, dashed, with a pale tinted fill, a helper
- * message, create/link CTAs, and an optional mock control (e.g. the
- * hand-set Crawler Level stepper when no crawler is linked).
+ * The empty slot is the shared `EntityRow` `empty` variant (component-lib) —
+ * the sheets render it directly for unfilled links.
  */
 
 import type { MouseEvent, ReactNode } from 'react'
-import { Bot, ChevronRight, UserRound, Warehouse } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { MiniBtn, Pill } from 'component-lib'
 import type { PillTone } from 'component-lib'
 
@@ -30,25 +28,6 @@ const RAIL_BG: Record<SheetVariant, string> = {
   pilot: 'var(--color-pilot)',
   mech: 'var(--color-mech)',
   crawler: 'var(--color-crawler)',
-}
-
-const RAIL_EMPTY_BG: Record<SheetVariant, string> = {
-  pilot: 'oklch(from var(--color-pilot) 0.965 0.028 h)',
-  mech: 'oklch(from var(--color-mech) 0.965 0.028 h)',
-  crawler: 'oklch(from var(--color-crawler) 0.965 0.03 h)',
-}
-
-/** Entity-tone empty-slot glyphs (design review U-6) — decorative only. */
-const RAIL_EMPTY_ICON: Record<SheetVariant, LucideIcon> = {
-  pilot: UserRound,
-  mech: Bot,
-  crawler: Warehouse,
-}
-
-const RAIL_EMPTY_ICON_COLOR: Record<SheetVariant, string> = {
-  pilot: 'text-sheet-pilot-deep',
-  mech: 'text-sheet-mech-deep',
-  crawler: 'text-sheet-crawler-deep',
 }
 
 type RailChipProps = {
@@ -147,52 +126,5 @@ export function RailChip({
         </span>
       </span>
     </AppLink>
-  )
-}
-
-type RailEmptyProps = {
-  /** The MISSING entity's kind — tints the empty slot. */
-  tone: SheetVariant
-  /** Black role tab kept even when empty, e.g. 'ASSIGNED MECH'. */
-  roleLabel: string
-  /** Helper message, e.g. 'No mech in the bay — dock one to track it here.' */
-  message: string
-  /** Optional mock control (e.g. hand-set Crawler Level StatBlock stepper). */
-  mock?: ReactNode
-  /** Create/link CTAs, stretched across the foot. */
-  actions?: ReactNode
-  className?: string
-}
-
-export function RailEmpty({ tone, roleLabel, message, mock, actions, className }: RailEmptyProps) {
-  const Icon = RAIL_EMPTY_ICON[tone]
-  return (
-    <div
-      className={cn(
-        'flex min-w-0 flex-[1_1_0%] flex-col overflow-hidden rounded-[3px] border-2 border-dashed border-ink',
-        className
-      )}
-      style={{ background: RAIL_EMPTY_BG[tone] }}
-    >
-      <span className="self-start bg-ink px-2 pb-0.5 pt-[3px] font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide text-paper">
-        {roleLabel}
-      </span>
-      <div className="flex flex-wrap items-center gap-3 px-2.5 py-2">
-        {/* Missing-entity glyph in the entity's own tone (U-6, decorative). */}
-        <Icon aria-hidden="true" className={cn('size-6 shrink-0', RAIL_EMPTY_ICON_COLOR[tone])} />
-        {mock}
-        <p
-          className="m-0 min-w-[140px] flex-1 font-body text-note leading-snug"
-          style={{ color: 'var(--tone-deep)' }}
-        >
-          {message}
-        </p>
-      </div>
-      {actions && (
-        <div className="mt-auto flex items-stretch gap-2 border-t-2 border-dashed border-ink px-2.5 py-1.5 *:flex-1">
-          {actions}
-        </div>
-      )}
-    </div>
   )
 }

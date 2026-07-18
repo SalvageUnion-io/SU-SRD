@@ -61,3 +61,33 @@ export const Default: Story = () => (
     </ul>
   </div>
 )
+
+/**
+ * The `empty` variant — a dashed placeholder slot for an unfilled link. Keeps
+ * the ontology tone wash + a black role tab and the default per-ontology
+ * missing-entity glyph, over a helper message and optional create action.
+ */
+export const Empty: Story = () => (
+  <div className="flex max-w-md flex-col gap-2.5 bg-paper p-5">
+    <EntityRow
+      empty
+      entityType="mech"
+      roleLabel="Assigned Mech"
+      message="No mech assigned — build one to track its loadout and heat from here."
+      actions={
+        <a
+          href="#/mech/new"
+          className="rounded-card border-chrome border-ink bg-paper px-3 py-1 text-center font-body text-sm text-ink no-underline"
+        >
+          + Create
+        </a>
+      }
+    />
+    <EntityRow
+      empty
+      entityType="crawler"
+      roleLabel="Home Crawler"
+      message="No crawler linked — the assigned pilot's home crawler appears here."
+    />
+  </div>
+)
