@@ -16,7 +16,7 @@
 
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { Btn, Field, Input, ModalShell } from 'component-lib'
+import { Btn, Field, Input, ModalShell, Select } from 'component-lib'
 
 import { createBlank } from '../../lib/wizard/blankCreate'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
@@ -35,9 +35,6 @@ const KIND_LABEL: Record<BlankCreateKind, string> = {
   mech: 'Mech',
   crawler: 'Crawler',
 }
-
-const SELECT_CLASS =
-  'w-full min-h-11 rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
 type RefOption = { value: string; label: string }
 
@@ -170,11 +167,10 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
             label={kind === 'pilot' ? 'Class (optional)' : 'Chassis (optional)'}
             htmlFor={`blank-${kind}-pick`}
           >
-            <select
+            <Select
               id={`blank-${kind}-pick`}
               value={refPick}
               onChange={(e) => setRefPick(e.target.value)}
-              className={SELECT_CLASS}
             >
               <option value="">None — decide on the sheet</option>
               {pickOptions.map((option) => (
@@ -182,24 +178,23 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         )}
 
         {kind === 'crawler' && (
           <Field label="Tech Level" htmlFor="blank-crawler-tl">
-            <select
+            <Select
               id="blank-crawler-tl"
               value={String(techLevel)}
               onChange={(e) => setTechLevel(Number(e.target.value))}
-              className={SELECT_CLASS}
             >
               {tlOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         )}
 

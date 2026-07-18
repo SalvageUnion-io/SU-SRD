@@ -12,6 +12,7 @@
  * the chooser reads as a sibling surface, not a bolted-on screen.
  */
 
+import { ModeDoor } from 'component-lib'
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
 
@@ -47,21 +48,6 @@ const GUIDED_COPY: Record<BlankCreateKind, { body: string; cite: string }> = {
   },
 }
 
-/** Shared door frame (mockup `.door`) — the two variants restyle it below. */
-const DOOR_CLASS =
-  'relative min-h-[170px] cursor-pointer rounded-xl p-[22px] pb-5 pl-[26px] text-left transition-transform duration-[120ms] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/[0.22]'
-
-/** Black notched tab overhanging the door's left edge (mockup `.dtab`). */
-const DTAB_CLASS =
-  'absolute -left-3.5 top-[18px] grid h-12 w-11 place-items-center rounded-[2px] bg-ink font-cond text-[22px] font-bold text-paper shadow-[0_8px_14px_-8px_rgba(0,0,0,0.55)]'
-
-/** Condensed-caps door heading (mockup `.dhead`). */
-const DHEAD_CLASS =
-  'mb-1.5 ml-[34px] block font-cond text-[27px] font-bold uppercase leading-none tracking-caps-tight'
-
-const DBODY_CLASS = 'ml-[34px] block font-body text-[13px] leading-[1.55]'
-const DCITE_CLASS = 'ml-[34px] mt-2.5 block font-body text-[12.5px] font-bold'
-
 export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooserProps) {
   const label = KIND_LABEL[kind]
   const guided = GUIDED_COPY[kind]
@@ -87,44 +73,25 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
       <div className="mx-auto w-full max-w-4xl px-6 py-8 sm:px-8 sm:py-10">
         {/* The two doors (mockup `.choosegrid`). */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-5">
-          {/* GUIDED — primary: filled in the section tone, double ink ring. */}
-          <button
-            type="button"
-            onClick={onGuided}
-            className={cn(
-              DOOR_CLASS,
-              'shadow-[0_0_0_3px_var(--ground),0_0_0_7px_var(--color-ink),0_18px_30px_-14px_rgba(0,0,0,0.5)]'
-            )}
-            style={{ background: 'var(--tone)' }}
+          <ModeDoor
+            variant="guided"
+            tab="▶"
+            headline="Guided"
+            cite={guided.cite}
+            onSelect={onGuided}
           >
-            <span className={DTAB_CLASS} aria-hidden="true">
-              ▶
-            </span>
-            <span className={cn(DHEAD_CLASS, 'text-paper [text-shadow:0_1px_0_rgba(0,0,0,0.38)]')}>
-              Guided
-            </span>
-            <span className={cn(DBODY_CLASS, 'text-ink')}>{guided.body}</span>
-            <span className={cn(DCITE_CLASS, 'text-ink')}>{guided.cite}</span>
-          </button>
+            {guided.body}
+          </ModeDoor>
 
-          {/* BLANK — the escape hatch: dashed empty door on paper. */}
-          <button
-            type="button"
-            onClick={onBlank}
-            className={cn(
-              DOOR_CLASS,
-              'border-entity border-dashed border-ink/55 bg-paper text-ink shadow-[0_14px_26px_-14px_rgba(0,0,0,0.4)]'
-            )}
+          <ModeDoor
+            variant="blank"
+            tab="✎"
+            headline="Blank"
+            cite="For veterans, imports, and homebrew."
+            onSelect={onBlank}
           >
-            <span className={DTAB_CLASS} aria-hidden="true">
-              ✎
-            </span>
-            <span className={cn(DHEAD_CLASS, 'text-ink')}>Blank</span>
-            <span className={DBODY_CLASS}>
-              An empty sheet. No steps, no limits. Fill it in on the live sheet.
-            </span>
-            <span className={DCITE_CLASS}>For veterans, imports, and homebrew.</span>
-          </button>
+            An empty sheet. No steps, no limits. Fill it in on the live sheet.
+          </ModeDoor>
         </div>
 
         {/* Mech only: the third Blank-family door — Instantiate from Pattern
