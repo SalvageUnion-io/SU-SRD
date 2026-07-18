@@ -1,4 +1,3 @@
-import { cn } from '../../../utils/cn'
 import { Stat } from '../../shared/Stat'
 import type { StatItem } from '../../shared/statsBarTypes'
 
@@ -20,67 +19,90 @@ type EntityCardStatBoxProps = {
  * (the canonical stat/value primitive), just clustered and right-aligned. No
  * ad-hoc stat rendering happens here — this is composition, not a new atom.
  */
+/** Split a compact cluster past this many cells into two balanced, right-aligned
+ * rows (rather than one long line). 8 drone stats → 4 + 4. */
+const COMPACT_ROW_CAP = 4
+
 export function EntityCardStatBox({ stats, compact = false }: EntityCardStatBoxProps) {
   if (stats.length === 0) return null
 
-  // COMPACT header stats FLOW naturally — a left-aligned flex-wrap row that packs
-  // cells left-to-right and wraps only when it runs out of width (no rigid grid
-  // columns, so varying label widths never leave alignment gaps). The compact
-  // cluster sits full-width below the title, so it fills toward the RIGHT as it
-  // flows. NORMAL vertical boxes flex-wrap and right-align in the header row.
-
-  return (
-    <div
-      className={cn(
-        'flex flex-wrap gap-1',
-        compact ? 'w-full items-center justify-start' : 'shrink-0 items-start justify-end'
-      )}
-    >
-      {stats.map((stat) => {
-        const editMode = (stat.canEdit ?? true) ? 'edit' : 'read'
-        // COMPACT — the horizontal shortform cell; an editable stat grows the
-        // horizontal +/- stepper column (the "compact stat with steppers").
-        if (compact) {
-          return (
-            <Stat
-              key={stat.key}
-              orientation="horizontal"
-              label={stat.label}
-              value={stat.value}
-              bottomLabel={stat.bottomLabel}
-              compact
-              state={stat.state}
-              onChange={stat.onChange}
-              mode={stat.onChange ? editMode : 'read'}
-              max={stat.outOfMax}
-            />
-          )
+  const renderStat = (stat: StatItem) => {
+    const editMode = (stat.canEdit ?? true) ? 'edit' : 'read'
+    // COMPACT — the horizontal shortform cell; an editable stat grows the
+    // horizontal +/- stepper column (the "compact stat with steppers").
+    if (compact) {
+      return (
+        <Stat
+          key={stat.key}
+          orientation="horizontal"
+          label={stat.label}
+          value={stat.value}
+          bottomLabel={stat.bottomLabel}
+          compact
+          state={stat.state}
+          onChange={stat.onChange}
+          mode={stat.onChange ? editMode : 'read'}
+          max={stat.outOfMax}
+        />
+      )
+    }
+    // NORMAL — the vertical value box; editable grows the box's stepper column.
+    return stat.onChange ? (
+      <Stat
+        key={stat.key}
+        label={stat.label}
+        value={
+          typeof stat.value === 'number' ? stat.value : Number.parseInt(String(stat.value), 10)
         }
-        // NORMAL — the vertical value box; editable grows the box's stepper column.
-        return stat.onChange ? (
-          <Stat
-            key={stat.key}
-            label={stat.label}
-            value={
-              typeof stat.value === 'number' ? stat.value : Number.parseInt(String(stat.value), 10)
-            }
-            max={stat.outOfMax}
-            bottomLabel={stat.bottomLabel}
-            state={stat.state}
-            mode={editMode}
-            onChange={stat.onChange}
-          />
-        ) : (
-          <Stat
-            key={stat.key}
-            label={stat.label}
-            value={stat.value}
-            bottomLabel={stat.bottomLabel}
-            state={stat.state}
-            hoverText={stat.hoverText}
-          />
-        )
-      })}
+        max={stat.outOfMax}
+        bottomLabel={stat.bottomLabel}
+        state={stat.state}
+        mode={editMode}
+        onChange={stat.onChange}
+      />
+    ) : (
+      <Stat
+        key={stat.key}
+        label={stat.label}
+        value={stat.value}
+        bottomLabel={stat.bottomLabel}
+        state={stat.state}
+        hoverText={stat.hoverText}
+      />
+    )
+  }
+
+  // COMPACT header stats are RIGHT-aligned horizontal cells. A long cluster
+  // (> COMPACT_ROW_CAP) splits into two balanced rows so the header never runs
+  // one very long line; each row still flex-wraps further on a narrow screen.
+  if (compact) {
+    if (stats.length > COMPACT_ROW_CAP) {
+      const half = Math.ceil(stats.length / 2)
+      const rows = [stats.slice(0, half), stats.slice(half)]
+      return (
+        <div className="flex w-full flex-col items-end gap-1">
+          {rows.map((row) => (
+            <div
+              key={row.map((s) => s.key).join('|')}
+              className="flex flex-wrap items-center justify-end gap-1"
+            >
+              {row.map(renderStat)}
+            </div>
+          ))}
+        </div>
+      )
+    }
+    return (
+      <div className="flex w-full flex-wrap items-center justify-end gap-1">
+        {stats.map(renderStat)}
+      </div>
+    )
+  }
+
+  // NORMAL — vertical value boxes flex-wrap and right-align in the header row.
+  return (
+    <div className="flex shrink-0 flex-wrap items-start justify-end gap-1">
+      {stats.map(renderStat)}
     </div>
   )
 }

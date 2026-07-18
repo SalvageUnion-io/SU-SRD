@@ -119,21 +119,26 @@ export function resolveDomainTone(
 }
 
 /**
- * Ghosted action bands (D8): desaturate + lighten the HOST (summoning parent)
- * entity's tone toward a warm grey, so a nested action reads as a faded relative
- * of the entity that owns it — same colour family, clearly secondary. The card
- * and the `ActionDirections` brainstorm share this ONE implementation. `hostBase`
- * is the parent's tone as a resolvable CSS colour (`var(--color-…)` / rgb()).
+ * Ghosted action bands (D8): desaturate the HOST (summoning parent) entity's tone
+ * toward a warm DARK, so a nested action reads as a faded relative of the entity
+ * that owns it — same colour family, clearly secondary. Crucially the fade goes
+ * toward dark, NOT toward cream: the header band carries a CREAM title, so it must
+ * never lighten past the point where that title stops reading. The card and the
+ * `ActionDirections` brainstorm share this ONE implementation. `hostBase` is the
+ * parent's tone as a resolvable CSS colour (`var(--color-…)` / rgb()).
  */
 export function ghostActionTone(hostBase: string): {
   header: string
   sub: string
   frame: string
 } {
+  // Warm near-ink the host fades toward — keeps the band dark enough for cream
+  // text across every host tone (light hosts included).
+  const GHOST_DARK = 'rgb(52, 49, 44)'
   return {
-    header: `color-mix(in srgb, ${hostBase} 32%, rgb(233, 230, 222))`,
-    sub: `color-mix(in srgb, ${hostBase} 46%, rgb(233, 230, 222))`,
-    frame: `color-mix(in srgb, ${hostBase} 55%, rgb(184, 178, 165))`,
+    header: `color-mix(in srgb, ${hostBase} 48%, ${GHOST_DARK})`,
+    sub: `color-mix(in srgb, ${hostBase} 34%, ${GHOST_DARK})`,
+    frame: `color-mix(in srgb, ${hostBase} 62%, ${GHOST_DARK})`,
   }
 }
 
