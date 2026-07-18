@@ -1,6 +1,13 @@
 import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
-import { EmptyState, MasonryColumns, OptRow, ReferenceEntityDisplay, TreeSep } from 'component-lib'
+import {
+  EmptyState,
+  MasonryColumns,
+  OptRow,
+  Panel,
+  ReferenceEntityDisplay,
+  TreeSep,
+} from 'component-lib'
 
 type CrawlerTypeOptionListProps = {
   types: SURefCrawler[]
@@ -117,14 +124,14 @@ export function CrawlerTypeSelectStep({
           <div className="max-w-3xl space-y-3">
             <ReferenceEntityDisplay data={selected as unknown as SURefEntity} />
             {isAugmented && (
-              <p className="m-0 rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink">
+              <Panel className="px-3 py-2.5 font-body text-sm text-ink">
                 <span className="font-cond font-bold uppercase tracking-caps">
                   Augmented bonus —{' '}
                 </span>
                 every Pilot gains <strong>+1 Training Point</strong>, spendable on the{' '}
                 <strong>Augment ability tree only</strong>. Apply it on each Pilot&rsquo;s sheet
                 yourself — the wizard never writes to other characters.
-              </p>
+              </Panel>
             )}
           </div>
         </>

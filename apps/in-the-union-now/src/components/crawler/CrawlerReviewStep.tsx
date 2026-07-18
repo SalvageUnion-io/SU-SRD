@@ -5,9 +5,7 @@ import type {
   SURefSystem,
 } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
-import { ReferenceEntityDisplay } from 'component-lib'
-import { LAYOUT } from '../../lib/layout'
-import { cn } from '../../lib/utils'
+import { KvRow, Panel, ReferenceEntityDisplay } from 'component-lib'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
 
@@ -22,24 +20,6 @@ type CrawlerReviewStepProps = {
   /** Number of SRD bays the crawler ships with (seeded automatically). */
   bayCount: number
   submitError: string | null
-}
-
-function KvRow({ label, value }: { label: string; value: string | null }) {
-  return (
-    <div className="flex gap-4 border-b border-wk-bg-2 py-2.5 last:border-0">
-      <span
-        className={cn(
-          LAYOUT.reviewLabelRail,
-          'shrink-0 font-cond text-xs font-bold uppercase tracking-widest text-wk-muted'
-        )}
-      >
-        {label}
-      </span>
-      <span className={value ? 'font-body text-sm text-ink' : 'text-rust'}>
-        {value ?? 'required'}
-      </span>
-    </div>
-  )
 }
 
 /**
@@ -100,7 +80,7 @@ export function CrawlerReviewStep({
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1fr]">
       {/* kv-panel */}
       <div className="space-y-3 self-start">
-        <div className="rounded-[3px] border-chrome border-ink bg-paper p-4 text-sm">
+        <Panel className="p-4 text-sm">
           {rows.map(([k, v]) => (
             <KvRow key={k} label={k} value={v} />
           ))}
@@ -109,13 +89,13 @@ export function CrawlerReviewStep({
               {submitError}
             </p>
           )}
-        </div>
+        </Panel>
         {isAugmented && (
-          <p className="m-0 rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink">
+          <Panel className="px-3 py-2.5 font-body text-sm text-ink">
             <span className="font-cond font-bold uppercase tracking-caps">Reminder — </span>
             every Pilot gains <strong>+1 Training Point</strong> (Augment ability tree only). Apply
             it on each Pilot&rsquo;s sheet yourself.
-          </p>
+          </Panel>
         )}
       </div>
 

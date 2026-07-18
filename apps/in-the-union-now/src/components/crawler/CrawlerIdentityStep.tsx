@@ -1,4 +1,4 @@
-import { Btn, Field, Input } from 'component-lib'
+import { Btn, Field, Input, Panel, Slab } from 'component-lib'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
 import { IdentityField } from '../sheet/IdentityField'
 import { rollCrawlerName } from './crawlerRollTables'
@@ -66,11 +66,9 @@ export function CrawlerIdentityStep({
         placeholder="What the crawler is, its build and history."
       />
 
-      <section className="space-y-4 rounded-[3px] border-chrome border-wk-faint p-4">
+      <Panel soft className="space-y-4 p-4">
         <header>
-          <h2 className="m-0 font-cond text-sm font-bold uppercase tracking-widest text-ink">
-            Scrap Pool
-          </h2>
+          <Slab label="Scrap Pool" />
           <p className="mt-0.5 font-body text-xs text-wk-muted">
             The group&rsquo;s banked Scrap, bucketed by tech level — including whatever your Pilots
             didn&rsquo;t spend crafting their Mechs. Optional; leave at 0 for a fresh start.
@@ -100,7 +98,7 @@ export function CrawlerIdentityStep({
             )
           })}
         </div>
-      </section>
+      </Panel>
     </div>
   )
 }
