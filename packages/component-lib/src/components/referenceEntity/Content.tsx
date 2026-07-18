@@ -7,7 +7,6 @@ import { ActivationCostBox } from '../shared/ActivationCostBox'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 import { cn } from '../../utils/cn'
 import { Slab } from '../chrome/Slab'
-import { StaticChoiceCard } from './choiceCard/StaticChoiceCard'
 
 /**
  * A single `datavalues` item — rendered as a horizontal Stat chip (the one
@@ -94,8 +93,8 @@ export function Content({
     return null
   }
 
-  // borderColor now only colours the list-item bullet square (see ContentBlock,
-  // ~line 217); the source-texture treatment that once bordered each section is gone.
+  // borderColor now only gates section grouping (below); the source-texture
+  // treatment that once bordered each section — and the list-item frame — are gone.
   const borderColor = borderColorFromHeaderBg(headerBg, headerBgColor)
 
   // Section grouping (heading/datavalues blocks start a new section with top spacing)
@@ -144,7 +143,6 @@ export function Content({
               fontSize={fontSize}
               compact={compact}
               chassisName={chassisName}
-              borderColor={borderColor}
             />
           ))
         }
@@ -185,7 +183,6 @@ export function Content({
                     fontSize={fontSize}
                     compact={compact}
                     chassisName={chassisName}
-                    borderColor={borderColor}
                   />
                 ))}
               </div>
@@ -202,13 +199,11 @@ function ContentBlock({
   fontSize,
   compact,
   chassisName,
-  borderColor,
 }: {
   block: SURefObjectContentBlock
   fontSize: string
   compact: boolean
   chassisName?: string
-  borderColor?: string
 }) {
   const type = block.type || 'paragraph'
   const blockValue = block.value
@@ -254,18 +249,24 @@ function ContentBlock({
     }
 
     case 'list-item': {
-      // List items render as display-only choice cards: a coloured frame over a
-      // white body. Labelled items (e.g. NPC motivations) lead with the black-stamp
-      // title; unlabelled bullets (e.g. "scour the wastelands for one of the
-      // following" options) are just the framed white body.
+      // A plain hanging `- ` list item — no bordered frame. Labelled items (e.g.
+      // NPC motivations) lead with a bold label; unlabelled bullets (e.g. "one of
+      // the following" effect options) are just the dash + body. The flex + gap
+      // gives a hanging indent so wrapped lines align under the text, not the dash.
       return (
-        <div className="mb-2">
-          <StaticChoiceCard
-            label={block.label ? String(block.label) : undefined}
-            description={typeof stringValue === 'string' ? stringValue : undefined}
-            compact={compact}
-            parentHeaderBgColor={borderColor}
-          />
+        <div className={cn('mb-1 flex gap-2', fontSize)}>
+          <span aria-hidden className="select-none">
+            -
+          </span>
+          <Text
+            variant="body"
+            as="div"
+            className={cn('flex-1', fontSize)}
+            style={{ overflowWrap: 'break-word' }}
+          >
+            {block.label ? <span className="font-bold">{String(block.label)}: </span> : null}
+            {parsedValue}
+          </Text>
         </div>
       )
     }
