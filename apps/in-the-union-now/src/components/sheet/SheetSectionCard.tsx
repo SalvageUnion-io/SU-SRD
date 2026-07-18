@@ -21,13 +21,9 @@
  */
 
 import type { ReactNode } from 'react'
-import { DisplayCard } from 'component-lib'
+import { Badge, DisplayCard } from 'component-lib'
 
 import { cn } from '../../lib/utils'
-
-/** Black inline stamp (poster `.dcard-head .title .stamp`). Shared with SectionChead. */
-const CARD_TITLE_STAMP =
-  'box-decoration-clone inline bg-ink px-2 pb-[3px] pt-[2px] font-cond text-sm font-bold uppercase leading-relaxed tracking-caps text-paper'
 
 type SheetSectionCardProps = {
   /** Section title — rendered as the black stamp in the header's left group. */
@@ -74,7 +70,9 @@ export function SheetSectionCard({
       headerContent={
         <>
           <div className="flex min-w-0 items-center gap-2">
-            <span className={CARD_TITLE_STAMP}>{title}</span>
+            <Badge shape="stamp" size="lg">
+              {title}
+            </Badge>
             {count}
           </div>
           {controls && <div className="ml-auto flex items-center gap-2">{controls}</div>}

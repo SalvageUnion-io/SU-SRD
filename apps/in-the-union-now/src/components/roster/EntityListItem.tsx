@@ -18,7 +18,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import { Trash2 } from 'lucide-react'
-import { Btn, btnVariants } from 'component-lib'
+import { Badge, Btn, btnVariants } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
@@ -99,9 +99,9 @@ export function EntityListItem({
         <div className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5">
           <div className="min-w-0 flex-1">
             {/* Black pseudoheader name — mirrors the reference card's title box */}
-            <span className="inline-block max-w-full truncate align-middle rounded-[1px] bg-ink px-1.5 py-0.5 font-cond text-[15px] font-bold uppercase leading-tight tracking-[0.02em] text-paper">
+            <Badge shape="stamp" size="lg" className="block max-w-full truncate align-middle">
               {name}
-            </span>
+            </Badge>
             {meta && <div className="mt-1.5 truncate font-body text-xs text-wk-muted">{meta}</div>}
           </div>
 

@@ -30,7 +30,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { Pill, Stat } from 'component-lib'
+import { Badge, Pill, Stat } from 'component-lib'
 import type { PillTone, StatTone } from 'component-lib'
 
 import { cn } from '../../lib/utils'
@@ -137,10 +137,6 @@ function useCondensed(target: RefObject<HTMLElement | null>, enabled: boolean): 
 const SEGMENT_BTN_CLASS =
   'inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-[3px] border-chrome px-[11px] py-[6px] font-body text-xs font-medium tracking-[0.01em] no-underline transition-colors duration-[120ms]'
 
-/** App-bar name stamp (poster `.barname .stamp`): black-on-ink, ~15px. */
-const BARNAME_STAMP_CLASS =
-  'block max-w-full truncate bg-ink px-2 pb-[3px] pt-[2px] font-cond text-[15px] font-bold uppercase leading-[1.5] tracking-[0.045em] text-paper'
-
 export function LiveSheet({
   variant,
   name,
@@ -217,7 +213,9 @@ export function LiveSheet({
                 : 'pointer-events-none translate-y-[5px] opacity-0'
             )}
           >
-            <span className={BARNAME_STAMP_CLASS}>{name}</span>
+            <Badge shape="stamp" size="lg" className="block max-w-full truncate">
+              {name}
+            </Badge>
             {pill && <Pill tone={pill.tone}>{pill.label}</Pill>}
             {stripItems.map((item) => (
               <Stat

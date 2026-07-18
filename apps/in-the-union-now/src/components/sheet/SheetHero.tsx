@@ -15,7 +15,7 @@
  */
 
 import type { ReactNode, Ref } from 'react'
-import { Stat } from 'component-lib'
+import { Badge, Stat } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 
@@ -78,10 +78,10 @@ export function SheetHero({
       className={cn('relative overflow-hidden rounded-[3px] border-entity border-ink', className)}
       style={{ background: 'var(--tone)' }}
     >
-      {/* Category tab — overhangs the top border like .ec__cat */}
-      <span className="absolute -top-px left-[18px] bg-ink px-[7px] pb-px pt-[2px] font-cond text-badge font-semibold uppercase leading-none tracking-caps-snug text-paper">
+      {/* Category tab — rides the top border like .ec__cat (StampSeam) */}
+      <Badge shape="stamp" size="sm" seam className="left-[18px]">
         {cat}
-      </span>
+      </Badge>
 
       {/* Band — poster top region: name row, then IDENTITY (left) vs VITALS
           (right). Collapses to a single-column stack on mobile in the poster's
