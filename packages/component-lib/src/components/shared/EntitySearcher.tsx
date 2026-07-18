@@ -89,20 +89,11 @@ type EntitySearcherProps = {
   chosenLabel?: string
   /** Copy shown when nothing matches the filters. */
   emptyMessage?: string
-  /**
-   * New-paradigm layout: the searcher becomes a self-contained `DisplayCard`
-   * — search in the header (beside a close badge), all filters in the
-   * sub-header band, the pool filling a padded, internally-scrolling body, and
-   * the selection "Results" box pinned floating in the bottom-right corner
-   * (above the content, never scrolling). Used by the EntityChoice (Catalog)
-   * modal via a bare `ModalShell`; the wizard / sheet pickers keep the side rail.
-   */
-  resultsFloating?: boolean
-  /** Floating layout only: the title rendered in the DisplayCard header. */
+  /** The title rendered in the searcher's DisplayCard header. */
   title?: string
-  /** Floating layout only: close handler — renders the header's close badge. */
+  /** Close handler — renders the header's close badge. */
   onClose?: () => void
-  /** Floating layout only: header tone background class (default `bg-su-orange`). */
+  /** Header tone background class (default `bg-su-orange`). */
   headerBg?: string
 }
 
@@ -137,7 +128,6 @@ export function EntitySearcher({
   railName,
   chosenLabel = 'Selected',
   emptyMessage = 'Nothing found.',
-  resultsFloating = false,
   title,
   onClose,
   headerBg = 'bg-su-orange',
@@ -260,16 +250,9 @@ export function EntitySearcher({
     setter(next)
   }
 
-  const anyFacet = showTl || showTraits || showCat || showStatus
-
-  // ---- Shared pieces, placed differently per layout ----
+  // ---- Sub-parts of the searcher DisplayCard ----
   const searchInput = (
-    <label
-      className={cn(
-        'flex items-center gap-2 rounded-[4px] border-chrome border-ink bg-paper px-3 py-2 focus-within:ring-[3px] focus-within:ring-rust/[0.22]',
-        resultsFloating ? 'w-full' : 'min-w-[240px] flex-1'
-      )}
-    >
+    <label className="flex w-full items-center gap-2 rounded-[4px] border-chrome border-ink bg-paper px-3 py-2 focus-within:ring-[3px] focus-within:ring-rust/[0.22]">
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="opacity-70">
         <circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" strokeWidth="2" />
         <line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" strokeWidth="2" />
@@ -296,7 +279,7 @@ export function EntitySearcher({
   // Facet rows as individual nodes so both layouts can place them (the floating
   // sub-header spaces the search opposite the "Show" row).
   const tlRow = showTl ? (
-    <FacetRow label="Tech level" onDark={resultsFloating}>
+    <FacetRow label="Tech level" onDark>
       {tlOptions.map((tl) => (
         <FilterChip
           key={String(tl)}
@@ -310,7 +293,7 @@ export function EntitySearcher({
   ) : null
   const catRow =
     showCat && facets?.category ? (
-      <FacetRow label={facets.category.label} onDark={resultsFloating}>
+      <FacetRow label={facets.category.label} onDark>
         {catOptions.map((c) => (
           <FilterChip
             key={c}
@@ -322,7 +305,7 @@ export function EntitySearcher({
       </FacetRow>
     ) : null
   const traitsRow = showTraits ? (
-    <FacetRow label="Traits" onDark={resultsFloating}>
+    <FacetRow label="Traits" onDark>
       {traitOptions.map((t) => (
         <FilterChip
           key={t}
@@ -334,7 +317,7 @@ export function EntitySearcher({
     </FacetRow>
   ) : null
   const showRow = showStatus ? (
-    <FacetRow label="Show" onDark={resultsFloating}>
+    <FacetRow label="Show" onDark>
       {(
         [
           ['all', 'All'],
@@ -352,17 +335,8 @@ export function EntitySearcher({
     </FacetRow>
   ) : null
 
-  const facetRows = anyFacet ? (
-    <div className="flex w-full flex-col gap-2">
-      {tlRow}
-      {catRow}
-      {traitsRow}
-      {showRow}
-    </div>
-  ) : null
-
-  // Floating sub-header: the facet rows, with the search field on the final row
-  // spaced OPPOSITE the "Show" facet.
+  // Sub-header: the facet rows, with the search field on the final row spaced
+  // OPPOSITE the "Show" facet.
   const floatingSubHeader = (
     <div className="flex w-full flex-col gap-2">
       {tlRow}
@@ -411,88 +385,59 @@ export function EntitySearcher({
     </div>
   )
 
-  // ===== Floating (EntityChoice / Catalog modal) layout =====
-  // A self-contained DisplayCard: search + close badge in the header, all
-  // filters in the sub-header band, the pool filling a padded internally-
+  // A self-contained DisplayCard: title + close badge in the header, search +
+  // all filters in the sub-header band, the pool filling a padded internally-
   // scrolling body, and the "Results" box pinned floating bottom-right.
-  if (resultsFloating) {
-    return (
-      <div className="relative">
-        <DisplayCard
-          headerBg={headerBg}
-          bodyPadding="p-0"
-          headerContent={
-            <div className="flex w-full items-center gap-3">
-              <span className="min-w-0 flex-1 truncate font-cond text-lg font-bold uppercase leading-none tracking-caps-tight text-paper">
-                {title}
-              </span>
-              {onClose && (
-                <button
-                  type="button"
-                  onClick={onClose}
-                  aria-label="Close"
-                  className="inline-flex size-8 shrink-0 items-center justify-center rounded-badge border-chrome border-ink bg-paper font-cond text-base font-bold leading-none text-ink transition-colors hover:bg-wk-bg-2"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          }
-          subHeader={floatingSubHeader}
-        >
-          {/* Internally-scrolling body; extra bottom padding clears the pinned
-              Results box so the last rows are never hidden beneath it. */}
-          <div className="max-h-[min(62vh,640px)] overflow-y-auto p-4 pb-28">
-            <div className="mb-3">{summaryNode}</div>
-            {poolNode}
-          </div>
-        </DisplayCard>
-
-        {/* Pinned floating "Results" box — absolute to the card frame (NOT the
-            scrolling body), so it stays put in the bottom-right above content.
-            The wrapper is click-through; only the box captures pointer events. */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-end p-4">
-          <div className="pointer-events-auto w-[360px] max-w-[calc(100%-2rem)]">
-            <SelectionRail
-              name={railName}
-              chosenLabel={chosenLabel}
-              count={selectedCount}
-              schema={schema}
-              selected={selected}
-              budget={budget}
-              mode={mode}
-              onToggle={onToggle}
-              onRemove={onRemove}
-              className="max-h-[45vh] overflow-y-auto shadow-[0_6px_24px_rgba(40,32,25,0.28)]"
-            />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // ===== Default (wizard / sheet picker) layout — pool + fixed side rail =====
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-3">
-        {searchInput}
-        {summaryNode}
-      </div>
-      {facetRows}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
-        {poolNode}
-        <SelectionRail
-          name={railName}
-          chosenLabel={chosenLabel}
-          count={selectedCount}
-          schema={schema}
-          selected={selected}
-          budget={budget}
-          mode={mode}
-          onToggle={onToggle}
-          onRemove={onRemove}
-          className="lg:sticky lg:top-2"
-        />
+    <div className="relative">
+      <DisplayCard
+        headerBg={headerBg}
+        bodyPadding="p-0"
+        headerContent={
+          <div className="flex w-full items-center gap-3">
+            <span className="min-w-0 flex-1 truncate font-cond text-lg font-bold uppercase leading-none tracking-caps-tight text-paper">
+              {title}
+            </span>
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close"
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-badge border-chrome border-ink bg-paper font-cond text-base font-bold leading-none text-ink transition-colors hover:bg-wk-bg-2"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        }
+        subHeader={floatingSubHeader}
+      >
+        {/* Internally-scrolling body; extra bottom padding clears the pinned
+            Results box so the last rows are never hidden beneath it. */}
+        <div className="max-h-[min(62vh,640px)] overflow-y-auto p-4 pb-28">
+          <div className="mb-3">{summaryNode}</div>
+          {poolNode}
+        </div>
+      </DisplayCard>
+
+      {/* Pinned floating "Results" box — absolute to the card frame (NOT the
+          scrolling body), so it stays put in the bottom-right above content.
+          The wrapper is click-through; only the box captures pointer events. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-end p-4">
+        <div className="pointer-events-auto w-[360px] max-w-[calc(100%-2rem)]">
+          <SelectionRail
+            name={railName}
+            chosenLabel={chosenLabel}
+            count={selectedCount}
+            schema={schema}
+            selected={selected}
+            budget={budget}
+            mode={mode}
+            onToggle={onToggle}
+            onRemove={onRemove}
+            className="max-h-[45vh] overflow-y-auto shadow-[0_6px_24px_rgba(40,32,25,0.28)]"
+          />
+        </div>
       </div>
     </div>
   )

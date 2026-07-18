@@ -64,7 +64,6 @@ export function CatalogChoiceModal({
         filter={(item) => eligibleIds.has(item.id)}
         chosenLabel="Chosen"
         emptyMessage="No matching entities."
-        resultsFloating
         title={choice.name}
         onClose={onClose}
       />

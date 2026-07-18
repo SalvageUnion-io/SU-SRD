@@ -105,7 +105,6 @@ export function CrawlerSystemsEditModal({
           used: capacity.weaponSystemsUsed,
           max: capacity.weaponSystemsMax,
         }}
-        resultsFloating
         title={`Edit Weapons Systems · Tech ${tl ?? '—'} and below`}
         onClose={onClose}
       />

@@ -20,39 +20,22 @@ export default {
   title: 'Legacy/Entity Searcher',
 }
 
+/**
+ * EntitySearcher is a self-contained DisplayCard: title + close badge in the
+ * header, search + filters in the sub-header band, the pool filling a padded
+ * internally-scrolling body, and the "Results" box pinned floating bottom-right.
+ * This is the one layout — the Catalog modal and every sheet picker use it (in a
+ * bare ModalShell).
+ */
 export const Default: Story = () => {
   const [selected, setSelected] = useState<string[]>([])
   const toggle = (ref: string) =>
     setSelected((s) => (s.includes(ref) ? s.filter((r) => r !== ref) : [...s, ref]))
   return (
     <div className="flex flex-col gap-3">
-      <Caption>EntitySearcher — the shared equipment picker (search + facets + rail).</Caption>
-      <EntitySearcher
-        schema="equipment"
-        selected={selected}
-        onToggle={toggle}
-        chosenLabel="Added"
-      />
-    </div>
-  )
-}
-
-/**
- * The new EntityChoice paradigm (`resultsFloating`): a self-contained DisplayCard
- * — search + close badge in the header, filters in the sub-header band, the pool
- * filling a padded internally-scrolling body, and the "Results" box pinned
- * floating bottom-right. This is the layout the CatalogChoiceModal now uses (in a
- * bare ModalShell).
- */
-export const Floating: Story = () => {
-  const [selected, setSelected] = useState<string[]>([])
-  const toggle = (ref: string) =>
-    setSelected((s) => (s.includes(ref) ? s.filter((r) => r !== ref) : [...s, ref]))
-  return (
-    <div className="flex flex-col gap-3">
       <Caption>
-        resultsFloating — search in the header, filters in the sub-header, pool fills the body, the
-        Results box floats pinned bottom-right.
+        Search + filters in the sub-header, pool fills the body, the Results box floats pinned
+        bottom-right.
       </Caption>
       <div className="mx-auto w-full max-w-5xl">
         <EntitySearcher
@@ -60,7 +43,6 @@ export const Floating: Story = () => {
           selected={selected}
           onToggle={toggle}
           chosenLabel="Chosen"
-          resultsFloating
           title="Choose Equipment"
           onClose={() => {}}
         />

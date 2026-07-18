@@ -353,9 +353,9 @@ type SheetPickerModalProps = {
   footer?: ReactNode
   /**
    * The searcher-picker layout: render a BARE ModalShell and hand the single
-   * `EntitySearcher` child its own frame by injecting `resultsFloating` + this
-   * modal's `title`/`onClose`. (The default framed layout stays for the
-   * master-detail single-select pickers that pass a `footer`.)
+   * `EntitySearcher` child its own frame by injecting this modal's
+   * `title`/`onClose`. (The default framed layout stays for the master-detail
+   * single-select pickers that pass a `footer`.)
    */
   floating?: boolean
   children: ReactNode
@@ -378,17 +378,13 @@ export function SheetPickerModal({
 }: SheetPickerModalProps) {
   // Floating searcher-picker: a BARE ModalShell; the child EntitySearcher owns
   // the whole frame (header + search + close + internal scroll + pinned rail).
-  // Inject this modal's title/onClose + resultsFloating onto that single child.
+  // Inject this modal's title/onClose onto that single child.
   if (floating) {
     const searcher = isValidElement(children)
-      ? cloneElement(
-          children as ReactElement<{
-            resultsFloating?: boolean
-            title?: string
-            onClose?: () => void
-          }>,
-          { resultsFloating: true, title, onClose }
-        )
+      ? cloneElement(children as ReactElement<{ title?: string; onClose?: () => void }>, {
+          title,
+          onClose,
+        })
       : children
     return (
       <ModalShell
