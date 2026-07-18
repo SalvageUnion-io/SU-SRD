@@ -1,71 +1,9 @@
+import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { MiniBtn, Panel, ReferenceEntityDisplay, statBlockRowStarts } from 'component-lib'
+import { MiniBtn, Panel, ReferenceEntityDisplay, VitalGauge } from 'component-lib'
 import { cn } from '../../lib/utils'
 import { matchesRef } from '../../lib/rules/resolveRefs'
-
-type BudgetTrackProps = {
-  /** Track label, e.g. 'SYSTEM SLOTS', 'ENERGY'. */
-  label: string
-  value: number
-  max: number
-  /** 'ap' renders rust pips (ENERGY); default ink. Over-budget pips go red. */
-  tone?: 'default' | 'ap'
-}
-
-/**
- * Pip budget track for the install-step Loadout panel (design §3.2 mech):
- * '{LABEL} · n / max' over a ≤6-per-row pip strip. The track renders
- * max(max, value) pips so over-capacity is displayed honestly (red pips,
- * never clamped) — capacity stays a soft warning.
- */
-function BudgetTrack({ label, value, max, tone = 'default' }: BudgetTrackProps) {
-  const total = Math.max(max, value)
-  const isOver = value > max
-  const fill = tone === 'ap' ? 'border-rust bg-rust' : 'border-ink bg-ink'
-
-  return (
-    <div>
-      <p className="font-cond text-badge font-bold uppercase tracking-widest text-ink">
-        {label} ·{' '}
-        <span className={cn('font-body text-xs font-bold', isOver ? 'text-status-bad' : '')}>
-          {value} / {max}
-        </span>
-      </p>
-      {total > 0 && (
-        <div
-          className="mt-1.5 flex flex-col gap-1"
-          role="img"
-          aria-label={`${label} ${value} of ${max}`}
-        >
-          {statBlockRowStarts(total).map(({ count, start }) => (
-            <div key={start} className="flex gap-1">
-              {Array.from({ length: count }).map((_, c) => {
-                const i = start + c
-                const on = i < value
-                const over = i >= max
-                return (
-                  <span
-                    key={i}
-                    data-pip={on ? 'on' : 'off'}
-                    className={cn(
-                      'h-[13px] w-[13px] rounded-[2px] border-chrome',
-                      on
-                        ? over
-                          ? 'border-status-bad bg-status-bad'
-                          : fill
-                        : 'border-ink bg-transparent'
-                    )}
-                  />
-                )
-              })}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
 
 type LoadoutPanelProps = {
   /** Mech (or chassis) name shown in the 'Loadout · {name}' header. */
@@ -128,8 +66,23 @@ export function LoadoutPanel({
       </h2>
 
       <div className="mt-3 space-y-3">
-        <BudgetTrack label={slotLabel} value={slotsUsed} max={slotsMax} />
-        <BudgetTrack label="Energy" value={energyValue} max={energyMax} tone="ap" />
+        {/* The wizard has no sheet-tone context, so feed VitalGauge its accent
+            inline — ink for the slot budget, rust for Energy — preserving the
+            old ink/rust distinction. Over-capacity segments read red natively. */}
+        <div
+          style={
+            { '--tone': 'var(--color-ink)', '--tone-deep': 'var(--color-ink)' } as CSSProperties
+          }
+        >
+          <VitalGauge label={slotLabel} value={slotsUsed} max={slotsMax} readOnly />
+        </div>
+        <div
+          style={
+            { '--tone': 'var(--color-rust)', '--tone-deep': 'var(--color-rust)' } as CSSProperties
+          }
+        >
+          <VitalGauge label="Energy" value={energyValue} max={energyMax} readOnly />
+        </div>
       </div>
 
       <div className="mt-4 space-y-2">
