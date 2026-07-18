@@ -36,6 +36,15 @@ jobs:
           # Interpreted languages need no compilation — skip the build phase.
           build-mode: none
           queries: security-and-quality
+          # Don't scan generated artifacts — the reference package's API-surface
+          # snapshot (a large declaration rollup), the registry codegen, and the
+          # TanStack routeTree. They are machine-emitted and drift-checked, not
+          # hand-authored source, so CodeQL findings there are noise.
+          config: |
+            paths-ignore:
+              - packages/salvageunion-reference/etc
+              - '**/*.generated.ts'
+              - '**/routeTree.gen.ts'
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
