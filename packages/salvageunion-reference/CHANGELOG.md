@@ -1,11 +1,6 @@
 # Changelog
 
-> **Frozen.** This package is no longer published to npm — see
-> [ADR-014](../../docs/adrs/ADR-014-json-api-public-interface-npm-retired.md).
-> The last entry below is `2.0.1`; the package's `version` field has since
-> moved well past that without corresponding changelog entries. This file is
-> kept as a historical record of the pre-retirement `2.x` migration and is not
-> maintained going forward.
+Maintained by release-please (see [ADR-025](../../docs/adrs/ADR-025-reference-versioned-releases-surface-gate.md)).
 
 All notable changes to this project will be documented in this file.
 

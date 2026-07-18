@@ -84,6 +84,13 @@ export function AppHeaderMobileMenu() {
                 </AppLink>
               }
             />
+            <Dialog.Close
+              render={
+                <AppLink href="/changelog" className={DRAWER_LINK}>
+                  Changelog
+                </AppLink>
+              }
+            />
             <a
               href="https://salvageunion.io/discord/"
               target="_blank"

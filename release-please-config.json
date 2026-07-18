@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "separate-pull-requests": true,
+  "include-component-in-tag": true,
+  "bootstrap-sha": "1ee3a27ad49aeb3b5b7ae29e582e1a20733dde0c",
+  "packages": {
+    "apps/suref-web": { "release-type": "node", "component": "suref-web" },
+    "apps/in-the-union-now": { "release-type": "node", "component": "in-the-union-now" },
+    "packages/salvageunion-reference": { "release-type": "node", "component": "salvageunion-reference" }
+  }
+}

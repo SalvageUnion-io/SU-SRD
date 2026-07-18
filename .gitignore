@@ -27,6 +27,10 @@ coverage-output.txt
 # Aggregated coverage report artifact (tools/coverage-report.ts), CI-only
 /coverage-report/
 
+# Temporary declaration emit for the reference package's API surface report
+# (the committed snapshot lives at packages/salvageunion-reference/etc/)
+packages/salvageunion-reference/.api-dts/
+
 # Vite
 .vite
 apps/suref-web/.vite

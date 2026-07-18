@@ -130,8 +130,8 @@ jobs:
 
       - name: Verify generated files are up to date
         run: |
-          if ! git diff --exit-code -- packages/salvageunion-reference/schemas packages/salvageunion-reference/lib/generated packages/salvageunion-reference/lib/index.ts; then
-            echo "::error::Committed generated files are stale. Run 'bun run build:package' and commit packages/salvageunion-reference/schemas/, packages/salvageunion-reference/lib/generated/, and packages/salvageunion-reference/lib/index.ts." >&2
+          if ! git diff --exit-code -- packages/salvageunion-reference/schemas packages/salvageunion-reference/lib/generated packages/salvageunion-reference/lib/index.ts packages/salvageunion-reference/etc; then
+            echo "::error::Committed generated files are stale. Run 'bun run build:package' and commit packages/salvageunion-reference/schemas/, packages/salvageunion-reference/lib/generated/, packages/salvageunion-reference/lib/index.ts, and packages/salvageunion-reference/etc/." >&2
             exit 1
           fi
 

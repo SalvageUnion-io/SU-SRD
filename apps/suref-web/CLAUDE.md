@@ -46,26 +46,25 @@ islands). Read-only — choices render ephemerally/non-editably
 - Imports from `suref-react` for shared UI components
 - Dev command: `bun run dev`
 
-## Changelog Maintenance
+## Changelog (generated)
 
-The `/changelog` page (data in `src/lib/changelog.ts`) lists major changes to the site. When you make a major change, prepend a new entry at the top of the `CHANGELOG` array.
+The `/changelog` page (`src/pages/changelog.astro`) is rendered **at build time**. Its
+frontmatter reads two markdown files with `node:fs` and merges them via the shared
+`parseChangelog` / `mergeChangelogs` helpers from `suref-react`, then renders `ChangelogView`:
 
-**One entry per PR (or per release).** Changelog entries are PR-scoped, not commit-scoped. Do not add a new entry for every intra-PR change — when iterating on a branch, edit the existing entry to reflect the final shape of the PR. The entry should describe the PR's final state, not its history. If a PR has no existing entry yet, add one. If it already has one, update it in place.
+- `apps/suref-web/CHANGELOG.md` — changes to this site and its companion tools (area badge **Site**)
+- `packages/salvageunion-reference/CHANGELOG.md` — changes to the game-data package (area badge **Data**)
 
-**What counts as major (add an entry):**
+Both files are **maintained by release-please** from conventional-commit PR titles (see
+[ADR-024](../../docs/adrs/ADR-024-derived-release-changelogs.md)). Entries are
+merged newest-first by date across both sources.
 
-- New top-level page or navigation item
-- New schema added to the Denizens / Pilot / Mech / Crawler / Reference catalog
-- A new feature surfaced to users (search behaviour, filters, randomizer mode, API endpoints, etc.)
-- A visible UX overhaul (mobile navigation, layout, typography system, etc.)
-- A user-visible bug fix that changed behaviour they would have noticed (mobile overflow, broken links, missing entities)
+**Do NOT hand-edit `CHANGELOG.md`.** The only allowed manual touch is optionally polishing the
+entries in an **open release PR** before merging it. Otherwise the changelog is derived entirely
+from PR titles:
 
-**What does NOT count (do not add):**
+- Write a clear conventional PR title (`feat:` / `fix:` …) — it becomes the changelog entry.
+- No per-commit or per-PR array bookkeeping is needed anymore; the release PR accumulates entries.
 
-- Internal refactors with no user-facing change
-- Test additions
-- Dependency bumps unless they change behaviour
-- Minor copy edits or title tweaks (including easter egg renames — e.g. greembeem)
-- Changes in other apps (`in-the-union-now`, `discord-bot`) or in shared packages that aren't surfaced through the suref-web UI
-
-Keep entries to 1-2 sentences, with `date` in `YYYY-MM-DD` form.
+Historical entries (everything predating automation, marked in the file header) are backfilled in
+the legacy `## <date> — <title>` heading shape, which `parseChangelog` also understands.

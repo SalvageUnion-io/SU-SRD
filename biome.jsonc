@@ -34,6 +34,9 @@
       "!**/*.tsbuildinfo",
       "!**/routeTree.gen.ts",
       "!packages/salvageunion-reference/lib/generated",
+      // Generated API-surface snapshot (tools/generateApiReport.ts, drift-checked
+      // in CI) — a raw declaration rollup, not hand-authored source.
+      "!packages/salvageunion-reference/etc",
       // Game-data JSON is crawler-sourced; CLAUDE.md's "Data Conventions"
       // section forbids automated formatters reformatting these arrays
       // (`json.dump`-style tools reflow crawler-authored line breaks). Biome's
