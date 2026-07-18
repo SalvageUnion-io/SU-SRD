@@ -502,34 +502,57 @@ function ValueBox({
     </div>
   )
 
+  // The stepper column mirrors the box's [label][cell][label] stack with
+  // invisible label spacers, so the ± buttons align to the VALUE CELL (not the
+  // label-inclusive box, which drifts off-centre when only one label is present).
+  // The spacers reserve the label LINE HEIGHT only — a non-breaking space, not
+  // the real label text (which would duplicate a queryable "HP"/"Level" node).
+  const stepperSpacer = (edge: 'top' | 'bottom') => (
+    <Text
+      variant="pseudoheader"
+      as="span"
+      aria-hidden
+      className={cn(
+        'invisible z-[1] origin-center self-center whitespace-nowrap uppercase',
+        edge === 'top' ? '-mb-2' : '-mt-2',
+        compact ? 'text-label' : 'text-xs'
+      )}
+    >
+      {' '}
+    </Text>
+  )
   const content = canEdit ? (
     <div className="flex items-center gap-0.5">
       {box}
-      <div className="flex flex-col gap-0.5">
-        <button
-          type="button"
-          aria-label={`Increase ${label}`}
-          onClick={() =>
-            onChange?.(max !== undefined ? Math.min(max, numericValue + 1) : numericValue + 1)
-          }
-          disabled={!!atMax}
-          className={`flex min-h-11 min-w-11 items-center justify-center rounded-badge border-chrome font-mono font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
-            atMax ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`
-          }`}
-        >
-          +
-        </button>
-        <button
-          type="button"
-          aria-label={`Decrease ${label}`}
-          onClick={() => onChange?.(Math.max(min, numericValue - 1))}
-          disabled={atMin}
-          className={`flex min-h-11 min-w-11 items-center justify-center rounded-badge border-chrome font-mono font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
-            atMin ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`
-          }`}
-        >
-          −
-        </button>
+      <div className="flex flex-col items-center gap-0">
+        {stepperSpacer('top')}
+        <div className="flex flex-col justify-center gap-0.5">
+          <button
+            type="button"
+            aria-label={`Increase ${label}`}
+            onClick={() =>
+              onChange?.(max !== undefined ? Math.min(max, numericValue + 1) : numericValue + 1)
+            }
+            disabled={!!atMax}
+            className={`flex min-h-11 min-w-11 items-center justify-center rounded-badge border-chrome font-mono font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
+              atMax ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`
+            }`}
+          >
+            +
+          </button>
+          <button
+            type="button"
+            aria-label={`Decrease ${label}`}
+            onClick={() => onChange?.(Math.max(min, numericValue - 1))}
+            disabled={atMin}
+            className={`flex min-h-11 min-w-11 items-center justify-center rounded-badge border-chrome font-mono font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
+              atMin ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`
+            }`}
+          >
+            −
+          </button>
+        </div>
+        {stepperSpacer('bottom')}
       </div>
     </div>
   ) : (
