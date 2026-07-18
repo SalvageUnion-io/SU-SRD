@@ -1,5 +1,5 @@
+import { Badge } from '../components/chrome/Badge'
 import { Panel } from '../components/chrome/Panel'
-import { Pill } from '../components/chrome/Pill'
 import { cn } from '../utils/cn'
 import type { ChangelogEntry } from './parseChangelog'
 
@@ -36,7 +36,9 @@ export function ChangelogView({ entries, className }: ChangelogViewProps) {
               <h3 className="font-cond text-lg font-bold uppercase leading-tight tracking-[0.02em] text-ink">
                 {entryHeadline(entry)}
               </h3>
-              <Pill className="shrink-0">{entry.area}</Pill>
+              <Badge surface="outline" className="shrink-0">
+                {entry.area}
+              </Badge>
               <time
                 dateTime={entry.date}
                 className="ml-auto font-body text-xs text-wk-muted tabular-nums"

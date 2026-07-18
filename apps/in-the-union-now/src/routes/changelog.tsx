@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { ChangelogView, mergeChangelogs, parseChangelog } from 'suref-react'
+import { ChangelogView, mergeChangelogs, parseChangelog } from 'component-lib'
 
 import itunMd from '../../CHANGELOG.md?raw'
 import refMd from '../../../../packages/salvageunion-reference/CHANGELOG.md?raw'
