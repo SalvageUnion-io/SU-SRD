@@ -21,9 +21,9 @@
  */
 
 import type { ReactNode } from 'react'
-import { Badge, DisplayCard } from 'component-lib'
-
-import { cn } from '../../lib/utils'
+import { Badge } from '../chrome/Badge'
+import { DisplayCard } from './DisplayCard'
+import { cn } from '../../utils/cn'
 
 type SheetSectionCardProps = {
   /** Section title — rendered as the black stamp in the header's left group. */

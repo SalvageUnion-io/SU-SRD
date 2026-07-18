@@ -52,7 +52,7 @@ import { Ecflow, Erow } from './Erow'
 import { PilotIdentityPanel } from './PilotIdentity'
 import type { UsedToggleKey } from './PilotIdentity'
 import { SectionAddButton, SectionChead, SectionEditButton, SheetPickerModal } from './SheetSection'
-import { SheetSectionCard } from './SheetSectionCard'
+import { SheetSectionCard } from 'component-lib'
 import { pilotInventoryCapacity, pilotInventoryUsed, resolveEquipment } from './pilotInventory'
 import type { SheetPatch } from './sheetViewProps'
 import {

@@ -6,7 +6,7 @@
 
 import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import { RuleBrief } from '../RuleBrief'
+import { RuleBrief } from 'component-lib'
 
 afterEach(cleanup)
 

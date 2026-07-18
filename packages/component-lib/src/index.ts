@@ -183,3 +183,9 @@ export type { HeatLevel } from './components/stat/heatLevel'
 
 // Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)
 export { SlotGrid } from './components/shared/SlotGrid'
+
+// Promoted app compositions (legacy-tier — poster/sheet chrome lifted from ITUN)
+export { SheetSectionCard } from './components/shared/SheetSectionCard'
+export { RuleBrief } from './components/shared/RuleBrief'
+export type { StepRule } from './components/shared/RuleBrief'
+export { OffRulesEscape } from './components/shared/OffRulesEscape'
