@@ -1,13 +1,7 @@
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import {
-  Button,
-  FilterChip,
-  MasonryColumns,
-  MicroLabel,
-  ReferenceEntityDisplay,
-} from 'component-lib'
+import { FilterChip, MasonryColumns, ReferenceEntityDisplay } from 'component-lib'
 import type { TechLevel } from '../../lib/rules/types'
 import { LoadoutPanel } from './LoadoutPanel'
 import { matchesRef } from '../../lib/rules/resolveRefs'
@@ -107,8 +101,9 @@ export function InstallStep({
               const count = selected.filter((ref) => matchesRef(item, ref)).length
               const installed = count > 0
               // Count-based adder (duplicates are rules-legal; removal lives in
-              // the Loadout panel) rendered natively: the card's `selected` ring
-              // marks "installed", the add affordance rides its footActions band.
+              // the Loadout panel): the card's `selected` ring marks "installed"
+              // and the add rides the standard ReferenceEntity `controls` API —
+              // the install count shows as the control's secondary segment.
               return (
                 <ReferenceEntityDisplay
                   key={item.id}
@@ -116,26 +111,15 @@ export function InstallStep({
                   compact
                   selected={installed}
                   hide={{ actions: true, choices: true }}
-                  footActions={
-                    <>
-                      {installed && (
-                        <MicroLabel
-                          tone="rust"
-                          className="text-badge"
-                          data-testid={`install-count-${item.name}`}
-                        >
-                          {count} Installed
-                        </MicroLabel>
-                      )}
-                      <Button
-                        size="xs"
-                        onClick={() => onAdd(item.name)}
-                        aria-label={`Add ${item.name}`}
-                      >
-                        {installed ? '+ Add another' : '+ Add'}
-                      </Button>
-                    </>
-                  }
+                  controls={[
+                    {
+                      key: 'add',
+                      label: installed ? '+ Add another' : '+ Add',
+                      segmentText: installed ? String(count) : undefined,
+                      ariaLabel: `Add ${item.name}`,
+                      onClick: () => onAdd(item.name),
+                    },
+                  ]}
                 />
               )
             })}

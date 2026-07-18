@@ -197,25 +197,15 @@ function LegacyInstallStep({ kind }: { kind: 'systems' | 'modules' }) {
                   compact
                   selected={installed}
                   hide={{ actions: true, choices: true }}
-                  footActions={
-                    <>
-                      {installed && (
-                        <span
-                          className="font-cond text-badge font-bold uppercase tracking-caps text-rust"
-                          data-testid={`install-count-${item.name}`}
-                        >
-                          {count} Installed
-                        </span>
-                      )}
-                      <Button
-                        size="xs"
-                        onClick={() => setSelected((prev) => [...prev, item.name])}
-                        aria-label={`Add ${item.name}`}
-                      >
-                        {installed ? '+ Add another' : '+ Add'}
-                      </Button>
-                    </>
-                  }
+                  controls={[
+                    {
+                      key: 'add',
+                      label: installed ? '+ Add another' : '+ Add',
+                      segmentText: installed ? String(count) : undefined,
+                      ariaLabel: `Add ${item.name}`,
+                      onClick: () => setSelected((prev) => [...prev, item.name]),
+                    },
+                  ]}
                 />
               )
             })}
