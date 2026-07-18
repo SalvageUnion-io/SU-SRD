@@ -4,7 +4,7 @@ import { Stat } from '../../../components/shared/Stat'
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Mech Gain Scrap Step' }
+export default { title: 'Legacy/Wizard/Mech Gain Scrap Step' }
 
 /**
  * Verbatim reproduction of the presentational shell of

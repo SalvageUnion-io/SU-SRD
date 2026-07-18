@@ -75,7 +75,7 @@ function RailFrame({ mount, children }: { mount: string; children: ReactNode }) 
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Rail Bar' }
+export default { title: 'Legacy/Dashboard/Rail Bar' }
 
 export const Default: Story = () => (
   <div style={{ maxWidth: 900 }}>

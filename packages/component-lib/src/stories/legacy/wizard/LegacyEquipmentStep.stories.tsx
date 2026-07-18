@@ -9,7 +9,7 @@ import { MasonryColumns } from '../../../components/shared/MasonryColumns'
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Pilot Equipment Step' }
+export default { title: 'Legacy/Wizard/Pilot Equipment Step' }
 
 type EquipmentLike = {
   id: string

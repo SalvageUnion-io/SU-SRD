@@ -230,7 +230,7 @@ function CrawlerIdentityStep({
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Crawler Identity Step' }
+export default { title: 'Legacy/Wizard/Crawler Identity Step' }
 
 export const Default: Story = () => {
   const [name, setName] = useState('')

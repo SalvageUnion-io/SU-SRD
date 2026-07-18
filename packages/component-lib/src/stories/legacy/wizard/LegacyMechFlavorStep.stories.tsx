@@ -5,7 +5,7 @@ import { cn } from '../../../utils/cn'
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Mech Flavor Step' }
+export default { title: 'Legacy/Wizard/Mech Flavor Step' }
 
 /**
  * Local mirror of the presentational shell of ITUN's sheet IdentityField

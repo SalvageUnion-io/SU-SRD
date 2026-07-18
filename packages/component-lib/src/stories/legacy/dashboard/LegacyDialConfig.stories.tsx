@@ -121,7 +121,7 @@ function DialConfig({ onClose }: { onClose: () => void }) {
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/PC Dial Config' }
+export default { title: 'Legacy/Dashboard/PC Dial Config' }
 
 export const Default: Story = () => {
   const [open, setOpen] = useState(true)

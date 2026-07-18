@@ -167,7 +167,7 @@ function DowntimeWizard() {
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/PC Downtime Wizard' }
+export default { title: 'Legacy/Dashboard/PC Downtime Wizard' }
 
 export const Default: Story = () => (
   <div style={{ maxWidth: 640 }}>

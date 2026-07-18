@@ -83,7 +83,7 @@ function chassisRows(): ChooserOption[] {
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Dashboard Chooser' }
+export default { title: 'Legacy/Dashboard/Dashboard Chooser' }
 
 /** The wizard body (verbatim `bg-paper p-5` container) around a single step. */
 function ChooserBody({

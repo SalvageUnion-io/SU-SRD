@@ -339,7 +339,7 @@ function DeckPanel({ item, onBack }: { item: DeckItem; onBack: () => void }) {
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Actions Deck' }
+export default { title: 'Legacy/Dashboard/Actions Deck' }
 
 /** Light display surface stand-in for the Dashboard's `pc-display` panel. */
 function DisplayFrame({ children }: { children: ReactNode }) {

@@ -75,7 +75,7 @@ function CrawlerStatsStep({
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Crawler Stats Step' }
+export default { title: 'Legacy/Wizard/Crawler Stats Step' }
 
 export const Default: Story = () => {
   const techLevel = SalvageUnionReference.CrawlerTechLevels.all().find((t) => t.techLevel === 1)

@@ -13,7 +13,7 @@ import { cn } from '../../../utils/cn'
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Mech Install Step' }
+export default { title: 'Legacy/Wizard/Mech Install Step' }
 
 // Local mirrors of the app-only types (InstallStep.tsx lines 9-16).
 type TechLevel = 1 | 2 | 3 | 4 | 5 | 6 | 'B' | 'N'

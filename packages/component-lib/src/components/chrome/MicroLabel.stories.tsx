@@ -3,7 +3,7 @@ import { Caption } from '../../stories/_harness'
 import { MicroLabel } from './MicroLabel'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Micro Label' }
+export default { title: 'Legacy/Wizard/Micro Label' }
 
 /** The stamp-voice count captions that sit under an entity card. */
 export const Default: Story = () => (

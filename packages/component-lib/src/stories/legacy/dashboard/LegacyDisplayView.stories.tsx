@@ -134,7 +134,7 @@ function DisplayStage({ height, children }: { height: number; children: ReactNod
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/PC Display View' }
+export default { title: 'Legacy/Dashboard/PC Display View' }
 
 export const Default: Story = () => {
   const crawler = SalvageUnionReference.Crawlers.all()[0]

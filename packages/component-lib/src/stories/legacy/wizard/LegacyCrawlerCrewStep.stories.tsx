@@ -254,7 +254,7 @@ function CrawlerCrewStep({
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Crawler Crew Step' }
+export default { title: 'Legacy/Wizard/Crawler Crew Step' }
 
 export const Default: Story = () => {
   const bays = SalvageUnionReference.CrawlerBays.all().filter(

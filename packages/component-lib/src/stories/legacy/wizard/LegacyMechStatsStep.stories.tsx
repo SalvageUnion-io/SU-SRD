@@ -10,7 +10,7 @@ import { entityHostTone } from '../../../components/referenceEntity/card/entityC
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Mech Stats Step' }
+export default { title: 'Legacy/Wizard/Mech Stats Step' }
 
 /**
  * Verbatim reproduction of the presentational body of

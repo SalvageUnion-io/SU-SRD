@@ -40,7 +40,7 @@ function DamageStepper({ amount, setAmount }: { amount: number; setAmount: (n: n
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/PC Damage Stepper' }
+export default { title: 'Legacy/Dashboard/PC Damage Stepper' }
 
 export const Default: Story = () => {
   const [amount, setAmount] = useState(1)

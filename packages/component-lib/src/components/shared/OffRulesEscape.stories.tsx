@@ -3,7 +3,7 @@ import { Caption } from '../../stories/_harness'
 import { OffRulesEscape } from './OffRulesEscape'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Off Rules Escape' }
+export default { title: 'Legacy/Wizard/Off Rules Escape' }
 
 /**
  * The in-wizard exit to the Free-Edit Live Sheet — a dotted-underline text

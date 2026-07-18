@@ -6,7 +6,7 @@ import { cn } from '../../../utils/cn'
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/New Entity Screen' }
+export default { title: 'Legacy/Wizard/New Entity Screen' }
 
 /**
  * Verbatim reproduction of the /new mode switch —

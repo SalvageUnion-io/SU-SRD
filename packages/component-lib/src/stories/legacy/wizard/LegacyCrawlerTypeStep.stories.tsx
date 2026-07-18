@@ -132,7 +132,7 @@ function CrawlerTypeSelectStep({
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Crawler Type Step' }
+export default { title: 'Legacy/Wizard/Crawler Type Step' }
 
 export const Default: Story = () => {
   const types = SalvageUnionReference.Crawlers.all()

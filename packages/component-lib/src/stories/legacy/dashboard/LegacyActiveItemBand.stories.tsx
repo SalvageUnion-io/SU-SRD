@@ -108,7 +108,7 @@ function BandFrame({ children }: { children: ReactNode }) {
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Active Item Band' }
+export default { title: 'Legacy/Dashboard/Active Item Band' }
 
 /** MechBand (default mount) — Reactor / Chassis / Egress bays. */
 export const Mech: Story = () => {

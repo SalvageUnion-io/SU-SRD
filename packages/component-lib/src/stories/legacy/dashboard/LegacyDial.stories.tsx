@@ -221,7 +221,7 @@ function Dial({ items }: { items: DialItem[] }) {
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/PC Dial' }
+export default { title: 'Legacy/Dashboard/PC Dial' }
 
 export const Default: Story = () => {
   const chassis = SalvageUnionReference.Chassis.all()[0]

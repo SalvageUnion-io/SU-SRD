@@ -8,7 +8,7 @@ import { cn } from '../../../utils/cn'
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Mech Review Step' }
+export default { title: 'Legacy/Wizard/Mech Review Step' }
 
 // Minimal local mirror of the app-only MechWizardFormState fields this step
 // reads (mechFormState.ts). `LAYOUT.reviewLabelRail` = 'w-[120px]' (layout.ts).

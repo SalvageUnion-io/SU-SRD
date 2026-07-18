@@ -7,7 +7,7 @@ import { Field } from '../../../components/chrome/Field'
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Pilot Background Step' }
+export default { title: 'Legacy/Wizard/Pilot Background Step' }
 
 /** Roll IDs for pilot wizard identity fields (mirror of ITUN rollTableHelpers). */
 const PILOT_ROLL_TABLE_NAMES = {

@@ -122,7 +122,7 @@ function TablePickerOverlay({
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/PC Table Picker' }
+export default { title: 'Legacy/Dashboard/PC Table Picker' }
 
 export const Default: Story = () => {
   const tables: PickableTable[] = SalvageUnionReference.RollTables.all()

@@ -82,7 +82,7 @@ function Stack({ children }: { children: ReactNode }) {
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/PC Dashboard Gauge' }
+export default { title: 'Legacy/Dashboard/PC Dashboard Gauge' }
 
 export const Default: Story = () => {
   const chassis = SalvageUnionReference.Chassis.all()[0]

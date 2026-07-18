@@ -4,7 +4,7 @@ import { Sel } from '../../../components/chrome/Sel'
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Custom Build Door' }
+export default { title: 'Legacy/Wizard/Custom Build Door' }
 
 /**
  * Verbatim reproduction of the "Custom build" option from

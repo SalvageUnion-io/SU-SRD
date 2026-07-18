@@ -4,7 +4,7 @@ import { cn } from '../../../utils/cn'
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Create Mode Doors' }
+export default { title: 'Legacy/Wizard/Create Mode Doors' }
 
 // Local mirror of ITUN's BlankCreateKind (app-only type; cannot import from apps).
 type BlankCreateKind = 'pilot' | 'mech' | 'crawler'

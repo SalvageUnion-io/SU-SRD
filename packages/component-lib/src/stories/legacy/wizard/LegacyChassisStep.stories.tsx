@@ -9,7 +9,7 @@ import { ReferenceEntityDisplay } from '../../../components/referenceEntity/card
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Mech Chassis Step (Master-Detail)' }
+export default { title: 'Legacy/Wizard/Mech Chassis Step (Master-Detail)' }
 
 // Local mirror of the app-only shapes used by ChassisStep.tsx (lines 7-15).
 type ChassisLike = {

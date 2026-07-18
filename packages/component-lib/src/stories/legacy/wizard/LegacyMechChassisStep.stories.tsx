@@ -15,7 +15,7 @@ import { useChassisPatternConfig } from '../../../components/referenceEntity/Ref
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Mech Chassis Craft Step' }
+export default { title: 'Legacy/Wizard/Mech Chassis Craft Step' }
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
 type ChassisPattern = SURefChassis['patterns'][number]

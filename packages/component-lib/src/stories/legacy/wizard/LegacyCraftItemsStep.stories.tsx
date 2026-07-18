@@ -16,7 +16,7 @@ import { ReferenceEntityDisplay } from '../../../components/referenceEntity/card
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Mech Craft Items Step' }
+export default { title: 'Legacy/Wizard/Mech Craft Items Step' }
 
 /**
  * Verbatim reproduction of the presentational body of

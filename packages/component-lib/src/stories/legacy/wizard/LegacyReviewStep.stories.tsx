@@ -7,7 +7,7 @@ import { cn } from '../../../utils/cn'
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Pilot Review Step' }
+export default { title: 'Legacy/Wizard/Pilot Review Step' }
 
 /** Mirror of ITUN's PilotWizardFormState (app-only; cannot import from apps). */
 type PilotWizardFormState = {

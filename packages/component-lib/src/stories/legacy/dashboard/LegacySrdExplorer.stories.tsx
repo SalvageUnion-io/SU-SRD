@@ -288,7 +288,7 @@ function SrdExplorer() {
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/PC Srd Explorer' }
+export default { title: 'Legacy/Dashboard/PC Srd Explorer' }
 
 export const Default: Story = () => (
   <div style={{ maxWidth: 640 }}>

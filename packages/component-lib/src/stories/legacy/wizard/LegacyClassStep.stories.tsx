@@ -9,7 +9,7 @@ import { ReferenceEntityDisplay } from '../../../components/referenceEntity/card
 import { Caption } from '../../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Pilot Class Step' }
+export default { title: 'Legacy/Wizard/Pilot Class Step' }
 
 // ── Mirror of ITUN's app-only classOptions helpers (cannot import from apps) ──
 
