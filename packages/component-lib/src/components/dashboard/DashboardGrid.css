@@ -1,0 +1,103 @@
+/*
+ * DashboardGrid — the Dashboard's fixed four-region layout (rail / primary /
+ * wheel / display), laid inside DashboardCanvas. Region + placeholder classes
+ * only; the instrument internals (rail buttons, the active-item band, the dial,
+ * the display view) stay in ITUN's dashboard.css and inherit the `--pc-*`
+ * tokens through the promoted `.pc-root`. Legacy-tier (bespoke CSS).
+ */
+
+.pc-grid {
+  display: grid;
+  height: 100%;
+  width: 100%;
+  gap: 10px;
+  padding: 8px 6px 8px 10px;
+  grid-template-columns: 1fr 260px;
+  grid-template-rows: 40px 168px 1fr;
+  grid-template-areas:
+    'rail rail'
+    'primary wheel'
+    'display wheel';
+}
+
+.pc-rail {
+  grid-area: rail;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 2.5px solid var(--pc-line-hard);
+  border-radius: 5px;
+  padding: 0 12px;
+}
+
+/* Active-entity tint on the rail (extends to the Active Item band in Phase 2). */
+.pc-grid[data-mount='mech'] .pc-rail {
+  border-color: color-mix(in oklab, var(--pc-mech) 60%, transparent);
+}
+.pc-grid[data-mount='pilot'] .pc-rail {
+  border-color: color-mix(in oklab, var(--pc-pilot) 60%, transparent);
+}
+.pc-grid[data-mount='downtime'] .pc-rail {
+  border-color: color-mix(in oklab, var(--pc-crawler) 60%, transparent);
+}
+
+.pc-primary {
+  grid-area: primary;
+  /* The wider active card (380px) is right-aligned in the 260px wheel column and
+     overhangs ~110px left into this row. Reserve that space so the band's
+     content never sits under the active dial card (the intersection corner). */
+  padding-right: 120px;
+}
+
+.pc-display {
+  grid-area: display;
+  border: 2.5px solid var(--pc-line-hard);
+  border-radius: 5px;
+  background: color-mix(in oklab, var(--pc-panel) 90%, #000);
+}
+
+.pc-wheel {
+  grid-area: wheel;
+}
+
+/* The display is the ONE surface that reads "forward": a light SRD "paper"
+   document inset in the dark Dashboard (the reused ReferenceEntityDisplay /
+   RollTable are light-themed). Its own scroll — the canvas never scrolls. */
+.pc-display-light {
+  background: #f3ede2;
+  color: #282019;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* Phase-1 placeholder for a surface not yet built. */
+.pc-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  border: 1.5px solid var(--pc-line);
+  border-radius: 5px;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 12px;
+  color: var(--pc-muted);
+}
+
+/* Centered muted label used inside an already-bordered surface (e.g. the display). */
+.pc-fill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 12px;
+  text-align: center;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 12px;
+  color: var(--pc-muted);
+}

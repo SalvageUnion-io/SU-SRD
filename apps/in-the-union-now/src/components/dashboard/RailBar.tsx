@@ -24,8 +24,10 @@ type RailBarProps = {
 }
 
 export function RailBar({ title, fam = 'mech', onLeaveDowntime }: RailBarProps) {
+  // Content only — the `.pc-rail` region wrapper (grid area + flex row) is
+  // supplied by component-lib's DashboardGrid rail slot.
   return (
-    <div className="pc-rail">
+    <>
       <AppLink href="/" className="pc-railbtn">
         ◄ Return to Workspace
       </AppLink>
@@ -47,6 +49,6 @@ export function RailBar({ title, fam = 'mech', onLeaveDowntime }: RailBarProps) 
           ⚙ Settings
         </button>
       )}
-    </div>
+    </>
   )
 }

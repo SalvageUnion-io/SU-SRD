@@ -12,7 +12,7 @@
 
 import { useCallback, useState } from 'react'
 
-import { DashboardCanvas } from 'component-lib'
+import { DashboardCanvas, DashboardGrid } from 'component-lib'
 import { useWorkspace } from '../../hooks/queries/workspaces'
 import type { CockpitPrefs } from '../../lib/schemas/cockpitPrefs'
 import { useEntityStore } from '../../stores/entityStore'
@@ -56,20 +56,12 @@ export function Dashboard({ id }: { id: string }) {
   if (!mech) {
     return (
       <DashboardCanvas>
-        <div className="pc-grid">
-          <div className="pc-rail">
-            <span className="pc-stamp pc-stamp-mech">Mech not found</span>
-          </div>
-          <div className="pc-primary">
-            <div className="pc-placeholder">No mech with id “{id}”.</div>
-          </div>
-          <div className="pc-display">
-            <div className="pc-fill">—</div>
-          </div>
-          <div className="pc-wheel">
-            <div className="pc-placeholder">Dial</div>
-          </div>
-        </div>
+        <DashboardGrid
+          rail={<span className="pc-stamp pc-stamp-mech">Mech not found</span>}
+          primary={<div className="pc-placeholder">No mech with id “{id}”.</div>}
+          display={<div className="pc-fill">—</div>}
+          wheel={<div className="pc-placeholder">Dial</div>}
+        />
       </DashboardCanvas>
     )
   }
@@ -110,26 +102,26 @@ export function Dashboard({ id }: { id: string }) {
 
   return (
     <DashboardCanvas>
-      <div className="pc-grid" data-mount={mount}>
-        <RailBar
-          title={railTitle}
-          fam={fam}
-          onLeaveDowntime={isDowntime ? leaveDowntime : undefined}
-        />
-        <div className="pc-primary">
-          <ActiveItemBand mech={mech} pilot={pilot} crawler={crawler} store={storeState} />
-        </div>
-        <div className="pc-display pc-display-light">
-          {isDowntime ? (
+      <DashboardGrid
+        mount={mount}
+        rail={
+          <RailBar
+            title={railTitle}
+            fam={fam}
+            onLeaveDowntime={isDowntime ? leaveDowntime : undefined}
+          />
+        }
+        primary={<ActiveItemBand mech={mech} pilot={pilot} crawler={crawler} store={storeState} />}
+        displayLight
+        display={
+          isDowntime ? (
             <DowntimeWizard crawler={crawler} />
           ) : (
             <DisplayView focus={focus} mech={mech} pilot={pilot} crawler={crawler} />
-          )}
-        </div>
-        <div className="pc-wheel">
-          <Dial items={items} configKinds={cfgKinds} prefs={prefs} onPrefsChange={setPrefs} />
-        </div>
-      </div>
+          )
+        }
+        wheel={<Dial items={items} configKinds={cfgKinds} prefs={prefs} onPrefsChange={setPrefs} />}
+      />
     </DashboardCanvas>
   )
 }

@@ -153,6 +153,7 @@ export { InlineEditField } from './components/chrome/InlineEditField'
 // not yet on the canon tokens). The scale-to-fit canvas that owns the `.pc-root`
 // token scope; ITUN fills it with the store-wired grid + instruments.
 export { DashboardCanvas } from './components/dashboard/DashboardCanvas'
+export { DashboardGrid } from './components/dashboard/DashboardGrid'
 export { OptRow } from './components/chrome/OptRow'
 export { Stepper } from './components/chrome/Stepper'
 export { CountStepper } from './components/chrome/CountStepper'
