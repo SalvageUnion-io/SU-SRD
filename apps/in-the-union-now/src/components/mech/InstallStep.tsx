@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { FilterChip } from 'component-lib'
+import type { SURefEntity } from 'salvageunion-reference'
+import { FilterChip, MiniBtn, ReferenceEntityDisplay } from 'component-lib'
 import type { TechLevel } from '../../lib/rules/types'
 import { SelMasonry } from 'component-lib'
-import { InstallCard } from './InstallCard'
 import { LoadoutPanel } from './LoadoutPanel'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 
@@ -98,15 +98,37 @@ export function InstallStep({
 
         <div className="mt-6">
           <SelMasonry>
-            {visible.map((item) => (
-              <InstallCard
-                key={item.id}
-                entity={item}
-                name={item.name}
-                count={selected.filter((ref) => matchesRef(item, ref)).length}
-                onAdd={() => onAdd(item.name)}
-              />
-            ))}
+            {visible.map((item) => {
+              const count = selected.filter((ref) => matchesRef(item, ref)).length
+              const installed = count > 0
+              // Count-based adder (duplicates are rules-legal; removal lives in
+              // the Loadout panel) rendered natively: the card's `selected` ring
+              // marks "installed", the add affordance rides its footActions band.
+              return (
+                <ReferenceEntityDisplay
+                  key={item.id}
+                  data={item as unknown as SURefEntity}
+                  compact
+                  selected={installed}
+                  hide={{ actions: true, choices: true }}
+                  footActions={
+                    <>
+                      {installed && (
+                        <span
+                          className="font-cond text-badge font-bold uppercase tracking-caps text-rust"
+                          data-testid={`install-count-${item.name}`}
+                        >
+                          {count} Installed
+                        </span>
+                      )}
+                      <MiniBtn onClick={() => onAdd(item.name)} aria-label={`Add ${item.name}`}>
+                        {installed ? '+ Add another' : '+ Add'}
+                      </MiniBtn>
+                    </>
+                  }
+                />
+              )
+            })}
           </SelMasonry>
         </div>
         {visible.length === 0 && (
