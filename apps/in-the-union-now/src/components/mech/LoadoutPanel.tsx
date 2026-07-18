@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Glyph, Panel, VitalGauge } from 'component-lib'
+import { Glyph, VitalGauge } from 'component-lib'
 import { cn } from '../../lib/utils'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 
@@ -25,12 +25,14 @@ type LoadoutPanelProps = {
 }
 
 /**
- * Loadout HUD for the install steps (design §3.2 mech wizard) — a floating
+ * Loadout HUD content for the install steps (design §3.2 mech wizard) — a
  * HORIZONTAL bar: the 'Loadout · {name}' header and both budget gauges (slots
  * default-ink, energy is-ap rust) sit inline on the top row; the chosen items
- * ride a single horizontally-scrolling strip of removable chips below. The
- * consumer positions it (InstallStep floats it bottom-right over the catalog);
- * this component is layout-agnostic and just fills the `className`-sized frame.
+ * ride a single horizontally-scrolling strip of removable chips below.
+ *
+ * Frameless by design — it renders INSIDE the shared WizShell footer bar (the
+ * paper frame + the mounted nav pill live there), passed up as `footerHud` by
+ * MechWizard. Layout-agnostic; it just fills the `className`-sized area.
  */
 export function LoadoutPanel({
   name,
@@ -63,7 +65,7 @@ export function LoadoutPanel({
   for (const ref of chosen) totals.set(ref, (totals.get(ref) ?? 0) + 1)
 
   return (
-    <Panel className={cn('px-3 py-2.5', className)}>
+    <div className={cn('min-w-0', className)}>
       {/* Top row — header + both budget gauges inline (wraps on a narrow float).
           The wizard has no sheet-tone context, so feed VitalGauge its accent via
           its own `style` (--tone / --tone-deep) — ink for the slot budget, rust
@@ -134,6 +136,6 @@ export function LoadoutPanel({
           })
         )}
       </div>
-    </Panel>
+    </div>
   )
 }

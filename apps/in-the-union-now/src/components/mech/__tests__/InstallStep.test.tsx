@@ -35,19 +35,7 @@ function firstAtTL(kind: 'systems' | 'modules', tl: TechLevel): { id: string; na
 }
 
 function renderStep(kind: 'systems' | 'modules') {
-  return render(
-    <InstallStep
-      kind={kind}
-      selected={[]}
-      onAdd={() => {}}
-      onRemove={() => {}}
-      loadoutName="Test Mech"
-      slotsUsed={0}
-      slotsMax={4}
-      energyValue={0}
-      energyMax={4}
-    />
-  )
+  return render(<InstallStep kind={kind} selected={[]} onAdd={() => {}} />)
 }
 
 // Each catalog cell is an InstallCard whose add affordance is a Button with

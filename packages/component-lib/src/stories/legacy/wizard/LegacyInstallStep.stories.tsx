@@ -3,7 +3,7 @@ import { type CSSProperties, useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
-import { Panel } from '../../../components/chrome/Panel'
+import { Button } from '../../../components/chrome/Button'
 import { FilterChip } from '../../../components/shared/FilterChip'
 import { MasonryColumns } from '../../../components/shared/MasonryColumns'
 import { ReferenceEntityDisplay } from '../../../components/referenceEntity/card/referenceEntityDisplayShim'
@@ -77,7 +77,7 @@ function LegacyLoadoutPanel({
   for (const ref of chosen) totals.set(ref, (totals.get(ref) ?? 0) + 1)
 
   return (
-    <Panel className={cn('px-3 py-2.5', className)}>
+    <div className={cn('min-w-0', className)}>
       {/* Top row — header + both budget gauges inline (compact single-line). */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <h2 className="whitespace-nowrap font-cond text-sm font-bold uppercase tracking-caps text-ink">
@@ -137,16 +137,17 @@ function LegacyLoadoutPanel({
           })
         )}
       </div>
-    </Panel>
+    </div>
   )
 }
 
 /**
- * Verbatim reproduction of apps/in-the-union-now/src/components/mech/InstallStep.tsx
- * (lines 52-157): a `1fr 300px` grid — left, TL filter chips over a 2-col
- * MasonryColumns of compact entity cards with a native `+ Add` affordance; right,
- * the Loadout panel (mirrored above). Selection is never blocked; over-capacity
- * reads honestly in the soft budget track.
+ * Reproduction of the mech Install step (apps/.../mech/InstallStep.tsx +
+ * MechWizard's WizShell footer): a full-width catalog of TL-filtered `+ Add`
+ * cards, with the Loadout HUD MOUNTED in the floating WizShell footer bar — the
+ * frameless HUD (gauges + chips) on the left, the ink nav pill (Back / Next) on
+ * the right, one paper bar. The app pins it viewport-`fixed`; the story uses
+ * `absolute` in a relative frame so it floats within the Ladle canvas.
  */
 function LegacyInstallStep({ kind }: { kind: 'systems' | 'modules' }) {
   const [activeTls, setActiveTls] = useState<TechLevel[]>([])
@@ -223,22 +224,33 @@ function LegacyInstallStep({ kind }: { kind: 'systems' | 'modules' }) {
         )}
       </div>
 
-      {/* Floating Loadout HUD — pinned bottom-right, over the catalog (the app
-          uses viewport `fixed`; the story uses `absolute` in the relative frame
-          above). Pointer-transparent wrapper so clicks fall through to cards. */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-end">
-        <LegacyLoadoutPanel
-          name="Iron Mongrel"
-          slotLabel={kind === 'systems' ? 'System Slots' : 'Module Slots'}
-          slotsUsed={slotsUsed}
-          slotsMax={6}
-          energyValue={3}
-          energyMax={8}
-          chosen={selected}
-          onRemove={(index) => setSelected((prev) => prev.filter((_, i) => i !== index))}
-          kind={kind}
-          className="pointer-events-auto w-full shadow-xl sm:max-w-2xl"
-        />
+      {/* Floating WizShell footer bar — the HUD mounted alongside the nav pill.
+          Pointer-transparent wrapper so clicks fall through to the cards. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center sm:justify-end">
+        <div className="pointer-events-auto flex w-full flex-col gap-2.5 rounded-2xl border-chrome border-ink bg-paper p-2.5 shadow-xl sm:w-auto sm:max-w-4xl sm:flex-row sm:items-stretch sm:gap-3 sm:pl-3.5">
+          <div className="flex min-w-0 flex-1 items-center">
+            <LegacyLoadoutPanel
+              name="Iron Mongrel"
+              slotLabel={kind === 'systems' ? 'System Slots' : 'Module Slots'}
+              slotsUsed={slotsUsed}
+              slotsMax={6}
+              energyValue={3}
+              energyMax={8}
+              chosen={selected}
+              onRemove={(index) => setSelected((prev) => prev.filter((_, i) => i !== index))}
+              kind={kind}
+            />
+          </div>
+          {/* Mock nav pill (WizShell owns the real one). */}
+          <div className="flex items-center justify-end gap-2 rounded-2xl bg-ink p-2.5 sm:gap-3 sm:rounded-full sm:pl-4">
+            <Button variant="ghost" className="border-paper/40 text-paper hover:bg-paper/10">
+              Back
+            </Button>
+            <Button variant="primary" size="lg" className="rounded-full">
+              Next · Modules →
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   )

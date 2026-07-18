@@ -35,6 +35,7 @@ import { WizShell, WizTracker } from 'component-lib'
 import { CraftItemsStep } from './CraftItemsStep'
 import { GainScrapStep } from './GainScrapStep'
 import { InstallStep } from './InstallStep'
+import { LoadoutPanel } from './LoadoutPanel'
 import { MechChassisStep } from './MechChassisStep'
 import type { ChassisPattern } from './MechChassisStep'
 import { MechFlavorStep } from './MechFlavorStep'
@@ -553,6 +554,42 @@ export function MechWizard({
         ? 'Modules are optional · spare slots are fine'
         : undefined
 
+  // Loadout HUD — mounted into the WizShell footer bar on the edit-mode install
+  // steps (create mode uses the trackers pill + CraftItemsStep instead). The
+  // gauges reflect the live capacity; the chips remove one copy by index.
+  const footerHud = (() => {
+    if (!isEdit) return undefined
+    if (step === 'systems')
+      return (
+        <LoadoutPanel
+          kind="systems"
+          name={loadoutName}
+          slotLabel="System Slots"
+          slotsUsed={capacity.systemSlotsUsed}
+          slotsMax={capacity.systemSlotsMax}
+          energyValue={energyValue}
+          energyMax={energyMax}
+          chosen={form.systems}
+          onRemove={(index) => removeAt('systems', index)}
+        />
+      )
+    if (step === 'modules')
+      return (
+        <LoadoutPanel
+          kind="modules"
+          name={loadoutName}
+          slotLabel="Module Slots"
+          slotsUsed={capacity.moduleSlotsUsed}
+          slotsMax={capacity.moduleSlotsMax}
+          energyValue={energyValue}
+          energyMax={energyMax}
+          chosen={form.modules}
+          onRemove={(index) => removeAt('modules', index)}
+        />
+      )
+    return undefined
+  })()
+
   return (
     <WizShell
       kind="mech"
@@ -568,6 +605,7 @@ export function MechWizard({
       notice={isEdit && editWarnings.length > 0 ? <Banner warnings={editWarnings} /> : undefined}
       trackers={trackers}
       footerNote={footerNote}
+      footerHud={footerHud}
       escapeAction={
         !isEdit && !gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined
       }
@@ -601,12 +639,6 @@ export function MechWizard({
             kind="systems"
             selected={form.systems}
             onAdd={(name) => addCopy('systems', name)}
-            onRemove={(index) => removeAt('systems', index)}
-            loadoutName={loadoutName}
-            slotsUsed={capacity.systemSlotsUsed}
-            slotsMax={capacity.systemSlotsMax}
-            energyValue={energyValue}
-            energyMax={energyMax}
           />
         ) : (
           <CraftItemsStep
@@ -623,12 +655,6 @@ export function MechWizard({
             kind="modules"
             selected={form.modules}
             onAdd={(name) => addCopy('modules', name)}
-            onRemove={(index) => removeAt('modules', index)}
-            loadoutName={loadoutName}
-            slotsUsed={capacity.moduleSlotsUsed}
-            slotsMax={capacity.moduleSlotsMax}
-            energyValue={energyValue}
-            energyMax={energyMax}
           />
         ) : (
           <CraftItemsStep

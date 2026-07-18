@@ -45,6 +45,15 @@ type WizShellProps = {
    */
   footerNote?: ReactNode
   /**
+   * Rich, step-specific HUD content mounted INTO the floating footer bar
+   * alongside the nav pill (the mech install steps pass their Loadout HUD —
+   * gauges + installed chips — here). When present the footer becomes a wide
+   * paper bar holding the HUD with the ink action pill nested at its right; when
+   * absent the footer stays the compact ink pill. Distinct from `trackers`
+   * (small black tabs inside the pill) — this is a full-width content region.
+   */
+  footerHud?: ReactNode
+  /**
    * Escape hatch shown inside the action pill: a link/button to abandon the
    * guided guardrails and finish the build off-rules on the Free-Edit Live
    * Sheet (ADR-021). Rendered subordinate to the CTA; omit to hide.
@@ -172,6 +181,7 @@ export function WizShell({
   notice,
   trackers,
   footerNote,
+  footerHud,
   escapeAction,
   tintedStepCard = false,
   onBack,
@@ -185,6 +195,10 @@ export function WizShell({
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   const isLast = active >= steps.length - 1
   const ctaLabel = isLast ? submitLabel : `Next · ${steps[active + 1]} →`
+  // The sticky footer overlaps content when pinned, so the main pane reserves
+  // scroll room beneath it. A HUD footer is taller (a full paper bar, not the
+  // compact pill), so it reserves proportionally more.
+  const contentPad = footerHud ? 'pb-52' : 'pb-24'
 
   const heading = (
     <header>
@@ -200,6 +214,99 @@ export function WizShell({
       </h1>
       {subtitle && <div className="mt-2 font-body text-caption text-ink-2">{subtitle}</div>}
     </header>
+  )
+
+  // The ink action pill (mockup `.pill`): trackers + gate note + escape + nav
+  // buttons + CTA. Rendered standalone in the footer by default; with a
+  // `footerHud` it is MOUNTED at the right of the wide paper footer bar. Its own
+  // dark ground keeps the ghost buttons legible in either home.
+  const actionPill = (
+    <div className="pointer-events-auto flex w-full flex-col items-stretch gap-2 rounded-2xl bg-ink p-2.5 shadow-[0_16px_28px_-12px_rgba(0,0,0,0.6)] sm:w-auto sm:flex-row sm:items-center sm:gap-3 sm:rounded-full sm:pl-4">
+      {trackers && (
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+          {trackers}
+        </div>
+      )}
+      {footerNote && (
+        <p
+          role="status"
+          className="m-0 px-2 text-center font-cond text-xs font-semibold uppercase tracking-caps text-su-orange sm:text-left"
+        >
+          {footerNote}
+        </p>
+      )}
+      {escapeAction && (
+        <div className="flex justify-center px-2 sm:justify-start">{escapeAction}</div>
+      )}
+      {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. */}
+      <div className="flex items-center justify-end gap-2 sm:contents">
+        {onBack && (
+          <Button
+            variant="ghost"
+            onClick={onBack}
+            disabled={busy}
+            className="border-paper/40 text-paper hover:bg-paper/10"
+          >
+            Back
+          </Button>
+        )}
+        <Button
+          variant="ghost"
+          onClick={() => (confirmCancel ? setConfirmingCancel(true) : onCancel())}
+          disabled={busy}
+          className="border-paper/40 text-paper hover:bg-paper/10"
+        >
+          Cancel
+        </Button>
+        <ModalShell
+          open={confirmingCancel}
+          onOpenChange={(next) => {
+            if (!next) setConfirmingCancel(false)
+          }}
+          title="Discard this draft?"
+          headerBg="bg-su-rust"
+          maxWidth="max-w-md"
+          align="center"
+        >
+          <div className="flex flex-col gap-4 bg-paper p-5">
+            <div className="font-body text-sm text-wk-muted">
+              Your unsaved changes will be lost.
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setConfirmingCancel(false)}>
+                Keep editing
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => {
+                  setConfirmingCancel(false)
+                  onCancel()
+                }}
+              >
+                Discard
+              </Button>
+            </div>
+          </div>
+        </ModalShell>
+      </div>
+      {/* Locked CTA (mockup `.next.locked`): hollow, dashed, dimmed weight —
+          the blocking reason lives in the footerNote text. */}
+      <Button
+        variant="primary"
+        size="lg"
+        className={cn(
+          'w-full rounded-full sm:w-auto',
+          nextDisabled &&
+            !busy &&
+            'border-2 border-dashed border-paper/55 bg-transparent font-normal text-paper/60 shadow-none disabled:opacity-100'
+        )}
+        onClick={onNext}
+        disabled={nextDisabled || busy}
+      >
+        {busy ? 'Saving…' : ctaLabel}
+      </Button>
+    </div>
   )
 
   return (
@@ -278,7 +385,7 @@ export function WizShell({
           {tintedStepCard ? (
             /* Blown-up tinted step card (mockup `.stepcard`): tone-card fill,
                flush ink number tab, white condensed step head. */
-            <div className="min-h-0 flex-1 pb-24 sm:pl-5">
+            <div className={cn('min-h-0 flex-1 sm:pl-5', contentPad)}>
               <article
                 className="relative rounded-xl px-5 pb-6 pt-5 shadow-[0_14px_26px_-14px_rgba(0,0,0,0.4),inset_0_0_46px_rgba(0,0,0,0.08)] sm:pl-8"
                 style={{
@@ -312,7 +419,7 @@ export function WizShell({
           ) : (
             <>
               {heading}
-              <div className="mt-5 min-h-0 flex-1 pb-24">{children}</div>
+              <div className={cn('mt-5 min-h-0 flex-1', contentPad)}>{children}</div>
             </>
           )}
 
@@ -324,94 +431,25 @@ export function WizShell({
               click-through (pointer-events-none); only the ink action pill
               (mockup `.pill`) is interactive. Below the sm endpoint the pill
               stacks with a full-width primary CTA on EVERY step (design review
-              U-6) — Back/Cancel share a row above it. */}
-          <footer className="pointer-events-none sticky bottom-4 z-40 mt-6 flex justify-end">
-            <div className="pointer-events-auto flex w-full flex-col items-stretch gap-2 rounded-2xl bg-ink p-2.5 shadow-[0_16px_28px_-12px_rgba(0,0,0,0.6)] sm:w-auto sm:flex-row sm:items-center sm:gap-3 sm:rounded-full sm:pl-4">
-              {trackers && (
-                <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                  {trackers}
-                </div>
-              )}
-              {footerNote && (
-                <p
-                  role="status"
-                  className="m-0 px-2 text-center font-cond text-xs font-semibold uppercase tracking-caps text-su-orange sm:text-left"
-                >
-                  {footerNote}
-                </p>
-              )}
-              {escapeAction && (
-                <div className="flex justify-center px-2 sm:justify-start">{escapeAction}</div>
-              )}
-              {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. */}
-              <div className="flex items-center justify-end gap-2 sm:contents">
-                {onBack && (
-                  <Button
-                    variant="ghost"
-                    onClick={onBack}
-                    disabled={busy}
-                    className="border-paper/40 text-paper hover:bg-paper/10"
-                  >
-                    Back
-                  </Button>
-                )}
-                <Button
-                  variant="ghost"
-                  onClick={() => (confirmCancel ? setConfirmingCancel(true) : onCancel())}
-                  disabled={busy}
-                  className="border-paper/40 text-paper hover:bg-paper/10"
-                >
-                  Cancel
-                </Button>
-                <ModalShell
-                  open={confirmingCancel}
-                  onOpenChange={(next) => {
-                    if (!next) setConfirmingCancel(false)
-                  }}
-                  title="Discard this draft?"
-                  headerBg="bg-su-rust"
-                  maxWidth="max-w-md"
-                  align="center"
-                >
-                  <div className="flex flex-col gap-4 bg-paper p-5">
-                    <div className="font-body text-sm text-wk-muted">
-                      Your unsaved changes will be lost.
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => setConfirmingCancel(false)}>
-                        Keep editing
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => {
-                          setConfirmingCancel(false)
-                          onCancel()
-                        }}
-                      >
-                        Discard
-                      </Button>
-                    </div>
-                  </div>
-                </ModalShell>
+              U-6) — Back/Cancel share a row above it.
+
+              With a `footerHud`, the pill is MOUNTED inside a wide paper bar that
+              also carries the step HUD (the mech Loadout gauges + chips) — one
+              floating interface, no second overlay competing for the corner. */}
+          <footer
+            className={cn(
+              'pointer-events-none sticky bottom-4 z-40 mt-6 flex',
+              footerHud ? 'justify-center sm:justify-end' : 'justify-end'
+            )}
+          >
+            {footerHud ? (
+              <div className="pointer-events-auto flex w-full flex-col gap-2.5 rounded-2xl border-chrome border-ink bg-paper p-2.5 shadow-[0_16px_28px_-12px_rgba(0,0,0,0.6)] sm:w-auto sm:max-w-4xl sm:flex-row sm:items-stretch sm:gap-3 sm:pl-3.5">
+                <div className="flex min-w-0 flex-1 items-center">{footerHud}</div>
+                {actionPill}
               </div>
-              {/* Locked CTA (mockup `.next.locked`): hollow, dashed, dimmed
-                  weight — the blocking reason lives in the footerNote text. */}
-              <Button
-                variant="primary"
-                size="lg"
-                className={cn(
-                  'w-full rounded-full sm:w-auto',
-                  nextDisabled &&
-                    !busy &&
-                    'border-2 border-dashed border-paper/55 bg-transparent font-normal text-paper/60 shadow-none disabled:opacity-100'
-                )}
-                onClick={onNext}
-                disabled={nextDisabled || busy}
-              >
-                {busy ? 'Saving…' : ctaLabel}
-              </Button>
-            </div>
+            ) : (
+              actionPill
+            )}
           </footer>
         </main>
       </div>
