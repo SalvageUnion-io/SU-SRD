@@ -43,11 +43,12 @@ type InstallStepProps = {
 
 /**
  * Install Systems / Install Modules step (design §3.2 mech wizard — NOT the
- * master-detail skeleton): a `1fr 300px` grid. Left: TL filter chips over a
- * row-major 2-col grid of compact entity cards (gap-4).
- * Right: the 'Loadout · {name}' panel with pip budget tracks + head-mode
- * chosen cards. Selection is never blocked — over-capacity shows honestly in
- * the budget track (capacity stays soft, plan 3.4).
+ * master-detail skeleton): the catalog is full-width — TL filter chips over a
+ * row-major 2-col grid of compact entity cards. The 'Loadout · {name}' HUD no
+ * longer takes a layout column; it FLOATS as a horizontal bar pinned to the
+ * bottom-right of the viewport (over the catalog, never pushing it). Selection
+ * is never blocked — over-capacity shows honestly in the budget track (capacity
+ * stays soft, plan 3.4).
  */
 export function InstallStep({
   kind,
@@ -79,9 +80,10 @@ export function InstallStep({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-      {/* Left — TL filter chips + 2-col compact Sel grid */}
-      <div className="min-w-0">
+    <>
+      {/* Full-width catalog. Bottom padding reserves room so the floating HUD
+          never hides the last cards (it's out of flow — see below). */}
+      <div className="min-w-0 pb-44">
         {/* biome-ignore lint/a11y/useSemanticElements: a fieldset would need a legend and carries min-content sizing quirks in this flex chip row; role="group" + aria-label conveys the same semantics */}
         <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by tech level">
           {ALL_TLS.map((tl) => (
@@ -130,19 +132,26 @@ export function InstallStep({
         )}
       </div>
 
-      {/* Right — Loadout panel (sticky on desktop) */}
-      <LoadoutPanel
-        name={loadoutName}
-        slotLabel={kind === 'systems' ? 'System Slots' : 'Module Slots'}
-        slotsUsed={slotsUsed}
-        slotsMax={slotsMax}
-        energyValue={energyValue}
-        energyMax={energyMax}
-        chosen={selected}
-        onRemove={onRemove}
-        kind={kind}
-        className="lg:sticky lg:top-4"
-      />
-    </div>
+      {/* Floating Loadout HUD — a horizontal bar pinned bottom-right, over the
+          catalog (out of flow, so it never pushes content). The wrapper is
+          pointer-transparent so clicks fall through to the cards behind it; only
+          the bar itself is interactive. z-30 sits UNDER the WizShell footer pill
+          (z-40) so Back/Next stays clickable where the two corners meet. Full
+          width on mobile, an auto-width bottom-right float from `sm` up. */}
+      <div className="pointer-events-none fixed inset-x-3 bottom-3 z-30 flex justify-end">
+        <LoadoutPanel
+          name={loadoutName}
+          slotLabel={kind === 'systems' ? 'System Slots' : 'Module Slots'}
+          slotsUsed={slotsUsed}
+          slotsMax={slotsMax}
+          energyValue={energyValue}
+          energyMax={energyMax}
+          chosen={selected}
+          onRemove={onRemove}
+          kind={kind}
+          className="pointer-events-auto w-full shadow-xl sm:max-w-2xl"
+        />
+      </div>
+    </>
   )
 }

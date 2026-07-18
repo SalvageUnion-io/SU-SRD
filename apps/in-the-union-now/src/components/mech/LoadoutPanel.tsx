@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Button, Glyph, MicroLabel, Panel, ReferenceEntityDisplay, VitalGauge } from 'component-lib'
+import { Glyph, Panel, VitalGauge } from 'component-lib'
 import { cn } from '../../lib/utils'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 
@@ -25,9 +25,12 @@ type LoadoutPanelProps = {
 }
 
 /**
- * Right-hand Loadout panel for the install steps (design §3.2 mech wizard):
- * 'Loadout · {name}' header, pip budget tracks (slots default-ink, energy
- * is-ap rust), then the chosen items as head-mode entity cards.
+ * Loadout HUD for the install steps (design §3.2 mech wizard) — a floating
+ * HORIZONTAL bar: the 'Loadout · {name}' header and both budget gauges (slots
+ * default-ink, energy is-ap rust) sit inline on the top row; the chosen items
+ * ride a single horizontally-scrolling strip of removable chips below. The
+ * consumer positions it (InstallStep floats it bottom-right over the catalog);
+ * this component is layout-agnostic and just fills the `className`-sized frame.
  */
 export function LoadoutPanel({
   name,
@@ -46,8 +49,8 @@ export function LoadoutPanel({
 
   // Keep the original index for each chosen ref so removal drops exactly ONE
   // occurrence (remove-by-index, not filter-all-matches — duplicates are legal).
-  // `copy` is the 1-based ordinal among same-named entries, shown when there's
-  // more than one copy of an item so each entry reads as "Name · N".
+  // `copy` is the 1-based ordinal among same-named entries, shown as "· c/total"
+  // when there's more than one copy so each chip reads distinctly.
   const seen = new Map<string, number>()
   const chosenEntries = chosen.flatMap((ref, index) => {
     const found = accessor.find((x) => matchesRef(x, ref))
@@ -60,72 +63,75 @@ export function LoadoutPanel({
   for (const ref of chosen) totals.set(ref, (totals.get(ref) ?? 0) + 1)
 
   return (
-    <Panel className={cn('self-start px-4 py-4', className)}>
-      <h2 className="font-cond text-sm font-bold uppercase tracking-caps text-ink">
-        Loadout · <span className="text-rust">{name}</span>
-      </h2>
-
-      <div className="mt-3 space-y-3">
-        {/* The wizard has no sheet-tone context, so feed VitalGauge its accent
-            via its own `style` (--tone / --tone-deep) — ink for the slot budget,
-            rust for Energy — preserving the old ink/rust distinction.
-            Over-capacity segments read red natively. */}
+    <Panel className={cn('px-3 py-2.5', className)}>
+      {/* Top row — header + both budget gauges inline (wraps on a narrow float).
+          The wizard has no sheet-tone context, so feed VitalGauge its accent via
+          its own `style` (--tone / --tone-deep) — ink for the slot budget, rust
+          for Energy — preserving the old ink/rust distinction. Over-capacity
+          segments read red natively. `compact` = the single-line gauge. */}
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        <h2 className="whitespace-nowrap font-cond text-sm font-bold uppercase tracking-caps text-ink">
+          Loadout · <span className="text-rust">{name}</span>
+        </h2>
         <VitalGauge
+          compact
+          readOnly
           label={slotLabel}
           value={slotsUsed}
           max={slotsMax}
-          readOnly
           style={
             { '--tone': 'var(--color-ink)', '--tone-deep': 'var(--color-ink)' } as CSSProperties
           }
         />
         <VitalGauge
+          compact
+          readOnly
           label="Energy"
           value={energyValue}
           max={energyMax}
-          readOnly
           style={
             { '--tone': 'var(--color-rust)', '--tone-deep': 'var(--color-rust)' } as CSSProperties
           }
         />
       </div>
 
-      <div className="mt-4 space-y-2">
-        {chosenEntries.map(({ entity, ref, index, copy }) => {
-          const total = totals.get(ref) ?? 1
-          // `index` (the original chosen-array position) is a deliberate,
-          // safe key here: duplicates are allowed so name/ref is non-unique,
-          // and these rows are stateless (head-mode display + stateless
-          // Button, onRemove closes over the live index each render). Do NOT
-          // add per-row local state on this index key without switching to a
-          // stable id — a removal shifts indices and would desync it.
-          return (
-            <div key={index} data-testid="loadout-entry" className="flex items-start gap-2">
-              <div className="min-w-0 flex-1">
-                <ReferenceEntityDisplay
-                  data={entity}
-                  mode="head"
-                  hide={{ actions: true, choices: true }}
-                />
-                {total > 1 && (
-                  <MicroLabel className="mt-0.5 block px-1">
-                    Copy {copy} of {total}
-                  </MicroLabel>
-                )}
-              </div>
-              <Button
-                size="xs"
-                onClick={() => onRemove(index)}
-                aria-label={`Remove ${(entity as { name?: string }).name ?? ref}`}
-                className="mt-0.5 shrink-0"
+      {/* Bottom row — installed items as a horizontal, scrolling strip of
+          removable chips (the chosen 'Bar + scrolling chips' HUD). */}
+      <div className="mt-2.5 flex items-center gap-2 overflow-x-auto pb-0.5">
+        {chosenEntries.length === 0 ? (
+          <p className="whitespace-nowrap font-body text-xs text-wk-muted">
+            Nothing installed yet.
+          </p>
+        ) : (
+          chosenEntries.map(({ entity, ref, index, copy }) => {
+            const total = totals.get(ref) ?? 1
+            const itemName = (entity as { name?: string }).name ?? ref
+            return (
+              <span
+                key={index}
+                data-testid="loadout-entry"
+                className="flex shrink-0 items-center gap-1.5 rounded-card border-chrome border-ink bg-paper py-1 pl-2.5 pr-1"
               >
-                <Glyph name="x" /> Remove
-              </Button>
-            </div>
-          )
-        })}
-        {chosenEntries.length === 0 && (
-          <p className="font-body text-xs text-wk-muted">Nothing installed yet.</p>
+                <span className="whitespace-nowrap font-body text-xs font-medium text-ink">
+                  {itemName}
+                  {total > 1 && (
+                    <span className="text-wk-muted">
+                      {' · '}
+                      {copy}/{total}
+                    </span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onRemove(index)}
+                  aria-label={`Remove ${itemName}`}
+                  className="flex size-5 shrink-0 items-center justify-center rounded-sm text-xs text-ink transition-colors hover:bg-ink hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                >
+                  <Glyph name="x" />
+                </button>
+              </span>
+            )
+          })
         )}
       </div>
     </Panel>

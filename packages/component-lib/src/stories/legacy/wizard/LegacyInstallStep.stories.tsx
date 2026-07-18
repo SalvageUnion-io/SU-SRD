@@ -3,7 +3,6 @@ import { type CSSProperties, useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
-import { Button } from '../../../components/chrome/Button'
 import { Panel } from '../../../components/chrome/Panel'
 import { FilterChip } from '../../../components/shared/FilterChip'
 import { MasonryColumns } from '../../../components/shared/MasonryColumns'
@@ -34,11 +33,11 @@ function tlRank(tl: TechLevel): number {
 }
 
 /**
- * Local mirror of apps/in-the-union-now/src/components/mech/LoadoutPanel.tsx
- * (lines 32-128) — an app-only component, not a shared atom, so it is
- * reproduced verbatim here (it itself composes the shared Panel / VitalGauge /
- * ReferenceEntityDisplay / Button atoms). 'Loadout · {name}' header, ink slot gauge
- * + rust energy gauge, then the chosen items as head-mode entity cards.
+ * Local mirror of apps/in-the-union-now/src/components/mech/LoadoutPanel.tsx —
+ * an app-only component (not a shared atom), reproduced here so the wizard step
+ * previews in Ladle. Floating HORIZONTAL HUD: 'Loadout · {name}' header + both
+ * budget gauges inline (ink slots, rust energy), then the chosen items as a
+ * horizontally-scrolling strip of removable chips.
  */
 function LegacyLoadoutPanel({
   name,
@@ -78,58 +77,64 @@ function LegacyLoadoutPanel({
   for (const ref of chosen) totals.set(ref, (totals.get(ref) ?? 0) + 1)
 
   return (
-    <Panel className={cn('self-start px-4 py-4', className)}>
-      <h2 className="font-cond text-sm font-bold uppercase tracking-caps text-ink">
-        Loadout · <span className="text-rust">{name}</span>
-      </h2>
-
-      <div className="mt-3 space-y-3">
+    <Panel className={cn('px-3 py-2.5', className)}>
+      {/* Top row — header + both budget gauges inline (compact single-line). */}
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        <h2 className="whitespace-nowrap font-cond text-sm font-bold uppercase tracking-caps text-ink">
+          Loadout · <span className="text-rust">{name}</span>
+        </h2>
         <div
           style={
             { '--tone': 'var(--color-ink)', '--tone-deep': 'var(--color-ink)' } as CSSProperties
           }
         >
-          <VitalGauge label={slotLabel} value={slotsUsed} max={slotsMax} readOnly />
+          <VitalGauge compact readOnly label={slotLabel} value={slotsUsed} max={slotsMax} />
         </div>
         <div
           style={
             { '--tone': 'var(--color-rust)', '--tone-deep': 'var(--color-rust)' } as CSSProperties
           }
         >
-          <VitalGauge label="Energy" value={energyValue} max={energyMax} readOnly />
+          <VitalGauge compact readOnly label="Energy" value={energyValue} max={energyMax} />
         </div>
       </div>
 
-      <div className="mt-4 space-y-2">
-        {chosenEntries.map(({ entity, ref, index, copy }) => {
-          const total = totals.get(ref) ?? 1
-          return (
-            <div key={index} data-testid="loadout-entry" className="flex items-start gap-2">
-              <div className="min-w-0 flex-1">
-                <ReferenceEntityDisplay
-                  data={entity}
-                  mode="head"
-                  hide={{ actions: true, choices: true }}
-                />
-                {total > 1 && (
-                  <span className="mt-0.5 block px-1 font-cond text-label font-bold uppercase tracking-caps text-wk-muted">
-                    Copy {copy} of {total}
-                  </span>
-                )}
-              </div>
-              <Button
-                size="xs"
-                onClick={() => onRemove(index)}
-                aria-label={`Remove ${(entity as { name?: string }).name ?? ref}`}
-                className="mt-0.5 shrink-0"
+      {/* Bottom row — chosen items as a horizontal, scrolling strip of chips. */}
+      <div className="mt-2.5 flex items-center gap-2 overflow-x-auto pb-0.5">
+        {chosenEntries.length === 0 ? (
+          <p className="whitespace-nowrap font-body text-xs text-wk-muted">
+            Nothing installed yet.
+          </p>
+        ) : (
+          chosenEntries.map(({ entity, ref, index, copy }) => {
+            const total = totals.get(ref) ?? 1
+            const itemName = (entity as { name?: string }).name ?? ref
+            return (
+              <span
+                key={index}
+                data-testid="loadout-entry"
+                className="flex shrink-0 items-center gap-1.5 rounded-card border-chrome border-ink bg-paper py-1 pl-2.5 pr-1"
               >
-                ✕ Remove
-              </Button>
-            </div>
-          )
-        })}
-        {chosenEntries.length === 0 && (
-          <p className="font-body text-xs text-wk-muted">Nothing installed yet.</p>
+                <span className="whitespace-nowrap font-body text-xs font-medium text-ink">
+                  {itemName}
+                  {total > 1 && (
+                    <span className="text-wk-muted">
+                      {' · '}
+                      {copy}/{total}
+                    </span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onRemove(index)}
+                  aria-label={`Remove ${itemName}`}
+                  className="flex size-5 shrink-0 items-center justify-center rounded-sm text-xs text-ink transition-colors hover:bg-ink hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                >
+                  ✕
+                </button>
+              </span>
+            )
+          })
         )}
       </div>
     </Panel>
@@ -169,9 +174,11 @@ function LegacyInstallStep({ kind }: { kind: 'systems' | 'modules' }) {
   }, 0)
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-      {/* Left — TL filter chips + 2-col compact Sel grid */}
-      <div className="min-w-0">
+    // `relative` frames the floating HUD to the story (the app uses viewport
+    // `fixed`); min-height gives the absolute bar room to float over the catalog.
+    <div className="relative min-h-[540px]">
+      {/* Full-width catalog; bottom padding clears the floating HUD. */}
+      <div className="min-w-0 pb-44">
         {/* biome-ignore lint/a11y/useSemanticElements: a fieldset would need a legend and carries min-content sizing quirks in this flex chip row; role="group" + aria-label conveys the same semantics */}
         <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by tech level">
           {ALL_TLS.map((tl) => (
@@ -216,19 +223,23 @@ function LegacyInstallStep({ kind }: { kind: 'systems' | 'modules' }) {
         )}
       </div>
 
-      {/* Right — Loadout panel (sticky on desktop) */}
-      <LegacyLoadoutPanel
-        name="Iron Mongrel"
-        slotLabel={kind === 'systems' ? 'System Slots' : 'Module Slots'}
-        slotsUsed={slotsUsed}
-        slotsMax={6}
-        energyValue={3}
-        energyMax={8}
-        chosen={selected}
-        onRemove={(index) => setSelected((prev) => prev.filter((_, i) => i !== index))}
-        kind={kind}
-        className="lg:sticky lg:top-4"
-      />
+      {/* Floating Loadout HUD — pinned bottom-right, over the catalog (the app
+          uses viewport `fixed`; the story uses `absolute` in the relative frame
+          above). Pointer-transparent wrapper so clicks fall through to cards. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-end">
+        <LegacyLoadoutPanel
+          name="Iron Mongrel"
+          slotLabel={kind === 'systems' ? 'System Slots' : 'Module Slots'}
+          slotsUsed={slotsUsed}
+          slotsMax={6}
+          energyValue={3}
+          energyMax={8}
+          chosen={selected}
+          onRemove={(index) => setSelected((prev) => prev.filter((_, i) => i !== index))}
+          kind={kind}
+          className="pointer-events-auto w-full shadow-xl sm:max-w-2xl"
+        />
+      </div>
     </div>
   )
 }
