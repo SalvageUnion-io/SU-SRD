@@ -1,7 +1,5 @@
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from 'component-lib'
-import { LAYOUT } from '../../lib/layout'
-import { cn } from '../../lib/utils'
+import { KvRow, Panel, ReferenceEntityDisplay } from 'component-lib'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import { SavePatternButton } from './Pattern/SavePatternButton'
@@ -19,24 +17,6 @@ type MechReviewStepProps = {
    * Scrap Pool field is the manual landing spot.
    */
   bankedScrap?: number
-}
-
-function KvRow({ label, value }: { label: string; value: string | null }) {
-  return (
-    <div className="flex gap-4 border-b border-wk-bg-2 py-2.5 last:border-0">
-      <span
-        className={cn(
-          LAYOUT.reviewLabelRail,
-          'shrink-0 font-cond text-xs font-bold uppercase tracking-widest text-wk-muted'
-        )}
-      >
-        {label}
-      </span>
-      <span className={value ? 'font-body text-[13.5px] text-ink' : 'text-rust'}>
-        {value ?? 'required'}
-      </span>
-    </div>
-  )
 }
 
 /**
@@ -75,7 +55,7 @@ export function MechReviewStep({ form, isEdit, submitError, bankedScrap }: MechR
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1fr]">
       {/* kv-panel */}
       <div className="self-start">
-        <div className="rounded-[3px] border-chrome border-ink bg-paper px-6 py-4 text-sm">
+        <Panel className="px-6 py-4 text-sm">
           {rows.map(([k, v]) => (
             <KvRow key={k} label={k} value={v} />
           ))}
@@ -84,7 +64,7 @@ export function MechReviewStep({ form, isEdit, submitError, bankedScrap }: MechR
               {submitError}
             </p>
           )}
-        </div>
+        </Panel>
         {bankedScrap !== undefined && (
           <p
             data-testid="banking-callout"

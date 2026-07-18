@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, Stat, TreeSep, entityHostTone } from 'component-lib'
+import { EmptyState, ReferenceEntityDisplay, Stat, TreeSep, entityHostTone } from 'component-lib'
 import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 
@@ -26,9 +26,10 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
 
   if (!chassis) {
     return (
-      <p className="m-0 font-body text-sm text-current">
-        Craft a Chassis first — its statistics appear here.
-      </p>
+      <EmptyState
+        headline="No Chassis Crafted"
+        body="Craft a chassis first — its statistics appear here."
+      />
     )
   }
 

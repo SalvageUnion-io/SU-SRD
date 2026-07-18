@@ -67,22 +67,27 @@ export function LoadoutPanel({
 
       <div className="mt-3 space-y-3">
         {/* The wizard has no sheet-tone context, so feed VitalGauge its accent
-            inline — ink for the slot budget, rust for Energy — preserving the
-            old ink/rust distinction. Over-capacity segments read red natively. */}
-        <div
+            via its own `style` (--tone / --tone-deep) — ink for the slot budget,
+            rust for Energy — preserving the old ink/rust distinction.
+            Over-capacity segments read red natively. */}
+        <VitalGauge
+          label={slotLabel}
+          value={slotsUsed}
+          max={slotsMax}
+          readOnly
           style={
             { '--tone': 'var(--color-ink)', '--tone-deep': 'var(--color-ink)' } as CSSProperties
           }
-        >
-          <VitalGauge label={slotLabel} value={slotsUsed} max={slotsMax} readOnly />
-        </div>
-        <div
+        />
+        <VitalGauge
+          label="Energy"
+          value={energyValue}
+          max={energyMax}
+          readOnly
           style={
             { '--tone': 'var(--color-rust)', '--tone-deep': 'var(--color-rust)' } as CSSProperties
           }
-        >
-          <VitalGauge label="Energy" value={energyValue} max={energyMax} readOnly />
-        </div>
+        />
       </div>
 
       <div className="mt-4 space-y-2">
