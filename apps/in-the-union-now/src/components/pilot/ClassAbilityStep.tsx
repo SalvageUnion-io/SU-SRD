@@ -1,8 +1,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefClass, SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
-import { ReferenceEntityDisplay, TreeSep } from 'component-lib'
-import { SelMasonry } from 'component-lib'
+import { MasonryColumns, ReferenceEntityDisplay, TreeSep } from 'component-lib'
 import { selectableClasses } from './classOptions'
 
 type SURClassesAccessor = {
@@ -140,11 +139,13 @@ export function ClassAbilityStep({
   return (
     <div className="w-full space-y-5">
       <TreeSep name="Pilot Class" suffix="Choose 1" />
-      <SelMasonry>{legalClasses.map(renderClassCard)}</SelMasonry>
+      <MasonryColumns maxColumns={2}>{legalClasses.map(renderClassCard)}</MasonryColumns>
       {isEdit && classes.specialisations.length > 0 && (
         <>
           <TreeSep name="Advanced / Hybrid" suffix="Requires 6 core abilities" />
-          <SelMasonry>{classes.specialisations.map(renderClassCard)}</SelMasonry>
+          <MasonryColumns maxColumns={2}>
+            {classes.specialisations.map(renderClassCard)}
+          </MasonryColumns>
         </>
       )}
 
@@ -161,7 +162,9 @@ export function ClassAbilityStep({
             return (
               <section key={tree} className="space-y-3">
                 <TreeSep name={tree} />
-                <SelMasonry>{treeAbilities.map(renderAbilityCard)}</SelMasonry>
+                <MasonryColumns maxColumns={2}>
+                  {treeAbilities.map(renderAbilityCard)}
+                </MasonryColumns>
               </section>
             )
           })}
@@ -172,7 +175,7 @@ export function ClassAbilityStep({
             name={`First Ability · ${selectedClass.name} Trees · Level 1`}
             suffix="Choose 1"
           />
-          <SelMasonry>{legalPool.map(renderAbilityCard)}</SelMasonry>
+          <MasonryColumns maxColumns={2}>{legalPool.map(renderAbilityCard)}</MasonryColumns>
           {legalPool.length === 0 && (
             <p className="font-body text-sm text-ink">No Level-1 abilities found for this class.</p>
           )}

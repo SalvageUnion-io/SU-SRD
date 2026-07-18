@@ -6,13 +6,13 @@ import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityD
 import { CatalogChoiceModal } from '../referenceEntity/choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../referenceEntity/choiceCard/choiceSelectionHelpers'
 import { EntitySearcher } from './EntitySearcher'
-import { SelMasonry } from './SelMasonry'
+import { MasonryColumns } from './MasonryColumns'
 
 /**
  * EntitySearcher — the shared "add an entity" body (search + Tech-Level / trait
  * facets + selection rail). Now in component-lib so both ITUN's live-sheet
  * pickers and the reference card's catalog-choice modal share one picker. This
- * file also covers its selection cells (SelMasonry packing plain
+ * file also covers its selection cells (MasonryColumns packing plain
  * ReferenceEntityDisplay cards) and the CatalogChoiceModal that wraps it for a
  * single-select catalog choice.
  */
@@ -58,10 +58,10 @@ export const Cells: Story = () => {
   return (
     <div className="flex flex-col gap-3">
       <Caption>
-        SelMasonry packs the selection cells — each is a plain ReferenceEntityDisplay with the
+        MasonryColumns packs the selection cells — each is a plain ReferenceEntityDisplay with the
         card's native `selected` ring + radio a11y (no SelCard wrapper).
       </Caption>
-      <SelMasonry radio ariaLabel="Equipment">
+      <MasonryColumns maxColumns={2} radio ariaLabel="Equipment">
         {items.map((item) => (
           <ReferenceEntityDisplay
             key={item.id}
@@ -74,7 +74,7 @@ export const Cells: Story = () => {
             hide={{ actions: true, choices: true }}
           />
         ))}
-      </SelMasonry>
+      </MasonryColumns>
     </div>
   )
 }

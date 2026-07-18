@@ -7,6 +7,20 @@ type MasonryColumnsProps = {
    * column. Defaults to `gap-4` (matches the old `gap-4` column gap + `mb-4`).
    */
   gap?: string
+  /**
+   * Cap the column count. Defaults to 3 (the viewport ladder 1 / 2 / 3). Pass
+   * `2` for constrained lists — e.g. wizard selection pools, which never split
+   * past two columns.
+   */
+  maxColumns?: number
+  /**
+   * Radio-group semantics for exactly-one pickers: wrap the flow in
+   * `role="radiogroup"`. Pair with `ReferenceEntityDisplay` / `Sel` cells using
+   * `selectionRole="radio"`, and pass an accessible group name via `ariaLabel`.
+   */
+  radio?: boolean
+  /** Accessible name for the radiogroup (required when `radio` is set). */
+  ariaLabel?: string
 }
 
 // Column count is driven purely by viewport width via matchMedia, mirroring the
@@ -55,8 +69,14 @@ function useColumnCount(): number {
  *
  * Print collapses to a single stacked column (`print:block` + `print:w-full`).
  */
-export function MasonryColumns({ children, gap = 'gap-4' }: MasonryColumnsProps) {
-  const columnCount = useColumnCount()
+export function MasonryColumns({
+  children,
+  gap = 'gap-4',
+  maxColumns = 3,
+  radio = false,
+  ariaLabel,
+}: MasonryColumnsProps) {
+  const columnCount = Math.min(useColumnCount(), maxColumns)
   const items = Children.toArray(children)
 
   const columns: ReactNode[][] = Array.from({ length: columnCount }, () => [])
@@ -65,7 +85,10 @@ export function MasonryColumns({ children, gap = 'gap-4' }: MasonryColumnsProps)
   })
 
   return (
-    <div className={`flex items-start ${gap} print:block`}>
+    <div
+      className={`flex items-start ${gap} print:block`}
+      {...(radio ? { role: 'radiogroup', 'aria-label': ariaLabel } : {})}
+    >
       {columns.map((col, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: columns are positional buckets — the index IS their identity
         <div key={i} className={`flex min-w-0 flex-1 flex-col print:w-full ${gap}`}>

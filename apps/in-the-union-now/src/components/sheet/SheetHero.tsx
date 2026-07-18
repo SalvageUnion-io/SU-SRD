@@ -88,9 +88,15 @@ export function SheetHero({
           reading order (identity → vitals). */}
       <div className="flex flex-col gap-[18px] px-4 py-[18px] sm:px-5">
         <div className="min-w-0">
-          <h1 className="m-0 inline bg-ink box-decoration-clone px-2 font-cond text-[26px] font-bold uppercase leading-[1.28] text-paper sm:text-[31px]">
+          <Badge
+            shape="stamp"
+            size="lg"
+            as="h1"
+            leading="leading-[1.28]"
+            className="m-0 inline box-decoration-clone py-0 text-[26px] sm:text-[31px]"
+          >
             {name}
-          </h1>
+          </Badge>
           {meta && <div className="mt-2.5 flex flex-wrap items-center gap-1.5">{meta}</div>}
         </div>
 

@@ -1,6 +1,5 @@
 import type { SURefSystem } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from 'component-lib'
-import { SelMasonry } from 'component-lib'
+import { MasonryColumns, ReferenceEntityDisplay } from 'component-lib'
 
 type SystemsListProps = {
   /** Weapons systems available to install, already filtered by the parent. */
@@ -60,7 +59,7 @@ export function SystemsList({
   }
 
   return (
-    <SelMasonry>
+    <MasonryColumns maxColumns={2}>
       {systems.map((system) => {
         const selected = selectedSystemSlugs.includes(system.id)
         const disabled = !selected && atCap
@@ -83,6 +82,6 @@ export function SystemsList({
           />
         )
       })}
-    </SelMasonry>
+    </MasonryColumns>
   )
 }

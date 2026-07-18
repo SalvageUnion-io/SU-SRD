@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Btn, FilterChip, ReferenceEntityDisplay } from 'component-lib'
+import { Btn, FilterChip, MasonryColumns, ReferenceEntityDisplay } from 'component-lib'
 import type { TechLevel } from '../../lib/rules/types'
-import { SelMasonry } from 'component-lib'
 import { LoadoutPanel } from './LoadoutPanel'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 
@@ -97,7 +96,7 @@ export function InstallStep({
         </div>
 
         <div className="mt-6">
-          <SelMasonry>
+          <MasonryColumns maxColumns={2}>
             {visible.map((item) => {
               const count = selected.filter((ref) => matchesRef(item, ref)).length
               const installed = count > 0
@@ -133,7 +132,7 @@ export function InstallStep({
                 />
               )
             })}
-          </SelMasonry>
+          </MasonryColumns>
         </div>
         {visible.length === 0 && (
           <p className="mt-4 text-sm text-wk-muted">No {kind} at the selected tech levels.</p>

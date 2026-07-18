@@ -1,7 +1,6 @@
 import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
-import { EmptyState, OptRow, ReferenceEntityDisplay, TreeSep } from 'component-lib'
-import { SelMasonry } from 'component-lib'
+import { EmptyState, MasonryColumns, OptRow, ReferenceEntityDisplay, TreeSep } from 'component-lib'
 
 type CrawlerTypeOptionListProps = {
   types: SURefCrawler[]
@@ -89,7 +88,7 @@ export function CrawlerTypeSelectStep({
   return (
     <div className="w-full space-y-5">
       <TreeSep name="Crawler Types" suffix="Choose 1" />
-      <SelMasonry radio ariaLabel="Crawler type">
+      <MasonryColumns maxColumns={2} radio ariaLabel="Crawler type">
         {types.map((type) => {
           const slots = crawlerWeaponSlots(type.mutations)
           const spBonus = crawlerMaxSpBonus(type.mutations)
@@ -110,7 +109,7 @@ export function CrawlerTypeSelectStep({
             />
           )
         })}
-      </SelMasonry>
+      </MasonryColumns>
 
       {selected ? (
         <>

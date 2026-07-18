@@ -6,9 +6,14 @@ import {
   legalStartingPatterns,
   MECH_CREATION_SCRAP_CAP,
 } from 'salvageunion-reference/rules'
-import { ReferenceEntityDisplay, Sel, TreeSep, useChassisPatternConfig } from 'component-lib'
+import {
+  MasonryColumns,
+  ReferenceEntityDisplay,
+  Sel,
+  TreeSep,
+  useChassisPatternConfig,
+} from 'component-lib'
 import { matchesRef } from '../../lib/rules/resolveRefs'
-import { SelMasonry } from 'component-lib'
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
 export type ChassisPattern = SURefChassis['patterns'][number]
@@ -104,7 +109,7 @@ export function MechChassisStep({
   return (
     <div className="w-full space-y-5">
       <TreeSep name={isEdit ? 'Chassis' : 'Tech 1 Chassis'} suffix="Choose 1" />
-      <SelMasonry radio ariaLabel="Chassis">
+      <MasonryColumns maxColumns={2} radio ariaLabel="Chassis">
         {chassisPool.map((chassis) => {
           const cost = chassis.salvageValue
           const reason =
@@ -129,7 +134,7 @@ export function MechChassisStep({
             />
           )
         })}
-      </SelMasonry>
+      </MasonryColumns>
 
       {selectedChassis === undefined ? (
         <p className="font-body text-sm text-current">
@@ -138,7 +143,7 @@ export function MechChassisStep({
       ) : (
         <>
           <TreeSep name="Start from a pattern?" suffix="Optional" />
-          <SelMasonry radio ariaLabel="Starting pattern">
+          <MasonryColumns maxColumns={2} radio ariaLabel="Starting pattern">
             {patternPool.map((pattern) => (
               <PatternSelCard
                 key={pattern.name}
@@ -166,7 +171,7 @@ export function MechChassisStep({
                 </p>
               </div>
             </Sel>
-          </SelMasonry>
+          </MasonryColumns>
         </>
       )}
     </div>

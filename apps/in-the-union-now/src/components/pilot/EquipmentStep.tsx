@@ -1,8 +1,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
-import { CountStepper, ReferenceEntityDisplay } from 'component-lib'
-import { SelMasonry } from 'component-lib'
+import { CountStepper, MasonryColumns, ReferenceEntityDisplay } from 'component-lib'
 
 type SUREquipmentAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
@@ -68,7 +67,7 @@ export function EquipmentStep({
 
   return (
     <div className="w-full">
-      <SelMasonry>
+      <MasonryColumns maxColumns={2}>
         {sorted.map((item) => {
           const count = counts.get(item.id) ?? 0
           if (isCreate) {
@@ -109,7 +108,7 @@ export function EquipmentStep({
             />
           )
         })}
-      </SelMasonry>
+      </MasonryColumns>
       {sorted.length === 0 && (
         <p className="text-sm text-wk-muted">
           {isCreate ? 'No tech level 1 equipment found.' : 'No equipment found.'}

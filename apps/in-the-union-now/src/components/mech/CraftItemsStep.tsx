@@ -2,9 +2,8 @@ import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
-import { CountStepper, Pill, ReferenceEntityDisplay, TreeSep } from 'component-lib'
+import { CountStepper, MasonryColumns, Pill, ReferenceEntityDisplay, TreeSep } from 'component-lib'
 import { matchesRef } from '../../lib/rules/resolveRefs'
-import { SelMasonry } from 'component-lib'
 
 type CraftItemsStepProps = {
   /** Which dataset this step crafts from (against its own slot budget). */
@@ -51,7 +50,7 @@ export function CraftItemsStep({
   return (
     <div className="w-full space-y-5">
       <TreeSep name={`Tech 1 ${noun}s`} suffix="Duplicates allowed" />
-      <SelMasonry>
+      <MasonryColumns maxColumns={2}>
         {items.map((item) => {
           const name = item.name ?? item.id
           const count = selected.filter((ref) => matchesRef(item, ref)).length
@@ -112,7 +111,7 @@ export function CraftItemsStep({
             />
           )
         })}
-      </SelMasonry>
+      </MasonryColumns>
       {items.length === 0 && (
         <p className="font-body text-sm text-current">No Tech 1 {kind} found.</p>
       )}

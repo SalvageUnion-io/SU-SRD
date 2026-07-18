@@ -15,7 +15,7 @@ type SelProps = {
    * Radio semantics for exactly-one pickers (wizard-refresh Phase 4): the
    * wrapper announces `role="radio"` + `aria-checked` instead of the default
    * button + `aria-pressed`. Pair with a `role="radiogroup"` container (see
-   * SelMasonry's radio props in ITUN).
+   * MasonryColumns' radio props).
    */
   radio?: boolean
 }

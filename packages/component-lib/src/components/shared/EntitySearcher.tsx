@@ -28,7 +28,7 @@ import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityD
 import { statBlockRowStarts } from '../stat/pipRows'
 import { DisplayCard } from './DisplayCard'
 import { FilterChip } from './FilterChip'
-import { SelMasonry } from './SelMasonry'
+import { MasonryColumns } from './MasonryColumns'
 
 /** The minimum shape the searcher reads off a reference entity. */
 type EntityLike = {
@@ -350,7 +350,7 @@ export function EntitySearcher({
 
   const poolNode = (
     <div className="min-w-0">
-      <SelMasonry>
+      <MasonryColumns maxColumns={2}>
         {visible.map((item) => {
           const count = countOf(item)
           if (mode === 'count') {
@@ -380,7 +380,7 @@ export function EntitySearcher({
             />
           )
         })}
-      </SelMasonry>
+      </MasonryColumns>
       {visible.length === 0 && (
         <p className="mt-3 font-body text-sm text-wk-muted">{emptyMessage}</p>
       )}

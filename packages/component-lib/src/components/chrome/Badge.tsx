@@ -85,6 +85,13 @@ type BadgeStampProps = {
    * pass the horizontal inset via `className` (e.g. `left-3`).
    */
   seam?: boolean
+  /**
+   * Override the baked-in `line-height: 1`. The stamp forces line-height 1 for
+   * crisp single-line labels/tabs; pass a Tailwind leading utility (e.g.
+   * `leading-[1.28]`) when the stamp is a wrapping display headline that needs
+   * breathing room between lines.
+   */
+  leading?: string
   as?: ElementType
   className?: string
 } & Omit<HTMLAttributes<HTMLElement>, 'children' | 'className'>
@@ -111,21 +118,26 @@ export function Badge(props: BadgeProps) {
       size = 'md',
       surface = 'on-ink',
       seam = false,
+      leading,
       as: Tag = 'span',
       className,
       shape: _shape,
+      style,
       ...rest
     } = props
     return (
       <Tag
         className={cn(
-          'inline-block w-fit font-cond font-bold uppercase leading-none tracking-caps-tight',
+          'inline-block w-fit font-cond font-bold uppercase tracking-caps-tight',
+          leading ?? 'leading-none',
           STAMP_SIZE[size],
           STAMP_SURFACE[surface],
           seam && STAMP_SEAM,
           className
         )}
-        style={{ lineHeight: 1 }}
+        // The stamp bakes in line-height:1 for crisp single-line labels; a
+        // `leading` override (e.g. a wrapping display headline) opts out of it.
+        style={leading ? style : { lineHeight: 1, ...style }}
         {...rest}
       >
         {children}
