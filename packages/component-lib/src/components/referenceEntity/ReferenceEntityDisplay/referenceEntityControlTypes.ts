@@ -18,6 +18,8 @@ export type ReferenceEntityControl = {
     subject: string
     min?: number
     max?: number
+    /** Readout prefix — with `max`, reads "{label} {count}/{max}" (e.g. "Uses 3/5"). */
+    label?: string
   }
   /** Renders a read-only status stamp (Badge) — e.g. "Used", "Uses 3/5". */
   badge?: ReactNode

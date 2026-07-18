@@ -2,15 +2,15 @@
  * MechItemCard — ONE installed system/module as an Erow'd COMPACT entity card
  * (design §4.3, plan 4.5; redesign phase 2: compact listing cards, max 2-up).
  *
- * Action economy lives in the card foot (Erow mode 'card' semantics — the
- * footActions/footMeta props are native to ReferenceEntityDisplay):
+ * Every affordance rides the card's controls overlay (no footer actions);
+ * `footMeta` still carries the read-only EP/Heat/Slots figures:
  *   - Use: spends the primary action's EP cost / adds its Hot heat /
  *     decrements the uses counter. DISABLED while Damaged/Destroyed —
  *     "wire the disabled state, not just the pill" (§4.3).
- *   - Repair (Damaged only, promoted to primary): shows the half-SV scrap
- *     cost and offers an OPTIONAL crawler scrap-pool deduction. The
- *     no-deduction path is always available — advisory, never blocks (S12),
- *     but never a silent free flip either: the cost is on the button.
+ *   - Repair (Damaged only, danger control): shows the half-SV scrap cost and
+ *     opens a MODAL confirm offering an OPTIONAL crawler scrap-pool deduction.
+ *     The no-deduction path is always available — advisory, never blocks (S12),
+ *     but never a silent free flip either: the cost is on the control.
  *   - Uses stepper: manual ± counter for systems AND modules (rules B13).
  *   - Remove (✕): per-card uninstall — always available on editable sheets
  *     (unified edit language archetype B, never gated behind a mode).
@@ -25,8 +25,8 @@
 
 import { useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Button, ReferenceEntityDisplay, StatusBadge, StepButton } from 'component-lib'
-import type { CardFootMeta } from 'component-lib'
+import { Button, ModalShell, ReferenceEntityDisplay, StatusBadge } from 'component-lib'
+import type { CardFootMeta, ReferenceEntityControl } from 'component-lib'
 
 import type { ScrapPool } from '../../lib/schemas/crawler'
 import type { ItemCondition } from '../../lib/schemas/mech'
@@ -134,106 +134,118 @@ export function MechItemCard({
         ? `Not enough TL ${itemTl ?? 1}+ scrap in the crawler pool`
         : 'No crawler linked — no pool to deduct from'
 
-  const footActions = readOnly ? undefined : (
-    <>
-      {showUse && (
-        <Button
-          size="sm"
-          variant={condition === 'intact' ? 'primary' : 'default'}
-          disabled={useDisabledReason !== null}
-          title={useDisabledReason ?? undefined}
-          aria-label={`Use ${entity.name}`}
-          onClick={() => onUse?.(economy)}
-        >
-          Use
-        </Button>
-      )}
-      {maxUses > 0 && (
-        <span className="inline-flex items-center gap-1.5">
-          <StepButton
-            aria-label={`Decrease ${entity.name} uses`}
-            disabled={remaining <= 0}
-            onClick={() => onUsesChange(remaining - 1)}
-          >
-            &ndash;
-          </StepButton>
-          <span className="min-w-[4.5rem] text-center font-cond text-badge font-bold uppercase leading-none tabular-nums text-ink">
-            Uses {remaining}/{maxUses}
-          </span>
-          <StepButton
-            aria-label={`Increase ${entity.name} uses`}
-            disabled={remaining >= maxUses}
-            onClick={() => onUsesChange(remaining + 1)}
-          >
-            +
-          </StepButton>
-        </span>
-      )}
-      {condition === 'damaged' && (
-        // Reserve the repair affordance its own full-width foot row so toggling
-        // between the single Repair button and the 3-button confirm cluster
-        // never changes the foot's row count — keeps the equal-height Erow steady.
-        <span className="flex basis-full flex-wrap items-center justify-end gap-1.5">
-          {confirmingRepair ? (
-            <>
-              <Button
-                size="sm"
-                variant="primary"
-                disabled={deductTl === null}
-                title={deductDisabledReason ?? undefined}
-                aria-label={`Repair ${entity.name} and deduct scrap`}
-                onClick={() => {
-                  onRepair(deductTl, cost)
-                  setConfirmingRepair(false)
-                }}
-              >
-                Deduct {cost} from TL {deductTl ?? Math.max(1, itemTl ?? 1)} pool
-              </Button>
-              <Button
-                size="sm"
-                aria-label={`Repair ${entity.name} without deducting scrap`}
-                onClick={() => {
-                  onRepair(null, cost)
-                  setConfirmingRepair(false)
-                }}
-              >
-                Repair without deducting
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => setConfirmingRepair(false)}>
-                Cancel
-              </Button>
-            </>
-          ) : (
+  // All per-card interactivity rides the controls overlay (no footer actions):
+  // Use, the uses stepper, and Repair (which opens a modal confirm), plus the
+  // per-card remove (✕). The status toggle is added by ReferenceEntityCard.
+  const controls: ReferenceEntityControl[] = readOnly
+    ? []
+    : [
+        ...(showUse
+          ? [
+              {
+                key: 'use',
+                label: 'Use',
+                ariaLabel: `Use ${entity.name}`,
+                title: useDisabledReason ?? undefined,
+                onClick: () => onUse?.(economy),
+                variant: condition === 'intact' ? 'primary' : 'ghost',
+                disabled: useDisabledReason !== null,
+              } satisfies ReferenceEntityControl,
+            ]
+          : []),
+        ...(maxUses > 0
+          ? [
+              {
+                key: 'uses',
+                stepper: {
+                  count: remaining,
+                  onChange: onUsesChange,
+                  subject: entity.name,
+                  min: 0,
+                  max: maxUses,
+                  label: 'Uses',
+                },
+              } satisfies ReferenceEntityControl,
+            ]
+          : []),
+        ...(condition === 'damaged'
+          ? [
+              {
+                key: 'repair',
+                label: 'Repair',
+                segmentText: `${cost} Scrap`,
+                ariaLabel: `Repair ${entity.name}`,
+                onClick: () => setConfirmingRepair(true),
+                variant: 'danger',
+              } satisfies ReferenceEntityControl,
+            ]
+          : []),
+        ...(onRemove ? cardRemoveControls({ name: entity.name, onRemove }) : []),
+      ]
+
+  // Repair confirm — a modal (design: no inline confirm cluster / footer).
+  const repairModal =
+    condition === 'damaged' && confirmingRepair ? (
+      <ModalShell
+        open={confirmingRepair}
+        onOpenChange={(next) => {
+          if (!next) setConfirmingRepair(false)
+        }}
+        title={`Repair ${entity.name}`}
+        maxWidth="max-w-sm"
+        align="center"
+      >
+        <div className="flex flex-col gap-3 bg-paper p-5">
+          <p className="m-0 font-body text-sm text-ink">
+            Repairing costs {cost} Scrap (Tech {Math.max(1, itemTl ?? 1)} or higher) from the
+            crawler pool.
+          </p>
+          <div className="flex flex-wrap justify-end gap-2">
             <Button
               size="sm"
               variant="primary"
-              aria-label={`Repair ${entity.name}`}
-              onClick={() => setConfirmingRepair(true)}
+              disabled={deductTl === null}
+              title={deductDisabledReason ?? undefined}
+              aria-label={`Repair ${entity.name} and deduct scrap`}
+              onClick={() => {
+                onRepair(deductTl, cost)
+                setConfirmingRepair(false)
+              }}
             >
-              Repair &middot; {cost} Scrap
+              Deduct {cost} from TL {deductTl ?? Math.max(1, itemTl ?? 1)} pool
             </Button>
-          )}
-        </span>
-      )}
-    </>
-  )
+            <Button
+              size="sm"
+              aria-label={`Repair ${entity.name} without deducting scrap`}
+              onClick={() => {
+                onRepair(null, cost)
+                setConfirmingRepair(false)
+              }}
+            >
+              Repair without deducting
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setConfirmingRepair(false)}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </ModalShell>
+    ) : null
 
-  // Per-card remove (✕) moves to the card HEADER (G4), beside the status badge;
-  // the editing cue moves onto the CARD when removable.
-  const controls =
-    !readOnly && onRemove ? cardRemoveControls({ name: entity.name, onRemove }) : undefined
-
+  const removable = !readOnly && onRemove !== undefined
   return (
-    <ReferenceEntityDisplay
-      data={entity as unknown as SURefEntity}
-      compact
-      hide={HIDE_CHOICES}
-      status={condition}
-      onStatusClick={readOnly ? undefined : onStatusCycle}
-      footActions={footActions}
-      footMeta={footMeta}
-      controls={controls}
-      cardStyle={controls ? REMOVABLE_CARD_STYLE : undefined}
-    />
+    <>
+      <ReferenceEntityDisplay
+        data={entity as unknown as SURefEntity}
+        compact
+        hide={HIDE_CHOICES}
+        status={condition}
+        onStatusClick={readOnly ? undefined : onStatusCycle}
+        footMeta={footMeta}
+        controls={controls.length ? controls : undefined}
+        cardStyle={removable ? REMOVABLE_CARD_STYLE : undefined}
+      />
+      {repairModal}
+    </>
   )
 }

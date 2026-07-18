@@ -213,7 +213,7 @@ describe('MechSheet — per-item uses counters (rules B13)', () => {
 
     expect(screen.getByText('Uses 3/5')).toBeTruthy()
     await act(async () => {
-      clickButton(/decrease aff coolant foam uses/i)
+      clickButton(/remove one aff coolant foam/i)
     })
 
     expect(must(captured[0]).patch).toEqual({ itemUses: { 'AFF Coolant Foam': 2 } })
@@ -228,7 +228,7 @@ describe('MechSheet — per-item uses counters (rules B13)', () => {
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
 
     await act(async () => {
-      clickButton(/increase aff coolant foam uses/i)
+      clickButton(/add one aff coolant foam/i)
     })
 
     expect(must(captured[0]).patch).toEqual({ itemUses: { 'AFF Coolant Foam': 4 } })

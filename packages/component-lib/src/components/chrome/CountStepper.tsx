@@ -14,6 +14,9 @@ type CountStepperProps = {
   min?: number
   /** Ceiling given the shared budget; `+` disables at it. */
   max?: number
+  /** Optional readout prefix — with `max` set, the readout reads
+   *  "{label} {count}/{max}" (e.g. "Uses 3/5") instead of the bare count. */
+  label?: string
 }
 
 /**
@@ -26,9 +29,10 @@ type CountStepperProps = {
  * step never bubbles to a surrounding card toggle. Formerly baked into `SelCard`;
  * now a standalone atom so any card (picker cell, install row) reuses it.
  */
-export function CountStepper({ count, onChange, subject, min = 0, max }: CountStepperProps) {
+export function CountStepper({ count, onChange, subject, min = 0, max, label }: CountStepperProps) {
   const atMin = count <= min
   const atMax = max !== undefined && count >= max
+  const readout = label !== undefined && max !== undefined ? `${label} ${count}/${max}` : `${count}`
   return (
     <span className="inline-flex items-stretch overflow-hidden rounded-[5px] border-2 border-ink leading-none">
       <StepButton
@@ -48,11 +52,12 @@ export function CountStepper({ count, onChange, subject, min = 0, max }: CountSt
       <span
         aria-hidden="true"
         className={cn(
-          'grid w-8 place-items-center bg-paper font-cond text-[13px] font-bold text-ink',
+          'grid place-items-center bg-paper font-cond text-[13px] font-bold uppercase leading-none text-ink',
+          label !== undefined ? 'min-w-[4.5rem] px-1.5 tabular-nums' : 'w-8',
           count === 0 && 'opacity-55'
         )}
       >
-        {count}
+        {readout}
       </span>
       <span role="status" aria-live="polite" className="sr-only">
         {subject} count: {count}
