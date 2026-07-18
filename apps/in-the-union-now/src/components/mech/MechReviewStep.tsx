@@ -66,13 +66,13 @@ export function MechReviewStep({ form, isEdit, submitError, bankedScrap }: MechR
           )}
         </Panel>
         {bankedScrap !== undefined && (
-          <p
+          <Panel
             data-testid="banking-callout"
-            className="mt-3 rounded-[3px] border-chrome border-ink bg-paper px-4 py-3 font-cond text-sm font-bold uppercase tracking-caps text-ink"
+            className="mt-3 px-4 py-3 font-cond text-sm font-bold uppercase tracking-caps text-ink"
           >
             {bankedScrap} Tech 1 Scrap banks to your Union Crawler — note it in the Crawler&rsquo;s
             Scrap Pool.
-          </p>
+          </Panel>
         )}
         {form.chassisName && (
           <div className="mt-3">

@@ -6,15 +6,18 @@ type PanelProps = {
   /** Faint border instead of ink */
   soft?: boolean
   className?: string
+  /** Test hook forwarded to the root (e.g. a named callout the tests query). */
+  'data-testid'?: string
 }
 
 /**
  * App-chrome panel (design-spec §2.10 `.panel`): 1.5px border, 6px radius,
  * paper ground. `soft` swaps to the faint border.
  */
-export function Panel({ children, soft = false, className }: PanelProps) {
+export function Panel({ children, soft = false, className, 'data-testid': testId }: PanelProps) {
   return (
     <div
+      data-testid={testId}
       className={cn(
         'rounded-panel border-chrome bg-paper',
         soft ? 'border-wk-faint' : 'border-ink',

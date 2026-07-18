@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Btn, Panel, ReferenceEntityDisplay, VitalGauge } from 'component-lib'
+import { Btn, Glyph, Panel, ReferenceEntityDisplay, VitalGauge } from 'component-lib'
 import { cn } from '../../lib/utils'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 
@@ -119,7 +119,7 @@ export function LoadoutPanel({
                 aria-label={`Remove ${(entity as { name?: string }).name ?? ref}`}
                 className="mt-0.5 shrink-0"
               >
-                ✕ Remove
+                <Glyph name="x" /> Remove
               </Btn>
             </div>
           )
