@@ -146,6 +146,7 @@ export { Chip } from './components/chrome/Chip'
 export { PickCard } from './components/chrome/PickCard'
 export { Sel } from './components/chrome/Sel'
 export { KvRow } from './components/chrome/KvRow'
+export { MicroLabel } from './components/chrome/MicroLabel'
 export { ModeDoor } from './components/chrome/ModeDoor'
 export { InlineEditField } from './components/chrome/InlineEditField'
 

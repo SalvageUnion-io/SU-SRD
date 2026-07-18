@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Btn, Glyph, Panel, ReferenceEntityDisplay, VitalGauge } from 'component-lib'
+import { Btn, Glyph, MicroLabel, Panel, ReferenceEntityDisplay, VitalGauge } from 'component-lib'
 import { cn } from '../../lib/utils'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 
@@ -108,9 +108,9 @@ export function LoadoutPanel({
                   hide={{ actions: true, choices: true }}
                 />
                 {total > 1 && (
-                  <span className="mt-0.5 block px-1 font-cond text-label font-bold uppercase tracking-caps text-wk-muted">
+                  <MicroLabel className="mt-0.5 block px-1">
                     Copy {copy} of {total}
-                  </span>
+                  </MicroLabel>
                 )}
               </div>
               <Btn

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Btn, FilterChip, MasonryColumns, ReferenceEntityDisplay } from 'component-lib'
+import { Btn, FilterChip, MasonryColumns, MicroLabel, ReferenceEntityDisplay } from 'component-lib'
 import type { TechLevel } from '../../lib/rules/types'
 import { LoadoutPanel } from './LoadoutPanel'
 import { matchesRef } from '../../lib/rules/resolveRefs'
@@ -113,12 +113,13 @@ export function InstallStep({
                   footActions={
                     <>
                       {installed && (
-                        <span
-                          className="font-cond text-badge font-bold uppercase tracking-caps text-rust"
+                        <MicroLabel
+                          tone="rust"
+                          className="text-badge"
                           data-testid={`install-count-${item.name}`}
                         >
                           {count} Installed
-                        </span>
+                        </MicroLabel>
                       )}
                       <Btn
                         size="xs"
