@@ -1,8 +1,6 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from 'component-lib'
-import { LAYOUT } from '../../lib/layout'
-import { cn } from '../../lib/utils'
+import { KvRow, Panel, ReferenceEntityDisplay } from 'component-lib'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 
 type SURFindAll = { findAll: (fn: (x: unknown) => boolean) => unknown[] }
@@ -18,24 +16,6 @@ type ReviewStepProps = {
 }
 
 type Named = { id: string; name: string }
-
-function KvRow({ label, value }: { label: string; value: string | null }) {
-  return (
-    <div className="flex gap-4 border-b border-wk-bg-2 py-2.5 last:border-0">
-      <span
-        className={cn(
-          LAYOUT.reviewLabelRail,
-          'shrink-0 font-cond text-xs font-bold uppercase tracking-widest text-wk-muted'
-        )}
-      >
-        {label}
-      </span>
-      <span className={value ? 'font-body text-sm text-ink' : 'text-rust'}>
-        {value ?? 'required'}
-      </span>
-    </div>
-  )
-}
 
 /**
  * Review step (design §3.2 Review): kv-panel of the build's fields on the
@@ -81,7 +61,7 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1fr]">
       {/* kv-panel */}
-      <div className="self-start rounded-[3px] border-chrome border-ink bg-paper p-4 text-sm">
+      <Panel className="self-start p-4 text-sm">
         {rows.map(([k, v]) => (
           <KvRow key={k} label={k} value={v} />
         ))}
@@ -90,7 +70,7 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
             {submitError}
           </p>
         )}
-      </div>
+      </Panel>
 
       {/* chosen cards */}
       <div className="space-y-3">

@@ -1,5 +1,11 @@
 import type { SURefClass, SURefEntity } from 'salvageunion-reference'
-import { ClassAbilityTree, EmptyState, OptRow, ReferenceEntityDisplay } from 'component-lib'
+import {
+  ClassAbilityTree,
+  EmptyState,
+  OptRow,
+  ReferenceEntityDisplay,
+  TreeSep,
+} from 'component-lib'
 import { classDescription } from './classOptions'
 
 type ClassOptionListProps = {
@@ -32,9 +38,9 @@ export function ClassOptionList({
       ))}
       {specialisations.length > 0 && (
         <>
-          <p className="mb-2 mt-5 font-cond text-xs font-bold uppercase tracking-widest text-wk-muted">
-            Advanced / Hybrid — requires 6 core abilities
-          </p>
+          <div className="mb-2 mt-5">
+            <TreeSep name="Advanced / Hybrid" suffix="Requires 6 core abilities" />
+          </div>
           {specialisations.map((cls) => (
             <OptRow
               key={cls.id}

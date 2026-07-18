@@ -1,4 +1,4 @@
-import { Field, Input } from 'component-lib'
+import { Field, Input, Textarea } from 'component-lib'
 import type { PilotRollField, RollTableDeps } from './rollTableHelpers'
 import { RollTableButton } from './RollTableButton'
 
@@ -42,13 +42,12 @@ export function FlavorStep({
               label={`Roll ${label.toLowerCase()}`}
               _deps={_rollDeps}
             />
-            <textarea
+            <Textarea
               id={id}
               value={value}
               onChange={(e) => onChange(e.target.value)}
               placeholder={placeholder}
               rows={5}
-              className="w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
             />
           </div>
         ) : (

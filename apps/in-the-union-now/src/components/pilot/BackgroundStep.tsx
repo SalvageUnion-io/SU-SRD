@@ -1,4 +1,4 @@
-import { Field } from 'component-lib'
+import { Field, Textarea } from 'component-lib'
 import type { RollTableDeps } from './rollTableHelpers'
 import { RollTableButton } from './RollTableButton'
 
@@ -37,24 +37,22 @@ export function BackgroundStep({
             label="Roll background"
             _deps={_rollDeps}
           />
-          <textarea
+          <Textarea
             id="background-field"
             value={background}
             onChange={(e) => onChange(e.target.value)}
             placeholder="Where did you come from? What drives you?"
             rows={5}
-            className="w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
           />
         </div>
       </Field>
       <Field label="Bio" htmlFor="bio-field">
-        <textarea
+        <Textarea
           id="bio-field"
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
           placeholder="Their story so far — history, motivations, notable deeds."
           rows={5}
-          className="w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]"
         />
       </Field>
     </div>
