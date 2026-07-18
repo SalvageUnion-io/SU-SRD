@@ -4,6 +4,7 @@ import { Tooltip } from '@base-ui/react/tooltip'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { CountStepper } from '../chrome/CountStepper'
+import { StatusBadge } from '../chrome/StatusBadge'
 import type {
   ReferenceEntityControl,
   ReferenceEntityControlVariant,
@@ -51,7 +52,7 @@ function ControlButton({
   onClickWithStop: (e: React.MouseEvent, onClick: () => void) => void
 }) {
   // Typed item variants — render a primitive instead of an action button.
-  // Precedence: stepper → badge → link → node → button.
+  // Precedence: stepper → badge → status → link → button.
   if (control.stepper) {
     return <CountStepper {...control.stepper} />
   }
@@ -60,6 +61,15 @@ function ControlButton({
       <Badge shape="stamp" size="sm">
         {control.badge}
       </Badge>
+    )
+  }
+  if (control.status) {
+    return (
+      <StatusBadge
+        status={control.status.value}
+        onClick={control.status.onClick}
+        subject={control.status.subject}
+      />
     )
   }
   if (control.href !== undefined) {
@@ -73,10 +83,6 @@ function ControlButton({
       </a>
     )
   }
-  if (control.node !== undefined) {
-    return <>{control.node}</>
-  }
-
   const variant = control.variant ?? 'primary'
   const isDisabled = !!control.disabled
   const hasCustomColors = !!(control.bgColor || control.textColor)

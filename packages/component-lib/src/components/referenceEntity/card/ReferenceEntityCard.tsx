@@ -38,7 +38,6 @@ import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { EntityStatus } from '../../shared/entityStatus'
 import { FOCUS_RING, activateOnKey } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
-import { StatusBadge } from '../../chrome/StatusBadge'
 import { Badge } from '../../chrome/Badge'
 import { CountStepper } from '../../chrome/CountStepper'
 import { STAMP_SEAM } from '../../chrome/stampSeam'
@@ -943,14 +942,17 @@ export function ReferenceEntityCard({
   const effectiveRightContent: ReactNode = lightweight
     ? undefined
     : (rightContentProp ?? flavorNode)
-  const statusNode: ReactNode = status ? (
-    <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject ?? entityName} />
-  ) : undefined
   // All select/alter interactivity lives in the controls bar, not the subheader:
   // the condition toggle (Intact/Damaged/Destroyed) rides the controls overlay
-  // as a leading node control, ahead of any consumer-supplied controls.
-  const overlayControls: ReferenceEntityControl[] | undefined = statusNode
-    ? [{ key: 'status', node: statusNode }, ...(controls ?? [])]
+  // as a leading status control, ahead of any consumer-supplied controls.
+  const overlayControls: ReferenceEntityControl[] | undefined = status
+    ? [
+        {
+          key: 'status',
+          status: { value: status, onClick: onStatusClick, subject: statusSubject ?? entityName },
+        },
+        ...(controls ?? []),
+      ]
     : controls
   const titleTextClass = onBandText
   const header = (

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import type { EntityStatus } from '../../shared/entityStatus'
 
 export type ReferenceEntityControlVariant = 'primary' | 'danger' | 'ghost'
 
@@ -8,7 +9,7 @@ export type ReferenceEntityControl = {
   // When one of these is set the control renders that item via the matching
   // primitive instead of an action button. They let `controls` carry
   // everything the old `footActions` slot did, so no action renders in the
-  // footer. Precedence: stepper → badge → link → node → button.
+  // footer. Precedence: stepper → badge → status → link → button.
   /** Renders a bounded −/readout/+ CountStepper (quantity control). */
   stepper?: {
     count: number
@@ -20,10 +21,16 @@ export type ReferenceEntityControl = {
   }
   /** Renders a read-only status stamp (Badge) — e.g. "Used", "Uses 3/5". */
   badge?: ReactNode
+  /** Renders the entity condition StatusBadge (Intact / Damaged / Destroyed),
+   *  the clickable cycle toggle. */
+  status?: {
+    value: EntityStatus
+    onClick?: () => void
+    /** Entity name for the accessible label ("<subject> status: <Label>"). */
+    subject?: string
+  }
   /** Renders a navigation link (styled anchor); uses `label` as its text. */
   href?: string
-  /** Last-resort escape hatch: arbitrary content (e.g. an app router link). */
-  node?: ReactNode
   // --- Action button (used when no item variant above is set) --------------
   label?: string
   /** Required for button controls (omit for the item variants above). */
