@@ -194,17 +194,17 @@ export function resolveEyebrow(schemaName: SURefEnumSchemaName | 'actions'): NEW
   return { type: getDisplayName(schemaName) }
 }
 
-export type NEWAxisMarker = { label: string; value: string }
+export type NEWAxisMarker = { label: string; value?: string }
 
 /**
- * The categorical classification axis (Ability Tree, Level, Tech Level) — the
+ * The categorical classification axis (Ability Tree · Level, Tech Level) — the
  * mockup's "second axis" — as an ORDERED list of pills the card renders in the
- * StampSeam riding the header's top border (each an `xs` horizontal
- * `Stat`, e.g. "ABILITY TREE · FORGING" / "LEVEL · 3" / "TECH LEVEL ·
- * 2"). Entity-type-specific:
+ * StampSeam riding the header's top border (each an `xs` horizontal `Stat`).
+ * Entity-type-specific:
  *
- * - ABILITIES → `[Ability Tree | <tree>]` then `[Level | <n>]` (each only when
- *   present).
+ * - ABILITIES → ONE combined `[<tree> | <level>]` pill: the tree NAME is the
+ *   (black) label cell, the level the value. Tree-only abilities show just the
+ *   name; a level with no tree falls back to `[Level | <n>]`.
  * - TECH-LEVEL-ABLE entities (systems/modules/equipment/drones/vehicles — any
  *   entity carrying a `techLevel`) → `[Tech Level | <n>]`.
  * - Everything else → `[]` (just the TYPE stamp, no axis pills).
@@ -213,13 +213,14 @@ export type NEWAxisMarker = { label: string; value: string }
  * cluster; only this classification axis lives in the seam.
  */
 export function resolveAxisMarkers(entity: SURefMetaEntity): NEWAxisMarker[] {
-  // Only ABILITY classification pills (Ability Tree / Level) live in the seam.
-  // TECH LEVEL moved to the header's top-right main stat cluster (a value box).
+  // Only ABILITY classification lives in the seam (Ability Tree · Level, folded
+  // into ONE pill). TECH LEVEL moved to the header's top-right stat cluster.
   if (isAbility(entity)) {
-    const markers: NEWAxisMarker[] = []
-    if (entity.tree) markers.push({ label: 'Ability Tree', value: String(entity.tree) })
-    if (entity.level != null) markers.push({ label: 'Level', value: String(entity.level) })
-    return markers
+    const tree = entity.tree != null ? String(entity.tree) : undefined
+    const level = entity.level != null ? String(entity.level) : undefined
+    if (tree) return [{ label: tree, value: level }]
+    if (level) return [{ label: 'Level', value: level }]
+    return []
   }
   return []
 }

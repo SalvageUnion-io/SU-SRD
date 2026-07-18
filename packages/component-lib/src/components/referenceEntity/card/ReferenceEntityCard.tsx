@@ -939,6 +939,10 @@ export function ReferenceEntityCard({
   const statusNode: ReactNode = status ? (
     <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject ?? entityName} />
   ) : undefined
+  // On-tone title colour — the title now sits directly on the header band (no ink
+  // name-tab block), so it reads with the same logic the badge uses: ink on the
+  // light ghosted/greyed bands, else the domain's computed on-tone colour.
+  const titleTextClass = isDown || isGhosted ? 'text-ink' : tone.onToneText
   const header = (
     <EntityCardHeader
       title={name}
@@ -947,6 +951,7 @@ export function ReferenceEntityCard({
       bg={headerBg}
       bgColor={headerBgColor}
       titleClass={titleClass}
+      titleTextClass={titleTextClass}
       stats={effectiveHeaderStats}
       rightContent={effectiveRightContent}
       listing={size === 'listing'}
