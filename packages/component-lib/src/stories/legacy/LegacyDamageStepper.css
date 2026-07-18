@@ -1,0 +1,68 @@
+/*
+ * Verbatim slice of apps/in-the-union-now/src/components/dashboard/dashboard.css
+ * — only the `pc-*` rules the reproduced DamageStepper touches. Do NOT edit to
+ * "improve" it: this is a frozen "before" for the L1 reconciliation capture.
+ */
+
+/* Dashboard dark instrument palette — scoped to `.pc-root` (needed because the
+   pc-* rules below reference these custom properties). */
+.pc-root {
+  --pc-ground: #1b1712;
+  --pc-panel: #282019;
+  --pc-text: #f3ede2;
+  --pc-muted: #9b9488;
+  --pc-line: rgba(243, 237, 226, 0.16);
+  --pc-line-hard: rgba(243, 237, 226, 0.5);
+  --pc-pilot: #ef894f;
+  --pc-pilot-deep: #a85222;
+  --pc-bad: #c0563f;
+  color: var(--pc-text);
+  font-family: 'Barlow', system-ui, sans-serif;
+}
+
+.pc-btn {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  padding: 0 8px;
+  border: 1.5px solid var(--pc-line);
+  border-radius: 2px;
+  background: color-mix(in oklab, var(--pc-panel) 50%, #000);
+  color: var(--pc-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+}
+.pc-btn:hover:not(:disabled) {
+  border-color: var(--pc-muted);
+  background: color-mix(in oklab, var(--pc-panel) 64%, #000);
+}
+.pc-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pc-step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.pc-step .pc-btn {
+  width: 34px;
+  padding: 6px 0;
+}
+.pc-step-num {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 24px;
+  min-width: 44px;
+  text-align: center;
+  color: var(--pc-text);
+}
