@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 import { useCallback } from 'react'
 import { Tooltip } from '@base-ui/react/tooltip'
 import { cn } from '../../utils/cn'
+import { Badge } from '../chrome/Badge'
+import { CountStepper } from '../chrome/CountStepper'
 import type {
   ReferenceEntityControl,
   ReferenceEntityControlVariant,
@@ -48,9 +50,29 @@ function ControlButton({
   compact: boolean
   onClickWithStop: (e: React.MouseEvent, onClick: () => void) => void
 }) {
-  // Node control (escape hatch): render arbitrary content in the strip instead
-  // of a button — a CountStepper, a status Badge, a nav link. Ignores all the
-  // button fields.
+  // Typed item variants — render a primitive instead of an action button.
+  // Precedence: stepper → badge → link → node → button.
+  if (control.stepper) {
+    return <CountStepper {...control.stepper} />
+  }
+  if (control.badge !== undefined) {
+    return (
+      <Badge shape="stamp" size="sm">
+        {control.badge}
+      </Badge>
+    )
+  }
+  if (control.href !== undefined) {
+    return (
+      <a
+        href={control.href}
+        aria-label={control.ariaLabel}
+        className="inline-flex shrink-0 items-center whitespace-nowrap rounded-card border border-ink bg-paper px-2 py-1 font-mono text-xs font-bold uppercase tracking-tight text-ink no-underline transition-colors hover:bg-ink hover:text-paper"
+      >
+        {control.label ?? control.ariaLabel}
+      </a>
+    )
+  }
   if (control.node !== undefined) {
     return <>{control.node}</>
   }

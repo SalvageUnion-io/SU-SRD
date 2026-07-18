@@ -4,18 +4,31 @@ export type ReferenceEntityControlVariant = 'primary' | 'danger' | 'ghost'
 
 export type ReferenceEntityControl = {
   key: string
-  /**
-   * Arbitrary content rendered in the control strip instead of a button — e.g. a
-   * CountStepper, a status Badge, or a nav link. When set, the button fields
-   * (label / onClick / ariaLabel / segmentText / icon / variant) are ignored.
-   * This is the escape hatch that lets `controls` carry everything the old
-   * `footActions` slot did, so no action ever renders in the footer.
-   */
+  // --- Typed item variants -------------------------------------------------
+  // When one of these is set the control renders that item via the matching
+  // primitive instead of an action button. They let `controls` carry
+  // everything the old `footActions` slot did, so no action renders in the
+  // footer. Precedence: stepper → badge → link → node → button.
+  /** Renders a bounded −/readout/+ CountStepper (quantity control). */
+  stepper?: {
+    count: number
+    onChange: (next: number) => void
+    /** Subject noun for the accessible labels (e.g. the entity name). */
+    subject: string
+    min?: number
+    max?: number
+  }
+  /** Renders a read-only status stamp (Badge) — e.g. "Used", "Uses 3/5". */
+  badge?: ReactNode
+  /** Renders a navigation link (styled anchor); uses `label` as its text. */
+  href?: string
+  /** Last-resort escape hatch: arbitrary content (e.g. an app router link). */
   node?: ReactNode
+  // --- Action button (used when no item variant above is set) --------------
   label?: string
-  /** Required for button controls (omit only when `node` is set). */
+  /** Required for button controls (omit for the item variants above). */
   onClick?: () => void
-  /** Required for button controls (omit only when `node` is set). */
+  /** Required for button controls (omit for the item variants above). */
   ariaLabel?: string
   icon?: (props: { className?: string }) => ReactNode
   variant?: ReferenceEntityControlVariant
