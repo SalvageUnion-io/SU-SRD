@@ -17,6 +17,7 @@
  */
 
 import type { ReactNode } from 'react'
+import { Badge } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 
@@ -89,14 +90,7 @@ function EconLoz({ item }: { item: EconLozItem }) {
           {item.caption}
         </span>
       )}
-      {item.action && (
-        <span
-          className="mt-1 inline-flex items-center rounded-[2px] px-2 py-[3px] font-cond text-[9px] font-bold uppercase tracking-[0.16em] text-paper"
-          style={{ background: 'var(--tone-deep)' }}
-        >
-          {item.action.label}
-        </span>
-      )}
+      {item.action && <Badge className="mt-1 bg-[var(--tone-deep)]">{item.action.label}</Badge>}
     </>
   )
 
