@@ -570,6 +570,12 @@ export function ReferenceEntityCard({
   const GREY_HEADER = '#969696'
   const GREY_DEEP = accentDeepColor(undefined, GREY_HEADER) ?? '#5a5a5a'
   const ghost = isGhosted ? ghostActionTone(hostTone ?? 'var(--color-ink)') : undefined
+  // The ONE foreground for the header BAND. A solid-tone card — a real ENTITY or
+  // a PATTERN — always reads WHITE (paper). Everything else goes by CONTRAST
+  // against its actual band: the light-faded ghosted actions/NPCs and the
+  // damaged-grey state all carry light bands, so contrast resolves to ink. Every
+  // on-band text element (the title, the flavor hint) uses this.
+  const onBandText = isDown || isGhosted ? 'text-ink' : 'text-paper'
   const darkTone = isDown
     ? GREY_DEEP
     : ghost
@@ -912,8 +918,9 @@ export function ReferenceEntityCard({
         // Fill the header's right side and wrap across the band (no narrow cap),
         // so the description occupies the space instead of leaving a big gap.
         'min-w-0 flex-1 text-right font-body italic leading-snug',
-        // The light-faded action header → ink text; entity tones → paper.
-        isAction ? 'text-ink' : 'text-paper',
+        // Same band-driven foreground as the title (entities/patterns white; the
+        // light-faded ghosted/damaged bands go to ink by contrast).
+        onBandText,
         compact ? 'text-sm' : 'text-base'
       )}
     >
@@ -939,15 +946,7 @@ export function ReferenceEntityCard({
   const statusNode: ReactNode = status ? (
     <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject ?? entityName} />
   ) : undefined
-  // Title colour by SIZE. The MAIN (full) card's title is always cream (paper).
-  // A COMPACT/nested title is contrast-aware: ink on the light bands (the
-  // light-faded ghosted actions, damaged grey, and pale domain/tech-level tones
-  // `onToneText` flags), cream on the dark ones (TL3-6 gear, navy actors).
-  const titleTextClass = compact
-    ? isDown || isGhosted
-      ? 'text-ink'
-      : tone.onToneText
-    : 'text-paper'
+  const titleTextClass = onBandText
   const header = (
     <EntityCardHeader
       title={name}
