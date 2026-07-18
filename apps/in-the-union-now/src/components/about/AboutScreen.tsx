@@ -10,6 +10,8 @@
 
 import { KofiButton } from 'suref-react'
 
+import { version } from '../../../package.json'
+
 export function AboutScreen() {
   return (
     <main className="min-h-screen bg-wk-bg px-4 py-8 sm:px-8 sm:py-12 lg:px-12">
@@ -78,6 +80,12 @@ export function AboutScreen() {
             in toward hosting and development.
           </p>
           <KofiButton code="C3Z82382ZC" />
+          <p className="font-body text-xs text-wk-muted">
+            Version {version} —{' '}
+            <a href="/changelog" className="font-semibold text-su-orange-dark hover:underline">
+              view changelog
+            </a>
+          </p>
         </section>
       </div>
     </main>

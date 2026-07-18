@@ -138,6 +138,11 @@ export { TreeSep } from './components/chrome/TreeSep'
 export { StatusBadge } from './components/chrome/StatusBadge'
 export type { EntityStatus } from './components/chrome/StatusBadge'
 
+// Changelog (shared markdown parser + presentational view)
+export { parseChangelog, mergeChangelogs } from './changelog/parseChangelog'
+export type { ChangelogEntry } from './changelog/parseChangelog'
+export { ChangelogView } from './changelog/ChangelogView'
+
 // Stat trackers (ITUN design handoff — design-spec §2.7)
 export { StatBlock } from './components/stat/StatBlock'
 export type { StatBlockTone, StatBlockState } from './components/stat/StatBlock'

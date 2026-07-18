@@ -1,7 +1,20 @@
 ---
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { ChangelogView, mergeChangelogs, parseChangelog } from 'suref-react'
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { CHANGELOG } from '../lib/changelog'
 import { SITE_URL } from '../lib/constants'
+
+// Rendered at build time (Node) by merging this app's CHANGELOG.md with the
+// salvageunion-reference package CHANGELOG.md. Read via node:fs from the build
+// working directory (the app root when `astro build` runs). NOTE: Astro's build
+// pipeline rejects Vite `?raw` imports of `.md` (rolldown resolution error), so
+// unlike ITUN this site cannot inline the markdown — it reads it at build here.
+const root = process.cwd()
+const webMd = readFileSync(resolve(root, 'CHANGELOG.md'), 'utf8')
+const refMd = readFileSync(resolve(root, '../../packages/salvageunion-reference/CHANGELOG.md'), 'utf8')
+
+const entries = mergeChangelogs(parseChangelog(webMd, 'Site'), parseChangelog(refMd, 'Data'))
 
 const structuredData = {
   '@context': 'https://schema.org',
@@ -46,26 +59,7 @@ const breadcrumbs = [
         </a>.
       </p>
 
-      <ol class="flex flex-col gap-6">
-        {CHANGELOG.map((entry) => (
-          <li class="flex flex-col gap-2 border-l-4 border-su-black pl-4">
-            <time
-              datetime={entry.date}
-              class="font-mono text-xs font-bold uppercase tracking-wide text-su-grey-dark"
-            >
-              {entry.date}
-            </time>
-            <h2 class="font-cond text-lg font-bold uppercase leading-tight">
-              {entry.title}
-            </h2>
-            <ul class="flex list-disc flex-col gap-1.5 pl-5 text-sm leading-relaxed marker:text-su-orange-dark">
-              {entry.items.map((item) => (
-                <li>{item}</li>
-              ))}
-            </ul>
-          </li>
-        ))}
-      </ol>
+      <ChangelogView entries={entries} />
     </div>
   </div>
 </BaseLayout>

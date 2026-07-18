@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "skipLibCheck": true,
+    "outDir": ".api-dts"
+  },
+  "include": ["lib/**/*.ts"],
+  "exclude": ["node_modules", "dist", ".api-dts", "**/*.test.ts", "**/*.template.ts"]
+}
