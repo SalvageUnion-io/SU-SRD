@@ -12,6 +12,7 @@
 
 import { useCallback, useState } from 'react'
 
+import { DashboardCanvas } from 'component-lib'
 import { useWorkspace } from '../../hooks/queries/workspaces'
 import type { CockpitPrefs } from '../../lib/schemas/cockpitPrefs'
 import { useEntityStore } from '../../stores/entityStore'
@@ -20,7 +21,6 @@ import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { resolveSheetComposition } from '../sheet/composition'
 import type { EntityLookup } from '../sheet/composition'
 import { ActiveItemBand } from './ActiveItemBand'
-import { DashboardCanvas } from './DashboardCanvas'
 import { Dial } from './Dial'
 import { applyDialPrefs, configurableKinds, dialItems } from './dialItems'
 import { DisplayView } from './DisplayView'

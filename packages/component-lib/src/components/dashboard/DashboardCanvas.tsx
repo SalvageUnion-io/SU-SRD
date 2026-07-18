@@ -8,9 +8,15 @@
  * to fill whichever axis binds first. Below the width floor the fixed canvas is
  * abandoned for a stacked fallback (Phase 1 renders a placeholder message there;
  * the real phone reflow is a later phase).
+ *
+ * The dashboard layout shell — promoted out of ITUN as a legacy-tier component.
+ * It owns the `.pc-root` dark-world token scope (see DashboardCanvas.css) that
+ * every dashboard surface inherits; the grid regions and instruments remain in
+ * ITUN and fill `children`.
  */
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import './DashboardCanvas.css'
 
 const CANVAS_W = 1280
 const CANVAS_H = 800

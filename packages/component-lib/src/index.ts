@@ -148,6 +148,11 @@ export { Sel } from './components/chrome/Sel'
 export { KvRow } from './components/chrome/KvRow'
 export { ModeDoor } from './components/chrome/ModeDoor'
 export { InlineEditField } from './components/chrome/InlineEditField'
+
+// Dashboard ("Pit HUD") layout shell — legacy-tier (bespoke dark-world CSS,
+// not yet on the canon tokens). The scale-to-fit canvas that owns the `.pc-root`
+// token scope; ITUN fills it with the store-wired grid + instruments.
+export { DashboardCanvas } from './components/dashboard/DashboardCanvas'
 export { OptRow } from './components/chrome/OptRow'
 export { Stepper } from './components/chrome/Stepper'
 export { CountStepper } from './components/chrome/CountStepper'

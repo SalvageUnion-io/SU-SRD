@@ -1,0 +1,54 @@
+/*
+ * DashboardCanvas — the Dashboard ("Pit HUD") layout shell.
+ *
+ * The Dashboard is a self-contained DARK instrument world (the SU brand-header
+ * palette), distinct from the light workspace chrome. The full `--pc-*` token
+ * scope is defined here on `.pc-root` (the canvas host) so every dashboard
+ * surface — the grid regions and instruments still styled by ITUN's
+ * dashboard.css — inherits it. Colour encodes ONTOLOGY (mech green / pilot
+ * orange / crawler pink), never identity (proposed ADR-018).
+ *
+ * Promoted out of ITUN (apps/in-the-union-now/.../dashboard/DashboardCanvas.tsx
+ * + dashboard.css) as a legacy-tier layout component: bespoke CSS, not yet on
+ * the canon Tailwind tokens.
+ */
+
+.pc-root {
+  --pc-ground: #1b1712;
+  --pc-panel: #282019;
+  --pc-text: #f3ede2;
+  --pc-muted: #9b9488;
+  --pc-line: rgba(243, 237, 226, 0.16);
+  --pc-line-hard: rgba(243, 237, 226, 0.5);
+  --pc-mech: #7a978a;
+  --pc-mech-deep: #2f4338;
+  --pc-pilot: #ef894f;
+  --pc-pilot-deep: #a85222;
+  --pc-crawler: #ce5898;
+  --pc-crawler-deep: #7e2a5b;
+  --pc-bad: #c0563f;
+  --pc-seg-empty: rgba(216, 201, 164, 0.12);
+  color: var(--pc-text);
+  font-family: 'Barlow', system-ui, sans-serif;
+}
+
+/* Fixed design canvas — scaled to fit by DashboardCanvas. Never scrolls. */
+.pc-canvas {
+  width: 1280px;
+  height: 800px;
+  background: var(--pc-ground);
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1.5px var(--pc-line);
+}
+
+/* Below the scale floor (phones / heavy zoom) the fixed canvas is abandoned. */
+.pc-reflow {
+  max-width: 340px;
+  padding: 32px;
+  text-align: center;
+  color: var(--pc-muted);
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
