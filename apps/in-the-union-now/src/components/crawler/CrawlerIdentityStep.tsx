@@ -51,8 +51,8 @@ export function CrawlerIdentityStep({
         onSave={(next) => onChange({ name: next })}
         placeholder="e.g. Crawler #132, aka ‘Tin Lizzy’"
         labelAction={
-          <Button size="sm" onClick={handleRoll} className="shrink-0">
-            <span aria-hidden="true">⚄</span> Roll
+          <Button size="sm" glyph="⚄" onClick={handleRoll} className="shrink-0">
+            Roll
           </Button>
         }
       />

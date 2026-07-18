@@ -215,3 +215,23 @@ export const XsButtons: Story = () => (
     </div>
   </div>
 )
+
+/**
+ * `glyph` — an optional leading decorative glyph rendered aria-hidden before
+ * the label, spaced by the button's flex gap. Replaces the hand-rolled
+ * `<span aria-hidden>⚄</span> Roll` the wizard roll-assist buttons used to inline.
+ */
+export const GlyphButtons: Story = () => (
+  <div className="bg-paper p-4">
+    <div className="flex flex-col gap-5">
+      <Cluster label="roll assist">
+        <Button size="sm" glyph="⚄">
+          Roll callsign
+        </Button>
+        <Button size="xs" glyph="⚄">
+          Roll
+        </Button>
+      </Cluster>
+    </div>
+  </div>
+)

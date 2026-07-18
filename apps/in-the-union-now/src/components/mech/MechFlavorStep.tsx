@@ -50,8 +50,8 @@ export function MechFlavorStep({
         multiline={multiline}
         placeholder={placeholder}
         labelAction={
-          <Button size="sm" onClick={handleRoll} className="shrink-0">
-            <span aria-hidden="true">⚄</span> Roll
+          <Button size="sm" glyph="⚄" onClick={handleRoll} className="shrink-0">
+            Roll
           </Button>
         }
       />
