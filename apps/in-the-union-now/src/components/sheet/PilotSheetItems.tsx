@@ -8,7 +8,14 @@
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefEntity } from 'salvageunion-reference'
-import { Button, Panel, ReferenceEntityDisplay, Stat, StatusBadge, Badge } from 'component-lib'
+import {
+  Button,
+  Panel,
+  ReferenceEntityDisplay,
+  type ReferenceEntityControl,
+  Stat,
+  StatusBadge,
+} from 'component-lib'
 import type { CardFootMeta, ChoiceSelections, EntityStatus } from 'component-lib'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
@@ -82,41 +89,36 @@ export function PilotAbilityItem({
   const canSpend = apCost !== null && currentAP >= apCost
 
   const footMeta: CardFootMeta[] = [{ label: 'AP Cost', value: apCost ?? '—' }]
-  const footActions = readOnly ? (
-    used ? (
-      <Badge>Used</Badge>
-    ) : undefined
-  ) : (
-    <>
-      {apCost !== null && (
-        <Button
-          size="sm"
-          variant="primary"
-          disabled={!canSpend}
-          aria-label={`Spend ${apCost} AP for ${ability.name}`}
-          onClick={() => {
-            onSpend(apCost)
-          }}
-        >
-          Spend AP
-        </Button>
-      )}
-      <Button
-        size="sm"
-        aria-pressed={used}
-        aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
-        onClick={() => {
-          onToggleUsed(!used)
-        }}
-      >
-        {used ? 'Recharge' : 'Mark Used'}
-      </Button>
-    </>
-  )
 
-  // Per-card remove (✕) moves to the card HEADER (G4); the editing cue moves
-  // onto the CARD when removable.
-  const controls = onRemove ? cardRemoveControls({ name: ability.name, onRemove }) : undefined
+  // All interactivity rides the controls bar (no footer actions). Read-only
+  // shows a static Used stamp; editable shows Spend AP + the used toggle, with
+  // the per-card remove (✕) last, in the card HEADER (G4).
+  const controls: ReferenceEntityControl[] = []
+  if (readOnly) {
+    if (used) controls.push({ key: 'used', badge: 'Used' })
+  } else {
+    if (apCost !== null) {
+      controls.push({
+        key: 'spend',
+        label: 'Spend AP',
+        ariaLabel: `Spend ${apCost} AP for ${ability.name}`,
+        onClick: () => {
+          onSpend(apCost)
+        },
+        variant: 'primary',
+        disabled: !canSpend,
+      })
+    }
+    controls.push({
+      key: 'toggle-used',
+      label: used ? 'Recharge' : 'Mark Used',
+      ariaLabel: used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`,
+      onClick: () => {
+        onToggleUsed(!used)
+      },
+    })
+    if (onRemove) controls.push(...cardRemoveControls({ name: ability.name, onRemove }))
+  }
 
   return (
     <ReferenceEntityDisplay
@@ -125,9 +127,8 @@ export function PilotAbilityItem({
       label={ability.tree}
       hide={HIDE_CHOICES}
       footMeta={footMeta}
-      footActions={footActions}
-      controls={controls}
-      cardStyle={controls ? REMOVABLE_CARD_STYLE : undefined}
+      controls={controls.length > 0 ? controls : undefined}
+      cardStyle={onRemove ? REMOVABLE_CARD_STYLE : undefined}
     />
   )
 }
@@ -231,37 +232,33 @@ export function PilotEquipmentItem({
     { label: 'Slots', value: slotCost },
     ...(maxUses !== null ? [{ label: 'Uses', value: `${uses}/${maxUses}` }] : []),
   ]
-  const useActions =
-    !readOnly && maxUses !== null && uses !== null ? (
-      <>
-        <Button
-          size="sm"
-          disabled={uses <= 0}
-          aria-label={`Use ${equipment.name}`}
-          onClick={() => {
-            onUsesChange(slug, Math.max(0, uses - 1))
-          }}
-        >
-          Use
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={uses >= maxUses}
-          aria-label={`Restock ${equipment.name}`}
-          onClick={() => {
-            onUsesChange(slug, maxUses)
-          }}
-        >
-          Restock
-        </Button>
-      </>
-    ) : null
-  const footActions = useActions ?? undefined
-  // Per-card remove (✕) moves to the card HEADER (G4), beside the status badge;
-  // the editing cue moves onto the CARD when removable.
-  const controls =
-    !readOnly && onRemove ? cardRemoveControls({ name: equipment.name, onRemove }) : undefined
+  // Use / Restock ride the controls bar (no footer actions); the per-card
+  // remove (✕) stays last, beside the status control in the header (G4).
+  const controls: ReferenceEntityControl[] = []
+  if (!readOnly && maxUses !== null && uses !== null) {
+    controls.push({
+      key: 'use',
+      label: 'Use',
+      ariaLabel: `Use ${equipment.name}`,
+      onClick: () => {
+        onUsesChange(slug, Math.max(0, uses - 1))
+      },
+      disabled: uses <= 0,
+    })
+    controls.push({
+      key: 'restock',
+      label: 'Restock',
+      ariaLabel: `Restock ${equipment.name}`,
+      onClick: () => {
+        onUsesChange(slug, maxUses)
+      },
+      variant: 'ghost',
+      disabled: uses >= maxUses,
+    })
+  }
+  if (!readOnly && onRemove) {
+    controls.push(...cardRemoveControls({ name: equipment.name, onRemove }))
+  }
 
   const equipmentRecord = equipment as unknown as Record<string, unknown> & { name?: string }
 
@@ -282,9 +279,8 @@ export function PilotEquipmentItem({
               }
         }
         footMeta={footMeta}
-        footActions={footActions}
-        controls={controls}
-        cardStyle={controls ? REMOVABLE_CARD_STYLE : undefined}
+        controls={controls.length > 0 ? controls : undefined}
+        cardStyle={!readOnly && onRemove ? REMOVABLE_CARD_STYLE : undefined}
       />
       {/* Drone/companion equipment (Survey Drone, Mecha Companion, Auto-Turret)
           carries its own systemSlots/moduleSlots, so it hosts a real installed

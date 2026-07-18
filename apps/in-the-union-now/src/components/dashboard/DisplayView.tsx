@@ -14,12 +14,16 @@
  * card instead of the old text note.
  */
 
-import type { ReactNode } from 'react'
 import { useRef, useState } from 'react'
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, RollTable } from 'component-lib'
+import {
+  ControlButtons,
+  type ReferenceEntityControl,
+  ReferenceEntityDisplay,
+  RollTable,
+} from 'component-lib'
 
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
@@ -27,7 +31,6 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { usePlayStateStore } from '../../stores/playStateStore'
-import { AppLink } from '../shared/AppLink'
 import { ActionsDeck } from './ActionsDeck'
 import type { DialItem } from './dialItems'
 import { SrdExplorer } from './SrdExplorer'
@@ -151,21 +154,25 @@ type DisplayViewProps = {
 function EntityCard({
   data,
   note,
-  footActions,
+  controls,
 }: {
   data: SURefEntity | null
   note: string
-  footActions?: ReactNode
+  controls?: ReferenceEntityControl[]
 }) {
   if (!data) {
     return (
       <div className="pc-entity-fallback">
         <p className="pc-crawler-focus-note">{note}</p>
-        {footActions ? <div className="pc-entity-foot">{footActions}</div> : null}
+        {controls && controls.length > 0 ? (
+          <div className="pc-entity-foot">
+            <ControlButtons controls={controls} />
+          </div>
+        ) : null}
       </div>
     )
   }
-  return <ReferenceEntityDisplay data={data} hide={HIDE_CHOICES} footActions={footActions} />
+  return <ReferenceEntityDisplay data={data} hide={HIDE_CHOICES} controls={controls} />
 }
 
 export function DisplayView({ focus, mech, pilot, crawler }: DisplayViewProps) {
@@ -190,24 +197,23 @@ export function DisplayView({ focus, mech, pilot, crawler }: DisplayViewProps) {
   // Statful entity focus → its reference card + entity-level foot actions.
   if (focus.key.startsWith('mech:')) {
     const chassis = resolveChassisRef(mech.chassisRef) as SURefEntity | null
-    const foot = (
-      <>
-        {mount === 'pilot' ? (
-          <button type="button" className="pc-deck-btn" onClick={() => setMount('mech')}>
-            Load Into Mech ▶
-          </button>
-        ) : null}
-        <AppLink href={`/sheet/mech/${mech.id}`} className="pc-deck-btn">
-          Full mech sheet →
-        </AppLink>
-      </>
-    )
+    const controls: ReferenceEntityControl[] = []
+    if (mount === 'pilot') {
+      controls.push({
+        key: 'load',
+        label: 'Load Into Mech ▶',
+        ariaLabel: 'Load Into Mech',
+        onClick: () => setMount('mech'),
+        variant: 'primary',
+      })
+    }
+    controls.push({ key: 'sheet', href: `/sheet/mech/${mech.id}`, label: 'Full mech sheet →' })
     return (
       <div className="pc-display-scroll">
         <EntityCard
           data={chassis}
           note={`Chassis “${mech.chassisRef}” not in the reference set.`}
-          footActions={foot}
+          controls={controls}
         />
       </div>
     )
@@ -215,17 +221,15 @@ export function DisplayView({ focus, mech, pilot, crawler }: DisplayViewProps) {
   if (focus.key.startsWith('pilot:') && pilot) {
     const cls = (SalvageUnionReference.Classes.find((c) => c.id === pilot.classRef) ??
       null) as SURefEntity | null
-    const foot = (
-      <AppLink href={`/sheet/pilot/${pilot.id}`} className="pc-deck-btn">
-        Full pilot sheet →
-      </AppLink>
-    )
+    const controls: ReferenceEntityControl[] = [
+      { key: 'sheet', href: `/sheet/pilot/${pilot.id}`, label: 'Full pilot sheet →' },
+    ]
     return (
       <div className="pc-display-scroll">
         <EntityCard
           data={cls}
           note={`Class “${pilot.classRef}” not in the reference set.`}
-          footActions={foot}
+          controls={controls}
         />
       </div>
     )
@@ -234,22 +238,22 @@ export function DisplayView({ focus, mech, pilot, crawler }: DisplayViewProps) {
     const crawlerRef = crawler.type
       ? (resolveCrawlerType(crawler.type) as unknown as SURefEntity | null)
       : null
-    const foot = (
-      <>
-        <button type="button" className="pc-deck-btn" onClick={enterDowntime}>
-          Enter Downtime ▶
-        </button>
-        <AppLink href={`/sheet/crawler/${crawler.id}`} className="pc-deck-btn">
-          Full crawler sheet →
-        </AppLink>
-      </>
-    )
+    const controls: ReferenceEntityControl[] = [
+      {
+        key: 'downtime',
+        label: 'Enter Downtime ▶',
+        ariaLabel: 'Enter Downtime',
+        onClick: enterDowntime,
+        variant: 'primary',
+      },
+      { key: 'sheet', href: `/sheet/crawler/${crawler.id}`, label: 'Full crawler sheet →' },
+    ]
     return (
       <div className="pc-display-scroll">
         <EntityCard
           data={crawlerRef}
           note={`Crawler · ${crawler.name} — back at the Union Crawler for the Downtime loop.`}
-          footActions={foot}
+          controls={controls}
         />
       </div>
     )
