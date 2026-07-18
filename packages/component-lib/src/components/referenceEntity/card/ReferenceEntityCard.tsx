@@ -134,6 +134,9 @@ export type ReferenceEntityCardProps = {
   disabled?: boolean
   /** Draw the canonical rust selection border (SELECTION_RING) — non-layout-shifting. */
   selected?: boolean
+  /** When `selected`, stamp this label as an `ok`-tone "chosen" seal riding the
+   * top-right frame (e.g. "Equipped ✓"). Picker-cell affordance. */
+  selectionSeal?: string
   /** When off in a picker: dim + desaturate (opacity-50 saturate-50). */
   selectable?: boolean
   /** Whole-card click → role=button + hover-enlarge + focus ring. */
@@ -474,6 +477,7 @@ export function ReferenceEntityCard({
   damageOverlayText,
   disabled,
   selected,
+  selectionSeal,
   selectable,
   onCardClick,
   cardClickable,
@@ -970,6 +974,19 @@ export function ReferenceEntityCard({
         )}
       </div>
     ) : null
+  // Selection seal — an `ok`-tone "chosen" stamp riding the top-right frame when
+  // selected (the picker-cell affordance formerly overlaid by SelCard).
+  const selectionSealNode =
+    selected && selectionSeal ? (
+      <div
+        className={cn(
+          'pointer-events-none absolute right-2 z-30',
+          compact ? 'top-0 -translate-y-1/2' : '-mt-2'
+        )}
+      >
+        <Badge surface="tone" tone="ok">{`${selectionSeal} ✓`}</Badge>
+      </div>
+    ) : null
 
   // Frame lives on the INNER clipping element (3px tone, radius + clip on one
   // element — the mockup `.ec`). The OUTER div is overflow-visible only so the
@@ -980,6 +997,7 @@ export function ReferenceEntityCard({
         {seam}
         {labelCallout}
         {controlsOverlay}
+        {selectionSealNode}
         <div
           className="flex flex-1 flex-col overflow-hidden rounded-card bg-paper"
           style={frameStyle}
@@ -1538,6 +1556,7 @@ export function ReferenceEntityCard({
       {seam}
       {labelCallout}
       {controlsOverlay}
+      {selectionSealNode}
       <div
         className={cn(
           'flex flex-1 flex-col overflow-hidden rounded-card bg-paper',
