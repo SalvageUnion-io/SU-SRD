@@ -3,7 +3,7 @@ import type { KeyboardEvent } from 'react'
 /**
  * Shared interaction primitives for the chrome atoms — one source of truth for
  * the focus ring, disabled treatment, selection ring, and keyboard activation
- * that Btn / StepBtn / MiniBtn / OptRow / Sel / PickCard would otherwise each
+ * that Btn / StepBtn / OptRow / Sel / PickCard would otherwise each
  * re-inline.
  */
 

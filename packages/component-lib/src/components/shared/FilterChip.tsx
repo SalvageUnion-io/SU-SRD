@@ -13,7 +13,7 @@ type FilterChipProps = {
 
 export function FilterChip({ label, active, onClick, colorClass, swatchStyle }: FilterChipProps) {
   // On the shared chrome token system (ink / paper / rust), matching
-  // Btn / Sel / StepBtn / MiniBtn — active = ink fill, inactive = paper.
+  // Btn / Sel / StepBtn — active = ink fill, inactive = paper.
   const base =
     'cursor-pointer rounded-badge px-2 py-0.5 font-mono text-xs font-semibold uppercase transition-colors'
 

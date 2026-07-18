@@ -18,6 +18,10 @@ export const btnVariants = cva(
         danger: 'border-danger bg-danger text-paper hover:opacity-90',
       },
       size: {
+        // `xs` is the former MiniBtn: a compact uppercase action chip (badge
+        // radius, condensed caps, tight padding) for secondary controls like
+        // '⇄ Swap' / '✕ Remove'. Overrides the base radius/font/gap via twMerge.
+        xs: 'gap-1 rounded-badge px-2 py-[3px] font-cond text-label-lg font-semibold uppercase tracking-normal',
         sm: 'px-[11px] py-[6px] text-xs',
         md: 'px-4 py-[9px] text-caption',
         lg: 'px-[22px] py-3 text-lede',

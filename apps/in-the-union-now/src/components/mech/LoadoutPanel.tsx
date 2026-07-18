@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { MiniBtn, Panel, ReferenceEntityDisplay, VitalGauge } from 'component-lib'
+import { Btn, Panel, ReferenceEntityDisplay, VitalGauge } from 'component-lib'
 import { cn } from '../../lib/utils'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 
@@ -91,7 +91,7 @@ export function LoadoutPanel({
           // `index` (the original chosen-array position) is a deliberate,
           // safe key here: duplicates are allowed so name/ref is non-unique,
           // and these rows are stateless (head-mode display + stateless
-          // MiniBtn, onRemove closes over the live index each render). Do NOT
+          // Btn, onRemove closes over the live index each render). Do NOT
           // add per-row local state on this index key without switching to a
           // stable id — a removal shifts indices and would desync it.
           return (
@@ -108,13 +108,14 @@ export function LoadoutPanel({
                   </span>
                 )}
               </div>
-              <MiniBtn
+              <Btn
+                size="xs"
                 onClick={() => onRemove(index)}
                 aria-label={`Remove ${(entity as { name?: string }).name ?? ref}`}
                 className="mt-0.5 shrink-0"
               >
                 ✕ Remove
-              </MiniBtn>
+              </Btn>
             </div>
           )
         })}

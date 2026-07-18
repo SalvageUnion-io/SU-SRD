@@ -17,7 +17,7 @@
 
 import type { MouseEvent, ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { MiniBtn, Pill } from 'component-lib'
+import { Btn, Pill } from 'component-lib'
 import type { PillTone } from 'component-lib'
 
 import { cn } from '../../lib/utils'
@@ -121,8 +121,16 @@ export function RailChip({
           Open sheet &rarr;
         </span>
         <span className="flex items-center gap-1.5">
-          {onSwap && <MiniBtn onClick={handleSwap}>&#8644; Swap</MiniBtn>}
-          {onUnassign && <MiniBtn onClick={handleUnassign}>&#10005; Unassign</MiniBtn>}
+          {onSwap && (
+            <Btn size="xs" onClick={handleSwap}>
+              &#8644; Swap
+            </Btn>
+          )}
+          {onUnassign && (
+            <Btn size="xs" onClick={handleUnassign}>
+              &#10005; Unassign
+            </Btn>
+          )}
         </span>
       </span>
     </AppLink>

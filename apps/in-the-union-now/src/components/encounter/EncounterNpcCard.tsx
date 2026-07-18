@@ -10,7 +10,7 @@
  */
 
 import { useMemo, useState } from 'react'
-import { Btn, MiniBtn, ModalShell, Stat, useDetailModal } from 'component-lib'
+import { Btn, ModalShell, Stat, useDetailModal } from 'component-lib'
 
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { FindRollTable } from '../../lib/rules/mediatorTables'
@@ -98,16 +98,21 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
             </div>
             <div className="ml-auto flex shrink-0 items-center gap-1.5">
               {refEntity && (
-                <MiniBtn aria-label={`View ${npc.refName} details`} onClick={detailControl.onClick}>
+                <Btn
+                  size="xs"
+                  aria-label={`View ${npc.refName} details`}
+                  onClick={detailControl.onClick}
+                >
                   Details
-                </MiniBtn>
+                </Btn>
               )}
-              <MiniBtn
+              <Btn
+                size="xs"
                 aria-label={`Remove ${npc.name} from the tray`}
                 onClick={() => setConfirmRemove(true)}
               >
                 Remove
-              </MiniBtn>
+              </Btn>
             </div>
           </>
         }
@@ -174,13 +179,14 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
                   aria-label={`Add condition to ${npc.name}`}
                   className="w-32 rounded-[2px] border-chrome border-ink/40 bg-paper px-1.5 py-0.5 font-body text-xs text-ink placeholder:text-wk-muted focus:border-ink focus:outline-none"
                 />
-                <MiniBtn
+                <Btn
+                  size="xs"
                   aria-label={`Confirm new condition for ${npc.name}`}
                   onClick={addCondition}
                   disabled={conditionDraft.trim() === ''}
                 >
                   Add
-                </MiniBtn>
+                </Btn>
               </div>
             </div>
 

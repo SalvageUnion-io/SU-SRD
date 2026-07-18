@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Btn } from '../../components/chrome/Btn'
 import { Sel } from '../../components/chrome/Sel'
-import { MiniBtn, StepBtn } from '../../components/chrome/SmallButtons'
+import { StepBtn } from '../../components/chrome/SmallButtons'
 import { FilterChip } from '../../components/shared/FilterChip'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -196,18 +196,21 @@ export const StepButtons: Story = () => (
 )
 
 /**
- * `MiniBtn` — tiny uppercase rail action (e.g. '⇄ Swap'). Default + disabled.
+ * `Btn size="xs"` — the compact uppercase action chip (formerly MiniBtn), e.g.
+ * '⇄ Swap' on rail chips. Default + disabled.
  */
-export const MiniButtons: Story = () => (
+export const XsButtons: Story = () => (
   <div className="bg-paper p-4">
     <div className="flex flex-col gap-5">
       <Cluster label="default">
-        <MiniBtn>⇄ Swap</MiniBtn>
-        <MiniBtn>Remove</MiniBtn>
-        <MiniBtn>Details</MiniBtn>
+        <Btn size="xs">⇄ Swap</Btn>
+        <Btn size="xs">Remove</Btn>
+        <Btn size="xs">Details</Btn>
       </Cluster>
       <Cluster label="disabled">
-        <MiniBtn disabled>⇄ Swap</MiniBtn>
+        <Btn size="xs" disabled>
+          ⇄ Swap
+        </Btn>
       </Cluster>
     </div>
   </div>

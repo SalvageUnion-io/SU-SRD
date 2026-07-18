@@ -5,7 +5,8 @@ import { Pill, Chip } from '../Pill'
 import { Panel, Row, Empty } from '../Panel'
 import { Slab } from '../Slab'
 import { Conditions, ConditionChip } from '../Conditions'
-import { StepBtn, MiniBtn } from '../SmallButtons'
+import { Btn } from '../Btn'
+import { StepBtn } from '../SmallButtons'
 import { TreeSep } from '../TreeSep'
 import { StatusBadge } from '../StatusBadge'
 import { Badge } from '../Badge'
@@ -116,7 +117,7 @@ describe('Conditions', () => {
   })
 })
 
-describe('StepBtn / MiniBtn', () => {
+describe('StepBtn / Btn xs', () => {
   test('stepbtn is a 24px square button', () => {
     render(<StepBtn aria-label="Increase HP">+</StepBtn>)
     const btn = screen.getByLabelText('Increase HP')
@@ -124,8 +125,8 @@ describe('StepBtn / MiniBtn', () => {
     expect(btn.className).toContain('w-6')
   })
 
-  test('minibtn renders uppercase mini action', () => {
-    render(<MiniBtn>⇄ Swap</MiniBtn>)
+  test('Btn size="xs" renders the compact uppercase action (former MiniBtn)', () => {
+    render(<Btn size="xs">⇄ Swap</Btn>)
     expect(screen.getByRole('button', { name: '⇄ Swap' }).className).toContain('uppercase')
   })
 })

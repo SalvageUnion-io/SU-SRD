@@ -12,7 +12,7 @@
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Btn, MiniBtn } from 'component-lib'
+import { Btn } from 'component-lib'
 
 import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { Roll } from '../../lib/rules/heatCheck'
@@ -48,7 +48,7 @@ type MediatorRollControlProps = {
   lastResult?: MediatorRollResult | null
   /** Receives each roll result — caller persists (per NPC) or holds it (global). */
   onResult: (result: MediatorRollResult) => void | Promise<void>
-  /** Compact MiniBtn row for per-NPC embedding; full Btn row otherwise. */
+  /** Compact xs Btn row for per-NPC embedding; full Btn row otherwise. */
   compact?: boolean
   /** Injectable d20 roller — defaults to a randsum-backed roll. */
   roll?: Roll
@@ -75,14 +75,15 @@ export function MediatorRollControl({
       <div className="flex flex-wrap gap-2">
         {TABLE_IDS.map((table) =>
           compact ? (
-            <MiniBtn
+            <Btn
+              size="xs"
               key={table}
               aria-label={`Roll ${MEDIATOR_TABLE_LABEL[table]} for ${scopeLabel}`}
               title={TABLE_HINT[table]}
               onClick={() => handleRoll(table)}
             >
               {MEDIATOR_TABLE_LABEL[table]}
-            </MiniBtn>
+            </Btn>
           ) : (
             <Btn
               key={table}

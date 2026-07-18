@@ -23,7 +23,7 @@ import type { EntitySchemaName, SURefEntity, SURefEnumSchemaName } from 'salvage
 import { matchesRef, type TechLevel } from 'salvageunion-reference/rules'
 import { cn } from '../../utils/cn'
 import { Panel } from '../chrome/Panel'
-import { MiniBtn } from '../chrome/SmallButtons'
+import { Btn } from '../chrome/Btn'
 import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
 import { statBlockRowStarts } from '../stat/pipRows'
 import { DisplayCard } from './DisplayCard'
@@ -507,9 +507,9 @@ function CountCard({
             {count} Added
           </span>
         )}
-        <MiniBtn onClick={onAdd} aria-label={`Add ${entity.name}`}>
+        <Btn size="xs" onClick={onAdd} aria-label={`Add ${entity.name}`}>
           {installed ? '+ Add another' : '+ Add'}
-        </MiniBtn>
+        </Btn>
       </div>
     </div>
   )
@@ -594,13 +594,14 @@ function SelectionRail({
                 </span>
               )}
             </div>
-            <MiniBtn
+            <Btn
+              size="xs"
               onClick={() => (mode === 'count' ? onRemove?.(index) : onToggle?.(ref))}
               aria-label={`Remove ${entity.name}`}
               className="mt-0.5 shrink-0"
             >
               ✕ Remove
-            </MiniBtn>
+            </Btn>
           </div>
         ))}
         {entries.length === 0 && (

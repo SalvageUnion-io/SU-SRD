@@ -30,28 +30,3 @@ export const StepBtn = forwardRef<HTMLButtonElement, StepBtnProps>(function Step
     />
   )
 })
-
-type MiniBtnProps = ComponentPropsWithoutRef<'button'>
-
-/**
- * Tiny uppercase action button (design-spec §2.10 `minibtn`), e.g. '⇄ Swap'
- * on rail chips.
- */
-export const MiniBtn = forwardRef<HTMLButtonElement, MiniBtnProps>(function MiniBtn(
-  { className, type = 'button', ...props },
-  ref
-) {
-  return (
-    <button
-      ref={ref}
-      type={type}
-      className={cn(
-        'inline-flex cursor-pointer items-center gap-1 rounded-badge border-chrome border-ink bg-paper px-2 py-[3px] font-cond text-label-lg font-semibold uppercase leading-none text-ink hover:bg-[var(--ground,var(--color-wk-bg-2))]',
-        FOCUS_RING,
-        DISABLED,
-        className
-      )}
-      {...props}
-    />
-  )
-})
