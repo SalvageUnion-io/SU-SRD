@@ -6,9 +6,9 @@
  * sheet and reference site show (ADR-017).
  *
  * D5 (this pass): each statful entity focus (mech / pilot / crawler) renders the
- * entity's real reference card with entity-level `footActions` folded into the
- * card foot — "Full sheet →" links plus the play verbs (Load Into Mech on foot,
- * Enter Downtime for the crawler). Live vitals stay in the gauges / dial / Active
+ * entity's real reference card with entity-level `controls` in the card overlay
+ * — "Full sheet →" links plus the play verbs (Load Into Mech, Enter Downtime for
+ * the crawler). Live vitals stay in the gauges / dial / Active
  * Item band (the app has no live-composed entity card, by design — see the
  * dashboard-display-completion-plan). The crawler focus is now a real reference
  * card instead of the old text note.

@@ -2,9 +2,9 @@
  * ActionCardErow — a chassis-ability action as an Erow'd card (design §4.3
  * 'Chassis Ability' slab, plan 4.5).
  *
- * ActionCard does not accept footActions/footMeta (it is not an entity
- * card), so the action economy renders in Erow's 'rail' callout instead of
- * the card foot — same vocabulary, no markup surgery.
+ * ActionCard is not an entity card (no card foot / controls of its own), so the
+ * action economy renders in Erow's 'rail' callout beside it — same vocabulary,
+ * no markup surgery.
  */
 
 import type { ReactNode } from 'react'

@@ -6,10 +6,11 @@
  * mobile (redesign rule: max 2 columns for any entity-card grid), equal-height
  * items.
  * Erow: wraps one entity card with its action economy. Mode 'card' (the
- * shipped default) injects `footActions`/`footMeta` into the card's own foot
- * — ReferenceEntityDisplay/DisplayCard accept both natively (Phase 1.2), so
- * the clone is a prop pass-through, not markup surgery. Mode 'rail' puts a
- * 152px right callout beside the card instead.
+ * shipped default) injects `footMeta` into the card's own foot —
+ * ReferenceEntityDisplay/DisplayCard accept it natively, so the clone is a prop
+ * pass-through, not markup surgery. Card actions ride the card's own `controls`
+ * overlay. Mode 'rail' puts a 152px right callout (its own actions block)
+ * beside the card instead.
  */
 
 import { cloneElement } from 'react'
@@ -44,7 +45,6 @@ export function Ecflow({ children, className }: EcflowProps) {
 
 /** The card props Erow may inject (ReferenceEntityDisplay accepts these). */
 type ErowCardProps = {
-  footActions?: ReactNode
   footMeta?: CardFootMeta[]
 }
 
@@ -61,13 +61,7 @@ type ErowProps = {
 
 export function Erow({ mode = 'card', actions, footMeta, children, className }: ErowProps) {
   if (mode === 'card') {
-    const card =
-      actions || footMeta
-        ? cloneElement(children, {
-            ...(actions ? { footActions: actions } : {}),
-            ...(footMeta ? { footMeta } : {}),
-          })
-        : children
+    const card = footMeta ? cloneElement(children, { ...(footMeta ? { footMeta } : {}) }) : children
     return <div className={cn('min-w-0', className)}>{card}</div>
   }
 

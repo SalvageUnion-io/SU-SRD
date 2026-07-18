@@ -45,12 +45,6 @@ const genericFootMeta: CardFootMeta[] = [
   { label: 'Qty', value: 3 },
 ]
 
-const genericFootActions = (
-  <button type="button" className="rounded-badge border border-ink px-2 py-1 text-xs">
-    Action
-  </button>
-)
-
 function Gallery({ rule, children }: { rule: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-4 bg-paper p-5 font-mono text-ink">
@@ -81,7 +75,7 @@ function Cell({
  * Four-band model (design-spec §2.1): a required header, an optional
  * sub-header (a darker shade of the header tone, populated by `subHeader`
  * content and/or `stats`), an optional body, and an optional footer
- * (`footActions`/`footMeta`/`footerContent`). Sub-header and footer are each
+ * (`footMeta`/`footerContent`). Sub-header and footer are each
  * independently opt-in — this gallery shows every combination, including
  * both present and absent, so their optionality is obvious.
  */
@@ -114,12 +108,7 @@ export const Bands: Story = () => (
       </DisplayCard>
     </Cell>
     <Cell label="header + footer (no sub-header)" width="w-[380px]">
-      <DisplayCard
-        headerBg="bg-su-green"
-        headerContent={header}
-        footMeta={genericFootMeta}
-        footActions={genericFootActions}
-      >
+      <DisplayCard headerBg="bg-su-green" headerContent={header} footMeta={genericFootMeta}>
         {body}
       </DisplayCard>
     </Cell>
@@ -129,7 +118,6 @@ export const Bands: Story = () => (
         headerContent={header}
         stats={genericStats}
         footMeta={genericFootMeta}
-        footActions={genericFootActions}
         compact
       >
         {body}

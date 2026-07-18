@@ -8,11 +8,12 @@
  *   columns), rows made equal-height (`items-stretch`). Gap rhythm 26px between
  *   rows / 18px between columns.
  * - `EntityGridRow`: wraps one entity card with its action economy. Mode
- *   `'card'` (default) folds `actions`/`footMeta` into the child card's own foot
- *   (DisplayCard / ReferenceEntityDisplay accept `footActions`/`footMeta`
- *   natively, so the clone is a prop pass-through — no markup surgery). Mode
- *   `'rail'` puts a fixed 152px right-hand callout column beside the card: a
- *   key/value dl of `footMeta` above a stacked, full-width action-button column.
+ *   `'card'` (default) folds `footMeta` into the child card's own foot
+ *   (DisplayCard / ReferenceEntityDisplay accept it natively, so the clone is a
+ *   prop pass-through — no markup surgery); card actions ride the card's own
+ *   `controls` overlay. Mode `'rail'` puts a fixed 152px right-hand callout
+ *   column beside the card: a key/value dl of `footMeta` above a stacked,
+ *   full-width action-button column.
  *
  * Re-implemented from ITUN's Ecflow/Erow onto shared component-lib tokens.
  */
@@ -46,7 +47,6 @@ export function EntityGrid({ children, className }: EntityGridProps) {
 
 /** The card props EntityGridRow may inject (DisplayCard/ReferenceEntityDisplay accept these). */
 type InjectableCardProps = {
-  footActions?: ReactNode
   footMeta?: CardFootMeta[]
 }
 
@@ -57,7 +57,7 @@ type EntityGridRowProps = {
   actions?: ReactNode
   /** Inline foot meta (e.g. EP · 2, +HEAT · 1). */
   footMeta?: CardFootMeta[]
-  /** The entity card to wrap (accepts `footActions`/`footMeta` when mode is `'card'`). */
+  /** The entity card to wrap (accepts `footMeta` when mode is `'card'`). */
   children: ReactElement<InjectableCardProps>
   className?: string
 }
@@ -70,13 +70,7 @@ export function EntityGridRow({
   className,
 }: EntityGridRowProps) {
   if (mode === 'card') {
-    const card =
-      actions || footMeta
-        ? cloneElement(children, {
-            ...(actions ? { footActions: actions } : {}),
-            ...(footMeta ? { footMeta } : {}),
-          })
-        : children
+    const card = footMeta ? cloneElement(children, { footMeta }) : children
     return <div className={cn('min-w-0', className)}>{card}</div>
   }
 

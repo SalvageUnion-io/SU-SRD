@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { cn } from '../../../utils/cn'
 import type { CardFootMeta } from '../../shared/DisplayCard'
 
@@ -15,8 +14,6 @@ type EntityCardIdentityFooterProps = {
   /** Write-layer: inline `[label value]` meta pairs (cost / SV) folded into the
    * footer's right side, before the source/page. */
   footMeta?: CardFootMeta[]
-  /** Write-layer: action buttons folded into the footer band (after footMeta). */
-  footActions?: ReactNode
   compact?: boolean
 }
 
@@ -36,14 +33,13 @@ export function EntityCardIdentityFooter({
   booklet,
   page,
   footMeta,
-  footActions,
   compact = false,
 }: EntityCardIdentityFooterProps) {
   const sourceLabel = source && booklet ? `${source} (${booklet})` : source
   const rightParts = [sourceLabel, page !== undefined ? `p.${page}` : undefined].filter(
     (part): part is string => !!part
   )
-  const hasFootExtras = !!footActions || (footMeta?.length ?? 0) > 0
+  const hasFootExtras = (footMeta?.length ?? 0) > 0
 
   if (!typeLabel && rightParts.length === 0 && !hasFootExtras) return null
 
@@ -59,8 +55,8 @@ export function EntityCardIdentityFooter({
       style={{ backgroundColor: bgColor }}
     >
       <span className={textClass}>{typeLabel ?? ''}</span>
-      {/* Foot extras — inline meta pairs (cost / SV) + action buttons folded into
-          the band, then the source/page on the far right. */}
+      {/* Foot extras — inline meta pairs (cost / SV) folded into the band, then
+          the source/page on the far right. */}
       <div className="flex min-w-0 items-center justify-end gap-2">
         {footMeta?.map(({ label, value }, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: static per-render list; index disambiguates repeated labels
@@ -71,7 +67,6 @@ export function EntityCardIdentityFooter({
             <span className="font-body text-xs font-bold leading-none text-paper">{value}</span>
           </span>
         ))}
-        {footActions}
         {rightParts.length > 0 && <span className={textClass}>{rightParts.join(' · ')}</span>}
       </div>
     </div>

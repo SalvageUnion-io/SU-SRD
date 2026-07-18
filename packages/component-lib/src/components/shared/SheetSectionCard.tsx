@@ -37,8 +37,6 @@ type SheetSectionCardProps = {
   controls?: ReactNode
   /** Footer source line (poster `.dcard-foot .src`), e.g. 'Salvage Union · Pilot Abilities'. */
   source?: ReactNode
-  /** Footer trailing chips (poster `.fchips`), right-aligned. */
-  footChips?: ReactNode
   /** Extra classes on the card wrapper (e.g. a grid-span). */
   className?: string
   /** Extra classes on the paper body block (e.g. the `Ecflow` grid gaps). */
@@ -52,7 +50,6 @@ export function SheetSectionCard({
   count,
   controls,
   source,
-  footChips,
   className,
   bodyClassName,
   children,
@@ -85,7 +82,6 @@ export function SheetSectionCard({
           </span>
         ) : undefined
       }
-      footActions={footChips}
     >
       {/* Accent side strips (`.dcard-body` margin) wrap the paper block; the
           paper block carries the deep-tone LEFT rule. */}

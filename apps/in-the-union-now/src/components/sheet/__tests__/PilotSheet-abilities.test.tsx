@@ -22,7 +22,7 @@ import type { useEntityStore } from '../../../stores/entityStore'
 
 beforeAll(async () => {
   // PilotSheet resolves abilities + their action AP costs from reference data,
-  // and the entity-card foot (footMeta/footActions) renders keyword tooltips —
+  // and the entity-card foot (footMeta) renders keyword tooltips —
   // preload everything so resolution works in the test runtime.
   await SalvageUnionReference.preload('all')
 })

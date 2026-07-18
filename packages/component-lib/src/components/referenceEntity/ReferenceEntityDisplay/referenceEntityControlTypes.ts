@@ -7,9 +7,9 @@ export type ReferenceEntityControl = {
   key: string
   // --- Typed item variants -------------------------------------------------
   // When one of these is set the control renders that item via the matching
-  // primitive instead of an action button. They let `controls` carry
-  // everything the old `footActions` slot did, so no action renders in the
-  // footer. Precedence: stepper → badge → status → link → button.
+  // primitive instead of an action button. They let `controls` carry every
+  // card affordance (quantity steppers, status pills, nav), so no action ever
+  // renders in the footer. Precedence: stepper → badge → status → link → button.
   /** Renders a bounded −/readout/+ CountStepper (quantity control). */
   stepper?: {
     count: number

@@ -25,9 +25,10 @@ type CountStepperProps = {
  * controls (each with its own accessible name), the readout is `aria-hidden`,
  * and the value is announced via an sr-only `role="status"` live region.
  *
- * Drops into an entity card's `footActions` band — clicks `stopPropagation` so a
- * step never bubbles to a surrounding card toggle. Formerly baked into `SelCard`;
- * now a standalone atom so any card (picker cell, install row) reuses it.
+ * Rides an entity card's controls overlay as a `stepper` control — clicks
+ * `stopPropagation` so a step never bubbles to a surrounding card toggle.
+ * Formerly baked into `SelCard`; now a standalone atom so any card (picker
+ * cell, install row) reuses it.
  */
 export function CountStepper({ count, onChange, subject, min = 0, max, label }: CountStepperProps) {
   const atMin = count <= min

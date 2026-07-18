@@ -8,7 +8,7 @@ import { CountStepper } from './CountStepper'
 /**
  * CountStepper — the `[− n +]` duplicate-quantity control, driven by real
  * equipment so the accessible labels ("Add one …") read as they ship. It
- * normally sits in an entity card's footActions band (see In Card).
+ * normally rides an entity card's controls overlay as a `stepper` control (see In Card).
  */
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -53,7 +53,7 @@ export const Bounds: Story = () => {
   )
 }
 
-/** In its real home: an entity card's footActions band, with the `selected` ring. */
+/** In its real home: an entity card's controls overlay, with the `selected` ring. */
 export const InCard: Story = () => {
   const item = firstEquipment()
   const [count, setCount] = useState(2)
@@ -61,14 +61,16 @@ export const InCard: Story = () => {
   return (
     <div className="flex max-w-md flex-col gap-3">
       <Caption>
-        How pickers use it — CountStepper in the card's footActions, native selected ring.
+        How pickers use it — a CountStepper `stepper` control on the card, native selected ring.
       </Caption>
       <ReferenceEntityDisplay
         data={item as unknown as SURefEntity}
         compact
         selected={count > 0}
         hide={{ actions: true, choices: true }}
-        footActions={<CountStepper subject={item.name} count={count} onChange={setCount} max={5} />}
+        controls={[
+          { key: 'qty', stepper: { subject: item.name, count, onChange: setCount, max: 5 } },
+        ]}
       />
     </div>
   )

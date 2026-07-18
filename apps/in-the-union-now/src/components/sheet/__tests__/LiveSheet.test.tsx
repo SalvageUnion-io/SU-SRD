@@ -3,7 +3,7 @@
  * - condense = sticky bar + MiniStat strip, fade-in driven by an
  *   IntersectionObserver threshold with aria-hidden + pointer-events gating
  * - syncStats overlays derived values onto strip items by key
- * - Erow mode 'card' folds footActions/footMeta into the card foot
+ * - Erow mode 'card' folds footMeta into the card foot
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
@@ -186,16 +186,16 @@ describe('LiveSheet — strip values and syncStats', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Erow — card mode folds actions/meta into the wrapped card's foot props
+// Erow — card mode folds footMeta into the wrapped card's foot props
+// (card actions ride the card's own controls overlay, not the foot)
 // ---------------------------------------------------------------------------
 
 type StubCardProps = {
-  footActions?: React.ReactNode
   footMeta?: Array<{ label: string; value: React.ReactNode }>
 }
 
 // biome-ignore lint/style/useComponentExportOnlyModules: test-local stub component; Fast Refresh does not apply to test files
-function StubCard({ footActions, footMeta }: StubCardProps) {
+function StubCard({ footMeta }: StubCardProps) {
   return (
     <div>
       <span>Card body</span>
@@ -204,24 +204,19 @@ function StubCard({ footActions, footMeta }: StubCardProps) {
           {m.label}: {m.value}
         </span>
       ))}
-      {footActions}
     </div>
   )
 }
 
 describe('Erow — mode card (shipped default)', () => {
-  test('injects footActions and footMeta into the wrapped card', () => {
+  test('injects footMeta into the wrapped card', () => {
     render(
       <Ecflow>
-        <Erow
-          actions={<button type="button">Spend AP</button>}
-          footMeta={[{ label: 'AP Cost', value: 1 }]}
-        >
+        <Erow footMeta={[{ label: 'AP Cost', value: 1 }]}>
           <StubCard />
         </Erow>
       </Ecflow>
     )
-    expect(screen.getByRole('button', { name: 'Spend AP' })).toBeTruthy()
     expect(screen.getByText('AP Cost: 1')).toBeTruthy()
   })
 

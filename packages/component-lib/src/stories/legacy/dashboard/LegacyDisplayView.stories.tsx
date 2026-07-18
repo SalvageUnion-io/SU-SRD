@@ -112,11 +112,11 @@ function TablesView() {
  * when a focus's slug doesn't resolve to a reference entity, still carrying the
  * entity-level foot actions.
  */
-function EntityFallback({ note, footActions }: { note: string; footActions: ReactNode }) {
+function EntityFallback({ note, foot }: { note: string; foot: ReactNode }) {
   return (
     <div className="pc-entity-fallback">
       <p className="pc-crawler-focus-note">{note}</p>
-      <div className="pc-entity-foot">{footActions}</div>
+      <div className="pc-entity-foot">{foot}</div>
     </div>
   )
 }
@@ -162,7 +162,7 @@ export const Default: Story = () => {
           <div className="pc-display-scroll">
             <EntityFallback
               note={`Crawler · ${crawler.name} — back at the Union Crawler for the Downtime loop.`}
-              footActions={
+              foot={
                 <>
                   <button type="button" className="pc-deck-btn">
                     Enter Downtime ▶

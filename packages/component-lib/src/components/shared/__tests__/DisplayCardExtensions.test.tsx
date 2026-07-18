@@ -118,30 +118,28 @@ describe('DisplayCard expand slot', () => {
   })
 })
 
-describe('DisplayCard footActions / footMeta', () => {
+describe('DisplayCard footMeta / footerContent', () => {
   test('fold into the footer band alongside footerContent', () => {
     render(
       <DisplayCard
         headerContent={<span>H</span>}
         footerContent={<span>Source</span>}
-        footActions={<button type="button">Repair</button>}
         footMeta={[{ label: 'AP Cost', value: 1 }]}
       >
         <span>Body</span>
       </DisplayCard>
     )
     expect(screen.getByText('Source')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Repair' })).toBeTruthy()
     expect(screen.getByText('AP Cost')).toBeTruthy()
     expect(screen.getByText('1')).toBeTruthy()
   })
 
-  test('force the foot band even without footerContent', () => {
+  test('footMeta alone renders the foot band', () => {
     render(
-      <DisplayCard headerContent={<span>H</span>} footActions={<button type="button">Use</button>}>
+      <DisplayCard headerContent={<span>H</span>} footMeta={[{ label: 'Slots', value: 2 }]}>
         <span>Body</span>
       </DisplayCard>
     )
-    expect(screen.getByRole('button', { name: 'Use' })).toBeTruthy()
+    expect(screen.getByText('Slots')).toBeTruthy()
   })
 })

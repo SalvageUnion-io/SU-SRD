@@ -201,8 +201,6 @@ export type ReferenceEntityCardProps = {
   /** Write-layer: inline `[label value]` meta pairs (cost / SV) folded into the
    * identity footer's right side, before the source/page. */
   footMeta?: CardFootMeta[]
-  /** Write-layer: action buttons folded into the identity footer band. */
-  footActions?: ReactNode
   /** Overrides the header's top-right flavor slot. */
   rightContent?: ReactNode
   /** Callout stamp above the frame (with optional value badge). */
@@ -512,7 +510,6 @@ export function ReferenceEntityCard({
   afterChoicesContent,
   footerOverride,
   footMeta,
-  footActions,
   rightContent: rightContentProp,
   label,
   labelBadge,
@@ -1929,7 +1926,6 @@ export function ReferenceEntityCard({
                 booklet={getBooklet(entity)}
                 page={getPageReference(entity)}
                 footMeta={footMeta}
-                footActions={footActions}
                 compact={compact}
               />
             )))}

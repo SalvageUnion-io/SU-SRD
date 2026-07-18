@@ -68,9 +68,6 @@ type DisplayCardProps = {
    * §2.1 `.ec__expand`) — ability trees, integrated systems, bay crew insets.
    * Hidden in listing/head mode like the body. */
   expand?: ReactNode
-  /** Action buttons folded into the footer band (design-spec §2.1 `.ec__acts`).
-   * Named to avoid the game-rules Actions section. */
-  footActions?: ReactNode
   /** Inline label/value meta folded into the footer band (`.ec__metafoot`) */
   footMeta?: CardFootMeta[]
   /** Click handler for the entire card. Adds hover enlarge effect + cursor-pointer.
@@ -191,7 +188,6 @@ export function DisplayCard({
   onStatusClick,
   statusSubject,
   expand,
-  footActions,
   footMeta,
   onCardClick,
   cardClickable = false,
@@ -526,7 +522,7 @@ export function DisplayCard({
 
         {/* Footer — hidden in listing mode. Renders when there is footer
             content OR foot extras (actions/meta) to fold into the band. */}
-        {!isListing && (footerContent || footActions || (footMeta && footMeta.length > 0)) && (
+        {!isListing && (footerContent || (footMeta && footMeta.length > 0)) && (
           <div
             className={cn(
               'flex w-full items-center justify-between gap-2 px-3 py-1 font-cond text-micro font-bold uppercase tracking-[0.05em] text-paper',
@@ -540,9 +536,9 @@ export function DisplayCard({
             }}
           >
             {footerContent}
-            {(footActions || (footMeta && footMeta.length > 0)) && (
+            {footMeta && footMeta.length > 0 && (
               <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
-                {footMeta?.map(({ label: metaLabel, value }, i) => (
+                {footMeta.map(({ label: metaLabel, value }, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: footMeta is a static per-render list; index disambiguates repeated labels
                   <span key={`${metaLabel}-${i}`} className="mr-1 inline-flex items-baseline gap-1">
                     <span className="font-cond text-micro font-bold uppercase leading-none tracking-[0.05em] opacity-75">
@@ -551,7 +547,6 @@ export function DisplayCard({
                     <span className="font-body text-caption font-bold leading-none">{value}</span>
                   </span>
                 ))}
-                {footActions}
               </div>
             )}
           </div>
