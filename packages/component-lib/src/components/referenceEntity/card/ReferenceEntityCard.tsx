@@ -946,6 +946,12 @@ export function ReferenceEntityCard({
   const statusNode: ReactNode = status ? (
     <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject ?? entityName} />
   ) : undefined
+  // All select/alter interactivity lives in the controls bar, not the subheader:
+  // the condition toggle (Intact/Damaged/Destroyed) rides the controls overlay
+  // as a leading node control, ahead of any consumer-supplied controls.
+  const overlayControls: ReferenceEntityControl[] | undefined = statusNode
+    ? [{ key: 'status', node: statusNode }, ...(controls ?? [])]
+    : controls
   const titleTextClass = onBandText
   const header = (
     <EntityCardHeader
@@ -1005,11 +1011,11 @@ export function ReferenceEntityCard({
     ? { border: `3px solid ${frameColor}`, boxShadow: '0 0 0 3px var(--color-rust)' }
     : { border: `3px solid ${frameColor}` }
   // Controls overlay — straddling the top-right frame (reuse ControlButtons).
-  const controlsOverlay = controls?.some((c) => !c.hidden) ? (
+  const controlsOverlay = overlayControls?.some((c) => !c.hidden) ? (
     <div
       className={cn('absolute right-0 z-30 mr-1.5', compact ? 'top-0 -translate-y-1/2' : '-mt-2')}
     >
-      <ControlButtons controls={controls} compact={compact} />
+      <ControlButtons controls={overlayControls} compact={compact} />
     </div>
   ) : null
   // Label callout — a stamp (or [label|badge] pair) straddling the top-left frame.
@@ -1714,7 +1720,6 @@ export function ReferenceEntityCard({
           bgColor={darkTone}
           cells={cells}
           leading={subHeaderLeading}
-          trailing={statusNode}
           compact={compact}
         />
         <div
