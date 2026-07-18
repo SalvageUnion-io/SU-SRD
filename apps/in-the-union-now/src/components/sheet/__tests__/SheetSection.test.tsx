@@ -1,11 +1,11 @@
 /**
  * Phase 1B — the unified edit-language control chrome (clean-edit.html).
  *
- *   - HBtn: the container-header control button (`.hbtn`) with edit / done /
+ *   - HButton: the container-header control button (`.hbtn`) with edit / done /
  *     add variants.
  *   - SectionChead: the field/collection header row (stamp title + ml-auto
  *     controls) that Phase 2 lifts into SheetSectionCard.
- *   - SectionEditButton / SectionAddButton: rebuilt on HBtn — icon + label,
+ *   - SectionEditButton / SectionAddButton: rebuilt on HButton — icon + label,
  *     stable accessible names.
  *   - cardRemoveControls: the per-card ✕ (+ optional ⇄) icon-only cluster fed
  *     to DisplayCard's card-level `controls` slot.
@@ -16,18 +16,18 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { ControlButtons } from 'component-lib'
 
 import {
-  HBtn,
+  HButton,
   SectionAddButton,
   SectionChead,
   SectionEditButton,
   cardRemoveControls,
 } from '../SheetSection'
 
-describe('HBtn', () => {
+describe('HButton', () => {
   afterEach(cleanup)
 
   test('renders as a button with the design chrome and keeps the tap floor', () => {
-    render(<HBtn>Edit</HBtn>)
+    render(<HButton>Edit</HButton>)
     const btn = screen.getByRole('button', { name: 'Edit' })
     expect(btn.getAttribute('type')).toBe('button')
     // 44px coarse-pointer floor collapsing to the 32px design height at sm.
@@ -37,14 +37,14 @@ describe('HBtn', () => {
   })
 
   test('done variant fills with the sheet deep tone', () => {
-    render(<HBtn variant="done">Done</HBtn>)
+    render(<HButton variant="done">Done</HButton>)
     const btn = screen.getByRole('button', { name: 'Done' })
     expect(btn.className).toContain('bg-[color:var(--tone-deep,var(--color-rust))]')
     expect(btn.className).toContain('text-paper')
   })
 
   test('add variant is a deep-tone outline', () => {
-    render(<HBtn variant="add">Add</HBtn>)
+    render(<HButton variant="add">Add</HButton>)
     const btn = screen.getByRole('button', { name: 'Add' })
     expect(btn.className).toContain('border-[color:var(--tone-deep,var(--color-rust))]')
     expect(btn.className).toContain('bg-paper')

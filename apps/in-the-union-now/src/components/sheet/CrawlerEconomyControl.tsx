@@ -19,7 +19,7 @@
  */
 
 import { useState } from 'react'
-import { Button, ModalShell, Slab, StepBtn } from 'component-lib'
+import { Button, ModalShell, Slab, StepButton } from 'component-lib'
 
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
@@ -331,23 +331,23 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
                 Contribute scrap (Tech {tl}+)
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <StepBtn
+                <StepButton
                   aria-label="Decrease contribution"
                   disabled={contribution <= 1}
                   onClick={() => setContribution((c) => Math.max(1, c - 1))}
                 >
                   &ndash;
-                </StepBtn>
+                </StepButton>
                 <span className="min-w-6 text-center font-body text-sm font-bold text-ink">
                   {contribution}
                 </span>
-                <StepBtn
+                <StepButton
                   aria-label="Increase contribution"
                   disabled={contribution >= contributable}
                   onClick={() => setContribution((c) => Math.min(contributable, c + 1))}
                 >
                   +
-                </StepBtn>
+                </StepButton>
               </span>
               <Button
                 size="sm"
@@ -500,22 +500,22 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
                   </select>
                 </label>
                 <span className="inline-flex items-center gap-1.5 pb-1">
-                  <StepBtn
+                  <StepButton
                     aria-label={`Decrease trade amount by ${step}`}
                     disabled={count <= step}
                     onClick={() => setCount((c) => Math.max(step, c - step))}
                   >
                     &ndash;
-                  </StepBtn>
+                  </StepButton>
                   <span className="min-w-6 text-center font-body text-sm font-bold text-ink">
                     {count}
                   </span>
-                  <StepBtn
+                  <StepButton
                     aria-label={`Increase trade amount by ${step}`}
                     onClick={() => setCount((c) => c + step)}
                   >
                     +
-                  </StepBtn>
+                  </StepButton>
                 </span>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-3">

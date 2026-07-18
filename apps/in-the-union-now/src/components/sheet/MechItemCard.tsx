@@ -25,7 +25,7 @@
 
 import { useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Button, ReferenceEntityDisplay, StatusBadge, StepBtn } from 'component-lib'
+import { Button, ReferenceEntityDisplay, StatusBadge, StepButton } from 'component-lib'
 import type { CardFootMeta } from 'component-lib'
 
 import type { ScrapPool } from '../../lib/schemas/crawler'
@@ -150,23 +150,23 @@ export function MechItemCard({
       )}
       {maxUses > 0 && (
         <span className="inline-flex items-center gap-1.5">
-          <StepBtn
+          <StepButton
             aria-label={`Decrease ${entity.name} uses`}
             disabled={remaining <= 0}
             onClick={() => onUsesChange(remaining - 1)}
           >
             &ndash;
-          </StepBtn>
+          </StepButton>
           <span className="min-w-[4.5rem] text-center font-cond text-badge font-bold uppercase leading-none tabular-nums text-ink">
             Uses {remaining}/{maxUses}
           </span>
-          <StepBtn
+          <StepButton
             aria-label={`Increase ${entity.name} uses`}
             disabled={remaining >= maxUses}
             onClick={() => onUsesChange(remaining + 1)}
           >
             +
-          </StepBtn>
+          </StepButton>
         </span>
       )}
       {condition === 'damaged' && (

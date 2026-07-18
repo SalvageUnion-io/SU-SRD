@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Button } from '../../components/chrome/Button'
 import { Sel } from '../../components/chrome/Sel'
-import { StepBtn } from '../../components/chrome/SmallButtons'
+import { StepButton } from '../../components/chrome/SmallButtons'
 import { FilterChip } from '../../components/shared/FilterChip'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -166,30 +166,30 @@ export const FilterChips: Story = () => (
 )
 
 /**
- * `StepBtn` — the 24×24 stat stepper (−/+) that flanks a StatBlock value.
+ * `StepButton` — the 24×24 stat stepper (−/+) that flanks a StatBlock value.
  * Enabled pair + disabled pair (at a min/max bound).
  */
 export const StepButtons: Story = () => (
   <div className="bg-paper p-4">
     <div className="flex flex-col gap-5">
       <Cluster label="enabled −/+ pair">
-        <StepBtn aria-label="Decrease Structure">–</StepBtn>
-        <StepBtn aria-label="Increase Structure">+</StepBtn>
+        <StepButton aria-label="Decrease Structure">–</StepButton>
+        <StepButton aria-label="Increase Structure">+</StepButton>
       </Cluster>
       <Cluster label={`in context (SP ${structure})`}>
         <div className="flex items-center gap-2">
-          <StepBtn aria-label="Decrease Structure">–</StepBtn>
+          <StepButton aria-label="Decrease Structure">–</StepButton>
           <span className="font-body text-lede font-bold tabular-nums text-ink">{structure}</span>
-          <StepBtn aria-label="Increase Structure">+</StepBtn>
+          <StepButton aria-label="Increase Structure">+</StepButton>
         </div>
       </Cluster>
       <Cluster label="disabled at bound">
-        <StepBtn aria-label="Decrease Structure" disabled>
+        <StepButton aria-label="Decrease Structure" disabled>
           –
-        </StepBtn>
-        <StepBtn aria-label="Increase Structure" disabled>
+        </StepButton>
+        <StepButton aria-label="Increase Structure" disabled>
           +
-        </StepBtn>
+        </StepButton>
       </Cluster>
     </div>
   </div>

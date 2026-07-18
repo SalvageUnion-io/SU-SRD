@@ -137,7 +137,7 @@ function SwapIcon({ className }: { className?: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// HBtn — the container-header control button (design `.hbtn`, clean-edit.html
+// HButton — the container-header control button (design `.hbtn`, clean-edit.html
 // :384-411). 2px border, radius 3, paper fill, 10.5px cond bold caps; the
 // `edit` default hovers to an ink fill, `done` is a filled deep-tone chip, and
 // `add` is a deep-tone outline with a circled-plus that fills on hover. The
@@ -145,29 +145,29 @@ function SwapIcon({ className }: { className?: string }) {
 // `sm`.
 // ---------------------------------------------------------------------------
 
-type HBtnVariant = 'edit' | 'done' | 'add'
+type HButtonVariant = 'edit' | 'done' | 'add'
 
 const HBTN_BASE =
   'inline-flex cursor-pointer items-center gap-1.5 rounded-[3px] border-2 px-3 font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide whitespace-nowrap transition-colors min-h-11 sm:min-h-8 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25 print:hidden'
 
-const HBTN_VARIANT: Record<HBtnVariant, string> = {
+const HBTN_VARIANT: Record<HButtonVariant, string> = {
   edit: 'border-ink bg-paper text-ink hover:bg-ink hover:text-paper',
   done: 'border-[color:var(--tone-deep,var(--color-rust))] bg-[color:var(--tone-deep,var(--color-rust))] text-paper hover:border-ink hover:bg-ink',
   add: 'border-[color:var(--tone-deep,var(--color-rust))] bg-paper text-[color:var(--tone-deep,var(--color-rust))] hover:bg-[color:var(--tone-deep,var(--color-rust))] hover:text-paper',
 }
 
-type HBtnProps = ComponentPropsWithoutRef<'button'> & {
-  variant?: HBtnVariant
+type HButtonProps = ComponentPropsWithoutRef<'button'> & {
+  variant?: HButtonVariant
 }
 
 /** Container-header control button (design `.hbtn`). */
-export function HBtn({
+export function HButton({
   variant = 'edit',
   className,
   type = 'button',
   children,
   ...props
-}: HBtnProps) {
+}: HButtonProps) {
   return (
     <button type={type} className={cn(HBTN_BASE, HBTN_VARIANT[variant], className)} {...props}>
       {children}
@@ -184,7 +184,7 @@ type SectionCheadProps = {
   title: string
   /** Optional count/meta tag rendered after the title in the left group. */
   count?: ReactNode
-  /** Right-group controls (the section's HBtn), pinned `ml-auto`. */
+  /** Right-group controls (the section's HButton), pinned `ml-auto`. */
   actions?: ReactNode
   className?: string
 }
@@ -192,7 +192,7 @@ type SectionCheadProps = {
 /**
  * Section header row in the `chead` shape (clean-edit.html :330-332): a left
  * group (ink stamp title + optional count tag) and a right group pinned
- * `ml-auto` holding the section's HBtn. Phase 2 lifts this row verbatim into
+ * `ml-auto` holding the section's HButton. Phase 2 lifts this row verbatim into
  * SheetSectionCard's header, so field sections adopt it now.
  *
  * Also matches the poster's bare `.sect` region divider (clean-pilot.html
@@ -235,7 +235,7 @@ export function SectionEditButton({
   className,
 }: SectionEditButtonProps) {
   return (
-    <HBtn
+    <HButton
       variant={editing ? 'done' : 'edit'}
       aria-pressed={editing}
       aria-label={
@@ -246,7 +246,7 @@ export function SectionEditButton({
     >
       {editing ? <CheckIcon className="h-3.5 w-3.5" /> : <PencilIcon className="h-3.5 w-3.5" />}
       {editing ? 'Done' : 'Edit'}
-    </HBtn>
+    </HButton>
   )
 }
 
@@ -268,7 +268,7 @@ type SectionAddButtonProps = {
  */
 export function SectionAddButton({ label, onClick, className }: SectionAddButtonProps) {
   return (
-    <HBtn
+    <HButton
       variant="add"
       aria-label={`Add ${label.toLowerCase()}`}
       onClick={onClick}
@@ -278,7 +278,7 @@ export function SectionAddButton({ label, onClick, className }: SectionAddButton
         <PlusIcon className="h-2 w-2" />
       </span>
       Add {label}
-    </HBtn>
+    </HButton>
   )
 }
 

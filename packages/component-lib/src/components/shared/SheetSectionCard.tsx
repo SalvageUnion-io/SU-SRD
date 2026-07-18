@@ -6,7 +6,7 @@
  *   - 3px `var(--tone)` border (the sheet accent), radius 3;
  *   - an accent HEADER band in the `chead` shape — a left group (black-stamp
  *     title + optional count `.tag`) and a right group pinned `ml-auto` for the
- *     section controls (the Phase 1 `HBtn` / `SectionChead` vocabulary, lifted
+ *     section controls (the Phase 1 `HButton` / `SectionChead` vocabulary, lifted
  *     verbatim into this header);
  *   - a paper BODY block with a 3px `var(--tone-deep)` LEFT rule, floating on
  *     `var(--tone)` side strips (poster `.dcard-body` `margin:0 12px`);
@@ -33,7 +33,7 @@ type SheetSectionCardProps = {
    * `<Stat orientation="horizontal" compact label=… value=… />` LABEL·VALUE chip.
    */
   count?: ReactNode
-  /** Header-right controls (the section's `HBtn` — Edit/Done or + Add). */
+  /** Header-right controls (the section's `HButton` — Edit/Done or + Add). */
   controls?: ReactNode
   /** Footer source line (poster `.dcard-foot .src`), e.g. 'Salvage Union · Pilot Abilities'. */
   source?: ReactNode

@@ -1,5 +1,5 @@
 import { cn } from '../../utils/cn'
-import { StepBtn } from './SmallButtons'
+import { StepButton } from './SmallButtons'
 
 type CountStepperProps = {
   /** Current count. */
@@ -18,7 +18,7 @@ type CountStepperProps = {
 
 /**
  * CountStepper — the `[− n +]` duplicate-quantity control (design mockup `.ctr`).
- * A bounded `−`/readout/`+` cluster: the two `StepBtn`s are the operable
+ * A bounded `−`/readout/`+` cluster: the two `StepButton`s are the operable
  * controls (each with its own accessible name), the readout is `aria-hidden`,
  * and the value is announced via an sr-only `role="status"` live region.
  *
@@ -31,7 +31,7 @@ export function CountStepper({ count, onChange, subject, min = 0, max }: CountSt
   const atMax = max !== undefined && count >= max
   return (
     <span className="inline-flex items-stretch overflow-hidden rounded-[5px] border-2 border-ink leading-none">
-      <StepBtn
+      <StepButton
         aria-label={`Remove one ${subject}`}
         disabled={atMin}
         onClick={(e) => {
@@ -41,7 +41,7 @@ export function CountStepper({ count, onChange, subject, min = 0, max }: CountSt
         className="rounded-none border-0 bg-ink text-paper hover:bg-ink-2"
       >
         −
-      </StepBtn>
+      </StepButton>
       {/* Plain readout, not role="spinbutton" — a spinbutton must be focusable +
           arrow-operable, which a static span is not. The value is announced via
           the sr-only live region below; the ± buttons stay the operable controls. */}
@@ -57,7 +57,7 @@ export function CountStepper({ count, onChange, subject, min = 0, max }: CountSt
       <span role="status" aria-live="polite" className="sr-only">
         {subject} count: {count}
       </span>
-      <StepBtn
+      <StepButton
         aria-label={`Add one ${subject}`}
         disabled={atMax}
         onClick={(e) => {
@@ -67,7 +67,7 @@ export function CountStepper({ count, onChange, subject, min = 0, max }: CountSt
         className="rounded-none border-0 bg-ink text-paper hover:bg-ink-2"
       >
         +
-      </StepBtn>
+      </StepButton>
     </span>
   )
 }

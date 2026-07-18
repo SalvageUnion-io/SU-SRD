@@ -36,7 +36,7 @@ import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility } from 'salvageunion-reference'
-import { Panel, Stat, StepBtn, VitalGauge } from 'component-lib'
+import { Panel, Stat, StepButton, VitalGauge } from 'component-lib'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
@@ -92,17 +92,17 @@ function TpBlock({
       </span>
       <span className="flex items-center gap-1.5">
         {editable && (
-          <StepBtn aria-label="Decrease TP" onClick={() => onChange?.(Math.max(0, value - 1))}>
+          <StepButton aria-label="Decrease TP" onClick={() => onChange?.(Math.max(0, value - 1))}>
             &ndash;
-          </StepBtn>
+          </StepButton>
         )}
         <span className="min-w-[1.4em] font-body text-[30px] font-bold leading-[1.05] tabular-nums text-ink">
           {value}
         </span>
         {editable && (
-          <StepBtn aria-label="Increase TP" onClick={() => onChange?.(value + 1)}>
+          <StepButton aria-label="Increase TP" onClick={() => onChange?.(value + 1)}>
             +
-          </StepBtn>
+          </StepButton>
         )}
       </span>
       <span className="font-cond text-[8px] font-semibold uppercase leading-none tracking-[0.16em] text-ink/55">

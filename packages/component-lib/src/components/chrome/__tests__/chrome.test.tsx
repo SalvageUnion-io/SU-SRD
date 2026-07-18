@@ -8,7 +8,7 @@ import { Panel, Row, Empty } from '../Panel'
 import { Slab } from '../Slab'
 import { Conditions, ConditionChip } from '../Conditions'
 import { Button } from '../Button'
-import { StepBtn } from '../SmallButtons'
+import { StepButton } from '../SmallButtons'
 import { TreeSep } from '../TreeSep'
 import { StatusBadge } from '../StatusBadge'
 import { Badge } from '../Badge'
@@ -178,9 +178,9 @@ describe('Conditions', () => {
   })
 })
 
-describe('StepBtn / Button xs', () => {
+describe('StepButton / Button xs', () => {
   test('stepbtn is a 24px square button', () => {
-    render(<StepBtn aria-label="Increase HP">+</StepBtn>)
+    render(<StepButton aria-label="Increase HP">+</StepButton>)
     const btn = screen.getByLabelText('Increase HP')
     expect(btn.className).toContain('h-6')
     expect(btn.className).toContain('w-6')
