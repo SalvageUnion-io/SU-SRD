@@ -8,7 +8,7 @@
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefEntity } from 'salvageunion-reference'
-import { Btn, Panel, ReferenceEntityDisplay, Stat, StatusBadge, Badge } from 'component-lib'
+import { Button, Panel, ReferenceEntityDisplay, Stat, StatusBadge, Badge } from 'component-lib'
 import type { CardFootMeta, ChoiceSelections, EntityStatus } from 'component-lib'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
@@ -89,7 +89,7 @@ export function PilotAbilityItem({
   ) : (
     <>
       {apCost !== null && (
-        <Btn
+        <Button
           size="sm"
           variant="primary"
           disabled={!canSpend}
@@ -99,9 +99,9 @@ export function PilotAbilityItem({
           }}
         >
           Spend AP
-        </Btn>
+        </Button>
       )}
-      <Btn
+      <Button
         size="sm"
         aria-pressed={used}
         aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
@@ -110,7 +110,7 @@ export function PilotAbilityItem({
         }}
       >
         {used ? 'Recharge' : 'Mark Used'}
-      </Btn>
+      </Button>
     </>
   )
 
@@ -234,7 +234,7 @@ export function PilotEquipmentItem({
   const useActions =
     !readOnly && maxUses !== null && uses !== null ? (
       <>
-        <Btn
+        <Button
           size="sm"
           disabled={uses <= 0}
           aria-label={`Use ${equipment.name}`}
@@ -243,8 +243,8 @@ export function PilotEquipmentItem({
           }}
         >
           Use
-        </Btn>
-        <Btn
+        </Button>
+        <Button
           size="sm"
           variant="ghost"
           disabled={uses >= maxUses}
@@ -254,7 +254,7 @@ export function PilotEquipmentItem({
           }}
         >
           Restock
-        </Btn>
+        </Button>
       </>
     ) : null
   const footActions = useActions ?? undefined
@@ -325,9 +325,9 @@ export function GenericEntryCard({ entry, onRemove }: GenericEntryCardProps) {
       </div>
       <Stat orientation="horizontal" label="Slots" value={genericEntrySlots(entry)} />
       {onRemove && (
-        <Btn size="sm" variant="ghost" aria-label={`Remove ${entry.name}`} onClick={onRemove}>
+        <Button size="sm" variant="ghost" aria-label={`Remove ${entry.name}`} onClick={onRemove}>
           Remove
-        </Btn>
+        </Button>
       )}
     </Panel>
   )
@@ -366,7 +366,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-[3px] border-chrome border-dashed border-wk-faint p-2.5">
-      <Btn
+      <Button
         size="sm"
         aria-label="Add Scrap (3 slots)"
         onClick={() => {
@@ -374,7 +374,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
         }}
       >
         + Scrap
-      </Btn>
+      </Button>
       <input
         type="text"
         value={name}
@@ -405,9 +405,9 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           className={`${inputClass} w-14`}
         />
       </label>
-      <Btn size="sm" disabled={!name.trim()} aria-label="Add inventory item" onClick={commit}>
+      <Button size="sm" disabled={!name.trim()} aria-label="Add inventory item" onClick={commit}>
         Add
-      </Btn>
+      </Button>
     </div>
   )
 }

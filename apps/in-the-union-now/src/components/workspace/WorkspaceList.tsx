@@ -16,7 +16,7 @@
  */
 
 import { useState } from 'react'
-import { Btn, Input, ModalShell } from 'component-lib'
+import { Button, Input, ModalShell } from 'component-lib'
 
 import { useWorkspaceActions, useWorkspaces } from '../../hooks/queries'
 import { DEFAULT_WORKSPACE_ID } from '../../lib/defaultWorkspace'
@@ -195,7 +195,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                         className="min-h-11 flex-1 px-3 py-1.5 sm:min-h-9"
                         aria-label={`Rename workspace ${ws.name}`}
                       />
-                      <Btn
+                      <Button
                         variant="primary"
                         size="sm"
                         onClick={() => void handleRename(ws.id)}
@@ -203,8 +203,8 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                         aria-label={`Confirm rename workspace`}
                       >
                         Save
-                      </Btn>
-                      <Btn
+                      </Button>
+                      <Button
                         variant="ghost"
                         size="sm"
                         onClick={cancelEditing}
@@ -212,7 +212,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                         aria-label={`Cancel rename workspace ${ws.name}`}
                       >
                         Cancel
-                      </Btn>
+                      </Button>
                     </div>
                     {renameError && (
                       <p className="font-body text-xs text-danger" role="alert">
@@ -224,18 +224,18 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                   /* Idle row */
                   <>
                     <span className="flex-1 font-body text-sm font-medium text-ink">{ws.name}</span>
-                    <Btn
+                    <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => startEditing(ws)}
                       aria-label={`Rename workspace ${ws.name}`}
                     >
                       Rename
-                    </Btn>
+                    </Button>
                     {/* The Default workspace is the mandatory fallback — it can
                         be renamed but never deleted. */}
                     {ws.id !== DEFAULT_WORKSPACE_ID && (
-                      <Btn
+                      <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => void handleDelete(ws.id)}
@@ -243,7 +243,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                         className="text-danger hover:text-danger"
                       >
                         Delete
-                      </Btn>
+                      </Button>
                     )}
                   </>
                 )}
@@ -269,7 +269,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
               className="flex-1 px-3 py-1.5"
               aria-label="New workspace name"
             />
-            <Btn
+            <Button
               variant="primary"
               size="sm"
               onClick={() => void handleCreate()}
@@ -277,7 +277,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
               aria-label="Create workspace"
             >
               {createPending ? 'Creating…' : 'Create'}
-            </Btn>
+            </Button>
           </div>
           {createError && (
             <p className="font-body mt-1 text-xs text-danger" role="alert">

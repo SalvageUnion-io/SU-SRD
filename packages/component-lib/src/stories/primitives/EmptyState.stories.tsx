@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 
 import { EmptyState } from '../../components/chrome/EmptyState'
-import { Btn } from '../../components/chrome/Btn'
+import { Button } from '../../components/chrome/Button'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -15,9 +15,9 @@ export const Default: Story = () => (
       headline="No mechs yet"
       body="Build your first chassis to see it here."
       action={
-        <Btn variant="primary" size="sm">
+        <Button variant="primary" size="sm">
           New mech ▸
-        </Btn>
+        </Button>
       }
     />
   </div>

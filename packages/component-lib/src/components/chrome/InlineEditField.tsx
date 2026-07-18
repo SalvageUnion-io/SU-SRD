@@ -26,7 +26,7 @@ type InlineEditFieldProps = {
   label?: string
   /**
    * Optional control rendered on the label row, opposite the label stamp (e.g.
-   * a roll-assist `Btn`). Only shown in the labeled (`label` set) layout.
+   * a roll-assist `Button`). Only shown in the labeled (`label` set) layout.
    */
   labelAction?: ReactNode
   placeholder?: string

@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react'
 import { type ReactNode, useState } from 'react'
-import { Btn } from '../../../components/chrome/Btn'
+import { Button } from '../../../components/chrome/Button'
 import { cn } from '../../../utils/cn'
 import { Caption } from '../../_harness'
 
@@ -93,7 +93,7 @@ function LegacyIdentityField({
 /**
  * Verbatim reproduction of the presentational shell of
  * apps/in-the-union-now/src/components/mech/MechFlavorStep.tsx (lines 28-61):
- * an IdentityField (editing) with a d20 "Roll" Btn as its labelAction, plus an
+ * an IdentityField (editing) with a d20 "Roll" Button as its labelAction, plus an
  * optional helper note. APPROXIMATION: the roll assist wraps app-only
  * `rollForMechField` (mechRollTables.ts) — here the Roll button writes a
  * representative real game term so the assist path is visible without importing
@@ -120,9 +120,9 @@ function LegacyMechFlavorStep({
         onSave={setValue}
         multiline={multiline}
         labelAction={
-          <Btn size="sm" onClick={() => setValue(rollResult)} className="shrink-0">
+          <Button size="sm" onClick={() => setValue(rollResult)} className="shrink-0">
             <span aria-hidden="true">⚄</span> Roll
-          </Btn>
+          </Button>
         }
       />
       {note && <p className="m-0 font-body text-caption text-current">{note}</p>}

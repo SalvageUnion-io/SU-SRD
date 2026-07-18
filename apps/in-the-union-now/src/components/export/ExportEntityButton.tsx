@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react'
-import { Btn, toast } from 'component-lib'
+import { Button, toast } from 'component-lib'
 
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
@@ -47,9 +47,9 @@ export function ExportEntityButton({ type, id, name }: ExportEntityButtonProps) 
 
   return (
     <div className="flex flex-col gap-1">
-      <Btn size="sm" disabled={busy} onClick={() => void handleExport()} className="min-h-11">
+      <Button size="sm" disabled={busy} onClick={() => void handleExport()} className="min-h-11">
         {busy ? 'Exporting…' : 'Export'}
-      </Btn>
+      </Button>
       {error && <p className="text-sm text-danger">{error}</p>}
     </div>
   )

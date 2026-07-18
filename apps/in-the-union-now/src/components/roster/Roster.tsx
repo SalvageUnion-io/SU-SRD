@@ -21,7 +21,7 @@ import { Fragment, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
-import { Btn, btnVariants, Empty } from 'component-lib'
+import { Button, buttonVariants, Empty } from 'component-lib'
 
 import {
   setActiveWorkspaceId,
@@ -249,7 +249,7 @@ export function Roster() {
             {/* Mobile-endpoint segmented Pilot/Mech/Crawler switch (design §3.7) */}
             <div className="mt-5 flex gap-2 md:hidden">
               {SEGMENTS.map((seg) => (
-                <Btn
+                <Button
                   key={seg.kind}
                   size="sm"
                   variant={activeSegment === seg.kind ? 'primary' : 'default'}
@@ -258,7 +258,7 @@ export function Roster() {
                   className="min-h-11 flex-1"
                 >
                   {seg.label}
-                </Btn>
+                </Button>
               ))}
             </div>
 
@@ -317,7 +317,7 @@ export function Roster() {
                 headExtra={
                   <AppLink
                     href="/mechs/patterns"
-                    className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+                    className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
                   >
                     Patterns
                   </AppLink>
@@ -418,7 +418,7 @@ function FirstRunWelcome() {
       </p>
       <AppLink
         href="/pilots/new"
-        className={cn(btnVariants({ variant: 'primary', size: 'md' }), 'no-underline')}
+        className={cn(buttonVariants({ variant: 'primary', size: 'md' }), 'no-underline')}
       >
         Build your first pilot
       </AppLink>
@@ -477,7 +477,7 @@ function RosterColumn({
           {children.length > 0 && (
             <AppLink
               href={createHref}
-              className={cn(btnVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
+              className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
             >
               + {createLabel}
             </AppLink>
@@ -488,7 +488,7 @@ function RosterColumn({
         <Empty message={emptyLabel} icon={emptyIcon}>
           <AppLink
             href={createHref}
-            className={cn(btnVariants({ variant: 'primary', size: 'sm' }), 'no-underline')}
+            className={cn(buttonVariants({ variant: 'primary', size: 'sm' }), 'no-underline')}
           >
             {createLabel}
           </AppLink>

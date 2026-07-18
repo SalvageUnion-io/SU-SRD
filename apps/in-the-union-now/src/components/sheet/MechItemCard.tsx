@@ -25,7 +25,7 @@
 
 import { useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Btn, ReferenceEntityDisplay, StatusBadge, StepBtn } from 'component-lib'
+import { Button, ReferenceEntityDisplay, StatusBadge, StepBtn } from 'component-lib'
 import type { CardFootMeta } from 'component-lib'
 
 import type { ScrapPool } from '../../lib/schemas/crawler'
@@ -137,7 +137,7 @@ export function MechItemCard({
   const footActions = readOnly ? undefined : (
     <>
       {showUse && (
-        <Btn
+        <Button
           size="sm"
           variant={condition === 'intact' ? 'primary' : 'default'}
           disabled={useDisabledReason !== null}
@@ -146,7 +146,7 @@ export function MechItemCard({
           onClick={() => onUse?.(economy)}
         >
           Use
-        </Btn>
+        </Button>
       )}
       {maxUses > 0 && (
         <span className="inline-flex items-center gap-1.5">
@@ -176,7 +176,7 @@ export function MechItemCard({
         <span className="flex basis-full flex-wrap items-center justify-end gap-1.5">
           {confirmingRepair ? (
             <>
-              <Btn
+              <Button
                 size="sm"
                 variant="primary"
                 disabled={deductTl === null}
@@ -188,8 +188,8 @@ export function MechItemCard({
                 }}
               >
                 Deduct {cost} from TL {deductTl ?? Math.max(1, itemTl ?? 1)} pool
-              </Btn>
-              <Btn
+              </Button>
+              <Button
                 size="sm"
                 aria-label={`Repair ${entity.name} without deducting scrap`}
                 onClick={() => {
@@ -198,20 +198,20 @@ export function MechItemCard({
                 }}
               >
                 Repair without deducting
-              </Btn>
-              <Btn size="sm" variant="ghost" onClick={() => setConfirmingRepair(false)}>
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setConfirmingRepair(false)}>
                 Cancel
-              </Btn>
+              </Button>
             </>
           ) : (
-            <Btn
+            <Button
               size="sm"
               variant="primary"
               aria-label={`Repair ${entity.name}`}
               onClick={() => setConfirmingRepair(true)}
             >
               Repair &middot; {cost} Scrap
-            </Btn>
+            </Button>
           )}
         </span>
       )}

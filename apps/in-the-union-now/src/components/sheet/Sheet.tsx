@@ -18,7 +18,7 @@
  */
 
 import { useState } from 'react'
-import { btnVariants } from 'component-lib'
+import { buttonVariants } from 'component-lib'
 
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { EntityRef } from '../../lib/schemas/entity'
@@ -98,7 +98,7 @@ export function Sheet({
           </p>
           <AppLink
             href="/"
-            className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
           >
             &larr; Back to Roster
           </AppLink>
@@ -124,7 +124,7 @@ export function Sheet({
       type="button"
       aria-label={`Print this ${kind} sheet`}
       onClick={() => window.print()}
-      className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'cursor-pointer')}
+      className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'cursor-pointer')}
     >
       Print
     </button>
@@ -148,7 +148,7 @@ export function Sheet({
       type="button"
       aria-label={`View the change log for this ${kind}`}
       onClick={() => setChangeLogOpen(true)}
-      className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'cursor-pointer')}
+      className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'cursor-pointer')}
     >
       Change Log
     </button>

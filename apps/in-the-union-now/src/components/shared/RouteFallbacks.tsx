@@ -8,7 +8,7 @@
  * degrades into the app's visual language.
  */
 
-import { btnVariants } from 'component-lib'
+import { buttonVariants } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 import { AppLink } from './AppLink'
@@ -26,7 +26,7 @@ export function RouteNotFound() {
         </p>
         <AppLink
           href="/"
-          className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
         >
           &larr; Back to Roster
         </AppLink>

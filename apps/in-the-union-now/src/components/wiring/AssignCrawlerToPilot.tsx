@@ -14,7 +14,7 @@
  */
 
 import { useState } from 'react'
-import { Btn } from 'component-lib'
+import { Button } from 'component-lib'
 
 import { useCrawlers } from '../../hooks/queries'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -84,14 +84,14 @@ export function AssignCrawlerToPilot({
 
   return (
     <>
-      <Btn
+      <Button
         size="sm"
         onClick={openDialog}
         className={cn(className)}
         aria-label="Assign crawler to pilot"
       >
         Assign Crawler
-      </Btn>
+      </Button>
 
       <SelectorDialog
         open={open}

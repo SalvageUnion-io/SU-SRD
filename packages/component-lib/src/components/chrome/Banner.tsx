@@ -1,4 +1,4 @@
-import { Btn } from './Btn'
+import { Button } from './Button'
 import { cn } from '../../utils/cn'
 
 export type BannerSeverity = 'info' | 'warn'
@@ -83,14 +83,14 @@ export function Banner({ warnings, onSaveAnyway, onFixIt, className }: BannerPro
       {hasActions && (
         <div className="flex gap-2">
           {onSaveAnyway && (
-            <Btn variant="ghost" size="sm" onClick={onSaveAnyway}>
+            <Button variant="ghost" size="sm" onClick={onSaveAnyway}>
               Save anyway
-            </Btn>
+            </Button>
           )}
           {onFixIt && (
-            <Btn variant="ghost" size="sm" onClick={onFixIt}>
+            <Button variant="ghost" size="sm" onClick={onFixIt}>
               Fix it
-            </Btn>
+            </Button>
           )}
         </div>
       )}

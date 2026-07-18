@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 import { Menu, X } from 'lucide-react'
-import { btnVariants } from '../chrome/btnVariants'
+import { buttonVariants } from '../chrome/buttonVariants'
 import { cn } from '../../utils/cn'
 
 /**
@@ -12,7 +12,7 @@ import { cn } from '../../utils/cn'
  * (`animate-slide-in-right`/`-out`, defined in the consuming app's CSS).
  *
  * Content is fully driven by props: a `brand` lockup, primary `navItems`
- * (rendered as the shared `btnVariants` buttons — `active` = primary/rust, else
+ * (rendered as the shared `buttonVariants` buttons — `active` = primary/rust, else
  * ghost), and optional `categories` (catalog tiles) + `search` slot for the
  * SRD's richer drawer. Router-agnostic: internal items render through the
  * injected `LinkComponent` (defaults to a plain anchor), external ones as
@@ -46,7 +46,7 @@ export type NavDrawerCategory = {
 type NavDrawerProps = {
   /** Brand lockup shown top-left of the panel (e.g. the two-tone wordmark tag). */
   brand: ReactNode
-  /** Primary nav links, rendered as btnVariants buttons. */
+  /** Primary nav links, rendered as buttonVariants buttons. */
   navItems: NavDrawerItem[]
   /** Optional catalog categories (SRD schema tiles), rendered above navItems. */
   categories?: NavDrawerCategory[]
@@ -167,7 +167,7 @@ export function NavDrawer({
             >
               {navItems.map((item) => {
                 const cls = cn(
-                  btnVariants({ variant: item.active ? 'primary' : 'ghost' }),
+                  buttonVariants({ variant: item.active ? 'primary' : 'ghost' }),
                   'w-full'
                 )
                 const content = (

@@ -11,7 +11,7 @@
  */
 
 import { useEffect, useState } from 'react'
-import { Btn, ModalShell } from 'component-lib'
+import { Button, ModalShell } from 'component-lib'
 
 import { ChassisDetail, ChassisOptionList } from './ChassisStep'
 
@@ -75,12 +75,12 @@ export function MechChassisPickerModal({
           </div>
         </div>
         <div className="flex justify-end gap-2 bg-paper px-4 pb-4">
-          <Btn variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
             Cancel
-          </Btn>
-          <Btn size="sm" disabled={!changed} onClick={apply}>
+          </Button>
+          <Button size="sm" disabled={!changed} onClick={apply}>
             Apply chassis
-          </Btn>
+          </Button>
         </div>
       </ModalShell>
 
@@ -99,12 +99,12 @@ export function MechChassisPickerModal({
             Changing chassis clears the current loadout (pattern, systems, and modules). Continue?
           </div>
           <div className="flex justify-end gap-2">
-            <Btn variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+            <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>
               Cancel
-            </Btn>
-            <Btn variant="danger" size="sm" onClick={confirmChange}>
+            </Button>
+            <Button variant="danger" size="sm" onClick={confirmChange}>
               Change chassis
-            </Btn>
+            </Button>
           </div>
         </div>
       </ModalShell>

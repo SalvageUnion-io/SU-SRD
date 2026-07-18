@@ -1,7 +1,13 @@
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Btn, FilterChip, MasonryColumns, MicroLabel, ReferenceEntityDisplay } from 'component-lib'
+import {
+  Button,
+  FilterChip,
+  MasonryColumns,
+  MicroLabel,
+  ReferenceEntityDisplay,
+} from 'component-lib'
 import type { TechLevel } from '../../lib/rules/types'
 import { LoadoutPanel } from './LoadoutPanel'
 import { matchesRef } from '../../lib/rules/resolveRefs'
@@ -121,13 +127,13 @@ export function InstallStep({
                           {count} Installed
                         </MicroLabel>
                       )}
-                      <Btn
+                      <Button
                         size="xs"
                         onClick={() => onAdd(item.name)}
                         aria-label={`Add ${item.name}`}
                       >
                         {installed ? '+ Add another' : '+ Add'}
-                      </Btn>
+                      </Button>
                     </>
                   }
                 />

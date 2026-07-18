@@ -18,7 +18,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import { Trash2 } from 'lucide-react'
-import { Badge, Btn, btnVariants } from 'component-lib'
+import { Badge, Button, buttonVariants } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
@@ -108,11 +108,11 @@ export function EntityListItem({
           <div className="flex shrink-0 items-center gap-1.5">
             <AppLink
               href={sheetHref}
-              className={cn(btnVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
+              className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
             >
               View
             </AppLink>
-            <Btn
+            <Button
               variant="ghost"
               size="sm"
               aria-label={`Delete ${name}`}
@@ -120,7 +120,7 @@ export function EntityListItem({
               className="px-2 text-danger hover:text-danger"
             >
               <Trash2 aria-hidden="true" />
-            </Btn>
+            </Button>
           </div>
         </div>
       </div>

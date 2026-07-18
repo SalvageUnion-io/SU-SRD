@@ -382,8 +382,9 @@ export const RadiusSpacing: Story = () => (
       Radius &amp; spacing
     </h2>
     <Caption>
-      3px outer radius (card + Btn — the one primitive allowed to round); inner = calc(3px − frame).
-      Stamps are square. Spacing spends only {'{2, 4, 6, 8, 12}px'} — 12px = the card gutter.
+      3px outer radius (card + Button — the one primitive allowed to round); inner = calc(3px −
+      frame). Stamps are square. Spacing spends only {'{2, 4, 6, 8, 12}px'} — 12px = the card
+      gutter.
     </Caption>
 
     <div className="flex flex-wrap items-start gap-6">
@@ -403,7 +404,7 @@ export const RadiusSpacing: Story = () => (
         >
           Commit
         </button>
-        <Caption>Btn · rounded-card · rust = action</Caption>
+        <Caption>Button · rounded-card · rust = action</Caption>
       </div>
 
       <div className="flex flex-col gap-1">

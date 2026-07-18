@@ -1,7 +1,7 @@
 /**
  * SavePatternButton — captures a mech's configuration as a named reusable pattern.
  *
- * Renders as a Btn. On click, opens a ModalShell dialog where the user
+ * Renders as a Button. On click, opens a ModalShell dialog where the user
  * enters a pattern name. On confirm, builds a MechPattern from the supplied
  * configuration and persists it via the patternStore (cross-tab broadcast +
  * backup nudge included — audit item 22).
@@ -15,7 +15,7 @@
  */
 
 import { useState } from 'react'
-import { Btn, Field, Input, ModalShell, toast } from 'component-lib'
+import { Button, Field, Input, ModalShell, toast } from 'component-lib'
 import type { CargoLot } from '../../../lib/schemas/cargoLot'
 import { cn } from '../../../lib/utils'
 import { usePatternStore } from '../../../stores/patternStore'
@@ -87,14 +87,14 @@ export function SavePatternButton({
 
   return (
     <>
-      <Btn
+      <Button
         type="button"
         onClick={handleOpen}
         className={cn(className)}
         aria-label="Save as pattern"
       >
         Save as pattern
-      </Btn>
+      </Button>
 
       <ModalShell
         open={isOpen}
@@ -128,10 +128,16 @@ export function SavePatternButton({
           )}
 
           <div className="flex justify-end gap-2">
-            <Btn type="button" variant="ghost" size="sm" onClick={handleCancel} disabled={isSaving}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              disabled={isSaving}
+            >
               Cancel
-            </Btn>
-            <Btn
+            </Button>
+            <Button
               type="button"
               variant="primary"
               size="sm"
@@ -140,7 +146,7 @@ export function SavePatternButton({
               aria-label="Save pattern"
             >
               {isSaving ? 'Saving…' : 'Save'}
-            </Btn>
+            </Button>
           </div>
         </div>
       </ModalShell>

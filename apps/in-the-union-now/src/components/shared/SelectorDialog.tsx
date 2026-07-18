@@ -7,7 +7,7 @@
  * error) — this component is a controlled, dumb view.
  */
 
-import { Btn, ModalShell } from 'component-lib'
+import { Button, ModalShell } from 'component-lib'
 
 type SelectorOption = {
   id: string
@@ -97,10 +97,10 @@ export function SelectorDialog({
         )}
 
         <div className="flex justify-end gap-2">
-          <Btn variant="ghost" size="sm" onClick={onClose} disabled={pending}>
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={pending}>
             Cancel
-          </Btn>
-          <Btn
+          </Button>
+          <Button
             variant="primary"
             size="sm"
             onClick={onConfirm}
@@ -108,7 +108,7 @@ export function SelectorDialog({
             aria-label={confirmAriaLabel}
           >
             {pending ? pendingLabel : confirmLabel}
-          </Btn>
+          </Button>
         </div>
       </div>
     </ModalShell>

@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Inset } from './Inset'
 import { Stat } from './Stat'
-import { Btn } from '../chrome/Btn'
+import { Button } from '../chrome/Button'
 import { VitalGauge } from '../stat/VitalGauge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -86,7 +86,7 @@ export const CrewLead: Story = () => (
 /**
  * ECONOMY inset — the crawler economy frame: an SP VitalGauge over a lozenge
  * grid. `Pay`/`Fund` are true action controls, so they wear THE rust action
- * colour (Btn `primary`); the read-only Tech / Crew lozenges do not.
+ * colour (Button `primary`); the read-only Tech / Crew lozenges do not.
  */
 export const Economy: Story = () => (
   <Stage
@@ -103,18 +103,18 @@ export const Economy: Story = () => (
             label="Upkeep"
             value={5}
             action={
-              <Btn variant="primary" size="sm">
+              <Button variant="primary" size="sm">
                 Pay
-              </Btn>
+              </Button>
             }
           />
           <Loz
             label="Upgrade"
             value={30}
             action={
-              <Btn variant="primary" size="sm">
+              <Button variant="primary" size="sm">
                 Fund
-              </Btn>
+              </Button>
             }
           />
           <Loz label="Crew" value={3} />

@@ -16,7 +16,7 @@
 
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { Btn, Field, Input, ModalShell, Select } from 'component-lib'
+import { Button, Field, Input, ModalShell, Select } from 'component-lib'
 
 import { createBlank } from '../../lib/wizard/blankCreate'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
@@ -205,10 +205,10 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
         )}
 
         <div className="flex justify-end gap-2">
-          <Btn variant="ghost" size="sm" onClick={onClose} disabled={pending}>
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={pending}>
             Cancel
-          </Btn>
-          <Btn
+          </Button>
+          <Button
             variant="primary"
             size="sm"
             onClick={() => void handleCreate()}
@@ -216,7 +216,7 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
             aria-label={`Create blank ${label.toLowerCase()}`}
           >
             {pending ? 'Creating…' : `Create ${label}`}
-          </Btn>
+          </Button>
         </div>
       </div>
     </ModalShell>

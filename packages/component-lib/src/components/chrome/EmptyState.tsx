@@ -7,7 +7,7 @@ type EmptyStateProps = {
   headline: string
   /** Explainer line under the headline. */
   body?: ReactNode
-  /** A single rust action (usually a primary Btn). */
+  /** A single rust action (usually a primary Button). */
   action?: ReactNode
   className?: string
 }

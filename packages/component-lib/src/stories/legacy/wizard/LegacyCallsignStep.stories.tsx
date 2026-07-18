@@ -2,7 +2,7 @@ import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
 import type { SURefRollTable } from 'salvageunion-reference'
-import { Btn } from '../../../components/chrome/Btn'
+import { Button } from '../../../components/chrome/Button'
 import { Field, Input } from '../../../components/chrome/Field'
 import { Caption } from '../../_harness'
 
@@ -37,7 +37,7 @@ function rollForPilotField(field: PilotRollField): string | null {
 
 /**
  * Verbatim reproduction of ITUN's RollTableButton
- * (apps/in-the-union-now/src/components/pilot/RollTableButton.tsx) — a `Btn`
+ * (apps/in-the-union-now/src/components/pilot/RollTableButton.tsx) — a `Button`
  * with the ⚄ glyph that fires the field's roll table.
  */
 function RollTableButton({
@@ -54,9 +54,9 @@ function RollTableButton({
     if (result !== null) onRoll(result)
   }
   return (
-    <Btn size="sm" onClick={handleClick} className="shrink-0 self-center">
+    <Button size="sm" onClick={handleClick} className="shrink-0 self-center">
       <span aria-hidden="true">⚄</span> {label}
-    </Btn>
+    </Button>
   )
 }
 

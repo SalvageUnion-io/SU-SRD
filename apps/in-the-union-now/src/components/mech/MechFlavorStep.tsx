@@ -1,4 +1,4 @@
-import { Btn } from 'component-lib'
+import { Button } from 'component-lib'
 import { IdentityField } from '../sheet/IdentityField'
 import type { MechRollField, MechRollTableDeps } from './mechRollTables'
 import { rollForMechField } from './mechRollTables'
@@ -50,9 +50,9 @@ export function MechFlavorStep({
         multiline={multiline}
         placeholder={placeholder}
         labelAction={
-          <Btn size="sm" onClick={handleRoll} className="shrink-0">
+          <Button size="sm" onClick={handleRoll} className="shrink-0">
             <span aria-hidden="true">⚄</span> Roll
-          </Btn>
+          </Button>
         }
       />
       {note && <p className="m-0 font-body text-caption text-current">{note}</p>}

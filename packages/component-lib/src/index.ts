@@ -121,8 +121,8 @@ export type { ChoiceSelections } from './components/referenceEntity/choiceCard/c
 // (use `Badge surface="outline"`/`"tone"` directly for the former Pill).
 export { Badge } from './components/chrome/Badge'
 export type { BadgeTone, BadgeSurface } from './components/chrome/Badge'
-export { Btn } from './components/chrome/Btn'
-export { btnVariants } from './components/chrome/btnVariants'
+export { Button } from './components/chrome/Button'
+export { buttonVariants } from './components/chrome/buttonVariants'
 // EmptyState — dashed stamp-headline empty slot (ruleset §"Empty state")
 export { EmptyState } from './components/chrome/EmptyState'
 // Callout — accent-framed note (stamp header + accent-bar body); list-items,

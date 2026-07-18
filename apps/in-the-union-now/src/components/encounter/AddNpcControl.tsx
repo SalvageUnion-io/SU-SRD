@@ -10,7 +10,7 @@
  */
 
 import { useMemo, useState } from 'react'
-import { Btn, FilterChip, ReferenceEntityDisplay } from 'component-lib'
+import { Button, FilterChip, ReferenceEntityDisplay } from 'component-lib'
 
 import { ENCOUNTER_REF_SCHEMAS } from '../../lib/schemas/encounterNpc'
 import type { EncounterRefSchema } from '../../lib/schemas/encounterNpc'
@@ -76,7 +76,7 @@ export function AddNpcControl({ onAdd }: AddNpcControlProps) {
               className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2"
             >
               <ReferenceEntityDisplay data={candidate.entity} mode="head" />
-              <Btn
+              <Button
                 size="sm"
                 variant="primary"
                 aria-label={`Add ${candidate.name} to the tray`}
@@ -86,7 +86,7 @@ export function AddNpcControl({ onAdd }: AddNpcControlProps) {
                 }}
               >
                 Add
-              </Btn>
+              </Button>
             </li>
           ))}
         </ul>

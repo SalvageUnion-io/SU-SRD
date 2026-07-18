@@ -13,7 +13,7 @@
  */
 
 import { useState } from 'react'
-import { Btn, ModalShell } from 'component-lib'
+import { Button, ModalShell } from 'component-lib'
 
 import { useEntityStore } from '../../stores/entityStore'
 import { cn } from '../../lib/utils'
@@ -70,7 +70,7 @@ export function UnassignLinkButton({
 
   return (
     <>
-      <Btn
+      <Button
         variant="ghost"
         size="sm"
         onClick={openConfirm}
@@ -78,7 +78,7 @@ export function UnassignLinkButton({
         aria-label={`${label} — remove soft link`}
       >
         {label}
-      </Btn>
+      </Button>
 
       <ModalShell
         open={open}
@@ -101,10 +101,10 @@ export function UnassignLinkButton({
             </p>
           )}
           <div className="flex justify-end gap-2">
-            <Btn variant="ghost" size="sm" onClick={closeConfirm} disabled={pending}>
+            <Button variant="ghost" size="sm" onClick={closeConfirm} disabled={pending}>
               Cancel
-            </Btn>
-            <Btn
+            </Button>
+            <Button
               variant="danger"
               size="sm"
               onClick={() => void handleConfirm()}
@@ -112,7 +112,7 @@ export function UnassignLinkButton({
               aria-label="Confirm unassign"
             >
               {pending ? 'Removing…' : 'Remove link'}
-            </Btn>
+            </Button>
           </div>
         </div>
       </ModalShell>

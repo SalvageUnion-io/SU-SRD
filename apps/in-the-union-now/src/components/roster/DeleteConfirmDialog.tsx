@@ -8,7 +8,7 @@
  * Rendered through a ModalShell (portal, focus trap, Escape/backdrop dismiss).
  */
 
-import { Btn, ModalShell } from 'component-lib'
+import { Button, ModalShell } from 'component-lib'
 
 type DeleteConfirmDialogProps = {
   open: boolean
@@ -39,12 +39,12 @@ export function DeleteConfirmDialog({
           This action cannot be undone. {entityName} will be permanently removed.
         </div>
         <div className="flex justify-end gap-2">
-          <Btn variant="ghost" size="sm" onClick={onCancel}>
+          <Button variant="ghost" size="sm" onClick={onCancel}>
             Cancel
-          </Btn>
-          <Btn variant="danger" size="sm" onClick={onConfirm}>
+          </Button>
+          <Button variant="danger" size="sm" onClick={onConfirm}>
             Delete
-          </Btn>
+          </Button>
         </div>
       </div>
     </ModalShell>

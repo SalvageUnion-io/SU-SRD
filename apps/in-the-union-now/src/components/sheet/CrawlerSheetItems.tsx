@@ -6,7 +6,7 @@
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Btn, ReferenceEntityDisplay, useDetailModal } from 'component-lib'
+import { Button, ReferenceEntityDisplay, useDetailModal } from 'component-lib'
 import type { CardFootMeta, ChoiceSelections } from 'component-lib'
 
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
@@ -195,7 +195,7 @@ export function CrawlerBayCard({
   // (design §4.4 / interaction pattern 8).
   const footActions = (
     <>
-      <Btn
+      <Button
         size="sm"
         variant={damaged ? 'default' : 'primary'}
         disabled={damaged}
@@ -207,8 +207,8 @@ export function CrawlerBayCard({
         onClick={() => detail.control.onClick()}
       >
         {functionLabel}
-      </Btn>
-      <Btn
+      </Button>
+      <Button
         size="sm"
         variant={damaged ? 'primary' : 'ghost'}
         disabled={!damaged || readOnly}
@@ -222,7 +222,7 @@ export function CrawlerBayCard({
         onClick={() => onRepair(entry, index)}
       >
         Repair
-      </Btn>
+      </Button>
     </>
   )
 

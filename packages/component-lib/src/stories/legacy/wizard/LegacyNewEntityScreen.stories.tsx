@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { Btn, Field, Input, ModalShell } from 'component-lib'
+import { Button, Field, Input, ModalShell } from 'component-lib'
 import { cn } from '../../../utils/cn'
 import { Caption } from '../../_harness'
 
@@ -313,10 +313,10 @@ function BlankCreateDialog({
         )}
 
         <div className="flex justify-end gap-2">
-          <Btn variant="ghost" size="sm" onClick={onClose} disabled={pending}>
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={pending}>
             Cancel
-          </Btn>
-          <Btn
+          </Button>
+          <Button
             variant="primary"
             size="sm"
             onClick={handleCreate}
@@ -324,7 +324,7 @@ function BlankCreateDialog({
             aria-label={`Create blank ${label.toLowerCase()}`}
           >
             {pending ? 'Creating…' : `Create ${label}`}
-          </Btn>
+          </Button>
         </div>
       </div>
     </ModalShell>
@@ -359,9 +359,9 @@ function LegacyNewEntityScreen({
           </p>
         </div>
         <div className="p-4 text-center">
-          <Btn variant="ghost" size="sm" onClick={() => setMode(undefined)}>
+          <Button variant="ghost" size="sm" onClick={() => setMode(undefined)}>
             ← Back to the doors
-          </Btn>
+          </Button>
         </div>
       </section>
     )

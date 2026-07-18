@@ -23,7 +23,7 @@ import {
   cloneElement,
   isValidElement,
 } from 'react'
-import { Btn, ModalShell } from 'component-lib'
+import { Button, ModalShell } from 'component-lib'
 import type { ReferenceEntityControl } from 'component-lib'
 
 import { cn } from '../../lib/utils'
@@ -329,14 +329,14 @@ type CardRemoveButtonProps = {
 /** Per-card remove (✕) control — always available; carries the editing cue. */
 export function CardRemoveButton({ name, onRemove, className }: CardRemoveButtonProps) {
   return (
-    <Btn
+    <Button
       size="xs"
       aria-label={`Remove ${name}`}
       onClick={onRemove}
       className={cn(EDIT_CUE_CLASS, 'min-h-11 sm:min-h-6 print:hidden', className)}
     >
       &#10005; Remove
-    </Btn>
+    </Button>
   )
 }
 

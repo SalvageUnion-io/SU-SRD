@@ -2,8 +2,8 @@ import type { CSSProperties, ReactNode } from 'react'
 import { Bot, type LucideIcon, Trash2, UserRound, Warehouse } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
-import { Btn } from '../chrome/Btn'
-import { btnVariants } from '../chrome/btnVariants'
+import { Button } from '../chrome/Button'
+import { buttonVariants } from '../chrome/buttonVariants'
 import { Stat } from './Stat'
 
 /**
@@ -19,7 +19,7 @@ import { Stat } from './Stat'
  * (ghost trash) actions. Neither action is the rust action colour — a row
  * navigates and removes, it never performs a true game action.
  *
- * Data-source agnostic: View renders a plain `<a>` styled with `btnVariants`
+ * Data-source agnostic: View renders a plain `<a>` styled with `buttonVariants`
  * so the primitive works with any router (or none).
  */
 
@@ -199,11 +199,11 @@ export function EntityRow(props: EntityRowProps) {
         <div className="flex shrink-0 items-center gap-1.5">
           <a
             href={sheetHref}
-            className={cn(btnVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
+            className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
           >
             View
           </a>
-          <Btn
+          <Button
             variant="ghost"
             size="sm"
             aria-label={`Delete ${name}`}
@@ -211,7 +211,7 @@ export function EntityRow(props: EntityRowProps) {
             className="border-transparent px-2 text-danger hover:bg-transparent hover:text-danger"
           >
             <Trash2 aria-hidden="true" className="size-4" />
-          </Btn>
+          </Button>
         </div>
       </div>
     </div>

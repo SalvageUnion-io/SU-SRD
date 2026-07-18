@@ -8,7 +8,7 @@
  * prop surface are kept so Sheet.tsx and existing call sites don't churn.
  */
 
-import { btnVariants } from 'component-lib'
+import { buttonVariants } from 'component-lib'
 
 import type { EntityRef } from '../../lib/schemas/entity'
 import { cn } from '../../lib/utils'
@@ -27,7 +27,7 @@ export function PublishButton({ entityKind, entityId }: PublishButtonProps) {
     <AppLink
       href={`/sheet/${entityKind}/${entityId}/share`}
       aria-label={`Share this ${entityKind} as a snapshot`}
-      className={cn(btnVariants({ size: 'sm' }), 'min-h-11 no-underline sm:min-h-9')}
+      className={cn(buttonVariants({ size: 'sm' }), 'min-h-11 no-underline sm:min-h-9')}
     >
       Share
     </AppLink>

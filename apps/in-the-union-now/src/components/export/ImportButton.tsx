@@ -13,7 +13,7 @@
  */
 
 import { useRef, useState } from 'react'
-import { Btn, toast } from 'component-lib'
+import { Button, toast } from 'component-lib'
 
 import { mergeImport } from '../../lib/export/mergeImport'
 import { parseImportBundle } from '../../lib/export/parseImportBundle'
@@ -67,9 +67,9 @@ export function ImportButton() {
 
   return (
     <div className="flex flex-col gap-1">
-      <Btn size="sm" disabled={busy} onClick={handleClick}>
+      <Button size="sm" disabled={busy} onClick={handleClick}>
         {busy ? 'Importing…' : 'Import…'}
-      </Btn>
+      </Button>
       {/* Hidden file input */}
       <input
         ref={fileInputRef}

@@ -24,7 +24,7 @@ import { useEffect, useState } from 'react'
 import {
   Badge,
   BayStatus,
-  Btn,
+  Button,
   Input,
   Panel,
   Row,
@@ -289,7 +289,7 @@ export function ShareSnapshotScreen({
                 aria-label="Share URL"
                 onFocus={(event) => event.currentTarget.select()}
               />
-              <Btn
+              <Button
                 size="sm"
                 onClick={() => void handleCopy()}
                 disabled={!shareUrl}
@@ -298,7 +298,7 @@ export function ShareSnapshotScreen({
                 className="shrink-0"
               >
                 {copied ? '✓' : '⧉'}
-              </Btn>
+              </Button>
             </div>
 
             {copyError && (
@@ -318,7 +318,7 @@ export function ShareSnapshotScreen({
                   Publishing unavailable — the snapshot service could not be reached.
                 </p>
               ) : (
-                <Btn
+                <Button
                   variant="primary"
                   className="w-full"
                   onClick={() => void handlePublish()}
@@ -329,7 +329,7 @@ export function ShareSnapshotScreen({
                     : publishState.status === 'published'
                       ? 'Publish again'
                       : 'Publish snapshot'}
-                </Btn>
+                </Button>
               )}
             </div>
 
@@ -357,7 +357,7 @@ export function ShareSnapshotScreen({
                     <code className="min-w-0 flex-1 truncate font-mono text-xs text-ink">
                       /s/{link.id}
                     </code>
-                    <Btn
+                    <Button
                       size="sm"
                       variant="danger"
                       className="min-h-11 shrink-0 sm:min-h-9"
@@ -365,7 +365,7 @@ export function ShareSnapshotScreen({
                       onClick={() => void handleRevoke(link.id)}
                     >
                       Remove
-                    </Btn>
+                    </Button>
                   </li>
                 ))}
               </ul>

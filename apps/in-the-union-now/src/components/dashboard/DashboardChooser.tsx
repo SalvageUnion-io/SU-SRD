@@ -27,7 +27,7 @@
 import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Btn, ModalShell } from 'component-lib'
+import { Button, ModalShell } from 'component-lib'
 
 import { useCrawlers, useMechs, usePilots, useSoftLinkList } from '../../hooks/queries'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -243,14 +243,14 @@ export function DashboardChooser({
 
   return (
     <>
-      <Btn
+      <Button
         size="sm"
         onClick={openDialog}
         className={cn(className)}
         aria-label="Launch the Dashboard"
       >
         {label}
-      </Btn>
+      </Button>
 
       <ModalShell
         open={open}
@@ -333,16 +333,16 @@ export function DashboardChooser({
           )}
 
           <div className="flex justify-between gap-2">
-            <Btn
+            <Button
               variant="ghost"
               size="sm"
               onClick={stepIndex === 0 ? closeDialog : goBack}
               disabled={pending}
             >
               {stepIndex === 0 ? 'Cancel' : 'Back'}
-            </Btn>
+            </Button>
             {step === 'crawler' ? (
-              <Btn
+              <Button
                 variant="primary"
                 size="sm"
                 onClick={() => void handleLaunch()}
@@ -350,11 +350,11 @@ export function DashboardChooser({
                 aria-label="Launch the Dashboard for the chosen crew"
               >
                 {pending ? 'Launching…' : 'Launch'}
-              </Btn>
+              </Button>
             ) : (
-              <Btn variant="primary" size="sm" onClick={goNext} disabled={pending}>
+              <Button variant="primary" size="sm" onClick={goNext} disabled={pending}>
                 Next
-              </Btn>
+              </Button>
             )}
           </div>
         </div>

@@ -21,7 +21,7 @@ import type { SnapshotPayload } from '../../lib/snapshot/client'
 import { AppLink } from '../../components/shared/AppLink'
 import { SheetSkeleton } from '../../components/sheet/SheetSkeleton'
 import { SnapshotSheet } from '../../components/sheet/SnapshotSheet'
-import { btnVariants } from 'component-lib'
+import { buttonVariants } from 'component-lib'
 import { cn } from '../../lib/utils'
 
 // ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ export function SnapshotPageInner({ snapshot, notFound, error }: SnapshotPageInn
         </p>
         <AppLink
           href="/"
-          className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
         >
           &larr; Back to Roster
         </AppLink>
@@ -82,7 +82,7 @@ export function SnapshotPageInner({ snapshot, notFound, error }: SnapshotPageInn
         <p className="mb-4 text-sm text-wk-muted">{error}</p>
         <AppLink
           href="/"
-          className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
         >
           &larr; Back to Roster
         </AppLink>

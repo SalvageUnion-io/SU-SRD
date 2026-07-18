@@ -4,10 +4,10 @@ import { DISABLED, FOCUS_RING } from './interaction'
 /**
  * The `.btn` cva recipe (design-spec §2.4), exported for non-button elements
  * (e.g. links styled as buttons) so consumers don't re-inline the class
- * string. Lives in its own file so Btn.tsx only exports components
+ * string. Lives in its own file so Button.tsx only exports components
  * (react-refresh).
  */
-export const btnVariants = cva(
+export const buttonVariants = cva(
   `inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-card border-chrome font-body font-medium tracking-[0.01em] transition-colors duration-[120ms] ${FOCUS_RING} ${DISABLED}`,
   {
     variants: {

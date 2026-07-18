@@ -7,7 +7,7 @@ import { Chip } from '../Chip'
 import { Panel, Row, Empty } from '../Panel'
 import { Slab } from '../Slab'
 import { Conditions, ConditionChip } from '../Conditions'
-import { Btn } from '../Btn'
+import { Button } from '../Button'
 import { StepBtn } from '../SmallButtons'
 import { TreeSep } from '../TreeSep'
 import { StatusBadge } from '../StatusBadge'
@@ -178,7 +178,7 @@ describe('Conditions', () => {
   })
 })
 
-describe('StepBtn / Btn xs', () => {
+describe('StepBtn / Button xs', () => {
   test('stepbtn is a 24px square button', () => {
     render(<StepBtn aria-label="Increase HP">+</StepBtn>)
     const btn = screen.getByLabelText('Increase HP')
@@ -186,8 +186,8 @@ describe('StepBtn / Btn xs', () => {
     expect(btn.className).toContain('w-6')
   })
 
-  test('Btn size="xs" renders the compact uppercase action (former MiniBtn)', () => {
-    render(<Btn size="xs">⇄ Swap</Btn>)
+  test('Button size="xs" renders the compact uppercase action (former MiniBtn)', () => {
+    render(<Button size="xs">⇄ Swap</Button>)
     expect(screen.getByRole('button', { name: '⇄ Swap' }).className).toContain('uppercase')
   })
 })

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { Btn } from '../chrome/Btn'
+import { Button } from '../chrome/Button'
 import { cn } from '../../utils/cn'
 import { ModalShell } from './ModalShell'
 
@@ -346,23 +346,23 @@ export function WizShell({
               {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. */}
               <div className="flex items-center justify-end gap-2 sm:contents">
                 {onBack && (
-                  <Btn
+                  <Button
                     variant="ghost"
                     onClick={onBack}
                     disabled={busy}
                     className="border-paper/40 text-paper hover:bg-paper/10"
                   >
                     Back
-                  </Btn>
+                  </Button>
                 )}
-                <Btn
+                <Button
                   variant="ghost"
                   onClick={() => (confirmCancel ? setConfirmingCancel(true) : onCancel())}
                   disabled={busy}
                   className="border-paper/40 text-paper hover:bg-paper/10"
                 >
                   Cancel
-                </Btn>
+                </Button>
                 <ModalShell
                   open={confirmingCancel}
                   onOpenChange={(next) => {
@@ -378,10 +378,10 @@ export function WizShell({
                       Your unsaved changes will be lost.
                     </div>
                     <div className="flex justify-end gap-2">
-                      <Btn variant="ghost" size="sm" onClick={() => setConfirmingCancel(false)}>
+                      <Button variant="ghost" size="sm" onClick={() => setConfirmingCancel(false)}>
                         Keep editing
-                      </Btn>
-                      <Btn
+                      </Button>
+                      <Button
                         variant="danger"
                         size="sm"
                         onClick={() => {
@@ -390,14 +390,14 @@ export function WizShell({
                         }}
                       >
                         Discard
-                      </Btn>
+                      </Button>
                     </div>
                   </div>
                 </ModalShell>
               </div>
               {/* Locked CTA (mockup `.next.locked`): hollow, dashed, dimmed
                   weight — the blocking reason lives in the footerNote text. */}
-              <Btn
+              <Button
                 variant="primary"
                 size="lg"
                 className={cn(
@@ -410,7 +410,7 @@ export function WizShell({
                 disabled={nextDisabled || busy}
               >
                 {busy ? 'Saving…' : ctaLabel}
-              </Btn>
+              </Button>
             </div>
           </footer>
         </main>

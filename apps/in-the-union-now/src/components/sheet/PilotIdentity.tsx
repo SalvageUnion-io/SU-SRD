@@ -21,7 +21,7 @@
 
 import { useState } from 'react'
 import type { SURefClass } from 'salvageunion-reference'
-import { Btn } from 'component-lib'
+import { Button } from 'component-lib'
 
 import { resolveClassName } from '../../lib/classRef'
 import type { Pilot } from '../../lib/schemas/pilot'
@@ -245,12 +245,12 @@ export function PilotIdentityPanel({
         title="Change Class"
         footer={
           <>
-            <Btn variant="ghost" size="sm" onClick={() => setClassPickerOpen(false)}>
+            <Button variant="ghost" size="sm" onClick={() => setClassPickerOpen(false)}>
               Cancel
-            </Btn>
-            <Btn variant="primary" size="sm" onClick={confirmClass}>
+            </Button>
+            <Button variant="primary" size="sm" onClick={confirmClass}>
               Change Class
-            </Btn>
+            </Button>
           </>
         }
       >

@@ -8,7 +8,7 @@
  */
 
 import { createFileRoute, notFound } from '@tanstack/react-router'
-import { btnVariants } from 'component-lib'
+import { buttonVariants } from 'component-lib'
 
 import { ShareSnapshotScreen } from '../../../components/sheet/ShareSnapshotScreen'
 import { AppLink } from '../../../components/shared/AppLink'
@@ -29,7 +29,7 @@ function ShareKindNotFound() {
       </p>
       <AppLink
         href="/"
-        className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+        className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
       >
         &larr; Back to Roster
       </AppLink>

@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import { Caption } from '../../stories/_harness'
 import { Badge } from '../chrome/Badge'
-import { Btn } from '../chrome/Btn'
+import { Button } from '../chrome/Button'
 import { SheetSectionCard } from './SheetSectionCard'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -23,9 +23,9 @@ export const Default: Story = () => (
       title="Class Abilities"
       count={<Badge surface="outline">3</Badge>}
       controls={
-        <Btn variant="ghost" size="xs">
+        <Button variant="ghost" size="xs">
           Edit
-        </Btn>
+        </Button>
       }
       source="Salvage Union · Pilot Abilities"
     >

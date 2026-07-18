@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { ModalShell } from './ModalShell'
-import { Btn } from '../chrome/Btn'
+import { Button } from '../chrome/Button'
 import { Text } from '../base/Text'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -18,7 +18,7 @@ function Trigger({ headerBg, label }: { headerBg?: string; label: string }) {
   const [open, setOpen] = useState(false)
   return (
     <div className="flex flex-col gap-1.5">
-      <Btn onClick={() => setOpen(true)}>{label}</Btn>
+      <Button onClick={() => setOpen(true)}>{label}</Button>
       <ModalShell
         open={open}
         onOpenChange={setOpen}

@@ -2,7 +2,7 @@ import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { EntityGrid, EntityGridRow } from './EntityGrid'
 import { DisplayCard } from './DisplayCard'
-import { Btn } from '../chrome/Btn'
+import { Button } from '../chrome/Button'
 import { Text } from '../base/Text'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -63,12 +63,12 @@ export const Default: Story = () => (
         footMeta={railFootMeta}
         actions={
           <>
-            <Btn variant="primary" size="sm">
+            <Button variant="primary" size="sm">
               Use
-            </Btn>
-            <Btn variant="default" size="sm">
+            </Button>
+            <Button variant="default" size="sm">
               Repair
-            </Btn>
+            </Button>
           </>
         }
       >

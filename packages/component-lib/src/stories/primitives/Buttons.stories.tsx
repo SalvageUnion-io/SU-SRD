@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Btn } from '../../components/chrome/Btn'
+import { Button } from '../../components/chrome/Button'
 import { Sel } from '../../components/chrome/Sel'
 import { StepBtn } from '../../components/chrome/SmallButtons'
 import { FilterChip } from '../../components/shared/FilterChip'
@@ -19,7 +19,7 @@ const structure = chassis?.structurePoints ?? 10
 const pilotClassA = classes[0]?.name ?? 'Engineer'
 const pilotClassB = classes[1]?.name ?? 'Hacker'
 
-// The `.btn` cva ships four variants (btnVariants.ts). `secondary` / `control`
+// The `.btn` cva ships four variants (buttonVariants.ts). `secondary` / `control`
 // are named in the codex but not yet implemented — only the real ones render.
 const BTN_VARIANTS = ['default', 'primary', 'ghost', 'danger'] as const
 const BTN_SIZES = ['sm', 'md', 'lg'] as const
@@ -38,7 +38,7 @@ type BtnVariant = (typeof BTN_VARIANTS)[number]
 
 /**
  * One story per variant: every size (sm/md/lg) plus the disabled treatment
- * (opacity .4, pointer-events none). Labels are sentence-case bodies — a Btn is
+ * (opacity .4, pointer-events none). Labels are sentence-case bodies — a Button is
  * never a stamp.
  */
 function VariantShowcase({ variant, label }: { variant: BtnVariant; label: string }) {
@@ -47,15 +47,15 @@ function VariantShowcase({ variant, label }: { variant: BtnVariant; label: strin
       <div className="flex flex-col gap-5">
         <Cluster label={`${variant} · sizes`}>
           {BTN_SIZES.map((size) => (
-            <Btn key={size} variant={variant} size={size}>
+            <Button key={size} variant={variant} size={size}>
               {label}
-            </Btn>
+            </Button>
           ))}
         </Cluster>
         <Cluster label={`${variant} · disabled`}>
-          <Btn variant={variant} disabled>
+          <Button variant={variant} disabled>
             {label}
-          </Btn>
+          </Button>
         </Cluster>
       </div>
     </div>
@@ -80,16 +80,16 @@ export const AllVariants: Story = () => (
     <div className="flex flex-col gap-5">
       <Cluster label="every variant · md">
         {BTN_VARIANTS.map((variant) => (
-          <Btn key={variant} variant={variant}>
+          <Button key={variant} variant={variant}>
             {variant}
-          </Btn>
+          </Button>
         ))}
       </Cluster>
       <Cluster label="every variant · disabled">
         {BTN_VARIANTS.map((variant) => (
-          <Btn key={variant} variant={variant} disabled>
+          <Button key={variant} variant={variant} disabled>
             {variant}
-          </Btn>
+          </Button>
         ))}
       </Cluster>
     </div>
@@ -196,21 +196,21 @@ export const StepButtons: Story = () => (
 )
 
 /**
- * `Btn size="xs"` — the compact uppercase action chip (formerly MiniBtn), e.g.
+ * `Button size="xs"` — the compact uppercase action chip (formerly MiniBtn), e.g.
  * '⇄ Swap' on rail chips. Default + disabled.
  */
 export const XsButtons: Story = () => (
   <div className="bg-paper p-4">
     <div className="flex flex-col gap-5">
       <Cluster label="default">
-        <Btn size="xs">⇄ Swap</Btn>
-        <Btn size="xs">Remove</Btn>
-        <Btn size="xs">Details</Btn>
+        <Button size="xs">⇄ Swap</Button>
+        <Button size="xs">Remove</Button>
+        <Button size="xs">Details</Button>
       </Cluster>
       <Cluster label="disabled">
-        <Btn size="xs" disabled>
+        <Button size="xs" disabled>
           ⇄ Swap
-        </Btn>
+        </Button>
       </Cluster>
     </div>
   </div>

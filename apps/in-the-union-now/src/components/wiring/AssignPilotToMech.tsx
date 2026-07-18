@@ -13,7 +13,7 @@
  */
 
 import { useState } from 'react'
-import { Btn } from 'component-lib'
+import { Button } from 'component-lib'
 
 import { usePilots } from '../../hooks/queries'
 import type { Pilot } from '../../lib/schemas/pilot'
@@ -83,14 +83,14 @@ export function AssignPilotToMech({
 
   return (
     <>
-      <Btn
+      <Button
         size="sm"
         onClick={openDialog}
         className={cn(className)}
         aria-label="Assign pilot to mech"
       >
         Assign Pilot
-      </Btn>
+      </Button>
 
       <SelectorDialog
         open={open}

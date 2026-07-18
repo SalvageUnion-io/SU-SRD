@@ -15,14 +15,14 @@
  * playable without zoom; keep the existing segmented `VitalGauge`; keep the
  * bottom linked-entity rail. Every region is one of our atoms; the only bespoke
  * markup is layout glue (grids, gaps) and the image SEAT (a framed box / dashed
- * dropzone assembled from Badge + Btn — the user-image feature is not built yet).
+ * dropzone assembled from Badge + Button — the user-image feature is not built yet).
  */
 
 import { type ReactNode, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 
 import { Badge } from '../../components/chrome/Badge'
-import { Btn } from '../../components/chrome/Btn'
+import { Button } from '../../components/chrome/Button'
 import { EmptyState } from '../../components/chrome/EmptyState'
 import { Input } from '../../components/chrome/Field'
 import { Slab } from '../../components/chrome/Slab'
@@ -137,9 +137,9 @@ function ImageSeat({ src, label, readOnly }: { src?: string; label: string; read
         body="PNG or JPG"
         action={
           readOnly ? undefined : (
-            <Btn size="sm" variant="primary" onClick={() => {}}>
+            <Button size="sm" variant="primary" onClick={() => {}}>
               Upload
-            </Btn>
+            </Button>
           )
         }
       />
@@ -227,9 +227,9 @@ function CollectionSection({
         count={count}
         actions={
           readOnly ? undefined : (
-            <Btn size="sm" variant="default" onClick={() => {}}>
+            <Button size="sm" variant="default" onClick={() => {}}>
               + Add {addLabel}
-            </Btn>
+            </Button>
           )
         }
       />
@@ -437,14 +437,14 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
                       Injuries
                     </Badge>
                     {!readOnly && (
-                      <Btn
+                      <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setInjuryModalOpen(true)}
                         aria-label="Add injury"
                       >
                         + Add
-                      </Btn>
+                      </Button>
                     )}
                   </div>
                   {injuryList.length === 0 ? (
@@ -519,7 +519,7 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
 
 /**
  * InjuryModal — add a specific Critical-Injury-Table injury: a name + a
- * Minor/Major severity. Built from the shared `ModalShell` + `Input` + `Btn`
+ * Minor/Major severity. Built from the shared `ModalShell` + `Input` + `Button`
  * primitives; the severity choice reuses the `Badge` tone stamps the row uses.
  */
 function InjuryModal({
@@ -608,12 +608,12 @@ function InjuryModal({
         </div>
 
         <div className="flex justify-end gap-2 pt-1">
-          <Btn variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
             Cancel
-          </Btn>
-          <Btn variant="primary" size="sm" onClick={submit} disabled={!label.trim()}>
+          </Button>
+          <Button variant="primary" size="sm" onClick={submit} disabled={!label.trim()}>
             Add Injury
-          </Btn>
+          </Button>
         </div>
       </div>
     </ModalShell>

@@ -5,7 +5,7 @@
  * apps/in-the-union-now/src/components/crawler/CrawlerIdentityStep.tsx VERBATIM
  * (lines 33-105): two app-only `IdentityField`s (Crawler Name with a d20 Roll
  * assist, Description) over a `Scrap Pool` section of six `Field`/`Input` TL
- * buckets. Shared `Btn`/`Field`/`Input` atoms come from `component-lib`; the
+ * buckets. Shared `Button`/`Field`/`Input` atoms come from `component-lib`; the
  * app-only `IdentityField` (sheet/IdentityField.tsx) is mirrored locally
  * below — APPROXIMATION: its `InlineEditField`/`InlineEditTextArea` save-on-blur
  * editors are stood in by plain controlled `<input>`/`<textarea>` with the same
@@ -16,7 +16,7 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
-import { Btn, cn, Field, Input } from 'component-lib'
+import { Button, cn, Field, Input } from 'component-lib'
 import { Caption } from '../../_harness'
 
 // --- Mirror of ITUN's app-only ScrapPoolForm (crawlerFormState.ts). ---
@@ -175,9 +175,9 @@ function CrawlerIdentityStep({
         onSave={(next) => onChange({ name: next })}
         placeholder="e.g. Crawler #132, aka ‘Tin Lizzy’"
         labelAction={
-          <Btn size="sm" onClick={handleRoll} className="shrink-0">
+          <Button size="sm" onClick={handleRoll} className="shrink-0">
             <span aria-hidden="true">⚄</span> Roll
-          </Btn>
+          </Button>
         }
       />
 

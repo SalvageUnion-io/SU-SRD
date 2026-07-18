@@ -34,7 +34,7 @@ type RowProps = {
   name: ReactNode
   /** Muted caption — encodes cross-links ('"Wrench" · Engineer · ↳ Iron Fist') */
   meta?: ReactNode
-  /** Trailing actions (e.g. a 'Sheet' Btn) */
+  /** Trailing actions (e.g. a 'Sheet' Button) */
   actions?: ReactNode
   className?: string
 }
@@ -65,7 +65,7 @@ type EmptyProps = {
   message: ReactNode
   /** Decorative glyph above the message (e.g. an entity-tone lucide icon). */
   icon?: ReactNode
-  /** CTA slot (usually a primary sm Btn) */
+  /** CTA slot (usually a primary sm Button) */
   children?: ReactNode
   className?: string
 }

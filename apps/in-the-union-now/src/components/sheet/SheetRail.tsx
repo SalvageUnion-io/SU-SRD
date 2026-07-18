@@ -17,7 +17,7 @@
 
 import type { MouseEvent, ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { Badge, Btn } from 'component-lib'
+import { Badge, Button } from 'component-lib'
 import type { BadgeTone } from 'component-lib'
 
 import { cn } from '../../lib/utils'
@@ -126,14 +126,14 @@ export function RailChip({
         </span>
         <span className="flex items-center gap-1.5">
           {onSwap && (
-            <Btn size="xs" onClick={handleSwap}>
+            <Button size="xs" onClick={handleSwap}>
               &#8644; Swap
-            </Btn>
+            </Button>
           )}
           {onUnassign && (
-            <Btn size="xs" onClick={handleUnassign}>
+            <Button size="xs" onClick={handleUnassign}>
               &#10005; Unassign
-            </Btn>
+            </Button>
           )}
         </span>
       </span>

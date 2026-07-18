@@ -50,7 +50,7 @@ function renderStep(kind: 'systems' | 'modules') {
   )
 }
 
-// Each catalog cell is an InstallCard whose add affordance is a Btn with
+// Each catalog cell is an InstallCard whose add affordance is a Button with
 // aria-label `Add {name}` — so an item is present iff its Add button renders.
 const addBtn = (name: string) => ({ name: `Add ${name}` })
 

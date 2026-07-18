@@ -1,4 +1,4 @@
-import { Btn } from 'component-lib'
+import { Button } from 'component-lib'
 import type { PilotRollField, RollTableDeps } from './rollTableHelpers'
 import { rollForPilotField } from './rollTableHelpers'
 
@@ -24,8 +24,8 @@ export function RollTableButton({ field, onRoll, label = 'Roll', _deps }: RollTa
   }
 
   return (
-    <Btn size="sm" onClick={handleClick} className="shrink-0 self-center">
+    <Button size="sm" onClick={handleClick} className="shrink-0 self-center">
       <span aria-hidden="true">⚄</span> {label}
-    </Btn>
+    </Button>
   )
 }

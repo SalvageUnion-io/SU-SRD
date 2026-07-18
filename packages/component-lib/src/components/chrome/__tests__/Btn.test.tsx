@@ -1,48 +1,48 @@
 import { describe, test, expect, afterEach, mock } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import { Btn } from '../Btn'
+import { Button } from '../Button'
 
 afterEach(cleanup)
 
-describe('Btn', () => {
+describe('Button', () => {
   test('defaults to a paper/ink md button of type="button"', () => {
-    render(<Btn>Cancel</Btn>)
+    render(<Button>Cancel</Button>)
     const btn = screen.getByRole('button', { name: 'Cancel' })
     expect(btn.getAttribute('type')).toBe('button')
     expect(btn.className).toContain('bg-paper')
   })
 
   test('primary variant is rust with white text', () => {
-    render(<Btn variant="primary">Create Pilot</Btn>)
+    render(<Button variant="primary">Create Pilot</Button>)
     const btn = screen.getByRole('button')
     expect(btn.className).toContain('bg-rust')
     expect(btn.className).toContain('text-paper')
   })
 
   test('ghost variant is transparent', () => {
-    render(<Btn variant="ghost">Back</Btn>)
+    render(<Button variant="ghost">Back</Button>)
     expect(screen.getByRole('button').className).toContain('bg-transparent')
   })
 
   test('danger variant uses the danger fill', () => {
-    render(<Btn variant="danger">Delete</Btn>)
+    render(<Button variant="danger">Delete</Button>)
     expect(screen.getByRole('button').className).toContain('bg-danger')
   })
 
   test('sm and lg sizes adjust padding/type scale', () => {
-    render(<Btn size="sm">Small</Btn>)
+    render(<Button size="sm">Small</Button>)
     expect(screen.getByRole('button').className).toContain('text-xs')
     cleanup()
-    render(<Btn size="lg">Large</Btn>)
+    render(<Button size="lg">Large</Button>)
     expect(screen.getByRole('button').className).toContain('text-lede')
   })
 
   test('disabled blocks clicks and fades', () => {
     const onClick = mock(() => {})
     render(
-      <Btn disabled onClick={onClick}>
+      <Button disabled onClick={onClick}>
         Nope
-      </Btn>
+      </Button>
     )
     const btn = screen.getByRole('button')
     expect(btn.hasAttribute('disabled')).toBe(true)

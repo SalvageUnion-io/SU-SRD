@@ -13,7 +13,7 @@
  */
 
 import { createFileRoute, notFound } from '@tanstack/react-router'
-import { btnVariants } from 'component-lib'
+import { buttonVariants } from 'component-lib'
 
 import { useEntityStore } from '../../../stores/entityStore'
 import { AppLink } from '../../../components/shared/AppLink'
@@ -38,7 +38,7 @@ function SheetKindNotFound() {
         </p>
         <AppLink
           href="/"
-          className={cn(btnVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
         >
           &larr; Back to Roster
         </AppLink>

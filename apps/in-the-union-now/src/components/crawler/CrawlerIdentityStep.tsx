@@ -1,4 +1,4 @@
-import { Btn, Field, Input, Panel, Slab } from 'component-lib'
+import { Button, Field, Input, Panel, Slab } from 'component-lib'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
 import { IdentityField } from '../sheet/IdentityField'
 import { rollCrawlerName } from './crawlerRollTables'
@@ -51,9 +51,9 @@ export function CrawlerIdentityStep({
         onSave={(next) => onChange({ name: next })}
         placeholder="e.g. Crawler #132, aka ‘Tin Lizzy’"
         labelAction={
-          <Btn size="sm" onClick={handleRoll} className="shrink-0">
+          <Button size="sm" onClick={handleRoll} className="shrink-0">
             <span aria-hidden="true">⚄</span> Roll
-          </Btn>
+          </Button>
         }
       />
 

@@ -20,7 +20,7 @@ import { useState } from 'react'
 import { findChassisByRef } from '../../../lib/rules/derivedStats'
 import { useEntityStore } from '../../../stores/entityStore'
 import type { MechPattern } from '../../../lib/schemas/pattern'
-import { Btn, ModalShell } from 'component-lib'
+import { Button, ModalShell } from 'component-lib'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern
@@ -61,7 +61,7 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
 
   return (
     <div className="flex flex-col gap-1">
-      <Btn
+      <Button
         type="button"
         size="sm"
         onClick={() => setConfirming(true)}
@@ -69,7 +69,7 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
         aria-label={`Instantiate mech from pattern ${pattern.name}`}
       >
         {isInstantiating ? 'Creating…' : 'Instantiate'}
-      </Btn>
+      </Button>
       <ModalShell
         open={confirming}
         onOpenChange={(next) => {
@@ -86,10 +86,10 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
             exactly as saved; edit freely on its live sheet.
           </div>
           <div className="flex justify-end gap-2">
-            <Btn variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+            <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>
               Cancel
-            </Btn>
-            <Btn
+            </Button>
+            <Button
               variant="primary"
               size="sm"
               onClick={() => {
@@ -98,7 +98,7 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
               }}
             >
               Instantiate
-            </Btn>
+            </Button>
           </div>
         </div>
       </ModalShell>

@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react'
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefCrawler } from 'salvageunion-reference'
-import { Btn, ModalShell, toast } from 'component-lib'
+import { Button, ModalShell, toast } from 'component-lib'
 
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { EntityState } from '../../stores/entityStore'
@@ -110,17 +110,17 @@ export function CrawlerTypeEditModal({
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <Btn variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" size="sm" onClick={onClose}>
               Cancel
-            </Btn>
-            <Btn
+            </Button>
+            <Button
               variant="primary"
               size="sm"
               disabled={!changed}
               onClick={() => setConfirming(true)}
             >
               Change Type…
-            </Btn>
+            </Button>
           </div>
         </div>
       </ModalShell>
@@ -143,12 +143,12 @@ export function CrawlerTypeEditModal({
             type's Keepsake/Motto. Your bays and their crew are kept.
           </div>
           <div className="flex justify-end gap-2">
-            <Btn variant="ghost" size="sm" onClick={() => setConfirming(false)} disabled={busy}>
+            <Button variant="ghost" size="sm" onClick={() => setConfirming(false)} disabled={busy}>
               Cancel
-            </Btn>
-            <Btn variant="danger" size="sm" onClick={() => void applyChange()} disabled={busy}>
+            </Button>
+            <Button variant="danger" size="sm" onClick={() => void applyChange()} disabled={busy}>
               {busy ? 'Changing…' : 'Change Type'}
-            </Btn>
+            </Button>
           </div>
         </div>
       </ModalShell>

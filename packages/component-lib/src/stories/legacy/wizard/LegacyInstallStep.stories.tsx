@@ -3,7 +3,7 @@ import { type CSSProperties, useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
-import { Btn } from '../../../components/chrome/Btn'
+import { Button } from '../../../components/chrome/Button'
 import { Panel } from '../../../components/chrome/Panel'
 import { FilterChip } from '../../../components/shared/FilterChip'
 import { MasonryColumns } from '../../../components/shared/MasonryColumns'
@@ -37,7 +37,7 @@ function tlRank(tl: TechLevel): number {
  * Local mirror of apps/in-the-union-now/src/components/mech/LoadoutPanel.tsx
  * (lines 32-128) — an app-only component, not a shared atom, so it is
  * reproduced verbatim here (it itself composes the shared Panel / VitalGauge /
- * ReferenceEntityDisplay / Btn atoms). 'Loadout · {name}' header, ink slot gauge
+ * ReferenceEntityDisplay / Button atoms). 'Loadout · {name}' header, ink slot gauge
  * + rust energy gauge, then the chosen items as head-mode entity cards.
  */
 function LegacyLoadoutPanel({
@@ -117,14 +117,14 @@ function LegacyLoadoutPanel({
                   </span>
                 )}
               </div>
-              <Btn
+              <Button
                 size="xs"
                 onClick={() => onRemove(index)}
                 aria-label={`Remove ${(entity as { name?: string }).name ?? ref}`}
                 className="mt-0.5 shrink-0"
               >
                 ✕ Remove
-              </Btn>
+              </Button>
             </div>
           )
         })}
@@ -207,13 +207,13 @@ function LegacyInstallStep({ kind }: { kind: 'systems' | 'modules' }) {
                           {count} Installed
                         </span>
                       )}
-                      <Btn
+                      <Button
                         size="xs"
                         onClick={() => setSelected((prev) => [...prev, item.name])}
                         aria-label={`Add ${item.name}`}
                       >
                         {installed ? '+ Add another' : '+ Add'}
-                      </Btn>
+                      </Button>
                     </>
                   }
                 />

@@ -19,7 +19,7 @@
  */
 
 import { useState } from 'react'
-import { Btn, ModalShell, Slab, StepBtn } from 'component-lib'
+import { Button, ModalShell, Slab, StepBtn } from 'component-lib'
 
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
@@ -226,11 +226,11 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
         )}
 
         <div className="flex justify-end gap-2">
-          <Btn variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose}>
             {done ? 'Done' : 'Cancel'}
-          </Btn>
+          </Button>
           {!done && shortfall === 0 && (
-            <Btn
+            <Button
               variant="primary"
               size="sm"
               onClick={() => {
@@ -238,10 +238,10 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
               }}
             >
               Pay Upkeep
-            </Btn>
+            </Button>
           )}
           {!done && shortfall > 0 && (
-            <Btn
+            <Button
               variant="danger"
               size="sm"
               onClick={() => {
@@ -249,7 +249,7 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
               }}
             >
               Roll Deterioration (d20)
-            </Btn>
+            </Button>
           )}
         </div>
       </div>
@@ -349,7 +349,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
                   +
                 </StepBtn>
               </span>
-              <Btn
+              <Button
                 size="sm"
                 variant="default"
                 disabled={contributable === 0 || contribution > contributable}
@@ -359,7 +359,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
                 }}
               >
                 Add to Upgrade Pool
-              </Btn>
+              </Button>
             </div>
             <p className="text-xs">
               Pool holds {contributable} scrap at Tech {tl}+.
@@ -371,10 +371,10 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
           </p>
         )}
         <div className="flex justify-end gap-2">
-          <Btn variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose}>
             Cancel
-          </Btn>
-          <Btn
+          </Button>
+          <Button
             variant="primary"
             size="sm"
             onClick={() => {
@@ -383,7 +383,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
             disabled={!quote?.affordable}
           >
             {quote ? `Upgrade to Tech ${quote.toTl}` : 'Upgrade'}
-          </Btn>
+          </Button>
         </div>
       </div>
     </ModalShell>
@@ -526,7 +526,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
                       ? 'Not an exact trade — the Trading Bay never makes change.'
                       : `${count}× T${fromTl} → ${toCount}× T${toTl}`}
                 </p>
-                <Btn
+                <Button
                   size="sm"
                   variant="primary"
                   disabled={!convertible}
@@ -540,7 +540,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
                   }}
                 >
                   Trade
-                </Btn>
+                </Button>
               </div>
               {convertNote && (
                 <p role="status" className="mt-2 font-body text-sm text-ink">
@@ -561,9 +561,9 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
                 its Tech Level.
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-3">
-                <Btn size="sm" variant="primary" onClick={handleAvailabilityRoll}>
+                <Button size="sm" variant="primary" onClick={handleAvailabilityRoll}>
                   Roll Availability (d20)
-                </Btn>
+                </Button>
                 {availability && (
                   <p role="status" className="m-0 font-body text-sm text-ink">
                     Rolled {availability.roll}:{' '}
@@ -577,9 +577,9 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
         )}
 
         <div className="flex justify-end">
-          <Btn variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose}>
             Close
-          </Btn>
+          </Button>
         </div>
       </div>
     </ModalShell>

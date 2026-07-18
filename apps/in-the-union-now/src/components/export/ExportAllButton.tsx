@@ -8,7 +8,7 @@
  */
 
 import { useState } from 'react'
-import { Btn, toast } from 'component-lib'
+import { Button, toast } from 'component-lib'
 
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
@@ -40,9 +40,9 @@ export function ExportAllButton() {
 
   return (
     <div className="flex flex-col gap-1">
-      <Btn size="sm" disabled={busy} onClick={() => void handleExportAll()}>
+      <Button size="sm" disabled={busy} onClick={() => void handleExportAll()}>
         {busy ? 'Exporting…' : 'Download all'}
-      </Btn>
+      </Button>
       {error && <p className="font-body text-xs text-danger">{error}</p>}
     </div>
   )
