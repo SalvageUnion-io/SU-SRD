@@ -2,7 +2,7 @@ import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 
 import { matchesRef, resolveChassisRef } from '../../lib/rules/resolveRefs'
-import { OptRow, ReferenceEntityDisplay } from 'component-lib'
+import { EmptyState, OptRow, ReferenceEntityDisplay } from 'component-lib'
 
 type ChassisLike = {
   id: string
@@ -51,9 +51,11 @@ export function ChassisDetail({ chassisName }: ChassisDetailProps) {
 
   if (!chassis) {
     return (
-      <div className="flex h-full min-h-40 items-center justify-center rounded-[3px] border-chrome border-dashed border-wk-faint p-6 text-center text-sm text-wk-muted">
-        Select a chassis to preview its stats.
-      </div>
+      <EmptyState
+        className="h-full"
+        headline="No Chassis Selected"
+        body="Select a chassis to preview its stats."
+      />
     )
   }
 

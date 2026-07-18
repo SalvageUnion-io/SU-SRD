@@ -1,5 +1,5 @@
 import type { SURefClass, SURefEntity } from 'salvageunion-reference'
-import { ClassAbilityTree, OptRow, ReferenceEntityDisplay } from 'component-lib'
+import { ClassAbilityTree, EmptyState, OptRow, ReferenceEntityDisplay } from 'component-lib'
 import { classDescription } from './classOptions'
 
 type ClassOptionListProps = {
@@ -63,9 +63,11 @@ type ClassDetailProps = {
 export function ClassDetail({ selectedClass }: ClassDetailProps) {
   if (!selectedClass) {
     return (
-      <div className="flex h-full min-h-40 items-center justify-center rounded-[3px] border-chrome border-dashed border-wk-faint p-6 text-center text-sm text-wk-muted">
-        Select a class to preview its ability trees.
-      </div>
+      <EmptyState
+        className="h-full"
+        headline="No Class Selected"
+        body="Select a class to preview its ability trees."
+      />
     )
   }
   return (

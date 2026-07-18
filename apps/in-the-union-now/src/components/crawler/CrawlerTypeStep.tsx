@@ -1,6 +1,6 @@
 import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
-import { OptRow, ReferenceEntityDisplay, TreeSep } from 'component-lib'
+import { EmptyState, OptRow, ReferenceEntityDisplay, TreeSep } from 'component-lib'
 import { SelMasonry } from 'component-lib'
 
 type CrawlerTypeOptionListProps = {
@@ -51,9 +51,11 @@ type CrawlerTypeDetailProps = {
 export function CrawlerTypeDetail({ selected }: CrawlerTypeDetailProps) {
   if (!selected) {
     return (
-      <div className="flex h-full min-h-40 items-center justify-center rounded-[3px] border-chrome border-dashed border-wk-faint p-6 text-center text-sm text-wk-muted">
-        Select a crawler type to preview its features.
-      </div>
+      <EmptyState
+        className="h-full"
+        headline="No Crawler Selected"
+        body="Select a crawler type to preview its features."
+      />
     )
   }
   return <ReferenceEntityDisplay data={selected as unknown as SURefEntity} />

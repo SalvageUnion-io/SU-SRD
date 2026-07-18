@@ -13,7 +13,7 @@
  * route boundary.
  */
 
-import { Pill } from 'component-lib'
+import { EmptyState, Pill } from 'component-lib'
 import { usePatternStore } from '../../../stores/patternStore'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 
@@ -43,12 +43,10 @@ export function PatternList({ onInstantiated }: PatternListProps) {
 
   if (patterns.length === 0) {
     return (
-      <div className="rounded-[3px] border-chrome border-dashed border-wk-faint p-6 text-center">
-        <p className="text-sm text-wk-muted">
-          No patterns saved yet. Use &ldquo;Save as pattern&rdquo; from the mech builder to save a
-          reusable template.
-        </p>
-      </div>
+      <EmptyState
+        headline="No Patterns Yet"
+        body="Use “Save as pattern” from the mech builder to save a reusable template."
+      />
     )
   }
 
