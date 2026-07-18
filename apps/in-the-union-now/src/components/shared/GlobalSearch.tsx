@@ -47,7 +47,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
       }
       onOpenChange(false)
       setDetailEntity(result.entity as SURefEntity)
-      detailControl.onClick()
+      detailControl.onClick?.()
     },
     [onOpenChange, detailControl]
   )

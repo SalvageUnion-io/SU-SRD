@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
-import { CountStepper, MasonryColumns, ReferenceEntityDisplay, TreeSep } from 'component-lib'
+import { MasonryColumns, ReferenceEntityDisplay, TreeSep } from 'component-lib'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 
 type CraftItemsStepProps = {
@@ -91,14 +91,17 @@ export function CraftItemsStep({
                     }
               }
               hide={{ actions: true, choices: true }}
-              footActions={
-                <CountStepper
-                  subject={name}
-                  count={count}
-                  max={count + maxAdd}
-                  onChange={(next) => onCountChange(name, next)}
-                />
-              }
+              controls={[
+                {
+                  key: 'qty',
+                  stepper: {
+                    subject: name,
+                    count,
+                    max: count + maxAdd,
+                    onChange: (next) => onCountChange(name, next),
+                  },
+                },
+              ]}
               footMeta={[
                 { label: 'Costs', value: `${sv} scrap` },
                 ...(disabledReason ? [{ label: disabledReason, value: '' }] : []),

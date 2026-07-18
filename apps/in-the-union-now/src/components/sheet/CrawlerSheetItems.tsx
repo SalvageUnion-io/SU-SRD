@@ -204,7 +204,7 @@ export function CrawlerBayCard({
             ? `${bay.name} is damaged — its function is offline until repaired.`
             : `${functionLabel} — open the ${bay.name} rules`
         }
-        onClick={() => detail.control.onClick()}
+        onClick={() => detail.control.onClick?.()}
       >
         {functionLabel}
       </Button>

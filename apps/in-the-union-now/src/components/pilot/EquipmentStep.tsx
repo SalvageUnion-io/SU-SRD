@@ -1,7 +1,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
-import { CountStepper, MasonryColumns, ReferenceEntityDisplay } from 'component-lib'
+import { MasonryColumns, ReferenceEntityDisplay } from 'component-lib'
 
 type SUREquipmentAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
@@ -84,14 +84,17 @@ export function EquipmentStep({
                   if (remaining > 0) onCountChange?.(item.id, count + 1)
                 }}
                 hide={{ actions: true, choices: true }}
-                footActions={
-                  <CountStepper
-                    subject={item.name}
-                    count={count}
-                    max={count + remaining}
-                    onChange={(next) => onCountChange?.(item.id, next)}
-                  />
-                }
+                controls={[
+                  {
+                    key: 'qty',
+                    stepper: {
+                      subject: item.name,
+                      count,
+                      max: count + remaining,
+                      onChange: (next) => onCountChange?.(item.id, next),
+                    },
+                  },
+                ]}
               />
             )
           }
