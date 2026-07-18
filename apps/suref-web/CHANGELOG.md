@@ -2,6 +2,62 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [1.1.0](https://github.com/SalvageUnion-io/SU-SRD/compare/suref-web-v1.0.0...suref-web-v1.1.0) (2026-07-18)
+
+
+### Features
+
+* /su command namespace + Discord bot install page ([#335](https://github.com/SalvageUnion-io/SU-SRD/issues/335)) ([ac8e11e](https://github.com/SalvageUnion-io/SU-SRD/commit/ac8e11ecc765e272e3a299772e7a12961d3edfa7))
+* add Ko-fi support link + new ITUN About page ([#468](https://github.com/SalvageUnion-io/SU-SRD/issues/468)) ([5c82b45](https://github.com/SalvageUnion-io/SU-SRD/commit/5c82b4587f03a31404b07a919835f41f40e54786))
+* **assets:** unify artwork on WebP, shrink about-page map ([#321](https://github.com/SalvageUnion-io/SU-SRD/issues/321)) ([f94082a](https://github.com/SalvageUnion-io/SU-SRD/commit/f94082aeaa8639b5109de65756a005dc009ddaac))
+* audit sweep — 13 high-priority UX/DX/gameplay fixes across ITUN, suref-web, bot, packages ([#366](https://github.com/SalvageUnion-io/SU-SRD/issues/366)) ([04b854f](https://github.com/SalvageUnion-io/SU-SRD/commit/04b854fe9f5563f0f5b94bb84f696df434776281))
+* audit sweep — 30 high-impact changes across ITUN, suref-web, bot, and packages ([#334](https://github.com/SalvageUnion-io/SU-SRD/issues/334)) ([afddf9d](https://github.com/SalvageUnion-io/SU-SRD/commit/afddf9d7530d41891b2da1a634682db49dece24a))
+* derived release changelogs + ref public-surface gate (ADR-024/025) ([#472](https://github.com/SalvageUnion-io/SU-SRD/issues/472)) ([4f10b63](https://github.com/SalvageUnion-io/SU-SRD/commit/4f10b63a069214f41d6a84625c785a9785e658a9))
+* **header:** shared HeaderShell across SRD + ITUN, cross-link the two ([#389](https://github.com/SalvageUnion-io/SU-SRD/issues/389)) ([e70211d](https://github.com/SalvageUnion-io/SU-SRD/commit/e70211d306ea678a0bb582488527b269555628db))
+* high-value batch — ITUN cross-links/Sentry, suref-web e2e/Sentry, bot tests, CI (Dependabot/CodeQL/coverage/visual), package hardening ([#339](https://github.com/SalvageUnion-io/SU-SRD/issues/339)) ([1131678](https://github.com/SalvageUnion-io/SU-SRD/commit/1131678cee9c0bcec74685f73e5e5105ca02f811))
+* **itun:** rebuild in-the-union-now as a local-first app; remove itun-legacy ([#239](https://github.com/SalvageUnion-io/SU-SRD/issues/239)) ([c162917](https://github.com/SalvageUnion-io/SU-SRD/commit/c162917be8f9c900c3320e021d3f1051e0b5840b))
+* **itun:** single-surface live sheets — poster redesign + section-based editing ([#395](https://github.com/SalvageUnion-io/SU-SRD/issues/395)) ([daaead6](https://github.com/SalvageUnion-io/SU-SRD/commit/daaead69fe374f12503d91c7ddcb48a1724718ce))
+* migrate entity artwork off Supabase to Netlify Blobs ([#298](https://github.com/SalvageUnion-io/SU-SRD/issues/298)) ([8b678bb](https://github.com/SalvageUnion-io/SU-SRD/commit/8b678bbdd0e189eb2d7c45dd3a6d87caaa5c9720))
+* **observability:** Sentry release tagging, ITUN sourcemap upload, nightly-e2e GitHub-issue alerts ([#374](https://github.com/SalvageUnion-io/SU-SRD/issues/374)) ([bc2427c](https://github.com/SalvageUnion-io/SU-SRD/commit/bc2427c7c9542531b2653ecc4a0b35935079f5e4))
+* PASS sprint + suref-web cleanup ([#170](https://github.com/SalvageUnion-io/SU-SRD/issues/170)) ([199e86f](https://github.com/SalvageUnion-io/SU-SRD/commit/199e86fd243d894c4f3dab0ce2d071fe10c3171a))
+* **reference:** model vehicle loadouts as actions, not installable systems ([#269](https://github.com/SalvageUnion-io/SU-SRD/issues/269)) ([f4a49fe](https://github.com/SalvageUnion-io/SU-SRD/commit/f4a49fed3e1e55c21a40fb8aef95aec94ff2638b))
+* rich /su lookup embeds + no text-flash on entity load ([#336](https://github.com/SalvageUnion-io/SU-SRD/issues/336)) ([677738f](https://github.com/SalvageUnion-io/SU-SRD/commit/677738f419a5a3a3c9f4fd126e77b1da113430ba))
+* **salvageunion-reference:** add expansion crawler bays ([#266](https://github.com/SalvageUnion-io/SU-SRD/issues/266)) ([0585206](https://github.com/SalvageUnion-io/SU-SRD/commit/05852064b29b09fc9978a561c5573d710abcbc0b))
+* SRD audit remediation — licensing, data fidelity, search/UX, SEO/perf/PWA, DX ([#268](https://github.com/SalvageUnion-io/SU-SRD/issues/268)) ([ab3648e](https://github.com/SalvageUnion-io/SU-SRD/commit/ab3648edc37905d02e4a20680d5cf31b15e03ad9))
+* **suref-react,suref-web:** SRD + shared design-system restyle ([#260](https://github.com/SalvageUnion-io/SU-SRD/issues/260)) ([1072bb2](https://github.com/SalvageUnion-io/SU-SRD/commit/1072bb224512981fb6b5b468c04284ba679e7453))
+* **suref-react:** show Non-Advanceable tag for non-advanceable classes ([#326](https://github.com/SalvageUnion-io/SU-SRD/issues/326)) ([b792d46](https://github.com/SalvageUnion-io/SU-SRD/commit/b792d467aa66b3fff361d117f631133e933c5d6c))
+* **suref-react:** surface a Buy link on source entities ([#273](https://github.com/SalvageUnion-io/SU-SRD/issues/273)) ([2ccc9c7](https://github.com/SalvageUnion-io/SU-SRD/commit/2ccc9c7dce849d7c58748a324b485519b5aff3cb))
+* **suref-web:** add /schema/v1 JSON API endpoints ([#107](https://github.com/SalvageUnion-io/SU-SRD/issues/107)) ([d9922ae](https://github.com/SalvageUnion-io/SU-SRD/commit/d9922ae4dfbc95e5d3a0510586d3d49c18eb7d47))
+* **suref-web:** branded per-entity OG preview cards ([#296](https://github.com/SalvageUnion-io/SU-SRD/issues/296)) ([cece9d8](https://github.com/SalvageUnion-io/SU-SRD/commit/cece9d8fc85078d73310d2d99eda08c19464e0cd))
+* **suref-web:** Discord bot Terms of Service & Privacy Policy pages ([#370](https://github.com/SalvageUnion-io/SU-SRD/issues/370)) ([814e608](https://github.com/SalvageUnion-io/SU-SRD/commit/814e608bdcd59e917f455aaf74344f8a37704f90))
+* **suref-web:** drop Previous/Next entity paging nav ([#456](https://github.com/SalvageUnion-io/SU-SRD/issues/456)) ([aa97aca](https://github.com/SalvageUnion-io/SU-SRD/commit/aa97acab4ca42c70fc2f7adb9732a39c5809cc30))
+* **suref-web:** filter abilities by tree ([#459](https://github.com/SalvageUnion-io/SU-SRD/issues/459)) ([5f747f3](https://github.com/SalvageUnion-io/SU-SRD/commit/5f747f347d2cca546556e36f54204149e339c5e7))
+* **suref-web:** open "View details" in a new tab instead of a modal ([#332](https://github.com/SalvageUnion-io/SU-SRD/issues/332)) ([f8b800b](https://github.com/SalvageUnion-io/SU-SRD/commit/f8b800bf1d38a47fccf09910dd9343bc957b2596))
+* **suref-web:** render entity og:image as a 1:1 screenshot of the real card ([#331](https://github.com/SalvageUnion-io/SU-SRD/issues/331)) ([0219332](https://github.com/SalvageUnion-io/SU-SRD/commit/021933216841d83b1b6300c62e5d85ac97c127fb))
+* **suss:** archive Salvage Union Starter Set content ([#180](https://github.com/SalvageUnion-io/SU-SRD/issues/180)) ([2cfae8d](https://github.com/SalvageUnion-io/SU-SRD/commit/2cfae8dee9bc1e10c478b649284290e7c01acce5))
+* **titans:** equip Iron Lady with mech modules and theme new sources ([#181](https://github.com/SalvageUnion-io/SU-SRD/issues/181)) ([edb63d7](https://github.com/SalvageUnion-io/SU-SRD/commit/edb63d71973ee4b0cd006ae00a553ccbeceeaf3c))
+
+
+### Bug Fixes
+
+* **netlify:** force build when ignore-rule comparison base is degenerate ([#323](https://github.com/SalvageUnion-io/SU-SRD/issues/323)) ([05589a4](https://github.com/SalvageUnion-io/SU-SRD/commit/05589a405476b97dd844aec226097f2be3c669da))
+* **reference:** add missing Fabrication Bay options ([#290](https://github.com/SalvageUnion-io/SU-SRD/issues/290)) ([210042c](https://github.com/SalvageUnion-io/SU-SRD/commit/210042c9618e0a815ed07906b7256111b1b63621))
+* **suref-react:** stack guide entity grids single-column on mobile ([#263](https://github.com/SalvageUnion-io/SU-SRD/issues/263)) ([16b2821](https://github.com/SalvageUnion-io/SU-SRD/commit/16b28215ee99edfb79884ffe86439d9f7d789400))
+* **suref-web:** balance catalog filter-bar spacing, pair search + tech level on md+ ([#286](https://github.com/SalvageUnion-io/SU-SRD/issues/286)) ([8b68385](https://github.com/SalvageUnion-io/SU-SRD/commit/8b68385a0a8775c08f758c23f30f6790430743fa))
+* **suref-web:** chassis pattern click opens modal, not a chassis-page reload ([#467](https://github.com/SalvageUnion-io/SU-SRD/issues/467)) ([513d4d4](https://github.com/SalvageUnion-io/SU-SRD/commit/513d4d411c0355755759569bc8ff6ebaf0a1c0ed))
+* **suref-web:** eliminate Zod JIT eval to satisfy strict CSP ([#283](https://github.com/SalvageUnion-io/SU-SRD/issues/283)) ([2693869](https://github.com/SalvageUnion-io/SU-SRD/commit/26938696fb4b17aa0869ece9f47ea4921479f331))
+* **suref-web:** point ITUN builder link at canonical intheunionnow.com ([#399](https://github.com/SalvageUnion-io/SU-SRD/issues/399)) ([d9c435c](https://github.com/SalvageUnion-io/SU-SRD/commit/d9c435c9239e7a80edb70efb129fd2ec96317f53))
+* **suref-web:** prevent mobile viewport overflow on schema list pages ([0502b1a](https://github.com/SalvageUnion-io/SU-SRD/commit/0502b1a20326649dd11dd014ad0691549ab5b1cb))
+* **suref-web:** refresh og:image to the new cargo SU logo ([#272](https://github.com/SalvageUnion-io/SU-SRD/issues/272)) ([1fe07fe](https://github.com/SalvageUnion-io/SU-SRD/commit/1fe07fed2c3d66b475a2a305bef793b14308e3f7))
+* **suref-web:** resolve catalog masonry hydration mismatch ([#418](https://github.com/SalvageUnion-io/SU-SRD/issues/418)) ([#320](https://github.com/SalvageUnion-io/SU-SRD/issues/320)) ([49c3239](https://github.com/SalvageUnion-io/SU-SRD/commit/49c3239b11649c525e8347ff11b52dd81652a74e))
+* **suref-web:** resolve hydration mismatch ([#418](https://github.com/SalvageUnion-io/SU-SRD/issues/418)) and RUM CSP violation ([#282](https://github.com/SalvageUnion-io/SU-SRD/issues/282)) ([01a31bb](https://github.com/SalvageUnion-io/SU-SRD/commit/01a31bb8aef6c1a6dda80a7d01afa85d171c9b84))
+
+
+### Performance Improvements
+
+* **suref-web:** JS flex-column masonry + filters above catalog grid ([#284](https://github.com/SalvageUnion-io/SU-SRD/issues/284)) ([b64ee09](https://github.com/SalvageUnion-io/SU-SRD/commit/b64ee0984771c9bb471b72a3402ac1de5eec69ad))
+* **suref-web:** per-route reference-data preload + build-time search index ([#386](https://github.com/SalvageUnion-io/SU-SRD/issues/386)) ([1d21947](https://github.com/SalvageUnion-io/SU-SRD/commit/1d2194745efb7090cbf598c3497a93af5034ba69))
+
 ## 2026-07-14 — Support the project on Ko-fi
 
 * The About page now has a Ko-fi support link, so you can chip in toward hosting and development.
