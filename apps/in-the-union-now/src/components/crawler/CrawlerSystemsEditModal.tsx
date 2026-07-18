@@ -73,43 +73,42 @@ export function CrawlerSystemsEditModal({
         if (!next) onClose()
       }}
       title="Edit Weapons Systems"
-      subtitle={`Tech ${tl ?? '—'} and below`}
       maxWidth="max-w-5xl"
+      bare
     >
-      <div className="p-4">
-        {allSystems.length > 0 && (
-          <EntitySearcher
-            schema="systems"
-            selected={crawler.systems}
-            filter={(item) => {
-              const s = item as unknown as SURefSystem
-              const installed = crawler.systems.some((id) => id === s.id || id === s.name)
-              // Keep installed weapons visible/removable even above the current TL.
-              if (installed) return isWeaponSystem(s)
-              if (typeof s.techLevel !== 'number' || tl === null || s.techLevel > tl) return false
-              return isWeaponSystem(s)
-            }}
-            idOf={(item) => (item as unknown as SURefSystem).id}
-            onToggle={(ref) =>
-              // Toggle exactly one weapon on the FRESHEST systems array so a rapid
-              // second toggle can't overwrite the first. Weapons are unique.
-              patch((current) => ({
-                systems: current.systems.includes(ref)
-                  ? current.systems.filter((s) => s !== ref)
-                  : [...current.systems, ref],
-              }))
-            }
-            railName={crawler.name}
-            chosenLabel="Armed"
-            emptyMessage="No weapons systems at this crawler's tech level."
-            budget={{
-              label: 'Weapons Systems',
-              used: capacity.weaponSystemsUsed,
-              max: capacity.weaponSystemsMax,
-            }}
-          />
-        )}
-      </div>
+      <EntitySearcher
+        schema="systems"
+        selected={crawler.systems}
+        filter={(item) => {
+          const s = item as unknown as SURefSystem
+          const installed = crawler.systems.some((id) => id === s.id || id === s.name)
+          // Keep installed weapons visible/removable even above the current TL.
+          if (installed) return isWeaponSystem(s)
+          if (typeof s.techLevel !== 'number' || tl === null || s.techLevel > tl) return false
+          return isWeaponSystem(s)
+        }}
+        idOf={(item) => (item as unknown as SURefSystem).id}
+        onToggle={(ref) =>
+          // Toggle exactly one weapon on the FRESHEST systems array so a rapid
+          // second toggle can't overwrite the first. Weapons are unique.
+          patch((current) => ({
+            systems: current.systems.includes(ref)
+              ? current.systems.filter((s) => s !== ref)
+              : [...current.systems, ref],
+          }))
+        }
+        railName={crawler.name}
+        chosenLabel="Armed"
+        emptyMessage="No weapons systems at this crawler's tech level."
+        budget={{
+          label: 'Weapons Systems',
+          used: capacity.weaponSystemsUsed,
+          max: capacity.weaponSystemsMax,
+        }}
+        resultsFloating
+        title={`Edit Weapons Systems · Tech ${tl ?? '—'} and below`}
+        onClose={onClose}
+      />
     </ModalShell>
   )
 }

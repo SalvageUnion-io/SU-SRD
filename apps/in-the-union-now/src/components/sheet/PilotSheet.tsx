@@ -561,6 +561,7 @@ export function PilotSheet({
         onClose={() => setPicker(null)}
         title="Add Abilities"
         maxWidth="max-w-5xl"
+        floating
       >
         <EntitySearcher
           schema="abilities"
@@ -585,6 +586,7 @@ export function PilotSheet({
         onClose={() => setPicker(null)}
         title="Add Equipment"
         maxWidth="max-w-5xl"
+        floating
       >
         <EntitySearcher
           schema="equipment"

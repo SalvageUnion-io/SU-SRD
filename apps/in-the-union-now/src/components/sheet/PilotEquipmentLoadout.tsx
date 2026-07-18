@@ -158,6 +158,7 @@ export function PilotEquipmentLoadout({
         open={picker === 'system'}
         onClose={() => setPicker(null)}
         title="Add Systems"
+        floating
       >
         <EntitySearcher
           schema="systems"
@@ -175,6 +176,7 @@ export function PilotEquipmentLoadout({
         open={picker === 'module'}
         onClose={() => setPicker(null)}
         title="Add Modules"
+        floating
       >
         <EntitySearcher
           schema="modules"
