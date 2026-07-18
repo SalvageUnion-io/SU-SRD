@@ -1,6 +1,8 @@
 import { describe, test, expect, afterEach, mock } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import { Field, Input } from '../Field'
+import { Field, Input, Textarea, Select } from '../Field'
+import { KvRow } from '../KvRow'
+import { ModeDoor } from '../ModeDoor'
 import { Chip } from '../Chip'
 import { Panel, Row, Empty } from '../Panel'
 import { Slab } from '../Slab'
@@ -29,6 +31,53 @@ describe('Field / Input', () => {
   test('input carries the rust focus ring classes', () => {
     render(<Input aria-label="callsign" />)
     expect(screen.getByLabelText('callsign').className).toContain('focus:ring-')
+  })
+
+  test('Textarea and Select share the Input skin (paper/ink border, rust ring)', () => {
+    render(<Textarea aria-label="motto" />)
+    render(<Select aria-label="class" />)
+    for (const label of ['motto', 'class']) {
+      const el = screen.getByLabelText(label)
+      expect(el.className).toContain('border-ink')
+      expect(el.className).toContain('focus:ring-')
+    }
+  })
+})
+
+describe('KvRow', () => {
+  test('renders the label rail and value', () => {
+    render(<KvRow label="Callsign" value="Ace" />)
+    expect(screen.getByText('Callsign')).toBeTruthy()
+    expect(screen.getByText('Ace')).toBeTruthy()
+  })
+
+  test('an empty value renders the rust "required" placeholder', () => {
+    render(<KvRow label="Motto" value={null} />)
+    const placeholder = screen.getByText('required')
+    expect(placeholder.className).toContain('text-rust')
+  })
+})
+
+describe('ModeDoor', () => {
+  test('fires onSelect and renders the headline + body', () => {
+    const onSelect = mock(() => {})
+    render(
+      <ModeDoor variant="guided" tab="▶" headline="Guided" onSelect={onSelect}>
+        Step through the rules.
+      </ModeDoor>
+    )
+    expect(screen.getByText('Guided')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button'))
+    expect(onSelect).toHaveBeenCalled()
+  })
+
+  test('blank variant is the dashed paper escape hatch', () => {
+    render(
+      <ModeDoor variant="blank" tab="✎" headline="Blank">
+        Empty sheet.
+      </ModeDoor>
+    )
+    expect(screen.getByRole('button').className).toContain('border-dashed')
   })
 })
 

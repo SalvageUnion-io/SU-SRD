@@ -18,6 +18,14 @@ export const DISABLED = 'disabled:pointer-events-none disabled:opacity-40'
 export const SELECTION_RING = 'shadow-[0_0_0_3px_var(--color-rust)]'
 
 /**
+ * Double-ink "halo" selection ring — a ground gap then a 3px ink ring, the
+ * emphasis the onboarding doors / custom-build door use instead of the rust
+ * ring. Opt in via `Sel`'s `ring="ink-double"`.
+ */
+export const SELECTION_RING_INK_DOUBLE =
+  'shadow-[0_0_0_3px_var(--ground),0_0_0_6px_var(--color-ink)]'
+
+/**
  * Enter/Space → activate, matching native button semantics on a `div` wrapper
  * that carries `role="button"`/`"radio"`. Returns a handler that no-ops when
  * `onActivate` is absent, so callers can pass an optional toggle directly.

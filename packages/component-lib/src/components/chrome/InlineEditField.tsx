@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { Input } from './Field'
 import { Badge } from './Badge'
@@ -23,6 +24,11 @@ type InlineEditFieldProps = {
    * black label tab ~2px above a tone-bordered value box with a pinned pen.
    */
   label?: string
+  /**
+   * Optional control rendered on the label row, opposite the label stamp (e.g.
+   * a roll-assist `Btn`). Only shown in the labeled (`label` set) layout.
+   */
+  labelAction?: ReactNode
   placeholder?: string
   /** Strip the edit affordance — renders as plain text only. */
   readOnly?: boolean
@@ -70,6 +76,7 @@ export function InlineEditField({
   max,
   multiline = false,
   label,
+  labelAction,
   placeholder,
   readOnly = false,
   ariaLabel,
@@ -249,9 +256,18 @@ export function InlineEditField({
 
   return (
     <div className={cn('flex min-w-0 flex-col', className)}>
-      <Badge shape="stamp" size="sm" className="mb-0.5">
-        {label}
-      </Badge>
+      {labelAction ? (
+        <div className="mb-0.5 flex items-center justify-between gap-2">
+          <Badge shape="stamp" size="sm">
+            {label}
+          </Badge>
+          {labelAction}
+        </div>
+      ) : (
+        <Badge shape="stamp" size="sm" className="mb-0.5">
+          {label}
+        </Badge>
+      )}
       <span
         className={cn(
           'relative flex min-h-11 items-center rounded-card border-2 bg-paper px-3',

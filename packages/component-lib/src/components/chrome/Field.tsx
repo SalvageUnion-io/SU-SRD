@@ -61,3 +61,53 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     />
   )
 })
+
+type TextareaProps = ComponentPropsWithoutRef<'textarea'>
+
+/**
+ * Multiline text input (design-spec §2.5): the `Input` sibling — identical
+ * paper / 1.5px-ink / 3px-radius / rust-ring skin, with vertical resize.
+ * `Field`-wrappable exactly like `Input`. Distinct from `InlineEditField`'s
+ * internal textarea (that one is a click-to-edit control, this is a plain field).
+ */
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
+  { className, rows = 3, ...props },
+  ref
+) {
+  return (
+    <textarea
+      ref={ref}
+      rows={rows}
+      className={cn(
+        'w-full resize-y rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/25',
+        className
+      )}
+      {...props}
+    />
+  )
+})
+
+type SelectProps = ComponentPropsWithoutRef<'select'>
+
+/**
+ * Native `<select>` in the `Input` skin (design-spec §2.5): the app's
+ * hand-copied `SELECT_CLASS` promoted to a real atom — same paper / 1.5px-ink /
+ * 3px-radius / rust-ring chrome as `Input`, `Field`-wrappable, keeping the
+ * native disclosure affordance. Compact call-sites pass `px-2 py-1.5` via
+ * `className`.
+ */
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
+  { className, ...props },
+  ref
+) {
+  return (
+    <select
+      ref={ref}
+      className={cn(
+        'w-full min-h-11 rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/25',
+        className
+      )}
+      {...props}
+    />
+  )
+})

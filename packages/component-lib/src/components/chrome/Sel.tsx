@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
-import { FOCUS_RING, SELECTION_RING, activateOnKey } from './interaction'
+import { FOCUS_RING, SELECTION_RING, SELECTION_RING_INK_DOUBLE, activateOnKey } from './interaction'
 
 type SelProps = {
   /** Whether the selection ring is on */
@@ -18,6 +18,12 @@ type SelProps = {
    * MasonryColumns' radio props).
    */
   radio?: boolean
+  /**
+   * Selection-ring style. `rust` (default) is the standard 3px rust ring;
+   * `ink-double` is the double-ink halo used by the onboarding / custom-build
+   * doors (see {@link SELECTION_RING_INK_DOUBLE}).
+   */
+  ring?: 'rust' | 'ink-double'
 }
 
 /**
@@ -32,8 +38,10 @@ export function Sel({
   className,
   ariaLabel,
   radio = false,
+  ring = 'rust',
 }: SelProps) {
   const interactive = !!onToggle
+  const selectionRing = ring === 'ink-double' ? SELECTION_RING_INK_DOUBLE : SELECTION_RING
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: role + tabIndex + keyboard handler are applied whenever onToggle makes the ring interactive
     // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-pressed/aria-checked are only set on the interactive branch, where role="button"/"radio" supports them
@@ -48,7 +56,7 @@ export function Sel({
       className={cn(
         'rounded-panel',
         interactive && cn('cursor-pointer', FOCUS_RING),
-        selected && SELECTION_RING,
+        selected && selectionRing,
         className
       )}
     >

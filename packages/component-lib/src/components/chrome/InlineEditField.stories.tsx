@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
+import { Btn } from './Btn'
 import { InlineEditField } from './InlineEditField'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -56,6 +57,19 @@ export const Default: Story = () => (
 
     <Cell caption="readOnly — plain text, no affordance (Mule chassis SP12)">
       <Live initial="Mule" label="Chassis" readOnly />
+    </Cell>
+
+    <Cell caption="labelAction — a roll-assist Btn opposite the label stamp">
+      <Live
+        initial=""
+        label="Callsign"
+        placeholder="Roll or type"
+        labelAction={
+          <Btn variant="ghost" size="sm">
+            ⚄ Roll
+          </Btn>
+        }
+      />
     </Cell>
   </div>
 )
