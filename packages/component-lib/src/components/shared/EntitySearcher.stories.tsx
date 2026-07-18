@@ -2,6 +2,7 @@ import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { getChoices, SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
+import { Button } from '../chrome/Button'
 import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
 import { CatalogChoiceModal } from '../referenceEntity/choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../referenceEntity/choiceCard/choiceSelectionHelpers'
@@ -91,13 +92,9 @@ export const CatalogPicker: Story = () => {
       <Caption>
         CatalogChoiceModal — the Armament Bay Weapons System pick (any SP-damage system).
       </Caption>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="rounded-badge border-2 border-rust bg-rust px-3 py-1 font-cond text-badge font-bold uppercase tracking-caps-tight text-paper"
-      >
+      <Button variant="primary" size="xs" onClick={() => setOpen(true)}>
         {chosen ? `Change — ${chosen}` : 'Choose a Weapons System…'}
-      </button>
+      </Button>
       <CatalogChoiceModal
         open={open}
         onClose={() => setOpen(false)}
