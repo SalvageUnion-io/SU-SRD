@@ -6,9 +6,8 @@ import {
   legalStartingPatterns,
   MECH_CREATION_SCRAP_CAP,
 } from 'salvageunion-reference/rules'
-import { Sel, TreeSep, useChassisPatternConfig } from 'component-lib'
+import { ReferenceEntityDisplay, Sel, TreeSep, useChassisPatternConfig } from 'component-lib'
 import { matchesRef } from '../../lib/rules/resolveRefs'
-import { SelCard } from 'component-lib'
 import { SelMasonry } from 'component-lib'
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
@@ -53,13 +52,15 @@ function PatternSelCard({
     true
   )
   return (
-    <SelCard
-      entity={chassis}
-      name={`${pattern.name} pattern`}
+    <ReferenceEntityDisplay
+      data={chassis as SURefEntity}
+      compact
       selected={selected}
-      onToggle={onToggle}
-      radio
-      entityProps={config ?? undefined}
+      selectionRole="radio"
+      cardClickLabel={`${pattern.name} pattern`}
+      onCardClick={onToggle}
+      hide={{ actions: true, choices: true }}
+      {...(config ?? {})}
     />
   )
 }
@@ -106,23 +107,25 @@ export function MechChassisStep({
       <SelMasonry radio ariaLabel="Chassis">
         {chassisPool.map((chassis) => {
           const cost = chassis.salvageValue
+          const reason =
+            !isEdit && cost > MECH_CREATION_SCRAP_CAP
+              ? `Costs ${cost} scrap · ${MECH_CREATION_SCRAP_CAP} cap`
+              : undefined
           return (
-            <SelCard
+            <ReferenceEntityDisplay
               key={chassis.id}
-              entity={chassis}
-              name={chassis.name}
+              data={chassis as SURefEntity}
+              compact
               selected={matchesRef(chassis, chassisName)}
-              onToggle={() => onSelectChassis(nameToSlug(chassis.name))}
-              radio
-              entityProps={{
-                hide: { actions: true, choices: true, patterns: true },
-                footMeta: isEdit ? undefined : [{ label: 'Costs', value: `${cost} scrap` }],
-              }}
-              disabledReason={
-                !isEdit && cost > MECH_CREATION_SCRAP_CAP
-                  ? `Costs ${cost} scrap · ${MECH_CREATION_SCRAP_CAP} cap`
-                  : undefined
-              }
+              selectionRole="radio"
+              cardClickLabel={chassis.name}
+              selectable={!reason}
+              onCardClick={reason ? undefined : () => onSelectChassis(nameToSlug(chassis.name))}
+              hide={{ actions: true, choices: true, patterns: true }}
+              footMeta={[
+                ...(isEdit ? [] : [{ label: 'Costs', value: `${cost} scrap` }]),
+                ...(reason ? [{ label: reason, value: '' }] : []),
+              ]}
             />
           )
         })}

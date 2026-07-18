@@ -1,5 +1,5 @@
 import type { SURefSystem } from 'salvageunion-reference'
-import { SelCard } from 'component-lib'
+import { ReferenceEntityDisplay } from 'component-lib'
 import { SelMasonry } from 'component-lib'
 
 type SystemsListProps = {
@@ -65,16 +65,21 @@ export function SystemsList({
         const selected = selectedSystemSlugs.includes(system.id)
         const disabled = !selected && atCap
         return (
-          <SelCard
+          <ReferenceEntityDisplay
             key={system.id}
-            entity={system}
-            name={system.name}
+            data={system}
+            compact
             selected={selected}
-            disabled={disabled}
-            disabledReason={
-              disabled ? `Armament Bay full · ${installedWeaponCount} mounted` : undefined
+            selectionRole="toggle"
+            cardClickLabel={system.name}
+            selectable={!disabled}
+            onCardClick={disabled ? undefined : () => toggle(system.id)}
+            hide={{ actions: true, choices: true }}
+            footMeta={
+              disabled
+                ? [{ label: `Armament Bay full · ${installedWeaponCount} mounted`, value: '' }]
+                : undefined
             }
-            onToggle={() => toggle(system.id)}
           />
         )
       })}

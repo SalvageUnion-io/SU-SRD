@@ -1,8 +1,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefClass } from 'salvageunion-reference'
+import type { SURefClass, SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
-import { TreeSep } from 'component-lib'
-import { SelCard } from 'component-lib'
+import { ReferenceEntityDisplay, TreeSep } from 'component-lib'
 import { SelMasonry } from 'component-lib'
 import { selectableClasses } from './classOptions'
 
@@ -97,23 +96,29 @@ export function ClassAbilityStep({
   const allAbilities = surAbilities.findAll(() => true) as AbilityLike[]
 
   const renderClassCard = (cls: SURefClass) => (
-    <SelCard
+    <ReferenceEntityDisplay
       key={cls.id}
-      entity={cls}
-      name={cls.name}
+      data={cls}
+      compact
       selected={cls.id === classId}
-      onToggle={() => onSelectClass(cls.id)}
+      selectionRole="toggle"
+      cardClickLabel={cls.name}
+      onCardClick={() => onSelectClass(cls.id)}
+      hide={{ actions: true, choices: true }}
     />
   )
 
   const renderAbilityCard = (ability: AbilityLike) => (
-    <SelCard
+    <ReferenceEntityDisplay
       key={ability.id}
-      entity={ability}
-      name={ability.name}
+      data={ability as unknown as SURefEntity}
+      compact
       selected={selectedAbilities.includes(ability.id)}
+      selectionRole="toggle"
+      cardClickLabel={ability.name}
       label={ability.tree}
-      onToggle={() => onSelectAbility(ability.id)}
+      onCardClick={() => onSelectAbility(ability.id)}
+      hide={{ actions: true, choices: true }}
     />
   )
 

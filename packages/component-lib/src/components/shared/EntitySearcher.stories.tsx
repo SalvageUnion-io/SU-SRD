@@ -2,18 +2,19 @@ import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { getChoices, SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
+import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
 import { CatalogChoiceModal } from '../referenceEntity/choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../referenceEntity/choiceCard/choiceSelectionHelpers'
 import { EntitySearcher } from './EntitySearcher'
-import { SelCard } from './SelCard'
 import { SelMasonry } from './SelMasonry'
 
 /**
  * EntitySearcher — the shared "add an entity" body (search + Tech-Level / trait
  * facets + selection rail). Now in component-lib so both ITUN's live-sheet
  * pickers and the reference card's catalog-choice modal share one picker. This
- * file also covers its cells (SelCard / SelMasonry) and the CatalogChoiceModal
- * that wraps it for a single-select catalog choice.
+ * file also covers its selection cells (SelMasonry packing plain
+ * ReferenceEntityDisplay cards) and the CatalogChoiceModal that wraps it for a
+ * single-select catalog choice.
  */
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -56,16 +57,21 @@ export const Cells: Story = () => {
   const items = SalvageUnionReference.Equipment.all().slice(0, 4)
   return (
     <div className="flex flex-col gap-3">
-      <Caption>SelMasonry + SelCard — the selection cells the searcher packs.</Caption>
+      <Caption>
+        SelMasonry packs the selection cells — each is a plain ReferenceEntityDisplay with the
+        card's native `selected` ring + radio a11y (no SelCard wrapper).
+      </Caption>
       <SelMasonry radio ariaLabel="Equipment">
         {items.map((item) => (
-          <SelCard
+          <ReferenceEntityDisplay
             key={item.id}
-            entity={item}
-            name={item.name}
+            data={item}
+            compact
             selected={chosen === item.name}
-            onToggle={() => setChosen((c) => (c === item.name ? '' : item.name))}
-            radio
+            selectionRole="radio"
+            cardClickLabel={item.name}
+            onCardClick={() => setChosen((c) => (c === item.name ? '' : item.name))}
+            hide={{ actions: true, choices: true }}
           />
         ))}
       </SelMasonry>

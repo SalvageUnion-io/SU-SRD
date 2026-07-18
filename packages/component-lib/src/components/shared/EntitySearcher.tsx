@@ -28,7 +28,6 @@ import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityD
 import { statBlockRowStarts } from '../stat/pipRows'
 import { DisplayCard } from './DisplayCard'
 import { FilterChip } from './FilterChip'
-import { SelCard } from './SelCard'
 import { SelMasonry } from './SelMasonry'
 
 /** The minimum shape the searcher reads off a reference entity. */
@@ -366,15 +365,18 @@ export function EntitySearcher({
           }
           const isSelected = count > 0
           return (
-            <SelCard
+            <ReferenceEntityDisplay
               key={item.id}
-              entity={item}
-              name={item.name}
+              data={item as unknown as SURefEntity}
+              compact
               selected={isSelected}
-              onToggle={() =>
+              selectionRole="toggle"
+              cardClickLabel={item.name}
+              selectionSeal={chosenLabel}
+              onCardClick={() =>
                 onToggle?.(isSelected ? (matchedRef(item) ?? idOf(item)) : idOf(item))
               }
-              selectedStamp={chosenLabel}
+              hide={{ actions: true, choices: true }}
             />
           )
         })}

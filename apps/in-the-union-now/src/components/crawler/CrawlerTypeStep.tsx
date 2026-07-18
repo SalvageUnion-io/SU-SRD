@@ -1,7 +1,6 @@
 import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
 import { OptRow, ReferenceEntityDisplay, TreeSep } from 'component-lib'
-import { SelCard } from 'component-lib'
 import { SelMasonry } from 'component-lib'
 
 type CrawlerTypeOptionListProps = {
@@ -93,19 +92,19 @@ export function CrawlerTypeSelectStep({
           const slots = crawlerWeaponSlots(type.mutations)
           const spBonus = crawlerMaxSpBonus(type.mutations)
           return (
-            <SelCard
+            <ReferenceEntityDisplay
               key={type.id}
-              entity={type}
-              name={type.name}
+              data={type}
+              compact
               selected={type.id === selectedType}
-              onToggle={() => onSelect(type.id)}
-              radio
-              entityProps={{
-                footMeta: [
-                  { label: 'Weapon slots', value: String(slots) },
-                  ...(spBonus > 0 ? [{ label: 'Max SP', value: `+${spBonus}` }] : []),
-                ],
-              }}
+              selectionRole="radio"
+              cardClickLabel={type.name}
+              onCardClick={() => onSelect(type.id)}
+              hide={{ actions: true, choices: true }}
+              footMeta={[
+                { label: 'Weapon slots', value: String(slots) },
+                ...(spBonus > 0 ? [{ label: 'Max SP', value: `+${spBonus}` }] : []),
+              ]}
             />
           )
         })}

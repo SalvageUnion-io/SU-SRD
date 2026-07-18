@@ -1,6 +1,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
-import { SelCard } from 'component-lib'
+import { CountStepper, ReferenceEntityDisplay } from 'component-lib'
 import { SelMasonry } from 'component-lib'
 
 type SUREquipmentAccessor = {
@@ -72,28 +73,39 @@ export function EquipmentStep({
           const count = counts.get(item.id) ?? 0
           if (isCreate) {
             return (
-              <SelCard
+              <ReferenceEntityDisplay
                 key={item.id}
-                entity={item}
-                name={item.name}
+                data={item as unknown as SURefEntity}
+                compact
                 selected={count >= 1}
-                count={count}
-                maxCount={count + remaining}
-                onCountChange={(next) => onCountChange?.(item.id, next)}
+                selectionRole="toggle"
+                cardClickLabel={item.name}
                 // Card click adds a copy while the budget allows.
-                onToggle={() => {
+                onCardClick={() => {
                   if (remaining > 0) onCountChange?.(item.id, count + 1)
                 }}
+                hide={{ actions: true, choices: true }}
+                footActions={
+                  <CountStepper
+                    subject={item.name}
+                    count={count}
+                    max={count + remaining}
+                    onChange={(next) => onCountChange?.(item.id, next)}
+                  />
+                }
               />
             )
           }
           return (
-            <SelCard
+            <ReferenceEntityDisplay
               key={item.id}
-              entity={item}
-              name={item.name}
+              data={item as unknown as SURefEntity}
+              compact
               selected={selectedEquipment.includes(item.id)}
-              onToggle={() => onToggle(item.id)}
+              selectionRole="toggle"
+              cardClickLabel={item.name}
+              onCardClick={() => onToggle(item.id)}
+              hide={{ actions: true, choices: true }}
             />
           )
         })}

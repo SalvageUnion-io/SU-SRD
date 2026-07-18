@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
-import { Pill, TreeSep } from 'component-lib'
+import { CountStepper, Pill, ReferenceEntityDisplay, TreeSep } from 'component-lib'
 import { matchesRef } from '../../lib/rules/resolveRefs'
-import { SelCard } from 'component-lib'
 import { SelMasonry } from 'component-lib'
 
 type CraftItemsStepProps = {
@@ -76,25 +76,39 @@ export function CraftItemsStep({
               : undefined
 
           return (
-            <SelCard
+            <ReferenceEntityDisplay
               key={item.id}
-              entity={item}
-              name={name}
+              data={item as unknown as SURefEntity}
+              compact
               selected={count >= 1}
-              count={count}
-              maxCount={count + maxAdd}
-              onCountChange={(next) => onCountChange(name, next)}
-              onToggle={() => {
-                if (maxAdd > 0) onCountChange(name, count + 1)
-              }}
-              disabledReason={disabledReason}
-              entityProps={{
-                footMeta: [{ label: 'Costs', value: `${sv} scrap` }],
-                subtitleExtra:
-                  'recommended' in item && item.recommended === true ? (
-                    <Pill>Suggested</Pill>
-                  ) : undefined,
-              }}
+              selectionRole="toggle"
+              cardClickLabel={name}
+              selectable={!disabledReason}
+              onCardClick={
+                disabledReason
+                  ? undefined
+                  : () => {
+                      if (maxAdd > 0) onCountChange(name, count + 1)
+                    }
+              }
+              hide={{ actions: true, choices: true }}
+              footActions={
+                <CountStepper
+                  subject={name}
+                  count={count}
+                  max={count + maxAdd}
+                  onChange={(next) => onCountChange(name, next)}
+                />
+              }
+              footMeta={[
+                { label: 'Costs', value: `${sv} scrap` },
+                ...(disabledReason ? [{ label: disabledReason, value: '' }] : []),
+              ]}
+              subtitleExtra={
+                'recommended' in item && item.recommended === true ? (
+                  <Pill>Suggested</Pill>
+                ) : undefined
+              }
             />
           )
         })}

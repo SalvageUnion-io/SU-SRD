@@ -4,8 +4,9 @@ type SelMasonryProps = {
   children: ReactNode
   /**
    * Radio-group semantics for exactly-one pickers (wizard-refresh Phase 4,
-   * mockup Screen 01 `role="radiogroup"`): pair with `<SelCard radio>` cells
-   * and pass an accessible group name via `ariaLabel`.
+   * mockup Screen 01 `role="radiogroup"`): pair with `ReferenceEntityDisplay`
+   * cells using `selectionRole="radio"` and pass an accessible group name via
+   * `ariaLabel`.
    */
   radio?: boolean
   /** Accessible name for the radiogroup (required when `radio` is set). */
