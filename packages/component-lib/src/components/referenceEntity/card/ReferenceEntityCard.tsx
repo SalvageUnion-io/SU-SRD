@@ -1065,14 +1065,15 @@ export function ReferenceEntityCard({
     // the domain's computed on-tone colour (paper on dark tones, ink on light).
     const badgeTextClass = isDown || isGhosted ? 'text-ink' : tone.onToneText
     const badgeAccent = accentSurface(headerBg, headerBgColor)
-    // The classification tail — abilities show <Tree> · L<n>; a TL-bearing entity
-    // shows TL <n>; everything else (actions, actors) shows nothing.
-    const badgeTail =
+    // The classification tail as Stat cells (matching the sub-header's axis
+    // markers): abilities show [Ability Tree | …] [Level | n]; a TL-bearing
+    // entity shows [TL | n]; everything else (actions, actors) shows nothing.
+    const badgeStats: StatItem[] =
       axisMarkers.length > 0
-        ? axisMarkers.map((m) => (m.label === 'Level' ? `L${m.value}` : m.value)).join(' · ')
+        ? axisMarkers.map((m) => ({ key: m.label, label: m.label, value: m.value }))
         : techLevel != null
-          ? `TL ${techLevel}`
-          : undefined
+          ? [{ key: 'tech-level', label: 'TL', value: String(techLevel) }]
+          : []
     return (
       <div className={outerClassName} style={cardStyle?.style} {...outerInteraction}>
         <div
@@ -1093,16 +1094,9 @@ export function ReferenceEntityCard({
           >
             {name}
           </span>
-          {badgeTail && (
-            <span
-              className={cn(
-                'shrink-0 font-cond text-badge font-semibold uppercase leading-none tracking-caps-tight opacity-90',
-                badgeTextClass
-              )}
-            >
-              {badgeTail}
-            </span>
-          )}
+          {badgeStats.map((s) => (
+            <Stat key={s.key} orientation="horizontal" label={s.label} value={s.value} xs />
+          ))}
         </div>
       </div>
     )
