@@ -1,0 +1,72 @@
+/*
+ * Verbatim slice of apps/in-the-union-now/src/components/dashboard/dashboard.css
+ * — only the `pc-*` rules the reproduced DashboardGauge touches. Frozen "before"
+ * for the L1 reconciliation capture; do NOT edit to "improve" it.
+ */
+
+/* Dashboard dark instrument palette — scoped to `.pc-root` (the gauge rules
+   below reference these custom properties). */
+.pc-root {
+  --pc-ground: #1b1712;
+  --pc-panel: #282019;
+  --pc-text: #f3ede2;
+  --pc-muted: #9b9488;
+  --pc-line: rgba(243, 237, 226, 0.16);
+  --pc-mech: #7a978a;
+  --pc-mech-deep: #2f4338;
+  --pc-pilot: #ef894f;
+  --pc-pilot-deep: #a85222;
+  --pc-crawler: #ce5898;
+  --pc-crawler-deep: #7e2a5b;
+  --pc-bad: #c0563f;
+  --pc-seg-empty: rgba(216, 201, 164, 0.12);
+  color: var(--pc-text);
+  font-family: 'Barlow', system-ui, sans-serif;
+}
+
+/* ---- DashboardGauge: bespoke dark segmented instrument bar ---- */
+.pc-gauge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.pc-gauge-lab {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 10px;
+  min-width: 40px;
+  color: var(--pc-text);
+}
+.pc-gauge-track {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+.pc-seg {
+  flex: 1 1 0;
+  height: 14px;
+  border: 1.5px solid var(--pc-line);
+  border-radius: 2px;
+  background: var(--pc-seg-empty);
+}
+.pc-seg.on {
+  background: var(--pc-gtone, var(--pc-mech));
+  border-color: var(--pc-gtone-deep, var(--pc-mech-deep));
+}
+.pc-seg.danger {
+  background: var(--pc-bad);
+  border-color: var(--pc-bad);
+}
+.pc-gauge-num {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  min-width: 46px;
+  text-align: right;
+  color: var(--pc-text);
+}

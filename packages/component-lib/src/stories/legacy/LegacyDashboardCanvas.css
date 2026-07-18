@@ -1,0 +1,105 @@
+/*
+ * Verbatim slice of apps/in-the-union-now/src/components/dashboard/dashboard.css
+ * — only the `pc-*` rules the reproduced DashboardCanvas touches (the fixed
+ * design canvas, the scale-floor reflow message, and the grid + placeholder
+ * surfaces used to make the letterboxing visible). Frozen "before" for the L1
+ * reconciliation capture; do NOT edit to "improve" it.
+ */
+
+.pc-root {
+  --pc-ground: #1b1712;
+  --pc-panel: #282019;
+  --pc-text: #f3ede2;
+  --pc-muted: #9b9488;
+  --pc-line: rgba(243, 237, 226, 0.16);
+  --pc-line-hard: rgba(243, 237, 226, 0.5);
+  color: var(--pc-text);
+  font-family: 'Barlow', system-ui, sans-serif;
+}
+
+/* Fixed design canvas — scaled to fit by DashboardCanvas. Never scrolls. */
+.pc-canvas {
+  width: 1280px;
+  height: 800px;
+  background: var(--pc-ground);
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1.5px var(--pc-line);
+}
+
+.pc-grid {
+  display: grid;
+  height: 100%;
+  width: 100%;
+  gap: 10px;
+  padding: 8px 6px 8px 10px;
+  grid-template-columns: 1fr 260px;
+  grid-template-rows: 40px 168px 1fr;
+  grid-template-areas:
+    'rail rail'
+    'primary wheel'
+    'display wheel';
+}
+
+.pc-rail {
+  grid-area: rail;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 2.5px solid var(--pc-line-hard);
+  border-radius: 5px;
+  padding: 0 12px;
+}
+.pc-primary {
+  grid-area: primary;
+  padding-right: 120px;
+}
+.pc-display {
+  grid-area: display;
+  border: 2.5px solid var(--pc-line-hard);
+  border-radius: 5px;
+  background: color-mix(in oklab, var(--pc-panel) 90%, #000);
+}
+.pc-wheel {
+  grid-area: wheel;
+}
+
+.pc-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  border: 1.5px solid var(--pc-line);
+  border-radius: 5px;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 12px;
+  color: var(--pc-muted);
+}
+.pc-fill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 12px;
+  text-align: center;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 12px;
+  color: var(--pc-muted);
+}
+
+/* Below the scale floor (phones / heavy zoom) the fixed canvas is abandoned. */
+.pc-reflow {
+  max-width: 340px;
+  padding: 32px;
+  text-align: center;
+  color: var(--pc-muted);
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}

@@ -1,0 +1,79 @@
+/*
+ * Verbatim slice of apps/in-the-union-now/src/components/dashboard/dashboard.css
+ * — only the `pc-*` rules the reproduced RailBar touches (the top rail, its
+ * buttons + stamp, and the active-mount border tint the parent grid applies).
+ * Frozen "before" for the L1 reconciliation capture; do NOT edit to "improve" it.
+ *
+ * Note: the mount-tint selectors are keyed on `.pc-grid[data-mount] .pc-rail`.
+ * The rail itself (what RailBar renders) is `.pc-rail`; the tint comes from the
+ * enclosing Dashboard grid, so the stories wrap the rail in a bare
+ * `<div className="pc-grid" data-mount="…">` to freeze the tinted appearance
+ * (the grid's own layout rule is not part of RailBar and is not sliced).
+ */
+
+.pc-root {
+  --pc-ground: #1b1712;
+  --pc-panel: #282019;
+  --pc-text: #f3ede2;
+  --pc-muted: #9b9488;
+  --pc-line: rgba(243, 237, 226, 0.16);
+  --pc-line-hard: rgba(243, 237, 226, 0.5);
+  --pc-mech: #7a978a;
+  --pc-mech-deep: #2f4338;
+  --pc-pilot: #ef894f;
+  --pc-pilot-deep: #a85222;
+  --pc-crawler: #ce5898;
+  --pc-crawler-deep: #7e2a5b;
+  color: var(--pc-text);
+  font-family: 'Barlow', system-ui, sans-serif;
+}
+
+.pc-rail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 2.5px solid var(--pc-line-hard);
+  border-radius: 5px;
+  padding: 0 12px;
+}
+/* Active-entity tint on the rail (applied by the Dashboard grid). */
+.pc-grid[data-mount='mech'] .pc-rail {
+  border-color: color-mix(in oklab, var(--pc-mech) 60%, transparent);
+}
+.pc-grid[data-mount='pilot'] .pc-rail {
+  border-color: color-mix(in oklab, var(--pc-pilot) 60%, transparent);
+}
+.pc-grid[data-mount='downtime'] .pc-rail {
+  border-color: color-mix(in oklab, var(--pc-crawler) 60%, transparent);
+}
+
+.pc-stamp {
+  display: inline-block;
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 13px;
+  line-height: 1;
+  padding: 5px 9px 6px;
+  border-radius: 2px;
+  color: #fff;
+}
+
+.pc-railbtn {
+  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--pc-line);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--pc-text);
+  cursor: pointer;
+  text-decoration: none;
+}
+.pc-railbtn:hover {
+  border-color: var(--pc-muted);
+}
