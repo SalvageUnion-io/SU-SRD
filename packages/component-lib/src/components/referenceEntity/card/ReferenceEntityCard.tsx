@@ -1074,9 +1074,10 @@ export function ReferenceEntityCard({
   // other size but collapses the whole card to one line. Actions render it too:
   // their type reads "Action" and, carrying no TL/tree, they show no tail.
   if (size === 'badge') {
-    // Action shortform: Cost · name · type · Damage · range (each when present).
-    // The AP/EP cost leads (the pennant), then the name, then the action type as
-    // a stamp, then Damage / Range as [label|value] Stat cells (if relevant).
+    // Action shortform: name · Cost · type · Damage · range (each when present).
+    // The NAME always leads (left-aligned so a stack of action badges reads down
+    // a name column), then the AP/EP cost pennant, the action type as a stamp,
+    // then Damage / Range as [label|value] Stat cells (if relevant).
     if (isAction && action) {
       const actionBadgeText = isDown ? 'text-ink' : tone.onToneText
       const actionAccent = accentSurface(headerBg, headerBgColor)
@@ -1095,7 +1096,6 @@ export function ReferenceEntityCard({
             )}
             style={{ ...actionAccent.style, ...frameStyle }}
           >
-            {costNode}
             <span
               className={cn(
                 'min-w-0 truncate font-cond text-sm font-bold uppercase leading-none tracking-caps-tight',
@@ -1104,6 +1104,7 @@ export function ReferenceEntityCard({
             >
               {name}
             </span>
+            {costNode}
             {typeLabel && (
               <Badge shape="stamp" size="sm">
                 {typeLabel}
@@ -1119,7 +1120,6 @@ export function ReferenceEntityCard({
         </div>
       )
     }
-    const badgeType = isPattern ? 'Pattern' : resolveEyebrow(schemaName).type
     // Text sits directly on the tone: ghosted/greyed bands are light → ink; else
     // the domain's computed on-tone colour (paper on dark tones, ink on light).
     const badgeTextClass = isDown || isGhosted ? 'text-ink' : tone.onToneText
@@ -1142,9 +1142,6 @@ export function ReferenceEntityCard({
           )}
           style={{ ...badgeAccent.style, ...frameStyle }}
         >
-          <Badge shape="stamp" size="sm">
-            {badgeType}
-          </Badge>
           <span
             className={cn(
               'min-w-0 truncate font-cond text-sm font-bold uppercase leading-none tracking-caps-tight',
