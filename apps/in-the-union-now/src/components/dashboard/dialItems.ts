@@ -23,26 +23,13 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { MountState } from '../../stores/playStateStore'
-import type { GaugeTone } from 'component-lib'
+import type { DialItem as DialCellItem } from 'component-lib'
 
-export type DialGauge = {
-  label: string
-  value: number
-  max: number
-  tone: GaugeTone
-  danger?: number
-}
+// The presentational item shape (key/label/gauges/…) lives in component-lib's
+// Dial; the app adds the domain `kind` used by the config overlay + prefs.
+export type { DialGauge } from 'component-lib'
 
-export type DialItem =
-  | { key: string; kind: DialKind; statless: true; label: string; sublabel: string }
-  | {
-      key: string
-      kind: DialKind
-      statless: false
-      label: string
-      tone: GaugeTone
-      gauges: DialGauge[]
-    }
+export type DialItem = DialCellItem & { kind: DialKind }
 
 /** Human-facing label for each dial kind — used by the dial-config overlay. */
 export const DIAL_KIND_LABELS: Record<DialKind, string> = {

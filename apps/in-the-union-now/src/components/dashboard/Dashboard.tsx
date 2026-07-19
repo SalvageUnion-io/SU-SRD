@@ -12,7 +12,7 @@
 
 import { useCallback, useState } from 'react'
 
-import { DashboardCanvas, DashboardGrid, RailBar } from 'component-lib'
+import { Dial, DashboardCanvas, DashboardGrid, RailBar } from 'component-lib'
 import { useWorkspace } from '../../hooks/queries/workspaces'
 import type { CockpitPrefs } from '../../lib/schemas/cockpitPrefs'
 import { useEntityStore } from '../../stores/entityStore'
@@ -21,7 +21,7 @@ import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { resolveSheetComposition } from '../sheet/composition'
 import type { EntityLookup } from '../sheet/composition'
 import { ActiveItemBand } from './ActiveItemBand'
-import { Dial } from './Dial'
+import { DialConfig } from './DialConfig'
 import { applyDialPrefs, configurableKinds, dialItems } from './dialItems'
 import { DisplayView } from './DisplayView'
 import { DowntimeWizard } from './DowntimeWizard'
@@ -32,6 +32,7 @@ export function Dashboard({ id }: { id: string }) {
   // The active-row entity drives the whole-canvas tint (proposed ADR-018).
   const mount = usePlayStateStore((s) => s.mount)
   const wheel = usePlayStateStore((s) => s.wheel)
+  const setWheel = usePlayStateStore((s) => s.setWheel)
   const leaveDowntime = usePlayStateStore((s) => s.leaveDowntime)
   const mech = storeState.get('mech', id)
 
@@ -125,7 +126,16 @@ export function Dashboard({ id }: { id: string }) {
             <DisplayView focus={focus} mech={mech} pilot={pilot} crawler={crawler} />
           )
         }
-        wheel={<Dial items={items} configKinds={cfgKinds} prefs={prefs} onPrefsChange={setPrefs} />}
+        wheel={
+          <Dial
+            items={items}
+            activeIndex={wheel}
+            onActiveIndexChange={setWheel}
+            renderConfig={(close) => (
+              <DialConfig kinds={cfgKinds} prefs={prefs} onChange={setPrefs} onClose={close} />
+            )}
+          />
+        }
       />
     </DashboardCanvas>
   )

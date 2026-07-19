@@ -8,20 +8,34 @@
  * The item nearest the viewfinder (the fixed active slot at the top, the
  * intersection with the primary row) is the largest and drives the display; as
  * a cell scrolls away it shrinks and fades, wrapping seamlessly around the loop.
- * The store's `wheel` index is kept in sync with the nearest item so Dashboard's
- * focus→display stays live and the selection survives remounts.
+ * The logical `activeIndex` (owned by the caller — the app persists it) is kept
+ * in sync with the nearest item so the display stays live and the selection
+ * survives remounts.
  *
+ * Presentational: the caller owns the active index + persistence; the config
+ * overlay content is injected via `renderConfig` (the app binds its prefs).
  * Statful cells (entities) show a stamp + compact gauges; statless cells
  * (Actions / Tables / SRD) show a centered title — no stats.
  */
 
-import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 
-import type { CockpitPrefs, DialKind } from '../../lib/schemas/cockpitPrefs'
-import { usePlayStateStore } from '../../stores/playStateStore'
-import { DashboardGauge } from 'component-lib'
-import { DialConfig } from './DialConfig'
-import type { DialItem } from './dialItems'
+import { DashboardGauge, type GaugeTone } from './DashboardGauge'
+
+export type DialGauge = {
+  label: string
+  value: number
+  max: number
+  tone: GaugeTone
+  /** First 0-based segment index that reads as danger (redline) when filled. */
+  danger?: number
+}
+
+/** A presentational dial entry. Statless entries are a centered title (Actions /
+ *  Tables / SRD); statful entries carry a tone stamp + compact gauges. */
+export type DialItem =
+  | { key: string; statless: true; label: string; sublabel: string }
+  | { key: string; statless: false; label: string; tone: GaugeTone; gauges: DialGauge[] }
 
 /** Active card size in the viewfinder. Height matches the Active row (168px
  * primary grid row) so labels line up; width is wider than the track cards. */
@@ -91,23 +105,37 @@ function DialCell({
   return <div className={cls}>{inner}</div>
 }
 
-type DialProps = {
+export type DialProps = {
   items: DialItem[]
-  /** Dial-config universe (kinds this Dashboard can show); omit to hide the ⚙. */
-  configKinds?: DialKind[]
-  /** Current persisted dial prefs. */
-  prefs?: CockpitPrefs
-  /** Persist updated prefs; when omitted the ⚙ config control is not shown. */
-  onPrefsChange?: (next: CockpitPrefs) => void
+  /** The logical selection index (unbounded; wraps over items). Caller-owned. */
+  activeIndex: number
+  /** Persist the logical selection when the wheel settles on a new item. */
+  onActiveIndexChange: (index: number) => void
+  /** Render the ⚙ config overlay content; omit to hide the ⚙ control. `close`
+   *  dismisses the overlay. */
+  renderConfig?: (close: () => void) => ReactNode
 }
 
-export function Dial({ items, configKinds, prefs, onPrefsChange }: DialProps) {
-  const wheel = usePlayStateStore((s) => s.wheel)
-  const setWheel = usePlayStateStore((s) => s.setWheel)
+export function Dial({ items, activeIndex, onActiveIndexChange, renderConfig }: DialProps) {
+  const wheel = activeIndex
   const [configOpen, setConfigOpen] = useState(false)
 
   const n = items.length
   const active = n > 0 ? ((wheel % n) + n) % n : 0
+
+  // Synchronous mirror of the caller's index so gesture handlers can read the
+  // latest value between renders (and write through in one place).
+  const wheelRef = useRef(activeIndex)
+  useEffect(() => {
+    wheelRef.current = activeIndex
+  }, [activeIndex])
+  const setWheel = useCallback(
+    (idx: number) => {
+      wheelRef.current = idx
+      onActiveIndexChange(idx)
+    },
+    [onActiveIndexChange]
+  )
 
   // Continuous scroll position (item units, same space as `wheel`). `pos` state
   // mirrors `posRef` so the render follows every animation frame.
@@ -130,11 +158,11 @@ export function Dial({ items, configKinds, prefs, onPrefsChange }: DialProps) {
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
     rafRef.current = null
   }, [])
-  // Keep the store's logical index on the item nearest the viewfinder.
+  // Keep the logical index on the item nearest the viewfinder.
   const syncWheel = useCallback(
     (p: number) => {
       const idx = Math.round(p)
-      if (idx !== usePlayStateStore.getState().wheel) setWheel(idx)
+      if (idx !== wheelRef.current) setWheel(idx)
     },
     [setWheel]
   )
@@ -197,15 +225,15 @@ export function Dial({ items, configKinds, prefs, onPrefsChange }: DialProps) {
     rafRef.current = requestAnimationFrame(tick)
   }, [cancelRaf, commit, syncWheel, easeTo])
 
-  // Buttons / click-to-jump move the LOGICAL selection immediately (off the
-  // store's `wheel`, so it's synchronous); the effect eases `pos` to catch up.
+  // Buttons / click-to-jump move the LOGICAL selection immediately (synchronous
+  // via wheelRef); the effect eases `pos` to catch up.
   const stepBy = (d: number) => {
     if (n === 0) return
-    setWheel(usePlayStateStore.getState().wheel + d)
+    setWheel(wheelRef.current + d)
   }
   const jumpTo = (idx: number) => {
     if (n === 0) return
-    const w = usePlayStateStore.getState().wheel
+    const w = wheelRef.current
     const cur = ((w % n) + n) % n
     // Shortest signed path so the wheel rolls the natural way.
     let delta = (((idx - cur) % n) + n) % n
@@ -269,7 +297,7 @@ export function Dial({ items, configKinds, prefs, onPrefsChange }: DialProps) {
     jumpTo(idx)
   }
 
-  // Follow external `wheel` changes (e.g. store reset) when not mid-gesture.
+  // Follow external `activeIndex` changes (e.g. store reset) when not mid-gesture.
   useEffect(() => {
     if (interactingRef.current) return
     if (Math.abs(posRef.current - wheel) > 0.001) easeTo(wheel)
@@ -280,7 +308,7 @@ export function Dial({ items, configKinds, prefs, onPrefsChange }: DialProps) {
   const activeItem = items[active]
   if (!activeItem) return <div className="pc-wheel-col" />
 
-  const canConfigure = onPrefsChange !== undefined && configKinds !== undefined
+  const canConfigure = renderConfig !== undefined
 
   // Lay the cards out at REAL heights (no scale, so labels keep their size): the
   // card at the viewfinder is ACTIVE_H tall, shrinking to TRACK_H away from it.
@@ -376,14 +404,7 @@ export function Dial({ items, configKinds, prefs, onPrefsChange }: DialProps) {
           </button>
         )}
       </div>
-      {canConfigure && configOpen && (
-        <DialConfig
-          kinds={configKinds}
-          prefs={prefs}
-          onChange={onPrefsChange}
-          onClose={() => setConfigOpen(false)}
-        />
-      )}
+      {canConfigure && configOpen && renderConfig(() => setConfigOpen(false))}
     </div>
   )
 }
