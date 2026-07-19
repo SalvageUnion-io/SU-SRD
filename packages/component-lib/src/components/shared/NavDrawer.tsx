@@ -64,7 +64,9 @@ type NavDrawerProps = {
 
 // Full-width catalog tile (former `.catalog-item`, compact drawer variant).
 const TILE =
-  'block w-full rounded-card border-chrome border-ink bg-[var(--catalog-bg)] px-[15px] py-[13px] text-center text-sm text-paper no-underline transition-[box-shadow,transform] duration-[120ms] hover:-translate-y-0.5 hover:shadow-[0_5px_18px_rgba(34,30,23,0.18)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
+  // `background` shorthand, not `bg-[…]`/`background-color` — `--catalog-bg` may
+  // be a gradient (see CatalogTile), which background-color silently drops.
+  'block w-full rounded-card border-chrome border-ink [background:var(--catalog-bg)] px-[15px] py-[13px] text-center text-sm text-paper no-underline transition-[box-shadow,transform] duration-[120ms] hover:-translate-y-0.5 hover:shadow-[0_5px_18px_rgba(34,30,23,0.18)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
 
 const TILE_LABEL = 'inline-block rounded-badge bg-[var(--catalog-label)] px-[10px] py-0.5'
 
