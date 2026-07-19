@@ -12,7 +12,13 @@
   # deploy reliably exceeded the build limit ("Command did not finish") — every
   # srd deploy was failing. Entity pages now use the site-wide default og:image.
   command = "bun install --frozen-lockfile && PUBLIC_COMMIT_REF=\"$COMMIT_REF\" bun --filter srd build"
-  publish = "apps/srd/dist"
+  # Netlify resolves `publish` RELATIVE TO the site's base directory, which for
+  # this site is `apps/srd` — so this must be base-relative, not root-relative.
+  # It read `apps/srd/dist` and resolved to `apps/srd/apps/srd/dist`, failing
+  # every deploy with "Deploy directory does not exist" (exit code 2) even
+  # though the build itself succeeded. (ITUN's site differs: its base is the
+  # repo root, so its netlify.toml paths are root-relative.)
+  publish = "dist"
   # Skip the build when nothing affecting srd changed since the last
   # published deploy. `git diff --quiet` exits 0 (→ Netlify cancels the build)
   # when none of these paths differ, and 1 (→ build proceeds) when they do.
