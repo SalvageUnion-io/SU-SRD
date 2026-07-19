@@ -8,7 +8,7 @@ import {
 } from 'salvageunion-reference/rules'
 import {
   MasonryColumns,
-  ReferenceEntityDisplay,
+  ReferenceEntityCard,
   Sel,
   TreeSep,
   useChassisPatternConfig,
@@ -57,7 +57,7 @@ function PatternSelCard({
     true
   )
   return (
-    <ReferenceEntityDisplay
+    <ReferenceEntityCard
       data={chassis as SURefEntity}
       compact
       selected={selected}
@@ -117,7 +117,7 @@ export function MechChassisStep({
               ? `Costs ${cost} scrap · ${MECH_CREATION_SCRAP_CAP} cap`
               : undefined
           return (
-            <ReferenceEntityDisplay
+            <ReferenceEntityCard
               key={chassis.id}
               data={chassis as SURefEntity}
               compact

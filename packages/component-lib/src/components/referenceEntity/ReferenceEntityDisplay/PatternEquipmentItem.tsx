@@ -1,5 +1,5 @@
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from '../card/referenceEntityDisplayShim'
+import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
 import { useDetailModal } from './useDetailModal'
 
 export function PatternEquipmentItem({ data }: { data: SURefEntity }) {
@@ -7,7 +7,7 @@ export function PatternEquipmentItem({ data }: { data: SURefEntity }) {
   const control = { ...detailModal.control, hidden: false, cardClick: false }
   return (
     <>
-      <ReferenceEntityDisplay data={data} compact listing controls={[control]} />
+      <ReferenceEntityCard data={data} compact listing controls={[control]} />
       {detailModal.modal}
     </>
   )

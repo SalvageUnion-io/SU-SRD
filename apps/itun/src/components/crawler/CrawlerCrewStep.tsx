@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, navigateControl } from 'component-lib'
+import { ReferenceEntityCard, navigateControl } from 'component-lib'
 
 import { findNpcChoiceByName } from '../../lib/crawlerRefs'
 import type { ResolvedNpc } from '../../lib/crawlerRefs'
@@ -92,7 +92,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
         const showMotto = findNpcChoiceByName(source.npc, 'Motto') !== undefined
         return (
           <section key={source.ref} className="space-y-3">
-            <ReferenceEntityDisplay
+            <ReferenceEntityCard
               data={source.entity}
               mode={isOpen ? 'compact' : 'head'}
               hide={{ actions: true, choices: true }}

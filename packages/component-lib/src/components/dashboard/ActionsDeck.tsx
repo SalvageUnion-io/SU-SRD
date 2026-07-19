@@ -4,12 +4,12 @@
  * selected one (Activate / Roll / Push / Apply). Presentational: every rule +
  * store write lives in the ITUN wrapper, which computes this discriminated
  * view-model and wires the callbacks. This component only renders + calls back —
- * the reference card in the resolve panel is the reused ReferenceEntityDisplay.
+ * the reference card in the resolve panel is the reused ReferenceEntityCard.
  */
 
 import type { SURefEntity } from 'salvageunion-reference'
 import { Button } from '../chrome/Button'
-import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 
 /**
  * A render-ready action row. The action ENTITY drives a shortform
@@ -116,7 +116,7 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
             <span className="pc-deck-cost">{view.costLabel}</span>
           </div>
 
-          <ReferenceEntityDisplay data={view.entity} />
+          <ReferenceEntityCard data={view.entity} />
 
           {currencyChoice && (
             <fieldset className="pc-deck-cost-choice">
@@ -329,7 +329,7 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
                     className={row.locked ? 'is-locked' : undefined}
                     title={row.lockTitle}
                   >
-                    <ReferenceEntityDisplay
+                    <ReferenceEntityCard
                       data={row.entity}
                       mode="badge"
                       hostTone={view.hostTone}

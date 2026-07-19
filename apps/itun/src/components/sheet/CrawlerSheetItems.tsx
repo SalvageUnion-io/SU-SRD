@@ -6,7 +6,7 @@
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { type ReferenceEntityControl, ReferenceEntityDisplay, useDetailModal } from 'component-lib'
+import { type ReferenceEntityControl, ReferenceEntityCard, useDetailModal } from 'component-lib'
 import type { CardFootMeta, ChoiceSelections } from 'component-lib'
 
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
@@ -226,7 +226,7 @@ export function CrawlerBayCard({
 
   return (
     <>
-      <ReferenceEntityDisplay
+      <ReferenceEntityCard
         data={cardData}
         compact
         hide={HIDE_BAY_CONTENT}
@@ -352,7 +352,7 @@ export function CrawlerTypeCard({
   } as unknown as SURefEntity
 
   return (
-    <ReferenceEntityDisplay
+    <ReferenceEntityCard
       data={cardData}
       compact={compact}
       selections={selections}

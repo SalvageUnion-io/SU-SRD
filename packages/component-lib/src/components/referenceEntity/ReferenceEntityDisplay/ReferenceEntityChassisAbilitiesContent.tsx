@@ -1,6 +1,6 @@
 import type { SURefEntity, SURefMetaAction, SURefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from '../card/referenceEntityDisplayShim'
+import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
 import { entityHostTone } from '../card/entityCardTone'
 import { SectionSeparator } from './SectionSeparator'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
@@ -64,7 +64,7 @@ export function ReferenceEntityChassisAbilitiesContent({
   return (
     <div className={cn('mt-4', spacing.smallSpaceYClass)}>
       {chassisAbilities.map((ability) => (
-        <ReferenceEntityDisplay
+        <ReferenceEntityCard
           compact
           key={ability.id}
           data={ability as unknown as SURefEntity}
@@ -74,7 +74,7 @@ export function ReferenceEntityChassisAbilitiesContent({
       ))}
       {droneEntity && !hideDrone && (
         <>
-          <ReferenceEntityDisplay
+          <ReferenceEntityCard
             data={droneEntity}
             compact
             hide={{ actions: true, patterns: true }}

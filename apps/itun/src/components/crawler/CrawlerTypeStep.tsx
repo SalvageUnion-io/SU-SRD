@@ -5,7 +5,7 @@ import {
   MasonryColumns,
   OptRow,
   Panel,
-  ReferenceEntityDisplay,
+  ReferenceEntityCard,
   TreeSep,
 } from 'component-lib'
 
@@ -64,7 +64,7 @@ export function CrawlerTypeDetail({ selected }: CrawlerTypeDetailProps) {
       />
     )
   }
-  return <ReferenceEntityDisplay data={selected as unknown as SURefEntity} />
+  return <ReferenceEntityCard data={selected as unknown as SURefEntity} />
 }
 
 type CrawlerTypeSelectStepProps = {
@@ -100,7 +100,7 @@ export function CrawlerTypeSelectStep({
           const slots = crawlerWeaponSlots(type.mutations)
           const spBonus = crawlerMaxSpBonus(type.mutations)
           return (
-            <ReferenceEntityDisplay
+            <ReferenceEntityCard
               key={type.id}
               data={type}
               compact
@@ -122,7 +122,7 @@ export function CrawlerTypeSelectStep({
         <>
           <TreeSep name="Your Crawler Type" suffix={selected.name} />
           <div className="max-w-3xl space-y-3">
-            <ReferenceEntityDisplay data={selected as unknown as SURefEntity} />
+            <ReferenceEntityCard data={selected as unknown as SURefEntity} />
             {isAugmented && (
               <Panel className="px-3 py-2.5 font-body text-sm text-ink">
                 <span className="font-cond font-bold uppercase tracking-caps">

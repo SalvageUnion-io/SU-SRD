@@ -1,6 +1,6 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { KvRow, Panel, ReferenceEntityDisplay } from 'component-lib'
+import { KvRow, Panel, ReferenceEntityCard } from 'component-lib'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 
 type SURFindAll = { findAll: (fn: (x: unknown) => boolean) => unknown[] }
@@ -75,7 +75,7 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
       {/* chosen cards */}
       <div className="space-y-3">
         {chosenAbilities.map((ability) => (
-          <ReferenceEntityDisplay
+          <ReferenceEntityCard
             key={ability.id}
             data={ability as unknown as SURefEntity}
             compact
@@ -83,7 +83,7 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
           />
         ))}
         {chosenEquipment.map((item, i) => (
-          <ReferenceEntityDisplay
+          <ReferenceEntityCard
             // Duplicates are legal picks (2× the same Tech 1 item), so the id
             // alone cannot key the list.
             // biome-ignore lint/suspicious/noArrayIndexKey: id alone can't disambiguate duplicate picks; id+index is the stablest available key

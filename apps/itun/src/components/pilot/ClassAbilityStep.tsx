@@ -1,7 +1,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefClass, SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
-import { MasonryColumns, ReferenceEntityDisplay, TreeSep } from 'component-lib'
+import { MasonryColumns, ReferenceEntityCard, TreeSep } from 'component-lib'
 import { selectableClasses } from './classOptions'
 
 type SURClassesAccessor = {
@@ -95,7 +95,7 @@ export function ClassAbilityStep({
   const allAbilities = surAbilities.findAll(() => true) as AbilityLike[]
 
   const renderClassCard = (cls: SURefClass) => (
-    <ReferenceEntityDisplay
+    <ReferenceEntityCard
       key={cls.id}
       data={cls}
       compact
@@ -108,7 +108,7 @@ export function ClassAbilityStep({
   )
 
   const renderAbilityCard = (ability: AbilityLike) => (
-    <ReferenceEntityDisplay
+    <ReferenceEntityCard
       key={ability.id}
       data={ability as unknown as SURefEntity}
       compact

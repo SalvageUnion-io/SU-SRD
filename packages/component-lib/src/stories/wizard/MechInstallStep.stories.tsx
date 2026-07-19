@@ -6,7 +6,7 @@ import { matchesRef } from 'salvageunion-reference/rules'
 import { Button } from '../../components/chrome/Button'
 import { FilterChip } from '../../components/shared/FilterChip'
 import { MasonryColumns } from '../../components/shared/MasonryColumns'
-import { ReferenceEntityDisplay } from '../../components/referenceEntity/card/referenceEntityDisplayShim'
+import { ReferenceEntityCard } from '../../components/referenceEntity/card/ReferenceEntityCard'
 import { VitalGauge } from '../../components/stat/VitalGauge'
 import { cn } from '../../utils/cn'
 import { Caption } from '../_harness'
@@ -199,7 +199,7 @@ function LegacyInstallStep({ kind }: { kind: 'systems' | 'modules' }) {
               const count = selected.filter((ref) => matchesRef(item, ref)).length
               const installed = count > 0
               return (
-                <ReferenceEntityDisplay
+                <ReferenceEntityCard
                   key={item.id}
                   data={item as unknown as SURefEntity}
                   compact

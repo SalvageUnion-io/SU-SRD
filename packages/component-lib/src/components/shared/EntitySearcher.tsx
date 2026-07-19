@@ -24,7 +24,7 @@ import { matchesRef, type TechLevel } from 'salvageunion-reference/rules'
 import { cn } from '../../utils/cn'
 import { Panel } from '../chrome/Panel'
 import { Button } from '../chrome/Button'
-import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { statBlockRowStarts } from '../stat/pipRows'
 import { DisplayCard } from './DisplayCard'
 import { FilterChip } from './FilterChip'
@@ -365,7 +365,7 @@ export function EntitySearcher({
           }
           const isSelected = count > 0
           return (
-            <ReferenceEntityDisplay
+            <ReferenceEntityCard
               key={item.id}
               data={item as unknown as SURefEntity}
               compact
@@ -496,7 +496,7 @@ function CountCard({
   const installed = count > 0
   return (
     <div className={cn('rounded-[5px]', installed && 'shadow-[0_0_0_3px_var(--color-rust)]')}>
-      <ReferenceEntityDisplay
+      <ReferenceEntityCard
         data={entity as unknown as SURefEntity}
         compact
         hide={{ actions: true, choices: true }}
@@ -583,7 +583,7 @@ function SelectionRail({
         {entries.map(({ entity, ref, index, copy, total }) => (
           <div key={index} data-testid="rail-entry" className="flex items-start gap-2">
             <div className="min-w-0 flex-1">
-              <ReferenceEntityDisplay
+              <ReferenceEntityCard
                 data={entity as unknown as SURefEntity}
                 mode="head"
                 hide={{ actions: true, choices: true }}

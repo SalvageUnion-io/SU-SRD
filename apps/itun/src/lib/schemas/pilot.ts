@@ -7,7 +7,7 @@ import { ItemConditionMapSchema } from './mech'
  *
  * Mirrors component-lib's `ChoiceSelections` type exactly:
  *   Record<choiceId, selectedOptionValues[]>
- * so it can be passed straight into ReferenceEntityDisplay's controlled
+ * so it can be passed straight into ReferenceEntityCard's controlled
  * `selections` prop. Free-text choices store their value as a single-element array.
  */
 export const ChoiceSelectionsSchema = z.record(z.string(), z.array(z.string()))

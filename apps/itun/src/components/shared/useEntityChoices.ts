@@ -1,6 +1,6 @@
 /**
  * useEntityChoices — controlled-selection adapter between an entity's persisted
- * per-item choice map and component-lib's ReferenceEntityDisplay `selections` /
+ * per-item choice map and component-lib's ReferenceEntityCard `selections` /
  * `onSelectionChange` props.
  *
  * Given an entity (`entityType`/`entityId`), an item slug, the name of the field
@@ -36,7 +36,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import type { EntityType, EntityForType } from '../../stores/types'
 
 /**
- * Stable empty-selections reference. ReferenceEntityDisplay is wrapped in
+ * Stable empty-selections reference. ReferenceEntityCard is wrapped in
  * React.memo with the default shallow comparator, so returning a fresh `{}`
  * literal on every render would defeat the memo. Frozen so it cannot be mutated.
  */

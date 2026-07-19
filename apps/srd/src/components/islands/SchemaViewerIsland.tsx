@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, Suspense } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getTechLevel, getSource, getEntitySlug, getTree } from 'salvageunion-reference'
 import {
-  ReferenceEntityDisplay,
+  ReferenceEntityCard,
   CardSkeleton,
   FilterChip,
   FilterRow,
@@ -17,7 +17,7 @@ import { srdEntityHref } from '../../lib/entityHref'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 // Hoisted to a stable module-level reference so the `memo()` on
-// ReferenceEntityDisplay is not defeated by a fresh inline object literal on
+// ReferenceEntityCard is not defeated by a fresh inline object literal on
 // every render (e.g. each keystroke in the name filter re-rendering every card).
 const HIDE_ACTIONS_AND_CHOICES = { actions: true, choices: true } as const
 
@@ -326,7 +326,7 @@ export function SchemaViewerIsland({
                           className="relative block"
                         >
                           <Suspense fallback={<CardSkeleton compact />}>
-                            <ReferenceEntityDisplay
+                            <ReferenceEntityCard
                               hide={HIDE_ACTIONS_AND_CHOICES}
                               data={item}
                               compact

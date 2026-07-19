@@ -28,7 +28,7 @@ import { must } from '../../__tests__/must'
 // ---------------------------------------------------------------------------
 
 beforeAll(async () => {
-  // ReferenceEntityDisplay renders trait keywords inline, so 'traits' must be
+  // ReferenceEntityCard renders trait keywords inline, so 'traits' must be
   // preloaded too even though the wizard does not directly query it.
   await SalvageUnionReference.preload('all')
 })

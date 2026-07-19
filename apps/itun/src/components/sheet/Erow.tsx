@@ -43,7 +43,7 @@ export function Ecflow({ children, className }: EcflowProps) {
   )
 }
 
-/** The card props Erow may inject (ReferenceEntityDisplay accepts these). */
+/** The card props Erow may inject (ReferenceEntityCard accepts these). */
 type ErowCardProps = {
   footMeta?: CardFootMeta[]
 }

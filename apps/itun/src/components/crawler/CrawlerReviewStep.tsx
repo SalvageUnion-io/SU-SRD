@@ -5,7 +5,7 @@ import type {
   SURefSystem,
 } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
-import { KvRow, Panel, ReferenceEntityDisplay } from 'component-lib'
+import { KvRow, Panel, ReferenceEntityCard } from 'component-lib'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
 
@@ -102,14 +102,14 @@ export function CrawlerReviewStep({
       {/* chosen cards */}
       <div className="space-y-3">
         {selectedType && (
-          <ReferenceEntityDisplay
+          <ReferenceEntityCard
             data={selectedType as unknown as SURefEntity}
             compact
             hide={{ choices: true }}
           />
         )}
         {systems.map((system) => (
-          <ReferenceEntityDisplay
+          <ReferenceEntityCard
             key={system.id}
             data={system as unknown as SURefEntity}
             compact

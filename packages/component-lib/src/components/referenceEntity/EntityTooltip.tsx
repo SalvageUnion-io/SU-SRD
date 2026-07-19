@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { SalvageUnionReference, isKeyword } from 'salvageunion-reference'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import { Tooltip } from '@base-ui/react/tooltip'
-import { ReferenceEntityDisplay } from './card/referenceEntityDisplayShim'
+import { ReferenceEntityCard } from './card/ReferenceEntityCard'
 import { Tooltip as SimpleTooltip } from '../ui/tooltip'
 
 type EntityTooltipProps = {
@@ -34,7 +34,7 @@ function getKeywordDescription(entity: unknown): string | null {
 }
 
 /**
- * EntityTooltip - Shows ReferenceEntityDisplay content in a hover card
+ * EntityTooltip - Shows ReferenceEntityCard content in a hover card
  * Wraps children and displays entity details on hover
  * Keywords render as a simple text tooltip; other entities render as a full card.
  *
@@ -110,7 +110,7 @@ export function EntityTooltip({
           <Tooltip.Positioner sideOffset={5} align="start">
             <Tooltip.Popup className="z-50 max-h-[80vh] max-w-[500px] overflow-y-auto border-none bg-transparent p-0 shadow-2xl">
               {showArrow && <Tooltip.Arrow />}
-              <ReferenceEntityDisplay data={entity} compact />
+              <ReferenceEntityCard data={entity} compact />
             </Tooltip.Popup>
           </Tooltip.Positioner>
         </Tooltip.Portal>

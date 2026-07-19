@@ -15,7 +15,7 @@ type MasonryColumnsProps = {
   maxColumns?: number
   /**
    * Radio-group semantics for exactly-one pickers: wrap the flow in
-   * `role="radiogroup"`. Pair with `ReferenceEntityDisplay` / `Sel` cells using
+   * `role="radiogroup"`. Pair with `ReferenceEntityCard` / `Sel` cells using
    * `selectionRole="radio"`, and pass an accessible group name via `ariaLabel`.
    */
   radio?: boolean

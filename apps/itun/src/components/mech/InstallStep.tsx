@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { FilterChip, MasonryColumns, ReferenceEntityDisplay } from 'component-lib'
+import { FilterChip, MasonryColumns, ReferenceEntityCard } from 'component-lib'
 import type { TechLevel } from '../../lib/rules/types'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 
@@ -83,7 +83,7 @@ export function InstallStep({ kind, selected, onAdd }: InstallStepProps) {
             // and the add rides the standard ReferenceEntity `controls` API —
             // the install count shows as the control's secondary segment.
             return (
-              <ReferenceEntityDisplay
+              <ReferenceEntityCard
                 key={item.id}
                 data={item as unknown as SURefEntity}
                 compact

@@ -13,7 +13,7 @@ import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
  * middle path, see below): the entity-display layer pulls trait keywords,
  * actions, and other cross-schema references inline. Routes used to preload
  * only what their wizard needed (classes/abilities/equipment for /pilots/new)
- * which left ReferenceEntityDisplay throwing "Schema 'traits' not loaded"
+ * which left ReferenceEntityCard throwing "Schema 'traits' not loaded"
  * when it rendered a chosen entity. A single preload of the full dataset
  * removes the matrix of per-route preload lists and matches the local-first
  * MVP model (the dataset is ~1-2 MB JSON; loading it up front is fine) — see

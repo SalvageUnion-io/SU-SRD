@@ -9,7 +9,7 @@
  *   rows / 18px between columns.
  * - `EntityGridRow`: wraps one entity card with its action economy. Mode
  *   `'card'` (default) folds `footMeta` into the child card's own foot
- *   (DisplayCard / ReferenceEntityDisplay accept it natively, so the clone is a
+ *   (DisplayCard / ReferenceEntityCard accept it natively, so the clone is a
  *   prop pass-through — no markup surgery); card actions ride the card's own
  *   `controls` overlay. Mode `'rail'` puts a fixed 152px right-hand callout
  *   column beside the card: a key/value dl of `footMeta` above a stacked,
@@ -45,7 +45,7 @@ export function EntityGrid({ children, className }: EntityGridProps) {
   )
 }
 
-/** The card props EntityGridRow may inject (DisplayCard/ReferenceEntityDisplay accept these). */
+/** The card props EntityGridRow may inject (DisplayCard/ReferenceEntityCard accept these). */
 type InjectableCardProps = {
   footMeta?: CardFootMeta[]
 }

@@ -63,7 +63,7 @@
 
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { ReferenceEntityDisplay } from 'component-lib'
+import { ReferenceEntityCard } from 'component-lib'
 
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
@@ -312,7 +312,7 @@ export function CrawlerSheet({
                     return (
                       <Erow key={slug}>
                         {system ? (
-                          <ReferenceEntityDisplay
+                          <ReferenceEntityCard
                             data={system}
                             compact
                             controls={
