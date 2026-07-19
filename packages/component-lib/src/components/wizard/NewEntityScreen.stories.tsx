@@ -1,7 +1,10 @@
 import type { Story } from '@ladle/react'
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { Button, Field, Input, ModalShell, ModeDoor, Select } from 'component-lib'
+import { Button } from '../chrome/Button'
+import { Field, Input, Select } from '../chrome/Field'
+import { ModeDoor } from '../chrome/ModeDoor'
+import { ModalShell } from '../shared/ModalShell'
 import { cn } from '../../utils/cn'
 import { Caption } from '../../stories/_harness'
 
