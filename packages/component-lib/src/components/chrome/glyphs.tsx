@@ -1,6 +1,16 @@
 import type { SVGProps } from 'react'
 
-export type GlyphName = 'gear' | 'clock' | 'pennant' | 'x'
+export type GlyphName =
+  | 'gear'
+  | 'clock'
+  | 'pennant'
+  | 'x'
+  // Stroked control glyphs — the edit-language affordances (see STROKE below).
+  | 'pencil'
+  | 'check'
+  | 'plus'
+  | 'remove'
+  | 'swap'
 
 type GlyphProps = {
   name: GlyphName
@@ -22,6 +32,30 @@ const PATHS: Record<GlyphName, string> = {
   pennant: 'M6 2h2v20H6V2Zm2 2h11l-3 4 3 4H8V4Z',
   // condition · ✕
   x: 'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
+
+  // ── Stroked control glyphs ────────────────────────────────────────────────
+  // The live-sheet edit language (pencil / check / plus / remove / swap) is
+  // drawn as STROKES, not fills — a filled pencil outline renders as a blob.
+  // Their weights live in STROKE below; absent from it means "fill".
+  pencil: 'm16.5 3.5 4 4L7 21H3v-4z',
+  check: 'm5.5 12.5 4 4 9-10',
+  plus: 'M12 5v14M5 12h14',
+  remove: 'm6 6 12 12M18 6 6 18',
+  swap: 'M4 8h14M14.5 4.5 18 8l-3.5 3.5M20 16H6M9.5 12.5 6 16l3.5 3.5',
+}
+
+/**
+ * Per-glyph stroke weight. A glyph listed here renders as an unfilled stroke at
+ * this width; anything absent renders filled. The weights are carried over
+ * verbatim from the hand-drawn icons these replaced, so the affordances keep
+ * their exact optical weight.
+ */
+const STROKE: Partial<Record<GlyphName, number>> = {
+  pencil: 2,
+  check: 2.4,
+  plus: 3,
+  remove: 2.2,
+  swap: 2.2,
 }
 
 /**
@@ -32,12 +66,18 @@ const PATHS: Record<GlyphName, string> = {
  */
 export function Glyph({ name, title, ...rest }: GlyphProps) {
   const decorative = title === undefined
+  const strokeWidth = STROKE[name]
+  const stroked = strokeWidth !== undefined
   return (
     <svg
       viewBox="0 0 24 24"
       width="1em"
       height="1em"
-      fill="currentColor"
+      fill={stroked ? 'none' : 'currentColor'}
+      stroke={stroked ? 'currentColor' : undefined}
+      strokeWidth={strokeWidth}
+      strokeLinecap={stroked ? 'round' : undefined}
+      strokeLinejoin={stroked ? 'round' : undefined}
       role={decorative ? undefined : 'img'}
       aria-hidden={decorative ? 'true' : undefined}
       aria-label={title}

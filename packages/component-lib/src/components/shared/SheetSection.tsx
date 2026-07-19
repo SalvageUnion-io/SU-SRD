@@ -24,6 +24,7 @@ import {
   isValidElement,
 } from 'react'
 import { Button } from '../chrome/Button'
+import { Glyph } from '../chrome/glyphs'
 import { ModalShell } from './ModalShell'
 import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
@@ -54,88 +55,17 @@ export const REMOVABLE_CARD_STYLE: { className: string } = {
 // a className so it can size to its host button (design `.hbtn svg` / `.ctl svg`).
 // ---------------------------------------------------------------------------
 
-function PencilIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="m16.5 3.5 4 4L7 21H3v-4z" />
-    </svg>
-  )
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.4}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="m5.5 12.5 4 4 9-10" />
-    </svg>
-  )
-}
-
-function PlusIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={3}
-      strokeLinecap="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-  )
-}
-
-function RemoveIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.2}
-      strokeLinecap="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="m6 6 12 12M18 6 6 18" />
-    </svg>
-  )
-}
-
-function SwapIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M4 8h14M14.5 4.5 18 8l-3.5 3.5M20 16H6M9.5 12.5 6 16l3.5 3.5" />
-    </svg>
-  )
-}
+/**
+ * The edit-language affordances now come from the shared {@link Glyph} set —
+ * these thin adapters exist only because `cardRemoveControls` takes a component
+ * reference rather than a glyph name.
+ */
+const SwapGlyph = ({ className }: { className?: string }) => (
+  <Glyph name="swap" className={className} />
+)
+const RemoveGlyph = ({ className }: { className?: string }) => (
+  <Glyph name="remove" className={className} />
+)
 
 // ---------------------------------------------------------------------------
 // HButton — the container-header control button (design `.hbtn`, clean-edit.html
@@ -245,7 +175,11 @@ export function SectionEditButton({
       onClick={onToggle}
       className={className}
     >
-      {editing ? <CheckIcon className="h-3.5 w-3.5" /> : <PencilIcon className="h-3.5 w-3.5" />}
+      {editing ? (
+        <Glyph name="check" className="h-3.5 w-3.5" />
+      ) : (
+        <Glyph name="pencil" className="h-3.5 w-3.5" />
+      )}
       {editing ? 'Done' : 'Edit'}
     </HButton>
   )
@@ -276,7 +210,7 @@ export function SectionAddButton({ label, onClick, className }: SectionAddButton
       className={className}
     >
       <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-current">
-        <PlusIcon className="h-2 w-2" />
+        <Glyph name="plus" className="h-2 w-2" />
       </span>
       Add {label}
     </HButton>
@@ -314,9 +248,14 @@ export function cardRemoveControls({
 }: CardControlOptions): ReferenceEntityControl[] {
   const controls: ReferenceEntityControl[] = []
   if (onSwap) {
-    controls.push({ key: 'swap', ariaLabel: `Swap ${name}`, icon: SwapIcon, onClick: onSwap })
+    controls.push({ key: 'swap', ariaLabel: `Swap ${name}`, icon: SwapGlyph, onClick: onSwap })
   }
-  controls.push({ key: 'remove', ariaLabel: `Remove ${name}`, icon: RemoveIcon, onClick: onRemove })
+  controls.push({
+    key: 'remove',
+    ariaLabel: `Remove ${name}`,
+    icon: RemoveGlyph,
+    onClick: onRemove,
+  })
   return controls
 }
 

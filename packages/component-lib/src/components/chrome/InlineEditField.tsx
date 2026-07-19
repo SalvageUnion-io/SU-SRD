@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Glyph } from './glyphs'
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { Input } from './Field'
@@ -39,23 +40,6 @@ type InlineEditFieldProps = {
 // ---------------------------------------------------------------------------
 // Pen glyph — pinned inside the labeled value box (design-spec `.ifield .pen`)
 // ---------------------------------------------------------------------------
-
-function PenIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="pointer-events-none absolute right-2.5 top-1/2 h-[15px] w-[15px] -translate-y-1/2 text-ink/55"
-      aria-hidden="true"
-    >
-      <path d="m16.5 3.5 4 4L7 21H3v-4z" />
-    </svg>
-  )
-}
 
 // Shared input skin, mirroring Field's Input focus-ring pattern (ring-rust/25,
 // paper bg, 1.5px ink border, 3px radius) so the textarea matches the input.
@@ -282,7 +266,12 @@ export function InlineEditField({
         style={{ borderColor: 'var(--tone-deep, var(--color-ink))' }}
       >
         {inner}
-        {!readOnly && !editing && <PenIcon />}
+        {!readOnly && !editing && (
+          <Glyph
+            name="pencil"
+            className="pointer-events-none absolute right-2.5 top-1/2 h-[15px] w-[15px] -translate-y-1/2 text-ink/55"
+          />
+        )}
       </span>
     </div>
   )
