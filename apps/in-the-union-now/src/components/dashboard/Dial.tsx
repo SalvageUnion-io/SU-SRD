@@ -19,7 +19,7 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'rea
 
 import type { CockpitPrefs, DialKind } from '../../lib/schemas/cockpitPrefs'
 import { usePlayStateStore } from '../../stores/playStateStore'
-import { DashboardGauge } from './DashboardGauge'
+import { DashboardGauge } from 'component-lib'
 import { DialConfig } from './DialConfig'
 import type { DialItem } from './dialItems'
 

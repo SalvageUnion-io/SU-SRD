@@ -261,7 +261,7 @@ export {};
 /**
  * Helper functions for working with content blocks in entity data
  */
-import type { SURefObjectContentBlock } from './types/index.js';
+import type { SURefObjectContentBlock, SURefObjectDataValue } from './types/index.js';
 /**
  * Extract the string value from a paragraph content block
  * @param content - Array of content blocks
@@ -284,6 +284,22 @@ export declare function replaceChassisPlaceholder(text: string | undefined, chas
  * @returns Parsed string value with placeholders replaced
  */
 export declare function parseContentBlockString(block: SURefObjectContentBlock, chassisName?: string): string;
+/**
+ * Resolve a data value's numeric value against an effective tech level, applying
+ * its `perTechLevel` scaling ("+N per Tech Level after the first"). Used for
+ * granted, TL-scalable pilot equipment (e.g. Custom Sniper Rifle damage).
+ *
+ * The base value is the entity's TL1 value; each tech level above the first adds
+ * `perTechLevel`. A value with no `perTechLevel`, a non-numeric value, or an
+ * undefined/≤1 effective level returns the base unchanged.
+ *
+ * @returns `{ value, scaled }` — the resolved numeric value and whether scaling
+ * actually changed it (drives the "modified" highlight in the UI).
+ */
+export declare function resolveDataValueForTechLevel(dv: SURefObjectDataValue, effectiveTechLevel: number | undefined): {
+    value: number | string | undefined;
+    scaled: boolean;
+};
 //# sourceMappingURL=contentBlockHelpers.d.ts.map
 // === lib/generated/modelFactoryRegistry.generated.d.ts ===
 /**
@@ -818,7 +834,7 @@ export { rollOnTable, type RollOnTableOutcome, type D20Roller } from './rollOnTa
 export * from './utilities.js';
 export * from './helpers.js';
 export { nameToSlug, getEntitySlug, findEntityBySlug } from './slug.js';
-export { getParagraphString, replaceChassisPlaceholder, parseContentBlockString, } from './contentBlockHelpers.js';
+export { getParagraphString, replaceChassisPlaceholder, parseContentBlockString, resolveDataValueForTechLevel, } from './contentBlockHelpers.js';
 export { search, searchIn, getSuggestions, invalidateSearchIndex, type SearchOptions, type SearchResult, } from './search.js';
 export { resolveChoiceView, type ChoiceSelections, type ChoicePrompt, type ResolvedChoiceView, } from './resolveChoiceView.js';
 export { getHeatGenerated, applyHeat, canActivateAction, shouldTriggerHeatCheck, canPush, nextCondition, applySpDamage, } from './combatUtils.js';
@@ -1006,7 +1022,7 @@ export declare function toPascalCase(id: string): string;
  *   e.g. { choiceId, label, text: 'Choose: Ballistic or Energy' }.
  *
  * The function is deterministic and performs no I/O. It is the single source
- * of truth shared by suref-web (ephemeral selection state) and ITUN
+ * of truth shared by srd (ephemeral selection state) and ITUN
  * (persisted selection state).
  */
 import type { SURefObjectDataValue, SURefObjectTrait, SURefObjectContentBlock, SURefObjectChoice } from './schemas/index.js';
@@ -1144,6 +1160,28 @@ import type { CargoCapacityResult, CargoItem, CargoParent } from './types.js';
  */
 export declare function computeCargoCapacity(parent: CargoParent, items: CargoItem[]): CargoCapacityResult;
 //# sourceMappingURL=cargo.d.ts.map
+// === lib/rules/choiceCatalog.d.ts ===
+import type { SURefMetaEntity, SURefObjectChoice } from '../types/index.js';
+/**
+ * Resolve the entities a catalog choice offers.
+ *
+ * - A shortlist choice resolves its named entities across the schema(s).
+ * - A schema-only choice resolves the whole collection, narrowed by `filter`.
+ * - When `opts.techLevel` is a number, entities carrying a higher numeric
+ *   `techLevel` are dropped (the crawler mounts its Tech Level or lower).
+ *
+ * Returns `[]` for any non-catalog choice, or a catalog with no schema.
+ */
+export declare function resolveCatalogChoiceEntities(choice: SURefObjectChoice, opts?: {
+    techLevel?: number;
+}): SURefMetaEntity[];
+/**
+ * Whether a choice is a **schema-only** catalog — "pick any entity from the
+ * collection" (no fixed shortlist). These render as an entity listing; a
+ * shortlist catalog renders as an option-card grid instead.
+ */
+export declare function isSchemaOnlyCatalogChoice(choice: SURefObjectChoice): boolean;
+//# sourceMappingURL=choiceCatalog.d.ts.map
 // === lib/rules/coreMechanic.d.ts ===
 /**
  * Core Mechanic d20 (design review R-6/U-3).
@@ -1844,6 +1882,7 @@ export { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap.js';
 export { computeCargoCapacity } from './cargo.js';
 export { evaluateSoftWarnings, evaluatePilotWarnings, evaluateMechWarnings, PILOT_ABILITY_CAP, SALVAGER_ABILITY_CAP, } from './softWarnings.js';
 export { isWeaponSystem } from './crawlerSystems.js';
+export { resolveCatalogChoiceEntities, isSchemaOnlyCatalogChoice, } from './choiceCatalog.js';
 export { matchesRef, resolveChassisRef, resolveSystemRef, resolveModuleRef, resolveInstalledRef, refDisplayName, } from './resolveRefs.js';
 export { pilotDetailWarnings, mechDetailWarnings, crawlerDetailWarnings } from './detailWarnings.js';
 export { clampHeat, reactorOverloadOutcome, performHeatCheck, performPush } from './heatCheck.js';
@@ -2005,6 +2044,7 @@ export declare function resolveChassisRef(ref: string): ({
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: import("zod").infer<typeof import("../index.js").ContentTypeSchema>;
             value?: string | import("zod").infer<typeof import("../index.js").DataValueSchema>[];
@@ -2040,6 +2080,7 @@ export declare function resolveSystemRef(ref: string): ({
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: import("zod").infer<typeof import("../index.js").ContentTypeSchema>;
             value?: string | import("zod").infer<typeof import("../index.js").DataValueSchema>[];
@@ -2093,6 +2134,7 @@ export declare function resolveModuleRef(ref: string): ({
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: import("zod").infer<typeof import("../index.js").ContentTypeSchema>;
             value?: string | import("zod").infer<typeof import("../index.js").DataValueSchema>[];
@@ -2145,6 +2187,7 @@ export declare function resolveInstalledRef(ref: string): ({
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: import("zod").infer<typeof import("../index.js").ContentTypeSchema>;
             value?: string | import("zod").infer<typeof import("../index.js").DataValueSchema>[];
@@ -2861,6 +2904,7 @@ export declare const AbilitySchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -2873,6 +2917,7 @@ export declare const AbilitySchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3011,6 +3056,7 @@ export declare const AbilityTreeRequirementSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3023,6 +3069,7 @@ export declare const AbilityTreeRequirementSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3187,6 +3234,7 @@ export declare const BioTitanSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3199,6 +3247,7 @@ export declare const BioTitanSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3258,6 +3307,7 @@ export declare const ChassisSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3270,6 +3320,7 @@ export declare const ChassisSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3355,6 +3406,7 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3367,6 +3419,7 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3532,6 +3585,7 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3544,6 +3598,7 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3691,6 +3746,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3703,6 +3759,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3801,6 +3858,106 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             max: z.ZodOptional<z.ZodNumber>;
             scalesWithField: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>>;
+        source?: z.infer<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            kind: z.ZodLiteral<"text">;
+            multiline: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"table">;
+            rollTable: z.ZodString;
+            orChooseOwn: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"options">;
+            options: z.ZodArray<z.ZodObject<{
+                label: z.ZodString;
+                value: z.ZodString;
+                description: z.ZodOptional<z.ZodString>;
+                effects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    op: z.ZodLiteral<"addTrait">;
+                    value: z.ZodString;
+                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"removeTrait">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"setRange">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"addDamage">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    unit: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>], "op">>>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"catalog">;
+            schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+                classes: "classes";
+                npcs: "npcs";
+                abilities: "abilities";
+                "ability-tree-requirements": "ability-tree-requirements";
+                chassis: "chassis";
+                "crawler-bays": "crawler-bays";
+                "crawler-tech-levels": "crawler-tech-levels";
+                crawlers: "crawlers";
+                creatures: "creatures";
+                distances: "distances";
+                drones: "drones";
+                equipment: "equipment";
+                guides: "guides";
+                keywords: "keywords";
+                factions: "factions";
+                meld: "meld";
+                modules: "modules";
+                "roll-tables": "roll-tables";
+                sources: "sources";
+                squads: "squads";
+                "tech-levels": "tech-levels";
+                systems: "systems";
+                "bio-titans": "bio-titans";
+                traits: "traits";
+                vehicles: "vehicles";
+            }>>>;
+            entities: z.ZodOptional<z.ZodArray<z.ZodString>>;
+            filter: z.ZodOptional<z.ZodObject<{
+                field: z.ZodOptional<z.ZodString>;
+                min: z.ZodOptional<z.ZodNumber>;
+                max: z.ZodOptional<z.ZodNumber>;
+                damageType: z.ZodOptional<z.ZodEnum<{
+                    HP: "HP";
+                    SP: "SP";
+                }>>;
+            }, z.core.$strict>>;
+            reveals: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"systemVariant">;
+            options: z.ZodArray<z.ZodObject<{
+                structurePoints: z.ZodOptional<z.ZodNumber>;
+                energyPoints: z.ZodOptional<z.ZodNumber>;
+                heatCapacity: z.ZodOptional<z.ZodNumber>;
+                systemSlots: z.ZodOptional<z.ZodNumber>;
+                moduleSlots: z.ZodOptional<z.ZodNumber>;
+                cargoCapacity: z.ZodOptional<z.ZodNumber>;
+                name: z.ZodOptional<z.ZodString>;
+                techLevel: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>;
+                slotsRequired: z.ZodNumber;
+                salvageValue: z.ZodNumber;
+                recommended: z.ZodOptional<z.ZodBoolean>;
+                count: z.ZodOptional<z.ZodNumber>;
+                statBonus: z.ZodOptional<z.ZodObject<{
+                    structurePoints: z.ZodOptional<z.ZodNumber>;
+                    energyPoints: z.ZodOptional<z.ZodNumber>;
+                    heatCapacity: z.ZodOptional<z.ZodNumber>;
+                    cargoCapacity: z.ZodOptional<z.ZodNumber>;
+                }, z.core.$strict>>;
+                actions: z.ZodArray<z.ZodString>;
+            }, z.core.$strip>>;
+        }, z.core.$strict>], "kind">>;
+        cardinality?: z.infer<z.ZodObject<{
+            min: z.ZodNumber;
+            max: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                scalesWith: z.ZodString;
+            }, z.core.$strict>]>;
+        }, z.core.$strict>>;
+        lifetime?: "permanent" | "session";
     }, unknown, z.core.$ZodTypeInternals<{
         id: string;
         name: string;
@@ -3838,6 +3995,106 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             max: z.ZodOptional<z.ZodNumber>;
             scalesWithField: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>>;
+        source?: z.infer<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            kind: z.ZodLiteral<"text">;
+            multiline: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"table">;
+            rollTable: z.ZodString;
+            orChooseOwn: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"options">;
+            options: z.ZodArray<z.ZodObject<{
+                label: z.ZodString;
+                value: z.ZodString;
+                description: z.ZodOptional<z.ZodString>;
+                effects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    op: z.ZodLiteral<"addTrait">;
+                    value: z.ZodString;
+                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"removeTrait">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"setRange">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"addDamage">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    unit: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>], "op">>>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"catalog">;
+            schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+                classes: "classes";
+                npcs: "npcs";
+                abilities: "abilities";
+                "ability-tree-requirements": "ability-tree-requirements";
+                chassis: "chassis";
+                "crawler-bays": "crawler-bays";
+                "crawler-tech-levels": "crawler-tech-levels";
+                crawlers: "crawlers";
+                creatures: "creatures";
+                distances: "distances";
+                drones: "drones";
+                equipment: "equipment";
+                guides: "guides";
+                keywords: "keywords";
+                factions: "factions";
+                meld: "meld";
+                modules: "modules";
+                "roll-tables": "roll-tables";
+                sources: "sources";
+                squads: "squads";
+                "tech-levels": "tech-levels";
+                systems: "systems";
+                "bio-titans": "bio-titans";
+                traits: "traits";
+                vehicles: "vehicles";
+            }>>>;
+            entities: z.ZodOptional<z.ZodArray<z.ZodString>>;
+            filter: z.ZodOptional<z.ZodObject<{
+                field: z.ZodOptional<z.ZodString>;
+                min: z.ZodOptional<z.ZodNumber>;
+                max: z.ZodOptional<z.ZodNumber>;
+                damageType: z.ZodOptional<z.ZodEnum<{
+                    HP: "HP";
+                    SP: "SP";
+                }>>;
+            }, z.core.$strict>>;
+            reveals: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"systemVariant">;
+            options: z.ZodArray<z.ZodObject<{
+                structurePoints: z.ZodOptional<z.ZodNumber>;
+                energyPoints: z.ZodOptional<z.ZodNumber>;
+                heatCapacity: z.ZodOptional<z.ZodNumber>;
+                systemSlots: z.ZodOptional<z.ZodNumber>;
+                moduleSlots: z.ZodOptional<z.ZodNumber>;
+                cargoCapacity: z.ZodOptional<z.ZodNumber>;
+                name: z.ZodOptional<z.ZodString>;
+                techLevel: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>;
+                slotsRequired: z.ZodNumber;
+                salvageValue: z.ZodNumber;
+                recommended: z.ZodOptional<z.ZodBoolean>;
+                count: z.ZodOptional<z.ZodNumber>;
+                statBonus: z.ZodOptional<z.ZodObject<{
+                    structurePoints: z.ZodOptional<z.ZodNumber>;
+                    energyPoints: z.ZodOptional<z.ZodNumber>;
+                    heatCapacity: z.ZodOptional<z.ZodNumber>;
+                    cargoCapacity: z.ZodOptional<z.ZodNumber>;
+                }, z.core.$strict>>;
+                actions: z.ZodArray<z.ZodString>;
+            }, z.core.$strip>>;
+        }, z.core.$strict>], "kind">>;
+        cardinality?: z.infer<z.ZodObject<{
+            min: z.ZodNumber;
+            max: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                scalesWith: z.ZodString;
+            }, z.core.$strict>]>;
+        }, z.core.$strict>>;
+        lifetime?: "permanent" | "session";
     }, unknown>>>>;
     tableName: z.ZodOptional<z.ZodString>;
 }, z.core.$strict>;
@@ -3852,6 +4109,7 @@ export declare const CrawlerTechLevelSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3864,6 +4122,7 @@ export declare const CrawlerTechLevelSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3923,6 +4182,7 @@ export declare const CrawlerSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -3935,6 +4195,7 @@ export declare const CrawlerSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4007,6 +4268,7 @@ export declare const CreatureSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4019,6 +4281,7 @@ export declare const CreatureSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4112,6 +4375,7 @@ export declare const DistanceSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4124,6 +4388,7 @@ export declare const DistanceSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4178,6 +4443,7 @@ export declare const TechLevelEntitySchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4190,6 +4456,7 @@ export declare const TechLevelEntitySchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4213,6 +4480,7 @@ export declare const DroneSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4225,6 +4493,7 @@ export declare const DroneSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4318,6 +4587,106 @@ export declare const DroneSchema: z.ZodObject<{
             max: z.ZodOptional<z.ZodNumber>;
             scalesWithField: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>>;
+        source?: z.infer<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            kind: z.ZodLiteral<"text">;
+            multiline: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"table">;
+            rollTable: z.ZodString;
+            orChooseOwn: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"options">;
+            options: z.ZodArray<z.ZodObject<{
+                label: z.ZodString;
+                value: z.ZodString;
+                description: z.ZodOptional<z.ZodString>;
+                effects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    op: z.ZodLiteral<"addTrait">;
+                    value: z.ZodString;
+                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"removeTrait">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"setRange">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"addDamage">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    unit: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>], "op">>>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"catalog">;
+            schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+                classes: "classes";
+                npcs: "npcs";
+                abilities: "abilities";
+                "ability-tree-requirements": "ability-tree-requirements";
+                chassis: "chassis";
+                "crawler-bays": "crawler-bays";
+                "crawler-tech-levels": "crawler-tech-levels";
+                crawlers: "crawlers";
+                creatures: "creatures";
+                distances: "distances";
+                drones: "drones";
+                equipment: "equipment";
+                guides: "guides";
+                keywords: "keywords";
+                factions: "factions";
+                meld: "meld";
+                modules: "modules";
+                "roll-tables": "roll-tables";
+                sources: "sources";
+                squads: "squads";
+                "tech-levels": "tech-levels";
+                systems: "systems";
+                "bio-titans": "bio-titans";
+                traits: "traits";
+                vehicles: "vehicles";
+            }>>>;
+            entities: z.ZodOptional<z.ZodArray<z.ZodString>>;
+            filter: z.ZodOptional<z.ZodObject<{
+                field: z.ZodOptional<z.ZodString>;
+                min: z.ZodOptional<z.ZodNumber>;
+                max: z.ZodOptional<z.ZodNumber>;
+                damageType: z.ZodOptional<z.ZodEnum<{
+                    HP: "HP";
+                    SP: "SP";
+                }>>;
+            }, z.core.$strict>>;
+            reveals: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"systemVariant">;
+            options: z.ZodArray<z.ZodObject<{
+                structurePoints: z.ZodOptional<z.ZodNumber>;
+                energyPoints: z.ZodOptional<z.ZodNumber>;
+                heatCapacity: z.ZodOptional<z.ZodNumber>;
+                systemSlots: z.ZodOptional<z.ZodNumber>;
+                moduleSlots: z.ZodOptional<z.ZodNumber>;
+                cargoCapacity: z.ZodOptional<z.ZodNumber>;
+                name: z.ZodOptional<z.ZodString>;
+                techLevel: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>;
+                slotsRequired: z.ZodNumber;
+                salvageValue: z.ZodNumber;
+                recommended: z.ZodOptional<z.ZodBoolean>;
+                count: z.ZodOptional<z.ZodNumber>;
+                statBonus: z.ZodOptional<z.ZodObject<{
+                    structurePoints: z.ZodOptional<z.ZodNumber>;
+                    energyPoints: z.ZodOptional<z.ZodNumber>;
+                    heatCapacity: z.ZodOptional<z.ZodNumber>;
+                    cargoCapacity: z.ZodOptional<z.ZodNumber>;
+                }, z.core.$strict>>;
+                actions: z.ZodArray<z.ZodString>;
+            }, z.core.$strip>>;
+        }, z.core.$strict>], "kind">>;
+        cardinality?: z.infer<z.ZodObject<{
+            min: z.ZodNumber;
+            max: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                scalesWith: z.ZodString;
+            }, z.core.$strict>]>;
+        }, z.core.$strict>>;
+        lifetime?: "permanent" | "session";
     }, unknown, z.core.$ZodTypeInternals<{
         id: string;
         name: string;
@@ -4355,6 +4724,106 @@ export declare const DroneSchema: z.ZodObject<{
             max: z.ZodOptional<z.ZodNumber>;
             scalesWithField: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>>;
+        source?: z.infer<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            kind: z.ZodLiteral<"text">;
+            multiline: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"table">;
+            rollTable: z.ZodString;
+            orChooseOwn: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"options">;
+            options: z.ZodArray<z.ZodObject<{
+                label: z.ZodString;
+                value: z.ZodString;
+                description: z.ZodOptional<z.ZodString>;
+                effects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    op: z.ZodLiteral<"addTrait">;
+                    value: z.ZodString;
+                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"removeTrait">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"setRange">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"addDamage">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    unit: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>], "op">>>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"catalog">;
+            schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+                classes: "classes";
+                npcs: "npcs";
+                abilities: "abilities";
+                "ability-tree-requirements": "ability-tree-requirements";
+                chassis: "chassis";
+                "crawler-bays": "crawler-bays";
+                "crawler-tech-levels": "crawler-tech-levels";
+                crawlers: "crawlers";
+                creatures: "creatures";
+                distances: "distances";
+                drones: "drones";
+                equipment: "equipment";
+                guides: "guides";
+                keywords: "keywords";
+                factions: "factions";
+                meld: "meld";
+                modules: "modules";
+                "roll-tables": "roll-tables";
+                sources: "sources";
+                squads: "squads";
+                "tech-levels": "tech-levels";
+                systems: "systems";
+                "bio-titans": "bio-titans";
+                traits: "traits";
+                vehicles: "vehicles";
+            }>>>;
+            entities: z.ZodOptional<z.ZodArray<z.ZodString>>;
+            filter: z.ZodOptional<z.ZodObject<{
+                field: z.ZodOptional<z.ZodString>;
+                min: z.ZodOptional<z.ZodNumber>;
+                max: z.ZodOptional<z.ZodNumber>;
+                damageType: z.ZodOptional<z.ZodEnum<{
+                    HP: "HP";
+                    SP: "SP";
+                }>>;
+            }, z.core.$strict>>;
+            reveals: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"systemVariant">;
+            options: z.ZodArray<z.ZodObject<{
+                structurePoints: z.ZodOptional<z.ZodNumber>;
+                energyPoints: z.ZodOptional<z.ZodNumber>;
+                heatCapacity: z.ZodOptional<z.ZodNumber>;
+                systemSlots: z.ZodOptional<z.ZodNumber>;
+                moduleSlots: z.ZodOptional<z.ZodNumber>;
+                cargoCapacity: z.ZodOptional<z.ZodNumber>;
+                name: z.ZodOptional<z.ZodString>;
+                techLevel: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>;
+                slotsRequired: z.ZodNumber;
+                salvageValue: z.ZodNumber;
+                recommended: z.ZodOptional<z.ZodBoolean>;
+                count: z.ZodOptional<z.ZodNumber>;
+                statBonus: z.ZodOptional<z.ZodObject<{
+                    structurePoints: z.ZodOptional<z.ZodNumber>;
+                    energyPoints: z.ZodOptional<z.ZodNumber>;
+                    heatCapacity: z.ZodOptional<z.ZodNumber>;
+                    cargoCapacity: z.ZodOptional<z.ZodNumber>;
+                }, z.core.$strict>>;
+                actions: z.ZodArray<z.ZodString>;
+            }, z.core.$strip>>;
+        }, z.core.$strict>], "kind">>;
+        cardinality?: z.infer<z.ZodObject<{
+            min: z.ZodNumber;
+            max: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                scalesWith: z.ZodString;
+            }, z.core.$strict>]>;
+        }, z.core.$strict>>;
+        lifetime?: "permanent" | "session";
     }, unknown>>>>;
 }, z.core.$strict>;
 /**
@@ -4368,6 +4837,7 @@ export declare const EquipmentSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4380,6 +4850,7 @@ export declare const EquipmentSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4481,6 +4952,106 @@ export declare const EquipmentSchema: z.ZodObject<{
             max: z.ZodOptional<z.ZodNumber>;
             scalesWithField: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>>;
+        source?: z.infer<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            kind: z.ZodLiteral<"text">;
+            multiline: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"table">;
+            rollTable: z.ZodString;
+            orChooseOwn: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"options">;
+            options: z.ZodArray<z.ZodObject<{
+                label: z.ZodString;
+                value: z.ZodString;
+                description: z.ZodOptional<z.ZodString>;
+                effects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    op: z.ZodLiteral<"addTrait">;
+                    value: z.ZodString;
+                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"removeTrait">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"setRange">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"addDamage">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    unit: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>], "op">>>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"catalog">;
+            schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+                classes: "classes";
+                npcs: "npcs";
+                abilities: "abilities";
+                "ability-tree-requirements": "ability-tree-requirements";
+                chassis: "chassis";
+                "crawler-bays": "crawler-bays";
+                "crawler-tech-levels": "crawler-tech-levels";
+                crawlers: "crawlers";
+                creatures: "creatures";
+                distances: "distances";
+                drones: "drones";
+                equipment: "equipment";
+                guides: "guides";
+                keywords: "keywords";
+                factions: "factions";
+                meld: "meld";
+                modules: "modules";
+                "roll-tables": "roll-tables";
+                sources: "sources";
+                squads: "squads";
+                "tech-levels": "tech-levels";
+                systems: "systems";
+                "bio-titans": "bio-titans";
+                traits: "traits";
+                vehicles: "vehicles";
+            }>>>;
+            entities: z.ZodOptional<z.ZodArray<z.ZodString>>;
+            filter: z.ZodOptional<z.ZodObject<{
+                field: z.ZodOptional<z.ZodString>;
+                min: z.ZodOptional<z.ZodNumber>;
+                max: z.ZodOptional<z.ZodNumber>;
+                damageType: z.ZodOptional<z.ZodEnum<{
+                    HP: "HP";
+                    SP: "SP";
+                }>>;
+            }, z.core.$strict>>;
+            reveals: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"systemVariant">;
+            options: z.ZodArray<z.ZodObject<{
+                structurePoints: z.ZodOptional<z.ZodNumber>;
+                energyPoints: z.ZodOptional<z.ZodNumber>;
+                heatCapacity: z.ZodOptional<z.ZodNumber>;
+                systemSlots: z.ZodOptional<z.ZodNumber>;
+                moduleSlots: z.ZodOptional<z.ZodNumber>;
+                cargoCapacity: z.ZodOptional<z.ZodNumber>;
+                name: z.ZodOptional<z.ZodString>;
+                techLevel: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>;
+                slotsRequired: z.ZodNumber;
+                salvageValue: z.ZodNumber;
+                recommended: z.ZodOptional<z.ZodBoolean>;
+                count: z.ZodOptional<z.ZodNumber>;
+                statBonus: z.ZodOptional<z.ZodObject<{
+                    structurePoints: z.ZodOptional<z.ZodNumber>;
+                    energyPoints: z.ZodOptional<z.ZodNumber>;
+                    heatCapacity: z.ZodOptional<z.ZodNumber>;
+                    cargoCapacity: z.ZodOptional<z.ZodNumber>;
+                }, z.core.$strict>>;
+                actions: z.ZodArray<z.ZodString>;
+            }, z.core.$strip>>;
+        }, z.core.$strict>], "kind">>;
+        cardinality?: z.infer<z.ZodObject<{
+            min: z.ZodNumber;
+            max: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                scalesWith: z.ZodString;
+            }, z.core.$strict>]>;
+        }, z.core.$strict>>;
+        lifetime?: "permanent" | "session";
     }, unknown, z.core.$ZodTypeInternals<{
         id: string;
         name: string;
@@ -4518,6 +5089,106 @@ export declare const EquipmentSchema: z.ZodObject<{
             max: z.ZodOptional<z.ZodNumber>;
             scalesWithField: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>>;
+        source?: z.infer<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            kind: z.ZodLiteral<"text">;
+            multiline: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"table">;
+            rollTable: z.ZodString;
+            orChooseOwn: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"options">;
+            options: z.ZodArray<z.ZodObject<{
+                label: z.ZodString;
+                value: z.ZodString;
+                description: z.ZodOptional<z.ZodString>;
+                effects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    op: z.ZodLiteral<"addTrait">;
+                    value: z.ZodString;
+                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"removeTrait">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"setRange">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"addDamage">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    unit: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>], "op">>>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"catalog">;
+            schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+                classes: "classes";
+                npcs: "npcs";
+                abilities: "abilities";
+                "ability-tree-requirements": "ability-tree-requirements";
+                chassis: "chassis";
+                "crawler-bays": "crawler-bays";
+                "crawler-tech-levels": "crawler-tech-levels";
+                crawlers: "crawlers";
+                creatures: "creatures";
+                distances: "distances";
+                drones: "drones";
+                equipment: "equipment";
+                guides: "guides";
+                keywords: "keywords";
+                factions: "factions";
+                meld: "meld";
+                modules: "modules";
+                "roll-tables": "roll-tables";
+                sources: "sources";
+                squads: "squads";
+                "tech-levels": "tech-levels";
+                systems: "systems";
+                "bio-titans": "bio-titans";
+                traits: "traits";
+                vehicles: "vehicles";
+            }>>>;
+            entities: z.ZodOptional<z.ZodArray<z.ZodString>>;
+            filter: z.ZodOptional<z.ZodObject<{
+                field: z.ZodOptional<z.ZodString>;
+                min: z.ZodOptional<z.ZodNumber>;
+                max: z.ZodOptional<z.ZodNumber>;
+                damageType: z.ZodOptional<z.ZodEnum<{
+                    HP: "HP";
+                    SP: "SP";
+                }>>;
+            }, z.core.$strict>>;
+            reveals: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"systemVariant">;
+            options: z.ZodArray<z.ZodObject<{
+                structurePoints: z.ZodOptional<z.ZodNumber>;
+                energyPoints: z.ZodOptional<z.ZodNumber>;
+                heatCapacity: z.ZodOptional<z.ZodNumber>;
+                systemSlots: z.ZodOptional<z.ZodNumber>;
+                moduleSlots: z.ZodOptional<z.ZodNumber>;
+                cargoCapacity: z.ZodOptional<z.ZodNumber>;
+                name: z.ZodOptional<z.ZodString>;
+                techLevel: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>;
+                slotsRequired: z.ZodNumber;
+                salvageValue: z.ZodNumber;
+                recommended: z.ZodOptional<z.ZodBoolean>;
+                count: z.ZodOptional<z.ZodNumber>;
+                statBonus: z.ZodOptional<z.ZodObject<{
+                    structurePoints: z.ZodOptional<z.ZodNumber>;
+                    energyPoints: z.ZodOptional<z.ZodNumber>;
+                    heatCapacity: z.ZodOptional<z.ZodNumber>;
+                    cargoCapacity: z.ZodOptional<z.ZodNumber>;
+                }, z.core.$strict>>;
+                actions: z.ZodArray<z.ZodString>;
+            }, z.core.$strip>>;
+        }, z.core.$strict>], "kind">>;
+        cardinality?: z.infer<z.ZodObject<{
+            min: z.ZodNumber;
+            max: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                scalesWith: z.ZodString;
+            }, z.core.$strict>]>;
+        }, z.core.$strict>>;
+        lifetime?: "permanent" | "session";
     }, unknown>>>>;
 }, z.core.$strict>;
 /**
@@ -4613,6 +5284,7 @@ export declare const FactionSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4625,6 +5297,7 @@ export declare const FactionSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4678,6 +5351,7 @@ export declare const KeywordSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4690,6 +5364,7 @@ export declare const KeywordSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4709,6 +5384,7 @@ export declare const MeldSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4721,6 +5397,7 @@ export declare const MeldSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4782,6 +5459,7 @@ export declare const ModuleSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4794,6 +5472,7 @@ export declare const ModuleSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4865,6 +5544,7 @@ export declare const NPCSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -4877,6 +5557,7 @@ export declare const NPCSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -5672,6 +6353,7 @@ export declare const RollTableSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -5684,6 +6366,7 @@ export declare const RollTableSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -5703,6 +6386,7 @@ export declare const SquadSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -5715,6 +6399,7 @@ export declare const SquadSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -5778,6 +6463,7 @@ export declare const SystemSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -5790,6 +6476,7 @@ export declare const SystemSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -5899,6 +6586,7 @@ export declare const TraitEntitySchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -5911,6 +6599,7 @@ export declare const TraitEntitySchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -5948,6 +6637,7 @@ export declare const VehicleSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -5960,6 +6650,7 @@ export declare const VehicleSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -6013,6 +6704,7 @@ export declare const GuideSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -6025,6 +6717,7 @@ export declare const GuideSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -6207,6 +6900,7 @@ export declare const SourceEntitySchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -6219,6 +6913,7 @@ export declare const SourceEntitySchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof import("./enums.js").ContentTypeSchema>;
             value?: string | z.infer<typeof import("./objects.js").DataValueSchema>[];
@@ -6331,6 +7026,7 @@ export declare const ContentTypeSchema: z.ZodEnum<{
     datavalues: "datavalues";
     hint: "hint";
     flavor: "flavor";
+    choice: "choice";
 }>;
 /**
  * Individual range value
@@ -6628,6 +7324,7 @@ export declare const DataValueSchema: z.ZodObject<{
     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
     type: z.ZodOptional<z.ZodString>;
     unit: z.ZodOptional<z.ZodString>;
+    perTechLevel: z.ZodOptional<z.ZodNumber>;
 }, z.core.$strict>;
 /**
  * Block of structured content for rendering (paragraph, heading, list item, etc.)
@@ -6639,6 +7336,7 @@ export declare const ContentBlockSchema: z.ZodType<{
     label?: string;
     level?: number;
     lead?: boolean;
+    choiceId?: string;
     items?: Array<{
         type?: z.infer<typeof ContentTypeSchema>;
         value?: string | z.infer<typeof DataValueSchema>[];
@@ -6655,6 +7353,7 @@ export declare const ContentSchema: z.ZodArray<z.ZodType<{
     label?: string;
     level?: number;
     lead?: boolean;
+    choiceId?: string;
     items?: Array<{
         type?: z.infer<typeof ContentTypeSchema>;
         value?: string | z.infer<typeof DataValueSchema>[];
@@ -6667,6 +7366,7 @@ export declare const ContentSchema: z.ZodArray<z.ZodType<{
     label?: string;
     level?: number;
     lead?: boolean;
+    choiceId?: string;
     items?: Array<{
         type?: z.infer<typeof ContentTypeSchema>;
         value?: string | z.infer<typeof DataValueSchema>[];
@@ -7494,6 +8194,127 @@ declare const ChoiceConstraintsSchema: z.ZodObject<{
     scalesWithField: z.ZodOptional<z.ZodString>;
 }, z.core.$strict>;
 /**
+ * Choice cardinality — how many picks a choice grants.
+ * `max` is either a fixed number or `{ scalesWith }`, a field name resolved on
+ * the parent entity (e.g. `techLevel`). Replaces `multiSelect` +
+ * `constraints.min/max` + `constraints.scalesWithField`.
+ */
+declare const CardinalitySchema: z.ZodObject<{
+    min: z.ZodNumber;
+    max: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+        scalesWith: z.ZodString;
+    }, z.core.$strict>]>;
+}, z.core.$strict>;
+/**
+ * Choice source — the discriminated "where do the options come from" axis
+ * ([ADR ref] the unified choice model). Exactly one `kind`; the renderer
+ * switches on it and never probes optional fields.
+ *
+ * - `text`          — a free-text field (was: no option source).
+ * - `table`         — roll on a named table, or choose your own.
+ * - `options`       — an inline structured option list (was: choiceOptions).
+ * - `catalog`       — pick a card-bearing entity from schema collection(s),
+ *                     optionally a named shortlist and/or a filter (a numeric
+ *                     `field` range, or `damageType` — keep only systems whose
+ *                     actions deal that damage type, i.e. Weapons Systems);
+ *                     `reveals` flips index visibility (was: setIndexable).
+ *                     Schema-only (no shortlist) → resolved to an entity listing.
+ * - `systemVariant` — pick from inline custom System/Module variants.
+ */
+declare const ChoiceSourceSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+    kind: z.ZodLiteral<"text">;
+    multiline: z.ZodOptional<z.ZodBoolean>;
+}, z.core.$strict>, z.ZodObject<{
+    kind: z.ZodLiteral<"table">;
+    rollTable: z.ZodString;
+    orChooseOwn: z.ZodOptional<z.ZodBoolean>;
+}, z.core.$strict>, z.ZodObject<{
+    kind: z.ZodLiteral<"options">;
+    options: z.ZodArray<z.ZodObject<{
+        label: z.ZodString;
+        value: z.ZodString;
+        description: z.ZodOptional<z.ZodString>;
+        effects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            op: z.ZodLiteral<"addTrait">;
+            value: z.ZodString;
+            amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+        }, z.core.$strict>, z.ZodObject<{
+            op: z.ZodLiteral<"removeTrait">;
+            value: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            op: z.ZodLiteral<"setRange">;
+            value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+        }, z.core.$strict>, z.ZodObject<{
+            op: z.ZodLiteral<"addDamage">;
+            value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+            unit: z.ZodOptional<z.ZodString>;
+        }, z.core.$strict>], "op">>>;
+    }, z.core.$strict>>;
+}, z.core.$strict>, z.ZodObject<{
+    kind: z.ZodLiteral<"catalog">;
+    schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        classes: "classes";
+        npcs: "npcs";
+        abilities: "abilities";
+        "ability-tree-requirements": "ability-tree-requirements";
+        chassis: "chassis";
+        "crawler-bays": "crawler-bays";
+        "crawler-tech-levels": "crawler-tech-levels";
+        crawlers: "crawlers";
+        creatures: "creatures";
+        distances: "distances";
+        drones: "drones";
+        equipment: "equipment";
+        guides: "guides";
+        keywords: "keywords";
+        factions: "factions";
+        meld: "meld";
+        modules: "modules";
+        "roll-tables": "roll-tables";
+        sources: "sources";
+        squads: "squads";
+        "tech-levels": "tech-levels";
+        systems: "systems";
+        "bio-titans": "bio-titans";
+        traits: "traits";
+        vehicles: "vehicles";
+    }>>>;
+    entities: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    filter: z.ZodOptional<z.ZodObject<{
+        field: z.ZodOptional<z.ZodString>;
+        min: z.ZodOptional<z.ZodNumber>;
+        max: z.ZodOptional<z.ZodNumber>;
+        damageType: z.ZodOptional<z.ZodEnum<{
+            HP: "HP";
+            SP: "SP";
+        }>>;
+    }, z.core.$strict>>;
+    reveals: z.ZodOptional<z.ZodBoolean>;
+}, z.core.$strict>, z.ZodObject<{
+    kind: z.ZodLiteral<"systemVariant">;
+    options: z.ZodArray<z.ZodObject<{
+        structurePoints: z.ZodOptional<z.ZodNumber>;
+        energyPoints: z.ZodOptional<z.ZodNumber>;
+        heatCapacity: z.ZodOptional<z.ZodNumber>;
+        systemSlots: z.ZodOptional<z.ZodNumber>;
+        moduleSlots: z.ZodOptional<z.ZodNumber>;
+        cargoCapacity: z.ZodOptional<z.ZodNumber>;
+        name: z.ZodOptional<z.ZodString>;
+        techLevel: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>;
+        slotsRequired: z.ZodNumber;
+        salvageValue: z.ZodNumber;
+        recommended: z.ZodOptional<z.ZodBoolean>;
+        count: z.ZodOptional<z.ZodNumber>;
+        statBonus: z.ZodOptional<z.ZodObject<{
+            structurePoints: z.ZodOptional<z.ZodNumber>;
+            energyPoints: z.ZodOptional<z.ZodNumber>;
+            heatCapacity: z.ZodOptional<z.ZodNumber>;
+            cargoCapacity: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>;
+        actions: z.ZodArray<z.ZodString>;
+    }, z.core.$strip>>;
+}, z.core.$strict>], "kind">;
+/**
  * Choice schema (using z.lazy() for recursive reference to ContentSchema)
  */
 export declare const ChoiceSchema: z.ZodType<{
@@ -7509,6 +8330,9 @@ export declare const ChoiceSchema: z.ZodType<{
     multiSelect?: boolean;
     choiceOptions?: z.infer<typeof ChoiceOptionSchema>[];
     constraints?: z.infer<typeof ChoiceConstraintsSchema>;
+    source?: z.infer<typeof ChoiceSourceSchema>;
+    cardinality?: z.infer<typeof CardinalitySchema>;
+    lifetime?: 'permanent' | 'session';
 }>;
 /**
  * Array of choices
@@ -7526,6 +8350,9 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodType<{
     multiSelect?: boolean;
     choiceOptions?: z.infer<typeof ChoiceOptionSchema>[];
     constraints?: z.infer<typeof ChoiceConstraintsSchema>;
+    source?: z.infer<typeof ChoiceSourceSchema>;
+    cardinality?: z.infer<typeof CardinalitySchema>;
+    lifetime?: "permanent" | "session";
 }, unknown, z.core.$ZodTypeInternals<{
     id: string;
     name: string;
@@ -7539,6 +8366,9 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodType<{
     multiSelect?: boolean;
     choiceOptions?: z.infer<typeof ChoiceOptionSchema>[];
     constraints?: z.infer<typeof ChoiceConstraintsSchema>;
+    source?: z.infer<typeof ChoiceSourceSchema>;
+    cardinality?: z.infer<typeof CardinalitySchema>;
+    lifetime?: "permanent" | "session";
 }, unknown>>>;
 /**
  * NPC associated with an entity
@@ -7657,6 +8487,7 @@ export declare const BaseEntitySchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof ContentTypeSchema>;
             value?: string | z.infer<typeof DataValueSchema>[];
@@ -7669,6 +8500,7 @@ export declare const BaseEntitySchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof ContentTypeSchema>;
             value?: string | z.infer<typeof DataValueSchema>[];
@@ -7722,6 +8554,7 @@ export declare const AdvancedClassSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof ContentTypeSchema>;
             value?: string | z.infer<typeof DataValueSchema>[];
@@ -7734,6 +8567,7 @@ export declare const AdvancedClassSchema: z.ZodObject<{
         label?: string;
         level?: number;
         lead?: boolean;
+        choiceId?: string;
         items?: Array<{
             type?: z.infer<typeof ContentTypeSchema>;
             value?: string | z.infer<typeof DataValueSchema>[];
@@ -8543,37 +9377,23 @@ export declare function normalizePatternName(patternName: string): string;
  * @returns Filtered actions array
  */
 export declare function filterActionsExcludingName(actions: SURefMetaAction[], excludeName: string): SURefMetaAction[];
-/**
- * Get activation cost from an entity
- * Checks base level first, then action if action name matches entity name
- * @param entity - The entity to extract activation cost from
- * @returns The activation cost or undefined if not present
- */
+type DamageValue = {
+    damageType: string;
+    amount: number | string;
+};
 export declare function getActivationCost(entity: SURefMetaEntity): number | string | undefined;
 /**
- * Get action type from an entity
- * Checks base level first, then action if action name matches entity name
- * @param entity - The entity to extract action type from
- * @returns The action type or undefined if not present
+ * Get action type from an entity (self-action fallback).
  */
 export declare function getActionType(entity: SURefMetaEntity): string | undefined;
 /**
- * Get range from an entity
- * Checks base level first, then action if action name matches entity name
- * @param entity - The entity to extract range from
- * @returns The range array or undefined if not present
+ * Get range from an entity (self-action fallback).
  */
 export declare function getRange(entity: SURefMetaEntity): string[] | undefined;
 /**
- * Get damage from an entity
- * Checks base level first, then action if action name matches entity name
- * @param entity - The entity to extract damage from
- * @returns The damage object or undefined if not present
+ * Get damage from an entity (self-action fallback).
  */
-export declare function getDamage(entity: SURefMetaEntity): {
-    damageType: string;
-    amount: number | string;
-} | undefined;
+export declare function getDamage(entity: SURefMetaEntity): DamageValue | undefined;
 /**
  * Get traits from an entity
  * Checks base level first, then action if action name matches entity name
@@ -8661,6 +9481,7 @@ export type ParsedTraitReference = {
  * // ]
  */
 export declare function parseTraitReferences(text: string): ParsedTraitReference[];
+export {};
 //# sourceMappingURL=utilities.d.ts.map
 // === lib/utils/resultForTable.d.ts ===
 import type { SURefObjectTable, SURefObjectTableContent } from '../types/index.js';
@@ -8718,7 +9539,7 @@ export declare function resultForTable(table: SURefObjectTable | undefined, roll
  * Disables Zod v4's JIT object parser. The JIT path compiles validators with
  * `new Function`, and a `new Function("")` eval feature-detect (`allowsEval`)
  * runs at schema *construction* time. Both trip a strict `script-src`
- * Content-Security-Policy with no `unsafe-eval` (see apps/suref-web/netlify.toml),
+ * Content-Security-Policy with no `unsafe-eval` (see apps/srd/netlify.toml),
  * surfacing as console CSP violations in the browser. The jitless interpreted
  * parser produces identical results, just slightly slower.
  *

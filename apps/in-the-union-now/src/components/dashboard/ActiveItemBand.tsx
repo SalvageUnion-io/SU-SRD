@@ -39,7 +39,7 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import type { EntityState } from '../../stores/entityStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
-import { DashboardGauge } from './DashboardGauge'
+import { DashboardGauge } from 'component-lib'
 import {
   VENT_PATCH,
   critDamagePatch,
