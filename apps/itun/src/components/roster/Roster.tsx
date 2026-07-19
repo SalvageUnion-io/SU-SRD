@@ -48,8 +48,8 @@ import { ImportButton } from '../export/ImportButton'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { AppLink } from '../shared/AppLink'
 import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher'
-import { RosterSkeleton } from './RosterSkeleton'
-import { DeleteConfirmDialog } from './DeleteConfirmDialog'
+import { RosterSkeleton } from 'component-lib'
+import { DeleteConfirmDialog } from 'component-lib'
 import { EntityListItem } from './EntityListItem'
 
 // ---------------------------------------------------------------------------

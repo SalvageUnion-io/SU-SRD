@@ -8,7 +8,8 @@
  * Rendered through a ModalShell (portal, focus trap, Escape/backdrop dismiss).
  */
 
-import { Button, ModalShell } from 'component-lib'
+import { Button } from '../chrome/Button'
+import { ModalShell } from '../shared/ModalShell'
 
 type DeleteConfirmDialogProps = {
   open: boolean

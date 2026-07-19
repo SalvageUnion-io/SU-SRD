@@ -12,7 +12,7 @@
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
-import { EntityTooltip } from 'component-lib'
+import { EntityTooltip } from '../referenceEntity/EntityTooltip'
 
 type ById = {
   schemaName: SURefEnumSchemaName
