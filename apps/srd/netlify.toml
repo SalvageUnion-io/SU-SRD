@@ -37,7 +37,14 @@
   #                                  every post-#318 main deploy cancelled with
   #                                  "no content change", freezing the site.
   #   - unreachable in the (shallow) clone → can't diff it reliably.
-  ignore = 'if [ -z "$CACHED_COMMIT_REF" ] || [ "$CACHED_COMMIT_REF" = "$COMMIT_REF" ] || ! git cat-file -e "$CACHED_COMMIT_REF^{commit}" 2>/dev/null; then exit 1; fi; git diff --quiet "$CACHED_COMMIT_REF" "$COMMIT_REF" -- apps/srd packages/component-lib packages/salvageunion-reference bun.lock package.json bunfig.toml tsconfig.json'
+  # Pathspecs are `:/`-anchored (repo root) because this site's base directory is
+  # `apps/srd`, so the ignore command runs with that as cwd — plain `apps/srd …`
+  # pathspecs resolved to `apps/srd/apps/srd` and matched nothing, so `git diff
+  # --quiet` exited 0 and Netlify cancelled EVERY build ("no content change").
+  # That stayed hidden while no deploy had ever succeeded (an unreachable
+  # CACHED_COMMIT_REF hits the force-build guard below); the moment one landed,
+  # the guard started cancelling real changes.
+  ignore = 'if [ -z "$CACHED_COMMIT_REF" ] || [ "$CACHED_COMMIT_REF" = "$COMMIT_REF" ] || ! git cat-file -e "$CACHED_COMMIT_REF^{commit}" 2>/dev/null; then exit 1; fi; git diff --quiet "$CACHED_COMMIT_REF" "$COMMIT_REF" -- :/apps/srd :/packages/component-lib :/packages/salvageunion-reference :/bun.lock :/package.json :/bunfig.toml :/tsconfig.json'
 
 [build.environment]
   BUN_VERSION = "1.3.14" # keep in sync with .bun-version (checked by tools/check-bun-version.ts)
