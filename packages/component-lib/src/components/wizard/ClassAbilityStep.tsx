@@ -1,7 +1,9 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefClass, SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
-import { MasonryColumns, ReferenceEntityCard, TreeSep } from 'component-lib'
+import { TreeSep } from '../chrome/TreeSep'
+import { MasonryColumns } from '../shared/MasonryColumns'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { selectableClasses } from './classOptions'
 
 type SURClassesAccessor = {

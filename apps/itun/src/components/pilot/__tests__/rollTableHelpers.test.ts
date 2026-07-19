@@ -8,8 +8,8 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { rollForPilotField } from '../rollTableHelpers'
-import type { RollTableDeps } from '../rollTableHelpers'
+import { rollForPilotField } from 'component-lib'
+import type { RollTableDeps } from 'component-lib'
 
 type StubTable = {
   id: string

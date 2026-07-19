@@ -1,4 +1,4 @@
-import { Field, Input } from 'component-lib'
+import { Field, Input } from '../chrome/Field'
 import type { RollTableDeps } from './rollTableHelpers'
 import { RollTableButton } from './RollTableButton'
 

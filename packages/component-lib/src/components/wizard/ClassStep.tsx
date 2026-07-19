@@ -1,5 +1,9 @@
 import type { SURefClass, SURefEntity } from 'salvageunion-reference'
-import { ClassAbilityTree, EmptyState, OptRow, ReferenceEntityCard, TreeSep } from 'component-lib'
+import { EmptyState } from '../chrome/EmptyState'
+import { OptRow } from '../chrome/OptRow'
+import { TreeSep } from '../chrome/TreeSep'
+import { ClassAbilityTree } from '../referenceEntity/ClassAbilityTree'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { classDescription } from './classOptions'
 
 type ClassOptionListProps = {
