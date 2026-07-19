@@ -134,9 +134,10 @@ export function CrawlerTypeSelectStep({
           </div>
         </>
       ) : (
-        <p className="m-0 font-body text-sm text-current">
-          Pick a type to preview its unique Ability and special NPC.
-        </p>
+        <EmptyState
+          headline="No Type Selected"
+          body="Pick a type to preview its unique Ability and special NPC."
+        />
       )}
     </div>
   )

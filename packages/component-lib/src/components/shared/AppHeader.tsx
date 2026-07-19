@@ -1,4 +1,5 @@
 import type { ElementType } from 'react'
+import { Badge } from '../chrome/Badge'
 import { Search } from 'lucide-react'
 import { AppBar } from './AppBar'
 import type { AppBarNavItem } from './AppBar'
@@ -21,16 +22,19 @@ import type { NavDrawerItem } from './NavDrawer'
 const SEARCH_BOX =
   'flex shrink-0 cursor-pointer items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-ink-2 transition-colors hover:border-su-orange-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange lg:w-64'
 
-// Small "Alpha" pills — same rust treatment as the brand "Beta" badge.
+// Small "Alpha" pills — the shared stamp atom rather than two hand-rolled
+// spans that differed only in size (px-1/text-label vs px-1.5/text-badge).
+// `bg-rust` overrides only the stamp PLATE — geometry, face and tracking still
+// come from the atom, so these can't drift from every other stamp again.
 const DESKTOP_ALPHA = (
-  <span className="ml-1.5 inline-block rounded bg-rust px-1 py-0.5 font-cond text-label font-bold uppercase leading-none tracking-caps text-paper">
+  <Badge shape="stamp" size="sm" className="ml-1.5 rounded bg-rust px-1 py-0.5">
     Alpha
-  </span>
+  </Badge>
 )
 const DRAWER_ALPHA = (
-  <span className="ml-2 inline-block rounded bg-rust px-1.5 py-0.5 font-cond text-badge font-bold uppercase leading-none tracking-caps text-paper">
+  <Badge shape="stamp" className="ml-2 rounded bg-rust px-1.5 py-0.5">
     Alpha
-  </span>
+  </Badge>
 )
 
 const DESKTOP_NAV: AppBarNavItem[] = [
