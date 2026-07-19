@@ -37,7 +37,7 @@ type ModeRow = {
   example: ReactNode
 }
 
-function ModeTable({
+function ModeGroup({
   home,
   typeName,
   blurb,
@@ -59,32 +59,21 @@ function ModeTable({
         </code>
       </div>
       <p className="mt-2 max-w-3xl text-sm leading-relaxed text-ink-2">{blurb}</p>
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[56rem] border-collapse text-sm">
-          <thead>
-            <tr className="border-b-2 border-ink text-left">
-              {['Mode', 'Lives on', 'What it does', 'Example'].map((h) => (
-                <th key={h} className="p-2 text-xs font-bold uppercase tracking-caps-tight">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.mode} className="border-b border-ink/12 align-top">
-                <td className="p-2 font-bold whitespace-nowrap">
-                  <code className="rounded-badge bg-ink/8 px-1 py-0.5 text-[12px]">{row.mode}</code>
-                </td>
-                <td className="max-w-[13rem] p-2 text-ink-2">
-                  <code className="text-[12px]">{row.livesOn}</code>
-                </td>
-                <td className="max-w-[15rem] p-2 text-ink-2">{row.meaning}</td>
-                <td className="p-2">{row.example}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="mt-4 flex flex-col gap-6">
+        {rows.map((row) => (
+          <div key={row.mode} className="border-t border-ink/12 pt-4">
+            {/* Metadata line: the mode + the exact component · prop / type it lives on. */}
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <code className="rounded-badge bg-ink/8 px-1.5 py-0.5 text-[12px] font-bold text-ink">
+                {row.mode}
+              </code>
+              <code className="text-[12px] text-ink-2">{row.livesOn}</code>
+            </div>
+            <p className="mt-1 max-w-3xl text-sm text-ink-2">{row.meaning}</p>
+            {/* The live render sits on its own full-width row so it renders naturally. */}
+            <div className="mt-3">{row.example}</div>
+          </div>
+        ))}
       </div>
     </section>
   )
@@ -97,7 +86,9 @@ const cardSizeRows: ModeRow[] = [
     livesOn: 'ReferenceEntityCard · size',
     meaning: 'Dominant solo card — header + body + footer. The default at depth 0.',
     example: (
-      <div className="w-80">{gear ? <ReferenceEntityCard data={gear} size="full" /> : null}</div>
+      <div className="max-w-xl">
+        {gear ? <ReferenceEntityCard data={gear} size="full" /> : null}
+      </div>
     ),
   },
   {
@@ -105,7 +96,9 @@ const cardSizeRows: ModeRow[] = [
     livesOn: 'ReferenceEntityCard · size',
     meaning: 'Reduced sizing/spacing. Nested entities are always compact.',
     example: (
-      <div className="w-80">{gear ? <ReferenceEntityCard data={gear} size="compact" /> : null}</div>
+      <div className="max-w-xl">
+        {gear ? <ReferenceEntityCard data={gear} size="compact" /> : null}
+      </div>
     ),
   },
   {
@@ -114,7 +107,9 @@ const cardSizeRows: ModeRow[] = [
     meaning:
       'Compact header treatment rendered as a solid full-colour domain row (name + description).',
     example: (
-      <div className="w-80">{gear ? <ReferenceEntityCard data={gear} size="listing" /> : null}</div>
+      <div className="max-w-xl">
+        {gear ? <ReferenceEntityCard data={gear} size="listing" /> : null}
+      </div>
     ),
   },
   {
@@ -123,7 +118,9 @@ const cardSizeRows: ModeRow[] = [
     meaning:
       'Shortform token — one tone-filled pill: type stamp, name, and TL / Tree · Level only.',
     example: (
-      <div className="w-80">{gear ? <ReferenceEntityCard data={gear} size="badge" /> : null}</div>
+      <div className="max-w-xl">
+        {gear ? <ReferenceEntityCard data={gear} size="badge" /> : null}
+      </div>
     ),
   },
 ]
@@ -135,7 +132,9 @@ const sugarRows: ModeRow[] = [
     livesOn: 'ReferenceEntityDisplay · mode',
     meaning: "Maps to size='full'.",
     example: (
-      <div className="w-80">{gear ? <ReferenceEntityDisplay data={gear} mode="full" /> : null}</div>
+      <div className="max-w-xl">
+        {gear ? <ReferenceEntityDisplay data={gear} mode="full" /> : null}
+      </div>
     ),
   },
   {
@@ -143,7 +142,7 @@ const sugarRows: ModeRow[] = [
     livesOn: 'ReferenceEntityDisplay · mode',
     meaning: "Maps to size='compact'.",
     example: (
-      <div className="w-80">
+      <div className="max-w-xl">
         {gear ? <ReferenceEntityDisplay data={gear} mode="compact" /> : null}
       </div>
     ),
@@ -154,7 +153,9 @@ const sugarRows: ModeRow[] = [
     meaning:
       "Legacy-only value. compact + listing → maps to size='listing'. (Dropped from the card's own size union.)",
     example: (
-      <div className="w-80">{gear ? <ReferenceEntityDisplay data={gear} mode="head" /> : null}</div>
+      <div className="max-w-xl">
+        {gear ? <ReferenceEntityDisplay data={gear} mode="head" /> : null}
+      </div>
     ),
   },
   {
@@ -162,7 +163,7 @@ const sugarRows: ModeRow[] = [
     livesOn: 'ReferenceEntityDisplay · mode',
     meaning: "Maps to size='badge'.",
     example: (
-      <div className="w-80">
+      <div className="max-w-xl">
         {gear ? <ReferenceEntityDisplay data={gear} mode="badge" /> : null}
       </div>
     ),
@@ -176,7 +177,9 @@ const modifierRows: ModeRow[] = [
     livesOn: 'ReferenceEntityCard · lightweight',
     meaning: 'Header renders title + controls only — no subtitle / stats / tech level.',
     example: (
-      <div className="w-80">{gear ? <ReferenceEntityCard data={gear} lightweight /> : null}</div>
+      <div className="max-w-xl">
+        {gear ? <ReferenceEntityCard data={gear} lightweight /> : null}
+      </div>
     ),
   },
   {
@@ -185,7 +188,7 @@ const modifierRows: ModeRow[] = [
     meaning:
       'Greys the header tone (sub-header + footer to darker greys). Threaded to nested cards.',
     example: (
-      <div className="w-80">
+      <div className="max-w-xl">
         {gear ? <ReferenceEntityCard data={gear} size="compact" damaged /> : null}
       </div>
     ),
@@ -195,7 +198,7 @@ const modifierRows: ModeRow[] = [
     livesOn: 'ReferenceEntityCard · selected',
     meaning: 'Rust selection ring; optional ok-tone "chosen" seal.',
     example: (
-      <div className="w-80">
+      <div className="max-w-xl">
         {gear ? <ReferenceEntityCard data={gear} size="compact" selected /> : null}
       </div>
     ),
@@ -205,7 +208,7 @@ const modifierRows: ModeRow[] = [
     livesOn: 'ReferenceEntityCard · count / onCountChange',
     meaning: 'Quantity ≥ 1 reads as selected (rust ring) unless selected is set explicitly.',
     example: (
-      <div className="w-80">
+      <div className="max-w-xl">
         {gear ? (
           <ReferenceEntityCard data={gear} size="compact" count={2} onCountChange={noop} />
         ) : null}
@@ -226,7 +229,7 @@ const modifierRows: ModeRow[] = [
     livesOn: 'ReferenceEntityCard · dimHeader',
     meaning: 'Dims the header tone (a de-emphasised card) without the damaged grey.',
     example: (
-      <div className="w-80">
+      <div className="max-w-xl">
         {gear ? <ReferenceEntityCard data={gear} size="compact" dimHeader /> : null}
       </div>
     ),
@@ -268,7 +271,7 @@ const controlRows: ModeRow[] = [
     livesOn: 'ReferenceEntityControl.stepper',
     meaning: 'Bounded −/readout/+ CountStepper (a quantity control). First in precedence.',
     example: (
-      <div className="w-72">
+      <div className="max-w-xl">
         {gear ? (
           <ReferenceEntityCard data={gear} size="compact" controls={stepperControls} />
         ) : null}
@@ -280,7 +283,7 @@ const controlRows: ModeRow[] = [
     livesOn: 'ReferenceEntityControl.badge',
     meaning: 'Read-only status stamp (a Badge node) — e.g. "Used", "Uses 3/5".',
     example: (
-      <div className="w-72">
+      <div className="max-w-xl">
         {gear ? <ReferenceEntityCard data={gear} size="compact" controls={badgeControls} /> : null}
       </div>
     ),
@@ -290,7 +293,7 @@ const controlRows: ModeRow[] = [
     livesOn: 'ReferenceEntityControl.status',
     meaning: 'Condition StatusBadge (intact / damaged / destroyed) — the clickable cycle toggle.',
     example: (
-      <div className="w-72">
+      <div className="max-w-xl">
         {gear ? <ReferenceEntityCard data={gear} size="compact" controls={statusControls} /> : null}
       </div>
     ),
@@ -300,7 +303,7 @@ const controlRows: ModeRow[] = [
     livesOn: 'ReferenceEntityControl.href',
     meaning: 'Navigation link (styled anchor) — uses label as its text.',
     example: (
-      <div className="w-72">
+      <div className="max-w-xl">
         {gear ? <ReferenceEntityCard data={gear} size="compact" controls={hrefControls} /> : null}
       </div>
     ),
@@ -311,7 +314,7 @@ const controlRows: ModeRow[] = [
     meaning:
       'Icon/label action button — the fallback when no item variant above is set. Last in precedence.',
     example: (
-      <div className="w-72">
+      <div className="max-w-xl">
         {gear ? <ReferenceEntityCard data={gear} size="compact" controls={buttonControls} /> : null}
       </div>
     ),
@@ -322,7 +325,7 @@ const controlRows: ModeRow[] = [
     meaning:
       'Preset control builders. addControl / navigateControl are hidden + cardClick (whole-card click); select / delete are visible.',
     example: (
-      <div className="w-72">
+      <div className="max-w-xl">
         {gear ? (
           <ReferenceEntityCard data={gear} size="compact" controls={factoryControls} />
         ) : null}
@@ -333,7 +336,11 @@ const controlRows: ModeRow[] = [
 
 // ── 5. DisplayView — ITUN Dashboard view-variants (DisplayContent union) ────
 function boxed(node: ReactNode) {
-  return <div className="max-h-64 w-96 overflow-auto border border-ink/15 bg-paper p-2">{node}</div>
+  return (
+    <div className="max-h-[32rem] w-full max-w-2xl overflow-auto border border-ink/15 bg-paper p-2">
+      {node}
+    </div>
+  )
 }
 
 const displayRows: ModeRow[] = [
@@ -409,31 +416,31 @@ export const Default: Story = () => (
       <code className="text-ink">mode</code> sugar survives only on the compat shim.
     </p>
 
-    <ModeTable
+    <ModeGroup
       home="Card density"
       typeName="ReferenceEntityCard · size: ReferenceEntityCardSize"
       blurb="The canonical render mode. One prop, four densities. Nested entities are forced to 'compact'."
       rows={cardSizeRows}
     />
-    <ModeTable
+    <ModeGroup
       home="Legacy sugar"
       typeName="ReferenceEntityDisplay (compat shim) · mode: EntityDisplayMode"
       blurb="The pre-cutover call-sites still speak mode / compact / listing; the shim maps them onto size. mode adds 'head' (→ listing) and is deleted at cutover Stage d. Explicit compact / listing booleans win over mode."
       rows={sugarRows}
     />
-    <ModeTable
+    <ModeGroup
       home="Header / state"
       typeName="ReferenceEntityCard · additive modifiers"
       blurb="Additive to size — they reshape the header or tint the card rather than switching layout."
       rows={modifierRows}
     />
-    <ModeTable
+    <ModeGroup
       home="Controls"
       typeName="ReferenceEntityControl · the card's controls[] cluster"
       blurb="Every top-right card affordance is one ReferenceEntityControl. Each affordance is an optional field; when several are set they resolve by precedence: stepper → badge → status → href → button."
       rows={controlRows}
     />
-    <ModeTable
+    <ModeGroup
       home="Dashboard view"
       typeName="DisplayView · content: DisplayContent"
       blurb="ITUN's Dashboard display is a discriminated union of view-variants — not card modes, but the mode taxonomy one layer up. The 'entity' kind delegates back to the reference card."
