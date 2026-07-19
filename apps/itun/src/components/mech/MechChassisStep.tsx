@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
+import { SalvageUnionReference, nameToSlug, normalizePatternName } from 'salvageunion-reference'
 import type { SURefChassis, SURefEntity } from 'salvageunion-reference'
 import {
   isLegalCreationChassis,
@@ -104,7 +104,12 @@ export function MechChassisStep({
       : legalStartingPatterns(selectedChassis.patterns)
     : []
 
-  const isCustom = !patternPool.some((p) => p.name === patternName)
+  // Compare NORMALIZED: mechs saved before the data dropped the " Pattern"
+  // suffix still store e.g. "Hauler Pattern", which must keep matching the
+  // renamed "Hauler" rather than silently reading as a Custom pattern.
+  const isCustom = !patternPool.some(
+    (p) => normalizePatternName(p.name) === normalizePatternName(patternName)
+  )
 
   return (
     <div className="w-full space-y-5">
@@ -149,7 +154,7 @@ export function MechChassisStep({
                 key={pattern.name}
                 chassis={selectedChassis}
                 pattern={pattern}
-                selected={pattern.name === patternName}
+                selected={normalizePatternName(pattern.name) === normalizePatternName(patternName)}
                 onToggle={() => onSelectPattern(pattern)}
               />
             ))}

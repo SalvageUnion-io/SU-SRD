@@ -138,7 +138,7 @@ export function useChassisPatternConfig(
                 as="span"
                 className={cn(compact ? 'text-xs' : 'text-sm', 'font-bold uppercase')}
               >
-                {normalizePatternName(overridePatternData.name)} Pattern
+                {normalizePatternName(overridePatternData.name)}
               </Text>
               {overridePatternData.page && (
                 <Text variant="pseudoheader" as="span" className="text-xs font-semibold uppercase">

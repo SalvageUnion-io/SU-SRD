@@ -63,7 +63,7 @@ const crawlerBay = pick(
 // stampseal + the systems/modules loadout).
 const surveyorPattern = pick(
   chassis.patterns ?? [],
-  (pat) => pat.name === 'Surveyor Pattern',
+  (pat) => pat.name === 'Surveyor',
   'Little Sestra pattern'
 )
 

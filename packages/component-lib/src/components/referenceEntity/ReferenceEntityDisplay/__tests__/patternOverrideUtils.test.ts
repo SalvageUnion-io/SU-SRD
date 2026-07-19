@@ -19,7 +19,7 @@ describe('resolvePatternOverride', () => {
     // "Hauler" normalizes to the same key as the stored "Hauler Pattern".
     const override = { name: 'Hauler', systems: [], modules: [] } as PatternOverrideData
     const resolved = resolvePatternOverride(mule, override)
-    expect(resolved?.name).toBe('Hauler Pattern')
+    expect(resolved?.name).toBe('Hauler')
   })
 
   test('returns undefined when no pattern name matches', () => {
