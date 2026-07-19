@@ -93,6 +93,24 @@ export const Gallery: Story = () => (
 )
 
 /**
+ * CATALOG — the SRD index tile. Compact, artwork + description ONLY: no nested
+ * entities, actions, choices, patterns or roll tables, so a listing page reads
+ * uniformly whatever each entity happens to carry. Compare against Gallery
+ * above: the chassis drops its pattern list, the crawler bay drops its choice.
+ */
+export const Catalog: Story = () => (
+  <div className="grid gap-4 bg-paper p-4 md:grid-cols-2">
+    {[ability, system, chassis, bioTitan, crawler, equipment, crawlerBay].map((entity) => (
+      <ReferenceEntityCard
+        key={('id' in entity && entity.id) || entity.name}
+        data={entity}
+        size="catalog"
+      />
+    ))}
+  </div>
+)
+
+/**
  * PATTERN rendering — the pattern is the subject: the chassis name ("Little
  * Sestra") rides the seam as a stampseal, and the pattern's systems + modules
  * render as nested compact cards. Distinct from the basic ChassisCard above,
