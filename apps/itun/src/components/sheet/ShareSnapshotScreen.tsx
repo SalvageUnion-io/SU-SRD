@@ -66,7 +66,7 @@ import { AppLink } from '../shared/AppLink'
 
 import type { EntityLookup } from './composition'
 import { SheetHero, ChassisStats } from 'component-lib'
-import { SnapshotQr } from './SnapshotQr'
+import { SnapshotQr } from 'component-lib'
 import type { ChassisStatItem } from 'component-lib'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 
