@@ -173,7 +173,7 @@ export { Dial } from './components/dashboard/Dial'
 export type { DialProps, DialItem, DialGauge } from './components/dashboard/Dial'
 export { DowntimeWizard } from './components/dashboard/DowntimeWizard'
 export type { DowntimeWizardProps } from './components/dashboard/DowntimeWizard'
-export { ActiveItemBand, DamageStepper, StorageBay } from './components/dashboard/ActiveItemBand'
+export { ActiveItemBand, StorageBay } from './components/dashboard/ActiveItemBand'
 export type {
   ActiveItemBandProps,
   ActiveItemBandView,
@@ -195,11 +195,12 @@ export type {
   DeckRow,
 } from './components/dashboard/ActionsDeck'
 export { OptRow } from './components/chrome/OptRow'
-export { Stepper } from './components/chrome/Stepper'
 export { CountStepper } from './components/chrome/CountStepper'
 export { Panel, Row, Empty } from './components/chrome/Panel'
 export { Slab } from './components/chrome/Slab'
-export { Conditions, ConditionChip } from './components/chrome/Conditions'
+// ConditionChip is deliberately NOT exported: it is an internal sub-part of
+// Conditions (its only consumer), demonstrated via that component's story.
+export { Conditions } from './components/chrome/Conditions'
 export { StepButton } from './components/chrome/SmallButtons'
 export { TreeSep } from './components/chrome/TreeSep'
 export { StatusBadge } from './components/chrome/StatusBadge'

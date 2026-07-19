@@ -1,4 +1,5 @@
 import { cn } from '../../utils/cn'
+import { Button } from './Button'
 import { StepButton } from './SmallButtons'
 
 type CountStepperProps = {
@@ -17,6 +18,14 @@ type CountStepperProps = {
   /** Optional readout prefix — with `max` set, the readout reads
    *  "{label} {count}/{max}" (e.g. "Uses 3/5") instead of the bare count. */
   label?: string
+  /**
+   * Surface skin, mirroring `VitalGauge`'s `surface` (RenderingMatrix
+   * `skin sheet|instrument`): `sheet` (default) is the joined `[− n +]` ink
+   * pill that rides an entity card's controls overlay; `instrument` is the
+   * dashboard overlay's loose cluster — spaced `Button`s flanking a large
+   * 24px tabular readout. Same control, same a11y contract, two grounds.
+   */
+  surface?: 'sheet' | 'instrument'
 }
 
 /**
@@ -30,19 +39,69 @@ type CountStepperProps = {
  * Formerly baked into `SelCard`; now a standalone atom so any card (picker
  * cell, install row) reuses it.
  */
-export function CountStepper({ count, onChange, subject, min = 0, max, label }: CountStepperProps) {
+export function CountStepper({
+  count,
+  onChange,
+  subject,
+  min = 0,
+  max,
+  label,
+  surface = 'sheet',
+}: CountStepperProps) {
   const atMin = count <= min
   const atMax = max !== undefined && count >= max
   const readout = label !== undefined && max !== undefined ? `${label} ${count}/${max}` : `${count}`
+  const step = (next: number) => (e: { stopPropagation: () => void }) => {
+    e.stopPropagation()
+    onChange(next)
+  }
+  /** Announced separately from the aria-hidden readout, in both surfaces. */
+  const liveRegion = (
+    <span role="status" aria-live="polite" className="sr-only">
+      {subject} count: {count}
+    </span>
+  )
+
+  if (surface === 'instrument') {
+    // The dashboard overlay cluster (formerly the separate DamageStepper):
+    // spaced buttons, no joining border, and a large tabular readout.
+    return (
+      <div className="flex items-center justify-center gap-[10px]">
+        <Button
+          size="sm"
+          className="min-w-0 px-2"
+          aria-label={`Remove one ${subject}`}
+          disabled={atMin}
+          onClick={step(count - 1)}
+        >
+          −
+        </Button>
+        <span
+          aria-hidden="true"
+          className="min-w-[44px] text-center font-cond text-[24px] font-bold tabular-nums text-ink"
+        >
+          {readout}
+        </span>
+        {liveRegion}
+        <Button
+          size="sm"
+          className="min-w-0 px-2"
+          aria-label={`Add one ${subject}`}
+          disabled={atMax}
+          onClick={step(count + 1)}
+        >
+          +
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <span className="inline-flex items-stretch overflow-hidden rounded-[5px] border-2 border-ink leading-none">
       <StepButton
         aria-label={`Remove one ${subject}`}
         disabled={atMin}
-        onClick={(e) => {
-          e.stopPropagation()
-          onChange(count - 1)
-        }}
+        onClick={step(count - 1)}
         className="rounded-none border-0 bg-ink text-paper hover:bg-ink-2"
       >
         −
@@ -60,16 +119,11 @@ export function CountStepper({ count, onChange, subject, min = 0, max, label }: 
       >
         {readout}
       </span>
-      <span role="status" aria-live="polite" className="sr-only">
-        {subject} count: {count}
-      </span>
+      {liveRegion}
       <StepButton
         aria-label={`Add one ${subject}`}
         disabled={atMax}
-        onClick={(e) => {
-          e.stopPropagation()
-          onChange(count + 1)
-        }}
+        onClick={step(count + 1)}
         className="rounded-none border-0 bg-ink text-paper hover:bg-ink-2"
       >
         +

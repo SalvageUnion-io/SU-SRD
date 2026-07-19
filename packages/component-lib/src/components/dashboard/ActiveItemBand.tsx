@@ -6,7 +6,7 @@
  * Presentational: every rule + store write lives in the ITUN wrapper (per band:
  * mech / pilot / crawler), which computes this view-model and wires the button
  * callbacks. This renders the bays + gauges + buttons + the resolve overlay.
- * DamageStepper + StorageBay are exported so the wrapper can compose overlay
+ * StorageBay is exported so the wrapper can compose overlay
  * bodies.
  */
 
@@ -85,37 +85,6 @@ function BandBtn({ btn, full = true }: { btn: BandButton; full?: boolean }) {
     >
       {btn.label}
     </Button>
-  )
-}
-
-/** The ± damage stepper used inside a Take-Damage overlay. */
-export function DamageStepper({
-  amount,
-  setAmount,
-}: {
-  amount: number
-  setAmount: (n: number) => void
-}) {
-  return (
-    <div className="pc-step">
-      <Button
-        size="sm"
-        className="min-w-0 px-2"
-        onClick={() => setAmount(Math.max(1, amount - 1))}
-        aria-label="Decrease damage"
-      >
-        −
-      </Button>
-      <span className="pc-step-num">{amount}</span>
-      <Button
-        size="sm"
-        className="min-w-0 px-2"
-        onClick={() => setAmount(amount + 1)}
-        aria-label="Increase damage"
-      >
-        +
-      </Button>
-    </div>
   )
 }
 

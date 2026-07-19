@@ -53,6 +53,34 @@ export const Bounds: Story = () => {
   )
 }
 
+/**
+ * The two surfaces side by side. `instrument` absorbed the former standalone
+ * `DamageStepper`: same control, same accessible contract, a looser cluster with
+ * a large tabular readout for the dashboard's Take-Damage overlay.
+ */
+export const Surfaces: Story = () => {
+  const [sheet, setSheet] = useState(2)
+  const [instrument, setInstrument] = useState(3)
+  return (
+    <div className="flex flex-col gap-4">
+      <Caption>
+        `sheet` (default) — the joined ink pill that rides an entity card's controls overlay.
+      </Caption>
+      <CountStepper subject="Assault Rifle" count={sheet} onChange={setSheet} max={5} />
+      <Caption>
+        `instrument` — the dashboard overlay cluster, floored at 1 (damage is never zero).
+      </Caption>
+      <CountStepper
+        subject="damage point"
+        count={instrument}
+        onChange={setInstrument}
+        min={1}
+        surface="instrument"
+      />
+    </div>
+  )
+}
+
 /** In its real home: an entity card's controls overlay, with the `selected` ring. */
 export const InCard: Story = () => {
   const item = firstEquipment()

@@ -2,9 +2,9 @@ import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { Caption } from '../../stories/_harness'
 import { InstrumentStage } from '../../stories/_dashboardStage'
+import { CountStepper } from '../chrome/CountStepper'
 import {
   ActiveItemBand,
-  DamageStepper,
   StorageBay,
   type ActiveItemBandView,
   type StorageLot,
@@ -61,7 +61,15 @@ export const Default: Story = () => {
       ? {
           title: 'Take Structure Damage',
           onClose: () => setOverlay(false),
-          body: <DamageStepper amount={dmg} setAmount={setDmg} />,
+          body: (
+            <CountStepper
+              count={dmg}
+              onChange={setDmg}
+              subject="damage point"
+              min={1}
+              surface="instrument"
+            />
+          ),
           actions: [{ label: `Apply −${dmg} SP`, onClick: () => setOverlay(false), danger: true }],
         }
       : null,

@@ -34,7 +34,7 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import type { EntityState } from '../../stores/entityStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
-import { ActiveItemBand as ActiveItemBandView, DamageStepper, StorageBay } from 'component-lib'
+import { ActiveItemBand as ActiveItemBandView, CountStepper, StorageBay } from 'component-lib'
 import type { ActiveItemBandView as ActiveItemBandViewModel } from 'component-lib'
 import {
   VENT_PATCH,
@@ -267,7 +267,15 @@ function MechBand({
       return {
         title: 'Take Structure Damage',
         onClose,
-        body: <DamageStepper amount={dmg} setAmount={setDmg} />,
+        body: (
+          <CountStepper
+            count={dmg}
+            onChange={setDmg}
+            subject="damage point"
+            min={1}
+            surface="instrument"
+          />
+        ),
         actions: [{ label: `Apply −${dmg} SP`, onClick: applyDamage, danger: true }],
       }
     }
@@ -470,7 +478,15 @@ function PilotBand({
       return {
         title: 'Take Damage',
         onClose,
-        body: <DamageStepper amount={dmg} setAmount={setDmg} />,
+        body: (
+          <CountStepper
+            count={dmg}
+            onChange={setDmg}
+            subject="damage point"
+            min={1}
+            surface="instrument"
+          />
+        ),
         actions: [{ label: `Apply −${dmg} HP`, onClick: applyDamage, danger: true }],
       }
     }
