@@ -7,7 +7,7 @@ import type { EntityStatus } from './StatusBadge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Atoms/Status Badge',
+  title: 'Compositions/Status Badge',
 }
 
 // Real SRD content — reference data is preloaded by .ladle/components.tsx before
