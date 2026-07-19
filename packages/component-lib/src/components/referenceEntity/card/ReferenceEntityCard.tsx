@@ -40,6 +40,7 @@ import { FOCUS_RING, activateOnKey } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
 import { Badge } from '../../chrome/Badge'
 import { CountStepper } from '../../chrome/CountStepper'
+import { StatusBadge } from '../../chrome/StatusBadge'
 import { STAMP_SEAM } from '../../chrome/stampSeam'
 import { ActivationCostBox } from '../../shared/ActivationCostBox'
 import { CardImage } from '../../shared/CardImage'
@@ -935,18 +936,10 @@ export function ReferenceEntityCard({
   const effectiveRightContent: ReactNode = lightweight
     ? undefined
     : (rightContentProp ?? flavorNode)
-  // All select/alter interactivity lives in the controls bar, not the subheader:
-  // the condition toggle (Intact/Damaged/Destroyed) rides the controls overlay
-  // as a leading status control, ahead of any consumer-supplied controls.
-  const overlayControls: ReferenceEntityControl[] | undefined = status
-    ? [
-        {
-          key: 'status',
-          status: { value: status, onClick: onStatusClick, subject: statusSubject ?? entityName },
-        },
-        ...(controls ?? []),
-      ]
-    : controls
+  // Consumer-supplied select/alter interactivity lives in the controls bar. The
+  // condition toggle (Intact/Damaged/Destroyed) is NOT here — it rides the
+  // top-right frame as its own stamp-seal (`statusSealNode` below).
+  const overlayControls: ReferenceEntityControl[] | undefined = controls
   const titleTextClass = onBandText
   const header = (
     <EntityCardHeader
@@ -1063,6 +1056,14 @@ export function ReferenceEntityCard({
       />
     </div>
   ) : null
+  // Condition stamp-seal — the Intact/Damaged/Destroyed status rides the top-right
+  // frame as a tone-filled stamp (clickable to cycle when a handler is supplied),
+  // not a controls-bar button.
+  const statusSealNode = status ? (
+    <div className={cn('absolute right-2 z-30', compact ? 'top-0 -translate-y-1/2' : '-mt-2')}>
+      <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject ?? entityName} />
+    </div>
+  ) : null
 
   // BADGE — the SHORTFORM token: a single tone-filled pill with the type stamp,
   // the name, and the classification tail (TL for gear/chassis, Ability Tree ·
@@ -1169,6 +1170,7 @@ export function ReferenceEntityCard({
         {controlsOverlay}
         {selectionSealNode}
         {countSealNode}
+        {statusSealNode}
         <div
           className="flex flex-1 flex-col overflow-hidden rounded-card bg-paper"
           style={frameStyle}
@@ -1729,6 +1731,7 @@ export function ReferenceEntityCard({
       {controlsOverlay}
       {selectionSealNode}
       {countSealNode}
+      {statusSealNode}
       <div
         className={cn(
           'flex flex-1 flex-col overflow-hidden rounded-card bg-paper',
