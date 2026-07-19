@@ -121,7 +121,8 @@ export {
 export type { ChoiceSelections } from './components/referenceEntity/choiceCard/choiceSelectionHelpers'
 
 // Chrome primitives (ITUN design handoff — design-spec §2)
-// Badge — the unified stamp-chip family; Chip is its one remaining named preset
+// Badge — the unified stamp-chip family. No named presets: the quiet keyword
+// chip is `surface="quiet"`, the status badge is StatusBadge (domain vocabulary).
 // (use `Badge surface="outline"`/`"tone"` directly for the former Pill).
 export { Badge } from './components/chrome/Badge'
 export type { BadgeTone, BadgeSurface } from './components/chrome/Badge'
@@ -146,7 +147,6 @@ export type { GlyphName } from './components/chrome/glyphs'
 // with the default config, which drops them as unknown "colors").
 export { cn } from './utils/cn'
 export { Field, Input, Textarea, Select } from './components/chrome/Field'
-export { Chip } from './components/chrome/Chip'
 export { PickCard } from './components/chrome/PickCard'
 export { Sel } from './components/chrome/Sel'
 export { KvRow } from './components/chrome/KvRow'

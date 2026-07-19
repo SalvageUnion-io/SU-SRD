@@ -5,7 +5,7 @@ import { FOCUS_RING, SELECTION_RING, activateOnKey } from './interaction'
 type PickCardProps = {
   /** Card title (cond 700 22px uppercase) */
   name: string
-  /** Stat chips row under the name (compose with Chip) */
+  /** Stat chips row under the name (compose with `Badge surface="quiet"`) */
   chips?: ReactNode
   /** Body copy */
   children?: ReactNode

@@ -55,18 +55,25 @@ const SUBGROUPS: Record<string, readonly string[]> = {
 const CATALOG_PAGES = new Set(['Styleguide', 'Theme', 'Typography', 'Layout', 'RenderingMatrix'])
 
 /**
- * The bounded exception to "one component = one story": screen PROTOTYPES that
- * assemble lib primitives inline to show a whole app surface, with no backing
- * component in this package to co-locate beside.
+ * The bounded exception to "one component = one story": frozen "BEFORE" CAPTURES
+ * from the style-unification refresh. Each reproduces an ITUN wizard surface
+ * inline — app components can't be imported cross-package — so the refreshed
+ * primitives can be compared against the legacy appearance they replace.
  *
- * They are listed explicitly so the exception stays visible and countable rather
- * than silently becoming the norm — adding a componentless story fails CI until
- * it is justified here. Each entry is a candidate for either extracting a real
- * component or deleting once its surface ships.
+ * They are deliberately FROZEN: they do not track the ITUN components they
+ * mirror, because their whole job is to preserve the "before" state. So do NOT
+ * "fix drift" against the app, and do NOT extract a component out of them —
+ * that would defeat the capture. They are retired by DELETION once the refresh
+ * they document has landed (a sibling pass already deleted 16 comparison-only
+ * captures and kept these two as the app-surface ones).
+ *
+ * Listed explicitly so the exception stays visible and countable rather than
+ * silently becoming the norm — a new componentless story fails CI until it is
+ * justified here.
  */
 const PROTOTYPE_STORIES = new Set([
-  'components/wizard/MechInstallStep.stories.tsx', // ITUN mech-install wizard step
-  'components/wizard/NewEntityScreen.stories.tsx', // ITUN new-entity wizard screen
+  'components/wizard/MechInstallStep.stories.tsx', // legacy ITUN mech-install step
+  'components/wizard/NewEntityScreen.stories.tsx', // legacy ITUN new-entity screen
 ])
 
 function read(rel: string): string {

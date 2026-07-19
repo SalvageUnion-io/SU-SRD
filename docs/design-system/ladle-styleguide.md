@@ -427,8 +427,10 @@ complex, read top-to-bottom):
    (`Theme`, `Typography`, `Layout`, the `Rendering Matrix`). Foundation specimens are generated
    **from the tokens** (`Typography` iterates the `--text-*` / `--font-*` / `--tracking-*` scales so
    it can't drift from `theme.css`).
-2. **Atoms** — indivisible primitives: one job, composing no other atom, carrying no domain knowledge
-   (e.g. `Text`, `Slab`, `Badge`, `Button`, `Stat`).
+2. **Atoms** — primitives with a single presentational job and **no Salvage Union domain knowledge**
+   (e.g. `Text`, `Slab`, `Badge`, `Button`, `Stat`). An atom **may** compose a lower-level atom —
+   `Stat` composes `Text` + `Tooltip`, `CountStepper` composes `StepButton`. Domain knowledge, not
+   composition, is the line between an atom and a composition.
 3. **Containers** — content-agnostic wrappers / state shells that would still make sense with entirely
    different content inside (e.g. `Display Card`, `Modal`, `Inset`, `Toast`).
 4. **Compositions** — domain/game components: they know about Salvage Union entities, or they assemble
@@ -568,14 +570,22 @@ entity names like `'Cargo Hold'`, a `title:` prop, a code-sample string — are 
 | prototype list is fresh   | a `PROTOTYPE_STORIES` entry no longer exists                                                                                                                                                                    |
 | title names its component | a title's last segment is neither the story's own basename nor a component defined in its directory. A sub-group may absorb a shared prefix, so `Compositions/Dashboard/Gauge` correctly names `DashboardGauge` |
 
-**The one bounded exception — `PROTOTYPE_STORIES`.** A couple of stories are screen _prototypes_: they
-assemble lib primitives inline to show a whole app surface, and have no backing component in this
-package to co-locate beside (`Compositions/Wizard/Mech Install Step`, `.../New Entity Screen` — both
-mock ITUN wizard surfaces). Rather than let "a story with no component" become an unexamined norm, they
-are named explicitly in the guard: a new componentless story fails CI until someone justifies adding it
-to that list. Each entry is a standing candidate for either extracting a real component or deleting the
-story once its surface ships. They live in `src/components/wizard/` — a home named for what they are,
-not filed beside an unrelated primitive.
+**The one bounded exception — `PROTOTYPE_STORIES`.** Two stories are frozen **"before" captures** from
+the style-unification refresh (`Compositions/Wizard/Mech Install Step`, `.../New Entity Screen`). Each
+reproduces an ITUN wizard surface inline — app components cannot be imported cross-package — so the
+refreshed primitives can be compared against the legacy appearance they replace. They originate from
+`test(component-lib): Legacy "before" captures for dashboard + wizard surfaces`, and a sibling pass has
+already deleted 16 comparison-only captures, keeping these two as the app-surface ones.
+
+Because they have no backing component, they are named explicitly in the guard rather than letting "a
+story with no component" become an unexamined norm: a new componentless story fails CI until someone
+justifies adding it to that list. They live in `src/components/wizard/` — a home named for what they
+are, not filed beside an unrelated primitive.
+
+**Do not "fix" them.** They are deliberately frozen and do **not** track the ITUN components they
+mirror — preserving the "before" state is the entire point. So don't reconcile them against the app,
+and don't extract a component out of them; either would defeat the capture. They retire by **deletion**,
+once the refresh they document has landed.
 
 Add a new group or sub-group only by extending both the guard's `GROUPS`/`SUBGROUPS` **and** the
 `storyOrder` list in `config.mjs` (§3).
