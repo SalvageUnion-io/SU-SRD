@@ -2,7 +2,8 @@ import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-referenc
 import { getDisplayName, getTechLevel, getTechLevelNumber, isAbility } from 'salvageunion-reference'
 import { TECH_LEVEL_BG } from '../../shared/techLevelStyles'
 import { borderColorFromHeaderBg, calculateBackgroundColor } from '../referenceEntityHelpers'
-import type { CardDomain } from './EntityCardIdentityFooter'
+/** The six card domains + `action`. Lives here, with the domain logic. */
+export type CardDomain = 'pilot' | 'mech' | 'crawler' | 'actor' | 'gear' | 'glossary' | 'action'
 
 /** The densities a `ReferenceEntityCard` renders at. Nested entities are ALWAYS
  * 'compact'; 'listing' uses the same compact header treatment, rendered as a
@@ -49,6 +50,16 @@ const SCHEMA_DOMAIN: Record<SURefEnumSchemaName, CardDomain> = {
   sources: 'glossary',
   'roll-tables': 'glossary',
   'tech-levels': 'glossary',
+}
+
+/**
+ * The schema → domain lookup, for surfaces that need the GROUPING without the
+ * card's tone resolution (e.g. the SRD catalog tiles, which paint their own
+ * gradients per domain). Exported so that grouping lives in exactly one place:
+ * a consumer keying off schema ids by hand drifts the moment a schema is added.
+ */
+export function resolveSchemaDomain(schemaName: string): CardDomain | undefined {
+  return SCHEMA_DOMAIN[schemaName as SURefEnumSchemaName]
 }
 
 export type DomainTone = {

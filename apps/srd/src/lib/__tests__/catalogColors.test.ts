@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { getSchemaCatalog, SalvageUnionReference } from 'salvageunion-reference'
+import { resolveSchemaDomain } from 'component-lib'
 import { getCatalogBg } from '../catalogColors'
 
 const FALLBACK_COLOR = 'var(--color-su-orange)'
@@ -20,9 +21,23 @@ describe('getCatalogBg', () => {
     }
 
     expect(missing).toEqual(
-      // If this fails, add the missing schema IDs to schemaColors in catalogColors.ts
+      // If this fails, the schema has no domain in component-lib's SCHEMA_DOMAIN
+      // — declare it there (the card resolves its tone from the same map).
       []
     )
+  })
+
+  it('derives its colour from the canonical schema domain, not a local list', () => {
+    const { schemas } = getSchemaCatalog()
+    // Every non-meta schema must resolve to a domain in component-lib. A schema
+    // the map doesn't know would fall back to pilot-orange here AND mis-tone its
+    // card — the drift this indirection exists to prevent.
+    const undomained = schemas
+      .filter((s) => !s.meta)
+      .map((s) => s.id)
+      .filter((id) => resolveSchemaDomain(id) === undefined)
+
+    expect(undomained).toEqual([])
   })
 })
 
