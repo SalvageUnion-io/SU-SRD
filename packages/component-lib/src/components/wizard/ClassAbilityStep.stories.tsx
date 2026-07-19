@@ -6,7 +6,7 @@ import { selectableClasses } from './classOptions'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Class Ability Step',
+  title: 'Compositions/Wizard/Class Ability Step',
 }
 
 const { base } = selectableClasses(undefined, true)

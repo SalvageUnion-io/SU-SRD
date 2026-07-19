@@ -4,7 +4,7 @@ import { GainScrapStep } from './GainScrapStep'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Gain Scrap Step',
+  title: 'Compositions/Wizard/Gain Scrap Step',
 }
 
 /** The starting-scrap explainer step. */

@@ -7,7 +7,7 @@ import { SystemsList } from './SystemsList'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Systems List',
+  title: 'Compositions/Wizard/Systems List',
 }
 
 const weaponSystems = SalvageUnionReference.Systems.all().slice(0, 4) as SURefSystem[]

@@ -1,24 +1,21 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { Caption } from '../../stories/_harness'
-import { BackgroundStep } from './BackgroundStep'
 import { CallsignStep } from './CallsignStep'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Pilot Identity Steps',
+  title: 'Compositions/Wizard/Callsign Step',
 }
 
-/** The pilot's name/callsign and background steps, each with roll affordances. */
+/** The pilot's name + callsign step, with its roll affordances on each field. */
 export const Default: Story = () => {
   const [name, setName] = useState('')
   const [callsign, setCallsign] = useState('')
-  const [background, setBackground] = useState('')
-  const [description, setDescription] = useState('')
   return (
-    <div className="sheet--pilot flex flex-col gap-8 bg-paper p-4">
+    <div className="sheet--pilot flex flex-col gap-8 p-4">
       <div>
-        <Caption>CallsignStep</Caption>
+        <Caption>empty — both fields awaiting input or a roll</Caption>
         <CallsignStep
           name={name}
           callsign={callsign}
@@ -26,13 +23,8 @@ export const Default: Story = () => {
         />
       </div>
       <div>
-        <Caption>BackgroundStep</Caption>
-        <BackgroundStep
-          background={background}
-          onChange={setBackground}
-          description={description}
-          onDescriptionChange={setDescription}
-        />
+        <Caption>filled — a rolled pilot identity</Caption>
+        <CallsignStep name="Vasquez" callsign="Ratchet" onChange={() => {}} />
       </div>
     </div>
   )
