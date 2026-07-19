@@ -479,7 +479,7 @@ function ReferenceEntityCardInner({
   hostDown,
   chassisName,
   droneLoadout,
-  hide,
+  hide: hideProp,
   status,
   onStatusClick,
   statusSubject,
@@ -556,6 +556,16 @@ function ReferenceEntityCardInner({
   const isNestedNpc = schemaName === 'npcs' && hostTone != null
   const isGhosted = isAction || isNestedNpc
   const compact = depth > 0 || size !== 'full'
+  // CATALOG — the SRD index tile. Compact, artwork + description ONLY. Every
+  // nested element is suppressed here rather than at each call-site, so a
+  // listing page reads uniformly no matter what the entity happens to carry
+  // (a chassis's patterns, an ability's grants, a crawler bay's roll table).
+  // Nested ENTITIES/actions are cut via `canExpand` below; these flags cut the
+  // in-body sections, layering over whatever the consumer passed.
+  const isCatalog = size === 'catalog'
+  const hide: ReferenceEntityCardHideConfig | undefined = isCatalog
+    ? { ...hideProp, actions: true, choices: true, patterns: true, rollTable: true }
+    : hideProp
   const tone = resolveCardTone(schemaName, entity)
   // ACTIONS and NESTED NPCs inherit the summoning (parent) entity's tone,
   // GHOSTED (D8): the header + sub-header bands + 3px frame use the ghosted host
@@ -1185,7 +1195,10 @@ function ReferenceEntityCardInner({
   // own content AND actions are suppressed (they belong to the granted entity);
   // its description shows as header flavor, then the Grants nested cards.
   const grantedCount = resolveGrantedEntities(entity as SURefEntity).length
-  const isGrantingAbility = isAbility(entity) && grantedCount > 0
+  // A granting ability normally collapses its own prose in favour of the granted
+  // entity cards. A catalog tile suppresses those cards, so it must NOT collapse
+  // — otherwise the tile renders with no description at all.
+  const isGrantingAbility = !isCatalog && isAbility(entity) && grantedCount > 0
   const content = 'content' in entity ? entity.content : undefined
   // The crawler-bay damaged-effect string also appears as the last content
   // paragraph; it renders in the "WHEN DAMAGED" callout, so it's filtered out of
@@ -1200,7 +1213,9 @@ function ReferenceEntityCardInner({
 
   // Only entities expand (actions are leaves, pattern views show their loadout);
   // bounded by MAX_DEPTH.
-  const canExpand = !isAction && depth < MAX_DEPTH
+  // A catalog tile never expands — no nested entities, chassis abilities or
+  // actions, whatever the entity carries.
+  const canExpand = !isAction && !isCatalog && depth < MAX_DEPTH
   const canExpandEntity = canExpand && !isPattern
   const nestedGroups = canExpandEntity ? resolveNestedEntities(entity) : []
   // Chassis abilities are name refs into the ACTIONS schema (resolved by
@@ -1223,7 +1238,7 @@ function ReferenceEntityCardInner({
       ? resolvePatternGroups(pattern).filter((group) => group.label !== 'Drones')
       : []
   const patternList: SURefObjectPattern[] =
-    !isPattern && 'patterns' in entity && Array.isArray(entity.patterns)
+    !isPattern && !isCatalog && 'patterns' in entity && Array.isArray(entity.patterns)
       ? (entity.patterns as SURefObjectPattern[])
       : []
   // Artwork is shown on full + nested cards (CardImage handles the compact size).

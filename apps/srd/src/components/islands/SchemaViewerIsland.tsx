@@ -19,7 +19,6 @@ import { IslandErrorBoundary } from './IslandErrorBoundary'
 // Hoisted to a stable module-level reference so the `memo()` on
 // ReferenceEntityCard is not defeated by a fresh inline object literal on
 // every render (e.g. each keystroke in the name filter re-rendering every card).
-const HIDE_ACTIONS_AND_CHOICES = { actions: true, choices: true } as const
 
 // URL query-param keys the filter state is synced to, so a filtered view is
 // bookmarkable/shareable and survives back-navigation.
@@ -327,9 +326,8 @@ export function SchemaViewerIsland({
                         >
                           <Suspense fallback={<CardSkeleton compact />}>
                             <ReferenceEntityCard
-                              hide={HIDE_ACTIONS_AND_CHOICES}
                               data={item}
-                              compact
+                              size="catalog"
                               label={tree}
                               cardClickable
                             />

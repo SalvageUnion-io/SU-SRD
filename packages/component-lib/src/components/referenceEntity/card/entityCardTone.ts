@@ -7,8 +7,11 @@ import type { CardDomain } from './EntityCardIdentityFooter'
 /** The densities a `ReferenceEntityCard` renders at. Nested entities are ALWAYS
  * 'compact'; 'listing' uses the same compact header treatment, rendered as a
  * solid full-colour domain row; 'badge' is the SHORTFORM token — a single
- * tone-filled pill showing only the type stamp, name, and TL / Tree · Level. */
-export type ReferenceEntityCardSize = 'full' | 'compact' | 'listing' | 'badge'
+ * tone-filled pill showing only the type stamp, name, and TL / Tree · Level.
+ * 'catalog' is the SRD index tile: compact, artwork + description ONLY, with
+ * every nested element (entities, actions, choices, patterns, roll tables)
+ * suppressed so a listing page reads uniformly regardless of entity type. */
+export type ReferenceEntityCardSize = 'full' | 'compact' | 'listing' | 'badge' | 'catalog'
 
 /**
  * SCHEMA → DOMAIN — the single, exhaustive source of truth for which of the six
