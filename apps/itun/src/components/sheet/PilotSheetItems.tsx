@@ -26,7 +26,7 @@ import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import type { EquipmentLoadout } from '../shared/useEquipmentLoadout'
 import { PilotEquipmentLoadout, isLoadoutHost } from './PilotEquipmentLoadout'
-import { CardRemoveButton, REMOVABLE_CARD_STYLE, cardRemoveControls } from './SheetSection'
+import { CardRemoveButton, REMOVABLE_CARD_STYLE, cardRemoveControls } from 'component-lib'
 import {
   equipmentMaxUses,
   equipmentSlotCost,
