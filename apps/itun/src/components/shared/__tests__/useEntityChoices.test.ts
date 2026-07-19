@@ -95,7 +95,7 @@ describe('useEntityChoices — seeding', () => {
     )
     expect(result.current.selections).toEqual({})
     // The empty reference is stable across renders so it does not defeat the
-    // downstream React.memo on ReferenceEntityDisplay.
+    // downstream React.memo on ReferenceEntityCard.
     const first = result.current.selections
     rerender()
     expect(result.current.selections).toBe(first)

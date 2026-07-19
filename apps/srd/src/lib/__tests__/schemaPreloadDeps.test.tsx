@@ -9,7 +9,7 @@ import {
   type SURefEntity,
 } from 'salvageunion-reference'
 import {
-  ReferenceEntityDisplay,
+  ReferenceEntityCard,
   EntityHrefProvider,
   EntityDetailLinkProvider,
   CardSkeleton,
@@ -49,7 +49,7 @@ function renderEntity(entity: SURefEntity): string {
     <EntityHrefProvider value={srdEntityHref}>
       <EntityDetailLinkProvider value={true}>
         <Suspense fallback={<CardSkeleton />}>
-          <ReferenceEntityDisplay data={entity} />
+          <ReferenceEntityCard data={entity} />
         </Suspense>
       </EntityDetailLinkProvider>
     </EntityHrefProvider>

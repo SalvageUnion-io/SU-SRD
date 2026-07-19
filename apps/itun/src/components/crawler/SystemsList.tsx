@@ -1,5 +1,5 @@
 import type { SURefSystem } from 'salvageunion-reference'
-import { MasonryColumns, ReferenceEntityDisplay } from 'component-lib'
+import { MasonryColumns, ReferenceEntityCard } from 'component-lib'
 
 type SystemsListProps = {
   /** Weapons systems available to install, already filtered by the parent. */
@@ -64,7 +64,7 @@ export function SystemsList({
         const selected = selectedSystemSlugs.includes(system.id)
         const disabled = !selected && atCap
         return (
-          <ReferenceEntityDisplay
+          <ReferenceEntityCard
             key={system.id}
             data={system}
             compact

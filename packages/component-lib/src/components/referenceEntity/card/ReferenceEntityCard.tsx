@@ -36,6 +36,7 @@ import {
 import { cn } from '../../../utils/cn'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { EntityStatus } from '../../shared/entityStatus'
+import { type EntityDisplayMode, resolveDisplayMode } from '../../shared/displayMode'
 import { FOCUS_RING, activateOnKey } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
 import { Badge } from '../../chrome/Badge'
@@ -377,7 +378,7 @@ function CatalogChoiceListing({
       <div className="flex flex-col gap-1.5">
         {prompt && <p className="font-body text-xs text-ink/70">{prompt}</p>}
         {chosenEntity && (
-          <ReferenceEntityCard
+          <ReferenceEntityCardInner
             size="listing"
             depth={depth + 1}
             data={chosenEntity}
@@ -435,7 +436,7 @@ function CatalogChoiceListing({
               const key =
                 'id' in entity && typeof entity.id === 'string' ? entity.id : `${name}-${index}`
               return (
-                <ReferenceEntityCard
+                <ReferenceEntityCardInner
                   key={key}
                   size="listing"
                   depth={depth + 1}
@@ -469,7 +470,7 @@ function CatalogChoiceListing({
  * Actions) each render a `Slab` separator + a 2-up grid of depth+1 cards;
  * actions are rust, always compact, AP via `ActivationCostBox`.
  */
-export function ReferenceEntityCard({
+function ReferenceEntityCardInner({
   data,
   size: sizeProp = 'full',
   depth: depthProp = 0,
@@ -1548,7 +1549,7 @@ export function ReferenceEntityCard({
     if (flat) {
       return entities.map((nested, index) => (
         <div key={cardKey(nested, index)} className="mb-1.5 flow-root">
-          <ReferenceEntityCard
+          <ReferenceEntityCardInner
             size="compact"
             depth={depth + 1}
             hostDown={isDown}
@@ -1567,7 +1568,7 @@ export function ReferenceEntityCard({
       return (
         <div className="flex flex-col gap-1.5">
           {entities.map((nested, index) => (
-            <ReferenceEntityCard
+            <ReferenceEntityCardInner
               key={cardKey(nested, index)}
               size="compact"
               depth={depth + 1}
@@ -1590,7 +1591,7 @@ export function ReferenceEntityCard({
           <div className="columns-1 gap-1.5 sm:columns-2">
             {columnCards.map((nested, index) => (
               <div key={cardKey(nested, index)} className="mb-1.5 break-inside-avoid">
-                <ReferenceEntityCard
+                <ReferenceEntityCardInner
                   size="compact"
                   depth={depth + 1}
                   hostDown={isDown}
@@ -1604,7 +1605,7 @@ export function ReferenceEntityCard({
           </div>
         )}
         {orphan && (
-          <ReferenceEntityCard
+          <ReferenceEntityCardInner
             key={cardKey(orphan, entities.length - 1)}
             size="compact"
             depth={depth + 1}
@@ -1669,10 +1670,15 @@ export function ReferenceEntityCard({
       {entities.map((item, index) =>
         flat ? (
           <div key={cardKey(item, index)} className="mb-1.5 flow-root">
-            <ReferenceEntityCard size="listing" depth={depth + 1} hostDown={isDown} data={item} />
+            <ReferenceEntityCardInner
+              size="listing"
+              depth={depth + 1}
+              hostDown={isDown}
+              data={item}
+            />
           </div>
         ) : (
-          <ReferenceEntityCard
+          <ReferenceEntityCardInner
             key={cardKey(item, index)}
             size="listing"
             depth={depth + 1}
@@ -1702,7 +1708,7 @@ export function ReferenceEntityCard({
     ) : anchorNpcEntities.length > 0 ? (
       <div className="mb-1.5 w-full shrink-0 md:float-right md:w-1/2 md:max-w-full md:pl-3">
         {anchorNpcEntities.map((npc, index) => (
-          <ReferenceEntityCard
+          <ReferenceEntityCardInner
             key={cardKey(npc, index)}
             size="compact"
             depth={depth + 1}
@@ -1852,7 +1858,7 @@ export function ReferenceEntityCard({
           {droneInfo &&
             (flat ? (
               <div className="mb-1.5 flow-root">
-                <ReferenceEntityCard
+                <ReferenceEntityCardInner
                   size="compact"
                   depth={depth + 1}
                   hostDown={isDown}
@@ -1862,7 +1868,7 @@ export function ReferenceEntityCard({
                 />
               </div>
             ) : (
-              <ReferenceEntityCard
+              <ReferenceEntityCardInner
                 size="compact"
                 depth={depth + 1}
                 hostDown={isDown}
@@ -1899,7 +1905,7 @@ export function ReferenceEntityCard({
                   key={cardKey(action as unknown as SURefEntity, index)}
                   className="mb-1.5 flow-root"
                 >
-                  <ReferenceEntityCard
+                  <ReferenceEntityCardInner
                     size="compact"
                     depth={depth + 1}
                     hostDown={isDown}
@@ -1909,7 +1915,7 @@ export function ReferenceEntityCard({
                   />
                 </div>
               ) : (
-                <ReferenceEntityCard
+                <ReferenceEntityCardInner
                   key={cardKey(action as unknown as SURefEntity, index)}
                   size="compact"
                   depth={depth + 1}
@@ -1929,7 +1935,7 @@ export function ReferenceEntityCard({
                 {patternList.map((pat) =>
                   flat ? (
                     <div key={pat.name} className="mb-1.5 flow-root">
-                      <ReferenceEntityCard
+                      <ReferenceEntityCardInner
                         data={data}
                         pattern={pat}
                         size="listing"
@@ -1938,7 +1944,7 @@ export function ReferenceEntityCard({
                       />
                     </div>
                   ) : (
-                    <ReferenceEntityCard
+                    <ReferenceEntityCardInner
                       key={pat.name}
                       data={data}
                       pattern={pat}
@@ -1976,5 +1982,53 @@ export function ReferenceEntityCard({
             )))}
       </div>
     </div>
+  )
+}
+
+/** Public wrapper props: the canonical card props plus the ergonomic display
+ * sugar and a nullable `data`. */
+export type ReferenceEntityCardWrapperProps = Omit<ReferenceEntityCardProps, 'data' | 'size'> & {
+  data: SURefEntity | undefined
+  size?: ReferenceEntityCardSize
+  compact?: boolean
+  listing?: boolean
+  mode?: EntityDisplayMode
+}
+
+/**
+ * `ReferenceEntityCard` — the public entry point for rendering a reference
+ * entity. Accepts the ergonomic display sugar (`compact` / `listing` / `mode`
+ * resolve to `size`; a nullable `data` renders nothing; a damaged/destroyed
+ * `status` folds into `damaged`) and renders the canonical card. This replaced
+ * the former `ReferenceEntityCard` compat shim; the recursive card body is
+ * `ReferenceEntityCardInner`.
+ */
+export function ReferenceEntityCard({
+  data,
+  size,
+  compact: compactProp,
+  listing: listingProp,
+  mode,
+  status,
+  damaged,
+  ...rest
+}: ReferenceEntityCardWrapperProps): ReactNode {
+  if (!data) return null
+
+  // `badge` is its own size; otherwise resolve from the mode / compact / listing sugar.
+  const { compact, listing } = resolveDisplayMode(mode, compactProp, listingProp)
+  const resolvedSize =
+    size ?? (mode === 'badge' ? 'badge' : listing ? 'listing' : compact ? 'compact' : 'full')
+  // `status` supersets `damaged` — a damaged/destroyed status greys the header too.
+  const effectiveDamaged = damaged || status === 'damaged' || status === 'destroyed'
+
+  return (
+    <ReferenceEntityCardInner
+      data={data}
+      size={resolvedSize}
+      status={status}
+      damaged={effectiveDamaged}
+      {...rest}
+    />
   )
 }

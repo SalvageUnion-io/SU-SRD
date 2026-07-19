@@ -25,7 +25,7 @@
 
 import { useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Button, ModalShell, ReferenceEntityDisplay, StatusBadge } from 'component-lib'
+import { Button, ModalShell, ReferenceEntityCard, StatusBadge } from 'component-lib'
 import type { CardFootMeta, ReferenceEntityControl } from 'component-lib'
 
 import type { ScrapPool } from '../../lib/schemas/crawler'
@@ -34,7 +34,7 @@ import { itemEconomy, repairPoolTl, repairScrapCost } from './mechItemRules'
 import type { MechItem, MechItemEconomy } from './mechItemRules'
 import { CardRemoveButton, REMOVABLE_CARD_STYLE, cardRemoveControls } from './SheetSection'
 
-/** Stable hide literal — keeps ReferenceEntityDisplay's memo effective. */
+/** Stable hide literal — keeps ReferenceEntityCard's memo effective. */
 const HIDE_CHOICES = { choices: true } as const
 
 type MechItemCardProps = {
@@ -235,7 +235,7 @@ export function MechItemCard({
   const removable = !readOnly && onRemove !== undefined
   return (
     <>
-      <ReferenceEntityDisplay
+      <ReferenceEntityCard
         data={entity as unknown as SURefEntity}
         compact
         hide={HIDE_CHOICES}

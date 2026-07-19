@@ -4,13 +4,13 @@
  *
  * Candidates come from the six NPC-shaped reference schemas (npcs, squads,
  * creatures, bio-titans, vehicles, meld) and render as compact head-mode
- * ReferenceEntityDisplay listings with an Add button beside each. Filter by
+ * ReferenceEntityCard listings with an Add button beside each. Filter by
  * schema chip, narrow by name search. The same NPC can be added any number of
  * times — every Add creates a fresh tracked instance.
  */
 
 import { useMemo, useState } from 'react'
-import { Button, FilterChip, ReferenceEntityDisplay } from 'component-lib'
+import { Button, FilterChip, ReferenceEntityCard } from 'component-lib'
 
 import { ENCOUNTER_REF_SCHEMAS } from '../../lib/schemas/encounterNpc'
 import type { EncounterRefSchema } from '../../lib/schemas/encounterNpc'
@@ -75,7 +75,7 @@ export function AddNpcControl({ onAdd }: AddNpcControlProps) {
               key={`${candidate.schema}:${candidate.slug}`}
               className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2"
             >
-              <ReferenceEntityDisplay data={candidate.entity} mode="head" />
+              <ReferenceEntityCard data={candidate.entity} mode="head" />
               <Button
                 size="sm"
                 variant="primary"

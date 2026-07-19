@@ -2,7 +2,7 @@
  * DisplayView — the Dashboard's main display: the ONE surface that reads
  * "forward". Presentational: the ITUN wrapper resolves the Dial focus (+ store /
  * rules) into a discriminated `content`, and this renders it — the faithful light
- * SRD reference document (reused ReferenceEntityDisplay / RollTable), the Tables
+ * SRD reference document (reused ReferenceEntityCard / RollTable), the Tables
  * picker, the SRD Explorer, or an app-provided slot (the Actions deck).
  */
 
@@ -13,7 +13,7 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { Button } from '../chrome/Button'
 import { ControlButtons } from '../shared/ControlButtons'
 import { RollTable } from '../shared/RollTable'
-import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 import { SrdExplorer } from './SrdExplorer'
 import { TablePickerOverlay } from './TablePickerOverlay'
@@ -146,7 +146,7 @@ function EntityCard({
       </div>
     )
   }
-  return <ReferenceEntityDisplay data={data} hide={HIDE_CHOICES} controls={controls} />
+  return <ReferenceEntityCard data={data} hide={HIDE_CHOICES} controls={controls} />
 }
 
 /** What the display shows — resolved by the app from the Dial focus + store. */

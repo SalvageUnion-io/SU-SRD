@@ -1,7 +1,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
-import { MasonryColumns, ReferenceEntityDisplay } from 'component-lib'
+import { MasonryColumns, ReferenceEntityCard } from 'component-lib'
 
 type SUREquipmentAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
@@ -72,7 +72,7 @@ export function EquipmentStep({
           const count = counts.get(item.id) ?? 0
           if (isCreate) {
             return (
-              <ReferenceEntityDisplay
+              <ReferenceEntityCard
                 key={item.id}
                 data={item as unknown as SURefEntity}
                 compact
@@ -99,7 +99,7 @@ export function EquipmentStep({
             )
           }
           return (
-            <ReferenceEntityDisplay
+            <ReferenceEntityCard
               key={item.id}
               data={item as unknown as SURefEntity}
               compact

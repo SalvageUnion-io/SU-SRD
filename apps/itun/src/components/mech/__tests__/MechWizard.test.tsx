@@ -27,7 +27,7 @@ import { must } from '../../__tests__/must'
 // ---------------------------------------------------------------------------
 
 beforeAll(async () => {
-  // ReferenceEntityDisplay renders trait keywords/drones inline, so preload
+  // ReferenceEntityCard renders trait keywords/drones inline, so preload
   // everything even though the wizard directly queries only a few schemas.
   await SalvageUnionReference.preload('all')
 })

@@ -165,10 +165,10 @@ export function PilotSheet({
   const effectiveCrawlerLevel = resolveEffectiveCrawlerLevel(pilot, linkedCrawler)
   // Memoized so the {techLevel} object's identity is stable across renders —
   // a fresh literal each render would defeat the React.memo on the (heavy)
-  // ReferenceEntityDisplay subtree it is threaded into.
+  // ReferenceEntityCard subtree it is threaded into.
   const scalingParent = useMemo(
     () => (effectiveCrawlerLevel !== undefined ? { techLevel: effectiveCrawlerLevel } : undefined),
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- intentional: effectiveCrawlerLevel is a derived scalar, memoized purely to keep the {techLevel} object identity stable for the memoized ReferenceEntityDisplay subtree
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- intentional: effectiveCrawlerLevel is a derived scalar, memoized purely to keep the {techLevel} object identity stable for the memoized ReferenceEntityCard subtree
     [effectiveCrawlerLevel]
   )
 

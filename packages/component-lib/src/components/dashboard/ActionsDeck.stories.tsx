@@ -54,7 +54,7 @@ function realGroups(): DeckGroup[] {
 /**
  * The Actions deck list view: timing tabs, group/range tools, source tags, and
  * grouped action rows (out-of-range rows dim in place). Real SRD systems drive
- * the rows; the resolve panel (not shown) reuses ReferenceEntityDisplay.
+ * the rows; the resolve panel (not shown) reuses ReferenceEntityCard.
  */
 export const Default: Story = () => {
   const [tab, setTab] = useState<string>('All')

@@ -1,7 +1,7 @@
 /**
  * Build-time OG-image generator.
  *
- * Renders the REAL ReferenceEntityDisplay card for every entity (1:1 with the
+ * Renders the REAL ReferenceEntityCard card for every entity (1:1 with the
  * on-page view) and screenshots it to `dist/schema/{schemaId}/item/{itemId}.og.png`
  * — the path each item page references as its og:image.
  *
@@ -58,7 +58,7 @@ const DIST_DIR = join(APP_ROOT, 'dist')
 // OUTSIDE dist: a cache dir under node_modules/.cache keyed by a manifest of
 // content hashes. Hash input = the entity's JSON + SCRIPT_VERSION — bump
 // SCRIPT_VERSION whenever the card RENDERING changes (og-card page, the
-// ReferenceEntityDisplay stack in component-lib, fonts, dimensions), since the
+// ReferenceEntityCard stack in component-lib, fonts, dimensions), since the
 // entity data alone can't see those.
 //
 // Unchanged entity + cached PNG → copy into dist, no screenshot. The cache is

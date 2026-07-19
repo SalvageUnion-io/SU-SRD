@@ -2,7 +2,7 @@ import { Suspense, useEffect, useMemo } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isAbility } from 'salvageunion-reference'
 import {
-  ReferenceEntityDisplay,
+  ReferenceEntityCard,
   CardSkeleton,
   getClassSelections,
   ClassAbilityTree,
@@ -67,7 +67,7 @@ export function ReferenceEntityIsland({
           <Suspense fallback={<CardSkeleton compact={compact} />}>
             <EntityHrefProvider value={srdEntityHref}>
               <EntityDetailLinkProvider value={true}>
-                <ReferenceEntityDisplay
+                <ReferenceEntityCard
                   data={item}
                   compact={compact}
                   titleAs={titleAs}

@@ -11,7 +11,7 @@ import type { SURefAbility, SURefEntity } from 'salvageunion-reference'
 import {
   Button,
   Panel,
-  ReferenceEntityDisplay,
+  ReferenceEntityCard,
   type ReferenceEntityControl,
   Stat,
   StatusBadge,
@@ -121,7 +121,7 @@ export function PilotAbilityItem({
   }
 
   return (
-    <ReferenceEntityDisplay
+    <ReferenceEntityCard
       data={ability as unknown as SURefEntity}
       compact
       label={ability.tree}
@@ -264,7 +264,7 @@ export function PilotEquipmentItem({
 
   return (
     <>
-      <ReferenceEntityDisplay
+      <ReferenceEntityCard
         data={equipment as unknown as SURefEntity}
         compact
         selections={selections}

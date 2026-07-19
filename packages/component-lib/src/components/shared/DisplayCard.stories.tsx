@@ -13,7 +13,7 @@ export default {
 // DisplayCard is the GENERIC container primitive — its stories demonstrate
 // the shell (header / sub-header / body / footer) with abstract content,
 // never real SRD entities. Entity-specific rendering lives one layer up, in
-// ReferenceEntityDisplay's own stories. The only "real" content here is the
+// ReferenceEntityCard's own stories. The only "real" content here is the
 // status badge (intact/damaged/destroyed) — that's the primitive's own
 // mechanic, not an entity concern.
 

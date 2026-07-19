@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
 import { SalvageUnionReference, isCoreClass, isBaseAdvancedClass } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from './card/referenceEntityDisplayShim'
+import { ReferenceEntityCard } from './card/ReferenceEntityCard'
 import { SectionSeparator } from './ReferenceEntityDisplay/SectionSeparator'
 import { useDetailModal } from './ReferenceEntityDisplay/useDetailModal'
 
@@ -56,7 +56,7 @@ function AbilityTreeListing({ ability, disabled }: { ability: SURefAbility; disa
 
   return (
     <>
-      <ReferenceEntityDisplay
+      <ReferenceEntityCard
         data={ability}
         compact
         listing

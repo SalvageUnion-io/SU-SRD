@@ -16,7 +16,7 @@ export { Text } from './components/base/Text'
 export { Toaster, toast } from './components/ui/toaster'
 
 // Entity display system
-export { ReferenceEntityDisplay } from './components/referenceEntity/card/referenceEntityDisplayShim'
+export { ReferenceEntityCard } from './components/referenceEntity/card/ReferenceEntityCard'
 export { EntityTooltip } from './components/referenceEntity/EntityTooltip'
 export { SectionSeparator } from './components/referenceEntity/ReferenceEntityDisplay/SectionSeparator'
 export {

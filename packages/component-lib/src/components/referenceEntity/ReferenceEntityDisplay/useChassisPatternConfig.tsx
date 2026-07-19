@@ -17,6 +17,7 @@ import {
 } from './referenceEntityDisplayTypes'
 import type { PatternOverrideData, ReferenceEntityHideConfig } from './referenceEntityDisplayTypes'
 import { Stat } from '../../shared/Stat'
+import type { StatItem } from '../../shared/statsBarTypes'
 import { SectionSeparator } from './SectionSeparator'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 
@@ -25,8 +26,8 @@ type ChassisPatternConfig = {
   titleOverride: string
   /** Subtitle badges (chassis name + legal starting mech) */
   subtitleExtra: ReactNode
-  /** SV override computed from pattern TL1 values */
-  statsOverride: { value: number; bottomLabel: string }
+  /** SV override computed from pattern TL1 values, as a header stat */
+  statsOverride: StatItem[]
   /** Show only primary stats in header */
   primaryStatsOnly: boolean
   /** The complete abilities section (pattern info + abilities + drone equipment) */
@@ -39,7 +40,7 @@ type ChassisPatternConfig = {
 
 /**
  * Encapsulates all pattern-override display logic for chassis entities.
- * Returns generic override props that callers spread onto ReferenceEntityDisplay, or null when no patternOverride.
+ * Returns generic override props that callers spread onto ReferenceEntityCard, or null when no patternOverride.
  */
 export function useChassisPatternConfig(
   data: SURefEntity,
@@ -120,7 +121,10 @@ export function useChassisPatternConfig(
     </>
   )
 
-  const statsOverride = svOverride ?? { value: 0, bottomLabel: 'TL1' }
+  const sv = svOverride ?? { value: 0, bottomLabel: 'TL1' }
+  const statsOverride: StatItem[] = [
+    { key: 'sv-override', label: 'Salvage', bottomLabel: sv.bottomLabel, value: sv.value },
+  ]
   const primaryStatsOnly = compact
 
   const abilitiesSection =

@@ -1,5 +1,5 @@
 import type { SURefEntity } from 'salvageunion-reference'
-import { KvRow, Panel, ReferenceEntityDisplay } from 'component-lib'
+import { KvRow, Panel, ReferenceEntityCard } from 'component-lib'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import { SavePatternButton } from './Pattern/SavePatternButton'
@@ -90,7 +90,7 @@ export function MechReviewStep({ form, isEdit, submitError, bankedScrap }: MechR
       {/* chosen cards */}
       <div className="space-y-3">
         {[...chosenSystems, ...chosenModules].map((entity, i) => (
-          <ReferenceEntityDisplay
+          <ReferenceEntityCard
             // biome-ignore lint/suspicious/noArrayIndexKey: the same system/module may be chosen more than once, so the id alone is not unique; the list only appends/removes at stable positions during review
             key={`${(entity as { id?: string }).id ?? 'entity'}-${i}`}
             data={entity}

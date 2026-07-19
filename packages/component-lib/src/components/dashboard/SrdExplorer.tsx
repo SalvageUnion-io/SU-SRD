@@ -9,7 +9,7 @@
  *  2. **8 category tiles** (Chassis / Systems / Modules / Pilot Abilities /
  *     Equipment / NPCs / Crawler Bays / Roll Tables) mapping to the real ORM
  *     accessors; picking one lists that category, and picking a row drills into
- *     the faithful `ReferenceEntityDisplay` in-panel with a back affordance.
+ *     the faithful `ReferenceEntityCard` in-panel with a back affordance.
  *
  * Preload hazard: accessor `.all()` is only ever called inside a handler after
  * the ORM is ready (`isLoaded` seed + an idempotent `preload('all')` effect) —
@@ -21,7 +21,7 @@ import { useEffect, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { Button } from '../chrome/Button'
-import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { useSearchCombobox } from '../shared/useSearchCombobox'
 
 const HIDE_CHOICES = { choices: true } as const
@@ -249,7 +249,7 @@ function SrdEntity({ entity, onBack }: { entity: SURefEntity; onBack: () => void
           ◀ Back
         </Button>
       </div>
-      <ReferenceEntityDisplay data={entity} hide={HIDE_CHOICES} />
+      <ReferenceEntityCard data={entity} hide={HIDE_CHOICES} />
     </div>
   )
 }

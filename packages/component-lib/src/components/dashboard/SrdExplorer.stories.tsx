@@ -8,7 +8,7 @@ export default { title: 'Compositions/Dashboard/SRD Explorer' }
 
 /**
  * The SRD Explorer display focus: a search box + 8 category tiles that drill
- * into the faithful ReferenceEntityDisplay in-panel. Self-loads the reference
+ * into the faithful ReferenceEntityCard in-panel. Self-loads the reference
  * ORM. Rendered here as the light "document under glass" inside the dark
  * instrument stage, exactly as it sits in the live Dashboard display.
  */

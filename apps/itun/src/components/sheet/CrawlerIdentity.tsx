@@ -3,7 +3,7 @@
  * Phase 2, the crawler sibling of PilotIdentityPanel / MechIdentityPanel).
  * Poster identity band: Name + Type as labeled identity fields, then the
  * crawler type's special ability and the type itself as compact
- * ReferenceEntityDisplay entity cards (max 2 columns), then the Description
+ * ReferenceEntityCard entity cards (max 2 columns), then the Description
  * panel.
  *
  * FIELD-section archetype (unified edit language), but the section's own
@@ -23,7 +23,7 @@
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay } from 'component-lib'
+import { ReferenceEntityCard } from 'component-lib'
 
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -127,7 +127,7 @@ export function CrawlerIdentityPanel({
           <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2">
             {abilities.map((ability) => (
               <div key={ability.id} className="min-w-0">
-                <ReferenceEntityDisplay data={ability} compact hide={HIDE_CHOICES} />
+                <ReferenceEntityCard data={ability} compact hide={HIDE_CHOICES} />
               </div>
             ))}
             {crawler.type && (

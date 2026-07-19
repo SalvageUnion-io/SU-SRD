@@ -58,7 +58,7 @@ test.describe('chassis cards show stats from the SRD', () => {
     await expect(page.getByText(/^Mule$/).first()).toBeVisible()
 
     // Master-detail: selecting the Mule row renders its full card in the detail
-    // pane, where ReferenceEntityDisplay surfaces the chassis stat blocks
+    // pane, where ReferenceEntityCard surfaces the chassis stat blocks
     // (Structure Points, System Slots, Heat Capacity, …) as labelled values.
     // Assert a stat label renders (proves the stats block mounted).
     await pickByName(page, 'Mule')
@@ -123,7 +123,7 @@ test.describe('sheet renders the right pilot identity', () => {
 
     await expect(page.getByText('Sheet Name').first()).toBeVisible()
     // "Engineering Expertise" contains "Engineer" — the ability is resolved
-    // and rendered via ReferenceEntityDisplay on the pilot sheet.
+    // and rendered via ReferenceEntityCard on the pilot sheet.
     await expect(page.getByText(/Engineering Expertise/).first()).toBeVisible()
     // The selected ability should also be labelled with its tree name.
     await expect(page.getByText(/Mechanical Knowledge/i).first()).toBeVisible()

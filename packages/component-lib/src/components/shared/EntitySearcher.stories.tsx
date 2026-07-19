@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { getChoices, SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { Button } from '../chrome/Button'
-import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { CatalogChoiceModal } from '../referenceEntity/choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../referenceEntity/choiceCard/choiceSelectionHelpers'
 import { EntitySearcher } from './EntitySearcher'
@@ -14,7 +14,7 @@ import { MasonryColumns } from './MasonryColumns'
  * facets + selection rail). Now in component-lib so both ITUN's live-sheet
  * pickers and the reference card's catalog-choice modal share one picker. This
  * file also covers its selection cells (MasonryColumns packing plain
- * ReferenceEntityDisplay cards) and the CatalogChoiceModal that wraps it for a
+ * ReferenceEntityCard cards) and the CatalogChoiceModal that wraps it for a
  * single-select catalog choice.
  */
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -59,12 +59,12 @@ export const Cells: Story = () => {
   return (
     <div className="flex flex-col gap-3">
       <Caption>
-        MasonryColumns packs the selection cells — each is a plain ReferenceEntityDisplay with the
+        MasonryColumns packs the selection cells — each is a plain ReferenceEntityCard with the
         card's native `selected` ring + radio a11y (no SelCard wrapper).
       </Caption>
       <MasonryColumns maxColumns={2} radio ariaLabel="Equipment">
         {items.map((item) => (
-          <ReferenceEntityDisplay
+          <ReferenceEntityCard
             key={item.id}
             data={item}
             compact

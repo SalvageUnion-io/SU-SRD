@@ -2,7 +2,7 @@ import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 
 import { matchesRef, resolveChassisRef } from '../../lib/rules/resolveRefs'
-import { EmptyState, OptRow, ReferenceEntityDisplay } from 'component-lib'
+import { EmptyState, OptRow, ReferenceEntityCard } from 'component-lib'
 
 type ChassisLike = {
   id: string
@@ -60,7 +60,7 @@ export function ChassisDetail({ chassisName }: ChassisDetailProps) {
   }
 
   return (
-    <ReferenceEntityDisplay
+    <ReferenceEntityCard
       data={chassis as unknown as SURefEntity}
       hide={{ patterns: true, choices: true }}
     />

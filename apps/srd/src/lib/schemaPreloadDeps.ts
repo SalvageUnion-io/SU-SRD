@@ -6,7 +6,7 @@
  *
  * This is deliberately conservative and coarse-grained (per audit advice):
  * cross-schema references in this dataset are pervasive, and a few are
- * unconditional — `ReferenceEntityDisplay` itself, regardless of the
+ * unconditional — `ReferenceEntityCard` itself, regardless of the
  * entity's schema, always calls `getTable()` (-> `roll-tables`, for
  * `tableName` refs), always renders `RangeValueDisplay` for any `range`
  * DataValue (-> `distances`), and always resolves ability-tree prerequisite
@@ -25,7 +25,7 @@
  *
  * Evidence for each bundle (see also the test file for the enforcement):
  *
- * - ALWAYS_CORE — every `ReferenceEntityDisplay` render, regardless of
+ * - ALWAYS_CORE — every `ReferenceEntityCard` render, regardless of
  *   schema, unconditionally touches:
  *   - `roll-tables`: `getTable()` (utilities.ts) checks the entity's own
  *     `tableName` field via a LazyModel `.find()`.
@@ -69,7 +69,7 @@
  *   pattern resolution, so it only needs ALWAYS_CORE. => LEAF schemas.
  */
 
-/** Every `ReferenceEntityDisplay` render touches these regardless of the
+/** Every `ReferenceEntityCard` render touches these regardless of the
  *  entity's own schema — see file header. */
 export const ALWAYS_CORE: readonly string[] = [
   'roll-tables',

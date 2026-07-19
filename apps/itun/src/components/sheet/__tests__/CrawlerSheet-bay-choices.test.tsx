@@ -4,7 +4,7 @@
  * Mirrors PilotSheet-equipment-choices.test.tsx for the crawler-bay surface.
  * Some SRD crawler bays carry `choices` (e.g. the Armament Bay's "Armament Bay
  * Weapons System" permanent pick). CrawlerSheet renders each installed bay via
- * CrawlerBayCard → ReferenceEntityDisplay with controlled selections wired to
+ * CrawlerBayCard → ReferenceEntityCard with controlled selections wired to
  * the crawler's `bayChoices` map (keyed by the bay's `bayRef`).
  *
  * Asserts that:

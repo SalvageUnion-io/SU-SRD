@@ -2,7 +2,7 @@ import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { type SURefEntity, SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
-import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { CountStepper } from './CountStepper'
 
 /**
@@ -63,7 +63,7 @@ export const InCard: Story = () => {
       <Caption>
         How pickers use it — a CountStepper `stepper` control on the card, native selected ring.
       </Caption>
-      <ReferenceEntityDisplay
+      <ReferenceEntityCard
         data={item as unknown as SURefEntity}
         compact
         selected={count > 0}

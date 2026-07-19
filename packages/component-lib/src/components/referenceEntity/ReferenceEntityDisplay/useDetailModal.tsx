@@ -3,11 +3,12 @@ import type { ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
-import { ReferenceEntityDisplay } from '../card/referenceEntityDisplayShim'
+import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
 import { DetailIcon } from './DetailIcon'
 import { useEntityHref, useEntityDetailLink } from './entityHrefContext'
 import type { ReferenceEntityControl } from './referenceEntityControlTypes'
 import type { ReferenceEntityHideConfig } from './referenceEntityDisplayTypes'
+import type { StatItem } from '../../shared/statsBarTypes'
 
 type UseDetailModalOptions = {
   children?: ReactNode
@@ -17,7 +18,7 @@ type UseDetailModalOptions = {
   /** Generic override props */
   titleOverride?: string
   subtitleExtra?: ReactNode
-  statsOverride?: { value: number; bottomLabel: string }
+  statsOverride?: StatItem[]
   primaryStatsOnly?: boolean
   abilitiesSection?: ReactNode
   afterExtraContent?: ReactNode
@@ -91,7 +92,7 @@ export function useDetailModal(
               <div className="max-h-[calc(100vh-4rem)] overflow-y-auto pt-3">
                 <Dialog.Title className="sr-only">{title}</Dialog.Title>
                 <Dialog.Description className="sr-only">Entity display details</Dialog.Description>
-                <ReferenceEntityDisplay
+                <ReferenceEntityCard
                   data={data}
                   dimHeader={false}
                   disabled={false}

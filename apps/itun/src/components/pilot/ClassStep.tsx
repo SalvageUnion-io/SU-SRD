@@ -1,11 +1,5 @@
 import type { SURefClass, SURefEntity } from 'salvageunion-reference'
-import {
-  ClassAbilityTree,
-  EmptyState,
-  OptRow,
-  ReferenceEntityDisplay,
-  TreeSep,
-} from 'component-lib'
+import { ClassAbilityTree, EmptyState, OptRow, ReferenceEntityCard, TreeSep } from 'component-lib'
 import { classDescription } from './classOptions'
 
 type ClassOptionListProps = {
@@ -77,7 +71,7 @@ export function ClassDetail({ selectedClass }: ClassDetailProps) {
     )
   }
   return (
-    <ReferenceEntityDisplay
+    <ReferenceEntityCard
       data={selectedClass as unknown as SURefEntity}
       afterExtraContent={<ClassAbilityTree classEntity={selectedClass} />}
     />
