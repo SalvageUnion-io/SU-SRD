@@ -31,7 +31,7 @@ import { cn } from '../../lib/utils'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerSheetItems'
-import { IdentityField } from './IdentityField'
+import { IdentityField } from 'component-lib'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps'
 
 /** The standalone ability card never re-renders the action's choice UI. */

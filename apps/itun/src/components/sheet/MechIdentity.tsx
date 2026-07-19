@@ -25,7 +25,7 @@ import { useState } from 'react'
 import type { Mech } from '../../lib/schemas/mech'
 import { cn } from '../../lib/utils'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
-import { IdentityField } from './IdentityField'
+import { IdentityField } from 'component-lib'
 import type { SheetPatch } from './sheetViewProps'
 
 type MechIdentityPanelProps = {

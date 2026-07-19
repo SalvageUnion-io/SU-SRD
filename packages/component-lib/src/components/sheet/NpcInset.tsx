@@ -13,10 +13,10 @@
  * choice (see CrawlerSheet). readOnly renders plain text, no edit affordances.
  */
 
-import { Stat } from 'component-lib'
+import { Stat } from '../shared/Stat'
 
-import { DisplayCard } from 'component-lib'
-import { InlineEditField } from './InlineEditField'
+import { DisplayCard } from '../shared/DisplayCard'
+import { InlineEditField } from '../chrome/InlineEditField'
 import { InlineEditTextArea } from './InlineEditTextArea'
 import { NpcFactsEditor } from './NpcFactsEditor'
 

@@ -28,7 +28,7 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import { cn } from '../../lib/utils'
 import { ClassDetail, ClassOptionList } from 'component-lib'
 import { selectableClasses } from 'component-lib'
-import { IdentityField } from './IdentityField'
+import { IdentityField } from 'component-lib'
 import { SheetPickerModal } from 'component-lib'
 import type { SheetPatch } from './sheetViewProps'
 

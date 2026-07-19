@@ -167,8 +167,12 @@ export function InlineEditField({
               }
         }
         className={cn(
-          'inline-flex items-center font-body font-bold text-ink',
-          boxed ? 'min-h-11 w-full pr-6' : 'min-h-9',
+          // The display state is the tap target that opens the editor, so it
+          // keeps a 44px minimum in BOTH layouts — the sheet variant this
+          // component absorbed guaranteed that, and dropping to min-h-9 when
+          // not `boxed` would have silently shrunk it below the touch target.
+          'inline-flex min-h-11 items-center font-body font-bold text-ink',
+          boxed && 'w-full pr-6',
           !hasValue && 'font-normal text-wk-muted',
           !readOnly &&
             'cursor-pointer rounded-card px-1 hover:bg-wk-bg-2 focus:outline-none focus:ring-[3px] focus:ring-rust/25'
@@ -247,7 +251,9 @@ export function InlineEditField({
   // -------------------------------------------------------------------------
 
   if (!boxed) {
-    return <span className={cn('inline-flex', className)}>{inner}</span>
+    // The wrapper carries the same 44px minimum as the display state it holds,
+    // so an unlabelled field is a full touch target from the outside too.
+    return <span className={cn('inline-flex min-h-11', className)}>{inner}</span>
   }
 
   // -------------------------------------------------------------------------
