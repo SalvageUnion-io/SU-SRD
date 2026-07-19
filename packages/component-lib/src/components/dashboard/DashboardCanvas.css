@@ -2,39 +2,17 @@
  * DashboardCanvas — the Dashboard ("Pit HUD") layout shell.
  *
  * The Dashboard is a self-contained DARK instrument world (the SU brand-header
- * palette), distinct from the light workspace chrome. The full `--pc-*` token
- * scope is defined here on `.pc-root` (the canvas host) so every dashboard
- * surface — the grid regions and instruments still styled by ITUN's
- * dashboard.css — inherits it. Colour encodes ONTOLOGY (mech green / pilot
- * orange / crawler pink), never identity (proposed ADR-018).
- *
- * Promoted out of ITUN (apps/in-the-union-now/.../dashboard/DashboardCanvas.tsx
- * + dashboard.css) as a legacy-tier layout component: bespoke CSS, not yet on
- * the canon Tailwind tokens.
+ * palette), distinct from the light workspace chrome. There is NO private token
+ * layer: every instrument surface references the canonical `--color-*` tokens
+ * (component-lib theme.css) directly — the dark skin is achieved by choosing
+ * canonical dark grounds (su-ink-dark / ink) + color-mix darkening, not by a
+ * `--pc-*` alias set. `.pc-root` only marks the instrument scope and sets the
+ * default instrument text colour + font. Colour encodes ONTOLOGY (mech green /
+ * pilot orange / crawler pink), never identity (ADR-018).
  */
 
 .pc-root {
-  /*
-   * The dark instrument skin now DERIVES from the canonical tokens
-   * (component-lib theme.css) rather than re-declaring brand hex under private
-   * names. Same picture — one source of truth. The `--pc-*` names remain as the
-   * instrument-scope aliases every dashboard surface reads.
-   */
-  --pc-ground: var(--color-su-ink-dark);
-  --pc-panel: var(--color-ink);
-  --pc-text: var(--color-su-paper);
-  --pc-muted: var(--color-su-muted);
-  --pc-line: color-mix(in srgb, var(--color-su-paper) 16%, transparent);
-  --pc-line-hard: color-mix(in srgb, var(--color-su-paper) 50%, transparent);
-  --pc-mech: var(--color-mech);
-  --pc-mech-deep: var(--color-sheet-mech-deep);
-  --pc-pilot: var(--color-pilot);
-  --pc-pilot-deep: var(--color-sheet-pilot-deep);
-  --pc-crawler: var(--color-crawler);
-  --pc-crawler-deep: var(--color-sheet-crawler-deep);
-  --pc-bad: var(--color-status-bad); /* re-tone: salvage brick, not neon salmon */
-  --pc-seg-empty: color-mix(in srgb, var(--color-su-sand) 22%, transparent);
-  color: var(--pc-text);
+  color: var(--color-su-paper);
   font-family: var(--font-body);
 }
 
@@ -42,10 +20,10 @@
 .pc-canvas {
   width: 1280px;
   height: 800px;
-  background: var(--pc-ground);
+  background: var(--color-su-ink-dark);
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 0 1.5px var(--pc-line);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-su-paper) 16%, transparent);
 }
 
 /* Below the scale floor (phones / heavy zoom) the fixed canvas is abandoned. */
@@ -53,7 +31,7 @@
   max-width: 340px;
   padding: 32px;
   text-align: center;
-  color: var(--pc-muted);
+  color: var(--color-su-muted);
   font-family: var(--font-body);
   font-size: 13px;
   line-height: 1.5;

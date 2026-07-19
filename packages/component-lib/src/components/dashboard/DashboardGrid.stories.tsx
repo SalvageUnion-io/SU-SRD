@@ -23,7 +23,7 @@ export const Default: Story = () => (
           rail={
             <span
               style={{
-                background: 'var(--pc-mech-deep)',
+                background: 'var(--color-sheet-mech-deep)',
                 color: '#fff',
                 fontFamily: "'Barlow Semi Condensed', 'Barlow', sans-serif",
                 fontWeight: 700,

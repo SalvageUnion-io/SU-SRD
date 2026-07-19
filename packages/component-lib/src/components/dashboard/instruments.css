@@ -1,25 +1,19 @@
 /*
- * Dashboard ("Pit HUD") styling foundation.
+ * Dashboard ("Pit HUD") instrument stylesheet — the `.pc-*` surfaces that fill
+ * the layout regions: rail buttons, stamps, the Active Item band, the dial, and
+ * the light "document under glass" display content.
  *
- * The Dashboard is a self-contained DARK instrument world (the SU brand-header
- * palette), distinct from the light workspace chrome. Colour is scoped to
- * `.pc-root` so it never bleeds into the rest of the app. Hue encodes ONTOLOGY
- * (mech green / pilot orange / crawler pink), never identity; the single hard
- * 2.5px border marks a surface that reads "forward" (the rail and, later, the
- * main display). Everything else is flat/inset (proposed ADR-018).
+ * The Dashboard is a self-contained DARK instrument world, distinct from the
+ * light workspace chrome. There is NO private token layer: every rule references
+ * the canonical `--color-*` / `--bw-*` / `--radius-*` / `--text-*` /
+ * `--tracking-*` tokens (component-lib theme.css) directly. The dark skin is a
+ * choice of canonical dark grounds (su-ink-dark / ink) + color-mix darkening.
+ * Hue encodes ONTOLOGY (mech green / pilot orange / crawler pink), never
+ * identity; the one hard 2.5px (--bw-rail) border marks a "forward" surface
+ * (rail + display); everything else is flat/inset (ADR-018).
  *
- * Phase 1 lays the palette, the fixed-canvas grid, and placeholder surfaces;
- * later phases replace the placeholders with real instruments.
- */
-
-/*
- * NOTE: the dashboard LAYOUT lives in component-lib now — the `.pc-root` token
- * scope + `.pc-canvas` shell (DashboardCanvas.css) and the `.pc-grid` four-region
- * scaffold + `.pc-rail` / `.pc-primary` / `.pc-display` (+ `.pc-display-light`) /
- * `.pc-wheel` / `.pc-placeholder` / `.pc-fill` (DashboardGrid.css). Every
- * `--pc-*` token below is inherited from the promoted `.pc-root`. What remains
- * here is the INSTRUMENT styling (rail buttons, stamps, the Active Item band,
- * the dial, the display content) that fills those regions.
+ * The layout shell lives beside this file: `.pc-root`/`.pc-canvas`
+ * (DashboardCanvas.css) and the `.pc-grid` regions (DashboardGrid.css).
  */
 
 .pc-display-scroll {
@@ -55,7 +49,7 @@
   color: var(--color-paper);
 }
 .pc-stamp-mech {
-  background: var(--pc-mech-deep);
+  background: var(--color-sheet-mech-deep);
 }
 
 .pc-railbtn {
@@ -65,15 +59,15 @@
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-badge);
   padding: 6px 10px;
-  border: var(--bw-chrome) solid var(--pc-line);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
   border-radius: var(--radius-badge);
   background: transparent;
-  color: var(--pc-text);
+  color: var(--color-su-paper);
   cursor: pointer;
   text-decoration: none;
 }
 .pc-railbtn:hover {
-  border-color: var(--pc-muted);
+  border-color: var(--color-su-muted);
 }
 
 /* ---- Active Item band: responsibility bays (gauge + button grid) ---- */
@@ -101,7 +95,7 @@
   padding: 2px 13px;
 }
 .pc-bay + .pc-bay {
-  border-left: var(--bw-chrome) solid var(--pc-line);
+  border-left: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
 }
 .pc-bay-lab {
   font-family: var(--font-cond);
@@ -110,7 +104,7 @@
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-micro);
   line-height: 1;
-  color: var(--pc-muted);
+  color: var(--color-su-muted);
 }
 .pc-bay-gauges {
   display: flex;
@@ -135,10 +129,10 @@
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-badge);
   padding: 0 8px;
-  border: var(--bw-chrome) solid var(--pc-line);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
   border-radius: var(--radius-badge);
-  background: color-mix(in oklab, var(--pc-panel) 50%, #000);
-  color: var(--pc-text);
+  background: color-mix(in oklab, var(--color-ink) 50%, #000);
+  color: var(--color-su-paper);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -147,20 +141,20 @@
   width: 100%;
 }
 .pc-btn:hover:not(:disabled) {
-  border-color: var(--pc-muted);
-  background: color-mix(in oklab, var(--pc-panel) 64%, #000);
+  border-color: var(--color-su-muted);
+  background: color-mix(in oklab, var(--color-ink) 64%, #000);
 }
 .pc-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 .pc-btn-go {
-  border-color: var(--pc-pilot);
+  border-color: var(--color-pilot);
   color: var(--color-paper);
-  background: var(--pc-pilot-deep);
+  background: var(--color-sheet-pilot-deep);
 }
 .pc-btn-danger {
-  border-color: color-mix(in oklab, var(--pc-bad) 70%, #000);
+  border-color: color-mix(in oklab, var(--color-status-bad) 70%, #000);
   color: var(--color-danger);
 }
 
@@ -175,8 +169,8 @@
   flex-direction: column;
   gap: 8px;
   padding: 8px 12px 10px;
-  background: color-mix(in oklab, var(--pc-ground) 92%, #000);
-  border: var(--bw-chrome) solid var(--pc-line-hard);
+  background: color-mix(in oklab, var(--color-su-ink-dark) 92%, #000);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 50%, transparent);
   border-radius: var(--radius-panel);
   z-index: 2;
 }
@@ -192,7 +186,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-badge);
-  color: var(--pc-muted);
+  color: var(--color-su-muted);
 }
 .pc-resolve-body {
   display: flex;
@@ -207,7 +201,7 @@
   font-family: var(--font-body);
   font-size: var(--text-caption);
   line-height: 1.4;
-  color: var(--pc-text);
+  color: var(--color-su-paper);
   text-align: center;
 }
 .pc-resolve-actions {
@@ -237,7 +231,7 @@
   font-size: 24px;
   min-width: 44px;
   text-align: center;
-  color: var(--pc-text);
+  color: var(--color-su-paper);
 }
 
 /* ---- Actions deck (light display surface, Phase 5) ---- */
@@ -350,7 +344,7 @@
   cursor: not-allowed;
 }
 .pc-deck-btn-danger {
-  background: var(--pc-crawler-deep);
+  background: var(--color-sheet-crawler-deep);
 }
 .pc-deck-roll {
   display: flex;
@@ -436,7 +430,7 @@
   color: var(--color-ink);
 }
 .pc-deck-hotx-proj.is-over {
-  color: var(--pc-crawler-deep);
+  color: var(--color-sheet-crawler-deep);
 }
 .pc-deck-applied {
   margin: 0;
@@ -450,7 +444,7 @@
   font-family: var(--font-body);
   font-size: 12px;
   line-height: 1.4;
-  color: var(--pc-crawler-deep);
+  color: var(--color-sheet-crawler-deep);
 }
 
 /* ---- Deck controls bar (D1: timing tabs, grouping, range, source tags) ---- */
@@ -563,12 +557,12 @@
   border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
 }
 .pc-deck-fam-mech .pc-deck-source.is-active {
-  border-color: var(--pc-mech-deep);
-  box-shadow: inset 0 0 0 1px var(--pc-mech-deep);
+  border-color: var(--color-sheet-mech-deep);
+  box-shadow: inset 0 0 0 1px var(--color-sheet-mech-deep);
 }
 .pc-deck-fam-pilot .pc-deck-source.is-active {
-  border-color: var(--pc-pilot-deep);
-  box-shadow: inset 0 0 0 1px var(--pc-pilot-deep);
+  border-color: var(--color-sheet-pilot-deep);
+  box-shadow: inset 0 0 0 1px var(--color-sheet-pilot-deep);
 }
 .pc-deck-stamp {
   display: inline-flex;
@@ -636,7 +630,7 @@
 .pc-crawler-focus .pc-deck-btn {
   flex: 0 0 auto;
   min-width: 200px;
-  background: var(--pc-crawler-deep);
+  background: var(--color-sheet-crawler-deep);
 }
 .pc-entity-fallback {
   display: flex;
@@ -729,55 +723,11 @@
   gap: 8px;
 }
 .pc-dt-btn-done {
-  background: var(--pc-mech-deep);
+  background: var(--color-sheet-mech-deep);
 }
 
-/* ---- DashboardGauge: bespoke dark segmented instrument bar ---- */
-.pc-gauge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-}
-.pc-gauge-lab {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-label);
-  min-width: 40px;
-  color: var(--pc-text);
-}
-.pc-gauge-track {
-  display: flex;
-  gap: 3px;
-  flex: 1;
-  min-width: 0;
-}
-.pc-seg {
-  flex: 1 1 0;
-  height: 14px;
-  border: var(--bw-chrome) solid var(--pc-line);
-  border-radius: var(--radius-badge);
-  background: var(--pc-seg-empty);
-}
-.pc-seg.on {
-  background: var(--pc-gtone, var(--pc-mech));
-  border-color: var(--pc-gtone-deep, var(--pc-mech-deep));
-}
-.pc-seg.danger {
-  background: var(--pc-bad);
-  border-color: var(--pc-bad);
-}
-.pc-gauge-num {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  font-size: var(--text-lede);
-  min-width: 46px;
-  text-align: right;
-  color: var(--pc-text);
-}
+/* DashboardGauge's bespoke segmented bar was retired — it now renders through
+   the shared VitalGauge (surface="instrument"); see DashboardGauge.tsx. */
 
 /* ---- Rotary Dial (momentum wheel) ---- */
 .pc-wheel-col {
@@ -819,9 +769,9 @@
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  border: var(--bw-chrome) solid var(--pc-line);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
   border-radius: var(--radius-panel);
-  background: color-mix(in oklab, var(--pc-panel) 80%, #000);
+  background: color-mix(in oklab, var(--color-ink) 80%, #000);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   padding: 5px 10px;
@@ -829,12 +779,16 @@
   flex-direction: column;
   gap: 5px;
   text-align: left;
-  color: var(--pc-text);
+  color: var(--color-su-paper);
   overflow: hidden;
 }
 .pc-cell-active {
-  border-color: color-mix(in oklab, var(--pc-line-hard) 80%, var(--color-paper));
-  background: color-mix(in oklab, var(--pc-panel) 92%, #000);
+  border-color: color-mix(
+    in oklab,
+    color-mix(in srgb, var(--color-su-paper) 50%, transparent) 80%,
+    var(--color-paper)
+  );
+  background: color-mix(in oklab, var(--color-ink) 92%, #000);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
   cursor: default;
 }
@@ -858,13 +812,13 @@
   color: var(--color-paper);
 }
 .pc-cell-lab.mech {
-  background: var(--pc-mech-deep);
+  background: var(--color-sheet-mech-deep);
 }
 .pc-cell-lab.pilot {
-  background: var(--pc-pilot-deep);
+  background: var(--color-sheet-pilot-deep);
 }
 .pc-cell-lab.crawler {
-  background: var(--pc-crawler-deep);
+  background: var(--color-sheet-crawler-deep);
 }
 .pc-cell-gauges {
   display: flex;
@@ -878,7 +832,7 @@
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-lede);
   line-height: 1;
-  color: var(--pc-text);
+  color: var(--color-su-paper);
 }
 /* Statless titles (Actions / Tables / SRD) read large in the tall active slot. */
 .pc-cell-active.statless .pc-cell-title {
@@ -890,7 +844,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-micro);
-  color: var(--pc-muted);
+  color: var(--color-su-muted);
 }
 .pc-wheel-ctl {
   display: flex;
@@ -900,15 +854,15 @@
 .pc-wheel-btn {
   flex: 1;
   height: 26px;
-  border: var(--bw-chrome) solid var(--pc-line);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
   border-radius: var(--radius-card);
-  background: color-mix(in oklab, var(--pc-panel) 60%, #000);
-  color: var(--pc-text);
+  background: color-mix(in oklab, var(--color-ink) 60%, #000);
+  color: var(--color-su-paper);
   cursor: pointer;
   font-size: 12px;
 }
 .pc-wheel-btn:hover {
-  border-color: var(--pc-muted);
+  border-color: var(--color-su-muted);
 }
 
 /* --------------------------------------------------------------------------
@@ -929,8 +883,8 @@
   flex-direction: column;
   gap: 8px;
   padding: 8px 12px 10px;
-  background: color-mix(in oklab, var(--pc-ground) 92%, #000);
-  border: var(--bw-chrome) solid var(--pc-line-hard);
+  background: color-mix(in oklab, var(--color-su-ink-dark) 92%, #000);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 50%, transparent);
   border-radius: var(--radius-panel);
   z-index: 3;
 }
@@ -946,7 +900,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-badge);
-  color: var(--pc-muted);
+  color: var(--color-su-muted);
 }
 .pc-dialcfg-list {
   list-style: none;
@@ -963,9 +917,9 @@
   justify-content: space-between;
   gap: 10px;
   padding: 6px 8px;
-  border: var(--bw-chrome) solid var(--pc-line);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
   border-radius: var(--radius-card);
-  background: color-mix(in oklab, var(--pc-panel) 70%, #000);
+  background: color-mix(in oklab, var(--color-ink) 70%, #000);
 }
 .pc-dialcfg-show {
   display: flex;
@@ -980,10 +934,10 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: 12px;
-  color: var(--pc-text);
+  color: var(--color-su-paper);
 }
 .pc-dialcfg-lab.hidden {
-  color: var(--pc-muted);
+  color: var(--color-su-muted);
   text-decoration: line-through;
 }
 .pc-dialcfg-move {
@@ -1011,7 +965,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-badge);
-  color: var(--pc-muted);
+  color: var(--color-su-muted);
   text-align: center;
 }
 .pc-cargo-list {
@@ -1029,9 +983,9 @@
   justify-content: space-between;
   gap: 10px;
   padding: 6px 8px;
-  border: var(--bw-chrome) solid var(--pc-line);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
   border-radius: var(--radius-card);
-  background: color-mix(in oklab, var(--pc-panel) 70%, #000);
+  background: color-mix(in oklab, var(--color-ink) 70%, #000);
 }
 .pc-cargo-name {
   display: flex;
@@ -1040,18 +994,18 @@
   min-width: 0;
   font-family: var(--font-body);
   font-size: var(--text-caption);
-  color: var(--pc-text);
+  color: var(--color-su-paper);
 }
 .pc-cargo-code {
   font-family: var(--font-cond);
   font-weight: 700;
   font-size: var(--text-label);
   letter-spacing: var(--tracking-caps-tight);
-  color: var(--pc-muted);
+  color: var(--color-su-muted);
 }
 .pc-cargo-units {
   font-size: var(--text-badge);
-  color: var(--pc-muted);
+  color: var(--color-su-muted);
 }
 .pc-cargo-row .pc-btn {
   width: auto;

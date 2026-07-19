@@ -5,8 +5,9 @@
  * the dashboard), and this only maps the dashboard's ontology tones onto the gauge's
  * `--tone` vars.
  *
- * Lives on the dark instrument scope — the `--pc-*` tone vars are supplied by the
- * surrounding `.pc-root` (DashboardCanvas). No app/data coupling.
+ * Maps the dashboard's ontology tones onto the gauge's `--tone` vars using the
+ * canonical `--color-*` tokens directly. Renders on the dark instrument scope
+ * (`.pc-root`, DashboardCanvas). No app/data coupling.
  */
 
 import type { CSSProperties } from 'react'
@@ -15,9 +16,9 @@ import { VitalGauge } from '../stat/VitalGauge'
 export type GaugeTone = 'mech' | 'pilot' | 'crawler'
 
 const TONES: Record<GaugeTone, [string, string]> = {
-  mech: ['var(--pc-mech)', 'var(--pc-mech-deep)'],
-  pilot: ['var(--pc-pilot)', 'var(--pc-pilot-deep)'],
-  crawler: ['var(--pc-crawler)', 'var(--pc-crawler-deep)'],
+  mech: ['var(--color-mech)', 'var(--color-sheet-mech-deep)'],
+  pilot: ['var(--color-pilot)', 'var(--color-sheet-pilot-deep)'],
+  crawler: ['var(--color-crawler)', 'var(--color-sheet-crawler-deep)'],
 }
 
 export type DashboardGaugeProps = {
