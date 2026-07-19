@@ -68,7 +68,7 @@ import {
   resolveEyebrow,
   titleSizeClass,
 } from './entityCardTone'
-import type { ReferenceEntityCardSize } from './entityCardTone'
+import type { AxisMarker, ReferenceEntityCardSize } from './entityCardTone'
 import {
   resolveChassisDrone,
   resolveDroneOwnLoadout,
@@ -668,7 +668,9 @@ function ReferenceEntityCardInner({
   // pattern is a LIST ROW: name-tab left, description on the header right.
   const isPattern = !!pattern
   const isPatternListing = isPattern && size === 'listing'
-  const name = titleOverride ?? (isPattern ? pattern.name : entityName)
+  // A pattern's title is its name in QUOTES — `"SURVEYOR"`. The word "Pattern"
+  // is no longer carried in the data (chassis.json), so nothing to strip here.
+  const name = titleOverride ?? (isPattern ? `"${pattern.name}"` : entityName)
   const effectiveSeal = parentSeal
   // `[(CHASSIS)]` content tokens resolve to the owning chassis name — this card's
   // own name when it IS a chassis, else the name threaded down from the parent.
@@ -689,7 +691,18 @@ function ReferenceEntityCardInner({
   // The entity TYPE for the depth-0 footer (patterns read "Pattern"; actions
   // never render a depth-0 footer).
   const footerType = isAction ? undefined : isPattern ? 'Pattern' : resolveEyebrow(schemaName).type
-  const axisMarkers = isAction || isPattern ? [] : resolveAxisMarkers(entity)
+  // A PATTERN names its owning chassis as a horizontal stat stampseal in the
+  // seam — `[Chassis | Little Sestra]` — rather than a bare stampseal, so it
+  // reads as the same `[label | value]` pill vocabulary as every other axis.
+  // (On a pattern card the `entity` IS the chassis, so `resolvedChassisName`
+  // is that chassis's own name.)
+  const axisMarkers: AxisMarker[] = isAction
+    ? []
+    : isPattern
+      ? resolvedChassisName
+        ? [{ label: 'Chassis', value: resolvedChassisName }]
+        : []
+      : resolveAxisMarkers(entity)
 
   // The lone non-titanic action that FOLDS into this entity's body: its content
   // goes in the body, and its sub-header STATS (type/range/damage/cost) merge
