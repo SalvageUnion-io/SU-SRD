@@ -11,6 +11,9 @@
  */
 
 import type { ReactNode } from 'react'
+import { Badge } from '../chrome/Badge'
+import { Button } from '../chrome/Button'
+import { cn } from '../../utils/cn'
 import { DashboardGauge, type GaugeTone } from './DashboardGauge'
 
 export type BandGauge = {
@@ -27,11 +30,11 @@ export type BandButton = {
   disabled?: boolean
   title?: string
   ariaLabel?: string
-  /** Rust/danger styling (pc-btn-danger). */
+  /** Destructive styling → Button `variant="danger"`. */
   danger?: boolean
-  /** The "go" primary key (pc-btn-go). */
+  /** The primary "go" key → Button `variant="primary"`. */
   go?: boolean
-  /** Full-width in the 2-col grid (pc-btn-wide). */
+  /** Full-width in the 2-col bay grid (spans both columns). */
   wide?: boolean
 }
 
@@ -63,21 +66,26 @@ const STAMP_BG: Record<ActiveItemBandView['fam'], string> = {
   crawler: 'var(--color-sheet-crawler-deep)',
 }
 
-function BandBtn({ btn }: { btn: BandButton }) {
-  const cls = `pc-btn${btn.danger ? ' pc-btn-danger' : ''}${btn.go ? ' pc-btn-go' : ''}${
-    btn.wide ? ' pc-btn-wide' : ''
-  }`
+/**
+ * A bay/overlay action, rendered on the standard `Button` (dark instrument
+ * surface). `danger`/`go` map to the danger/primary variants; `full` fills the
+ * bay grid cell (`wide` spans both columns), while overlay actions stay
+ * auto-width with a 140px floor.
+ */
+function BandBtn({ btn, full = true }: { btn: BandButton; full?: boolean }) {
   return (
-    <button
-      type="button"
-      className={cls}
+    <Button
+      surface="instrument"
+      variant={btn.danger ? 'danger' : btn.go ? 'primary' : 'default'}
+      size="sm"
+      className={cn(full ? 'w-full' : 'min-w-[140px]', btn.wide && 'col-span-2')}
       onClick={btn.onClick}
       disabled={btn.disabled}
       title={btn.title}
       aria-label={btn.ariaLabel}
     >
       {btn.label}
-    </button>
+    </Button>
   )
 }
 
@@ -91,23 +99,25 @@ export function DamageStepper({
 }) {
   return (
     <div className="pc-step">
-      <button
-        type="button"
-        className="pc-btn"
+      <Button
+        surface="instrument"
+        size="sm"
+        className="min-w-0 px-2"
         onClick={() => setAmount(Math.max(1, amount - 1))}
         aria-label="Decrease damage"
       >
         −
-      </button>
+      </Button>
       <span className="pc-step-num">{amount}</span>
-      <button
-        type="button"
-        className="pc-btn"
+      <Button
+        surface="instrument"
+        size="sm"
+        className="min-w-0 px-2"
         onClick={() => setAmount(amount + 1)}
         aria-label="Increase damage"
       >
         +
-      </button>
+      </Button>
     </div>
   )
 }
@@ -150,14 +160,15 @@ export function StorageBay({
                 {lot.kind === 'bulk' && lot.qty !== undefined ? ` ×${lot.qty}` : ''}
                 <span className="pc-cargo-units">{lot.units}u</span>
               </span>
-              <button
-                type="button"
-                className="pc-btn pc-btn-danger"
+              <Button
+                surface="instrument"
+                variant="danger"
+                size="sm"
                 onClick={() => onJettison(lot.id)}
                 aria-label={`Jettison ${lot.name}`}
               >
                 Jettison
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
@@ -171,13 +182,13 @@ export function ActiveItemBand({ view }: ActiveItemBandProps) {
   return (
     <div className="pc-band" data-fam={view.fam}>
       <div className="pc-band-id">
-        {view.fam === 'mech' ? (
-          <span className="pc-stamp pc-stamp-mech">{view.stampLabel}</span>
-        ) : (
-          <span className="pc-stamp" style={{ background: STAMP_BG[view.fam] }}>
-            {view.stampLabel}
-          </span>
-        )}
+        <Badge
+          shape="stamp"
+          className="px-[9px] py-[5px] text-caption text-paper"
+          style={{ backgroundColor: STAMP_BG[view.fam] }}
+        >
+          {view.stampLabel}
+        </Badge>
       </div>
       <div className="pc-bays">
         {view.bays.map((bay) => (
@@ -212,16 +223,16 @@ export function ActiveItemBand({ view }: ActiveItemBandProps) {
         <div className="pc-resolve" role="dialog" aria-label={overlay.title}>
           <div className="pc-resolve-head">
             <span className="pc-resolve-title">{overlay.title}</span>
-            <button type="button" className="pc-railbtn" onClick={overlay.onClose}>
+            <Button surface="instrument" variant="ghost" size="sm" onClick={overlay.onClose}>
               Close
-            </button>
+            </Button>
           </div>
           <div className="pc-resolve-body">
             {overlay.body}
             {overlay.actions && overlay.actions.length > 0 && (
               <div className="pc-resolve-actions">
                 {overlay.actions.map((btn) => (
-                  <BandBtn key={btn.label} btn={btn} />
+                  <BandBtn key={btn.label} btn={btn} full={false} />
                 ))}
               </div>
             )}

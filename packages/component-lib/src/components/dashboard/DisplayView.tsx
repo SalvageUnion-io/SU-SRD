@@ -10,6 +10,7 @@ import { useRef, useState, type ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 
+import { Button } from '../chrome/Button'
 import { ControlButtons } from '../shared/ControlButtons'
 import { RollTable } from '../shared/RollTable'
 import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
@@ -56,15 +57,15 @@ function TablesView() {
     <div className="pc-display-scroll pc-tables">
       <div className="pc-tables-bar">
         <span className="pc-tables-lab">Roll table</span>
-        <button
-          type="button"
-          className="pc-tables-pick-btn"
+        <Button
+          size="sm"
+          className="min-w-0 flex-1 justify-start text-left"
           onClick={() => setPickerOpen(true)}
           aria-haspopup="dialog"
           aria-expanded={pickerOpen}
         >
           {selected?.name ?? 'Choose a table'} ▾
-        </button>
+        </Button>
       </div>
 
       {selected ? (
@@ -91,9 +92,9 @@ function TablesView() {
         <div className="pc-rollhist">
           <div className="pc-rollhist-head">
             <span className="pc-rollhist-title">Roll history</span>
-            <button type="button" className="pc-rollhist-clear" onClick={() => setHistory([])}>
+            <Button size="xs" onClick={() => setHistory([])}>
               Clear
-            </button>
+            </Button>
           </div>
           <ul className="pc-rollhist-list">
             {history.map((h) => (

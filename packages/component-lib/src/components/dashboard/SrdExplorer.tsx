@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react'
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
+import { Button } from '../chrome/Button'
 import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
 import { useSearchCombobox } from '../shared/useSearchCombobox'
 
@@ -212,9 +213,9 @@ function SrdCategoryList({
   return (
     <div className="pc-srd-list">
       <div className="pc-srd-crumb">
-        <button type="button" className="pc-srd-back" onClick={onBack}>
+        <Button size="xs" onClick={onBack}>
           ◀ Categories
-        </button>
+        </Button>
         <span className="pc-srd-crumb-title">
           <span className="pc-srd-tile-stamp">{category.stamp}</span> {category.label}
         </span>
@@ -244,9 +245,9 @@ function SrdEntity({ entity, onBack }: { entity: SURefEntity; onBack: () => void
   return (
     <div className="pc-srd-entity">
       <div className="pc-srd-crumb">
-        <button type="button" className="pc-srd-back" onClick={onBack}>
+        <Button size="xs" onClick={onBack}>
           ◀ Back
-        </button>
+        </Button>
       </div>
       <ReferenceEntityDisplay data={entity} hide={HIDE_CHOICES} />
     </div>

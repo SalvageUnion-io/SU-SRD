@@ -6,7 +6,7 @@ import { InstrumentStage } from '../../stories/_dashboardStage'
 import { TablePickerOverlay } from './TablePickerOverlay'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Dashboard/TablePickerOverlay' }
+export default { title: 'Compositions/Dashboard/TablePickerOverlay' }
 
 /**
  * The full Tables picker — every SRD roll table sorted into its five columns

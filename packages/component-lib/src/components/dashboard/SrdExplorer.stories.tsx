@@ -4,7 +4,7 @@ import { InstrumentStage } from '../../stories/_dashboardStage'
 import { SrdExplorer } from './SrdExplorer'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Dashboard/SrdExplorer' }
+export default { title: 'Compositions/Dashboard/SrdExplorer' }
 
 /**
  * The SRD Explorer display focus: a search box + 8 category tiles that drill

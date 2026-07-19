@@ -4,7 +4,7 @@ import { InstrumentStage } from '../../stories/_dashboardStage'
 import { DashboardGauge } from './DashboardGauge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Dashboard/Gauge' }
+export default { title: 'Compositions/Dashboard/Gauge' }
 
 /**
  * The single-row instrument gauge, one per vital. Hue encodes ontology (mech

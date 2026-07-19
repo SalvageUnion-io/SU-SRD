@@ -6,7 +6,9 @@
  * via `returnControl` (component-lib stays routing-agnostic).
  */
 
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import { Badge } from '../chrome/Badge'
+import { Button } from '../chrome/Button'
 
 export type RailFam = 'mech' | 'pilot' | 'crawler'
 
@@ -29,23 +31,34 @@ export function RailBar({ title, fam = 'mech', returnControl, onLeaveDowntime }:
   return (
     <>
       {returnControl}
-      <span className="pc-stamp" style={{ background: STAMP_BG[fam] } as CSSProperties}>
+      <Badge
+        shape="stamp"
+        className="px-[9px] py-[5px] text-caption text-paper"
+        style={{ backgroundColor: STAMP_BG[fam] }}
+      >
         {title}
-      </span>
+      </Badge>
       <span className="flex-1" />
       {onLeaveDowntime ? (
-        <button
-          type="button"
-          className="pc-railbtn"
+        <Button
+          surface="instrument"
+          variant="ghost"
+          size="sm"
           title="Return to the previous mount"
           onClick={onLeaveDowntime}
         >
           ◄ Leave Downtime
-        </button>
+        </Button>
       ) : (
-        <button type="button" className="pc-railbtn" title="Rules & sources — planned" disabled>
+        <Button
+          surface="instrument"
+          variant="ghost"
+          size="sm"
+          title="Rules & sources — planned"
+          disabled
+        >
           ⚙ Settings
-        </button>
+        </Button>
       )}
     </>
   )

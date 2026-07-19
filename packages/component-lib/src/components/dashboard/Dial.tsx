@@ -20,6 +20,7 @@
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 
+import { Button } from '../chrome/Button'
 import { DashboardGauge, type GaugeTone } from './DashboardGauge'
 
 export type DialGauge = {
@@ -375,33 +376,36 @@ export function Dial({ items, activeIndex, onActiveIndexChange, renderConfig }: 
         })}
       </div>
       <div className="pc-wheel-ctl">
-        <button
-          type="button"
-          className="pc-wheel-btn"
+        <Button
+          surface="instrument"
+          size="sm"
+          className="min-w-0 flex-1 px-2"
           onClick={() => stepBy(-1)}
           aria-label="Dial up"
         >
           ▲
-        </button>
-        <button
-          type="button"
-          className="pc-wheel-btn"
+        </Button>
+        <Button
+          surface="instrument"
+          size="sm"
+          className="min-w-0 flex-1 px-2"
           onClick={() => stepBy(1)}
           aria-label="Dial down"
         >
           ▼
-        </button>
+        </Button>
         {canConfigure && (
-          <button
-            type="button"
-            className="pc-wheel-btn pc-wheel-cfg"
+          <Button
+            surface="instrument"
+            size="sm"
+            className="min-w-0 shrink-0 px-2"
             onClick={() => setConfigOpen((o) => !o)}
             aria-label="Configure dial"
             aria-expanded={configOpen}
             title="Show / hide and reorder dial items"
           >
             ⚙
-          </button>
+          </Button>
         )}
       </div>
       {canConfigure && configOpen && renderConfig(() => setConfigOpen(false))}

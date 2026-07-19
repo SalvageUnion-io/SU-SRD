@@ -11,7 +11,7 @@ import {
 } from './ActiveItemBand'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Dashboard/ActiveItemBand' }
+export default { title: 'Compositions/Dashboard/ActiveItemBand' }
 
 /**
  * The Active Item band (mech mount): responsibility bays (Reactor / Chassis /

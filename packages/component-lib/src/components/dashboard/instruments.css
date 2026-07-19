@@ -36,40 +36,6 @@
   color: var(--color-wk-muted);
 }
 
-.pc-stamp {
-  display: inline-block;
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-caption);
-  line-height: 1;
-  padding: 5px 9px 6px;
-  border-radius: 0; /* stamps are square (ruleset §4.4) */
-  color: var(--color-paper);
-}
-.pc-stamp-mech {
-  background: var(--color-sheet-mech-deep);
-}
-
-.pc-railbtn {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-badge);
-  padding: 6px 10px;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
-  border-radius: var(--radius-badge);
-  background: transparent;
-  color: var(--color-su-paper);
-  cursor: pointer;
-  text-decoration: none;
-}
-.pc-railbtn:hover {
-  border-color: var(--color-su-muted);
-}
-
 /* ---- Active Item band: responsibility bays (gauge + button grid) ---- */
 .pc-band {
   display: flex;
@@ -119,45 +85,6 @@
   grid-auto-rows: 27px;
   align-content: end;
 }
-.pc-btn-wide {
-  grid-column: 1 / -1;
-}
-.pc-btn {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-badge);
-  padding: 0 8px;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
-  border-radius: var(--radius-badge);
-  background: color-mix(in oklab, var(--color-ink) 50%, #000);
-  color: var(--color-su-paper);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  width: 100%;
-}
-.pc-btn:hover:not(:disabled) {
-  border-color: var(--color-su-muted);
-  background: color-mix(in oklab, var(--color-ink) 64%, #000);
-}
-.pc-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.pc-btn-go {
-  border-color: var(--color-pilot);
-  color: var(--color-paper);
-  background: var(--color-sheet-pilot-deep);
-}
-.pc-btn-danger {
-  border-color: color-mix(in oklab, var(--color-status-bad) 70%, #000);
-  color: var(--color-danger);
-}
-
 /* ---- Resolve overlay: roll readouts + player-confirmed steps (Phase 5) ---- */
 .pc-band {
   position: relative;
@@ -209,20 +136,11 @@
   gap: 8px;
   justify-content: center;
 }
-.pc-resolve-actions .pc-btn {
-  width: auto;
-  min-width: 140px;
-  padding: 8px 14px;
-}
 .pc-step {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-}
-.pc-step .pc-btn {
-  width: 34px;
-  padding: 6px 0;
 }
 .pc-step-num {
   font-family: var(--font-cond);
@@ -321,30 +239,6 @@
 .pc-deck-controls {
   display: flex;
   gap: 8px;
-}
-.pc-deck-btn {
-  flex: 1;
-  padding: 9px 12px;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 30%, transparent);
-  border-radius: var(--radius-card);
-  background: var(--color-ink);
-  color: var(--color-paper);
-  cursor: pointer;
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-caption);
-}
-.pc-deck-btn:hover:not(:disabled) {
-  background: color-mix(in oklab, var(--color-ink) 82%, var(--color-su-paper));
-}
-.pc-deck-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-.pc-deck-btn-danger {
-  background: var(--color-sheet-crawler-deep);
 }
 .pc-deck-roll {
   display: flex;
@@ -627,11 +521,6 @@
   color: var(--color-wk-muted);
   max-width: 40ch;
 }
-.pc-crawler-focus .pc-deck-btn {
-  flex: 0 0 auto;
-  min-width: 200px;
-  background: var(--color-sheet-crawler-deep);
-}
 .pc-entity-fallback {
   display: flex;
   flex-direction: column;
@@ -648,11 +537,6 @@
   gap: 8px;
   justify-content: center;
 }
-.pc-entity-foot .pc-deck-btn {
-  flex: 0 0 auto;
-  min-width: 180px;
-}
-
 /* ---- Downtime wizard (light display, Phase 6) ---- */
 .pc-dt {
   display: flex;
@@ -664,16 +548,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-}
-.pc-dt-phase {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: 12px;
-  color: var(--color-paper);
-  padding: 4px 9px 5px;
-  border-radius: 0; /* stamps are square (ruleset §4.4) */
 }
 .pc-dt-count {
   font-family: var(--font-cond);
@@ -722,10 +596,6 @@
   display: flex;
   gap: 8px;
 }
-.pc-dt-btn-done {
-  background: var(--color-sheet-mech-deep);
-}
-
 /* DashboardGauge's bespoke segmented bar was retired — it now renders through
    the shared VitalGauge (surface="instrument"); see DashboardGauge.tsx. */
 
@@ -797,8 +667,8 @@
   justify-content: center;
   text-align: center;
 }
-/* Match the Active Item band's mech stamp (.pc-stamp) so the card labels line
-   up with, and stay the same size as, the mech label. */
+/* Match the Active Item band's entity stamp (a Badge shape="stamp") so the dial
+   cell labels line up with, and stay the same size as, that label. */
 .pc-cell-lab {
   align-self: flex-start;
   font-family: var(--font-cond);
@@ -851,30 +721,11 @@
   gap: 6px;
   flex: 0 0 auto;
 }
-.pc-wheel-btn {
-  flex: 1;
-  height: 26px;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
-  border-radius: var(--radius-card);
-  background: color-mix(in oklab, var(--color-ink) 60%, #000);
-  color: var(--color-su-paper);
-  cursor: pointer;
-  font-size: 12px;
-}
-.pc-wheel-btn:hover {
-  border-color: var(--color-su-muted);
-}
-
 /* --------------------------------------------------------------------------
  * Phase 7 — dial config (⚙), cargo-hold overlay, table picker.
  * ------------------------------------------------------------------------ */
 
 /* The ⚙ gear sits alongside ▲▼ but is intrinsically sized, not stretched. */
-.pc-wheel-btn.pc-wheel-cfg {
-  flex: 0 0 auto;
-  width: 30px;
-}
-
 /* Dial-config overlay — covers the dial column like the resolve overlay. */
 .pc-dialcfg {
   position: absolute;
@@ -945,11 +796,6 @@
   gap: 4px;
   flex: 0 0 auto;
 }
-.pc-dialcfg-move .pc-wheel-btn {
-  width: 30px;
-  flex: 0 0 auto;
-}
-
 /* Cargo-hold overlay body (inside the mech-band resolve overlay). */
 .pc-cargo {
   display: flex;
@@ -1007,12 +853,6 @@
   font-size: var(--text-badge);
   color: var(--color-su-muted);
 }
-.pc-cargo-row .pc-btn {
-  width: auto;
-  flex: 0 0 auto;
-  padding: 5px 10px;
-}
-
 /* ------------------------------------------------------------------------
  * D3 — Tables focus: 5-column category picker + roll history.
  * All light-themed to sit on the display "paper" (var(--color-paper) / var(--color-ink)).
@@ -1038,24 +878,6 @@
   font-size: var(--text-badge);
   color: var(--color-wk-muted);
 }
-.pc-tables-pick-btn {
-  flex: 1;
-  min-width: 0;
-  padding: 6px 10px;
-  border: var(--bw-chrome) solid var(--color-wk-faint);
-  border-radius: var(--radius-card);
-  background: var(--color-paper);
-  color: var(--color-ink);
-  font-family: var(--font-body);
-  font-size: var(--text-caption);
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-}
-.pc-tables-pick-btn:hover {
-  background: var(--color-wk-bg-2);
-}
-
 /* Roll history — last N results with a clear. */
 .pc-rollhist {
   margin-top: 14px;
@@ -1076,22 +898,6 @@
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-badge);
   color: var(--color-wk-muted);
-}
-.pc-rollhist-clear {
-  border: var(--bw-chrome) solid var(--color-wk-faint);
-  border-radius: var(--radius-card);
-  background: var(--color-paper);
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-label);
-  padding: 3px 8px;
-  cursor: pointer;
-}
-.pc-rollhist-clear:hover {
-  background: var(--color-wk-bg-2);
 }
 .pc-rollhist-list {
   list-style: none;
@@ -1151,19 +957,6 @@
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-badge);
   color: var(--color-wk-muted);
-}
-.pc-tablepick-close {
-  border: var(--bw-chrome) solid var(--color-wk-faint);
-  border-radius: var(--radius-card);
-  background: var(--color-paper);
-  color: var(--color-ink);
-  font-size: 12px;
-  line-height: 1;
-  padding: 4px 8px;
-  cursor: pointer;
-}
-.pc-tablepick-close:hover {
-  background: var(--color-wk-bg-2);
 }
 .pc-tablepick-grid {
   flex: 1 1 auto;
@@ -1367,19 +1160,6 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
-}
-.pc-srd-back {
-  border: var(--bw-chrome) solid var(--color-wk-faint);
-  border-radius: var(--radius-card);
-  background: var(--color-paper);
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-label);
-  padding: 4px 9px;
-  cursor: pointer;
 }
 .pc-srd-back:hover {
   background: var(--color-wk-bg-2);

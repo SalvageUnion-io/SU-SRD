@@ -9,7 +9,6 @@
 
 import type { SURefEntity } from 'salvageunion-reference'
 import { Button } from '../chrome/Button'
-import { StepButton } from '../chrome/SmallButtons'
 import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
 
 /**
@@ -149,21 +148,27 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
             <div className="pc-deck-hotx">
               <span className="pc-deck-hotx-lab">Hot</span>
               <div className="pc-step">
-                <StepButton
+                <Button
+                  surface="instrument"
+                  size="sm"
+                  className="min-w-0 px-2"
                   onClick={variableHot.onDec}
                   disabled={variableHot.activated}
                   aria-label="Decrease Hot"
                 >
                   −
-                </StepButton>
+                </Button>
                 <span className="pc-step-num">{variableHot.hotX}</span>
-                <StepButton
+                <Button
+                  surface="instrument"
+                  size="sm"
+                  className="min-w-0 px-2"
                   onClick={variableHot.onInc}
                   disabled={variableHot.activated}
                   aria-label="Increase Hot"
                 >
                   +
-                </StepButton>
+                </Button>
               </div>
               <span className={`pc-deck-hotx-proj${variableHot.over ? ' is-over' : ''}`}>
                 {variableHot.projText}

@@ -70,7 +70,9 @@ describe('SrdExplorer', () => {
     expect(container.querySelector('.pc-srd-entity')).toBeTruthy()
     expect(container.querySelector('.pc-srd-rows')).toBeNull()
     // Back returns to the Chassis listing.
-    const back = container.querySelector('.pc-srd-back') as HTMLButtonElement
+    const back = [...container.querySelectorAll('button')].find((b) =>
+      b.textContent?.startsWith('◀')
+    ) as HTMLButtonElement
     fireEvent.click(back)
     expect(container.querySelector('.pc-srd-crumb-title')?.textContent).toContain('Chassis')
     expect(container.querySelectorAll('.pc-srd-row').length).toBeGreaterThan(0)
@@ -81,7 +83,11 @@ describe('SrdExplorer', () => {
     const tile = container.querySelector('.pc-srd-tile') as HTMLButtonElement
     fireEvent.click(tile)
     expect(container.querySelector('.pc-srd-rows')).toBeTruthy()
-    fireEvent.click(container.querySelector('.pc-srd-back') as HTMLButtonElement)
+    fireEvent.click(
+      [...container.querySelectorAll('button')].find((b) =>
+        b.textContent?.startsWith('◀')
+      ) as HTMLButtonElement
+    )
     // Back at the tiles home.
     expect(container.querySelectorAll('.pc-srd-tile').length).toBe(8)
   })

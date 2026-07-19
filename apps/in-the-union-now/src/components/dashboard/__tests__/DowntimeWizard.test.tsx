@@ -47,7 +47,9 @@ describe('DowntimeWizard', () => {
     expect(container.querySelector('.pc-dt')).toBeTruthy()
     // Step 1 of the SRD procedure is "Tally Salvage" in the Post-Session phase.
     expect(container.textContent).toContain('Tally Salvage')
-    expect(container.querySelector('.pc-dt-phase')?.textContent).toBe('Post-Session')
+    expect(container.querySelector('.pc-dt-head')?.firstElementChild?.textContent).toBe(
+      'Post-Session'
+    )
     expect(container.querySelector('.pc-dt-count')?.textContent).toContain('Step 1 /')
   })
 

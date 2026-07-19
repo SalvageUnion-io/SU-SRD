@@ -12,7 +12,7 @@
 
 import { useCallback, useState } from 'react'
 
-import { Dial, DashboardCanvas, DashboardGrid, RailBar } from 'component-lib'
+import { Dial, DashboardCanvas, DashboardGrid, RailBar, buttonVariants } from 'component-lib'
 import { useWorkspace } from '../../hooks/queries/workspaces'
 import type { CockpitPrefs } from '../../lib/schemas/cockpitPrefs'
 import { useEntityStore } from '../../stores/entityStore'
@@ -110,7 +110,10 @@ export function Dashboard({ id }: { id: string }) {
             title={railTitle}
             fam={fam}
             returnControl={
-              <AppLink href="/" className="pc-railbtn">
+              <AppLink
+                href="/"
+                className={buttonVariants({ surface: 'instrument', variant: 'ghost', size: 'sm' })}
+              >
                 ◄ Return to Workspace
               </AppLink>
             }

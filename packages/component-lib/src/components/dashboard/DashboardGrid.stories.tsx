@@ -4,7 +4,7 @@ import { DashboardCanvas } from './DashboardCanvas'
 import { DashboardGrid } from './DashboardGrid'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Dashboard/Grid' }
+export default { title: 'Compositions/Dashboard/Grid' }
 
 /**
  * The four-region scaffold (rail / primary / wheel / display) inside the scaled

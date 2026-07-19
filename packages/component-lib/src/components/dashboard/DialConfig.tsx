@@ -5,6 +5,8 @@
  * change maps to its persisted prefs (a thin ITUN wrapper around this).
  */
 
+import { Button } from '../chrome/Button'
+
 export type DialConfigRow = {
   /** Stable identifier for the row (the app's dial kind). */
   id: string
@@ -33,9 +35,9 @@ export function DialConfig({
     <div className="pc-dialcfg" role="dialog" aria-label="Configure dial">
       <div className="pc-dialcfg-head">
         <span className="pc-dialcfg-title">{title}</span>
-        <button type="button" className="pc-railbtn" onClick={onClose}>
+        <Button surface="instrument" variant="ghost" size="sm" onClick={onClose}>
           Done
-        </button>
+        </Button>
       </div>
       <ul className="pc-dialcfg-list">
         {rows.map((row, i) => (
@@ -54,24 +56,26 @@ export function DialConfig({
               </span>
             </label>
             <span className="pc-dialcfg-move">
-              <button
-                type="button"
-                className="pc-wheel-btn"
+              <Button
+                surface="instrument"
+                size="sm"
+                className="min-w-0 flex-1 px-2"
                 onClick={() => onMove(row.id, -1)}
                 disabled={i === 0}
                 aria-label={`Move ${row.label} up`}
               >
                 ▲
-              </button>
-              <button
-                type="button"
-                className="pc-wheel-btn"
+              </Button>
+              <Button
+                surface="instrument"
+                size="sm"
+                className="min-w-0 flex-1 px-2"
                 onClick={() => onMove(row.id, 1)}
                 disabled={i === rows.length - 1}
                 aria-label={`Move ${row.label} down`}
               >
                 ▼
-              </button>
+              </Button>
             </span>
           </li>
         ))}

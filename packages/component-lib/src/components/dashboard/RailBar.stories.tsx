@@ -1,16 +1,21 @@
 import type { Story } from '@ladle/react'
 import { Caption } from '../../stories/_harness'
 import { InstrumentStage } from '../../stories/_dashboardStage'
+import { buttonVariants } from '../chrome/buttonVariants'
 import { RailBar } from './RailBar'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Dashboard/RailBar' }
+export default { title: 'Compositions/Dashboard/RailBar' }
 
-/** Stand-in for the app's router return link (an AppLink in production). */
+/** Stand-in for the app's router return link (an AppLink styled via
+ * `buttonVariants` in production). */
 const ReturnLink = (
-  <button type="button" className="pc-railbtn">
+  <a
+    href="#dashboard"
+    className={buttonVariants({ surface: 'instrument', variant: 'ghost', size: 'sm' })}
+  >
     ◄ Return to Workspace
-  </button>
+  </a>
 )
 
 /**

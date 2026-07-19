@@ -8,6 +8,7 @@
  * selection. Presentational — the caller passes the pickable tables.
  */
 
+import { Button } from '../chrome/Button'
 import type { PickableTable } from './tableCategories'
 import { TABLE_CATEGORY_LABEL, groupTablesByCategory } from './tableCategories'
 
@@ -30,14 +31,9 @@ export function TablePickerOverlay({
     <div className="pc-tablepick" role="dialog" aria-label="Pick a roll table" aria-modal="true">
       <div className="pc-tablepick-head">
         <span className="pc-tablepick-title">Pick a roll table</span>
-        <button
-          type="button"
-          className="pc-tablepick-close"
-          onClick={onClose}
-          aria-label="Close table picker"
-        >
+        <Button size="sm" onClick={onClose} aria-label="Close table picker">
           ✕
-        </button>
+        </Button>
       </div>
       <div className="pc-tablepick-grid">
         {columns.map(({ category, tables: colTables }) => (

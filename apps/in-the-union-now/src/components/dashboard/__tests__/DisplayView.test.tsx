@@ -109,7 +109,7 @@ describe('DisplayView', () => {
     const { container } = renderDV(tablesFocus)
     expect(container.querySelector('.pc-display-scroll')).toBeTruthy()
     // The picker bar replaces the old <select>.
-    expect(container.querySelector('.pc-tables-pick-btn')).toBeTruthy()
+    expect(container.querySelector('[aria-haspopup="dialog"]')).toBeTruthy()
     expect(container.querySelector('select')).toBeNull()
     // The reused RollTable renders a real table (not the fallback note).
     expect(container.querySelector('table')).toBeTruthy()
@@ -119,7 +119,7 @@ describe('DisplayView', () => {
   test('Tables picker → opens a 5-column category overlay (D3)', () => {
     const { container, getByLabelText } = renderDV(tablesFocus)
     expect(container.querySelector('.pc-tablepick')).toBeNull()
-    const openBtn = container.querySelector('.pc-tables-pick-btn') as HTMLButtonElement
+    const openBtn = container.querySelector('[aria-haspopup="dialog"]') as HTMLButtonElement
     fireEvent.click(openBtn)
     const overlay = container.querySelector('[role="dialog"]')
     expect(overlay).toBeTruthy()
@@ -132,14 +132,14 @@ describe('DisplayView', () => {
 
   test('Tables picker → picking a table updates the bar and closes (D3)', () => {
     const { container } = renderDV(tablesFocus)
-    fireEvent.click(container.querySelector('.pc-tables-pick-btn') as HTMLButtonElement)
+    fireEvent.click(container.querySelector('[aria-haspopup="dialog"]') as HTMLButtonElement)
     const items = [...container.querySelectorAll('.pc-tablepick-item')] as HTMLButtonElement[]
     const initiative = items.find((b) => b.textContent === 'Group Initiative')
     expect(initiative).toBeTruthy()
     fireEvent.click(initiative as HTMLButtonElement)
     // Overlay closed and the mini-bar now names the picked table.
     expect(container.querySelector('.pc-tablepick')).toBeNull()
-    expect(container.querySelector('.pc-tables-pick-btn')?.textContent).toContain(
+    expect(container.querySelector('[aria-haspopup="dialog"]')?.textContent).toContain(
       'Group Initiative'
     )
   })
@@ -153,7 +153,11 @@ describe('DisplayView', () => {
     fireEvent.click(rollBtn)
     await waitFor(() => expect(container.querySelector('.pc-rollhist-row')).toBeTruthy())
     // Clear empties the history.
-    fireEvent.click(container.querySelector('.pc-rollhist-clear') as HTMLButtonElement)
+    fireEvent.click(
+      [...container.querySelectorAll('button')].find(
+        (b) => b.textContent === 'Clear'
+      ) as HTMLButtonElement
+    )
     expect(container.querySelector('.pc-rollhist')).toBeNull()
   })
 

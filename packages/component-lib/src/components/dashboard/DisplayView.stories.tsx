@@ -6,7 +6,7 @@ import { InstrumentStage } from '../../stories/_dashboardStage'
 import { DisplayView } from './DisplayView'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Dashboard/DisplayView' }
+export default { title: 'Compositions/Dashboard/DisplayView' }
 
 /**
  * The main display, "forward" under glass. Here it shows a statful entity focus:

@@ -19,6 +19,9 @@
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefObjectGuideStep, SURefObjectTable } from 'salvageunion-reference'
+import { Badge } from '../chrome/Badge'
+import { Button } from '../chrome/Button'
+import { cn } from '../../utils/cn'
 import { Content } from '../referenceEntity/Content'
 import { RollTable } from '../shared/RollTable'
 
@@ -89,9 +92,13 @@ export function DowntimeWizard({
     <div className="pc-display-scroll">
       <div className="pc-dt">
         <div className="pc-dt-head">
-          <span className="pc-dt-phase" style={{ background: headerBg }}>
+          <Badge
+            shape="stamp"
+            className="px-[9px] py-[5px] text-xs text-paper"
+            style={{ backgroundColor: headerBg }}
+          >
             {phase}
-          </span>
+          </Badge>
           <span className="pc-dt-count">
             Step {idx + 1} / {steps.length}
           </span>
@@ -118,30 +125,33 @@ export function DowntimeWizard({
         </p>
 
         <div className="pc-dt-controls">
-          <button
-            type="button"
-            className="pc-deck-btn"
+          <Button
+            surface="instrument"
+            size="sm"
+            className="flex-1"
             onClick={() => onStepChange(idx - 1)}
             disabled={idx === 0}
           >
             ‹ Prev
-          </button>
-          <button
-            type="button"
-            className={done ? 'pc-deck-btn pc-dt-btn-done' : 'pc-deck-btn'}
+          </Button>
+          <Button
+            surface="instrument"
+            size="sm"
+            className={cn('flex-1', done && 'bg-[var(--color-sheet-mech-deep)]')}
             onClick={() => onToggleDone(idx)}
             aria-pressed={done}
           >
             {done ? '✓ Complete' : 'Mark Complete'}
-          </button>
-          <button
-            type="button"
-            className="pc-deck-btn"
+          </Button>
+          <Button
+            surface="instrument"
+            size="sm"
+            className="flex-1"
             onClick={() => onStepChange(idx + 1)}
             disabled={idx === steps.length - 1}
           >
             Next ›
-          </button>
+          </Button>
         </div>
       </div>
     </div>

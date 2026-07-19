@@ -3,7 +3,7 @@ import { Caption } from '../../stories/_harness'
 import { DashboardCanvas } from './DashboardCanvas'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Dashboard/Canvas' }
+export default { title: 'Compositions/Dashboard/Canvas' }
 
 /**
  * The real promoted DashboardCanvas — the scale-to-fit dark shell that owns the
