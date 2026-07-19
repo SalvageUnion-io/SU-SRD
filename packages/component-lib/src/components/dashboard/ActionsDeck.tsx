@@ -1,0 +1,340 @@
+/**
+ * ActionsDeck — the Actions instrument on the ONE light display surface. It lists
+ * the active entity's activatable actions and opens a resolve panel for the
+ * selected one (Activate / Roll / Push / Apply). Presentational: every rule +
+ * store write lives in the ITUN wrapper, which computes this discriminated
+ * view-model and wires the callbacks. This component only renders + calls back —
+ * the reference card in the resolve panel is the reused ReferenceEntityDisplay.
+ */
+
+import type { SURefEntity } from 'salvageunion-reference'
+import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
+
+/** A render-ready action row (reach/lock resolved by the caller). */
+export type DeckRow = {
+  key: string
+  stamp: string
+  name: string
+  meta: string[]
+  costLabel?: string
+  locked: boolean
+  lockTitle?: string
+}
+export type DeckGroup = { label: string; rows: DeckRow[] }
+
+export type ActionsDeckResolve = {
+  onBack: () => void
+  costLabel: string
+  entity: SURefEntity
+  /** EP-vs-AP cost radio for `activationCurrency === 'EP or AP'` actions. */
+  currencyChoice?: {
+    epCost: number
+    currency: 'EP' | 'AP'
+    pilotAvailable: boolean
+    activated: boolean
+    onCurrency: (c: 'EP' | 'AP') => void
+  }
+  /** `− X +` Hot(X) stepper + heat projection for variable-Heat actions. */
+  variableHot?: {
+    hotX: number
+    activated: boolean
+    projText: string
+    over: boolean
+    onDec: () => void
+    onInc: () => void
+  }
+  controls: {
+    activateLabel: string
+    activateDisabled: boolean
+    activateTitle?: string
+    onActivate: () => void
+    onRoll: () => void
+    push?: { disabled: boolean; onPush: () => void }
+    applyLabel: string
+    applyDisabled: boolean
+    onApply: () => void
+    onClear: () => void
+  }
+  roll?: { roll: number; band: string; bandLabel: string; bandSummary: string } | null
+  pushLog?: string | null
+  applied: boolean
+  applyRouted: boolean
+}
+
+export type ActionsDeckList = {
+  tabs: readonly string[]
+  activeTab: string
+  onTab: (tab: string) => void
+  groupingLabel: string
+  groupingTitle: string
+  onToggleGrouping: () => void
+  rangeBands: readonly string[]
+  activeRange: string
+  onRange: (band: string) => void
+  reachText: string
+  sources: { label: string; stamp: string }[]
+  sourceFilter: string | null
+  onSourceFilter: (source: string | null) => void
+  familyClass: string
+  groups: DeckGroup[]
+  onOpen: (key: string) => void
+}
+
+export type ActionsDeckView =
+  | { kind: 'empty'; text: string }
+  | ({ kind: 'list' } & ActionsDeckList)
+  | ({ kind: 'resolve' } & ActionsDeckResolve)
+
+export type ActionsDeckProps = { view: ActionsDeckView }
+
+export function ActionsDeck({ view }: ActionsDeckProps) {
+  if (view.kind === 'empty') {
+    return (
+      <div className="pc-display-scroll">
+        <div className="pc-deck-empty">{view.text}</div>
+      </div>
+    )
+  }
+
+  if (view.kind === 'resolve') {
+    const { currencyChoice, variableHot, controls, roll } = view
+    return (
+      <div className="pc-display-scroll">
+        <div className="pc-deck-panel">
+          <div className="pc-deck-panel-head">
+            <button type="button" className="pc-deck-back" onClick={view.onBack}>
+              ◀ Back
+            </button>
+            <span className="pc-deck-cost">{view.costLabel}</span>
+          </div>
+
+          <ReferenceEntityDisplay data={view.entity} />
+
+          {currencyChoice && (
+            <fieldset className="pc-deck-cost-choice">
+              <legend className="pc-deck-cost-choice-lab">Pay with</legend>
+              <label className="pc-deck-radio">
+                <input
+                  type="radio"
+                  name="pc-deck-currency"
+                  checked={currencyChoice.currency === 'EP'}
+                  disabled={currencyChoice.activated}
+                  onChange={() => currencyChoice.onCurrency('EP')}
+                />
+                {currencyChoice.epCost} EP
+              </label>
+              <label className="pc-deck-radio">
+                <input
+                  type="radio"
+                  name="pc-deck-currency"
+                  checked={currencyChoice.currency === 'AP'}
+                  disabled={currencyChoice.activated || !currencyChoice.pilotAvailable}
+                  onChange={() => currencyChoice.onCurrency('AP')}
+                />
+                {currencyChoice.epCost} AP
+              </label>
+            </fieldset>
+          )}
+
+          {variableHot && (
+            <div className="pc-deck-hotx">
+              <span className="pc-deck-hotx-lab">Hot</span>
+              <div className="pc-step">
+                <button
+                  type="button"
+                  className="pc-btn"
+                  onClick={variableHot.onDec}
+                  disabled={variableHot.activated}
+                  aria-label="Decrease Hot"
+                >
+                  −
+                </button>
+                <span className="pc-step-num">{variableHot.hotX}</span>
+                <button
+                  type="button"
+                  className="pc-btn"
+                  onClick={variableHot.onInc}
+                  disabled={variableHot.activated}
+                  aria-label="Increase Hot"
+                >
+                  +
+                </button>
+              </div>
+              <span className={`pc-deck-hotx-proj${variableHot.over ? ' is-over' : ''}`}>
+                {variableHot.projText}
+              </span>
+            </div>
+          )}
+
+          <div className="pc-deck-controls">
+            <button
+              type="button"
+              className="pc-deck-btn"
+              onClick={controls.onActivate}
+              disabled={controls.activateDisabled}
+              title={controls.activateTitle}
+            >
+              {controls.activateLabel}
+            </button>
+            <button type="button" className="pc-deck-btn" onClick={controls.onRoll}>
+              Roll
+            </button>
+            {controls.push && (
+              <button
+                type="button"
+                className="pc-deck-btn pc-deck-btn-danger"
+                onClick={controls.push.onPush}
+                disabled={controls.push.disabled}
+                title="Reroll the d20, +2 Heat, forcing a Heat Check"
+              >
+                Push
+              </button>
+            )}
+            <button
+              type="button"
+              className="pc-deck-btn"
+              onClick={controls.onApply}
+              disabled={controls.applyDisabled}
+              title="Commit this result"
+            >
+              {controls.applyLabel}
+            </button>
+          </div>
+
+          <div className="pc-deck-controls">
+            <button type="button" className="pc-deck-back" onClick={controls.onClear}>
+              Clear
+            </button>
+          </div>
+
+          {roll && (
+            <div className="pc-deck-roll" data-band={roll.band}>
+              <span className="pc-deck-d20">{roll.roll}</span>
+              <div className="pc-deck-band">
+                <strong>{roll.bandLabel}</strong>
+                <span>{roll.bandSummary}</span>
+              </div>
+            </div>
+          )}
+          {view.pushLog && <p className="pc-deck-pushlog">{view.pushLog}</p>}
+          {view.applied && <p className="pc-deck-applied">Result applied ✓</p>}
+          {view.applyRouted && (
+            <p className="pc-deck-apply-route">
+              Cascade Failure — a severe consequence. The Take-Damage control is open on the Active
+              Item band above; confirm the hit there. Nothing was auto-applied.
+            </p>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // ---- List view ----
+  return (
+    <div className="pc-display-scroll">
+      <div className="pc-deck-controls-bar">
+        <div className="pc-deck-tabs" role="tablist" aria-label="Filter actions by timing">
+          {view.tabs.map((t) => (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              aria-selected={view.activeTab === t}
+              className={`pc-deck-tab${view.activeTab === t ? ' is-active' : ''}`}
+              onClick={() => view.onTab(t)}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        <div className="pc-deck-toolrow">
+          <button
+            type="button"
+            className="pc-deck-tool"
+            onClick={view.onToggleGrouping}
+            title={view.groupingTitle}
+          >
+            Group: {view.groupingLabel}
+          </button>
+          <div className="pc-deck-range">
+            {view.rangeBands.map((band) => (
+              <button
+                key={band}
+                type="button"
+                aria-pressed={view.activeRange === band}
+                className={`pc-deck-range-btn${view.activeRange === band ? ' is-active' : ''}`}
+                onClick={() => view.onRange(band)}
+                title={`Set engagement range to ${band}`}
+              >
+                {band[0]}
+              </button>
+            ))}
+            <span className="pc-deck-reach">{view.reachText}</span>
+          </div>
+        </div>
+
+        {view.sources.length > 1 && (
+          <div className={`pc-deck-sources ${view.familyClass}`}>
+            <button
+              type="button"
+              aria-pressed={view.sourceFilter === null}
+              className={`pc-deck-source${view.sourceFilter === null ? ' is-active' : ''}`}
+              onClick={() => view.onSourceFilter(null)}
+            >
+              All
+            </button>
+            {view.sources.map((src) => (
+              <button
+                key={`${src.stamp}:${src.label}`}
+                type="button"
+                aria-pressed={view.sourceFilter === src.label}
+                className={`pc-deck-source${view.sourceFilter === src.label ? ' is-active' : ''}`}
+                onClick={() =>
+                  view.onSourceFilter(view.sourceFilter === src.label ? null : src.label)
+                }
+                title={`Filter the deck to “${src.label}” actions.`}
+              >
+                <span className="pc-deck-stamp">{src.stamp}</span>
+                {src.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {view.groups.length === 0 ? (
+        <div className="pc-deck-empty">No actions match this filter.</div>
+      ) : (
+        <div className="pc-deck">
+          {view.groups.map((group) => (
+            <section key={group.label} className="pc-deck-group">
+              <h3 className="pc-deck-group-lab">{group.label}</h3>
+              <ul className="pc-deck-list">
+                {group.rows.map((row) => (
+                  <li key={row.key}>
+                    <button
+                      type="button"
+                      className={`pc-deck-item${row.locked ? ' is-locked' : ''}`}
+                      onClick={() => view.onOpen(row.key)}
+                      title={row.lockTitle}
+                    >
+                      <span className="pc-deck-item-main">
+                        <span className="pc-deck-stamp">{row.stamp}</span>
+                        <span className="pc-deck-item-name">{row.name}</span>
+                        {row.meta.length > 0 && (
+                          <span className="pc-deck-item-meta">{row.meta.join(' · ')}</span>
+                        )}
+                      </span>
+                      {row.costLabel && <span className="pc-deck-item-cost">{row.costLabel}</span>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}

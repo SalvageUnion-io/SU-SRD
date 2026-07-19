@@ -1,36 +1,22 @@
 /**
- * ActionsDeck — the Actions instrument on the ONE light display surface
- * (plan §5, workstream D1). It lists the active entity's activatable actions and
- * opens a resolve panel for the selected one:
+ * ActionsDeck (ITUN binding) — the Actions instrument's rules + store logic. It
+ * builds the active entity's activatable actions and drives the resolve flow
+ * (Activate / Roll / Push / Apply) under the ADR-007 automation boundary, then
+ * hands a pure view-model to the presentational ActionsDeck in component-lib.
  *
- *   Activate  → pay EP/AP + Hot Heat, decrement Uses (auto bookkeeping, ADR-007)
+ *   Activate  → pay EP/AP + Hot Heat, decrement Uses (auto bookkeeping)
  *   Roll      → the Core Mechanic d20 + its band (component state, never stored)
  *   Push      → reroll the d20, +2 Heat, forcing a Heat Check (mech deck only)
- *   Apply     → commit the rolled outcome (auto for non-destructive bands; a
- *               Cascade Failure is routed to the Active Item band, never
- *               auto-written — ADR-007)
- *   Back/Clear → return to the list / reset the resolve state
- *
- * The resolve panel authors two controls the stored data can't: an EP-vs-AP cost
- * radio for `activationCurrency === 'EP or AP'` actions, and a `− X +` Hot(X)
- * stepper (with a live heat-vs-cap projection) for variable-Heat actions.
- *
- * The deck is a filterable instrument:
- *   - Timing tabs (All / Turn / Short / Long / Free / React) filter by actionType.
- *   - A grouping toggle switches between grouping-by-timing and grouping-by-source.
- *   - Source tags filter the deck to one owner (chassis / a system / an ability …).
- *   - A range selector (C/M/L/F) + reach readout compares each action's declared
- *     range to the self-declared band; out-of-range / heat-locked / destroyed
- *     actions are DIMMED in place, never hidden (mockup `acell`).
+ *   Apply     → commit the rolled outcome (Cascade Failure is routed to the
+ *               Active Item band, never auto-written)
  *
  * On foot (`mount === 'pilot'`) the deck is the pilot's abilities + equipment on
  * the AP economy; boarded, it is the mech's chassis + systems + modules on EP.
- * Each card reuses component-lib's `ActionCard` verbatim in the resolve panel — the
- * deck layers Dashboard controls around it, never replaces it.
  */
 
 import { useState } from 'react'
-import { ReferenceEntityDisplay } from 'component-lib'
+import { ActionsDeck as ActionsDeckView } from 'component-lib'
+import type { ActionsDeckView as ActionsDeckViewModel, DeckGroup } from 'component-lib'
 import { canActivateAction } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 
@@ -169,12 +155,9 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
   }
 
   /**
-   * Apply commits the rolled outcome (ADR-007). Non-destructive bands auto-commit
-   * (the mechanical cost already landed at Activate; there is no self-mutating
-   * write for a Core Mechanic result in the local-first actor-only model). A
-   * Cascade Failure is destructive — it is NOT auto-written; the deck ARMS the
-   * active Item band to open its Take-Damage overlay (pre-armed) so the player
-   * confirms the consequence there under ADR-007, never an auto-write here.
+   * Apply commits the rolled outcome (ADR-007). Non-destructive bands auto-commit;
+   * a Cascade Failure is destructive — it is NOT auto-written; the deck ARMS the
+   * active Item band to open its Take-Damage overlay so the player confirms there.
    */
   function doApply(result: CoreRollResult) {
     if (isDestructiveOutcome(result.band)) {
@@ -210,15 +193,10 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
   }
 
   if (deck.length === 0) {
-    return (
-      <div className="pc-display-scroll">
-        <div className="pc-deck-empty">
-          {isPilotDeck
-            ? 'This pilot has no activatable actions.'
-            : 'This mech has no activatable actions.'}
-        </div>
-      </div>
-    )
+    const text = isPilotDeck
+      ? 'This pilot has no activatable actions.'
+      : 'This mech has no activatable actions.'
+    return <ActionsDeckView view={{ kind: 'empty', text }} />
   }
 
   if (selected) {
@@ -244,142 +222,59 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
     if (!isPilotDeck && effCurrency === 'EP' && eco.heat > 0) cost.push(`+${eco.heat} Heat`)
     if (eco.maxUses > 0) cost.push(`Uses ${eco.maxUses}`)
 
-    return (
-      <div className="pc-display-scroll">
-        <div className="pc-deck-panel">
-          <div className="pc-deck-panel-head">
-            <button type="button" className="pc-deck-back" onClick={close}>
-              ◀ Back
-            </button>
-            <span className="pc-deck-cost">{cost.length > 0 ? cost.join(' · ') : 'No cost'}</span>
-          </div>
-
-          <ReferenceEntityDisplay data={selected.action as unknown as SURefEntity} />
-
-          {currencyChoice && (
-            <fieldset className="pc-deck-cost-choice">
-              <legend className="pc-deck-cost-choice-lab">Pay with</legend>
-              <label className="pc-deck-radio">
-                <input
-                  type="radio"
-                  name="pc-deck-currency"
-                  checked={currency === 'EP'}
-                  disabled={activated}
-                  onChange={() => setCurrency('EP')}
-                />
-                {eco.epCost} EP
-              </label>
-              <label className="pc-deck-radio">
-                <input
-                  type="radio"
-                  name="pc-deck-currency"
-                  checked={currency === 'AP'}
-                  disabled={activated || !pilot}
-                  onChange={() => setCurrency('AP')}
-                />
-                {eco.epCost} AP
-              </label>
-            </fieldset>
-          )}
-
-          {variableHot && (
-            <div className="pc-deck-hotx">
-              <span className="pc-deck-hotx-lab">Hot</span>
-              <div className="pc-step">
-                <button
-                  type="button"
-                  className="pc-btn"
-                  onClick={() => setHotX((x) => Math.max(1, x - 1))}
-                  disabled={activated}
-                  aria-label="Decrease Hot"
-                >
-                  −
-                </button>
-                <span className="pc-step-num">{hotX}</span>
-                <button
-                  type="button"
-                  className="pc-btn"
-                  onClick={() => setHotX((x) => x + 1)}
-                  disabled={activated}
-                  aria-label="Increase Hot"
-                >
-                  +
-                </button>
-              </div>
-              <span className={`pc-deck-hotx-proj${heatOk ? '' : ' is-over'}`}>
-                Heat {projectedHeat}/{heatCtx.heatCap}
-                {heatOk ? '' : ' — over cap'}
-              </span>
-            </div>
-          )}
-
-          <div className="pc-deck-controls">
-            <button
-              type="button"
-              className="pc-deck-btn"
-              onClick={() => activate(selected, effCurrency, eco)}
-              disabled={activateDisabled}
-              title={
-                apUnavailable
-                  ? 'No pilot to spend AP'
-                  : heatOk
-                    ? undefined
-                    : 'Activating would exceed the Heat Cap'
-              }
-            >
-              {activated ? 'Activated' : 'Activate'}
-            </button>
-            <button type="button" className="pc-deck-btn" onClick={doRoll}>
-              Roll
-            </button>
-            {!isPilotDeck && (
-              <button
-                type="button"
-                className="pc-deck-btn pc-deck-btn-danger"
-                onClick={doPush}
-                disabled={roll === null}
-                title="Reroll the d20, +2 Heat, forcing a Heat Check"
-              >
-                Push
-              </button>
-            )}
-            <button
-              type="button"
-              className="pc-deck-btn"
-              onClick={() => roll && doApply(roll)}
-              disabled={roll === null || applied || applyRouted}
-              title="Commit this result"
-            >
-              {applied ? 'Applied' : 'Apply'}
-            </button>
-          </div>
-
-          <div className="pc-deck-controls">
-            <button type="button" className="pc-deck-back" onClick={resetResolve}>
-              Clear
-            </button>
-          </div>
-
-          {roll && (
-            <div className="pc-deck-roll" data-band={roll.band}>
-              <span className="pc-deck-d20">{roll.roll}</span>
-              <div className="pc-deck-band">
-                <strong>{CORE_ROLL_BANDS[roll.band].label}</strong>
-                <span>{CORE_ROLL_BANDS[roll.band].summary}</span>
-              </div>
-            </div>
-          )}
-          {pushLog && <p className="pc-deck-pushlog">{pushLog}</p>}
-          {applied && <p className="pc-deck-applied">Result applied ✓</p>}
-          {applyRouted && (
-            <p className="pc-deck-apply-route">
-              Cascade Failure — a severe consequence. The Take-Damage control is open on the Active
-              Item band above; confirm the hit there. Nothing was auto-applied.
-            </p>
-          )}
-        </div>
-      </div>
-    )
+    const view: ActionsDeckViewModel = {
+      kind: 'resolve',
+      onBack: close,
+      costLabel: cost.length > 0 ? cost.join(' · ') : 'No cost',
+      entity: selected.action as unknown as SURefEntity,
+      currencyChoice: currencyChoice
+        ? {
+            epCost: eco.epCost,
+            currency,
+            pilotAvailable: pilot != null,
+            activated,
+            onCurrency: setCurrency,
+          }
+        : undefined,
+      variableHot: variableHot
+        ? {
+            hotX,
+            activated,
+            projText: `Heat ${projectedHeat}/${heatCtx.heatCap}${heatOk ? '' : ' — over cap'}`,
+            over: !heatOk,
+            onDec: () => setHotX((x) => Math.max(1, x - 1)),
+            onInc: () => setHotX((x) => x + 1),
+          }
+        : undefined,
+      controls: {
+        activateLabel: activated ? 'Activated' : 'Activate',
+        activateDisabled,
+        activateTitle: apUnavailable
+          ? 'No pilot to spend AP'
+          : heatOk
+            ? undefined
+            : 'Activating would exceed the Heat Cap',
+        onActivate: () => activate(selected, effCurrency, eco),
+        onRoll: doRoll,
+        push: isPilotDeck ? undefined : { disabled: roll === null, onPush: doPush },
+        applyLabel: applied ? 'Applied' : 'Apply',
+        applyDisabled: roll === null || applied || applyRouted,
+        onApply: () => roll && doApply(roll),
+        onClear: resetResolve,
+      },
+      roll: roll
+        ? {
+            roll: roll.roll,
+            band: roll.band,
+            bandLabel: CORE_ROLL_BANDS[roll.band].label,
+            bandSummary: CORE_ROLL_BANDS[roll.band].summary,
+          }
+        : null,
+      pushLog,
+      applied,
+      applyRouted,
+    }
+    return <ActionsDeckView view={view} />
   }
 
   // ---- List view: filter → group → render ----
@@ -393,134 +288,52 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
   const sources = groupBySource(deck).map((g) => ({
     label: g.label,
     stamp: g.items[0]?.stamp ?? 'SYS',
-    kind: g.items[0]?.kind ?? 'system',
   }))
   const familyClass = isPilotDeck ? 'pc-deck-fam-pilot' : 'pc-deck-fam-mech'
 
-  return (
-    <div className="pc-display-scroll">
-      <div className="pc-deck-controls-bar">
-        <div className="pc-deck-tabs" role="tablist" aria-label="Filter actions by timing">
-          {TIMING_TABS.map((t) => (
-            <button
-              key={t}
-              type="button"
-              role="tab"
-              aria-selected={tab === t}
-              className={`pc-deck-tab${tab === t ? ' is-active' : ''}`}
-              onClick={() => setTab(t)}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+  const deckGroups: DeckGroup[] = groups.map((group) => ({
+    label: group.label,
+    rows: group.items.map((action) => {
+      const reachable = actionReachable(action, range, heatCtx.currentHeat, heatCtx.heatCap)
+      return {
+        key: action.key,
+        stamp: action.stamp,
+        name: action.name,
+        meta: actionMicroMeta(action),
+        costLabel:
+          action.economy.epCost > 0 ? `${action.economy.epCost} ${action.currency}` : undefined,
+        locked: !reachable,
+        lockTitle:
+          action.condition === 'destroyed'
+            ? 'Destroyed'
+            : reachable
+              ? undefined
+              : 'Out of range / overheat',
+      }
+    }),
+  }))
 
-        <div className="pc-deck-toolrow">
-          <button
-            type="button"
-            className="pc-deck-tool"
-            onClick={() => setGrouping((g) => (g === 'source' ? 'timing' : 'source'))}
-            title={grouping === 'source' ? 'Group by timing' : 'Group by source'}
-          >
-            Group: {grouping === 'source' ? 'Source' : 'Timing'}
-          </button>
-          <div className="pc-deck-range">
-            {RANGE_BANDS.map((band: RangeBand) => (
-              <button
-                key={band}
-                type="button"
-                aria-pressed={range === band}
-                className={`pc-deck-range-btn${range === band ? ' is-active' : ''}`}
-                onClick={() => setRange(band)}
-                title={`Set engagement range to ${band}`}
-              >
-                {band[0]}
-              </button>
-            ))}
-            <span className="pc-deck-reach">
-              {reach.inReach} / {reach.total} in reach
-            </span>
-          </div>
-        </div>
-
-        {sources.length > 1 && (
-          <div className={`pc-deck-sources ${familyClass}`}>
-            <button
-              type="button"
-              aria-pressed={sourceFilter === null}
-              className={`pc-deck-source${sourceFilter === null ? ' is-active' : ''}`}
-              onClick={() => setSourceFilter(null)}
-            >
-              All
-            </button>
-            {sources.map((src) => (
-              <button
-                key={`${src.stamp}:${src.label}`}
-                type="button"
-                aria-pressed={sourceFilter === src.label}
-                className={`pc-deck-source${sourceFilter === src.label ? ' is-active' : ''}`}
-                onClick={() => setSourceFilter((cur) => (cur === src.label ? null : src.label))}
-                title={`Filter the deck to “${src.label}” actions.`}
-              >
-                <span className="pc-deck-stamp">{src.stamp}</span>
-                {src.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {groups.length === 0 ? (
-        <div className="pc-deck-empty">No actions match this filter.</div>
-      ) : (
-        <div className="pc-deck">
-          {groups.map((group) => (
-            <section key={group.label} className="pc-deck-group">
-              <h3 className="pc-deck-group-lab">{group.label}</h3>
-              <ul className="pc-deck-list">
-                {group.items.map((action) => {
-                  const reachable = actionReachable(
-                    action,
-                    range,
-                    heatCtx.currentHeat,
-                    heatCtx.heatCap
-                  )
-                  const meta = actionMicroMeta(action)
-                  const lockTitle =
-                    action.condition === 'destroyed'
-                      ? 'Destroyed'
-                      : !reachable
-                        ? 'Out of range / overheat'
-                        : undefined
-                  return (
-                    <li key={action.key}>
-                      <button
-                        type="button"
-                        className={`pc-deck-item${reachable ? '' : ' is-locked'}`}
-                        onClick={() => open(action)}
-                        title={lockTitle}
-                      >
-                        <span className="pc-deck-item-main">
-                          <span className="pc-deck-stamp">{action.stamp}</span>
-                          <span className="pc-deck-item-name">{action.name}</span>
-                          {meta.length > 0 && (
-                            <span className="pc-deck-item-meta">{meta.join(' · ')}</span>
-                          )}
-                        </span>
-                        {action.economy.epCost > 0 && (
-                          <span className="pc-deck-item-cost">
-                            {action.economy.epCost} {action.currency}
-                          </span>
-                        )}
-                      </button>
-                    </li>
-                  )
-                })}
-              </ul>
-            </section>
-          ))}
-        </div>
-      )}
-    </div>
-  )
+  const view: ActionsDeckViewModel = {
+    kind: 'list',
+    tabs: TIMING_TABS,
+    activeTab: tab,
+    onTab: (t) => setTab(t as TimingTab),
+    groupingLabel: grouping === 'source' ? 'Source' : 'Timing',
+    groupingTitle: grouping === 'source' ? 'Group by timing' : 'Group by source',
+    onToggleGrouping: () => setGrouping((g) => (g === 'source' ? 'timing' : 'source')),
+    rangeBands: RANGE_BANDS,
+    activeRange: range,
+    onRange: (b) => setRange(b as RangeBand),
+    reachText: `${reach.inReach} / ${reach.total} in reach`,
+    sources,
+    sourceFilter,
+    onSourceFilter: setSourceFilter,
+    familyClass,
+    groups: deckGroups,
+    onOpen: (key) => {
+      const action = deck.find((a) => a.key === key)
+      if (action) open(action)
+    },
+  }
+  return <ActionsDeckView view={view} />
 }
