@@ -1,8 +1,8 @@
 import type { Story } from '@ladle/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { BayStatus } from '../../components/stat/BayStatus'
-import type { EntityStatus } from '../../components/shared/entityStatus'
-import { Caption } from '../_harness'
+import { BayStatus } from './BayStatus'
+import type { EntityStatus } from '../shared/entityStatus'
+import { Caption } from '../../stories/_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {

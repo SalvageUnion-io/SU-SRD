@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
-import { Caption } from '../_harness'
+import { Caption } from '../../stories/_harness'
 
-import { Glyph, type GlyphName } from '../../components/chrome/glyphs'
+import { Glyph, type GlyphName } from './glyphs'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {

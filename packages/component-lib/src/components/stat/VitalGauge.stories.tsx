@@ -2,7 +2,7 @@ import type { Story } from '@ladle/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
-import { VitalGauge } from '../../components/stat/VitalGauge'
+import { VitalGauge } from './VitalGauge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {

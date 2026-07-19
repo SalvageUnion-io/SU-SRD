@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 
-import { EmptyState } from '../../components/chrome/EmptyState'
-import { Button } from '../../components/chrome/Button'
+import { EmptyState } from './EmptyState'
+import { Button } from './Button'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {

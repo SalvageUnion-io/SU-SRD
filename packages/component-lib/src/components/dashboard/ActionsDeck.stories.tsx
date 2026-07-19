@@ -7,7 +7,7 @@ import { InstrumentStage } from '../../stories/_dashboardStage'
 import { ActionsDeck, type DeckGroup } from './ActionsDeck'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Compositions/Dashboard/ActionsDeck' }
+export default { title: 'Compositions/Dashboard/Actions Deck' }
 
 const TABS = ['All', 'Turn', 'Short', 'Long', 'Free', 'React'] as const
 const RANGES = ['Close', 'Medium', 'Long', 'Far'] as const

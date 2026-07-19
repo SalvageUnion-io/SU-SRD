@@ -5,7 +5,7 @@ import { InstrumentStage } from '../../stories/_dashboardStage'
 import { DowntimeWizard } from './DowntimeWizard'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Compositions/Dashboard/DowntimeWizard' }
+export default { title: 'Compositions/Dashboard/Downtime Wizard' }
 
 /**
  * The guided Crawler Downtime loop, driven from the real "Crawler Downtime"

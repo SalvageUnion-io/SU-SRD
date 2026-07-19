@@ -5,7 +5,7 @@ import { InstrumentStage } from '../../stories/_dashboardStage'
 import { DialConfig, type DialConfigRow } from './DialConfig'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Compositions/Dashboard/DialConfig' }
+export default { title: 'Compositions/Dashboard/Dial Config' }
 
 const INITIAL: DialConfigRow[] = [
   { id: 'actions', label: 'Actions', hidden: false, locked: true },

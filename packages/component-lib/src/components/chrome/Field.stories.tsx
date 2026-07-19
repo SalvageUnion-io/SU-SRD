@@ -5,7 +5,7 @@ import { Field, Input, Select, Textarea } from './Field'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Atoms/Form Fields',
+  title: 'Atoms/Field',
 }
 
 /** Base pilot classes (those with core trees), driven from real SRD data. */
@@ -18,6 +18,11 @@ function baseClasses(): string[] {
     )
     .map((c) => c.name)
 }
+
+// Real SRD content for the standalone Input row.
+const chassisName = SalvageUnionReference.Chassis.all()[0]?.name ?? 'Chassis'
+const systemName = SalvageUnionReference.Systems.all()[0]?.name ?? 'System'
+const crawlerName = SalvageUnionReference.Crawlers.all()[0]?.name ?? 'Crawler'
 
 /** Field wrapping each control — Input, Textarea, Select — all one skin. */
 export const Default: Story = () => (
@@ -59,6 +64,15 @@ export const Default: Story = () => (
         <option value="2">Tech Level 2</option>
         <option value="3">Tech Level 3</option>
       </Select>
+    </div>
+
+    <div className="flex flex-col gap-2">
+      <Caption>Input — standalone variants (empty · filled · disabled).</Caption>
+      <div className="flex flex-col gap-3">
+        <Input placeholder={`e.g. ${systemName}`} />
+        <Input defaultValue={chassisName} />
+        <Input disabled defaultValue={crawlerName} />
+      </div>
     </div>
   </div>
 )
