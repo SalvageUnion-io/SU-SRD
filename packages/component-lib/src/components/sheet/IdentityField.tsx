@@ -18,10 +18,10 @@
  */
 
 import type { ReactNode } from 'react'
-import { InlineEditField } from 'component-lib'
+import { InlineEditField } from '../chrome/InlineEditField'
 
-import { cn } from '../../lib/utils'
-import { EDIT_CUE_CLASS } from 'component-lib'
+import { cn } from '../../utils/cn'
+import { EDIT_CUE_CLASS } from '../shared/SheetSection'
 
 type IdentityFieldProps = {
   /** Small uppercase label, e.g. 'Callsign'. */

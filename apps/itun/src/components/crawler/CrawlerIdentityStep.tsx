@@ -1,6 +1,6 @@
 import { Button, Field, Input, Panel, Slab } from 'component-lib'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
-import { IdentityField } from '../sheet/IdentityField'
+import { IdentityField } from 'component-lib'
 import { rollCrawlerName } from './crawlerRollTables'
 import type { CrawlerRollTableDeps } from './crawlerRollTables'
 

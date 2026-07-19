@@ -13,7 +13,7 @@ import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../.
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
-import { NpcInset } from './NpcInset'
+import { NpcInset } from 'component-lib'
 
 export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 

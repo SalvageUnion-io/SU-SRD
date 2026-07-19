@@ -1,5 +1,5 @@
 import { Button } from 'component-lib'
-import { IdentityField } from '../sheet/IdentityField'
+import { IdentityField } from 'component-lib'
 import type { MechRollField, MechRollTableDeps } from 'component-lib'
 import { rollForMechField } from 'component-lib'
 

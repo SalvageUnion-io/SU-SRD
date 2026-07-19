@@ -265,6 +265,13 @@ export { ContextualEntityDisplay } from './components/shared/ContextualEntityDis
 export { RosterSkeleton } from './components/shared/RosterSkeleton'
 export { DeleteConfirmDialog } from './components/shared/DeleteConfirmDialog'
 export { SheetSkeleton } from './components/sheet/SheetSkeleton'
+export { InlineEditTextArea } from './components/sheet/InlineEditTextArea'
+export { NpcFactsEditor } from './components/sheet/NpcFactsEditor'
+export { IdentityField } from './components/sheet/IdentityField'
+export { NpcInset } from './components/sheet/NpcInset'
+export { SheetActionsMenu } from './components/sheet/SheetActionsMenu'
+export { SHEET_ICONBTN_CLASS } from './components/sheet/sheetChrome'
+export { useDismiss } from './components/shared/useDismiss'
 export type { ItemCondition } from './components/sheet/ConditionToggle'
 // Live-sheet section chrome — the unified EDIT LANGUAGE primitives (section
 // Edit/Add toggles, the one shared picker modal, per-card remove) lifted out of

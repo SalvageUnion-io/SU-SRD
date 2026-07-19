@@ -36,7 +36,7 @@ import type { BadgeTone, StatTone } from 'component-lib'
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
 
-import { SHEET_ICONBTN_CLASS } from './sheetChrome'
+import { SHEET_ICONBTN_CLASS } from 'component-lib'
 
 export type SheetVariant = 'pilot' | 'mech' | 'crawler'
 

@@ -5,7 +5,7 @@ import { ReferenceEntityCard, navigateControl } from 'component-lib'
 import { findNpcChoiceByName } from '../../lib/crawlerRefs'
 import type { ResolvedNpc } from '../../lib/crawlerRefs'
 import type { CrawlerWizardFormState, CrewNpcForm } from '../../lib/wizard/crawlerFormState'
-import { IdentityField } from '../sheet/IdentityField'
+import { IdentityField } from 'component-lib'
 
 type NpcSource = {
   /** Stable key — the bay ref or the type ref. */
