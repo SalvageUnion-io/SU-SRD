@@ -61,20 +61,36 @@ export default {
   // Rendering Matrix QA harness) → Atoms (indivisible primitives) → Containers
   // (content-agnostic wrappers: Display Card / Modal / Inset / Toast / …) →
   // Compositions (domain/game components). Group definitions live in
-  // packages/component-lib/CLAUDE.md.
+  // packages/component-lib/CLAUDE.md, and `src/story-coverage.test.ts` fails CI
+  // if a story's title uses a group or sub-group not listed here.
+  //
+  // Compositions is the only group big enough to earn sub-groups; a cluster gets
+  // one at 3+ siblings, and they sort ahead of that group's ungrouped leaves.
+  // Atoms/Containers stay deliberately flat — they are lists of peers, which
+  // stays scannable and keeps '/' search a single hop.
   //
   // NOTE: Ladle serializes this function and evaluates it in the browser
   // WITHOUT the surrounding module scope, so it must be fully self-contained —
   // no references to outer-scope consts/helpers.
   storyOrder: (stories) => {
-    const order = ['foundations', 'atoms', 'containers', 'compositions']
+    const groups = ['foundations', 'atoms', 'containers', 'compositions']
+    const subgroups = {
+      compositions: ['entity', 'catalog', 'dashboard', 'wizard', 'shell'],
+    }
     const rank = (id) => {
-      const i = order.findIndex((g) => id.startsWith(g))
-      return i === -1 ? order.length : i
+      let g = groups.findIndex((name) => id.startsWith(`${name}--`))
+      if (g === -1) g = groups.length
+      const group = groups[g]
+      const subs = (group && subgroups[group]) || []
+      // Ungrouped leaves sort after the group's sub-grouped clusters.
+      let s = subs.findIndex((name) => id.startsWith(`${group}--${name}--`))
+      if (s === -1) s = subs.length
+      return [g, s]
     }
     return [...stories].sort((a, b) => {
-      const r = rank(a) - rank(b)
-      return r !== 0 ? r : a.localeCompare(b)
+      const ra = rank(a)
+      const rb = rank(b)
+      return ra[0] - rb[0] || ra[1] - rb[1] || a.localeCompare(b)
     })
   },
 }

@@ -3,10 +3,10 @@ import { useMemo, useState } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 import { Button, Field, Input, ModalShell, ModeDoor, Select } from 'component-lib'
 import { cn } from '../../utils/cn'
-import { Caption } from '../_harness'
+import { Caption } from '../../stories/_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Compositions/New Entity Screen' }
+export default { title: 'Compositions/Wizard/New Entity Screen' }
 
 /**
  * Mirror of the /new mode router — apps/itun/src/components/wizard/

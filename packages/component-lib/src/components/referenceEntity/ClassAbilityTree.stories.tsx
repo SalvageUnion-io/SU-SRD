@@ -5,7 +5,7 @@ import { ClassAbilityTree } from './ClassAbilityTree'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Class Ability Tree',
+  title: 'Compositions/Entity/Class Ability Tree',
 }
 
 const classes = SalvageUnionReference.Classes.all()

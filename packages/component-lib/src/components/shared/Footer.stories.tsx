@@ -3,7 +3,7 @@ import { Footer } from './Footer'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Footer',
+  title: 'Compositions/Shell/Footer',
 }
 
 /**

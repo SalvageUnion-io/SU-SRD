@@ -4,7 +4,7 @@ import { WizShell, WizTracker } from './WizShell'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Wiz Shell',
+  title: 'Compositions/Wizard/Wiz Shell',
 }
 
 const STEPS = ['Class', 'Callsign', 'Abilities', 'Equipment', 'Review'] as const

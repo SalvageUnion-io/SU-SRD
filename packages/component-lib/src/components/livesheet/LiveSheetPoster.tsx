@@ -21,22 +21,18 @@
 import { type ReactNode, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 
-import { Badge } from '../../components/chrome/Badge'
-import { Button } from '../../components/chrome/Button'
-import { EmptyState } from '../../components/chrome/EmptyState'
-import { Input } from '../../components/chrome/Field'
-import { Slab } from '../../components/chrome/Slab'
-import { UsedPip } from '../../components/stat/UsedPip'
-import { VitalGauge } from '../../components/stat/VitalGauge'
-import { DisplayCard } from '../../components/shared/DisplayCard'
-import { ModalShell } from '../../components/shared/ModalShell'
-import {
-  EntityRow,
-  type EntityRowStat,
-  type EntityRowType,
-} from '../../components/shared/EntityRow'
-import { Stat } from '../../components/shared/Stat'
-import { ReferenceEntityCard } from '../../components/referenceEntity/card/ReferenceEntityCard'
+import { Badge } from '../chrome/Badge'
+import { Button } from '../chrome/Button'
+import { EmptyState } from '../chrome/EmptyState'
+import { Input } from '../chrome/Field'
+import { Slab } from '../chrome/Slab'
+import { UsedPip } from '../stat/UsedPip'
+import { VitalGauge } from '../stat/VitalGauge'
+import { DisplayCard } from '../shared/DisplayCard'
+import { ModalShell } from '../shared/ModalShell'
+import { EntityRow, type EntityRowStat, type EntityRowType } from '../shared/EntityRow'
+import { Stat } from '../shared/Stat'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { cn } from '../../utils/cn'
 
 // ---------------------------------------------------------------------------
