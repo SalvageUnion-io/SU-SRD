@@ -98,7 +98,7 @@ export const Bands: Story = () => (
         subHeader={
           <Text
             as="span"
-            className="font-cond text-micro font-bold uppercase tracking-wide text-paper"
+            className="font-cond text-micro font-bold uppercase tracking-caps text-paper"
           >
             Custom sub-header content
           </Text>

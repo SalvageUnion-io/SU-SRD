@@ -19,16 +19,16 @@ import type { NavDrawerItem } from './NavDrawer'
 // SRD search-field treatment, matching the shared SearchField chrome exactly so
 // the trigger button reads as the same search bar.
 const SEARCH_BOX =
-  'flex shrink-0 cursor-pointer items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-[13px] text-ink-2 transition-colors hover:border-su-orange-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange lg:w-64'
+  'flex shrink-0 cursor-pointer items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-ink-2 transition-colors hover:border-su-orange-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange lg:w-64'
 
 // Small "Alpha" pills — same rust treatment as the brand "Beta" badge.
 const DESKTOP_ALPHA = (
-  <span className="ml-1.5 inline-block rounded bg-rust px-1 py-0.5 font-cond text-[10px] font-bold uppercase leading-none tracking-caps text-paper">
+  <span className="ml-1.5 inline-block rounded bg-rust px-1 py-0.5 font-cond text-label font-bold uppercase leading-none tracking-caps text-paper">
     Alpha
   </span>
 )
 const DRAWER_ALPHA = (
-  <span className="ml-2 inline-block rounded bg-rust px-1.5 py-0.5 font-cond text-[11px] font-bold uppercase leading-none tracking-caps text-paper">
+  <span className="ml-2 inline-block rounded bg-rust px-1.5 py-0.5 font-cond text-badge font-bold uppercase leading-none tracking-caps text-paper">
     Alpha
   </span>
 )
@@ -43,7 +43,7 @@ const DESKTOP_NAV: AppBarNavItem[] = [
 
 /** ITUN's two-tone brand tag for the mobile drawer. */
 const ITUN_DRAWER_BRAND = (
-  <span className="inline-flex shrink-0 border border-ink font-cond text-sm font-bold uppercase leading-none tracking-tight">
+  <span className="inline-flex shrink-0 border border-ink font-cond text-sm font-bold uppercase leading-none tracking-caps-tight">
     <span className="bg-ink px-1.5 py-1 text-paper">In the Union</span>
     <span className="bg-paper px-1.5 py-1 text-ink">Now</span>
   </span>

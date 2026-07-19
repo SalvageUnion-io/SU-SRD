@@ -58,12 +58,12 @@ type AppBarProps = {
 }
 
 const NAV_LINK =
-  'inline-flex shrink-0 items-center font-cond text-[15px] font-semibold uppercase tracking-[0.04em] text-su-muted no-underline transition-colors hover:text-su-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
+  'inline-flex shrink-0 items-center font-cond text-lede font-semibold uppercase tracking-[0.04em] text-su-muted no-underline transition-colors hover:text-su-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
 
 const NAV_LINK_ACTIVE = 'text-su-paper'
 
 const BUY_BUTTON =
-  'inline-flex shrink-0 items-center rounded-md border border-su-orange-dark bg-su-orange-dark px-4 py-1.5 font-cond text-[13px] font-medium uppercase tracking-[0.06em] text-paper no-underline transition-colors'
+  'inline-flex shrink-0 items-center rounded-md border border-su-orange-dark bg-su-orange-dark px-4 py-1.5 font-cond text-caption font-medium uppercase tracking-[0.06em] text-paper no-underline transition-colors'
 
 const BREADCRUMB_TEXT = 'font-cond text-xs uppercase tracking-[0.14em] text-ink-2'
 

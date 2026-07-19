@@ -634,7 +634,7 @@ function BudgetTrack({
   const fill = tone === 'ap' ? 'border-rust bg-rust' : 'border-ink bg-ink'
   return (
     <div>
-      <p className="font-cond text-badge font-bold uppercase tracking-widest text-ink">
+      <p className="font-cond text-badge font-bold uppercase tracking-caps-wide text-ink">
         {label} ·{' '}
         <span className={cn('font-body text-xs font-bold', isOver && 'text-status-bad')}>
           {value} / {max}
@@ -657,7 +657,7 @@ function BudgetTrack({
                     key={i}
                     data-pip={on ? 'on' : 'off'}
                     className={cn(
-                      'h-[13px] w-[13px] rounded-[2px] border-chrome',
+                      'h-[13px] w-[13px] rounded-badge border-chrome',
                       on
                         ? over
                           ? 'border-status-bad bg-status-bad'

@@ -1,6 +1,6 @@
 import { Button } from '../chrome/Button'
 import { IdentityField } from '../sheet/IdentityField'
-import type { MechRollField, MechRollTableDeps } from 'component-lib'
+import type { MechRollField, MechRollTableDeps } from './mechRollTables'
 import { rollForMechField } from './mechRollTables'
 
 type MechFlavorStepProps = {

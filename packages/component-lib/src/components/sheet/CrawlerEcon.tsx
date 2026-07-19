@@ -51,10 +51,10 @@ export function CrawlerEconFrame({ gauge, items, className }: CrawlerEconFramePr
   return (
     <aside
       aria-label="Crawler economy"
-      className={cn('flex flex-col gap-3 rounded-[3px] border-entity p-3', className)}
+      className={cn('flex flex-col gap-3 rounded-card border-entity p-3', className)}
       style={{ borderColor: 'var(--tone)', background: 'var(--tone)' }}
     >
-      <div className="rounded-[3px] bg-paper px-3 py-2.5">{gauge}</div>
+      <div className="rounded-card bg-paper px-3 py-2.5">{gauge}</div>
       {items.length > 0 && (
         <div className="grid grid-cols-[repeat(auto-fit,minmax(92px,1fr))] gap-2.5">
           {items.map((item) => (
@@ -71,7 +71,7 @@ function EconLoz({ item }: { item: EconLozItem }) {
   const body = (
     <>
       <span
-        className="font-cond text-[10px] font-bold uppercase tracking-caps"
+        className="font-cond text-label font-bold uppercase tracking-caps"
         style={{ color: 'var(--tone-deep)' }}
       >
         {item.label}
@@ -80,13 +80,13 @@ function EconLoz({ item }: { item: EconLozItem }) {
         {item.value}
         {item.max !== undefined && (
           <>
-            <i className="px-0.5 not-italic text-[15px] text-ink/55">/</i>
-            <span className="text-[15px] text-ink/70">{item.max}</span>
+            <i className="px-0.5 not-italic text-lede text-ink/55">/</i>
+            <span className="text-lede text-ink/70">{item.max}</span>
           </>
         )}
       </div>
       {item.caption && (
-        <span className="font-cond text-[8px] font-semibold uppercase tracking-[0.16em] text-ink/55">
+        <span className="font-cond text-nano font-semibold uppercase tracking-[0.16em] text-ink/55">
           {item.caption}
         </span>
       )}
@@ -95,7 +95,7 @@ function EconLoz({ item }: { item: EconLozItem }) {
   )
 
   const frameClass =
-    'flex min-h-[64px] flex-col items-center justify-center gap-0.5 rounded-[3px] border-2 border-ink bg-paper px-1.5 py-2 text-center'
+    'flex min-h-[64px] flex-col items-center justify-center gap-0.5 rounded-card border-2 border-ink bg-paper px-1.5 py-2 text-center'
 
   if (!item.action) {
     return <div className={frameClass}>{body}</div>

@@ -98,12 +98,12 @@ export function ConditionsEditor({
     await onChange(conditions.filter((_, i) => i !== index))
   }
 
-  // Poster `.cond` chip shape: 2px border, rounded-[2px], min-h-8, a leading
+  // Poster `.cond` chip shape: 2px border, rounded-badge, min-h-8, a leading
   // dot, cond-caps text. Present conditions always render the `.cond.on`
   // fill (ink or warn-tone) + accent/ink dot; the "+ Add" affordance below
   // uses the unset shape (solid ink-35 border, no dashed rule).
   const chipBase =
-    'inline-flex min-h-8 items-center gap-1.5 rounded-[2px] border-2 px-2.5 py-1.5 font-cond text-[10.5px] font-bold uppercase leading-none tracking-caps'
+    'inline-flex min-h-8 items-center gap-1.5 rounded-badge border-2 px-2.5 py-1.5 font-cond text-label-lg font-bold uppercase leading-none tracking-caps'
 
   return (
     <div className="flex min-h-12 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-su-paper p-2.5">
@@ -141,7 +141,7 @@ export function ConditionsEditor({
               onClick={() => {
                 void removeAt(index)
               }}
-              className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[1px] leading-none hover:bg-paper/20"
+              className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-pip leading-none hover:bg-paper/20"
             >
               <span aria-hidden className="text-[12px]">
                 ×
@@ -171,7 +171,7 @@ export function ConditionsEditor({
             onBlur={() => {
               void commitAdd()
             }}
-            className="w-28 rounded-[2px] border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge uppercase tracking-caps text-ink focus:outline-none focus:ring-1 focus:ring-su-orange"
+            className="w-28 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge uppercase tracking-caps text-ink focus:outline-none focus:ring-1 focus:ring-su-orange"
           />
         ) : (
           <button

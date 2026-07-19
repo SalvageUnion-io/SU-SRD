@@ -67,7 +67,7 @@ export function ConditionToggle({
     : `Condition: ${LABELS[value]}`
 
   const badgeClass = cn(
-    'inline-flex select-none items-center rounded border-2 px-2 py-0.5 font-cond text-xs font-bold uppercase tracking-wide',
+    'inline-flex select-none items-center rounded border-2 px-2 py-0.5 font-cond text-xs font-bold uppercase tracking-caps',
     STYLES[value],
     className
   )

@@ -437,7 +437,7 @@ export function DisplayCard({
               const afterTabs = tabs.filter((t) => !t.before)
 
               const tabBaseClass =
-                'min-w-0 basis-1/3 grow shrink-0 md:basis-0 md:shrink cursor-pointer px-3 py-1.5 font-cond text-xs font-bold uppercase tracking-wide transition-colors'
+                'min-w-0 basis-1/3 grow shrink-0 md:basis-0 md:shrink cursor-pointer px-3 py-1.5 font-cond text-xs font-bold uppercase tracking-caps transition-colors'
 
               const renderTabButton = (tab: DisplayCardTab) => {
                 const isActive = resolvedTabKey === tab.key

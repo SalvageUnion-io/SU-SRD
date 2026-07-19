@@ -77,7 +77,7 @@ function ControlButton({
       <a
         href={control.href}
         aria-label={control.ariaLabel}
-        className="inline-flex shrink-0 items-center whitespace-nowrap rounded-card border border-ink bg-paper px-2 py-1 font-cond text-xs font-bold uppercase tracking-tight text-ink no-underline transition-colors hover:bg-ink hover:text-paper"
+        className="inline-flex shrink-0 items-center whitespace-nowrap rounded-card border border-ink bg-paper px-2 py-1 font-cond text-xs font-bold uppercase tracking-caps-tight text-ink no-underline transition-colors hover:bg-ink hover:text-paper"
       >
         {control.label ?? control.ariaLabel}
       </a>
@@ -89,7 +89,7 @@ function ControlButton({
   const onClick = control.onClick ?? (() => {})
 
   const segmentClasses = cn(
-    'px-1 font-cond font-bold uppercase tracking-tight',
+    'px-1 font-cond font-bold uppercase tracking-caps-tight',
     compact ? 'text-label' : 'text-xs'
   )
 

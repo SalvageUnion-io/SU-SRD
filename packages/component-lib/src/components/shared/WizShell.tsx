@@ -145,7 +145,7 @@ function RailStep({
       <span
         className={cn(
           'hidden font-cond font-bold uppercase leading-[1.15] tracking-caps-snug text-ink min-[721px]:block',
-          active ? 'text-caption' : 'text-[11.5px]',
+          active ? 'text-caption' : 'text-note',
           done && !active && 'opacity-80',
           !done && !active && 'opacity-[0.66]'
         )}

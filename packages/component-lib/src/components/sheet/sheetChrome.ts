@@ -10,4 +10,4 @@
  * "⋯" overflow trigger so the bar's two icon buttons can never drift apart.
  */
 export const SHEET_ICONBTN_CLASS =
-  'flex size-[38px] shrink-0 items-center justify-center rounded-[3px] border-chrome border-ink bg-paper text-ink transition-colors duration-[120ms] hover:bg-wk-bg-2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25'
+  'flex size-[38px] shrink-0 items-center justify-center rounded-card border-chrome border-ink bg-paper text-ink transition-colors duration-[120ms] hover:bg-wk-bg-2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25'

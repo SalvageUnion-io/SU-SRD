@@ -18,6 +18,7 @@
  */
 
 import type { ReactNode } from 'react'
+import { Glyph } from '../chrome/glyphs'
 import { InlineEditField } from '../chrome/InlineEditField'
 
 import { cn } from '../../utils/cn'
@@ -59,22 +60,6 @@ const EDIT_VALUE_BOX_CLASS =
   'relative flex min-h-[44px] items-center rounded-card border-2 border-[color:var(--tone-deep,var(--color-ink))] bg-paper px-3 py-2 pr-9 font-body text-sm text-ink'
 
 /** Pen icon pinned right inside an editing `.ifield` box (design-spec `.ifield .pen`). */
-function PenIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="pointer-events-none absolute right-[10px] top-1/2 h-[15px] w-[15px] -translate-y-1/2 text-ink/55"
-      aria-hidden="true"
-    >
-      <path d="m16.5 3.5 4 4L7 21H3v-4z" />
-    </svg>
-  )
-}
 
 export function IdentityField({
   label,
@@ -112,7 +97,10 @@ export function IdentityField({
           )}
         >
           <span className="min-w-0 flex-1 truncate">{value || placeholder}</span>
-          <PenIcon />
+          <Glyph
+            name="pencil"
+            className="pointer-events-none absolute right-[10px] top-1/2 h-[15px] w-[15px] -translate-y-1/2 text-ink/55"
+          />
         </button>
       </div>
     )

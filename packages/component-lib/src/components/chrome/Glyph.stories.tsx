@@ -8,19 +8,40 @@ export default {
   title: 'Atoms/Glyph',
 }
 
-const NAMES: GlyphName[] = ['gear', 'clock', 'pennant', 'x']
+/** Filled geometry — the original set. */
+const FILLED: GlyphName[] = ['gear', 'clock', 'pennant', 'x']
+/** Stroked geometry — the live-sheet edit-language affordances. */
+const STROKED: GlyphName[] = ['pencil', 'check', 'plus', 'remove', 'swap']
 
-/** name — the whole set at a glance (gear / clock / pennant / ✕). */
+/**
+ * name — the whole set at a glance. The set carries BOTH filled icons (gear /
+ * clock / pennant / ✕) and stroked control affordances (pencil / check / plus /
+ * remove / swap); `Glyph` picks the right rendering per name, so a caller never
+ * has to know which is which.
+ */
 export const AllGlyphs: Story = () => (
-  <div className="bg-paper p-4">
-    <Caption>name · currentColor at 1em</Caption>
-    <div className="flex items-center gap-6 text-ink">
-      {NAMES.map((name) => (
-        <span key={name} className="flex items-center gap-2 text-2xl">
-          <Glyph name={name} />
-          <span className="font-cond text-xs uppercase tracking-caps-tight">{name}</span>
-        </span>
-      ))}
+  <div className="space-y-5 bg-paper p-4">
+    <div>
+      <Caption>filled · currentColor at 1em</Caption>
+      <div className="flex items-center gap-6 text-ink">
+        {FILLED.map((name) => (
+          <span key={name} className="flex items-center gap-2 text-2xl">
+            <Glyph name={name} />
+            <span className="font-cond text-xs uppercase tracking-caps-tight">{name}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+    <div>
+      <Caption>stroked · the edit-language affordances</Caption>
+      <div className="flex items-center gap-6 text-ink">
+        {STROKED.map((name) => (
+          <span key={name} className="flex items-center gap-2 text-2xl">
+            <Glyph name={name} />
+            <span className="font-cond text-xs uppercase tracking-caps-tight">{name}</span>
+          </span>
+        ))}
+      </div>
     </div>
   </div>
 )
