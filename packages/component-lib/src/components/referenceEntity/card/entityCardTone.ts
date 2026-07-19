@@ -55,22 +55,6 @@ export type DomainTone = {
   domain: CardDomain
   bg: string | undefined
   bgColor: string | undefined
-  /** Tailwind text-colour class (`text-ink` / `text-paper`) that reads against
-   * this tone — for the title text sitting directly on the header band. */
-  onToneText: string
-}
-
-/**
- * Paper text on DARK grounds, ink text on the light warm/blue tones. Derived
- * from the resolved bg TOKEN, not the domain — so tier-coloured abilities (brick
- * Core, pink Legendary) get the right contrast even though their domain is
- * `pilot`. Dark: brick / rust / pink / ink / tl-3..6. Light: orange / green /
- * tl-1 / tl-2 / Bio / Nanite.
- */
-function resolveOnToneText(bg: string | undefined): string {
-  const s = bg ?? ''
-  if (/su-brick|su-rust|su-pink|su-orange-dark|ink-2|ink\b|tl-[3-6]/.test(s)) return 'text-paper'
-  return 'text-ink'
 }
 
 /**
@@ -97,7 +81,7 @@ export function resolveDomainTone(
           : techLevel === 'B'
             ? 'bg-tl-b'
             : 'bg-tl-n'
-      return { domain, bg, bgColor: undefined, onToneText: resolveOnToneText(bg) }
+      return { domain, bg, bgColor: undefined }
     }
   }
 
@@ -108,7 +92,7 @@ export function resolveDomainTone(
     entity,
     TECH_LEVEL_BG
   )
-  return { domain, bg, bgColor: undefined, onToneText: resolveOnToneText(bg) }
+  return { domain, bg, bgColor: undefined }
 }
 
 /**
@@ -142,7 +126,7 @@ export function resolveCardTone(
   entity: SURefMetaEntity
 ): DomainTone {
   if (schemaName === 'actions') {
-    return { domain: 'action', bg: undefined, bgColor: undefined, onToneText: 'text-ink' }
+    return { domain: 'action', bg: undefined, bgColor: undefined }
   }
   return resolveDomainTone(schemaName, entity)
 }
