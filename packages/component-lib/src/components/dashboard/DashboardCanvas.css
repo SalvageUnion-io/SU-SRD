@@ -14,22 +14,28 @@
  */
 
 .pc-root {
-  --pc-ground: #1b1712;
-  --pc-panel: #282019;
-  --pc-text: #f3ede2;
-  --pc-muted: #9b9488;
-  --pc-line: rgba(243, 237, 226, 0.16);
-  --pc-line-hard: rgba(243, 237, 226, 0.5);
-  --pc-mech: #7a978a;
-  --pc-mech-deep: #2f4338;
-  --pc-pilot: #ef894f;
-  --pc-pilot-deep: #a85222;
-  --pc-crawler: #ce5898;
-  --pc-crawler-deep: #7e2a5b;
-  --pc-bad: #c0563f;
-  --pc-seg-empty: rgba(216, 201, 164, 0.12);
+  /*
+   * The dark instrument skin now DERIVES from the canonical tokens
+   * (component-lib theme.css) rather than re-declaring brand hex under private
+   * names. Same picture — one source of truth. The `--pc-*` names remain as the
+   * instrument-scope aliases every dashboard surface reads.
+   */
+  --pc-ground: var(--color-su-ink-dark);
+  --pc-panel: var(--color-ink);
+  --pc-text: var(--color-su-paper);
+  --pc-muted: var(--color-su-muted);
+  --pc-line: color-mix(in srgb, var(--color-su-paper) 16%, transparent);
+  --pc-line-hard: color-mix(in srgb, var(--color-su-paper) 50%, transparent);
+  --pc-mech: var(--color-mech);
+  --pc-mech-deep: var(--color-sheet-mech-deep);
+  --pc-pilot: var(--color-pilot);
+  --pc-pilot-deep: var(--color-sheet-pilot-deep);
+  --pc-crawler: var(--color-crawler);
+  --pc-crawler-deep: var(--color-sheet-crawler-deep);
+  --pc-bad: var(--color-status-bad); /* re-tone: salvage brick, not neon salmon */
+  --pc-seg-empty: color-mix(in srgb, var(--color-su-sand) 22%, transparent);
   color: var(--pc-text);
-  font-family: 'Barlow', system-ui, sans-serif;
+  font-family: var(--font-body);
 }
 
 /* Fixed design canvas — scaled to fit by DashboardCanvas. Never scrolls. */
@@ -48,7 +54,7 @@
   padding: 32px;
   text-align: center;
   color: var(--pc-muted);
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   line-height: 1.5;
 }
