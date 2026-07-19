@@ -7,8 +7,7 @@
   "scripts": {
     "dev": "astro dev",
     "typecheck": "astro check && tsc --noEmit -p tsconfig.json",
-    "build": "astro build && bun scripts/og-screenshots.ts",
-    "og:install-browser": "playwright install chromium",
+    "build": "astro build",
     "preview": "astro preview",
     "lint": "biome lint .",
     "format": "biome format --write . && prettier --write '**/*.md' --ignore-unknown --log-level=warn",

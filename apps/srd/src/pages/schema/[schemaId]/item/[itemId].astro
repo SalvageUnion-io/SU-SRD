@@ -82,11 +82,10 @@ if (displayData?.techLevel != null) {
   }
 }
 
-// Per-entity OG image: a 1:1 screenshot of the real ReferenceEntityDisplay card,
-// generated post-build by scripts/og-screenshots.ts and written to this path.
-// Real artwork (assetUrl) still preloads for the on-page view.
+// Real artwork (assetUrl) preloads for the on-page view. The og:image falls back
+// to the site-wide default (BaseLayout's DEFAULT_OG_IMAGE); per-entity card
+// screenshots are no longer generated at build time.
 const preloadImage = displayData?.assetUrl
-const ogImage = `/schema/${schemaId}/item/${itemId}.og.png`
 ---
 
 <BaseLayout
@@ -94,8 +93,6 @@ const ogImage = `/schema/${schemaId}/item/${itemId}.og.png`
   description={metaDescription}
   canonical={canonicalUrl}
   ogType="article"
-  ogImage={ogImage}
-  ogImageAlt={itemName}
   structuredData={structuredData}
   preloadImage={preloadImage}
   breadcrumbs={[
