@@ -1,17 +1,17 @@
 # Netlify configuration for srd (Astro static site)
 
 [build]
-  # Provision the headless browser that scripts/og-screenshots.ts drives to
-  # render each entity's 1:1 og:image card (chained into the srd build).
-  # Use the `og:install-browser` package script — NOT `bunx playwright …` —
-  # so the install resolves srd's pinned `playwright` and downloads the
-  # exact browser build its imported `playwright-core` expects (`bunx` resolves
-  # a registry copy, which installed a mismatched build). If the Netlify image
-  # ever lacks chromium's shared libs, add `--with-deps` to that script.
   # PUBLIC_COMMIT_REF is exported from Netlify's own build-shell COMMIT_REF so
   # the client bundle can tag Sentry events with a release (see
   # src/lib/observability.ts and src/env.d.ts).
-  command = "bun install --frozen-lockfile && bun --filter srd og:install-browser && PUBLIC_COMMIT_REF=\"$COMMIT_REF\" bun --filter srd build"
+  #
+  # No headless browser is provisioned here any more. The build used to chain
+  # `og:install-browser` + `scripts/og-screenshots.ts`, which drove chromium over
+  # every entity (~1.5k) to render per-entity og:image cards. The PNG cache lives
+  # in node_modules, so a cold Netlify builder re-rendered all of them and the
+  # deploy reliably exceeded the build limit ("Command did not finish") — every
+  # srd deploy was failing. Entity pages now use the site-wide default og:image.
+  command = "bun install --frozen-lockfile && PUBLIC_COMMIT_REF=\"$COMMIT_REF\" bun --filter srd build"
   publish = "apps/srd/dist"
   # Skip the build when nothing affecting srd changed since the last
   # published deploy. `git diff --quiet` exits 0 (→ Netlify cancels the build)
