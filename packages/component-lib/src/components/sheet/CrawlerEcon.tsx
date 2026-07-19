@@ -17,9 +17,9 @@
  */
 
 import type { ReactNode } from 'react'
-import { Badge } from 'component-lib'
+import { Badge } from '../chrome/Badge'
 
-import { cn } from '../../lib/utils'
+import { cn } from '../../utils/cn'
 
 export type EconLozItem = {
   /** `.llabel` — top caption, e.g. 'Upkeep'. */

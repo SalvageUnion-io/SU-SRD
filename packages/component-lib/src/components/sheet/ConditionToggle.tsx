@@ -8,7 +8,7 @@
 
 import type { KeyboardEvent } from 'react'
 
-import { cn } from '../../lib/utils'
+import { cn } from '../../utils/cn'
 
 export type ItemCondition = 'intact' | 'damaged' | 'destroyed'
 
