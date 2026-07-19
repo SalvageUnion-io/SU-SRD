@@ -11,7 +11,7 @@ salvageunion-reference (game data ORM, no build step)
   |       |
   |       +---> srd (static reference site, Astro 5)
   |       |
-  |       +---> in-the-union-now (character builder, React 19 + Vite)
+  |       +---> itun (character builder, React 19 + Vite)
   |
   +---> discord-bot (standalone, Discord.js)
 ```
@@ -246,9 +246,9 @@ Note: there is no exported `Tooltip` primitive — entity tooltips ship as
 
 ---
 
-## in-the-union-now
+## itun
 
-**Location:** `apps/in-the-union-now/`
+**Location:** `apps/itun/`
 **Framework:** React 19 + Vite + TanStack Router/Query
 
 ### Consumes
@@ -269,7 +269,7 @@ IndexedDB.
 ### Tailwind Source Path
 
 ```css
-/* apps/in-the-union-now/src/index.css */
+/* apps/itun/src/index.css */
 @source "../../../packages/component-lib/src";
 @import 'component-lib/styles/theme.css';
 ```
@@ -333,7 +333,7 @@ one way:
 
 ```
 salvageunion-reference (game data schema)
-  --> in-the-union-now (derives store shapes, validation, and refs from game data)
+  --> itun (derives store shapes, validation, and refs from game data)
 ```
 
 The reference package must never import from the apps. If you find yourself
@@ -361,7 +361,7 @@ await SalvageUnionReference.preload('all')
 preload = ["./test/preload-reference.ts"]
 ```
 
-All existing consumer packages (`component-lib`, `srd`, `in-the-union-now`) follow this pattern. New packages that test any code touching `SalvageUnionReference` must do the same.
+All existing consumer packages (`component-lib`, `srd`, `itun`) follow this pattern. New packages that test any code touching `SalvageUnionReference` must do the same.
 
 ---
 

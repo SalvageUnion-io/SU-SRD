@@ -12,7 +12,7 @@ browser. Shared UI comes from `component-lib`; game data from
 # from the repo root
 bun install && bun run build:package   # first-time setup
 bun run dev:itun                       # vite dev server
-bun --filter in-the-union-now test     # tests (bun test runner)
+bun --filter itun test     # tests (bun test runner)
 ```
 
 ## Snapshot publishing in dev

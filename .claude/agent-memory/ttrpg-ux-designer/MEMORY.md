@@ -6,7 +6,7 @@
 - Architecture docs: `docs/architecture/` (display-system, data-flow, seo-accessibility, package-contracts)
 - Shared theme: `packages/component-lib/src/styles/theme.css` (CSS custom properties, Fira Code font)
 - Game data: `packages/salvageunion-reference/` (ORM-like API, `SalvageUnionReference.get(schemaName, id)`)
-- ITUN app: `apps/in-the-union-now/` (React 19 + TanStack Router/Query + ShadCN + Tailwind v4)
+- ITUN app: `apps/itun/` (React 19 + TanStack Router/Query + ShadCN + Tailwind v4)
 
 ## Dataviz Idioms (pips/tracks/roll readouts)
 

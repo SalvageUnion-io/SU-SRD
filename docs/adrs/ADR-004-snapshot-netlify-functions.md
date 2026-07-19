@@ -15,7 +15,7 @@ local-first was chosen.
 ## Decision
 
 ITUN shares **immutable snapshots** through two **Netlify Functions** backed by
-**Netlify Blobs** (`apps/in-the-union-now/netlify/functions/`):
+**Netlify Blobs** (`apps/itun/netlify/functions/`):
 
 - `snapshot-publish` (POST) stores a snapshot and returns a short ID;
   `snapshot-retrieve` (GET) returns it by ID.
@@ -23,9 +23,9 @@ ITUN shares **immutable snapshots** through two **Netlify Functions** backed by
 - **Immutable.** Writes use `onlyIfNew: true`; a snapshot ID never changes
   content.
 - **Short IDs.** 8-character Crockford base32 (~40 bits), generated in
-  `apps/in-the-union-now/src/lib/snapshot/id.ts`.
+  `apps/itun/src/lib/snapshot/id.ts`.
 - **Rate limited.** ~10 requests/minute per client IP, tracked in memory
-  per function instance (`apps/in-the-union-now/src/lib/snapshot/rateLimit.ts`).
+  per function instance (`apps/itun/src/lib/snapshot/rateLimit.ts`).
 - **Bounded.** Payloads are capped (~256 KB) and **no PII is logged**.
 - **Storage is abstracted.** `SnapshotStorage` (`src/lib/snapshot/storage.ts`)
   has a `NetlifyBlobsStorage` production implementation and an in-memory

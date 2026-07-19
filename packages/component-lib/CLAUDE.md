@@ -1,6 +1,6 @@
 # component-lib (Shared Component Library)
 
-Shared React component library consumed by both `srd` and `in-the-union-now`.
+Shared React component library consumed by both `srd` and `itun`.
 
 ## Key Facts
 

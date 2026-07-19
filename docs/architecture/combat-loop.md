@@ -39,7 +39,7 @@ nextCondition(current): ItemCondition                      // intact → damaged
 applySpDamage(currentSp, damage): { newSp, hpDamage }      // hpDamage = floor(damage / 2)
 ```
 
-### `apps/in-the-union-now/src/lib/rules/heatCheck.ts`
+### `apps/itun/src/lib/rules/heatCheck.ts`
 
 ITUN-local heat-check rules (exported via `src/lib/rules/index.ts`), also pure
 with an injectable die roller (`defaultRoll`, backed by `@randsum/roller`):
@@ -59,7 +59,7 @@ performPush({ heat, heatCap, currentSP, roll, now? }): { nextHeat, effect }
 ## Action activation
 
 **Where:** `activateItem(slug, economy)` in
-`apps/in-the-union-now/src/components/sheet/MechSheet.tsx`. The item's cost is
+`apps/itun/src/components/sheet/MechSheet.tsx`. The item's cost is
 computed by `itemEconomy()` in `sheet/mechItemRules.ts` (primary action's
 `activationCost`, summed `Hot` amounts, max `Uses`).
 

@@ -45,7 +45,7 @@ caught. Ladle gives us that for free _if_ we hold two disciplines: **every publi
 
 ## 2. Where Ladle lives in this repo
 
-**One catalog, in `packages/component-lib`.** The apps (`srd`, `in-the-union-now`, `discord-bot`,
+**One catalog, in `packages/component-lib`.** The apps (`srd`, `itun`, `discord-bot`,
 `su-assets`) have no Ladle config, no `@ladle/react` dependency, and no `ladle` script of their own.
 The shared component library is the design system, so it is the only thing with a styleguide.
 

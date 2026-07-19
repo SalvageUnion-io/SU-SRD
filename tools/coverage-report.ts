@@ -53,7 +53,7 @@ const WORKSPACES = [
   'packages/salvageunion-reference',
   'packages/component-lib',
   'apps/srd',
-  'apps/in-the-union-now',
+  'apps/itun',
   'apps/discord-bot',
 ]
 

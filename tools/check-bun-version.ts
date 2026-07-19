@@ -34,8 +34,8 @@ const surfaces: Surface[] = [
     actual: netlifyBunVersion('apps/srd/netlify.toml'),
   },
   {
-    label: 'apps/in-the-union-now/netlify.toml BUN_VERSION',
-    actual: netlifyBunVersion('apps/in-the-union-now/netlify.toml'),
+    label: 'apps/itun/netlify.toml BUN_VERSION',
+    actual: netlifyBunVersion('apps/itun/netlify.toml'),
   },
   {
     label: 'root package.json devDependencies.bun-types',

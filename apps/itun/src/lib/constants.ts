@@ -1,5 +1,5 @@
 /**
- * Shared game-rule constants for the in-the-union-now app.
+ * Shared game-rule constants for the itun app.
  *
  * All values sourced from the Salvage Union core rules.
  * Reference-data-derived values (e.g. maxAbilities per class) are read

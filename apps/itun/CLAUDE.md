@@ -1,4 +1,4 @@
-# in-the-union-now (ITUN) — Character Builder & Game Manager
+# itun (ITUN) — Character Builder & Game Manager
 
 Local-first React app for building and running Salvage Union pilots, mechs, and
 crawlers. **No auth, no backend** other than the snapshot-sharing Netlify
@@ -67,7 +67,7 @@ Functions ([ADR-001](../../docs/adrs/ADR-001-local-first-no-backend.md),
 
 ```bash
 bun run dev:itun          # build package + start ITUN dev server
-bun --filter in-the-union-now test
+bun --filter itun test
 bun run e2e:itun          # Playwright e2e (chromium)
 bun run typecheck:itun
 ```

@@ -38,7 +38,7 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools, located in the `S
 
 The apps deploy to two platforms, each with an official MCP server wired up in the project-scoped [`.mcp.json`](.mcp.json) (committed; Claude Code prompts each contributor to approve it per-project):
 
-- **Netlify** — hosts `apps/srd` (static) and `apps/in-the-union-now` (static SPA + the snapshot backend Netlify Functions + Blobs; see `apps/*/netlify.toml` and [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md)). MCP server: official `@netlify/mcp` (stdio); authenticates via the Netlify CLI/OAuth — no token in the file.
+- **Netlify** — hosts `apps/srd` (static) and `apps/itun` (static SPA + the snapshot backend Netlify Functions + Blobs; see `apps/*/netlify.toml` and [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md)). MCP server: official `@netlify/mcp` (stdio); authenticates via the Netlify CLI/OAuth — no token in the file.
 - **Render** — hosts `apps/discord-bot` as a worker (see `render.yaml`). MCP server: official hosted server at `https://mcp.render.com/mcp`; reads `RENDER_API_KEY` from your shell env.
 - **GitHub** — repo host + Actions CI + PR workflow. MCP server: official remote `https://api.githubcopilot.com/mcp/`; reads `GITHUB_PAT` from your shell env.
 
@@ -65,7 +65,7 @@ bun run test             # Run all tests, per workspace. NEVER raw `bun test` at
 bun --filter salvageunion-reference test   # Test package only
 bun --filter component-lib test              # Test shared components only
 bun --filter srd test                # Test reference site only
-bun --filter in-the-union-now test         # Test ITUN app only
+bun --filter itun test         # Test ITUN app only
 
 # Code quality
 bun run lint             # Lint all packages (Biome)
@@ -95,7 +95,7 @@ bun run build:bot        # Build Discord bot
 **Workspace structure:**
 
 - `apps/srd/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4, Vite). No auth, no backend.
-- `apps/in-the-union-now/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Vite). Local-first: IndexedDB persistence, no auth, no backend. Has dashboard, live sheets, snapshot sharing.
+- `apps/itun/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Vite). Local-first: IndexedDB persistence, no auth, no backend. Has dashboard, live sheets, snapshot sharing.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
 - `packages/component-lib/` - Shared React component library (ShadCN + Tailwind, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
@@ -106,7 +106,7 @@ bun run build:bot        # Build Discord bot
 salvageunion-reference (game data ORM)
   └── component-lib (shared UI components)
         ├── srd (static reference site)
-        └── in-the-union-now (character builder + game manager)
+        └── itun (character builder + game manager)
 discord-bot (standalone, depends on salvageunion-reference)
 ```
 

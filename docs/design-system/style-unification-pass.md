@@ -17,7 +17,7 @@
 
 ## 1. What the pass is
 
-One canonical primitive language. Every surface (`srd`, `in-the-union-now`,
+One canonical primitive language. Every surface (`srd`, `itun`,
 `component-lib`) conforms to the same vocabulary, tokens, and prop APIs. The words
 "legacy" and "canon" stop describing our components — they become **the design
 system**. The pass proceeds up a ladder, one layer at a time:
@@ -38,7 +38,7 @@ Dashboard pass (the ITUN dashboard instruments)  ← FUTURE
    primitive with different props — it never spawns a sibling. (ruleset §0.)
 2. **Lift shared vocabulary up; apps only re-assemble.** Presentational
    primitives live in `packages/component-lib` (which owns the **one** Ladle
-   catalog). `srd` and `in-the-union-now` are **consumers** — after a lift
+   catalog). `srd` and `itun` are **consumers** — after a lift
    they re-assemble shared primitives + bind data; they hold no bespoke
    presentational CSS. App-domain wiring (routing, IndexedDB stores, the
    workspace/soft-link state, the snapshot backend) stays in the app.

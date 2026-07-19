@@ -58,7 +58,7 @@ renderer special-cases; the SRD reference site is untouched (ITUN-only shell).
 
 ### Dependency-graph constraint (why the "before" is a reproduction)
 
-The sheets live in **`apps/in-the-union-now`**; component-lib **cannot import the
+The sheets live in **`apps/itun`**; component-lib **cannot import the
 app** (the dependency runs app → lib), and ITUN has **no Ladle** of its own. So
 the L1 "before" is a _faithful presentational reproduction_ built inside
 component-lib from real ORM data — every region, class string, and primitive

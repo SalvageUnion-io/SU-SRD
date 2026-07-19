@@ -85,7 +85,7 @@ phase('Implement')
 const impl = await agent(
   [
     'You are resolving ONE piece of user feedback for the In-The-Union-Now (ITUN) app',
-    '(apps/in-the-union-now) in the SU-SRD bun monorepo. You are running in a FRESH git worktree',
+    '(apps/itun) in the SU-SRD bun monorepo. You are running in a FRESH git worktree',
     `branched off the latest origin/main — this is your isolated copy; do not touch other worktrees.`,
     stacked
       ? `THIS PR IS STACKED on "${baseBranch}" (a previous item in the same dependency chain). Your ` +
@@ -109,7 +109,7 @@ const impl = await agent(
       : '',
     '',
     'STEPS',
-    '1. Pinpoint the exact UX this concerns in apps/in-the-union-now/src — the route under',
+    '1. Pinpoint the exact UX this concerns in apps/itun/src — the route under',
     '   src/routes (pilots / mechs / crawlers / sheet / s), the component(s) under src/components,',
     '   and/or the store under src/stores. Read the code before changing it.',
     `2. Confirm the governing game rules by consulting the Salvage Union rulebooks in ${RULES}.`,

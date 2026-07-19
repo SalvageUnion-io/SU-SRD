@@ -8,7 +8,7 @@
  * must be preloaded before the first call:
  *   SalvageUnionReference.preload(['chassis', 'systems', 'modules', 'equipment', 'crawler-tech-levels'])
  *
- * Migrated from apps/in-the-union-now/src/lib/rules/ — see ADR-006. Tier 1/2
+ * Migrated from apps/itun/src/lib/rules/ — see ADR-006. Tier 1/2
  * modules (fully portable pure math) live here; Tier 3 modules (deep coupling
  * to full persisted records + app-storage conventions like CargoLot /
  * crypto.randomUUID()) remain app-local in ITUN for now.

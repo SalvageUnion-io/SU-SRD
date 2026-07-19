@@ -9,7 +9,7 @@ import { Caption } from '../_harness'
 export default { title: 'Compositions/New Entity Screen' }
 
 /**
- * Mirror of the /new mode router — apps/in-the-union-now/src/components/wizard/
+ * Mirror of the /new mode router — apps/itun/src/components/wizard/
  * NewEntityScreen.tsx — the router-agnostic shell behind every create route. It
  * composes CreateModeChooser (two `ModeDoor`s under a poster band) and
  * BlankCreateDialog (a `ModalShell` of `Field`/`Input`/`Select`), switching on

@@ -1793,7 +1793,7 @@ export declare function crawlerDetailWarnings(crawler: {
  * This module is PURE: no React, no IndexedDB, no real randomness. The d20 is
  * injected via a `Roll` function so every function is deterministic in tests.
  * The production caller (ITUN's MechSheet) passes a real RNG-backed roller —
- * see `apps/in-the-union-now/src/lib/rules/heatCheck.ts`'s `defaultRoll`
+ * see `apps/itun/src/lib/rules/heatCheck.ts`'s `defaultRoll`
  * (kept app-local: it depends on `@randsum/roller`, a UI-adjacent concern
  * outside the pure-math boundary this module owns) and `heatCheckPatch`
  * (kept app-local: it assembles a `Partial<Mech>` write-through patch, which
@@ -1868,7 +1868,7 @@ export {};
  * must be preloaded before the first call:
  *   SalvageUnionReference.preload(['chassis', 'systems', 'modules', 'equipment', 'crawler-tech-levels'])
  *
- * Migrated from apps/in-the-union-now/src/lib/rules/ — see ADR-006. Tier 1/2
+ * Migrated from apps/itun/src/lib/rules/ — see ADR-006. Tier 1/2
  * modules (fully portable pure math) live here; Tier 3 modules (deep coupling
  * to full persisted records + app-storage conventions like CargoLot /
  * crypto.randomUUID()) remain app-local in ITUN for now.

@@ -1,4 +1,4 @@
-# Netlify configuration for in-the-union-now (character builder + snapshot backend)
+# Netlify configuration for itun (character builder + snapshot backend)
 #
 # Netlify site base directory is the repo root (unchanged from pre-revamp).
 # All paths in this file are root-relative.
@@ -13,9 +13,9 @@
   # src/lib/observability.ts and src/vite-env.d.ts). SENTRY_AUTH_TOKEN /
   # SENTRY_ORG / SENTRY_PROJECT (set as Netlify site env vars, not here) turn
   # on sourcemap upload for that same release in vite.config.ts.
-  command = "bun install --frozen-lockfile && VITE_COMMIT_REF=\"$COMMIT_REF\" bun --filter in-the-union-now build"
-  publish = "apps/in-the-union-now/dist"
-  functions = "apps/in-the-union-now/netlify/functions"
+  command = "bun install --frozen-lockfile && VITE_COMMIT_REF=\"$COMMIT_REF\" bun --filter itun build"
+  publish = "apps/itun/dist"
+  functions = "apps/itun/netlify/functions"
   # Skip the build when nothing affecting ITUN changed since the last published
   # deploy. `git diff --quiet` exits 0 (→ Netlify cancels the build) when none of
   # these paths differ, and 1 (→ build proceeds) when they do. Paths: this app
@@ -33,7 +33,7 @@
   #                                  would wrongly cancel (this wedged srd's
   #                                  production after #318 — see that netlify.toml).
   #   - unreachable in the (shallow) clone → can't diff it reliably.
-  ignore = 'if [ -z "$CACHED_COMMIT_REF" ] || [ "$CACHED_COMMIT_REF" = "$COMMIT_REF" ] || ! git cat-file -e "$CACHED_COMMIT_REF^{commit}" 2>/dev/null; then exit 1; fi; git diff --quiet "$CACHED_COMMIT_REF" "$COMMIT_REF" -- apps/in-the-union-now packages/component-lib packages/salvageunion-reference bun.lock package.json bunfig.toml tsconfig.json'
+  ignore = 'if [ -z "$CACHED_COMMIT_REF" ] || [ "$CACHED_COMMIT_REF" = "$COMMIT_REF" ] || ! git cat-file -e "$CACHED_COMMIT_REF^{commit}" 2>/dev/null; then exit 1; fi; git diff --quiet "$CACHED_COMMIT_REF" "$COMMIT_REF" -- apps/itun packages/component-lib packages/salvageunion-reference bun.lock package.json bunfig.toml tsconfig.json'
 
 [build.environment]
   BUN_VERSION = "1.3.14" # keep in sync with .bun-version (checked by tools/check-bun-version.ts)

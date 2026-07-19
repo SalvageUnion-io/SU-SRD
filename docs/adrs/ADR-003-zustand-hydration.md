@@ -18,14 +18,14 @@ app open in multiple tabs.
 ## Decision
 
 ITUN uses **Zustand** stores (`entityStore`, `workspaceStore` in
-`apps/in-the-union-now/src/stores/`) with three properties:
+`apps/itun/src/stores/`) with three properties:
 
 - **Lazy auto-hydration.** The first `list(type)` triggers hydration from
   IndexedDB; subsequent calls return synchronously from memory.
 - **Write-through.** Mutations persist to IndexedDB **first**, then update
   in-memory state. The DB is authoritative; memory is the cache.
 - **Cross-tab invalidation via Broadcast Channel.** A successful write publishes
-  on a broadcast channel (`apps/in-the-union-now/src/lib/db/broadcast.ts`);
+  on a broadcast channel (`apps/itun/src/lib/db/broadcast.ts`);
   other tabs invalidate their cache and re-hydrate from IndexedDB.
 
 TanStack Query is used only for transient/derived data, **not** as the

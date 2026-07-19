@@ -26,7 +26,7 @@ jobs:
   # Path filter — decide which areas a change touches so we can skip heavy jobs
   # for unrelated PRs. The dependency graph is baked into each filter:
   #   salvageunion-reference + root config → affect EVERYTHING
-  #   component-lib                          → affects srd + in-the-union-now
+  #   component-lib                          → affects srd + itun
   # so an `itun`/`web` change is "itun/web OR component-lib OR reference OR root".
   # `code` = any source/config change (false only for docs-only PRs).
   # ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ jobs:
               - '.github/actions/**'
             itun:
               - *shared
-              - 'apps/in-the-union-now/**'
+              - 'apps/itun/**'
               - 'packages/component-lib/**'
             web:
               - *shared
@@ -290,8 +290,8 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Build in-the-union-now
-        run: bun --filter in-the-union-now build
+      - name: Build itun
+        run: bun --filter itun build
 
   build-discord-bot:
     needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
@@ -393,7 +393,7 @@ jobs:
 
   smoke-itun:
     # PR-blocking smoke tier — same rationale as smoke-web. Runs ONLY
-    # apps/in-the-union-now/e2e/smoke.e2e.ts against a self-contained static
+    # apps/itun/e2e/smoke.e2e.ts against a self-contained static
     # build (`vite preview`, no deploy preview), mirroring e2e-nightly.yml's
     # e2e-itun job.
     needs: [changes, build-package, build-itun]
@@ -414,11 +414,11 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
 
       - name: Install Playwright browsers (Chromium)
-        working-directory: apps/in-the-union-now
+        working-directory: apps/itun
         run: bunx playwright install --with-deps chromium
 
       - name: Run smoke test
-        working-directory: apps/in-the-union-now
+        working-directory: apps/itun
         run: bunx playwright test smoke.e2e.ts
 
       - name: Upload Playwright report on failure
@@ -426,7 +426,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report-smoke-itun
-          path: apps/in-the-union-now/playwright-report/
+          path: apps/itun/playwright-report/
           retention-days: 7
 
   # ---------------------------------------------------------------------------

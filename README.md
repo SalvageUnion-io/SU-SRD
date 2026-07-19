@@ -30,7 +30,7 @@ Other dev servers: `bun run dev:itun` (character builder), `bun run dev:bot`
 .
 ├── apps/
 │   ├── srd/              # Static SRD reference site (Astro 5 + React islands)
-│   ├── in-the-union-now/       # Character builder & game manager (React 19, local-first)
+│   ├── itun/       # Character builder & game manager (React 19, local-first)
 │   └── discord-bot/            # Discord.js bot for rolling on SU tables
 ├── packages/
 │   ├── salvageunion-reference/ # Game-data ORM + schema-validated JSON dataset (built)
@@ -42,7 +42,7 @@ Other dev servers: `bun run dev:itun` (character builder), `bun run dev:bot`
 ```
 
 **Dependency graph:** `salvageunion-reference → component-lib → {srd,
-in-the-union-now}`; `discord-bot` is standalone. The reference package must be
+itun}`; `discord-bot` is standalone. The reference package must be
 built (`bun run build:package`) before the apps can resolve its types.
 
 ## Common Commands
@@ -50,7 +50,7 @@ built (`bun run build:package`) before the apps can resolve its types.
 ```bash
 # Development
 bun run dev          # Reference site (srd)
-bun run dev:itun     # Character builder (in-the-union-now)
+bun run dev:itun     # Character builder (itun)
 bun run dev:bot      # Discord bot
 
 # Build
@@ -82,7 +82,7 @@ script in a single workspace directly, e.g. `bun --filter srd build` or
 
 ## Deployment
 
-- **srd** and **in-the-union-now** → Netlify (config in each app's
+- **srd** and **itun** → Netlify (config in each app's
   `netlify.toml`). ITUN also serves the snapshot-sharing backend as Netlify
   Functions — see [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md).
 - **discord-bot** → Render worker (Blueprint in `render.yaml`).

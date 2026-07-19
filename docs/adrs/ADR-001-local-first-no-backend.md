@@ -7,7 +7,7 @@ Accepted
 ## Context
 
 SURef ships player-facing tools for a tabletop RPG: a static SRD reference site
-(`srd`), a character builder & game manager (`in-the-union-now`, "ITUN"),
+(`srd`), a character builder & game manager (`itun`, "ITUN"),
 and a Discord dice bot. None of these need a shared server of record: the SRD is
 public read-only data, and a player's pilots/mechs/crawlers are private working
 documents, not multiplayer state.
@@ -42,7 +42,7 @@ backend**.
   character sheet on the honor system, and the table handles sequencing socially
   (see `docs/architecture/rules-engine-boundary.md`).
 - Backups are the user's responsibility; ITUN nudges export (see the backup
-  nudge in `apps/in-the-union-now/src/lib/backupNudge.ts`).
+  nudge in `apps/itun/src/lib/backupNudge.ts`).
 - No login means no gating; every feature is immediately usable.
 - Do **not** reintroduce auth, server-side user storage, or realtime sync
   without a new ADR superseding this one. Multi-user "Games" (cross-user

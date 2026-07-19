@@ -20,7 +20,7 @@
       "entry": ["src/pages/**/*.{astro,ts,tsx}"],
       "project": ["src/**/*.{ts,tsx,astro}"]
     },
-    "apps/in-the-union-now": {
+    "apps/itun": {
       "entry": [
         "src/routes/**/*.tsx",
         "netlify/functions/**/*.ts",

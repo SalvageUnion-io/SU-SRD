@@ -13,7 +13,7 @@ The two user-facing sites announce changes very differently today:
   and linked from the top/mobile nav. Its upkeep is governed by a "Changelog
   Maintenance" section in [`apps/suref-web/CLAUDE.md`](../../apps/suref-web/CLAUDE.md)
   — one hand-authored entry **per PR**, edited in place on the branch.
-- **`apps/in-the-union-now`** has **no** release changelog at all. Its About
+- **`apps/itun`** has **no** release changelog at all. Its About
   page is static, and its in-app "Change Log" is a **per-entity provenance
   trail** ([ADR-022](ADR-022-provenance-log-and-overrides.md)), not release
   notes.
@@ -45,7 +45,7 @@ components. This ADR covers the two **site** components;
 `salvageunion-reference` component and its surface gate. They share the one
 config.
 
-- **Two separate site streams.** `apps/suref-web` and `apps/in-the-union-now`
+- **Two separate site streams.** `apps/suref-web` and `apps/itun`
   are each independently versioned with their **own** generated `CHANGELOG.md`.
   Streams are separate so a suref-web visitor never sees ITUN entries and vice
   versa — preserving the scoping the current hand-written web changelog already
@@ -74,7 +74,7 @@ config.
   choice, not per-PR work.
 
 - **Seeding & migration.** `.release-please-manifest.json` seeds `suref-web`
-  at `1.0.0` and `in-the-union-now` at `0.1.0`, with `bootstrap-sha` at the
+  at `1.0.0` and `itun` at `0.1.0`, with `bootstrap-sha` at the
   adopting commit so the first release PR is forward-looking. The existing
   ~35 `changelog.ts` entries are **backfilled** into
   `apps/suref-web/CHANGELOG.md` as a historical tail (nothing is lost);

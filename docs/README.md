@@ -20,7 +20,7 @@ conventions, then the relevant architecture doc below.
 
 **I need to know how a Salvage Union rule actually works** → run `bun run rules:regen` to produce the agent-readable rules digest in `docs/rules/` (gitignored — condensed from the PDFs in `rules/`, also gitignored). Read those instead of re-parsing the PDFs.
 
-**I'm changing ITUN's local data layer (IndexedDB schemas/migrations)** → `apps/in-the-union-now/src/lib/db/migrations/` + [architecture/data-flow.md](architecture/data-flow.md)
+**I'm changing ITUN's local data layer (IndexedDB schemas/migrations)** → `apps/itun/src/lib/db/migrations/` + [architecture/data-flow.md](architecture/data-flow.md)
 
 **I'm shipping SEO/a11y work** → [architecture/seo-accessibility.md](architecture/seo-accessibility.md)
 
@@ -111,7 +111,7 @@ Each app and shared package has its own `CLAUDE.md` with stack-specific
 conventions:
 
 - [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md) — Static reference site (Astro + islands)
-- [`apps/in-the-union-now/CLAUDE.md`](../apps/in-the-union-now/CLAUDE.md) — Character builder (React, local-first)
+- [`apps/itun/CLAUDE.md`](../apps/itun/CLAUDE.md) — Character builder (React, local-first)
 - [`apps/discord-bot/CLAUDE.md`](../apps/discord-bot/CLAUDE.md) — Discord.js bot
 - [`packages/salvageunion-reference/CLAUDE.md`](../packages/salvageunion-reference/CLAUDE.md) — Game data ORM + schemas
 - [`packages/component-lib/CLAUDE.md`](../packages/component-lib/CLAUDE.md) — Shared component library

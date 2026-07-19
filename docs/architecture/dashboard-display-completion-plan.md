@@ -29,9 +29,9 @@
 The **Display** is the lower-left `pc-display` grid cell — the one "forward"
 surface, a **context window that follows the Dial's focus** (`centerMeta()` in the
 mockup). Selecting a different dial item swaps the whole panel. In code it is
-[`DisplayView.tsx`](../../apps/in-the-union-now/src/components/dashboard/DisplayView.tsx)
+[`DisplayView.tsx`](../../apps/itun/src/components/dashboard/DisplayView.tsx)
 (replaced by `DowntimeWizard` during Downtime), with the Actions mode delegated to
-[`ActionsDeck.tsx`](../../apps/in-the-union-now/src/components/dashboard/ActionsDeck.tsx).
+[`ActionsDeck.tsx`](../../apps/itun/src/components/dashboard/ActionsDeck.tsx).
 
 The Dashboard's _instruments_ (RailBar, ActiveItemBand + its live reactor / damage /
 critical / meltdown / cargo overlays, Dial, DialConfig, DashboardChooser,
@@ -210,7 +210,7 @@ widened beyond today's primary-action-per-item (`dashboardRules.ts:249`).
 ## 5. Workstreams (Display-focused)
 
 Ordered by value. Each is independently shippable and gated on
-`bun --filter in-the-union-now test`, `typecheck`, `lint`, and the ADR-007 boundary
+`bun --filter itun test`, `typecheck`, `lint`, and the ADR-007 boundary
 tests.
 
 ### D5 — EntityView: a real reference document (do first — underpins D1/D4)

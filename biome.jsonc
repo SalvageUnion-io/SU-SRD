@@ -76,7 +76,7 @@
   },
   "css": {
     // Tailwind v4 CSS (@theme, @utility, @source, @plugin, @custom-variant)
-    // used in apps/in-the-union-now, apps/srd, packages/component-lib.
+    // used in apps/itun, apps/srd, packages/component-lib.
     "parser": {
       "tailwindDirectives": true
     },
@@ -199,8 +199,8 @@
       // formatted them (only lib/generated + build-output dirs are
       // Prettier-ignored). Keep formatting on, linting off, to match.
       "includes": [
-        "apps/in-the-union-now/playwright.config.ts",
-        "apps/in-the-union-now/e2e/**",
+        "apps/itun/playwright.config.ts",
+        "apps/itun/e2e/**",
         "apps/srd/playwright.config.ts",
         "apps/srd/e2e/**",
         "packages/component-lib/playwright.visual.config.ts",
@@ -211,7 +211,7 @@
       }
     },
     {
-      "includes": ["apps/in-the-union-now/**", "packages/component-lib/**"],
+      "includes": ["apps/itun/**", "packages/component-lib/**"],
       "linter": {
         "rules": {
           "style": {
@@ -244,7 +244,7 @@
       }
     },
     {
-      "includes": ["apps/in-the-union-now/src/routes/**"],
+      "includes": ["apps/itun/src/routes/**"],
       "linter": {
         "rules": {
           "style": {
@@ -317,7 +317,7 @@
     {
       // ADR-010 ("the shared library never persists"): component-lib must stay
       // free of storage-layer imports. `idb` is ITUN's IndexedDB wrapper (see
-      // docs/architecture/package-contracts.md's in-the-union-now "Consumes"
+      // docs/architecture/package-contracts.md's itun "Consumes"
       // list) — it doesn't belong in the shared component library. Zustand is
       // deliberately NOT blocked here: it's a state-management library, not
       // itself a storage layer (ADR-010's literal contract is "never

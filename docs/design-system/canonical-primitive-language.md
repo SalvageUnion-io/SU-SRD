@@ -2,7 +2,7 @@
 
 > **Status:** Plan / design record. This document is the plan for unifying the
 > SU-SRD UI onto **one canonical primitive language** — no more "legacy vs
-> canon." Every surface (srd, in-the-union-now, component-lib) conforms to
+> canon." Every surface (srd, itun, component-lib) conforms to
 > the same vocabulary, tokens, and prop APIs described here.
 >
 > **Companion:** the visual codex (live before/after + variant gallery + prop

@@ -2,7 +2,7 @@
 
 > **Status:** Planning / design record. This document is the implementation plan
 > for the **Dashboard** — the live actual-play surface for
-> `apps/in-the-union-now` (ITUN), composing a player's **Pilot + Mech + Crawler**
+> `apps/itun` (ITUN), composing a player's **Pilot + Mech + Crawler**
 > into one screen. (Named the "Play Cockpit" / "Pit HUD" in earlier design passes;
 > renamed to **Dashboard** — the former build-list home is now the **Roster**.)
 > **Built and shipped** — realized in `src/components/play/` (16 components + tests)
@@ -260,7 +260,7 @@ to the package.
 ### 3.2 New Dashboard-specific components
 
 Everything that is _instrument_, not _document_, is new and lives under
-`apps/in-the-union-now/src/components/Dashboard/`:
+`apps/itun/src/components/Dashboard/`:
 
 - `DashboardCanvas`, `RailBar`, `ActiveItemBand`, `InstrumentBay`, `VitalGauge`
   (Dashboard variant / or reuse), `InstrumentButtonGrid`, `Dial`, `DialCell`
@@ -482,7 +482,7 @@ string[]`), resolved by `SalvageUnionReference.resolveActions(entity)` →
 
 ## 6. Component architecture
 
-New tree under `apps/in-the-union-now/src/components/Dashboard/`. Naming follows
+New tree under `apps/itun/src/components/Dashboard/`. Naming follows
 the mockup's function names so the two can be cross-referenced.
 
 ```
@@ -597,7 +597,7 @@ Each phase is independently shippable and testable.
 ### 10.1 Testing
 
 - Bun test per workspace — **never raw `bun test` at root** (skips workspace
-  bunfig preloads). Use `bun --filter in-the-union-now test`.
+  bunfig preloads). Use `bun --filter itun test`.
 - **Rules functions are already unit-tested** in `salvageunion-reference` and
   `src/lib/rules/__tests__`; the Dashboard adds no rules math to test, only the
   wiring. Test the **classification boundary** (ADR-007): assert destructive

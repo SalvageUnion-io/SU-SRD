@@ -47,11 +47,11 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
 
       - name: Install Playwright browsers (Chromium)
-        working-directory: apps/in-the-union-now
+        working-directory: apps/itun
         run: bunx playwright install --with-deps chromium
 
       - name: Run E2E tests
-        working-directory: apps/in-the-union-now
+        working-directory: apps/itun
         run: bunx playwright test
 
       - name: Upload Playwright report on failure
@@ -59,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report-itun
-          path: apps/in-the-union-now/playwright-report/
+          path: apps/itun/playwright-report/
           retention-days: 7
 
   e2e-srd:

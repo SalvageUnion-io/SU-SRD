@@ -3,9 +3,9 @@ import { defineConfig, devices } from '@playwright/test'
 /**
  * Playwright configuration for ITUN end-to-end tests.
  *
- * Tests live in `apps/in-the-union-now/e2e/` and run against a local dev
+ * Tests live in `apps/itun/e2e/` and run against a local dev
  * server on port 5173. The `webServer` block boots `bun run dev:itun` from
- * the repo root automatically (so `bun --filter in-the-union-now exec
+ * the repo root automatically (so `bun --filter itun exec
  * playwright test` Just Works locally).
  *
  * IndexedDB persists across tabs and reloads inside one browser context.
@@ -83,7 +83,7 @@ export default defineConfig({
         // `vite preview` (no per-request compile); locally we reuse the
         // running dev server when one exists.
         command: process.env.CI
-          ? 'bun --filter in-the-union-now build && cd apps/in-the-union-now && bunx --bun vite preview --port 5173 --strictPort'
+          ? 'bun --filter itun build && cd apps/itun && bunx --bun vite preview --port 5173 --strictPort'
           : 'bun run dev:itun',
         cwd: '../..',
         url: 'http://localhost:5173',

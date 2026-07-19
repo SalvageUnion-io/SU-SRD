@@ -47,7 +47,7 @@ cross-referenced entity without per-route preload lists.
 
 ## Dynamic Player Data (IndexedDB, local-first)
 
-**Location:** `apps/in-the-union-now/src/lib/db/`
+**Location:** `apps/itun/src/lib/db/`
 
 Player data is persisted to a single IndexedDB database via the [`idb`](https://github.com/jakearchibald/idb)
 wrapper (chosen over Dexie for size + Zod-as-schema-of-record — see the ADR
@@ -105,7 +105,7 @@ either all are removed together, or nothing changes (no orphaned links).
 
 ## State Management (Zustand, write-through)
 
-**Location:** `apps/in-the-union-now/src/stores/`
+**Location:** `apps/itun/src/stores/`
 
 ITUN uses Zustand stores layered over the db/ CRUD layer (no React Context for
 shared state):
@@ -129,7 +129,7 @@ nudges the user to export a backup — the local-first analogue of durability.
 
 ## TanStack Query
 
-**File:** `apps/in-the-union-now/src/lib/queryClient.ts`
+**File:** `apps/itun/src/lib/queryClient.ts`
 
 TanStack Query coordinates async/derived data (e.g. snapshot retrieval, derived
 sheet views). Default options:

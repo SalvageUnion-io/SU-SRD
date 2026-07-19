@@ -33,7 +33,7 @@ function tlRank(tl: TechLevel): number {
 }
 
 /**
- * Local mirror of apps/in-the-union-now/src/components/mech/LoadoutPanel.tsx —
+ * Local mirror of apps/itun/src/components/mech/LoadoutPanel.tsx —
  * an app-only component (not a shared atom), reproduced here so the wizard step
  * previews in Ladle. Floating HORIZONTAL HUD: 'Loadout · {name}' header + both
  * budget gauges inline (ink slots, rust energy), then the chosen items as a

@@ -14,7 +14,7 @@ raw IndexedDB, or a thin promise wrapper.
 Two forces shaped the choice:
 
 1. **One source of truth for shape.** ITUN already validates entities with Zod
-   schemas (`apps/in-the-union-now/src/lib/schemas/`). A second schema language
+   schemas (`apps/itun/src/lib/schemas/`). A second schema language
    (e.g. Dexie's index DSL describing the same entities) would be a parallel
    definition to keep in sync.
 2. **PWA version skew.** Because ITUN is an auto-updating PWA, a tab can be
@@ -25,18 +25,18 @@ Two forces shaped the choice:
 ## Decision
 
 - Persist via **`idb`** (v8), a thin promise wrapper over native IndexedDB — not
-  Dexie. Object stores are declared in `apps/in-the-union-now/src/lib/db/`.
+  Dexie. Object stores are declared in `apps/itun/src/lib/db/`.
 - **Zod schemas are the single source of truth** for entity shape. The DB layer
   parses on read/write rather than maintaining a separate storage schema.
 - Reads are **salvage-tolerant**: a strict parse is attempted first; on failure
   the row is re-parsed with a lenient "salvage" schema (`.strip()`) and a
   warning is logged. The row heals on its next write (re-parsed strictly). See
-  `apps/in-the-union-now/src/lib/db/crud.ts`.
+  `apps/itun/src/lib/db/crud.ts`.
 - Schema/version changes go through the migrations system documented in
-  `apps/in-the-union-now/src/lib/db/migrations/README.md`.
+  `apps/itun/src/lib/db/migrations/README.md`.
 - Reusable mech templates live in their own `mechPatterns` object store rather
   than as a boolean flag on mech records, so they can list and evolve
-  independently (`apps/in-the-union-now/src/lib/schemas/pattern.ts`).
+  independently (`apps/itun/src/lib/schemas/pattern.ts`).
 
 ## Consequences
 

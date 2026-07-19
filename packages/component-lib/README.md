@@ -1,6 +1,6 @@
 # component-lib
 
-Shared React component library for the SURef monorepo. Consumed by `apps/srd` and `apps/in-the-union-now`.
+Shared React component library for the SURef monorepo. Consumed by `apps/srd` and `apps/itun`.
 
 ## Design constraints
 

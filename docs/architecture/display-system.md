@@ -333,7 +333,7 @@ const patternConfig = useChassisPatternConfig(mechChassis, pattern, compact)
 
 ### SubEntityCard (ITUN)
 
-**File:** `apps/in-the-union-now/src/components/shared/SubEntityCard.tsx`
+**File:** `apps/itun/src/components/shared/SubEntityCard.tsx`
 
 Renders equipment, abilities, and comrades with interactive stats and condition tracking. Uses slot props:
 
@@ -346,13 +346,13 @@ For granted-equipment choices (e.g. Custom Sniper Rifle), the new `ChoiceGroups`
 
 ### ReferenceEntityPickerModal (ITUN)
 
-**File:** `apps/in-the-union-now/src/components/shared/ReferenceEntityPickerModal.tsx`
+**File:** `apps/itun/src/components/shared/ReferenceEntityPickerModal.tsx`
 
 Selection UI rendering entities in compact listing mode. Splits entities into selectable, over-capacity (greyed, red outline), and over-budget groups. Uses `addControl()` preset.
 
 ### PlayerPilotDisplay (ITUN)
 
-**File:** `apps/in-the-union-now/src/components/pilots/PlayerPilotDisplay.tsx`
+**File:** `apps/itun/src/components/pilots/PlayerPilotDisplay.tsx`
 
 Uses DisplayCard directly (not ReferenceEntityDisplay) because pilots aren't reference entities. Demonstrates direct DisplayCard usage with:
 

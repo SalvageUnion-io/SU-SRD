@@ -29,7 +29,7 @@ React component patterns using functional components and TypeScript.
 - Tailwind v4 with theme from component-lib
 - React islands hydrated via `client:load` or `client:visible` directives
 
-**in-the-union-now** uses ShadCN + Tailwind v4:
+**itun** uses ShadCN + Tailwind v4:
 
 - Use ShadCN components from `src/components/ui/`
 - Custom Tailwind theme in `src/index.css` with `@theme` block (SU brand colors)

@@ -42,7 +42,7 @@ package (`packages/salvageunion-reference/lib/combatUtils.ts` and siblings):
 For a long stretch after this ADR was accepted, only `combatUtils.ts` and
 `rollOnTable.ts` actually lived in the package — the bulk of the rules engine
 (21 modules) had grown up locally in
-`apps/in-the-union-now/src/lib/rules/` instead, so the "shared by ITUN and the
+`apps/itun/src/lib/rules/` instead, so the "shared by ITUN and the
 Discord bot" promise wasn't yet true beyond those two files. A migration
 project moved the fully-portable modules into
 `packages/salvageunion-reference/lib/rules/`, executed in dependency-ordered
@@ -82,7 +82,7 @@ lives in the package.
 
 **Tier 3 — deferred, not yet migrated:** `crawlerEconomy.ts`, `salvage.ts`,
 `crafting.ts`, `scrapMech.ts`, and `downtime.ts` remain app-local in
-`apps/in-the-union-now/src/lib/rules/`. These modules are deeply coupled to
+`apps/itun/src/lib/rules/`. These modules are deeply coupled to
 full persisted records and to `CargoLot` construction via ITUN's
 `makeUnitLot()` (which calls `crypto.randomUUID()` — app/runtime machinery,
 not pure rules math), so the extraction boundary is less mechanical than

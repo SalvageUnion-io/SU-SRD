@@ -1,7 +1,7 @@
 # Contributing to SURef
 
 A Bun monorepo for **Salvage Union** tools: a static SRD reference site
-(`apps/srd`), a local-first character builder (`apps/in-the-union-now`), a
+(`apps/srd`), a local-first character builder (`apps/itun`), a
 Discord dice bot (`apps/discord-bot`), and two shared packages
 (`packages/salvageunion-reference`, `packages/component-lib`).
 

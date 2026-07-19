@@ -52,11 +52,10 @@ export const Overview: Story = () => (
 
     <Prose>
       This is the single, authoritative catalog for the design system. Every UI primitive the apps
-      ship — <span className="text-ink">srd</span> and{' '}
-      <span className="text-ink">in-the-union-now</span> — is rendered here, in its real states,
-      with the real design tokens and real Salvage Union data. If a component is public, it appears
-      here; if it drifts, the catalog shows it. Read the sidebar top-to-bottom: it runs from raw
-      material to finished game components.
+      ship — <span className="text-ink">srd</span> and <span className="text-ink">itun</span> — is
+      rendered here, in its real states, with the real design tokens and real Salvage Union data. If
+      a component is public, it appears here; if it drifts, the catalog shows it. Read the sidebar
+      top-to-bottom: it runs from raw material to finished game components.
     </Prose>
 
     <div className="flex flex-col gap-3">

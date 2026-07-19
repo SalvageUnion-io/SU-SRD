@@ -68,7 +68,7 @@ import ts from 'typescript-classic'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 
 const INCLUDE_GLOBS = [
-  'apps/in-the-union-now/src/**/*.{ts,tsx}',
+  'apps/itun/src/**/*.{ts,tsx}',
   'apps/srd/src/**/*.{ts,tsx}',
   'apps/discord-bot/src/**/*.ts',
   'packages/component-lib/src/**/*.{ts,tsx}',
