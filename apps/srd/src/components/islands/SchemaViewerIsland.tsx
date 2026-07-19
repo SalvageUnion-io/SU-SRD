@@ -218,7 +218,7 @@ export function SchemaViewerIsland({
                           onChange={(e) => setNameFilter(e.target.value)}
                           placeholder="Filter by name…"
                           aria-label="Filter items by name"
-                          className="w-full rounded-card border border-ink bg-paper px-2 py-1 font-mono text-caption md:w-64"
+                          className="w-full rounded-card border border-ink bg-paper px-2 py-1 font-body text-caption md:w-64"
                         />
                       </FilterRow>
                     </div>
@@ -305,7 +305,7 @@ export function SchemaViewerIsland({
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="cursor-pointer rounded-card px-2 py-0.5 font-mono text-xs font-semibold uppercase transition-colors bg-wk-faint text-ink hover:bg-wk-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange"
+                    className="cursor-pointer rounded-card px-2 py-0.5 font-cond text-xs font-semibold uppercase transition-colors bg-wk-faint text-ink hover:bg-wk-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange"
                   >
                     Clear filters
                   </button>

@@ -123,7 +123,7 @@ export function InlineEditField({
               }
         }
         className={cn(
-          'inline-flex items-center justify-center min-h-11 sm:min-h-9 font-mono text-lg font-bold text-ink',
+          'inline-flex items-center justify-center min-h-11 sm:min-h-9 font-body text-lg font-bold text-ink',
           !readOnly &&
             'cursor-pointer rounded px-1 hover:bg-su-paper focus:outline-none focus:ring-2 focus:ring-su-orange',
           className
@@ -163,7 +163,7 @@ export function InlineEditField({
           }
         }}
         className={cn(
-          'w-16 rounded border-chrome bg-su-paper px-1 py-0.5 text-center font-mono text-lg font-bold text-ink focus:outline-none focus:ring-2 focus:ring-su-orange',
+          'w-16 rounded border-chrome bg-su-paper px-1 py-0.5 text-center font-body text-lg font-bold text-ink focus:outline-none focus:ring-2 focus:ring-su-orange',
           error ? 'border-danger focus:ring-danger' : 'border-ink',
           inputClassName
         )}

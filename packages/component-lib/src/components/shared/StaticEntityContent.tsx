@@ -33,7 +33,7 @@ export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityC
         <dl className="mb-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
           {summary.stats.map(({ label, value }) => (
             <Fragment key={label}>
-              <dt className="font-mono font-bold uppercase">{label}</dt>
+              <dt className="font-cond font-bold uppercase">{label}</dt>
               <dd>{value}</dd>
             </Fragment>
           ))}
@@ -50,7 +50,7 @@ export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityC
 
       {summary.traits.length > 0 && (
         <p className="mb-3">
-          <span className="font-mono font-bold uppercase">Traits:</span>{' '}
+          <span className="font-cond font-bold uppercase">Traits:</span>{' '}
           {summary.traits.map((t, i) => {
             const href = resolveTraitHref?.(t) ?? null
             return (

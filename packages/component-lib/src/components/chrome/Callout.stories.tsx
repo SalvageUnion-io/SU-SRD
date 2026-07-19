@@ -42,7 +42,7 @@ const Body = ({ children }: { children: string }) => (
 export const Default: Story = () => (
   <div className="flex max-w-xl flex-col gap-6">
     <div className="flex flex-col gap-1.5">
-      <p className="font-mono text-xs text-wk-muted">Body-only bullets (mech accent)</p>
+      <p className="font-body text-xs text-wk-muted">Body-only bullets (mech accent)</p>
       {settlements.map((b, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: static SRD list, order-stable
         <Callout key={i} accent={MECH}>
@@ -53,7 +53,7 @@ export const Default: Story = () => (
 
     {labelled && (
       <div className="flex flex-col gap-1.5">
-        <p className="font-mono text-xs text-wk-muted">Labelled (crawler accent + tint)</p>
+        <p className="font-body text-xs text-wk-muted">Labelled (crawler accent + tint)</p>
         <Callout
           label={String(labelled.label)}
           accent={CRAWLER}
@@ -65,7 +65,7 @@ export const Default: Story = () => (
     )}
 
     <div className="flex flex-col gap-1.5">
-      <p className="font-mono text-xs text-wk-muted">When Damaged (status-bad accent)</p>
+      <p className="font-body text-xs text-wk-muted">When Damaged (status-bad accent)</p>
       <Callout
         label="When Damaged"
         accent={DAMAGED}
@@ -76,7 +76,7 @@ export const Default: Story = () => (
     </div>
 
     <div className="flex flex-col gap-1.5">
-      <p className="font-mono text-xs text-wk-muted">Compact</p>
+      <p className="font-body text-xs text-wk-muted">Compact</p>
       <Callout compact accent={MECH}>
         <Body>
           {String(settlements[0]?.value ?? 'Corporate Arcos typically have a Tech Level of 5-6.')}

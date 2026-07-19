@@ -53,7 +53,9 @@ describe('FilterRow', () => {
     )
     const label = container.querySelector('span')
     expect(label).toBeTruthy()
-    expect(label?.className).toContain('font-mono')
+    // An uppercase caps label rides the CONDENSED face (font-cond), not the
+    // body face — it used to sit on the retired `font-mono` alias.
+    expect(label?.className).toContain('font-cond')
     expect(label?.className).toContain('uppercase')
   })
 })

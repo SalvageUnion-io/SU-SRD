@@ -5,7 +5,7 @@ import { cn } from '../../utils/cn'
 const textVariants = cva('', {
   variants: {
     variant: {
-      default: 'font-mono text-[var(--foreground)]',
+      default: 'font-body text-[var(--foreground)]',
       pseudoheader:
         'block w-fit self-start bg-ink text-paper px-1 py-0.5 font-cond font-bold uppercase leading-tight tracking-caps-tight',
       pseudoheaderInverse:

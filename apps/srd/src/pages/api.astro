@@ -62,8 +62,8 @@ const baseUrl = SITE_URL
         <!-- Schema data array -->
         <div class="rounded-panel border-2 border-wk-faint bg-paper">
           <div class="border-b-2 border-wk-faint px-5 py-3">
-            <p class="font-mono text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
-            <p class="mt-1 font-mono text-base font-bold">
+            <p class="font-cond text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
+            <p class="mt-1 font-body text-base font-bold">
               /schema/<span class="text-su-orange-dark">{'{schemaId}'}</span>.json
             </p>
           </div>
@@ -96,8 +96,8 @@ const baseUrl = SITE_URL
         <!-- JSON Schema definition -->
         <div class="rounded-panel border-2 border-wk-faint bg-paper">
           <div class="border-b-2 border-wk-faint px-5 py-3">
-            <p class="font-mono text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
-            <p class="mt-1 font-mono text-base font-bold">
+            <p class="font-cond text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
+            <p class="mt-1 font-body text-base font-bold">
               /schema/<span class="text-su-orange-dark">{'{schemaId}'}</span>.schema.json
             </p>
           </div>
@@ -132,8 +132,8 @@ const baseUrl = SITE_URL
         <!-- Individual entity -->
         <div class="rounded-panel border-2 border-wk-faint bg-paper">
           <div class="border-b-2 border-wk-faint px-5 py-3">
-            <p class="font-mono text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
-            <p class="mt-1 font-mono text-base font-bold">
+            <p class="font-cond text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
+            <p class="mt-1 font-body text-base font-bold">
               /schema/<span class="text-su-orange-dark">{'{schemaId}'}</span>/item/<span class="text-su-orange-dark">{'{itemId}'}</span>.json
             </p>
           </div>
@@ -185,10 +185,10 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b-2 border-wk-faint bg-ink text-paper">
-                <th class="px-4 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide">Schema ID</th>
-                <th class="px-4 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide">Name</th>
-                <th class="px-4 py-2 text-left font-mono text-xs font-bold uppercase tracking-wide hidden sm:table-cell">Description</th>
-                <th class="px-4 py-2 text-right font-mono text-xs font-bold uppercase tracking-wide">Items</th>
+                <th class="px-4 py-2 text-left font-cond text-xs font-bold uppercase tracking-wide">Schema ID</th>
+                <th class="px-4 py-2 text-left font-cond text-xs font-bold uppercase tracking-wide">Name</th>
+                <th class="px-4 py-2 text-left font-cond text-xs font-bold uppercase tracking-wide hidden sm:table-cell">Description</th>
+                <th class="px-4 py-2 text-right font-cond text-xs font-bold uppercase tracking-wide">Items</th>
               </tr>
             </thead>
             <tbody>
@@ -197,14 +197,14 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
                   <td class="px-4 py-2">
                     <a
                       href={`/schema/${schema.id}/`}
-                      class="font-mono text-xs font-bold text-su-orange-dark hover:underline"
+                      class="font-body text-xs font-bold text-su-orange-dark hover:underline"
                     >
                       {schema.id}
                     </a>
                   </td>
                   <td class="px-4 py-2 font-medium">{schema.displayNamePlural}</td>
                   <td class="px-4 py-2 text-ink-2 hidden sm:table-cell">{schema.description}</td>
-                  <td class="px-4 py-2 text-right font-mono">{schema.itemCount}</td>
+                  <td class="px-4 py-2 text-right font-body">{schema.itemCount}</td>
                 </tr>
               ))}
             </tbody>

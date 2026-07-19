@@ -281,7 +281,7 @@ function HorizontalValue({
   const btnResting = inverse ? 'border-paper bg-ink text-paper' : 'border-ink bg-paper text-ink'
   const btnHover = inverse ? 'hover:bg-paper hover:text-ink' : 'hover:bg-ink hover:text-paper'
   const btnBase =
-    'flex min-h-11 items-center justify-center rounded-badge border border-ink font-mono font-bold leading-none transition-colors sm:min-h-0'
+    'flex min-h-11 items-center justify-center rounded-badge border border-ink font-body font-bold leading-none transition-colors sm:min-h-0'
 
   return (
     <span className="inline-flex w-fit items-stretch gap-0.5">
@@ -534,7 +534,7 @@ function ValueBox({
               onChange?.(max !== undefined ? Math.min(max, numericValue + 1) : numericValue + 1)
             }
             disabled={!!atMax}
-            className={`flex min-h-11 min-w-11 items-center justify-center rounded-badge border-chrome font-mono font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
+            className={`flex min-h-11 min-w-11 items-center justify-center rounded-badge border-chrome font-body font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
               atMax ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`
             }`}
           >
@@ -545,7 +545,7 @@ function ValueBox({
             aria-label={`Decrease ${label}`}
             onClick={() => onChange?.(Math.max(min, numericValue - 1))}
             disabled={atMin}
-            className={`flex min-h-11 min-w-11 items-center justify-center rounded-badge border-chrome font-mono font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
+            className={`flex min-h-11 min-w-11 items-center justify-center rounded-badge border-chrome font-body font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${
               atMin ? 'cursor-not-allowed opacity-30' : `cursor-pointer ${btnHover}`
             }`}
           >

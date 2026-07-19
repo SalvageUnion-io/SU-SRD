@@ -34,7 +34,7 @@ function Trigger({ headerBg, label }: { headerBg?: string; label: string }) {
           </Text>
         </div>
       </ModalShell>
-      <code className="font-mono text-nano text-ink-2">
+      <code className="font-body text-nano text-ink-2">
         {headerBg ? headerBg : 'default header'}
       </code>
     </div>
@@ -44,7 +44,7 @@ function Trigger({ headerBg, label }: { headerBg?: string; label: string }) {
 /** The dialog shell — default vs rust header. Click a trigger; Esc / backdrop / × close it. */
 export const Default: Story = () => (
   <div className="flex flex-col gap-4 bg-paper p-5 text-ink">
-    <p className="max-w-2xl font-mono text-xs leading-relaxed text-ink-2">
+    <p className="max-w-2xl font-body text-xs leading-relaxed text-ink-2">
       A centered dialog on the DisplayCard shell. headerBg tones the header (bg-su-rust uses the
       light close button). Modals overlay, so open one to see it.
     </p>

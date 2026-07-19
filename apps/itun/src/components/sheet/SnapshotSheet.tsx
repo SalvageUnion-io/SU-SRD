@@ -148,7 +148,7 @@ export function SnapshotSheet({ snapshot }: SnapshotSheetProps) {
           may have been published by a newer or older version.
         </p>
         {!result.ok && (
-          <p className="text-wk-muted mb-4 break-words font-mono text-xs">{result.reason}</p>
+          <p className="text-wk-muted mb-4 break-words font-body text-xs">{result.reason}</p>
         )}
         <AppLink href="/" className="text-sm underline">
           &larr; Back to Roster

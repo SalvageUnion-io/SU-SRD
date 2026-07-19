@@ -76,25 +76,19 @@ const SCALE: { cls: string; token: string; px: string; use: string }[] = [
   },
 ]
 
-/** The three families (theme.css `--font-*`). */
+/** The two faces (theme.css `--font-*`). */
 const FONTS: { cls: string; token: string; name: string; use: string }[] = [
   {
     cls: 'font-body',
     token: '--font-body',
     name: 'Barlow',
-    use: 'body copy, values, default running text (the preferred alias)',
+    use: 'body copy, values, default running text',
   },
   {
     cls: 'font-cond',
     token: '--font-cond',
     name: 'Barlow Semi Condensed',
     use: 'stamps, labels, titles, tabs — all-caps chrome',
-  },
-  {
-    cls: 'font-mono',
-    token: '--font-mono',
-    name: 'Barlow (legacy alias — NOT monospace)',
-    use: 'existing usage only; new code uses font-body',
   },
 ]
 
@@ -218,11 +212,11 @@ export const Scale: Story = () => (
   </Section>
 )
 
-/** The three font families. */
+/** The two font families. */
 export const Fonts: Story = () => (
   <Section
     title="Font families"
-    blurb="Two faces: Barlow (body/values) and Barlow Semi Condensed (all-caps chrome). font-mono is a legacy alias for Barlow — it is NOT monospaced; new code uses font-body."
+    blurb="Two faces, no aliases: Barlow (body/values) and Barlow Semi Condensed (all-caps chrome)."
   >
     {FONTS.map((f) => (
       <Row

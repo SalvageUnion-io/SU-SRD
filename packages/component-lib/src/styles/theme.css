@@ -4,9 +4,10 @@
  */
 @theme {
   /* === Typography === */
-  --font-mono: 'Barlow', system-ui, -apple-system, sans-serif;
-  /* Preferred alias for Barlow (it is NOT a monospace — design-spec §1.2).
-     New code should use `font-body`; `--font-mono` stays for existing usage. */
+  /* TWO faces, no aliases: Barlow for body/values, Barlow Semi Condensed for
+     all-caps chrome. (`--font-mono` was a legacy alias for Barlow — misleadingly
+     named, since it is NOT a monospace — and is now retired; every reference
+     moved to `font-body` or, for caps labels, `font-cond`.) */
   --font-body: 'Barlow', system-ui, -apple-system, sans-serif;
   --font-cond: 'Barlow Semi Condensed', 'Barlow', system-ui, -apple-system, sans-serif;
 

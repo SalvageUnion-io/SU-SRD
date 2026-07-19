@@ -8,7 +8,7 @@ export default {
 }
 
 const SrdBrand = () => (
-  <span className="inline-flex shrink-0 border border-ink font-mono text-xl font-bold uppercase leading-none tracking-tight">
+  <span className="inline-flex shrink-0 border border-ink font-cond text-xl font-bold uppercase leading-none tracking-tight">
     <span className="bg-ink px-1 py-0.5 text-paper">Salvage Union</span>
     <span className="bg-paper px-1 py-0.5 text-ink">SRD</span>
   </span>

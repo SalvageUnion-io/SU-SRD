@@ -29,7 +29,7 @@ function Row({ label, skin, children }: { label: string; skin: string; children:
 
 /** Every VitalGauge variant on one page — read-only through overridden-max. */
 export const Default: Story = () => (
-  <div className="flex flex-col gap-5 bg-paper p-5 font-mono text-ink">
+  <div className="flex flex-col gap-5 bg-paper p-5 font-body text-ink">
     <p className="max-w-2xl text-xs leading-relaxed text-ink-2">
       The segmented current/max gauge. readOnly is a static read-out; onChange makes segments
       click-to-set; dense auto-engages at max ≥ 12; danger redlines from a segment index; caption /
@@ -89,7 +89,7 @@ export const Default: Story = () => (
  *  `surface="sheet"` (light, default) and `surface="instrument"` (dark ground):
  *  the same primitive the dashboard now renders in place of its bespoke gauge. */
 export const Compact: Story = () => (
-  <div className="flex flex-col gap-5 bg-paper p-5 font-mono text-ink">
+  <div className="flex flex-col gap-5 bg-paper p-5 font-body text-ink">
     <p className="max-w-2xl text-xs leading-relaxed text-ink-2">
       The single-row compact gauge: label, one segment row, and value/max on one line — no big
       numeral, caption, or multi-row split. Filled segments use the sheet's <code>--tone</code>, and

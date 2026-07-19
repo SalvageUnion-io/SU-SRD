@@ -66,7 +66,7 @@ export function NpcFactsEditor({
   return (
     <div className="flex min-h-10 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-su-paper p-2">
       {facts.length === 0 && !adding && (
-        <span className="font-mono text-xs text-wk-muted">No facts yet</span>
+        <span className="font-body text-xs text-wk-muted">No facts yet</span>
       )}
 
       {facts.map((fact, index) =>

@@ -326,7 +326,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

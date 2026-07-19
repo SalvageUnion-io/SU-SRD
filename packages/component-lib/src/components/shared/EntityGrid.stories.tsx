@@ -30,7 +30,7 @@ const body = (
 
 function Gallery({ rule, children }: { rule: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-5 bg-paper p-5 font-mono text-ink">
+    <div className="flex flex-col gap-5 bg-paper p-5 font-body text-ink">
       <p className="max-w-2xl text-xs leading-relaxed text-ink-2">{rule}</p>
       {children}
     </div>
