@@ -2,8 +2,8 @@
  * DashboardGrid — the Dashboard's fixed four-region layout (rail / primary /
  * wheel / display), laid inside DashboardCanvas. Region + placeholder classes
  * only; the instrument internals (rail buttons, the active-item band, the dial,
- * the display view) stay in ITUN's dashboard.css and inherit the `--pc-*`
- * tokens through the promoted `.pc-root`. Legacy-tier (bespoke CSS).
+ * the display view) live in instruments.css. Every rule references the canonical
+ * `--color-*` / `--bw-*` / `--radius-*` tokens directly (no `--pc-*` layer).
  */
 
 .pc-grid {
@@ -25,20 +25,20 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  border: var(--bw-rail) solid var(--pc-line-hard);
+  border: var(--bw-rail) solid color-mix(in srgb, var(--color-su-paper) 50%, transparent);
   border-radius: var(--radius-panel);
   padding: 0 12px;
 }
 
 /* Active-entity tint on the rail (extends to the Active Item band in Phase 2). */
 .pc-grid[data-mount='mech'] .pc-rail {
-  border-color: color-mix(in oklab, var(--pc-mech) 60%, transparent);
+  border-color: color-mix(in oklab, var(--color-mech) 60%, transparent);
 }
 .pc-grid[data-mount='pilot'] .pc-rail {
-  border-color: color-mix(in oklab, var(--pc-pilot) 60%, transparent);
+  border-color: color-mix(in oklab, var(--color-pilot) 60%, transparent);
 }
 .pc-grid[data-mount='downtime'] .pc-rail {
-  border-color: color-mix(in oklab, var(--pc-crawler) 60%, transparent);
+  border-color: color-mix(in oklab, var(--color-crawler) 60%, transparent);
 }
 
 .pc-primary {
@@ -51,9 +51,9 @@
 
 .pc-display {
   grid-area: display;
-  border: var(--bw-rail) solid var(--pc-line-hard);
+  border: var(--bw-rail) solid color-mix(in srgb, var(--color-su-paper) 50%, transparent);
   border-radius: var(--radius-panel);
-  background: color-mix(in oklab, var(--pc-panel) 90%, #000);
+  background: color-mix(in oklab, var(--color-ink) 90%, #000);
 }
 
 .pc-wheel {
@@ -76,14 +76,14 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  border: var(--bw-chrome) solid var(--pc-line);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
   border-radius: var(--radius-panel);
   font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-caption);
-  color: var(--pc-muted);
+  color: var(--color-su-muted);
 }
 
 /* Centered muted label used inside an already-bordered surface (e.g. the display). */
@@ -99,5 +99,5 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-caption);
-  color: var(--pc-muted);
+  color: var(--color-su-muted);
 }

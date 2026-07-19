@@ -82,7 +82,7 @@ export function DashboardCanvas({ children }: { children: ReactNode }) {
     <div
       ref={hostRef}
       className="pc-root flex w-full items-center justify-center overflow-hidden"
-      style={{ background: 'var(--pc-ground)', height: hostH }}
+      style={{ background: 'var(--color-su-ink-dark)', height: hostH }}
     >
       {reflow ? (
         <div className="pc-reflow">

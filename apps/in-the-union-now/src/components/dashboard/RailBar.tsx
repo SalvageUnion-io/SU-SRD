@@ -11,9 +11,9 @@ import { AppLink } from '../shared/AppLink'
 type RailFam = 'mech' | 'pilot' | 'crawler'
 
 const STAMP_BG: Record<RailFam, string> = {
-  mech: 'var(--pc-mech-deep)',
-  pilot: 'var(--pc-pilot-deep)',
-  crawler: 'var(--pc-crawler-deep)',
+  mech: 'var(--color-sheet-mech-deep)',
+  pilot: 'var(--color-sheet-pilot-deep)',
+  crawler: 'var(--color-sheet-crawler-deep)',
 }
 
 type RailBarProps = {

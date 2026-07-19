@@ -100,7 +100,7 @@ function CrawlerBand({ crawler, onLeave }: { crawler: Crawler; onLeave: () => vo
   return (
     <div className="pc-band" data-fam="crawler">
       <div className="pc-band-id">
-        <span className="pc-stamp" style={{ background: 'var(--pc-crawler-deep)' }}>
+        <span className="pc-stamp" style={{ background: 'var(--color-sheet-crawler-deep)' }}>
           Downtime · {crawler.name}
         </span>
       </div>
@@ -599,7 +599,7 @@ function PilotBand({
   return (
     <div className="pc-band" data-fam="pilot">
       <div className="pc-band-id">
-        <span className="pc-stamp" style={{ background: 'var(--pc-pilot-deep)' }}>
+        <span className="pc-stamp" style={{ background: 'var(--color-sheet-pilot-deep)' }}>
           Pilot · {pilot.name}
         </span>
       </div>
