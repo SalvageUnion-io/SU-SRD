@@ -39,6 +39,12 @@ type EntityCardSubHeaderProps = {
    * against the trait cells. Absent ⇒ the band renders its plain packed layout. */
   trailing?: ReactNode
   compact?: boolean
+  /** Foreground for this band — the SAME value the card gives its header title
+   * (`onBandText`). The sub-header rides a darker shade of the same tone, so it
+   * flips to ink exactly when the title does (damaged/destroyed greys, ghosted
+   * action/NPC bands); hardcoding paper left it unreadable on those light
+   * bands. Defaults to paper, the solid-tone case. */
+  onBandText?: string
 }
 
 /**
@@ -58,6 +64,7 @@ export function EntityCardSubHeader({
   group,
   trailing,
   compact = false,
+  onBandText = 'text-paper',
 }: EntityCardSubHeaderProps) {
   const hasGroup = !!group && group.cells.length > 0
   if (!leading && cells.length === 0 && !hasGroup && !trailing) return null
@@ -83,7 +90,8 @@ export function EntityCardSubHeader({
       {parts.length > 0 && (
         <span
           className={cn(
-            'font-cond uppercase leading-snug tracking-caps-tight text-paper',
+            'font-cond uppercase leading-snug tracking-caps-tight',
+            onBandText,
             compact ? 'text-xs' : 'text-sm'
           )}
         >

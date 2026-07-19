@@ -1798,6 +1798,7 @@ function ReferenceEntityCardInner({
           cells={cells}
           leading={subHeaderLeading}
           compact={compact}
+          onBandText={onBandText}
         />
         <div
           className={cn(
