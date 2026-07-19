@@ -226,6 +226,16 @@ export { SlotGrid } from './components/shared/SlotGrid'
 
 // Promoted app compositions (legacy-tier — poster/sheet chrome lifted from ITUN)
 export { SheetSectionCard } from './components/shared/SheetSectionCard'
+
+// Live-sheet presentation lifted out of ITUN (pure presentation — the app keeps
+// only the store-wired containers that feed these).
+export { SheetHero, ChassisStats } from './components/sheet/SheetHero'
+export type { ChassisStatItem } from './components/sheet/SheetHero'
+export { CrawlerEconFrame } from './components/sheet/CrawlerEcon'
+export type { EconLozItem } from './components/sheet/CrawlerEcon'
+export { ConditionsEditor } from './components/sheet/ConditionsEditor'
+export { ConditionToggle } from './components/sheet/ConditionToggle'
+export type { ItemCondition } from './components/sheet/ConditionToggle'
 // Live-sheet section chrome — the unified EDIT LANGUAGE primitives (section
 // Edit/Add toggles, the one shared picker modal, per-card remove) lifted out of
 // ITUN so the sheet containers come from the design system like their cards do.

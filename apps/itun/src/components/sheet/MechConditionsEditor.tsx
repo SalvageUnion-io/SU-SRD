@@ -13,7 +13,7 @@
 import { unifiedMechConditions } from '../../lib/rules/derivedStats'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
-import { ConditionsEditor } from './ConditionsEditor'
+import { ConditionsEditor } from 'component-lib'
 import { mechConditionsPatch } from './mechItemRules'
 import { freshEntity } from './controlPrimitives'
 

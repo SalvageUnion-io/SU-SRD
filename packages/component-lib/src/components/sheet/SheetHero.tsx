@@ -15,9 +15,10 @@
  */
 
 import type { ReactNode, Ref } from 'react'
-import { Badge, Stat } from 'component-lib'
+import { Badge } from '../chrome/Badge'
+import { Stat } from '../shared/Stat'
 
-import { cn } from '../../lib/utils'
+import { cn } from '../../utils/cn'
 
 type HeroIdentityLine = {
   label: string

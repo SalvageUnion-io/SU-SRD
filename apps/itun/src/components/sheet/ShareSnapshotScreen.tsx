@@ -65,9 +65,9 @@ import type { PublishedSnapshot } from '../../lib/snapshot/publishedSnapshots'
 import { AppLink } from '../shared/AppLink'
 
 import type { EntityLookup } from './composition'
-import { SheetHero, ChassisStats } from './SheetHero'
+import { SheetHero, ChassisStats } from 'component-lib'
 import { SnapshotQr } from './SnapshotQr'
-import type { ChassisStatItem } from './SheetHero'
+import type { ChassisStatItem } from 'component-lib'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 
 type ShareSnapshotScreenProps = {

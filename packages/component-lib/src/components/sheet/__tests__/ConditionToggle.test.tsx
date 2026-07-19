@@ -8,11 +8,15 @@
  * - Keyboard activation (Enter, Space) cycles the state
  */
 
-import { describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 import type { ItemCondition } from '../ConditionToggle'
 import { ConditionToggle } from '../ConditionToggle'
+
+// component-lib tests clean up explicitly (its bunfig preloads happy-dom only,
+// not ITUN's auto-cleanup testing-library setup).
+afterEach(cleanup)
 
 describe('ConditionToggle', () => {
   test('renders "Intact" label when value is intact', () => {
