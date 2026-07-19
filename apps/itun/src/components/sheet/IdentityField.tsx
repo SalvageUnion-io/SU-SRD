@@ -21,7 +21,7 @@ import type { ReactNode } from 'react'
 import { InlineEditField } from 'component-lib'
 
 import { cn } from '../../lib/utils'
-import { EDIT_CUE_CLASS } from './SheetSection'
+import { EDIT_CUE_CLASS } from 'component-lib'
 
 type IdentityFieldProps = {
   /** Small uppercase label, e.g. 'Callsign'. */

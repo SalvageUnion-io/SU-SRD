@@ -226,6 +226,20 @@ export { SlotGrid } from './components/shared/SlotGrid'
 
 // Promoted app compositions (legacy-tier — poster/sheet chrome lifted from ITUN)
 export { SheetSectionCard } from './components/shared/SheetSectionCard'
+// Live-sheet section chrome — the unified EDIT LANGUAGE primitives (section
+// Edit/Add toggles, the one shared picker modal, per-card remove) lifted out of
+// ITUN so the sheet containers come from the design system like their cards do.
+export {
+  SectionChead,
+  SectionAddButton,
+  SectionEditButton,
+  SheetPickerModal,
+  CardRemoveButton,
+  HButton,
+  cardRemoveControls,
+  EDIT_CUE_CLASS,
+  REMOVABLE_CARD_STYLE,
+} from './components/shared/SheetSection'
 export { RuleBrief } from './components/shared/RuleBrief'
 export type { StepRule } from './components/shared/RuleBrief'
 export { OffRulesEscape } from './components/shared/OffRulesEscape'

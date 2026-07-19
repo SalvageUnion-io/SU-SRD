@@ -32,7 +32,7 @@ import type { ScrapPool } from '../../lib/schemas/crawler'
 import type { ItemCondition } from '../../lib/schemas/mech'
 import { itemEconomy, repairPoolTl, repairScrapCost } from './mechItemRules'
 import type { MechItem, MechItemEconomy } from './mechItemRules'
-import { CardRemoveButton, REMOVABLE_CARD_STYLE, cardRemoveControls } from './SheetSection'
+import { CardRemoveButton, REMOVABLE_CARD_STYLE, cardRemoveControls } from 'component-lib'
 
 /** Stable hide literal — keeps ReferenceEntityCard's memo effective. */
 const HIDE_CHOICES = { choices: true } as const

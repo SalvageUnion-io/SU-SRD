@@ -23,10 +23,11 @@ import {
   cloneElement,
   isValidElement,
 } from 'react'
-import { Button, ModalShell } from 'component-lib'
-import type { ReferenceEntityControl } from 'component-lib'
+import { Button } from '../chrome/Button'
+import { ModalShell } from './ModalShell'
+import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
-import { cn } from '../../lib/utils'
+import { cn } from '../../utils/cn'
 
 /**
  * The ONE editing cue (redesign rule): dashed outline in the sheet's deep

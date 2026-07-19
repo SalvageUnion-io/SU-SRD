@@ -82,7 +82,7 @@ import {
   SectionChead,
   SectionEditButton,
   cardRemoveControls,
-} from './SheetSection'
+} from 'component-lib'
 import { SheetSectionCard } from 'component-lib'
 import { StorageManifest } from './StorageManifest'
 

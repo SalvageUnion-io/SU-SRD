@@ -29,7 +29,7 @@ import { cn } from '../../lib/utils'
 import { ClassDetail, ClassOptionList } from '../pilot/ClassStep'
 import { selectableClasses } from '../pilot/classOptions'
 import { IdentityField } from './IdentityField'
-import { SheetPickerModal } from './SheetSection'
+import { SheetPickerModal } from 'component-lib'
 import type { SheetPatch } from './sheetViewProps'
 
 export type UsedToggleKey = 'background' | 'motto' | 'keepsake'

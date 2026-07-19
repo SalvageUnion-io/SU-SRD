@@ -22,7 +22,7 @@ import { EntitySearcher } from 'component-lib'
 import { Ecflow, Erow } from './Erow'
 import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
-import { SectionAddButton, SheetPickerModal } from './SheetSection'
+import { SectionAddButton, SheetPickerModal } from 'component-lib'
 import { SheetSectionCard } from 'component-lib'
 
 /** Read a numeric slot field off the drone-equipment entity, defaulting to 0. */
