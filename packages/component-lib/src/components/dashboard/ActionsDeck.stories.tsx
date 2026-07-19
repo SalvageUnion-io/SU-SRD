@@ -1,6 +1,7 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { SURefEntity } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { InstrumentStage } from '../../stories/_dashboardStage'
 import { ActionsDeck, type DeckGroup } from './ActionsDeck'
@@ -11,26 +12,40 @@ export default { title: 'Legacy/Dashboard/ActionsDeck' }
 const TABS = ['All', 'Turn', 'Short', 'Long', 'Free', 'React'] as const
 const RANGES = ['Close', 'Medium', 'Long', 'Far'] as const
 
-/** Real SRD systems as the deck's action rows (the ITUN wrapper builds these). */
+/**
+ * Real SRD actions as the deck's rows — each drives a shortform
+ * `ReferenceEntityCard` badge, exactly as the ITUN wrapper feeds it. The last
+ * row is locked (dimmed in place) to exercise the reach/overheat overlay.
+ */
 function realGroups(): DeckGroup[] {
-  const systems = SalvageUnionReference.Systems.all().slice(0, 5)
+  const actions = SalvageUnionReference.Actions.all() as unknown as (SURefEntity & {
+    id: string
+    name: string
+  })[]
+  const chassisAction = actions.find((a) => /ram/i.test(a.name)) ?? actions[0]
+  const rest = actions.filter((a) => a !== chassisAction).slice(0, 5)
   return [
     {
       label: 'Chassis',
-      rows: [
-        { key: 'chassis-ram', stamp: 'CHS', name: 'Ram', meta: ['Turn', 'Close'], locked: false },
-      ],
+      rows: chassisAction
+        ? [
+            {
+              key: `act-${chassisAction.id}`,
+              entity: chassisAction,
+              name: chassisAction.name,
+              locked: false,
+            },
+          ]
+        : [],
     },
     {
       label: 'Systems',
-      rows: systems.map((sys, i) => ({
-        key: `sys-${sys.id}`,
-        stamp: 'SYS',
-        name: sys.name,
-        meta: i % 2 === 0 ? ['Turn'] : ['Free'],
-        costLabel: i % 2 === 0 ? `${(i % 3) + 1} EP` : undefined,
-        locked: i === 4,
-        lockTitle: i === 4 ? 'Out of range / overheat' : undefined,
+      rows: rest.map((action, i) => ({
+        key: `act-${action.id}`,
+        entity: action,
+        name: action.name,
+        locked: i === rest.length - 1,
+        lockTitle: i === rest.length - 1 ? 'Out of range / overheat' : undefined,
       })),
     },
   ]
@@ -73,6 +88,7 @@ export const Default: Story = () => {
               sourceFilter: null,
               onSourceFilter: () => {},
               familyClass: 'pc-deck-fam-mech',
+              hostTone: 'var(--color-mech)',
               groups,
               onOpen: () => {},
             }}

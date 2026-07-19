@@ -33,7 +33,6 @@ import type { MountState } from '../../stores/playStateStore'
 import type { PlayStore } from './ActiveItemBand'
 import {
   activationPatch,
-  actionMicroMeta,
   actionReachable,
   buildMechActions,
   buildPilotActions,
@@ -297,11 +296,10 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
       const reachable = actionReachable(action, range, heatCtx.currentHeat, heatCtx.heatCap)
       return {
         key: action.key,
-        stamp: action.stamp,
+        // The raw action entity drives the canonical shortform badge card; the
+        // deck no longer hand-assembles stamp/name/meta/cost rows.
+        entity: action.action as unknown as SURefEntity,
         name: action.name,
-        meta: actionMicroMeta(action),
-        costLabel:
-          action.economy.epCost > 0 ? `${action.economy.epCost} ${action.currency}` : undefined,
         locked: !reachable,
         lockTitle:
           action.condition === 'destroyed'
@@ -329,6 +327,8 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
     sourceFilter,
     onSourceFilter: setSourceFilter,
     familyClass,
+    // Action badges ghost the deck's host tone: pilot on foot, mech when boarded.
+    hostTone: isPilotDeck ? 'var(--color-pilot)' : 'var(--color-mech)',
     groups: deckGroups,
     onOpen: (key) => {
       const action = deck.find((a) => a.key === key)

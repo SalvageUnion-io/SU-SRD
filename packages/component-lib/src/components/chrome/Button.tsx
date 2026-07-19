@@ -19,16 +19,20 @@ type ButtonProps = ComponentPropsWithoutRef<'button'> &
  * `primary` (rust — THE action color), `ghost`, `danger` variants and
  * `sm`/`lg` sizes. An optional leading `glyph` (e.g. '⚄ Roll') renders
  * aria-hidden before the label. Disabled = opacity .4, pointer-events none.
+ *
+ * `surface="instrument"` re-skins the same button for the dark dashboard HUD
+ * (condensed caps + recessed dark fill) — one Button for both the paper app
+ * chrome and the instrument scope.
  */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant, size, className, type = 'button', glyph, children, ...props },
+  { variant, surface, size, className, type = 'button', glyph, children, ...props },
   ref
 ) {
   return (
     <button
       ref={ref}
       type={type}
-      className={cn(buttonVariants({ variant, size }), className)}
+      className={cn(buttonVariants({ variant, surface, size }), className)}
       {...props}
     >
       {glyph != null && <span aria-hidden="true">{glyph}</span>}

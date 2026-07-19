@@ -97,6 +97,40 @@ export const AllVariants: Story = () => (
 )
 
 /**
+ * `surface="instrument"` — the same Button re-skinned for the dark dashboard HUD
+ * (condensed caps + recessed dark fill). Rendered on the instrument ground so the
+ * paper-tinted borders + paper text read correctly. Replaces the hand-rolled
+ * `.pc-btn` / `.pc-deck-btn` / `.pc-railbtn` chrome across the instruments.
+ */
+export const Instrument: Story = () => (
+  <div className="rounded-panel bg-[var(--color-su-ink-dark)] p-4">
+    <div className="flex flex-col gap-5">
+      <Cluster label="every variant · instrument">
+        {BTN_VARIANTS.map((variant) => (
+          <Button key={variant} variant={variant} surface="instrument">
+            {variant}
+          </Button>
+        ))}
+      </Cluster>
+      <Cluster label="instrument · disabled">
+        {BTN_VARIANTS.map((variant) => (
+          <Button key={variant} variant={variant} surface="instrument" disabled>
+            {variant}
+          </Button>
+        ))}
+      </Cluster>
+      <Cluster label="instrument · sizes (default)">
+        {BTN_SIZES.map((size) => (
+          <Button key={size} surface="instrument" size={size}>
+            Activate
+          </Button>
+        ))}
+      </Cluster>
+    </div>
+  </div>
+)
+
+/**
  * `Sel` — the selection-ring wrapper for wizard entity cards: a 3px rust
  * box-shadow ring that doesn't shift layout. Shown selected + unselected, and
  * in interactive (button/radio) vs static form.

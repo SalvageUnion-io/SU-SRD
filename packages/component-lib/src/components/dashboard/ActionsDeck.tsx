@@ -8,15 +8,22 @@
  */
 
 import type { SURefEntity } from 'salvageunion-reference'
+import { Button } from '../chrome/Button'
+import { StepButton } from '../chrome/SmallButtons'
 import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
 
-/** A render-ready action row (reach/lock resolved by the caller). */
+/**
+ * A render-ready action row. The action ENTITY drives a shortform
+ * `ReferenceEntityCard` badge (name · Cost · type · Damage · range) — the same
+ * card the SRD renders — so the deck reuses the canonical action rendering
+ * instead of a hand-rolled row. Reach/lock is resolved by the caller and
+ * layered on top (dim + tooltip), never baked into the card.
+ */
 export type DeckRow = {
   key: string
-  stamp: string
+  entity: SURefEntity
+  /** Accessible name for the clickable badge (the action name). */
   name: string
-  meta: string[]
-  costLabel?: string
   locked: boolean
   lockTitle?: string
 }
@@ -76,6 +83,8 @@ export type ActionsDeckList = {
   sourceFilter: string | null
   onSourceFilter: (source: string | null) => void
   familyClass: string
+  /** Host tone the action badges GHOST (mech vs pilot) — a resolvable CSS colour. */
+  hostTone: string
   groups: DeckGroup[]
   onOpen: (key: string) => void
 }
@@ -102,9 +111,9 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
       <div className="pc-display-scroll">
         <div className="pc-deck-panel">
           <div className="pc-deck-panel-head">
-            <button type="button" className="pc-deck-back" onClick={view.onBack}>
+            <Button surface="instrument" variant="ghost" size="sm" onClick={view.onBack}>
               ◀ Back
-            </button>
+            </Button>
             <span className="pc-deck-cost">{view.costLabel}</span>
           </div>
 
@@ -140,25 +149,21 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
             <div className="pc-deck-hotx">
               <span className="pc-deck-hotx-lab">Hot</span>
               <div className="pc-step">
-                <button
-                  type="button"
-                  className="pc-btn"
+                <StepButton
                   onClick={variableHot.onDec}
                   disabled={variableHot.activated}
                   aria-label="Decrease Hot"
                 >
                   −
-                </button>
+                </StepButton>
                 <span className="pc-step-num">{variableHot.hotX}</span>
-                <button
-                  type="button"
-                  className="pc-btn"
+                <StepButton
                   onClick={variableHot.onInc}
                   disabled={variableHot.activated}
                   aria-label="Increase Hot"
                 >
                   +
-                </button>
+                </StepButton>
               </div>
               <span className={`pc-deck-hotx-proj${variableHot.over ? ' is-over' : ''}`}>
                 {variableHot.projText}
@@ -167,44 +172,48 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
           )}
 
           <div className="pc-deck-controls">
-            <button
-              type="button"
-              className="pc-deck-btn"
+            <Button
+              surface="instrument"
+              size="sm"
+              className="flex-1"
               onClick={controls.onActivate}
               disabled={controls.activateDisabled}
               title={controls.activateTitle}
             >
               {controls.activateLabel}
-            </button>
-            <button type="button" className="pc-deck-btn" onClick={controls.onRoll}>
+            </Button>
+            <Button surface="instrument" size="sm" className="flex-1" onClick={controls.onRoll}>
               Roll
-            </button>
+            </Button>
             {controls.push && (
-              <button
-                type="button"
-                className="pc-deck-btn pc-deck-btn-danger"
+              <Button
+                surface="instrument"
+                variant="danger"
+                size="sm"
+                className="flex-1"
                 onClick={controls.push.onPush}
                 disabled={controls.push.disabled}
                 title="Reroll the d20, +2 Heat, forcing a Heat Check"
               >
                 Push
-              </button>
+              </Button>
             )}
-            <button
-              type="button"
-              className="pc-deck-btn"
+            <Button
+              surface="instrument"
+              size="sm"
+              className="flex-1"
               onClick={controls.onApply}
               disabled={controls.applyDisabled}
               title="Commit this result"
             >
               {controls.applyLabel}
-            </button>
+            </Button>
           </div>
 
           <div className="pc-deck-controls">
-            <button type="button" className="pc-deck-back" onClick={controls.onClear}>
+            <Button surface="instrument" variant="ghost" size="sm" onClick={controls.onClear}>
               Clear
-            </button>
+            </Button>
           </div>
 
           {roll && (
@@ -312,22 +321,22 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
               <h3 className="pc-deck-group-lab">{group.label}</h3>
               <ul className="pc-deck-list">
                 {group.rows.map((row) => (
-                  <li key={row.key}>
-                    <button
-                      type="button"
-                      className={`pc-deck-item${row.locked ? ' is-locked' : ''}`}
-                      onClick={() => view.onOpen(row.key)}
-                      title={row.lockTitle}
-                    >
-                      <span className="pc-deck-item-main">
-                        <span className="pc-deck-stamp">{row.stamp}</span>
-                        <span className="pc-deck-item-name">{row.name}</span>
-                        {row.meta.length > 0 && (
-                          <span className="pc-deck-item-meta">{row.meta.join(' · ')}</span>
-                        )}
-                      </span>
-                      {row.costLabel && <span className="pc-deck-item-cost">{row.costLabel}</span>}
-                    </button>
+                  // Lock (out of range / overheat) is a caller-resolved overlay,
+                  // layered on the canonical badge — dim + tooltip — never a
+                  // property of the action card itself.
+                  <li
+                    key={row.key}
+                    className={row.locked ? 'is-locked' : undefined}
+                    title={row.lockTitle}
+                  >
+                    <ReferenceEntityDisplay
+                      data={row.entity}
+                      mode="badge"
+                      hostTone={view.hostTone}
+                      disabled={row.locked}
+                      cardClickLabel={row.name}
+                      onCardClick={() => view.onOpen(row.key)}
+                    />
                   </li>
                 ))}
               </ul>
