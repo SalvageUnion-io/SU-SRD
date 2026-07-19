@@ -1,4 +1,4 @@
-import { Button } from 'component-lib'
+import { Button } from '../chrome/Button'
 import type { PilotRollField, RollTableDeps } from './rollTableHelpers'
 import { rollForPilotField } from './rollTableHelpers'
 

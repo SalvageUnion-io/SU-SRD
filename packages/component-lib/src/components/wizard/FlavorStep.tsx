@@ -1,4 +1,4 @@
-import { Field, Input, Textarea } from 'component-lib'
+import { Field, Input, Textarea } from '../chrome/Field'
 import type { PilotRollField, RollTableDeps } from './rollTableHelpers'
 import { RollTableButton } from './RollTableButton'
 
