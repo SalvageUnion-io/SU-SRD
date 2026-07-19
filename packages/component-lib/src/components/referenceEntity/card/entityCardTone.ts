@@ -1,6 +1,5 @@
 import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import { getDisplayName, getTechLevel, getTechLevelNumber, isAbility } from 'salvageunion-reference'
-import type { StatItem } from '../../shared/statsBarTypes'
 import { TECH_LEVEL_BG } from '../../shared/techLevelStyles'
 import { borderColorFromHeaderBg, calculateBackgroundColor } from '../referenceEntityHelpers'
 import type { CardDomain } from './EntityCardIdentityFooter'
@@ -171,7 +170,7 @@ export function titleSizeClass(depth: number): string {
   return TITLE_SIZE_LADDER[index] ?? 'text-badge'
 }
 
-export type NEWEyebrow = { type: string }
+export type Eyebrow = { type: string }
 
 /**
  * Eyebrow = the schema TYPE stamp only (e.g. "Ability", "System"). The
@@ -179,14 +178,14 @@ export type NEWEyebrow = { type: string }
  * in this Stamp — it rides the header's top-border seam instead, via
  * {@link resolveAxisMarker}.
  */
-export function resolveEyebrow(schemaName: SURefEnumSchemaName | 'actions'): NEWEyebrow {
+export function resolveEyebrow(schemaName: SURefEnumSchemaName | 'actions'): Eyebrow {
   if (schemaName === 'actions') return { type: 'Action' }
   // The crawler CLASS type reads "Crawler Type" (not just "Crawler").
   if (schemaName === 'crawlers') return { type: 'Crawler Type' }
   return { type: getDisplayName(schemaName) }
 }
 
-export type NEWAxisMarker = { label: string; value?: string }
+export type AxisMarker = { label: string; value?: string }
 
 /**
  * The categorical classification axis (Ability Tree · Level, Tech Level) — the
@@ -204,7 +203,7 @@ export type NEWAxisMarker = { label: string; value?: string }
  * Numeric vitals (SP/EP/Heat/Structure) stay in the header's top-right stat
  * cluster; only this classification axis lives in the seam.
  */
-export function resolveAxisMarkers(entity: SURefMetaEntity): NEWAxisMarker[] {
+export function resolveAxisMarkers(entity: SURefMetaEntity): AxisMarker[] {
   // Only ABILITY classification lives in the seam (Ability Tree · Level, folded
   // into ONE pill). TECH LEVEL moved to the header's top-right stat cluster.
   if (isAbility(entity)) {
@@ -215,16 +214,4 @@ export function resolveAxisMarkers(entity: SURefMetaEntity): NEWAxisMarker[] {
     return []
   }
   return []
-}
-
-/**
- * Header stat-box label abbreviations (L1 mockup): the top-right stat cluster
- * uses short glyphs, not full names. Applied to a StatItem's `label`, with the
- * `bottomLabel` cleared so the box shows just the short label + value.
- */
-/** Compact a header stat to its TOP label only — the whole first word (Structure
- * Points → Structure, Energy Points → Energy, Salvage Value → Salvage, System
- * Slots → System, Bio SV → Bio, …); the bottom label is dropped. */
-export function abbreviateStat(stat: StatItem): StatItem {
-  return stat.bottomLabel !== undefined ? { ...stat, bottomLabel: undefined } : stat
 }
