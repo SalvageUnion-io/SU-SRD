@@ -38,7 +38,7 @@
     },
     "apps/in-the-union-now": {
       "name": "in-the-union-now",
-      "version": "0.0.0",
+      "version": "0.1.0",
       "dependencies": {
         "@base-ui/react": "1.6.0",
         "@fontsource/barlow": "5.2.8",
@@ -74,7 +74,7 @@
     },
     "apps/srd": {
       "name": "srd",
-      "version": "0.0.0",
+      "version": "1.0.0",
       "dependencies": {
         "@astrojs/check": "0.9.9",
         "@astrojs/react": "^6.0.1",
