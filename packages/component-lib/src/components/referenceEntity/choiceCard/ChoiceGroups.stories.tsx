@@ -5,7 +5,7 @@ import { ChoiceGroups } from './ChoiceGroups'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Choice Groups',
+  title: 'Compositions/Entity/Choice Groups',
 }
 
 // Real Salvage Union choice vocabulary (traits, TL-scaled modifications).

@@ -4,7 +4,7 @@ import { SearchField } from './SearchField'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Nav Drawer',
+  title: 'Compositions/Shell/Nav Drawer',
 }
 
 const SrdBrand = () => (

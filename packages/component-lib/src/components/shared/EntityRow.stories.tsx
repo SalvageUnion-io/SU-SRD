@@ -4,7 +4,7 @@ import { EntityRow } from './EntityRow'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Entity Row',
+  title: 'Compositions/Catalog/Entity Row',
 }
 
 // The mech row is a LIVE chassis fixture (name + pattern + TL/SP straight from

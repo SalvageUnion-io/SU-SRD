@@ -7,7 +7,7 @@ import { Text } from '../base/Text'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Entity Grid',
+  title: 'Compositions/Catalog/Entity Grid',
 }
 
 /** Header for a generic entity card — abstract, so the grid + economy read as the subject. */

@@ -4,7 +4,7 @@ import { StaticEntityContent } from './StaticEntityContent'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Static Entity Content',
+  title: 'Compositions/Entity/Static Entity Content',
 }
 
 /**

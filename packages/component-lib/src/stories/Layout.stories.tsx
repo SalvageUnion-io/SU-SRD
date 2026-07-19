@@ -1,11 +1,11 @@
 import type { Story } from '@ladle/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
-import { DualColumnLayout } from '../../components/shared/DualColumnLayout'
-import { MasonryColumns } from '../../components/shared/MasonryColumns'
-import { FilterRow } from '../../components/shared/FilterRow'
-import { DisplayCard } from '../../components/shared/DisplayCard'
-import { Badge } from '../../components/chrome/Badge'
+import { DualColumnLayout } from '../components/shared/DualColumnLayout'
+import { MasonryColumns } from '../components/shared/MasonryColumns'
+import { FilterRow } from '../components/shared/FilterRow'
+import { DisplayCard } from '../components/shared/DisplayCard'
+import { Badge } from '../components/chrome/Badge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {

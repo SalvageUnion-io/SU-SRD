@@ -57,12 +57,21 @@ packages/component-lib/
   vite.config.ts        # consumed ONLY by Ladle (via config.mjs `viteConfig`)
   src/
     styles/ladle.css    # Tailwind + theme entry imported by the provider
-    stories/
+    stories/            # CATALOG PAGES ONLY — flat, no subdirectories
       _harness.tsx      # shared caption/frame helpers (import, don't re-declare)
-      *.stories.tsx     # foundation & harness stories (Theme, Rendering Matrix, primitives)
+      Styleguide.stories.tsx      # the orientation front door (defaultStory)
+      Theme.stories.tsx           # \
+      Typography.stories.tsx      #  | token specimens, generated FROM the tokens
+      Layout.stories.tsx          # /
+      RenderingMatrix.stories.tsx # the QA harness
     **/<Component>.stories.tsx   # component stories, CO-LOCATED beside their component
     story-coverage.test.ts       # the enforcement guard (see §7)
 ```
+
+**The one-line standard: ONE public component = ONE co-located story file = ONE nav leaf**, titled
+`Group[/Sub-group]/Component Title Case`. `src/stories/` holds only the five catalog pages above —
+pages that document the system itself and have no backing component. Everything else lives beside the
+component it demonstrates, and the guard (§7) fails CI on either violation.
 
 **Commands** (run from the repo root):
 
@@ -96,14 +105,24 @@ export default {
     a11y: { enabled: true },
   },
   storyOrder: (stories) => {
-    const order = ['foundations', 'atoms', 'containers', 'compositions']
+    const groups = ['foundations', 'atoms', 'containers', 'compositions']
+    const subgroups = {
+      compositions: ['entity', 'catalog', 'dashboard', 'wizard', 'shell'],
+    }
     const rank = (id) => {
-      const i = order.findIndex((g) => id.startsWith(g))
-      return i === -1 ? order.length : i
+      let g = groups.findIndex((name) => id.startsWith(`${name}--`))
+      if (g === -1) g = groups.length
+      const group = groups[g]
+      const subs = (group && subgroups[group]) || []
+      // Ungrouped leaves sort after the group's sub-grouped clusters.
+      let s = subs.findIndex((name) => id.startsWith(`${group}--${name}--`))
+      if (s === -1) s = subs.length
+      return [g, s]
     }
     return [...stories].sort((a, b) => {
-      const r = rank(a) - rank(b)
-      return r !== 0 ? r : a.localeCompare(b)
+      const ra = rank(a)
+      const rb = rank(b)
+      return ra[0] - rb[0] || ra[1] - rb[1] || a.localeCompare(b)
     })
   },
 }
@@ -382,13 +401,19 @@ Rules that hold here:
   — `title`, `storyName`, and `meta` are statically analyzed and _cannot_ be built from variables or
   concatenation. `StoryDefault`/`Story` are the exported types; a plain object with the biome-ignore
   comment is our house style.
-- **`title` is `Group/Title Case With Spaces`** and matches the component's display name:
+- **`title` is `Group[/Sub-group]/Title Case With Spaces`** and matches the component's display name:
   `Atoms/Stat`, `Containers/Display Card`, `Compositions/Dashboard/Grid`. Ladle turns `/` into sidebar
-  nesting and title-cases/space-splits segment names automatically.
+  nesting and title-cases/space-splits segment names automatically. Titles must be **unique** across
+  files — two files claiming one title silently collapse the nav.
 - **The file keeps the component symbol name** — `Stat.stories.tsx` — so a symbol grep still finds
-  it, even though the sidebar label comes from `title`.
-- **Co-locate** the story beside its component. Only foundational/harness stories live in
-  `src/stories/`.
+  it, even though the sidebar label comes from `title`. Where a file defines several exports (e.g.
+  `SmallButtons.tsx` → `StepButton`), the story keeps the **defining file's** basename so it stays
+  visibly co-located.
+- **Co-locate** the story beside its component. Only the five catalog pages live in `src/stories/` (§2).
+- **One component per story file — no galleries.** A file that renders several sibling primitives
+  gives all but one of them **no sidebar entry at all**: they are undiscoverable in the catalog while
+  still looking "covered". This is the precise failure a styleguide exists to prevent, so the guard
+  now requires each component to be imported by a story in **its own directory** (§7).
 - **A catch-all "show everything" story is exported as `Default`** (not `Variants`/`Costs`/etc.).
 - **Rename an individual story** (rarely needed) with `Story.storyName = 'Renamed'` — also a static
   literal.
@@ -411,6 +436,32 @@ complex, read top-to-bottom):
 
 The definitive group definitions live in `component-lib/CLAUDE.md`; keep the two in sync. (There is no
 `Legacy` tier — the style-unification refresh is complete, so every component lives in its real group.)
+
+#### Sub-groups (sanctioned, never ad-hoc)
+
+`Compositions` is the only group large enough to earn a second level. Its sanctioned sub-groups, in
+sidebar order, are:
+
+| Sub-group                | Holds                                                                                                                                                |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Compositions/Entity`    | the Reference Entity family — Card, Actions, Content, Class Ability Tree, Choice Groups, Entity Tooltip, Static Entity Content, Catalog Choice Modal |
+| `Compositions/Catalog`   | browse/lookup surfaces — Entity Grid, Entity Row, Entity Searcher, Roll Table                                                                        |
+| `Compositions/Dashboard` | the dark-instrument Dashboard surface (Gauge, Grid, Dial, Rail Bar, …)                                                                               |
+| `Compositions/Wizard`    | build-flow surfaces — Wiz Shell, Mech Install Step, New Entity Screen                                                                                |
+| `Compositions/Shell`     | app chrome — App Bar, Footer, Nav Drawer                                                                                                             |
+
+Three rules keep this from decaying into a folder pile:
+
+1. **A cluster earns a sub-group at 3+ siblings.** Below that it stays a direct leaf of its group —
+   which is why `Live Sheet`, `Rule Brief`, `Off Rules Escape` and `Changelog View` sit at
+   `Compositions/*` with no sub-group. Sub-groups sort **ahead of** their group's ungrouped leaves.
+2. **Atoms and Containers stay flat, on purpose.** They are lists of peers; a flat list is scannable
+   and keeps `/` search a single hop. Splitting them would mean inventing category lines
+   (Typography / Controls / Indicators) that are arguable rather than structural.
+3. **Nesting never exceeds `Group/Sub-group/Leaf`.** Three segments is the hard ceiling.
+
+Adding a sub-group means editing **both** `SUBGROUPS` in `src/story-coverage.test.ts` **and**
+`storyOrder` in `.ladle/config.mjs` — the guard fails on any sub-group not in that list.
 
 ### 6.3 Why we don't use args / argTypes / controls
 
@@ -476,8 +527,9 @@ A styleguide earns its keep when drift is **catchable at a glance**, so a compon
 
 ## 7. Coverage is enforced — stories are part of the contract
 
-`src/story-coverage.test.ts` (a `bun:test`) fails CI unless **every barrel-exported (`src/index.ts`)
-visual component is referenced by at least one `*.stories.tsx`**. Practical consequences:
+`src/story-coverage.test.ts` (a `bun:test`) is the executable half of the standard. It fails CI unless
+**every barrel-exported (`src/index.ts`) visual component is imported by a story file in its own
+directory**. Practical consequences:
 
 - **Adding a public component ⇒ add its story in the same change.** No "I'll story it later."
 - The only escape is the test's `ALLOWLIST`, reserved for genuine internal sub-parts demonstrated
@@ -487,12 +539,37 @@ visual component is referenced by at least one `*.stories.tsx`**. Practical cons
   no longer exists. So when you story a previously-allowlisted component (or delete one), prune the
   allowlist in the same change.
 
-**A second assertion in the same test guards the taxonomy.** Every story's **meta** `title:` must start
-with a sanctioned top-level group — `^(Foundations|Atoms|Containers|Compositions)/…`. This is what
-keeps the sidebar from growing an un-prefixed junk drawer. It extracts **only** the default-export meta
-title (the first `title:` after `export default`),
-so non-meta `title:` occurrences in story bodies — entity names like `'Cargo Hold'`, a `title:` prop, a
-code-sample string — are correctly ignored. Add a new group only by extending both this pattern and the
+**Why a co-located importer, and not a name match.** The guard used to concatenate every story file and
+regex-search it for each component's name. That passed whenever a component was so much as _mentioned_
+anywhere in the catalog — so a dozen components sat inside multi-component gallery files with **no nav
+entry of their own**, indistinguishable from genuinely storied ones. Requiring the importer to live in
+the component's **own directory** makes a green guard mean what the catalog implies: this component has
+its own page, beside its source.
+
+**Five further assertions guard the taxonomy and layout.** All read **only** the default-export meta
+title (the first `title:` after `export default`), so non-meta `title:` occurrences in story bodies —
+entity names like `'Cargo Hold'`, a `title:` prop, a code-sample string — are correctly ignored.
+
+| Assertion                | Fails when                                                                                                                                     |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| sanctioned group         | a title doesn't start `Foundations/`, `Atoms/`, `Containers/` or `Compositions/`                                                               |
+| sanctioned sub-group     | a title uses a second segment not in `SUBGROUPS`, or nests deeper than `Group/Sub-group/Leaf`                                                  |
+| unique titles            | two story files claim the same title (silently collapses the nav)                                                                              |
+| co-location              | a `*.stories.tsx` sits in `src/stories/` without being one of the five catalog pages                                                           |
+| catalog pages are tokens | a page in `src/stories/` isn't a `Foundations/*` story                                                                                         |
+| no orphan stories        | a story imports no component defined in **its own directory** (a screen mock-up dropped into an unrelated folder) and isn't a listed prototype |
+| prototype list is fresh  | a `PROTOTYPE_STORIES` entry no longer exists                                                                                                   |
+
+**The one bounded exception — `PROTOTYPE_STORIES`.** A couple of stories are screen _prototypes_: they
+assemble lib primitives inline to show a whole app surface, and have no backing component in this
+package to co-locate beside (`Compositions/Wizard/Mech Install Step`, `.../New Entity Screen` — both
+mock ITUN wizard surfaces). Rather than let "a story with no component" become an unexamined norm, they
+are named explicitly in the guard: a new componentless story fails CI until someone justifies adding it
+to that list. Each entry is a standing candidate for either extracting a real component or deleting the
+story once its surface ships. They live in `src/components/wizard/` — a home named for what they are,
+not filed beside an unrelated primitive.
+
+Add a new group or sub-group only by extending both the guard's `GROUPS`/`SUBGROUPS` **and** the
 `storyOrder` list in `config.mjs` (§3).
 
 This is what makes the catalog _trustworthy as a styleguide_: it is provably complete with respect to
@@ -599,9 +676,11 @@ a public API and could be renamed in a Ladle major.
 ## 11. Checklist — adding or refreshing a component
 
 - [ ] Component added to `src/index.ts` barrel (if public).
-- [ ] `<Component>.stories.tsx` co-located beside it.
-- [ ] `export default { title: 'Group/Title Case' }`, group correct per §6.2 (one of Foundations /
-      Atoms / Containers / Compositions).
+- [ ] `<Component>.stories.tsx` co-located beside it — **its own file**, not appended to a sibling's
+      story as a second component (that would leave it with no sidebar entry).
+- [ ] `export default { title: 'Group[/Sub-group]/Title Case' }`, group correct per §6.2 (one of
+      Foundations / Atoms / Containers / Compositions), sub-group from the sanctioned list, title
+      unique across files.
 - [ ] Named exports typed `Story`; catch-all page named `Default`.
 - [ ] Every example driven by **real SRD data** through the **real components** (§6.4).
 - [ ] No outer `bg-paper` wrapper (the global canvas supplies it).

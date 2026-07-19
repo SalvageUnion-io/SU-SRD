@@ -13,7 +13,7 @@ import { resolveCardTone } from './entityCardTone'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Reference Entity Actions',
+  title: 'Compositions/Entity/Reference Entity Actions',
 }
 
 /**
