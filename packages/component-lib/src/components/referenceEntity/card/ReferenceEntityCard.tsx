@@ -766,13 +766,9 @@ export function ReferenceEntityCard({
   const headerStats: StatItem[] = [
     ...(techLevelStat ? [techLevelStat] : []),
     // ATOM MODEL: compact = horizontal cells + SHORTFORM labels (SP, TL, Cargo, …).
-    // Non-compact = the vertical value box with FULL labels, but the slotsRequired
-    // stat reads "Slots" at both sizes — drop its "Required" bottom label there.
-    ...(compact
-      ? rawHeaderStats.map(abbreviateStat)
-      : rawHeaderStats.map((stat) =>
-          stat.label === 'Slots' ? { ...stat, bottomLabel: undefined } : stat
-        )),
+    // Non-compact = the vertical value box with FULL two-line labels — the
+    // slotsRequired stat reads "Slots" / "Required".
+    ...(compact ? rawHeaderStats.map(abbreviateStat) : rawHeaderStats),
   ]
 
   const costSource = action ?? foldedActionFields
