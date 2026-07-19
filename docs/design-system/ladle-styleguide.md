@@ -399,7 +399,9 @@ Rules that hold here:
 complex, read top-to-bottom):
 
 1. **Foundations** — design tokens + layout scaffolding + the QA harness. No product component
-   (`Theme`, `Layout`, the `Rendering Matrix`).
+   (`Theme`, `Typography`, `Layout`, the `Rendering Matrix`). Foundation specimens are generated
+   **from the tokens** (`Typography` iterates the `--text-*` / `--font-*` / `--tracking-*` scales so
+   it can't drift from `theme.css`).
 2. **Atoms** — indivisible primitives, one job, composing no other atom (`Text`, `Slab`, `Badge`,
    `Button`, `Stat`, `Vital Gauge`, …).
 3. **Containers** — content-agnostic wrappers / state shells (`Display Card`, `Modal`, `Inset`,
