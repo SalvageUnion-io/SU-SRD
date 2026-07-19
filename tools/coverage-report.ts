@@ -29,7 +29,7 @@ import {
   copyFileSync,
   appendFileSync,
 } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -57,11 +57,32 @@ const WORKSPACES = [
   'apps/discord-bot',
 ]
 
-function parseLcov(path: string): { linesFound: number; linesHit: number } {
+/**
+ * Sum a workspace's line coverage from its lcov, counting ONLY files that belong
+ * to that workspace.
+ *
+ * A test run pulls in source from other workspaces (e.g. srd's `preload-reference`
+ * loads `salvageunion-reference`), and Bun reports coverage for every file it
+ * loaded. Summing all records therefore charged one workspace for another's
+ * uncovered lines — srd read 44.8% because it was being measured mostly on
+ * reference-package files its own tests never exercise. Each `SF:` record is
+ * resolved against the lcov's directory and skipped unless it sits inside the
+ * workspace being measured, so the ratchet tracks each workspace's own code.
+ */
+function parseLcov(path: string, workspaceRoot: string): { linesFound: number; linesHit: number } {
   const contents = readFileSync(path, 'utf-8')
+  const lcovDir = dirname(path)
   let linesFound = 0
   let linesHit = 0
+  let include = false
   for (const line of contents.split('\n')) {
+    if (line.startsWith('SF:')) {
+      const file = line.slice(3).trim()
+      const abs = isAbsolute(file) ? file : resolve(lcovDir, file)
+      include = !relative(workspaceRoot, abs).startsWith('..')
+      continue
+    }
+    if (!include) continue
     if (line.startsWith('LF:')) linesFound += Number(line.slice(3))
     if (line.startsWith('LH:')) linesHit += Number(line.slice(3))
   }
@@ -77,7 +98,7 @@ for (const workspace of WORKSPACES) {
     missing.push(workspace)
     continue
   }
-  const { linesFound, linesHit } = parseLcov(lcovPath)
+  const { linesFound, linesHit } = parseLcov(lcovPath, join(root, workspace))
   const pct = linesFound > 0 ? (linesHit / linesFound) * 100 : 0
   results.push({ workspace, lcovPath, linesFound, linesHit, pct })
 }
