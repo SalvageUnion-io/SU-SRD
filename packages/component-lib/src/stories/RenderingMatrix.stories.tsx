@@ -144,7 +144,7 @@ const rows: MatrixRow[] = [
 ]
 
 export const Default: Story = () => (
-  <div className="bg-paper p-6 font-mono text-ink">
+  <div className="bg-paper p-6 font-body text-ink">
     <Badge shape="stamp" size="lg" as="span">
       Rendering Matrix
     </Badge>

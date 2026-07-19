@@ -108,12 +108,12 @@ const RULES = [
 function HeaderNote(): ReactNode {
   return (
     <div className="flex flex-col gap-1 border-b-2 border-ink pb-3">
-      <code className="font-mono text-caption font-bold text-ink">
+      <code className="font-body text-caption font-bold text-ink">
         Actions = the card in action mode; these are the rendering rules.
       </code>
       <ul className="flex flex-col gap-0.5">
         {RULES.map((rule) => (
-          <li key={rule} className="font-mono text-nano text-ink-2">
+          <li key={rule} className="font-body text-nano text-ink-2">
             · {rule}
           </li>
         ))}
@@ -126,7 +126,7 @@ function HeaderNote(): ReactNode {
 function ActionSpecCard({ spec }: { spec: ActionSpec }): ReactNode {
   return (
     <div className="flex flex-col gap-1.5">
-      <code className="font-mono text-nano text-ink-2">{spec.parentLabel}</code>
+      <code className="font-body text-nano text-ink-2">{spec.parentLabel}</code>
       <ReferenceEntityCard
         data={spec.action as unknown as SURefEntity}
         hostTone={parentToneBase(spec.parent)}
@@ -177,12 +177,12 @@ export const Spec: Story = () => (
  */
 export const Badge: Story = () => (
   <div className="flex flex-col items-start gap-3 bg-paper p-4">
-    <code className="font-mono text-caption font-bold text-ink">
+    <code className="font-body text-caption font-bold text-ink">
       Action badge = name · Cost · type · Damage · range (name always leads)
     </code>
     {SPECS.map((spec) => (
       <div key={spec.parentLabel} className="flex flex-col items-start gap-1.5">
-        <code className="font-mono text-nano text-ink-2">{spec.parentLabel}</code>
+        <code className="font-body text-nano text-ink-2">{spec.parentLabel}</code>
         <ReferenceEntityCard
           data={spec.action as unknown as SURefEntity}
           hostTone={parentToneBase(spec.parent)}

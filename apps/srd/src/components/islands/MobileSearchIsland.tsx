@@ -45,7 +45,7 @@ export function MobileSearchIsland() {
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-ink/50" />
         <Dialog.Popup className="fixed inset-x-0 top-0 z-50 flex flex-col gap-3 bg-paper p-4 shadow-lg data-[open]:animate-slide-in-right data-[closed]:animate-slide-out-right">
           <div className="flex items-center justify-between">
-            <Dialog.Title className="font-mono text-sm font-bold uppercase text-ink">
+            <Dialog.Title className="font-cond text-sm font-bold uppercase text-ink">
               Search
             </Dialog.Title>
             <Dialog.Close

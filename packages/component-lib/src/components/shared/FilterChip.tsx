@@ -15,7 +15,7 @@ export function FilterChip({ label, active, onClick, colorClass, swatchStyle }: 
   // On the shared chrome token system (ink / paper / rust), matching
   // Button / Sel / StepButton — active = ink fill, inactive = paper.
   const base =
-    'cursor-pointer rounded-badge px-2 py-0.5 font-mono text-xs font-semibold uppercase transition-colors'
+    'cursor-pointer rounded-badge px-2 py-0.5 font-cond text-xs font-semibold uppercase transition-colors'
 
   // When a swatch is shown, use tlchip layout: flex row, font-cond label, bordered swatch
   const swatchBase =

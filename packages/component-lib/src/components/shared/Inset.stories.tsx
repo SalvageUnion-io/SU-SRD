@@ -20,7 +20,7 @@ const crawlerName = SalvageUnionReference.Crawlers.all()[0]?.name ?? 'Union Craw
 // Inset the way ITUN actually mounts it — inside a parent card's expand slot.
 function Stage({ rule, children }: { rule: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-4 bg-wk-bg p-5 font-mono text-ink">
+    <div className="flex flex-col gap-4 bg-wk-bg p-5 font-body text-ink">
       <p className="max-w-2xl text-xs leading-relaxed text-ink-2">{rule}</p>
       <div className="max-w-md">{children}</div>
     </div>

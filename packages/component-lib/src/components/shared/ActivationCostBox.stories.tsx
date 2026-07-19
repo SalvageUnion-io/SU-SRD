@@ -19,7 +19,7 @@ function Cell({ label, children }: { label: string; children: ReactNode }) {
 
 /** Every currency × cost at a glance — the AP / EP / Variable activation costs. */
 export const Default: Story = () => (
-  <div className="flex flex-col gap-4 bg-paper p-5 font-mono text-ink">
+  <div className="flex flex-col gap-4 bg-paper p-5 font-body text-ink">
     <p className="max-w-2xl text-xs leading-relaxed text-ink-2">
       The activation-cost pennant. currency is AP or EP; a non-numeric cost (Variable) renders as X.
       compact tightens it for rails and listings.

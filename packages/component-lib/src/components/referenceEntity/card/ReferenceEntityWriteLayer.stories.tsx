@@ -58,11 +58,11 @@ function TwoUp({ readOnly, editable }: { readOnly: ReactNode; editable: ReactNod
   return (
     <div className="flex flex-col gap-6 bg-paper p-4">
       <div className="flex flex-col gap-1.5">
-        <code className="font-mono text-nano text-ink-2">read-only</code>
+        <code className="font-body text-nano text-ink-2">read-only</code>
         {readOnly}
       </div>
       <div className="flex flex-col gap-1.5">
-        <code className="font-mono text-nano text-ink-2">editable</code>
+        <code className="font-body text-nano text-ink-2">editable</code>
         {editable}
       </div>
     </div>

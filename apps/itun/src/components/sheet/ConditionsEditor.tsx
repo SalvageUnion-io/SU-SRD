@@ -108,7 +108,7 @@ export function ConditionsEditor({
   return (
     <div className="flex min-h-12 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-su-paper p-2.5">
       {conditions.length === 0 && !adding && (
-        <span className="font-mono text-xs text-wk-muted">None</span>
+        <span className="font-body text-xs text-wk-muted">None</span>
       )}
 
       {conditions.map((condition, index) =>

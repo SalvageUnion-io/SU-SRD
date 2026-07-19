@@ -11,7 +11,7 @@ export function Toaster() {
           background: 'rgb(40, 32, 25)',
           border: '1px solid rgb(80, 80, 80)',
           color: 'rgb(255, 255, 255)',
-          fontFamily: "var(--font-mono, 'Barlow', system-ui, sans-serif)",
+          fontFamily: "var(--font-body, 'Barlow', system-ui, sans-serif)",
           fontSize: '0.8125rem',
         },
         classNames: {

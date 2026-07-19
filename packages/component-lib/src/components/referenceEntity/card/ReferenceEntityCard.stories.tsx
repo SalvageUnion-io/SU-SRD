@@ -118,7 +118,7 @@ export const Catalog: Story = () => (
  */
 export const PatternCard: Story = () => (
   <div className="flex flex-col gap-4 bg-paper p-4">
-    <code className="font-mono text-nano text-ink-2">
+    <code className="font-body text-nano text-ink-2">
       {chassis.name} · {surveyorPattern.name}
     </code>
     <ReferenceEntityCard data={chassis} pattern={surveyorPattern} />

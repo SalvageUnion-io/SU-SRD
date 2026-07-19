@@ -354,7 +354,7 @@ export function ShareSnapshotScreen({
               <ul className="m-0 flex list-none flex-col gap-2 p-0">
                 {links.map((link) => (
                   <li key={link.id} className="flex items-center gap-2">
-                    <code className="min-w-0 flex-1 truncate font-mono text-xs text-ink">
+                    <code className="min-w-0 flex-1 truncate font-body text-xs text-ink">
                       /s/{link.id}
                     </code>
                     <Button
