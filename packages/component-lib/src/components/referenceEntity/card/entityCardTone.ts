@@ -1,6 +1,5 @@
 import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import { getDisplayName, getTechLevel, getTechLevelNumber, isAbility } from 'salvageunion-reference'
-import type { StatItem } from '../../shared/statsBarTypes'
 import { TECH_LEVEL_BG } from '../../shared/techLevelStyles'
 import { borderColorFromHeaderBg, calculateBackgroundColor } from '../referenceEntityHelpers'
 import type { CardDomain } from './EntityCardIdentityFooter'
@@ -215,16 +214,4 @@ export function resolveAxisMarkers(entity: SURefMetaEntity): NEWAxisMarker[] {
     return []
   }
   return []
-}
-
-/**
- * Header stat-box label abbreviations (L1 mockup): the top-right stat cluster
- * uses short glyphs, not full names. Applied to a StatItem's `label`, with the
- * `bottomLabel` cleared so the box shows just the short label + value.
- */
-/** Compact a header stat to its TOP label only — the whole first word (Structure
- * Points → Structure, Energy Points → Energy, Salvage Value → Salvage, System
- * Slots → System, Bio SV → Bio, …); the bottom label is dropped. */
-export function abbreviateStat(stat: StatItem): StatItem {
-  return stat.bottomLabel !== undefined ? { ...stat, bottomLabel: undefined } : stat
 }

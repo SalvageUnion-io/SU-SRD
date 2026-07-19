@@ -62,7 +62,6 @@ import { EntityCardSubHeader } from './EntityCardSubHeader'
 import type { EntityCardSubHeaderCell } from './EntityCardSubHeader'
 import { resolveFoldedAction } from './resolveFoldedAction'
 import {
-  abbreviateStat,
   ghostActionTone,
   resolveAxisMarkers,
   resolveCardTone,
@@ -736,7 +735,7 @@ function ReferenceEntityCardInner({
     isAction || isPatternListing
       ? []
       : buildReferenceEntityStats(entity, {
-          compact: false,
+          compact,
           primaryOnly: !!primaryStatsOnly || size === 'listing',
           schemaName: schemaName as SURefEnumSchemaName,
           techLevel,
@@ -770,7 +769,7 @@ function ReferenceEntityCardInner({
     // ATOM MODEL: compact = horizontal cells + SHORTFORM labels (SP, TL, Cargo, …).
     // Non-compact = the vertical value box with FULL two-line labels — the
     // slotsRequired stat reads "Slots" / "Required".
-    ...(compact ? rawHeaderStats.map(abbreviateStat) : rawHeaderStats),
+    ...rawHeaderStats,
   ]
 
   const costSource = action ?? foldedActionFields
