@@ -1,7 +1,7 @@
 import { cn } from '../../../utils/cn'
 import type { CardFootMeta } from '../../shared/DisplayCard'
 
-export type CardDomain = 'pilot' | 'mech' | 'crawler' | 'actor' | 'gear' | 'glossary' | 'action'
+export type { CardDomain } from './entityCardTone'
 
 type EntityCardIdentityFooterProps = {
   /** Darker shade of the domain/tech-level tone (a raw CSS colour). */

@@ -33,7 +33,11 @@ export type {
 } from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
 export { ReferenceEntityChassisAbilitiesContent } from './components/referenceEntity/ReferenceEntityDisplay/ReferenceEntityChassisAbilitiesContent'
 export { ClassAbilityTree } from './components/referenceEntity/ClassAbilityTree'
-export { entityHostTone } from './components/referenceEntity/card/entityCardTone'
+export {
+  entityHostTone,
+  resolveSchemaDomain,
+} from './components/referenceEntity/card/entityCardTone'
+export type { CardDomain } from './components/referenceEntity/card/entityCardTone'
 export { getReferenceEntitySpacing } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
 
 // Entity controls
