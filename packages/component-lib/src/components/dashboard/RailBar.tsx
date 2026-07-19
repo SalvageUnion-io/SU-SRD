@@ -41,7 +41,6 @@ export function RailBar({ title, fam = 'mech', returnControl, onLeaveDowntime }:
       <span className="flex-1" />
       {onLeaveDowntime ? (
         <Button
-          surface="instrument"
           variant="ghost"
           size="sm"
           title="Return to the previous mount"
@@ -50,13 +49,7 @@ export function RailBar({ title, fam = 'mech', returnControl, onLeaveDowntime }:
           ◄ Leave Downtime
         </Button>
       ) : (
-        <Button
-          surface="instrument"
-          variant="ghost"
-          size="sm"
-          title="Rules & sources — planned"
-          disabled
-        >
+        <Button variant="ghost" size="sm" title="Rules & sources — planned" disabled>
           ⚙ Settings
         </Button>
       )}

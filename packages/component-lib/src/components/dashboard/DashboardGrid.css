@@ -3,7 +3,9 @@
  * wheel / display), laid inside DashboardCanvas. Region + placeholder classes
  * only; the instrument internals (rail buttons, the active-item band, the dial,
  * the display view) live in instruments.css. Every rule references the canonical
- * `--color-*` / `--bw-*` / `--radius-*` tokens directly (no `--pc-*` layer).
+ * `--color-*` / `--bw-*` / `--radius-*` tokens directly (no `--pc-*` layer). The
+ * cockpit ground is warm paper (su-paper) with ink lines — the rail and display
+ * carry the one hard "forward" border, everything else stays flat on paper.
  */
 
 .pc-grid {
@@ -25,7 +27,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  border: var(--bw-rail) solid color-mix(in srgb, var(--color-su-paper) 50%, transparent);
+  border: var(--bw-rail) solid color-mix(in srgb, var(--color-ink) 35%, transparent);
   border-radius: var(--radius-panel);
   padding: 0 12px;
 }
@@ -51,9 +53,9 @@
 
 .pc-display {
   grid-area: display;
-  border: var(--bw-rail) solid color-mix(in srgb, var(--color-su-paper) 50%, transparent);
+  border: var(--bw-rail) solid color-mix(in srgb, var(--color-ink) 45%, transparent);
   border-radius: var(--radius-panel);
-  background: color-mix(in oklab, var(--color-ink) 90%, #000);
+  background: var(--color-su-paper);
 }
 
 .pc-wheel {
@@ -76,14 +78,14 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
   border-radius: var(--radius-panel);
   font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-caption);
-  color: var(--color-su-muted);
+  color: var(--color-wk-muted);
 }
 
 /* Centered muted label used inside an already-bordered surface (e.g. the display). */
@@ -99,5 +101,5 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-caption);
-  color: var(--color-su-muted);
+  color: var(--color-wk-muted);
 }

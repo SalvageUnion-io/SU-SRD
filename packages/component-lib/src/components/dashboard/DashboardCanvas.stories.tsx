@@ -13,7 +13,7 @@ export default { title: 'Compositions/Dashboard/Canvas' }
  */
 export const Default: Story = () => (
   <div className="flex flex-col gap-3">
-    <Caption>Scale-to-fit HUD canvas (1280×800), letterboxed on the dark ground.</Caption>
+    <Caption>Scale-to-fit HUD canvas (1280×800), letterboxed on the warm-paper ground.</Caption>
     <div style={{ height: 520, resize: 'both', overflow: 'hidden', border: '1px solid #ccc' }}>
       <DashboardCanvas>
         <div className="pc-canvas-placeholder">

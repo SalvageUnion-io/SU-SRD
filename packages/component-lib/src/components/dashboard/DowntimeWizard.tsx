@@ -126,7 +126,6 @@ export function DowntimeWizard({
 
         <div className="pc-dt-controls">
           <Button
-            surface="instrument"
             size="sm"
             className="flex-1"
             onClick={() => onStepChange(idx - 1)}
@@ -135,7 +134,6 @@ export function DowntimeWizard({
             ‹ Prev
           </Button>
           <Button
-            surface="instrument"
             size="sm"
             className={cn('flex-1', done && 'bg-[var(--color-sheet-mech-deep)]')}
             onClick={() => onToggleDone(idx)}
@@ -144,7 +142,6 @@ export function DowntimeWizard({
             {done ? '✓ Complete' : 'Mark Complete'}
           </Button>
           <Button
-            surface="instrument"
             size="sm"
             className="flex-1"
             onClick={() => onStepChange(idx + 1)}

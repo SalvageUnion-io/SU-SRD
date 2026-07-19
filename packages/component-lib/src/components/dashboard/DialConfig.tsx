@@ -35,7 +35,7 @@ export function DialConfig({
     <div className="pc-dialcfg" role="dialog" aria-label="Configure dial">
       <div className="pc-dialcfg-head">
         <span className="pc-dialcfg-title">{title}</span>
-        <Button surface="instrument" variant="ghost" size="sm" onClick={onClose}>
+        <Button variant="ghost" size="sm" onClick={onClose}>
           Done
         </Button>
       </div>
@@ -57,7 +57,6 @@ export function DialConfig({
             </label>
             <span className="pc-dialcfg-move">
               <Button
-                surface="instrument"
                 size="sm"
                 className="min-w-0 flex-1 px-2"
                 onClick={() => onMove(row.id, -1)}
@@ -67,7 +66,6 @@ export function DialConfig({
                 ▲
               </Button>
               <Button
-                surface="instrument"
                 size="sm"
                 className="min-w-0 flex-1 px-2"
                 onClick={() => onMove(row.id, 1)}

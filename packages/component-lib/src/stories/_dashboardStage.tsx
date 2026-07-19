@@ -1,7 +1,7 @@
 /**
  * Shared Ladle stage for dashboard instrument stories. Loads the `.pc-root`
  * token scope (DashboardCanvas.css) + the instrument stylesheet (instruments.css)
- * and frames children on the dark instrument ground — so a single instrument
+ * and frames children on the warm-paper cockpit ground — so a single instrument
  * renders exactly as it does inside the live Dashboard, without the full
  * scale-to-fit canvas.
  */
@@ -25,7 +25,7 @@ export function InstrumentStage({
       className="pc-root"
       data-mount={mount}
       style={{
-        background: 'var(--color-su-ink-dark)',
+        background: 'var(--color-su-paper)',
         padding: 16,
         borderRadius: 'var(--radius-panel)',
         maxWidth: width,

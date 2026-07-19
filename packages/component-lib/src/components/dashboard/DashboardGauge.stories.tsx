@@ -13,7 +13,9 @@ export default { title: 'Compositions/Dashboard/Gauge' }
  */
 export const Default: Story = () => (
   <div className="flex flex-col gap-4">
-    <Caption>Instrument gauges — one gauge primitive (VitalGauge), dark instrument skin.</Caption>
+    <Caption>
+      Instrument gauges — one gauge primitive (VitalGauge), warm-paper cockpit skin.
+    </Caption>
     <InstrumentStage>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <DashboardGauge label="SP" value={4} max={6} tone="mech" />

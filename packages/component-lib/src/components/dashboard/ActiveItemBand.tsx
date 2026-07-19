@@ -75,7 +75,6 @@ const STAMP_BG: Record<ActiveItemBandView['fam'], string> = {
 function BandBtn({ btn, full = true }: { btn: BandButton; full?: boolean }) {
   return (
     <Button
-      surface="instrument"
       variant={btn.danger ? 'danger' : btn.go ? 'primary' : 'default'}
       size="sm"
       className={cn(full ? 'w-full' : 'min-w-[140px]', btn.wide && 'col-span-2')}
@@ -100,7 +99,6 @@ export function DamageStepper({
   return (
     <div className="pc-step">
       <Button
-        surface="instrument"
         size="sm"
         className="min-w-0 px-2"
         onClick={() => setAmount(Math.max(1, amount - 1))}
@@ -110,7 +108,6 @@ export function DamageStepper({
       </Button>
       <span className="pc-step-num">{amount}</span>
       <Button
-        surface="instrument"
         size="sm"
         className="min-w-0 px-2"
         onClick={() => setAmount(amount + 1)}
@@ -161,7 +158,6 @@ export function StorageBay({
                 <span className="pc-cargo-units">{lot.units}u</span>
               </span>
               <Button
-                surface="instrument"
                 variant="danger"
                 size="sm"
                 onClick={() => onJettison(lot.id)}
@@ -223,7 +219,7 @@ export function ActiveItemBand({ view }: ActiveItemBandProps) {
         <div className="pc-resolve" role="dialog" aria-label={overlay.title}>
           <div className="pc-resolve-head">
             <span className="pc-resolve-title">{overlay.title}</span>
-            <Button surface="instrument" variant="ghost" size="sm" onClick={overlay.onClose}>
+            <Button variant="ghost" size="sm" onClick={overlay.onClose}>
               Close
             </Button>
           </div>

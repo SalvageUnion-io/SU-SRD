@@ -6,8 +6,9 @@
  * `--tone` vars.
  *
  * Maps the dashboard's ontology tones onto the gauge's `--tone` vars using the
- * canonical `--color-*` tokens directly. Renders on the dark instrument scope
- * (`.pc-root`, DashboardCanvas). No app/data coupling.
+ * canonical `--color-*` tokens directly. Renders on the warm-paper cockpit scope
+ * (`.pc-root`, DashboardCanvas) via the shared `sheet` surface — the same paper
+ * gauge the live sheet uses. No app/data coupling.
  */
 
 import type { CSSProperties } from 'react'
@@ -35,7 +36,7 @@ export function DashboardGauge({ label, value, max, tone = 'mech', danger }: Das
   return (
     <VitalGauge
       compact
-      surface="instrument"
+      surface="sheet"
       readOnly
       label={label}
       value={value}

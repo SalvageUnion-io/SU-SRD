@@ -3,13 +3,14 @@
  * the layout regions: rail buttons, stamps, the Active Item band, the dial, and
  * the light "document under glass" display content.
  *
- * The Dashboard is a self-contained DARK instrument world, distinct from the
- * light workspace chrome. There is NO private token layer: every rule references
- * the canonical `--color-*` / `--bw-*` / `--radius-*` / `--text-*` /
- * `--tracking-*` tokens (component-lib theme.css) directly. The dark skin is a
- * choice of canonical dark grounds (su-ink-dark / ink) + color-mix darkening.
- * Hue encodes ONTOLOGY (mech green / pilot orange / crawler pink), never
- * identity; the one hard 2.5px (--bw-rail) border marks a "forward" surface
+ * The Dashboard is a self-contained WARM-PAPER cockpit — the same paper/ink book
+ * surface as the wizard, SRD, and live sheets, arranged as an instrument panel.
+ * There is NO private token layer: every rule references the canonical
+ * `--color-*` / `--bw-*` / `--radius-*` / `--text-*` / `--tracking-*` tokens
+ * (component-lib theme.css) directly. The ground is canonical warm paper
+ * (su-paper) with ink lines; instrument cards read as white paper (--color-paper)
+ * inset on it. Hue encodes ONTOLOGY (mech green / pilot orange / crawler pink),
+ * never identity; the one hard 2.5px (--bw-rail) border marks a "forward" surface
  * (rail + display); everything else is flat/inset (ADR-018).
  *
  * The layout shell lives beside this file: `.pc-root`/`.pc-canvas`
@@ -61,7 +62,7 @@
   padding: 2px 13px;
 }
 .pc-bay + .pc-bay {
-  border-left: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
+  border-left: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
 }
 .pc-bay-lab {
   font-family: var(--font-cond);
@@ -70,7 +71,7 @@
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-micro);
   line-height: 1;
-  color: var(--color-su-muted);
+  color: var(--color-wk-muted);
 }
 .pc-bay-gauges {
   display: flex;
@@ -96,8 +97,8 @@
   flex-direction: column;
   gap: 8px;
   padding: 8px 12px 10px;
-  background: color-mix(in oklab, var(--color-su-ink-dark) 92%, #000);
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 50%, transparent);
+  background: var(--color-su-paper);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 40%, transparent);
   border-radius: var(--radius-panel);
   z-index: 2;
 }
@@ -113,7 +114,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-badge);
-  color: var(--color-su-muted);
+  color: var(--color-wk-muted);
 }
 .pc-resolve-body {
   display: flex;
@@ -128,7 +129,7 @@
   font-family: var(--font-body);
   font-size: var(--text-caption);
   line-height: 1.4;
-  color: var(--color-su-paper);
+  color: var(--color-ink);
   text-align: center;
 }
 .pc-resolve-actions {
@@ -149,7 +150,7 @@
   font-size: 24px;
   min-width: 44px;
   text-align: center;
-  color: var(--color-su-paper);
+  color: var(--color-ink);
 }
 
 /* ---- Actions deck (light display surface, Phase 5) ---- */
@@ -639,27 +640,23 @@
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
   border-radius: var(--radius-panel);
-  background: color-mix(in oklab, var(--color-ink) 80%, #000);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  background: var(--color-paper);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   padding: 5px 10px;
   display: flex;
   flex-direction: column;
   gap: 5px;
   text-align: left;
-  color: var(--color-su-paper);
+  color: var(--color-ink);
   overflow: hidden;
 }
 .pc-cell-active {
-  border-color: color-mix(
-    in oklab,
-    color-mix(in srgb, var(--color-su-paper) 50%, transparent) 80%,
-    var(--color-paper)
-  );
-  background: color-mix(in oklab, var(--color-ink) 92%, #000);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+  border-color: color-mix(in srgb, var(--color-ink) 55%, transparent);
+  background: var(--color-paper);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
   cursor: default;
 }
 .pc-cell.statless {
@@ -702,7 +699,7 @@
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-lede);
   line-height: 1;
-  color: var(--color-su-paper);
+  color: var(--color-ink);
 }
 /* Statless titles (Actions / Tables / SRD) read large in the tall active slot. */
 .pc-cell-active.statless .pc-cell-title {
@@ -714,7 +711,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-micro);
-  color: var(--color-su-muted);
+  color: var(--color-wk-muted);
 }
 .pc-wheel-ctl {
   display: flex;
@@ -734,8 +731,8 @@
   flex-direction: column;
   gap: 8px;
   padding: 8px 12px 10px;
-  background: color-mix(in oklab, var(--color-su-ink-dark) 92%, #000);
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 50%, transparent);
+  background: var(--color-su-paper);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 40%, transparent);
   border-radius: var(--radius-panel);
   z-index: 3;
 }
@@ -751,7 +748,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-badge);
-  color: var(--color-su-muted);
+  color: var(--color-wk-muted);
 }
 .pc-dialcfg-list {
   list-style: none;
@@ -768,9 +765,9 @@
   justify-content: space-between;
   gap: 10px;
   padding: 6px 8px;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
   border-radius: var(--radius-card);
-  background: color-mix(in oklab, var(--color-ink) 70%, #000);
+  background: var(--color-paper);
 }
 .pc-dialcfg-show {
   display: flex;
@@ -785,10 +782,10 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: 12px;
-  color: var(--color-su-paper);
+  color: var(--color-ink);
 }
 .pc-dialcfg-lab.hidden {
-  color: var(--color-su-muted);
+  color: var(--color-wk-muted);
   text-decoration: line-through;
 }
 .pc-dialcfg-move {
@@ -811,7 +808,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-badge);
-  color: var(--color-su-muted);
+  color: var(--color-wk-muted);
   text-align: center;
 }
 .pc-cargo-list {
@@ -829,9 +826,9 @@
   justify-content: space-between;
   gap: 10px;
   padding: 6px 8px;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-su-paper) 16%, transparent);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
   border-radius: var(--radius-card);
-  background: color-mix(in oklab, var(--color-ink) 70%, #000);
+  background: var(--color-paper);
 }
 .pc-cargo-name {
   display: flex;
@@ -840,18 +837,18 @@
   min-width: 0;
   font-family: var(--font-body);
   font-size: var(--text-caption);
-  color: var(--color-su-paper);
+  color: var(--color-ink);
 }
 .pc-cargo-code {
   font-family: var(--font-cond);
   font-weight: 700;
   font-size: var(--text-label);
   letter-spacing: var(--tracking-caps-tight);
-  color: var(--color-su-muted);
+  color: var(--color-wk-muted);
 }
 .pc-cargo-units {
   font-size: var(--text-badge);
-  color: var(--color-su-muted);
+  color: var(--color-wk-muted);
 }
 /* ------------------------------------------------------------------------
  * D3 — Tables focus: 5-column category picker + roll history.

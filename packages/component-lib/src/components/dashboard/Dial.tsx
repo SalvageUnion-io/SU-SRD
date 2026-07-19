@@ -377,7 +377,6 @@ export function Dial({ items, activeIndex, onActiveIndexChange, renderConfig }: 
       </div>
       <div className="pc-wheel-ctl">
         <Button
-          surface="instrument"
           size="sm"
           className="min-w-0 flex-1 px-2"
           onClick={() => stepBy(-1)}
@@ -386,7 +385,6 @@ export function Dial({ items, activeIndex, onActiveIndexChange, renderConfig }: 
           ▲
         </Button>
         <Button
-          surface="instrument"
           size="sm"
           className="min-w-0 flex-1 px-2"
           onClick={() => stepBy(1)}
@@ -396,7 +394,6 @@ export function Dial({ items, activeIndex, onActiveIndexChange, renderConfig }: 
         </Button>
         {canConfigure && (
           <Button
-            surface="instrument"
             size="sm"
             className="min-w-0 shrink-0 px-2"
             onClick={() => setConfigOpen((o) => !o)}
