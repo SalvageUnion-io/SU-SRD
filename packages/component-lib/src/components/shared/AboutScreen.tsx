@@ -8,11 +8,16 @@
  * look, so it reads as part of this app.
  */
 
-import { KofiButton } from 'component-lib'
+import { KofiButton } from './KofiButton'
 
-import { version } from '../../../package.json'
+type AboutScreenProps = {
+  /** The consuming app's version — passed in so this stays app-agnostic
+   * (it used to import ITUN's package.json directly, which is what kept it
+   * pinned to that one app). */
+  version: string
+}
 
-export function AboutScreen() {
+export function AboutScreen({ version }: AboutScreenProps) {
   return (
     <main className="min-h-screen bg-wk-bg px-4 py-8 sm:px-8 sm:py-12 lg:px-12">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">

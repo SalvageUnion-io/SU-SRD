@@ -1,7 +1,7 @@
-import { Button } from 'component-lib'
-import { IdentityField } from 'component-lib'
+import { Button } from '../chrome/Button'
+import { IdentityField } from '../sheet/IdentityField'
 import type { MechRollField, MechRollTableDeps } from 'component-lib'
-import { rollForMechField } from 'component-lib'
+import { rollForMechField } from './mechRollTables'
 
 type MechFlavorStepProps = {
   /** Which flavor fact this step edits (also picks the d20 roll table). */

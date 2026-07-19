@@ -38,7 +38,7 @@ import { InstallStep } from './InstallStep'
 import { LoadoutPanel } from './LoadoutPanel'
 import { MechChassisStep } from './MechChassisStep'
 import type { ChassisPattern } from './MechChassisStep'
-import { MechFlavorStep } from './MechFlavorStep'
+import { MechFlavorStep } from 'component-lib'
 import { MechReviewStep } from './MechReviewStep'
 import { MechStatsStep } from './MechStatsStep'
 import {
