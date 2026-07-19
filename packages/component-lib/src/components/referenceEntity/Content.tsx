@@ -3,14 +3,14 @@ import { Text } from '../base/Text'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { parseContentBlockString } from 'salvageunion-reference'
 import { Stat } from '../shared/Stat'
-import { ActivationCostBox } from '../shared/ActivationCostBox'
+import { ActivationCost } from '../shared/ActivationCost'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 import { cn } from '../../utils/cn'
 import { Slab } from '../chrome/Slab'
 
 /**
  * A single `datavalues` item — rendered as a horizontal Stat chip (the one
- * canonical stat/value atom). A `cost` item ("3 AP") uses the ActivationCostBox
+ * canonical stat/value atom). A `cost` item ("3 AP") uses the ActivationCost
  * atom; a `trait`/`keyword` item gets its entity hover-tooltip; everything else
  * is a plain label|value cell (value + unit when present).
  */
@@ -26,7 +26,7 @@ function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?
         currency = last
       }
     }
-    return <ActivationCostBox cost={cost} currency={currency} compact={compact} />
+    return <ActivationCost cost={cost} currency={currency} compact={compact} />
   }
   const value = item.value != null && item.unit ? `${item.value} ${item.unit}` : item.value
   const entityTooltip =

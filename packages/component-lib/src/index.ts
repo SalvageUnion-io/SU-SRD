@@ -208,7 +208,7 @@ export type { EntityStatus } from './components/chrome/StatusBadge'
 // Changelog (shared markdown parser + presentational view)
 export { parseChangelog, mergeChangelogs } from './changelog/parseChangelog'
 export type { ChangelogEntry } from './changelog/parseChangelog'
-export { ChangelogView } from './changelog/ChangelogView'
+export { Changelog } from './changelog/Changelog'
 
 // Stat trackers (ITUN design handoff — design-spec §2.7)
 export { VitalGauge } from './components/stat/VitalGauge'

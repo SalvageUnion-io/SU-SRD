@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import { ChangelogView } from './ChangelogView'
+import { Changelog } from './Changelog'
 import type { ChangelogEntry } from './parseChangelog'
 
 afterEach(cleanup)
 
-describe('ChangelogView', () => {
+describe('Changelog', () => {
   test('renders an empty state when there are no entries', () => {
-    render(<ChangelogView entries={[]} />)
+    render(<Changelog entries={[]} />)
     expect(screen.getByText('No changelog entries yet.')).toBeTruthy()
   })
 
@@ -20,7 +20,7 @@ describe('ChangelogView', () => {
         items: ['Added a chassis', 'Fixed a typo'],
       },
     ]
-    render(<ChangelogView entries={entries} />)
+    render(<Changelog entries={entries} />)
     expect(screen.getByText('v1.2.3')).toBeTruthy()
     expect(screen.getByText('2026-07-20')).toBeTruthy()
     expect(screen.getByText('Data')).toBeTruthy()
@@ -32,14 +32,14 @@ describe('ChangelogView', () => {
     const entries: ChangelogEntry[] = [
       { date: '2026-07-14', title: 'Support on Ko-fi', area: 'Site', items: ['Added a link'] },
     ]
-    render(<ChangelogView entries={entries} />)
+    render(<Changelog entries={entries} />)
     expect(screen.getByText('Support on Ko-fi')).toBeTruthy()
     expect(screen.getByText('Site')).toBeTruthy()
   })
 
   test('falls back to the date as headline when neither version nor title is present', () => {
     const entries: ChangelogEntry[] = [{ date: '2026-07-01', area: 'Site', items: [] }]
-    render(<ChangelogView entries={entries} />)
+    render(<Changelog entries={entries} />)
     // The date is both the headline and the <time> element — expect at least one.
     expect(screen.getAllByText('2026-07-01').length).toBeGreaterThan(0)
   })

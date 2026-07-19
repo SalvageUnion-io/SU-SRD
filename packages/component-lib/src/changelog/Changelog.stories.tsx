@@ -1,10 +1,10 @@
 import type { Story } from '@ladle/react'
 import { Caption } from '../stories/_harness'
-import { ChangelogView } from './ChangelogView'
+import { Changelog } from './Changelog'
 import type { ChangelogEntry } from './parseChangelog'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Compositions/Changelog View' }
+export default { title: 'Compositions/Changelog' }
 
 // Real-shaped release entries (version headline, area badge, merged newest-first)
 // as release-please produces them across the Site + Data changelogs.
@@ -41,13 +41,13 @@ export const Default: Story = () => (
     <Caption>
       Release entries, newest first — version/title headline, area badge, date, items.
     </Caption>
-    <ChangelogView entries={ENTRIES} />
+    <Changelog entries={ENTRIES} />
   </div>
 )
 
 /** The empty state (no releases yet). */
 export const Empty: Story = () => (
   <div className="max-w-2xl">
-    <ChangelogView entries={[]} />
+    <Changelog entries={[]} />
   </div>
 )

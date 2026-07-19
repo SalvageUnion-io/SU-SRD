@@ -218,6 +218,38 @@ describe('Ladle catalog: taxonomy', () => {
       .sort()
     expect(collisions).toEqual([])
   })
+
+  test("a title's last segment names the component it demonstrates", () => {
+    // The sidebar label must be the component's own name, so the catalog can be
+    // navigated by the symbol you'd grep for. Drift here is how you end up with
+    // 'Containers/Modal' pointing at ModalShell and 'Atoms/Activation Cost' at
+    // ActivationCostBox — labels that look right but match nothing in the code.
+    //
+    // A sub-group may absorb a shared prefix, so 'Compositions/Dashboard/Gauge'
+    // legitimately names DashboardGauge.
+    const offenders: string[] = []
+    for (const s of stories) {
+      const title = s.title
+      if (!title) continue
+      const segments = title.split('/')
+      const last = (segments.at(-1) ?? '').replace(/ /g, '')
+      const sub = segments.length === 3 ? (segments[1] ?? '').replace(/ /g, '') : ''
+      const local = [...s.imports].filter((n) => dirOfComponent(n) === s.dir)
+      const candidates = new Set([s.base, ...local])
+      const matches = [...candidates].some(
+        (c) =>
+          c.toLowerCase() === last.toLowerCase() ||
+          c.toLowerCase() === `${sub}${last}`.toLowerCase()
+      )
+      if (!matches) {
+        offenders.push(
+          `${s.file}: '${title}' names '${last}', which is neither the story's own` +
+            ` basename nor a component defined in its directory (${[...candidates].join(', ') || 'none'})`
+        )
+      }
+    }
+    expect(offenders.sort()).toEqual([])
+  })
 })
 
 describe('Ladle catalog: co-location', () => {

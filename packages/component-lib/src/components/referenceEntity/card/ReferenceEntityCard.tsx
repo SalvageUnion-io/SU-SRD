@@ -43,7 +43,7 @@ import { Badge } from '../../chrome/Badge'
 import { CountStepper } from '../../chrome/CountStepper'
 import { StatusBadge } from '../../chrome/StatusBadge'
 import { STAMP_SEAM } from '../../chrome/stampSeam'
-import { ActivationCostBox } from '../../shared/ActivationCostBox'
+import { ActivationCost } from '../../shared/ActivationCost'
 import { CardImage } from '../../shared/CardImage'
 import { ControlButtons } from '../../shared/ControlButtons'
 import type { CardFootMeta } from '../../shared/DisplayCard'
@@ -467,7 +467,7 @@ function CatalogChoiceListing({
  * name-tab + stats/AP axis) · sub-header (Stat cells only) · body ·
  * footer (depth 0 only). Nested groups (Grants/Systems/Modules/Drones/NPCs/
  * Actions) each render a `Slab` separator + a 2-up grid of depth+1 cards;
- * actions are rust, always compact, AP via `ActivationCostBox`.
+ * actions are rust, always compact, AP via `ActivationCost`.
  */
 function ReferenceEntityCardInner({
   data,
@@ -798,7 +798,7 @@ function ReferenceEntityCardInner({
   const costSource = action ?? foldedActionFields
   const costNode: ReactNode =
     costSource?.activationCost != null ? (
-      <ActivationCostBox
+      <ActivationCost
         cost={costSource.activationCost}
         currency={resolveActivationCurrency(costSource.actionSource)}
         compact={compact}

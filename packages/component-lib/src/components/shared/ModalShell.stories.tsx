@@ -8,7 +8,7 @@ import { Text } from '../base/Text'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Containers/Modal',
+  title: 'Containers/Modal Shell',
 }
 
 const chassis = SalvageUnionReference.Chassis.all()[0]
