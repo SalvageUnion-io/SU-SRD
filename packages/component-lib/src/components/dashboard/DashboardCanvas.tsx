@@ -17,6 +17,10 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import './DashboardCanvas.css'
+// The shared instrument stylesheet (all `.pc-*` surfaces) lives here so the app
+// holds no bespoke dashboard CSS; loading it with the canvas covers every
+// dashboard surface rendered inside `.pc-root`.
+import './instruments.css'
 
 const CANVAS_W = 1280
 const CANVAS_H = 800

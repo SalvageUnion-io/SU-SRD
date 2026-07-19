@@ -13,9 +13,9 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { useEntityStore } from '../../stores/entityStore'
 import { Dashboard } from '../../components/dashboard/Dashboard'
-// Dashboard stylesheet is loaded at the route (like __root loads index.css), so
-// leaf components stay CSS-import-free and unit-testable under the bun runner.
-import '../../components/dashboard/dashboard.css'
+// The instrument stylesheet now lives in component-lib and loads with
+// DashboardCanvas (see component-lib .../dashboard/instruments.css) — the app
+// holds no bespoke dashboard CSS.
 
 export const Route = createFileRoute('/dashboard/$id')({
   loader: async () => {
