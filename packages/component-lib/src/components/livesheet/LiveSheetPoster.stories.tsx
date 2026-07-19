@@ -11,7 +11,7 @@ import { abilityPicks, equipmentPicks, pilotContent } from './pilotFixture'
  */
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Live Sheet',
+  title: 'Compositions/Live Sheet Poster',
 }
 
 /** Self-contained duotone portrait placeholder (data URI — CSP-safe, no network). */

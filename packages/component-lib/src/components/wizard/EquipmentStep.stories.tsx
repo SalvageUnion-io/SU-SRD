@@ -5,7 +5,7 @@ import { EquipmentStep } from './EquipmentStep'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Equipment Step',
+  title: 'Compositions/Wizard/Equipment Step',
 }
 
 /** Pilot starting-equipment picker, with the budget cap applied. */

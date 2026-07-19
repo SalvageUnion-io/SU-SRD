@@ -3,7 +3,7 @@ import { Panel } from '../components/chrome/Panel'
 import { cn } from '../utils/cn'
 import type { ChangelogEntry } from './parseChangelog'
 
-type ChangelogViewProps = {
+type ChangelogProps = {
   entries: ChangelogEntry[]
   className?: string
 }
@@ -18,7 +18,7 @@ function entryHeadline(entry: ChangelogEntry): string {
  * paper panel with a headline (version or title), a muted date, an area badge,
  * and a semantic bullet list. Shared by both sites so they render identically.
  */
-export function ChangelogView({ entries, className }: ChangelogViewProps) {
+export function Changelog({ entries, className }: ChangelogProps) {
   if (entries.length === 0) {
     return (
       <p className={cn('font-body text-[13px] text-wk-muted', className)}>

@@ -1,16 +1,12 @@
 import { cn } from '../../utils/cn'
 
-type ActivationCostBoxProps = {
+type ActivationCostProps = {
   cost: string | number
   currency?: string | undefined | number
   compact?: boolean
 }
 
-export function ActivationCostBox({
-  cost,
-  currency = 'AP',
-  compact = false,
-}: ActivationCostBoxProps) {
+export function ActivationCost({ cost, currency = 'AP', compact = false }: ActivationCostProps) {
   if (cost === undefined) return null
   const displayCost = cost === 'Variable' ? 'X' : cost
 

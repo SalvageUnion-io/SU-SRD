@@ -30,7 +30,7 @@ type EntityCardSubHeaderProps = {
   /** Sub-header cells — entity traits, or an action's range/damage/traits. */
   cells: EntityCardSubHeaderCell[]
   /** Leading node rendered FIRST in the row — e.g. an action's EP/AP
-   * `ActivationCostBox`, which must lead before Range/Damage/Traits. */
+   * `ActivationCost`, which must lead before Range/Damage/Traits. */
   leading?: ReactNode
   /** Optional cohesive labelled stat group (e.g. bonus-per-tech-level), rendered
    * as one wrap-together block after the cells. */

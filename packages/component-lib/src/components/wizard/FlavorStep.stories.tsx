@@ -6,7 +6,7 @@ import { RollTableButton } from './RollTableButton'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Flavor Step',
+  title: 'Compositions/Wizard/Flavor Step',
 }
 
 /** A free-text pilot flavour field with its "roll on the table" affordance. */

@@ -3,7 +3,7 @@ import { Toaster, toast } from './toaster'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Containers/Toast',
+  title: 'Containers/Toaster',
 }
 
 // Ruleset §Toast: an off-white chip — status swatch + message + rust dismiss.

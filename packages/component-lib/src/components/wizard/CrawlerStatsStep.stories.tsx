@@ -5,7 +5,7 @@ import { CrawlerStatsStep } from './CrawlerStatsStep'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Compositions/Crawler Stats Step',
+  title: 'Compositions/Wizard/Crawler Stats Step',
 }
 
 /** The derived stat readout for the chosen crawler type + tech level. */

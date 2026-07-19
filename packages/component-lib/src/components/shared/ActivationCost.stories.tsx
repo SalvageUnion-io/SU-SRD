@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
-import { ActivationCostBox } from './ActivationCostBox'
+import { ActivationCost } from './ActivationCost'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -26,25 +26,25 @@ export const Default: Story = () => (
     </p>
     <div className="flex flex-wrap items-start gap-x-6 gap-y-5">
       <Cell label="1 AP">
-        <ActivationCostBox cost={1} currency="AP" />
+        <ActivationCost cost={1} currency="AP" />
       </Cell>
       <Cell label="2 AP">
-        <ActivationCostBox cost={2} currency="AP" />
+        <ActivationCost cost={2} currency="AP" />
       </Cell>
       <Cell label="3 EP">
-        <ActivationCostBox cost={3} currency="EP" />
+        <ActivationCost cost={3} currency="EP" />
       </Cell>
       <Cell label="Variable AP">
-        <ActivationCostBox cost="Variable" currency="AP" />
+        <ActivationCost cost="Variable" currency="AP" />
       </Cell>
       <Cell label="compact 1 AP">
-        <ActivationCostBox cost={1} currency="AP" compact />
+        <ActivationCost cost={1} currency="AP" compact />
       </Cell>
       <Cell label="compact 2 EP">
-        <ActivationCostBox cost={2} currency="EP" compact />
+        <ActivationCost cost={2} currency="EP" compact />
       </Cell>
       <Cell label="compact Variable">
-        <ActivationCostBox cost="Variable" currency="AP" compact />
+        <ActivationCost cost="Variable" currency="AP" compact />
       </Cell>
     </div>
   </div>

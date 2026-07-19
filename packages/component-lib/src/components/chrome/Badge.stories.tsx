@@ -51,7 +51,7 @@ function Row({ children }: { children: ReactNode }) {
 const BADGE_TONES: BadgeTone[] = ['pilot', 'mech', 'crawler', 'ok', 'warn', 'bad']
 
 /**
- * The unified `Badge` — Pill / Chip are named presets over this one
+ * The unified `Badge` — Pill / Chip were named presets, now retired into this one
  * implementation (ruleset §6). Badges are LABEL-ONLY: a label+value readout is a
  * Stat (`Stat orientation="horizontal"`), never a badge (value-cell law).
  */

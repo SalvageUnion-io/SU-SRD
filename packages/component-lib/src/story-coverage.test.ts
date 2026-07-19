@@ -55,18 +55,25 @@ const SUBGROUPS: Record<string, readonly string[]> = {
 const CATALOG_PAGES = new Set(['Styleguide', 'Theme', 'Typography', 'Layout', 'RenderingMatrix'])
 
 /**
- * The bounded exception to "one component = one story": screen PROTOTYPES that
- * assemble lib primitives inline to show a whole app surface, with no backing
- * component in this package to co-locate beside.
+ * The bounded exception to "one component = one story": frozen "BEFORE" CAPTURES
+ * from the style-unification refresh. Each reproduces an ITUN wizard surface
+ * inline — app components can't be imported cross-package — so the refreshed
+ * primitives can be compared against the legacy appearance they replace.
  *
- * They are listed explicitly so the exception stays visible and countable rather
- * than silently becoming the norm — adding a componentless story fails CI until
- * it is justified here. Each entry is a candidate for either extracting a real
- * component or deleting once its surface ships.
+ * They are deliberately FROZEN: they do not track the ITUN components they
+ * mirror, because their whole job is to preserve the "before" state. So do NOT
+ * "fix drift" against the app, and do NOT extract a component out of them —
+ * that would defeat the capture. They are retired by DELETION once the refresh
+ * they document has landed (a sibling pass already deleted 16 comparison-only
+ * captures and kept these two as the app-surface ones).
+ *
+ * Listed explicitly so the exception stays visible and countable rather than
+ * silently becoming the norm — a new componentless story fails CI until it is
+ * justified here.
  */
 const PROTOTYPE_STORIES = new Set([
-  'components/wizard/MechInstallStep.stories.tsx', // ITUN mech-install wizard step
-  'components/wizard/NewEntityScreen.stories.tsx', // ITUN new-entity wizard screen
+  'components/wizard/MechInstallStep.stories.tsx', // legacy ITUN mech-install step
+  'components/wizard/NewEntityScreen.stories.tsx', // legacy ITUN new-entity screen
 ])
 
 function read(rel: string): string {
@@ -217,6 +224,38 @@ describe('Ladle catalog: taxonomy', () => {
       .map(([title, files]) => `'${title}' claimed by ${files.join(' + ')}`)
       .sort()
     expect(collisions).toEqual([])
+  })
+
+  test("a title's last segment names the component it demonstrates", () => {
+    // The sidebar label must be the component's own name, so the catalog can be
+    // navigated by the symbol you'd grep for. Drift here is how you end up with
+    // 'Containers/Modal' pointing at ModalShell and 'Atoms/Activation Cost' at
+    // ActivationCostBox — labels that look right but match nothing in the code.
+    //
+    // A sub-group may absorb a shared prefix, so 'Compositions/Dashboard/Gauge'
+    // legitimately names DashboardGauge.
+    const offenders: string[] = []
+    for (const s of stories) {
+      const title = s.title
+      if (!title) continue
+      const segments = title.split('/')
+      const last = (segments.at(-1) ?? '').replace(/ /g, '')
+      const sub = segments.length === 3 ? (segments[1] ?? '').replace(/ /g, '') : ''
+      const local = [...s.imports].filter((n) => dirOfComponent(n) === s.dir)
+      const candidates = new Set([s.base, ...local])
+      const matches = [...candidates].some(
+        (c) =>
+          c.toLowerCase() === last.toLowerCase() ||
+          c.toLowerCase() === `${sub}${last}`.toLowerCase()
+      )
+      if (!matches) {
+        offenders.push(
+          `${s.file}: '${title}' names '${last}', which is neither the story's own` +
+            ` basename nor a component defined in its directory (${[...candidates].join(', ') || 'none'})`
+        )
+      }
+    }
+    expect(offenders.sort()).toEqual([])
   })
 })
 

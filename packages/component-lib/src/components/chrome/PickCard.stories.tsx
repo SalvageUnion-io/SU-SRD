@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Chip } from './Chip'
+import { Badge } from './Badge'
 import { PickCard } from './PickCard'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -65,7 +65,7 @@ function Cluster({ label, children }: { label: string; children: ReactNode }) {
 /**
  * `PickCard` — the Class/Chassis/Crawler selection card (app chrome, NOT an
  * entity card). Unselected vs selected (3px rust ring + "Selected" chip), with
- * Chip stat row + footer.
+ * Quiet-badge stat row + footer.
  */
 export const Default: Story = () => (
   <div className="bg-paper p-4">
@@ -76,9 +76,9 @@ export const Default: Story = () => (
           className="w-64"
           chips={
             <>
-              <Chip>{`TL${techLevel}`}</Chip>
-              <Chip>{`SV ${salvageValue}`}</Chip>
-              <Chip>{`${systemSlots} Sys`}</Chip>
+              <Badge surface="quiet">{`TL${techLevel}`}</Badge>
+              <Badge surface="quiet">{`SV ${salvageValue}`}</Badge>
+              <Badge surface="quiet">{`${systemSlots} Sys`}</Badge>
             </>
           }
           foot={
@@ -92,7 +92,11 @@ export const Default: Story = () => (
           name={classAName}
           className="w-64"
           selected
-          chips={coreTrees.map((tree) => <Chip key={tree}>{tree}</Chip>)}
+          chips={coreTrees.map((tree) => (
+            <Badge surface="quiet" key={tree}>
+              {tree}
+            </Badge>
+          ))}
           foot={<span className="font-cond text-xs font-bold uppercase text-wk-muted">Class</span>}
           onSelect={() => {}}
         >

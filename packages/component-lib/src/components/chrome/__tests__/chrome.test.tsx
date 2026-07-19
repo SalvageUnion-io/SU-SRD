@@ -3,7 +3,6 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { Field, Input, Textarea, Select } from '../Field'
 import { KvRow } from '../KvRow'
 import { ModeDoor } from '../ModeDoor'
-import { Chip } from '../Chip'
 import { Panel, Row, Empty } from '../Panel'
 import { Slab } from '../Slab'
 import { Conditions, ConditionChip } from '../Conditions'
@@ -81,7 +80,7 @@ describe('ModeDoor', () => {
   })
 })
 
-describe('Badge tone / Chip', () => {
+describe('Badge tone / quiet preset', () => {
   test('kind fills: crawler is white-on-pink, pilot is ink-on-orange', () => {
     render(
       <Badge surface="tone" tone="crawler">
@@ -109,8 +108,8 @@ describe('Badge tone / Chip', () => {
     expect(pill.className).toContain('border-status-warn')
   })
 
-  test('chip renders a quiet keyword chip', () => {
-    render(<Chip>Uses</Chip>)
+  test('the quiet preset renders a borderless keyword chip', () => {
+    render(<Badge surface="quiet">Uses</Badge>)
     expect(screen.getByText('Uses')).toBeTruthy()
   })
 })

@@ -427,15 +427,24 @@ complex, read top-to-bottom):
    (`Theme`, `Typography`, `Layout`, the `Rendering Matrix`). Foundation specimens are generated
    **from the tokens** (`Typography` iterates the `--text-*` / `--font-*` / `--tracking-*` scales so
    it can't drift from `theme.css`).
-2. **Atoms** — indivisible primitives, one job, composing no other atom (`Text`, `Slab`, `Badge`,
-   `Button`, `Stat`, `Vital Gauge`, …).
-3. **Containers** — content-agnostic wrappers / state shells (`Display Card`, `Modal`, `Inset`,
-   `Banner`, `Toast`, `Empty State`, `Skeleton`).
-4. **Compositions** — domain/game components built from atoms (the Reference Entity family, Choice
-   Groups, Roll Table, App Bar, Dashboard/*, …).
+2. **Atoms** — primitives with a single presentational job and **no Salvage Union domain knowledge**
+   (e.g. `Text`, `Slab`, `Badge`, `Button`, `Stat`). An atom **may** compose a lower-level atom —
+   `Stat` composes `Text` + `Tooltip`, `CountStepper` composes `StepButton`. Domain knowledge, not
+   composition, is the line between an atom and a composition.
+3. **Containers** — content-agnostic wrappers / state shells that would still make sense with entirely
+   different content inside (e.g. `Display Card`, `Modal`, `Inset`, `Toast`).
+4. **Compositions** — domain/game components: they know about Salvage Union entities, or they assemble
+   atoms into a product surface (e.g. the Reference Entity family, Roll Table, `Dashboard/*`).
 
-The definitive group definitions live in `component-lib/CLAUDE.md`; keep the two in sync. (There is no
-`Legacy` tier — the style-unification refresh is complete, so every component lives in its real group.)
+These are **membership tests, not rosters.** The examples are illustrative; for the current members read
+the catalog itself (`bun run ladle`), which the coverage guard (§7) proves is complete. Deliberately no
+list lives here or in `component-lib/CLAUDE.md` — a hand-maintained roster is a second source of truth
+that silently drifts every time a component lands, which is exactly what happened to the previous
+version of this section. The definitive _definitions_ live in `component-lib/CLAUDE.md`.
+
+(There is no `Legacy` tier — every component lives in its real group. Note the style-unification refresh
+itself is still in progress on the 466 branch, so a group's membership is expected to change as
+primitives are fused.)
 
 #### Sub-groups (sanctioned, never ad-hoc)
 
@@ -550,24 +559,33 @@ its own page, beside its source.
 title (the first `title:` after `export default`), so non-meta `title:` occurrences in story bodies —
 entity names like `'Cargo Hold'`, a `title:` prop, a code-sample string — are correctly ignored.
 
-| Assertion                | Fails when                                                                                                                                     |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| sanctioned group         | a title doesn't start `Foundations/`, `Atoms/`, `Containers/` or `Compositions/`                                                               |
-| sanctioned sub-group     | a title uses a second segment not in `SUBGROUPS`, or nests deeper than `Group/Sub-group/Leaf`                                                  |
-| unique titles            | two story files claim the same title (silently collapses the nav)                                                                              |
-| co-location              | a `*.stories.tsx` sits in `src/stories/` without being one of the five catalog pages                                                           |
-| catalog pages are tokens | a page in `src/stories/` isn't a `Foundations/*` story                                                                                         |
-| no orphan stories        | a story imports no component defined in **its own directory** (a screen mock-up dropped into an unrelated folder) and isn't a listed prototype |
-| prototype list is fresh  | a `PROTOTYPE_STORIES` entry no longer exists                                                                                                   |
+| Assertion                 | Fails when                                                                                                                                                                                                      |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| sanctioned group          | a title doesn't start `Foundations/`, `Atoms/`, `Containers/` or `Compositions/`                                                                                                                                |
+| sanctioned sub-group      | a title uses a second segment not in `SUBGROUPS`, or nests deeper than `Group/Sub-group/Leaf`                                                                                                                   |
+| unique titles             | two story files claim the same title (silently collapses the nav)                                                                                                                                               |
+| co-location               | a `*.stories.tsx` sits in `src/stories/` without being one of the five catalog pages                                                                                                                            |
+| catalog pages are tokens  | a page in `src/stories/` isn't a `Foundations/*` story                                                                                                                                                          |
+| no orphan stories         | a story imports no component defined in **its own directory** (a screen mock-up dropped into an unrelated folder) and isn't a listed prototype                                                                  |
+| prototype list is fresh   | a `PROTOTYPE_STORIES` entry no longer exists                                                                                                                                                                    |
+| title names its component | a title's last segment is neither the story's own basename nor a component defined in its directory. A sub-group may absorb a shared prefix, so `Compositions/Dashboard/Gauge` correctly names `DashboardGauge` |
 
-**The one bounded exception — `PROTOTYPE_STORIES`.** A couple of stories are screen _prototypes_: they
-assemble lib primitives inline to show a whole app surface, and have no backing component in this
-package to co-locate beside (`Compositions/Wizard/Mech Install Step`, `.../New Entity Screen` — both
-mock ITUN wizard surfaces). Rather than let "a story with no component" become an unexamined norm, they
-are named explicitly in the guard: a new componentless story fails CI until someone justifies adding it
-to that list. Each entry is a standing candidate for either extracting a real component or deleting the
-story once its surface ships. They live in `src/components/wizard/` — a home named for what they are,
-not filed beside an unrelated primitive.
+**The one bounded exception — `PROTOTYPE_STORIES`.** Two stories are frozen **"before" captures** from
+the style-unification refresh (`Compositions/Wizard/Mech Install Step`, `.../New Entity Screen`). Each
+reproduces an ITUN wizard surface inline — app components cannot be imported cross-package — so the
+refreshed primitives can be compared against the legacy appearance they replace. They originate from
+`test(component-lib): Legacy "before" captures for dashboard + wizard surfaces`, and a sibling pass has
+already deleted 16 comparison-only captures, keeping these two as the app-surface ones.
+
+Because they have no backing component, they are named explicitly in the guard rather than letting "a
+story with no component" become an unexamined norm: a new componentless story fails CI until someone
+justifies adding it to that list. They live in `src/components/wizard/` — a home named for what they
+are, not filed beside an unrelated primitive.
+
+**Do not "fix" them.** They are deliberately frozen and do **not** track the ITUN components they
+mirror — preserving the "before" state is the entire point. So don't reconcile them against the app,
+and don't extract a component out of them; either would defeat the capture. They retire by **deletion**,
+once the refresh they document has landed.
 
 Add a new group or sub-group only by extending both the guard's `GROUPS`/`SUBGROUPS` **and** the
 `storyOrder` list in `config.mjs` (§3).
@@ -611,6 +629,10 @@ Object.keys(stories).forEach((storyKey) => {
   test(`${storyKey} - compare snapshots`, async ({ page }) => {
     await page.goto(`${url}/?story=${storyKey}&mode=preview`)
     await page.waitForSelector('[data-storyloaded]') // stories are code-split & async
+    // NOT SUFFICIENT ON ITS OWN HERE — see the warning below. Our provider wraps
+    // every story in <Suspense fallback={null}> behind the data preload gate, so
+    // at this point the story may still be suspended and the page genuinely empty.
+    await page.waitForFunction(() => document.body.querySelectorAll('*').length > 8)
     await expect(page).toHaveScreenshot(`${storyKey}.png`)
   })
 })
@@ -624,8 +646,17 @@ component, in real states, is screenshot-diffed with no per-component test wirin
 Two load-bearing details:
 
 - **`mode=preview`** strips Ladle's chrome so you screenshot only the story.
-- **`[data-storyloaded]`** on `<html>` is the signal that the async chunk (and, for us, the data
-  preload gate) has resolved — always wait on it, never a fixed timeout.
+- **`[data-storyloaded]`** on `<html>` signals that the async **chunk** has loaded — always wait on it,
+  never a fixed timeout.
+- **⚠️ `[data-storyloaded]` does NOT mean the data preload gate has resolved.** This doc previously
+  claimed it did; that is wrong, and the error is expensive. Our `GlobalProvider` wraps every story in
+  `<Suspense fallback={null}>` (§4), so between "chunk loaded" and "data ready" the story renders
+  **literally nothing** — and a VR harness that screenshots at `data-storyloaded` captures an empty
+  frame and cheerfully writes it as the baseline. Measured on the current catalog: waiting only on
+  `data-storyloaded` left **50 of 176 stories (28%) blank**; adding a wait for committed content
+  dropped that to 10, all of which are genuinely minimal stories (`Empty State`, `Banner/Empty`,
+  `Changelog/Empty`) or a text-free SVG (`Glyph/Accessible`). Wait for real content — a node-count
+  threshold, or a selector you know the story renders — before screenshotting.
 
 > We do not currently commit a Playwright VR suite; this section documents the sanctioned path if/when
 > we add one. The catalog is already shaped for it (preload gate renders content headlessly; the VR

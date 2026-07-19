@@ -54,7 +54,7 @@ type BadgeChipProps = {
    * - `ghost` — paper block, ink text, inset ink ring (inverted keyword).
    * - `outline` — 2px ink outline on paper (the default Pill).
    * - `tone` — a tone-filled Pill (pass `tone`).
-   * - `quiet` — borderless, muted ground (the Chip).
+   * - `quiet` — borderless, muted ground (the quiet keyword chip).
    */
   surface?: BadgeSurface
   /** Tone fill for `surface="tone"`. */
@@ -108,7 +108,7 @@ type BadgeProps = BadgeChipProps | BadgeStampProps
  *
  * **Label-only.** A badge cites categorical metadata at a glance. **A label+value
  * readout is NOT a badge** — it is a Stat (`Stat orientation="horizontal"`), the
- * value-cell law (ruleset §0, §7.1). `Pill` and `Chip` are named presets over the
+ * value-cell law (ruleset §0, §7.1). Pill and Chip were named presets over the
  * chip shape.
  */
 export function Badge(props: BadgeProps) {
