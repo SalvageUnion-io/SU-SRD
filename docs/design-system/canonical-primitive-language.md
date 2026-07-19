@@ -76,15 +76,17 @@ draft PR pending your screenshot review of the visual deltas:
   (`stat/ConditionSwatch.tsx` — its extraction removed the old `linear-gradient`
   swatch fills, fixing a no-gradient-law defect), **SlotGrid**
   (`shared/SlotGrid.tsx`), **Glyph** (`chrome/glyphs.tsx`), the unified **Badge**
-  (`chrome/Badge.tsx` — `Tag`/`Pill`/`Chip` now delegate to it as named presets,
-  one implementation), **EmptyState** (`chrome/EmptyState.tsx`), **InlineRef**
+  (`chrome/Badge.tsx` — `Tag`/`Pill`/`Chip` are **retired into it**; one
+  implementation, no named presets), **EmptyState** (`chrome/EmptyState.tsx`), **InlineRef**
   (`chrome/InlineRef.tsx`), and a generic **Skeleton** (`skeleton/Skeleton.tsx`).
-  _Remaining consolidation: migrate call sites off the `Tag`/`Pill`/`Chip`
-  presets to `Badge` directly, then retire the presets (plan phase 4)._
-- **Ladle catalog reorganized to mirror the codex** (`.ladle/config.mjs`
-  `storyOrder`): read top-to-bottom as **Codex → Foundations → Atoms →
-  Compositions → Containers → Reference Entity**, one gallery per atom with every
-  prop/variant on real SRD data.
+  _Plan phase 4 complete: `Tag` and `Pill` were retired earlier, and `Chip`
+  (a pure `Badge surface="quiet"` alias with zero production call sites) was
+  deleted in #497. Use `Badge` directly._
+- **Ladle catalog reorganized** (`.ladle/config.mjs` `storyOrder`): read
+  top-to-bottom as **Foundations → Atoms → Containers → Compositions**, one
+  gallery per component on real SRD data. (Superseded #492/#497 — the earlier
+  _Codex → … → Reference Entity_ order and its groups no longer exist. The
+  taxonomy is now guard-enforced; see `ladle-styleguide.md` §6.2/§7.)
 
 **Visual-review checklist (draft PR):** paper flip to `#fbfaf7`; warm state
 re-tone (damaged/destroyed reads a warm brick red); srd gaining
@@ -140,8 +142,8 @@ exports become thin deprecated aliases during migration, then are deleted.
 | **Stamp**           | `components/chrome/Stamp.tsx`         | `base/Text` pseudoheader                                                                                              | `size` · `surface` (on-tone / on-ink / inverse) · `as`                                                                                                                                                                                               |
 | **Stat** ✅         | `components/shared/Stat.tsx`          | StatControl · StatBlock · MiniStat · ValueDisplay — **all fused + deleted**. (Field/Input · InlineEditField deferred) | `label` · `value` · `max` (bottom label, bigger) · `bottomLabel` · `mode` (read/edit → edit adds steppers) · **`pips`** (default `false` → box goes rectangular) · `orientation` (vertical / horizontal = ValueDisplay) · `tone` · `min` · `inverse` |
 | **VitalGauge**      | `components/stat/VitalGauge.tsx`      | DashboardGauge                                                                                                        | `label` · `value` · `max` · `danger` · `editable` · `skin` (sheet / instrument) · `dense` · `tone`                                                                                                                                                   |
-| **Badge**           | `components/chrome/Badge.tsx`         | Tag · Pill · Chip · CalloutMetaStamp · StatusBadge shell · cost-pennant · Range · TL                                  | `form` (label / label+value) · `surface` (solid / ghost / tone / quiet) · `shape` (chip / pennant / pill) · `tone`                                                                                                                                   |
-| **Btn**             | `components/chrome/Btn.tsx`           | FilterChip · Sel                                                                                                      | `variant` (primary / secondary / ghost / danger / control) · `size` · `disabled`                                                                                                                                                                     |
+| **Badge**           | `components/chrome/Badge.tsx`         | Tag · Pill · Chip (all retired) · CalloutMetaStamp · StatusBadge shell · cost-pennant · Range · TL                    | `form` (label / label+value) · `surface` (solid / ghost / tone / quiet) · `shape` (chip / pennant / pill) · `tone`                                                                                                                                   |
+| **Button**          | `components/chrome/Button.tsx`        | FilterChip · Sel                                                                                                      | `variant` (primary / secondary / ghost / danger / control) · `size` · `disabled`                                                                                                                                                                     |
 | **Slab**            | `components/chrome/Slab.tsx`          | SectionChead · SectionSeparator                                                                                       | `label` · `variant` (dashed / solid) · `count` · `actions`                                                                                                                                                                                           |
 | **DisplayCard**     | `components/shared/DisplayCard.tsx`   | the card shell + tabs                                                                                                 | `tone` · `mode` (full / compact / head / tooltip / instrument) · `tabs` · `footMeta` · `footActions` · `spine`                                                                                                                                       |
 | **RollTable**       | `components/shared/RollTable.tsx`     | —                                                                                                                     | `table` · `showCommand` · `onRollResult`                                                                                                                                                                                                             |
