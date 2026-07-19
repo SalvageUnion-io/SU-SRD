@@ -34,39 +34,39 @@
   height: 100%;
   padding: 16px;
   text-align: center;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps-tight);
   font-size: 12px;
-  color: #6c6153;
+  color: var(--color-wk-muted);
 }
 
 .pc-stamp {
   display: inline-block;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 13px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-caption);
   line-height: 1;
   padding: 5px 9px 6px;
-  border-radius: 2px;
-  color: #fff;
+  border-radius: 0; /* stamps are square (ruleset §4.4) */
+  color: var(--color-paper);
 }
 .pc-stamp-mech {
   background: var(--pc-mech-deep);
 }
 
 .pc-railbtn {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 11px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
   padding: 6px 10px;
-  border: 1.5px solid var(--pc-line);
-  border-radius: 2px;
+  border: var(--bw-chrome) solid var(--pc-line);
+  border-radius: var(--radius-badge);
   background: transparent;
   color: var(--pc-text);
   cursor: pointer;
@@ -101,14 +101,14 @@
   padding: 2px 13px;
 }
 .pc-bay + .pc-bay {
-  border-left: 1.5px solid var(--pc-line);
+  border-left: var(--bw-chrome) solid var(--pc-line);
 }
 .pc-bay-lab {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.11em;
-  font-size: 9px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-micro);
   line-height: 1;
   color: var(--pc-muted);
 }
@@ -129,14 +129,14 @@
   grid-column: 1 / -1;
 }
 .pc-btn {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 11px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
   padding: 0 8px;
-  border: 1.5px solid var(--pc-line);
-  border-radius: 2px;
+  border: var(--bw-chrome) solid var(--pc-line);
+  border-radius: var(--radius-badge);
   background: color-mix(in oklab, var(--pc-panel) 50%, #000);
   color: var(--pc-text);
   cursor: pointer;
@@ -156,12 +156,12 @@
 }
 .pc-btn-go {
   border-color: var(--pc-pilot);
-  color: #fff;
+  color: var(--color-paper);
   background: var(--pc-pilot-deep);
 }
 .pc-btn-danger {
   border-color: color-mix(in oklab, var(--pc-bad) 70%, #000);
-  color: #e0917f;
+  color: var(--color-danger);
 }
 
 /* ---- Resolve overlay: roll readouts + player-confirmed steps (Phase 5) ---- */
@@ -176,8 +176,8 @@
   gap: 8px;
   padding: 8px 12px 10px;
   background: color-mix(in oklab, var(--pc-ground) 92%, #000);
-  border: 1.5px solid var(--pc-line-hard);
-  border-radius: 5px;
+  border: var(--bw-chrome) solid var(--pc-line-hard);
+  border-radius: var(--radius-panel);
   z-index: 2;
 }
 .pc-resolve-head {
@@ -187,11 +187,11 @@
   gap: 10px;
 }
 .pc-resolve-title {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 11px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
   color: var(--pc-muted);
 }
 .pc-resolve-body {
@@ -204,8 +204,8 @@
 }
 .pc-resolve-log {
   margin: 0;
-  font-family: 'Barlow', sans-serif;
-  font-size: 13px;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
   line-height: 1.4;
   color: var(--pc-text);
   text-align: center;
@@ -231,7 +231,7 @@
   padding: 6px 0;
 }
 .pc-step-num {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   font-size: 24px;
@@ -248,19 +248,19 @@
 }
 .pc-deck-empty {
   padding: 12px;
-  font-family: 'Barlow', sans-serif;
-  font-size: 13px;
-  color: #6c6153;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-wk-muted);
   text-align: center;
 }
 .pc-deck-group-lab {
   margin: 0 0 6px;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 11px;
-  color: #6c6153;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
+  color: var(--color-wk-muted);
 }
 .pc-deck-list {
   list-style: none;
@@ -277,22 +277,22 @@
   gap: 10px;
   width: 100%;
   padding: 9px 12px;
-  border: 1.5px solid rgba(40, 32, 25, 0.18);
-  border-radius: 4px;
-  background: #fff;
-  color: #282019;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
   cursor: pointer;
   text-align: left;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   font-size: 14px;
 }
 .pc-deck-item:hover {
-  border-color: rgba(40, 32, 25, 0.45);
+  border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
 }
 .pc-deck-item-cost {
   font-size: 12px;
-  color: #6c6153;
+  color: var(--color-wk-muted);
   white-space: nowrap;
 }
 .pc-deck-panel {
@@ -311,18 +311,18 @@
   background: none;
   padding: 0;
   cursor: pointer;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps-tight);
   font-size: 12px;
-  color: #6c6153;
+  color: var(--color-wk-muted);
 }
 .pc-deck-cost {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   font-size: 12px;
-  color: #6c6153;
+  color: var(--color-wk-muted);
 }
 .pc-deck-controls {
   display: flex;
@@ -331,19 +331,19 @@
 .pc-deck-btn {
   flex: 1;
   padding: 9px 12px;
-  border: 1.5px solid rgba(40, 32, 25, 0.3);
-  border-radius: 4px;
-  background: #282019;
-  color: #f3ede2;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 30%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--color-ink);
+  color: var(--color-paper);
   cursor: pointer;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 13px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-caption);
 }
 .pc-deck-btn:hover:not(:disabled) {
-  background: #3a2f24;
+  background: color-mix(in oklab, var(--color-ink) 82%, var(--color-su-paper));
 }
 .pc-deck-btn:disabled {
   opacity: 0.45;
@@ -357,34 +357,34 @@
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border: 1.5px solid rgba(40, 32, 25, 0.18);
-  border-radius: 4px;
-  background: #fff;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
 }
 .pc-deck-d20 {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   font-size: 34px;
   line-height: 1;
   min-width: 48px;
   text-align: center;
-  color: #282019;
+  color: var(--color-ink);
 }
 .pc-deck-band {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-family: 'Barlow', sans-serif;
-  font-size: 13px;
-  color: #282019;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-ink);
 }
 .pc-deck-pushlog {
   margin: 0;
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   line-height: 1.4;
-  color: #6c6153;
+  color: var(--color-wk-muted);
 }
 
 /* ---- Resolve flow: cost choice, Hot(X) stepper, Apply readouts (D2) ---- */
@@ -394,25 +394,25 @@
   gap: 12px;
   margin: 0;
   padding: 8px 10px;
-  border: 1.5px solid rgba(40, 32, 25, 0.18);
-  border-radius: 4px;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+  border-radius: var(--radius-card);
 }
 .pc-deck-cost-choice-lab {
   padding: 0;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps-tight);
   font-size: 12px;
-  color: #6c6153;
+  color: var(--color-wk-muted);
 }
 .pc-deck-radio {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Barlow', sans-serif;
-  font-size: 13px;
-  color: #282019;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-ink);
   cursor: pointer;
 }
 .pc-deck-hotx {
@@ -421,33 +421,33 @@
   gap: 12px;
 }
 .pc-deck-hotx-lab {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps-tight);
   font-size: 12px;
-  color: #6c6153;
+  color: var(--color-wk-muted);
 }
 .pc-deck-hotx-proj {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  font-size: 13px;
-  color: #282019;
+  font-size: var(--text-caption);
+  color: var(--color-ink);
 }
 .pc-deck-hotx-proj.is-over {
   color: var(--pc-crawler-deep);
 }
 .pc-deck-applied {
   margin: 0;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
-  font-size: 13px;
-  color: #2f6b3a;
+  font-size: var(--text-caption);
+  color: var(--color-status-ok);
 }
 .pc-deck-apply-route {
   margin: 0;
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   line-height: 1.4;
   color: var(--pc-crawler-deep);
@@ -467,24 +467,24 @@
 }
 .pc-deck-tab {
   padding: 5px 10px;
-  border: 1.5px solid rgba(40, 32, 25, 0.22);
-  border-radius: 4px;
-  background: #fff;
-  color: #6c6153;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-wk-muted);
   cursor: pointer;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps-tight);
   font-size: 12px;
 }
 .pc-deck-tab:hover {
-  border-color: rgba(40, 32, 25, 0.45);
+  border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
 }
 .pc-deck-tab.is-active {
-  background: #282019;
-  border-color: #282019;
-  color: #f3ede2;
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-paper);
 }
 .pc-deck-toolrow {
   display: flex;
@@ -495,17 +495,17 @@
 }
 .pc-deck-tool {
   padding: 5px 10px;
-  border: 1.5px solid rgba(40, 32, 25, 0.22);
-  border-radius: 4px;
-  background: #fff;
-  color: #282019;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
   cursor: pointer;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   font-size: 12px;
 }
 .pc-deck-tool:hover {
-  border-color: rgba(40, 32, 25, 0.45);
+  border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
 }
 .pc-deck-range {
   display: flex;
@@ -515,28 +515,28 @@
 .pc-deck-range-btn {
   width: 26px;
   height: 26px;
-  border: 1.5px solid rgba(40, 32, 25, 0.22);
-  border-radius: 4px;
-  background: #fff;
-  color: #6c6153;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-wk-muted);
   cursor: pointer;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   font-size: 12px;
 }
 .pc-deck-range-btn.is-active {
-  background: #282019;
-  border-color: #282019;
-  color: #f3ede2;
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-paper);
 }
 .pc-deck-reach {
   margin-left: 6px;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
-  font-size: 11px;
+  font-size: var(--text-badge);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #6c6153;
+  letter-spacing: var(--tracking-caps-tight);
+  color: var(--color-wk-muted);
   white-space: nowrap;
 }
 .pc-deck-sources {
@@ -549,18 +549,18 @@
   align-items: center;
   gap: 5px;
   padding: 4px 8px;
-  border: 1.5px solid rgba(40, 32, 25, 0.22);
-  border-radius: 999px;
-  background: #fff;
-  color: #282019;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
+  border-radius: var(--radius-badge);
+  background: var(--color-paper);
+  color: var(--color-ink);
   cursor: pointer;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   font-size: 12px;
   max-width: 100%;
 }
 .pc-deck-source:hover {
-  border-color: rgba(40, 32, 25, 0.45);
+  border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
 }
 .pc-deck-fam-mech .pc-deck-source.is-active {
   border-color: var(--pc-mech-deep);
@@ -575,13 +575,13 @@
   align-items: center;
   justify-content: center;
   padding: 1px 4px;
-  border-radius: 3px;
-  background: #282019;
-  color: #f3ede2;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  border-radius: var(--radius-card);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-cond);
   font-weight: 700;
-  font-size: 10px;
-  letter-spacing: 0.06em;
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-caps-tight);
 }
 .pc-deck-item-main {
   display: flex;
@@ -591,12 +591,12 @@
   flex: 1;
 }
 .pc-deck-item-meta {
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--font-body);
   font-weight: 600;
-  font-size: 11px;
+  font-size: var(--text-badge);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: #6c6153;
+  letter-spacing: var(--tracking-caps-tight);
+  color: var(--color-wk-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -618,19 +618,19 @@
 }
 .pc-crawler-focus-name {
   margin: 0;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps-tight);
   font-size: 18px;
-  color: #282019;
+  color: var(--color-ink);
 }
 .pc-crawler-focus-note {
   margin: 0;
-  font-family: 'Barlow', sans-serif;
-  font-size: 13px;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
   line-height: 1.4;
-  color: #6c6153;
+  color: var(--color-wk-muted);
   max-width: 40ch;
 }
 .pc-crawler-focus .pc-deck-btn {
@@ -672,44 +672,44 @@
   gap: 10px;
 }
 .pc-dt-phase {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-caps-tight);
   font-size: 12px;
-  color: #fff;
+  color: var(--color-paper);
   padding: 4px 9px 5px;
-  border-radius: 2px;
+  border-radius: 0; /* stamps are square (ruleset §4.4) */
 }
 .pc-dt-count {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   font-size: 12px;
-  color: #6c6153;
+  color: var(--color-wk-muted);
 }
 .pc-dt-step-name {
   margin: 0;
   padding: 0 0 4px;
-  border-bottom: 2.5px solid #7e2a5b;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  border-bottom: var(--bw-rail) solid var(--color-sheet-crawler-deep);
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--tracking-caps-tight);
   font-size: 20px;
   line-height: 1.1;
-  color: #282019;
+  color: var(--color-ink);
 }
 .pc-dt-gate {
   margin: 0;
   padding: 10px 12px 10px 28px;
-  border: 1.5px solid rgba(40, 32, 25, 0.18);
-  border-radius: 4px;
-  background: #fff;
-  font-family: 'Barlow', sans-serif;
-  font-size: 13px;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
   line-height: 1.4;
-  color: #282019;
+  color: var(--color-ink);
 }
 .pc-dt-gate li + li {
   margin-top: 4px;
@@ -719,10 +719,10 @@
 }
 .pc-dt-note {
   margin: 0;
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   line-height: 1.4;
-  color: #6c6153;
+  color: var(--color-wk-muted);
 }
 .pc-dt-controls {
   display: flex;
@@ -740,11 +740,11 @@
   width: 100%;
 }
 .pc-gauge-lab {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 10px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-label);
   min-width: 40px;
   color: var(--pc-text);
 }
@@ -757,8 +757,8 @@
 .pc-seg {
   flex: 1 1 0;
   height: 14px;
-  border: 1.5px solid var(--pc-line);
-  border-radius: 2px;
+  border: var(--bw-chrome) solid var(--pc-line);
+  border-radius: var(--radius-badge);
   background: var(--pc-seg-empty);
 }
 .pc-seg.on {
@@ -770,10 +770,10 @@
   border-color: var(--pc-bad);
 }
 .pc-gauge-num {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  font-size: 15px;
+  font-size: var(--text-lede);
   min-width: 46px;
   text-align: right;
   color: var(--pc-text);
@@ -819,8 +819,8 @@
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  border: 1.5px solid var(--pc-line);
-  border-radius: 5px;
+  border: var(--bw-chrome) solid var(--pc-line);
+  border-radius: var(--radius-panel);
   background: color-mix(in oklab, var(--pc-panel) 80%, #000);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
   cursor: pointer;
@@ -833,7 +833,7 @@
   overflow: hidden;
 }
 .pc-cell-active {
-  border-color: color-mix(in oklab, var(--pc-line-hard) 80%, #fff);
+  border-color: color-mix(in oklab, var(--pc-line-hard) 80%, var(--color-paper));
   background: color-mix(in oklab, var(--pc-panel) 92%, #000);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
   cursor: default;
@@ -847,15 +847,15 @@
    up with, and stay the same size as, the mech label. */
 .pc-cell-lab {
   align-self: flex-start;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 13px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-caption);
   line-height: 1;
   padding: 5px 9px 6px;
-  border-radius: 2px;
-  color: #fff;
+  border-radius: 0; /* stamps are square (ruleset §4.4) */
+  color: var(--color-paper);
 }
 .pc-cell-lab.mech {
   background: var(--pc-mech-deep);
@@ -872,11 +872,11 @@
   gap: 3px;
 }
 .pc-cell-title {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  font-size: 15px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-lede);
   line-height: 1;
   color: var(--pc-text);
 }
@@ -885,11 +885,11 @@
   font-size: 26px;
 }
 .pc-cell-sub {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 9px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-micro);
   color: var(--pc-muted);
 }
 .pc-wheel-ctl {
@@ -900,8 +900,8 @@
 .pc-wheel-btn {
   flex: 1;
   height: 26px;
-  border: 1.5px solid var(--pc-line);
-  border-radius: 3px;
+  border: var(--bw-chrome) solid var(--pc-line);
+  border-radius: var(--radius-card);
   background: color-mix(in oklab, var(--pc-panel) 60%, #000);
   color: var(--pc-text);
   cursor: pointer;
@@ -930,8 +930,8 @@
   gap: 8px;
   padding: 8px 12px 10px;
   background: color-mix(in oklab, var(--pc-ground) 92%, #000);
-  border: 1.5px solid var(--pc-line-hard);
-  border-radius: 5px;
+  border: var(--bw-chrome) solid var(--pc-line-hard);
+  border-radius: var(--radius-panel);
   z-index: 3;
 }
 .pc-dialcfg-head {
@@ -941,11 +941,11 @@
   gap: 10px;
 }
 .pc-dialcfg-title {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 11px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
   color: var(--pc-muted);
 }
 .pc-dialcfg-list {
@@ -963,8 +963,8 @@
   justify-content: space-between;
   gap: 10px;
   padding: 6px 8px;
-  border: 1.5px solid var(--pc-line);
-  border-radius: 4px;
+  border: var(--bw-chrome) solid var(--pc-line);
+  border-radius: var(--radius-card);
   background: color-mix(in oklab, var(--pc-panel) 70%, #000);
 }
 .pc-dialcfg-show {
@@ -975,10 +975,10 @@
   min-width: 0;
 }
 .pc-dialcfg-lab {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: var(--tracking-caps-tight);
   font-size: 12px;
   color: var(--pc-text);
 }
@@ -1006,11 +1006,11 @@
 }
 .pc-cargo-usage {
   margin: 0;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 11px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
   color: var(--pc-muted);
   text-align: center;
 }
@@ -1029,8 +1029,8 @@
   justify-content: space-between;
   gap: 10px;
   padding: 6px 8px;
-  border: 1.5px solid var(--pc-line);
-  border-radius: 4px;
+  border: var(--bw-chrome) solid var(--pc-line);
+  border-radius: var(--radius-card);
   background: color-mix(in oklab, var(--pc-panel) 70%, #000);
 }
 .pc-cargo-name {
@@ -1038,19 +1038,19 @@
   align-items: baseline;
   gap: 8px;
   min-width: 0;
-  font-family: 'Barlow', sans-serif;
-  font-size: 13px;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
   color: var(--pc-text);
 }
 .pc-cargo-code {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
-  font-size: 10px;
-  letter-spacing: 0.04em;
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-caps-tight);
   color: var(--pc-muted);
 }
 .pc-cargo-units {
-  font-size: 11px;
+  font-size: var(--text-badge);
   color: var(--pc-muted);
 }
 .pc-cargo-row .pc-btn {
@@ -1061,7 +1061,7 @@
 
 /* ------------------------------------------------------------------------
  * D3 — Tables focus: 5-column category picker + roll history.
- * All light-themed to sit on the display "paper" (#f3ede2 / #282019).
+ * All light-themed to sit on the display "paper" (var(--color-paper) / var(--color-ink)).
  * ------------------------------------------------------------------------ */
 
 /* Positioning context for the picker overlay. */
@@ -1077,35 +1077,35 @@
   margin-bottom: 10px;
 }
 .pc-tables-lab {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 11px;
-  color: #6c6153;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
+  color: var(--color-wk-muted);
 }
 .pc-tables-pick-btn {
   flex: 1;
   min-width: 0;
   padding: 6px 10px;
-  border: 1.5px solid #cabfa8;
-  border-radius: 4px;
-  background: #fbf7ee;
-  color: #282019;
-  font-family: 'Barlow', sans-serif;
-  font-size: 13px;
+  border: var(--bw-chrome) solid var(--color-wk-faint);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
   font-weight: 600;
   text-align: left;
   cursor: pointer;
 }
 .pc-tables-pick-btn:hover {
-  background: #f1e9d8;
+  background: var(--color-wk-bg-2);
 }
 
 /* Roll history — last N results with a clear. */
 .pc-rollhist {
   margin-top: 14px;
-  border-top: 1.5px solid #d8cdb8;
+  border-top: var(--bw-chrome) solid var(--color-wk-faint);
   padding-top: 8px;
 }
 .pc-rollhist-head {
@@ -1116,28 +1116,28 @@
   margin-bottom: 6px;
 }
 .pc-rollhist-title {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 11px;
-  color: #6c6153;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
+  color: var(--color-wk-muted);
 }
 .pc-rollhist-clear {
-  border: 1.5px solid #cabfa8;
-  border-radius: 4px;
-  background: #fbf7ee;
-  color: #282019;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  border: var(--bw-chrome) solid var(--color-wk-faint);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 10px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-label);
   padding: 3px 8px;
   cursor: pointer;
 }
 .pc-rollhist-clear:hover {
-  background: #f1e9d8;
+  background: var(--color-wk-bg-2);
 }
 .pc-rollhist-list {
   list-style: none;
@@ -1152,22 +1152,22 @@
   flex-direction: column;
   gap: 1px;
   padding: 5px 7px;
-  border: 1.5px solid #e0d6c2;
-  border-radius: 4px;
-  background: #fbf7ee;
+  border: var(--bw-chrome) solid var(--color-wk-faint);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
 }
 .pc-rollhist-src {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 10px;
-  color: #6c6153;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-label);
+  color: var(--color-wk-muted);
 }
 .pc-rollhist-text {
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
-  color: #282019;
+  color: var(--color-ink);
 }
 
 /* Full picker overlay — covers the display area with the 5-column grid. */
@@ -1178,9 +1178,9 @@
   flex-direction: column;
   gap: 8px;
   padding: 10px 12px 12px;
-  background: #f3ede2;
-  border: 1.5px solid #282019;
-  border-radius: 5px;
+  background: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-panel);
   z-index: 4;
 }
 .pc-tablepick-head {
@@ -1191,25 +1191,25 @@
   flex: 0 0 auto;
 }
 .pc-tablepick-title {
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 11px;
-  color: #6c6153;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
+  color: var(--color-wk-muted);
 }
 .pc-tablepick-close {
-  border: 1.5px solid #cabfa8;
-  border-radius: 4px;
-  background: #fbf7ee;
-  color: #282019;
+  border: var(--bw-chrome) solid var(--color-wk-faint);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
   font-size: 12px;
   line-height: 1;
   padding: 4px 8px;
   cursor: pointer;
 }
 .pc-tablepick-close:hover {
-  background: #f1e9d8;
+  background: var(--color-wk-bg-2);
 }
 .pc-tablepick-grid {
   flex: 1 1 auto;
@@ -1230,13 +1230,13 @@
   top: 0;
   z-index: 1;
   padding: 4px 6px;
-  background: #282019;
-  color: #f3ede2;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 10px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-label);
   text-align: center;
 }
 .pc-tablepick-list {
@@ -1248,32 +1248,32 @@
   gap: 4px;
 }
 .pc-tablepick-empty {
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
-  color: #b3a993;
+  color: var(--color-wk-muted);
   text-align: center;
   padding: 4px 0;
 }
 .pc-tablepick-item {
   width: 100%;
   padding: 5px 7px;
-  border: 1.5px solid #e0d6c2;
-  border-radius: 4px;
-  background: #fbf7ee;
-  color: #282019;
-  font-family: 'Barlow', sans-serif;
+  border: var(--bw-chrome) solid var(--color-wk-faint);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
 }
 .pc-tablepick-item:hover {
-  background: #f1e9d8;
-  border-color: #cabfa8;
+  background: var(--color-wk-bg-2);
+  border-color: var(--color-wk-faint);
 }
 .pc-tablepick-item[data-selected] {
-  border-color: #282019;
-  background: #ece2cf;
+  border-color: var(--color-ink);
+  background: var(--color-wk-bg-2);
 }
 
 /* ── SRD Explorer (D4) ───────────────────────────────────────────────── */
@@ -1293,19 +1293,19 @@
 .pc-srd-input {
   width: 100%;
   padding: 8px 11px;
-  border: 1.5px solid #cabfa8;
-  border-radius: 4px;
-  background: #fbf7ee;
-  color: #282019;
-  font-family: 'Barlow', sans-serif;
-  font-size: 13px;
+  border: var(--bw-chrome) solid var(--color-wk-faint);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
 }
 .pc-srd-input::placeholder {
-  color: #a89b83;
+  color: var(--color-wk-muted);
 }
 .pc-srd-input:focus {
   outline: none;
-  border-color: #282019;
+  border-color: var(--color-ink);
 }
 .pc-srd-live {
   position: absolute;
@@ -1332,19 +1332,19 @@
   justify-content: space-between;
   gap: 10px;
   padding: 6px 9px;
-  border: 1.5px solid #e0d6c2;
-  border-radius: 4px;
-  background: #fbf7ee;
-  color: #282019;
-  font-family: 'Barlow', sans-serif;
-  font-size: 13px;
+  border: var(--bw-chrome) solid var(--color-wk-faint);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
   text-align: left;
   cursor: pointer;
 }
 .pc-srd-result:hover,
 .pc-srd-result[data-active] {
-  background: #f1e9d8;
-  border-color: #cabfa8;
+  background: var(--color-wk-bg-2);
+  border-color: var(--color-wk-faint);
 }
 .pc-srd-result-title {
   font-weight: 600;
@@ -1352,18 +1352,18 @@
 }
 .pc-srd-result-group {
   flex: 0 0 auto;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 10px;
-  color: #6c6153;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-label);
+  color: var(--color-wk-muted);
 }
 .pc-srd-noresults {
   margin-top: 6px;
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
-  color: #a89b83;
+  color: var(--color-wk-muted);
 }
 
 /* 8 category tiles. */
@@ -1378,32 +1378,32 @@
   align-items: center;
   gap: 4px;
   padding: 12px 6px;
-  border: 1.5px solid #cabfa8;
-  border-radius: 5px;
-  background: #fbf7ee;
+  border: var(--bw-chrome) solid var(--color-wk-faint);
+  border-radius: var(--radius-panel);
+  background: var(--color-paper);
   cursor: pointer;
 }
 .pc-srd-tile:hover {
-  background: #f1e9d8;
-  border-color: #282019;
+  background: var(--color-wk-bg-2);
+  border-color: var(--color-ink);
 }
 .pc-srd-tile-stamp {
   display: inline-block;
   padding: 2px 5px;
-  background: #282019;
-  color: #f3ede2;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 10px;
-  border-radius: 3px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-label);
+  border-radius: var(--radius-card);
 }
 .pc-srd-tile-label {
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 600;
-  color: #282019;
+  color: var(--color-ink);
   text-align: center;
 }
 
@@ -1415,29 +1415,29 @@
   margin-bottom: 10px;
 }
 .pc-srd-back {
-  border: 1.5px solid #cabfa8;
-  border-radius: 4px;
-  background: #fbf7ee;
-  color: #282019;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  border: var(--bw-chrome) solid var(--color-wk-faint);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 10px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-label);
   padding: 4px 9px;
   cursor: pointer;
 }
 .pc-srd-back:hover {
-  background: #f1e9d8;
+  background: var(--color-wk-bg-2);
 }
 .pc-srd-crumb-title {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Barlow', sans-serif;
+  font-family: var(--font-body);
   font-weight: 600;
-  font-size: 13px;
-  color: #282019;
+  font-size: var(--text-caption);
+  color: var(--color-ink);
 }
 .pc-srd-rows {
   list-style: none;
@@ -1450,17 +1450,17 @@
 .pc-srd-row {
   width: 100%;
   padding: 6px 9px;
-  border: 1.5px solid #e0d6c2;
-  border-radius: 4px;
-  background: #fbf7ee;
-  color: #282019;
-  font-family: 'Barlow', sans-serif;
-  font-size: 13px;
+  border: var(--bw-chrome) solid var(--color-wk-faint);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
   font-weight: 600;
   text-align: left;
   cursor: pointer;
 }
 .pc-srd-row:hover {
-  background: #f1e9d8;
-  border-color: #cabfa8;
+  background: var(--color-wk-bg-2);
+  border-color: var(--color-wk-faint);
 }
