@@ -1074,6 +1074,51 @@ export function ReferenceEntityCard({
   // other size but collapses the whole card to one line. Actions render it too:
   // their type reads "Action" and, carrying no TL/tree, they show no tail.
   if (size === 'badge') {
+    // Action shortform: Cost · name · type · Damage · range (each when present).
+    // The AP/EP cost leads (the pennant), then the name, then the action type as
+    // a stamp, then Damage / Range as [label|value] Stat cells (if relevant).
+    if (isAction && action) {
+      const actionBadgeText = isDown ? 'text-ink' : tone.onToneText
+      const actionAccent = accentSurface(headerBg, headerBgColor)
+      const typeLabel = action.actionType ? formatActionType(action.actionType) : undefined
+      const damageValue = action.damage
+        ? `${action.damage.amount}${action.damage.damageType ?? ''}`
+        : undefined
+      const rangeValue =
+        action.range && action.range.length > 0 ? action.range.join(' / ') : undefined
+      return (
+        <div className={outerClassName} style={cardStyle?.style} {...outerInteraction}>
+          <div
+            className={cn(
+              'inline-flex max-w-full items-center gap-2 self-start overflow-hidden rounded-card px-2 py-1',
+              actionAccent.className
+            )}
+            style={{ ...actionAccent.style, ...frameStyle }}
+          >
+            {costNode}
+            <span
+              className={cn(
+                'min-w-0 truncate font-cond text-sm font-bold uppercase leading-none tracking-caps-tight',
+                actionBadgeText
+              )}
+            >
+              {name}
+            </span>
+            {typeLabel && (
+              <Badge shape="stamp" size="sm">
+                {typeLabel}
+              </Badge>
+            )}
+            {damageValue && (
+              <Stat key="damage" orientation="horizontal" label="Damage" value={damageValue} xs />
+            )}
+            {rangeValue && (
+              <Stat key="range" orientation="horizontal" label="Range" value={rangeValue} xs />
+            )}
+          </div>
+        </div>
+      )
+    }
     const badgeType = isPattern ? 'Pattern' : resolveEyebrow(schemaName).type
     // Text sits directly on the tone: ghosted/greyed bands are light → ink; else
     // the domain's computed on-tone colour (paper on dark tones, ink on light).

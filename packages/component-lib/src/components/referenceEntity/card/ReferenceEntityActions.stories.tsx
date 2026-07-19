@@ -166,3 +166,27 @@ export const Spec: Story = () => (
     ))}
   </div>
 )
+
+/**
+ * Action BADGE mode — the shortform token for an action, collapsed to a single
+ * pill. Field order: **Cost · name · type · Damage · range**, each rendered only
+ * when the action carries it (Auger has range + damage; Engineering Expertise, a
+ * passive, has neither). Same ghosted-parent tone as the full action card.
+ */
+export const Badge: Story = () => (
+  <div className="flex flex-col items-start gap-3 bg-paper p-4">
+    <code className="font-mono text-caption font-bold text-ink">
+      Action badge = Cost · name · type · Damage · range (each when relevant)
+    </code>
+    {SPECS.map((spec) => (
+      <div key={spec.parentLabel} className="flex flex-col items-start gap-1.5">
+        <code className="font-mono text-nano text-ink-2">{spec.parentLabel}</code>
+        <ReferenceEntityCard
+          data={spec.action as unknown as SURefEntity}
+          hostTone={parentToneBase(spec.parent)}
+          size="badge"
+        />
+      </div>
+    ))}
+  </div>
+)
