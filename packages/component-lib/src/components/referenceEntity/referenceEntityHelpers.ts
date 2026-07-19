@@ -5,12 +5,7 @@ import type {
   SURefObjectBonusPerTechLevel,
   SURefEnumSource,
 } from 'salvageunion-reference'
-import {
-  getBlackMarket,
-  isHybridClass,
-  isEntityData,
-  getHybridClasses,
-} from 'salvageunion-reference'
+import { getBlackMarket, isEntityData, getHybridClasses } from 'salvageunion-reference'
 
 /**
  * The card's accent surface: a Tailwind bg class (or the white fallback) plus an
@@ -75,13 +70,8 @@ export function calculateBackgroundColor(
   if (schemaName === 'guides') return headerColor || 'bg-ink-2'
   if (schemaName === 'roll-tables') return headerColor || 'bg-ink-2'
   if (schemaName === 'sources') return headerColor || 'bg-ink-2'
-  if (schemaName === 'classes' && !headerColor) {
-    if (isEntityData(data)) {
-      const isHybrid = isHybridClass(data)
-      return isHybrid ? 'bg-su-pink' : 'bg-su-orange'
-    }
-    return 'bg-su-orange'
-  }
+  // Classes are pilot-domain → orange. Hybrid classes render as pilot-orange
+  // spreads in the book too (pink is the Legendary tier, not a class type).
   if (schemaName === 'classes') return headerColor || 'bg-su-orange'
 
   if (schemaName === 'abilities' && !headerColor) {
@@ -91,12 +81,14 @@ export function calculateBackgroundColor(
     const treeName = 'tree' in data ? String(data.tree) : ''
     const isAdvancedOrHybrid = treeName.includes('Advanced') || getHybridTreeNames().has(treeName)
 
+    // Book tier tones (Core Book 2.0a, class ability-tree spreads): Core = brick,
+    // Advanced (incl. Hybrid) = orange, Legendary = pink. Hybrid folds into Advanced.
     if (isLegendary) {
       return 'bg-su-pink'
     } else if (isAdvancedOrHybrid) {
-      return 'bg-su-orange-dark'
-    } else {
       return 'bg-su-orange'
+    } else {
+      return 'bg-su-brick'
     }
   }
 
@@ -105,9 +97,9 @@ export function calculateBackgroundColor(
     if (name.includes('legendary')) {
       return 'bg-su-pink'
     } else if (name.includes('advanced') || name.includes('hybrid')) {
-      return 'bg-su-brick'
+      return 'bg-su-orange'
     }
-    return 'bg-su-orange'
+    return 'bg-su-brick'
   }
 
   if (headerColor) return headerColor

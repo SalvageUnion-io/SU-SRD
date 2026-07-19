@@ -3,7 +3,7 @@ import { getDisplayName, getTechLevel, getTechLevelNumber, isAbility } from 'sal
 import type { StatItem } from '../../shared/statsBarTypes'
 import { TECH_LEVEL_BG } from '../../shared/techLevelStyles'
 import { borderColorFromHeaderBg, calculateBackgroundColor } from '../referenceEntityHelpers'
-import type { NEWCardDomain } from './EntityCardIdentityFooter'
+import type { CardDomain } from './EntityCardIdentityFooter'
 
 /** The densities a `ReferenceEntityCard` renders at. Nested entities are ALWAYS
  * 'compact'; 'listing' uses the same compact header treatment, rendered as a
@@ -12,34 +12,45 @@ import type { NEWCardDomain } from './EntityCardIdentityFooter'
 export type ReferenceEntityCardSize = 'full' | 'compact' | 'listing' | 'badge'
 
 /**
- * MONSTER/actor domain tone (approved L1 mockup): a dark navy, NOT the legacy
- * rust used by `calculateBackgroundColor` for creatures/bio-titans/NPCs/etc.
- * Reuses the tech-level-6 token as the navy swatch — it is the darkest, most
- * desaturated blue already in the palette.
+ * SCHEMA → DOMAIN — the single, exhaustive source of truth for which of the six
+ * card domains a schema belongs to. Keyed off every schema in the reference enum,
+ * so a new schema fails to COMPILE until it declares a domain: colour is an
+ * OUTPUT of type, never inferred from a class string. Book-derived (Core Book
+ * 2.0a): pilot = orange, mech (chassis) = green, crawler = pink, actor = rust,
+ * gear = tech-level ramp, glossary = ink. `abilities` / `ability-tree-requirements`
+ * are pilot-domain but resolve their ACCENT by tier (see `calculateBackgroundColor`),
+ * so their tone comes from the tier hue, not the domain hue.
  */
-export const NEW_MONSTER_TONE = 'var(--color-tl-6)'
+const SCHEMA_DOMAIN: Record<SURefEnumSchemaName, CardDomain> = {
+  abilities: 'pilot',
+  'ability-tree-requirements': 'pilot',
+  classes: 'pilot',
+  chassis: 'mech',
+  crawlers: 'crawler',
+  'crawler-bays': 'crawler',
+  'crawler-tech-levels': 'crawler',
+  creatures: 'actor',
+  'bio-titans': 'actor',
+  npcs: 'actor',
+  factions: 'actor',
+  squads: 'actor',
+  meld: 'actor',
+  systems: 'gear',
+  modules: 'gear',
+  equipment: 'gear',
+  drones: 'gear',
+  vehicles: 'gear',
+  distances: 'glossary',
+  keywords: 'glossary',
+  traits: 'glossary',
+  guides: 'glossary',
+  sources: 'glossary',
+  'roll-tables': 'glossary',
+  'tech-levels': 'glossary',
+}
 
-/** Schemas that read as an "actor" on the mockup's second axis — always navy. */
-const ACTOR_SCHEMAS = new Set<SURefEnumSchemaName>([
-  'bio-titans',
-  'creatures',
-  'npcs',
-  'factions',
-  'squads',
-  'meld',
-])
-
-/** Schemas that are "gear" — coloured by TECH LEVEL, not by domain. */
-const GEAR_SCHEMAS = new Set<SURefEnumSchemaName>([
-  'systems',
-  'modules',
-  'equipment',
-  'drones',
-  'vehicles',
-])
-
-export type NEWDomainTone = {
-  domain: NEWCardDomain
+export type DomainTone = {
+  domain: CardDomain
   bg: string | undefined
   bgColor: string | undefined
   /** Tailwind text-colour class (`text-ink` / `text-paper`) that reads against
@@ -47,57 +58,44 @@ export type NEWDomainTone = {
   onToneText: string
 }
 
-/** Paper text on dark tones (navy monster, crawler pink, TL3+ gear); ink text on
- * the light warm tones (pilot orange, mech green, TL1/TL2/Bio/Nanite gear). */
-function resolveOnToneText(
-  domain: NEWCardDomain,
-  bg: string | undefined,
-  bgColor: string | undefined
-): string {
-  if (domain === 'monster' || domain === 'crawler') return 'text-paper'
-  if (domain === 'pilot' || domain === 'mech') return 'text-ink'
-  // gear: keyed off tech-level band — tl-3..6 are dark, tl-1/tl-2 and Bio/Nanite are light.
-  const source = bg ?? bgColor ?? ''
-  const match = source.match(/tl-(\d)/)
-  if (match?.[1]) return Number(match[1]) >= 3 ? 'text-paper' : 'text-ink'
+/**
+ * Paper text on DARK grounds, ink text on the light warm/blue tones. Derived
+ * from the resolved bg TOKEN, not the domain — so tier-coloured abilities (brick
+ * Core, pink Legendary) get the right contrast even though their domain is
+ * `pilot`. Dark: brick / rust / pink / ink / tl-3..6. Light: orange / green /
+ * tl-1 / tl-2 / Bio / Nanite.
+ */
+function resolveOnToneText(bg: string | undefined): string {
+  const s = bg ?? ''
+  if (/su-brick|su-rust|su-pink|su-orange-dark|ink-2|ink\b|tl-[3-6]/.test(s)) return 'text-paper'
   return 'text-ink'
 }
 
-/** The two-axis colour resolution: DOMAIN tone, or TECH-LEVEL blue for gear. */
+/**
+ * The tone resolution: DOMAIN from the exhaustive map, ACCENT from the resolved
+ * token. Gear rides the tech-level blue ramp; everything else takes its colour
+ * from `calculateBackgroundColor` (the tier hue for abilities, the crawler
+ * `headerColor` override, black-market ink, or the plain domain hue). The domain
+ * is looked up, never parsed back out of the class string.
+ */
 export function resolveDomainTone(
   schemaName: SURefEnumSchemaName,
   entity: SURefMetaEntity
-): NEWDomainTone {
-  if (ACTOR_SCHEMAS.has(schemaName)) {
-    return {
-      domain: 'monster',
-      bg: undefined,
-      bgColor: NEW_MONSTER_TONE,
-      onToneText: 'text-paper',
-    }
-  }
+): DomainTone {
+  const domain = SCHEMA_DOMAIN[schemaName]
 
-  const techLevel = getTechLevel(entity)
-  if (GEAR_SCHEMAS.has(schemaName) && techLevel != null) {
-    if (typeof techLevel === 'number') {
-      const bg = TECH_LEVEL_BG[techLevel]
-      return {
-        domain: 'gear',
-        bg,
-        bgColor: undefined,
-        onToneText: resolveOnToneText('gear', bg, undefined),
-      }
-    }
-    // Non-numeric tiers (Bio / Nanite) use the bg-tl-b / bg-tl-n UTILITY classes
-    // — LITERAL strings so Tailwind actually emits them, matching how numeric
-    // TLs use bg-tl-1..6. An inline `var(--color-tl-n)` was never emitted as a
-    // utility, so it failed to resolve and the band fell back to ink.
-    const bg = techLevel === 'B' ? 'bg-tl-b' : 'bg-tl-n'
-    return {
-      domain: 'gear',
-      bg,
-      bgColor: undefined,
-      onToneText: resolveOnToneText('gear', bg, undefined),
+  // GEAR → tech-level blue ramp (numeric tl-1..6, or the Bio / Nanite utility
+  // class). Literal `bg-tl-*` strings so Tailwind actually emits the utility.
+  if (domain === 'gear') {
+    const techLevel = getTechLevel(entity)
+    if (techLevel != null) {
+      const bg =
+        typeof techLevel === 'number'
+          ? TECH_LEVEL_BG[techLevel]
+          : techLevel === 'B'
+            ? 'bg-tl-b'
+            : 'bg-tl-n'
+      return { domain, bg, bgColor: undefined, onToneText: resolveOnToneText(bg) }
     }
   }
 
@@ -108,14 +106,7 @@ export function resolveDomainTone(
     entity,
     TECH_LEVEL_BG
   )
-  const domain: NEWCardDomain = bg.includes('orange')
-    ? 'pilot'
-    : bg.includes('green')
-      ? 'mech'
-      : bg.includes('pink')
-        ? 'crawler'
-        : 'gear'
-  return { domain, bg, bgColor: undefined, onToneText: resolveOnToneText(domain, bg, undefined) }
+  return { domain, bg, bgColor: undefined, onToneText: resolveOnToneText(bg) }
 }
 
 /**
@@ -147,7 +138,7 @@ export function ghostActionTone(hostBase: string): {
 export function resolveCardTone(
   schemaName: SURefEnumSchemaName | 'actions',
   entity: SURefMetaEntity
-): NEWDomainTone {
+): DomainTone {
   if (schemaName === 'actions') {
     return { domain: 'action', bg: undefined, bgColor: undefined, onToneText: 'text-ink' }
   }
