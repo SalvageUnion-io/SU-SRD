@@ -169,6 +169,8 @@ export { Dial } from './components/dashboard/Dial'
 export type { DialProps, DialItem, DialGauge } from './components/dashboard/Dial'
 export { DowntimeWizard } from './components/dashboard/DowntimeWizard'
 export type { DowntimeWizardProps } from './components/dashboard/DowntimeWizard'
+export { DisplayView } from './components/dashboard/DisplayView'
+export type { DisplayViewProps, DisplayContent } from './components/dashboard/DisplayView'
 export { ActionsDeck } from './components/dashboard/ActionsDeck'
 export type {
   ActionsDeckProps,
