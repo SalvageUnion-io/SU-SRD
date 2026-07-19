@@ -5,9 +5,9 @@
  * affordance. Reference content needs the ORM, so preload('all') runs once.
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
-import { fireEvent, render, waitFor } from '@testing-library/react'
-import { EntityHrefProvider } from 'component-lib'
+import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
+import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
+import { EntityHrefProvider } from '../../referenceEntity/ReferenceEntityDisplay/entityHrefContext'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { SrdExplorer } from '../SrdExplorer'
@@ -15,6 +15,10 @@ import { SrdExplorer } from '../SrdExplorer'
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
 })
+
+// component-lib's test env has no global auto-cleanup, so unmount each render —
+// the body-scoped role queries below must not see a prior test's leftover DOM.
+afterEach(cleanup)
 
 function renderSrd() {
   return render(

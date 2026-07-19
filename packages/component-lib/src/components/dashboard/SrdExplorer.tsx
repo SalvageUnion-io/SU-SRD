@@ -20,7 +20,8 @@ import { useEffect, useState } from 'react'
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { ReferenceEntityDisplay, useSearchCombobox } from 'component-lib'
+import { ReferenceEntityDisplay } from '../referenceEntity/card/referenceEntityDisplayShim'
+import { useSearchCombobox } from '../shared/useSearchCombobox'
 
 const HIDE_CHOICES = { choices: true } as const
 

@@ -8,6 +8,7 @@
 
 import type { ReactNode } from 'react'
 import '../components/dashboard/DashboardCanvas.css'
+import '../components/dashboard/DashboardGrid.css'
 import '../components/dashboard/instruments.css'
 
 export function InstrumentStage({

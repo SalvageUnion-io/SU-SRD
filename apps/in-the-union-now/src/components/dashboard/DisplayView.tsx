@@ -33,9 +33,9 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import { usePlayStateStore } from '../../stores/playStateStore'
 import { ActionsDeck } from './ActionsDeck'
 import type { DialItem } from './dialItems'
-import { SrdExplorer } from './SrdExplorer'
-import { TablePickerOverlay } from './TablePickerOverlay'
-import type { PickableTable } from './tableCategories'
+import { SrdExplorer } from 'component-lib'
+import { TablePickerOverlay } from 'component-lib'
+import type { PickableTable } from 'component-lib'
 
 const HIDE_CHOICES = { choices: true } as const
 
