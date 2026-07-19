@@ -2,6 +2,16 @@ export default {
   stories: 'src/**/*.stories.{ts,tsx}',
   outDir: 'build-ladle',
   viteConfig: './vite.config.ts',
+  // Open on the orientation page (Foundations/Styleguide → Overview) instead of
+  // whatever sorts first, so the catalog has a front door. Story id joins every
+  // title segment and the export name with '--' (Foundations/Styleguide +
+  // Overview → foundations--styleguide--overview).
+  defaultStory: 'foundations--styleguide--overview',
+  // Per-component accessibility checks (axe-core). Off by default in Ladle; a
+  // styleguide is exactly where you want the a11y panel, so it's on here.
+  addons: {
+    a11y: { enabled: true },
+  },
   // Sidebar taxonomy, read top-to-bottom: Foundations (tokens + layout + the
   // Rendering Matrix QA harness) → Atoms (indivisible primitives) → Containers
   // (content-agnostic wrappers: Display Card / Modal / Inset / Toast / …) →
