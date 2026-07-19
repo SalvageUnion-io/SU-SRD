@@ -5,10 +5,10 @@ export default {
   // Shell relayout (injected into Ladle's own <head> — the officially-blessed
   // route for "repositioning the sidebar"). Ladle already docks the addon/controls
   // toolbar (.ladle-addons) at the bottom natively; here we keep the nav
-  // (.ladle-aside) as the standard vertical story tree but turn it into a LEFT-EDGE
-  // auto-hiding overlay: collapsed to a thin strip on the left, it slides open
-  // HORIZONTALLY (width grows) on hover / focus-within (focus-within preserves the
-  // '/' search reveal) and overlays the content, so story content (.ladle-main)
+  // (.ladle-aside) as the standard vertical story tree but turn it into a RIGHT-EDGE
+  // auto-hiding overlay: collapsed to a thin strip on the right, it slides open
+  // toward the LEFT (width grows) on hover / focus-within (focus-within preserves
+  // the '/' search reveal) and overlays the content, so story content (.ladle-main)
   // stays full-width. Desktop only — Ladle is already a stacked column on mobile.
   // These target Ladle's internal shell classes (not a public API); pinned to
   // @ladle/react 5.1.1 — RE-VERIFY on any Ladle upgrade (see
@@ -18,15 +18,15 @@ export default {
       @media (min-width: 768px) {
         .ladle-aside {
           position: fixed !important;
-          left: 0; top: 0; bottom: 0; right: auto !important;
+          right: 0; top: 0; bottom: 0; left: auto !important;
           width: 3rem;
           min-width: 0 !important;
           max-width: none !important;
           flex: none !important;
           z-index: 100;
           overflow: hidden;
-          border-right: 2px solid var(--ladle-color-accent, #6b7280);
-          box-shadow: 6px 0 20px rgba(0, 0, 0, 0.18);
+          border-left: 2px solid var(--ladle-color-accent, #6b7280);
+          box-shadow: -6px 0 20px rgba(0, 0, 0, 0.18);
           transition: width 0.16s ease-out;
         }
         .ladle-aside:hover,
@@ -37,12 +37,12 @@ export default {
         .ladle-main {
           width: 100% !important;
           max-width: none !important;
-          padding-left: 3.5rem;
+          padding-right: 3.5rem;
         }
         .ladle-resize-handle { display: none !important; }
         .ladle-addons {
-          inset-inline-start: auto !important;
-          inset-inline-end: 1rem !important;
+          inset-inline-start: 1rem !important;
+          inset-inline-end: auto !important;
         }
       }
     </style>
