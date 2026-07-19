@@ -167,6 +167,8 @@ export type { PickableTable, TableCategory } from './components/dashboard/tableC
 export { SrdExplorer } from './components/dashboard/SrdExplorer'
 export { Dial } from './components/dashboard/Dial'
 export type { DialProps, DialItem, DialGauge } from './components/dashboard/Dial'
+export { DowntimeWizard } from './components/dashboard/DowntimeWizard'
+export type { DowntimeWizardProps } from './components/dashboard/DowntimeWizard'
 export { OptRow } from './components/chrome/OptRow'
 export { Stepper } from './components/chrome/Stepper'
 export { CountStepper } from './components/chrome/CountStepper'
