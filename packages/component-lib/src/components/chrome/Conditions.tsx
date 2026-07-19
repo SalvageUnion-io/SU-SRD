@@ -1,4 +1,5 @@
 import { cn } from '../../utils/cn'
+import { Badge } from './Badge'
 
 type ConditionChipProps = {
   label: string
@@ -10,10 +11,17 @@ type ConditionChipProps = {
 }
 
 /**
- * Condition chip (design-spec §2.10 `.cond__chip`): 1.5px ink frame, active =
- * solid warn fill with white text, optional '×' remove. The label and the
- * remove glyph are sibling buttons (never nested) so both stay keyboard-
- * operable.
+ * Condition chip (design-spec §2.10 `.cond__chip`): active = solid warn fill,
+ * inactive = the ink outline, optional '×' remove. The label and the remove
+ * glyph are sibling buttons (never nested) so both stay keyboard-operable.
+ *
+ * The frame is `Badge` — this used to hand-roll the chip geometry (1.5px frame,
+ * `py-[3px]`, and an ink border even under the warn fill), which is exactly the
+ * drift the one-label-chip rule exists to kill. It now maps onto the canonical
+ * surfaces (`tone`+`warn` when active, `outline` when not), so a condition chip
+ * is a Badge that happens to carry buttons. `Badge` renders arbitrary children
+ * inside a non-interactive `<span>`, so the two controls stay valid and
+ * focusable.
  */
 export function ConditionChip({
   label,
@@ -35,12 +43,10 @@ export function ConditionChip({
     <span>{label}</span>
   )
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1.5 rounded-badge border-chrome border-ink px-2 py-[3px] font-cond text-badge font-semibold uppercase leading-none',
-        active ? 'bg-status-warn text-paper' : 'bg-paper text-ink',
-        className
-      )}
+    <Badge
+      surface={active ? 'tone' : 'outline'}
+      tone={active ? 'warn' : undefined}
+      className={cn('gap-1.5', className)}
     >
       {labelNode}
       {onRemove && (
@@ -53,7 +59,7 @@ export function ConditionChip({
           ×
         </button>
       )}
-    </span>
+    </Badge>
   )
 }
 
@@ -79,11 +85,14 @@ export function Conditions({ conditions, onRemove, onAdd, className }: Condition
           onRemove={onRemove ? () => onRemove(condition) : undefined}
         />
       ))}
+      {/* An ACTION, not a label, so it stays a plain button rather than going
+          through Badge — but it mirrors Badge's chip metrics (22px, rounded-badge,
+          border-2, px-[9px]) so it sits flush with the ConditionChips beside it. */}
       {onAdd && (
         <button
           type="button"
           onClick={onAdd}
-          className="inline-flex cursor-pointer items-center rounded-badge border-chrome border-dashed border-wk-faint px-2 py-[3px] font-cond text-badge font-semibold uppercase leading-none text-wk-muted hover:border-ink hover:text-ink"
+          className="inline-flex h-[22px] cursor-pointer items-center rounded-badge border-2 border-dashed border-wk-faint px-[9px] font-cond text-badge font-semibold uppercase leading-none tracking-caps text-wk-muted hover:border-ink hover:text-ink"
         >
           + Add
         </button>
