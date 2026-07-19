@@ -25,8 +25,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 2.5px solid var(--pc-line-hard);
-  border-radius: 5px;
+  border: var(--bw-rail) solid var(--pc-line-hard);
+  border-radius: var(--radius-panel);
   padding: 0 12px;
 }
 
@@ -51,8 +51,8 @@
 
 .pc-display {
   grid-area: display;
-  border: 2.5px solid var(--pc-line-hard);
-  border-radius: 5px;
+  border: var(--bw-rail) solid var(--pc-line-hard);
+  border-radius: var(--radius-panel);
   background: color-mix(in oklab, var(--pc-panel) 90%, #000);
 }
 
@@ -64,8 +64,8 @@
    document inset in the dark Dashboard (the reused ReferenceEntityDisplay /
    RollTable are light-themed). Its own scroll — the canvas never scrolls. */
 .pc-display-light {
-  background: #f3ede2;
-  color: #282019;
+  background: var(--color-paper);
+  color: var(--color-ink);
   overflow: hidden;
   padding: 0;
 }
@@ -76,13 +76,13 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  border: 1.5px solid var(--pc-line);
-  border-radius: 5px;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  border: var(--bw-chrome) solid var(--pc-line);
+  border-radius: var(--radius-panel);
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 12px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-caption);
   color: var(--pc-muted);
 }
 
@@ -94,10 +94,10 @@
   height: 100%;
   padding: 12px;
   text-align: center;
-  font-family: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+  font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 12px;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-caption);
   color: var(--pc-muted);
 }
