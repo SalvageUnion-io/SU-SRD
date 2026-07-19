@@ -1,17 +1,16 @@
 /**
- * DashboardGauge — the Active Item / dial instrument readout. A thin wrapper over
- * `component-lib`'s `VitalGauge` in its single-row `compact` + `instrument`
- * surface mode: the segmented-bar rendering now lives in the shared primitive
- * (one implementation for the sheet AND the dashboard), and this component only
- * maps the dashboard's tone palette onto the gauge's `--tone` vars.
+ * DashboardGauge — the Active Item / dial instrument readout. A thin, presentational
+ * wrapper over `VitalGauge` in its single-row `compact` + `instrument` surface: the
+ * segmented-bar rendering lives in the shared primitive (one gauge for the sheet AND
+ * the dashboard), and this only maps the dashboard's ontology tones onto the gauge's
+ * `--tone` vars.
  *
- * The instrument palette (`--pc-*`) keeps the dashboard's current dark look;
- * bringing it into full aesthetic match with the light sheet is a later flip of
- * these tone vars (or dropping `surface="instrument"`), not a re-implementation.
+ * Lives on the dark instrument scope — the `--pc-*` tone vars are supplied by the
+ * surrounding `.pc-root` (DashboardCanvas). No app/data coupling.
  */
 
 import type { CSSProperties } from 'react'
-import { VitalGauge } from 'component-lib'
+import { VitalGauge } from '../stat/VitalGauge'
 
 export type GaugeTone = 'mech' | 'pilot' | 'crawler'
 
@@ -21,7 +20,7 @@ const TONES: Record<GaugeTone, [string, string]> = {
   crawler: ['var(--pc-crawler)', 'var(--pc-crawler-deep)'],
 }
 
-type DashboardGaugeProps = {
+export type DashboardGaugeProps = {
   label: string
   value: number
   max: number

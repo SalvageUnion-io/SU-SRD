@@ -23,7 +23,7 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { MountState } from '../../stores/playStateStore'
-import type { GaugeTone } from './DashboardGauge'
+import type { GaugeTone } from 'component-lib'
 
 export type DialGauge = {
   label: string

@@ -1,8 +1,7 @@
 /**
- * Unit tests for DashboardGauge — now a thin wrapper over component-lib's
- * VitalGauge (single-row `compact` + `instrument` surface). Segments carry
- * `data-pip="on|off"`; danger/over-capacity segments get the `bg-status-bad`
- * fill.
+ * Unit tests for DashboardGauge — a thin wrapper over VitalGauge (single-row
+ * `compact` + `instrument` surface). Segments carry `data-pip="on|off"`;
+ * danger/over-capacity segments get the `bg-status-bad` fill.
  */
 
 import { describe, expect, test } from 'bun:test'

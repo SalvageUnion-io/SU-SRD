@@ -155,6 +155,8 @@ export { InlineEditField } from './components/chrome/InlineEditField'
 // token scope; ITUN fills it with the store-wired grid + instruments.
 export { DashboardCanvas } from './components/dashboard/DashboardCanvas'
 export { DashboardGrid } from './components/dashboard/DashboardGrid'
+export { DashboardGauge } from './components/dashboard/DashboardGauge'
+export type { DashboardGaugeProps, GaugeTone } from './components/dashboard/DashboardGauge'
 export { OptRow } from './components/chrome/OptRow'
 export { Stepper } from './components/chrome/Stepper'
 export { CountStepper } from './components/chrome/CountStepper'
