@@ -93,12 +93,14 @@ Stat renders (all four anatomies) via the Ladle stories.
 
 ### Centralized Ladle catalog
 
-Every primitive now has a story under one **`Primitives/*`** namespace
-(`bun run ladle`) — a dev-tool catalog living centrally in
-`packages/component-lib/src/stories/primitives/` (Badges · Buttons · Chrome ·
-VitalGauge) plus the retitled Stat / DisplayCard / RollTable / Stamp&Text
-/ Tooltip / Toaster / ActivationCostBox. Stories only render the shipped
-components, so the catalog is ground truth. `ladle build` passes.
+Every primitive has a story in the single central catalog (`bun run ladle`,
+in `packages/component-lib`), organised under the
+**Foundations → Atoms → Containers → Compositions** taxonomy. Stories
+are **co-located** beside their components (`src/stories/primitives/` now holds
+only the curated multi-component comparison galleries — Badges · Buttons ·
+Layout). Stories only render the shipped components, so the catalog is ground
+truth. `ladle build` passes. See
+[`ladle-styleguide.md`](./ladle-styleguide.md) for the full conventions.
 
 ### Known deviations — RESOLVED
 

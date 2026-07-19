@@ -11,7 +11,7 @@ override them).
 > Run it with `bun run ladle` from the repo root. Every public visual component must have a
 > `*.stories.tsx` beside it (a test enforces this). Stories are plain function components typed
 > `Story`, exported from a file with `export default { title: 'Group/Title Case' }`, driven by
-> **real SRD data**, grouped Foundations → Atoms → Containers → Compositions → Legacy. We do not
+> **real SRD data**, grouped Foundations → Atoms → Containers → Compositions. We do not
 > use args/argTypes/controls/decorators/MSW — interactivity is plain `useState`. Don't change the
 > pinned `@ladle/react@5.1.1` or its patch without reading §9.
 
@@ -96,7 +96,7 @@ export default {
     a11y: { enabled: true },
   },
   storyOrder: (stories) => {
-    const order = ['foundations', 'atoms', 'containers', 'compositions', 'legacy']
+    const order = ['foundations', 'atoms', 'containers', 'compositions']
     const rank = (id) => {
       const i = order.findIndex((g) => id.startsWith(g))
       return i === -1 ? order.length : i
@@ -114,26 +114,26 @@ The story-id format `defaultStory` targets joins every title segment and the exp
 
 ### 3.1 Every config option (with Ladle's defaults)
 
-| Option                 | Default                                | Notes / our value                                                                                                              |
-| ---------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `stories`              | `src/**/*.stories.{js,jsx,ts,tsx,mdx}` | We narrow to `src/**/*.stories.{ts,tsx}` (TS only, no MDX).                                                                    |
-| `defaultStory`         | `""`                                   | Story key to open on load. We open on `foundations--styleguide--overview` (the orientation page).                              |
-| `storyOrder`           | identity `(s) => s`                    | A function or array (supports `["folder*"]` wildcards). We sort by the four-group taxonomy (+ Legacy drain) — see §6.2.        |
-| `viteConfig`           | `undefined`                            | Path to a Vite config Ladle should merge. We point at `./vite.config.ts` (Tailwind only — see §5.1).                           |
-| `outDir`               | `build`                                | We use `build-ladle`.                                                                                                          |
-| `base`                 | `undefined`                            | Base path for sub-path deploys (e.g. GitHub Pages).                                                                            |
-| `port` / `previewPort` | `61000` / `8080`                       | Dev / preview server ports. `61000` is the URL the VR harness hits.                                                            |
-| `host` / `previewHost` | —                                      | Bind host for dev / preview.                                                                                                   |
-| `hmrHost` / `hmrPort`  | `undefined`                            | HMR overrides (rarely needed).                                                                                                 |
-| `mode`                 | Vite mode                              | Affects `.env` loading.                                                                                                        |
-| `appendToHead`         | `""`                                   | Inject raw CSS/HTML into `<head>` (fonts, margin resets). We inject nothing here — global CSS comes through the provider (§5). |
-| `expandStoryTree`      | `false`                                | Auto-expand the whole sidebar on load.                                                                                         |
-| `noWatch`              | `false`                                | Disable file watching.                                                                                                         |
-| `disableHttp2`         | `false`                                | —                                                                                                                              |
-| `hotkeys`              | see below                              | Per-action key arrays.                                                                                                         |
-| `i18n`                 | one tooltip string                     | UI copy overrides.                                                                                                             |
-| `onDevServerStart`     | no-op                                  | Hook fired when the dev server boots.                                                                                          |
-| `addons`               | see §5.4                               | Per-addon `{ enabled, defaultState, … }`. We enable `a11y` (axe).                                                              |
+| Option                 | Default                                | Notes / our value                                                                                                                                                                                                                 |
+| ---------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `stories`              | `src/**/*.stories.{js,jsx,ts,tsx,mdx}` | We narrow to `src/**/*.stories.{ts,tsx}` (TS only, no MDX).                                                                                                                                                                       |
+| `defaultStory`         | `""`                                   | Story key to open on load. We open on `foundations--styleguide--overview` (the orientation page).                                                                                                                                 |
+| `storyOrder`           | identity `(s) => s`                    | A function or array (supports `["folder*"]` wildcards). We sort by the four-group taxonomy — see §6.2.                                                                                                                            |
+| `viteConfig`           | `undefined`                            | Path to a Vite config Ladle should merge. We point at `./vite.config.ts` (Tailwind only — see §5.1).                                                                                                                              |
+| `outDir`               | `build`                                | We use `build-ladle`.                                                                                                                                                                                                             |
+| `base`                 | `undefined`                            | Base path for sub-path deploys (e.g. GitHub Pages).                                                                                                                                                                               |
+| `port` / `previewPort` | `61000` / `8080`                       | Dev / preview server ports. `61000` is the URL the VR harness hits.                                                                                                                                                               |
+| `host` / `previewHost` | —                                      | Bind host for dev / preview.                                                                                                                                                                                                      |
+| `hmrHost` / `hmrPort`  | `undefined`                            | HMR overrides (rarely needed).                                                                                                                                                                                                    |
+| `mode`                 | Vite mode                              | Affects `.env` loading.                                                                                                                                                                                                           |
+| `appendToHead`         | `""`                                   | Inject raw CSS/HTML into Ladle's own shell `<head>`. We use it for the **shell relayout** (§5.5) — a `<style>` block that docks the nav as a bottom auto-hiding overlay. Story-content CSS still comes through the provider (§5). |
+| `expandStoryTree`      | `false`                                | Auto-expand the whole sidebar on load.                                                                                                                                                                                            |
+| `noWatch`              | `false`                                | Disable file watching.                                                                                                                                                                                                            |
+| `disableHttp2`         | `false`                                | —                                                                                                                                                                                                                                 |
+| `hotkeys`              | see below                              | Per-action key arrays.                                                                                                                                                                                                            |
+| `i18n`                 | one tooltip string                     | UI copy overrides.                                                                                                                                                                                                                |
+| `onDevServerStart`     | no-op                                  | Hook fired when the dev server boots.                                                                                                                                                                                             |
+| `addons`               | see §5.4                               | Per-addon `{ enabled, defaultState, … }`. We enable `a11y` (axe).                                                                                                                                                                 |
 
 Default hotkeys (override individually via `hotkeys: { … }`):
 
@@ -159,8 +159,9 @@ crashes or blank stories:
   carries a comment saying exactly this; honor it.
 - **`components.tsx`** — **browser-only**. This is where React lives: the `GlobalProvider`, global CSS
   imports, context providers, data preload. See §4.
-- **`head.html`** — raw HTML injected into `<head>`. We don't use one; global styling flows through
-  the provider's CSS import instead. (`appendToHead` in config is the programmatic equivalent.)
+- **`head.html`** — raw HTML injected into `<head>`. We don't use the file form; the shell relayout
+  (§5.5) goes through `appendToHead` in `config.mjs` instead (the programmatic equivalent, kept beside
+  the rest of the config), and story-content styling flows through the provider's CSS import.
 
 ---
 
@@ -325,6 +326,31 @@ addons: {
 }
 ```
 
+### 5.5 Shell relayout — bottom auto-hiding nav, full-bleed content
+
+Ladle's default shell puts the story-nav sidebar on the left and the addon/controls toolbar floating
+bottom-left. We relayout the shell so the **story content is always full-width and full-height** and the
+nav gets out of the way:
+
+- **Controls stay at the bottom (native).** Ladle already pins the addon toolbar (`.ladle-addons`) to
+  `position: fixed; bottom: 0` — no work needed; we only nudge it to the bottom-right so it doesn't
+  overlap the nav strip.
+- **Nav becomes a bottom auto-hiding overlay.** A `<style>` block in `appendToHead` (`.ladle/config.mjs`)
+  pulls the nav (`.ladle-aside`) out of the flex row (`position: fixed; left/right/bottom: 0`), collapses
+  it to a ~2.5rem strip, and expands it to 55vh on `:hover` / `:focus-within` — as an **overlay that does
+  not reserve layout space**, so `.ladle-main` fills the row (`width: 100%`). `:focus-within` keeps the
+  `/` search reveal working; the drag-resize handle is hidden. Desktop-only (`min-width: 768px`); Ladle
+  already stacks to a bottom column on mobile.
+
+**This is the officially-blessed route** — Ladle's docs cite `appendToHead` for "repositioning the
+sidebar." But it targets Ladle's **internal shell classes** (`.ladle-aside` / `.ladle-main` /
+`.ladle-addons`), which are not a public API. They are **load-bearing and pinned to `@ladle/react`
+5.1.1** (§9): on any Ladle upgrade, re-verify these selectors still exist and the collapse still works.
+To switch the nav to a **left-edge** overlay instead of bottom, change the `.ladle-aside` block to
+`left/top/bottom: 0` with a collapsed `width` + `:hover` width (the config comment notes this). The
+inline `min-width` Ladle sets via its resize logic must be beaten with `min-width: 0 !important` — the
+recipe already does.
+
 ---
 
 ## 6. Writing a story (the conventions, enforced)
@@ -370,8 +396,8 @@ Rules that hold here:
 
 ### 6.2 The four groups (sidebar order, top-to-bottom)
 
-`storyOrder` sorts the sidebar into a deliberate reading order that encodes both composition level and
-refresh status:
+`storyOrder` sorts the sidebar into a deliberate reading order that encodes composition level (simple →
+complex, read top-to-bottom):
 
 1. **Foundations** — design tokens + layout scaffolding + the QA harness. No product component
    (`Theme`, `Layout`, the `Rendering Matrix`).
@@ -381,12 +407,9 @@ refresh status:
    `Banner`, `Toast`, `Empty State`, `Skeleton`).
 4. **Compositions** — domain/game components built from atoms (the Reference Entity family, Choice
    Groups, Roll Table, App Bar, Dashboard/*, …).
-5. **Legacy** — the **drain**: a component's story lands here only while the component still uses
-   pre-canon tokens (`su-grey*`, `su-white`, arbitrary `text-[Npx]`, etc.). When it's refreshed onto
-   the canonical primitives, **move the story out of `Legacy/` into its real group.** Legacy is a
-   staging area to empty, not a home. (Currently empty.)
 
-The definitive group definitions live in `component-lib/CLAUDE.md`; keep the two in sync.
+The definitive group definitions live in `component-lib/CLAUDE.md`; keep the two in sync. (There is no
+`Legacy` tier — the style-unification refresh is complete, so every component lives in its real group.)
 
 ### 6.3 Why we don't use args / argTypes / controls
 
@@ -432,6 +455,24 @@ gallery section with a one-line prose statement of the rule it demonstrates (exi
 
 ---
 
+### 6.6 Lay out for comparison, not just display
+
+A styleguide earns its keep when drift is **catchable at a glance**, so a component's primary story is a
+**captioned side-by-side gallery** of its real states, not a single lonely instance:
+
+- **Show every meaningful state on one canvas**, laid out for the eye to compare — a variant grid (every
+  size/tone as captioned cells), a state matrix (rows = variant × columns = state: default / disabled /
+  loading / damaged / empty), or a compact-vs-expanded / before-after pair. Side-by-side is the only
+  layout where mismatched spacing, weight, or tone jumps out.
+- **Caption each cluster** with one line (what it is + when to use it) via the shared `Caption` helper —
+  that is what turns a grid of unlabeled boxes into documentation.
+- **Keep the export named `Default`** when a file has a single show-everything page (§6.1). We adopt the
+  _content_ practice of a side-by-side "overview" gallery, but not a rename — story ids are effectively a
+  public URL (deep links, the `defaultStory` front door), so we don't churn export names.
+- **Reserve live `useState` for behavior.** When the point is an interaction (a stepper increments, an
+  inline-edit commits, a modal opens), a real `useState` demo beats a static grid — and beats a
+  knobs/controls panel, which we don't use (§6.3).
+
 ## 7. Coverage is enforced — stories are part of the contract
 
 `src/story-coverage.test.ts` (a `bun:test`) fails CI unless **every barrel-exported (`src/index.ts`)
@@ -445,8 +486,16 @@ visual component is referenced by at least one `*.stories.tsx`**. Practical cons
   no longer exists. So when you story a previously-allowlisted component (or delete one), prune the
   allowlist in the same change.
 
+**A second assertion in the same test guards the taxonomy.** Every story's **meta** `title:` must start
+with a sanctioned top-level group — `^(Foundations|Atoms|Containers|Compositions)/…`. This is what
+keeps the sidebar from growing an un-prefixed junk drawer. It extracts **only** the default-export meta
+title (the first `title:` after `export default`),
+so non-meta `title:` occurrences in story bodies — entity names like `'Cargo Hold'`, a `title:` prop, a
+code-sample string — are correctly ignored. Add a new group only by extending both this pattern and the
+`storyOrder` list in `config.mjs` (§3).
+
 This is what makes the catalog _trustworthy as a styleguide_: it is provably complete with respect to
-the public API, not "most things, probably."
+the public API **and** structurally consistent — not "most things, probably."
 
 ---
 
@@ -524,9 +573,11 @@ docs — treat it as such.
   [`canonical-primitive-language.md`](./canonical-primitive-language.md)). A `tools/check-bun-version.ts`
   guard runs in `validate:all` near this discipline.
 
-**If you bump Ladle:** re-verify the patch still applies (or regenerate it), re-run `ladle build`, and
+**If you bump Ladle:** re-verify the patch still applies (or regenerate it), re-run `ladle build`,
 confirm no story renders blank (the two classic blank-story causes are the double React plugin, §5.1,
-and a broken preload gate, §4).
+and a broken preload gate, §4), **and re-verify the shell relayout** (§5.5) — its `appendToHead` CSS
+targets Ladle's internal shell classes (`.ladle-aside` / `.ladle-main` / `.ladle-addons`), which are not
+a public API and could be renamed in a Ladle major.
 
 ---
 
@@ -548,8 +599,8 @@ and a broken preload gate, §4).
 
 - [ ] Component added to `src/index.ts` barrel (if public).
 - [ ] `<Component>.stories.tsx` co-located beside it.
-- [ ] `export default { title: 'Group/Title Case' }`, group correct per §6.2 (not `Legacy` unless
-      genuinely un-refreshed).
+- [ ] `export default { title: 'Group/Title Case' }`, group correct per §6.2 (one of Foundations /
+      Atoms / Containers / Compositions).
 - [ ] Named exports typed `Story`; catch-all page named `Default`.
 - [ ] Every example driven by **real SRD data** through the **real components** (§6.4).
 - [ ] No outer `bg-paper` wrapper (the global canvas supplies it).
