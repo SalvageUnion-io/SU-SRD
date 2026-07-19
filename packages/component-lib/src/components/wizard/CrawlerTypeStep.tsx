@@ -1,13 +1,11 @@
 import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
-import {
-  EmptyState,
-  MasonryColumns,
-  OptRow,
-  Panel,
-  ReferenceEntityCard,
-  TreeSep,
-} from 'component-lib'
+import { EmptyState } from '../chrome/EmptyState'
+import { OptRow } from '../chrome/OptRow'
+import { Panel } from '../chrome/Panel'
+import { TreeSep } from '../chrome/TreeSep'
+import { MasonryColumns } from '../shared/MasonryColumns'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 
 type CrawlerTypeOptionListProps = {
   types: SURefCrawler[]

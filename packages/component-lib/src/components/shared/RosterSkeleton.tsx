@@ -7,7 +7,7 @@
  * page. Columns 2–3 hide below `md`, matching the mobile single-column view.
  */
 
-import { cn } from '../../lib/utils'
+import { cn } from '../../utils/cn'
 
 /** Row-shaped shimmer placeholder matching component-lib's `Row` frame. */
 function SkeletonRow() {

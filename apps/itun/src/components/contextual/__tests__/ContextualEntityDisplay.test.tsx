@@ -15,7 +15,7 @@
 import { beforeAll, describe, expect, it, mock } from 'bun:test'
 import { render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ContextualEntityDisplay } from '../ContextualEntityDisplay'
+import { ContextualEntityDisplay } from 'component-lib'
 import { must } from '../../__tests__/must'
 
 // ---------------------------------------------------------------------------

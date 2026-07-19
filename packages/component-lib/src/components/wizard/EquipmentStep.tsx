@@ -1,7 +1,8 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
-import { MasonryColumns, ReferenceEntityCard } from 'component-lib'
+import { MasonryColumns } from '../shared/MasonryColumns'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 
 type SUREquipmentAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]

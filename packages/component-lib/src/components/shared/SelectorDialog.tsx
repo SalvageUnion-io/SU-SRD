@@ -7,7 +7,8 @@
  * error) — this component is a controlled, dumb view.
  */
 
-import { Button, ModalShell } from 'component-lib'
+import { Button } from '../chrome/Button'
+import { ModalShell } from '../shared/ModalShell'
 
 type SelectorOption = {
   id: string

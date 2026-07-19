@@ -1,4 +1,4 @@
-import { Stat } from 'component-lib'
+import { Stat } from '../shared/Stat'
 import { MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 
 /**

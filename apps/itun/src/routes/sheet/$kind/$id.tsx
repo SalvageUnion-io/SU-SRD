@@ -18,7 +18,7 @@ import { buttonVariants } from 'component-lib'
 import { useEntityStore } from '../../../stores/entityStore'
 import { AppLink } from '../../../components/shared/AppLink'
 import { Sheet } from '../../../components/sheet/Sheet'
-import { SheetSkeleton } from '../../../components/sheet/SheetSkeleton'
+import { SheetSkeleton } from 'component-lib'
 import { cn } from '../../../lib/utils'
 import type { EntityRef } from '../../../lib/schemas/entity'
 

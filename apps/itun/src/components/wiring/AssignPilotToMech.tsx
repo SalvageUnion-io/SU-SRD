@@ -19,7 +19,7 @@ import { usePilots } from '../../hooks/queries'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLinkStore } from './useSoftLinks'
 import { useSoftLinks } from './useSoftLinks'
-import { SelectorDialog } from '../shared/SelectorDialog'
+import { SelectorDialog } from 'component-lib'
 import { cn } from '../../lib/utils'
 
 /** Extended injectable store that also exposes pilot listing. */

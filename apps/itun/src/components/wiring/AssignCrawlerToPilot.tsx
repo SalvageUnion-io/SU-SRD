@@ -20,7 +20,7 @@ import { useCrawlers } from '../../hooks/queries'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { SoftLinkStore } from './useSoftLinks'
 import { useSoftLinks } from './useSoftLinks'
-import { SelectorDialog } from '../shared/SelectorDialog'
+import { SelectorDialog } from 'component-lib'
 import { cn } from '../../lib/utils'
 
 /** Extended injectable store that also exposes crawler listing. */

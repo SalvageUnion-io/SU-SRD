@@ -1,6 +1,6 @@
 import type { SURefCrawler, SURefMetaCrawlerTechLevel } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
-import { Stat } from 'component-lib'
+import { Stat } from '../shared/Stat'
 
 type CrawlerStatsStepProps = {
   /** The Tech Level 1 (Hamlet Crawler) entity — creation is fixed there. */

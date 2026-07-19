@@ -23,7 +23,7 @@ import {
   type CrawlerWizardFormState,
 } from '../../lib/wizard/crawlerFormState'
 import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
-import { CrawlerTypeDetail, CrawlerTypeOptionList } from './CrawlerTypeStep'
+import { CrawlerTypeDetail, CrawlerTypeOptionList } from 'component-lib'
 
 type CrawlerTypeEditModalProps = {
   open: boolean

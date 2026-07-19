@@ -235,6 +235,23 @@ export { CrawlerEconFrame } from './components/sheet/CrawlerEcon'
 export type { EconLozItem } from './components/sheet/CrawlerEcon'
 export { ConditionsEditor } from './components/sheet/ConditionsEditor'
 export { ConditionToggle } from './components/sheet/ConditionToggle'
+
+// Wizard step presentation lifted out of ITUN — pure option/detail rendering;
+// the app supplies the selections and the persistence.
+export {
+  CrawlerTypeOptionList,
+  CrawlerTypeDetail,
+  CrawlerTypeSelectStep,
+} from './components/wizard/CrawlerTypeStep'
+export { CrawlerStatsStep } from './components/wizard/CrawlerStatsStep'
+export { SystemsList } from './components/wizard/SystemsList'
+export { EquipmentStep } from './components/wizard/EquipmentStep'
+export { GainScrapStep } from './components/wizard/GainScrapStep'
+export { SelectorDialog } from './components/shared/SelectorDialog'
+export { ContextualEntityDisplay } from './components/shared/ContextualEntityDisplay'
+export { RosterSkeleton } from './components/shared/RosterSkeleton'
+export { DeleteConfirmDialog } from './components/shared/DeleteConfirmDialog'
+export { SheetSkeleton } from './components/sheet/SheetSkeleton'
 export type { ItemCondition } from './components/sheet/ConditionToggle'
 // Live-sheet section chrome — the unified EDIT LANGUAGE primitives (section
 // Edit/Add toggles, the one shared picker modal, per-card remove) lifted out of

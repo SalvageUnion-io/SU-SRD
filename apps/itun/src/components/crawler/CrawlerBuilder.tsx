@@ -45,9 +45,9 @@ import { WizShell, WizTracker } from 'component-lib'
 import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
 import { CrawlerReviewStep } from './CrawlerReviewStep'
-import { CrawlerStatsStep } from './CrawlerStatsStep'
-import { CrawlerTypeSelectStep } from './CrawlerTypeStep'
-import { SystemsList } from './SystemsList'
+import { CrawlerStatsStep } from 'component-lib'
+import { CrawlerTypeSelectStep } from 'component-lib'
+import { SystemsList } from 'component-lib'
 
 /**
  * Book-order steps (Union Crawler pp.212–213 + Review — plan §4.3). Edit mode
