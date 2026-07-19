@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../../utils/cn'
-import { Stat } from '../../shared/Stat'
 
 /** One sub-header cell — a horizontal Stat `[label | value]` (value
  * optional for label-only keywords, e.g. "Immobile"). The MODIFIED-STATS language
@@ -68,42 +67,27 @@ export function EntityCardSubHeader({
   // text-xs) — bigger than the old text-label, still smaller than full. The
   // inter-cell gap is the SAME (gap-1.5) at both sizes.
 
+  // Book-style sub-header: the stat cells read as ONE line of basic cream
+  // (paper-tone) text — each cell as "LABEL value" — separated by " // ", matching
+  // the rulebook's trait line rather than a row of stamps.
+  const cellToText = (cell: EntityCardSubHeaderCell) =>
+    cell.value != null && cell.value !== '' ? `${cell.label} ${cell.value}` : cell.label
+  const parts = [
+    ...cells.map(cellToText),
+    ...(group && group.cells.length > 0 ? [group.label, ...group.cells.map(cellToText)] : []),
+  ]
+
   const inner = (
     <>
       {leading}
-      {cells.map((cell) => (
-        <Stat
-          key={cell.key}
-          orientation="horizontal"
-          label={cell.label}
-          value={cell.value}
-          state={cell.borderColor ? 'modified' : undefined}
-          bgColor={cell.labelBg}
-          textColor={cell.labelBg ? 'var(--color-paper)' : undefined}
-          compact={compact}
-        />
-      ))}
-      {hasGroup && (
-        // One container → the label + all its cells wrap together as a unit, the
-        // EXACT same horizontal Stat treatment as the trait cells. Only
-        // the LABEL box is tinted GREEN (`status-ok`); the stat cells are BLACK.
-        <span className="inline-flex flex-wrap items-center gap-1.5">
-          <Stat
-            orientation="horizontal"
-            label={group.label}
-            bgColor="var(--color-status-ok)"
-            textColor="var(--color-paper)"
-            compact={compact}
-          />
-          {group.cells.map((cell) => (
-            <Stat
-              key={cell.key}
-              orientation="horizontal"
-              label={cell.label}
-              value={cell.value}
-              compact={compact}
-            />
-          ))}
+      {parts.length > 0 && (
+        <span
+          className={cn(
+            'font-cond uppercase leading-snug tracking-caps-tight text-paper',
+            compact ? 'text-xs' : 'text-sm'
+          )}
+        >
+          {parts.join(' // ')}
         </span>
       )}
     </>
