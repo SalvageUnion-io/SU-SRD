@@ -78,8 +78,8 @@ describe('ActiveItemBand rules buttons', () => {
     render(<ActiveItemBand mech={mech} pilot={null} store={store} />)
     fireEvent.click(screen.getByText('Take Dmg'))
     // Bump damage 1 → 3, then apply.
-    fireEvent.click(screen.getByLabelText('Increase damage'))
-    fireEvent.click(screen.getByLabelText('Increase damage'))
+    fireEvent.click(screen.getByLabelText('Add one damage point'))
+    fireEvent.click(screen.getByLabelText('Add one damage point'))
     fireEvent.click(screen.getByText('Apply −3 SP'))
     expect(calls[0]?.patch).toEqual({ currentSP: 7 })
   })

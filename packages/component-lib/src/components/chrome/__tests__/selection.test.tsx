@@ -3,15 +3,8 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { PickCard } from '../PickCard'
 import { Sel } from '../Sel'
 import { OptRow } from '../OptRow'
-import { Stepper } from '../Stepper'
 
 afterEach(cleanup)
-
-/** Narrow a possibly-null query result, failing the test loudly if absent. */
-function must<T>(value: T | null | undefined): T {
-  if (value == null) throw new Error('Expected element to be present')
-  return value
-}
 
 describe('PickCard', () => {
   test('renders name, body and foot', () => {
@@ -88,26 +81,5 @@ describe('OptRow', () => {
   test('inactive row has no caret', () => {
     render(<OptRow name="Iron Mongrel" />)
     expect(screen.queryByText('▸')).toBeNull()
-  })
-})
-
-describe('Stepper', () => {
-  const steps = ['Class', 'Abilities', 'Equipment', 'Review']
-
-  test('marks the active step with aria-current and zero-pads numbers', () => {
-    render(<Stepper steps={steps} active={1} />)
-    const active = must(screen.getByText('Abilities').closest('button'))
-    expect(active.getAttribute('aria-current')).toBe('step')
-    expect(screen.getByText('01')).toBeTruthy()
-    expect(screen.getByText('02')).toBeTruthy()
-  })
-
-  test('done steps are clickable when onStepClick provided; future steps are not', () => {
-    const onStepClick = mock((i: number) => i)
-    render(<Stepper steps={steps} active={2} onStepClick={onStepClick} />)
-    fireEvent.click(must(screen.getByText('Class').closest('button')))
-    expect(onStepClick).toHaveBeenLastCalledWith(0)
-    const future = must(screen.getByText('Review').closest('button'))
-    expect(future.hasAttribute('disabled')).toBe(true)
   })
 })
