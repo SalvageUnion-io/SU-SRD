@@ -1,30 +1,28 @@
 import type { Story } from '@ladle/react'
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { Button, Field, Input, ModalShell } from 'component-lib'
-import { cn } from '../../../utils/cn'
-import { Caption } from '../../_harness'
+import { Button, Field, Input, ModalShell, ModeDoor, Select } from 'component-lib'
+import { cn } from '../../utils/cn'
+import { Caption } from '../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Wizard/New Entity Screen' }
+export default { title: 'Compositions/New Entity Screen' }
 
 /**
- * Verbatim reproduction of the /new mode switch —
- * apps/in-the-union-now/src/components/wizard/NewEntityScreen.tsx — the
- * router-agnostic shell behind every create route. NewEntityScreen has no chrome
- * of its own; it composes CreateModeChooser (already captured in
- * LegacyCreateModeDoors) and BlankCreateDialog, switching on the `mode` search
- * param:
+ * Mirror of the /new mode router — apps/in-the-union-now/src/components/wizard/
+ * NewEntityScreen.tsx — the router-agnostic shell behind every create route. It
+ * composes CreateModeChooser (two `ModeDoor`s under a poster band) and
+ * BlankCreateDialog (a `ModalShell` of `Field`/`Input`/`Select`), switching on
+ * the `mode` search param:
  *
- *   mode 'guided' → the EXISTING guided wizard, rendered unchanged (slot).
+ *   mode 'guided' → the existing guided wizard, rendered unchanged (slot).
  *   mode absent   → CreateModeChooser (Guided vs Blank doors).
  *   mode 'blank'  → the chooser with BlankCreateDialog open over it.
  *
- * Both children are inlined verbatim (app components can't be imported), so this
- * story also freezes the BlankCreateDialog shell (ModalShell + Field/Input +
- * native select) — the one wizard-chrome piece not covered by the two existing
- * door stories. The `mode` state is driven by local useState; the app's
- * `createBlank` persistence and `AppLink` are stubbed as a fake id + plain <a>.
+ * App components can't be imported cross-package, so this reproduces them using
+ * the SAME shared primitives the app now consumes (`ModeDoor` + `Select` +
+ * `Field`/`Input`/`ModalShell`) — no hand-rolled door/select markup. The app's
+ * `createBlank` persistence and `AppLink` are stubbed (a fake id + a plain <a>).
  */
 
 // --- Local mirrors of ITUN app-only types (cannot import from apps). ---
@@ -37,7 +35,7 @@ const KIND_LABEL: Record<BlankCreateKind, string> = {
   crawler: 'Crawler',
 }
 
-// --- CreateModeChooser chrome (verbatim from apps/.../wizard/CreateModeChooser.tsx). ---
+// --- CreateModeChooser (verbatim from apps/.../wizard/CreateModeChooser.tsx). ---
 const GUIDED_COPY: Record<BlankCreateKind, { body: string; cite: string }> = {
   pilot: {
     body: 'Step through the Pilot Bay rules, one card at a time — class, abilities, equipment, identity.',
@@ -52,18 +50,6 @@ const GUIDED_COPY: Record<BlankCreateKind, { body: string; cite: string }> = {
     cite: 'Union Crawlers begin on p. 212.',
   },
 }
-
-const DOOR_CLASS =
-  'relative min-h-[170px] cursor-pointer rounded-xl p-[22px] pb-5 pl-[26px] text-left transition-transform duration-[120ms] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/[0.22]'
-
-const DTAB_CLASS =
-  'absolute -left-3.5 top-[18px] grid h-12 w-11 place-items-center rounded-[2px] bg-ink font-cond text-[22px] font-bold text-paper shadow-[0_8px_14px_-8px_rgba(0,0,0,0.55)]'
-
-const DHEAD_CLASS =
-  'mb-1.5 ml-[34px] block font-cond text-[27px] font-bold uppercase leading-none tracking-caps-tight'
-
-const DBODY_CLASS = 'ml-[34px] block font-body text-[13px] leading-[1.55]'
-const DCITE_CLASS = 'ml-[34px] mt-2.5 block font-body text-[12.5px] font-bold'
 
 function CreateModeChooser({
   kind,
@@ -83,6 +69,7 @@ function CreateModeChooser({
       style={{ background: 'var(--ground)' }}
       aria-label={`New ${label.toLowerCase()} — choose how to create`}
     >
+      {/* Poster band: tone ground, white condensed banner, a tone bandtail. */}
       <header
         className="border-b-4 border-paper/95 px-5 pb-3.5 pt-7 sm:px-7"
         style={{ background: 'var(--tone)' }}
@@ -94,45 +81,30 @@ function CreateModeChooser({
       <div className="h-2.5" style={{ background: 'var(--tone)' }} aria-hidden="true" />
 
       <div className="mx-auto w-full max-w-4xl px-6 py-8 sm:px-8 sm:py-10">
+        {/* The two doors — the shared ModeDoor atom (Atoms/Mode Door). */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-5">
-          <button
-            type="button"
-            onClick={onGuided}
-            className={cn(
-              DOOR_CLASS,
-              'shadow-[0_0_0_3px_var(--ground),0_0_0_7px_var(--color-ink),0_18px_30px_-14px_rgba(0,0,0,0.5)]'
-            )}
-            style={{ background: 'var(--tone)' }}
+          <ModeDoor
+            variant="guided"
+            tab="▶"
+            headline="Guided"
+            cite={guided.cite}
+            onSelect={onGuided}
           >
-            <span className={DTAB_CLASS} aria-hidden="true">
-              ▶
-            </span>
-            <span className={cn(DHEAD_CLASS, 'text-paper [text-shadow:0_1px_0_rgba(0,0,0,0.38)]')}>
-              Guided
-            </span>
-            <span className={cn(DBODY_CLASS, 'text-ink')}>{guided.body}</span>
-            <span className={cn(DCITE_CLASS, 'text-ink')}>{guided.cite}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onBlank}
-            className={cn(
-              DOOR_CLASS,
-              'border-entity border-dashed border-ink/55 bg-paper text-ink shadow-[0_14px_26px_-14px_rgba(0,0,0,0.4)]'
-            )}
+            {guided.body}
+          </ModeDoor>
+          <ModeDoor
+            variant="blank"
+            tab="✎"
+            headline="Blank"
+            cite="For veterans, imports, and homebrew."
+            onSelect={onBlank}
           >
-            <span className={DTAB_CLASS} aria-hidden="true">
-              ✎
-            </span>
-            <span className={cn(DHEAD_CLASS, 'text-ink')}>Blank</span>
-            <span className={DBODY_CLASS}>
-              An empty sheet. No steps, no limits. Fill it in on the live sheet.
-            </span>
-            <span className={DCITE_CLASS}>For veterans, imports, and homebrew.</span>
-          </button>
+            An empty sheet. No steps, no limits. Fill it in on the live sheet.
+          </ModeDoor>
         </div>
 
+        {/* Mech only: the third Blank-family door — Instantiate from Pattern
+            (app links via AppLink to /mechs/patterns; a plain <a> stands in). */}
         {kind === 'mech' && (
           <a
             href="/mechs/patterns"
@@ -148,10 +120,7 @@ function CreateModeChooser({
   )
 }
 
-// --- BlankCreateDialog chrome (verbatim from apps/.../wizard/BlankCreateDialog.tsx). ---
-const SELECT_CLASS =
-  'w-full min-h-11 rounded-[3px] border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
-
+// --- BlankCreateDialog (verbatim from apps/.../wizard/BlankCreateDialog.tsx). ---
 type RefOption = { value: string; label: string }
 
 /** All classes, id-valued — deliberately unfiltered (incl. specialisations). */
@@ -212,7 +181,7 @@ function BlankCreateDialog({
   const [refPick, setRefPick] = useState('')
   const [techLevel, setTechLevel] = useState(1)
   const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error] = useState<string | null>(null)
 
   const label = KIND_LABEL[kind]
   const pickOptions = useMemo(
@@ -225,9 +194,8 @@ function BlankCreateDialog({
 
   function handleCreate() {
     setPending(true)
-    setError(null)
     // App wires createBlank (IndexedDB persistence); stubbed here as a fake id.
-    onCreated(`legacy-${kind}-preview`)
+    onCreated(`preview-${kind}`)
   }
 
   return (
@@ -273,11 +241,10 @@ function BlankCreateDialog({
             label={kind === 'pilot' ? 'Class (optional)' : 'Chassis (optional)'}
             htmlFor={`blank-${kind}-pick`}
           >
-            <select
+            <Select
               id={`blank-${kind}-pick`}
               value={refPick}
               onChange={(e) => setRefPick(e.target.value)}
-              className={SELECT_CLASS}
             >
               <option value="">None — decide on the sheet</option>
               {pickOptions.map((option) => (
@@ -285,24 +252,23 @@ function BlankCreateDialog({
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         )}
 
         {kind === 'crawler' && (
           <Field label="Tech Level" htmlFor="blank-crawler-tl">
-            <select
+            <Select
               id="blank-crawler-tl"
               value={String(techLevel)}
               onChange={(e) => setTechLevel(Number(e.target.value))}
-              className={SELECT_CLASS}
             >
               {tlOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         )}
 
@@ -332,7 +298,7 @@ function BlankCreateDialog({
 }
 
 // --- NewEntityScreen router (verbatim logic from apps/.../wizard/NewEntityScreen.tsx). ---
-function LegacyNewEntityScreen({
+function NewEntityScreen({
   kind,
   initialMode,
 }: {
@@ -393,25 +359,25 @@ function LegacyNewEntityScreen({
 export const Default: Story = () => (
   <div className="flex flex-col gap-8">
     <Caption>
-      Legacy · the /new mode router (ITUN NewEntityScreen) — composes CreateModeChooser +
-      BlankCreateDialog on the `mode` param. Click Blank to open the dialog (real SRD
-      class/chassis/tech-level options); click Guided for the wizard-slot placeholder. Also freezes
-      the BlankCreateDialog shell, not covered by the door stories.
+      The /new mode router (ITUN NewEntityScreen) — composes CreateModeChooser (two shared
+      ModeDoors) + BlankCreateDialog (shared Field/Input/Select in a ModalShell) on the `mode`
+      param. Click Blank to open the dialog (real SRD class/chassis/tech-level options); click
+      Guided for the wizard-slot placeholder.
     </Caption>
 
     <div>
       <Caption>Pilot — opens on the doors; Blank collects Name + Callsign + optional class</Caption>
-      <LegacyNewEntityScreen kind="pilot" initialMode={undefined} />
+      <NewEntityScreen kind="pilot" initialMode={undefined} />
     </div>
 
     <div>
       <Caption>Mech — Blank collects Name + optional chassis (any Tech Level)</Caption>
-      <LegacyNewEntityScreen kind="mech" initialMode={undefined} />
+      <NewEntityScreen kind="mech" initialMode={undefined} />
     </div>
 
     <div>
       <Caption>Crawler — starts in blank mode; dialog collects Name + Tech Level</Caption>
-      <LegacyNewEntityScreen kind="crawler" initialMode="blank" />
+      <NewEntityScreen kind="crawler" initialMode="blank" />
     </div>
   </div>
 )

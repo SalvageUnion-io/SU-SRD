@@ -3,16 +3,16 @@ import { type CSSProperties, useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
-import { Button } from '../../../components/chrome/Button'
-import { FilterChip } from '../../../components/shared/FilterChip'
-import { MasonryColumns } from '../../../components/shared/MasonryColumns'
-import { ReferenceEntityDisplay } from '../../../components/referenceEntity/card/referenceEntityDisplayShim'
-import { VitalGauge } from '../../../components/stat/VitalGauge'
-import { cn } from '../../../utils/cn'
-import { Caption } from '../../_harness'
+import { Button } from '../../components/chrome/Button'
+import { FilterChip } from '../../components/shared/FilterChip'
+import { MasonryColumns } from '../../components/shared/MasonryColumns'
+import { ReferenceEntityDisplay } from '../../components/referenceEntity/card/referenceEntityDisplayShim'
+import { VitalGauge } from '../../components/stat/VitalGauge'
+import { cn } from '../../utils/cn'
+import { Caption } from '../_harness'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Wizard/Mech Install Step' }
+export default { title: 'Compositions/Mech Install Step' }
 
 // Local mirrors of the app-only types (InstallStep.tsx lines 9-16).
 type TechLevel = 1 | 2 | 3 | 4 | 5 | 6 | 'B' | 'N'

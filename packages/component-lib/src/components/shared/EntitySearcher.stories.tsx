@@ -19,7 +19,7 @@ import { MasonryColumns } from './MasonryColumns'
  */
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Legacy/Entity Searcher',
+  title: 'Compositions/Entity Searcher',
 }
 
 /**

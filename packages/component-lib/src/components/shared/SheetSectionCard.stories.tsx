@@ -5,7 +5,7 @@ import { Button } from '../chrome/Button'
 import { SheetSectionCard } from './SheetSectionCard'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Wizard/Sheet Section Card' }
+export default { title: 'Containers/Sheet Section Card' }
 
 // Themes via --tone / --tone-deep (pilot orange), the same route the live sheets use.
 const PILOT_TONE = {

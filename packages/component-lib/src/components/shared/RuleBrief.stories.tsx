@@ -3,7 +3,7 @@ import { Caption } from '../../stories/_harness'
 import { RuleBrief } from './RuleBrief'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Legacy/Wizard/Rule Brief' }
+export default { title: 'Compositions/Rule Brief' }
 
 const MECH_TONE = {
   '--tone': 'var(--su-green, #7a978a)',
