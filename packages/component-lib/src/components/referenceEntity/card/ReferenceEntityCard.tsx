@@ -1079,7 +1079,9 @@ export function ReferenceEntityCard({
     // a name column), then the AP/EP cost pennant, the action type as a stamp,
     // then Damage / Range as [label|value] Stat cells (if relevant).
     if (isAction && action) {
-      const actionBadgeText = isDown ? 'text-ink' : tone.onToneText
+      // Name colour matches the header title everywhere else (onBandText): white
+      // on the tone band, ink only on the light ghosted/greyed bands.
+      const actionBadgeText = onBandText
       const actionAccent = accentSurface(headerBg, headerBgColor)
       const typeLabel = action.actionType ? formatActionType(action.actionType) : undefined
       const damageValue = action.damage
@@ -1120,9 +1122,11 @@ export function ReferenceEntityCard({
         </div>
       )
     }
-    // Text sits directly on the tone: ghosted/greyed bands are light → ink; else
-    // the domain's computed on-tone colour (paper on dark tones, ink on light).
-    const badgeTextClass = isDown || isGhosted ? 'text-ink' : tone.onToneText
+    // Name colour matches the header title everywhere else (onBandText): white on
+    // the tone band, ink only on the light ghosted/greyed bands. (Previously used
+    // the adaptive on-tone colour, which went dark on light tones — out of step
+    // with how the same name renders in the full/compact/listing header.)
+    const badgeTextClass = onBandText
     const badgeAccent = accentSurface(headerBg, headerBgColor)
     // The classification tail as Stat cells (matching the sub-header's axis
     // markers): abilities show [Ability Tree | …] [Level | n]; a TL-bearing
