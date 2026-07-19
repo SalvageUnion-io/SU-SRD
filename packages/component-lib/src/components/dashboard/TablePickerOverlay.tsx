@@ -3,15 +3,15 @@
  *
  * A 5-column grid, one column per category (COMBAT / PILOT / SALVAGE /
  * CRAWLER / DOWNTIME), each a stamped column of table buttons. Categories come
- * from the app-side `tableCategories` map (roll tables carry no category
- * field). Picking a table calls `onPick` and closes; a backdrop / ✕ closes
- * without changing the selection.
+ * from the `tableCategories` map (roll tables carry no category field). Picking a
+ * table calls `onPick` and closes; a backdrop / ✕ closes without changing the
+ * selection. Presentational — the caller passes the pickable tables.
  */
 
 import type { PickableTable } from './tableCategories'
 import { TABLE_CATEGORY_LABEL, groupTablesByCategory } from './tableCategories'
 
-type TablePickerOverlayProps = {
+export type TablePickerOverlayProps = {
   tables: readonly PickableTable[]
   selectedId: string | null
   onPick: (id: string) => void

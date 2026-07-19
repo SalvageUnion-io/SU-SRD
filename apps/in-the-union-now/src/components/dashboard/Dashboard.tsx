@@ -12,7 +12,7 @@
 
 import { useCallback, useState } from 'react'
 
-import { DashboardCanvas, DashboardGrid } from 'component-lib'
+import { DashboardCanvas, DashboardGrid, RailBar } from 'component-lib'
 import { useWorkspace } from '../../hooks/queries/workspaces'
 import type { CockpitPrefs } from '../../lib/schemas/cockpitPrefs'
 import { useEntityStore } from '../../stores/entityStore'
@@ -25,7 +25,7 @@ import { Dial } from './Dial'
 import { applyDialPrefs, configurableKinds, dialItems } from './dialItems'
 import { DisplayView } from './DisplayView'
 import { DowntimeWizard } from './DowntimeWizard'
-import { RailBar } from './RailBar'
+import { AppLink } from '../shared/AppLink'
 
 export function Dashboard({ id }: { id: string }) {
   const storeState = useEntityStore()
@@ -108,6 +108,11 @@ export function Dashboard({ id }: { id: string }) {
           <RailBar
             title={railTitle}
             fam={fam}
+            returnControl={
+              <AppLink href="/" className="pc-railbtn">
+                ◄ Return to Workspace
+              </AppLink>
+            }
             onLeaveDowntime={isDowntime ? leaveDowntime : undefined}
           />
         }

@@ -1,14 +1,14 @@
 /**
- * RailBar — the Dashboard's top rail: return-to-workspace, the active entity
- * stamp, and (later) settings / rules-source affordances. Bordered (a "forward"
- * surface). Phase 1 wires Return to Workspace; Settings is a placeholder.
+ * RailBar — the Dashboard's top rail content: return-to-workspace, the active
+ * entity stamp, and the settings / leave-downtime action. Presentational only —
+ * the `.pc-rail` region wrapper (grid area + flex row + forward border) is
+ * supplied by DashboardGrid's rail slot, and the app injects its own router link
+ * via `returnControl` (component-lib stays routing-agnostic).
  */
 
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
-import { AppLink } from '../shared/AppLink'
-
-type RailFam = 'mech' | 'pilot' | 'crawler'
+export type RailFam = 'mech' | 'pilot' | 'crawler'
 
 const STAMP_BG: Record<RailFam, string> = {
   mech: 'var(--color-sheet-mech-deep)',
@@ -16,21 +16,19 @@ const STAMP_BG: Record<RailFam, string> = {
   crawler: 'var(--color-sheet-crawler-deep)',
 }
 
-type RailBarProps = {
+export type RailBarProps = {
   title: string
   fam?: RailFam
-  /** When set, the rail's right action becomes "Leave Downtime" (Phase 6). */
+  /** Return-to-workspace control — the app passes its router link (an AppLink). */
+  returnControl?: ReactNode
+  /** When set, the rail's right action becomes "Leave Downtime". */
   onLeaveDowntime?: () => void
 }
 
-export function RailBar({ title, fam = 'mech', onLeaveDowntime }: RailBarProps) {
-  // Content only — the `.pc-rail` region wrapper (grid area + flex row) is
-  // supplied by component-lib's DashboardGrid rail slot.
+export function RailBar({ title, fam = 'mech', returnControl, onLeaveDowntime }: RailBarProps) {
   return (
     <>
-      <AppLink href="/" className="pc-railbtn">
-        ◄ Return to Workspace
-      </AppLink>
+      {returnControl}
       <span className="pc-stamp" style={{ background: STAMP_BG[fam] } as CSSProperties}>
         {title}
       </span>
