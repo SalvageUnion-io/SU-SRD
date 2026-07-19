@@ -64,7 +64,9 @@ export function EntityCardHeader({
         // The title sits directly on the tone (badge treatment — no ink block).
         // `self-center` keeps it centered against the band height; it always sits
         // LEFT (its row uses justify-between); self-* is cross-axis only.
-        'w-fit shrink-0 self-center font-cond font-bold uppercase leading-none tracking-caps-tight',
+        // `break-words` guarantees even an unbreakable long token wraps rather
+        // than running under the stat cluster.
+        'w-fit self-center break-words font-cond font-bold uppercase leading-none tracking-caps-tight',
         titleTextClass,
         titleClass
       )}
@@ -111,9 +113,14 @@ export function EntityCardHeader({
       )}
       style={accent.style}
     >
-      {titleNode}
+      {/* Title column is the FLEXIBLE side — it grows into the free space and
+          wraps within it, yielding first so it can never run under the stats. */}
+      <div className="min-w-0 flex-1">{titleNode}</div>
       {(rightContent || statsNode) && (
-        <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
+        // Stats reserve their own width (they don't grow, and hold content size
+        // until the title is fully collapsed) and wrap internally, so the cluster
+        // is never overlapped and never clipped off the card edge.
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           {rightContent}
           {statsNode}
         </div>
