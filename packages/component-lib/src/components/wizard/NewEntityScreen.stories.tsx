@@ -111,7 +111,7 @@ function CreateModeChooser({
         {kind === 'mech' && (
           <a
             href="/mechs/patterns"
-            className="mx-auto mt-6 block w-fit max-w-[92%] rounded-[2px] bg-ink px-4 py-2 text-center font-cond text-[11px] font-bold uppercase leading-relaxed tracking-widest text-paper no-underline hover:bg-ink/85"
+            className="mx-auto mt-6 block w-fit max-w-[92%] rounded-badge bg-ink px-4 py-2 text-center font-cond text-badge font-bold uppercase leading-relaxed tracking-caps-wide text-paper no-underline hover:bg-ink/85"
           >
             A third door in the Blank family —{' '}
             <span className="text-su-orange">Instantiate from Pattern</span> · stamp a saved

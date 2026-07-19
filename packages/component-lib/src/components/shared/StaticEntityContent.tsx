@@ -25,7 +25,9 @@ export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityC
     <div data-static-fallback className="mx-auto w-full max-w-6xl px-4 text-sm text-ink">
       {/* SSR / no-JS heading. JS users get this whole block stripped by BaseLayout
           and the hydrated island supplies the real <h1>, so they never double up. */}
-      <h1 className="mb-3 font-cond text-2xl font-bold uppercase tracking-tight">{summary.name}</h1>
+      <h1 className="mb-3 font-cond text-2xl font-bold uppercase tracking-caps-tight">
+        {summary.name}
+      </h1>
 
       {summary.description && <p className="mb-3 italic">{summary.description}</p>}
 

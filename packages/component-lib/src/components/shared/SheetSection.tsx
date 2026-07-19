@@ -149,7 +149,7 @@ function SwapIcon({ className }: { className?: string }) {
 type HButtonVariant = 'edit' | 'done' | 'add'
 
 const HBTN_BASE =
-  'inline-flex cursor-pointer items-center gap-1.5 rounded-[3px] border-2 px-3 font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide whitespace-nowrap transition-colors min-h-11 sm:min-h-8 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25 print:hidden'
+  'inline-flex cursor-pointer items-center gap-1.5 rounded-card border-2 px-3 font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide whitespace-nowrap transition-colors min-h-11 sm:min-h-8 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25 print:hidden'
 
 const HBTN_VARIANT: Record<HButtonVariant, string> = {
   edit: 'border-ink bg-paper text-ink hover:bg-ink hover:text-paper',

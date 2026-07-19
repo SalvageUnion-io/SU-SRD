@@ -133,7 +133,7 @@ export function NavDrawer({
             {categories?.map((cat) => (
               <div key={cat.label} className="mb-2 flex flex-col gap-2">
                 <div className="flex items-center gap-3">
-                  <span className="bg-ink px-1 font-cond font-bold uppercase leading-none tracking-tight text-paper">
+                  <span className="bg-ink px-1 font-cond font-bold uppercase leading-none tracking-caps-tight text-paper">
                     {cat.label}
                   </span>
                 </div>

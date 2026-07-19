@@ -61,7 +61,7 @@ export function NpcFactsEditor({
   }
 
   const chipBase =
-    'inline-flex items-center gap-1 rounded-[2px] px-2 py-0.5 font-cond text-badge font-semibold tracking-[.03em]'
+    'inline-flex items-center gap-1 rounded-badge px-2 py-0.5 font-cond text-badge font-semibold tracking-[.03em]'
 
   return (
     <div className="flex min-h-10 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-su-paper p-2">
@@ -91,7 +91,7 @@ export function NpcFactsEditor({
               onClick={() => {
                 void removeAt(index)
               }}
-              className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[1px] leading-none hover:bg-ink/10"
+              className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-pip leading-none hover:bg-ink/10"
             >
               <span aria-hidden className="text-[12px]">
                 ×
@@ -121,7 +121,7 @@ export function NpcFactsEditor({
             onBlur={() => {
               void commitAdd()
             }}
-            className="w-40 rounded-[2px] border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge tracking-[.03em] text-ink focus:outline-none focus:ring-1 focus:ring-su-orange"
+            className="w-40 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge tracking-[.03em] text-ink focus:outline-none focus:ring-1 focus:ring-su-orange"
           />
         ) : (
           <button

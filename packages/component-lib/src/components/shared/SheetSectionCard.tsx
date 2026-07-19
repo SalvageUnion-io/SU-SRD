@@ -77,7 +77,7 @@ export function SheetSectionCard({
       }
       footerContent={
         source ? (
-          <span className="min-w-0 truncate font-cond text-[10px] font-semibold uppercase leading-none tracking-caps text-ink/85">
+          <span className="min-w-0 truncate font-cond text-label font-semibold uppercase leading-none tracking-caps text-ink/85">
             {source}
           </span>
         ) : undefined

@@ -50,7 +50,7 @@ export function SheetActionsMenu({ children, className }: SheetActionsMenuProps)
         <div
           role="group"
           aria-label="Sheet actions"
-          className="absolute right-0 top-full z-30 mt-1.5 flex min-w-36 flex-col items-stretch gap-1.5 rounded-[6px] border-2 border-ink bg-paper p-2 shadow-[0_14px_28px_-14px_rgba(40,32,25,0.55)]"
+          className="absolute right-0 top-full z-30 mt-1.5 flex min-w-36 flex-col items-stretch gap-1.5 rounded-panel border-2 border-ink bg-paper p-2 shadow-[0_14px_28px_-14px_rgba(40,32,25,0.55)]"
         >
           {children}
         </div>

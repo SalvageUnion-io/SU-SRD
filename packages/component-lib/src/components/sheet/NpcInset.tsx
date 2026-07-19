@@ -71,7 +71,7 @@ export function NpcInset({
         headerContent={
           <>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <span className="rounded-[1px] bg-crawler px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-paper">
+              <span className="rounded-pip bg-crawler px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-paper">
                 Crew
               </span>
               <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-paper">
@@ -110,7 +110,7 @@ export function NpcInset({
 
           <dl className="m-0 min-w-0 flex-1 space-y-1.5">
             <div className="flex items-baseline gap-1.5">
-              <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
+              <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps-wide text-ink">
                 Keepsake
               </dt>
               <dd className="m-0 min-w-0 font-body text-note leading-snug text-ink-2">
@@ -127,7 +127,7 @@ export function NpcInset({
               </dd>
             </div>
             <div className="flex items-baseline gap-1.5">
-              <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
+              <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps-wide text-ink">
                 Motto
               </dt>
               <dd className="m-0 min-w-0 font-body text-note leading-snug text-ink-2">
@@ -144,7 +144,7 @@ export function NpcInset({
               </dd>
             </div>
             <div className="flex items-baseline gap-1.5">
-              <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
+              <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps-wide text-ink">
                 Detail
               </dt>
               <dd className="m-0 min-w-0 flex-1 font-body text-note leading-snug text-ink-2">
@@ -162,7 +162,7 @@ export function NpcInset({
             </div>
             {(editable || facts.length > 0) && (
               <div className="flex items-baseline gap-1.5">
-                <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-widest text-ink">
+                <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps-wide text-ink">
                   Facts
                 </dt>
                 <dd className="m-0 min-w-0 flex-1">

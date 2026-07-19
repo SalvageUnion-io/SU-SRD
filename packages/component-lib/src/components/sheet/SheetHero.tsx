@@ -76,7 +76,7 @@ export function SheetHero({
     <section
       ref={heroRef}
       aria-label={`${name} sheet header`}
-      className={cn('relative overflow-hidden rounded-[3px] border-entity border-ink', className)}
+      className={cn('relative overflow-hidden rounded-card border-entity border-ink', className)}
       style={{ background: 'var(--tone)' }}
     >
       {/* Category tab — rides the top border like .ec__cat (StampSeam) */}
@@ -199,7 +199,7 @@ export function ChassisStats({ items, className }: ChassisStatsProps) {
             aria-label={item.actionLabel ?? item.code}
             title={item.actionLabel}
             onClick={item.onClick}
-            className="cursor-pointer rounded-[3px] text-left transition-transform duration-[120ms] hover:-translate-y-px focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/[0.22]"
+            className="cursor-pointer rounded-card text-left transition-transform duration-[120ms] hover:-translate-y-px focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/[0.22]"
           >
             {block}
           </button>

@@ -30,7 +30,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
   return (
     <div
       className={cn(
-        'flex items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-[13px] text-ink-2 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-su-orange',
+        'flex items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-ink-2 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-su-orange',
         containerClassName
       )}
     >
