@@ -1,22 +1,18 @@
 /**
- * ActiveItemBand — the Active Item (primary row): the entity you're currently
- * running, laid out as responsibility "bays" (a gauge cluster + its own button
- * grid). Dispatches by mount state (playStateStore): the boarded mech, or the
- * pilot on foot.
+ * ActiveItemBand (ITUN binding) — the Active Item (primary row) rules + store
+ * logic, per band (mech / pilot / crawler). Dispatches by mount state
+ * (playStateStore), runs the reactor / damage / egress verbs through the pure
+ * rules engine (`dashboardRules.ts` → `lib/rules/*`) and the entity store under
+ * the ADR-007 automation boundary, then hands a pure view-model to the
+ * presentational ActiveItemBand in component-lib.
  *
- * Phase 5 scope: the reactor / damage / egress buttons are LIVE, driven through
- * the pure rules engine (`dashboardRules.ts` → `lib/rules/*`) and written through the
- * entity store (`update`), under the ADR-007 automation boundary:
  *   - Auto-apply (single click): Push, Heat Check, Vent, Shutdown toggle, the
  *     SP/HP value of a self-declared hit.
  *   - Player-confirmed (explicit extra step): the Critical Damage / Critical
  *     Injury *roll* when a hit hits 0, marking the mech Destroyed, and Eject.
- * `Storage` stays inert until the cargo-hold overlay lands (Phase 7). Derived
- * maxima come from the same `derivedStats` helpers the gauges read.
  */
 
 import { useEffect, useState } from 'react'
-import type { ReactNode } from 'react'
 
 import {
   crawlerMaxSP,
@@ -32,14 +28,14 @@ import { describePushOutcome } from '../../lib/rules/coreMechanic'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 import type { CriticalDamageEffect, CriticalInjuryEffect } from '../../lib/rules/takeDamage'
 import type { Crawler } from '../../lib/schemas/crawler'
-import type { CargoLot } from '../../lib/schemas/cargoLot'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import type { EntityState } from '../../stores/entityStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
-import { DashboardGauge } from 'component-lib'
+import { ActiveItemBand as ActiveItemBandView, DamageStepper, StorageBay } from 'component-lib'
+import type { ActiveItemBandView as ActiveItemBandViewModel } from 'component-lib'
 import {
   VENT_PATCH,
   critDamagePatch,
@@ -97,87 +93,29 @@ export function ActiveItemBand({ mech, pilot, crawler, store }: ActiveItemBandPr
 function CrawlerBand({ crawler, onLeave }: { crawler: Crawler; onLeave: () => void }) {
   const maxSP = crawlerMaxSP(crawler)
   const sp = Math.min(crawler.currentSP ?? maxSP, maxSP)
-  return (
-    <div className="pc-band" data-fam="crawler">
-      <div className="pc-band-id">
-        <span className="pc-stamp" style={{ background: 'var(--color-sheet-crawler-deep)' }}>
-          Downtime · {crawler.name}
-        </span>
-      </div>
-      <div className="pc-bays">
-        <div className="pc-bay">
-          <span className="pc-bay-lab">Crawler</span>
-          <div className="pc-bay-gauges">
-            <DashboardGauge label="SP" value={sp} max={maxSP} tone="crawler" />
-          </div>
-        </div>
-        <div className="pc-bay">
-          <span className="pc-bay-lab">Downtime</span>
-          <div className="pc-btn-grid">
-            <button
-              type="button"
-              className="pc-btn pc-btn-wide"
-              onClick={onLeave}
-              title="Return to the previous mount"
-            >
-              ◄ Leave Downtime
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Resolve overlay — a small dark panel over the band for roll readouts and the
-// player-confirmed steps (never auto-destructive).
-// ---------------------------------------------------------------------------
-
-function ResolveOverlay({
-  title,
-  children,
-  onClose,
-}: {
-  title: string
-  children: ReactNode
-  onClose: () => void
-}) {
-  return (
-    <div className="pc-resolve" role="dialog" aria-label={title}>
-      <div className="pc-resolve-head">
-        <span className="pc-resolve-title">{title}</span>
-        <button type="button" className="pc-railbtn" onClick={onClose}>
-          Close
-        </button>
-      </div>
-      <div className="pc-resolve-body">{children}</div>
-    </div>
-  )
-}
-
-function DamageStepper({ amount, setAmount }: { amount: number; setAmount: (n: number) => void }) {
-  return (
-    <div className="pc-step">
-      <button
-        type="button"
-        className="pc-btn"
-        onClick={() => setAmount(Math.max(1, amount - 1))}
-        aria-label="Decrease damage"
-      >
-        −
-      </button>
-      <span className="pc-step-num">{amount}</span>
-      <button
-        type="button"
-        className="pc-btn"
-        onClick={() => setAmount(amount + 1)}
-        aria-label="Increase damage"
-      >
-        +
-      </button>
-    </div>
-  )
+  const view: ActiveItemBandViewModel = {
+    fam: 'crawler',
+    stampLabel: `Downtime · ${crawler.name}`,
+    bays: [
+      {
+        label: 'Crawler',
+        gauges: [{ label: 'SP', value: sp, max: maxSP, tone: 'crawler' }],
+        buttons: [],
+      },
+      {
+        label: 'Downtime',
+        buttons: [
+          {
+            label: '◄ Leave Downtime',
+            onClick: onLeave,
+            wide: true,
+            title: 'Return to the previous mount',
+          },
+        ],
+      },
+    ],
+  }
+  return <ActiveItemBandView view={view} />
 }
 
 // ---------------------------------------------------------------------------
@@ -191,56 +129,6 @@ type MechPrompt =
   | { kind: 'eject' }
   | { kind: 'storage' }
   | null
-
-// ---------------------------------------------------------------------------
-// Cargo-hold overlay (Phase 7) — lists the mech's cargo lots with a Jettison
-// affordance. Jettison is irreversible (the cargo is discarded), so per ADR-007
-// it is a player-confirmed explicit button, never silent auto-bookkeeping.
-// ---------------------------------------------------------------------------
-
-function StorageBay({
-  lots,
-  used,
-  cap,
-  onJettison,
-}: {
-  lots: CargoLot[]
-  used: number
-  cap: number
-  onJettison: (lotId: string) => void
-}) {
-  return (
-    <div className="pc-cargo">
-      <p className="pc-cargo-usage">
-        Hold {used}/{cap}
-      </p>
-      {lots.length === 0 ? (
-        <p className="pc-resolve-log">Cargo hold is empty.</p>
-      ) : (
-        <ul className="pc-cargo-list">
-          {lots.map((lot) => (
-            <li key={lot.id} className="pc-cargo-row">
-              <span className="pc-cargo-name">
-                <span className="pc-cargo-code">{lot.code}</span>
-                {lot.name}
-                {lot.kind === 'bulk' && lot.qty !== undefined ? ` ×${lot.qty}` : ''}
-                <span className="pc-cargo-units">{lot.units}u</span>
-              </span>
-              <button
-                type="button"
-                className="pc-btn pc-btn-danger"
-                onClick={() => onJettison(lot.id)}
-                aria-label={`Jettison ${lot.name}`}
-              >
-                Jettison
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  )
-}
 
 function MechBand({
   mech,
@@ -268,8 +156,8 @@ function MechBand({
 
   // The deck's Apply step routes a destructive Cascade Failure here: open the
   // Take-Structure-Damage overlay pre-armed for the player to confirm (ADR-007).
-  const damagePromptArmed = usePlayStateStore((s) => s.damagePromptArmed)
-  const consumeDamagePrompt = usePlayStateStore((s) => s.consumeDamagePrompt)
+  const damagePromptArmed = usePlayStateStore((st) => st.damagePromptArmed)
+  const consumeDamagePrompt = usePlayStateStore((st) => st.consumeDamagePrompt)
   useEffect(() => {
     if (damagePromptArmed) {
       setPrompt({ kind: 'dmg' })
@@ -356,183 +244,159 @@ function MechBand({
     })
   }
 
-  return (
-    <div className="pc-band" data-fam="mech">
-      <div className="pc-band-id">
-        <span className="pc-stamp pc-stamp-mech">Mech · {mech.name}</span>
-      </div>
-      <div className="pc-bays">
-        <div className="pc-bay">
-          <span className="pc-bay-lab">Reactor</span>
-          <div className="pc-bay-gauges">
-            <DashboardGauge
-              label="Heat"
-              value={heat}
-              max={maxHeat}
-              tone="mech"
-              danger={Math.max(0, maxHeat - 2)}
-            />
-            <DashboardGauge label="EP" value={ep} max={maxEP} tone="mech" />
-          </div>
-          <div className="pc-btn-grid">
-            <button
-              type="button"
-              className="pc-btn pc-btn-danger"
-              onClick={doPush}
-              disabled={pushLocked}
-              title={
-                pushLocked
-                  ? `Can't Push at Heat ${heat}/${maxHeat} — +2 would exceed the Heat Cap (p.233).`
-                  : '+2 Heat, then a Heat Check'
-              }
-            >
-              Push
-            </button>
-            <button
-              type="button"
-              className="pc-btn pc-btn-danger"
-              onClick={doHeatCheck}
-              title="Roll a Heat Check at current Heat"
-            >
-              Heat Chk
-            </button>
-            <button type="button" className="pc-btn" onClick={doVent} title="Vent Heat to 0">
-              Vent
-            </button>
-            <button
-              type="button"
-              className="pc-btn"
-              onClick={doShutdown}
-              title="Toggle reactor shutdown"
-            >
-              Shutdn
-            </button>
-          </div>
-        </div>
-        <div className="pc-bay">
-          <span className="pc-bay-lab">Chassis</span>
-          <div className="pc-bay-gauges">
-            <DashboardGauge label="SP" value={sp} max={maxSP} tone="mech" />
-            <DashboardGauge label="Cargo" value={cargo} max={maxCargo} tone="mech" />
-          </div>
-          <div className="pc-btn-grid">
-            <button
-              type="button"
-              className="pc-btn"
-              onClick={() => {
-                setDmg(1)
-                setPrompt({ kind: 'dmg' })
-              }}
-              title="Take Structure damage"
-            >
-              Take Dmg
-            </button>
-            <button
-              type="button"
-              className="pc-btn"
-              onClick={() => setPrompt({ kind: 'storage' })}
-              title="Open the cargo hold"
-            >
-              Storage
-            </button>
-          </div>
-        </div>
-        <div className="pc-bay">
-          <span className="pc-bay-lab">Egress</span>
-          <div className="pc-btn-grid">
-            <button
-              type="button"
-              className="pc-btn"
-              onClick={onDismount}
-              disabled={!hasPilot}
-              title={hasPilot ? 'Exit the mech (calm)' : 'No pilot assigned to this mech'}
-            >
-              Dismount
-            </button>
-            <button
-              type="button"
-              className="pc-btn pc-btn-danger"
-              onClick={() => setPrompt({ kind: 'eject' })}
-              disabled={!hasPilot}
-              title={hasPilot ? 'Emergency exit' : 'No pilot assigned to this mech'}
-            >
-              Eject
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {prompt?.kind === 'reactor' && (
-        <ResolveOverlay title="Reactor" onClose={() => setPrompt(null)}>
-          <p className="pc-resolve-log">{prompt.log}</p>
-          {prompt.meltdown && (
-            <div className="pc-resolve-actions">
-              <button type="button" className="pc-btn pc-btn-danger" onClick={confirmDestroyed}>
-                Confirm Meltdown — Mark Mech Destroyed
-              </button>
-            </div>
-          )}
-        </ResolveOverlay>
-      )}
-      {prompt?.kind === 'dmg' && (
-        <ResolveOverlay title="Take Structure Damage" onClose={() => setPrompt(null)}>
-          <DamageStepper amount={dmg} setAmount={setDmg} />
-          <div className="pc-resolve-actions">
-            <button type="button" className="pc-btn pc-btn-danger" onClick={applyDamage}>
-              Apply −{dmg} SP
-            </button>
-          </div>
-        </ResolveOverlay>
-      )}
-      {prompt?.kind === 'crit' && (
-        <ResolveOverlay title="Critical Damage" onClose={() => setPrompt(null)}>
-          <p className="pc-resolve-log">{prompt.log}</p>
-          {prompt.effect === null ? (
-            <div className="pc-resolve-actions">
-              <button type="button" className="pc-btn pc-btn-danger" onClick={rollCritical}>
-                Roll Critical Damage
-              </button>
-            </div>
-          ) : (
-            prompt.effect.destroyed && (
-              <div className="pc-resolve-actions">
-                <button type="button" className="pc-btn pc-btn-danger" onClick={confirmDestroyed}>
-                  Mark Mech Destroyed
-                </button>
-              </div>
-            )
-          )}
-        </ResolveOverlay>
-      )}
-      {prompt?.kind === 'storage' && (
-        <ResolveOverlay title="Cargo Hold" onClose={() => setPrompt(null)}>
+  const overlay = ((): ActiveItemBandViewModel['overlay'] => {
+    if (!prompt) return null
+    const onClose = () => setPrompt(null)
+    if (prompt.kind === 'reactor') {
+      return {
+        title: 'Reactor',
+        onClose,
+        body: <p className="pc-resolve-log">{prompt.log}</p>,
+        actions: prompt.meltdown
+          ? [
+              {
+                label: 'Confirm Meltdown — Mark Mech Destroyed',
+                onClick: confirmDestroyed,
+                danger: true,
+              },
+            ]
+          : undefined,
+      }
+    }
+    if (prompt.kind === 'dmg') {
+      return {
+        title: 'Take Structure Damage',
+        onClose,
+        body: <DamageStepper amount={dmg} setAmount={setDmg} />,
+        actions: [{ label: `Apply −${dmg} SP`, onClick: applyDamage, danger: true }],
+      }
+    }
+    if (prompt.kind === 'crit') {
+      const actions =
+        prompt.effect === null
+          ? [{ label: 'Roll Critical Damage', onClick: rollCritical, danger: true }]
+          : prompt.effect.destroyed
+            ? [{ label: 'Mark Mech Destroyed', onClick: confirmDestroyed, danger: true }]
+            : undefined
+      return {
+        title: 'Critical Damage',
+        onClose,
+        body: <p className="pc-resolve-log">{prompt.log}</p>,
+        actions,
+      }
+    }
+    if (prompt.kind === 'storage') {
+      return {
+        title: 'Cargo Hold',
+        onClose,
+        body: (
           <StorageBay
             lots={fresh().cargoLots}
             used={totalLotUnits(fresh().cargoLots)}
             cap={maxCargo}
             onJettison={jettison}
           />
-        </ResolveOverlay>
-      )}
-      {prompt?.kind === 'eject' && (
-        <ResolveOverlay title="Eject" onClose={() => setPrompt(null)}>
-          <p className="pc-resolve-log">Eject the pilot from the mech?</p>
-          <div className="pc-resolve-actions">
-            <button
-              type="button"
-              className="pc-btn pc-btn-danger"
-              onClick={() => {
-                setPrompt(null)
-                onDismount()
-              }}
-            >
-              Confirm Eject
-            </button>
-          </div>
-        </ResolveOverlay>
-      )}
-    </div>
-  )
+        ),
+      }
+    }
+    // eject
+    return {
+      title: 'Eject',
+      onClose,
+      body: <p className="pc-resolve-log">Eject the pilot from the mech?</p>,
+      actions: [
+        {
+          label: 'Confirm Eject',
+          onClick: () => {
+            setPrompt(null)
+            onDismount()
+          },
+          danger: true,
+        },
+      ],
+    }
+  })()
+
+  const view: ActiveItemBandViewModel = {
+    fam: 'mech',
+    stampLabel: `Mech · ${mech.name}`,
+    bays: [
+      {
+        label: 'Reactor',
+        gauges: [
+          {
+            label: 'Heat',
+            value: heat,
+            max: maxHeat,
+            tone: 'mech',
+            danger: Math.max(0, maxHeat - 2),
+          },
+          { label: 'EP', value: ep, max: maxEP, tone: 'mech' },
+        ],
+        buttons: [
+          {
+            label: 'Push',
+            onClick: doPush,
+            disabled: pushLocked,
+            danger: true,
+            title: pushLocked
+              ? `Can't Push at Heat ${heat}/${maxHeat} — +2 would exceed the Heat Cap (p.233).`
+              : '+2 Heat, then a Heat Check',
+          },
+          {
+            label: 'Heat Chk',
+            onClick: doHeatCheck,
+            danger: true,
+            title: 'Roll a Heat Check at current Heat',
+          },
+          { label: 'Vent', onClick: doVent, title: 'Vent Heat to 0' },
+          { label: 'Shutdn', onClick: doShutdown, title: 'Toggle reactor shutdown' },
+        ],
+      },
+      {
+        label: 'Chassis',
+        gauges: [
+          { label: 'SP', value: sp, max: maxSP, tone: 'mech' },
+          { label: 'Cargo', value: cargo, max: maxCargo, tone: 'mech' },
+        ],
+        buttons: [
+          {
+            label: 'Take Dmg',
+            onClick: () => {
+              setDmg(1)
+              setPrompt({ kind: 'dmg' })
+            },
+            title: 'Take Structure damage',
+          },
+          {
+            label: 'Storage',
+            onClick: () => setPrompt({ kind: 'storage' }),
+            title: 'Open the cargo hold',
+          },
+        ],
+      },
+      {
+        label: 'Egress',
+        buttons: [
+          {
+            label: 'Dismount',
+            onClick: onDismount,
+            disabled: !hasPilot,
+            title: hasPilot ? 'Exit the mech (calm)' : 'No pilot assigned to this mech',
+          },
+          {
+            label: 'Eject',
+            onClick: () => setPrompt({ kind: 'eject' }),
+            disabled: !hasPilot,
+            danger: true,
+            title: hasPilot ? 'Emergency exit' : 'No pilot assigned to this mech',
+          },
+        ],
+      },
+    ],
+    overlay,
+  }
+  return <ActiveItemBandView view={view} />
 }
 
 // ---------------------------------------------------------------------------
@@ -564,8 +428,8 @@ function PilotBand({
 
   // On-foot: the deck's Apply routes a destructive Cascade Failure here — open
   // the Take-HP-Damage overlay pre-armed for the player to confirm (ADR-007).
-  const damagePromptArmed = usePlayStateStore((s) => s.damagePromptArmed)
-  const consumeDamagePrompt = usePlayStateStore((s) => s.consumeDamagePrompt)
+  const damagePromptArmed = usePlayStateStore((st) => st.damagePromptArmed)
+  const consumeDamagePrompt = usePlayStateStore((st) => st.consumeDamagePrompt)
   useEffect(() => {
     if (damagePromptArmed) {
       setPrompt({ kind: 'dmg' })
@@ -596,86 +460,74 @@ function PilotBand({
     setPrompt({ kind: 'crit', effect, log: describeCritInjury(effect) })
   }
 
-  return (
-    <div className="pc-band" data-fam="pilot">
-      <div className="pc-band-id">
-        <span className="pc-stamp" style={{ background: 'var(--color-sheet-pilot-deep)' }}>
-          Pilot · {pilot.name}
-        </span>
-      </div>
-      <div className="pc-bays">
-        <div className="pc-bay">
-          <span className="pc-bay-lab">Vitals</span>
-          <div className="pc-bay-gauges">
-            <DashboardGauge label="HP" value={hp} max={maxHP} tone="pilot" />
-            <DashboardGauge label="AP" value={ap} max={maxAP} tone="pilot" />
-          </div>
-          <div className="pc-btn-grid">
-            <button
-              type="button"
-              className="pc-btn"
-              onClick={() => {
-                setDmg(1)
-                setPrompt({ kind: 'dmg' })
-              }}
-              title="Take HP damage"
-            >
-              Take Dmg
-            </button>
-            <button
-              type="button"
-              className="pc-btn pc-btn-danger"
-              onClick={() =>
-                setPrompt({ kind: 'crit', effect: null, log: 'Roll a Critical Injury?' })
-              }
-              title="Roll on the Critical Injury table"
-            >
-              Crit Injury
-            </button>
-          </div>
-        </div>
-        <div className="pc-bay">
-          <span className="pc-bay-lab">Mount</span>
-          <div className="pc-btn-grid">
-            <button
-              type="button"
-              className="pc-btn pc-btn-go pc-btn-wide"
-              onClick={onBoard}
-              title="Board the mech"
-            >
-              ▶ Board Mech
-            </button>
-          </div>
-        </div>
-      </div>
+  const overlay = ((): ActiveItemBandViewModel['overlay'] => {
+    if (!prompt) return null
+    const onClose = () => setPrompt(null)
+    if (prompt.kind === 'log') {
+      return { title: 'Vitals', onClose, body: <p className="pc-resolve-log">{prompt.log}</p> }
+    }
+    if (prompt.kind === 'dmg') {
+      return {
+        title: 'Take Damage',
+        onClose,
+        body: <DamageStepper amount={dmg} setAmount={setDmg} />,
+        actions: [{ label: `Apply −${dmg} HP`, onClick: applyDamage, danger: true }],
+      }
+    }
+    // crit
+    return {
+      title: 'Critical Injury',
+      onClose,
+      body: <p className="pc-resolve-log">{prompt.log}</p>,
+      actions:
+        prompt.effect === null
+          ? [{ label: 'Roll Critical Injury', onClick: rollInjury, danger: true }]
+          : undefined,
+    }
+  })()
 
-      {prompt?.kind === 'log' && (
-        <ResolveOverlay title="Vitals" onClose={() => setPrompt(null)}>
-          <p className="pc-resolve-log">{prompt.log}</p>
-        </ResolveOverlay>
-      )}
-      {prompt?.kind === 'dmg' && (
-        <ResolveOverlay title="Take Damage" onClose={() => setPrompt(null)}>
-          <DamageStepper amount={dmg} setAmount={setDmg} />
-          <div className="pc-resolve-actions">
-            <button type="button" className="pc-btn pc-btn-danger" onClick={applyDamage}>
-              Apply −{dmg} HP
-            </button>
-          </div>
-        </ResolveOverlay>
-      )}
-      {prompt?.kind === 'crit' && (
-        <ResolveOverlay title="Critical Injury" onClose={() => setPrompt(null)}>
-          <p className="pc-resolve-log">{prompt.log}</p>
-          {prompt.effect === null && (
-            <div className="pc-resolve-actions">
-              <button type="button" className="pc-btn pc-btn-danger" onClick={rollInjury}>
-                Roll Critical Injury
-              </button>
-            </div>
-          )}
-        </ResolveOverlay>
-      )}
-    </div>
-  )
+  const view: ActiveItemBandViewModel = {
+    fam: 'pilot',
+    stampLabel: `Pilot · ${pilot.name}`,
+    bays: [
+      {
+        label: 'Vitals',
+        gauges: [
+          { label: 'HP', value: hp, max: maxHP, tone: 'pilot' },
+          { label: 'AP', value: ap, max: maxAP, tone: 'pilot' },
+        ],
+        buttons: [
+          {
+            label: 'Take Dmg',
+            onClick: () => {
+              setDmg(1)
+              setPrompt({ kind: 'dmg' })
+            },
+            title: 'Take HP damage',
+          },
+          {
+            label: 'Crit Injury',
+            onClick: () =>
+              setPrompt({ kind: 'crit', effect: null, log: 'Roll a Critical Injury?' }),
+            danger: true,
+            title: 'Roll on the Critical Injury table',
+          },
+        ],
+      },
+      {
+        label: 'Mount',
+        buttons: [
+          {
+            label: '▶ Board Mech',
+            onClick: onBoard,
+            go: true,
+            wide: true,
+            title: 'Board the mech',
+          },
+        ],
+      },
+    ],
+    overlay,
+  }
+  return <ActiveItemBandView view={view} />
 }
