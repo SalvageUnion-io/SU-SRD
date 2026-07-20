@@ -82,18 +82,18 @@ function Cell({
 export const Bands: Story = () => (
   <Gallery rule="DisplayCard is a generic four-band shell: header (required) + optional sub-header + optional body + optional footer. Sub-header and footer are each independently opt-in — every combination below uses the same abstract content so the arrangement is the only thing changing.">
     <Cell label="header only (listing — body/sub-header/footer hidden)" width="w-[380px]">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} extent="head">
+      <DisplayCard headerBg="bg-mech" headerContent={header} extent="head">
         {body}
       </DisplayCard>
     </Cell>
     <Cell label="header + sub-header (stats — compact horizontal)" width="w-[380px]">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} stats={genericStats} size="medium">
+      <DisplayCard headerBg="bg-mech" headerContent={header} stats={genericStats} size="medium">
         {body}
       </DisplayCard>
     </Cell>
     <Cell label="header + sub-header (subHeader node, no stats)" width="w-[380px]">
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={header}
         subHeader={
           <Text
@@ -108,13 +108,13 @@ export const Bands: Story = () => (
       </DisplayCard>
     </Cell>
     <Cell label="header + footer (no sub-header)" width="w-[380px]">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} footMeta={genericFootMeta}>
+      <DisplayCard headerBg="bg-mech" headerContent={header} footMeta={genericFootMeta}>
         {body}
       </DisplayCard>
     </Cell>
     <Cell label="header + sub-header + footer (all four bands)" width="w-[380px]">
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={header}
         stats={genericStats}
         footMeta={genericFootMeta}
@@ -124,7 +124,7 @@ export const Bands: Story = () => (
       </DisplayCard>
     </Cell>
     <Cell label="header only (no sub-header, no footer)" width="w-[380px]">
-      <DisplayCard headerBg="bg-su-green" headerContent={header}>
+      <DisplayCard headerBg="bg-mech" headerContent={header}>
         {body}
       </DisplayCard>
     </Cell>
@@ -135,27 +135,27 @@ export const Bands: Story = () => (
 export const Densities: Story = () => (
   <Gallery rule="Two booleans span the density range: compact (reduced spacing) and listing (header-only clickable row). disabled dims the whole card.">
     <Cell label="default">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} footMeta={genericFootMeta}>
+      <DisplayCard headerBg="bg-mech" headerContent={header} footMeta={genericFootMeta}>
         {body}
       </DisplayCard>
     </Cell>
     <Cell label="compact">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} size="medium">
+      <DisplayCard headerBg="bg-mech" headerContent={header} size="medium">
         {body}
       </DisplayCard>
     </Cell>
     <Cell label="listing">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} extent="head">
+      <DisplayCard headerBg="bg-mech" headerContent={header} extent="head">
         {body}
       </DisplayCard>
     </Cell>
     <Cell label="compact listing">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} size="medium" extent="head">
+      <DisplayCard headerBg="bg-mech" headerContent={header} size="medium" extent="head">
         {body}
       </DisplayCard>
     </Cell>
     <Cell label="disabled">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} disabled>
+      <DisplayCard headerBg="bg-mech" headerContent={header} disabled>
         {body}
       </DisplayCard>
     </Cell>
@@ -166,17 +166,17 @@ export const Densities: Story = () => (
 export const Status: Story = () => (
   <Gallery rule="status drives the condition treatment — intact is pristine; damaged/destroyed apply the warm brick-red state overlay (a treatment, never a second hue).">
     <Cell label='status="intact"'>
-      <DisplayCard headerBg="bg-su-green" headerContent={header} status="intact">
+      <DisplayCard headerBg="bg-mech" headerContent={header} status="intact">
         {body}
       </DisplayCard>
     </Cell>
     <Cell label='status="damaged"'>
-      <DisplayCard headerBg="bg-su-green" headerContent={header} status="damaged">
+      <DisplayCard headerBg="bg-mech" headerContent={header} status="damaged">
         {body}
       </DisplayCard>
     </Cell>
     <Cell label='status="destroyed"'>
-      <DisplayCard headerBg="bg-su-green" headerContent={header} status="destroyed">
+      <DisplayCard headerBg="bg-mech" headerContent={header} status="destroyed">
         {body}
       </DisplayCard>
     </Cell>
@@ -200,18 +200,18 @@ const tabs: DisplayCardTab[] = [
 export const Features: Story = () => (
   <Gallery rule="Feature slots layer onto the same shell: tabs, a header label + labelBadge, and a stickyHeader (scroll to see it stick).">
     <Cell label="tabs" width="w-[380px]">
-      <DisplayCard headerBg="bg-su-blue" headerContent={header} tabs={tabs}>
+      <DisplayCard headerBg="bg-wk-line" headerContent={header} tabs={tabs}>
         {body}
       </DisplayCard>
     </Cell>
     <Cell label="label + labelBadge">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} label="Category" labelBadge="1">
+      <DisplayCard headerBg="bg-mech" headerContent={header} label="Category" labelBadge="1">
         {body}
       </DisplayCard>
     </Cell>
     <Cell label="stickyHeader (scroll)" width="w-[380px]">
       <div className="h-[240px] overflow-y-auto border border-ink/20">
-        <DisplayCard headerBg="bg-su-blue" headerContent={header} stickyHeader>
+        <DisplayCard headerBg="bg-wk-line" headerContent={header} stickyHeader>
           <div className="flex flex-col gap-3 p-3">
             {Array.from({ length: 8 }).map((_, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: static demo lines identified by index

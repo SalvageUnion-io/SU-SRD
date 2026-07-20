@@ -54,16 +54,16 @@ export function calculateBackgroundColor(
     return 'bg-ink-2'
   }
 
-  if (schemaName === 'chassis') return 'bg-su-green'
-  if (schemaName === 'crawlers') return headerColor || 'bg-su-pink'
-  if (schemaName === 'crawler-tech-levels') return headerColor || 'bg-su-pink'
-  if (schemaName === 'crawler-bays') return headerColor || 'bg-su-pink'
-  if (schemaName === 'creatures') return headerColor || 'bg-su-rust'
-  if (schemaName === 'bio-titans') return headerColor || 'bg-su-rust'
-  if (schemaName === 'factions') return headerColor || 'bg-su-rust'
-  if (schemaName === 'npcs') return headerColor || 'bg-su-rust'
-  if (schemaName === 'meld') return headerColor || 'bg-su-rust'
-  if (schemaName === 'squads') return headerColor || 'bg-su-rust'
+  if (schemaName === 'chassis') return 'bg-mech'
+  if (schemaName === 'crawlers') return headerColor || 'bg-crawler'
+  if (schemaName === 'crawler-tech-levels') return headerColor || 'bg-crawler'
+  if (schemaName === 'crawler-bays') return headerColor || 'bg-crawler'
+  if (schemaName === 'creatures') return headerColor || 'bg-adversary'
+  if (schemaName === 'bio-titans') return headerColor || 'bg-adversary'
+  if (schemaName === 'factions') return headerColor || 'bg-adversary'
+  if (schemaName === 'npcs') return headerColor || 'bg-adversary'
+  if (schemaName === 'meld') return headerColor || 'bg-adversary'
+  if (schemaName === 'squads') return headerColor || 'bg-adversary'
   if (schemaName === 'keywords') return headerColor || 'bg-ink-2'
   if (schemaName === 'distances') return headerColor || 'bg-ink-2'
   if (schemaName === 'traits') return headerColor || 'bg-ink-2'
@@ -72,7 +72,7 @@ export function calculateBackgroundColor(
   if (schemaName === 'sources') return headerColor || 'bg-ink-2'
   // Classes are pilot-domain → orange. Hybrid classes render as pilot-orange
   // spreads in the book too (pink is the Legendary tier, not a class type).
-  if (schemaName === 'classes') return headerColor || 'bg-su-orange'
+  if (schemaName === 'classes') return headerColor || 'bg-pilot'
 
   if (schemaName === 'abilities' && !headerColor) {
     const isLegendary =
@@ -84,31 +84,31 @@ export function calculateBackgroundColor(
     // Book tier tones (Core Book 2.0a, class ability-tree spreads): Core = brick,
     // Advanced (incl. Hybrid) = orange, Legendary = pink. Hybrid folds into Advanced.
     if (isLegendary) {
-      return 'bg-su-pink'
+      return 'bg-crawler'
     } else if (isAdvancedOrHybrid) {
-      return 'bg-su-orange'
+      return 'bg-pilot'
     } else {
-      return 'bg-su-brick'
+      return 'bg-tier-core'
     }
   }
 
   if (schemaName === 'ability-tree-requirements' && !headerColor) {
     const name = 'name' in data ? String(data.name).toLowerCase() : ''
     if (name.includes('legendary')) {
-      return 'bg-su-pink'
+      return 'bg-crawler'
     } else if (name.includes('advanced') || name.includes('hybrid')) {
-      return 'bg-su-orange'
+      return 'bg-pilot'
     }
-    return 'bg-su-brick'
+    return 'bg-tier-core'
   }
 
   if (headerColor) return headerColor
-  if (techLevel) return techLevelColors[techLevel] ?? 'bg-su-orange'
-  return 'bg-su-orange'
+  if (techLevel) return techLevelColors[techLevel] ?? 'bg-pilot'
+  return 'bg-pilot'
 }
 
 /**
- * Derive a CSS color value from a Tailwind bg class (e.g. 'bg-su-orange' → 'var(--color-su-orange)').
+ * Derive a CSS color value from a Tailwind bg class (e.g. 'bg-pilot' → 'var(--color-pilot)').
  * Returns undefined when headerBg is falsy so callers can skip border styling.
  */
 export function borderColorFromHeaderBg(

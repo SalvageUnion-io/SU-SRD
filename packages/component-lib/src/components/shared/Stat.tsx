@@ -37,7 +37,7 @@ export type StatState = EntityStatus
  * `critical` for Heat).
  *
  *   default  -> ink border (the resting state)
- *   good     -> su-green   (full / at-cap-good — the former isOverMax)
+ *   good     -> mech   (full / at-cap-good — the former isOverMax)
  *   modified -> rust       (value changed from its base, e.g. a modified TL)
  *   caution  -> status-warn
  *   critical -> status-bad
@@ -46,7 +46,7 @@ export type StatBorderState = 'default' | 'good' | 'modified' | 'caution' | 'cri
 
 const STATE_BORDER: Record<StatBorderState, string> = {
   default: 'border-ink',
-  good: 'border-su-green',
+  good: 'border-mech',
   modified: 'border-rust',
   caution: 'border-status-warn',
   critical: 'border-status-bad',
@@ -464,7 +464,7 @@ function ValueBox({
             compact ? 'border' : 'border-chrome',
             disabled
               ? 'pointer-events-none'
-              : 'cursor-pointer hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange',
+              : 'cursor-pointer hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pilot',
             isFlashing && 'animate-[growShrink_3s_ease-out] motion-reduce:animate-none'
           )}
           aria-label={combinedAriaLabel}

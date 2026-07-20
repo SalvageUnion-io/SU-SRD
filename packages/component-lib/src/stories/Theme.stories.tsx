@@ -49,38 +49,51 @@ function RoleSwatch({ bg, role, token }: ColorRole) {
   )
 }
 
-const brandColors: Record<string, string> = {
-  'su-orange': 'rgb(239, 137, 79)',
-  'su-orange-dark': 'rgb(200, 100, 50)',
-  'su-orange-light': 'rgb(245, 193, 163)',
-  'su-green': 'rgb(122, 151, 138)',
-  'su-green-dark': 'rgb(92, 121, 108)',
-  'su-pink': 'rgb(206, 88, 152)',
-  'su-blue': 'rgb(143, 195, 216)',
-  'su-blue-game': 'rgb(125, 206, 235)',
-  'su-blue-light': 'rgb(199, 223, 231)',
-  'su-blue-pale': 'rgb(230, 240, 245)',
-  'su-brick': 'rgb(168, 89, 71)',
-  'su-brick-pale': 'rgb(210, 160, 140)',
-  ink: 'rgb(40, 32, 25)',
-  paper: 'rgb(251, 248, 243)',
-  'su-grey': 'rgb(150, 150, 150)',
-  'wk-faint': 'rgb(199, 199, 199)',
-  'wk-muted': 'rgb(130, 130, 130)',
-  'ink-2': 'rgb(80, 80, 80)',
-  'su-input-bg': 'rgb(232, 229, 216)',
-  'su-peach': 'rgb(245, 193, 163)',
-  'su-sickly-yellow': 'rgb(215, 195, 125)',
-  'su-silver': 'rgb(192, 192, 192)',
+/* Every specimen map below resolves through `var(--color-*)` rather than a
+   literal. This is load-bearing, not stylistic: these maps used to hardcode rgb
+   values and had silently drifted from theme.css in TEN places — `paper`,
+   `ink-2`, `wk-muted`, `wk-faint`, the old `su-orange-dark`, and all five roll
+   tiers, which still showed the stock-Material hues that the warm re-tone
+   retired. The page whose entire job is to be the ground truth for the token
+   system was misreporting it. Referencing the tokens makes drift impossible. */
+const coreColors: Record<string, string> = {
+  ink: 'var(--color-ink)',
+  'ink-2': 'var(--color-ink-2)',
+  'ink-deep': 'var(--color-ink-deep)',
+  paper: 'var(--color-paper)',
+  'band-cream': 'var(--color-band-cream)',
+  rust: 'var(--color-rust)',
+  'rust-hi': 'var(--color-rust-hi)',
+}
+
+const inkRamp: Record<string, string> = {
+  'ink-75': 'var(--color-ink-75)',
+  'ink-50': 'var(--color-ink-50)',
+  'ink-30': 'var(--color-ink-30)',
+  'ink-12': 'var(--color-ink-12)',
+  'ink-8': 'var(--color-ink-8)',
+}
+
+const groundColors: Record<string, string> = {
+  'wk-bg': 'var(--color-wk-bg)',
+  'wk-bg-2': 'var(--color-wk-bg-2)',
+  'wk-muted': 'var(--color-wk-muted)',
+  'wk-faint': 'var(--color-wk-faint)',
+  'wk-line': 'var(--color-wk-line)',
+  'wk-accent': 'var(--color-wk-accent)',
+  caution: 'var(--color-caution)',
+  inert: 'var(--color-inert)',
 }
 
 const techLevelColors: Record<string, string> = {
-  '1': 'rgb(115, 201, 230)',
-  '2': 'rgb(87, 169, 200)',
-  '3': 'rgb(68, 135, 162)',
-  '4': 'rgb(48, 107, 128)',
-  '5': 'rgb(30, 83, 100)',
-  '6': 'rgb(6, 52, 65)',
+  '1': 'var(--color-tl-1)',
+  '2': 'var(--color-tl-2)',
+  '3': 'var(--color-tl-3)',
+  '4': 'var(--color-tl-4)',
+  '5': 'var(--color-tl-5)',
+  '6': 'var(--color-tl-6)',
+  b: 'var(--color-tl-b)',
+  n: 'var(--color-tl-n)',
 }
 
 const semanticColors: Record<string, string> = {
@@ -89,14 +102,26 @@ const semanticColors: Record<string, string> = {
   mech: 'var(--color-mech)',
   'mech-dark': 'var(--color-mech-dark)',
   crawler: 'var(--color-crawler)',
+  adversary: 'var(--color-adversary)',
+  cargo: 'var(--color-cargo)',
+  'tier-core': 'var(--color-tier-core)',
+  'tier-core-pale': 'var(--color-tier-core-pale)',
 }
 
+/* Bot-only. The web never colours roll outcomes (ruleset §3.4); these are shown
+   so the warm ramp is inspectable, not because a web surface may use them. */
 const rollColors: Record<string, string> = {
-  'roll-cascade': 'rgb(244, 67, 54)',
-  'roll-failure': 'rgb(255, 152, 0)',
-  'roll-tough': 'rgb(255, 193, 7)',
-  'roll-success': 'rgb(76, 175, 80)',
-  'roll-nailed': 'rgb(33, 150, 243)',
+  'roll-cascade': 'var(--color-roll-cascade)',
+  'roll-failure': 'var(--color-roll-failure)',
+  'roll-tough': 'var(--color-roll-tough)',
+  'roll-success': 'var(--color-roll-success)',
+  'roll-nailed': 'var(--color-roll-nailed)',
+}
+
+const statusColors: Record<string, string> = {
+  'status-ok': 'var(--color-status-ok)',
+  'status-warn': 'var(--color-status-warn)',
+  'status-bad': 'var(--color-status-bad)',
 }
 
 const cssVarMappings: Record<string, string> = {
@@ -156,13 +181,12 @@ function ColorSection({ title, colors }: { title: string; colors: Record<string,
 export const ColorPalette: Story = () => (
   <div style={{ fontFamily: "'Fira Code', monospace", padding: '1rem' }}>
     <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-      SU Brand Color Palette
+      The Closed Colour Set
     </h2>
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-      {Object.entries(brandColors).map(([name, value]) => (
-        <Swatch key={name} name={name} color={value} />
-      ))}
-    </div>
+    <ColorSection title="Core — ink · paper · action" colors={coreColors} />
+    <ColorSection title="Ink ramp — hairlines, placeholders, ghosts" colors={inkRamp} />
+    <ColorSection title="Ground & attention" colors={groundColors} />
+    <ColorSection title="State overlays" colors={statusColors} />
   </div>
 )
 

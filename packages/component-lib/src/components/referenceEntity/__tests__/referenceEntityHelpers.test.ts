@@ -7,9 +7,9 @@ import {
 
 describe('calculateBackgroundColor', () => {
   const techLevelColors: Record<number, string> = {
-    1: 'bg-su-orange',
-    2: 'bg-su-orange',
-    3: 'bg-su-orange-dark',
+    1: 'bg-pilot',
+    2: 'bg-pilot',
+    3: 'bg-rust',
   }
 
   it('should return bg-ink-2 for guides schema with no headerColor', () => {
@@ -33,7 +33,7 @@ describe('calculateBackgroundColor', () => {
   it('should return headerColor for guides schema when provided', () => {
     const result = calculateBackgroundColor(
       'guides',
-      'bg-su-pink',
+      'bg-crawler',
       undefined,
       {
         id: 'test',
@@ -45,7 +45,7 @@ describe('calculateBackgroundColor', () => {
       },
       techLevelColors
     )
-    expect(result).toBe('bg-su-pink')
+    expect(result).toBe('bg-crawler')
   })
 
   it('should return bg-ink-2 for black market items', () => {
@@ -66,7 +66,7 @@ describe('calculateBackgroundColor', () => {
     expect(result).toBe('bg-ink-2')
   })
 
-  it('should return bg-su-green for chassis schema', () => {
+  it('should return bg-mech for chassis schema', () => {
     const result = calculateBackgroundColor(
       'chassis',
       '',
@@ -81,17 +81,17 @@ describe('calculateBackgroundColor', () => {
       },
       techLevelColors
     )
-    expect(result).toBe('bg-su-green')
+    expect(result).toBe('bg-mech')
   })
 })
 
 describe('borderColorFromHeaderBg', () => {
   it('should return headerBgColor when provided', () => {
-    expect(borderColorFromHeaderBg('bg-su-orange', '#D46A30')).toBe('#D46A30')
+    expect(borderColorFromHeaderBg('bg-pilot', '#D46A30')).toBe('#D46A30')
   })
 
   it('should derive CSS var from headerBg when headerBgColor is not provided', () => {
-    expect(borderColorFromHeaderBg('bg-su-orange')).toBe('var(--color-su-orange)')
+    expect(borderColorFromHeaderBg('bg-pilot')).toBe('var(--color-pilot)')
   })
 
   it('should return undefined when headerBg is falsy and no headerBgColor', () => {
@@ -100,7 +100,7 @@ describe('borderColorFromHeaderBg', () => {
   })
 
   it('should prefer headerBgColor over headerBg derivation', () => {
-    expect(borderColorFromHeaderBg('bg-su-orange', '#FF0000')).toBe('#FF0000')
+    expect(borderColorFromHeaderBg('bg-pilot', '#FF0000')).toBe('#FF0000')
   })
 })
 
@@ -113,15 +113,15 @@ describe('accentSurface', () => {
   })
 
   it('should use the passed bg class with no inline style', () => {
-    expect(accentSurface('bg-su-green', undefined)).toEqual({
-      className: 'bg-su-green',
+    expect(accentSurface('bg-mech', undefined)).toEqual({
+      className: 'bg-mech',
       style: undefined,
     })
   })
 
   it('should emit an inline backgroundColor when headerBgColor is truthy', () => {
-    expect(accentSurface('bg-su-green', '#D46A30')).toEqual({
-      className: 'bg-su-green',
+    expect(accentSurface('bg-mech', '#D46A30')).toEqual({
+      className: 'bg-mech',
       style: { backgroundColor: '#D46A30' },
     })
   })

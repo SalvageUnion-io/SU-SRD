@@ -18,7 +18,7 @@ describe('DisplayCard', () => {
   afterEach(cleanup)
   test('renders header content', () => {
     render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>My Header</span>}>
+      <DisplayCard headerBg="bg-mech" headerContent={<span>My Header</span>}>
         <p>Body</p>
       </DisplayCard>
     )
@@ -27,7 +27,7 @@ describe('DisplayCard', () => {
 
   test('renders body content in full mode', () => {
     render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>}>
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>}>
         <p>Body content</p>
       </DisplayCard>
     )
@@ -37,7 +37,7 @@ describe('DisplayCard', () => {
   test('renders footer content in full mode', () => {
     render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Header</span>}
         footerContent={<span>Footer info</span>}
       >
@@ -49,7 +49,7 @@ describe('DisplayCard', () => {
 
   test('renders label as pseudoheader', () => {
     render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} label="CHASSIS">
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} label="CHASSIS">
         <p>Body</p>
       </DisplayCard>
     )
@@ -59,7 +59,7 @@ describe('DisplayCard', () => {
   test('renders labelLead, label, and labelBadge together in one callout row', () => {
     render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Header</span>}
         labelLead={<span>RECOMMENDED</span>}
         label="TECH LEVEL"
@@ -83,7 +83,7 @@ describe('DisplayCard', () => {
   test('non-compact card WITH a callout top-aligns the header row and pads it', () => {
     render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Header</span>}
         label="CHASSIS"
         headerTestId="frame-header-container"
@@ -102,7 +102,7 @@ describe('DisplayCard', () => {
   test('compact card WITH a callout uses pt-3 and top-aligns the header row', () => {
     render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Header</span>}
         label="CHASSIS"
         size="medium"
@@ -119,7 +119,7 @@ describe('DisplayCard', () => {
   test('card WITHOUT any callout centres the header row and omits callout padding', () => {
     render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Header</span>}
         headerTestId="frame-header-container"
       >
@@ -137,7 +137,7 @@ describe('DisplayCard', () => {
   test('listing boolean hides body and footer', () => {
     render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Header</span>}
         footerContent={<span>Footer</span>}
         size="medium"
@@ -154,7 +154,7 @@ describe('DisplayCard', () => {
   test('full + listing renders full-size header-only card', () => {
     const { container } = render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Full Listing</span>}
         footerContent={<span>Footer</span>}
         extent="head"
@@ -173,7 +173,7 @@ describe('DisplayCard', () => {
 
   test('default body padding is p-0', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>}>
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>}>
         <p>Body</p>
       </DisplayCard>
     )
@@ -183,7 +183,7 @@ describe('DisplayCard', () => {
 
   test('does not render body when children is undefined', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header only</span>} />
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Header only</span>} />
     )
     expect(container.querySelector('.bg-paper')).toBeNull()
   })
@@ -191,7 +191,7 @@ describe('DisplayCard', () => {
   test('disabled state keeps original header background and applies opacity', () => {
     const { container } = render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Disabled</span>}
         disabled
         headerTestId="test-header"
@@ -200,7 +200,7 @@ describe('DisplayCard', () => {
       </DisplayCard>
     )
     const header = screen.getByTestId('test-header')
-    expect(header.className).toContain('bg-su-green')
+    expect(header.className).toContain('bg-mech')
     // Outer wrapper gets opacity-50
     const wrapper = container.firstElementChild as HTMLElement
     expect(wrapper.className).toContain('opacity-50')
@@ -208,7 +208,7 @@ describe('DisplayCard', () => {
 
   test('bodyPadding overrides default padding', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} bodyPadding="p-4">
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} bodyPadding="p-4">
         <p>Body</p>
       </DisplayCard>
     )
@@ -219,11 +219,7 @@ describe('DisplayCard', () => {
 
   test('headerTestId passes data-testid to header div', () => {
     render(
-      <DisplayCard
-        headerBg="bg-su-green"
-        headerContent={<span>Header</span>}
-        headerTestId="my-header"
-      >
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} headerTestId="my-header">
         <p>Body</p>
       </DisplayCard>
     )
@@ -234,7 +230,7 @@ describe('DisplayCard', () => {
     let clicked = false
     const { container } = render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Row</span>}
         size="medium"
         extent="head"
@@ -260,7 +256,7 @@ describe('DisplayCard', () => {
     let clicked = false
     const { container } = render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Full</span>}
         controls={[
           makeTestControl({
@@ -285,7 +281,7 @@ describe('DisplayCard', () => {
   test('non-cardClick control does not make card clickable', () => {
     const { container } = render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Row</span>}
         size="medium"
         extent="head"
@@ -303,7 +299,7 @@ describe('DisplayCard', () => {
     let clickedKey = ''
     const { container } = render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Row</span>}
         size="medium"
         extent="head"
@@ -337,7 +333,7 @@ describe('DisplayCard', () => {
     let source = ''
     const { container } = render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Row</span>}
         size="medium"
         extent="head"
@@ -361,7 +357,7 @@ describe('DisplayCard', () => {
 
   test('cardClickable enables hover classes without click handler', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Hoverable</span>} cardClickable>
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Hoverable</span>} cardClickable>
         <p>Body</p>
       </DisplayCard>
     )
@@ -374,7 +370,7 @@ describe('DisplayCard', () => {
   test('cardClick adds hover scale classes to wrapper', () => {
     const { container } = render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Row</span>}
         size="medium"
         extent="head"
@@ -387,7 +383,7 @@ describe('DisplayCard', () => {
 
   test('button mode exposes a focus-visible ring with contrast offset', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Row</span>} onCardClick={() => {}}>
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Row</span>} onCardClick={() => {}}>
         <p>Body</p>
       </DisplayCard>
     )
@@ -405,7 +401,7 @@ describe('DisplayCard', () => {
 
   test('non-button (non-clickable) card does not render focus ring classes', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Static</span>}>
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Static</span>}>
         <p>Body</p>
       </DisplayCard>
     )
@@ -417,7 +413,7 @@ describe('DisplayCard', () => {
   test('tab content container has aria-live polite for screen reader announcements', () => {
     const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
     const { container } = render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} tabs={tabs}>
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} tabs={tabs}>
         <p>Default body</p>
       </DisplayCard>
     )
@@ -430,7 +426,7 @@ describe('DisplayCard', () => {
 
   test('no tabs renders no tab bar', () => {
     render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>}>
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>}>
         <p>Body</p>
       </DisplayCard>
     )
@@ -444,7 +440,7 @@ describe('DisplayCard', () => {
       { key: 'b', label: 'Beta', content: <p>Beta content</p> },
     ]
     render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} tabs={tabs}>
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} tabs={tabs}>
         <p>Default content</p>
       </DisplayCard>
     )
@@ -460,7 +456,7 @@ describe('DisplayCard', () => {
   test('default tab shows children content', () => {
     const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
     render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} tabs={tabs}>
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} tabs={tabs}>
         <p>Default body</p>
       </DisplayCard>
     )
@@ -471,7 +467,7 @@ describe('DisplayCard', () => {
   test('tab switching hides children and shows tab content', () => {
     const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
     render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} tabs={tabs}>
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} tabs={tabs}>
         <p>Default body</p>
       </DisplayCard>
     )
@@ -490,7 +486,7 @@ describe('DisplayCard', () => {
     const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
     render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Header</span>}
         tabs={tabs}
         defaultTabLabel="Details"
@@ -506,7 +502,7 @@ describe('DisplayCard', () => {
     const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
     render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Header</span>}
         size="medium"
         extent="head"
@@ -530,7 +526,7 @@ describe('DisplayCard', () => {
       },
     ]
     render(
-      <DisplayCard headerBg="bg-su-green" headerContent={<span>Header</span>} tabs={tabs}>
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} tabs={tabs}>
         <p>Body</p>
       </DisplayCard>
     )
@@ -543,7 +539,7 @@ describe('DisplayCard', () => {
   test('cardStyle overrides default shadow class', () => {
     const { container } = render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Header</span>}
         cardStyle={{ className: 'custom-card-class' }}
       >
@@ -558,7 +554,7 @@ describe('DisplayCard', () => {
   test('headerStyle applies className and inline style to header', () => {
     render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Header</span>}
         headerStyle={{ className: 'custom-header', style: { backgroundImage: 'url(test)' } }}
         headerTestId="test-header"
@@ -574,16 +570,16 @@ describe('DisplayCard', () => {
   test('footerStyle overrides default footer bg class', () => {
     const { container } = render(
       <DisplayCard
-        headerBg="bg-su-green"
+        headerBg="bg-mech"
         headerContent={<span>Header</span>}
         footerContent={<span>Footer</span>}
-        footerStyle={{ className: 'bg-su-orange' }}
+        footerStyle={{ className: 'bg-pilot' }}
       >
         <p>Body</p>
       </DisplayCard>
     )
     // Footer should have the override class, not the default headerBg
-    const footerEl = container.querySelector('.bg-su-orange')
+    const footerEl = container.querySelector('.bg-pilot')
     expect(footerEl).toBeTruthy()
     expect(footerEl?.textContent).toBe('Footer')
   })

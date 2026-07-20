@@ -34,14 +34,14 @@ export function ModalShell({
   title,
   subtitle,
   description,
-  headerBg = 'bg-su-orange',
+  headerBg = 'bg-pilot',
   maxWidth = 'max-w-3xl',
   align = 'top',
   initialFocus,
   bare = false,
   children,
 }: ModalShellProps) {
-  const isLightClose = headerBg === 'bg-su-rust'
+  const isLightClose = headerBg === 'bg-adversary'
 
   // Bare mode: a fit-height, non-scrolling popup — the child owns its frame and
   // any internal scroll. Default: a scrolling popup wrapping the DisplayCard.
@@ -69,7 +69,7 @@ export function ModalShell({
                     <Text
                       as="span"
                       variant="pseudoheader"
-                      className={`${headerBg === 'bg-su-rust' ? 'text-xl' : 'text-[1.75rem]'} text-paper`}
+                      className={`${headerBg === 'bg-adversary' ? 'text-xl' : 'text-[1.75rem]'} text-paper`}
                     >
                       {title}
                     </Text>

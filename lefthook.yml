@@ -44,3 +44,12 @@ pre-push:
 
     knip:
       run: bun run knip
+
+    design-tokens:
+      # Guards the closed colour set / token scales (ruleset §3–§4). Belongs on
+      # pre-push rather than pre-commit for the same reason as typecheck — but
+      # it is load-bearing here in a way lint is not: these are Tailwind v4
+      # `@theme` tokens, so an off-system or deleted token does NOT fail
+      # typecheck. The utility simply stops being generated and the element
+      # renders unstyled. This check is the only mechanical backstop for that.
+      run: bun run check:tokens

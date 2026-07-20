@@ -86,7 +86,7 @@ export function UnassignLinkButton({
           if (!next) closeConfirm()
         }}
         title="Remove assignment?"
-        headerBg="bg-su-rust"
+        headerBg="bg-adversary"
         maxWidth="max-w-md"
         align="center"
       >

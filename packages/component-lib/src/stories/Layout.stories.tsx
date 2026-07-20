@@ -22,7 +22,7 @@ function ChassisRow({ name }: { name: string }) {
   return (
     <DisplayCard
       extent="head"
-      headerBg="bg-su-green"
+      headerBg="bg-mech"
       headerContent={<span className="font-cond font-bold uppercase text-ink">{name}</span>}
     />
   )

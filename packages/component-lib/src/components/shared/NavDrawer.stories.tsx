@@ -19,7 +19,7 @@ const CATEGORIES = [
     label: 'Mechs',
     schemas: [
       { id: 'chassis', displayName: 'Chassis', catalogBg: 'var(--color-mech)' },
-      { id: 'systems', displayName: 'Systems', catalogBg: 'var(--color-su-green-dark)' },
+      { id: 'systems', displayName: 'Systems', catalogBg: 'var(--color-mech-dark)' },
     ],
   },
   {
@@ -29,7 +29,7 @@ const CATEGORIES = [
         id: 'traits',
         displayName: 'Traits',
         catalogBg: 'var(--color-ink)',
-        catalogLabel: 'var(--color-su-orange-dark)',
+        catalogLabel: 'var(--color-rust)',
       },
     ],
   },

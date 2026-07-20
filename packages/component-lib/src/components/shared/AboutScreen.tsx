@@ -41,7 +41,7 @@ export function AboutScreen({ version }: AboutScreenProps) {
               href="https://leyline.press/pages/salvage-union"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-su-orange-dark hover:underline"
+              className="font-semibold text-rust hover:underline"
             >
               Salvage Union
             </a>
@@ -50,7 +50,7 @@ export function AboutScreen({ version }: AboutScreenProps) {
               href="https://leyline.press"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-su-orange-dark hover:underline"
+              className="font-semibold text-rust hover:underline"
             >
               Leyline Press
             </a>
@@ -68,7 +68,7 @@ export function AboutScreen({ version }: AboutScreenProps) {
               href="https://salvageunion.io"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-su-orange-dark hover:underline"
+              className="font-semibold text-rust hover:underline"
             >
               salvageunion.io
             </a>
@@ -87,7 +87,7 @@ export function AboutScreen({ version }: AboutScreenProps) {
           <KofiButton code="C3Z82382ZC" />
           <p className="font-body text-xs text-wk-muted">
             Version {version} —{' '}
-            <a href="/changelog" className="font-semibold text-su-orange-dark hover:underline">
+            <a href="/changelog" className="font-semibold text-rust hover:underline">
               view changelog
             </a>
           </p>

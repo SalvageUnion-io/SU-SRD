@@ -101,7 +101,7 @@ export const ValueBox: Story = () => (
 
 /** State lives in the border — the ONLY thing that changes between states. */
 export const States: Story = () => (
-  <Gallery rule="State is carried entirely by the border colour via the `state` prop; fill, value and stamp stay constant. Default = ink · good (full/at-cap) = su-green · modified = rust · caution = status-warn · critical = status-bad. Which value maps to which state is the consumer's call.">
+  <Gallery rule="State is carried entirely by the border colour via the `state` prop; fill, value and stamp stay constant. Default = ink · good (full/at-cap) = mech · modified = rust · caution = status-warn · critical = status-bad. Which value maps to which state is the consumer's call.">
     <Cell label="default">
       <Stat label="SP" value={Math.ceil(sp * 0.5)} max={sp} />
     </Cell>

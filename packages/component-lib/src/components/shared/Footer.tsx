@@ -22,7 +22,7 @@ export function Footer({ poweredBySalvageUrl, legalLinks }: FooterProps) {
               href="https://leyline.press"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline hover:text-su-orange-dark"
+              className="underline hover:text-rust"
             >
               Leyline Press
             </a>
@@ -35,7 +35,7 @@ export function Footer({ poweredBySalvageUrl, legalLinks }: FooterProps) {
               href="https://leyline.press/pages/salvage-union-open-game-licence-1-0b"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline hover:text-su-orange-dark"
+              className="underline hover:text-rust"
             >
               Salvage Union Open Game Licence 1.0b
             </a>
@@ -47,7 +47,7 @@ export function Footer({ poweredBySalvageUrl, legalLinks }: FooterProps) {
               href="https://leyline.press"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline hover:text-su-orange-dark"
+              className="underline hover:text-rust"
             >
               Leyline Press
             </a>
@@ -58,7 +58,7 @@ export function Footer({ poweredBySalvageUrl, legalLinks }: FooterProps) {
               {legalLinks.map((link, i) => (
                 <span key={link.href}>
                   {i > 0 && <span className="px-1.5 text-wk-faint">·</span>}
-                  <a href={link.href} className="underline hover:text-su-orange-dark">
+                  <a href={link.href} className="underline hover:text-rust">
                     {link.label}
                   </a>
                 </span>

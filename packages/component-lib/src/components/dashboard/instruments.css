@@ -8,7 +8,7 @@
  * There is NO private token layer: every rule references the canonical
  * `--color-*` / `--bw-*` / `--radius-*` / `--text-*` / `--tracking-*` tokens
  * (component-lib theme.css) directly. The ground is canonical warm paper
- * (su-paper) with ink lines; instrument cards read as white paper (--color-paper)
+ * (paper) with ink lines; instrument cards read as white paper (--color-paper)
  * inset on it. Hue encodes ONTOLOGY (mech green / pilot orange / crawler pink),
  * never identity; the one hard 2.5px (--bw-rail) border marks a "forward" surface
  * (rail + display); everything else is flat/inset (ADR-018).
@@ -97,7 +97,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 8px 12px 10px;
-  background: var(--color-su-paper);
+  background: var(--color-paper);
   border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 40%, transparent);
   border-radius: var(--radius-panel);
   z-index: 2;
@@ -731,7 +731,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 8px 12px 10px;
-  background: var(--color-su-paper);
+  background: var(--color-paper);
   border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 40%, transparent);
   border-radius: var(--radius-panel);
   z-index: 3;

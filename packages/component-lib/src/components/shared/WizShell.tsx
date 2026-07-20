@@ -93,7 +93,7 @@ export function WizTracker({ label, value }: { label: string; value: ReactNode }
   return (
     <span className="inline-flex items-baseline gap-2 whitespace-nowrap rounded-badge bg-ink px-3 py-1.5 font-cond text-caption font-bold uppercase leading-none tracking-caps text-paper shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.28)]">
       <span>{label}</span>
-      <span className="text-lede tracking-caps-tight text-su-orange">{value}</span>
+      <span className="text-lede tracking-caps-tight text-pilot">{value}</span>
     </span>
   )
 }
@@ -134,7 +134,7 @@ function RailStep({
           active
             ? 'h-11 w-11 bg-ink text-[23px] text-paper shadow-[0_0_0_4px_var(--tone)] lg:-ml-[5px]'
             : 'h-[34px] w-[34px]',
-          !active && done && 'bg-ink text-[17px] text-su-orange',
+          !active && done && 'bg-ink text-[17px] text-pilot',
           !active &&
             !done &&
             'bg-paper text-[17px] text-ink shadow-[inset_0_0_0_2.5px_var(--color-ink)]'
@@ -205,7 +205,7 @@ export function WizShell({
       <h1 className="m-0">
         {/* Ink-stamp step heading (SheetHero name-chip treatment). */}
         <span className="inline bg-ink box-decoration-clone px-2 pb-[3px] pt-[2px] font-cond text-[22px] font-bold uppercase leading-[1.35] tracking-[0.01em] text-paper">
-          <span className="text-su-orange">
+          <span className="text-pilot">
             Step {active + 1} of {steps.length}
           </span>
           {' · '}
@@ -230,7 +230,7 @@ export function WizShell({
       {footerNote && (
         <p
           role="status"
-          className="m-0 px-2 text-center font-cond text-xs font-semibold uppercase tracking-caps text-su-orange sm:text-left"
+          className="m-0 px-2 text-center font-cond text-xs font-semibold uppercase tracking-caps text-pilot sm:text-left"
         >
           {footerNote}
         </p>
@@ -264,7 +264,7 @@ export function WizShell({
             if (!next) setConfirmingCancel(false)
           }}
           title="Discard this draft?"
-          headerBg="bg-su-rust"
+          headerBg="bg-adversary"
           maxWidth="max-w-md"
           align="center"
         >

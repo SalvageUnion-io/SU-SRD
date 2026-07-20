@@ -57,7 +57,7 @@ function PreloadGate({ children }: { children: ReactNode }) {
 
 /**
  * Branded full-viewport loading fallback (design-spec brand chrome): SU mark
- * on the su-ink-dark ground with an indeterminate rust loader bar. The status
+ * on the ink-deep ground with an indeterminate rust loader bar. The status
  * text stays in the accessibility tree for screen readers.
  */
 function GameDataFallback() {
@@ -65,7 +65,7 @@ function GameDataFallback() {
     <div
       role="status"
       aria-live="polite"
-      className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-su-ink-dark px-6"
+      className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-ink-deep px-6"
     >
       <img
         src="/logos/su-cargo-dark.svg"
@@ -74,12 +74,12 @@ function GameDataFallback() {
         height={96}
         className="size-20 rounded-md sm:size-24"
       />
-      <p className="font-cond text-sm font-semibold uppercase tracking-eyebrow text-su-paper">
+      <p className="font-cond text-sm font-semibold uppercase tracking-eyebrow text-paper">
         Loading reference data…
       </p>
       {/* motion-safe: prefers-reduced-motion users get a static bar instead
           of the infinite translateX sweep (matches the heat-pulse guard). */}
-      <div aria-hidden="true" className="h-1 w-56 overflow-hidden rounded-full bg-su-paper/20">
+      <div aria-hidden="true" className="h-1 w-56 overflow-hidden rounded-full bg-paper/20">
         <div className="h-full w-1/3 rounded-full bg-rust motion-safe:animate-loader-slide" />
       </div>
     </div>

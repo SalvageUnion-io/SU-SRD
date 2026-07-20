@@ -64,7 +64,7 @@ export function NpcFactsEditor({
     'inline-flex items-center gap-1 rounded-badge px-2 py-0.5 font-cond text-badge font-semibold tracking-[.03em]'
 
   return (
-    <div className="flex min-h-10 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-su-paper p-2">
+    <div className="flex min-h-10 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-paper p-2">
       {facts.length === 0 && !adding && (
         <span className="font-body text-xs text-wk-muted">No facts yet</span>
       )}
@@ -74,7 +74,7 @@ export function NpcFactsEditor({
           <span
             // biome-ignore lint/suspicious/noArrayIndexKey: facts are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
             key={`${fact}-${index}`}
-            className={cn(chipBase, 'bg-su-blue-pale text-su-ink-soft')}
+            className={cn(chipBase, 'bg-wk-bg text-ink-50')}
           >
             {fact}
           </span>
@@ -82,7 +82,7 @@ export function NpcFactsEditor({
           <span
             // biome-ignore lint/suspicious/noArrayIndexKey: facts are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
             key={`${fact}-${index}`}
-            className={cn(chipBase, 'bg-su-blue-pale text-su-ink-soft')}
+            className={cn(chipBase, 'bg-wk-bg text-ink-50')}
           >
             {fact}
             <button
@@ -121,7 +121,7 @@ export function NpcFactsEditor({
             onBlur={() => {
               void commitAdd()
             }}
-            className="w-40 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge tracking-[.03em] text-ink focus:outline-none focus:ring-1 focus:ring-su-orange"
+            className="w-40 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge tracking-[.03em] text-ink focus:outline-none focus:ring-1 focus:ring-pilot"
           />
         ) : (
           <button

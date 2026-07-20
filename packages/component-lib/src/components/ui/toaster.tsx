@@ -15,8 +15,8 @@ export function Toaster() {
           fontSize: '0.8125rem',
         },
         classNames: {
-          success: '[&>[data-icon]]:text-su-green',
-          error: '[&>[data-icon]]:text-su-rust',
+          success: '[&>[data-icon]]:text-mech',
+          error: '[&>[data-icon]]:text-adversary',
         },
       }}
     />

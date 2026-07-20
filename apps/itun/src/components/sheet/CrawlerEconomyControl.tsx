@@ -307,7 +307,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
         if (!next) onClose()
       }}
       title="Upgrade Crawler"
-      headerBg="bg-su-orange"
+      headerBg="bg-pilot"
       maxWidth="max-w-md"
       align="center"
     >

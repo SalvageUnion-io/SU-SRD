@@ -209,7 +209,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
           if (!next) setConfirmRemove(false)
         }}
         title={`Remove ${npc.name}?`}
-        headerBg="bg-su-rust"
+        headerBg="bg-adversary"
         maxWidth="max-w-md"
         align="center"
       >

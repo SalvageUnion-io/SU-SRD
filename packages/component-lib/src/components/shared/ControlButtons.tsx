@@ -13,7 +13,7 @@ import type {
 /** Tailwind classes for the primary segment of each variant */
 const VARIANT_BG: Record<ReferenceEntityControlVariant, string> = {
   primary: 'bg-ink',
-  danger: 'bg-su-rust',
+  danger: 'bg-adversary',
   ghost: 'bg-paper',
 }
 

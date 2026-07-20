@@ -353,7 +353,7 @@ function ColumnsRollTable({
         {rollAnnouncement}
       </div>
 
-      <div className="rounded-card border-2 border-su-orange-light">
+      <div className="rounded-card border-2 border-pilot-light">
         <RollTableHeader
           showHeader={showHeader}
           collapsible={collapsible}
@@ -395,7 +395,7 @@ function ColumnsRollTable({
                       className={cn(
                         // Codex `.a-rt` alternating bands: tone tint / warm paper + row hairline.
                         'border-b border-ink/10',
-                        i % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-paper'
+                        i % 2 === 0 ? 'bg-pilot-light' : 'bg-band-cream'
                       )}
                     >
                       {COLUMN_KEYS.map((colKey) => {
@@ -515,7 +515,7 @@ function StandardRollTable({
         {rollAnnouncement}
       </div>
 
-      <div className="overflow-visible rounded-card border-2 border-su-orange-light transition-opacity duration-200">
+      <div className="overflow-visible rounded-card border-2 border-pilot-light transition-opacity duration-200">
         <RollTableHeader
           showHeader={showHeader}
           collapsible={collapsible}
@@ -541,7 +541,7 @@ function StandardRollTable({
                 if (key === 'type') return null
                 const isHighlighted = highlightedKey === key
                 // Codex `.a-rt` alternating full-row bands: tone tint / warm paper.
-                const bgColor = index % 2 === 0 ? 'bg-su-orange-light' : 'bg-su-paper'
+                const bgColor = index % 2 === 0 ? 'bg-pilot-light' : 'bg-band-cream'
 
                 return (
                   <tr

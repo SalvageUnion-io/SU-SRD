@@ -151,7 +151,7 @@ function SearchResults({ query, index }: { query: string; index: CompactSearchEn
           <li key={result.entityId}>
             <a
               href={resultUrl(result)}
-              className="flex items-center justify-between gap-3 px-4 py-3 no-underline transition-colors hover:bg-su-blue-pale"
+              className="flex items-center justify-between gap-3 px-4 py-3 no-underline transition-colors hover:bg-wk-bg"
             >
               <span className="font-medium text-ink">{result.entityName}</span>
               <span className="shrink-0 font-cond text-xs uppercase tracking-wide text-ink-2">

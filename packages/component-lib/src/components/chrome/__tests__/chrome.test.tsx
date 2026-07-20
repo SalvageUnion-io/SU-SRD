@@ -94,7 +94,7 @@ describe('Badge tone / quiet preset', () => {
         Pilot
       </Badge>
     )
-    expect(screen.getByText('Pilot').className).toContain('bg-su-orange')
+    expect(screen.getByText('Pilot').className).toContain('bg-pilot')
   })
 
   test('status fills match border to fill', () => {

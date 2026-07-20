@@ -122,7 +122,7 @@ export const Stamps: Story = () => (
         <Badge shape="stamp" surface="inverse">
           Structure
         </Badge>
-        <span className="inline-block bg-su-green px-2 py-1">
+        <span className="inline-block bg-mech px-2 py-1">
           <Badge shape="stamp" surface="on-tone">
             On tone
           </Badge>

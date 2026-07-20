@@ -21,7 +21,7 @@ type CardImageProps = {
 const TAG_SM =
   'inline-flex items-center gap-1 border border-ink bg-paper px-1 py-0 font-cond text-xs font-bold uppercase leading-none text-ink transition-opacity hover:opacity-80'
 const TAG_SM_DANGER =
-  'inline-flex items-center gap-1 border border-ink bg-su-rust px-1 py-0 font-cond text-xs font-bold uppercase leading-none text-paper transition-opacity hover:opacity-80'
+  'inline-flex items-center gap-1 border border-ink bg-adversary px-1 py-0 font-cond text-xs font-bold uppercase leading-none text-paper transition-opacity hover:opacity-80'
 
 export function CardImage({ url, alt, compact, editable, width, height }: CardImageProps) {
   const [showImage, setShowImage] = useState(true)

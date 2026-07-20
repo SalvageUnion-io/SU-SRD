@@ -163,7 +163,7 @@ export function SnapshotSheet({ snapshot }: SnapshotSheetProps) {
       <div
         role="note"
         aria-label="Read-only snapshot"
-        className="border-b-2 border-ink bg-su-sickly-yellow px-4 py-2 font-body text-sm font-semibold text-ink sm:px-[30px]"
+        className="border-b-2 border-ink bg-caution px-4 py-2 font-body text-sm font-semibold text-ink sm:px-[30px]"
       >
         This is a read-only snapshot. Changes made in-game are not reflected here.
       </div>

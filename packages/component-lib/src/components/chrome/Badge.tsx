@@ -19,9 +19,9 @@ export type StampSurface = 'on-ink' | 'inverse' | 'on-tone'
 
 /** Tone fills for `surface="tone"` — kind fills frame in ink, status fills self-border. */
 const BADGE_TONES: Record<BadgeTone, string> = {
-  pilot: 'border-ink bg-su-orange text-ink',
-  mech: 'border-ink bg-su-green text-ink',
-  crawler: 'border-ink bg-su-pink text-paper',
+  pilot: 'border-ink bg-pilot text-ink',
+  mech: 'border-ink bg-mech text-ink',
+  crawler: 'border-ink bg-crawler text-paper',
   ok: 'border-status-ok bg-status-ok text-paper',
   warn: 'border-status-warn bg-status-warn text-paper',
   bad: 'border-status-bad bg-status-bad text-paper',

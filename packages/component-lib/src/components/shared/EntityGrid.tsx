@@ -80,7 +80,7 @@ export function EntityGridRow({
       {children}
       <div
         className="flex flex-col gap-2 rounded-card border-chrome border-wk-faint p-2.5"
-        style={{ background: 'var(--ground-2, var(--color-su-sand))' }}
+        style={{ background: 'var(--ground-2, var(--color-ink-8))' }}
       >
         {footMeta && footMeta.length > 0 && (
           <dl className="m-0 space-y-1">

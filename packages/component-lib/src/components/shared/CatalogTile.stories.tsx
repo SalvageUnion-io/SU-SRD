@@ -20,13 +20,13 @@ export const Default: Story = () => (
     <CatalogTile
       href="/schema/systems"
       name="Systems"
-      catalogBg="linear-gradient(135deg, var(--color-su-orange-dark), var(--color-su-rust))"
+      catalogBg="linear-gradient(135deg, var(--color-rust), var(--color-adversary))"
     />
     <CatalogTile
       href="/schema/npcs"
       name="NPCs"
       catalogBg="var(--color-ink)"
-      catalogLabel="var(--color-su-orange-dark)"
+      catalogLabel="var(--color-rust)"
     />
   </div>
 )

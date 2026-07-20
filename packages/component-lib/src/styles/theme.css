@@ -51,35 +51,14 @@
   --text-caption: 13px;
   --text-lede: 15px;
 
-  /* === Brand Colors === */
-  --color-su-orange: rgb(239, 137, 79);
-  --color-su-orange-dark: rgb(168, 82, 34);
-  --color-su-orange-light: rgb(245, 193, 163);
-  --color-su-green: rgb(122, 151, 138);
-  --color-su-green-dark: rgb(92, 121, 108);
-  --color-su-pink: rgb(206, 88, 152);
-  --color-su-blue: rgb(143, 195, 216);
-  --color-su-blue-game: rgb(125, 206, 235);
-  --color-su-blue-light: rgb(199, 223, 231);
-  --color-su-blue-pale: rgb(230, 240, 245);
-  --color-su-brick: rgb(168, 89, 71);
-  --color-su-brick-pale: rgb(210, 160, 140);
-  --color-su-rust: rgb(140, 75, 56);
-  --color-su-black: rgb(40, 32, 25);
-  /* Cargo brand header tokens (Claude Design handoff): warm off-white "paper",
-     the dark header ground, and the muted nav-link ink on that ground. */
-  --color-su-paper: rgb(243, 237, 226);
-  --color-su-ink-dark: rgb(27, 23, 18);
-  --color-su-muted: rgb(155, 148, 136);
-  --color-su-grey: rgb(150, 150, 150);
-  --color-su-grey-light: rgb(199, 199, 199);
-  --color-su-grey-medium: rgb(130, 130, 130);
-  --color-su-grey-dark: rgb(80, 80, 80);
-  --color-su-input-bg: rgb(232, 229, 216);
-  --color-su-peach: rgb(245, 193, 163);
-  --color-su-sickly-yellow: rgb(215, 195, 125);
-  --color-su-silver: rgb(192, 192, 192);
-  --color-su-sand: rgb(235, 231, 222);
+  /* The `su-*` brand family that used to live here is DELETED. It was a shadow
+     tokenset: the canonical semantic tokens below were defined as aliases *of*
+     it, so the brand names were the real substrate and the semantic layer was a
+     veneer. That let one colour have two spellings — `su-orange-dark` and
+     `rust` were the same #a85222 — which made the "rust = action, only action"
+     law (ruleset §3.1) impossible to audit by search, and let a second reading
+     surface (`su-paper`, a cream) ship alongside `--color-paper`.
+     Every value below is preserved exactly; only the names changed. */
 
   /* Tech Level Blues */
   --color-tl-1: rgb(115, 201, 230);
@@ -95,12 +74,26 @@
   --color-tl-b: rgb(86, 156, 104);
   --color-tl-n: rgb(146, 109, 184);
 
-  /* Entity colors (semantic) */
-  --color-pilot: var(--color-su-orange);
-  --color-pilot-light: var(--color-su-orange-light);
-  --color-mech: var(--color-su-green);
-  --color-mech-dark: var(--color-su-green-dark);
-  --color-crawler: var(--color-su-pink);
+  /* Entity colors (semantic) — hue encodes ontology (ruleset §3/§4.1).
+     These hold their literal values; nothing aliases a brand name. */
+  --color-pilot: rgb(239, 137, 79); /* #ef894f */
+  --color-pilot-light: rgb(245, 193, 163); /* #f5c1a3 — was also spelled su-peach */
+  --color-mech: rgb(122, 151, 138); /* #7a978a */
+  --color-mech-dark: rgb(92, 121, 108); /* #5c796c */
+  --color-crawler: rgb(206, 88, 152); /* #ce5898 */
+  /* The 5th ontology domain. Previously `su-rust` — a false friend: it is NOT
+     the action rust (#a85222) and never was. It is the shared header tone for
+     the world/opposition schemas: creatures, bio-titans, factions, npcs, meld,
+     squads. Naming it `adversary` removes the collision with the one action
+     colour, which was the most dangerous part of the shadow family. */
+  --color-adversary: rgb(140, 75, 56); /* #8c4b38 */
+
+  /* Class ability-tier ramp (Core Book 2.0a, class ability-tree spreads).
+     Core = brick, Advanced (incl. Hybrid) = pilot, Legendary = crawler — the
+     book reuses the ontology hues for the upper two tiers, so only Core needs
+     its own token. Previously `su-brick` / `su-brick-pale`. */
+  --color-tier-core: rgb(168, 89, 71); /* #a85947 */
+  --color-tier-core-pale: rgb(210, 160, 140); /* #d2a08c */
 
   /* Roll result tiers — canonical warm state palette (canonical primitive
      language §3). Re-toned off the old stock-Material hues so damaged/destroyed
@@ -115,23 +108,48 @@
 
   /* === ITUN design-handoff tokens (design-spec §1.1) === */
   /* Ink / paper / action */
-  --color-ink: var(--color-su-black);
+  --color-ink: rgb(40, 32, 25); /* #282019 */
   --color-ink-2: rgb(70, 61, 49); /* #463d31 secondary ink */
+  --color-ink-deep: rgb(27, 23, 18); /* #1b1712 — the dark header ground (was su-ink-dark) */
+
+  /* Ink-opacity ramp (canonical-primitive-language.md §3) — hairlines,
+     placeholders, ghosts, disabled fills. This replaces the neutral greys of
+     the shadow family (su-grey/-light/-medium/-dark, su-muted, su-ink-soft,
+     su-sand, su-input-bg), which were true neutrals fighting the warm paper.
+     Warm ink at opacity reads as the same material at distance. */
+  --color-ink-75: rgb(40 32 25 / 0.75);
+  --color-ink-50: rgb(40 32 25 / 0.5);
+  --color-ink-30: rgb(40 32 25 / 0.3);
+  --color-ink-12: rgb(40 32 25 / 0.12);
+  --color-ink-8: rgb(40 32 25 / 0.08);
   /* Paper — the ONE light surface (ruleset §4.1). NOT pure white and NOT cream:
      a near-white warm paper. Pure white is retired from the UI — paper is used
      universally (surfaces, value cells, and text on ink). The only remaining
      #ffffff are scoped exceptions: the @media print sheet (physical paper) and
      the dark Dashboard instrument skin. */
   --color-paper: rgb(251, 250, 247); /* #fbfaf7 */
-  --color-rust: var(--color-su-orange-dark); /* THE single action color */
+  --color-rust: rgb(168, 82, 34); /* #a85222 — THE single action color */
+  /* The one sanctioned cream. The rendering matrix (ruleset §2) specifies the
+     RollTable as "banded d20, peach/cream", so cream survives for exactly that
+     banding — and nowhere else. Every other former `su-paper` use is now
+     `--color-paper`, restoring the "one paper" law (§4.1). */
+  --color-band-cream: rgb(243, 237, 226); /* #f3ede2 */
   --color-rust-hi: rgb(138, 64, 25); /* #8a4019 primary hover */
   --color-danger: rgb(154, 70, 51); /* #9a4633 .btn--danger */
 
-  /* Workshop (light) ground — canonical light ground is su-blue-pale #e6f0f5 */
-  --color-wk-bg: var(--color-su-blue-pale);
+  /* Workshop (light) ground — the step off-paper that makes a card read as a
+     panel (style-unification-pass.md §2.5). */
+  --color-wk-bg: rgb(230, 240, 245); /* #e6f0f5 */
   --color-wk-bg-2: rgb(215, 230, 238); /* #d7e6ee */
   --color-wk-muted: rgb(108, 119, 128); /* #6c7780 */
   --color-wk-faint: rgb(167, 180, 189); /* #a7b4bd */
+  --color-wk-line: rgb(143, 195, 216); /* #8fc3d8 — advisory/info rule (was su-blue) */
+  --color-wk-accent: rgb(125, 206, 235); /* #7dceeb — game-state accent (was su-blue-game) */
+
+  /* Attention fills that are neither an ontology hue nor a status overlay.
+     Values preserved from the shadow family; renamed for what they mark. */
+  --color-caution: rgb(215, 195, 125); /* #d7c37d — was su-sickly-yellow */
+  --color-inert: rgb(192, 192, 192); /* #c0c0c0 — was su-silver */
 
   /* Status (Intact / Damaged / Destroyed) — aliases of the roll tiers */
   --color-status-ok: var(--color-roll-success);
@@ -144,11 +162,11 @@
   --color-cargo-pale: rgb(239, 230, 212); /* #efe6d4 */
 
   /* Sheet tones (Header C live sheets) — base + deep pairs */
-  --color-sheet-pilot: var(--color-su-orange); /* #ef894f */
-  --color-sheet-pilot-deep: var(--color-su-orange-dark); /* #a85222 */
-  --color-sheet-mech: var(--color-su-green); /* #7a978a */
+  --color-sheet-pilot: var(--color-pilot); /* #ef894f */
+  --color-sheet-pilot-deep: var(--color-rust); /* #a85222 */
+  --color-sheet-mech: var(--color-mech); /* #7a978a */
   --color-sheet-mech-deep: rgb(47, 67, 56); /* #2f4338 */
-  --color-sheet-crawler: var(--color-su-pink); /* #ce5898 */
+  --color-sheet-crawler: var(--color-crawler); /* #ce5898 */
   --color-sheet-crawler-deep: rgb(126, 42, 91); /* #7e2a5b */
 
   /* Heat-at-cap pulse (design review U-1): a subtle status-bad ring that
@@ -194,7 +212,7 @@
  */
 :root {
   --background: var(--color-paper);
-  --foreground: var(--color-su-black);
+  --foreground: var(--color-ink);
 
   /* Border-weight semantic tokens (design-spec §1.3 — load-bearing system):
      entity = entity cards + hero header; rail = rail cards & Hold frames;

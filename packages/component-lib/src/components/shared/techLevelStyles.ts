@@ -5,8 +5,8 @@ export const TECH_LEVEL_STYLES: Record<string, string> = {
   '4': 'bg-tl-4 text-paper',
   '5': 'bg-tl-5 text-paper',
   '6': 'bg-tl-6 text-paper',
-  B: 'bg-su-sickly-yellow text-ink',
-  N: 'bg-su-silver text-ink',
+  B: 'bg-caution text-ink',
+  N: 'bg-inert text-ink',
 }
 
 /** Background-only classes for numeric tech levels (used by calculateBackgroundColor) */

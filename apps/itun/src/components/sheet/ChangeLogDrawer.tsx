@@ -25,8 +25,8 @@ type ChangeLogDrawerProps = {
 
 /** Kind → human label + badge tone. */
 const KIND_META: Record<ChangeLogKind, { label: string; className: string }> = {
-  transaction: { label: 'Transaction', className: 'bg-su-green/15 text-su-green' },
-  override: { label: 'Override', className: 'bg-su-orange/15 text-su-orange' },
+  transaction: { label: 'Transaction', className: 'bg-mech/15 text-mech' },
+  override: { label: 'Override', className: 'bg-pilot/15 text-pilot' },
   manual: { label: 'Manual', className: 'bg-ink/10 text-wk-muted' },
 }
 
@@ -77,7 +77,7 @@ export function ChangeLogDrawer({
       onOpenChange={onOpenChange}
       title="Change Log"
       subtitle={entityName}
-      headerBg="bg-su-rust"
+      headerBg="bg-adversary"
       maxWidth="max-w-2xl"
       description={`Change history for ${entityName}`}
     >

@@ -259,7 +259,7 @@ export function DashboardChooser({
         }}
         title="Launch Dashboard"
         subtitle={`Step ${stepIndex + 1} of 3 · ${stepTitle}`}
-        headerBg="bg-su-orange"
+        headerBg="bg-pilot"
         maxWidth="max-w-md"
         align="center"
       >

@@ -27,7 +27,7 @@ export const Default: Story = () => (
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
-              color: 'var(--color-su-muted)',
+              color: 'var(--color-ink-50)',
             }}
           >
             Dashboard grid · rail / primary / wheel / display

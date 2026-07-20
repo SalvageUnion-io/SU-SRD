@@ -6,8 +6,8 @@ import { RuleBrief } from './RuleBrief'
 export default { title: 'Compositions/Rule Brief' }
 
 const MECH_TONE = {
-  '--tone': 'var(--su-green, #7a978a)',
-  '--tone-deep': 'var(--su-green-dark, #2f4338)',
+  '--tone': 'var(--color-mech)',
+  '--tone-deep': 'var(--color-sheet-mech-deep)',
 } as React.CSSProperties
 
 /** The "THE RULE" callout every wizard step opens with — composes SheetSectionCard. */

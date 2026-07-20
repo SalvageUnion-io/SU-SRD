@@ -61,7 +61,7 @@ export function SelectorDialog({
         if (!next) onClose()
       }}
       title={title}
-      headerBg="bg-su-orange"
+      headerBg="bg-pilot"
       maxWidth="max-w-md"
       align="center"
     >

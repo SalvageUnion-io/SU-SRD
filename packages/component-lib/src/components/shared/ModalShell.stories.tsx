@@ -45,12 +45,12 @@ function Trigger({ headerBg, label }: { headerBg?: string; label: string }) {
 export const Default: Story = () => (
   <div className="flex flex-col gap-4 bg-paper p-5 text-ink">
     <p className="max-w-2xl font-body text-xs leading-relaxed text-ink-2">
-      A centered dialog on the DisplayCard shell. headerBg tones the header (bg-su-rust uses the
+      A centered dialog on the DisplayCard shell. headerBg tones the header (bg-adversary uses the
       light close button). Modals overlay, so open one to see it.
     </p>
     <div className="flex flex-wrap gap-6">
       <Trigger label={`Open ${name}`} />
-      <Trigger headerBg="bg-su-rust" label={`Open ${name} (rust)`} />
+      <Trigger headerBg="bg-adversary" label={`Open ${name} (rust)`} />
     </div>
   </div>
 )

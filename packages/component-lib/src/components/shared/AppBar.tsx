@@ -58,12 +58,12 @@ type AppBarProps = {
 }
 
 const NAV_LINK =
-  'inline-flex shrink-0 items-center font-cond text-lede font-semibold uppercase tracking-[0.04em] text-su-muted no-underline transition-colors hover:text-su-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
+  'inline-flex shrink-0 items-center font-cond text-lede font-semibold uppercase tracking-[0.04em] text-ink-50 no-underline transition-colors hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pilot'
 
-const NAV_LINK_ACTIVE = 'text-su-paper'
+const NAV_LINK_ACTIVE = 'text-paper'
 
 const BUY_BUTTON =
-  'inline-flex shrink-0 items-center rounded-md border border-su-orange-dark bg-su-orange-dark px-4 py-1.5 font-cond text-caption font-medium uppercase tracking-[0.06em] text-paper no-underline transition-colors'
+  'inline-flex shrink-0 items-center rounded-md border border-rust bg-rust px-4 py-1.5 font-cond text-caption font-medium uppercase tracking-[0.06em] text-paper no-underline transition-colors'
 
 const BREADCRUMB_TEXT = 'font-cond text-xs uppercase tracking-[0.14em] text-ink-2'
 
@@ -87,7 +87,7 @@ export function AppBar({
   return (
     <>
       <header
-        className="z-50 flex items-center gap-[14px] border-b-entity border-su-orange-dark bg-su-ink-dark px-5 py-3 sm:px-[34px] sm:py-[14px]"
+        className="z-50 flex items-center gap-[14px] border-b-entity border-rust bg-ink-deep px-5 py-3 sm:px-[34px] sm:py-[14px]"
         style={viewTransitionName ? { viewTransitionName } : undefined}
       >
         {/* Brand lockup: SU cargo mark + wordmark (+ optional accent/badge) +
@@ -108,18 +108,18 @@ export function AppBar({
             className="block size-12 shrink-0 rounded-xl sm:size-16"
           />
           <span className="flex min-w-0 flex-col">
-            <span className="font-cond text-[26px] font-bold leading-[0.98] tracking-[0.005em] text-su-paper sm:text-[34px]">
+            <span className="font-cond text-[26px] font-bold leading-[0.98] tracking-[0.005em] text-paper sm:text-[34px]">
               {wordmark}
-              {wordmarkAccent && <span className="text-su-orange-dark">{wordmarkAccent}</span>}
+              {wordmarkAccent && <span className="text-rust">{wordmarkAccent}</span>}
               {badge && (
-                <span className="ml-2 inline-block rounded bg-rust px-1.5 py-0.5 align-[0.32em] font-cond text-caption font-bold uppercase leading-none tracking-caps text-su-paper">
+                <span className="ml-2 inline-block rounded bg-rust px-1.5 py-0.5 align-[0.32em] font-cond text-caption font-bold uppercase leading-none tracking-caps text-paper">
                   {badge}
                 </span>
               )}
             </span>
             <span
               className={cn(
-                'mt-[7px] font-cond text-caption font-semibold uppercase tracking-eyebrow text-su-orange sm:mt-[9px]',
+                'mt-[7px] font-cond text-caption font-semibold uppercase tracking-eyebrow text-pilot sm:mt-[9px]',
                 brandShrink ? 'leading-tight' : 'whitespace-nowrap leading-none'
               )}
             >
@@ -196,7 +196,7 @@ export function AppBar({
                         {item.name}
                       </span>
                     ) : (
-                      <a href={item.url} className="transition-colors hover:text-su-orange-dark">
+                      <a href={item.url} className="transition-colors hover:text-rust">
                         {item.name}
                       </a>
                     )}

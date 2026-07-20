@@ -132,7 +132,7 @@ export function CrawlerTypeEditModal({
           if (!next) setConfirming(false)
         }}
         title="Change crawler type?"
-        headerBg="bg-su-rust"
+        headerBg="bg-adversary"
         maxWidth="max-w-md"
         align="center"
       >

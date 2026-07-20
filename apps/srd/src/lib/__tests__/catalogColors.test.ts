@@ -3,7 +3,7 @@ import { getSchemaCatalog, SalvageUnionReference } from 'salvageunion-reference'
 import { resolveSchemaDomain } from 'component-lib'
 import { getCatalogBg } from '../catalogColors'
 
-const FALLBACK_COLOR = 'var(--color-su-orange)'
+const FALLBACK_COLOR = 'var(--color-pilot)'
 
 describe('getCatalogBg', () => {
   it('returns a non-fallback color for every non-meta schema', () => {

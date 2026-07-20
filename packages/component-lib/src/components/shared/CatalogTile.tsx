@@ -30,7 +30,7 @@ type CatalogTileProps = {
 // `background-color`, which silently drops a `linear-gradient()` and left those
 // tiles unfilled with unreadable paper text on the pale page ground.
 const TILE =
-  'flex min-h-[54px] flex-col items-center justify-center rounded-card border-chrome border-ink [background:var(--catalog-bg)] px-[15px] py-[13px] text-paper no-underline transition-[box-shadow,transform] duration-[120ms] hover:-translate-y-0.5 hover:shadow-[0_5px_18px_rgba(34,30,23,0.18)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange'
+  'flex min-h-[54px] flex-col items-center justify-center rounded-card border-chrome border-ink [background:var(--catalog-bg)] px-[15px] py-[13px] text-paper no-underline transition-[box-shadow,transform] duration-[120ms] hover:-translate-y-0.5 hover:shadow-[0_5px_18px_rgba(34,30,23,0.18)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pilot'
 
 const NAME =
   'font-cond text-[16px] font-semibold uppercase leading-[1.2] tracking-[0.02em] text-paper [text-shadow:0_1px_2px_rgba(0,0,0,0.75)]'

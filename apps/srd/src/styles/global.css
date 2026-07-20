@@ -32,8 +32,8 @@
 }
 
 .btn-active {
-  background-color: var(--color-su-orange-dark);
-  border-color: var(--color-su-orange-dark);
+  background-color: var(--color-rust);
+  border-color: var(--color-rust);
   color: var(--color-paper);
 }
 
@@ -42,13 +42,13 @@
 }
 
 .btn-inactive:hover {
-  background-color: var(--color-su-orange-dark);
-  border-color: var(--color-su-orange-dark);
+  background-color: var(--color-rust);
+  border-color: var(--color-rust);
   color: var(--color-paper);
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--color-su-orange);
+  outline: 2px solid var(--color-pilot);
   outline-offset: 2px;
 }
 
@@ -77,7 +77,7 @@
   font-size: var(--text-caption);
   letter-spacing: var(--tracking-caps-wide);
   text-transform: uppercase;
-  color: var(--color-su-orange-dark);
+  color: var(--color-rust);
   line-height: 1;
   white-space: nowrap;
 }
@@ -106,7 +106,7 @@
 }
 
 .catalog-item:focus-visible {
-  outline: 2px solid var(--color-su-orange);
+  outline: 2px solid var(--color-pilot);
   outline-offset: 2px;
 }
 

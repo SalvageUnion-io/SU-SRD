@@ -31,8 +31,8 @@ type BannerProps = {
  * these are advisory strips, never the rust action colour.
  */
 const SEVERITY_PILL: Record<BannerSeverity, string> = {
-  info: 'border-su-blue bg-su-blue-pale text-ink',
-  warn: 'border-status-warn bg-su-sickly-yellow/25 text-ink',
+  info: 'border-wk-line bg-wk-bg text-ink',
+  warn: 'border-status-warn bg-caution/25 text-ink',
 }
 
 const SEVERITY_ICON: Record<BannerSeverity, string> = {

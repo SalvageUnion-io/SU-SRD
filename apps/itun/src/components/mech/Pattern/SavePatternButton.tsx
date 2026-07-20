@@ -102,7 +102,7 @@ export function SavePatternButton({
           if (!next) handleCancel()
         }}
         title="Save as pattern"
-        headerBg="bg-su-orange"
+        headerBg="bg-pilot"
         maxWidth="max-w-md"
         align="center"
       >

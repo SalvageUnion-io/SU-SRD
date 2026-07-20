@@ -9,8 +9,8 @@ export default { title: 'Containers/Sheet Section Card' }
 
 // Themes via --tone / --tone-deep (pilot orange), the same route the live sheets use.
 const PILOT_TONE = {
-  '--tone': 'var(--su-orange, #ef894f)',
-  '--tone-deep': 'var(--su-orange-dark, #a85222)',
+  '--tone': 'var(--color-pilot)',
+  '--tone-deep': 'var(--color-rust)',
 } as React.CSSProperties
 
 /** The poster section frame — accent header band, deep-tone left rule, footer. */

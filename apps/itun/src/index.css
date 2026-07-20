@@ -26,29 +26,29 @@
   --popover-foreground: var(--color-ink);
 
   /* Primary — Salvage orange. Mirrors `.btn-active` on the SRD. */
-  --primary: var(--color-su-orange-dark);
+  --primary: var(--color-rust);
   --primary-foreground: var(--color-paper);
 
   /* Secondary — pale blue (matches the SRD main-area chrome). */
-  --secondary: var(--color-su-blue-pale);
+  --secondary: var(--color-wk-bg);
   --secondary-foreground: var(--color-ink);
 
   /* Muted — used for subtle backgrounds + muted text. */
-  --muted: var(--color-su-blue-pale);
+  --muted: var(--color-wk-bg);
   --muted-foreground: var(--color-ink-2);
 
   /* Accent — orange-light for hover halos and selected list items. */
-  --accent: var(--color-su-orange-light);
+  --accent: var(--color-pilot-light);
   --accent-foreground: var(--color-ink);
 
   /* Destructive — rust, not red. */
-  --destructive: var(--color-su-rust);
+  --destructive: var(--color-adversary);
   --destructive-foreground: var(--color-paper);
 
   /* Borders / inputs / focus rings. */
   --border: var(--color-wk-faint);
   --input: var(--color-wk-faint);
-  --ring: var(--color-su-orange);
+  --ring: var(--color-pilot);
 
   /* Radius — keep ShadCN defaults; SRD cards rely on their own borders. */
   --radius: 0.375rem;
@@ -96,7 +96,7 @@ body {
    * window; the centred content inside each route inherits the colour and
    * sits over it.
    */
-  background-color: var(--color-su-blue-pale);
+  background-color: var(--color-wk-bg);
   color: var(--color-ink);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;

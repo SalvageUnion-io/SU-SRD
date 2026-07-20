@@ -165,7 +165,7 @@ export function SearchIsland({ navigate }: SearchIslandProps = {}) {
                   aria-selected={index === selectedIndex}
                   href={resultUrl(result)}
                   className={`block px-4 py-3 text-sm transition-colors ${
-                    index === selectedIndex ? 'bg-su-blue-pale' : 'hover:bg-su-blue-pale'
+                    index === selectedIndex ? 'bg-wk-bg' : 'hover:bg-wk-bg'
                   }`}
                 >
                   <div className="font-medium text-ink">{result.title}</div>

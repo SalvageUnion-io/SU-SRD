@@ -208,10 +208,26 @@ screenshots gate anything with a visible delta.
    disappears.
 5. **Containers** — Modal, Tooltip (SeamStamp title), Toast, EmptyState,
    Skeleton, Tabs, Divider, SlotGrid, InlineRef, Icons to the same discipline.
-6. **Guardrails** — `check:borders` / `check:colors` in `check:all`: no raw
-   hex / rgb (tokens only), border-weight tokens only, tracking `0.04`, off-white
-   paper, rust = the one action colour. A shared exemption file for the few
-   sanctioned literals.
+6. **Guardrails** — ✅ **BUILT** as `bun run check:tokens`
+   (`tools/check-design-tokens.ts`), wired into `check:all` and pre-push.
+   Seven rules, each citing the ruleset section it enforces: shadow tokens, raw
+   hex/rgb, gradients, arbitrary tracking, arbitrary border widths, arbitrary
+   font sizes, pure white. Sanctioned literals live in an `EXEMPTIONS` table
+   that requires a written reason (Slab's dashed leader, the `theme.css`
+   definitions themselves, the Foundations specimen pages).
+
+   **It ratchets.** `shadow-tokens` and `pure-white` are at 0 and fully
+   enforced; the other five carry a checked-in baseline
+   (`tools/design-tokens-baseline.json`) of pre-existing violations, so new ones
+   fail immediately while the backlog burns down and can never grow. Lower the
+   baseline with `bun run check:tokens --update-baseline`.
+
+   This check is **not redundant with typecheck**. These are Tailwind v4
+   `@theme` tokens: a deleted or misspelled token does not fail compilation, the
+   utility just stops being generated and the element renders unstyled. There is
+   no compiler backstop for this class of error — this script is the only one.
+   Its absence is why the `su-*` shadow family survived as long as it did.
+
 7. **Design sprint — next layer up** — compose the atoms into the higher-level
    shared primitives: full entity cards (`ReferenceEntityDisplay`, `SheetHero`),
    roster / listing rows, the dashboard instruments — each a **composition of

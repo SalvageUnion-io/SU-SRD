@@ -15,7 +15,7 @@ describe('FilterChip', () => {
   })
 
   test('inactive chip with colorClass uses fully opaque ink text', () => {
-    render(<FilterChip label="Armor" active={false} onClick={() => {}} colorClass="bg-su-green" />)
+    render(<FilterChip label="Armor" active={false} onClick={() => {}} colorClass="bg-mech" />)
     const button = screen.getByRole('button', { name: 'Armor' })
     expect(button.className).toContain('text-ink')
     expect(button.className).not.toContain('text-ink/70')

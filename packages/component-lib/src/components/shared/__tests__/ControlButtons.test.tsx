@@ -35,7 +35,7 @@ describe('ControlButtons', () => {
   test('applies danger variant classes', () => {
     render(<ControlButtons controls={[makeControl({ variant: 'danger' })]} />)
     const button = screen.getByRole('button')
-    expect(button.innerHTML).toContain('bg-su-rust')
+    expect(button.innerHTML).toContain('bg-adversary')
   })
 
   test('applies ghost variant classes', () => {

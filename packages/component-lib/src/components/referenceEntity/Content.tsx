@@ -57,7 +57,7 @@ type ContentProps = {
   compact?: boolean
   /** Chassis name to replace [(CHASSIS)] placeholder with */
   chassisName?: string
-  /** Header background class (e.g. 'bg-su-orange') for heading section left border */
+  /** Header background class (e.g. 'bg-pilot') for heading section left border */
   headerBg?: string
   /** Raw CSS color for borders (overrides headerBg-derived color when set) */
   headerBgColor?: string

@@ -31,7 +31,7 @@ export function DeleteConfirmDialog({
         if (!next) onCancel()
       }}
       title={`Delete ${entityName}?`}
-      headerBg="bg-su-rust"
+      headerBg="bg-adversary"
       maxWidth="max-w-md"
       align="center"
     >

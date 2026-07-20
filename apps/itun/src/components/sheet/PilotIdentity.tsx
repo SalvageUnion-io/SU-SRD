@@ -57,8 +57,7 @@ function UsedChip({
       aria-hidden="true"
       className={cn(
         'h-3 w-3 shrink-0 rounded-full border-2 border-current',
-        used &&
-          'border-[color:var(--tone,var(--color-su-orange))] bg-[var(--tone,var(--color-su-orange))]'
+        used && 'border-[color:var(--tone,var(--color-pilot))] bg-[var(--tone,var(--color-pilot))]'
       )}
     />
   )

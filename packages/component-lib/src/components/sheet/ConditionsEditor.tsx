@@ -41,7 +41,7 @@ const WARN_CONDITIONS = new Set(['exposed'])
 /** Fill/border/text classes for a PRESENT (`.cond.on`) condition chip. */
 function chipToneClasses(condition: string): string {
   if (WARN_CONDITIONS.has(condition.trim().toLowerCase())) {
-    return 'border-su-sickly-yellow bg-su-sickly-yellow text-ink'
+    return 'border-caution bg-caution text-ink'
   }
   return 'border-ink bg-ink text-paper'
 }
@@ -51,7 +51,7 @@ function chipDotClasses(condition: string): string {
   if (WARN_CONDITIONS.has(condition.trim().toLowerCase())) {
     return 'border-ink bg-ink'
   }
-  return 'border-[color:var(--tone,var(--color-su-orange))] bg-[var(--tone,var(--color-su-orange))]'
+  return 'border-[color:var(--tone,var(--color-pilot))] bg-[var(--tone,var(--color-pilot))]'
 }
 
 // ---------------------------------------------------------------------------
@@ -106,7 +106,7 @@ export function ConditionsEditor({
     'inline-flex min-h-8 items-center gap-1.5 rounded-badge border-2 px-2.5 py-1.5 font-cond text-label-lg font-bold uppercase leading-none tracking-caps'
 
   return (
-    <div className="flex min-h-12 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-su-paper p-2.5">
+    <div className="flex min-h-12 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-paper p-2.5">
       {conditions.length === 0 && !adding && (
         <span className="font-body text-xs text-wk-muted">None</span>
       )}
@@ -171,7 +171,7 @@ export function ConditionsEditor({
             onBlur={() => {
               void commitAdd()
             }}
-            className="w-28 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge uppercase tracking-caps text-ink focus:outline-none focus:ring-1 focus:ring-su-orange"
+            className="w-28 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge uppercase tracking-caps text-ink focus:outline-none focus:ring-1 focus:ring-pilot"
           />
         ) : (
           <button

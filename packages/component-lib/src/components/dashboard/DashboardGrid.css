@@ -4,7 +4,7 @@
  * only; the instrument internals (rail buttons, the active-item band, the dial,
  * the display view) live in instruments.css. Every rule references the canonical
  * `--color-*` / `--bw-*` / `--radius-*` tokens directly (no `--pc-*` layer). The
- * cockpit ground is warm paper (su-paper) with ink lines — the rail and display
+ * cockpit ground is warm paper (paper) with ink lines — the rail and display
  * carry the one hard "forward" border, everything else stays flat on paper.
  */
 
@@ -55,7 +55,7 @@
   grid-area: display;
   border: var(--bw-rail) solid color-mix(in srgb, var(--color-ink) 45%, transparent);
   border-radius: var(--radius-panel);
-  background: var(--color-su-paper);
+  background: var(--color-paper);
 }
 
 .pc-wheel {

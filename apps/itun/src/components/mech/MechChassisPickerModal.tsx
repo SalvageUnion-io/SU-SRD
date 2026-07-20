@@ -90,7 +90,7 @@ export function MechChassisPickerModal({
           if (!next) setConfirming(false)
         }}
         title="Change chassis?"
-        headerBg="bg-su-rust"
+        headerBg="bg-adversary"
         maxWidth="max-w-md"
         align="center"
       >

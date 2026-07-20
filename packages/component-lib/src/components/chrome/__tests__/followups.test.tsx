@@ -37,7 +37,7 @@ describe('Badge (unified) + presets', () => {
         Mule
       </Badge>
     )
-    expect(screen.getByText('Mule').className).toContain('bg-su-green')
+    expect(screen.getByText('Mule').className).toContain('bg-mech')
     cleanup()
     render(<Badge surface="quiet">Uses</Badge>)
     expect(screen.getByText('Uses').className).toContain('bg-wk-bg-2')

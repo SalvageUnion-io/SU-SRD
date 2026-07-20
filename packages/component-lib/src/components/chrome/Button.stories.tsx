@@ -89,7 +89,7 @@ export const AllVariants: Story = () => (
  * `.pc-btn` / `.pc-deck-btn` / `.pc-railbtn` chrome across the instruments.
  */
 export const Instrument: Story = () => (
-  <div className="rounded-panel bg-[var(--color-su-ink-dark)] p-4">
+  <div className="rounded-panel bg-[var(--color-ink-deep)] p-4">
     <div className="flex flex-col gap-5">
       <div>
         <Caption>every variant · instrument</Caption>

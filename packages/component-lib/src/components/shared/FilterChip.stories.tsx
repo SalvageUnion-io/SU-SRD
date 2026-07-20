@@ -28,9 +28,9 @@ export const Default: Story = () => (
           label="Pilot"
           active={false}
           onClick={() => {}}
-          colorClass="bg-su-orange text-paper"
+          colorClass="bg-pilot text-paper"
         />
-        <FilterChip label="Pilot" active onClick={() => {}} colorClass="bg-su-orange text-paper" />
+        <FilterChip label="Pilot" active onClick={() => {}} colorClass="bg-pilot text-paper" />
       </div>
     </div>
     <div>

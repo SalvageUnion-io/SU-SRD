@@ -350,7 +350,7 @@ export function SheetPickerModal({
         if (!next) onClose()
       }}
       title={title}
-      headerBg="bg-su-orange"
+      headerBg="bg-pilot"
       maxWidth={maxWidth}
       align="center"
     >

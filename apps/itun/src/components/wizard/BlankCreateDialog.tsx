@@ -131,7 +131,7 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
         if (!next) onClose()
       }}
       title={`Blank ${label}`}
-      headerBg="bg-su-orange"
+      headerBg="bg-pilot"
       maxWidth="max-w-md"
       align="center"
     >

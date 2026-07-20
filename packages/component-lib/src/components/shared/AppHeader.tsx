@@ -20,7 +20,7 @@ import type { NavDrawerItem } from './NavDrawer'
 // SRD search-field treatment, matching the shared SearchField chrome exactly so
 // the trigger button reads as the same search bar.
 const SEARCH_BOX =
-  'flex shrink-0 cursor-pointer items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-ink-2 transition-colors hover:border-su-orange-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-su-orange lg:w-64'
+  'flex shrink-0 cursor-pointer items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-ink-2 transition-colors hover:border-rust focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pilot lg:w-64'
 
 // Small "Alpha" pills — the shared stamp atom rather than two hand-rolled
 // spans that differed only in size (px-1/text-label vs px-1.5/text-badge).

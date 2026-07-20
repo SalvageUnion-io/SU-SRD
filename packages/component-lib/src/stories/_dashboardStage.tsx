@@ -25,7 +25,7 @@ export function InstrumentStage({
       className="pc-root"
       data-mount={mount}
       style={{
-        background: 'var(--color-su-paper)',
+        background: 'var(--color-paper)',
         padding: 16,
         borderRadius: 'var(--radius-panel)',
         maxWidth: width,

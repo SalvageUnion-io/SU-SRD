@@ -76,7 +76,7 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
           if (!next) setConfirming(false)
         }}
         title={`Instantiate ${pattern.name}?`}
-        headerBg="bg-su-orange"
+        headerBg="bg-pilot"
         maxWidth="max-w-md"
         align="center"
       >

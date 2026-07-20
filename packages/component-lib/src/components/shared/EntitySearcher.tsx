@@ -92,7 +92,7 @@ type EntitySearcherProps = {
   title?: string
   /** Close handler — renders the header's close badge. */
   onClose?: () => void
-  /** Header tone background class (default `bg-su-orange`). */
+  /** Header tone background class (default `bg-pilot`). */
   headerBg?: string
 }
 
@@ -129,7 +129,7 @@ export function EntitySearcher({
   emptyMessage = 'Nothing found.',
   title,
   onClose,
-  headerBg = 'bg-su-orange',
+  headerBg = 'bg-pilot',
 }: EntitySearcherProps) {
   const [query, setQuery] = useState('')
   const [activeTls, setActiveTls] = useState<Set<TechLevel>>(() => new Set())

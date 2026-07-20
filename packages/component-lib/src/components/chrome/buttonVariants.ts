@@ -50,25 +50,25 @@ export const buttonVariants = cva(
         surface: 'instrument',
         variant: 'default',
         class:
-          'border-[color-mix(in_srgb,var(--color-su-paper)_16%,transparent)] bg-[color-mix(in_oklab,var(--color-ink)_50%,#000)] text-[var(--color-su-paper)] hover:border-[var(--color-su-muted)] hover:bg-[color-mix(in_oklab,var(--color-ink)_64%,#000)]',
+          'border-[color-mix(in_srgb,var(--color-paper)_16%,transparent)] bg-[color-mix(in_oklab,var(--color-ink)_50%,#000)] text-[var(--color-paper)] hover:border-[var(--color-ink-50)] hover:bg-[color-mix(in_oklab,var(--color-ink)_64%,#000)]',
       },
       {
         surface: 'instrument',
         variant: 'ghost',
         class:
-          'border-[color-mix(in_srgb,var(--color-su-paper)_16%,transparent)] bg-transparent text-[var(--color-su-paper)] hover:border-[var(--color-su-muted)]',
+          'border-[color-mix(in_srgb,var(--color-paper)_16%,transparent)] bg-transparent text-[var(--color-paper)] hover:border-[var(--color-ink-50)]',
       },
       {
         surface: 'instrument',
         variant: 'primary',
         class:
-          'border-[var(--color-pilot)] bg-[var(--color-sheet-pilot-deep)] text-[var(--color-paper)] hover:border-[var(--color-su-muted)]',
+          'border-[var(--color-pilot)] bg-[var(--color-sheet-pilot-deep)] text-[var(--color-paper)] hover:border-[var(--color-ink-50)]',
       },
       {
         surface: 'instrument',
         variant: 'danger',
         class:
-          'border-[color-mix(in_srgb,var(--color-status-bad)_70%,#000)] bg-[color-mix(in_oklab,var(--color-ink)_50%,#000)] text-[var(--color-danger)] hover:border-[var(--color-su-muted)]',
+          'border-[color-mix(in_srgb,var(--color-status-bad)_70%,#000)] bg-[color-mix(in_oklab,var(--color-ink)_50%,#000)] text-[var(--color-danger)] hover:border-[var(--color-ink-50)]',
       },
     ],
     defaultVariants: {

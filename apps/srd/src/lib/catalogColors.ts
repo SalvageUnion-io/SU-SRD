@@ -12,11 +12,11 @@ const techLevelBg = `linear-gradient(to right, ${techLevelGradient})`
 
 /** The three ability tiers, in book order: Core (brick) · Advanced (orange) · Legendary (pink). */
 const abilityGradient =
-  'linear-gradient(to right, var(--color-su-brick) 0%, var(--color-su-brick) 33%, var(--color-su-orange) 33%, var(--color-su-orange) 66%, var(--color-su-pink) 66%, var(--color-su-pink) 100%)'
+  'linear-gradient(to right, var(--color-tier-core) 0%, var(--color-tier-core) 33%, var(--color-pilot) 33%, var(--color-pilot) 66%, var(--color-crawler) 66%, var(--color-crawler) 100%)'
 
 /** Core classes vs the hybrid classes they branch into. */
 const classGradient =
-  'linear-gradient(to right, var(--color-su-orange) 0%, var(--color-su-orange) 60%, var(--color-su-pink) 60%, var(--color-su-pink) 100%)'
+  'linear-gradient(to right, var(--color-pilot) 0%, var(--color-pilot) 60%, var(--color-crawler) 60%, var(--color-crawler) 100%)'
 
 /**
  * Catalog tile background PER DOMAIN. The schema → domain grouping itself is
@@ -27,14 +27,14 @@ const classGradient =
  * `gear` rides the tech-level ramp, matching how gear entities are toned.
  */
 const DOMAIN_BG: Record<CardDomain, string> = {
-  pilot: 'var(--color-su-orange)',
-  mech: 'var(--color-su-green-dark)',
-  crawler: 'var(--color-su-pink)',
-  actor: 'var(--color-su-rust)',
+  pilot: 'var(--color-pilot)',
+  mech: 'var(--color-mech-dark)',
+  crawler: 'var(--color-crawler)',
+  actor: 'var(--color-adversary)',
   gear: techLevelBg,
   glossary: 'var(--color-ink-2)',
   // Actions never appear as a catalog tile; they have no schema of their own.
-  action: 'var(--color-su-rust)',
+  action: 'var(--color-adversary)',
 }
 
 /**
@@ -46,7 +46,7 @@ export function getCatalogBg(schemaId: string): string {
   if (schemaId === 'abilities') return abilityGradient
   if (schemaId === 'classes') return classGradient
   const domain = resolveSchemaDomain(schemaId)
-  return domain ? DOMAIN_BG[domain] : 'var(--color-su-orange)'
+  return domain ? DOMAIN_BG[domain] : 'var(--color-pilot)'
 }
 
 /**
@@ -54,11 +54,11 @@ export function getCatalogBg(schemaId: string): string {
  * legible. Keyed off the domain for the same reason as above.
  */
 const schemaLabelColors: Record<string, string> = {
-  equipment: 'var(--color-su-orange-dark)',
-  systems: 'var(--color-su-green-dark)',
-  modules: 'var(--color-su-green-dark)',
-  drones: 'var(--color-su-rust)',
-  vehicles: 'var(--color-su-rust)',
+  equipment: 'var(--color-rust)',
+  systems: 'var(--color-mech-dark)',
+  modules: 'var(--color-mech-dark)',
+  drones: 'var(--color-adversary)',
+  vehicles: 'var(--color-adversary)',
 }
 
 export function getCatalogLabel(schemaId: string): string | undefined {

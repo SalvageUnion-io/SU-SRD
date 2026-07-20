@@ -31,7 +31,7 @@ export type DisplayCardTab = {
 }
 
 type DisplayCardProps = {
-  /** Background color class for header and footer (e.g., "bg-su-green"). Default: "" */
+  /** Background color class for header and footer (e.g., "bg-mech"). Default: "" */
   headerBg?: string
   /** Optional CSS color for border derivation */
   headerBgColor?: string
