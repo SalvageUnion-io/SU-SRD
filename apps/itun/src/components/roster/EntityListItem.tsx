@@ -99,7 +99,7 @@ export function EntityListItem({
         <div className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5">
           <div className="min-w-0 flex-1">
             {/* Black pseudoheader name — mirrors the reference card's title box */}
-            <Badge shape="stamp" size="lg" className="block max-w-full truncate align-middle">
+            <Badge shape="stamp" size="full" className="block max-w-full truncate align-middle">
               {name}
             </Badge>
             {meta && <div className="mt-1.5 truncate font-body text-xs text-wk-muted">{meta}</div>}

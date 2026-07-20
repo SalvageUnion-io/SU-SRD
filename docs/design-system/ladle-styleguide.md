@@ -371,6 +371,52 @@ the recipe already does. (To dock the nav as a bottom bar instead, flip the `.la
 
 ---
 
+### 5.6 The size ladder — FULL / COMPACT / MINI
+
+**One size vocabulary for the whole system.** Every three-step size axis uses
+these three names. The canonical definition is
+[`src/styles/sizing.ts`](../../packages/component-lib/src/styles/sizing.ts); the
+specimen page is `Foundations/Sizing`, rendered _from_ those constants so the
+catalog cannot drift from the code.
+
+The rungs are defined by **intent**, not by pixel count:
+
+| Rung        | It is               | Use it for                                                                                             |
+| ----------- | ------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Full**    | The reading size    | A surface the user is looking _at_ — a sheet header, a primary action, the card the page is about      |
+| **Compact** | **The default**     | A surface the user is scanning _past_ — a listing row, a section label, a secondary control            |
+| **Mini**    | The annotation size | Attached to another element, never read alone — a count, a tech-level tag, a stamp riding a card frame |
+
+Why this replaced `sm | md | lg`: those names described a size **relative to
+their own component**, so `sm` on a stamp and `sm` on a button were unrelated
+values and neither told you which rung a surface was supposed to occupy. Naming
+the rung by its job means a reader can tell, from the prop alone, whether an
+element is a destination, a row, or an annotation.
+
+Rules:
+
+- **`compact` is the default on every axis.** It is where most of the system
+  sits — the ladder is deliberately not a symmetric three with the middle as a
+  neutral midpoint.
+- **A component offers only the rungs it genuinely has**, and names them from
+  this list. A two-rung component exposing `compact` and `mini` is correct and
+  complete; do not invent a `full` that nothing uses.
+- **Label size and body size are separate**, because they do not move together:
+  a compact row legitimately carries mini labels over body-size text. `RUNG_TYPE`
+  therefore defines `{ label, body }` per rung.
+- **Compose, never restate.** A component builds its geometry from
+  `RUNG_TYPE` / `RUNG_INLINE_PADDING` rather than re-typing the values —
+  `Badge`'s `STAMP_SIZE` is the reference implementation. A restated value is a
+  future drift.
+- Components whose geometry genuinely differs (a button needs a larger tap
+  target than a stamp) scale their own padding, but **keep the rung names**, so
+  the vocabulary still reads across the system.
+
+**Known exception, not yet reconciled:** `buttonVariants` still exposes a
+four-step `xs | sm | md | lg`. Four rungs do not map onto three without losing a
+step, so that axis needs a design decision (drop a rung, or bless buttons as a
+four-rung exception) before it is renamed.
+
 ## 6. Writing a story (the conventions, enforced)
 
 ### 6.1 The story module shape

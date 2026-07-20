@@ -80,7 +80,7 @@ export function SheetHero({
       style={{ background: 'var(--tone)' }}
     >
       {/* Category tab — rides the top border like .ec__cat (StampSeam) */}
-      <Badge shape="stamp" size="sm" seam className="left-[18px]">
+      <Badge shape="stamp" size="mini" seam className="left-[18px]">
         {cat}
       </Badge>
 
@@ -91,7 +91,7 @@ export function SheetHero({
         <div className="min-w-0">
           <Badge
             shape="stamp"
-            size="lg"
+            size="full"
             as="h1"
             leading="leading-[1.28]"
             className="m-0 inline box-decoration-clone py-0 text-[26px] sm:text-[31px]"

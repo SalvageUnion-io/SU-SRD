@@ -100,7 +100,13 @@ function ImageSeat({ src, label, readOnly }: { src?: string; label: string; read
       <div className="flex flex-col gap-1.5">
         <div className="relative aspect-[3/4] w-full overflow-hidden rounded-card border-rail border-ink">
           <img src={src} alt={label} className="h-full w-full object-cover" />
-          <Badge shape="stamp" size="sm" surface="on-tone" seam className="absolute left-1.5 top-0">
+          <Badge
+            shape="stamp"
+            size="mini"
+            surface="on-tone"
+            seam
+            className="absolute left-1.5 top-0"
+          >
             {label}
           </Badge>
         </div>
@@ -164,7 +170,7 @@ function Field({
   return (
     <div className="flex min-w-0 flex-col gap-1">
       <span className="flex min-h-6 items-center justify-between gap-2">
-        <Badge shape="stamp" size="sm" surface={accent ? 'on-tone' : 'on-ink'}>
+        <Badge shape="stamp" size="mini" surface={accent ? 'on-tone' : 'on-ink'}>
           {label}
         </Badge>
         <span className="flex shrink-0 items-center gap-2">
@@ -334,7 +340,7 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
         <span className="bg-ink px-2 pb-[3px] pt-[2px] font-cond text-[15px] font-bold uppercase leading-[1.5] tracking-caps-snug text-paper">
           {name}
         </span>
-        <Badge shape="stamp" size="sm" surface="on-tone">
+        <Badge shape="stamp" size="mini" surface="on-tone">
           {kind}
         </Badge>
         {/* No global Edit here — each section owns its own edit control. The
@@ -429,7 +435,7 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
                     until healed at a Med Bay. */}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <Badge shape="stamp" size="sm">
+                    <Badge shape="stamp" size="mini">
                       Injuries
                     </Badge>
                     {!readOnly && (
@@ -556,7 +562,7 @@ function InjuryModal({
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="injury-name" className="w-fit">
-            <Badge shape="stamp" size="sm">
+            <Badge shape="stamp" size="mini">
               Injury
             </Badge>
           </label>
@@ -572,7 +578,7 @@ function InjuryModal({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Badge shape="stamp" size="sm">
+          <Badge shape="stamp" size="mini">
             Severity
           </Badge>
           <div className="flex gap-2">

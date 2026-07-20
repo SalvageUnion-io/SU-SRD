@@ -1,12 +1,19 @@
+import { forwardRef } from 'react'
 import type { ElementType, HTMLAttributes, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { STAMP_SEAM } from './stampSeam'
+import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE, type SizeRung } from '../../styles/sizing'
 
 export type BadgeTone = 'pilot' | 'mech' | 'crawler' | 'ok' | 'warn' | 'bad'
 /** Chip surfaces (the rounded `shape="chip"` default). */
 export type BadgeSurface = 'solid' | 'ghost' | 'outline' | 'tone' | 'quiet'
-/** Stamp text scale (`shape="stamp"`). */
-export type StampSize = 'sm' | 'md' | 'lg'
+/**
+ * Stamp text scale — the canonical FULL / COMPACT / MINI ladder (see
+ * `src/styles/sizing.ts`, `Foundations/Sizing`). Badge is the reference
+ * implementation of that vocabulary: every three-step size axis in the system
+ * uses these names, so a size means the same thing wherever it is read.
+ */
+export type StampSize = SizeRung
 /** Stamp plate (`shape="stamp"`). */
 export type StampSurface = 'on-ink' | 'inverse' | 'on-tone'
 
@@ -29,17 +36,23 @@ const BADGE_SURFACE: Record<BadgeSurface, string> = {
   quiet: 'px-2 bg-wk-bg-2 text-ink-2',
 }
 
-/** Stamp text scale — px/py + text size. `md` is the label/header default. */
+/**
+ * Stamp geometry per rung, COMPOSED from the ladder rather than restated, so a
+ * change to the scale reaches the stamp instead of drifting away from it.
+ * `compact` is the default — the rung a stamp sits at when nothing is asked.
+ */
 const STAMP_SIZE: Record<StampSize, string> = {
-  sm: 'px-1 py-0.5 text-badge',
-  md: 'px-1.5 py-0.5 text-xs',
-  lg: 'px-2 py-1 text-sm',
+  full: cn(RUNG_INLINE_PADDING.full, RUNG_TYPE.full.label),
+  compact: cn(RUNG_INLINE_PADDING.compact, RUNG_TYPE.compact.label),
+  mini: cn(RUNG_INLINE_PADDING.mini, RUNG_TYPE.mini.label),
 }
 
 /** Stamp plate fills — the square label/header shape. */
 const STAMP_SURFACE: Record<StampSurface, string> = {
   'on-ink': 'bg-ink text-paper',
-  inverse: 'bg-paper text-ink ring-1 ring-inset ring-ink',
+  // The ring is opt-OUT (see the `ring` prop): an inverse stamp nested inside a
+  // container that already draws an ink border would otherwise double-border.
+  inverse: 'bg-paper text-ink',
   'on-tone': 'bg-transparent text-ink',
 }
 
@@ -71,12 +84,12 @@ type BadgeChipProps = {
 type BadgeStampProps = {
   children: ReactNode
   shape: 'stamp'
-  /** Text scale. `md` (default) is the label/header size. */
+  /** Text scale on the FULL / COMPACT / MINI ladder. `compact` is the default. */
   size?: StampSize
   /**
    * The plate the stamp sits on:
    * - `on-ink` (default) — ink block, white text: the canonical label/header.
-   * - `inverse` — paper block, ink text, inset ink ring.
+   * - `inverse` — paper block, ink text, inset ink ring (see `ring`).
    * - `on-tone` — no fill, ink text: a stamp sitting directly on a tone surface.
    */
   surface?: StampSurface
@@ -92,6 +105,15 @@ type BadgeStampProps = {
    * breathing room between lines.
    */
   leading?: string
+  /**
+   * Draw the inset ink ring on `surface="inverse"` (default `true`).
+   *
+   * Pass `false` when the stamp sits inside a container that already draws an
+   * ink border — a horizontal Stat value cell, a SectionSeparator — where the
+   * ring reads as a double border. This is also the un-ringed inverse that
+   * `Text variant="pseudoheaderInverse"` renders, so those sites can migrate.
+   */
+  ring?: boolean
   as?: ElementType
   className?: string
 } & Omit<HTMLAttributes<HTMLElement>, 'children' | 'className'>
@@ -111,14 +133,20 @@ type BadgeProps = BadgeChipProps | BadgeStampProps
  * value-cell law (ruleset §0, §7.1). Pill and Chip were named presets over the
  * chip shape.
  */
-export function Badge(props: BadgeProps) {
+/**
+ * Ref-forwarding is load-bearing, not boilerplate: Stat measures its own label
+ * stamps to drive the overflow `scaleX` squeeze, so a stamp that swallowed its
+ * ref would silently kill that feature.
+ */
+export const Badge = forwardRef<HTMLElement, BadgeProps>(function Badge(props, ref) {
   if (props.shape === 'stamp') {
     const {
       children,
-      size = 'md',
+      size = DEFAULT_RUNG,
       surface = 'on-ink',
       seam = false,
       leading,
+      ring = true,
       as: Tag = 'span',
       className,
       shape: _shape,
@@ -127,11 +155,13 @@ export function Badge(props: BadgeProps) {
     } = props
     return (
       <Tag
+        ref={ref}
         className={cn(
           'inline-block w-fit font-cond font-bold uppercase tracking-caps-tight',
           leading ?? 'leading-none',
           STAMP_SIZE[size],
           STAMP_SURFACE[surface],
+          surface === 'inverse' && ring && 'ring-1 ring-inset ring-ink',
           seam && STAMP_SEAM,
           className
         )}
@@ -147,6 +177,7 @@ export function Badge(props: BadgeProps) {
   const { children, surface = 'solid', tone, className } = props
   return (
     <span
+      ref={ref as React.Ref<HTMLSpanElement>}
       className={cn(
         'inline-flex h-[22px] items-center rounded-badge font-cond text-badge font-semibold uppercase leading-none',
         BADGE_SURFACE[surface],
@@ -157,4 +188,4 @@ export function Badge(props: BadgeProps) {
       {children}
     </span>
   )
-}
+})

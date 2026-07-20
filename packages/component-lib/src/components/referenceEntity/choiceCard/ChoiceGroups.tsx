@@ -72,7 +72,7 @@ function ChoiceOption({
   const card = (
     <div className="relative">
       {chosen && (
-        <Badge shape="stamp" seam size="sm" className="right-2">
+        <Badge shape="stamp" seam size="mini" className="right-2">
           Chosen
         </Badge>
       )}
@@ -151,7 +151,7 @@ function StampsealField({
         'peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:opacity-100'
       )}
     >
-      <Badge shape="stamp" size="sm">
+      <Badge shape="stamp" size="mini">
         {label}
       </Badge>
     </span>

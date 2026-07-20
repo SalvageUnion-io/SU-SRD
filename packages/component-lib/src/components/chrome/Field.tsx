@@ -26,7 +26,7 @@ export function Field({ label, required = false, htmlFor, children, className }:
         htmlFor={htmlFor}
         className="absolute left-2 top-0 z-10 flex w-fit -translate-y-1/2 items-center"
       >
-        <Badge shape="stamp" size="sm">
+        <Badge shape="stamp" size="mini">
           {label}
           {required && (
             <span aria-hidden="true" className="ml-0.5">

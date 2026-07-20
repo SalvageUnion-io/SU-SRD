@@ -58,7 +58,7 @@ function ControlButton({
   }
   if (control.badge !== undefined) {
     return (
-      <Badge shape="stamp" size="sm">
+      <Badge shape="stamp" size="mini">
         {control.badge}
       </Badge>
     )

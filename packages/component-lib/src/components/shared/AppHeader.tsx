@@ -27,7 +27,7 @@ const SEARCH_BOX =
 // `bg-rust` overrides only the stamp PLATE — geometry, face and tracking still
 // come from the atom, so these can't drift from every other stamp again.
 const DESKTOP_ALPHA = (
-  <Badge shape="stamp" size="sm" className="ml-1.5 rounded bg-rust px-1 py-0.5">
+  <Badge shape="stamp" size="mini" className="ml-1.5 rounded bg-rust px-1 py-0.5">
     Alpha
   </Badge>
 )

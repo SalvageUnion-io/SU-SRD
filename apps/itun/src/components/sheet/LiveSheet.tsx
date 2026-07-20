@@ -213,7 +213,7 @@ export function LiveSheet({
                 : 'pointer-events-none translate-y-[5px] opacity-0'
             )}
           >
-            <Badge shape="stamp" size="lg" className="block max-w-full truncate">
+            <Badge shape="stamp" size="full" className="block max-w-full truncate">
               {name}
             </Badge>
             {pill && (

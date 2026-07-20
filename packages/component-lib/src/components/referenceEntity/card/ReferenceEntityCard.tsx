@@ -733,7 +733,7 @@ function ReferenceEntityCardInner({
       )}
       {/* Type stamp on NESTED cards only — full cards show the type in the footer. */}
       {depth > 0 && seamType && (
-        <Badge shape="stamp" size="sm">
+        <Badge shape="stamp" size="mini">
           {seamType}
         </Badge>
       )}
@@ -809,7 +809,7 @@ function ReferenceEntityCardInner({
   // marking a recommended pick. Rust ground, paper text (the on-ink stamp's bg
   // overridden to rust via tailwind-merge).
   const suggestedNode: ReactNode = suggested ? (
-    <Badge shape="stamp" size="sm" className="bg-rust text-paper">
+    <Badge shape="stamp" size="mini" className="bg-rust text-paper">
       Suggested
     </Badge>
   ) : undefined
@@ -1032,7 +1032,7 @@ function ReferenceEntityCardInner({
         {label && labelBadge ? (
           <Stat orientation="horizontal" label={label} value={labelBadge} xs />
         ) : (
-          <Badge shape="stamp" size="sm">
+          <Badge shape="stamp" size="mini">
             {label ?? labelBadge}
           </Badge>
         )}
@@ -1140,7 +1140,7 @@ function ReferenceEntityCardInner({
             </span>
             {costNode}
             {typeLabel && (
-              <Badge shape="stamp" size="sm">
+              <Badge shape="stamp" size="mini">
                 {typeLabel}
               </Badge>
             )}

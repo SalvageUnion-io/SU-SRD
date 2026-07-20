@@ -245,13 +245,13 @@ export function InlineEditField({
     <div className={cn('flex min-w-0 flex-col', className)}>
       {labelAction ? (
         <div className="mb-0.5 flex items-center justify-between gap-2">
-          <Badge shape="stamp" size="sm">
+          <Badge shape="stamp" size="mini">
             {label}
           </Badge>
           {labelAction}
         </div>
       ) : (
-        <Badge shape="stamp" size="sm" className="mb-0.5">
+        <Badge shape="stamp" size="mini" className="mb-0.5">
           {label}
         </Badge>
       )}

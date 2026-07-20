@@ -28,7 +28,7 @@ export function EmptyState({ headline, body, action, className }: EmptyStateProp
         className
       )}
     >
-      <Badge shape="stamp" size="sm">
+      <Badge shape="stamp" size="mini">
         {headline}
       </Badge>
       {body && <p className="font-body text-caption text-wk-muted">{body}</p>}
