@@ -77,7 +77,7 @@ export function EquipmentStep({
               <ReferenceEntityCard
                 key={item.id}
                 data={item as unknown as SURefEntity}
-                compact
+                size="medium"
                 selected={count >= 1}
                 selectionRole="toggle"
                 cardClickLabel={item.name}
@@ -104,7 +104,7 @@ export function EquipmentStep({
             <ReferenceEntityCard
               key={item.id}
               data={item as unknown as SURefEntity}
-              compact
+              size="medium"
               selected={selectedEquipment.includes(item.id)}
               selectionRole="toggle"
               cardClickLabel={item.name}

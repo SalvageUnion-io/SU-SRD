@@ -78,7 +78,7 @@ export function CraftItemsStep({
             <ReferenceEntityCard
               key={item.id}
               data={item as unknown as SURefEntity}
-              compact
+              size="medium"
               selected={count >= 1}
               selectionRole="toggle"
               cardClickLabel={name}

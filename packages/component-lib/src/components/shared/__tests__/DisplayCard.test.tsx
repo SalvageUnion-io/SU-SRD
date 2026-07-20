@@ -105,7 +105,7 @@ describe('DisplayCard', () => {
         headerBg="bg-su-green"
         headerContent={<span>Header</span>}
         label="CHASSIS"
-        compact
+        size="medium"
         headerTestId="frame-header-container"
       >
         <p>Body</p>
@@ -140,8 +140,8 @@ describe('DisplayCard', () => {
         headerBg="bg-su-green"
         headerContent={<span>Header</span>}
         footerContent={<span>Footer</span>}
-        compact
-        listing
+        size="medium"
+        extent="head"
       >
         <p>Body content</p>
       </DisplayCard>
@@ -157,7 +157,7 @@ describe('DisplayCard', () => {
         headerBg="bg-su-green"
         headerContent={<span>Full Listing</span>}
         footerContent={<span>Footer</span>}
-        listing
+        extent="head"
       >
         <p>Body content</p>
       </DisplayCard>
@@ -236,8 +236,8 @@ describe('DisplayCard', () => {
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Row</span>}
-        compact
-        listing
+        size="medium"
+        extent="head"
         headerTestId="header"
         controls={[
           makeTestControl({
@@ -287,8 +287,8 @@ describe('DisplayCard', () => {
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Row</span>}
-        compact
-        listing
+        size="medium"
+        extent="head"
         controls={[makeTestControl({ cardClick: false })]}
       />
     )
@@ -305,8 +305,8 @@ describe('DisplayCard', () => {
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Row</span>}
-        compact
-        listing
+        size="medium"
+        extent="head"
         controls={[
           makeTestControl({
             key: 'first',
@@ -339,8 +339,8 @@ describe('DisplayCard', () => {
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Row</span>}
-        compact
-        listing
+        size="medium"
+        extent="head"
         onCardClick={() => {
           source = 'prop'
         }}
@@ -376,8 +376,8 @@ describe('DisplayCard', () => {
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Row</span>}
-        compact
-        listing
+        size="medium"
+        extent="head"
         controls={[makeTestControl({ cardClick: true, hidden: true })]}
       />
     )
@@ -508,8 +508,8 @@ describe('DisplayCard', () => {
       <DisplayCard
         headerBg="bg-su-green"
         headerContent={<span>Header</span>}
-        compact
-        listing
+        size="medium"
+        extent="head"
         tabs={tabs}
       >
         <p>Body</p>

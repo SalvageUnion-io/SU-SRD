@@ -101,7 +101,7 @@ export function ClassAbilityStep({
     <ReferenceEntityCard
       key={cls.id}
       data={cls}
-      compact
+      size="medium"
       selected={cls.id === classId}
       selectionRole="toggle"
       cardClickLabel={cls.name}
@@ -114,7 +114,7 @@ export function ClassAbilityStep({
     <ReferenceEntityCard
       key={ability.id}
       data={ability as unknown as SURefEntity}
-      compact
+      size="medium"
       selected={selectedAbilities.includes(ability.id)}
       selectionRole="toggle"
       cardClickLabel={ability.name}

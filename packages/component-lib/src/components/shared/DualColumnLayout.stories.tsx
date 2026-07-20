@@ -21,14 +21,14 @@ const modules = SalvageUnionReference.Modules.all().slice(0, 3)
 const systemColumn = (
   <div className="flex flex-col gap-2">
     {systems.map((s) => (
-      <ReferenceEntityCard key={s.id} data={s} listing />
+      <ReferenceEntityCard key={s.id} data={s} size="medium" extent="head" />
     ))}
   </div>
 )
 const moduleColumn = (
   <div className="flex flex-col gap-2">
     {modules.map((m) => (
-      <ReferenceEntityCard key={m.id} data={m} listing />
+      <ReferenceEntityCard key={m.id} data={m} size="medium" extent="head" />
     ))}
   </div>
 )

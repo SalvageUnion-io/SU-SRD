@@ -228,7 +228,7 @@ export function CrawlerBayCard({
     <>
       <ReferenceEntityCard
         data={cardData}
-        compact
+        size="medium"
         hide={HIDE_BAY_CONTENT}
         status={condition}
         onStatusClick={readOnly ? undefined : toggleCondition}
@@ -354,7 +354,7 @@ export function CrawlerTypeCard({
   return (
     <ReferenceEntityCard
       data={cardData}
-      compact={compact}
+      size={compact ? 'medium' : 'large'}
       selections={selections}
       onSelectionChange={readOnly ? undefined : setSelections}
       expand={crew}

@@ -127,7 +127,7 @@ export function CrawlerIdentityPanel({
           <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2">
             {abilities.map((ability) => (
               <div key={ability.id} className="min-w-0">
-                <ReferenceEntityCard data={ability} compact hide={HIDE_CHOICES} />
+                <ReferenceEntityCard data={ability} size="medium" hide={HIDE_CHOICES} />
               </div>
             ))}
             {crawler.type && (

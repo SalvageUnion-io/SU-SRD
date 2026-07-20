@@ -368,7 +368,7 @@ export function EntitySearcher({
             <ReferenceEntityCard
               key={item.id}
               data={item as unknown as SURefEntity}
-              compact
+              size="medium"
               selected={isSelected}
               selectionRole="toggle"
               cardClickLabel={item.name}
@@ -498,7 +498,7 @@ function CountCard({
     <div className={cn('rounded-[5px]', installed && 'shadow-[0_0_0_3px_var(--color-rust)]')}>
       <ReferenceEntityCard
         data={entity as unknown as SURefEntity}
-        compact
+        size="medium"
         hide={{ actions: true, choices: true }}
       />
       <div className="mt-1.5 flex items-center gap-2 px-1">
@@ -585,6 +585,7 @@ function SelectionRail({
             <div className="min-w-0 flex-1">
               <ReferenceEntityCard
                 data={entity as unknown as SURefEntity}
+                size="medium"
                 extent="head"
                 hide={{ actions: true, choices: true }}
               />

@@ -58,8 +58,8 @@ function AbilityTreeListing({ ability, disabled }: { ability: SURefAbility; disa
     <>
       <ReferenceEntityCard
         data={ability}
-        compact
-        listing
+        size="medium"
+        extent="head"
         controls={[detailModal.control]}
         disabled={disabled}
       />

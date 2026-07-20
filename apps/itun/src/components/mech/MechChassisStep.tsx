@@ -59,7 +59,7 @@ function PatternSelCard({
   return (
     <ReferenceEntityCard
       data={chassis as SURefEntity}
-      compact
+      size="medium"
       selected={selected}
       selectionRole="radio"
       cardClickLabel={`${pattern.name} pattern`}
@@ -125,7 +125,7 @@ export function MechChassisStep({
             <ReferenceEntityCard
               key={chassis.id}
               data={chassis as SURefEntity}
-              compact
+              size="medium"
               selected={matchesRef(chassis, chassisName)}
               selectionRole="radio"
               cardClickLabel={chassis.name}

@@ -43,26 +43,18 @@ export function displayBooleans({ size, extent }: CardDisplay): {
 }
 
 /**
- * Collapse every way a caller can express sizing — an explicit `size`/`extent`,
- * or the `compact` / `listing` booleans — into the ONE canonical pair. This is
- * the rule the entity card used to carry inline; it lives here so the card
- * inherits it rather than restating it.
- *
- * Precedence: explicit `size`/`extent` win outright; otherwise the booleans
- * project onto the axes (`listing` ⇒ head extent at medium size).
+ * The defaults for the two axes — a card with neither specified is the dominant
+ * solo rendering. There is deliberately no boolean sugar: `compact` / `listing`
+ * were removed because they encoded the same two axes in a shape that could not
+ * express `small` + `full`, and keeping them would have re-admitted the drift
+ * this module exists to prevent.
  */
 export function resolveCardDisplay({
   size,
   extent,
-  compact,
-  listing,
 }: {
   size?: CardSize
   extent?: CardExtent
-  compact?: boolean
-  listing?: boolean
 }): CardDisplay {
-  const resolvedExtent = extent ?? (listing ? 'head' : 'full')
-  const resolvedSize = size ?? (compact || listing ? 'medium' : 'large')
-  return { size: resolvedSize, extent: resolvedExtent }
+  return { size: size ?? 'large', extent: extent ?? 'full' }
 }

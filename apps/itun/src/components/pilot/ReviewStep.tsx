@@ -74,7 +74,7 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
           <ReferenceEntityCard
             key={ability.id}
             data={ability as unknown as SURefEntity}
-            compact
+            size="medium"
             hide={{ actions: true, choices: true }}
           />
         ))}
@@ -85,7 +85,7 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
             // biome-ignore lint/suspicious/noArrayIndexKey: id alone can't disambiguate duplicate picks; id+index is the stablest available key
             key={`${item.id}-${i}`}
             data={item as unknown as SURefEntity}
-            compact
+            size="medium"
             status="intact"
             hide={{ actions: true, choices: true }}
           />

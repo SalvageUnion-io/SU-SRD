@@ -47,12 +47,6 @@ type DisplayCardProps = {
   labelBadge?: string
   /** Optional node rendered FIRST in the label callout row (e.g. a "Recommended" stamp) */
   labelLead?: ReactNode
-  /** Compact sizing: reduced min-height, padding, border width, font/stat sizes.
-   * Legacy sugar for `size="medium"`; prefer `size`. */
-  compact?: boolean
-  /** Header-only rendering: hides body, footer, and tabs. Legacy sugar for
-   * `extent="head"`; prefer `extent`. */
-  listing?: boolean
   /** How big the card renders — `large` | `medium` | `small`. Orthogonal to
    * `extent`. The vocabulary lives in `displayMode.ts`; see it for the rungs. */
   size?: CardSize
@@ -185,8 +179,6 @@ export function DisplayCard({
   label,
   labelBadge,
   labelLead,
-  compact: compactProp,
-  listing: listingProp,
   size,
   extent,
   status,
@@ -211,7 +203,7 @@ export function DisplayCard({
   subHeader,
   stats,
 }: DisplayCardProps) {
-  const display = resolveCardDisplay({ size, extent, compact: compactProp, listing: listingProp })
+  const display = resolveCardDisplay({ size, extent })
   const { compact: isCompact, listing: isListing } = displayBooleans(display)
   const hasCallout = !!(labelLead || label || labelBadge)
   const hasTabs = !isListing && tabs && tabs.length > 0

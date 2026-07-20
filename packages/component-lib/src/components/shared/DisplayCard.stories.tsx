@@ -82,12 +82,12 @@ function Cell({
 export const Bands: Story = () => (
   <Gallery rule="DisplayCard is a generic four-band shell: header (required) + optional sub-header + optional body + optional footer. Sub-header and footer are each independently opt-in — every combination below uses the same abstract content so the arrangement is the only thing changing.">
     <Cell label="header only (listing — body/sub-header/footer hidden)" width="w-[380px]">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} listing>
+      <DisplayCard headerBg="bg-su-green" headerContent={header} extent="head">
         {body}
       </DisplayCard>
     </Cell>
     <Cell label="header + sub-header (stats — compact horizontal)" width="w-[380px]">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} stats={genericStats} compact>
+      <DisplayCard headerBg="bg-su-green" headerContent={header} stats={genericStats} size="medium">
         {body}
       </DisplayCard>
     </Cell>
@@ -118,7 +118,7 @@ export const Bands: Story = () => (
         headerContent={header}
         stats={genericStats}
         footMeta={genericFootMeta}
-        compact
+        size="medium"
       >
         {body}
       </DisplayCard>
@@ -140,17 +140,17 @@ export const Densities: Story = () => (
       </DisplayCard>
     </Cell>
     <Cell label="compact">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} compact>
+      <DisplayCard headerBg="bg-su-green" headerContent={header} size="medium">
         {body}
       </DisplayCard>
     </Cell>
     <Cell label="listing">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} listing>
+      <DisplayCard headerBg="bg-su-green" headerContent={header} extent="head">
         {body}
       </DisplayCard>
     </Cell>
     <Cell label="compact listing">
-      <DisplayCard headerBg="bg-su-green" headerContent={header} compact listing>
+      <DisplayCard headerBg="bg-su-green" headerContent={header} size="medium" extent="head">
         {body}
       </DisplayCard>
     </Cell>

@@ -100,7 +100,7 @@ export function CrawlerReviewStep({
         {selectedType && (
           <ReferenceEntityCard
             data={selectedType as unknown as SURefEntity}
-            compact
+            size="medium"
             hide={{ choices: true }}
           />
         )}
@@ -108,7 +108,7 @@ export function CrawlerReviewStep({
           <ReferenceEntityCard
             key={system.id}
             data={system as unknown as SURefEntity}
-            compact
+            size="medium"
             status="intact"
             hide={{ actions: true, choices: true }}
           />

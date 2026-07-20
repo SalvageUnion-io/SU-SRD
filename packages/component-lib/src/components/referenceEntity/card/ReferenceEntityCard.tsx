@@ -2028,8 +2028,6 @@ export type ReferenceEntityCardWrapperProps = Omit<
   data: SURefEntity | undefined
   size?: CardSize
   extent?: CardExtent
-  compact?: boolean
-  listing?: boolean
 }
 
 /**
@@ -2044,8 +2042,6 @@ export function ReferenceEntityCard({
   data,
   size,
   extent,
-  compact: compactProp,
-  listing: listingProp,
   status,
   damaged,
   ...rest
@@ -2054,12 +2050,7 @@ export function ReferenceEntityCard({
 
   // The size / extent / compact / listing reconciliation is the DisplayCard
   // layer's rule — inherited, not restated here.
-  const display = resolveCardDisplay({
-    size,
-    extent,
-    compact: compactProp,
-    listing: listingProp,
-  })
+  const display = resolveCardDisplay({ size, extent })
   // `status` supersets `damaged` — a damaged/destroyed status greys the header too.
   const effectiveDamaged = damaged || status === 'damaged' || status === 'destroyed'
 

@@ -53,7 +53,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
               <ReferenceEntityCard
                 key={ability.id}
                 data={ability as unknown as SURefEntity}
-                compact
+                size="medium"
                 chassisName={chassis.name}
                 hostTone={entityHostTone(chassis as unknown as SURefMetaEntity)}
               />

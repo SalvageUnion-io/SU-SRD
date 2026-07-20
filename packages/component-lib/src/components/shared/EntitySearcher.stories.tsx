@@ -67,7 +67,7 @@ export const Cells: Story = () => {
           <ReferenceEntityCard
             key={item.id}
             data={item}
-            compact
+            size="medium"
             selected={chosen === item.name}
             selectionRole="radio"
             cardClickLabel={item.name}

@@ -314,7 +314,7 @@ export function CrawlerSheet({
                         {system ? (
                           <ReferenceEntityCard
                             data={system}
-                            compact
+                            size="medium"
                             controls={
                               readOnly
                                 ? undefined

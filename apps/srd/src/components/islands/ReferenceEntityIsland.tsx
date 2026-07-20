@@ -69,7 +69,7 @@ export function ReferenceEntityIsland({
               <EntityDetailLinkProvider value={true}>
                 <ReferenceEntityCard
                   data={item}
-                  compact={compact}
+                  size={compact ? 'medium' : 'large'}
                   titleAs={titleAs}
                   afterExtraContent={
                     classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined

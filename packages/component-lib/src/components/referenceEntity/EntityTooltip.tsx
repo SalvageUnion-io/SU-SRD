@@ -110,7 +110,7 @@ export function EntityTooltip({
           <Tooltip.Positioner sideOffset={5} align="start">
             <Tooltip.Popup className="z-50 max-h-[80vh] max-w-[500px] overflow-y-auto border-none bg-transparent p-0 shadow-2xl">
               {showArrow && <Tooltip.Arrow />}
-              <ReferenceEntityCard data={entity} compact />
+              <ReferenceEntityCard data={entity} size="medium" />
             </Tooltip.Popup>
           </Tooltip.Positioner>
         </Tooltip.Portal>

@@ -237,7 +237,7 @@ export function MechItemCard({
     <>
       <ReferenceEntityCard
         data={entity as unknown as SURefEntity}
-        compact
+        size="medium"
         hide={HIDE_CHOICES}
         status={condition}
         onStatusClick={readOnly ? undefined : onStatusCycle}

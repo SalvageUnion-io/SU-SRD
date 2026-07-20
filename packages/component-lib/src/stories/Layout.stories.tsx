@@ -21,7 +21,7 @@ const traits = SalvageUnionReference.Traits.all()
 function ChassisRow({ name }: { name: string }) {
   return (
     <DisplayCard
-      listing
+      extent="head"
       headerBg="bg-su-green"
       headerContent={<span className="font-cond font-bold uppercase text-ink">{name}</span>}
     />

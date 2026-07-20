@@ -86,7 +86,7 @@ export function InstallStep({ kind, selected, onAdd }: InstallStepProps) {
               <ReferenceEntityCard
                 key={item.id}
                 data={item as unknown as SURefEntity}
-                compact
+                size="medium"
                 selected={installed}
                 hide={{ actions: true, choices: true }}
                 controls={[

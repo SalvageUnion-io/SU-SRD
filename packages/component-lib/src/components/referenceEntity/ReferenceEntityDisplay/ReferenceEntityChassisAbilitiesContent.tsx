@@ -65,7 +65,7 @@ export function ReferenceEntityChassisAbilitiesContent({
     <div className={cn('mt-4', spacing.smallSpaceYClass)}>
       {chassisAbilities.map((ability) => (
         <ReferenceEntityCard
-          compact
+          size="medium"
           key={ability.id}
           data={ability as unknown as SURefEntity}
           chassisName={chassisName}
@@ -76,7 +76,7 @@ export function ReferenceEntityChassisAbilitiesContent({
         <>
           <ReferenceEntityCard
             data={droneEntity}
-            compact
+            size="medium"
             hide={{ actions: true, patterns: true }}
           />
           {(resolvedSystems.length > 0 || resolvedModules.length > 0) && (

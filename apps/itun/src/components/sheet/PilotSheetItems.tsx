@@ -123,7 +123,7 @@ export function PilotAbilityItem({
   return (
     <ReferenceEntityCard
       data={ability as unknown as SURefEntity}
-      compact
+      size="medium"
       label={ability.tree}
       hide={HIDE_CHOICES}
       footMeta={footMeta}
@@ -266,7 +266,7 @@ export function PilotEquipmentItem({
     <>
       <ReferenceEntityCard
         data={equipment as unknown as SURefEntity}
-        compact
+        size="medium"
         selections={selections}
         onSelectionChange={readOnly ? undefined : setSelections}
         scalingParent={scalingParent}

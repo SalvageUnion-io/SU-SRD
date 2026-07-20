@@ -7,7 +7,7 @@ export function PatternEquipmentItem({ data }: { data: SURefEntity }) {
   const control = { ...detailModal.control, hidden: false, cardClick: false }
   return (
     <>
-      <ReferenceEntityCard data={data} compact listing controls={[control]} />
+      <ReferenceEntityCard data={data} size="medium" extent="head" controls={[control]} />
       {detailModal.modal}
     </>
   )

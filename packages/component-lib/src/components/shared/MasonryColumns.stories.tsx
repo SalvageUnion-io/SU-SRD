@@ -29,7 +29,7 @@ export const Default: Story = () => (
     <Caption>Viewport ladder 1 / 2 / 3 — cards round-robin into positional columns</Caption>
     <MasonryColumns>
       {equipment.map((item) => (
-        <ReferenceEntityCard key={item.id} data={item} compact />
+        <ReferenceEntityCard key={item.id} data={item} size="medium" />
       ))}
     </MasonryColumns>
   </div>
@@ -41,7 +41,7 @@ export const TwoColumnCap: Story = () => (
     <Caption>maxColumns=2 — constrained pools (wizard steps) stop at two columns</Caption>
     <MasonryColumns maxColumns={2}>
       {equipment.map((item) => (
-        <ReferenceEntityCard key={item.id} data={item} compact hide={{ actions: true }} />
+        <ReferenceEntityCard key={item.id} data={item} size="medium" hide={{ actions: true }} />
       ))}
     </MasonryColumns>
   </div>
@@ -62,7 +62,8 @@ export const RadioSelection: Story = () => {
           <ReferenceEntityCard
             key={c.id}
             data={c}
-            listing
+            size="medium"
+            extent="head"
             selected={chosen === c.name}
             selectionRole="radio"
             cardClickLabel={c.name}

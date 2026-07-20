@@ -93,7 +93,7 @@ export const InCard: Story = () => {
       </Caption>
       <ReferenceEntityCard
         data={item as unknown as SURefEntity}
-        compact
+        size="medium"
         selected={count > 0}
         hide={{ actions: true, choices: true }}
         controls={[

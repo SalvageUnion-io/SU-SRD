@@ -14,17 +14,13 @@ describe('resolveCardDisplay', () => {
     })
   })
 
-  test('the legacy booleans project onto the axes', () => {
+  test('an unspecified card is the dominant solo rendering', () => {
     expect(resolveCardDisplay({})).toEqual({ size: 'large', extent: 'full' })
-    expect(resolveCardDisplay({ compact: true })).toEqual({ size: 'medium', extent: 'full' })
-    expect(resolveCardDisplay({ listing: true })).toEqual({ size: 'medium', extent: 'head' })
   })
 
-  test('an explicit size wins over the booleans', () => {
-    expect(resolveCardDisplay({ size: 'large', compact: true })).toEqual({
-      size: 'large',
-      extent: 'full',
-    })
+  test('each axis defaults independently of the other', () => {
+    expect(resolveCardDisplay({ size: 'medium' })).toEqual({ size: 'medium', extent: 'full' })
+    expect(resolveCardDisplay({ extent: 'head' })).toEqual({ size: 'large', extent: 'head' })
   })
 
   test('displayBooleans projects back for layout', () => {
@@ -109,7 +105,7 @@ describe('DisplayCard expand slot', () => {
     expect(screen.getByText('Expanded')).toBeTruthy()
     cleanup()
     render(
-      <DisplayCard headerContent={<span>H</span>} expand={<span>Expanded</span>} listing>
+      <DisplayCard headerContent={<span>H</span>} expand={<span>Expanded</span>} extent="head">
         <span>Body</span>
       </DisplayCard>
     )
