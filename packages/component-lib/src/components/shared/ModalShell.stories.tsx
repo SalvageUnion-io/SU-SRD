@@ -14,7 +14,7 @@ export default {
 const chassis = SalvageUnionReference.Chassis.all()[0]
 const name = chassis?.name ?? 'Mule'
 
-function Trigger({ headerBg, label }: { headerBg?: string; label: string }) {
+function Trigger({ tone, label }: { tone?: 'action' | 'danger'; label: string }) {
   const [open, setOpen] = useState(false)
   return (
     <div className="flex flex-col gap-1.5">
@@ -24,7 +24,7 @@ function Trigger({ headerBg, label }: { headerBg?: string; label: string }) {
         onOpenChange={setOpen}
         title={name}
         subtitle="Chassis"
-        headerBg={headerBg}
+        tone={tone}
         description={`${name} details`}
       >
         <div className="p-4">
@@ -34,23 +34,22 @@ function Trigger({ headerBg, label }: { headerBg?: string; label: string }) {
           </Text>
         </div>
       </ModalShell>
-      <code className="font-body text-nano text-ink-2">
-        {headerBg ? headerBg : 'default header'}
-      </code>
+      <code className="font-body text-nano text-ink-2">{tone ?? 'action (default)'}</code>
     </div>
   )
 }
 
-/** The dialog shell — default vs rust header. Click a trigger; Esc / backdrop / × close it. */
+/** The dialog shell — action (default) vs danger tone. Click a trigger; Esc / backdrop / × close it. */
 export const Default: Story = () => (
   <div className="flex flex-col gap-4 bg-paper p-5 text-ink">
     <p className="max-w-2xl font-body text-xs leading-relaxed text-ink-2">
-      A centered dialog on the DisplayCard shell. headerBg tones the header (bg-adversary uses the
-      light close button). Modals overlay, so open one to see it.
+      A centered dialog on the DisplayCard shell. `tone` picks the header: 'action' (pilot blue) for
+      constructive flows, 'danger' (adversary rust, light close button) for destructive confirms.
+      Modals overlay, so open one to see it.
     </p>
     <div className="flex flex-wrap gap-6">
       <Trigger label={`Open ${name}`} />
-      <Trigger headerBg="bg-adversary" label={`Open ${name} (rust)`} />
+      <Trigger tone="danger" label={`Open ${name} (danger)`} />
     </div>
   </div>
 )

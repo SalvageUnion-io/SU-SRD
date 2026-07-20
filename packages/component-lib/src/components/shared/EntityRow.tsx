@@ -66,8 +66,9 @@ type FilledEntityRowProps = {
    * to get client-side navigation; it receives `href` and `className`.
    */
   linkAs?: ElementType
-  /** Fired when the ghost trash Delete button is pressed. */
-  onDeleteClick: () => void
+  /** Fired when the ghost trash Delete button is pressed. Omit to hide the
+   * Delete button entirely (e.g. read-only poster surfaces). */
+  onDeleteClick?: () => void
 }
 
 /**
@@ -82,9 +83,6 @@ type EmptyEntityRowProps = {
   roleLabel: string
   /** Helper message, e.g. 'No mech in the bay — dock one to track it here.' */
   message: ReactNode
-  /** Override the default per-ontology missing-entity glyph (pilot → UserRound,
-   * mech → Bot, crawler → Warehouse, toned to the deep tone). */
-  glyph?: ReactNode
   /** Optional inline mock control (e.g. a hand-set Crawler Level stepper). */
   mock?: ReactNode
   /** Optional create/link CTAs, stretched across the dashed foot. */
@@ -126,8 +124,8 @@ export function EntityRow(props: EntityRowProps) {
 
   // Empty variant — the dashed placeholder slot.
   if (props.empty) {
-    const { roleLabel, message, glyph, mock, actions, className } = props
-    const DefaultGlyph = EMPTY_GLYPH[props.entityType]
+    const { roleLabel, message, mock, actions, className } = props
+    const EmptyGlyph = EMPTY_GLYPH[props.entityType]
     return (
       <div
         className={cn(
@@ -136,17 +134,13 @@ export function EntityRow(props: EntityRowProps) {
         )}
         style={{ background: tone.wash }}
       >
-        <span className="self-start bg-ink px-2 pb-0.5 pt-[3px] font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide text-paper">
+        {/* Black role tab — the same canonical stamp atom the filled variant's
+            name tab uses, not a hand-rolled span. */}
+        <Badge shape="stamp" size="compact" className="self-start">
           {roleLabel}
-        </span>
+        </Badge>
         <div className="flex flex-wrap items-center gap-3 px-2.5 py-2">
-          {glyph ?? (
-            <DefaultGlyph
-              aria-hidden="true"
-              className="size-6 shrink-0"
-              style={{ color: tone.rail }}
-            />
-          )}
+          <EmptyGlyph aria-hidden="true" className="size-6 shrink-0" style={{ color: tone.rail }} />
           {mock}
           <p
             className="m-0 min-w-[140px] flex-1 font-body text-note leading-snug"
@@ -233,15 +227,17 @@ export function EntityRow(props: EntityRowProps) {
           >
             View
           </Link>
-          <Button
-            variant="ghost"
-            size="sm"
-            aria-label={`Delete ${name}`}
-            onClick={onDeleteClick}
-            className="border-transparent px-2 text-danger hover:bg-transparent hover:text-danger"
-          >
-            <Trash2 aria-hidden="true" className="size-4" />
-          </Button>
+          {onDeleteClick && (
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-label={`Delete ${name}`}
+              onClick={onDeleteClick}
+              className="border-transparent px-2 text-danger hover:bg-transparent hover:text-danger"
+            >
+              <Trash2 aria-hidden="true" className="size-4" />
+            </Button>
+          )}
         </div>
       </div>
     </div>

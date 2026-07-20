@@ -17,7 +17,7 @@
  * the caller's `idOf` (default the entity name).
  */
 
-import { type ReactNode, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { SalvageUnionReference, searchIn } from 'salvageunion-reference'
 import type { EntitySchemaName, SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { matchesRef, type TechLevel } from 'salvageunion-reference/rules'
@@ -28,6 +28,7 @@ import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard
 import { statBlockRowStarts } from '../stat/pipRows'
 import { DisplayCard } from './DisplayCard'
 import { FilterChip } from './FilterChip'
+import { FilterRow } from './FilterRow'
 import { MasonryColumns } from './MasonryColumns'
 
 /** The minimum shape the searcher reads off a reference entity. */
@@ -92,8 +93,6 @@ type EntitySearcherProps = {
   title?: string
   /** Close handler — renders the header's close badge. */
   onClose?: () => void
-  /** Header tone background class (default `bg-pilot`). */
-  headerBg?: string
 }
 
 const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
@@ -129,7 +128,6 @@ export function EntitySearcher({
   emptyMessage = 'Nothing found.',
   title,
   onClose,
-  headerBg = 'bg-pilot',
 }: EntitySearcherProps) {
   const [query, setQuery] = useState('')
   const [activeTls, setActiveTls] = useState<Set<TechLevel>>(() => new Set())
@@ -251,7 +249,7 @@ export function EntitySearcher({
 
   // ---- Sub-parts of the searcher DisplayCard ----
   const searchInput = (
-    <label className="flex w-full items-center gap-2 rounded-[4px] border-chrome border-ink bg-paper px-3 py-2 focus-within:ring-[3px] focus-within:ring-rust/25">
+    <label className="flex w-full items-center gap-2 rounded-card border-chrome border-ink bg-paper px-3 py-2 focus-within:ring-[3px] focus-within:ring-rust/25">
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="opacity-70">
         <circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" strokeWidth="2" />
         <line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" strokeWidth="2" />
@@ -270,79 +268,90 @@ export function EntitySearcher({
 
   const summaryNode = (
     <span className="whitespace-nowrap font-cond text-label font-bold uppercase tracking-caps text-wk-muted">
-      <span className="text-rust">{totalOnSheet}</span> on sheet · showing {visible.length} of{' '}
+      <span className="text-ink">{totalOnSheet}</span> on sheet · showing {visible.length} of{' '}
       {pool.length}
     </span>
   )
 
-  // Facet rows as individual nodes so both layouts can place them (the floating
-  // sub-header spaces the search opposite the "Show" row).
-  const tlRow = showTl ? (
-    <FacetRow label="Tech level" onDark>
-      {tlOptions.map((tl) => (
-        <FilterChip
-          key={String(tl)}
-          label={tlLabel(tl)}
-          active={activeTls.has(tl)}
-          onClick={() => toggleIn(activeTls, tl, setActiveTls)}
-          swatchStyle={tlSwatch(tl)}
-        />
+  // Facet rows as one config map, rendered through the shared FilterRow. The
+  // "Show" row stays separate so the floating sub-header can space the search
+  // field OPPOSITE it.
+  type FacetRowConfig = {
+    label: string
+    chips: Array<{
+      key: string
+      label: string
+      active: boolean
+      onClick: () => void
+      swatchStyle?: string
+    }>
+  }
+
+  const facetRowConfigs: FacetRowConfig[] = []
+  if (showTl)
+    facetRowConfigs.push({
+      label: 'Tech level',
+      chips: tlOptions.map((tl) => ({
+        key: String(tl),
+        label: tlLabel(tl),
+        active: activeTls.has(tl),
+        onClick: () => toggleIn(activeTls, tl, setActiveTls),
+        swatchStyle: tlSwatch(tl),
+      })),
+    })
+  if (showCat && facets?.category)
+    facetRowConfigs.push({
+      label: facets.category.label,
+      chips: catOptions.map((c) => ({
+        key: c,
+        label: c,
+        active: activeCats.has(c),
+        onClick: () => toggleIn(activeCats, c, setActiveCats),
+      })),
+    })
+  if (showTraits)
+    facetRowConfigs.push({
+      label: 'Traits',
+      chips: traitOptions.map((t) => ({
+        key: t,
+        label: t,
+        active: activeTraits.has(t),
+        onClick: () => toggleIn(activeTraits, t, setActiveTraits),
+      })),
+    })
+  const showRowConfig: FacetRowConfig | null = showStatus
+    ? {
+        label: 'Show',
+        chips: (
+          [
+            ['all', 'All'],
+            ['equipped', `${chosenLabel} only`],
+            ['available', 'Not yet added'],
+          ] as const
+        ).map(([value, label]) => ({
+          key: value,
+          label,
+          active: status === value,
+          onClick: () => setStatus(value),
+        })),
+      }
+    : null
+
+  const renderFacetRow = (row: FacetRowConfig) => (
+    <FilterRow key={row.label} label={row.label} onDark>
+      {row.chips.map(({ key, ...chip }) => (
+        <FilterChip key={key} {...chip} />
       ))}
-    </FacetRow>
-  ) : null
-  const catRow =
-    showCat && facets?.category ? (
-      <FacetRow label={facets.category.label} onDark>
-        {catOptions.map((c) => (
-          <FilterChip
-            key={c}
-            label={c}
-            active={activeCats.has(c)}
-            onClick={() => toggleIn(activeCats, c, setActiveCats)}
-          />
-        ))}
-      </FacetRow>
-    ) : null
-  const traitsRow = showTraits ? (
-    <FacetRow label="Traits" onDark>
-      {traitOptions.map((t) => (
-        <FilterChip
-          key={t}
-          label={t}
-          active={activeTraits.has(t)}
-          onClick={() => toggleIn(activeTraits, t, setActiveTraits)}
-        />
-      ))}
-    </FacetRow>
-  ) : null
-  const showRow = showStatus ? (
-    <FacetRow label="Show" onDark>
-      {(
-        [
-          ['all', 'All'],
-          ['equipped', `${chosenLabel} only`],
-          ['available', 'Not yet added'],
-        ] as const
-      ).map(([value, label]) => (
-        <FilterChip
-          key={value}
-          label={label}
-          active={status === value}
-          onClick={() => setStatus(value)}
-        />
-      ))}
-    </FacetRow>
-  ) : null
+    </FilterRow>
+  )
 
   // Sub-header: the facet rows, with the search field on the final row spaced
   // OPPOSITE the "Show" facet.
   const floatingSubHeader = (
     <div className="flex w-full flex-col gap-2">
-      {tlRow}
-      {catRow}
-      {traitsRow}
+      {facetRowConfigs.map(renderFacetRow)}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        {showRow ?? <span aria-hidden="true" />}
+        {showRowConfig ? renderFacetRow(showRowConfig) : <span aria-hidden="true" />}
         <div className="w-full sm:w-[280px]">{searchInput}</div>
       </div>
     </div>
@@ -393,7 +402,7 @@ export function EntitySearcher({
   return (
     <div className="relative">
       <DisplayCard
-        headerBg={headerBg}
+        headerBg="bg-pilot"
         bodyPadding="p-0"
         headerContent={
           <div className="flex w-full items-center gap-3">
@@ -446,41 +455,6 @@ export function EntitySearcher({
 }
 
 // ---------------------------------------------------------------------------
-// Facet row
-// ---------------------------------------------------------------------------
-
-function FacetRow({
-  label,
-  children,
-  onDark = false,
-}: {
-  label: string
-  children: ReactNode
-  /** Label sits on a dark tone band (the floating modal sub-header) — switch it
-   * to paper so it stays legible instead of the light-bg muted grey. */
-  onDark?: boolean
-}) {
-  return (
-    // biome-ignore lint/a11y/useSemanticElements: a fieldset+legend carries min-content sizing quirks in this chip row; role="group" + aria-label conveys the same semantics (matches InstallStep)
-    <div
-      className="flex flex-wrap items-center gap-2"
-      role="group"
-      aria-label={`Filter by ${label}`}
-    >
-      <span
-        className={cn(
-          'min-w-[64px] font-cond text-label font-bold uppercase tracking-caps',
-          onDark ? 'text-paper/85' : 'text-wk-muted'
-        )}
-      >
-        {label}
-      </span>
-      {children}
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // Count-mode card (duplicates legal — Add / Add another; remove in the rail)
 // ---------------------------------------------------------------------------
 
@@ -495,7 +469,7 @@ function CountCard({
 }) {
   const installed = count > 0
   return (
-    <div className={cn('rounded-[5px]', installed && 'shadow-[0_0_0_3px_var(--color-rust)]')}>
+    <div className={cn('rounded-panel', installed && 'shadow-[0_0_0_3px_var(--color-rust)]')}>
       <ReferenceEntityCard
         data={entity as unknown as SURefEntity}
         size="medium"
@@ -503,7 +477,7 @@ function CountCard({
       />
       <div className="mt-1.5 flex items-center gap-2 px-1">
         {installed && (
-          <span className="font-cond text-badge font-bold uppercase tracking-caps text-rust">
+          <span className="font-cond text-badge font-bold uppercase tracking-caps text-ink">
             {count} Added
           </span>
         )}
@@ -562,11 +536,11 @@ function SelectionRail({
       <h2 className="font-cond text-sm font-bold uppercase tracking-caps text-ink">
         {name ? (
           <>
-            {chosenLabel} · <span className="text-rust">{name}</span>
+            {chosenLabel} · <span className="text-ink-75">{name}</span>
           </>
         ) : (
           <>
-            {chosenLabel} <span className="text-rust">{count}</span>
+            {chosenLabel} <span className="text-ink-75">{count}</span>
           </>
         )}
       </h2>

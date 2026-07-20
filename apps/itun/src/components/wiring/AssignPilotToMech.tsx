@@ -2,8 +2,8 @@
  * AssignPilotToMech — button that opens a pilot selector dialog, then creates
  * a mech-to-pilot SoftLink on confirm.
  *
- * Dialog UI is the shared SelectorDialog (ModalShell-based); this component
- * only owns the assign flow state.
+ * Dialog UI is an inline ModalShell with a radio list (the SelectorDialog
+ * grammar, absorbed per ruleset §6); this component owns the assign flow state.
  *
  * Props:
  *   mechId     — id of the mech being assigned a pilot
@@ -13,13 +13,12 @@
  */
 
 import { useState } from 'react'
-import { Button } from 'component-lib'
+import { Button, FieldError, ModalShell } from 'component-lib'
 
 import { usePilots } from '../../hooks/queries'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLinkStore } from './useSoftLinks'
 import { useSoftLinks } from './useSoftLinks'
-import { SelectorDialog } from 'component-lib'
 import { cn } from '../../lib/utils'
 
 /** Extended injectable store that also exposes pilot listing. */
@@ -92,24 +91,61 @@ export function AssignPilotToMech({
         Assign Pilot
       </Button>
 
-      <SelectorDialog
+      <ModalShell
         open={open}
+        onOpenChange={(next) => {
+          if (!next) closeDialog()
+        }}
         title="Assign Pilot to Mech"
-        radioGroupName="pilot-select"
-        options={pilots.map((pilot) => ({
-          id: pilot.id,
-          label: pilot.name,
-          sublabel: pilot.callsign ? `“${pilot.callsign}”` : undefined,
-        }))}
-        emptyMessage="No pilots found. Create a pilot first."
-        selectedId={selectedPilotId}
-        onSelect={setSelectedPilotId}
-        confirmAriaLabel="Confirm pilot assignment"
-        pending={pending}
-        error={error}
-        onConfirm={() => void handleConfirm()}
-        onClose={closeDialog}
-      />
+        maxWidth="max-w-md"
+      >
+        <div className="flex flex-col gap-4 bg-paper p-5">
+          {pilots.length === 0 ? (
+            <p className="font-body text-sm text-wk-muted">
+              No pilots found. Create a pilot first.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {pilots.map((pilot) => (
+                <label
+                  key={pilot.id}
+                  className="flex cursor-pointer items-center gap-2 rounded-card border-chrome border-ink bg-paper p-2 hover:bg-wk-bg-2"
+                >
+                  <input
+                    type="radio"
+                    name="pilot-select"
+                    value={pilot.id}
+                    checked={selectedPilotId === pilot.id}
+                    onChange={() => setSelectedPilotId(pilot.id)}
+                    className="accent-rust"
+                  />
+                  <span className="font-body text-sm font-medium text-ink">{pilot.name}</span>
+                  {pilot.callsign && (
+                    <span className="font-body text-xs text-wk-muted">{`“${pilot.callsign}”`}</span>
+                  )}
+                </label>
+              ))}
+            </div>
+          )}
+
+          {error && <FieldError>{error}</FieldError>}
+
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={closeDialog} disabled={pending}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => void handleConfirm()}
+              disabled={pending || pilots.length === 0}
+              aria-label="Confirm pilot assignment"
+            >
+              {pending ? 'Assigning…' : 'Assign'}
+            </Button>
+          </div>
+        </div>
+      </ModalShell>
     </>
   )
 }

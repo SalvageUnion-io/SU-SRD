@@ -23,7 +23,8 @@ type InsetProps = {
 
 /**
  * Inset — a boxed sub-panel meant to sit inside a parent card's expand slot
- * (generalises ITUN's NpcInset crew-lead card and CrawlerEcon economy frame).
+ * (the frame `NpcInset`'s crew-lead card and `CrawlerEconFrame`'s economy
+ * panel compose).
  *
  * Anatomy: a 1.5px ink frame on paper, an ink head bar carrying an optional
  * tone tag + a title (+ an optional right-edge subtitle/actions slot), over a

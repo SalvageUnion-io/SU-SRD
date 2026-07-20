@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Panel, Row, Empty } from './Panel'
+import { Panel, Row } from './Panel'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -30,8 +30,8 @@ function Cluster({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-/** `Panel` — the ink/soft-bordered list frame, its `Row` list item, and the
- *  `Empty` placeholder for a zero-state. */
+/** `Panel` — the ink/soft-bordered list frame and its `Row` list item.
+ *  (The zero-state placeholder is `EmptyState variant="quiet"`.) */
 export const Default: Story = () => (
   <div className="bg-paper p-4">
     <div className="flex flex-col gap-6">
@@ -55,14 +55,6 @@ export const Default: Story = () => (
             <Row name={crawlerName} meta="Union Crawler" />
           </div>
         </Panel>
-      </Cluster>
-      <Cluster label="Empty — message only">
-        <Empty message="No systems installed yet." />
-      </Cluster>
-      <Cluster label="Empty — with icon + CTA">
-        <Empty message="No modules mounted." icon={<span className="text-xl text-rust">◇</span>}>
-          <span className="font-cond text-xs font-bold uppercase text-rust">+ Add module</span>
-        </Empty>
       </Cluster>
     </div>
   </div>

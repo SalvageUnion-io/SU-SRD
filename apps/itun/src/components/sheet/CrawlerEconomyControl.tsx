@@ -196,7 +196,6 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
       title="Pay Upkeep"
       subtitle={`${UPKEEP_SCRAP}× Tech ${tl} Scrap per Downtime`}
       maxWidth="max-w-md"
-      align="center"
     >
       <div className="flex flex-col gap-4 bg-paper p-5">
         <p className="font-body text-sm text-wk-muted">
@@ -307,9 +306,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
         if (!next) onClose()
       }}
       title="Upgrade Crawler"
-      headerBg="bg-pilot"
       maxWidth="max-w-md"
-      align="center"
     >
       <div className="flex flex-col gap-4 bg-paper p-5">
         {quote ? (
@@ -447,7 +444,6 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
       title="Trading Bay"
       subtitle={`Scrap exchange & Downtime sourcing · Tech ${tl} crawler`}
       maxWidth="max-w-md"
-      align="center"
     >
       <div className="flex flex-col gap-4 bg-paper p-5">
         {!gate.present && (

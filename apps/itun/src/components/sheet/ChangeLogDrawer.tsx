@@ -77,7 +77,7 @@ export function ChangeLogDrawer({
       onOpenChange={onOpenChange}
       title="Change Log"
       subtitle={entityName}
-      headerBg="bg-adversary"
+      tone="danger"
       maxWidth="max-w-2xl"
       description={`Change history for ${entityName}`}
     >

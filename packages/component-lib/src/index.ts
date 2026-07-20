@@ -185,7 +185,7 @@ export type {
 } from './components/dashboard/ActionsDeck'
 export { OptRow } from './components/chrome/OptRow'
 export { CountStepper } from './components/chrome/CountStepper'
-export { Panel, Row, Empty } from './components/chrome/Panel'
+export { Panel, Row } from './components/chrome/Panel'
 export { Slab } from './components/chrome/Slab'
 // ConditionChip is deliberately NOT exported: it is an internal sub-part of
 // Conditions (its only consumer), demonstrated via that component's story.
@@ -255,9 +255,7 @@ export type { MechRollField, MechRollTableDeps } from './components/wizard/mechR
 export { PILOT_ROLL_TABLE_NAMES, rollForPilotField } from './components/wizard/rollTableHelpers'
 export type { PilotRollField, RollTableDeps } from './components/wizard/rollTableHelpers'
 export { classDescription, selectableClasses } from './components/wizard/classOptions'
-export { SelectorDialog } from './components/shared/SelectorDialog'
 export { RosterSkeleton } from './components/shared/RosterSkeleton'
-export { DeleteConfirmDialog } from './components/shared/DeleteConfirmDialog'
 export { SheetSkeleton } from './components/sheet/SheetSkeleton'
 export { InlineEditTextArea } from './components/sheet/InlineEditTextArea'
 export { NpcFactsEditor } from './components/sheet/NpcFactsEditor'

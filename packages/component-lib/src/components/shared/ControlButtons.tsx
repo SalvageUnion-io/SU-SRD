@@ -10,36 +10,29 @@ import type {
   ReferenceEntityControlVariant,
 } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
-/** Tailwind classes for the primary segment of each variant */
-const VARIANT_BG: Record<ReferenceEntityControlVariant, string> = {
-  primary: 'bg-ink',
-  danger: 'bg-adversary',
-  ghost: 'bg-paper',
-}
-
-const VARIANT_TEXT: Record<ReferenceEntityControlVariant, string> = {
-  primary: 'text-paper',
-  danger: 'text-paper',
-  ghost: 'text-ink',
-}
-
-/** Inverse segment colors (for segmentText) */
-const INVERSE_BG: Record<ReferenceEntityControlVariant, string> = {
-  primary: 'bg-paper',
-  danger: 'bg-paper',
-  ghost: 'bg-ink',
-}
-
-const INVERSE_TEXT: Record<ReferenceEntityControlVariant, string> = {
-  primary: 'text-ink',
-  danger: 'text-ink',
-  ghost: 'text-paper',
+/**
+ * Per-variant segment colours: `bg`/`text` fill the primary segment, and
+ * `inverseBg`/`inverseText` the secondary `segmentText` segment (like the
+ * ValueDisplay value). `danger` fills with `--color-status-bad` — the
+ * sanctioned destructive/state red, NOT the adversary ontology hue.
+ */
+const VARIANT: Record<
+  ReferenceEntityControlVariant,
+  { bg: string; text: string; inverseBg: string; inverseText: string }
+> = {
+  primary: { bg: 'bg-ink', text: 'text-paper', inverseBg: 'bg-paper', inverseText: 'text-ink' },
+  danger: {
+    bg: 'bg-status-bad',
+    text: 'text-paper',
+    inverseBg: 'bg-paper',
+    inverseText: 'text-ink',
+  },
+  ghost: { bg: 'bg-paper', text: 'text-ink', inverseBg: 'bg-ink', inverseText: 'text-paper' },
 }
 
 type ControlButtonsProps = {
   controls: ReferenceEntityControl[]
   compact?: boolean
-  className?: string
 }
 
 function ControlButton({
@@ -103,7 +96,6 @@ function ControlButton({
   if (Icon && isIconOnly) {
     return (
       <button
-        key={control.key}
         type="button"
         className={cn(
           'inline-flex shrink-0 items-center justify-center rounded-card border-2 transition-colors',
@@ -127,7 +119,6 @@ function ControlButton({
 
   return (
     <button
-      key={control.key}
       type="button"
       className={cn(
         'inline-flex shrink-0 items-stretch whitespace-nowrap border transition-colors',
@@ -149,8 +140,8 @@ function ControlButton({
       <span
         className={cn(
           segmentClasses,
-          isDisabled ? 'bg-wk-faint text-ink-2' : !hasCustomColors && VARIANT_BG[variant],
-          !isDisabled && !hasCustomColors && VARIANT_TEXT[variant]
+          isDisabled ? 'bg-wk-faint text-ink-2' : !hasCustomColors && VARIANT[variant].bg,
+          !isDisabled && !hasCustomColors && VARIANT[variant].text
         )}
         style={{
           lineHeight: 1,
@@ -165,8 +156,8 @@ function ControlButton({
         <span
           className={cn(
             segmentClasses,
-            isDisabled ? 'bg-wk-muted text-ink-2' : INVERSE_BG[variant],
-            !isDisabled && INVERSE_TEXT[variant]
+            isDisabled ? 'bg-wk-muted text-ink-2' : VARIANT[variant].inverseBg,
+            !isDisabled && VARIANT[variant].inverseText
           )}
           style={{ lineHeight: 1 }}
         >
@@ -210,7 +201,7 @@ function ControlButtonWithHover({
   )
 }
 
-export function ControlButtons({ controls, compact = false, className }: ControlButtonsProps) {
+export function ControlButtons({ controls, compact = false }: ControlButtonsProps) {
   const handleClick = useCallback((e: React.MouseEvent, onClick: () => void) => {
     // preventDefault so a control nested inside a wrapping navigation <a> (e.g.
     // the schema list cards) doesn't also trigger that anchor's navigation; a
@@ -225,7 +216,7 @@ export function ControlButtons({ controls, compact = false, className }: Control
   if (visibleControls.length === 0) return null
 
   return (
-    <div className={cn('flex gap-1', className)}>
+    <div className="flex gap-1">
       {visibleControls.map((control) =>
         control.hoverContent ? (
           <ControlButtonWithHover

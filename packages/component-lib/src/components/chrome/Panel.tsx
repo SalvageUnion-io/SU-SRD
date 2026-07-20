@@ -59,36 +59,3 @@ export function Row({ name, meta, actions, className }: RowProps) {
     </div>
   )
 }
-
-type EmptyProps = {
-  /** Muted message line */
-  message: ReactNode
-  /** Decorative glyph above the message (e.g. an entity-tone lucide icon). */
-  icon?: ReactNode
-  /** CTA slot (usually a primary sm Button) */
-  children?: ReactNode
-  className?: string
-}
-
-/**
- * Dashed empty state (design-spec §2.10 `.empty`): 1.5px dashed faint frame,
- * centered muted message + CTA, with an optional decorative glyph on top.
- */
-export function Empty({ message, icon, children, className }: EmptyProps) {
-  return (
-    <div
-      className={cn(
-        'flex flex-col items-center justify-center gap-3.5 rounded-card border-chrome border-dashed border-wk-faint p-[26px] text-center',
-        className
-      )}
-    >
-      {icon && (
-        <span aria-hidden="true" className="flex items-center justify-center">
-          {icon}
-        </span>
-      )}
-      <p className="font-body text-caption text-wk-muted">{message}</p>
-      {children}
-    </div>
-  )
-}

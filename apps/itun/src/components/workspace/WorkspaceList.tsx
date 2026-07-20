@@ -163,9 +163,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
         if (!next) onClose()
       }}
       title="Manage Workspaces"
-      headerBg="bg-pilot"
       maxWidth="max-w-md"
-      align="center"
     >
       <div className="bg-paper p-5">
         {/* Workspace rows */}

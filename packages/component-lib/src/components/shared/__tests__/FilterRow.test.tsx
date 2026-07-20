@@ -25,24 +25,13 @@ describe('FilterRow', () => {
     expect(screen.getByText('Expansion')).toBeTruthy()
   })
 
-  test('applies default gap class', () => {
-    const { container } = render(
+  test('exposes group semantics named after the label', () => {
+    render(
       <FilterRow label="TL">
         <span>child</span>
       </FilterRow>
     )
-    const inner = container.querySelector('.gap-1')
-    expect(inner).toBeTruthy()
-  })
-
-  test('applies custom gap class when provided', () => {
-    const { container } = render(
-      <FilterRow label="TL" gap="gap-3">
-        <span>child</span>
-      </FilterRow>
-    )
-    const inner = container.querySelector('.gap-3')
-    expect(inner).toBeTruthy()
+    expect(screen.getByRole('group', { name: 'Filter by TL' })).toBeTruthy()
   })
 
   test('label has uppercase mono styling', () => {

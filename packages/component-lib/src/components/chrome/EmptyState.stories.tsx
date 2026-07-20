@@ -2,6 +2,7 @@ import type { Story } from '@ladle/react'
 
 import { EmptyState } from './EmptyState'
 import { Button } from './Button'
+import { Glyph } from './glyphs'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -27,5 +28,22 @@ export const Default: Story = () => (
 export const HeadlineOnly: Story = () => (
   <div className="max-w-sm bg-paper p-4">
     <EmptyState headline="No pilots yet" />
+  </div>
+)
+
+/** quiet — the muted app-chrome placeholder (absorbed from `Panel`'s retired
+ *  `Empty`): centered, faint dashed frame, decorative glyph, no stamp. */
+export const Quiet: Story = () => (
+  <div className="max-w-sm bg-paper p-4">
+    <EmptyState
+      variant="quiet"
+      icon={<Glyph name="gear" className="size-7 text-wk-muted" />}
+      body="No systems installed yet."
+      action={
+        <Button variant="primary" size="sm">
+          + Add system
+        </Button>
+      }
+    />
   </div>
 )

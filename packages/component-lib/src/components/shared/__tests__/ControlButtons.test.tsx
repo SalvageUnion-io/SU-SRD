@@ -35,7 +35,8 @@ describe('ControlButtons', () => {
   test('applies danger variant classes', () => {
     render(<ControlButtons controls={[makeControl({ variant: 'danger' })]} />)
     const button = screen.getByRole('button')
-    expect(button.innerHTML).toContain('bg-adversary')
+    // The sanctioned destructive/state red — NOT the adversary ontology hue.
+    expect(button.innerHTML).toContain('bg-status-bad')
   })
 
   test('applies ghost variant classes', () => {

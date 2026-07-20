@@ -86,7 +86,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
         onOpenChange={onOpenChange}
         title="Search the SRD"
         description="Search Salvage Union reference entities and categories"
-        headerBg="bg-pilot"
         maxWidth="max-w-xl"
         align="top"
         initialFocus={inputRef}

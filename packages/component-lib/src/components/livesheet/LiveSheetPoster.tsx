@@ -265,7 +265,6 @@ function LinkedUnits({ linked }: { linked: PosterLink[] }) {
             meta={l.meta}
             stats={l.stats}
             sheetHref={l.href ?? '#'}
-            onDeleteClick={() => {}}
           />
         ))}
       </div>

@@ -11,6 +11,16 @@ type ModalShellProps = {
   subtitle?: string
   /** sr-only accessibility description */
   description?: string
+  /**
+   * Header tone (ruleset §6): 'action' (pilot blue, the default) for
+   * constructive flows, 'danger' (adversary rust) for destructive confirms.
+   */
+  tone?: 'action' | 'danger'
+  /**
+   * @deprecated Legacy raw header class — use `tone` instead. Only 'bg-adversary'
+   * maps to 'danger'; anything else renders the 'action' tone. Kept solely for
+   * SheetSection (owned elsewhere) until its call site migrates.
+   */
   headerBg?: string
   maxWidth?: string
   align?: 'center' | 'top'
@@ -34,14 +44,17 @@ export function ModalShell({
   title,
   subtitle,
   description,
-  headerBg = 'bg-pilot',
+  tone,
+  headerBg,
   maxWidth = 'max-w-3xl',
-  align = 'top',
+  align = 'center',
   initialFocus,
   bare = false,
   children,
 }: ModalShellProps) {
-  const isLightClose = headerBg === 'bg-adversary'
+  const resolvedTone = tone ?? (headerBg === 'bg-adversary' ? 'danger' : 'action')
+  const isDanger = resolvedTone === 'danger'
+  const headerBgClass = isDanger ? 'bg-adversary' : 'bg-pilot'
 
   // Bare mode: a fit-height, non-scrolling popup — the child owns its frame and
   // any internal scroll. Default: a scrolling popup wrapping the DisplayCard.
@@ -62,14 +75,14 @@ export function ModalShell({
             children
           ) : (
             <DisplayCard
-              headerBg={headerBg}
+              headerBg={headerBgClass}
               headerContent={
                 <div className="flex w-full items-center justify-between gap-2">
                   <div className="flex min-w-0 flex-col gap-0.5">
                     <Text
                       as="span"
                       variant="pseudoheader"
-                      className={`${headerBg === 'bg-adversary' ? 'text-xl' : 'text-[1.75rem]'} text-paper`}
+                      className={`${isDanger ? 'text-xl' : 'text-2xl'} text-paper`}
                     >
                       {title}
                     </Text>
@@ -81,7 +94,7 @@ export function ModalShell({
                   </div>
                   <Dialog.Close
                     className={`flex shrink-0 cursor-pointer items-center justify-center rounded p-1 transition-colors ${
-                      isLightClose
+                      isDanger
                         ? 'text-paper/60 hover:bg-ink/20 hover:text-paper'
                         : 'text-ink/60 hover:bg-ink/20 hover:text-ink'
                     }`}

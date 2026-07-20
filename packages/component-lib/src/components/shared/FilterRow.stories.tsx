@@ -106,8 +106,8 @@ export const Default: Story = () => {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Caption>Tree — the abilities-only facet; wider gap via the gap prop</Caption>
-        <FilterRow label="Tree" gap="gap-2">
+        <Caption>Tree — the abilities-only facet</Caption>
+        <FilterRow label="Tree">
           <FilterChip
             label="All"
             active={treeFilters.size === 0}

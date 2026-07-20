@@ -173,13 +173,18 @@ export function CrawlerBayCard({
         motto={motto}
         detail={entry.npcDescription ?? ''}
         facts={entry.npcFacts ?? []}
-        onNameChange={readOnly ? undefined : (next) => patchEntry({ npcName: next })}
-        onHpChange={readOnly ? undefined : (next) => patchEntry({ npcCurrentHP: next })}
-        onKeepsakeChange={readOnly || !keepsakeChoice ? undefined : setKeepsake}
-        onMottoChange={readOnly || !mottoChoice ? undefined : setMotto}
-        onDetailChange={readOnly ? undefined : (next) => patchEntry({ npcDescription: next })}
-        onFactsChange={readOnly ? undefined : (next) => patchEntry({ npcFacts: next })}
-        readOnly={readOnly}
+        // Handler absence IS the read-only encoding: readOnly branches once
+        // here instead of per-handler ternaries + a second readOnly prop.
+        {...(readOnly
+          ? {}
+          : {
+              onNameChange: (next: string) => patchEntry({ npcName: next }),
+              onHpChange: (next: number) => patchEntry({ npcCurrentHP: next }),
+              onKeepsakeChange: keepsakeChoice ? setKeepsake : undefined,
+              onMottoChange: mottoChoice ? setMotto : undefined,
+              onDetailChange: (next: string) => patchEntry({ npcDescription: next }),
+              onFactsChange: (next: string[]) => patchEntry({ npcFacts: next }),
+            })}
       />
     </>
   )
@@ -333,13 +338,18 @@ export function CrawlerTypeCard({
       motto={motto}
       detail={typeNpc?.npcDescription ?? ''}
       facts={typeNpc?.npcFacts ?? []}
-      onNameChange={readOnly ? undefined : (next) => patchNpc({ npcName: next })}
-      onHpChange={readOnly ? undefined : (next) => patchNpc({ npcCurrentHP: next })}
-      onKeepsakeChange={readOnly || !keepsakeChoice ? undefined : setKeepsake}
-      onMottoChange={readOnly || !mottoChoice ? undefined : setMotto}
-      onDetailChange={readOnly ? undefined : (next) => patchNpc({ npcDescription: next })}
-      onFactsChange={readOnly ? undefined : (next) => patchNpc({ npcFacts: next })}
-      readOnly={readOnly}
+      // Handler absence IS the read-only encoding: readOnly branches once
+      // here instead of per-handler ternaries + a second readOnly prop.
+      {...(readOnly
+        ? {}
+        : {
+            onNameChange: (next: string) => patchNpc({ npcName: next }),
+            onHpChange: (next: number) => patchNpc({ npcCurrentHP: next }),
+            onKeepsakeChange: keepsakeChoice ? setKeepsake : undefined,
+            onMottoChange: mottoChoice ? setMotto : undefined,
+            onDetailChange: (next: string) => patchNpc({ npcDescription: next }),
+            onFactsChange: (next: string[]) => patchNpc({ npcFacts: next }),
+          })}
     />
   ) : undefined
 

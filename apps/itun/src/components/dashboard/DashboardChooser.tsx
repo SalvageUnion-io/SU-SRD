@@ -259,9 +259,7 @@ export function DashboardChooser({
         }}
         title="Launch Dashboard"
         subtitle={`Step ${stepIndex + 1} of 3 · ${stepTitle}`}
-        headerBg="bg-pilot"
         maxWidth="max-w-md"
-        align="center"
       >
         <div className="flex flex-col gap-4 bg-paper p-5">
           {step === 'pilot' && (
@@ -360,7 +358,7 @@ export function DashboardChooser({
 }
 
 // ---------------------------------------------------------------------------
-// Radio list (shares the SelectorDialog visual grammar; inlined so the wizard
+// Radio list (the standard assign-dialog radio grammar; inlined so the wizard
 // keeps one modal across steps rather than stacking three dialogs).
 // ---------------------------------------------------------------------------
 

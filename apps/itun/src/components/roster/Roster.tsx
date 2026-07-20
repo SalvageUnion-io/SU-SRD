@@ -12,7 +12,7 @@
  *
  * Delete flow:
  *   1. User clicks "Delete" on an EntityRow.
- *   2. DeleteConfirmDialog opens.
+ *   2. An inline danger-tone ModalShell confirm opens.
  *   3. User confirms → entityStore.delete() is called, entity removed from
  *      listing immediately (Zustand in-memory update is synchronous).
  */
@@ -21,7 +21,7 @@ import { Fragment, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
-import { Button, buttonVariants, Empty, EntityRow } from 'component-lib'
+import { Button, buttonVariants, EmptyState, EntityRow } from 'component-lib'
 
 import {
   setActiveWorkspaceId,
@@ -49,7 +49,7 @@ import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { AppLink } from '../shared/AppLink'
 import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher'
 import { RosterSkeleton } from 'component-lib'
-import { DeleteConfirmDialog } from 'component-lib'
+import { ModalShell } from 'component-lib'
 
 // ---------------------------------------------------------------------------
 // Row-meta helpers
@@ -386,12 +386,31 @@ export function Roster() {
         )}
       </div>
 
-      <DeleteConfirmDialog
+      {/* Destructive delete confirm — inline danger-tone ModalShell, like the
+          other destructive confirms (UnassignLinkButton, WizShell). */}
+      <ModalShell
         open={deleteTarget !== null}
-        entityName={deleteTarget?.name ?? ''}
-        onConfirm={() => void handleConfirmDelete()}
-        onCancel={handleCancelDelete}
-      />
+        onOpenChange={(next) => {
+          if (!next) handleCancelDelete()
+        }}
+        title={`Delete ${deleteTarget?.name ?? ''}?`}
+        tone="danger"
+        maxWidth="max-w-md"
+      >
+        <div className="flex flex-col gap-4 bg-paper p-5">
+          <div className="font-body text-sm text-wk-muted">
+            This action cannot be undone. {deleteTarget?.name ?? ''} will be permanently removed.
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={handleCancelDelete}>
+              Cancel
+            </Button>
+            <Button variant="danger" size="sm" onClick={() => void handleConfirmDelete()}>
+              Delete
+            </Button>
+          </div>
+        </div>
+      </ModalShell>
     </main>
   )
 }
@@ -487,14 +506,19 @@ function RosterColumn({
         </div>
       </div>
       {children.length === 0 ? (
-        <Empty message={emptyMessage} icon={emptyIcon}>
-          <AppLink
-            href={createHref}
-            className={cn(buttonVariants({ variant: 'primary', size: 'sm' }), 'no-underline')}
-          >
-            {createLabel}
-          </AppLink>
-        </Empty>
+        <EmptyState
+          variant="quiet"
+          body={emptyMessage}
+          icon={emptyIcon}
+          action={
+            <AppLink
+              href={createHref}
+              className={cn(buttonVariants({ variant: 'primary', size: 'sm' }), 'no-underline')}
+            >
+              {createLabel}
+            </AppLink>
+          }
+        />
       ) : (
         <ul className="flex flex-col gap-2.5">{children}</ul>
       )}

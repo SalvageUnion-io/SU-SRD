@@ -3,22 +3,23 @@
  * slot (design-spec §2.10 `.npc`, plan 4.6). Each bay is run by its own crew
  * lead (rules C11: name, keepsake, detail, 4 HP).
  *
- * Anatomy: 1.5px ink frame on paper; black head bar with a pink 'CREW' tag,
- * the lead's (editable) name and their SRD role title; body = sm HP StatBlock
- * (tone hp, pip click-to-set per §4.5) beside quiet Keepsake/Detail/Facts id
+ * Composes the shared `Inset` (style-unification pass §3 — the boxed
+ * sub-panel: 1.5px ink frame on paper, ink head bar): a pink 'CREW' tag +
+ * the lead's (editable) name on the head bar, their SRD role title riding
+ * the right edge; body = sm HP Stat beside quiet Keepsake/Detail/Facts id
  * lines.
  *
  * Persistence stays with the caller: name/HP/detail/facts patch the crawler's
  * bay entry; keepsake persists through the bay's SRD freeform 'Keepsake'
- * choice (see CrawlerSheet). readOnly renders plain text, no edit affordances.
+ * choice (see CrawlerSheet). Handler absence IS the read-only encoding —
+ * omit a field's handler and it renders plain text, no edit affordances.
  */
 
 import { Stat } from '../shared/Stat'
 import { cn } from '../../utils/cn'
 import type { ReactNode } from 'react'
 
-import { DisplayCard } from '../shared/DisplayCard'
-import { Badge } from '../chrome/Badge'
+import { Inset } from '../shared/Inset'
 import { InlineEditField } from '../chrome/InlineEditField'
 import { InlineEditTextArea } from './InlineEditTextArea'
 import { NpcFactsEditor } from './NpcFactsEditor'
@@ -41,7 +42,6 @@ type NpcInsetProps = {
   onMottoChange?: (next: string) => void
   onDetailChange?: (next: string) => void
   onFactsChange?: (next: string[]) => void
-  readOnly?: boolean
 }
 
 /**
@@ -97,109 +97,95 @@ export function NpcInset({
   onMottoChange,
   onDetailChange,
   onFactsChange,
-  readOnly = false,
 }: NpcInsetProps) {
-  const editable = !readOnly
-
   return (
-    // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the crew-lead inset so multiple insets per crawler stay distinguishable; the DisplayCard root can't take aria-label
+    // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the crew-lead inset so multiple insets per crawler stay distinguishable; the Inset section can't take aria-label without becoming a region landmark
     <div role="group" aria-label={`${bayName} crew lead`}>
-      <DisplayCard
-        headerBg="bg-ink"
-        bodyPadding="p-2.5"
-        // Head bar: CREW tag + name; role title rides the right edge.
-        headerContent={
-          <>
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              {/* The crawler-tone chip is the canonical Badge, not a hand-rolled
-                  pill: `tone="crawler"` IS pink-on-paper-text. */}
-              <Badge surface="tone" tone="crawler">
-                Crew
-              </Badge>
-              <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-paper">
-                {editable && onNameChange ? (
-                  <InlineEditField
-                    value={name}
-                    onSave={(next) => onNameChange(String(next))}
-                    type="text"
-                    ariaLabel={`Edit ${bayName} crew name`}
-                    className="text-paper"
-                  />
-                ) : (
-                  name || '—'
-                )}
-              </span>
-            </div>
-            {title && (
-              <span className="ml-auto shrink-0 font-cond text-micro uppercase leading-none tracking-caps text-paper/60">
-                {title}
-              </span>
-            )}
-          </>
-        }
-      >
-        <div className="flex flex-wrap items-start gap-[11px]">
-          {maxHp > 0 && (
-            <Stat
-              label="HP"
-              value={hp}
-              max={maxHp}
-              compact
-              mode={editable && onHpChange !== undefined ? 'edit' : 'read'}
-              onChange={onHpChange}
+      <Inset
+        tone="crawler"
+        tag="Crew"
+        label={
+          onNameChange ? (
+            <InlineEditField
+              value={name}
+              onSave={(next) => onNameChange(String(next))}
+              type="text"
+              ariaLabel={`Edit ${bayName} crew name`}
+              className="text-paper"
             />
-          )}
+          ) : (
+            name || '—'
+          )
+        }
+        headRight={
+          title ? (
+            <span className="font-cond text-micro uppercase leading-none tracking-caps text-paper/60">
+              {title}
+            </span>
+          ) : undefined
+        }
+        bodyClassName="flex flex-wrap items-start gap-3"
+      >
+        {maxHp > 0 && (
+          <Stat
+            label="HP"
+            value={hp}
+            max={maxHp}
+            compact
+            mode={onHpChange ? 'edit' : 'read'}
+            onChange={onHpChange}
+          />
+        )}
 
-          <dl className="m-0 min-w-0 flex-1 space-y-1.5">
-            <NpcRow label="Keepsake">
-              {editable && onKeepsakeChange ? (
-                <InlineEditField
-                  value={keepsake}
-                  onSave={(next) => onKeepsakeChange(String(next))}
-                  type="text"
-                  ariaLabel={`Edit ${bayName} crew keepsake`}
-                />
-              ) : (
-                keepsake || '—'
-              )}
-            </NpcRow>
-            <NpcRow label="Motto">
-              {editable && onMottoChange ? (
-                <InlineEditField
-                  value={motto}
-                  onSave={(next) => onMottoChange(String(next))}
-                  type="text"
-                  ariaLabel={`Edit ${bayName} crew motto`}
-                />
-              ) : (
-                motto || '—'
-              )}
-            </NpcRow>
-            <NpcRow label="Detail" grow>
-              {editable && onDetailChange ? (
-                <InlineEditTextArea
-                  value={detail}
-                  onSave={onDetailChange}
-                  ariaLabel={`Edit ${bayName} crew detail`}
-                  placeholder="Add a detail…"
-                />
-              ) : (
-                detail || '—'
-              )}
-            </NpcRow>
-            {(editable || facts.length > 0) && (
-              <NpcRow label="Facts" grow plain>
-                <NpcFactsEditor
-                  facts={facts}
-                  onChange={(next) => onFactsChange?.(next)}
-                  npcLabel={`${bayName} crew`}
-                  readOnly={readOnly || onFactsChange === undefined}
-                />
-              </NpcRow>
+        <dl className="m-0 min-w-0 flex-1 space-y-1.5">
+          <NpcRow label="Keepsake">
+            {onKeepsakeChange ? (
+              <InlineEditField
+                value={keepsake}
+                onSave={(next) => onKeepsakeChange(String(next))}
+                type="text"
+                ariaLabel={`Edit ${bayName} crew keepsake`}
+              />
+            ) : (
+              keepsake || '—'
             )}
-          </dl>
-        </div>
-      </DisplayCard>
+          </NpcRow>
+          <NpcRow label="Motto">
+            {onMottoChange ? (
+              <InlineEditField
+                value={motto}
+                onSave={(next) => onMottoChange(String(next))}
+                type="text"
+                ariaLabel={`Edit ${bayName} crew motto`}
+              />
+            ) : (
+              motto || '—'
+            )}
+          </NpcRow>
+          <NpcRow label="Detail" grow>
+            {onDetailChange ? (
+              <InlineEditTextArea
+                value={detail}
+                onSave={onDetailChange}
+                ariaLabel={`Edit ${bayName} crew detail`}
+                placeholder="Add a detail…"
+              />
+            ) : (
+              detail || '—'
+            )}
+          </NpcRow>
+          {(onFactsChange !== undefined || facts.length > 0) && (
+            <NpcRow label="Facts" grow plain>
+              <NpcFactsEditor
+                facts={facts}
+                onChange={(next) => onFactsChange?.(next)}
+                npcLabel={`${bayName} crew`}
+                readOnly={onFactsChange === undefined}
+              />
+            </NpcRow>
+          )}
+        </dl>
+      </Inset>
     </div>
   )
 }

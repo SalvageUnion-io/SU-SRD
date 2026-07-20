@@ -27,16 +27,12 @@ function Stage({ rule, children }: { rule: string; children: ReactNode }) {
   )
 }
 
-/** One economy lozenge: caption, big numeral, optional rust action control. */
+/** One economy readout, the way `CrawlerEconFrame` renders it: a Stat value
+ * box + optional rust action control (ruleset §3.7 — never hand-assembled). */
 function Loz({ label, value, action }: { label: string; value: number; action?: ReactNode }) {
   return (
-    <div className="flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-card border-2 border-ink bg-paper px-1.5 py-2 text-center">
-      <span className="font-cond text-label font-bold uppercase leading-none tracking-caps text-ink-2">
-        {label}
-      </span>
-      <span className="font-cond text-2xl font-bold leading-none tabular-nums text-ink">
-        {value}
-      </span>
+    <div className="flex flex-col items-center gap-1">
+      <Stat label={label} value={value} />
       {action}
     </div>
   )
@@ -103,7 +99,7 @@ export const Economy: Story = () => (
             label="Upkeep"
             value={5}
             action={
-              <Button variant="primary" size="sm">
+              <Button variant="primary" size="xs">
                 Pay
               </Button>
             }
@@ -112,7 +108,7 @@ export const Economy: Story = () => (
             label="Upgrade"
             value={30}
             action={
-              <Button variant="primary" size="sm">
+              <Button variant="primary" size="xs">
                 Fund
               </Button>
             }

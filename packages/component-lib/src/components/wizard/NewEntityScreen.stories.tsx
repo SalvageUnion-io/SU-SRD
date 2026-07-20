@@ -208,9 +208,7 @@ function BlankCreateDialog({
         if (!next) onClose()
       }}
       title={`Blank ${label}`}
-      headerBg="bg-pilot"
       maxWidth="max-w-md"
-      align="center"
     >
       <div className="flex flex-col gap-4 bg-paper p-5">
         <p className="m-0 font-body text-sm text-wk-muted">

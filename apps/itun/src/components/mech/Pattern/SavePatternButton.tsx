@@ -102,9 +102,7 @@ export function SavePatternButton({
           if (!next) handleCancel()
         }}
         title="Save as pattern"
-        headerBg="bg-pilot"
         maxWidth="max-w-md"
-        align="center"
       >
         <div className="flex flex-col gap-4 bg-paper p-5">
           <Field label="Pattern name" htmlFor="pattern-name-input">

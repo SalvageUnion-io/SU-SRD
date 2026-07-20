@@ -193,7 +193,6 @@ export function MechItemCard({
         }}
         title={`Repair ${entity.name}`}
         maxWidth="max-w-sm"
-        align="center"
       >
         <div className="flex flex-col gap-3 bg-paper p-5">
           <p className="m-0 font-body text-sm text-ink">

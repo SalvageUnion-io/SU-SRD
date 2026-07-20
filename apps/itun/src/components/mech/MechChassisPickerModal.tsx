@@ -90,9 +90,8 @@ export function MechChassisPickerModal({
           if (!next) setConfirming(false)
         }}
         title="Change chassis?"
-        headerBg="bg-adversary"
+        tone="danger"
         maxWidth="max-w-md"
-        align="center"
       >
         <div className="flex flex-col gap-4 bg-paper p-5">
           <div className="font-body text-sm text-wk-muted">

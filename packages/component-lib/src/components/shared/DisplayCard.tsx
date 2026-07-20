@@ -8,7 +8,7 @@ import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntity/ref
 import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 import { StickyHeaderContext, StickyOffsetContext } from './StickyHeaderContext'
 import { useStickyCard } from './useStickyCard'
-import { CalloutMetaStamp } from '../referenceEntity/ReferenceEntityDisplay/components/CalloutMetaStamp'
+import { Badge } from '../chrome/Badge'
 import type { EntityStatus } from '../chrome/StatusBadge'
 import { displayBooleans, resolveCardDisplay } from './displayMode'
 import type { CardExtent, CardSize } from './displayMode'
@@ -93,8 +93,6 @@ type DisplayCardProps = {
   cardStyle?: { className?: string; style?: React.CSSProperties }
   /** Override header className and inline style (e.g., the pilot/crawler stripe accent) */
   headerStyle?: { className?: string; style?: React.CSSProperties }
-  /** Override footer className and inline style */
-  /** data-testid on the header div */
   /** CSS color for card borders (external + internal). Defaults to 'black'. */
   borderColor?: string
   /** Make header sticky when scrolling. Section separators inside the card auto-stick below. */
@@ -103,7 +101,6 @@ type DisplayCardProps = {
   tabs?: DisplayCardTab[]
   /** Label for the default (children) tab. Defaults to "Info". */
   defaultTabLabel?: string
-  /** CSS color override for the default tab's active background */
   /** Content rendered in the sub-header band, alongside/instead of `stats` —
    * a darker shade of the header tone directly below the header content row.
    * The band renders when either `subHeader` or `stats` is provided; no band
@@ -344,9 +341,13 @@ export function DisplayCard({
           {label && labelBadge ? (
             <Stat orientation="horizontal" label={label} value={labelBadge} xs />
           ) : label ? (
-            <CalloutMetaStamp xs>{label}</CalloutMetaStamp>
+            <Badge shape="stamp" size="mini">
+              {label}
+            </Badge>
           ) : labelBadge ? (
-            <CalloutMetaStamp xs>{labelBadge}</CalloutMetaStamp>
+            <Badge shape="stamp" size="mini">
+              {labelBadge}
+            </Badge>
           ) : null}
         </div>
       )}

@@ -1,17 +1,9 @@
-type FooterLink = {
-  label: string
-  href: string
-}
-
 type FooterProps = {
   /** URL for the "Powered by Salvage" logo image — passed by consuming app */
   poweredBySalvageUrl: string
-  /** Optional legal / utility links (e.g. Terms, Privacy) rendered as a small
-   *  row beneath the attribution. Omitted entirely when not provided. */
-  legalLinks?: FooterLink[]
 }
 
-export function Footer({ poweredBySalvageUrl, legalLinks }: FooterProps) {
+export function Footer({ poweredBySalvageUrl }: FooterProps) {
   return (
     <footer className="border-t border-wk-faint bg-paper py-3 lg:shadow-sm">
       <div className="mx-auto flex max-w-7xl flex-row flex-wrap items-center justify-center gap-4 text-xs text-ink">
@@ -53,18 +45,6 @@ export function Footer({ poweredBySalvageUrl, legalLinks }: FooterProps) {
             </a>
             .
           </p>
-          {legalLinks && legalLinks.length > 0 && (
-            <p className="mt-1">
-              {legalLinks.map((link, i) => (
-                <span key={link.href}>
-                  {i > 0 && <span className="px-1.5 text-wk-faint">·</span>}
-                  <a href={link.href} className="underline hover:text-rust">
-                    {link.label}
-                  </a>
-                </span>
-              ))}
-            </p>
-          )}
         </div>
         <div className="inline-block shrink-0 rounded-md p-2">
           <img

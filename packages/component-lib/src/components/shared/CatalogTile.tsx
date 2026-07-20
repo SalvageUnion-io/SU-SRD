@@ -21,8 +21,6 @@ type CatalogTileProps = {
   catalogBg: string
   /** When set, the name renders as a chip filled with this color. */
   catalogLabel?: string | null
-  /** Link component for internal routes. Defaults to a plain anchor. */
-  LinkComponent?: React.ElementType
 }
 
 // `--catalog-bg` may be a colour OR a gradient (tech-level ramps, the ability
@@ -38,21 +36,15 @@ const NAME =
 const NAME_LABEL =
   'inline-block rounded-badge bg-[var(--catalog-label)] px-[10px] py-0.5 [text-shadow:none]'
 
-export function CatalogTile({
-  href,
-  name,
-  catalogBg,
-  catalogLabel,
-  LinkComponent = 'a',
-}: CatalogTileProps) {
+export function CatalogTile({ href, name, catalogBg, catalogLabel }: CatalogTileProps) {
   const style = {
     '--catalog-bg': catalogBg,
     ...(catalogLabel ? { '--catalog-label': catalogLabel } : {}),
   } as CSSProperties
 
   return (
-    <LinkComponent href={href} className={TILE} style={style}>
+    <a href={href} className={TILE} style={style}>
       <span className={cn(NAME, catalogLabel && NAME_LABEL)}>{name}</span>
-    </LinkComponent>
+    </a>
   )
 }

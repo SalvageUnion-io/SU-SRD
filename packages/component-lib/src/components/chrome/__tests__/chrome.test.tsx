@@ -3,7 +3,8 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { Field, Input, Textarea, Select } from '../Field'
 import { KvRow } from '../KvRow'
 import { ModeDoor } from '../ModeDoor'
-import { Panel, Row, Empty } from '../Panel'
+import { Panel, Row } from '../Panel'
+import { EmptyState } from '../EmptyState'
 import { Slab } from '../Slab'
 import { Conditions, ConditionChip } from '../Conditions'
 import { Button } from '../Button'
@@ -114,7 +115,7 @@ describe('Badge tone / quiet preset', () => {
   })
 })
 
-describe('Panel / Row / Empty', () => {
+describe('Panel / Row', () => {
   test('panel defaults to ink border, soft swaps to faint', () => {
     const { container } = render(<Panel>content</Panel>)
     expect(container.firstElementChild?.className).toContain('border-ink')
@@ -135,14 +136,28 @@ describe('Panel / Row / Empty', () => {
     expect(screen.getByText('"Wrench" · Engineer')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Sheet' })).toBeTruthy()
   })
+})
 
-  test('empty renders a dashed frame with message and CTA', () => {
-    const { container } = render(
-      <Empty message="No pilots yet">
-        <button type="button">Create</button>
-      </Empty>
-    )
+describe('EmptyState', () => {
+  test('stamp default renders the dashed frame with a stamp headline', () => {
+    const { container } = render(<EmptyState headline="No pilots yet" />)
     expect(container.firstElementChild?.className).toContain('border-dashed')
+    const stamp = screen.getByText('No pilots yet')
+    expect(stamp.className).toContain('bg-ink')
+  })
+
+  test('quiet variant renders the centered faint dashed placeholder with message and CTA', () => {
+    const { container } = render(
+      <EmptyState
+        variant="quiet"
+        body="No pilots yet"
+        action={<button type="button">Create</button>}
+      />
+    )
+    const root = container.firstElementChild as HTMLElement
+    expect(root.className).toContain('border-dashed')
+    expect(root.className).toContain('border-wk-faint')
+    expect(root.className).toContain('text-center')
     expect(screen.getByText('No pilots yet')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Create' })).toBeTruthy()
   })

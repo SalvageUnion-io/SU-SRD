@@ -18,7 +18,7 @@
 
 import { useState } from 'react'
 import { Users } from 'lucide-react'
-import { Empty } from 'component-lib'
+import { EmptyState } from 'component-lib'
 
 import { setActiveWorkspaceId, useActiveWorkspaceId } from '../../hooks/queries'
 import { useHydrateOnMount } from '../../hooks/queries/useHydrateEntities'
@@ -161,9 +161,10 @@ export function EncounterScreen({
                 </div>
               </div>
             ) : npcs.length === 0 ? (
-              <Empty
+              <EmptyState
+                variant="quiet"
                 icon={<Users className="size-7 text-wk-muted" aria-hidden="true" />}
-                message="No NPCs in play — add some from the reference lists."
+                body="No NPCs in play — add some from the reference lists."
               />
             ) : (
               <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
