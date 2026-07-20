@@ -157,14 +157,8 @@ export function SheetHero({
 export type ChassisStatItem = {
   /** Header code, e.g. 'SYS'. */
   code: string
-  /** Muted header name, e.g. 'Slots'. */
-  name?: string
-  /** Black footer unit bar, e.g. 'SLOTS'. */
-  unit?: string
   value: number
   max?: number
-  /** Set false to suppress pips for big tracks (e.g. SYS 5/20). */
-  pips?: boolean
   /**
    * Makes the lozenge actionable (design-review R-4: the UPKEEP/UPGRADE/TRADE
    * spec lozenges are the crawler-economy entry points) — the StatBlock is

@@ -125,8 +125,9 @@
   /* Paper — the ONE light surface (ruleset §4.1). NOT pure white and NOT cream:
      a near-white warm paper. Pure white is retired from the UI — paper is used
      universally (surfaces, value cells, and text on ink). The only remaining
-     #ffffff are scoped exceptions: the @media print sheet (physical paper) and
-     the dark Dashboard instrument skin. */
+     #ffffff is one scoped exception: the @media print sheet (physical paper).
+     The Dashboard cockpit is warm paper too (ruleset §1), so the dark-skin
+     exception this note used to carve out no longer exists. */
   --color-paper: rgb(251, 250, 247); /* #fbfaf7 */
   --color-rust: rgb(168, 82, 34); /* #a85222 — THE single action color */
   /* The one sanctioned cream. The rendering matrix (ruleset §2) specifies the

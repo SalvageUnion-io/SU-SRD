@@ -149,10 +149,8 @@ export type { GlyphName } from './components/chrome/glyphs'
 // with the default config, which drops them as unknown "colors").
 export { cn } from './utils/cn'
 export { Field, Input, Textarea, Select } from './components/chrome/Field'
-export { PickCard } from './components/chrome/PickCard'
 export { Sel } from './components/chrome/Sel'
 export { KvRow } from './components/chrome/KvRow'
-export { MicroLabel } from './components/chrome/MicroLabel'
 export { ModeDoor } from './components/chrome/ModeDoor'
 export { InlineEditField } from './components/chrome/InlineEditField'
 

@@ -12,7 +12,8 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * The instrument surface swaps in the condensed-caps HUD typography and the
  * dark recessed treatment formerly hand-rolled as `.pc-btn` / `.pc-deck-btn` /
  * `.pc-railbtn` / `.pc-wheel-btn` in instruments.css — one standard Button for
- * both worlds. Colour deltas ride on `compoundVariants` (surface × variant).
+ * both worlds. Colour deltas ride on `compoundVariants` (surface × variant);
+ * only `ghost` has an instrument recolour — the sole variant the HUD uses.
  */
 export const buttonVariants = cva(
   `inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-card border-chrome font-body font-medium tracking-[0.01em] transition-colors duration-[120ms] ${FOCUS_RING} ${DISABLED}`,
@@ -42,33 +43,15 @@ export const buttonVariants = cva(
       },
     },
     compoundVariants: [
-      // INSTRUMENT recolours (dark HUD). Each mirrors the former instruments.css
-      // `.pc-*` treatment so the swap is visually faithful: a recessed dark fill
-      // (ink mixed toward black), paper text, a faint paper-tinted border that
-      // brightens to muted on hover.
-      {
-        surface: 'instrument',
-        variant: 'default',
-        class:
-          'border-[color-mix(in_srgb,var(--color-paper)_16%,transparent)] bg-[color-mix(in_oklab,var(--color-ink)_50%,#000)] text-[var(--color-paper)] hover:border-[var(--color-ink-50)] hover:bg-[color-mix(in_oklab,var(--color-ink)_64%,#000)]',
-      },
+      // INSTRUMENT recolour (dark HUD): a faint paper-tinted border that
+      // brightens to muted on hover, paper text on a transparent ground —
+      // the former instruments.css `.pc-railbtn` ghost treatment. `ghost` is
+      // the only variant the HUD renders, so it is the only recolour.
       {
         surface: 'instrument',
         variant: 'ghost',
         class:
           'border-[color-mix(in_srgb,var(--color-paper)_16%,transparent)] bg-transparent text-[var(--color-paper)] hover:border-[var(--color-ink-50)]',
-      },
-      {
-        surface: 'instrument',
-        variant: 'primary',
-        class:
-          'border-[var(--color-pilot)] bg-[var(--color-sheet-pilot-deep)] text-[var(--color-paper)] hover:border-[var(--color-ink-50)]',
-      },
-      {
-        surface: 'instrument',
-        variant: 'danger',
-        class:
-          'border-[color-mix(in_srgb,var(--color-status-bad)_70%,#000)] bg-[color-mix(in_oklab,var(--color-ink)_50%,#000)] text-[var(--color-danger)] hover:border-[var(--color-ink-50)]',
       },
     ],
     defaultVariants: {

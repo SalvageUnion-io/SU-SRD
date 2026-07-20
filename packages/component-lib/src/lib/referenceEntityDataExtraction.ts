@@ -14,14 +14,8 @@ import {
   getRecommended,
   getBlackMarket,
   isEntityData,
-  resolveActivationCurrency,
 } from 'salvageunion-reference'
 import type { DataValue } from '../types/common'
-
-/**
- * Re-export resolveActivationCurrency as getActivationCurrency for consumers
- */
-export const getActivationCurrency = resolveActivationCurrency
 
 /**
  * Label strings for the "meta" data values that the entity card relocates from
@@ -104,7 +98,6 @@ function formatActionType(actionType: string): string {
  */
 function extractActivationCostDetail(
   data: SURefMetaEntity | SURefMetaAction,
-  schemaName: SURefEnumSchemaName | undefined,
   currency: 'AP' | 'EP' | 'XP'
 ): DataValue | null {
   let activationCost: number | string | undefined
@@ -119,15 +112,8 @@ function extractActivationCostDetail(
 
   if (activationCost === undefined) return null
 
-  // Determine currency - use provided currency, or calculate from schema if not provided
-  let finalCurrency = currency
-  if (!finalCurrency && schemaName) {
-    const variableCost = 'activationCurrency' in data && schemaName === 'abilities'
-    finalCurrency = getActivationCurrency(schemaName, variableCost)
-  }
-
   const isVariable = String(activationCost).toLowerCase() === 'variable'
-  const costValue = isVariable ? `X ${finalCurrency}` : `${activationCost} ${finalCurrency}`
+  const costValue = isVariable ? `X ${currency}` : `${activationCost} ${currency}`
 
   return { label: costValue, type: 'cost' }
 }
@@ -213,7 +199,7 @@ function extractDamageDetail(data: SURefMetaEntity | SURefMetaAction): DataValue
   if (!damage) return null
   return {
     label: 'Damage',
-    value: `${damage.amount}${damage.damageType ?? 'HP'}`,
+    value: `${damage.amount}${damage.damageType}`,
   }
 }
 
@@ -243,8 +229,8 @@ function extractTraitDetails(data: SURefMetaEntity | SURefMetaAction): DataValue
  * Extract entity details for display (activation cost, action type, range, damage, traits)
  *
  * @param data - Entity or action data
- * @param schemaName - Optional schema name (used for currency determination and generic ability detection)
- * @param currency - Currency to use ('AP' | 'EP' | 'XP'). If not provided, will be determined from schema name
+ * @param schemaName - Optional schema name (used for generic ability detection and schema-specific rows)
+ * @param currency - Currency to use ('AP' | 'EP' | 'XP'). Defaults to 'AP'
  * @returns Array of DataValue items
  */
 export function extractReferenceEntityDetails(
@@ -268,7 +254,7 @@ export function extractReferenceEntityDetails(
   }
 
   // Extract activation cost
-  const activationCost = extractActivationCostDetail(data, schemaName, currency || 'AP')
+  const activationCost = extractActivationCostDetail(data, currency || 'AP')
   if (activationCost) details.push(activationCost)
 
   // Extract action types

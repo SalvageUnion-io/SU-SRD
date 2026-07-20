@@ -29,11 +29,9 @@ export type BandButton = {
   onClick: () => void
   disabled?: boolean
   title?: string
-  ariaLabel?: string
-  /** Destructive styling → Button `variant="danger"`. */
-  danger?: boolean
-  /** The primary "go" key → Button `variant="primary"`. */
-  go?: boolean
+  /** `danger` = destructive styling (Button `variant="danger"`); `go` = the
+   * primary "go" key (Button `variant="primary"`). Omit for the default. */
+  variant?: 'danger' | 'go'
   /** Full-width in the 2-col bay grid (spans both columns). */
   wide?: boolean
 }
@@ -75,13 +73,12 @@ const STAMP_BG: Record<ActiveItemBandView['fam'], string> = {
 function BandBtn({ btn, full = true }: { btn: BandButton; full?: boolean }) {
   return (
     <Button
-      variant={btn.danger ? 'danger' : btn.go ? 'primary' : 'default'}
+      variant={btn.variant === 'danger' ? 'danger' : btn.variant === 'go' ? 'primary' : 'default'}
       size="sm"
       className={cn(full ? 'w-full' : 'min-w-[140px]', btn.wide && 'col-span-2')}
       onClick={btn.onClick}
       disabled={btn.disabled}
       title={btn.title}
-      aria-label={btn.ariaLabel}
     >
       {btn.label}
     </Button>

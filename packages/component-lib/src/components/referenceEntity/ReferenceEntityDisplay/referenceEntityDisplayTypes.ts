@@ -55,18 +55,6 @@ export const getReferenceEntityFontSizes = (compact: boolean) => ({
   lg: compact ? 'text-base' : 'text-lg',
 })
 
-/** Grouped visibility toggle props */
-export type ReferenceEntityHideConfig = {
-  actions?: boolean
-  patterns?: boolean
-  damagedEffect?: boolean
-  choices?: boolean
-  stats?: boolean
-  content?: boolean
-  rollTable?: boolean
-  footer?: boolean
-}
-
 /** Pattern override data for patterned chassis display */
 export type PatternOverrideData = {
   name: string

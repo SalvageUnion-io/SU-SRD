@@ -21,8 +21,8 @@ type ButtonProps = ComponentPropsWithoutRef<'button'> &
  * aria-hidden before the label. Disabled = opacity .4, pointer-events none.
  *
  * `surface="instrument"` re-skins the same button for the dark dashboard HUD
- * (condensed caps + recessed dark fill) — one Button for both the paper app
- * chrome and the instrument scope.
+ * (condensed caps; a `ghost` recolour, the one variant the HUD uses) — one
+ * Button for both the paper app chrome and the instrument scope.
  */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   { variant, surface, size, className, type = 'button', glyph, children, ...props },

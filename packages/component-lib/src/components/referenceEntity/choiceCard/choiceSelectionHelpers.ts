@@ -52,15 +52,6 @@ export function getChoiceTableName(choice: SURefObjectChoice): string | undefine
 }
 
 /**
- * Whether a choice renders as a free-text field (Name, Appearance, Motto):
- * `source.kind === 'text'`. NOT a table — a table choice cites its table and
- * offers a Roll, it is not a bare input.
- */
-export function isFreeTextChoice(choice: SURefObjectChoice): boolean {
-  return getChoiceSourceKind(choice) === 'text'
-}
-
-/**
  * Whether a choice allows multiple selections. Reads `cardinality` (max > 1, or
  * a `scalesWith` cap) when present; otherwise the legacy `multiSelect`.
  */

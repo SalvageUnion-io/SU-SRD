@@ -3,7 +3,6 @@ import type {
   SURefMetaEntity,
   SURefEnumSchemaName,
   SURefObjectBonusPerTechLevel,
-  SURefEnumSource,
 } from 'salvageunion-reference'
 import { getBlackMarket, isEntityData, getHybridClasses } from 'salvageunion-reference'
 
@@ -129,33 +128,4 @@ export function accentDeepColor(
 ): string | undefined {
   const base = borderColorFromHeaderBg(headerBg, headerBgColor)
   return base ? `color-mix(in srgb, ${base} 65%, black)` : undefined
-}
-
-/**
- * Get a themed border color for expansion-sourced entities.
- * Returns undefined for core-book sources so the caller can fall back to defaults.
- */
-export function getSourceBorderColor(source: SURefEnumSource | undefined): string | undefined {
-  switch (source) {
-    case 'We Were Here First!':
-      return 'rgb(55, 48, 35)'
-    case 'False Flag':
-      return 'rgb(128, 128, 128)'
-    case 'Rainmaker':
-      return 'rgb(55, 70, 85)'
-    case 'Mech Monday':
-      return 'rgb(25, 55, 30)'
-    case 'Salvage Union Starter Set':
-      return 'rgb(25, 55, 30)'
-    case 'Reclamation of the Wastes':
-      return 'rgb(110, 80, 45)'
-    case 'The Hive':
-      return 'rgb(140, 95, 25)'
-    case "Thatcher's Mech Base":
-      return 'rgb(50, 55, 65)'
-    case 'Relics of a Time Gone By':
-      return 'rgb(85, 70, 50)'
-    default:
-      return undefined
-  }
 }

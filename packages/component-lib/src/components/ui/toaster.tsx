@@ -8,15 +8,15 @@ export function Toaster() {
       position="bottom-right"
       toastOptions={{
         style: {
-          background: 'rgb(40, 32, 25)',
-          border: '1px solid rgb(80, 80, 80)',
-          color: 'rgb(255, 255, 255)',
+          background: 'var(--color-ink)',
+          border: '1px solid var(--color-ink-2)',
+          color: 'var(--color-paper)',
           fontFamily: "var(--font-body, 'Barlow', system-ui, sans-serif)",
           fontSize: '0.8125rem',
         },
         classNames: {
-          success: '[&>[data-icon]]:text-mech',
-          error: '[&>[data-icon]]:text-adversary',
+          success: '[&>[data-icon]]:text-status-ok',
+          error: '[&>[data-icon]]:text-status-bad',
         },
       }}
     />

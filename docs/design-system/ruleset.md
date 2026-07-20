@@ -43,13 +43,13 @@ interactivity_ a primitive is rendered with; it never changes the primitive's
 identity. Automation semantics follow [ADR-007](../adrs/ADR-007-automation-boundary.md)
 and the surface/mode taxonomy of [ADR-021](../adrs/ADR-021-itun-surface-taxonomy.md).
 
-| Context        | Metaphor             | Materials                     | Interactivity                                                                                       |
-| -------------- | -------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------- |
-| **Reference**  | The book, verbatim   | Cream/paper, read-only        | None. No play-state — no current values, conditions, controls. The only rust is an inline link.     |
-| **Live Sheet** | The pencil           | Same paper + editability      | `free` — dashed borders & steppers are the only "write here" cues; rules show but never gate.       |
-| **Dashboard**  | The instrument panel | Dark skin, geometry identical | The only transactional surface: bookkeeping `auto`+undo; destruction `confirm`+undo; Change Log.    |
-| **Listing**    | One line, one click  | Header-only rows              | Nothing editable/expandable in place. Identify + click-through; nested entities live in the parent. |
-| **Tooltip**    | The glance           | Dense, lifted plate           | Terminal — no buttons, links, nested tooltips, or steppers, ever. Reuses the dense variants.        |
+| Context        | Metaphor             | Materials                                  | Interactivity                                                                                       |
+| -------------- | -------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| **Reference**  | The book, verbatim   | Cream/paper, read-only                     | None. No play-state — no current values, conditions, controls. The only rust is an inline link.     |
+| **Live Sheet** | The pencil           | Same paper + editability                   | `free` — dashed borders & steppers are the only "write here" cues; rules show but never gate.       |
+| **Dashboard**  | The instrument panel | **Warm-paper cockpit**, geometry identical | The only transactional surface: bookkeeping `auto`+undo; destruction `confirm`+undo; Change Log.    |
+| **Listing**    | One line, one click  | Header-only rows                           | Nothing editable/expandable in place. Identify + click-through; nested entities live in the parent. |
+| **Tooltip**    | The glance           | Dense, lifted plate                        | Terminal — no buttons, links, nested tooltips, or steppers, ever. Reuses the dense variants.        |
 
 **Automation vocabulary** (used in the matrix below):
 
@@ -62,7 +62,7 @@ and the surface/mode taxonomy of [ADR-021](../adrs/ADR-021-itun-surface-taxonomy
 
 - **Reference:** if it can't appear in the printed manual, it can't appear here.
 - **Live Sheet:** overrides are visibly non-canonical (dashed ring) **and logged**; the sheet never auto-applies.
-- **Dashboard:** _every_ mutation writes a Change Log row; materials flip dark but geometry is identical to the sheet.
+- **Dashboard:** _every_ mutation writes a Change Log row; geometry is identical to the sheet. **The cockpit is warm paper, not a dark skin** — an earlier revision of this ruleset specified a dark instrument skin (and named it as the one sanctioned pure-white exception in §4.1). The shipped dashboard was deliberately re-skinned to the canonical warm paper with no private token layer and no gradients; the doc had not caught up. Ratified here.
 - **Listing:** the row's whole job is identify + click-through; nested entities live inside the parent's expanded view.
 - **Tooltip:** a glance and a page must never disagree — the tooltip reuses the dense variants, nothing inside acts.
 
@@ -136,6 +136,12 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    status tokens move with them, so damaged-red reads warm brick, not neon.
 5. **No gradients. Closed colour set.** No colour outside §4's set; no gradient
    anywhere (half-fills and X's are `clip-path` + SVG, never gradient fills).
+   **Two named exemptions, and only these two:** the `Slab` dashed leader (a
+   deliberate control-panel shape built on ink tokens), and the **srd catalog
+   tile ramps** (`CatalogTile`'s `--catalog-bg`, which carries the tech-level and
+   ability-tier ramps on the landing page — the ramp is a wayfinding cue, not
+   decoration). Both are encoded in `tools/check-design-tokens.ts`'s `EXEMPTIONS`
+   table, which requires a written reason per entry. Anything else is a defect.
 6. **Copy is 1:1 with real SRD data**, everywhere — catalog stories included.
 7. **Stats render through Stat; game data renders through the shared
    primitives.** Any `label | value` — a stat, cap, vital, tech level, range,
@@ -190,21 +196,31 @@ white, **not cream** (the cream cutover read too beige, and `bg-paper` is alread
 the dominant whitespace token). One token, every light surface. **Pure white is
 retired from the UI** — paper is used universally, including the value cell and
 text on ink. (The only remaining `#ffffff` are scoped exceptions: the print
-stylesheet's physical paper and the dark Dashboard instrument skin.)
+stylesheet's physical paper — the Dashboard is warm paper too, so the dark-skin
+exception this note used to carve out no longer exists. See §1.)
 
-### 4.2 One label tracking
+### 4.2 The tracking ladder
 
-Three tracking values, down from 15:
+Five rungs, down from 15. **This table describes what `theme.css` actually
+ships** — an earlier revision of this section declared a three-token set
+(`--tracking-label` / `--tracking-display` / `--tracking-eyebrow`) and asserted
+the wide values "conform down to 0.04em". That consolidation was never built:
+those two token names do not exist, and the wide rungs are in deliberate,
+active use. Ratified as-is rather than re-lettering every label in the app.
 
-| Token                | Value    | Use                       |
-| -------------------- | -------- | ------------------------- |
-| `--tracking-label`   | `0.04em` | every stamp / label / tab |
-| `--tracking-display` | `0.01em` | titles ≥22px + buttons    |
-| `--tracking-eyebrow` | `0.22em` | brand caption only        |
+| Token                   | Value    | Use                                            |
+| ----------------------- | -------- | ---------------------------------------------- |
+| `--tracking-caps-tight` | `0.04em` | **the canonical stamp / label / tab tracking** |
+| `--tracking-caps-snug`  | `0.06em` | slightly opened labels                         |
+| `--tracking-caps`       | `0.08em` | chip + section labels                          |
+| `--tracking-caps-wide`  | `0.12em` | widest control-panel / header stamps           |
+| `--tracking-eyebrow`    | `0.22em` | brand caption only                             |
 
-The wide "instrument HUD" stamps (`0.09 / 0.12 / 0.14`) conform **down** to
-`0.04em`. Promoting these tokens into component-lib fixes a real cross-app bug:
-`tracking-caps` silently renders untracked outside ITUN.
+`caps-tight` is the default for a label; reach up the ladder only deliberately.
+**Arbitrary `tracking-[…]` values are forbidden** — a value not on this ladder is
+a defect, enforced by `bun run check:tokens`. Promoting these tokens into
+component-lib fixed a real cross-app bug: `tracking-caps` silently rendered
+untracked outside ITUN.
 
 ### 4.3 The border map (weights = tokens, one meaning each)
 

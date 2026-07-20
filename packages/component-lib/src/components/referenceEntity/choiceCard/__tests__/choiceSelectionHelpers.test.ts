@@ -3,7 +3,6 @@ import type { SURefObjectChoice } from 'salvageunion-reference'
 import {
   getChoiceCardOptions,
   getChoiceSourceKind,
-  isFreeTextChoice,
   isMultiSelectChoice,
   resolveMultiSelectCap,
   toggleSelection,
@@ -26,25 +25,6 @@ const optionChoice: SURefObjectChoice = {
     { label: 'Flashy', value: 'Flashy' },
   ],
 }
-
-const freeformChoice: SURefObjectChoice = {
-  id: 'name',
-  name: 'Name',
-  choiceType: 'freeform',
-}
-
-describe('isFreeTextChoice', () => {
-  test('true for freeform choiceType', () => {
-    expect(isFreeTextChoice(freeformChoice)).toBe(true)
-  })
-  test('true when no option source is present', () => {
-    expect(isFreeTextChoice({ id: 'x', name: 'X' })).toBe(true)
-  })
-  test('false for schemaEntities and choiceOptions choices', () => {
-    expect(isFreeTextChoice(traitChoice)).toBe(false)
-    expect(isFreeTextChoice(optionChoice)).toBe(false)
-  })
-})
 
 describe('isMultiSelectChoice', () => {
   test('reflects the multiSelect flag', () => {
@@ -134,7 +114,6 @@ describe('getChoiceSourceKind — the discriminated source', () => {
 
   test('a table choice is NOT free-text (the A.I. Personality bug fix)', () => {
     const aiPersonality = bySource({ kind: 'table', rollTable: 'A.I. Personality' })
-    expect(isFreeTextChoice(aiPersonality)).toBe(false)
     expect(getChoiceSourceKind(aiPersonality)).toBe('table')
   })
 

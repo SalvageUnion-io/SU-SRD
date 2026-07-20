@@ -62,32 +62,11 @@ describe('buildReferenceEntityStats', () => {
     expect(byLabel(stats, 'Structure')?.bottomLabel).toBeUndefined()
   })
 
-  test('svOverride replaces the Salvage value and its bottom label', () => {
-    const stats = buildReferenceEntityStats(mule, {
-      compact: false,
-      svOverride: { value: 99, bottomLabel: 'TL1' },
-    })
-    const salvage = byLabel(stats, 'Salvage')
-    expect(salvage?.value).toBe('99')
-    expect(salvage?.bottomLabel).toBe('TL1')
-  })
-
-  test('svOverride of 0 keeps the stat cell but blanks the value', () => {
-    const stats = buildReferenceEntityStats(mule, {
-      compact: false,
-      svOverride: { value: 0, bottomLabel: 'TL1' },
-    })
-    const salvage = byLabel(stats, 'Salvage')
-    expect(salvage).toBeDefined()
-    expect(salvage?.value).toBeUndefined()
-    expect(salvage?.bottomLabel).toBe('TL1')
-  })
-
-  test('tooltips are present in full mode but suppressed for compact listings', () => {
+  test('tooltips ride every stat in both modes', () => {
     const full = buildReferenceEntityStats(mule, { compact: false })
     expect(typeof byLabel(full, 'Structure')?.hoverText).toBe('string')
 
-    const compactListing = buildReferenceEntityStats(mule, { compact: true, listing: true })
-    expect(byLabel(compactListing, 'SP')?.hoverText).toBeUndefined()
+    const compact = buildReferenceEntityStats(mule, { compact: true })
+    expect(typeof byLabel(compact, 'Structure')?.hoverText).toBe('string')
   })
 })

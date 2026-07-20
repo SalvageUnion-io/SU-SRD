@@ -119,18 +119,12 @@ export type ReferenceEntityCardProps = {
   // ─── WRITE LAYER (all additive — absent ⇒ read-only is byte-identical) ───
   /** Render guards that SUBTRACT already-rendered sections. */
   hide?: ReferenceEntityCardHideConfig
-  /** Intact/Damaged/Destroyed chip in the header stat axis beside the title. */
+  /** Intact/Damaged/Destroyed chip in the header stat axis beside the title.
+   * A damaged/destroyed status also greys the whole tone (header band flat
+   * grey; sub-header + footer + frame the darker grey shade). */
   status?: EntityStatus
   /** Cycle handler (Intact → Damaged → Destroyed) — makes the chip a button. */
   onStatusClick?: () => void
-  /** Accessible-label subject for the status chip. */
-  statusSubject?: string
-  /** Grey the header tone (sub-header/footer to darker greys) — a damaged item. */
-  damaged?: boolean
-  /** Grey the header tone — a destroyed item (same treatment as `damaged`). */
-  destroyed?: boolean
-  /** Optional translucent scrim + red danger box over the body inset. */
-  damageOverlayText?: string
   /** Whole-card opacity-50 (an unavailable/inactive item). */
   disabled?: boolean
   /** Draw the canonical rust selection border (SELECTION_RING) — non-layout-shifting. */
@@ -148,8 +142,6 @@ export type ReferenceEntityCardProps = {
   /** MULTI-SELECT: emit the next chosen quantity (already clamped by the caller).
    * Its presence turns the card into a duplicate-allowed multi-select cell. */
   onCountChange?: (next: number) => void
-  /** MULTI-SELECT: the stepper ceiling (`+` disables here). */
-  countMax?: number
   /** When off in a picker: dim + desaturate (opacity-50 saturate-50). */
   selectable?: boolean
   /** Whole-card click → role=button + hover-enlarge + focus ring. */
@@ -174,17 +166,10 @@ export type ReferenceEntityCardProps = {
   /** Selection-change handler — its presence flips choices to editable body cards. */
   onSelectionChange?: (selections: ChoiceSelections) => void
   /** Parent entity for choice-cap resolution (`scalesWithField`, e.g. techLevel) —
-   * when a host (mech/pilot) supplies the scaling field instead of the entity. */
+   * when a host (mech/pilot) supplies the scaling field instead of the entity.
+   * Its `techLevel` also drives `perTechLevel` datavalue scaling (e.g. Custom
+   * Sniper Rifle damage) — the crawler level in ITUN. */
   scalingParent?: Record<string, unknown>
-  /** Write-layer: the effective tech level to scale by — drives the Modification
-   * choice cap AND `perTechLevel` datavalue scaling (e.g. Custom Sniper Rifle
-   * damage). Defaults to `scalingParent.techLevel`, else the entity's own base TL.
-   * For granted, TL-scalable pilot equipment this is the crawler level in ITUN. */
-  effectiveTechLevel?: number
-  /** Write-layer: when present on a TL-scalable entity, renders an editable "TL"
-   * stepper in the header (min = the entity's base TL). Raising it increases the
-   * modification count + scaled datavalues. */
-  onTechLevelChange?: (techLevel: number) => void
   /** Extra content on the accent field after the body box, before the footer
    * (legacy `expand` — e.g. a crawler bay's crew inset). */
   expand?: ReactNode
@@ -204,19 +189,12 @@ export type ReferenceEntityCardProps = {
   footMeta?: CardFootMeta[]
   /** Overrides the header's top-right flavor slot. */
   rightContent?: ReactNode
-  /** Callout stamp above the frame (with optional value badge). */
+  /** Callout stamp above the frame. */
   label?: string
-  labelBadge?: string
-  /** Title + controls only header (no stats / flavor). */
-  lightweight?: boolean
-  /** De-emphasise the header band. */
-  dimHeader?: boolean
-  /** Reserved passthrough for the NPC two-column config (wired in a later increment). */
-  npcConfig?: Record<string, unknown>
   className?: string
-  /** Extra className + inline style on the card root (legacy `cardStyle`, e.g. the
-   * removable-card treatment). `className` alone covers the class-only case. */
-  cardStyle?: { className?: string; style?: CSSProperties }
+  /** Extra className on the card root (legacy `cardStyle`, e.g. the
+   * removable-card treatment). `className` alone covers the same case. */
+  cardStyle?: { className?: string }
   /** SEO: render the title as an `h1` (item pages) instead of the default `span`. */
   titleAs?: 'span' | 'h1'
 }
@@ -229,7 +207,6 @@ export type ReferenceEntityCardHideConfig = {
   choices?: boolean
   stats?: boolean
   content?: boolean
-  rollTable?: boolean
   footer?: boolean
 }
 
@@ -485,17 +462,12 @@ function ReferenceEntityCardInner({
   hide: hideProp,
   status,
   onStatusClick,
-  statusSubject,
-  damaged,
-  destroyed,
-  damageOverlayText,
   disabled,
   selected: selectedProp,
   selectionSeal,
   suggested,
   count,
   onCountChange,
-  countMax,
   selectable,
   onCardClick,
   cardClickable,
@@ -516,15 +488,10 @@ function ReferenceEntityCardInner({
   footMeta,
   rightContent: rightContentProp,
   label,
-  labelBadge,
-  lightweight,
-  dimHeader,
   className,
   cardStyle,
   titleAs,
   scalingParent,
-  effectiveTechLevel,
-  onTechLevelChange,
   expand,
 }: ReferenceEntityCardProps) {
   // MULTI-SELECT: a card driven by `onCountChange` reads as selected whenever its
@@ -567,7 +534,7 @@ function ReferenceEntityCardInner({
   // in-body sections, layering over whatever the consumer passed.
   const isCatalog = extent === 'catalog'
   const hide: ReferenceEntityCardHideConfig | undefined = isCatalog
-    ? { ...hideProp, actions: true, choices: true, patterns: true, rollTable: true }
+    ? { ...hideProp, actions: true, choices: true, patterns: true }
     : hideProp
   const tone = resolveCardTone(schemaName, entity)
   // ACTIONS and NESTED NPCs inherit the summoning (parent) entity's tone,
@@ -575,10 +542,11 @@ function ReferenceEntityCardInner({
   // tone; the body stays paper/ink. A standalone action (no host) falls back to
   // a neutral base.
   // DAMAGED/DESTROYED (write layer): grey the whole tone. The header goes flat
-  // grey #969696; sub-header + footer + frame use the darker grey shade.
-  const isDown = !!damaged || !!destroyed || !!hostDown
-  const GREY_HEADER = '#969696'
-  const GREY_DEEP = accentDeepColor(undefined, GREY_HEADER) ?? '#5a5a5a'
+  // grey (ink half-mixed into paper — the same warm material at distance);
+  // sub-header + footer + frame use the darker grey shade.
+  const isDown = status === 'damaged' || status === 'destroyed' || !!hostDown
+  const GREY_HEADER = 'color-mix(in srgb, var(--color-ink) 50%, var(--color-paper))'
+  const GREY_DEEP = accentDeepColor(undefined, GREY_HEADER) ?? 'var(--color-ink)'
   const ghost = isGhosted ? ghostActionTone(hostTone ?? 'var(--color-ink)') : undefined
   // The ONE foreground for the header BAND. A solid-tone card — a real ENTITY or
   // a PATTERN — always reads WHITE (paper). Everything else goes by CONTRAST
@@ -601,19 +569,17 @@ function ReferenceEntityCardInner({
   const techLevel = getTechLevel(entity)
   // EFFECTIVE TECH LEVEL — the value that scales this entity: the Modification
   // choice cap (`scalesWithField: techLevel`) AND any `perTechLevel` datavalue
-  // (e.g. Custom Sniper Rifle damage). Priority: an explicit `effectiveTechLevel`
-  // (an in-place per-item override) → the host `scalingParent.techLevel`
-  // (controlled from without — the crawler level in ITUN) → the entity's own base
-  // TL. Floors at the base TL — a granted item is never below its own tech level.
-  // Both contexts are supported: pass `effectiveTechLevel` to control it from
-  // without (read-only display), and/or `onTechLevelChange` to edit it in place.
+  // (e.g. Custom Sniper Rifle damage). The host `scalingParent.techLevel`
+  // (controlled from without — the crawler level in ITUN) wins over the entity's
+  // own base TL. Floors at the base TL — a granted item is never below its own
+  // tech level.
   // The "modified stats" colour — a choice-touched or TL-scaled cell gets a rust
   // border (and, for traits, a rust label ground).
   const MODIFIED = 'var(--color-rust)'
   const baseTechLevel = typeof techLevel === 'number' ? techLevel : undefined
   const scalingTechLevel =
     typeof scalingParent?.techLevel === 'number' ? (scalingParent.techLevel as number) : undefined
-  const resolvedTechLevel = effectiveTechLevel ?? scalingTechLevel ?? baseTechLevel
+  const resolvedTechLevel = scalingTechLevel ?? baseTechLevel
   const effTechLevel =
     resolvedTechLevel !== undefined && baseTechLevel !== undefined
       ? Math.max(baseTechLevel, resolvedTechLevel)
@@ -646,10 +612,8 @@ function ReferenceEntityCardInner({
   const isTechScalable =
     perTechLevelByLabel.size > 0 ||
     entityChoices.some((c) => typeof c.constraints?.scalesWithField === 'string')
-  // The header TL cell shows the EFFECTIVE level (base, or bumped by the external
-  // control / in-place override) and is editable in place only when a scalable
-  // entity is given an `onTechLevelChange` handler.
-  const techLevelEditable = !!onTechLevelChange && isTechScalable
+  // The header TL cell shows the EFFECTIVE level (base, or bumped by the
+  // external `scalingParent` control).
   const techLevelDisplay = isTechScalable ? (effTechLevel ?? techLevel) : techLevel
   const techLevelModified =
     isTechScalable &&

@@ -121,7 +121,7 @@ export function NpcFactsEditor({
             onBlur={() => {
               void commitAdd()
             }}
-            className="w-40 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge tracking-[.03em] text-ink focus:outline-none focus:ring-1 focus:ring-pilot"
+            className="w-40 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge tracking-[.03em] text-ink focus:outline-none focus:ring-1 focus:ring-rust/25"
           />
         ) : (
           <button

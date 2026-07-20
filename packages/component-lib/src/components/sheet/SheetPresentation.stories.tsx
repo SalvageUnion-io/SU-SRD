@@ -33,9 +33,9 @@ export const Default: Story = () => {
           specs={
             <ChassisStats
               items={[
-                { code: 'SP', name: 'Structure', value: 10, max: 10 },
-                { code: 'EP', name: 'Energy', value: 5, max: 5 },
-                { code: 'HEAT', name: 'Heat', value: 0, max: 4 },
+                { code: 'SP', value: 10, max: 10 },
+                { code: 'EP', value: 5, max: 5 },
+                { code: 'HEAT', value: 0, max: 4 },
               ]}
             />
           }

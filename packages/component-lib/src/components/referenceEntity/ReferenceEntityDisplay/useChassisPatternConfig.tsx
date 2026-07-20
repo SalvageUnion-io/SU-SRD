@@ -15,7 +15,8 @@ import {
   getReferenceEntityFontSizes,
   getReferenceEntitySpacing,
 } from './referenceEntityDisplayTypes'
-import type { PatternOverrideData, ReferenceEntityHideConfig } from './referenceEntityDisplayTypes'
+import type { PatternOverrideData } from './referenceEntityDisplayTypes'
+import type { ReferenceEntityCardHideConfig } from '../card/ReferenceEntityCard'
 import { Stat } from '../../shared/Stat'
 import type { StatItem } from '../../shared/statsBarTypes'
 import { SectionSeparator } from './SectionSeparator'
@@ -35,7 +36,7 @@ type ChassisPatternConfig = {
   /** The pattern systems/modules block for extra content */
   afterExtraContent: ReactNode | null
   /** Hide config additions for pattern mode */
-  hide: Partial<ReferenceEntityHideConfig>
+  hide: Partial<ReferenceEntityCardHideConfig>
 }
 
 /**

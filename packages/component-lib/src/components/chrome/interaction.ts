@@ -3,8 +3,7 @@ import type { KeyboardEvent } from 'react'
 /**
  * Shared interaction primitives for the chrome atoms — one source of truth for
  * the focus ring, disabled treatment, selection ring, and keyboard activation
- * that Button / StepButton / OptRow / Sel / PickCard would otherwise each
- * re-inline.
+ * that Button / StepButton / OptRow / Sel would otherwise each re-inline.
  */
 
 /** The canonical rust focus ring (design-spec §2.4). */

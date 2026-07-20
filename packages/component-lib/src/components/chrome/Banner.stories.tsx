@@ -42,7 +42,7 @@ export const Default: Story = () => (
   <div className="max-w-md bg-paper p-4">
     <div className="flex flex-col gap-6">
       <Cluster label="info · with actions">
-        <Banner warnings={[LEGAL_PATTERN_WARNING]} onSaveAnyway={() => {}} onFixIt={() => {}} />
+        <Banner warnings={[LEGAL_PATTERN_WARNING]} />
       </Cluster>
       <Cluster label="warn · no actions">
         <Banner warnings={[NO_EP_WARNING]} />
@@ -57,11 +57,7 @@ export const Default: Story = () => (
 /** Multiple severities stacked in one strip, with both actions below the list. */
 export const Stacked: Story = () => (
   <div className="max-w-md bg-paper p-4">
-    <Banner
-      warnings={[LEGAL_PATTERN_WARNING, NO_EP_WARNING]}
-      onSaveAnyway={() => {}}
-      onFixIt={() => {}}
-    />
+    <Banner warnings={[LEGAL_PATTERN_WARNING, NO_EP_WARNING]} />
   </div>
 )
 

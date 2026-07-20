@@ -4,10 +4,10 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
+import type { ReferenceEntityCardHideConfig } from '../card/ReferenceEntityCard'
 import { DetailIcon } from './DetailIcon'
 import { useEntityHref, useEntityDetailLink } from './entityHrefContext'
 import type { ReferenceEntityControl } from './referenceEntityControlTypes'
-import type { ReferenceEntityHideConfig } from './referenceEntityDisplayTypes'
 import type { StatItem } from '../../shared/statsBarTypes'
 
 type UseDetailModalOptions = {
@@ -24,7 +24,7 @@ type UseDetailModalOptions = {
   afterExtraContent?: ReactNode
   afterChoicesContent?: ReactNode
   footerOverride?: ReactNode
-  hide?: Partial<ReferenceEntityHideConfig>
+  hide?: Partial<ReferenceEntityCardHideConfig>
   /**
    * Force the in-place modal even when the app enables link mode. Used for
    * views that have no standalone URL (e.g. chassis patterns, whose `data` is
@@ -94,7 +94,6 @@ export function useDetailModal(
                 <Dialog.Description className="sr-only">Entity display details</Dialog.Description>
                 <ReferenceEntityCard
                   data={data}
-                  dimHeader={false}
                   disabled={false}
                   hide={options?.hide}
                   controls={options?.modalControls}

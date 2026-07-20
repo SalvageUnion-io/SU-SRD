@@ -32,8 +32,8 @@ export const Default: Story = () => {
           { label: 'EP', value: 3, max: 4, tone: 'mech' },
         ],
         buttons: [
-          { label: 'Push', onClick: () => {}, danger: true },
-          { label: 'Heat Chk', onClick: () => {}, danger: true },
+          { label: 'Push', onClick: () => {}, variant: 'danger' },
+          { label: 'Heat Chk', onClick: () => {}, variant: 'danger' },
           { label: 'Vent', onClick: () => {} },
           { label: 'Shutdn', onClick: () => {} },
         ],
@@ -53,7 +53,7 @@ export const Default: Story = () => {
         label: 'Egress',
         buttons: [
           { label: 'Dismount', onClick: () => {} },
-          { label: 'Eject', onClick: () => {}, danger: true },
+          { label: 'Eject', onClick: () => {}, variant: 'danger' },
         ],
       },
     ],
@@ -70,7 +70,9 @@ export const Default: Story = () => {
               surface="instrument"
             />
           ),
-          actions: [{ label: `Apply −${dmg} SP`, onClick: () => setOverlay(false), danger: true }],
+          actions: [
+            { label: `Apply −${dmg} SP`, onClick: () => setOverlay(false), variant: 'danger' },
+          ],
         }
       : null,
   }

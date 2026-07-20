@@ -165,38 +165,18 @@ export function MechSheet({
 
   // The poster's 8-lozenge chassis-stats strip (identity card body):
   // Structure/Energy/Heat maxima, System/Module slot usage, Cargo usage,
-  // Tech Level, Salvage Value — number-only lozenges (`pips: false`), a
-  // bounded 4-col grid rather than a free-wrapped strip.
+  // Tech Level, Salvage Value — number-only lozenges, a bounded 4-col grid
+  // rather than a free-wrapped strip.
   const specs: ChassisStatItem[] = [
-    { code: 'SP', name: 'Structure Pts', value: maxSP, pips: false },
-    { code: 'EP', name: 'Energy Pts', value: maxEP, pips: false },
-    { code: 'HEAT', name: 'Heat Cap', value: heatCap, pips: false },
-    {
-      code: 'SYS',
-      name: 'System Slots',
-      value: capacity.systemSlotsUsed,
-      max: capacity.systemSlotsMax,
-      pips: false,
-    },
-    {
-      code: 'MOD',
-      name: 'Module Slots',
-      value: capacity.moduleSlotsUsed,
-      max: capacity.moduleSlotsMax,
-      pips: false,
-    },
-    {
-      code: 'CARGO',
-      name: 'Cargo Cap',
-      value: cargo.usage.used,
-      max: cargo.usage.cap,
-      pips: false,
-    },
-    ...(techLevel !== undefined
-      ? [{ code: 'TL', name: 'Tech Level', value: techLevel, pips: false }]
-      : []),
+    { code: 'SP', value: maxSP },
+    { code: 'EP', value: maxEP },
+    { code: 'HEAT', value: heatCap },
+    { code: 'SYS', value: capacity.systemSlotsUsed, max: capacity.systemSlotsMax },
+    { code: 'MOD', value: capacity.moduleSlotsUsed, max: capacity.moduleSlotsMax },
+    { code: 'CARGO', value: cargo.usage.used, max: cargo.usage.cap },
+    ...(techLevel !== undefined ? [{ code: 'TL', value: techLevel }] : []),
     ...(typeof chassisEntity?.salvageValue === 'number'
-      ? [{ code: 'SV', name: 'Salvage Value', value: chassisEntity.salvageValue, pips: false }]
+      ? [{ code: 'SV', value: chassisEntity.salvageValue }]
       : []),
   ]
 

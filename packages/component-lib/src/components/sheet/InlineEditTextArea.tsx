@@ -78,7 +78,7 @@ export function InlineEditTextArea({
           'block min-h-9 whitespace-pre-wrap rounded px-1.5 py-1 font-body text-sm',
           hasValue ? 'text-ink' : 'text-wk-muted italic',
           !readOnly &&
-            'cursor-pointer hover:bg-paper focus:outline-none focus:ring-2 focus:ring-pilot'
+            'cursor-pointer hover:bg-paper focus:outline-none focus:ring-2 focus:ring-rust/25'
         )}
       >
         {hasValue ? value : placeholder}
@@ -105,7 +105,7 @@ export function InlineEditTextArea({
           cancel()
         }
       }}
-      className="w-full rounded border-chrome border-ink bg-paper px-1.5 py-1 font-body text-sm text-ink focus:outline-none focus:ring-2 focus:ring-pilot"
+      className="w-full rounded border-chrome border-ink bg-paper px-1.5 py-1 font-body text-sm text-ink focus:outline-none focus:ring-2 focus:ring-rust/25"
     />
   )
 }

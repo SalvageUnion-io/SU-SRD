@@ -475,22 +475,10 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
       modules: mech.modules.map((ref) => ({ ref })),
     })
     const specs: ChassisStatItem[] = [
-      {
-        code: 'SYS',
-        name: 'Slots',
-        value: capacity.systemSlotsUsed,
-        max: capacity.systemSlotsMax,
-        pips: capacity.systemSlotsMax <= 12,
-      },
-      {
-        code: 'MOD',
-        name: 'Slots',
-        value: capacity.moduleSlotsUsed,
-        max: capacity.moduleSlotsMax,
-        pips: capacity.moduleSlotsMax <= 12,
-      },
+      { code: 'SYS', value: capacity.systemSlotsUsed, max: capacity.systemSlotsMax },
+      { code: 'MOD', value: capacity.moduleSlotsUsed, max: capacity.moduleSlotsMax },
       ...(typeof chassis?.salvageValue === 'number'
-        ? [{ code: 'SV', name: 'Salvage', value: chassis.salvageValue }]
+        ? [{ code: 'SV', value: chassis.salvageValue }]
         : []),
     ]
     return (

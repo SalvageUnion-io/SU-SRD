@@ -94,7 +94,7 @@ export function DowntimeWizard({
         <div className="pc-dt-head">
           <Badge
             shape="stamp"
-            className="px-[9px] py-[5px] text-xs text-paper"
+            className="px-[9px] py-[5px] text-caption text-paper"
             style={{ backgroundColor: headerBg }}
           >
             {phase}
@@ -135,7 +135,7 @@ export function DowntimeWizard({
           </Button>
           <Button
             size="sm"
-            className={cn('flex-1', done && 'bg-[var(--color-sheet-mech-deep)]')}
+            className={cn('flex-1', done && 'bg-status-ok')}
             onClick={() => onToggleDone(idx)}
             aria-pressed={done}
           >

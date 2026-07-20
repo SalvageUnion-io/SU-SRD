@@ -257,7 +257,7 @@ function MechBand({
               {
                 label: 'Confirm Meltdown — Mark Mech Destroyed',
                 onClick: confirmDestroyed,
-                danger: true,
+                variant: 'danger',
               },
             ]
           : undefined,
@@ -276,15 +276,15 @@ function MechBand({
             surface="instrument"
           />
         ),
-        actions: [{ label: `Apply −${dmg} SP`, onClick: applyDamage, danger: true }],
+        actions: [{ label: `Apply −${dmg} SP`, onClick: applyDamage, variant: 'danger' }],
       }
     }
     if (prompt.kind === 'crit') {
       const actions =
         prompt.effect === null
-          ? [{ label: 'Roll Critical Damage', onClick: rollCritical, danger: true }]
+          ? [{ label: 'Roll Critical Damage', onClick: rollCritical, variant: 'danger' }]
           : prompt.effect.destroyed
-            ? [{ label: 'Mark Mech Destroyed', onClick: confirmDestroyed, danger: true }]
+            ? [{ label: 'Mark Mech Destroyed', onClick: confirmDestroyed, variant: 'danger' }]
             : undefined
       return {
         title: 'Critical Damage',
@@ -319,7 +319,7 @@ function MechBand({
             setPrompt(null)
             onDismount()
           },
-          danger: true,
+          variant: 'danger',
         },
       ],
     }
@@ -346,7 +346,7 @@ function MechBand({
             label: 'Push',
             onClick: doPush,
             disabled: pushLocked,
-            danger: true,
+            variant: 'danger',
             title: pushLocked
               ? `Can't Push at Heat ${heat}/${maxHeat} — +2 would exceed the Heat Cap (p.233).`
               : '+2 Heat, then a Heat Check',
@@ -354,7 +354,7 @@ function MechBand({
           {
             label: 'Heat Chk',
             onClick: doHeatCheck,
-            danger: true,
+            variant: 'danger',
             title: 'Roll a Heat Check at current Heat',
           },
           { label: 'Vent', onClick: doVent, title: 'Vent Heat to 0' },
@@ -396,7 +396,7 @@ function MechBand({
             label: 'Eject',
             onClick: () => setPrompt({ kind: 'eject' }),
             disabled: !hasPilot,
-            danger: true,
+            variant: 'danger',
             title: hasPilot ? 'Emergency exit' : 'No pilot assigned to this mech',
           },
         ],
@@ -487,7 +487,7 @@ function PilotBand({
             surface="instrument"
           />
         ),
-        actions: [{ label: `Apply −${dmg} HP`, onClick: applyDamage, danger: true }],
+        actions: [{ label: `Apply −${dmg} HP`, onClick: applyDamage, variant: 'danger' }],
       }
     }
     // crit
@@ -497,7 +497,7 @@ function PilotBand({
       body: <p className="pc-resolve-log">{prompt.log}</p>,
       actions:
         prompt.effect === null
-          ? [{ label: 'Roll Critical Injury', onClick: rollInjury, danger: true }]
+          ? [{ label: 'Roll Critical Injury', onClick: rollInjury, variant: 'danger' }]
           : undefined,
     }
   })()
@@ -525,7 +525,7 @@ function PilotBand({
             label: 'Crit Injury',
             onClick: () =>
               setPrompt({ kind: 'crit', effect: null, log: 'Roll a Critical Injury?' }),
-            danger: true,
+            variant: 'danger',
             title: 'Roll on the Critical Injury table',
           },
         ],
@@ -536,7 +536,7 @@ function PilotBand({
           {
             label: '▶ Board Mech',
             onClick: onBoard,
-            go: true,
+            variant: 'go',
             wide: true,
             title: 'Board the mech',
           },

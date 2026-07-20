@@ -71,6 +71,11 @@ type CrawlerTypeSelectStepProps = {
   onSelect: (id: string) => void
 }
 
+/** The Augmented crawler type's stable id (data/crawlers.json) — the one type
+ * with the instructional +1 Training Point callout. Matched by id, never by
+ * display name (the file's own "read from the data, never string-matched" rule). */
+const AUGMENTED_CRAWLER_ID = '8bffb508-8c8f-418d-b6ce-f24f7266e41b'
+
 /**
  * Step 1 · Choose a Crawler Type (Union Crawler p.212) — exactly one of the
  * five types, radio semantics, each rendered as the SRD entity card inside a
@@ -88,7 +93,7 @@ export function CrawlerTypeSelectStep({
   onSelect,
 }: CrawlerTypeSelectStepProps) {
   const selected = types.find((t) => t.id === selectedType)
-  const isAugmented = selected?.name === 'Augmented'
+  const isAugmented = selected?.id === AUGMENTED_CRAWLER_ID
 
   return (
     <div className="w-full space-y-5">

@@ -84,38 +84,29 @@ export const AllVariants: Story = () => (
 
 /**
  * `surface="instrument"` — the same Button re-skinned for the dark dashboard HUD
- * (condensed caps + recessed dark fill). Rendered on the instrument ground so the
- * paper-tinted borders + paper text read correctly. Replaces the hand-rolled
- * `.pc-btn` / `.pc-deck-btn` / `.pc-railbtn` chrome across the instruments.
+ * (condensed caps + the paper-tinted ghost border). Rendered on the instrument
+ * ground so the paper text reads correctly. `ghost` is the only variant the HUD
+ * uses, so it is the only instrument recolour that ships.
  */
 export const Instrument: Story = () => (
   <div className="rounded-panel bg-[var(--color-ink-deep)] p-4">
     <div className="flex flex-col gap-5">
       <div>
-        <Caption>every variant · instrument</Caption>
+        <Caption>ghost · instrument</Caption>
         <div className="flex flex-wrap items-start gap-3">
-          {BTN_VARIANTS.map((variant) => (
-            <Button key={variant} variant={variant} surface="instrument">
-              {variant}
-            </Button>
-          ))}
+          <Button variant="ghost" surface="instrument">
+            SRD
+          </Button>
+          <Button variant="ghost" surface="instrument" disabled>
+            SRD
+          </Button>
         </div>
       </div>
       <div>
-        <Caption>instrument · disabled</Caption>
-        <div className="flex flex-wrap items-start gap-3">
-          {BTN_VARIANTS.map((variant) => (
-            <Button key={variant} variant={variant} surface="instrument" disabled>
-              {variant}
-            </Button>
-          ))}
-        </div>
-      </div>
-      <div>
-        <Caption>instrument · sizes (default)</Caption>
+        <Caption>ghost · instrument · sizes</Caption>
         <div className="flex flex-wrap items-start gap-3">
           {BTN_SIZES.map((size) => (
-            <Button key={size} surface="instrument" size={size}>
+            <Button key={size} variant="ghost" surface="instrument" size={size}>
               Activate
             </Button>
           ))}

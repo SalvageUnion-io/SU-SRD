@@ -1,4 +1,3 @@
-import { Button } from './Button'
 import { cn } from '../../utils/cn'
 
 export type BannerSeverity = 'info' | 'warn'
@@ -15,13 +14,6 @@ export type BannerWarning = {
 type BannerProps = {
   /** The advisory rows. When empty, the Banner renders nothing (zero DOM). */
   warnings: BannerWarning[]
-  /**
-   * Optional confirm-and-proceed action. Omit BOTH `onSaveAnyway` and `onFixIt`
-   * for the passive info-only variant: the rows render purely as information and
-   * the surrounding flow proceeds regardless — this strip never blocks.
-   */
-  onSaveAnyway?: () => void
-  onFixIt?: () => void
   className?: string
 }
 
@@ -45,16 +37,13 @@ const SEVERITY_ICON: Record<BannerSeverity, string> = {
  *
  * `role="alert"` + `aria-live="polite"` announces newly-surfaced advice without
  * stealing focus. Renders nothing when `warnings` is empty. Otherwise a `ul` of
- * severity-toned pills (icon + message), followed by optional ghost
- * Save-anyway / Fix-it controls — ghost ink, never rust, because a soft warning
- * confirms and proceeds; it is not the primary action of the surface.
+ * severity-toned pills (icon + message) — the rows are purely informational and
+ * the surrounding flow proceeds regardless; this strip never blocks.
  *
  * Grounded on ITUN's `SoftWarningBanner`, re-implemented on the shared atoms.
  */
-export function Banner({ warnings, onSaveAnyway, onFixIt, className }: BannerProps) {
+export function Banner({ warnings, className }: BannerProps) {
   if (warnings.length === 0) return null
-
-  const hasActions = Boolean(onSaveAnyway || onFixIt)
 
   return (
     <div
@@ -62,7 +51,7 @@ export function Banner({ warnings, onSaveAnyway, onFixIt, className }: BannerPro
       aria-live="polite"
       className={cn('font-body text-caption text-ink', className)}
     >
-      <ul className={cn('flex flex-col gap-1.5', hasActions && 'mb-3')}>
+      <ul className="flex flex-col gap-1.5">
         {warnings.map((warning, index) => (
           <li
             // biome-ignore lint/suspicious/noArrayIndexKey: warnings carry no id and may repeat a severity; severity+index is the stablest available key
@@ -79,21 +68,6 @@ export function Banner({ warnings, onSaveAnyway, onFixIt, className }: BannerPro
           </li>
         ))}
       </ul>
-
-      {hasActions && (
-        <div className="flex gap-2">
-          {onSaveAnyway && (
-            <Button variant="ghost" size="sm" onClick={onSaveAnyway}>
-              Save anyway
-            </Button>
-          )}
-          {onFixIt && (
-            <Button variant="ghost" size="sm" onClick={onFixIt}>
-              Fix it
-            </Button>
-          )}
-        </div>
-      )}
     </div>
   )
 }

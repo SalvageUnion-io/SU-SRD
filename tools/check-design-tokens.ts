@@ -126,6 +126,18 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
     reason:
       'Foundations catalog pages render token specimens and deliberately show off-system values as counter-examples.',
   },
+  {
+    file: 'packages/component-lib/src/components/shared/CatalogTile.tsx',
+    rules: ['gradient'],
+    reason:
+      'Named exemption in ruleset §3.5: the srd catalog tile ramps (--catalog-bg) carry the tech-level and ability-tier ramps on the landing page. The ramp is a wayfinding cue, not decoration.',
+  },
+  {
+    file: 'apps/srd/src/lib/catalogColors.ts',
+    rules: ['gradient', 'raw-color'],
+    reason:
+      'Named exemption in ruleset §3.5: the source of the catalog tile ramps CatalogTile renders. Same wayfinding rationale.',
+  },
 ]
 
 function walk(dir: string): string[] {

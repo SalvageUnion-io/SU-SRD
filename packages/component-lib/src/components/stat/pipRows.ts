@@ -10,17 +10,20 @@
  * the heavier bottom row. One canonical split for every pip surface —
  * Stat framed tracker, VitalGauge, and SlotGrid cargo.
  */
-export function statBlockRows(n: number, perRow = 6): number[] {
+/** The §4.5 law: at most 6 pips per row, on every pip surface — not a knob. */
+const PER_ROW = 6
+
+export function statBlockRows(n: number): number[] {
   if (n <= 0) return []
-  const rows = Math.max(1, Math.ceil(n / perRow))
+  const rows = Math.max(1, Math.ceil(n / PER_ROW))
   const base = Math.floor(n / rows)
   const extra = n % rows
   return Array.from({ length: rows }, (_, i) => base + (i >= rows - extra ? 1 : 0))
 }
 
 /** statBlockRows with each row's starting pip index precomputed (render-pure). */
-export function statBlockRowStarts(n: number, perRow = 6): { count: number; start: number }[] {
-  const rows = statBlockRows(n, perRow)
+export function statBlockRowStarts(n: number): { count: number; start: number }[] {
+  const rows = statBlockRows(n)
   return rows.map((count, r) => ({
     count,
     start: rows.slice(0, r).reduce((sum, c) => sum + c, 0),

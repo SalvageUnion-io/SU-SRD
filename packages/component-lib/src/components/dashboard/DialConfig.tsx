@@ -17,24 +17,17 @@ export type DialConfigRow = {
 }
 
 export type DialConfigProps = {
-  title?: string
   rows: DialConfigRow[]
   onToggle: (id: string) => void
   onMove: (id: string, delta: -1 | 1) => void
   onClose: () => void
 }
 
-export function DialConfig({
-  title = 'Configure Dial',
-  rows,
-  onToggle,
-  onMove,
-  onClose,
-}: DialConfigProps) {
+export function DialConfig({ rows, onToggle, onMove, onClose }: DialConfigProps) {
   return (
     <div className="pc-dialcfg" role="dialog" aria-label="Configure dial">
       <div className="pc-dialcfg-head">
-        <span className="pc-dialcfg-title">{title}</span>
+        <span className="pc-dialcfg-title">Configure Dial</span>
         <Button variant="ghost" size="sm" onClick={onClose}>
           Done
         </Button>

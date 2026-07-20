@@ -64,6 +64,12 @@ const EASE_MS = 200
 /** Pointer travel (px) past which a press is a drag, not a click. */
 const DRAG_SLOP = 5
 
+/** §10.2: reduced-motion users get instant snaps — no ease, no inertia coast.
+ * Read live (not cached) so an OS-level toggle applies without a remount. */
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
+
 function DialCell({
   item,
   active,
@@ -74,6 +80,7 @@ function DialCell({
   onClick?: () => void
 }) {
   const cls = `pc-cell${active ? ' pc-cell-active' : ''}${item.statless ? ' statless' : ''}`
+  const selected = active === true
   const inner = item.statless ? (
     <>
       <span className="pc-cell-title">{item.label}</span>
@@ -96,14 +103,27 @@ function DialCell({
       </div>
     </>
   )
+  // §10.2: the dial container is a listbox, so every cell is an option carrying
+  // its selection state.
   if (onClick) {
     return (
-      <button type="button" className={cls} onClick={onClick} aria-label={item.label}>
+      <button
+        type="button"
+        role="option"
+        aria-selected={selected}
+        className={cls}
+        onClick={onClick}
+        aria-label={item.label}
+      >
         {inner}
       </button>
     )
   }
-  return <div className={cls}>{inner}</div>
+  return (
+    <div role="option" aria-selected={selected} aria-label={item.label} className={cls}>
+      {inner}
+    </div>
+  )
 }
 
 export type DialProps = {
@@ -175,7 +195,7 @@ export function Dial({ items, activeIndex, onActiveIndexChange, renderConfig }: 
       cancelRaf()
       const from = posRef.current
       const dist = target - from
-      if (Math.abs(dist) < 0.001) {
+      if (Math.abs(dist) < 0.001 || prefersReducedMotion()) {
         commit(target)
         interactingRef.current = false
         return
@@ -281,7 +301,8 @@ export function Dial({ items, activeIndex, onActiveIndexChange, renderConfig }: 
     if (e.currentTarget.hasPointerCapture?.(d.id)) {
       e.currentTarget.releasePointerCapture(d.id)
     }
-    if (Math.abs(velRef.current) > MIN_VEL) {
+    // Reduced motion: never coast — snap straight to the nearest item.
+    if (Math.abs(velRef.current) > MIN_VEL && !prefersReducedMotion()) {
       coast()
     } else {
       const target = Math.round(posRef.current)

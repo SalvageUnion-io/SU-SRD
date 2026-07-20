@@ -32,8 +32,6 @@ export type VitalGaugeProps = {
   onRevertOverride?: () => void
   /** Caption pair, right-aligned under the track. Defaults to Current / Max. */
   caption?: [string, string]
-  /** Dense sizing (h-18, gap-3). Auto-on at max ≥ 12 when unset. */
-  dense?: boolean
   /** Non-interactive read-out (role="img"); over-capacity segments read red. */
   readOnly?: boolean
   /** First 0-based segment index that reads as danger (status-bad) when lit. */
@@ -78,7 +76,6 @@ export function VitalGauge({
   overriddenFrom,
   onRevertOverride,
   caption,
-  dense,
   readOnly,
   danger,
   compact,
@@ -129,7 +126,8 @@ export function VitalGauge({
   // gauge is a bounded resource and always clamps 0..max.
   const shown = editable ? clamp(value) : Math.max(0, value)
   const isOver = shown > max
-  const isDense = dense ?? max >= 12
+  // Dense sizing (tighter gaps, smaller numerals) engages on long tracks.
+  const isDense = max >= 12
   const segCount = Math.max(max, shown)
   const dangerFrom = danger ?? Number.POSITIVE_INFINITY
   const [capLeft, capRight] = caption ?? ['Current', 'Max']
@@ -167,9 +165,7 @@ export function VitalGauge({
 
   // Empty-segment fill differs by surface: recessed outline on a dark instrument
   // ground, paper on the light sheet.
-  const emptyFill = onDark
-    ? 'border-[rgba(190,185,175,0.35)] bg-transparent'
-    : 'border-[rgba(40,32,25,0.5)] bg-paper'
+  const emptyFill = onDark ? 'border-paper/35 bg-transparent' : 'border-ink/50 bg-paper'
   const segFill = (state: ReturnType<typeof trackSegmentState>): string =>
     state === 'off'
       ? emptyFill
@@ -204,7 +200,7 @@ export function VitalGauge({
             state: trackSegmentState(i, shown, max, dangerFrom),
           })).map(({ i, state }) => {
             const on = state !== 'off'
-            const segClass = cn('h-[10px] min-w-0 flex-1 rounded-[2px] border', segFill(state))
+            const segClass = cn('h-[10px] min-w-0 flex-1 rounded-badge border', segFill(state))
             return editable ? (
               <button
                 key={i}
