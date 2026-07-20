@@ -19,7 +19,7 @@
  */
 
 import { useState } from 'react'
-import { Button, ModalShell, Slab, StepButton } from 'component-lib'
+import { Button, ModalShell, Slab, StepButton, FieldError } from 'component-lib'
 
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
@@ -46,7 +46,7 @@ import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
-import { AdvisoryText, freshEntity } from './controlPrimitives'
+import { freshEntity } from './controlPrimitives'
 
 /** Which economy dialog is open (the lozenge that was clicked). */
 export type CrawlerEconomyDialog = 'upkeep' | 'upgrade' | 'trade'
@@ -208,10 +208,10 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
         </p>
 
         {!done && shortfall > 0 && (
-          <AdvisoryText>
+          <FieldError>
             The pool is {shortfall} scrap short — Upkeep fails unless the table rules otherwise.
             Trade Scrap between Tech Levels at the Trading Bay, or roll Deterioration.
-          </AdvisoryText>
+          </FieldError>
         )}
 
         {result && (
@@ -220,9 +220,9 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
           </p>
         )}
         {choosePrompt && (
-          <AdvisoryText>
+          <FieldError>
             Choose a Bay and mark it Damaged using its status badge on the sheet.
-          </AdvisoryText>
+          </FieldError>
         )}
 
         <div className="flex justify-end gap-2">
@@ -321,10 +321,10 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
               rises to {UPKEEP_SCRAP}× Tech {quote.toTl} Scrap.
             </p>
             {!quote.affordable && (
-              <p className="text-rust" role="alert">
+              <FieldError>
                 The Upgrade Pool is {quote.cost - upgradePool} short. Pay Upkeep or contribute scrap
                 below to fill it.
-              </p>
+              </FieldError>
             )}
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-cond text-xs font-bold uppercase tracking-caps-snug text-ink">
@@ -456,10 +456,10 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
           </p>
         )}
         {gate.damaged && (
-          <AdvisoryText>
+          <FieldError>
             The Trading Bay is Damaged — Scrap cannot be traded and the Trading Bay Table cannot be
             rolled until it is repaired to Intact (p.223).
-          </AdvisoryText>
+          </FieldError>
         )}
 
         {gate.operational && (

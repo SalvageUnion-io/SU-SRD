@@ -32,6 +32,7 @@ import {
   VitalGauge,
   heatDangerFrom,
   toast,
+  FieldError,
 } from 'component-lib'
 import type { BadgeTone } from 'component-lib'
 
@@ -301,11 +302,7 @@ export function ShareSnapshotScreen({
               </Button>
             </div>
 
-            {copyError && (
-              <p role="alert" className="mb-0 mt-2 font-body text-xs text-rust">
-                {copyError}
-              </p>
-            )}
+            {copyError && <FieldError className="mt-2">{copyError}</FieldError>}
 
             <div className="mt-3">
               {service === 'unavailable' ? (
@@ -334,9 +331,7 @@ export function ShareSnapshotScreen({
             </div>
 
             {publishState.status === 'error' && (
-              <p role="alert" className="mb-0 mt-2 font-body text-xs text-rust">
-                {publishState.message}
-              </p>
+              <FieldError className="mt-2">{publishState.message}</FieldError>
             )}
 
             <p className="text-wk-muted mb-0 mt-3 font-body text-xs leading-relaxed">

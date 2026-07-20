@@ -27,7 +27,7 @@
 import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Button, ModalShell } from 'component-lib'
+import { Button, ModalShell, FieldError } from 'component-lib'
 
 import { useCrawlers, useMechs, usePilots, useSoftLinkList } from '../../hooks/queries'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -326,11 +326,7 @@ export function DashboardChooser({
             </>
           )}
 
-          {error && (
-            <p className="font-body text-sm text-danger" role="alert">
-              {error}
-            </p>
-          )}
+          {error && <FieldError>{error}</FieldError>}
 
           <div className="flex justify-between gap-2">
             <Button

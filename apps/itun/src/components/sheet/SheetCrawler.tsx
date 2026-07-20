@@ -15,7 +15,7 @@
  */
 
 import { useState } from 'react'
-import { EntityRow, Stat, VitalGauge } from 'component-lib'
+import { EntityRow, Stat, VitalGauge, StatLine } from 'component-lib'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
@@ -30,7 +30,7 @@ import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { SheetHero } from 'component-lib'
 import { RailChip } from './SheetRail'
-import { MechRailStats, PilotRailStats, RailCta, bayStates, mechStatusPill } from './SheetRailParts'
+import { RailCta, bayStates, mechRailItems, mechStatusPill, pilotRailItems } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
@@ -161,7 +161,7 @@ export function SheetCrawler({
           name={composition.mech.name}
           href={`/sheet/mech/${composition.mech.id}`}
           status={mechStatusPill(composition.mech)}
-          stats={<MechRailStats mech={composition.mech} />}
+          stats={<StatLine items={mechRailItems(composition.mech)} />}
         />
       ) : (
         <EntityRow
@@ -180,7 +180,7 @@ export function SheetCrawler({
           name={composition.pilot.name}
           href={`/sheet/pilot/${composition.pilot.id}`}
           status={{ label: 'Active', tone: 'pilot' }}
-          stats={<PilotRailStats pilot={composition.pilot} />}
+          stats={<StatLine items={pilotRailItems(composition.pilot)} />}
           onUnassign={unassignLeadPilot}
         />
       ) : (

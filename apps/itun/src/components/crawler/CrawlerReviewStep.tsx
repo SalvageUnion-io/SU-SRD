@@ -5,7 +5,7 @@ import type {
   SURefSystem,
 } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
-import { KvRow, Panel, ReferenceEntityCard } from 'component-lib'
+import { KvRow, Panel, ReferenceEntityCard, FieldError } from 'component-lib'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
 
@@ -84,11 +84,7 @@ export function CrawlerReviewStep({
           {rows.map(([k, v]) => (
             <KvRow key={k} label={k} value={v} />
           ))}
-          {submitError && (
-            <p role="alert" className="mt-3 text-sm text-rust">
-              {submitError}
-            </p>
-          )}
+          {submitError && <FieldError className="mt-3">{submitError}</FieldError>}
         </Panel>
         {isAugmented && (
           <Panel className="px-3 py-2.5 font-body text-sm text-ink">

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { Input } from './Field'
 import { Badge } from './Badge'
+import { FieldError } from './FieldError'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -221,11 +222,7 @@ export function InlineEditField({
           }}
           className={cn(error && ERROR_SKIN)}
         />
-        {error && (
-          <span role="alert" className="font-body text-note text-danger">
-            {error}
-          </span>
-        )}
+        <FieldError>{error}</FieldError>
       </span>
     )
   }

@@ -15,7 +15,7 @@
  */
 
 import { useState } from 'react'
-import { Button, Field, Input, ModalShell, toast } from 'component-lib'
+import { Button, Field, Input, ModalShell, toast, FieldError } from 'component-lib'
 import type { CargoLot } from '../../../lib/schemas/cargoLot'
 import { cn } from '../../../lib/utils'
 import { usePatternStore } from '../../../stores/patternStore'
@@ -121,11 +121,7 @@ export function SavePatternButton({
             />
           </Field>
 
-          {saveError && (
-            <p className="font-body text-sm text-danger" role="alert">
-              {saveError}
-            </p>
-          )}
+          {saveError && <FieldError>{saveError}</FieldError>}
 
           <div className="flex justify-end gap-2">
             <Button

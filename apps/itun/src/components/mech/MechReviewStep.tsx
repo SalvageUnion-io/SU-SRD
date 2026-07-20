@@ -1,5 +1,5 @@
 import type { SURefEntity } from 'salvageunion-reference'
-import { KvRow, Panel, ReferenceEntityCard } from 'component-lib'
+import { KvRow, Panel, ReferenceEntityCard, FieldError } from 'component-lib'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import { SavePatternButton } from './Pattern/SavePatternButton'
@@ -59,11 +59,7 @@ export function MechReviewStep({ form, isEdit, submitError, bankedScrap }: MechR
           {rows.map(([k, v]) => (
             <KvRow key={k} label={k} value={v} />
           ))}
-          {submitError && (
-            <p role="alert" className="mt-3 text-sm text-rust">
-              {submitError}
-            </p>
-          )}
+          {submitError && <FieldError className="mt-3">{submitError}</FieldError>}
         </Panel>
         {bankedScrap !== undefined && (
           <Panel

@@ -21,6 +21,7 @@ import { useState } from 'react'
 import { useWorkspaceActions, useWorkspaces } from '../../hooks/queries'
 import type { Workspace } from '../../lib/schemas/workspace'
 import type { AssignableType } from '../../stores/types'
+import { FieldError } from 'component-lib'
 
 // ---------------------------------------------------------------------------
 // Injectable store type
@@ -120,11 +121,7 @@ export function AssignToWorkspaceButton({
           ))}
         </select>
       </div>
-      {error && (
-        <p className="mt-1 text-xs text-danger" role="alert">
-          {error}
-        </p>
-      )}
+      {error && <FieldError className="mt-1">{error}</FieldError>}
     </div>
   )
 }

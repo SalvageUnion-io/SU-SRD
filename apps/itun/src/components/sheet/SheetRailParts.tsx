@@ -9,7 +9,7 @@
  * (redesign gap G10).
  */
 
-import type { BadgeTone, StatState } from 'component-lib'
+import type { BadgeTone, StatLineItem, StatState } from 'component-lib'
 
 import {
   crawlerMaxSP,
@@ -50,76 +50,54 @@ export function RailCta({
   )
 }
 
-/** Live mini stats for a linked mech (rail chip body): "SP 9/13 · EP 6/11 · Heat 4/12". */
-export function MechRailStats({ mech }: { mech: Mech }) {
+/**
+ * Rail vitals as `StatLine` items — plain builders, NOT components.
+ *
+ * These were three components that each hand-wrote the same inline markup and
+ * differed only in WHICH stats they listed. Collapsing the markup onto the
+ * shared `StatLine` atom left them as thin wrappers that added nothing but a
+ * name, so they are functions now: a call site renders `StatLine` itself and
+ * these just supply the numbers.
+ *
+ * The rules math stays here rather than moving into component-lib, which is
+ * data-source agnostic (ADR-010).
+ */
+
+/** Mech rail vitals: "SP 9/13 · EP 6/11 · Heat 4/12". */
+export function mechRailItems(mech: Mech): StatLineItem[] {
   const maxSP = mechMaxSP(mech)
   const maxEP = mechMaxEP(mech)
   const maxHeat = mechMaxHeat(mech)
-  const sp = mech.currentSP ?? maxSP
-  const ep = mech.currentEP ?? maxEP
-  const heat = mech.currentHeat ?? maxHeat
-  return (
-    <>
-      SP{' '}
-      <b>
-        {sp}/{maxSP}
-      </b>{' '}
-      &middot; EP{' '}
-      <b>
-        {ep}/{maxEP}
-      </b>{' '}
-      &middot; Heat{' '}
-      <b>
-        {heat}/{maxHeat}
-      </b>
-    </>
-  )
+  return [
+    { label: 'SP', value: mech.currentSP ?? maxSP, max: maxSP },
+    { label: 'EP', value: mech.currentEP ?? maxEP, max: maxEP },
+    { label: 'Heat', value: mech.currentHeat ?? maxHeat, max: maxHeat },
+  ]
 }
 
-/** Live mini stats for a linked pilot (rail chip body): "HP 7/10 · AP 4/6". */
-export function PilotRailStats({ pilot }: { pilot: Pilot }) {
+/** Pilot rail vitals: "HP 7/10 · AP 4/6". */
+export function pilotRailItems(pilot: Pilot): StatLineItem[] {
   const maxHP = Math.max(0, pilotMaxHP(pilot))
   const maxAP = Math.max(0, pilotMaxAP(pilot))
-  const hp = pilot.currentHP ?? maxHP
-  const ap = pilot.currentAP ?? maxAP
-  return (
-    <>
-      HP{' '}
-      <b>
-        {hp}/{maxHP}
-      </b>{' '}
-      &middot; AP{' '}
-      <b>
-        {ap}/{maxAP}
-      </b>
-    </>
-  )
+  return [
+    { label: 'HP', value: pilot.currentHP ?? maxHP, max: maxHP },
+    { label: 'AP', value: pilot.currentAP ?? maxAP, max: maxAP },
+  ]
 }
 
-/** Live mini stats for a linked crawler (rail chip body): "SP 9/13 · Bays 4/5 Intact". */
-export function CrawlerRailStats({ crawler }: { crawler: Crawler }) {
+/** Crawler rail vitals: "SP 9/13 · Bays 4/5 Intact". */
+export function crawlerRailItems(crawler: Crawler): StatLineItem[] {
   const maxSP = crawlerMaxSP(crawler)
-  const sp = crawler.currentSP ?? maxSP
   const states = bayStates(crawler)
   const intact = states.filter((s) => s === 'intact').length
-  return (
-    <>
-      SP{' '}
-      <b>
-        {sp}/{maxSP}
-      </b>
-      {states.length > 0 && (
-        <>
-          {' '}
-          &middot; Bays{' '}
-          <b>
-            {intact}/{states.length}
-          </b>{' '}
-          Intact
-        </>
-      )}
-    </>
-  )
+  return [
+    { label: 'SP', value: crawler.currentSP ?? maxSP, max: maxSP },
+    // Bays only appear once the crawler HAS bays — an empty "Bays 0/0" line was
+    // never rendered before and must not start now.
+    ...(states.length > 0
+      ? [{ label: 'Bays', value: intact, max: states.length, suffix: 'Intact' }]
+      : []),
+  ]
 }
 
 /** Bay conditions as StatBlock pip states (Intact/Damaged only, rules C8). */

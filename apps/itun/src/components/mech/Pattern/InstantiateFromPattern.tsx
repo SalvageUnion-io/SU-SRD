@@ -20,7 +20,7 @@ import { useState } from 'react'
 import { findChassisByRef } from '../../../lib/rules/derivedStats'
 import { useEntityStore } from '../../../stores/entityStore'
 import type { MechPattern } from '../../../lib/schemas/pattern'
-import { Button, ModalShell } from 'component-lib'
+import { Button, ModalShell, FieldError } from 'component-lib'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern
@@ -102,11 +102,7 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
           </div>
         </div>
       </ModalShell>
-      {error && (
-        <p className="text-xs text-danger" role="alert">
-          {error}
-        </p>
-      )}
+      {error && <FieldError>{error}</FieldError>}
     </div>
   )
 }

@@ -45,7 +45,7 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { Stat, VitalGauge, heatDangerFrom } from 'component-lib'
+import { Stat, VitalGauge, heatDangerFrom, FieldError } from 'component-lib'
 
 import { useCargo } from '../../lib/cargo/useCargo'
 import { computeMechCapacity } from '../../lib/rules/capacity'
@@ -69,7 +69,7 @@ import type { ChassisStatItem } from 'component-lib'
 import { ChassisStats } from 'component-lib'
 import { StorageManifest } from './StorageManifest'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
-import { AdvisoryText, freshEntity } from './controlPrimitives'
+import { freshEntity } from './controlPrimitives'
 import type { SheetPatch } from './sheetViewProps'
 
 // Narrow subset of chassis data the stat derivations need
@@ -416,9 +416,9 @@ export function MechSheet({
       </h2>
 
       {!chassis && (
-        <AdvisoryText>
+        <FieldError>
           Unknown chassis &ldquo;{mech.chassisRef}&rdquo; — using stored/zero defaults
-        </AdvisoryText>
+        </FieldError>
       )}
 
       {/* ===== R1: Identity ∥ Vitals (poster top band) ===== */}
