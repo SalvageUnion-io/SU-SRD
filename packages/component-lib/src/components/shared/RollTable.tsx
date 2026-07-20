@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import type { Dispatch, SetStateAction } from 'react'
 import { resultForTable, resultForColumnsTable, isColumnsTable } from 'salvageunion-reference'
 import type { SURefObjectTable, SURefObjectTableContent } from 'salvageunion-reference'
 import { roll } from '@randsum/roller'
@@ -39,6 +40,70 @@ type RollTableDisplayProps = {
    * from the header and auto-expands to reveal the result). Implies the header.
    */
   collapsible?: boolean
+}
+
+/**
+ * The roll-table header band — the ink bar carrying the expand toggle, the
+ * table name and the rust Roll button.
+ *
+ * StandardRollTable and ColumnsRollTable each held a VERBATIM 31-line copy of
+ * this. Only the BAND was duplicated: the frames around it genuinely differ
+ * (the columns variant adds `overflow-visible` and a fade transition), so
+ * extracting the whole frame would not have been pixel-neutral. This is.
+ */
+function RollTableHeader({
+  showHeader,
+  collapsible,
+  expanded,
+  setExpanded,
+  tableName,
+  disabled,
+  singleRoll,
+  hasRolled,
+  handleRoll,
+}: {
+  showHeader?: boolean
+  collapsible?: boolean
+  expanded: boolean
+  setExpanded: Dispatch<SetStateAction<boolean>>
+  tableName?: string
+  disabled?: boolean
+  singleRoll?: boolean
+  hasRolled: boolean
+  handleRoll: () => void
+}) {
+  if (!showHeader) return null
+  return (
+    <div className="flex items-center justify-between gap-2 bg-ink px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
+      <span className="inline-flex items-center gap-3">
+        {collapsible && (
+          <ExpandToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
+        )}
+        {tableName || 'Roll table'}
+      </span>
+      {!disabled && (
+        <span className="inline-flex items-center gap-2">
+          Roll the Die
+          <button
+            type="button"
+            onClick={handleRoll}
+            disabled={singleRoll && hasRolled}
+            className={cn(
+              'inline-flex items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-badge font-bold uppercase tracking-caps-tight text-paper',
+              singleRoll && hasRolled
+                ? 'cursor-not-allowed opacity-30'
+                : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'
+            )}
+            aria-label="Roll on this table"
+            title="Roll on this table"
+          >
+            Roll
+            <DiceIcon compact />
+          </button>
+        </span>
+      )}
+    </div>
+  )
 }
 
 /** The expand/collapse control shown in a collapsible roll-table header. */
@@ -289,37 +354,17 @@ function ColumnsRollTable({
       </div>
 
       <div className="rounded-card border-2 border-su-orange-light">
-        {showHeader && (
-          <div className="flex items-center justify-between gap-2 bg-ink px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
-            <span className="inline-flex items-center gap-3">
-              {collapsible && (
-                <ExpandToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
-              )}
-              {tableName || 'Roll table'}
-            </span>
-            {!disabled && (
-              <span className="inline-flex items-center gap-2">
-                Roll the Die
-                <button
-                  type="button"
-                  onClick={handleRoll}
-                  disabled={singleRoll && hasRolled}
-                  className={cn(
-                    'inline-flex items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-badge font-bold uppercase tracking-caps-tight text-paper',
-                    singleRoll && hasRolled
-                      ? 'cursor-not-allowed opacity-30'
-                      : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'
-                  )}
-                  aria-label="Roll on this table"
-                  title="Roll on this table"
-                >
-                  Roll
-                  <DiceIcon compact />
-                </button>
-              </span>
-            )}
-          </div>
-        )}
+        <RollTableHeader
+          showHeader={showHeader}
+          collapsible={collapsible}
+          expanded={expanded}
+          setExpanded={setExpanded}
+          tableName={tableName}
+          disabled={disabled}
+          singleRoll={singleRoll}
+          hasRolled={hasRolled}
+          handleRoll={handleRoll}
+        />
 
         {expanded && (
           <div className="overflow-visible">
@@ -471,37 +516,17 @@ function StandardRollTable({
       </div>
 
       <div className="overflow-visible rounded-card border-2 border-su-orange-light transition-opacity duration-200">
-        {showHeader && (
-          <div className="flex items-center justify-between gap-2 bg-ink px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
-            <span className="inline-flex items-center gap-3">
-              {collapsible && (
-                <ExpandToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
-              )}
-              {tableName || 'Roll table'}
-            </span>
-            {!disabled && (
-              <span className="inline-flex items-center gap-2">
-                Roll the Die
-                <button
-                  type="button"
-                  onClick={handleRoll}
-                  disabled={singleRoll && hasRolled}
-                  className={cn(
-                    'inline-flex items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-badge font-bold uppercase tracking-caps-tight text-paper',
-                    singleRoll && hasRolled
-                      ? 'cursor-not-allowed opacity-30'
-                      : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'
-                  )}
-                  aria-label="Roll on this table"
-                  title="Roll on this table"
-                >
-                  Roll
-                  <DiceIcon compact />
-                </button>
-              </span>
-            )}
-          </div>
-        )}
+        <RollTableHeader
+          showHeader={showHeader}
+          collapsible={collapsible}
+          expanded={expanded}
+          setExpanded={setExpanded}
+          tableName={tableName}
+          disabled={disabled}
+          singleRoll={singleRoll}
+          hasRolled={hasRolled}
+          handleRoll={handleRoll}
+        />
         {expanded && (
           <table className="w-full border-collapse">
             <caption className="sr-only">{tableName || 'Roll table'}</caption>
