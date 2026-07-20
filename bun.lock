@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "SURef",
+      "dependencies": {
+        "lucide-react": "1.25.0",
+      },
       "devDependencies": {
         "@biomejs/biome": "2.5.3",
         "@happy-dom/global-registrator": "20.10.6",
@@ -38,7 +41,7 @@
     },
     "apps/in-the-union-now": {
       "name": "in-the-union-now",
-      "version": "0.0.0",
+      "version": "0.1.0",
       "dependencies": {
         "@base-ui/react": "1.6.0",
         "@fontsource/barlow": "5.2.8",
@@ -81,7 +84,7 @@
     },
     "apps/suref-web": {
       "name": "suref-web",
-      "version": "0.0.0",
+      "version": "1.0.0",
       "dependencies": {
         "@astrojs/check": "0.9.9",
         "@astrojs/react": "^6.0.1",
@@ -1845,7 +1848,7 @@
 
     "lru-cache": ["lru-cache@11.5.1", "", {}, "sha512-RPimw/7aMdv2oqRrxKwvZXcPfwBrn/JZ2xYcY9Hus/6LaS3VOAKVWKWgNLCFSiOm1ESXinjsDlidVU7JlnCN2A=="],
 
-    "lucide-react": ["lucide-react@1.24.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-YT6mBD8lGKkg4nM39enlm94/sfJIiW0YKUT60fBy4YK8tai31ylg1VhGNWxkpSKHo9UagfnZqwIff3HTDQwXeA=="],
+    "lucide-react": ["lucide-react@1.25.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-/mdJTRbiwcLOQ1NZZK1amZF9rIZyvO18D6r9TngE6TG1NmqHgFuT4eE7Xrkm9UsXMbBJD1NlfwHVltCDWHrOTw=="],
 
     "lz-string": ["lz-string@1.5.0", "", { "bin": { "lz-string": "bin/bin.js" } }, "sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ=="],
 
