@@ -51,10 +51,11 @@ describe('KvRow', () => {
     expect(screen.getByText('Ace')).toBeTruthy()
   })
 
-  test('an empty value renders the rust "required" placeholder', () => {
+  test('an empty value renders the muted "required" placeholder — never rust (§3.1)', () => {
     render(<KvRow label="Motto" value={null} />)
     const placeholder = screen.getByText('required')
-    expect(placeholder.className).toContain('text-rust')
+    expect(placeholder.className).toContain('text-ink-50')
+    expect(placeholder.className).not.toContain('text-rust')
   })
 })
 

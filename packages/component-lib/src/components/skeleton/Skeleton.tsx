@@ -10,8 +10,9 @@ type SkeletonProps = {
   className?: string
 }
 
-/** One ink-alpha ghost bar on off-white. */
-function Ghost({ className }: { className?: string }) {
+/** One ink-alpha ghost bar on off-white — the shared unit every skeleton
+ * surface composes (this file's modes, SheetSkeleton's sheet-shaped ghosts). */
+export function Ghost({ className }: { className?: string }) {
   return <div className={cn('rounded-badge bg-ink/10', className)} />
 }
 

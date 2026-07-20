@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { FOCUS_RING } from './interaction'
 
@@ -8,8 +7,6 @@ type OptRowProps = {
   desc?: string
   active?: boolean
   onClick?: () => void
-  /** 44×44 leading slot (defaults to the striped art placeholder) */
-  img?: ReactNode
   className?: string
 }
 
@@ -18,7 +15,7 @@ type OptRowProps = {
  * uppercase cond name, clamped description. Active = white bg + inset 3px
  * rust bar + trailing rust caret.
  */
-export function OptRow({ name, desc, active = false, onClick, img, className }: OptRowProps) {
+export function OptRow({ name, desc, active = false, onClick, className }: OptRowProps) {
   return (
     <button
       type="button"
@@ -31,14 +28,12 @@ export function OptRow({ name, desc, active = false, onClick, img, className }: 
         className
       )}
     >
-      {img ?? (
-        <span
-          aria-hidden="true"
-          className="flex h-11 w-11 shrink-0 items-center justify-center border-chrome border-wk-faint bg-[repeating-linear-gradient(135deg,#dbe3e9_0_7px,#e7eef3_7px_14px)] text-label uppercase text-[#8a97a0]"
-        >
-          art
-        </span>
-      )}
+      <span
+        aria-hidden="true"
+        className="flex h-11 w-11 shrink-0 items-center justify-center border-chrome border-wk-faint bg-ink-8 text-label uppercase text-ink-50"
+      >
+        art
+      </span>
       <span className="min-w-0 flex-1">
         <span className="block font-cond text-lg font-bold uppercase leading-tight text-ink">
           {name}

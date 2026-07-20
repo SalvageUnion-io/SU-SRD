@@ -38,7 +38,6 @@ type AppBarProps = {
   wordmarkAccent?: string
   badge?: string
   eyebrow: string
-  homeHref?: string
   brandShrink?: boolean
   /** Link component for the brand + internal nav links. Defaults to a plain anchor. */
   LinkComponent?: ElementType
@@ -72,7 +71,6 @@ export function AppBar({
   wordmarkAccent,
   badge,
   eyebrow,
-  homeHref = '/',
   brandShrink = false,
   LinkComponent = 'a',
   viewTransitionName,
@@ -94,7 +92,7 @@ export function AppBar({
             tracked eyebrow. `brandShrink` lets a long wordmark/eyebrow wrap
             instead of forcing horizontal overflow. */}
         <LinkComponent
-          href={homeHref}
+          href="/"
           className={cn(
             'flex items-center gap-[14px] no-underline',
             brandShrink ? 'min-w-0' : 'shrink-0'
@@ -134,32 +132,21 @@ export function AppBar({
           className="ml-auto hidden items-center gap-[26px] lg:flex"
         >
           {navItems.map((item) => {
-            const className = cn(NAV_LINK, item.active && NAV_LINK_ACTIVE)
-            const content = (
-              <>
+            // External items render a plain anchor in a new tab; internal ones
+            // route through LinkComponent. One element either way.
+            const Link = item.external ? 'a' : LinkComponent
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(NAV_LINK, item.active && NAV_LINK_ACTIVE)}
+                {...(item.external
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : { 'aria-current': item.active ? ('page' as const) : undefined })}
+              >
                 {item.label}
                 {item.badge}
-              </>
-            )
-            return item.external ? (
-              <a
-                key={item.href}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={className}
-              >
-                {content}
-              </a>
-            ) : (
-              <LinkComponent
-                key={item.href}
-                href={item.href}
-                className={className}
-                aria-current={item.active ? 'page' : undefined}
-              >
-                {content}
-              </LinkComponent>
+              </Link>
             )
           })}
 

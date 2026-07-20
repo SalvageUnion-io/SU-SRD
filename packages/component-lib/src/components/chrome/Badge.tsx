@@ -50,9 +50,7 @@ const STAMP_SIZE: Record<StampSize, string> = {
 /** Stamp plate fills — the square label/header shape. */
 const STAMP_SURFACE: Record<StampSurface, string> = {
   'on-ink': 'bg-ink text-paper',
-  // The ring is opt-OUT (see the `ring` prop): an inverse stamp nested inside a
-  // container that already draws an ink border would otherwise double-border.
-  inverse: 'bg-paper text-ink',
+  inverse: 'bg-paper text-ink ring-1 ring-inset ring-ink',
   'on-tone': 'bg-transparent text-ink',
 }
 
@@ -89,7 +87,7 @@ type BadgeStampProps = {
   /**
    * The plate the stamp sits on:
    * - `on-ink` (default) — ink block, white text: the canonical label/header.
-   * - `inverse` — paper block, ink text, inset ink ring (see `ring`).
+   * - `inverse` — paper block, ink text, inset ink ring.
    * - `on-tone` — no fill, ink text: a stamp sitting directly on a tone surface.
    */
   surface?: StampSurface
@@ -99,21 +97,12 @@ type BadgeStampProps = {
    */
   seam?: boolean
   /**
-   * Override the baked-in `line-height: 1`. The stamp forces line-height 1 for
+   * Override the baked-in `leading-none`. The stamp forces line-height 1 for
    * crisp single-line labels/tabs; pass a Tailwind leading utility (e.g.
    * `leading-[1.28]`) when the stamp is a wrapping display headline that needs
    * breathing room between lines.
    */
   leading?: string
-  /**
-   * Draw the inset ink ring on `surface="inverse"` (default `true`).
-   *
-   * Pass `false` when the stamp sits inside a container that already draws an
-   * ink border — a horizontal Stat value cell, a SectionSeparator — where the
-   * ring reads as a double border. This is also the un-ringed inverse that
-   * `Text variant="pseudoheaderInverse"` renders, so those sites can migrate.
-   */
-  ring?: boolean
   as?: ElementType
   className?: string
 } & Omit<HTMLAttributes<HTMLElement>, 'children' | 'className'>
@@ -146,7 +135,6 @@ export const Badge = forwardRef<HTMLElement, BadgeProps>(function Badge(props, r
       surface = 'on-ink',
       seam = false,
       leading,
-      ring = true,
       as: Tag = 'span',
       className,
       shape: _shape,
@@ -158,16 +146,15 @@ export const Badge = forwardRef<HTMLElement, BadgeProps>(function Badge(props, r
         ref={ref}
         className={cn(
           'inline-block w-fit font-cond font-bold uppercase tracking-caps-tight',
+          // The stamp bakes in line-height:1 for crisp single-line labels; a
+          // `leading` override (e.g. a wrapping display headline) opts out.
           leading ?? 'leading-none',
           STAMP_SIZE[size],
           STAMP_SURFACE[surface],
-          surface === 'inverse' && ring && 'ring-1 ring-inset ring-ink',
           seam && STAMP_SEAM,
           className
         )}
-        // The stamp bakes in line-height:1 for crisp single-line labels; a
-        // `leading` override (e.g. a wrapping display headline) opts out of it.
-        style={leading ? style : { lineHeight: 1, ...style }}
+        style={style}
         {...rest}
       >
         {children}

@@ -3,11 +3,6 @@ import { Children, useSyncExternalStore, type ReactNode } from 'react'
 type MasonryColumnsProps = {
   children: ReactNode
   /**
-   * Tailwind gap utility applied both between columns and between cards within a
-   * column. Defaults to `gap-4` (matches the old `gap-4` column gap + `mb-4`).
-   */
-  gap?: string
-  /**
    * Cap the column count. Defaults to 3 (the viewport ladder 1 / 2 / 3). Pass
    * `2` for constrained lists — e.g. wizard selection pools, which never split
    * past two columns.
@@ -71,7 +66,6 @@ function useColumnCount(): number {
  */
 export function MasonryColumns({
   children,
-  gap = 'gap-4',
   maxColumns = 3,
   radio = false,
   ariaLabel,
@@ -86,12 +80,12 @@ export function MasonryColumns({
 
   return (
     <div
-      className={`flex items-start ${gap} print:block`}
+      className="flex items-start gap-4 print:block"
       {...(radio ? { role: 'radiogroup', 'aria-label': ariaLabel } : {})}
     >
       {columns.map((col, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: columns are positional buckets — the index IS their identity
-        <div key={i} className={`flex min-w-0 flex-1 flex-col print:w-full ${gap}`}>
+        <div key={i} className="flex min-w-0 flex-1 flex-col gap-4 print:w-full">
           {col}
         </div>
       ))}

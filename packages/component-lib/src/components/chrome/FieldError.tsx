@@ -4,10 +4,20 @@ import { cn } from '../../utils/cn'
 type FieldErrorProps = {
   /** The message. Renders nothing when null/undefined/false — call sites can pass a bare expression. */
   children?: ReactNode
-  /** Wire to the offending input via `aria-describedby` / `aria-errormessage`. */
-  id?: string
   /** Call-site spacing only (`mt-1`, `mb-0 mt-2`, …). Never restyle colour or type here. */
   className?: string
+  /**
+   * DOM id, so an input can point at this message with `aria-describedby` —
+   * the standard way to associate an error with the control it describes.
+   *
+   * It currently has no production caller, and was removed once on that basis
+   * before being restored here. "No caller yet" is the wrong test for an
+   * ACCESSIBILITY affordance: without it, wiring an error to its input is
+   * impossible without editing this component, in a codebase held to WCAG 2.1
+   * AA. That no call site uses it today is a gap to close, not evidence the
+   * capability is unwanted. The Ladle story demonstrates the wiring.
+   */
+  id?: string
 }
 
 /**
@@ -25,11 +35,11 @@ type FieldErrorProps = {
  * uses for its body — so an error reads at one size everywhere.
  *
  * Distinct from its neighbours, deliberately:
- *   - `Banner`  — a LIST of soft warnings with severity pills and actions.
+ *   - `Banner`  — a LIST of soft warnings with severity pills.
  *   - `Callout` — a 3px accent-framed CONTENT note; no aria role.
  *   - `FieldError` — one inline message, announced via `role="alert"`.
  */
-export function FieldError({ children, id, className }: FieldErrorProps) {
+export function FieldError({ children, className, id }: FieldErrorProps) {
   // A falsy child is the common shape at call sites (`{error && <p…>}` becomes
   // `<FieldError>{error}</FieldError>`), so absorb it rather than rendering an
   // empty alert — an empty live region still announces on some screen readers.

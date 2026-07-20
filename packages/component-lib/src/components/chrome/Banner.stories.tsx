@@ -34,27 +34,26 @@ const AUTOSAVE_WARNING: BannerWarning = {
 }
 
 /**
- * The canonical strip: an `info` row with both confirm-and-proceed actions
- * (ghost, never rust), a `warn` row, then a passive info-only row with no
- * buttons — the Banner is advisory and never blocks.
+ * The canonical strip: an `info` row, a `warn` row, then a second info row —
+ * every row is purely informational; the Banner is advisory and never blocks.
  */
 export const Default: Story = () => (
   <div className="max-w-md bg-paper p-4">
     <div className="flex flex-col gap-6">
-      <Cluster label="info · with actions">
+      <Cluster label="info">
         <Banner warnings={[LEGAL_PATTERN_WARNING]} />
       </Cluster>
-      <Cluster label="warn · no actions">
+      <Cluster label="warn">
         <Banner warnings={[NO_EP_WARNING]} />
       </Cluster>
-      <Cluster label="info · passive (info-only)">
+      <Cluster label="info · passive">
         <Banner warnings={[AUTOSAVE_WARNING]} />
       </Cluster>
     </div>
   </div>
 )
 
-/** Multiple severities stacked in one strip, with both actions below the list. */
+/** Multiple severities stacked in one strip. */
 export const Stacked: Story = () => (
   <div className="max-w-md bg-paper p-4">
     <Banner warnings={[LEGAL_PATTERN_WARNING, NO_EP_WARNING]} />

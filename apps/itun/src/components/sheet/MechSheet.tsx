@@ -63,7 +63,7 @@ import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
 import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
-import { SectionAddButton, SectionChead, SectionEditButton, SheetPickerModal } from 'component-lib'
+import { SectionAddButton, SectionEditButton, SheetPickerModal, Slab } from 'component-lib'
 import { SheetSectionCard } from 'component-lib'
 import type { ChassisStatItem } from 'component-lib'
 import { ChassisStats } from 'component-lib'
@@ -622,7 +622,7 @@ export function MechSheet({
         <div className="@5xl:order-1 @5xl:col-span-5">
           {/* Linked Units — poster renders this as a bare section header + rail
               stack (no `.dcard` frame), matching PilotSheet. */}
-          <SectionChead title="Linked Units" />
+          <Slab variant="solid" label="Linked Units" />
           <div className="flex flex-col gap-4">{linkedUnits}</div>
         </div>
       </div>

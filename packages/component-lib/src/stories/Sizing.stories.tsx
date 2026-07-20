@@ -4,18 +4,15 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from './_harness'
 import { Badge } from '../components/chrome/Badge'
 import { Text } from '../components/base/Text'
-import {
-  DEFAULT_RUNG,
-  RUNG_INLINE_PADDING,
-  RUNG_TYPE,
-  SIZE_RUNGS,
-  type SizeRung,
-} from '../styles/sizing'
+import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE, type SizeRung } from '../styles/sizing'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Foundations/Sizing',
 }
+
+/** Ladder order, largest first — specimen iteration only (the catalog page). */
+const SIZE_RUNGS: readonly SizeRung[] = ['full', 'compact', 'mini']
 
 /** What each rung is FOR — the rule, not the pixel count. */
 const INTENT: Record<SizeRung, { line: string; use: string }> = {

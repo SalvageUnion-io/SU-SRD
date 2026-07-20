@@ -268,7 +268,6 @@ export { useDismiss } from './components/shared/useDismiss'
 // Edit/Add toggles, the one shared picker modal, per-card remove) lifted out of
 // ITUN so the sheet containers come from the design system like their cards do.
 export {
-  SectionChead,
   SectionAddButton,
   SectionEditButton,
   SheetPickerModal,

@@ -34,9 +34,6 @@ export type SizeRung = 'full' | 'compact' | 'mini'
 /** The default rung. Stated once so no component invents a different default. */
 export const DEFAULT_RUNG: SizeRung = 'compact'
 
-/** Ladder order, largest first — for iterating rungs in specimens and docs. */
-export const SIZE_RUNGS: readonly SizeRung[] = ['full', 'compact', 'mini'] as const
-
 /**
  * Type scale per rung, as theme tokens (see `theme.css`).
  *

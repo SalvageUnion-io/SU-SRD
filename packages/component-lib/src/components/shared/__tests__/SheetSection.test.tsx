@@ -3,8 +3,8 @@
  *
  *   - HButton: the container-header control button (`.hbtn`) with edit / done /
  *     add variants.
- *   - SectionChead: the field/collection header row (stamp title + ml-auto
- *     controls) that Phase 2 lifts into SheetSectionCard.
+ *   - the section header row: a solid `Slab` (stamp label + leader rule +
+ *     trailing controls) — the shape the sheets' field/collection sections use.
  *   - SectionEditButton / SectionAddButton: rebuilt on HButton — icon + label,
  *     stable accessible names.
  *   - cardRemoveControls: the per-card ✕ (+ optional ⇄) icon-only cluster fed
@@ -15,13 +15,8 @@ import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { ControlButtons } from '../ControlButtons'
 
-import {
-  HButton,
-  SectionAddButton,
-  SectionChead,
-  SectionEditButton,
-  cardRemoveControls,
-} from '../SheetSection'
+import { Slab } from '../../chrome/Slab'
+import { HButton, SectionAddButton, SectionEditButton, cardRemoveControls } from '../SheetSection'
 
 describe('HButton', () => {
   afterEach(cleanup)
@@ -51,19 +46,19 @@ describe('HButton', () => {
   })
 })
 
-describe('SectionChead', () => {
+describe('section header (solid Slab)', () => {
   afterEach(cleanup)
 
-  test('renders the stamp title and pins actions to the right group', () => {
-    render(<SectionChead title="Identity" actions={<button type="button">Edit</button>} />)
+  test('renders the stamp label and the trailing actions', () => {
+    render(<Slab variant="solid" label="Identity" actions={<button type="button">Edit</button>} />)
     expect(screen.getByText('Identity')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Edit' })).toBeTruthy()
   })
 
-  test('omits the right group when no actions are given', () => {
-    const { container } = render(<SectionChead title="Bio" />)
+  test('renders without an actions slot when none is given', () => {
+    render(<Slab variant="solid" label="Bio" />)
     expect(screen.getByText('Bio')).toBeTruthy()
-    expect(container.querySelector('.ml-auto')).toBeNull()
+    expect(screen.queryByRole('button')).toBeNull()
   })
 })
 

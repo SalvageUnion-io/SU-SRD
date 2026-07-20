@@ -28,8 +28,8 @@ export const buttonVariants = cva(
       surface: {
         // Light app chrome — the paper/ink/rust world (the existing default).
         paper: '',
-        // Dark dashboard HUD — condensed-caps typography; colours per variant
-        // come from the compoundVariants below (recessed dark fill, paper text).
+        // Dark dashboard HUD — condensed-caps typography; the ghost recolour
+        // (the one variant the HUD uses) rides on the compoundVariant below.
         instrument: 'font-cond font-bold uppercase tracking-caps-tight',
       },
       size: {

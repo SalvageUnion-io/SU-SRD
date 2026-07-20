@@ -14,8 +14,6 @@ type ModeDoorProps = {
   /** Body copy. */
   children: ReactNode
   cite?: ReactNode
-  /** `guided` plate background; defaults to the surface tone (`var(--tone)`). */
-  tone?: string
   onSelect?: () => void
   className?: string
 }
@@ -47,7 +45,6 @@ export function ModeDoor({
   headline,
   children,
   cite,
-  tone = 'var(--tone)',
   onSelect,
   className,
 }: ModeDoorProps) {
@@ -56,7 +53,8 @@ export function ModeDoor({
     <button
       type="button"
       onClick={onSelect}
-      style={guided ? { background: tone } : undefined}
+      // The guided plate always fills with the surrounding surface tone.
+      style={guided ? { background: 'var(--tone)' } : undefined}
       className={cn(
         DOOR_BASE,
         FOCUS_RING,

@@ -168,31 +168,23 @@ export function NavDrawer({
               )}
             >
               {navItems.map((item) => {
-                const cls = cn(
-                  buttonVariants({ variant: item.active ? 'primary' : 'ghost' }),
-                  'w-full'
-                )
-                const content = (
-                  <>
-                    {item.label}
-                    {item.badge}
-                  </>
-                )
-                return item.external ? (
-                  <a
+                // External items render a plain anchor in a new tab; internal
+                // ones route through LinkComponent. One element either way.
+                const Link = item.external ? 'a' : LinkComponent
+                return (
+                  <Link
                     key={item.href}
                     href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cls}
+                    className={cn(
+                      buttonVariants({ variant: item.active ? 'primary' : 'ghost' }),
+                      'w-full'
+                    )}
                     onClick={close}
+                    {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   >
-                    {content}
-                  </a>
-                ) : (
-                  <LinkComponent key={item.href} href={item.href} className={cls} onClick={close}>
-                    {content}
-                  </LinkComponent>
+                    {item.label}
+                    {item.badge}
+                  </Link>
                 )
               })}
             </div>

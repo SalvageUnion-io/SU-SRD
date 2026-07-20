@@ -79,8 +79,8 @@ import {
   CardRemoveButton,
   REMOVABLE_CARD_STYLE,
   SectionAddButton,
-  SectionChead,
   SectionEditButton,
+  Slab,
   cardRemoveControls,
 } from 'component-lib'
 import { SheetSectionCard } from 'component-lib'
@@ -365,7 +365,7 @@ export function CrawlerSheet({
         {/* Linked Units — poster renders this as a bare section header +
             rail stack (no `.dcard` frame), matching PilotSheet/MechSheet. */}
         <div className="@[880px]:col-start-1 @[880px]:row-start-2">
-          <SectionChead title="Linked Units" />
+          <Slab variant="solid" label="Linked Units" />
           <div className="flex flex-col gap-4">{linkedUnits}</div>
         </div>
       </div>

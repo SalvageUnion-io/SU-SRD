@@ -107,46 +107,6 @@ export function HButton({
 }
 
 // ---------------------------------------------------------------------------
-// Section header (`chead`) — shared by field + collection sections
-// ---------------------------------------------------------------------------
-
-type SectionCheadProps = {
-  /** Section title, rendered as the ink stamp in the left group. */
-  title: string
-  /** Optional count/meta tag rendered after the title in the left group. */
-  count?: ReactNode
-  /** Right-group controls (the section's HButton), pinned `ml-auto`. */
-  actions?: ReactNode
-  className?: string
-}
-
-/**
- * Section header row in the `chead` shape (clean-edit.html :330-332): a left
- * group (ink stamp title + optional count tag) and a right group pinned
- * `ml-auto` holding the section's HButton. Phase 2 lifts this row verbatim into
- * SheetSectionCard's header, so field sections adopt it now.
- *
- * Also matches the poster's bare `.sect` region divider (clean-pilot.html
- * :215-218 — Inventory / Linked Units headers with no card frame): a SOLID
- * ink-35 rule fills the remaining width after the stamp/count, ahead of any
- * right-group actions.
- */
-export function SectionChead({ title, count, actions, className }: SectionCheadProps) {
-  return (
-    <div className={cn('mb-2 flex min-h-8 flex-wrap items-center gap-x-2.5 gap-y-2', className)}>
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="bg-ink px-2 pb-px pt-[2px] font-cond text-sm font-bold uppercase leading-relaxed tracking-caps text-paper">
-          {title}
-        </span>
-        {count}
-      </div>
-      <span aria-hidden="true" className="h-0 min-w-3 flex-1 border-t-chrome border-ink/35" />
-      {actions && <div className="ml-auto flex items-center gap-2">{actions}</div>}
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // (A) FIELD sections — per-section Edit toggle
 // ---------------------------------------------------------------------------
 

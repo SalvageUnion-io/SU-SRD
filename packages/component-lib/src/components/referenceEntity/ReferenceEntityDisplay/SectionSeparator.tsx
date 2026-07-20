@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { Text } from '../../base/Text'
 import { cn } from '../../../utils/cn'
-import { useStickyHeader } from '../../shared/StickyHeaderContext'
 
 type SectionSeparatorProps = {
   label: string
@@ -18,15 +17,9 @@ export function SectionSeparator({
   compact,
   children,
 }: SectionSeparatorProps) {
-  const isSticky = useStickyHeader()
   const resolvedFontSize = fontSize ?? (compact ? 'text-base' : 'text-lg')
   return (
-    <div
-      className={cn('relative flex items-center gap-3', isSticky && 'sticky z-10 py-1')}
-      style={
-        isSticky ? { top: 'var(--sticky-content-top, var(--sticky-header-h, 0px))' } : undefined
-      }
-    >
+    <div className="relative flex items-center gap-3">
       <div className="flex-1 border-t border-dashed border-wk-faint" aria-hidden="true" />
       <span className="inline-flex shrink-0 border border-ink">
         <Text variant="pseudoheader" as="span" className={cn(resolvedFontSize, 'font-semibold')}>

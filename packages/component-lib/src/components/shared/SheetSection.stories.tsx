@@ -3,11 +3,11 @@ import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
+import { Slab } from '../chrome/Slab'
 import {
   CardRemoveButton,
   HButton,
   SectionAddButton,
-  SectionChead,
   SectionEditButton,
   SheetPickerModal,
 } from './SheetSection'
@@ -23,9 +23,9 @@ const ability = SalvageUnionReference.Abilities.all()[0]
 
 /**
  * The three interaction archetypes of the live sheets' edit language, in the
- * arrangement the sheets actually use: a `SectionChead` whose `actions` slot
- * carries either a per-section Edit toggle (FIELD sections) or an always-live
- * Add (COLLECTION sections).
+ * arrangement the sheets actually use: a solid `Slab` section header whose
+ * `actions` slot carries either a per-section Edit toggle (FIELD sections) or
+ * an always-live Add (COLLECTION sections).
  */
 export const Default: Story = () => {
   const [editing, setEditing] = useState(false)
@@ -35,8 +35,9 @@ export const Default: Story = () => {
     <div className="sheet--mech flex max-w-3xl flex-col gap-8 bg-paper p-4">
       <div>
         <Caption>FIELD section — per-section Edit/Done toggle</Caption>
-        <SectionChead
-          title="Identity"
+        <Slab
+          variant="solid"
+          label="Identity"
           actions={
             <SectionEditButton
               section="Identity"
@@ -52,8 +53,9 @@ export const Default: Story = () => {
 
       <div>
         <Caption>COLLECTION section — always-live Add + per-card remove</Caption>
-        <SectionChead
-          title="Systems"
+        <Slab
+          variant="solid"
+          label="Systems"
           count={1}
           actions={<SectionAddButton label="system" onClick={() => setOpen(true)} />}
         />

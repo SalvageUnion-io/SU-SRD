@@ -2,10 +2,12 @@ import { forwardRef } from 'react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { Badge } from './Badge'
+import { INPUT_FOCUS } from './interaction'
+import { STAMP_SEAM } from './stampSeam'
 
 type FieldProps = {
   label: ReactNode
-  /** Rust asterisk after the label */
+  /** Required asterisk inside the label stamp (white on ink) */
   required?: boolean
   htmlFor?: string
   children: ReactNode
@@ -22,10 +24,7 @@ export function Field({ label, required = false, htmlFor, children, className }:
       {/* The field label IS the ink Stamp, straddling the input's top border
           (StampSeam) — the same seam the statblock box uses. The required mark
           rides inside the stamp (white on ink), not a separate rust glyph. */}
-      <label
-        htmlFor={htmlFor}
-        className="absolute left-2 top-0 z-10 flex w-fit -translate-y-1/2 items-center"
-      >
+      <label htmlFor={htmlFor} className={cn(STAMP_SEAM, 'left-2 flex w-fit items-center')}>
         <Badge shape="stamp" size="mini">
           {label}
           {required && (
@@ -54,7 +53,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     <input
       ref={ref}
       className={cn(
-        'w-full rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/25',
+        'w-full rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint',
+        INPUT_FOCUS,
         className
       )}
       {...props}
@@ -79,7 +79,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
       ref={ref}
       rows={rows}
       className={cn(
-        'w-full resize-y rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/25',
+        'w-full resize-y rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink placeholder:text-wk-faint',
+        INPUT_FOCUS,
         className
       )}
       {...props}
@@ -104,7 +105,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
     <select
       ref={ref}
       className={cn(
-        'w-full min-h-11 rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/25',
+        'w-full min-h-11 rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink',
+        INPUT_FOCUS,
         className
       )}
       {...props}

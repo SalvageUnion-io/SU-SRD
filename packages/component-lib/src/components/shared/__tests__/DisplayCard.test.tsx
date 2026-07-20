@@ -1,4 +1,4 @@
-import { describe, test, expect, afterEach, spyOn } from 'bun:test'
+import { describe, test, expect, afterEach } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { DisplayCard } from '../DisplayCard'
 import type { DisplayCardTab } from '../DisplayCard'
@@ -294,8 +294,7 @@ describe('DisplayCard', () => {
     expect(screen.getByRole('button', { name: 'Test' })).toBeTruthy()
   })
 
-  test('multiple cardClick controls: last one wins and warns', () => {
-    const warnSpy = spyOn(console, 'warn').mockImplementation(() => {})
+  test('multiple cardClick controls: last one wins', () => {
     let clickedKey = ''
     const { container } = render(
       <DisplayCard
@@ -323,10 +322,8 @@ describe('DisplayCard', () => {
         ]}
       />
     )
-    expect(warnSpy).toHaveBeenCalled()
     fireEvent.click(container.firstElementChild as HTMLElement)
     expect(clickedKey).toBe('second')
-    warnSpy.mockRestore()
   })
 
   test('onCardClick prop takes priority over cardClick controls', () => {

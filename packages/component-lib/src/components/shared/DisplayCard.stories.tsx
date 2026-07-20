@@ -196,9 +196,9 @@ const tabs: DisplayCardTab[] = [
   },
 ]
 
-/** Composed features: tabs, a header label + labelBadge, sticky header. */
+/** Composed features: tabs, a header label + labelBadge. */
 export const Features: Story = () => (
-  <Gallery rule="Feature slots layer onto the same shell: tabs, a header label + labelBadge, and a stickyHeader (scroll to see it stick).">
+  <Gallery rule="Feature slots layer onto the same shell: tabs, and a header label + labelBadge.">
     <Cell label="tabs" width="w-[380px]">
       <DisplayCard headerBg="bg-wk-line" headerContent={header} tabs={tabs}>
         {body}
@@ -208,20 +208,6 @@ export const Features: Story = () => (
       <DisplayCard headerBg="bg-mech" headerContent={header} label="Category" labelBadge="1">
         {body}
       </DisplayCard>
-    </Cell>
-    <Cell label="stickyHeader (scroll)" width="w-[380px]">
-      <div className="h-[240px] overflow-y-auto border border-ink/20">
-        <DisplayCard headerBg="bg-wk-line" headerContent={header} stickyHeader>
-          <div className="flex flex-col gap-3 p-3">
-            {Array.from({ length: 8 }).map((_, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: static demo lines identified by index
-              <Text as="p" className="text-sm text-ink-2" key={i}>
-                Body row {i + 1}.
-              </Text>
-            ))}
-          </div>
-        </DisplayCard>
-      </div>
     </Cell>
   </Gallery>
 )

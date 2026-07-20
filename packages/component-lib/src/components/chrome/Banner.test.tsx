@@ -6,13 +6,6 @@
  * - Renders each warning message when non-empty
  * - severity-based icon is rendered per warning
  * - role=alert + optional className
- * - renders NO buttons — Banner is advisory and never acts
- *
- * The "Save anyway" / "Fix it" action tests were removed with the
- * `onSaveAnyway`/`onFixIt` props: neither had a single production caller, so
- * the whole action half was dead API. Banner's own law (style-unification-pass
- * §3) is that it advises and never gates a flow, which the no-buttons test
- * below now pins directly.
  */
 
 import '@testing-library/jest-dom'
@@ -73,8 +66,8 @@ describe('Banner', () => {
     expect(alert.className).toContain('custom-class')
   })
 
-  test('is advisory only — renders no action buttons', () => {
-    render(<Banner warnings={[warnWarning, infoWarning]} />)
+  test('renders no action buttons — the strip is purely advisory', () => {
+    render(<Banner warnings={[infoWarning]} />)
     expect(screen.queryByRole('button')).toBeNull()
   })
 })

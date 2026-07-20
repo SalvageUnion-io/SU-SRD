@@ -51,7 +51,7 @@ import { destroyedUndoToast } from './destroyedUndoToast'
 import { Ecflow, Erow } from './Erow'
 import { PilotIdentityPanel } from './PilotIdentity'
 import type { UsedToggleKey } from './PilotIdentity'
-import { SectionAddButton, SectionChead, SectionEditButton, SheetPickerModal } from 'component-lib'
+import { SectionAddButton, SectionEditButton, SheetPickerModal, Slab } from 'component-lib'
 import { SheetSectionCard } from 'component-lib'
 import { pilotInventoryCapacity, pilotInventoryUsed, resolveEquipment } from './pilotInventory'
 import type { SheetPatch } from './sheetViewProps'
@@ -550,7 +550,7 @@ export function PilotSheet({
       <div>
         {/* Linked Units — poster renders this as a bare section header + rail
             stack (no `.dcard` frame), unlike Identity/Vitals/Abilities/Inventory. */}
-        <SectionChead title="Linked Units" />
+        <Slab variant="solid" label="Linked Units" />
         <div className="flex flex-col gap-4">{linkedUnits}</div>
       </div>
 

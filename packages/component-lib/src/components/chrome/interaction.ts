@@ -10,6 +10,12 @@ import type { KeyboardEvent } from 'react'
 export const FOCUS_RING =
   'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25'
 
+/**
+ * The same rust ring for text inputs (design-spec §2.5), on plain `focus:` —
+ * an editable control shows the ring on every focus, not just keyboard focus.
+ */
+export const INPUT_FOCUS = 'focus:outline-none focus:ring-[3px] focus:ring-rust/25'
+
 /** The canonical disabled treatment (opacity + no pointer events). */
 export const DISABLED = 'disabled:pointer-events-none disabled:opacity-40'
 

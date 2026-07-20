@@ -1,13 +1,11 @@
 import { useState, useCallback } from 'react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { CardControlRail } from './CardControlRail'
 import { Stat } from './Stat'
 import type { StatItem } from './statsBarTypes'
 import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntity/referenceEntityHelpers'
 import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
-import { StickyHeaderContext, StickyOffsetContext } from './StickyHeaderContext'
-import { useStickyCard } from './useStickyCard'
 import { Badge } from '../chrome/Badge'
 import type { EntityStatus } from '../chrome/StatusBadge'
 import { displayBooleans, resolveCardDisplay } from './displayMode'
@@ -90,13 +88,11 @@ type DisplayCardProps = {
   /** Override default body padding (default: "p-0") */
   bodyPadding?: string
   /** Override card wrapper className (replaces default shadow) and inline style */
-  cardStyle?: { className?: string; style?: React.CSSProperties }
+  cardStyle?: { className?: string; style?: CSSProperties }
   /** Override header className and inline style (e.g., the pilot/crawler stripe accent) */
-  headerStyle?: { className?: string; style?: React.CSSProperties }
+  headerStyle?: { className?: string; style?: CSSProperties }
   /** CSS color for card borders (external + internal). Defaults to 'black'. */
   borderColor?: string
-  /** Make header sticky when scrolling. Section separators inside the card auto-stick below. */
-  stickyHeader?: boolean
   /** Additional tabs beyond the default content. Ignored in listing mode. */
   tabs?: DisplayCardTab[]
   /** Label for the default (children) tab. Defaults to "Info". */
@@ -112,6 +108,9 @@ type DisplayCardProps = {
 }
 
 const DEFAULT_TAB_KEY = '__default'
+
+const TAB_BASE_CLASS =
+  'min-w-0 basis-1/3 grow shrink-0 md:basis-0 md:shrink cursor-pointer px-3 py-1.5 font-cond text-xs font-bold uppercase tracking-caps transition-colors'
 
 /**
  * The sub-header band's stat row — a tight, non-wrapping `[StatItem → Stat]`
@@ -195,7 +194,6 @@ export function DisplayCard({
   cardStyle,
   headerStyle: headerStyleProp,
   borderColor: borderColorProp,
-  stickyHeader = false,
   tabs,
   defaultTabLabel = 'Info',
   subHeader,
@@ -227,20 +225,14 @@ export function DisplayCard({
       ]
     : (controls ?? [])
 
-  // Resolve card-level click: onCardClick prop → fallback to controls with cardClick
+  // Resolve card-level click: onCardClick prop → fallback to controls with
+  // cardClick (when multiple controls set it, the last one wins).
   const cardClickControls = !onCardClick && controls ? controls.filter((c) => c.cardClick) : []
-  if (cardClickControls.length > 1) {
-    console.warn(
-      'DisplayCard: multiple controls set cardClick — last one wins',
-      cardClickControls.map((c) => c.key)
-    )
-  }
   const resolvedCardClick = onCardClick ?? cardClickControls.at(-1)?.onClick
 
   // Hover effect when card is clickable (via handler or boolean flag)
   const isCardHoverable = !!resolvedCardClick
 
-  const actualHeaderBg = headerBg
   // An EXPLICIT `borderColor` wins. Otherwise the border equals the tone (header
   // background) itself, matching the codex "After" .a-card spec, and falls back
   // to ink when there is no header bg.
@@ -260,7 +252,7 @@ export function DisplayCard({
   const hasSubHeader = !!subHeader || hasStats
 
   const handleCardKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
+    (e: KeyboardEvent<HTMLDivElement>) => {
       if (resolvedCardClick && (e.key === 'Enter' || e.key === ' ')) {
         e.preventDefault()
         resolvedCardClick()
@@ -268,14 +260,6 @@ export function DisplayCard({
     },
     [resolvedCardClick]
   )
-
-  const {
-    wrapperRef: stickyWrapperRef,
-    headerRef: stickyHeaderRef,
-    stickyTopStyle,
-    childStickyOffset,
-    isSticky,
-  } = useStickyCard(stickyHeader)
 
   const defaultBodyPadding = 'p-0'
   // 3px for both compact and non-compact — the codex .a-card is 3px and .cx does
@@ -294,10 +278,48 @@ export function DisplayCard({
       })()
     : undefined
 
+  // One ordered tab list through ONE button implementation: the default
+  // (children) tab is synthesized into the same DisplayCardTab shape and merged
+  // between the `before` tabs and the rest.
+  const orderedTabs: DisplayCardTab[] = hasTabs
+    ? [
+        ...tabs.filter((t) => t.before),
+        { key: DEFAULT_TAB_KEY, label: defaultTabLabel, content: children },
+        ...tabs.filter((t) => !t.before),
+      ]
+    : []
+
+  const renderTabButton = (tab: DisplayCardTab) => {
+    const isActive = resolvedTabKey === tab.key
+    const tabBg = tab.activeColor
+      ? `color-mix(in srgb, ${tab.activeColor} 35%, var(--color-paper))`
+      : activeTabBg
+    return (
+      <button
+        key={tab.key}
+        type="button"
+        role="tab"
+        aria-selected={isActive}
+        className={cn(
+          TAB_BASE_CLASS,
+          !tab.borderColor && 'border-b border-ink-2/30',
+          isActive ? 'text-ink' : 'bg-wk-faint text-ink hover:bg-wk-muted'
+        )}
+        style={{
+          ...(isActive && tabBg ? { backgroundColor: tabBg } : {}),
+          ...(tab.borderColor ? { borderBottom: `3px solid ${tab.borderColor}` } : {}),
+          ...(tab.glowColor ? { boxShadow: `0 0 8px 2px ${tab.glowColor}` } : {}),
+        }}
+        onClick={() => setActiveTabKey(tab.key)}
+      >
+        {tab.label}
+      </button>
+    )
+  }
+
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: role="button" + tabIndex + keyboard handler are applied whenever resolvedCardClick makes the card interactive
     <div
-      ref={stickyWrapperRef}
       role={resolvedCardClick ? 'button' : undefined}
       tabIndex={resolvedCardClick ? 0 : undefined}
       className={cn(
@@ -315,7 +337,7 @@ export function DisplayCard({
       style={{
         // A frame is drawn for a toned card OR one that asked for a border
         // outright; an untoned, unframed card still renders borderless.
-        ...(actualHeaderBg || headerBgColor || borderColorProp
+        ...(headerBg || headerBgColor || borderColorProp
           ? { border: `${borderWidth}px solid ${effectiveBorderColor}` }
           : {}),
         ...cardStyle?.style,
@@ -354,26 +376,13 @@ export function DisplayCard({
 
       <CardControlRail controls={railControls} compact={isCompact} />
 
-      {/* Inner wrapper clips backgrounds to border-radius.
-          overflow-visible when stickyHeader so position:sticky and absolute overlays work.
-          overflow-hidden otherwise (non-sticky cards still clip at border-radius). */}
+      {/* Inner wrapper clips backgrounds to border-radius. */}
       <div
-        className={cn(
-          'flex flex-1',
-          isSticky ? 'overflow-visible' : 'overflow-hidden',
-          !isListing && 'flex-col'
-        )}
+        className={cn('flex flex-1 overflow-hidden', !isListing && 'flex-col')}
         style={{ borderRadius: `calc(3px - ${borderWidth}px)` }}
       >
-        {/* Header wrapper — contains content row + optional tab bar.
-            When stickyHeader, both stick together. headerRef measures the full height. */}
-        <div
-          ref={stickyHeaderRef}
-          className={cn('w-full', hasTabs && 'flex flex-col', isSticky && 'sticky z-20')}
-          style={{
-            ...(isSticky ? { top: stickyTopStyle } : {}),
-          }}
-        >
+        {/* Header wrapper — contains content row + optional tab bar. */}
+        <div className={cn('w-full', hasTabs && 'flex flex-col')}>
           {/* Content row — existing header layout */}
           {headerContent != null && (
             <div
@@ -397,7 +406,7 @@ export function DisplayCard({
                 // top) → pt-3 ≈ 4px gap, tighter to suit dense listings.
                 !isCompact && hasCallout && 'pb-4 pt-5',
                 isCompact && hasCallout && 'pt-3',
-                actualHeaderBg,
+                headerBg,
                 headerStyleProp?.className,
                 headerStyleProp?.className && 'h-full'
               )}
@@ -430,81 +439,25 @@ export function DisplayCard({
           )}
 
           {/* Tab bar — only when hasTabs */}
-          {hasTabs &&
-            (() => {
-              const beforeTabs = tabs.filter((t) => t.before)
-              const afterTabs = tabs.filter((t) => !t.before)
-
-              const tabBaseClass =
-                'min-w-0 basis-1/3 grow shrink-0 md:basis-0 md:shrink cursor-pointer px-3 py-1.5 font-cond text-xs font-bold uppercase tracking-caps transition-colors'
-
-              const renderTabButton = (tab: DisplayCardTab) => {
-                const isActive = resolvedTabKey === tab.key
-                const tabBg = tab.activeColor
-                  ? `color-mix(in srgb, ${tab.activeColor} 35%, var(--color-paper))`
-                  : activeTabBg
-                return (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    className={cn(
-                      tabBaseClass,
-                      !tab.borderColor && 'border-b border-ink-2/30',
-                      isActive ? 'text-ink' : 'bg-wk-faint text-ink hover:bg-wk-muted'
-                    )}
-                    style={{
-                      ...(isActive && tabBg ? { backgroundColor: tabBg } : {}),
-                      ...(tab.borderColor ? { borderBottom: `3px solid ${tab.borderColor}` } : {}),
-                      ...(tab.glowColor ? { boxShadow: `0 0 8px 2px ${tab.glowColor}` } : {}),
-                    }}
-                    onClick={() => setActiveTabKey(tab.key)}
-                  >
-                    {tab.label}
-                  </button>
-                )
-              }
-
-              return (
-                <div className="flex flex-wrap divide-x divide-ink-2/30" role="tablist">
-                  {beforeTabs.map(renderTabButton)}
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={isDefaultTab}
-                    className={cn(
-                      tabBaseClass,
-                      'border-b border-ink-2/30',
-                      isDefaultTab ? 'text-ink' : 'bg-wk-faint text-ink hover:bg-wk-muted'
-                    )}
-                    style={isDefaultTab ? { backgroundColor: activeTabBg } : undefined}
-                    onClick={() => setActiveTabKey(DEFAULT_TAB_KEY)}
-                  >
-                    {defaultTabLabel}
-                  </button>
-                  {afterTabs.map(renderTabButton)}
-                </div>
-              )
-            })()}
+          {hasTabs && (
+            <div className="flex flex-wrap divide-x divide-ink-2/30" role="tablist">
+              {orderedTabs.map(renderTabButton)}
+            </div>
+          )}
         </div>
 
         {/* Body — hidden in listing mode */}
         {showBody && (
-          <StickyOffsetContext.Provider value={childStickyOffset}>
-            <StickyHeaderContext.Provider value={isSticky}>
-              <div
-                className={cn(
-                  'w-full flex-1 isolate bg-paper flex flex-col',
-                  bodyPadding || defaultBodyPadding,
-                  hasTabs && (isDefaultTab ? 'pt-3' : 'p-0 pt-2')
-                )}
-                {...(hasTabs ? { 'aria-live': 'polite' as const } : {})}
-              >
-                {isDefaultTab ? children : activeTab?.content}
-              </div>
-            </StickyHeaderContext.Provider>
-          </StickyOffsetContext.Provider>
+          <div
+            className={cn(
+              'w-full flex-1 isolate bg-paper flex flex-col',
+              bodyPadding || defaultBodyPadding,
+              hasTabs && (isDefaultTab ? 'pt-3' : 'p-0 pt-2')
+            )}
+            {...(hasTabs ? { 'aria-live': 'polite' as const } : {})}
+          >
+            {isDefaultTab ? children : activeTab?.content}
+          </div>
         )}
 
         {/* Expansion slot — after the body, before the footer (.ec__expand).

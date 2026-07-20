@@ -59,7 +59,6 @@ export function SiteHeader({
       navItems={navItems}
       search={search}
       buyHref="https://leyline.press/collections/salvage-union"
-      buyLabel="BUY THE GAME"
       mobile={mobile}
       breadcrumbs={breadcrumbs}
       breadcrumbDescription={breadcrumbDescription}
