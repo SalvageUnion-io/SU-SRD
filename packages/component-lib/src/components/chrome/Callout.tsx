@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
+import { DisplayCard } from '../shared/DisplayCard'
 import { Badge } from './Badge'
 
 type CalloutProps = {
@@ -22,6 +23,14 @@ type CalloutProps = {
  * The one shape behind list-item content blocks (NPC motivations, "one of the
  * following" options, the settlement examples) and crawler-bay "When Damaged"
  * effects. Content-agnostic (a Container, not an Atom).
+ *
+ * Composed on `DisplayCard` — it is a card (frame, optional header band, paper
+ * body) and was the last card-shaped thing hand-rolling its own div stack. Two
+ * DisplayCard capabilities exist because this component needs them, and both
+ * are generally right: an omitted `headerContent` paints NO band (a label-less
+ * callout is just a framed paper panel), and an explicit `borderColor` wins
+ * over the header-derived default (the accent frame is deliberately a different
+ * colour from the header tint).
  */
 export function Callout({
   label,
@@ -32,27 +41,25 @@ export function Callout({
   className,
 }: CalloutProps) {
   return (
-    <div
-      className={cn('overflow-hidden rounded-card', className)}
-      style={{ border: `3px solid ${accent}` }}
-    >
-      {label && (
-        <div
-          className={cn('flex items-center', compact ? 'px-2 py-1' : 'px-3 py-1.5')}
-          style={headerBg ? { backgroundColor: headerBg } : undefined}
-        >
+    <DisplayCard
+      size={compact ? 'medium' : 'large'}
+      borderColor={accent}
+      headerBgColor={headerBg}
+      headerContent={
+        label ? (
           <Badge shape="stamp" size={compact ? 'mini' : 'compact'}>
             {label}
           </Badge>
-        </div>
-      )}
-      {children != null && (
-        <div
-          className={cn('bg-paper leading-snug text-ink', compact ? 'p-2 text-xs' : 'p-3 text-sm')}
-        >
-          {children}
-        </div>
-      )}
-    </div>
+        ) : undefined
+      }
+      // The callout band is tighter than a card header and has no min-height —
+      // it sizes to the stamp riding in it.
+      headerStyle={{ className: cn('min-h-0', compact ? 'px-2 py-1' : 'px-3 py-1.5') }}
+      bodyPadding={cn('leading-snug text-ink', compact ? 'p-2 text-xs' : 'p-3 text-sm')}
+      // Replaces DisplayCard's default drop shadow — a callout sits flat in prose.
+      cardStyle={{ className: cn('overflow-hidden', className) }}
+    >
+      {children}
+    </DisplayCard>
   )
 }

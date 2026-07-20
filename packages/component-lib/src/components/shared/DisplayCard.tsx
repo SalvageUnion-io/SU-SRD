@@ -35,8 +35,10 @@ type DisplayCardProps = {
   headerBg?: string
   /** Optional CSS color for border derivation */
   headerBgColor?: string
-  /** Content rendered inside the header bar */
-  headerContent: ReactNode
+  /** Content rendered inside the header bar. Omit it and NO header band is
+   * painted — a card that has nothing to put in the band shouldn't render an
+   * empty one. (The sub-header band and tabs are independent of this.) */
+  headerContent?: ReactNode
   /** Content rendered inside the footer bar (optional) */
   footerContent?: ReactNode
   /** Main body content */
@@ -194,7 +196,7 @@ export function DisplayCard({
   cardStyle,
   headerStyle: headerStyleProp,
   footerStyle: footerStyleProp,
-  borderColor: borderColorProp = 'var(--color-ink)',
+  borderColor: borderColorProp,
   headerTestId,
   stickyHeader = false,
   tabs,
@@ -243,10 +245,16 @@ export function DisplayCard({
   const isCardHoverable = !!resolvedCardClick || cardClickable
 
   const actualHeaderBg = headerBg
-  // Border colour equals the tone (header background) itself when a header bg is
-  // set, matching the codex "After" .a-card spec; falls back to the ink
-  // default (borderColorProp) when there is no header bg.
-  const effectiveBorderColor = borderColorFromHeaderBg(headerBg, headerBgColor) ?? borderColorProp
+  // An EXPLICIT `borderColor` wins. Otherwise the border equals the tone (header
+  // background) itself, matching the codex "After" .a-card spec, and falls back
+  // to ink when there is no header bg.
+  //
+  // The precedence used to be the other way round, which meant a caller passing
+  // both a header bg and a `borderColor` had its `borderColor` silently
+  // discarded — the frame is meant to be settable independently of the band
+  // (an accent frame around a tinted header is the whole shape of a Callout).
+  const effectiveBorderColor =
+    borderColorProp ?? borderColorFromHeaderBg(headerBg, headerBgColor) ?? 'var(--color-ink)'
 
   // Sub-header band (design-spec four-band model): a darker shade of the
   // header tone, sitting flush below the header content row. Optional —
@@ -309,7 +317,11 @@ export function DisplayCard({
           'cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:-translate-y-0.5 md:hover:scale-[1.02]'
       )}
       style={{
-        ...(actualHeaderBg ? { border: `${borderWidth}px solid ${effectiveBorderColor}` } : {}),
+        // A frame is drawn for a toned card OR one that asked for a border
+        // outright; an untoned, unframed card still renders borderless.
+        ...(actualHeaderBg || headerBgColor || borderColorProp
+          ? { border: `${borderWidth}px solid ${effectiveBorderColor}` }
+          : {}),
         ...cardStyle?.style,
       }}
       onClick={resolvedCardClick}
@@ -363,39 +375,41 @@ export function DisplayCard({
           }}
         >
           {/* Content row — existing header layout */}
-          <div
-            className={cn(
-              'flex w-full flex-wrap justify-between gap-2 overflow-visible',
-              // Vertically centre the header content normally, but TOP-align it when
-              // the floating callout row is present (non-compact). Centring made the
-              // gap below the callout vary with header height — short headers
-              // (modules/systems) centred high and collided with the callout, tall
-              // ones (chassis) sat low. Top-aligning + a fixed top padding gives a
-              // consistent thin gap under the callout regardless of content height.
-              hasCallout ? 'items-start' : 'items-center',
-              // px-3 (12px) aligns the header content L/R extremes with the
-              // inset white body block (which uses mx-3) and the footer.
-              isCompact ? 'min-h-[34px] px-2.5 py-1.5' : 'min-h-[44px] px-3 py-2',
-              // Top padding clears the callout so the gap below it is consistent.
-              // Non-compact: the callout seam is now the small (compact) stamp,
-              // so pt-5 clears it uniformly with a thin gap and never runs into
-              // the title.
-              // Compact: callout sits centred on the edge (~8px of it below the
-              // top) → pt-3 ≈ 4px gap, tighter to suit dense listings.
-              !isCompact && hasCallout && 'pb-4 pt-5',
-              isCompact && hasCallout && 'pt-3',
-              actualHeaderBg,
-              headerStyleProp?.className,
-              headerStyleProp?.className && 'h-full'
-            )}
-            style={{
-              ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
-              ...headerStyleProp?.style,
-            }}
-            data-testid={headerTestId}
-          >
-            {headerContent}
-          </div>
+          {headerContent != null && (
+            <div
+              className={cn(
+                'flex w-full flex-wrap justify-between gap-2 overflow-visible',
+                // Vertically centre the header content normally, but TOP-align it when
+                // the floating callout row is present (non-compact). Centring made the
+                // gap below the callout vary with header height — short headers
+                // (modules/systems) centred high and collided with the callout, tall
+                // ones (chassis) sat low. Top-aligning + a fixed top padding gives a
+                // consistent thin gap under the callout regardless of content height.
+                hasCallout ? 'items-start' : 'items-center',
+                // px-3 (12px) aligns the header content L/R extremes with the
+                // inset white body block (which uses mx-3) and the footer.
+                isCompact ? 'min-h-[34px] px-2.5 py-1.5' : 'min-h-[44px] px-3 py-2',
+                // Top padding clears the callout so the gap below it is consistent.
+                // Non-compact: the callout seam is now the small (compact) stamp,
+                // so pt-5 clears it uniformly with a thin gap and never runs into
+                // the title.
+                // Compact: callout sits centred on the edge (~8px of it below the
+                // top) → pt-3 ≈ 4px gap, tighter to suit dense listings.
+                !isCompact && hasCallout && 'pb-4 pt-5',
+                isCompact && hasCallout && 'pt-3',
+                actualHeaderBg,
+                headerStyleProp?.className,
+                headerStyleProp?.className && 'h-full'
+              )}
+              style={{
+                ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
+                ...headerStyleProp?.style,
+              }}
+              data-testid={headerTestId}
+            >
+              {headerContent}
+            </div>
+          )}
 
           {/* Sub-header band (design-spec four-band model) — a darker shade of
               the header tone, directly below the header content row. Carries
