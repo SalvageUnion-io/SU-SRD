@@ -13,7 +13,7 @@
  */
 
 import { useRef, useState } from 'react'
-import { Button, toast } from 'component-lib'
+import { Button, toast, FieldError } from 'component-lib'
 
 import { mergeImport } from '../../lib/export/mergeImport'
 import { parseImportBundle } from '../../lib/export/parseImportBundle'
@@ -80,7 +80,7 @@ export function ImportButton() {
         tabIndex={-1}
         onChange={(e) => void handleFileChange(e)}
       />
-      {error && <p className="font-body text-xs text-danger">{error}</p>}
+      <FieldError>{error}</FieldError>
       {summary && !error && (
         <p className="font-body text-xs text-wk-muted">
           Imported: {summary.created.pilots} pilot(s), {summary.created.mechs} mech(s),{' '}

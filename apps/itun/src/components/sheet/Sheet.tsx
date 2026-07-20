@@ -35,7 +35,6 @@ import { ChangeLogDrawer } from './ChangeLogDrawer'
 import { resolveSheetComposition } from './composition'
 import type { EntityLookup } from './composition'
 import type { LiveSheetSegment } from './LiveSheet'
-import { PublishButton } from './PublishButton'
 import { SheetActionsMenu } from 'component-lib'
 import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
@@ -155,7 +154,13 @@ export function Sheet({
   )
   const actions = !readOnly ? (
     <div className="flex items-center gap-2.5">
-      <PublishButton entityKind={kind} entityId={id} entityStore={entityStore} />
+      <AppLink
+        href={`/sheet/${kind}/${id}/share`}
+        aria-label={`Share this ${kind} as a snapshot`}
+        className={cn(buttonVariants({ size: 'sm' }), 'min-h-11 no-underline sm:min-h-9')}
+      >
+        Share
+      </AppLink>
       <SheetActionsMenu>
         {printButton}
         {exportButton}

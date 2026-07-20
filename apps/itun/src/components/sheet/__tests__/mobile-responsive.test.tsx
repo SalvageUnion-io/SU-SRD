@@ -2,7 +2,7 @@
  * Mobile-responsive regression tests for sheet components.
  *
  * AC-1: Sheet renders without horizontal overflow at 320px viewport width.
- * AC-5: PublishButton and InlineEditField display state have ≥44px touch targets
+ * AC-5: the top-bar Share link and InlineEditField display state have ≥44px touch targets
  *       (verified via class attribute containing min-h-11).
  *
  * Design choices:
@@ -30,7 +30,6 @@ import { Sheet } from '../Sheet'
 import type { EntityLookup } from '../Sheet'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import { InlineEditField } from 'component-lib'
-import { PublishButton } from '../PublishButton'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
@@ -233,12 +232,13 @@ describe('Mobile responsive — touch targets min-h-11', () => {
     expect((span as HTMLElement).className).toContain('min-h-11')
   })
 
-  test('PublishButton carries min-h-11 class on the Share link', () => {
+  test('the top-bar Share link carries min-h-11 (AC-5 touch target)', () => {
     render(
-      <PublishButton
-        entityKind="pilot"
-        entityId="pilot-1"
+      <Sheet
+        kind="pilot"
+        id="pilot-1"
         entityStore={makeEntityStore([fakePilot])}
+        softLinkStore={makeSoftLinkStore([])}
       />
     )
     const link = screen.getByRole('link', { name: /share this pilot/i })
