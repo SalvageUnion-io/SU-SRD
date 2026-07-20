@@ -4,7 +4,6 @@ import type { SURefObjectChoice } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
-import { Text } from '../../base/Text'
 import { Badge } from '../../chrome/Badge'
 import { RollTable } from '../../shared/RollTable'
 import {
@@ -81,16 +80,9 @@ function ChoiceOption({
           className={cn('flex items-center', compact ? 'px-2 py-1' : 'px-2.5 py-1.5')}
           style={{ backgroundColor: toneColor }}
         >
-          <Text
-            variant="pseudoheader"
-            as="span"
-            className={cn(
-              'w-fit font-cond font-bold uppercase leading-none tracking-caps-tight',
-              compact ? 'text-xs' : 'text-sm'
-            )}
-          >
+          <Badge shape="stamp" size={compact ? 'compact' : 'full'}>
             {label}
-          </Text>
+          </Badge>
         </div>
         {description && (
           <div

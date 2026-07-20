@@ -7,6 +7,7 @@ import { ActivationCost } from '../shared/ActivationCost'
 import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 import { cn } from '../../utils/cn'
 import { Slab } from '../chrome/Slab'
+import { Badge } from '../chrome/Badge'
 
 /**
  * A single `datavalues` item — rendered as a horizontal Stat chip (the one
@@ -293,9 +294,9 @@ function ContentBlock({
       return (
         <div>
           {block.label && (
-            <Text variant="pseudoheader" className="mb-1 text-xs">
+            <Badge shape="stamp" size="compact" className="mb-1 block">
               {block.label}
-            </Text>
+            </Badge>
           )}
           <Text variant="body" as="div" className={fontSize}>
             {parsedValue}
