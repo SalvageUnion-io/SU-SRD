@@ -11,7 +11,7 @@
  * (active = rust fill).
  *
  * Delete flow:
- *   1. User clicks "Delete" on an EntityListItem.
+ *   1. User clicks "Delete" on an EntityRow.
  *   2. DeleteConfirmDialog opens.
  *   3. User confirms → entityStore.delete() is called, entity removed from
  *      listing immediately (Zustand in-memory update is synchronous).
@@ -21,7 +21,7 @@ import { Fragment, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
-import { Button, buttonVariants, Empty } from 'component-lib'
+import { Button, buttonVariants, Empty, EntityRow } from 'component-lib'
 
 import {
   setActiveWorkspaceId,
@@ -50,7 +50,6 @@ import { AppLink } from '../shared/AppLink'
 import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher'
 import { RosterSkeleton } from 'component-lib'
 import { DeleteConfirmDialog } from 'component-lib'
-import { EntityListItem } from './EntityListItem'
 
 // ---------------------------------------------------------------------------
 // Row-meta helpers
@@ -280,28 +279,29 @@ export function Roster() {
                     (l) => l.type === 'pilot-to-crawler' && l.from.id === p.id
                   )
                   return (
-                    <EntityListItem
-                      key={p.id}
-                      id={p.id}
-                      name={p.name}
-                      entityType="pilot"
-                      sheetHref={`/sheet/pilot/${p.id}`}
-                      onDeleteClick={(id, name) => openDeleteDialog('pilot', id, name)}
-                      meta={joinMeta([
-                        p.callsign ? `"${p.callsign}"` : null,
-                        resolveClassName(p.classRef),
-                        linkSegment(
-                          'mech',
-                          mechLink?.from.id,
-                          mechLink && mechNameById.get(mechLink.from.id)
-                        ),
-                        linkSegment(
-                          'crawler',
-                          crawlerLink?.to.id,
-                          crawlerLink && crawlerNameById.get(crawlerLink.to.id)
-                        ),
-                      ])}
-                    />
+                    <li key={p.id} className="list-none">
+                      <EntityRow
+                        entityType="pilot"
+                        name={p.name}
+                        sheetHref={`/sheet/pilot/${p.id}`}
+                        linkAs={AppLink}
+                        onDeleteClick={() => openDeleteDialog('pilot', p.id, p.name)}
+                        metaLine={joinMeta([
+                          p.callsign ? `"${p.callsign}"` : null,
+                          resolveClassName(p.classRef),
+                          linkSegment(
+                            'mech',
+                            mechLink?.from.id,
+                            mechLink && mechNameById.get(mechLink.from.id)
+                          ),
+                          linkSegment(
+                            'crawler',
+                            crawlerLink?.to.id,
+                            crawlerLink && crawlerNameById.get(crawlerLink.to.id)
+                          ),
+                        ])}
+                      />
+                    </li>
                   )
                 })}
               </RosterColumn>
@@ -328,22 +328,23 @@ export function Roster() {
                     (l) => l.type === 'mech-to-pilot' && l.from.id === m.id
                   )
                   return (
-                    <EntityListItem
-                      key={m.id}
-                      id={m.id}
-                      name={m.name}
-                      entityType="mech"
-                      sheetHref={`/sheet/mech/${m.id}`}
-                      onDeleteClick={(id, name) => openDeleteDialog('mech', id, name)}
-                      meta={joinMeta([
-                        mechChassisMeta(m.chassisRef),
-                        linkSegment(
-                          'pilot',
-                          pilotLink?.to.id,
-                          pilotLink && pilotNameById.get(pilotLink.to.id)
-                        ),
-                      ])}
-                    />
+                    <li key={m.id} className="list-none">
+                      <EntityRow
+                        entityType="mech"
+                        name={m.name}
+                        sheetHref={`/sheet/mech/${m.id}`}
+                        linkAs={AppLink}
+                        onDeleteClick={() => openDeleteDialog('mech', m.id, m.name)}
+                        metaLine={joinMeta([
+                          mechChassisMeta(m.chassisRef),
+                          linkSegment(
+                            'pilot',
+                            pilotLink?.to.id,
+                            pilotLink && pilotNameById.get(pilotLink.to.id)
+                          ),
+                        ])}
+                      />
+                    </li>
                   )
                 })}
               </RosterColumn>
@@ -362,20 +363,21 @@ export function Roster() {
                     (l) => l.type === 'pilot-to-crawler' && l.to.id === c.id
                   )
                   return (
-                    <EntityListItem
-                      key={c.id}
-                      id={c.id}
-                      name={c.name}
-                      entityType="crawler"
-                      sheetHref={`/sheet/crawler/${c.id}`}
-                      onDeleteClick={(id, name) => openDeleteDialog('crawler', id, name)}
-                      meta={joinMeta([
-                        crawlerTypeMeta(c.techLevel, c.crawlerBays?.length ?? 0),
-                        ...crewLinks.map((l) =>
-                          linkSegment('pilot', l.from.id, pilotNameById.get(l.from.id))
-                        ),
-                      ])}
-                    />
+                    <li key={c.id} className="list-none">
+                      <EntityRow
+                        entityType="crawler"
+                        name={c.name}
+                        sheetHref={`/sheet/crawler/${c.id}`}
+                        linkAs={AppLink}
+                        onDeleteClick={() => openDeleteDialog('crawler', c.id, c.name)}
+                        metaLine={joinMeta([
+                          crawlerTypeMeta(c.techLevel, c.crawlerBays?.length ?? 0),
+                          ...crewLinks.map((l) =>
+                            linkSegment('pilot', l.from.id, pilotNameById.get(l.from.id))
+                          ),
+                        ])}
+                      />
+                    </li>
                   )
                 })}
               </RosterColumn>
@@ -446,7 +448,7 @@ type RosterColumnProps = {
   emptyIcon?: ReactNode
   /** Extra head action (e.g. the Mechs column's 'Patterns' link). */
   headExtra?: ReactNode
-  /** SavedRow <EntityListItem> children; empty → dashed create empty. */
+  /** SavedRow <EntityRow> children; empty → dashed create empty. */
   children: ReactNode[]
 }
 

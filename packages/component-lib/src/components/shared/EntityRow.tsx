@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Bot, type LucideIcon, Trash2, UserRound, Warehouse } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
@@ -19,8 +19,10 @@ import { Stat } from './Stat'
  * (ghost trash) actions. Neither action is the rust action colour — a row
  * navigates and removes, it never performs a true game action.
  *
- * Data-source agnostic: View renders a plain `<a>` styled with `buttonVariants`
- * so the primitive works with any router (or none).
+ * Data-source agnostic: View renders `linkAs` (a plain `<a>` by default) styled
+ * with `buttonVariants`, so the primitive works with any router or none — an
+ * app with client-side routing injects its own Link rather than the row taking
+ * a router dependency.
  */
 
 export type EntityRowType = 'pilot' | 'mech' | 'crawler'
@@ -48,8 +50,22 @@ type FilledEntityRowProps = {
   /** Optional class/role label beside the stats — rendered as an ontology-toned
    * Badge (pilot → orange, mech → green, crawler → pink), never plain prose. */
   meta?: ReactNode
+  /**
+   * Free-form caption under the name tab — muted, single-line, truncating.
+   *
+   * Distinct from `meta`: `meta` is the entity's CLASS/ROLE and renders as an
+   * ontology-toned Badge, whereas this line carries arbitrary nodes such as a
+   * callsign and `↳ Name` cross-links to other sheets. Links inside a toned
+   * Badge would be illegible, which is why these are two props and not one.
+   */
+  metaLine?: ReactNode
   /** Destination for the View link. */
   sheetHref: string
+  /**
+   * Element the View link renders as (default `'a'`). Pass an app's router Link
+   * to get client-side navigation; it receives `href` and `className`.
+   */
+  linkAs?: ElementType
   /** Fired when the ghost trash Delete button is pressed. */
   onDeleteClick: () => void
 }
@@ -148,7 +164,16 @@ export function EntityRow(props: EntityRowProps) {
     )
   }
 
-  const { entityType, name, stats, meta, sheetHref, onDeleteClick } = props
+  const {
+    entityType,
+    name,
+    stats,
+    meta,
+    metaLine,
+    sheetHref,
+    onDeleteClick,
+    linkAs: Link = 'a',
+  } = props
   const frameStyle: CSSProperties = { background: tone.wash }
 
   return (
@@ -169,10 +194,15 @@ export function EntityRow(props: EntityRowProps) {
 
       <div className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5">
         <div className="min-w-0 flex-1">
-          {/* Black name tab — the reference card's condensed-caps title box */}
-          <span className="inline-block max-w-full truncate rounded-pip bg-ink px-1.5 py-0.5 align-middle font-cond text-lede font-bold uppercase leading-tight tracking-caps-tight text-paper">
+          {/* Black name tab — the canonical stamp, not a hand-rolled span. It
+              was the latter (rounded-pip, its own padding/size), which is the
+              drift the stamp atom exists to prevent. */}
+          <Badge shape="stamp" size="full" className="block max-w-full truncate align-middle">
             {name}
-          </span>
+          </Badge>
+          {metaLine && (
+            <div className="mt-1.5 truncate font-body text-xs text-wk-muted">{metaLine}</div>
+          )}
           {(meta || (stats && stats.length > 0)) && (
             <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
               {/* Subheader info is only stats or toned badges — the class/role
@@ -197,12 +227,12 @@ export function EntityRow(props: EntityRowProps) {
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5">
-          <a
+          <Link
             href={sheetHref}
             className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
           >
             View
-          </a>
+          </Link>
           <Button
             variant="ghost"
             size="sm"
