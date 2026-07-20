@@ -18,6 +18,7 @@ import { cn } from '../../utils/cn'
 import type { ReactNode } from 'react'
 
 import { DisplayCard } from '../shared/DisplayCard'
+import { Badge } from '../chrome/Badge'
 import { InlineEditField } from '../chrome/InlineEditField'
 import { InlineEditTextArea } from './InlineEditTextArea'
 import { NpcFactsEditor } from './NpcFactsEditor'
@@ -110,9 +111,11 @@ export function NpcInset({
         headerContent={
           <>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <span className="rounded-pip bg-crawler px-1.5 pb-px pt-[2px] font-cond text-nano font-bold uppercase leading-none tracking-caps-wide text-paper">
+              {/* The crawler-tone chip is the canonical Badge, not a hand-rolled
+                  pill: `tone="crawler"` IS pink-on-paper-text. */}
+              <Badge surface="tone" tone="crawler">
                 Crew
-              </span>
+              </Badge>
               <span className="min-w-0 font-cond text-lede font-bold uppercase leading-none text-paper">
                 {editable && onNameChange ? (
                   <InlineEditField

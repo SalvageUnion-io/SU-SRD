@@ -368,22 +368,21 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
             keeps its natural height instead of stretching to the Identity card
             (no empty card interior). */}
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1.55fr_1fr]">
-          {/* Identity band — the section Edit control lives in the HEADER. */}
+          {/* Identity band. The section title is the canonical stamp (the same
+              one SheetSectionCard uses for a section title — these had drifted
+              into two treatments for one thing), and Edit is a typed CONTROL,
+              so it rides the shared card rail instead of being a bespoke button
+              hand-placed in the header. */}
           <DisplayCard
             headerContent={
-              <div className="flex w-full items-center justify-between gap-3">
-                <span className="font-cond text-sm font-bold uppercase tracking-caps text-paper">
-                  Pilot Identity
-                </span>
-                {!readOnly && (
-                  <button
-                    type="button"
-                    className="shrink-0 font-cond text-badge font-bold uppercase tracking-caps text-paper/80 hover:text-paper"
-                  >
-                    &#9998; Edit
-                  </button>
-                )}
-              </div>
+              <Badge shape="stamp" size="full">
+                Pilot Identity
+              </Badge>
+            }
+            controls={
+              readOnly
+                ? undefined
+                : [{ key: 'edit', label: '\u270E Edit', ariaLabel: 'Edit pilot identity' }]
             }
             headerBg="bg-[var(--tone-deep)]"
             borderColor="var(--tone)"
@@ -416,9 +415,9 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
           {/* Vitals band */}
           <DisplayCard
             headerContent={
-              <span className="font-cond text-sm font-bold uppercase tracking-caps text-paper">
+              <Badge shape="stamp" size="full">
                 Vitals
-              </span>
+              </Badge>
             }
             headerBg="bg-[var(--tone-deep)]"
             borderColor="var(--tone)"
