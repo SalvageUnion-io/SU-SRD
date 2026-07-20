@@ -22,8 +22,8 @@
   },
   "dependencies": {
     "@randsum/roller": "^4.0.0",
-    "@sentry/node": "10.65.0",
-    "discord.js": "^14.26.5",
+    "@sentry/node": "10.67.0",
+    "discord.js": "^14.27.0",
     "salvageunion-reference": "workspace:*"
   },
   "devDependencies": {}
