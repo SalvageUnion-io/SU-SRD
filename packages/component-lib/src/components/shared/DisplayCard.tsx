@@ -33,6 +33,13 @@ export type DisplayCardTab = {
 type DisplayCardProps = {
   /** Background color class for header and footer (e.g., "bg-mech"). Default: "" */
   headerBg?: string
+  /**
+   * Test-only hook on the header band. Zero production passers BY DESIGN — the
+   * DisplayCard suite uses it to target the band directly. Kept deliberately:
+   * deleting live test infrastructure to satisfy a "no production callers"
+   * audit optimises the metric, not the code.
+   */
+  headerTestId?: string
   /** Optional CSS color for border derivation */
   headerBgColor?: string
   /** Content rendered inside the header bar. Omit it and NO header band is
@@ -73,8 +80,6 @@ type DisplayCardProps = {
   /** Click handler for the entire card. Adds hover enlarge effect + cursor-pointer.
    * Controls with `cardClick: true` also contribute (fallback when this is not set). */
   onCardClick?: () => void
-  /** Enable hover enlarge effect without a click handler (e.g., when wrapped in an <a>) */
-  cardClickable?: boolean
   /** Controls rendered at the card level. Controls with `cardClick: true` make
    * the entire card clickable with a hover enlarge effect (any mode).
    * Controls with `hidden: true` are not rendered as buttons.
@@ -89,9 +94,7 @@ type DisplayCardProps = {
   /** Override header className and inline style (e.g., the pilot/crawler stripe accent) */
   headerStyle?: { className?: string; style?: React.CSSProperties }
   /** Override footer className and inline style */
-  footerStyle?: { className?: string; style?: React.CSSProperties }
   /** data-testid on the header div */
-  headerTestId?: string
   /** CSS color for card borders (external + internal). Defaults to 'black'. */
   borderColor?: string
   /** Make header sticky when scrolling. Section separators inside the card auto-stick below. */
@@ -101,7 +104,6 @@ type DisplayCardProps = {
   /** Label for the default (children) tab. Defaults to "Info". */
   defaultTabLabel?: string
   /** CSS color override for the default tab's active background */
-  defaultTabActiveColor?: string
   /** Content rendered in the sub-header band, alongside/instead of `stats` —
    * a darker shade of the header tone directly below the header content row.
    * The band renders when either `subHeader` or `stats` is provided; no band
@@ -174,6 +176,7 @@ function SubHeaderStats({
 
 export function DisplayCard({
   headerBg = '',
+  headerTestId,
   headerBgColor,
   headerContent,
   footerContent,
@@ -189,19 +192,15 @@ export function DisplayCard({
   expand,
   footMeta,
   onCardClick,
-  cardClickable = false,
   controls,
   disabled = false,
   bodyPadding,
   cardStyle,
   headerStyle: headerStyleProp,
-  footerStyle: footerStyleProp,
   borderColor: borderColorProp,
-  headerTestId,
   stickyHeader = false,
   tabs,
   defaultTabLabel = 'Info',
-  defaultTabActiveColor,
   subHeader,
   stats,
 }: DisplayCardProps) {
@@ -242,7 +241,7 @@ export function DisplayCard({
   const resolvedCardClick = onCardClick ?? cardClickControls.at(-1)?.onClick
 
   // Hover effect when card is clickable (via handler or boolean flag)
-  const isCardHoverable = !!resolvedCardClick || cardClickable
+  const isCardHoverable = !!resolvedCardClick
 
   const actualHeaderBg = headerBg
   // An EXPLICIT `borderColor` wins. Otherwise the border equals the tone (header
@@ -294,7 +293,7 @@ export function DisplayCard({
   const activeTabBg = hasTabs
     ? (() => {
         const cssColor = borderColorFromHeaderBg(headerBg, headerBgColor)
-        return cssColor ? `color-mix(in srgb, ${cssColor} 35%, white)` : undefined
+        return cssColor ? `color-mix(in srgb, ${cssColor} 35%, var(--color-paper))` : undefined
       })()
     : undefined
 
@@ -441,7 +440,7 @@ export function DisplayCard({
               const renderTabButton = (tab: DisplayCardTab) => {
                 const isActive = resolvedTabKey === tab.key
                 const tabBg = tab.activeColor
-                  ? `color-mix(in srgb, ${tab.activeColor} 35%, white)`
+                  ? `color-mix(in srgb, ${tab.activeColor} 35%, var(--color-paper))`
                   : activeTabBg
                 return (
                   <button
@@ -478,15 +477,7 @@ export function DisplayCard({
                       'border-b border-ink-2/30',
                       isDefaultTab ? 'text-ink' : 'bg-wk-faint text-ink hover:bg-wk-muted'
                     )}
-                    style={
-                      isDefaultTab
-                        ? {
-                            backgroundColor: defaultTabActiveColor
-                              ? `color-mix(in srgb, ${defaultTabActiveColor} 35%, white)`
-                              : activeTabBg,
-                          }
-                        : undefined
-                    }
+                    style={isDefaultTab ? { backgroundColor: activeTabBg } : undefined}
                     onClick={() => setActiveTabKey(DEFAULT_TAB_KEY)}
                   >
                     {defaultTabLabel}
@@ -523,16 +514,10 @@ export function DisplayCard({
             content OR foot extras (actions/meta) to fold into the band. */}
         {!isListing && (footerContent || (footMeta && footMeta.length > 0)) && (
           <div
-            className={cn(
-              'flex w-full items-center justify-between gap-2 px-3 py-1 font-cond text-micro font-bold uppercase tracking-[0.05em] text-paper',
-              footerStyleProp?.className
-            )}
-            style={{
-              // Footer is the DARKER shade (matches the sub-header + the
-              // reference-entity footer), not the header tone.
-              ...(!footerStyleProp?.className ? { backgroundColor: subHeaderBg } : {}),
-              ...footerStyleProp?.style,
-            }}
+            className="flex w-full items-center justify-between gap-2 px-3 py-1 font-cond text-micro font-bold uppercase tracking-caps-tight text-paper"
+            // Footer is the DARKER shade (matches the sub-header + the
+            // reference-entity footer), not the header tone.
+            style={{ backgroundColor: subHeaderBg }}
           >
             {footerContent}
             {footMeta && footMeta.length > 0 && (
@@ -540,7 +525,7 @@ export function DisplayCard({
                 {footMeta.map(({ label: metaLabel, value }, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: footMeta is a static per-render list; index disambiguates repeated labels
                   <span key={`${metaLabel}-${i}`} className="mr-1 inline-flex items-baseline gap-1">
-                    <span className="font-cond text-micro font-bold uppercase leading-none tracking-[0.05em] opacity-75">
+                    <span className="font-cond text-micro font-bold uppercase leading-none tracking-caps-tight opacity-75">
                       {metaLabel}
                     </span>
                     <span className="font-body text-caption font-bold leading-none">{value}</span>

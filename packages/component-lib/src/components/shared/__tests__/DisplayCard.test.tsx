@@ -355,18 +355,6 @@ describe('DisplayCard', () => {
     expect(source).toBe('prop')
   })
 
-  test('cardClickable enables hover classes without click handler', () => {
-    const { container } = render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Hoverable</span>} cardClickable>
-        <p>Body</p>
-      </DisplayCard>
-    )
-    const wrapper = container.firstElementChild as HTMLElement
-    expect(wrapper.className).toContain('cursor-pointer')
-    // No role=button since there's no click handler
-    expect(wrapper.getAttribute('role')).toBeNull()
-  })
-
   test('cardClick adds hover scale classes to wrapper', () => {
     const { container } = render(
       <DisplayCard
@@ -565,22 +553,5 @@ describe('DisplayCard', () => {
     const header = screen.getByTestId('test-header')
     expect(header.className).toContain('custom-header')
     expect(header.style.backgroundImage).toContain('test')
-  })
-
-  test('footerStyle overrides default footer bg class', () => {
-    const { container } = render(
-      <DisplayCard
-        headerBg="bg-mech"
-        headerContent={<span>Header</span>}
-        footerContent={<span>Footer</span>}
-        footerStyle={{ className: 'bg-pilot' }}
-      >
-        <p>Body</p>
-      </DisplayCard>
-    )
-    // Footer should have the override class, not the default headerBg
-    const footerEl = container.querySelector('.bg-pilot')
-    expect(footerEl).toBeTruthy()
-    expect(footerEl?.textContent).toBe('Footer')
   })
 })
