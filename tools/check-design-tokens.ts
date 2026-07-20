@@ -69,8 +69,17 @@ const RULES: Rule[] = [
   },
   {
     id: 'arbitrary-tracking',
-    rule: 'ruleset §4.2 — three tracking tokens, not fifteen',
-    fix: 'Use tracking-label (0.04em) / tracking-display (0.01em) / tracking-eyebrow (0.22em).',
+    rule: 'ruleset §4.2 — the tracking ladder is tokens only',
+    // NOTE — canon and code disagree here, and the code is what ships.
+    // ruleset §4.2 declares THREE tokens (--tracking-label 0.04em,
+    // --tracking-display 0.01em, --tracking-eyebrow 0.22em) and says the wide
+    // HUD values "conform down to 0.04em". theme.css actually ships FIVE:
+    // caps-tight 0.04 / caps-snug 0.06 / caps 0.08 / caps-wide 0.12 / eyebrow
+    // 0.22 — `--tracking-label` and `--tracking-display` do not exist. This fix
+    // text names the tokens that REALLY resolve, so it can't send anyone to a
+    // non-existent utility. Reconciling the two (collapsing the ladder to 0.04
+    // or amending the ruleset) is a separate, visual-delta decision.
+    fix: 'Use the shipped ladder: tracking-caps-tight (0.04em, the canonical label/stamp tracking) / -caps-snug / -caps / -caps-wide / tracking-eyebrow (0.22em, brand caption only).',
     pattern: /tracking-\[[^\]]+\]/g,
   },
   {
