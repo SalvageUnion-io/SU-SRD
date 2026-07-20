@@ -1,52 +1,51 @@
 import { describe, test, expect, afterEach, mock } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { DisplayCard } from '../DisplayCard'
-import { resolveDisplayMode } from '../displayMode'
+import { displayBooleans, resolveCardDisplay } from '../displayMode'
 
 afterEach(cleanup)
 
-describe('resolveDisplayMode', () => {
-  test('maps modes onto the existing booleans', () => {
-    expect(resolveDisplayMode('full', undefined, undefined)).toEqual({
+describe('resolveCardDisplay', () => {
+  test('size and extent are orthogonal — a small card can still be full', () => {
+    expect(resolveCardDisplay({ size: 'small' })).toEqual({ size: 'small', extent: 'full' })
+    expect(resolveCardDisplay({ size: 'small', extent: 'head' })).toEqual({
+      size: 'small',
+      extent: 'head',
+    })
+  })
+
+  test('the legacy booleans project onto the axes', () => {
+    expect(resolveCardDisplay({})).toEqual({ size: 'large', extent: 'full' })
+    expect(resolveCardDisplay({ compact: true })).toEqual({ size: 'medium', extent: 'full' })
+    expect(resolveCardDisplay({ listing: true })).toEqual({ size: 'medium', extent: 'head' })
+  })
+
+  test('an explicit size wins over the booleans', () => {
+    expect(resolveCardDisplay({ size: 'large', compact: true })).toEqual({
+      size: 'large',
+      extent: 'full',
+    })
+  })
+
+  test('displayBooleans projects back for layout', () => {
+    expect(displayBooleans({ size: 'large', extent: 'full' })).toEqual({
       compact: false,
       listing: false,
     })
-    expect(resolveDisplayMode('compact', undefined, undefined)).toEqual({
-      compact: true,
-      listing: false,
-    })
-    expect(resolveDisplayMode('listing', undefined, undefined)).toEqual({
+    expect(displayBooleans({ size: 'small', extent: 'head' })).toEqual({
       compact: true,
       listing: true,
     })
   })
-
-  test('explicit booleans take precedence over mode', () => {
-    expect(resolveDisplayMode('listing', false, false)).toEqual({
-      compact: false,
-      listing: false,
-    })
-    expect(resolveDisplayMode('full', true, undefined)).toEqual({
-      compact: true,
-      listing: false,
-    })
-  })
-
-  test('defaults to full when nothing is provided', () => {
-    expect(resolveDisplayMode(undefined, undefined, undefined)).toEqual({
-      compact: false,
-      listing: false,
-    })
-  })
 })
 
-describe('DisplayCard mode sugar', () => {
-  test("mode='listing' hides body and footer like listing", () => {
+describe('DisplayCard size/extent sugar', () => {
+  test("extent='head' hides body and footer", () => {
     render(
       <DisplayCard
         headerContent={<span>Header</span>}
         footerContent={<span>Foot</span>}
-        mode="listing"
+        extent="head"
       >
         <span>Body</span>
       </DisplayCard>
@@ -56,12 +55,12 @@ describe('DisplayCard mode sugar', () => {
     expect(screen.queryByText('Foot')).toBeNull()
   })
 
-  test("mode='full' renders body and footer", () => {
+  test("extent='full' renders body and footer", () => {
     render(
       <DisplayCard
         headerContent={<span>Header</span>}
         footerContent={<span>Foot</span>}
-        mode="full"
+        extent="full"
       >
         <span>Body</span>
       </DisplayCard>

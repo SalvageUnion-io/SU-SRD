@@ -130,7 +130,7 @@ function ActionSpecCard({ spec }: { spec: ActionSpec }): ReactNode {
       <ReferenceEntityCard
         data={spec.action as unknown as SURefEntity}
         hostTone={parentToneBase(spec.parent)}
-        size="compact"
+        size="medium"
       />
     </div>
   )
@@ -186,7 +186,8 @@ export const Badge: Story = () => (
         <ReferenceEntityCard
           data={spec.action as unknown as SURefEntity}
           hostTone={parentToneBase(spec.parent)}
-          size="badge"
+          size="small"
+          extent="head"
         />
       </div>
     ))}

@@ -327,7 +327,8 @@ export function SchemaViewerIsland({
                           <Suspense fallback={<CardSkeleton compact />}>
                             <ReferenceEntityCard
                               data={item}
-                              size="catalog"
+                              size="medium"
+                              extent="catalog"
                               label={tree}
                               cardClickable
                             />

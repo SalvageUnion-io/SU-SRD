@@ -40,17 +40,17 @@ export const Default: Story = () => {
         <Caption>static (no onToggle)</Caption>
         <div className="flex flex-col gap-3">
           <Sel selected={false}>
-            <ReferenceEntityCard data={chassis} size="compact" />
+            <ReferenceEntityCard data={chassis} size="medium" />
           </Sel>
           <Sel selected>
-            <ReferenceEntityCard data={chassis} size="compact" />
+            <ReferenceEntityCard data={chassis} size="medium" />
           </Sel>
         </div>
       </div>
       <div>
         <Caption>interactive — button (aria-pressed)</Caption>
         <Sel selected={picked} onToggle={() => setPicked((s) => !s)} ariaLabel={chassis.name}>
-          <ReferenceEntityCard data={chassis} size="compact" />
+          <ReferenceEntityCard data={chassis} size="medium" />
         </Sel>
       </div>
       <div>
@@ -64,7 +64,7 @@ export const Default: Story = () => {
               radio
               ariaLabel={pilotClass.name}
             >
-              <ReferenceEntityCard data={pilotClass} size="compact" />
+              <ReferenceEntityCard data={pilotClass} size="medium" />
             </Sel>
           ))}
         </div>

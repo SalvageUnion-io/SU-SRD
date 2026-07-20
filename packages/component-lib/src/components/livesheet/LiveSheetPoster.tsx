@@ -238,7 +238,7 @@ function CollectionSection({
       {/* Only game entities render here — always the compact entity card. */}
       <div className="grid grid-cols-1 gap-3">
         {items.map(({ entity }) => (
-          <ReferenceEntityCard key={entity.id} data={entity} size="compact" />
+          <ReferenceEntityCard key={entity.id} data={entity} size="medium" />
         ))}
       </div>
     </section>

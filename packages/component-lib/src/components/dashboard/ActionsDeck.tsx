@@ -331,7 +331,8 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
                   >
                     <ReferenceEntityCard
                       data={row.entity}
-                      mode="badge"
+                      size="small"
+                      extent="head"
                       hostTone={view.hostTone}
                       disabled={row.locked}
                       cardClickLabel={row.name}

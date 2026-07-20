@@ -10,8 +10,8 @@ import { StickyHeaderContext, StickyOffsetContext } from './StickyHeaderContext'
 import { useStickyCard } from './useStickyCard'
 import { CalloutMetaStamp } from '../referenceEntity/ReferenceEntityDisplay/components/CalloutMetaStamp'
 import type { EntityStatus } from '../chrome/StatusBadge'
-import { resolveDisplayMode } from './displayMode'
-import type { CardDisplayMode } from './displayMode'
+import { displayBooleans, resolveCardDisplay } from './displayMode'
+import type { CardExtent, CardSize } from './displayMode'
 
 /** Inline foot meta entry (design-spec §2.1 `.ec__metafoot`), e.g. AP COST · 1 */
 export type CardFootMeta = { label: string; value: ReactNode }
@@ -47,14 +47,18 @@ type DisplayCardProps = {
   labelBadge?: string
   /** Optional node rendered FIRST in the label callout row (e.g. a "Recommended" stamp) */
   labelLead?: ReactNode
-  /** Compact sizing: reduced min-height, padding, border width, font/stat sizes */
+  /** Compact sizing: reduced min-height, padding, border width, font/stat sizes.
+   * Legacy sugar for `size="medium"`; prefer `size`. */
   compact?: boolean
-  /** Header-only rendering: hides body, footer, and tabs. Orthogonal to compact. */
+  /** Header-only rendering: hides body, footer, and tabs. Legacy sugar for
+   * `extent="head"`; prefer `extent`. */
   listing?: boolean
-  /** Display-mode sugar over `compact`/`listing` — the vocabulary and its
-   * semantics live in `displayMode.ts`. Explicit booleans take precedence when
-   * both are provided. */
-  mode?: CardDisplayMode
+  /** How big the card renders — `large` | `medium` | `small`. Orthogonal to
+   * `extent`. The vocabulary lives in `displayMode.ts`; see it for the rungs. */
+  size?: CardSize
+  /** How much of the card renders — `full` | `head` | `catalog`. Orthogonal to
+   * `size`, so a `small` card can still show its whole content. */
+  extent?: CardExtent
   /** Intact/Damaged/Destroyed condition. Presentational sugar: it is folded
    * into a `status` CONTROL and rendered by the shared rail, so the condition
    * badge has exactly one implementation. */
@@ -183,7 +187,8 @@ export function DisplayCard({
   labelLead,
   compact: compactProp,
   listing: listingProp,
-  mode,
+  size,
+  extent,
   status,
   onStatusClick,
   statusSubject,
@@ -206,9 +211,8 @@ export function DisplayCard({
   subHeader,
   stats,
 }: DisplayCardProps) {
-  const resolvedMode = resolveDisplayMode(mode, compactProp, listingProp)
-  const isListing = resolvedMode.listing
-  const isCompact = resolvedMode.compact
+  const display = resolveCardDisplay({ size, extent, compact: compactProp, listing: listingProp })
+  const { compact: isCompact, listing: isListing } = displayBooleans(display)
   const hasCallout = !!(labelLead || label || labelBadge)
   const hasTabs = !isListing && tabs && tabs.length > 0
 

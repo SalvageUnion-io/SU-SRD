@@ -167,7 +167,7 @@ export const Gallery: Story = () => (
 export const Catalog: Story = () => (
   <div className="grid gap-4 p-4 md:grid-cols-2">
     {[ability, system, chassis, bioTitan, crawler, equipment, crawlerBay].map((entity) => (
-      <ReferenceEntityCard key={idOf(entity)} data={entity} size="catalog" />
+      <ReferenceEntityCard key={idOf(entity)} data={entity} size="medium" extent="catalog" />
     ))}
   </div>
 )
@@ -188,16 +188,16 @@ export const PatternCard: Story = () => (
 )
 
 /**
- * BADGE MODE (`size="badge"`) — the shortform token: a single tone-filled pill
+ * BADGE MODE (`size="small" extent="head"`) — the shortform token: a single tone-filled pill
  * with the type stamp, the name, and the classification tail. Gear/chassis show
  * `TL <n>`, abilities show `<Tree> · L<n>`, actions carry the "Action" stamp and
  * no tail. The whole entity collapses to one line, tone-coloured like the card.
  */
 export const BadgeMode: Story = () => (
   <div className="flex flex-wrap items-start gap-3 p-4">
-    <ReferenceEntityCard data={chassis} size="badge" />
-    <ReferenceEntityCard data={system} size="badge" />
-    <ReferenceEntityCard data={ability} size="badge" />
+    <ReferenceEntityCard data={chassis} size="small" extent="head" />
+    <ReferenceEntityCard data={system} size="small" extent="head" />
+    <ReferenceEntityCard data={ability} size="small" extent="head" />
   </div>
 )
 
@@ -283,8 +283,8 @@ export const EditableStats: Story = () => {
  */
 export const SuggestedItem: Story = () => (
   <Compare
-    readOnly={<ReferenceEntityCard data={system} size="compact" />}
-    editable={<ReferenceEntityCard data={system} size="compact" suggested />}
+    readOnly={<ReferenceEntityCard data={system} size="medium" />}
+    editable={<ReferenceEntityCard data={system} size="medium" suggested />}
   />
 )
 
@@ -297,11 +297,11 @@ export const MultiSelectCard: Story = () => {
   const [count, setCount] = useState(0)
   return (
     <Compare
-      readOnly={<ReferenceEntityCard data={system} size="compact" />}
+      readOnly={<ReferenceEntityCard data={system} size="medium" />}
       editable={
         <ReferenceEntityCard
           data={system}
-          size="compact"
+          size="medium"
           count={count}
           countMax={5}
           onCountChange={setCount}

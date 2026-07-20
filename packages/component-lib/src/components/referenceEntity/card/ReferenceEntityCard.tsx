@@ -36,7 +36,7 @@ import {
 import { cn } from '../../../utils/cn'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { EntityStatus } from '../../shared/entityStatus'
-import { type CardDisplayMode, resolveCardMode } from '../../shared/displayMode'
+import { type CardExtent, type CardSize, resolveCardDisplay } from '../../shared/displayMode'
 import { FOCUS_RING, activateOnKey } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
 import { Badge } from '../../chrome/Badge'
@@ -67,7 +67,7 @@ import {
   resolveEyebrow,
   titleSizeClass,
 } from './entityCardTone'
-import type { AxisMarker, ReferenceEntityCardSize } from './entityCardTone'
+import type { AxisMarker } from './entityCardTone'
 import {
   resolveChassisDrone,
   resolveDroneOwnLoadout,
@@ -75,8 +75,6 @@ import {
   resolvePatternDrone,
   resolvePatternGroups,
 } from './resolveNestedEntities'
-
-export type { ReferenceEntityCardSize } from './entityCardTone'
 
 /** Beyond this nesting depth a card renders header-only (no body expansion) —
  * bounds runaway recursion (deep chassis → systems → actions, or grant cycles). */
@@ -89,7 +87,10 @@ function isTitanicAction(action: { name?: string }): boolean {
 
 export type ReferenceEntityCardProps = {
   data: SURefEntity
-  size?: ReferenceEntityCardSize
+  size?: CardSize
+  /** How much of the entity renders — orthogonal to `size`, so a `small` card
+   * can still show its whole content. */
+  extent?: CardExtent
   /** Nesting level — 0 = full/solo, ≥1 = nested (compact, no footer, smaller
    * header, one step down per level). Threaded through the recursion. */
   depth?: number
@@ -99,7 +100,7 @@ export type ReferenceEntityCardProps = {
   parentSeal?: { label: string; tone: string }
   /** CHASSIS TWO-RENDERINGS: when set (with a chassis `data`), the card renders
    * the PATTERN view — pattern name as the title, the pattern's systems/modules
-   * loadout as nested cards (a `size="listing"` pattern shows name + description). */
+   * loadout as nested cards (a `size="medium" extent="head"` pattern shows name + description). */
   pattern?: SURefObjectPattern
   /** The SUMMONING (parent) entity's tone as a resolvable CSS colour — threaded
    * onto a nested ACTION card, whose bands are this tone GHOSTED. */
@@ -377,7 +378,8 @@ function CatalogChoiceListing({
         {prompt && <p className="font-body text-xs text-ink/70">{prompt}</p>}
         {chosenEntity && (
           <ReferenceEntityCardInner
-            size="listing"
+            size="medium"
+            extent="head"
             depth={depth + 1}
             data={chosenEntity}
             hostTone={hostTone}
@@ -436,7 +438,8 @@ function CatalogChoiceListing({
               return (
                 <ReferenceEntityCardInner
                   key={key}
-                  size="listing"
+                  size="medium"
+                  extent="head"
                   depth={depth + 1}
                   data={entity}
                   hostTone={hostTone}
@@ -470,7 +473,8 @@ function CatalogChoiceListing({
  */
 function ReferenceEntityCardInner({
   data,
-  size: sizeProp = 'full',
+  size: sizeProp = 'large',
+  extent = 'full',
   depth: depthProp = 0,
   parentSeal,
   pattern,
@@ -547,21 +551,21 @@ function ReferenceEntityCardInner({
   // Actions are ALWAYS nested (never solo on their own SRD page), so an action
   // can only render compact or compact-listing — never full. Coerce a full-size
   // action to compact (min depth 1) so the full-size path can't be reached.
-  const size: ReferenceEntityCardSize = isAction && sizeProp === 'full' ? 'compact' : sizeProp
+  const size: CardSize = isAction && sizeProp === 'large' ? 'medium' : sizeProp
   const depth = isAction ? Math.max(depthProp, 1) : depthProp
   // A NESTED NPC (one summoned by a parent that threaded `hostTone` down) is
   // dimmed the same way actions are — it ghosts the PARENT's tone, not its own
   // navy. A standalone/top-level NPC (no host tone) keeps its navy domain tone.
   const isNestedNpc = schemaName === 'npcs' && hostTone != null
   const isGhosted = isAction || isNestedNpc
-  const compact = depth > 0 || size !== 'full'
+  const compact = depth > 0 || size !== 'large'
   // CATALOG — the SRD index tile. Compact, artwork + description ONLY. Every
   // nested element is suppressed here rather than at each call-site, so a
   // listing page reads uniformly no matter what the entity happens to carry
   // (a chassis's patterns, an ability's grants, a crawler bay's roll table).
   // Nested ENTITIES/actions are cut via `canExpand` below; these flags cut the
   // in-body sections, layering over whatever the consumer passed.
-  const isCatalog = size === 'catalog'
+  const isCatalog = extent === 'catalog'
   const hide: ReferenceEntityCardHideConfig | undefined = isCatalog
     ? { ...hideProp, actions: true, choices: true, patterns: true, rollTable: true }
     : hideProp
@@ -656,17 +660,27 @@ function ReferenceEntityCardInner({
   // Title size steps down with depth; a solo COMPACT/LISTING card (depth 0) floors
   // to rung 1 (text-xl, not the full text-5xl) so "compact" actually compacts the
   // title. `full` keeps the depth-driven size (srd renders full → unaffected).
-  const titleClass = titleSizeClass(size === 'full' ? depth : Math.max(depth, 1))
+  // `small` steps the title down one further rung than `medium` — the size
+  // axis, not the extent, is what drives the type ladder.
+  const titleClass = titleSizeClass(
+    size === 'large' ? depth : Math.max(depth, size === 'small' ? 2 : 1)
+  )
   // ARTWORK — `getAssetUrl` yields the entity's `.webp` when `hasArtwork`; the
   // chassis art also stands in for its full PATTERN view (but not the tight
   // pattern-summary list rows).
-  const assetUrl = getAssetUrl(entity)
+  //
+  // A MINI catalog tile drops the artwork entirely: the catalog extent is
+  // artwork + description, and at the small size the image would crowd out the
+  // description it exists to caption, leaving a tile that is all picture and no
+  // label. Every other size keeps it.
+  const isMiniCatalog = isCatalog && size === 'small'
+  const assetUrl = isMiniCatalog ? undefined : getAssetUrl(entity)
 
   // PATTERN view — the pattern is the subject; the chassis (`entity`) supplies
-  // stats / tone / source. Patterns carry NO stampseal. A `size="listing"`
+  // stats / tone / source. Patterns carry NO stampseal. A `size="medium" extent="head"`
   // pattern is a LIST ROW: name-tab left, description on the header right.
   const isPattern = !!pattern
-  const isPatternListing = isPattern && size === 'listing'
+  const isPatternListing = isPattern && extent === 'head'
   // A pattern's title is its name in QUOTES — `"SURVEYOR"`. The word "Pattern"
   // is no longer carried in the data (chassis.json), so nothing to strip here.
   const name = titleOverride ?? (isPattern ? `"${pattern.name}"` : entityName)
@@ -758,7 +772,7 @@ function ReferenceEntityCardInner({
       ? []
       : buildReferenceEntityStats(entity, {
           compact,
-          primaryOnly: !!primaryStatsOnly || size === 'listing',
+          primaryOnly: !!primaryStatsOnly || extent === 'head',
           schemaName: schemaName as SURefEnumSchemaName,
           techLevel,
         })
@@ -974,7 +988,7 @@ function ReferenceEntityCardInner({
       titleTextClass={titleTextClass}
       stats={effectiveHeaderStats}
       rightContent={effectiveRightContent}
-      listing={size === 'listing'}
+      listing={extent === 'head'}
       dim={dimHeader}
       compact={compact}
     />
@@ -1087,7 +1101,7 @@ function ReferenceEntityCardInner({
   // Level for abilities). Reuses the same interaction/frame plumbing as every
   // other size but collapses the whole card to one line. Actions render it too:
   // their type reads "Action" and, carrying no TL/tree, they show no tail.
-  if (size === 'badge') {
+  if (size === 'small' && extent === 'head') {
     // Action shortform: name · Cost · type · Damage · range (each when present).
     // The NAME always leads (left-aligned so a stack of action badges reads down
     // a name column), then the AP/EP cost pennant, the action type as a stamp,
@@ -1179,7 +1193,7 @@ function ReferenceEntityCardInner({
   // Frame lives on the INNER clipping element (3px tone, radius + clip on one
   // element — the mockup `.ec`). The OUTER div is overflow-visible only so the
   // seam escapes the clip.
-  if (size === 'listing') {
+  if (extent === 'head') {
     return (
       <div className={outerClassName} style={cardStyle?.style} {...outerInteraction}>
         {seam}
@@ -1568,7 +1582,7 @@ function ReferenceEntityCardInner({
       return entities.map((nested, index) => (
         <div key={cardKey(nested, index)} className="mb-1.5 flow-root">
           <ReferenceEntityCardInner
-            size="compact"
+            size="medium"
             depth={depth + 1}
             hostDown={isDown}
             data={nested}
@@ -1588,7 +1602,7 @@ function ReferenceEntityCardInner({
           {entities.map((nested, index) => (
             <ReferenceEntityCardInner
               key={cardKey(nested, index)}
-              size="compact"
+              size="medium"
               depth={depth + 1}
               hostDown={isDown}
               data={nested}
@@ -1610,7 +1624,7 @@ function ReferenceEntityCardInner({
             {columnCards.map((nested, index) => (
               <div key={cardKey(nested, index)} className="mb-1.5 break-inside-avoid">
                 <ReferenceEntityCardInner
-                  size="compact"
+                  size="medium"
                   depth={depth + 1}
                   hostDown={isDown}
                   data={nested}
@@ -1625,7 +1639,7 @@ function ReferenceEntityCardInner({
         {orphan && (
           <ReferenceEntityCardInner
             key={cardKey(orphan, entities.length - 1)}
-            size="compact"
+            size="medium"
             depth={depth + 1}
             hostDown={isDown}
             data={orphan}
@@ -1689,7 +1703,8 @@ function ReferenceEntityCardInner({
         flat ? (
           <div key={cardKey(item, index)} className="mb-1.5 flow-root">
             <ReferenceEntityCardInner
-              size="listing"
+              size="medium"
+              extent="head"
               depth={depth + 1}
               hostDown={isDown}
               data={item}
@@ -1698,7 +1713,8 @@ function ReferenceEntityCardInner({
         ) : (
           <ReferenceEntityCardInner
             key={cardKey(item, index)}
-            size="listing"
+            size="medium"
+            extent="head"
             depth={depth + 1}
             hostDown={isDown}
             data={item}
@@ -1728,7 +1744,7 @@ function ReferenceEntityCardInner({
         {anchorNpcEntities.map((npc, index) => (
           <ReferenceEntityCardInner
             key={cardKey(npc, index)}
-            size="compact"
+            size="medium"
             depth={depth + 1}
             hostDown={isDown}
             data={npc}
@@ -1875,7 +1891,7 @@ function ReferenceEntityCardInner({
             (flat ? (
               <div className="mb-1.5 flow-root">
                 <ReferenceEntityCardInner
-                  size="compact"
+                  size="medium"
                   depth={depth + 1}
                   hostDown={isDown}
                   data={droneInfo.drone}
@@ -1885,7 +1901,7 @@ function ReferenceEntityCardInner({
               </div>
             ) : (
               <ReferenceEntityCardInner
-                size="compact"
+                size="medium"
                 depth={depth + 1}
                 hostDown={isDown}
                 data={droneInfo.drone}
@@ -1922,7 +1938,7 @@ function ReferenceEntityCardInner({
                   className="mb-1.5 flow-root"
                 >
                   <ReferenceEntityCardInner
-                    size="compact"
+                    size="medium"
                     depth={depth + 1}
                     hostDown={isDown}
                     data={action as unknown as SURefEntity}
@@ -1933,7 +1949,7 @@ function ReferenceEntityCardInner({
               ) : (
                 <ReferenceEntityCardInner
                   key={cardKey(action as unknown as SURefEntity, index)}
-                  size="compact"
+                  size="medium"
                   depth={depth + 1}
                   hostDown={isDown}
                   data={action as unknown as SURefEntity}
@@ -1954,7 +1970,8 @@ function ReferenceEntityCardInner({
                       <ReferenceEntityCardInner
                         data={data}
                         pattern={pat}
-                        size="listing"
+                        size="medium"
+                        extent="head"
                         depth={depth + 1}
                         hostDown={isDown}
                       />
@@ -1964,7 +1981,8 @@ function ReferenceEntityCardInner({
                       key={pat.name}
                       data={data}
                       pattern={pat}
-                      size="listing"
+                      size="medium"
+                      extent="head"
                       depth={depth + 1}
                       hostDown={isDown}
                     />
@@ -2003,18 +2021,21 @@ function ReferenceEntityCardInner({
 
 /** Public wrapper props: the canonical card props plus the ergonomic display
  * sugar and a nullable `data`. */
-export type ReferenceEntityCardWrapperProps = Omit<ReferenceEntityCardProps, 'data' | 'size'> & {
+export type ReferenceEntityCardWrapperProps = Omit<
+  ReferenceEntityCardProps,
+  'data' | 'size' | 'extent'
+> & {
   data: SURefEntity | undefined
-  size?: ReferenceEntityCardSize
+  size?: CardSize
+  extent?: CardExtent
   compact?: boolean
   listing?: boolean
-  mode?: CardDisplayMode
 }
 
 /**
  * `ReferenceEntityCard` — the public entry point for rendering a reference
- * entity. Accepts the ergonomic display sugar (`compact` / `listing` / `mode`
- * resolve to `size`; a nullable `data` renders nothing; a damaged/destroyed
+ * entity. Accepts the ergonomic display sugar (`compact` / `listing` resolve
+ * onto the `size` / `extent` axes; a nullable `data` renders nothing; a damaged/destroyed
  * `status` folds into `damaged`) and renders the canonical card. This replaced
  * the former `ReferenceEntityCard` compat shim; the recursive card body is
  * `ReferenceEntityCardInner`.
@@ -2022,25 +2043,31 @@ export type ReferenceEntityCardWrapperProps = Omit<ReferenceEntityCardProps, 'da
 export function ReferenceEntityCard({
   data,
   size,
+  extent,
   compact: compactProp,
   listing: listingProp,
-  mode,
   status,
   damaged,
   ...rest
 }: ReferenceEntityCardWrapperProps): ReactNode {
   if (!data) return null
 
-  // The size / mode / compact / listing reconciliation is the DisplayCard
+  // The size / extent / compact / listing reconciliation is the DisplayCard
   // layer's rule — inherited, not restated here.
-  const resolvedSize = resolveCardMode({ size, mode, compact: compactProp, listing: listingProp })
+  const display = resolveCardDisplay({
+    size,
+    extent,
+    compact: compactProp,
+    listing: listingProp,
+  })
   // `status` supersets `damaged` — a damaged/destroyed status greys the header too.
   const effectiveDamaged = damaged || status === 'damaged' || status === 'destroyed'
 
   return (
     <ReferenceEntityCardInner
       data={data}
-      size={resolvedSize}
+      size={display.size}
+      extent={display.extent}
       status={status}
       damaged={effectiveDamaged}
       {...rest}

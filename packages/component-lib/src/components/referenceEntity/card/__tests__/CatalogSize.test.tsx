@@ -1,5 +1,5 @@
 /**
- * `size="catalog"` — the SRD index tile. Compact, artwork + description ONLY:
+ * `size="medium" extent="catalog"` — the SRD index tile. Compact, artwork + description ONLY:
  * every nested element (entities, actions, choices, patterns, roll tables) is
  * suppressed so a listing page reads uniformly regardless of what the entity
  * happens to carry. These fixtures are chosen because each one DOES carry
@@ -28,7 +28,7 @@ const armamentBay = () => {
 
 afterEach(cleanup)
 
-describe('ReferenceEntityCard size="catalog"', () => {
+describe('ReferenceEntityCard size="medium" extent="catalog"', () => {
   beforeAll(async () => {
     await SalvageUnionReference.preload('all')
   })
@@ -43,7 +43,7 @@ describe('ReferenceEntityCard size="catalog"', () => {
     expect(screen.queryAllByText(new RegExp(patternName, 'i')).length).toBeGreaterThan(0)
     full.unmount()
 
-    render(<ReferenceEntityCard data={chassis} size="catalog" />)
+    render(<ReferenceEntityCard data={chassis} size="medium" extent="catalog" />)
     expect(screen.getByText(chassis.name)).toBeTruthy()
     expect(screen.queryAllByText(new RegExp(patternName, 'i')).length).toBe(0)
   })
@@ -55,9 +55,40 @@ describe('ReferenceEntityCard size="catalog"', () => {
     expect(screen.queryByText(/Choose a Weapons System to mount/i)).toBeTruthy()
     full.unmount()
 
-    render(<ReferenceEntityCard data={bay} size="catalog" />)
+    render(<ReferenceEntityCard data={bay} size="medium" extent="catalog" />)
     expect(screen.getByText(bay.name)).toBeTruthy()
     expect(screen.queryByText(/Choose a Weapons System to mount/i)).toBeNull()
+  })
+
+  test('a MINI catalog tile drops the artwork; every other size keeps it', () => {
+    const withArt = SalvageUnionReference.Chassis.all().find(
+      (c) => (c as { hasArtwork?: boolean }).hasArtwork
+    )
+    if (!withArt) throw new Error('no chassis with artwork in fixtures — the probe is vacuous')
+
+    const medium = render(<ReferenceEntityCard data={withArt} size="medium" extent="catalog" />)
+    expect(document.querySelectorAll('img').length).toBeGreaterThan(0)
+    medium.unmount()
+
+    render(<ReferenceEntityCard data={withArt} size="small" extent="catalog" />)
+    expect(document.querySelectorAll('img').length).toBe(0)
+    // The tile still names the entity — it lost the picture, not the label.
+    expect(screen.getByText(withArt.name)).toBeTruthy()
+  })
+
+  test('a SMALL card can still render its whole content — size is not extent', () => {
+    const bay = armamentBay()
+
+    // `small` + `head` is the shortform token: the body is gone.
+    const token = render(<ReferenceEntityCard data={bay} size="small" extent="head" />)
+    expect(screen.queryByText(/Choose a Weapons System to mount/i)).toBeNull()
+    token.unmount()
+
+    // `small` + `full` is the same small scale WITH the content — the
+    // combination the old conflated enum could not express at all.
+    render(<ReferenceEntityCard data={bay} size="small" extent="full" />)
+    expect(screen.getByText(bay.name)).toBeTruthy()
+    expect(screen.queryByText(/Choose a Weapons System to mount/i)).toBeTruthy()
   })
 
   test('a granting ability still shows its own prose (grants are suppressed, not collapsed)', () => {
@@ -67,7 +98,7 @@ describe('ReferenceEntityCard size="catalog"', () => {
     // Not every dataset ships a granting ability with prose; skip rather than fail.
     if (!granting) return
 
-    render(<ReferenceEntityCard data={granting} size="catalog" />)
+    render(<ReferenceEntityCard data={granting} size="medium" extent="catalog" />)
     expect(screen.getByText(granting.name)).toBeTruthy()
     // The card body is not empty — the ability's own description survived.
     expect(document.body.textContent?.length ?? 0).toBeGreaterThan(granting.name.length)

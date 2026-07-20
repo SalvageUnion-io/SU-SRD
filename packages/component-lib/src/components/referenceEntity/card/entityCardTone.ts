@@ -1,19 +1,14 @@
 import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import { getDisplayName, getTechLevel, getTechLevelNumber, isAbility } from 'salvageunion-reference'
-import type { CardDisplayMode } from '../../shared/displayMode'
 import { TECH_LEVEL_BG } from '../../shared/techLevelStyles'
 import { borderColorFromHeaderBg, calculateBackgroundColor } from '../referenceEntityHelpers'
 /** The six card domains + `action`. Lives here, with the domain logic. */
 export type CardDomain = 'pilot' | 'mech' | 'crawler' | 'actor' | 'gear' | 'glossary' | 'action'
 
-/**
- * The densities a `ReferenceEntityCard` renders at — INHERITED from the
- * `DisplayCard` layer rather than restated here, so the two layers cannot drift
- * apart the way `head` (DisplayCard) and `listing` (entity card) once did.
- * The vocabulary and its semantics live in `shared/displayMode.ts`; this alias
- * is kept because `size` is the entity card's spelling of the same axis.
- */
-export type ReferenceEntityCardSize = CardDisplayMode
+/* The sizes a card renders at are NOT declared here. They live once, at the
+ * DisplayCard layer (`shared/displayMode.ts`), and the entity card imports
+ * `CardSize` directly — an alias here would just be the second name that let
+ * `head` and `listing` drift apart in the first place. */
 
 /**
  * SCHEMA → DOMAIN — the single, exhaustive source of truth for which of the six

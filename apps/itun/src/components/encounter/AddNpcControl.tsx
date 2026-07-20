@@ -75,7 +75,7 @@ export function AddNpcControl({ onAdd }: AddNpcControlProps) {
               key={`${candidate.schema}:${candidate.slug}`}
               className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2"
             >
-              <ReferenceEntityCard data={candidate.entity} mode="listing" />
+              <ReferenceEntityCard data={candidate.entity} extent="head" />
               <Button
                 size="sm"
                 variant="primary"

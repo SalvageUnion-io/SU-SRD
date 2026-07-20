@@ -585,7 +585,7 @@ function SelectionRail({
             <div className="min-w-0 flex-1">
               <ReferenceEntityCard
                 data={entity as unknown as SURefEntity}
-                mode="listing"
+                extent="head"
                 hide={{ actions: true, choices: true }}
               />
               {total > 1 && (

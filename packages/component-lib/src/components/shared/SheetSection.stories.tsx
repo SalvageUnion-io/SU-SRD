@@ -58,7 +58,7 @@ export const Default: Story = () => {
           actions={<SectionAddButton label="system" onClick={() => setOpen(true)} />}
         />
         <div className="mt-2 flex flex-col gap-2">
-          {system ? <ReferenceEntityCard data={system} size="compact" /> : null}
+          {system ? <ReferenceEntityCard data={system} size="medium" /> : null}
           <div>
             <CardRemoveButton name={system?.name ?? 'System'} onRemove={() => {}} />
           </div>
@@ -72,7 +72,7 @@ export const Default: Story = () => {
 
       <SheetPickerModal open={open} onClose={() => setOpen(false)} title="Add a System">
         <div className="flex flex-col gap-2 p-2">
-          {ability ? <ReferenceEntityCard data={ability} size="catalog" /> : null}
+          {ability ? <ReferenceEntityCard data={ability} size="medium" extent="catalog" /> : null}
         </div>
       </SheetPickerModal>
     </div>
