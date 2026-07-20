@@ -21,7 +21,6 @@ const SRC = import.meta.dir
 /** Barrel-exported components that intentionally have no standalone story. */
 const ALLOWLIST = new Set([
   // DisplayCard internal sub-parts — demonstrated via DisplayCard's stories.
-  'CardHeader',
   'CardImage',
   // Sub-parts / slots demonstrated via their parent composition.
   'ControlButtons', // rendered via DisplayCard foot actions

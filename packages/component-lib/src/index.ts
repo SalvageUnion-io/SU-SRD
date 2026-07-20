@@ -48,7 +48,6 @@ export { getClassSelections } from './components/referenceEntity/ReferenceEntity
 
 // Shared components
 export { CardImage } from './components/shared/CardImage'
-export { DualColumnLayout } from './components/shared/DualColumnLayout'
 export { DisplayCard } from './components/shared/DisplayCard'
 export { useSearchCombobox } from './components/shared/useSearchCombobox'
 export type {
@@ -81,7 +80,6 @@ export { EntityRow } from './components/shared/EntityRow'
 export type { EntityRowType, EntityRowStat } from './components/shared/EntityRow'
 export { CatalogChoiceModal } from './components/referenceEntity/choiceCard/CatalogChoiceModal'
 export { ControlButtons } from './components/shared/ControlButtons'
-export { CardHeader } from './components/shared/CardHeader'
 export {
   TECH_LEVEL_STYLES,
   TECH_LEVEL_BG,
