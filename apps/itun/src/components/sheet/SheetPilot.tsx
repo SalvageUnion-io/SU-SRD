@@ -22,7 +22,8 @@ import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { PilotSheet } from './PilotSheet'
 import { SheetHero } from 'component-lib'
 import { RailChip } from './SheetRail'
-import { RailCta, crawlerRailItems, mechRailItems, mechStatusPill } from './SheetRailParts'
+import { RailCta } from './SheetRailParts'
+import { crawlerRailItems, mechRailItems, mechStatusPill } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetPilotProps = SheetViewCommonProps & { pilot: Pilot }

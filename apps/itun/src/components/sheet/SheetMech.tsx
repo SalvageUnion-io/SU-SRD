@@ -25,7 +25,8 @@ import { MechSheet } from './MechSheet'
 import { SheetHero, StatLine } from 'component-lib'
 import { EntityRow } from 'component-lib'
 import { RailChip } from './SheetRail'
-import { RailCta, crawlerRailItems, mechStatusPill, pilotRailItems } from './SheetRailParts'
+import { RailCta } from './SheetRailParts'
+import { crawlerRailItems, mechStatusPill, pilotRailItems } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetMechProps = SheetViewCommonProps & { mech: Mech }

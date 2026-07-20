@@ -30,7 +30,8 @@ import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { SheetHero } from 'component-lib'
 import { RailChip } from './SheetRail'
-import { RailCta, bayStates, mechRailItems, mechStatusPill, pilotRailItems } from './SheetRailParts'
+import { RailCta } from './SheetRailParts'
+import { bayStates, mechRailItems, mechStatusPill, pilotRailItems } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }

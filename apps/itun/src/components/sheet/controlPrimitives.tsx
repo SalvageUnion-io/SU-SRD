@@ -20,7 +20,6 @@ type FreshEntityLookup = {
   get: <T extends EntityType>(type: T, id: string) => EntityForType<T> | null
 }
 
-// biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
 export function freshEntity<T extends EntityType>(
   storeState: FreshEntityLookup,
   type: T,
