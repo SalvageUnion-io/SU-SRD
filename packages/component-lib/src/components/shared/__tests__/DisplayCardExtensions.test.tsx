@@ -15,14 +15,14 @@ describe('resolveDisplayMode', () => {
       compact: true,
       listing: false,
     })
-    expect(resolveDisplayMode('head', undefined, undefined)).toEqual({
+    expect(resolveDisplayMode('listing', undefined, undefined)).toEqual({
       compact: true,
       listing: true,
     })
   })
 
   test('explicit booleans take precedence over mode', () => {
-    expect(resolveDisplayMode('head', false, false)).toEqual({
+    expect(resolveDisplayMode('listing', false, false)).toEqual({
       compact: false,
       listing: false,
     })
@@ -41,12 +41,12 @@ describe('resolveDisplayMode', () => {
 })
 
 describe('DisplayCard mode sugar', () => {
-  test("mode='head' hides body and footer like listing", () => {
+  test("mode='listing' hides body and footer like listing", () => {
     render(
       <DisplayCard
         headerContent={<span>Header</span>}
         footerContent={<span>Foot</span>}
-        mode="head"
+        mode="listing"
       >
         <span>Body</span>
       </DisplayCard>

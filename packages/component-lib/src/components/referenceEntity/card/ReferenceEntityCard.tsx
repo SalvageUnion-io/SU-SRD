@@ -36,16 +36,15 @@ import {
 import { cn } from '../../../utils/cn'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { EntityStatus } from '../../shared/entityStatus'
-import { type EntityDisplayMode, resolveDisplayMode } from '../../shared/displayMode'
+import { type CardDisplayMode, resolveCardMode } from '../../shared/displayMode'
 import { FOCUS_RING, activateOnKey } from '../../chrome/interaction'
 import { Slab } from '../../chrome/Slab'
 import { Badge } from '../../chrome/Badge'
 import { CountStepper } from '../../chrome/CountStepper'
-import { StatusBadge } from '../../chrome/StatusBadge'
 import { STAMP_SEAM } from '../../chrome/stampSeam'
 import { ActivationCost } from '../../shared/ActivationCost'
 import { CardImage } from '../../shared/CardImage'
-import { ControlButtons } from '../../shared/ControlButtons'
+import { CardControlRail } from '../../shared/CardControlRail'
 import type { CardFootMeta } from '../../shared/DisplayCard'
 import { Stat } from '../../shared/Stat'
 import type { StatItem } from '../../shared/statsBarTypes'
@@ -1021,10 +1020,18 @@ function ReferenceEntityCardInner({
   const frameStyle = selected
     ? { border: `3px solid ${frameColor}`, boxShadow: '0 0 0 3px var(--color-rust)' }
     : { border: `3px solid ${frameColor}` }
-  // Controls — one cell of the shared top-right rail (see topRightRail below).
-  const controlsOverlay = overlayControls?.some((c) => !c.hidden) ? (
-    <ControlButtons controls={overlayControls} compact={compact} />
-  ) : null
+  // Condition — routed into the shared rail as a status CONTROL rather than a
+  // bespoke seal, so the badge has one implementation across both card layers.
+  // The prop stays public (it is purely presentational); only the path changed.
+  const railControls: ReferenceEntityControl[] = status
+    ? [
+        {
+          key: '__status',
+          status: { value: status, onClick: onStatusClick, subject: statusSubject ?? entityName },
+        },
+        ...(overlayControls ?? []),
+      ]
+    : (overlayControls ?? [])
   // Label callout — a stamp (or [label|badge] pair) straddling the top-left frame.
   const labelCallout =
     label || labelBadge ? (
@@ -1063,42 +1070,17 @@ function ReferenceEntityCardInner({
       />
     </div>
   ) : null
-  // Condition stamp-seal — the Intact/Damaged/Destroyed status rides the top-right
-  // frame as a tone-filled stamp (clickable to cycle when a handler is supplied),
-  // not a controls-bar button.
-  const statusSealNode = status ? (
-    <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject ?? entityName} />
-  ) : null
-
-  /**
-   * The top-right rail — ONE absolutely-positioned row holding every seal and
-   * the controls cluster, so they sit NEXT TO each other.
-   *
-   * These were four independent `absolute right-{0,2}` nodes, each at z-30 and
-   * each pinned to the same coordinate. Any card carrying two of them (controls
-   * + a condition status, or a multi-select stepper + controls) rendered them
-   * stacked ON TOP of one another, with the later node in DOM order winning.
-   * Collapsing them into a single flex row is what makes them lay out at all.
-   *
-   * `flex-wrap` + `justify-end` keeps a crowded rail (seal + stepper + three
-   * controls) inside the card width instead of overflowing the frame; the row
-   * grows upward from the frame edge because each line is the same height.
-   */
-  const topRightRail = [statusSealNode, selectionSealNode, countSealNode, controlsOverlay].some(
-    Boolean
-  ) ? (
-    <div
-      className={cn(
-        'absolute right-2 z-30 flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-end gap-1.5',
-        compact ? 'top-0 -translate-y-1/2' : '-mt-2'
-      )}
-    >
-      {statusSealNode}
-      {selectionSealNode}
-      {countSealNode}
-      {controlsOverlay}
-    </div>
-  ) : null
+  // The top-right rail now lives at the DisplayCard layer (`CardControlRail`) —
+  // this card inherits it. Selection and multi-select seals ride in as `seals`
+  // because they carry bespoke tone styling the control variants don't cover;
+  // the status and action cells come through `controls`.
+  const topRightRail = (
+    <CardControlRail
+      controls={railControls}
+      compact={compact}
+      seals={[selectionSealNode, countSealNode]}
+    />
+  )
 
   // BADGE — the SHORTFORM token: a single tone-filled pill with the type stamp,
   // the name, and the classification tail (TL for gear/chassis, Ability Tree ·
@@ -2026,7 +2008,7 @@ export type ReferenceEntityCardWrapperProps = Omit<ReferenceEntityCardProps, 'da
   size?: ReferenceEntityCardSize
   compact?: boolean
   listing?: boolean
-  mode?: EntityDisplayMode
+  mode?: CardDisplayMode
 }
 
 /**
@@ -2049,10 +2031,9 @@ export function ReferenceEntityCard({
 }: ReferenceEntityCardWrapperProps): ReactNode {
   if (!data) return null
 
-  // `badge` is its own size; otherwise resolve from the mode / compact / listing sugar.
-  const { compact, listing } = resolveDisplayMode(mode, compactProp, listingProp)
-  const resolvedSize =
-    size ?? (mode === 'badge' ? 'badge' : listing ? 'listing' : compact ? 'compact' : 'full')
+  // The size / mode / compact / listing reconciliation is the DisplayCard
+  // layer's rule — inherited, not restated here.
+  const resolvedSize = resolveCardMode({ size, mode, compact: compactProp, listing: listingProp })
   // `status` supersets `damaged` — a damaged/destroyed status greys the header too.
   const effectiveDamaged = damaged || status === 'damaged' || status === 'destroyed'
 

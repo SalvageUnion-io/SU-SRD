@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
-import { ControlButtons } from './ControlButtons'
+import { CardControlRail } from './CardControlRail'
 import { Stat } from './Stat'
 import type { StatItem } from './statsBarTypes'
 import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntity/referenceEntityHelpers'
@@ -9,10 +9,9 @@ import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityD
 import { StickyHeaderContext, StickyOffsetContext } from './StickyHeaderContext'
 import { useStickyCard } from './useStickyCard'
 import { CalloutMetaStamp } from '../referenceEntity/ReferenceEntityDisplay/components/CalloutMetaStamp'
-import { StatusBadge } from '../chrome/StatusBadge'
 import type { EntityStatus } from '../chrome/StatusBadge'
 import { resolveDisplayMode } from './displayMode'
-import type { EntityDisplayMode } from './displayMode'
+import type { CardDisplayMode } from './displayMode'
 
 /** Inline foot meta entry (design-spec §2.1 `.ec__metafoot`), e.g. AP COST · 1 */
 export type CardFootMeta = { label: string; value: ReactNode }
@@ -52,12 +51,13 @@ type DisplayCardProps = {
   compact?: boolean
   /** Header-only rendering: hides body, footer, and tabs. Orthogonal to compact. */
   listing?: boolean
-  /** Display-mode sugar over `compact`/`listing` (design-spec §2.1):
-   * full = neither, compact = compact only, head = compact + listing.
-   * Explicit booleans take precedence when both are provided. */
-  mode?: EntityDisplayMode
-  /** Intact/Damaged/Destroyed badge, absolute top-right (design-spec §2.1
-   * `.ec__status`). Opt-in; purely visual at this layer. */
+  /** Display-mode sugar over `compact`/`listing` — the vocabulary and its
+   * semantics live in `displayMode.ts`. Explicit booleans take precedence when
+   * both are provided. */
+  mode?: CardDisplayMode
+  /** Intact/Damaged/Destroyed condition. Presentational sugar: it is folded
+   * into a `status` CONTROL and rendered by the shared rail, so the condition
+   * badge has exactly one implementation. */
   status?: EntityStatus
   /** Cycle handler for the status badge (Intact → Damaged → Destroyed) */
   onStatusClick?: () => void
@@ -220,6 +220,19 @@ export function DisplayCard({
       ? DEFAULT_TAB_KEY
       : activeTabKey
 
+  // `status` is presentational sugar over the controls API: it folds into a
+  // status CONTROL so the condition badge has exactly ONE implementation (the
+  // shared rail), rather than a second inline rendering inside the header row.
+  const railControls: ReferenceEntityControl[] = status
+    ? [
+        {
+          key: '__status',
+          status: { value: status, onClick: onStatusClick, subject: statusSubject },
+        },
+        ...(controls ?? []),
+      ]
+    : (controls ?? [])
+
   // Resolve card-level click: onCardClick prop → fallback to controls with cardClick
   const cardClickControls = !onCardClick && controls ? controls.filter((c) => c.cardClick) : []
   if (cardClickControls.length > 1) {
@@ -331,16 +344,7 @@ export function DisplayCard({
         </div>
       )}
 
-      {controls && (
-        <div
-          className={cn(
-            'absolute right-0 z-30 mr-1.5',
-            isCompact ? 'top-0 -translate-y-1/2' : '-mt-2'
-          )}
-        >
-          <ControlButtons controls={controls} compact={isCompact} />
-        </div>
-      )}
+      <CardControlRail controls={railControls} compact={isCompact} />
 
       {/* Inner wrapper clips backgrounds to border-radius.
           overflow-visible when stickyHeader so position:sticky and absolute overlays work.
@@ -394,22 +398,7 @@ export function DisplayCard({
             }}
             data-testid={headerTestId}
           >
-            {status ? (
-              // Status rides the header line, right-aligned beside the title.
-              <>
-                <div className="flex min-w-0 flex-1 items-center gap-2 overflow-visible">
-                  {headerContent}
-                </div>
-                <StatusBadge
-                  status={status}
-                  onClick={onStatusClick}
-                  subject={statusSubject}
-                  className="shrink-0"
-                />
-              </>
-            ) : (
-              headerContent
-            )}
+            {headerContent}
           </div>
 
           {/* Sub-header band (design-spec four-band model) — a darker shade of

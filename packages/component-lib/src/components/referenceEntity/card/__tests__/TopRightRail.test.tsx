@@ -26,10 +26,15 @@ beforeAll(async () => {
 
 afterEach(cleanup)
 
-/** The nearest ancestor that lays its children out in a row. */
+/**
+ * The rail itself — the one absolutely-positioned flex row. Cells sit at
+ * varying depths inside it (a control rides its own `ControlButtons` cluster,
+ * a seal is a direct child), so this climbs to the row rather than to the
+ * nearest `div.flex`, which would stop at a cluster wrapper.
+ */
 function rail(el: HTMLElement): HTMLElement {
-  const parent = el.closest('div.flex') as HTMLElement | null
-  if (!parent) throw new Error('no flex ancestor — the cell is not in a row')
+  const parent = el.closest('div.absolute.flex') as HTMLElement | null
+  if (!parent) throw new Error('no absolute flex ancestor — the cell is not in the rail')
   return parent
 }
 
@@ -68,8 +73,10 @@ describe('top-right rail', () => {
     expect(row.className).toContain('flex-wrap')
     // A cell that re-grows its own `absolute` is the exact regression: it would
     // leave the row and re-stack on whatever else claims that coordinate.
-    for (const cell of Array.from(row.children)) {
-      expect(cell.className).not.toContain('absolute')
+    // Checked over every descendant, not just direct children, since cells now
+    // sit at varying depths inside the row.
+    for (const cell of Array.from(row.querySelectorAll('*'))) {
+      expect(cell.classList.contains('absolute')).toBe(false)
     }
     expect(container.querySelectorAll('.z-30').length).toBeLessThanOrEqual(2)
   })

@@ -1,0 +1,67 @@
+import { Fragment } from 'react'
+import type { ReactNode } from 'react'
+import { cn } from '../../utils/cn'
+import { ControlButtons } from './ControlButtons'
+import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
+
+type CardControlRailProps = {
+  /** Every card affordance — action buttons and the typed item variants
+   * (stepper / badge / status / link). */
+  controls?: ReferenceEntityControl[]
+  /** Compact geometry: the rail rides centred on the frame edge rather than
+   * hanging above it. */
+  compact?: boolean
+  /** Extra nodes rendered between the status cell and the action cluster —
+   * the entity card's selection and multi-select seals, which carry bespoke
+   * tone styling the `controls` variants deliberately don't cover. Falsy
+   * entries are dropped, so a caller can pass conditionals positionally. */
+  seals?: ReactNode[]
+}
+
+/**
+ * THE card control rail — ONE absolutely-positioned row, riding the card's
+ * top-right frame edge, holding every seal and the action cluster so they sit
+ * NEXT TO each other.
+ *
+ * This was two separate implementations. `DisplayCard` pinned a lone controls
+ * cluster at `right-0` and rendered the condition badge somewhere else entirely
+ * (inline, inside the header row), while `ReferenceEntityCard` grew the real
+ * thing: a flex row collapsing the status seal, selection seal, count seal and
+ * controls into one line, because any card carrying two of them had been
+ * stacking them on top of one another at the same coordinate. Lifting the
+ * entity card's version here gives both layers the working geometry, and gives
+ * `status` exactly one rendering path — a `controls` entry — instead of two.
+ *
+ * `flex-wrap` + `justify-end` keeps a crowded rail (seal + stepper + three
+ * controls) inside the card width instead of overflowing the frame; the row
+ * grows upward from the frame edge because each line is the same height.
+ */
+export function CardControlRail({ controls, compact = false, seals }: CardControlRailProps) {
+  const visible = (controls ?? []).filter((c) => !c.hidden)
+  // Status rides the FIRST cell — ahead of the seals and the action cluster —
+  // so a card carrying both a condition and a selection seal keeps the
+  // condition leftmost, where it has always sat.
+  const statusControls = visible.filter((c) => c.status)
+  const actionControls = visible.filter((c) => !c.status)
+  const visibleSeals = (seals ?? []).filter(Boolean)
+
+  if (statusControls.length === 0 && actionControls.length === 0 && visibleSeals.length === 0) {
+    return null
+  }
+
+  return (
+    <div
+      className={cn(
+        'absolute right-2 z-30 flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-end gap-1.5',
+        compact ? 'top-0 -translate-y-1/2' : '-mt-2'
+      )}
+    >
+      {statusControls.length > 0 && <ControlButtons controls={statusControls} compact={compact} />}
+      {visibleSeals.map((seal, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: a fixed positional rail (selection seal, then count seal) — the index IS the identity
+        <Fragment key={i}>{seal}</Fragment>
+      ))}
+      {actionControls.length > 0 && <ControlButtons controls={actionControls} compact={compact} />}
+    </div>
+  )
+}

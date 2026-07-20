@@ -1,18 +1,19 @@
 import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import { getDisplayName, getTechLevel, getTechLevelNumber, isAbility } from 'salvageunion-reference'
+import type { CardDisplayMode } from '../../shared/displayMode'
 import { TECH_LEVEL_BG } from '../../shared/techLevelStyles'
 import { borderColorFromHeaderBg, calculateBackgroundColor } from '../referenceEntityHelpers'
 /** The six card domains + `action`. Lives here, with the domain logic. */
 export type CardDomain = 'pilot' | 'mech' | 'crawler' | 'actor' | 'gear' | 'glossary' | 'action'
 
-/** The densities a `ReferenceEntityCard` renders at. Nested entities are ALWAYS
- * 'compact'; 'listing' uses the same compact header treatment, rendered as a
- * solid full-colour domain row; 'badge' is the SHORTFORM token — a single
- * tone-filled pill showing only the type stamp, name, and TL / Tree · Level.
- * 'catalog' is the SRD index tile: compact, artwork + description ONLY, with
- * every nested element (entities, actions, choices, patterns, roll tables)
- * suppressed so a listing page reads uniformly regardless of entity type. */
-export type ReferenceEntityCardSize = 'full' | 'compact' | 'listing' | 'badge' | 'catalog'
+/**
+ * The densities a `ReferenceEntityCard` renders at — INHERITED from the
+ * `DisplayCard` layer rather than restated here, so the two layers cannot drift
+ * apart the way `head` (DisplayCard) and `listing` (entity card) once did.
+ * The vocabulary and its semantics live in `shared/displayMode.ts`; this alias
+ * is kept because `size` is the entity card's spelling of the same axis.
+ */
+export type ReferenceEntityCardSize = CardDisplayMode
 
 /**
  * SCHEMA → DOMAIN — the single, exhaustive source of truth for which of the six
