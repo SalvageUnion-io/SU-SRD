@@ -256,7 +256,6 @@ export { PILOT_ROLL_TABLE_NAMES, rollForPilotField } from './components/wizard/r
 export type { PilotRollField, RollTableDeps } from './components/wizard/rollTableHelpers'
 export { classDescription, selectableClasses } from './components/wizard/classOptions'
 export { SelectorDialog } from './components/shared/SelectorDialog'
-export { ContextualEntityDisplay } from './components/shared/ContextualEntityDisplay'
 export { RosterSkeleton } from './components/shared/RosterSkeleton'
 export { DeleteConfirmDialog } from './components/shared/DeleteConfirmDialog'
 export { SheetSkeleton } from './components/sheet/SheetSkeleton'

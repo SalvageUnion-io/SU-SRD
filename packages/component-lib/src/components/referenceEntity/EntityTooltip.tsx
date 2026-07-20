@@ -5,14 +5,36 @@ import { Tooltip } from '@base-ui/react/tooltip'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
 import { Tooltip as SimpleTooltip } from '../ui/tooltip'
 
-type EntityTooltipProps = {
+type EntityTooltipBase = {
   schemaName: SURefEnumSchemaName
-  entityId: string
   children: ReactNode
   /** Delay before showing tooltip in ms (default: 200) */
   openDelay?: number
   /** Whether the wrapper should take full width (default: false) */
   fullWidth?: boolean
+}
+
+/**
+ * Address the entity by id, OR by name for the schemas the builders key by name
+ * (chassis, systems, modules). Modelled as a union so passing both — two
+ * disagreeing addresses for one entity — is a compile error rather than a
+ * silent precedence rule.
+ */
+type EntityTooltipProps = EntityTooltipBase &
+  ({ entityId: string; entityName?: never } | { entityName: string; entityId?: never })
+
+/**
+ * Resolve an entity id from a name, for schemas whose builders store names
+ * rather than ids. Absorbed from the former `ContextualEntityDisplay`, which was
+ * a thin wrapper whose only real content was this lookup plus a fallback
+ * EntityTooltip already had.
+ */
+function resolveIdByName(schemaName: SURefEnumSchemaName, name: string): string | undefined {
+  const entity = SalvageUnionReference.findIn(
+    schemaName,
+    (e): e is typeof e => 'name' in e && (e as { name: unknown }).name === name
+  )
+  return entity?.id
 }
 
 function getKeywordDescription(entity: unknown): string | null {
@@ -35,19 +57,31 @@ function getKeywordDescription(entity: unknown): string | null {
  * Keywords render as a simple text tooltip; other entities render as a full card.
  *
  * @example
+ * // By id
  * <EntityTooltip schemaName="systems" entityId="laser-cannon-id">
  *   <Text>Hover me to see details</Text>
+ * </EntityTooltip>
+ *
+ * @example
+ * // By name — for schemas the builders key by name (chassis, systems, modules)
+ * <EntityTooltip schemaName="chassis" entityName={chassisName}>
+ *   <span>{chassisName}</span>
  * </EntityTooltip>
  */
 export function EntityTooltip({
   schemaName,
-  entityId,
   children,
   openDelay = 200,
   fullWidth = false,
+  ...address
 }: EntityTooltipProps) {
   const closeDelay = 100
-  const entity = SalvageUnionReference.get(schemaName, entityId)
+  const entityId =
+    address.entityId ??
+    (address.entityName ? resolveIdByName(schemaName, address.entityName) : undefined)
+  // An unresolvable address renders the children bare — a missing entity must
+  // never cost the caller its own content.
+  const entity = entityId ? SalvageUnionReference.get(schemaName, entityId) : undefined
 
   if (!entity) {
     return <>{children}</>
