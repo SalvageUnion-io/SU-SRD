@@ -9,12 +9,8 @@ type EntityTooltipProps = {
   schemaName: SURefEnumSchemaName
   entityId: string
   children: ReactNode
-  /** Whether to show an arrow pointing to the trigger (default: false) */
-  showArrow?: boolean
   /** Delay before showing tooltip in ms (default: 200) */
   openDelay?: number
-  /** Delay before hiding tooltip in ms (default: 100) */
-  closeDelay?: number
   /** Whether the wrapper should take full width (default: false) */
   fullWidth?: boolean
 }
@@ -47,11 +43,10 @@ export function EntityTooltip({
   schemaName,
   entityId,
   children,
-  showArrow = false,
   openDelay = 200,
-  closeDelay = 100,
   fullWidth = false,
 }: EntityTooltipProps) {
+  const closeDelay = 100
   const entity = SalvageUnionReference.get(schemaName, entityId)
 
   if (!entity) {
@@ -109,7 +104,6 @@ export function EntityTooltip({
         <Tooltip.Portal>
           <Tooltip.Positioner sideOffset={5} align="start">
             <Tooltip.Popup className="z-50 max-h-[80vh] max-w-[500px] overflow-y-auto border-none bg-transparent p-0 shadow-2xl">
-              {showArrow && <Tooltip.Arrow />}
               <ReferenceEntityCard data={entity} size="medium" />
             </Tooltip.Popup>
           </Tooltip.Positioner>

@@ -35,7 +35,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import type { EntityState } from '../../stores/entityStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
 import { ActiveItemBand as ActiveItemBandView, CountStepper, StorageBay } from 'component-lib'
-import type { ActiveItemBandView as ActiveItemBandViewModel } from 'component-lib'
+import type { ActiveItemBandView as ActiveItemBandViewModel, BandButton } from 'component-lib'
 import {
   VENT_PATCH,
   critDamagePatch,
@@ -280,7 +280,11 @@ function MechBand({
       }
     }
     if (prompt.kind === 'crit') {
-      const actions =
+      // Annotated: without it TS widens `variant` to `string` in this
+      // intermediate const, which no longer satisfies BandButton's
+      // `'danger' | 'go'` union (the two mutually-exclusive booleans it replaced
+      // couldn't catch this class of mistake at all).
+      const actions: BandButton[] | undefined =
         prompt.effect === null
           ? [{ label: 'Roll Critical Damage', onClick: rollCritical, variant: 'danger' }]
           : prompt.effect.destroyed

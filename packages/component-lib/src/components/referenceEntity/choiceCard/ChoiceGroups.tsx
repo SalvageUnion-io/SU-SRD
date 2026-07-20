@@ -54,6 +54,7 @@ function ChoiceOption({
   description,
   chosen,
   readOnly,
+  disabled,
   onToggle,
   toneColor,
   compact,
@@ -62,6 +63,8 @@ function ChoiceOption({
   description?: string
   chosen: boolean
   readOnly?: boolean
+  /** At-cap multi-select: an unchosen option can't be added until one is removed. */
+  disabled?: boolean
   onToggle: () => void
   toneColor?: string
   compact?: boolean
@@ -105,8 +108,14 @@ function ChoiceOption({
     <button
       type="button"
       aria-pressed={chosen}
+      disabled={disabled}
       onClick={readOnly ? undefined : onToggle}
-      className={cn('w-full text-left', wrap, readOnly && 'cursor-default')}
+      className={cn(
+        'w-full text-left',
+        wrap,
+        readOnly && 'cursor-default',
+        disabled && 'cursor-not-allowed opacity-30'
+      )}
     >
       {card}
     </button>
@@ -252,24 +261,31 @@ function ChoiceOptionGroup({
   // small n/max counter.
   const multi = isMultiSelectChoice(choice)
   const counter = multi && typeof cap === 'number' ? `${selected.length}/${cap}` : undefined
+  // At the cap, an UNCHOSEN option is disabled — a new pick can't exceed the cap
+  // (deselecting a chosen option stays available).
+  const atCap = multi && typeof cap === 'number' && selected.length >= cap
   const options = getChoiceCardOptions(choice)
   return (
     <div style={toneVar}>
       {counter && !readOnly && <div className="mb-1 font-body text-nano text-ink-2">{counter}</div>}
       <div className={cn('gap-1.5', compact ? 'columns-1' : 'columns-1 sm:columns-2')}>
-        {options.map((option) => (
-          <div key={option.value} className="mb-1.5 break-inside-avoid pt-2.5">
-            <ChoiceOption
-              label={option.label}
-              description={option.description}
-              chosen={selected.includes(option.value)}
-              readOnly={readOnly}
-              onToggle={() => onToggleOption(option.value)}
-              toneColor={toneColor}
-              compact={compact}
-            />
-          </div>
-        ))}
+        {options.map((option) => {
+          const chosen = selected.includes(option.value)
+          return (
+            <div key={option.value} className="mb-1.5 break-inside-avoid pt-2.5">
+              <ChoiceOption
+                label={option.label}
+                description={option.description}
+                chosen={chosen}
+                readOnly={readOnly}
+                disabled={!readOnly && atCap && !chosen}
+                onToggle={() => onToggleOption(option.value)}
+                toneColor={toneColor}
+                compact={compact}
+              />
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -298,12 +314,19 @@ export function ChoiceGroups({
   const toggleOption = useCallback(
     (choice: SURefObjectChoice, value: string) => {
       const current = selections[choice.id] ?? []
+      // The cap is the LAST word: even though at-cap options render disabled,
+      // the state transition itself also refuses to grow past the cap.
       commit({
         ...selections,
-        [choice.id]: toggleSelection(current, value, isMultiSelectChoice(choice)),
+        [choice.id]: toggleSelection(
+          current,
+          value,
+          isMultiSelectChoice(choice),
+          resolveMultiSelectCap(choice, parent)
+        ),
       })
     },
-    [selections, commit]
+    [selections, commit, parent]
   )
   const freeTextChange = useCallback(
     (choice: SURefObjectChoice, value: string) => {

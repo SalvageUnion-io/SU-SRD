@@ -96,21 +96,45 @@ describe('ChoiceGroups — multi-select cap (scalesWithField)', () => {
     expect(screen.getByText('0/2')).toBeTruthy()
   })
 
-  test('shows the cap as an informational counter but allows selecting beyond it (SRD)', () => {
+  test('the cap disables unchosen options and rejects picks beyond it', () => {
     render(<ChoiceGroups choices={[modificationChoice]} parent={{ techLevel: 1 }} />)
     const rangefinder = screen.getByRole('button', { name: /Rangefinder/ })
     const laser = screen.getByRole('button', { name: /Laser Guidance/ })
+
+    // Below the cap nothing is disabled.
+    expect((laser as HTMLButtonElement).disabled).toBe(false)
 
     fireEvent.click(rangefinder)
     expect(rangefinder.getAttribute('aria-pressed')).toBe('true')
     expect(screen.getByText('1/1')).toBeTruthy()
 
-    // Cap is 1, but the SRD lets the user keep selecting — options are not disabled.
-    expect((laser as HTMLButtonElement).disabled).toBe(false)
+    // Cap is 1 (techLevel) and met: the unchosen options disable, and even a
+    // forced click cannot push the selection past the cap.
+    expect((laser as HTMLButtonElement).disabled).toBe(true)
     fireEvent.click(laser)
-    expect(laser.getAttribute('aria-pressed')).toBe('true')
-    // The counter reflects the over-cap selection (2/1).
-    expect(screen.getByText('2/1')).toBeTruthy()
+    expect(laser.getAttribute('aria-pressed')).toBe('false')
+    expect(screen.getByText('1/1')).toBeTruthy()
+
+    // The chosen option stays clickable — deselecting reopens the cap.
+    expect((rangefinder as HTMLButtonElement).disabled).toBe(false)
+    fireEvent.click(rangefinder)
+    expect(rangefinder.getAttribute('aria-pressed')).toBe('false')
+    expect((laser as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  test('a higher-tech parent widens the cap (Modifications ≤ TL)', () => {
+    render(<ChoiceGroups choices={[modificationChoice]} parent={parent} />)
+    const rangefinder = screen.getByRole('button', { name: /Rangefinder/ })
+    const laser = screen.getByRole('button', { name: /Laser Guidance/ })
+    const highCalibre = screen.getByRole('button', { name: /High Calibre Rounds/ })
+
+    fireEvent.click(rangefinder)
+    fireEvent.click(laser)
+    // techLevel: 2 → cap 2 reached; the third option disables and won't select.
+    expect(screen.getByText('2/2')).toBeTruthy()
+    expect((highCalibre as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.click(highCalibre)
+    expect(highCalibre.getAttribute('aria-pressed')).toBe('false')
   })
 })
 

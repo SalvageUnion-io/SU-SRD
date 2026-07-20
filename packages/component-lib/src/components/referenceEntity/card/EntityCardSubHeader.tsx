@@ -15,15 +15,6 @@ export type EntityCardSubHeaderCell = {
   labelBg?: string
 }
 
-/** A cohesive labelled stat group in the sub-header (e.g. "Bonus per Tech
- * Level" + its "+N" cells) — a label cell followed by "+N" cells, all the SAME
- * horizontal Stat treatment as the trait cells (black border, same
- * size/padding), wrapped in ONE container so the block line-breaks together. */
-export type EntityCardSubHeaderGroup = {
-  label: string
-  cells: EntityCardSubHeaderCell[]
-}
-
 type EntityCardSubHeaderProps = {
   /** Darker shade of the domain/tech-level/rust tone (a raw CSS colour). */
   bgColor: string
@@ -32,12 +23,6 @@ type EntityCardSubHeaderProps = {
   /** Leading node rendered FIRST in the row — e.g. an action's EP/AP
    * `ActivationCost`, which must lead before Range/Damage/Traits. */
   leading?: ReactNode
-  /** Optional cohesive labelled stat group (e.g. bonus-per-tech-level), rendered
-   * as one wrap-together block after the cells. */
-  group?: EntityCardSubHeaderGroup
-  /** Right-aligned trailing node (e.g. the status chip), laid out space-between
-   * against the trait cells. Absent ⇒ the band renders its plain packed layout. */
-  trailing?: ReactNode
   compact?: boolean
   /** Foreground for this band — the SAME value the card gives its header title
    * (`onBandText`). The sub-header rides a darker shade of the same tone, so it
@@ -52,22 +37,17 @@ type EntityCardSubHeaderProps = {
  *
  * A feature of the card BASE: every card — entity, action, or NPC, full or
  * nested — renders this same band. Its content is horizontal Stat cells
- * (entity TRAITS, or an action's range/damage/traits, plus read-only choices),
- * an optional `leading` node (an action's EP box), and an optional cohesive
- * `group` (a green-tinted label + "+N" cells that wrap together — same cell
- * treatment as the traits, e.g. bonus-per-tech-level).
+ * (entity TRAITS, or an action's range/damage/traits, plus read-only choices)
+ * and an optional `leading` node (an action's EP box).
  */
 export function EntityCardSubHeader({
   bgColor,
   cells,
   leading,
-  group,
-  trailing,
   compact = false,
   onBandText = 'text-paper',
 }: EntityCardSubHeaderProps) {
-  const hasGroup = !!group && group.cells.length > 0
-  if (!leading && cells.length === 0 && !hasGroup && !trailing) return null
+  if (!leading && cells.length === 0) return null
 
   // Cell size ladder, nudged up one notch: a FULL card's cells are the default
   // (text-sm); a compact/nested card's cells are one step down (`compact` →
@@ -79,13 +59,17 @@ export function EntityCardSubHeader({
   // the rulebook's trait line rather than a row of stamps.
   const cellToText = (cell: EntityCardSubHeaderCell) =>
     cell.value != null && cell.value !== '' ? `${cell.label} ${cell.value}` : cell.label
-  const parts = [
-    ...cells.map(cellToText),
-    ...(group && group.cells.length > 0 ? [group.label, ...group.cells.map(cellToText)] : []),
-  ]
+  const parts = cells.map(cellToText)
 
-  const inner = (
-    <>
+  return (
+    <div
+      className={cn(
+        // px-3 (both sizes) so sub-header content shares the seam/title left edge.
+        'flex w-full flex-wrap items-center gap-1.5',
+        compact ? 'px-3 py-1' : 'px-3 py-1.5'
+      )}
+      style={{ backgroundColor: bgColor }}
+    >
       {leading}
       {parts.length > 0 && (
         <span
@@ -98,37 +82,6 @@ export function EntityCardSubHeader({
           {parts.join(' // ')}
         </span>
       )}
-    </>
-  )
-
-  // No trailing node ⇒ the plain packed band (DOM-identical to read-only today).
-  if (!trailing) {
-    return (
-      <div
-        className={cn(
-          // px-3 (both sizes) so sub-header content shares the seam/title left edge.
-          'flex w-full flex-wrap items-center gap-1.5',
-          compact ? 'px-3 py-1' : 'px-3 py-1.5'
-        )}
-        style={{ backgroundColor: bgColor }}
-      >
-        {inner}
-      </div>
-    )
-  }
-
-  // With a trailing node (e.g. the status chip): traits left, trailing right,
-  // space-between across the band.
-  return (
-    <div
-      className={cn(
-        'flex w-full flex-wrap items-center justify-between gap-1.5',
-        compact ? 'px-3 py-1' : 'px-3 py-1.5'
-      )}
-      style={{ backgroundColor: bgColor }}
-    >
-      <div className="flex min-w-0 flex-wrap items-center gap-1.5">{inner}</div>
-      <div className="shrink-0">{trailing}</div>
     </div>
   )
 }

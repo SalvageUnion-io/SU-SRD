@@ -6,7 +6,6 @@ import { Caption } from '../../../stories/_harness'
 import type { EntityStatus } from '../../shared/entityStatus'
 import type { StatItem } from '../../shared/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
-import { selectControl } from '../ReferenceEntityDisplay/referenceEntityControls'
 import { ReferenceEntityCard } from './ReferenceEntityCard'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -209,8 +208,8 @@ export const BadgeMode: Story = () => (
 
 /**
  * A SELECTABLE wizard chassis: the poster double-halo + a `Select` control +
- * whole-card click. Legacy uses `selectControl`; the editable column adds
- * the halo (box-shadow, non-layout-shifting) and card-click affordance.
+ * whole-card click. The editable column adds the halo (box-shadow,
+ * non-layout-shifting) and card-click affordance via a typed control.
  */
 export const SelectableChassis: Story = () => {
   const [selected, setSelected] = useState(false)
@@ -223,7 +222,15 @@ export const SelectableChassis: Story = () => {
           data={chassis}
           selected={selected}
           onCardClick={toggle}
-          controls={[selectControl(toggle, selected)]}
+          controls={[
+            {
+              key: 'select',
+              label: selected ? 'Selected' : 'Select',
+              onClick: toggle,
+              ariaLabel: selected ? 'Deselect' : 'Select',
+              variant: 'primary',
+            },
+          ]}
         />
       }
     />
@@ -232,26 +239,16 @@ export const SelectableChassis: Story = () => {
 
 /**
  * A SHEET ITEM with a status cycle: the Intact → Damaged → Destroyed chip in the
- * header stat axis. Damaged/Destroyed greys the whole tone; Destroyed also drops
- * the red danger scrim over the body.
+ * header stat axis. A damaged/destroyed status greys the whole tone.
  */
 export const StatusCycleItem: Story = () => {
   const [status, setStatus] = useState<EntityStatus>('intact')
   const cycle = () =>
     setStatus((s) => (s === 'intact' ? 'damaged' : s === 'damaged' ? 'destroyed' : 'intact'))
-  const isDown = status === 'damaged' || status === 'destroyed'
   return (
     <Compare
       readOnly={<ReferenceEntityCard data={system} />}
-      editable={
-        <ReferenceEntityCard
-          data={system}
-          status={status}
-          onStatusClick={cycle}
-          damaged={isDown}
-          damageOverlayText={status === 'destroyed' ? 'Destroyed' : undefined}
-        />
-      }
+      editable={<ReferenceEntityCard data={system} status={status} onStatusClick={cycle} />}
     />
   )
 }
@@ -303,7 +300,6 @@ export const MultiSelectCard: Story = () => {
           data={system}
           size="medium"
           count={count}
-          countMax={5}
           onCountChange={setCount}
           cardClickLabel={system.name ?? undefined}
         />
@@ -313,30 +309,27 @@ export const MultiSelectCard: Story = () => {
 }
 
 /**
- * TL-SCALING equipment (Custom Sniper Rifle): the effective tech level drives the
- * Modification cap AND the `perTechLevel` Damage datavalue. Two contexts:
- *  · CONTROLLED FROM WITHOUT — `effectiveTechLevel` set, no handler → the header
- *    TL is read-only, but Damage + the Modification cap reflect it (rust border).
- *  · EDITABLE IN PLACE — `onTechLevelChange` present → the header TL is an
- *    editable +/- stepper (floors at the base TL1); Damage + cap update live.
+ * TL-SCALING equipment (Custom Sniper Rifle): the host's tech level — supplied
+ * from without via `scalingParent` (the crawler level in ITUN) — drives the
+ * Modification cap AND the `perTechLevel` Damage datavalue. The header TL shows
+ * the effective level with a rust `modified` border when above base.
  */
 export const TechLevelScaling: Story = () => {
   const [selections, setSelections] = useState<ChoiceSelections>({})
-  const [techLevel, setTechLevel] = useState(3)
   return (
     <Compare
       readOnly={
-        // Controlled from without: TL3 supplied, header read-only, Damage 2→4.
-        <ReferenceEntityCard data={choiceEquip} effectiveTechLevel={3} />
+        // Controlled from without: TL3 supplied, Damage 2→4 (rust border).
+        <ReferenceEntityCard data={choiceEquip} scalingParent={{ techLevel: 3 }} />
       }
       editable={
-        // Editable in place: bump the header TL stepper to watch the cap + Damage grow.
+        // The same host TL with the choice write layer engaged: the Modification
+        // cap follows the scaled level.
         <ReferenceEntityCard
           data={choiceEquip}
           selections={selections}
           onSelectionChange={setSelections}
-          effectiveTechLevel={techLevel}
-          onTechLevelChange={setTechLevel}
+          scalingParent={{ techLevel: 3 }}
         />
       }
     />
@@ -359,7 +352,6 @@ export const TechLevelScaling: Story = () => {
  */
 export const ChoiceEquipment: Story = () => {
   const [selections, setSelections] = useState<ChoiceSelections>({})
-  const [techLevel, setTechLevel] = useState(1)
   return (
     <Compare
       readOnly={<ReferenceEntityCard data={choiceEquip} />}
@@ -368,8 +360,6 @@ export const ChoiceEquipment: Story = () => {
           data={choiceEquip}
           selections={selections}
           onSelectionChange={setSelections}
-          effectiveTechLevel={techLevel}
-          onTechLevelChange={setTechLevel}
         />
       }
     />

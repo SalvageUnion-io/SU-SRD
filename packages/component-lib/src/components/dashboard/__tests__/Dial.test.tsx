@@ -51,9 +51,24 @@ describe('Dial', () => {
     expect(container.querySelector('.pc-cell-active')?.textContent).toContain('Tables')
   })
 
+  // Queried as `option`, not `button`: the dial container is a listbox
+  // (dashboard.md §10.2), so each cell carries role="option" — which OVERRIDES
+  // the implicit button role even though the clickable cell is still a <button>
+  // element. Asserting the option role here is the stronger test anyway: it pins
+  // the listbox semantics the spec requires, not just that something is
+  // clickable.
   test('clicking a track item jumps the active slot to it', () => {
     const { container, getByRole } = render(<ControlledDial />)
-    fireEvent.click(getByRole('button', { name: 'Tables' }))
+    fireEvent.click(getByRole('option', { name: 'Tables' }))
     expect(container.querySelector('.pc-cell-active')?.textContent).toContain('Tables')
+  })
+
+  test('the dial exposes its cells as listbox options with selection state', () => {
+    const { getAllByRole, getByRole } = render(<ControlledDial />)
+    expect(getByRole('listbox')).toBeTruthy()
+    const options = getAllByRole('option')
+    expect(options.length).toBeGreaterThan(0)
+    // Exactly one option is selected at a time.
+    expect(options.filter((o) => o.getAttribute('aria-selected') === 'true')).toHaveLength(1)
   })
 })

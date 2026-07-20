@@ -115,10 +115,14 @@ export function ghostActionTone(hostBase: string): {
   sub: string
   frame: string
 } {
+  // The warm cream the bands fade toward, and its ink-weighted counterpart for
+  // the frame — both derived from tokens (band-cream / ink), not literals.
+  const cream = 'var(--color-band-cream)'
+  const creamFrame = 'color-mix(in srgb, var(--color-ink) 30%, var(--color-band-cream))'
   return {
-    header: `color-mix(in srgb, ${hostBase} 32%, rgb(233, 230, 222))`,
-    sub: `color-mix(in srgb, ${hostBase} 46%, rgb(233, 230, 222))`,
-    frame: `color-mix(in srgb, ${hostBase} 55%, rgb(184, 178, 165))`,
+    header: `color-mix(in srgb, ${hostBase} 32%, ${cream})`,
+    sub: `color-mix(in srgb, ${hostBase} 46%, ${cream})`,
+    frame: `color-mix(in srgb, ${hostBase} 55%, ${creamFrame})`,
   }
 }
 

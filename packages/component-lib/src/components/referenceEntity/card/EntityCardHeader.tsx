@@ -26,8 +26,6 @@ type EntityCardHeaderProps = {
   rightContent?: ReactNode
   /** Listing mode: header stats render as horizontal cells (up to ~2 rows). */
   listing?: boolean
-  /** Write layer: dim the header band (a de-emphasised / inactive header). */
-  dim?: boolean
   compact?: boolean
 }
 
@@ -52,7 +50,6 @@ export function EntityCardHeader({
   stats,
   rightContent,
   listing = false,
-  dim = false,
   compact = false,
 }: EntityCardHeaderProps) {
   const accent = accentSurface(bg, bgColor)
@@ -88,7 +85,6 @@ export function EntityCardHeader({
           // items-center so the (usually one-line) title centers vertically
           // against a taller wrapped flavor/stat cluster.
           'flex w-full min-w-0 items-center gap-3 px-3 py-1.5',
-          dim && 'opacity-60',
           accent.className
         )}
         style={accent.style}
@@ -108,7 +104,6 @@ export function EntityCardHeader({
     <div
       className={cn(
         'flex w-full min-w-0 items-center justify-between gap-4 px-3 py-3',
-        dim && 'opacity-60',
         accent.className
       )}
       style={accent.style}

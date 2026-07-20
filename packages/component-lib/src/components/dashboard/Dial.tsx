@@ -119,8 +119,21 @@ function DialCell({
       </button>
     )
   }
+  // A cell with no onClick is still an OPTION — it belongs to the listbox and
+  // carries selection state — it just isn't independently activatable. It needs
+  // `tabIndex={-1}` all the same: an element with role="option" must be able to
+  // receive focus programmatically, since the listbox moves focus onto its
+  // options rather than each one owning a tab stop. Without it the role is a
+  // lie (an option nothing can reach), which is the half-fix version of the very
+  // a11y defect this branch was added to close.
   return (
-    <div role="option" aria-selected={selected} aria-label={item.label} className={cls}>
+    <div
+      role="option"
+      aria-selected={selected}
+      aria-label={item.label}
+      className={cls}
+      tabIndex={-1}
+    >
       {inner}
     </div>
   )

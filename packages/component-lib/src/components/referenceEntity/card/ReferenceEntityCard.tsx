@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import type {
   SURefEntity,
@@ -753,15 +753,8 @@ function ReferenceEntityCardInner({
           bottomLabel: compact ? undefined : 'Level',
           value: String(techLevelDisplay),
           // A TL-scalable item shows the EFFECTIVE level; a rust `modified`
-          // border when above base (controlled from without or overridden in
-          // place), and an editable +/- stepper when an in-place handler is supplied.
+          // border when above base (controlled from without via `scalingParent`).
           ...(techLevelModified ? { state: 'modified' as const } : {}),
-          ...(techLevelEditable
-            ? {
-                canEdit: true,
-                onChange: (next: number) => onTechLevelChange?.(Math.max(baseTechLevel ?? 1, next)),
-              }
-            : {}),
         }
       : undefined
   const headerStats: StatItem[] = [
@@ -810,13 +803,11 @@ function ReferenceEntityCardInner({
   // keeps only the general facet hoist (type/range/damage/traits). `hide.choices`
   // still suppresses choices entirely.
   const editableChoices = !!onSelectionChange
-  const subHeaderChoices: SURefObjectChoice[] = []
-  const choiceCells: EntityCardSubHeaderCell[] = []
   // A folded single action surfaces its type/range/damage/traits into the
-  // sub-header; entity traits/choices follow, deduped so a shared trait (e.g.
+  // sub-header; entity traits follow, deduped so a shared trait (e.g.
   // "Explosive") isn't listed twice.
   const foldedActionCells = foldedActionFields ? actionCells(foldedActionFields) : []
-  const entityCells = [...traitCells(getTraits(entity) ?? []), ...choiceCells]
+  const entityCells = traitCells(getTraits(entity) ?? [])
   const dedupedEntityCells = entityCells.filter(
     (cell) => !foldedActionCells.some((folded) => folded.key === cell.key)
   )
@@ -928,14 +919,11 @@ function ReferenceEntityCardInner({
   const headerBgColor = isDown ? GREY_HEADER : ghost ? ghost.header : tone.bgColor
 
   // WRITE LAYER header composition (all additive):
-  // - statsOverride replaces the built stats (e.g. editable sheet stats); hide/
-  //   lightweight suppress them.
-  // - status chip leads the right cluster; rightContent override / lightweight.
-  const effectiveHeaderStats: StatItem[] =
-    lightweight || hide?.stats ? [] : (statsOverride ?? headerStats)
-  const effectiveRightContent: ReactNode = lightweight
-    ? undefined
-    : (rightContentProp ?? flavorNode)
+  // - statsOverride replaces the built stats (e.g. editable sheet stats); hide
+  //   suppresses them.
+  // - status chip leads the right cluster; rightContent overrides the flavor.
+  const effectiveHeaderStats: StatItem[] = hide?.stats ? [] : (statsOverride ?? headerStats)
+  const effectiveRightContent: ReactNode = rightContentProp ?? flavorNode
   // Consumer-supplied select/alter interactivity lives in the controls bar. The
   // condition toggle (Intact/Damaged/Destroyed) is NOT here — it rides the
   // top-right frame as its own stamp-seal (`statusSealNode` below).
@@ -953,7 +941,6 @@ function ReferenceEntityCardInner({
       stats={effectiveHeaderStats}
       rightContent={effectiveRightContent}
       listing={extent === 'head'}
-      dim={dimHeader}
       compact={compact}
     />
   )
@@ -1005,24 +992,19 @@ function ReferenceEntityCardInner({
     ? [
         {
           key: '__status',
-          status: { value: status, onClick: onStatusClick, subject: statusSubject ?? entityName },
+          status: { value: status, onClick: onStatusClick, subject: entityName },
         },
         ...(overlayControls ?? []),
       ]
     : (overlayControls ?? [])
-  // Label callout — a stamp (or [label|badge] pair) straddling the top-left frame.
-  const labelCallout =
-    label || labelBadge ? (
-      <div className={cn('absolute left-3 z-30', compact ? 'top-0 -translate-y-1/2' : '-mt-2')}>
-        {label && labelBadge ? (
-          <Stat orientation="horizontal" label={label} value={labelBadge} xs />
-        ) : (
-          <Badge shape="stamp" size="mini">
-            {label ?? labelBadge}
-          </Badge>
-        )}
-      </div>
-    ) : null
+  // Label callout — a stamp straddling the top-left frame.
+  const labelCallout = label ? (
+    <div className={cn('absolute left-3 z-30', compact ? 'top-0 -translate-y-1/2' : '-mt-2')}>
+      <Badge shape="stamp" size="mini">
+        {label}
+      </Badge>
+    </div>
+  ) : null
   // Selection seal — an `ok`-tone "chosen" stamp riding the top-right frame when
   // selected (the picker-cell affordance formerly overlaid by SelCard).
   const selectionSealNode =
@@ -1043,7 +1025,6 @@ function ReferenceEntityCardInner({
       <CountStepper
         subject={cardClickLabel ?? name}
         count={countValue}
-        max={countMax}
         onChange={(next) => onCountChange?.(next)}
       />
     </div>
@@ -1082,7 +1063,7 @@ function ReferenceEntityCardInner({
       const rangeValue =
         action.range && action.range.length > 0 ? action.range.join(' / ') : undefined
       return (
-        <div className={outerClassName} style={cardStyle?.style} {...outerInteraction}>
+        <div className={outerClassName} {...outerInteraction}>
           <div
             className={cn(
               'inline-flex max-w-full items-center gap-2 self-start overflow-hidden rounded-card px-2 py-1',
@@ -1130,7 +1111,7 @@ function ReferenceEntityCardInner({
           ? [{ key: 'tech-level', label: 'TL', value: String(techLevel) }]
           : []
     return (
-      <div className={outerClassName} style={cardStyle?.style} {...outerInteraction}>
+      <div className={outerClassName} {...outerInteraction}>
         <div
           className={cn(
             'inline-flex max-w-full items-center gap-2 self-start overflow-hidden rounded-card px-2 py-1',
@@ -1159,7 +1140,7 @@ function ReferenceEntityCardInner({
   // seam escapes the clip.
   if (extent === 'head') {
     return (
-      <div className={outerClassName} style={cardStyle?.style} {...outerInteraction}>
+      <div className={outerClassName} {...outerInteraction}>
         {seam}
         {labelCallout}
         {topRightRail}
@@ -1454,7 +1435,7 @@ function ReferenceEntityCardInner({
   const bodyNodes: ReactNode[] = []
   {
     const choiceById = new Map(entityChoices.map((c) => [c.id, c] as const))
-    const rendered = new Set<string>(subHeaderChoices.map((choice) => choice.id))
+    const rendered = new Set<string>()
     let buffer: SURefObjectContentBlock[] = []
     let seg = 0
     const flush = () => {
@@ -1729,31 +1710,14 @@ function ReferenceEntityCardInner({
     ) : undefined
 
   return (
-    <div className={outerClassName} style={cardStyle?.style} {...outerInteraction}>
+    <div className={outerClassName} {...outerInteraction}>
       {seam}
       {labelCallout}
       {topRightRail}
       <div
-        className={cn(
-          'flex flex-1 flex-col overflow-hidden rounded-card bg-paper',
-          // Positioned only when a damage scrim needs an absolute overlay anchor —
-          // absent ⇒ no `relative`, byte-identical to read-only.
-          damageOverlayText && 'relative'
-        )}
+        className="flex flex-1 flex-col overflow-hidden rounded-card bg-paper"
         style={frameStyle}
       >
-        {/* DAMAGE OVERLAY (write layer) — a translucent scrim + red danger box
-            over the whole card body. Non-interactive; absent ⇒ nothing renders. */}
-        {damageOverlayText && (
-          <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-ink/40 p-3">
-            <span
-              className="rounded-card px-3 py-1.5 text-center font-cond text-sm font-bold uppercase leading-tight tracking-caps-tight text-paper"
-              style={{ backgroundColor: 'var(--color-status-bad)' }}
-            >
-              {damageOverlayText}
-            </span>
-          </div>
-        )}
         {header}
         {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
         {subtitleExtra && (
@@ -1997,17 +1961,15 @@ export type ReferenceEntityCardWrapperProps = Omit<
 /**
  * `ReferenceEntityCard` — the public entry point for rendering a reference
  * entity. Accepts the ergonomic display sugar (`compact` / `listing` resolve
- * onto the `size` / `extent` axes; a nullable `data` renders nothing; a damaged/destroyed
- * `status` folds into `damaged`) and renders the canonical card. This replaced
- * the former `ReferenceEntityCard` compat shim; the recursive card body is
- * `ReferenceEntityCardInner`.
+ * onto the `size` / `extent` axes; a nullable `data` renders nothing; a
+ * damaged/destroyed `status` greys the whole tone) and renders the canonical
+ * card. This replaced the former `ReferenceEntityCard` compat shim; the
+ * recursive card body is `ReferenceEntityCardInner`.
  */
 export function ReferenceEntityCard({
   data,
   size,
   extent,
-  status,
-  damaged,
   ...rest
 }: ReferenceEntityCardWrapperProps): ReactNode {
   if (!data) return null
@@ -2015,17 +1977,8 @@ export function ReferenceEntityCard({
   // The size / extent / compact / listing reconciliation is the DisplayCard
   // layer's rule — inherited, not restated here.
   const display = resolveCardDisplay({ size, extent })
-  // `status` supersets `damaged` — a damaged/destroyed status greys the header too.
-  const effectiveDamaged = damaged || status === 'damaged' || status === 'destroyed'
 
   return (
-    <ReferenceEntityCardInner
-      data={data}
-      size={display.size}
-      extent={display.extent}
-      status={status}
-      damaged={effectiveDamaged}
-      {...rest}
-    />
+    <ReferenceEntityCardInner data={data} size={display.size} extent={display.extent} {...rest} />
   )
 }

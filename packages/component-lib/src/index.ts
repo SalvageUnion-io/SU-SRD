@@ -6,8 +6,6 @@ export type { DisplayCardTab, CardFootMeta } from './components/shared/DisplayCa
 export type { CardDisplay, CardExtent, CardSize } from './components/shared/displayMode'
 export { displayBooleans, resolveCardDisplay } from './components/shared/displayMode'
 export type { StatItem } from './components/shared/statsBarTypes'
-export type { StatConfig } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityStatsConfig'
-export { ENTITY_STATS_CONFIG } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityStatsConfig'
 
 // Base typography
 export { Text } from './components/base/Text'
@@ -40,12 +38,10 @@ export {
 export type { CardDomain } from './components/referenceEntity/card/entityCardTone'
 export { getReferenceEntitySpacing } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
 
-// Entity controls
-export {
-  addControl,
-  deleteControl,
-  navigateControl,
-} from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityControls'
+// Entity controls — `navigateControl` is the only live preset. `addControl`,
+// `deleteControl` and `selectControl` were measured to zero production call
+// sites and deleted; consumers build controls directly.
+export { navigateControl } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityControls'
 export { useDetailModal } from './components/referenceEntity/ReferenceEntityDisplay/useDetailModal'
 export { useChassisPatternConfig } from './components/referenceEntity/ReferenceEntityDisplay/useChassisPatternConfig'
 export { getClassSelections } from './components/referenceEntity/ReferenceEntityDisplay/classSelectionUtils'
@@ -101,18 +97,13 @@ export { Content } from './components/referenceEntity/Content'
 export {
   borderColorFromHeaderBg,
   calculateBackgroundColor,
-  getSourceBorderColor,
 } from './components/referenceEntity/referenceEntityHelpers'
-export {
-  extractReferenceEntityDetails,
-  getActivationCurrency,
-} from './lib/referenceEntityDataExtraction'
+export { extractReferenceEntityDetails } from './lib/referenceEntityDataExtraction'
 
 // Interactive choice cards (granted-equipment choices)
 export { ChoiceGroups } from './components/referenceEntity/choiceCard/ChoiceGroups'
 export type { ChoiceCardOption } from './components/referenceEntity/choiceCard/choiceSelectionHelpers'
 export {
-  isFreeTextChoice,
   isMultiSelectChoice,
   getChoiceCardOptions,
   resolveMultiSelectCap,
@@ -221,8 +212,9 @@ export type { StatLineItem } from './components/stat/StatLine'
 export { UsedPip } from './components/stat/UsedPip'
 export { BayStatus } from './components/stat/BayStatus'
 export { statBlockRows, statBlockRowStarts, pipClickValue } from './components/stat/pipRows'
-export { heatLevel, heatDangerFrom, HEAT_HIGH_RATIO } from './components/stat/heatLevel'
-export type { HeatLevel } from './components/stat/heatLevel'
+// Only `heatDangerFrom` survives — `heatLevel`/`HeatLevel`/`HEAT_HIGH_RATIO`
+// were measured to zero consumers and deleted.
+export { heatDangerFrom } from './components/stat/heatLevel'
 
 // Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)
 export { SlotGrid } from './components/shared/SlotGrid'
