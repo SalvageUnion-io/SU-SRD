@@ -269,7 +269,7 @@ export function Roster() {
                 active={activeSegment === 'pilot'}
                 createHref="/pilots/new"
                 createLabel="Create Pilot"
-                emptyLabel="No pilots yet."
+                emptyMessage="No pilots yet."
                 emptyIcon={<UserRound className="size-7 text-sheet-pilot-deep" />}
               >
                 {pilots.map((p) => {
@@ -312,7 +312,7 @@ export function Roster() {
                 active={activeSegment === 'mech'}
                 createHref="/mechs/new"
                 createLabel="Create Mech"
-                emptyLabel="No mechs yet."
+                emptyMessage="No mechs yet."
                 emptyIcon={<Bot className="size-7 text-sheet-mech-deep" />}
                 headExtra={
                   <AppLink
@@ -354,7 +354,7 @@ export function Roster() {
                 active={activeSegment === 'crawler'}
                 createHref="/crawlers/new"
                 createLabel="Create Crawler"
-                emptyLabel="No crawlers yet."
+                emptyMessage="No crawlers yet."
                 emptyIcon={<Warehouse className="size-7 text-sheet-crawler-deep" />}
               >
                 {crawlers.map((c) => {
@@ -441,7 +441,7 @@ type RosterColumnProps = {
   active: boolean
   createHref: string
   createLabel: string
-  emptyLabel: string
+  emptyMessage: string
   /** Entity-tone glyph shown above the empty-state message (design review U-6). */
   emptyIcon?: ReactNode
   /** Extra head action (e.g. the Mechs column's 'Patterns' link). */
@@ -456,7 +456,7 @@ function RosterColumn({
   active,
   createHref,
   createLabel,
-  emptyLabel,
+  emptyMessage,
   emptyIcon,
   headExtra,
   children,
@@ -485,7 +485,7 @@ function RosterColumn({
         </div>
       </div>
       {children.length === 0 ? (
-        <Empty message={emptyLabel} icon={emptyIcon}>
+        <Empty message={emptyMessage} icon={emptyIcon}>
           <AppLink
             href={createHref}
             className={cn(buttonVariants({ variant: 'primary', size: 'sm' }), 'no-underline')}
