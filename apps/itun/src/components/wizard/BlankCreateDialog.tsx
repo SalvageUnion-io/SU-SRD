@@ -16,7 +16,7 @@
 
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { Button, Field, Input, ModalShell, Select } from 'component-lib'
+import { Button, Field, Input, ModalShell, Select, FieldError } from 'component-lib'
 
 import { createBlank } from '../../lib/wizard/blankCreate'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
@@ -198,11 +198,7 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
           </Field>
         )}
 
-        {error && (
-          <p className="m-0 font-body text-sm text-danger" role="alert">
-            {error}
-          </p>
-        )}
+        {error && <FieldError>{error}</FieldError>}
 
         <div className="flex justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={onClose} disabled={pending}>

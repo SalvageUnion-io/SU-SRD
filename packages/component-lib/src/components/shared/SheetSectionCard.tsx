@@ -67,7 +67,7 @@ export function SheetSectionCard({
       headerContent={
         <>
           <div className="flex min-w-0 items-center gap-2">
-            <Badge shape="stamp" size="lg">
+            <Badge shape="stamp" size="full">
               {title}
             </Badge>
             {count}

@@ -13,7 +13,7 @@
  */
 
 import { useState } from 'react'
-import { Button, ModalShell } from 'component-lib'
+import { Button, ModalShell, FieldError } from 'component-lib'
 
 import { useEntityStore } from '../../stores/entityStore'
 import { cn } from '../../lib/utils'
@@ -95,11 +95,7 @@ export function UnassignLinkButton({
             This only removes the link between the entities &mdash; it does <strong>not</strong>{' '}
             delete either the pilot, mech, or crawler.
           </div>
-          {error && (
-            <p className="font-body text-sm text-danger" role="alert">
-              {error}
-            </p>
-          )}
+          {error && <FieldError>{error}</FieldError>}
           <div className="flex justify-end gap-2">
             <Button variant="ghost" size="sm" onClick={closeConfirm} disabled={pending}>
               Cancel

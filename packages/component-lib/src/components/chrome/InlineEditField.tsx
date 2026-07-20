@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { Input } from './Field'
 import { Badge } from './Badge'
+import { FieldError } from './FieldError'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -221,11 +222,7 @@ export function InlineEditField({
           }}
           className={cn(error && ERROR_SKIN)}
         />
-        {error && (
-          <span role="alert" className="font-body text-note text-danger">
-            {error}
-          </span>
-        )}
+        <FieldError>{error}</FieldError>
       </span>
     )
   }
@@ -248,13 +245,13 @@ export function InlineEditField({
     <div className={cn('flex min-w-0 flex-col', className)}>
       {labelAction ? (
         <div className="mb-0.5 flex items-center justify-between gap-2">
-          <Badge shape="stamp" size="sm">
+          <Badge shape="stamp" size="mini">
             {label}
           </Badge>
           {labelAction}
         </div>
       ) : (
-        <Badge shape="stamp" size="sm" className="mb-0.5">
+        <Badge shape="stamp" size="mini" className="mb-0.5">
           {label}
         </Badge>
       )}

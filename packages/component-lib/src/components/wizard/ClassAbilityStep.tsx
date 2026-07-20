@@ -1,4 +1,5 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { EmptyState } from '../chrome/EmptyState'
 import type { SURefClass, SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
 import { TreeSep } from '../chrome/TreeSep'
@@ -152,9 +153,10 @@ export function ClassAbilityStep({
       )}
 
       {selectedClass === undefined ? (
-        <p className="font-body text-sm text-ink">
-          Pick a class to reveal its first-Ability choices.
-        </p>
+        <EmptyState
+          headline="No Class Selected"
+          body="Pick a class to reveal its first-Ability choices."
+        />
       ) : isEdit ? (
         <>
           <TreeSep name="Abilities" suffix="Any level" />
@@ -179,7 +181,7 @@ export function ClassAbilityStep({
           />
           <MasonryColumns maxColumns={2}>{legalPool.map(renderAbilityCard)}</MasonryColumns>
           {legalPool.length === 0 && (
-            <p className="font-body text-sm text-ink">No Level-1 abilities found for this class.</p>
+            <EmptyState headline="No Abilities" body="No Level-1 abilities found for this class." />
           )}
         </>
       )}

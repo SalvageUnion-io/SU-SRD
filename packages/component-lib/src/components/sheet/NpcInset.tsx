@@ -14,6 +14,8 @@
  */
 
 import { Stat } from '../shared/Stat'
+import { cn } from '../../utils/cn'
+import type { ReactNode } from 'react'
 
 import { DisplayCard } from '../shared/DisplayCard'
 import { InlineEditField } from '../chrome/InlineEditField'
@@ -39,6 +41,43 @@ type NpcInsetProps = {
   onDetailChange?: (next: string) => void
   onFactsChange?: (next: string[]) => void
   readOnly?: boolean
+}
+
+/**
+ * One `label: value` line of the inset. The same four-line shape was written
+ * out four times; this is that shape once. Deliberately NOT `KvRow` — that
+ * primitive carries a 120px rail, bottom rules and larger muted type, which
+ * would visibly redesign the inset rather than dedupe it.
+ */
+function NpcRow({
+  label,
+  grow = false,
+  plain = false,
+  children,
+}: {
+  label: string
+  /** Let the value cell take the remaining width (multiline / editor cells). */
+  grow?: boolean
+  /** Skip the prose treatment — the cell hosts its own component. */
+  plain?: boolean
+  children: ReactNode
+}) {
+  return (
+    <div className="flex items-baseline gap-1.5">
+      <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps-wide text-ink">
+        {label}
+      </dt>
+      <dd
+        className={cn(
+          'm-0 min-w-0',
+          grow && 'flex-1',
+          !plain && 'font-body text-note leading-snug text-ink-2'
+        )}
+      >
+        {children}
+      </dd>
+    </div>
+  )
 }
 
 export function NpcInset({
@@ -109,71 +148,51 @@ export function NpcInset({
           )}
 
           <dl className="m-0 min-w-0 flex-1 space-y-1.5">
-            <div className="flex items-baseline gap-1.5">
-              <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps-wide text-ink">
-                Keepsake
-              </dt>
-              <dd className="m-0 min-w-0 font-body text-note leading-snug text-ink-2">
-                {editable && onKeepsakeChange ? (
-                  <InlineEditField
-                    value={keepsake}
-                    onSave={(next) => onKeepsakeChange(String(next))}
-                    type="text"
-                    ariaLabel={`Edit ${bayName} crew keepsake`}
-                  />
-                ) : (
-                  keepsake || '—'
-                )}
-              </dd>
-            </div>
-            <div className="flex items-baseline gap-1.5">
-              <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps-wide text-ink">
-                Motto
-              </dt>
-              <dd className="m-0 min-w-0 font-body text-note leading-snug text-ink-2">
-                {editable && onMottoChange ? (
-                  <InlineEditField
-                    value={motto}
-                    onSave={(next) => onMottoChange(String(next))}
-                    type="text"
-                    ariaLabel={`Edit ${bayName} crew motto`}
-                  />
-                ) : (
-                  motto || '—'
-                )}
-              </dd>
-            </div>
-            <div className="flex items-baseline gap-1.5">
-              <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps-wide text-ink">
-                Detail
-              </dt>
-              <dd className="m-0 min-w-0 flex-1 font-body text-note leading-snug text-ink-2">
-                {editable && onDetailChange ? (
-                  <InlineEditTextArea
-                    value={detail}
-                    onSave={onDetailChange}
-                    ariaLabel={`Edit ${bayName} crew detail`}
-                    placeholder="Add a detail…"
-                  />
-                ) : (
-                  detail || '—'
-                )}
-              </dd>
-            </div>
+            <NpcRow label="Keepsake">
+              {editable && onKeepsakeChange ? (
+                <InlineEditField
+                  value={keepsake}
+                  onSave={(next) => onKeepsakeChange(String(next))}
+                  type="text"
+                  ariaLabel={`Edit ${bayName} crew keepsake`}
+                />
+              ) : (
+                keepsake || '—'
+              )}
+            </NpcRow>
+            <NpcRow label="Motto">
+              {editable && onMottoChange ? (
+                <InlineEditField
+                  value={motto}
+                  onSave={(next) => onMottoChange(String(next))}
+                  type="text"
+                  ariaLabel={`Edit ${bayName} crew motto`}
+                />
+              ) : (
+                motto || '—'
+              )}
+            </NpcRow>
+            <NpcRow label="Detail" grow>
+              {editable && onDetailChange ? (
+                <InlineEditTextArea
+                  value={detail}
+                  onSave={onDetailChange}
+                  ariaLabel={`Edit ${bayName} crew detail`}
+                  placeholder="Add a detail…"
+                />
+              ) : (
+                detail || '—'
+              )}
+            </NpcRow>
             {(editable || facts.length > 0) && (
-              <div className="flex items-baseline gap-1.5">
-                <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps-wide text-ink">
-                  Facts
-                </dt>
-                <dd className="m-0 min-w-0 flex-1">
-                  <NpcFactsEditor
-                    facts={facts}
-                    onChange={(next) => onFactsChange?.(next)}
-                    npcLabel={`${bayName} crew`}
-                    readOnly={readOnly || onFactsChange === undefined}
-                  />
-                </dd>
-              </div>
+              <NpcRow label="Facts" grow plain>
+                <NpcFactsEditor
+                  facts={facts}
+                  onChange={(next) => onFactsChange?.(next)}
+                  npcLabel={`${bayName} crew`}
+                  readOnly={readOnly || onFactsChange === undefined}
+                />
+              </NpcRow>
             )}
           </dl>
         </div>

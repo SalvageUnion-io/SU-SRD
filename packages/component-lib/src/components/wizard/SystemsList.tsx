@@ -1,4 +1,5 @@
 import type { SURefSystem } from 'salvageunion-reference'
+import { EmptyState } from '../chrome/EmptyState'
 import { MasonryColumns } from '../shared/MasonryColumns'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 
@@ -56,7 +57,7 @@ export function SystemsList({
   }
 
   if (systems.length === 0) {
-    return <p className="m-0 font-body text-sm text-current">No weapons systems available.</p>
+    return <EmptyState headline="No Systems" body="No weapons systems available." />
   }
 
   return (

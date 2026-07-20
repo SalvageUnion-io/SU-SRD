@@ -132,13 +132,13 @@ export const Stamps: Story = () => (
     <div>
       <Caption>size — sm / md (default) / lg</Caption>
       <Row>
-        <Badge shape="stamp" size="sm">
+        <Badge shape="stamp" size="mini">
           SP
         </Badge>
-        <Badge shape="stamp" size="md">
+        <Badge shape="stamp" size="compact">
           {techLabel}
         </Badge>
-        <Badge shape="stamp" size="lg">
+        <Badge shape="stamp" size="full">
           {chassisName}
         </Badge>
       </Row>

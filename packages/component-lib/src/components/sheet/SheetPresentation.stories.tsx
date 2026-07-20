@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { Stat } from '../shared/Stat'
-import { ConditionToggle, type ItemCondition } from './ConditionToggle'
 import { ConditionsEditor } from './ConditionsEditor'
 import { CrawlerEconFrame } from './CrawlerEcon'
 import { ChassisStats, SheetHero } from './SheetHero'
@@ -22,7 +21,6 @@ const chassis = SalvageUnionReference.Chassis.all()[0]
  * presentation — the app supplies the values and the save handlers.
  */
 export const Default: Story = () => {
-  const [condition, setCondition] = useState<ItemCondition>('intact')
   const [conditions, setConditions] = useState<string[]>(['Impaired'])
 
   return (
@@ -54,14 +52,6 @@ export const Default: Story = () => {
             { label: 'Cargo', value: 6, max: 10 },
           ]}
         />
-      </div>
-
-      <div>
-        <Caption>ConditionToggle — per-item Intact / Damaged / Destroyed</Caption>
-        <div className="flex items-center gap-4">
-          <ConditionToggle value={condition} onChange={setCondition} ariaLabelPrefix="Reactor" />
-          <ConditionToggle value="destroyed" onChange={() => {}} readOnly />
-        </div>
       </div>
 
       <div>

@@ -251,7 +251,7 @@ export function EntitySearcher({
 
   // ---- Sub-parts of the searcher DisplayCard ----
   const searchInput = (
-    <label className="flex w-full items-center gap-2 rounded-[4px] border-chrome border-ink bg-paper px-3 py-2 focus-within:ring-[3px] focus-within:ring-rust/[0.22]">
+    <label className="flex w-full items-center gap-2 rounded-[4px] border-chrome border-ink bg-paper px-3 py-2 focus-within:ring-[3px] focus-within:ring-rust/25">
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="opacity-70">
         <circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" strokeWidth="2" />
         <line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" strokeWidth="2" />

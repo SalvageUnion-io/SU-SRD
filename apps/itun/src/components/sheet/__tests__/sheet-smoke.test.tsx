@@ -35,7 +35,6 @@ import type { Pilot } from '../../../lib/schemas/pilot'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
-import { PublishButton } from '../PublishButton'
 import { SnapshotPageInner } from '../../../routes/s/$id'
 import { must } from '../../__tests__/must'
 
@@ -361,18 +360,20 @@ describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
 // ---------------------------------------------------------------------------
 // Scenario 7 — top-bar Share entry point
 //
-// Publishing moved to the Share Snapshot screen (plan 5.2): the top-bar
-// PublishButton is now a link into /sheet/:kind/:id/share. The publish flow
-// itself is covered in ShareSnapshotScreen.test.tsx.
+// Publishing moved to the Share Snapshot screen (plan 5.2): the top bar just
+// links into /sheet/:kind/:id/share. The publish flow itself is covered in
+// ShareSnapshotScreen.test.tsx. Asserted through Sheet — the PublishButton
+// wrapper it used to go through was a single-call-site alias for this link.
 // ---------------------------------------------------------------------------
 
-describe('Smoke — PublishButton links to the share screen', () => {
+describe('Smoke — the top-bar Share link points at the share screen', () => {
   test('Share links to /sheet/pilot/:id/share', () => {
     render(
-      <PublishButton
-        entityKind="pilot"
-        entityId="pilot-smoke-1"
+      <Sheet
+        kind="pilot"
+        id="pilot-smoke-1"
         entityStore={makeEntityStore([fakePilot])}
+        softLinkStore={makeSoftLinkStore([])}
       />
     )
 

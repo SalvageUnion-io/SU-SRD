@@ -1,4 +1,5 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { EmptyState } from '../chrome/EmptyState'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
 import { MasonryColumns } from '../shared/MasonryColumns'
@@ -114,9 +115,10 @@ export function EquipmentStep({
         })}
       </MasonryColumns>
       {sorted.length === 0 && (
-        <p className="text-sm text-wk-muted">
-          {isCreate ? 'No tech level 1 equipment found.' : 'No equipment found.'}
-        </p>
+        <EmptyState
+          headline="No Equipment"
+          body={isCreate ? 'No tech level 1 equipment found.' : 'No equipment found.'}
+        />
       )}
     </div>
   )

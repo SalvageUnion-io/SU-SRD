@@ -733,7 +733,7 @@ function ReferenceEntityCardInner({
       )}
       {/* Type stamp on NESTED cards only — full cards show the type in the footer. */}
       {depth > 0 && seamType && (
-        <Badge shape="stamp" size="sm">
+        <Badge shape="stamp" size="mini">
           {seamType}
         </Badge>
       )}
@@ -809,7 +809,7 @@ function ReferenceEntityCardInner({
   // marking a recommended pick. Rust ground, paper text (the on-ink stamp's bg
   // overridden to rust via tailwind-merge).
   const suggestedNode: ReactNode = suggested ? (
-    <Badge shape="stamp" size="sm" className="bg-rust text-paper">
+    <Badge shape="stamp" size="mini" className="bg-rust text-paper">
       Suggested
     </Badge>
   ) : undefined
@@ -1021,13 +1021,9 @@ function ReferenceEntityCardInner({
   const frameStyle = selected
     ? { border: `3px solid ${frameColor}`, boxShadow: '0 0 0 3px var(--color-rust)' }
     : { border: `3px solid ${frameColor}` }
-  // Controls overlay — straddling the top-right frame (reuse ControlButtons).
+  // Controls — one cell of the shared top-right rail (see topRightRail below).
   const controlsOverlay = overlayControls?.some((c) => !c.hidden) ? (
-    <div
-      className={cn('absolute right-0 z-30 mr-1.5', compact ? 'top-0 -translate-y-1/2' : '-mt-2')}
-    >
-      <ControlButtons controls={overlayControls} compact={compact} />
-    </div>
+    <ControlButtons controls={overlayControls} compact={compact} />
   ) : null
   // Label callout — a stamp (or [label|badge] pair) straddling the top-left frame.
   const labelCallout =
@@ -1036,7 +1032,7 @@ function ReferenceEntityCardInner({
         {label && labelBadge ? (
           <Stat orientation="horizontal" label={label} value={labelBadge} xs />
         ) : (
-          <Badge shape="stamp" size="sm">
+          <Badge shape="stamp" size="mini">
             {label ?? labelBadge}
           </Badge>
         )}
@@ -1046,26 +1042,14 @@ function ReferenceEntityCardInner({
   // selected (the picker-cell affordance formerly overlaid by SelCard).
   const selectionSealNode =
     selected && selectionSeal ? (
-      <div
-        className={cn(
-          'pointer-events-none absolute right-2 z-30',
-          compact ? 'top-0 -translate-y-1/2' : '-mt-2'
-        )}
-      >
-        <Badge surface="tone" tone="ok">{`${selectionSeal} ✓`}</Badge>
-      </div>
+      <Badge surface="tone" tone="ok" className="pointer-events-none">{`${selectionSeal} ✓`}</Badge>
     ) : null
   // MULTI-SELECT seal — a "Chosen" stamp + `[− n +]` CountStepper riding the
   // top-right frame, the duplicate-allowed counterpart to the single-select
   // seal. Shown whenever the card is a multi-select cell (`onCountChange` set);
   // the "Chosen" stamp only lights once at least one copy is picked.
   const countSealNode = isMultiSelect ? (
-    <div
-      className={cn(
-        'absolute right-2 z-30 flex items-center gap-1.5',
-        compact ? 'top-0 -translate-y-1/2' : '-mt-2'
-      )}
-    >
+    <div className="flex items-center gap-1.5">
       {countValue >= 1 && (
         <Badge surface="tone" tone="ok">
           Chosen
@@ -1083,8 +1067,36 @@ function ReferenceEntityCardInner({
   // frame as a tone-filled stamp (clickable to cycle when a handler is supplied),
   // not a controls-bar button.
   const statusSealNode = status ? (
-    <div className={cn('absolute right-2 z-30', compact ? 'top-0 -translate-y-1/2' : '-mt-2')}>
-      <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject ?? entityName} />
+    <StatusBadge status={status} onClick={onStatusClick} subject={statusSubject ?? entityName} />
+  ) : null
+
+  /**
+   * The top-right rail — ONE absolutely-positioned row holding every seal and
+   * the controls cluster, so they sit NEXT TO each other.
+   *
+   * These were four independent `absolute right-{0,2}` nodes, each at z-30 and
+   * each pinned to the same coordinate. Any card carrying two of them (controls
+   * + a condition status, or a multi-select stepper + controls) rendered them
+   * stacked ON TOP of one another, with the later node in DOM order winning.
+   * Collapsing them into a single flex row is what makes them lay out at all.
+   *
+   * `flex-wrap` + `justify-end` keeps a crowded rail (seal + stepper + three
+   * controls) inside the card width instead of overflowing the frame; the row
+   * grows upward from the frame edge because each line is the same height.
+   */
+  const topRightRail = [statusSealNode, selectionSealNode, countSealNode, controlsOverlay].some(
+    Boolean
+  ) ? (
+    <div
+      className={cn(
+        'absolute right-2 z-30 flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-end gap-1.5',
+        compact ? 'top-0 -translate-y-1/2' : '-mt-2'
+      )}
+    >
+      {statusSealNode}
+      {selectionSealNode}
+      {countSealNode}
+      {controlsOverlay}
     </div>
   ) : null
 
@@ -1128,7 +1140,7 @@ function ReferenceEntityCardInner({
             </span>
             {costNode}
             {typeLabel && (
-              <Badge shape="stamp" size="sm">
+              <Badge shape="stamp" size="mini">
                 {typeLabel}
               </Badge>
             )}
@@ -1190,10 +1202,7 @@ function ReferenceEntityCardInner({
       <div className={outerClassName} style={cardStyle?.style} {...outerInteraction}>
         {seam}
         {labelCallout}
-        {controlsOverlay}
-        {selectionSealNode}
-        {countSealNode}
-        {statusSealNode}
+        {topRightRail}
         <div
           className="flex flex-1 flex-col overflow-hidden rounded-card bg-paper"
           style={frameStyle}
@@ -1761,10 +1770,7 @@ function ReferenceEntityCardInner({
     <div className={outerClassName} style={cardStyle?.style} {...outerInteraction}>
       {seam}
       {labelCallout}
-      {controlsOverlay}
-      {selectionSealNode}
-      {countSealNode}
-      {statusSealNode}
+      {topRightRail}
       <div
         className={cn(
           'flex flex-1 flex-col overflow-hidden rounded-card bg-paper',

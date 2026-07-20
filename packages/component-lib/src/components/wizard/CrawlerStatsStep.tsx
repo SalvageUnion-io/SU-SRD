@@ -1,4 +1,5 @@
 import type { SURefCrawler, SURefMetaCrawlerTechLevel } from 'salvageunion-reference'
+import { EmptyState } from '../chrome/EmptyState'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 import { Stat } from '../shared/Stat'
 
@@ -21,9 +22,10 @@ type CrawlerStatsStepProps = {
 export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepProps) {
   if (!techLevel) {
     return (
-      <p className="m-0 font-body text-sm text-current">
-        Tech Level 1 statistics are loading — they appear here.
-      </p>
+      <EmptyState
+        headline="Loading"
+        body="Tech Level 1 statistics are loading — they appear here."
+      />
     )
   }
 

@@ -52,7 +52,14 @@ const SUBGROUPS: Record<string, readonly string[]> = {
  * pages that document the system itself and have no backing component. Anything
  * else belongs beside its component.
  */
-const CATALOG_PAGES = new Set(['Styleguide', 'Theme', 'Typography', 'Layout', 'RenderingMatrix'])
+const CATALOG_PAGES = new Set([
+  'Styleguide',
+  'Theme',
+  'Typography',
+  'Sizing',
+  'Layout',
+  'RenderingMatrix',
+])
 
 /**
  * The bounded exception to "one component = one story": frozen "BEFORE" CAPTURES

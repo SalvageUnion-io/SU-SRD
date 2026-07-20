@@ -22,10 +22,11 @@ import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { MechSheet } from './MechSheet'
-import { SheetHero } from 'component-lib'
+import { SheetHero, StatLine } from 'component-lib'
 import { EntityRow } from 'component-lib'
 import { RailChip } from './SheetRail'
-import { CrawlerRailStats, PilotRailStats, RailCta, mechStatusPill } from './SheetRailParts'
+import { RailCta } from './SheetRailParts'
+import { crawlerRailItems, mechStatusPill, pilotRailItems } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetMechProps = SheetViewCommonProps & { mech: Mech }
@@ -88,7 +89,7 @@ export function SheetMech({
           name={composition.pilot.name}
           href={`/sheet/pilot/${composition.pilot.id}`}
           status={{ label: 'Active', tone: 'pilot' }}
-          stats={<PilotRailStats pilot={composition.pilot} />}
+          stats={<StatLine items={pilotRailItems(composition.pilot)} />}
           onUnassign={unassignPilot}
         />
       ) : (
@@ -115,7 +116,7 @@ export function SheetMech({
           name={composition.crawler.name}
           href={`/sheet/crawler/${composition.crawler.id}`}
           tl={parseCrawlerTechLevel(composition.crawler.techLevel)}
-          stats={<CrawlerRailStats crawler={composition.crawler} />}
+          stats={<StatLine items={crawlerRailItems(composition.crawler)} />}
         />
       ) : (
         <EntityRow

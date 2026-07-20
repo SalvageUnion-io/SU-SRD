@@ -1,6 +1,6 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { KvRow, Panel, ReferenceEntityCard } from 'component-lib'
+import { KvRow, Panel, ReferenceEntityCard, FieldError } from 'component-lib'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 
 type SURFindAll = { findAll: (fn: (x: unknown) => boolean) => unknown[] }
@@ -65,11 +65,7 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
         {rows.map(([k, v]) => (
           <KvRow key={k} label={k} value={v} />
         ))}
-        {submitError && (
-          <p role="alert" className="mt-3 text-sm text-rust">
-            {submitError}
-          </p>
-        )}
+        {submitError && <FieldError className="mt-3">{submitError}</FieldError>}
       </Panel>
 
       {/* chosen cards */}

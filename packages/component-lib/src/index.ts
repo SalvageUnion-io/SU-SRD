@@ -130,6 +130,8 @@ export { Button } from './components/chrome/Button'
 export { buttonVariants } from './components/chrome/buttonVariants'
 // EmptyState — dashed stamp-headline empty slot (ruleset §"Empty state")
 export { EmptyState } from './components/chrome/EmptyState'
+// FieldError — the one single-message validation line (role="alert", danger tone)
+export { FieldError } from './components/chrome/FieldError'
 // Callout — accent-framed note (stamp header + accent-bar body); list-items,
 // "When Damaged" effects, and similar accented notes compose on it.
 export { Callout } from './components/chrome/Callout'
@@ -216,6 +218,8 @@ export { VitalGauge } from './components/stat/VitalGauge'
 export type { VitalGaugeProps } from './components/stat/VitalGauge'
 export { ConditionSwatch } from './components/stat/ConditionSwatch'
 export type { ConditionSwatchState } from './components/stat/ConditionSwatch'
+export { StatLine } from './components/stat/StatLine'
+export type { StatLineItem } from './components/stat/StatLine'
 export { UsedPip } from './components/stat/UsedPip'
 export { BayStatus } from './components/stat/BayStatus'
 export { statBlockRows, statBlockRowStarts, pipClickValue } from './components/stat/pipRows'
@@ -235,7 +239,6 @@ export type { ChassisStatItem } from './components/sheet/SheetHero'
 export { CrawlerEconFrame } from './components/sheet/CrawlerEcon'
 export type { EconLozItem } from './components/sheet/CrawlerEcon'
 export { ConditionsEditor } from './components/sheet/ConditionsEditor'
-export { ConditionToggle } from './components/sheet/ConditionToggle'
 
 // Wizard step presentation lifted out of ITUN — pure option/detail rendering;
 // the app supplies the selections and the persistence.
@@ -276,7 +279,6 @@ export { NpcInset } from './components/sheet/NpcInset'
 export { SheetActionsMenu } from './components/sheet/SheetActionsMenu'
 export { SHEET_ICONBTN_CLASS } from './components/sheet/sheetChrome'
 export { useDismiss } from './components/shared/useDismiss'
-export type { ItemCondition } from './components/sheet/ConditionToggle'
 // Live-sheet section chrome — the unified EDIT LANGUAGE primitives (section
 // Edit/Add toggles, the one shared picker modal, per-card remove) lifted out of
 // ITUN so the sheet containers come from the design system like their cards do.

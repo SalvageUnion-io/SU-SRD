@@ -9,6 +9,7 @@
 
 import { Button } from '../chrome/Button'
 import { ModalShell } from '../shared/ModalShell'
+import { FieldError } from '../chrome/FieldError'
 
 type SelectorOption = {
   id: string
@@ -91,11 +92,7 @@ export function SelectorDialog({
           </div>
         )}
 
-        {error && (
-          <p className="font-body text-sm text-danger" role="alert">
-            {error}
-          </p>
-        )}
+        {error && <FieldError>{error}</FieldError>}
 
         <div className="flex justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={onClose} disabled={pending}>

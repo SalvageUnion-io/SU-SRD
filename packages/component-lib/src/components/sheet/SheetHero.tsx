@@ -80,7 +80,7 @@ export function SheetHero({
       style={{ background: 'var(--tone)' }}
     >
       {/* Category tab — rides the top border like .ec__cat (StampSeam) */}
-      <Badge shape="stamp" size="sm" seam className="left-[18px]">
+      <Badge shape="stamp" size="mini" seam className="left-[18px]">
         {cat}
       </Badge>
 
@@ -91,7 +91,7 @@ export function SheetHero({
         <div className="min-w-0">
           <Badge
             shape="stamp"
-            size="lg"
+            size="full"
             as="h1"
             leading="leading-[1.28]"
             className="m-0 inline box-decoration-clone py-0 text-[26px] sm:text-[31px]"
@@ -199,7 +199,7 @@ export function ChassisStats({ items, className }: ChassisStatsProps) {
             aria-label={item.actionLabel ?? item.code}
             title={item.actionLabel}
             onClick={item.onClick}
-            className="cursor-pointer rounded-card text-left transition-transform duration-[120ms] hover:-translate-y-px focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/[0.22]"
+            className="cursor-pointer rounded-card text-left transition-transform duration-[120ms] hover:-translate-y-px focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25"
           >
             {block}
           </button>

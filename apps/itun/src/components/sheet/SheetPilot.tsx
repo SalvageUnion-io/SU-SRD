@@ -10,7 +10,7 @@
  * `PilotSheet` as `linkedUnits`.
  */
 
-import { Badge, EntityRow, Stat } from 'component-lib'
+import { Badge, EntityRow, Stat, StatLine } from 'component-lib'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
@@ -22,7 +22,8 @@ import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { PilotSheet } from './PilotSheet'
 import { SheetHero } from 'component-lib'
 import { RailChip } from './SheetRail'
-import { CrawlerRailStats, MechRailStats, RailCta, mechStatusPill } from './SheetRailParts'
+import { RailCta } from './SheetRailParts'
+import { crawlerRailItems, mechRailItems, mechStatusPill } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetPilotProps = SheetViewCommonProps & { pilot: Pilot }
@@ -75,7 +76,7 @@ export function SheetPilot({
           name={composition.mech.name}
           href={`/sheet/mech/${composition.mech.id}`}
           status={mechStatusPill(composition.mech)}
-          stats={<MechRailStats mech={composition.mech} />}
+          stats={<StatLine items={mechRailItems(composition.mech)} />}
           onUnassign={unassign(mechLinkId)}
         />
       ) : (
@@ -95,7 +96,7 @@ export function SheetPilot({
           name={composition.crawler.name}
           href={`/sheet/crawler/${composition.crawler.id}`}
           tl={parseCrawlerTechLevel(composition.crawler.techLevel)}
-          stats={<CrawlerRailStats crawler={composition.crawler} />}
+          stats={<StatLine items={crawlerRailItems(composition.crawler)} />}
           onUnassign={unassign(crawlerLinkId)}
         />
       ) : (

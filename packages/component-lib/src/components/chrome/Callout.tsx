@@ -41,7 +41,7 @@ export function Callout({
           className={cn('flex items-center', compact ? 'px-2 py-1' : 'px-3 py-1.5')}
           style={headerBg ? { backgroundColor: headerBg } : undefined}
         >
-          <Badge shape="stamp" size={compact ? 'sm' : 'md'}>
+          <Badge shape="stamp" size={compact ? 'mini' : 'compact'}>
             {label}
           </Badge>
         </div>

@@ -16,7 +16,7 @@
  */
 
 import { useState } from 'react'
-import { Button, Input, ModalShell } from 'component-lib'
+import { Button, Input, ModalShell, FieldError } from 'component-lib'
 
 import { useWorkspaceActions, useWorkspaces } from '../../hooks/queries'
 import { DEFAULT_WORKSPACE_ID } from '../../lib/defaultWorkspace'
@@ -214,11 +214,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                         Cancel
                       </Button>
                     </div>
-                    {renameError && (
-                      <p className="font-body text-xs text-danger" role="alert">
-                        {renameError}
-                      </p>
-                    )}
+                    {renameError && <FieldError>{renameError}</FieldError>}
                   </div>
                 ) : (
                   /* Idle row */
@@ -279,11 +275,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
               {createPending ? 'Creating…' : 'Create'}
             </Button>
           </div>
-          {createError && (
-            <p className="font-body mt-1 text-xs text-danger" role="alert">
-              {createError}
-            </p>
-          )}
+          {createError && <FieldError className="mt-1">{createError}</FieldError>}
         </div>
       </div>
     </ModalShell>
