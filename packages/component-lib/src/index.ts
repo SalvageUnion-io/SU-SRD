@@ -239,7 +239,6 @@ export type { ChassisStatItem } from './components/sheet/SheetHero'
 export { CrawlerEconFrame } from './components/sheet/CrawlerEcon'
 export type { EconLozItem } from './components/sheet/CrawlerEcon'
 export { ConditionsEditor } from './components/sheet/ConditionsEditor'
-export { ConditionToggle } from './components/sheet/ConditionToggle'
 
 // Wizard step presentation lifted out of ITUN — pure option/detail rendering;
 // the app supplies the selections and the persistence.
@@ -280,7 +279,6 @@ export { NpcInset } from './components/sheet/NpcInset'
 export { SheetActionsMenu } from './components/sheet/SheetActionsMenu'
 export { SHEET_ICONBTN_CLASS } from './components/sheet/sheetChrome'
 export { useDismiss } from './components/shared/useDismiss'
-export type { ItemCondition } from './components/sheet/ConditionToggle'
 // Live-sheet section chrome — the unified EDIT LANGUAGE primitives (section
 // Edit/Add toggles, the one shared picker modal, per-card remove) lifted out of
 // ITUN so the sheet containers come from the design system like their cards do.

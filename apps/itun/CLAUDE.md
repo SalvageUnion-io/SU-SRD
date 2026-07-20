@@ -48,7 +48,7 @@ Functions ([ADR-001](../../docs/adrs/ADR-001-local-first-no-backend.md),
 - Action activation: `activateItem` in `src/components/sheet/MechSheet.tsx`
   applies EP/heat/uses as one write-through ([ADR-008](../../docs/adrs/ADR-008-sequential-mutations.md)).
 - Heat check: `HeatCheckControl.tsx`. Non-destructive outcomes auto-apply;
-  destructive condition changes are player-driven via `ConditionToggle`
+  destructive condition changes are player-driven via the card status badge (`StatusBadge`)
   ([ADR-007](../../docs/adrs/ADR-007-automation-boundary.md),
   [ADR-009](../../docs/adrs/ADR-009-condition-model-destroyed-color.md)).
 - Full picture: [docs/architecture/combat-loop.md](../../docs/architecture/combat-loop.md).

@@ -29,7 +29,7 @@
  * The functions here compute the *deterministic* parts of the outcome (clamped
  * heat, SP damage, shutdown/vulnerable/destroyed flags) and report the table
  * band. Marking WHICH System/Module is destroyed (the 2-5 / 6-10 bands) is left
- * to the player via the existing ConditionToggle — this module never auto-picks.
+ * to the player via the card status badge — this module never auto-picks.
  */
 
 import type { HeatCheckEffect, PushResult, ReactorOverloadOutcome, Roll } from './types.js'
