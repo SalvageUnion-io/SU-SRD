@@ -193,7 +193,7 @@ The barrel exports ~100 names. Do NOT trust any hand-maintained list (an
 earlier revision of this doc said "64 named exports" and drifted); instead,
 know the categories and check the barrel:
 
-- **Types** — display/config types (`DataValue`, `StatConfig`, `DisplayCardTab`, choice-card types, …)
+- **Types** — display/config types (`DataValue`, `CardFootMeta`, choice-card types, …)
 - **Constants** — `ENTITY_STATS_CONFIG`, tech-level style maps
 - **Base typography** — `Text`, `Heading`
 - **UI primitives** — `Toaster`, `ModalShell`

@@ -2,7 +2,7 @@
 export type { DataValue } from './types/common'
 export type { PatternOverrideData } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityDisplayTypes'
 export type { ReferenceEntityControl } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
-export type { DisplayCardTab, CardFootMeta } from './components/shared/DisplayCard'
+export type { CardFootMeta } from './components/shared/DisplayCard'
 export type { CardDisplay, CardExtent, CardSize } from './components/shared/displayMode'
 export { displayBooleans, resolveCardDisplay } from './components/shared/displayMode'
 export type { StatItem } from './components/shared/statsBarTypes'

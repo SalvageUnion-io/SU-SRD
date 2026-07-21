@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { CardControlRail } from './CardControlRail'
@@ -15,20 +15,6 @@ import { foldStatusControl } from './foldStatusControl'
 /** Inline foot meta entry (design-spec §2.1 `.ec__metafoot`), e.g. AP COST · 1 */
 export type CardFootMeta = { label: string; value: ReactNode }
 
-export type DisplayCardTab = {
-  key: string
-  label: string
-  content: ReactNode
-  /** CSS color override for the active-tab background (defaults to header-derived tint) */
-  activeColor?: string
-  /** Place this tab before the default tab instead of after */
-  before?: boolean
-  /** CSS color for a persistent bottom border on this tab (visible even when inactive) */
-  borderColor?: string
-  /** CSS color for a persistent glow (box-shadow) around the tab button */
-  glowColor?: string
-}
-
 type DisplayCardProps = {
   /** Background color class for header and footer (e.g., "bg-mech"). Default: "" */
   headerBg?: string
@@ -43,7 +29,7 @@ type DisplayCardProps = {
   headerBgColor?: string
   /** Content rendered inside the header bar. Omit it and NO header band is
    * painted — a card that has nothing to put in the band shouldn't render an
-   * empty one. (The sub-header band and tabs are independent of this.) */
+   * empty one. (The sub-header band is independent of this.) */
   headerContent?: ReactNode
   /** Content rendered inside the footer bar (optional) */
   footerContent?: ReactNode
@@ -51,10 +37,6 @@ type DisplayCardProps = {
   children?: ReactNode
   /** Optional pseudoheader label above the card */
   label?: string
-  /** Optional small badge rendered as a second stamp beside the label (e.g. ability level) */
-  labelBadge?: string
-  /** Optional node rendered FIRST in the label callout row (e.g. a "Recommended" stamp) */
-  labelLead?: ReactNode
   /** How big the card renders — `large` | `medium` | `small`. Orthogonal to
    * `extent`. The vocabulary lives in `displayMode.ts`; see it for the rungs. */
   size?: CardSize
@@ -94,10 +76,6 @@ type DisplayCardProps = {
   headerStyle?: { className?: string; style?: CSSProperties }
   /** CSS color for card borders (external + internal). Defaults to 'black'. */
   borderColor?: string
-  /** Additional tabs beyond the default content. Ignored in listing mode. */
-  tabs?: DisplayCardTab[]
-  /** Label for the default (children) tab. Defaults to "Info". */
-  defaultTabLabel?: string
   /** Content rendered in the sub-header band, alongside/instead of `stats` —
    * a darker shade of the header tone directly below the header content row.
    * The band renders when either `subHeader` or `stats` is provided; no band
@@ -107,11 +85,6 @@ type DisplayCardProps = {
    * directly below the header content row. No band renders when empty. */
   stats?: StatItem[]
 }
-
-const DEFAULT_TAB_KEY = '__default'
-
-const TAB_BASE_CLASS =
-  'min-w-0 basis-1/3 grow shrink-0 md:basis-0 md:shrink cursor-pointer px-3 py-1.5 font-cond text-xs font-bold uppercase tracking-caps transition-colors'
 
 /**
  * The sub-header band's stat row — a tight, non-wrapping `[StatItem → Stat]`
@@ -179,8 +152,6 @@ export function DisplayCard({
   footerContent,
   children,
   label,
-  labelBadge,
-  labelLead,
   size,
   extent,
   status,
@@ -195,23 +166,12 @@ export function DisplayCard({
   cardStyle,
   headerStyle: headerStyleProp,
   borderColor: borderColorProp,
-  tabs,
-  defaultTabLabel = 'Info',
   subHeader,
   stats,
 }: DisplayCardProps) {
   const display = resolveCardDisplay({ size, extent })
   const { compact: isCompact, listing: isListing } = displayBooleans(display)
-  const hasCallout = !!(labelLead || label || labelBadge)
-  const hasTabs = !isListing && tabs && tabs.length > 0
-
-  const [activeTabKey, setActiveTabKey] = useState(DEFAULT_TAB_KEY)
-
-  // Derive resolved tab key — falls back to default if active tab was removed
-  const resolvedTabKey =
-    activeTabKey !== DEFAULT_TAB_KEY && tabs && !tabs.some((t) => t.key === activeTabKey)
-      ? DEFAULT_TAB_KEY
-      : activeTabKey
+  const hasCallout = !!label
 
   // `status` is presentational sugar over the controls API: it folds into a
   // status CONTROL so the condition badge has exactly ONE implementation (the
@@ -262,56 +222,7 @@ export function DisplayCard({
   // not override it.
   const borderWidth = 3
 
-  const isDefaultTab = resolvedTabKey === DEFAULT_TAB_KEY
-  const activeTab = hasTabs ? tabs.find((t) => t.key === resolvedTabKey) : undefined
-  const showBody = !isListing && (isDefaultTab ? !!children : !!activeTab)
-
-  // Pale version of header color for active tab background
-  const activeTabBg = hasTabs
-    ? (() => {
-        const cssColor = borderColorFromHeaderBg(headerBg, headerBgColor)
-        return cssColor ? `color-mix(in srgb, ${cssColor} 35%, var(--color-paper))` : undefined
-      })()
-    : undefined
-
-  // One ordered tab list through ONE button implementation: the default
-  // (children) tab is synthesized into the same DisplayCardTab shape and merged
-  // between the `before` tabs and the rest.
-  const orderedTabs: DisplayCardTab[] = hasTabs
-    ? [
-        ...tabs.filter((t) => t.before),
-        { key: DEFAULT_TAB_KEY, label: defaultTabLabel, content: children },
-        ...tabs.filter((t) => !t.before),
-      ]
-    : []
-
-  const renderTabButton = (tab: DisplayCardTab) => {
-    const isActive = resolvedTabKey === tab.key
-    const tabBg = tab.activeColor
-      ? `color-mix(in srgb, ${tab.activeColor} 35%, var(--color-paper))`
-      : activeTabBg
-    return (
-      <button
-        key={tab.key}
-        type="button"
-        role="tab"
-        aria-selected={isActive}
-        className={cn(
-          TAB_BASE_CLASS,
-          !tab.borderColor && 'border-b border-ink-2/30',
-          isActive ? 'text-ink' : 'bg-wk-faint text-ink hover:bg-wk-muted'
-        )}
-        style={{
-          ...(isActive && tabBg ? { backgroundColor: tabBg } : {}),
-          ...(tab.borderColor ? { borderBottom: `3px solid ${tab.borderColor}` } : {}),
-          ...(tab.glowColor ? { boxShadow: `0 0 8px 2px ${tab.glowColor}` } : {}),
-        }}
-        onClick={() => setActiveTabKey(tab.key)}
-      >
-        {tab.label}
-      </button>
-    )
-  }
+  const showBody = !isListing && !!children
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: role="button" + tabIndex + keyboard handler are applied whenever resolvedCardClick makes the card interactive
@@ -348,25 +259,12 @@ export function DisplayCard({
             isCompact ? 'top-0 -translate-y-1/2' : '-mt-2'
           )}
         >
-          {labelLead}
-          {/* A label + badge pair (e.g. TECH LEVEL · 1, or a tree + ability level)
-              renders as one segmented value — label on the dark stamp, value in a
-              bounded white box — matching the data-row tags (e.g. RANGE · LONG).
-              A lone label or badge stays a single dark stamp.
-              The seam stamp is ALWAYS the small (compact) size so it reads as a
+          {/* The seam stamp is ALWAYS the small (compact) size so it reads as a
               tag riding the border, subordinate to the header — never card
               `compact`, which only governs the body/header density. */}
-          {label && labelBadge ? (
-            <Stat orientation="horizontal" label={label} value={labelBadge} xs />
-          ) : label ? (
-            <Badge shape="stamp" size="mini">
-              {label}
-            </Badge>
-          ) : labelBadge ? (
-            <Badge shape="stamp" size="mini">
-              {labelBadge}
-            </Badge>
-          ) : null}
+          <Badge shape="stamp" size="mini">
+            {label}
+          </Badge>
         </div>
       )}
 
@@ -377,8 +275,8 @@ export function DisplayCard({
         className={cn('flex flex-1 overflow-hidden', !isListing && 'flex-col')}
         style={{ borderRadius: `calc(3px - ${borderWidth}px)` }}
       >
-        {/* Header wrapper — contains content row + optional tab bar. */}
-        <div className={cn('w-full', hasTabs && 'flex flex-col')}>
+        {/* Header wrapper — contains the content row. */}
+        <div className="w-full">
           {/* Content row — existing header layout */}
           {headerContent != null && (
             <div
@@ -433,13 +331,6 @@ export function DisplayCard({
               {hasStats && <SubHeaderStats stats={stats ?? []} compact={isCompact} />}
             </div>
           )}
-
-          {/* Tab bar — only when hasTabs */}
-          {hasTabs && (
-            <div className="flex flex-wrap divide-x divide-ink-2/30" role="tablist">
-              {orderedTabs.map(renderTabButton)}
-            </div>
-          )}
         </div>
 
         {/* Body — hidden in listing mode */}
@@ -447,12 +338,10 @@ export function DisplayCard({
           <div
             className={cn(
               'w-full flex-1 isolate bg-paper flex flex-col',
-              bodyPadding || defaultBodyPadding,
-              hasTabs && (isDefaultTab ? 'pt-3' : 'p-0 pt-2')
+              bodyPadding || defaultBodyPadding
             )}
-            {...(hasTabs ? { 'aria-live': 'polite' as const } : {})}
           >
-            {isDefaultTab ? children : activeTab?.content}
+            {children}
           </div>
         )}
 

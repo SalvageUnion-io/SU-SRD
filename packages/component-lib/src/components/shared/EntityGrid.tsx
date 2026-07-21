@@ -35,12 +35,7 @@ type EntityGridProps = {
  */
 export function EntityGrid({ children, className }: EntityGridProps) {
   return (
-    <div
-      className={cn(
-        'grid grid-cols-1 items-stretch gap-x-[18px] gap-y-[26px] md:grid-cols-2',
-        className
-      )}
-    >
+    <div className={cn('grid grid-cols-1 items-stretch gap-x-4 gap-y-6 md:grid-cols-2', className)}>
       {children}
     </div>
   )

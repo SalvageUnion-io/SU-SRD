@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { DisplayCard } from './DisplayCard'
-import type { CardFootMeta, DisplayCardTab } from './DisplayCard'
+import type { CardFootMeta } from './DisplayCard'
 import type { StatItem } from './statsBarTypes'
 import { Text } from '../base/Text'
 
@@ -183,29 +183,11 @@ export const Status: Story = () => (
   </Gallery>
 )
 
-const tabs: DisplayCardTab[] = [
-  {
-    key: 'details',
-    label: 'Details',
-    content: <div className="p-3 text-sm text-ink-2">Alpha 12 · Beta 7</div>,
-  },
-  {
-    key: 'notes',
-    label: 'Notes',
-    content: <div className="p-3 text-sm text-ink-2">Additional notes.</div>,
-  },
-]
-
-/** Composed features: tabs, a header label + labelBadge. */
+/** Composed features: the label callout stamp riding the top border. */
 export const Features: Story = () => (
-  <Gallery rule="Feature slots layer onto the same shell: tabs, and a header label + labelBadge.">
-    <Cell label="tabs" width="w-[380px]">
-      <DisplayCard headerBg="bg-wk-line" headerContent={header} tabs={tabs}>
-        {body}
-      </DisplayCard>
-    </Cell>
-    <Cell label="label + labelBadge">
-      <DisplayCard headerBg="bg-mech" headerContent={header} label="Category" labelBadge="1">
+  <Gallery rule="Feature slots layer onto the same shell: a label callout stamp riding the top border.">
+    <Cell label="label">
+      <DisplayCard headerBg="bg-mech" headerContent={header} label="Category">
         {body}
       </DisplayCard>
     </Cell>

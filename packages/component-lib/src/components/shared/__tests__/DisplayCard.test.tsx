@@ -1,7 +1,6 @@
 import { describe, test, expect, afterEach } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { DisplayCard } from '../DisplayCard'
-import type { DisplayCardTab } from '../DisplayCard'
 import type { ReferenceEntityControl } from '../../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
 
 function makeTestControl(overrides: Partial<ReferenceEntityControl> = {}): ReferenceEntityControl {
@@ -54,30 +53,6 @@ describe('DisplayCard', () => {
       </DisplayCard>
     )
     expect(screen.getByText('CHASSIS')).toBeTruthy()
-  })
-
-  test('renders labelLead, label, and labelBadge together in one callout row', () => {
-    render(
-      <DisplayCard
-        headerBg="bg-mech"
-        headerContent={<span>Header</span>}
-        labelLead={<span>RECOMMENDED</span>}
-        label="TECH LEVEL"
-        labelBadge="3"
-      >
-        <p>Body</p>
-      </DisplayCard>
-    )
-    expect(screen.getByText('RECOMMENDED')).toBeTruthy()
-    expect(screen.getByText('TECH LEVEL')).toBeTruthy()
-    expect(screen.getByText('3')).toBeTruthy()
-    // All three live inside a single callout row (shared parent element), in order.
-    const lead = screen.getByText('RECOMMENDED')
-    const row = lead.parentElement
-    expect(row).not.toBeNull()
-    const rowText = row?.textContent ?? ''
-    expect(rowText.indexOf('RECOMMENDED')).toBeLessThan(rowText.indexOf('TECH LEVEL'))
-    expect(rowText.indexOf('TECH LEVEL')).toBeLessThan(rowText.indexOf('3'))
   })
 
   test('non-compact card WITH a callout top-aligns the header row and pads it', () => {
@@ -393,130 +368,6 @@ describe('DisplayCard', () => {
     const wrapper = container.firstElementChild as HTMLElement
     expect(wrapper.getAttribute('role')).toBeNull()
     expect(wrapper.className).not.toContain('focus-visible:ring-2')
-  })
-
-  test('tab content container has aria-live polite for screen reader announcements', () => {
-    const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
-    const { container } = render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} tabs={tabs}>
-        <p>Default body</p>
-      </DisplayCard>
-    )
-    const liveRegion = container.querySelector('[aria-live="polite"]')
-    expect(liveRegion).toBeTruthy()
-    expect(liveRegion?.textContent).toContain('Default body')
-  })
-
-  // --- Tab tests ---
-
-  test('no tabs renders no tab bar', () => {
-    render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>}>
-        <p>Body</p>
-      </DisplayCard>
-    )
-    expect(screen.queryByRole('tablist')).toBeNull()
-    expect(screen.getByText('Body')).toBeTruthy()
-  })
-
-  test('tabs render tab bar with correct labels', () => {
-    const tabs: DisplayCardTab[] = [
-      { key: 'a', label: 'Alpha', content: <p>Alpha content</p> },
-      { key: 'b', label: 'Beta', content: <p>Beta content</p> },
-    ]
-    render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} tabs={tabs}>
-        <p>Default content</p>
-      </DisplayCard>
-    )
-    const tablist = screen.getByRole('tablist')
-    expect(tablist).toBeTruthy()
-    const tabButtons = screen.getAllByRole('tab')
-    expect(tabButtons.length).toBe(3) // Info + Alpha + Beta
-    expect(tabButtons[0]?.textContent).toBe('Info')
-    expect(tabButtons[1]?.textContent).toBe('Alpha')
-    expect(tabButtons[2]?.textContent).toBe('Beta')
-  })
-
-  test('default tab shows children content', () => {
-    const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
-    render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} tabs={tabs}>
-        <p>Default body</p>
-      </DisplayCard>
-    )
-    expect(screen.getByText('Default body')).toBeTruthy()
-    expect(screen.queryByText('Alpha content')).toBeNull()
-  })
-
-  test('tab switching hides children and shows tab content', () => {
-    const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
-    render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} tabs={tabs}>
-        <p>Default body</p>
-      </DisplayCard>
-    )
-    // Click Alpha tab
-    fireEvent.click(screen.getByRole('tab', { name: 'Alpha' }))
-    expect(screen.queryByText('Default body')).toBeNull()
-    expect(screen.getByText('Alpha content')).toBeTruthy()
-
-    // Click back to default
-    fireEvent.click(screen.getByRole('tab', { name: 'Info' }))
-    expect(screen.getByText('Default body')).toBeTruthy()
-    expect(screen.queryByText('Alpha content')).toBeNull()
-  })
-
-  test('defaultTabLabel customization', () => {
-    const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
-    render(
-      <DisplayCard
-        headerBg="bg-mech"
-        headerContent={<span>Header</span>}
-        tabs={tabs}
-        defaultTabLabel="Details"
-      >
-        <p>Body</p>
-      </DisplayCard>
-    )
-    expect(screen.getByRole('tab', { name: 'Details' })).toBeTruthy()
-    expect(screen.queryByRole('tab', { name: 'Info' })).toBeNull()
-  })
-
-  test('listing mode ignores tabs', () => {
-    const tabs: DisplayCardTab[] = [{ key: 'a', label: 'Alpha', content: <p>Alpha content</p> }]
-    render(
-      <DisplayCard
-        headerBg="bg-mech"
-        headerContent={<span>Header</span>}
-        size="medium"
-        extent="head"
-        tabs={tabs}
-      >
-        <p>Body</p>
-      </DisplayCard>
-    )
-    expect(screen.queryByRole('tablist')).toBeNull()
-    expect(screen.queryByText('Body')).toBeNull()
-    expect(screen.queryByText('Alpha content')).toBeNull()
-  })
-
-  test('tab with glowColor gets box-shadow applied', () => {
-    const tabs: DisplayCardTab[] = [
-      {
-        key: 'glow',
-        label: 'Glowing',
-        content: <p>Glow content</p>,
-        glowColor: 'rgba(206, 88, 152, 0.5)',
-      },
-    ]
-    render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} tabs={tabs}>
-        <p>Body</p>
-      </DisplayCard>
-    )
-    const glowTab = screen.getByRole('tab', { name: 'Glowing' })
-    expect(glowTab.style.boxShadow).toBe('0 0 8px 2px rgba(206, 88, 152, 0.5)')
   })
 
   // --- Style override tests ---

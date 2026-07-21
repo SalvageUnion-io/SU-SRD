@@ -83,17 +83,6 @@ type StatItem = {
 
 When `onChange` is present, `StatsBar` renders `StatControl` (interactive with +/- buttons). Otherwise, it renders `Stat` (read-only).
 
-### Tabs
-
-```typescript
-type DisplayCardTab = {
-  key: string
-  label: string
-  content: ReactNode
-  activeColor?: string // CSS color override for active tab background
-}
-```
-
 - Hidden in listing mode
 - Default tab uses `defaultTabLabel` prop (default: `"Info"`)
 - Active tabs get a pale tinted background (35% color mix with white)
