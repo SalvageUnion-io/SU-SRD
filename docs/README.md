@@ -36,15 +36,15 @@ conventions, then the relevant architecture doc below.
 
 ### [`architecture/`](architecture/) — Cross-cutting architecture
 
-| Doc                                                               | Scope                                                                      |
-| ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| [display-system.md](architecture/display-system.md)               | 3-layer render stack: DisplayCard → ReferenceEntityDisplay → consumers     |
-| [data-flow.md](architecture/data-flow.md)                         | Reference data + player data hydration, IndexedDB, Zustand, TanStack Query |
-| [package-contracts.md](architecture/package-contracts.md)         | Package APIs, dependency rules, cross-package change checklist             |
-| [rules-engine-boundary.md](architecture/rules-engine-boundary.md) | **Rules & the ITUN Surfaces** — enforcement mode × rule-class matrix       |
-| [dashboard.md](architecture/dashboard.md)                         | The Dashboard (Guided-Play surface) design — layout, instruments, canvas   |
-| [combat-loop.md](architecture/combat-loop.md)                     | Action activation, heat checks, conditions — current local-first flow      |
-| [seo-accessibility.md](architecture/seo-accessibility.md)         | SEO strategy (srd) + WCAG 2.1 AA patterns                                  |
+| Doc                                                               | Scope                                                                            |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| [display-system.md](architecture/display-system.md)               | The two card shells (ReferenceEntityCard / DisplayCard), size × extent, controls |
+| [data-flow.md](architecture/data-flow.md)                         | Reference data + player data hydration, IndexedDB, Zustand, TanStack Query       |
+| [package-contracts.md](architecture/package-contracts.md)         | Package APIs, dependency rules, cross-package change checklist                   |
+| [rules-engine-boundary.md](architecture/rules-engine-boundary.md) | **Rules & the ITUN Surfaces** — enforcement mode × rule-class matrix             |
+| [dashboard.md](architecture/dashboard.md)                         | The Dashboard (Guided-Play surface) design — layout, instruments, canvas         |
+| [combat-loop.md](architecture/combat-loop.md)                     | Action activation, heat checks, conditions — current local-first flow            |
+| [seo-accessibility.md](architecture/seo-accessibility.md)         | SEO strategy (srd) + WCAG 2.1 AA patterns                                        |
 
 ### `docs/rules/` — Agent-readable rules digest (generated, gitignored)
 
