@@ -1,5 +1,5 @@
 /**
- * Tests for AssignPilotToMech, AssignCrawlerToPilot, UnassignLinkButton.
+ * Tests for AssignPilotToMech and AssignCrawlerToPilot.
  *
  * Uses dep-injection (no mock.module()) to supply fake stores.
  * Covers:
@@ -7,8 +7,6 @@
  *   - Dialog opens on click
  *   - Confirm calls store.create with correct args
  *   - Cancel closes without creating a link
- *   - UnassignLinkButton: confirm calls store.delete
- *   - UnassignLinkButton: cancel does not call store.delete
  */
 
 import { describe, expect, mock, test } from 'bun:test'
@@ -18,8 +16,6 @@ import { AssignPilotToMech } from '../AssignPilotToMech'
 import type { AssignPilotStore } from '../AssignPilotToMech'
 import { AssignCrawlerToPilot } from '../AssignCrawlerToPilot'
 import type { AssignCrawlerStore } from '../AssignCrawlerToPilot'
-import { UnassignLinkButton } from '../UnassignLinkButton'
-import type { UnassignStore } from '../UnassignLinkButton'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { Crawler } from '../../../lib/schemas/crawler'
@@ -101,14 +97,6 @@ function makeAssignCrawlerStore(
     create: createFn,
     delete: deleteFn,
     createFn,
-  }
-}
-
-function makeUnassignStore(): { deleteFn: MockDeleteFn } & UnassignStore {
-  const deleteFn = makeDeleteMock()
-  return {
-    delete: deleteFn,
-    deleteFn,
   }
 }
 
@@ -240,71 +228,5 @@ describe('AssignCrawlerToPilot', () => {
     expect(callInput.from).toEqual({ type: 'pilot', id: 'pilot-1' })
     expect(callInput.to).toEqual({ type: 'crawler', id: 'crawler-1' })
     expect(callInput.type).toBe('pilot-to-crawler')
-  })
-})
-
-// ---------------------------------------------------------------------------
-// UnassignLinkButton
-// ---------------------------------------------------------------------------
-
-describe('UnassignLinkButton', () => {
-  test('renders with default label "Unassign"', () => {
-    render(<UnassignLinkButton linkId="link-1" store={makeUnassignStore()} />)
-    expect(screen.getByRole('button', { name: /unassign — remove soft link/i })).toBeTruthy()
-  })
-
-  test('confirm dialog appears on click', async () => {
-    render(<UnassignLinkButton linkId="link-1" store={makeUnassignStore()} />)
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /unassign/i }))
-    })
-    expect(screen.getByRole('dialog')).toBeTruthy()
-  })
-
-  test('copy explains no entity deletion', async () => {
-    render(<UnassignLinkButton linkId="link-1" store={makeUnassignStore()} />)
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /unassign/i }))
-    })
-    // Text is split across elements ("not" is in <strong>); check dialog text content
-    const dialog = screen.getByRole('dialog')
-    expect(dialog.textContent).toMatch(/does\s+not\s+delete/i)
-  })
-
-  test('cancel closes without calling store.delete', async () => {
-    const store = makeUnassignStore()
-    render(<UnassignLinkButton linkId="link-1" store={store} />)
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /unassign/i }))
-    })
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-    })
-
-    expect(screen.queryByRole('dialog')).toBeNull()
-    expect(store.deleteFn).toHaveBeenCalledTimes(0)
-  })
-
-  test('confirm calls store.delete with the link id', async () => {
-    const store = makeUnassignStore()
-    const onUnassigned = mock(() => {})
-    render(<UnassignLinkButton linkId="link-99" store={store} onUnassigned={onUnassigned} />)
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /unassign/i }))
-    })
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /confirm unassign/i }))
-    })
-
-    expect(store.deleteFn).toHaveBeenCalledTimes(1)
-    expect(store.deleteFn.mock.calls[0]).toEqual(['softLink', 'link-99'])
-    expect(onUnassigned).toHaveBeenCalledTimes(1)
-  })
-
-  test('accepts a custom label prop', () => {
-    render(<UnassignLinkButton linkId="link-1" store={makeUnassignStore()} label="Remove pilot" />)
-    expect(screen.getByRole('button', { name: /remove pilot — remove soft link/i })).toBeTruthy()
   })
 })

@@ -390,7 +390,7 @@ export function Roster() {
       </div>
 
       {/* Destructive delete confirm — inline danger-tone ModalShell, like the
-          other destructive confirms (UnassignLinkButton, WizShell). */}
+          other destructive confirms (WizShell). */}
       <ModalShell
         open={deleteTarget !== null}
         onOpenChange={(next) => {
