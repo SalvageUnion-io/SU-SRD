@@ -126,7 +126,7 @@ export function DowntimeWizard({
 
         <div className="pc-dt-controls">
           <Button
-            size="sm"
+            size="compact"
             className="flex-1"
             onClick={() => onStepChange(idx - 1)}
             disabled={idx === 0}
@@ -134,7 +134,7 @@ export function DowntimeWizard({
             ‹ Prev
           </Button>
           <Button
-            size="sm"
+            size="compact"
             className={cn('flex-1', done && 'bg-status-ok')}
             onClick={() => onToggleDone(idx)}
             aria-pressed={done}
@@ -142,7 +142,7 @@ export function DowntimeWizard({
             {done ? '✓ Complete' : 'Mark Complete'}
           </Button>
           <Button
-            size="sm"
+            size="compact"
             className="flex-1"
             onClick={() => onStepChange(idx + 1)}
             disabled={idx === steps.length - 1}

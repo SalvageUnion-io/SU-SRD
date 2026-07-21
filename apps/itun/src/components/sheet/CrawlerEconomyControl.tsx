@@ -225,13 +225,13 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
         )}
 
         <div className="flex justify-end gap-2">
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="compact" onClick={onClose}>
             {done ? 'Done' : 'Cancel'}
           </Button>
           {!done && shortfall === 0 && (
             <Button
               variant="primary"
-              size="sm"
+              size="compact"
               onClick={() => {
                 void handlePay()
               }}
@@ -242,7 +242,7 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
           {!done && shortfall > 0 && (
             <Button
               variant="danger"
-              size="sm"
+              size="compact"
               onClick={() => {
                 void handleDeterioration()
               }}
@@ -347,7 +347,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
                 </StepButton>
               </span>
               <Button
-                size="sm"
+                size="compact"
                 variant="default"
                 disabled={contributable === 0 || contribution > contributable}
                 title={`Move ${contribution} scrap (Tech ${tl} or higher) from the pool into the Upgrade Pool`}
@@ -368,12 +368,12 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
           </p>
         )}
         <div className="flex justify-end gap-2">
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="compact" onClick={onClose}>
             Cancel
           </Button>
           <Button
             variant="primary"
-            size="sm"
+            size="compact"
             onClick={() => {
               void handleUpgrade()
             }}
@@ -523,7 +523,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
                       : `${count}× T${fromTl} → ${toCount}× T${toTl}`}
                 </p>
                 <Button
-                  size="sm"
+                  size="compact"
                   variant="primary"
                   disabled={!convertible}
                   title={
@@ -557,7 +557,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
                 its Tech Level.
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-3">
-                <Button size="sm" variant="primary" onClick={handleAvailabilityRoll}>
+                <Button size="compact" variant="primary" onClick={handleAvailabilityRoll}>
                   Roll Availability (d20)
                 </Button>
                 {availability && (
@@ -573,7 +573,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
         )}
 
         <div className="flex justify-end">
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="compact" onClick={onClose}>
             Close
           </Button>
         </div>

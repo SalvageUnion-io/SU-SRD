@@ -110,12 +110,12 @@ export function CrawlerTypeEditModal({
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" size="compact" onClick={onClose}>
               Cancel
             </Button>
             <Button
               variant="primary"
-              size="sm"
+              size="compact"
               disabled={!changed}
               onClick={() => setConfirming(true)}
             >
@@ -142,10 +142,20 @@ export function CrawlerTypeEditModal({
             type's Keepsake/Motto. Your bays and their crew are kept.
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setConfirming(false)} disabled={busy}>
+            <Button
+              variant="ghost"
+              size="compact"
+              onClick={() => setConfirming(false)}
+              disabled={busy}
+            >
               Cancel
             </Button>
-            <Button variant="danger" size="sm" onClick={() => void applyChange()} disabled={busy}>
+            <Button
+              variant="danger"
+              size="compact"
+              onClick={() => void applyChange()}
+              disabled={busy}
+            >
               {busy ? 'Changing…' : 'Change Type'}
             </Button>
           </div>

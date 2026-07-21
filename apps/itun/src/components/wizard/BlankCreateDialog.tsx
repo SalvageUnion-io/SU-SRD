@@ -199,12 +199,12 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
         {error && <FieldError>{error}</FieldError>}
 
         <div className="flex justify-end gap-2">
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={pending}>
+          <Button variant="ghost" size="compact" onClick={onClose} disabled={pending}>
             Cancel
           </Button>
           <Button
             variant="primary"
-            size="sm"
+            size="compact"
             onClick={() => void handleCreate()}
             disabled={pending || !canSubmit}
             aria-label={`Create blank ${label.toLowerCase()}`}

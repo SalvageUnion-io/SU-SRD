@@ -65,7 +65,7 @@ export const Default: Story = () => (
         label="Callsign"
         placeholder="Roll or type"
         labelAction={
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="compact">
             ⚄ Roll
           </Button>
         }

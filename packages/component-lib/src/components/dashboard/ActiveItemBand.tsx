@@ -74,7 +74,7 @@ function BandBtn({ btn, full = true }: { btn: BandButton; full?: boolean }) {
   return (
     <Button
       variant={btn.variant === 'danger' ? 'danger' : btn.variant === 'go' ? 'primary' : 'default'}
-      size="sm"
+      size="compact"
       className={cn(full ? 'w-full' : 'min-w-[140px]', btn.wide && 'col-span-2')}
       onClick={btn.onClick}
       disabled={btn.disabled}
@@ -125,7 +125,7 @@ export function StorageBay({
               </span>
               <Button
                 variant="danger"
-                size="sm"
+                size="compact"
                 onClick={() => onJettison(lot.id)}
                 aria-label={`Jettison ${lot.name}`}
               >
@@ -185,7 +185,7 @@ export function ActiveItemBand({ view }: ActiveItemBandProps) {
         <div className="pc-resolve" role="dialog" aria-label={overlay.title}>
           <div className="pc-resolve-head">
             <span className="pc-resolve-title">{overlay.title}</span>
-            <Button variant="ghost" size="sm" onClick={overlay.onClose}>
+            <Button variant="ghost" size="compact" onClick={overlay.onClose}>
               Close
             </Button>
           </div>

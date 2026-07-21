@@ -63,7 +63,7 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
     <div className="flex flex-col gap-1">
       <Button
         type="button"
-        size="sm"
+        size="compact"
         onClick={() => setConfirming(true)}
         disabled={isInstantiating}
         aria-label={`Instantiate mech from pattern ${pattern.name}`}
@@ -84,12 +84,12 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
             exactly as saved; edit freely on its live sheet.
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+            <Button variant="ghost" size="compact" onClick={() => setConfirming(false)}>
               Cancel
             </Button>
             <Button
               variant="primary"
-              size="sm"
+              size="compact"
               onClick={() => {
                 setConfirming(false)
                 void handleInstantiate()

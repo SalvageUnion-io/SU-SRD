@@ -67,7 +67,7 @@ export function SnapshotPageInner({ snapshot, notFound, error }: SnapshotPageInn
         </p>
         <AppLink
           href="/"
-          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+          className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
         >
           &larr; Back to Roster
         </AppLink>
@@ -82,7 +82,7 @@ export function SnapshotPageInner({ snapshot, notFound, error }: SnapshotPageInn
         <p className="mb-4 text-sm text-wk-muted">{error}</p>
         <AppLink
           href="/"
-          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+          className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
         >
           &larr; Back to Roster
         </AppLink>

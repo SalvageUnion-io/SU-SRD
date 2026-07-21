@@ -87,7 +87,7 @@ function EconLoz({ item }: { item: EconLozItem }) {
       {item.action && (
         <Button
           variant="primary"
-          size="xs"
+          size="mini"
           aria-label={item.action.ariaLabel}
           title={item.action.ariaLabel}
           onClick={item.action.onClick}

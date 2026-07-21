@@ -23,7 +23,7 @@ export const Default: Story = () => (
       title="Class Abilities"
       count={<Badge surface="outline">3</Badge>}
       controls={
-        <Button variant="ghost" size="xs">
+        <Button variant="ghost" size="mini">
           Edit
         </Button>
       }

@@ -26,7 +26,7 @@ export function RouteNotFound() {
         </p>
         <AppLink
           href="/"
-          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+          className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
         >
           &larr; Back to Roster
         </AppLink>

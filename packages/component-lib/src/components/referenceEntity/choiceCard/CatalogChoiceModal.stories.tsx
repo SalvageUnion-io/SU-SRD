@@ -39,7 +39,7 @@ function PickerDemo({ techLevel }: { techLevel?: number }) {
   return (
     <div className="flex w-full max-w-md flex-col items-start gap-1.5">
       {chosenEntity && <ReferenceEntityCard data={chosenEntity} size="medium" extent="head" />}
-      <Button variant="primary" size="xs" onClick={() => setOpen(true)}>
+      <Button variant="primary" size="mini" onClick={() => setOpen(true)}>
         {chosen ? `Change — ${chosen}` : `Choose ${choice.name}…`}
       </Button>
       <CatalogChoiceModal

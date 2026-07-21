@@ -75,10 +75,10 @@ export function MechChassisPickerModal({
           </div>
         </div>
         <div className="flex justify-end gap-2 bg-paper px-4 pb-4">
-          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+          <Button variant="ghost" size="compact" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button size="sm" disabled={!changed} onClick={apply}>
+          <Button size="compact" disabled={!changed} onClick={apply}>
             Apply chassis
           </Button>
         </div>
@@ -98,10 +98,10 @@ export function MechChassisPickerModal({
             Changing chassis clears the current loadout (pattern, systems, and modules). Continue?
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+            <Button variant="ghost" size="compact" onClick={() => setConfirming(false)}>
               Cancel
             </Button>
-            <Button variant="danger" size="sm" onClick={confirmChange}>
+            <Button variant="danger" size="compact" onClick={confirmChange}>
               Change chassis
             </Button>
           </div>

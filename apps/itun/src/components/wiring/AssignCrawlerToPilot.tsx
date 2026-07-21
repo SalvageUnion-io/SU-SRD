@@ -85,7 +85,7 @@ export function AssignCrawlerToPilot({
   return (
     <>
       <Button
-        size="sm"
+        size="compact"
         onClick={openDialog}
         className={cn(className)}
         aria-label="Assign crawler to pilot"
@@ -131,12 +131,12 @@ export function AssignCrawlerToPilot({
           {error && <FieldError>{error}</FieldError>}
 
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="sm" onClick={closeDialog} disabled={pending}>
+            <Button variant="ghost" size="compact" onClick={closeDialog} disabled={pending}>
               Cancel
             </Button>
             <Button
               variant="primary"
-              size="sm"
+              size="compact"
               onClick={() => void handleConfirm()}
               disabled={pending || crawlers.length === 0}
               aria-label="Confirm crawler assignment"

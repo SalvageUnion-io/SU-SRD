@@ -72,7 +72,7 @@ export function UnassignLinkButton({
     <>
       <Button
         variant="ghost"
-        size="sm"
+        size="compact"
         onClick={openConfirm}
         className={cn('text-status-bad hover:text-status-bad', className)}
         aria-label={`${label} — remove soft link`}
@@ -96,12 +96,12 @@ export function UnassignLinkButton({
           </div>
           {error && <FieldError>{error}</FieldError>}
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="sm" onClick={closeConfirm} disabled={pending}>
+            <Button variant="ghost" size="compact" onClick={closeConfirm} disabled={pending}>
               Cancel
             </Button>
             <Button
               variant="danger"
-              size="sm"
+              size="compact"
               onClick={() => void handleConfirm()}
               disabled={pending}
               aria-label="Confirm unassign"

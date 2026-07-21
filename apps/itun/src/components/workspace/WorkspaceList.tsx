@@ -195,7 +195,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                       />
                       <Button
                         variant="primary"
-                        size="sm"
+                        size="compact"
                         onClick={() => void handleRename(ws.id)}
                         disabled={renamePending}
                         aria-label={`Confirm rename workspace`}
@@ -204,7 +204,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                       </Button>
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="compact"
                         onClick={cancelEditing}
                         disabled={renamePending}
                         aria-label={`Cancel rename workspace ${ws.name}`}
@@ -220,7 +220,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                     <span className="flex-1 font-body text-sm font-medium text-ink">{ws.name}</span>
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="compact"
                       onClick={() => startEditing(ws)}
                       aria-label={`Rename workspace ${ws.name}`}
                     >
@@ -231,7 +231,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                     {ws.id !== DEFAULT_WORKSPACE_ID && (
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="compact"
                         onClick={() => void handleDelete(ws.id)}
                         aria-label={`Delete workspace ${ws.name}`}
                         className="text-status-bad hover:text-status-bad"
@@ -265,7 +265,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
             />
             <Button
               variant="primary"
-              size="sm"
+              size="compact"
               onClick={() => void handleCreate()}
               disabled={createPending}
               aria-label="Create workspace"

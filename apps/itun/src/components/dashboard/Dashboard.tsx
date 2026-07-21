@@ -112,7 +112,11 @@ export function Dashboard({ id }: { id: string }) {
             returnControl={
               <AppLink
                 href="/"
-                className={buttonVariants({ surface: 'instrument', variant: 'ghost', size: 'sm' })}
+                className={buttonVariants({
+                  surface: 'instrument',
+                  variant: 'ghost',
+                  size: 'compact',
+                })}
               >
                 ◄ Return to Workspace
               </AppLink>

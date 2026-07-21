@@ -81,7 +81,7 @@ export function MediatorRollControl({
         {TABLE_IDS.map((table) =>
           compact ? (
             <Button
-              size="xs"
+              size="mini"
               key={table}
               aria-label={`Roll ${MEDIATOR_TABLE_LABEL[table]} for ${scopeLabel}`}
               title={TABLE_HINT[table]}
@@ -92,7 +92,7 @@ export function MediatorRollControl({
           ) : (
             <Button
               key={table}
-              size="sm"
+              size="compact"
               variant="primary"
               aria-label={`Roll ${MEDIATOR_TABLE_LABEL[table]} for ${scopeLabel}`}
               title={TABLE_HINT[table]}

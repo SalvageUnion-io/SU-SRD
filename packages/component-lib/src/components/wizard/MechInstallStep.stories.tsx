@@ -246,7 +246,7 @@ function LegacyInstallStep({ kind }: { kind: 'systems' | 'modules' }) {
             <Button variant="ghost" className="border-paper/40 text-paper hover:bg-paper/10">
               Back
             </Button>
-            <Button variant="primary" size="lg" className="rounded-full">
+            <Button variant="primary" size="full" className="rounded-full">
               Next · Modules →
             </Button>
           </div>

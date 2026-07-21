@@ -481,7 +481,7 @@ function CountCard({
             {count} Added
           </span>
         )}
-        <Button size="xs" onClick={onAdd} aria-label={`Add ${entity.name}`}>
+        <Button size="mini" onClick={onAdd} aria-label={`Add ${entity.name}`}>
           {installed ? '+ Add another' : '+ Add'}
         </Button>
       </div>
@@ -570,7 +570,7 @@ function SelectionRail({
               )}
             </div>
             <Button
-              size="xs"
+              size="mini"
               onClick={() => (mode === 'count' ? onRemove?.(index) : onToggle?.(ref))}
               aria-label={`Remove ${entity.name}`}
               className="mt-0.5 shrink-0"

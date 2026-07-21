@@ -63,10 +63,10 @@ export const Default: Story = () => (
         footMeta={railFootMeta}
         actions={
           <>
-            <Button variant="primary" size="sm">
+            <Button variant="primary" size="compact">
               Use
             </Button>
-            <Button variant="default" size="sm">
+            <Button variant="default" size="compact">
               Repair
             </Button>
           </>

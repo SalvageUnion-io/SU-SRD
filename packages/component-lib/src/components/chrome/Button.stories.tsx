@@ -10,16 +10,15 @@ export default {
 // The `.btn` cva ships four variants (buttonVariants.ts). `secondary` / `control`
 // are named in the codex but not yet implemented — only the real ones render.
 const BTN_VARIANTS = ['default', 'primary', 'ghost', 'danger'] as const
-// `sm` and `md` are merged at sm's rendering (see buttonVariants.ts), so the
-// gallery shows the two DISTINCT sizes — the merged workhorse scale (also the
-// default) and `lg` — not a ghost cell for a rung that no longer renders.
-const BTN_SIZES = ['sm', 'lg'] as const
+// The canonical ladder (styles/sizing.ts): `full` the CTA reading size,
+// `compact` the default workhorse scale, `mini` the uppercase action chip.
+const BTN_SIZES = ['full', 'compact', 'mini'] as const
 
 type BtnVariant = (typeof BTN_VARIANTS)[number]
 
 /**
- * One story per variant: each distinct size (sm — merged with md, the default
- * scale — and lg) plus the disabled treatment (opacity .4, pointer-events
+ * One story per variant: each rung of the ladder (full / compact — the
+ * default — / mini) plus the disabled treatment (opacity .4, pointer-events
  * none). Labels are sentence-case bodies — a Button is never a stamp.
  */
 function VariantShowcase({ variant, label }: { variant: BtnVariant; label: string }) {
@@ -120,23 +119,23 @@ export const Instrument: Story = () => (
 )
 
 /**
- * `Button size="xs"` — the compact uppercase action chip (formerly MiniBtn), e.g.
+ * `Button size="mini"` — the uppercase action chip (formerly MiniBtn), e.g.
  * '⇄ Swap' on rail chips. Default + disabled.
  */
-export const XsButtons: Story = () => (
+export const MiniButtons: Story = () => (
   <div className="flex flex-col gap-5">
     <div>
       <Caption>default</Caption>
       <div className="flex flex-wrap items-start gap-3">
-        <Button size="xs">⇄ Swap</Button>
-        <Button size="xs">Remove</Button>
-        <Button size="xs">Details</Button>
+        <Button size="mini">⇄ Swap</Button>
+        <Button size="mini">Remove</Button>
+        <Button size="mini">Details</Button>
       </div>
     </div>
     <div>
       <Caption>disabled</Caption>
       <div className="flex flex-wrap items-start gap-3">
-        <Button size="xs" disabled>
+        <Button size="mini" disabled>
           ⇄ Swap
         </Button>
       </div>
@@ -153,10 +152,10 @@ export const GlyphButtons: Story = () => (
   <div>
     <Caption>roll assist</Caption>
     <div className="flex flex-wrap items-start gap-3">
-      <Button size="sm" glyph="⚄">
+      <Button size="compact" glyph="⚄">
         Roll callsign
       </Button>
-      <Button size="xs" glyph="⚄">
+      <Button size="mini" glyph="⚄">
         Roll
       </Button>
     </div>

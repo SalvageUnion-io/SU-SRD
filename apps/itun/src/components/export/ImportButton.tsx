@@ -67,7 +67,7 @@ export function ImportButton() {
 
   return (
     <div className="flex flex-col gap-1">
-      <Button size="sm" disabled={busy} onClick={handleClick}>
+      <Button size="compact" disabled={busy} onClick={handleClick}>
         {busy ? 'Importing…' : 'Import…'}
       </Button>
       {/* Hidden file input */}

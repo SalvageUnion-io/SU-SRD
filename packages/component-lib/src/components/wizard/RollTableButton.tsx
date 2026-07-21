@@ -24,7 +24,7 @@ export function RollTableButton({ field, onRoll, label = 'Roll', _deps }: RollTa
   }
 
   return (
-    <Button size="sm" glyph="⚄" onClick={handleClick} className="shrink-0 self-center">
+    <Button size="compact" glyph="⚄" onClick={handleClick} className="shrink-0 self-center">
       {label}
     </Button>
   )

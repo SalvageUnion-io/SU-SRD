@@ -201,8 +201,8 @@ describe('StepButton / Button xs', () => {
     expect(btn.className).toContain('w-6')
   })
 
-  test('Button size="xs" renders the compact uppercase action (former MiniBtn)', () => {
-    render(<Button size="xs">⇄ Swap</Button>)
+  test('Button size="mini" renders the compact uppercase action (former MiniBtn)', () => {
+    render(<Button size="mini">⇄ Swap</Button>)
     expect(screen.getByRole('button', { name: '⇄ Swap' }).className).toContain('uppercase')
   })
 })

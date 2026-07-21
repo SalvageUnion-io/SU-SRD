@@ -321,7 +321,12 @@ export function GenericEntryCard({ entry, onRemove }: GenericEntryCardProps) {
       </div>
       <Stat orientation="horizontal" label="Slots" value={genericEntrySlots(entry)} />
       {onRemove && (
-        <Button size="sm" variant="ghost" aria-label={`Remove ${entry.name}`} onClick={onRemove}>
+        <Button
+          size="compact"
+          variant="ghost"
+          aria-label={`Remove ${entry.name}`}
+          onClick={onRemove}
+        >
           Remove
         </Button>
       )}
@@ -363,7 +368,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-[3px] border-chrome border-dashed border-wk-faint p-2.5">
       <Button
-        size="sm"
+        size="compact"
         aria-label="Add Scrap (3 slots)"
         onClick={() => {
           onAdd({ id: crypto.randomUUID(), name: 'Scrap', slotCost: 3 })
@@ -401,7 +406,12 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           className={`${inputClass} w-14`}
         />
       </label>
-      <Button size="sm" disabled={!name.trim()} aria-label="Add inventory item" onClick={commit}>
+      <Button
+        size="compact"
+        disabled={!name.trim()}
+        aria-label="Add inventory item"
+        onClick={commit}
+      >
         Add
       </Button>
     </div>

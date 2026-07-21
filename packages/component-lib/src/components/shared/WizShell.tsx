@@ -272,12 +272,12 @@ export function WizShell({
               Your unsaved changes will be lost.
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" size="sm" onClick={() => setConfirmingCancel(false)}>
+              <Button variant="ghost" size="compact" onClick={() => setConfirmingCancel(false)}>
                 Keep editing
               </Button>
               <Button
                 variant="danger"
-                size="sm"
+                size="compact"
                 onClick={() => {
                   setConfirmingCancel(false)
                   onCancel()
@@ -293,7 +293,7 @@ export function WizShell({
           the blocking reason lives in the footerNote text. */}
       <Button
         variant="primary"
-        size="lg"
+        size="full"
         className={cn(
           'w-full rounded-full sm:w-auto',
           nextDisabled &&

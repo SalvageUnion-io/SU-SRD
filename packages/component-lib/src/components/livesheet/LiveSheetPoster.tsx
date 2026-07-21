@@ -139,7 +139,7 @@ function ImageSeat({ src, label, readOnly }: { src?: string; label: string; read
         body="PNG or JPG"
         action={
           readOnly ? undefined : (
-            <Button size="sm" variant="primary" onClick={() => {}}>
+            <Button size="compact" variant="primary" onClick={() => {}}>
               Upload
             </Button>
           )
@@ -229,7 +229,7 @@ function CollectionSection({
         count={count}
         actions={
           readOnly ? undefined : (
-            <Button size="sm" variant="default" onClick={() => {}}>
+            <Button size="compact" variant="default" onClick={() => {}}>
               + Add {addLabel}
             </Button>
           )
@@ -439,7 +439,7 @@ export function LiveSheetPoster(props: LiveSheetPosterProps) {
                     {!readOnly && (
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="compact"
                         onClick={() => setInjuryModalOpen(true)}
                         aria-label="Add injury"
                       >
@@ -608,10 +608,10 @@ function InjuryModal({
         </div>
 
         <div className="flex justify-end gap-2 pt-1">
-          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+          <Button variant="ghost" size="compact" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button variant="primary" size="sm" onClick={submit} disabled={!label.trim()}>
+          <Button variant="primary" size="compact" onClick={submit} disabled={!label.trim()}>
             Add Injury
           </Button>
         </div>

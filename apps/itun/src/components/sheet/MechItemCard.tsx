@@ -201,7 +201,7 @@ export function MechItemCard({
           </p>
           <div className="flex flex-wrap justify-end gap-2">
             <Button
-              size="sm"
+              size="compact"
               variant="primary"
               disabled={deductTl === null}
               title={deductDisabledReason ?? undefined}
@@ -214,7 +214,7 @@ export function MechItemCard({
               Deduct {cost} from TL {deductTl ?? Math.max(1, itemTl ?? 1)} pool
             </Button>
             <Button
-              size="sm"
+              size="compact"
               aria-label={`Repair ${entity.name} without deducting scrap`}
               onClick={() => {
                 onRepair(null, cost)
@@ -223,7 +223,7 @@ export function MechItemCard({
             >
               Repair without deducting
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setConfirmingRepair(false)}>
+            <Button size="compact" variant="ghost" onClick={() => setConfirmingRepair(false)}>
               Cancel
             </Button>
           </div>

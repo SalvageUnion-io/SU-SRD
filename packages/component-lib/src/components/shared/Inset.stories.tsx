@@ -99,7 +99,7 @@ export const Economy: Story = () => (
             label="Upkeep"
             value={5}
             action={
-              <Button variant="primary" size="xs">
+              <Button variant="primary" size="mini">
                 Pay
               </Button>
             }
@@ -108,7 +108,7 @@ export const Economy: Story = () => (
             label="Upgrade"
             value={30}
             action={
-              <Button variant="primary" size="xs">
+              <Button variant="primary" size="mini">
                 Fund
               </Button>
             }

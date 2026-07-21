@@ -31,7 +31,7 @@ export function TablePickerOverlay({
     <div className="pc-tablepick" role="dialog" aria-label="Pick a roll table" aria-modal="true">
       <div className="pc-tablepick-head">
         <span className="pc-tablepick-title">Pick a roll table</span>
-        <Button size="sm" onClick={onClose} aria-label="Close table picker">
+        <Button size="compact" onClick={onClose} aria-label="Close table picker">
           ✕
         </Button>
       </div>

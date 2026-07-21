@@ -125,7 +125,7 @@ export function SavePatternButton({
             <Button
               type="button"
               variant="ghost"
-              size="sm"
+              size="compact"
               onClick={handleCancel}
               disabled={isSaving}
             >
@@ -134,7 +134,7 @@ export function SavePatternButton({
             <Button
               type="button"
               variant="primary"
-              size="sm"
+              size="compact"
               onClick={() => void handleSave()}
               disabled={isSaving || !patternName.trim()}
               aria-label="Save pattern"

@@ -92,7 +92,7 @@ export const CatalogPicker: Story = () => {
       <Caption>
         CatalogChoiceModal — the Armament Bay Weapons System pick (any SP-damage system).
       </Caption>
-      <Button variant="primary" size="xs" onClick={() => setOpen(true)}>
+      <Button variant="primary" size="mini" onClick={() => setOpen(true)}>
         {chosen ? `Change — ${chosen}` : 'Choose a Weapons System…'}
       </Button>
       <CatalogChoiceModal

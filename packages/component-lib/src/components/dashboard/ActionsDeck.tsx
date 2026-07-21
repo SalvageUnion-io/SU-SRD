@@ -110,7 +110,7 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
       <div className="pc-display-scroll">
         <div className="pc-deck-panel">
           <div className="pc-deck-panel-head">
-            <Button variant="ghost" size="sm" onClick={view.onBack}>
+            <Button variant="ghost" size="compact" onClick={view.onBack}>
               ◀ Back
             </Button>
             <span className="pc-deck-cost">{view.costLabel}</span>
@@ -149,7 +149,7 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
               <span className="pc-deck-hotx-lab">Hot</span>
               <div className="pc-step">
                 <Button
-                  size="sm"
+                  size="compact"
                   className="min-w-0 px-2"
                   onClick={variableHot.onDec}
                   disabled={variableHot.activated}
@@ -159,7 +159,7 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
                 </Button>
                 <span className="pc-step-num">{variableHot.hotX}</span>
                 <Button
-                  size="sm"
+                  size="compact"
                   className="min-w-0 px-2"
                   onClick={variableHot.onInc}
                   disabled={variableHot.activated}
@@ -176,7 +176,7 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
 
           <div className="pc-deck-controls">
             <Button
-              size="sm"
+              size="compact"
               className="flex-1"
               onClick={controls.onActivate}
               disabled={controls.activateDisabled}
@@ -184,13 +184,13 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
             >
               {controls.activateLabel}
             </Button>
-            <Button size="sm" className="flex-1" onClick={controls.onRoll}>
+            <Button size="compact" className="flex-1" onClick={controls.onRoll}>
               Roll
             </Button>
             {controls.push && (
               <Button
                 variant="danger"
-                size="sm"
+                size="compact"
                 className="flex-1"
                 onClick={controls.push.onPush}
                 disabled={controls.push.disabled}
@@ -200,7 +200,7 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
               </Button>
             )}
             <Button
-              size="sm"
+              size="compact"
               className="flex-1"
               onClick={controls.onApply}
               disabled={controls.applyDisabled}
@@ -211,7 +211,7 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
           </div>
 
           <div className="pc-deck-controls">
-            <Button variant="ghost" size="sm" onClick={controls.onClear}>
+            <Button variant="ghost" size="compact" onClick={controls.onClear}>
               Clear
             </Button>
           </div>

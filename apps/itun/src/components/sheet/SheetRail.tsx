@@ -126,12 +126,12 @@ export function RailChip({
         </span>
         <span className="flex items-center gap-1.5">
           {onSwap && (
-            <Button size="xs" onClick={handleSwap}>
+            <Button size="mini" onClick={handleSwap}>
               &#8644; Swap
             </Button>
           )}
           {onUnassign && (
-            <Button size="xs" onClick={handleUnassign}>
+            <Button size="mini" onClick={handleUnassign}>
               &#10005; Unassign
             </Button>
           )}

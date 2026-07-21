@@ -47,7 +47,12 @@ export function ExportEntityButton({ type, id, name }: ExportEntityButtonProps) 
 
   return (
     <div className="flex flex-col gap-1">
-      <Button size="sm" disabled={busy} onClick={() => void handleExport()} className="min-h-11">
+      <Button
+        size="compact"
+        disabled={busy}
+        onClick={() => void handleExport()}
+        className="min-h-11"
+      >
         {busy ? 'Exporting…' : 'Export'}
       </Button>
       {error && <p className="text-sm text-status-bad">{error}</p>}

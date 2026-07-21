@@ -28,7 +28,7 @@ export function DialConfig({ rows, onToggle, onMove, onClose }: DialConfigProps)
     <div className="pc-dialcfg" role="dialog" aria-label="Configure dial">
       <div className="pc-dialcfg-head">
         <span className="pc-dialcfg-title">Configure Dial</span>
-        <Button variant="ghost" size="sm" onClick={onClose}>
+        <Button variant="ghost" size="compact" onClick={onClose}>
           Done
         </Button>
       </div>
@@ -50,7 +50,7 @@ export function DialConfig({ rows, onToggle, onMove, onClose }: DialConfigProps)
             </label>
             <span className="pc-dialcfg-move">
               <Button
-                size="sm"
+                size="compact"
                 className="min-w-0 flex-1 px-2"
                 onClick={() => onMove(row.id, -1)}
                 disabled={i === 0}
@@ -59,7 +59,7 @@ export function DialConfig({ rows, onToggle, onMove, onClose }: DialConfigProps)
                 ▲
               </Button>
               <Button
-                size="sm"
+                size="compact"
                 className="min-w-0 flex-1 px-2"
                 onClick={() => onMove(row.id, 1)}
                 disabled={i === rows.length - 1}

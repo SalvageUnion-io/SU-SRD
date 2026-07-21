@@ -97,7 +97,7 @@ export function Sheet({
           </p>
           <AppLink
             href="/"
-            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+            className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
           >
             &larr; Back to Roster
           </AppLink>
@@ -123,7 +123,7 @@ export function Sheet({
       type="button"
       aria-label={`Print this ${kind} sheet`}
       onClick={() => window.print()}
-      className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'cursor-pointer')}
+      className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'cursor-pointer')}
     >
       Print
     </button>
@@ -147,7 +147,7 @@ export function Sheet({
       type="button"
       aria-label={`View the change log for this ${kind}`}
       onClick={() => setChangeLogOpen(true)}
-      className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'cursor-pointer')}
+      className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'cursor-pointer')}
     >
       Change Log
     </button>
@@ -157,7 +157,7 @@ export function Sheet({
       <AppLink
         href={`/sheet/${kind}/${id}/share`}
         aria-label={`Share this ${kind} as a snapshot`}
-        className={cn(buttonVariants({ size: 'sm' }), 'min-h-11 no-underline sm:min-h-9')}
+        className={cn(buttonVariants({ size: 'compact' }), 'min-h-11 no-underline sm:min-h-9')}
       >
         Share
       </AppLink>

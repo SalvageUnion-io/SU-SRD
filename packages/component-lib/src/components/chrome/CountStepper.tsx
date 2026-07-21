@@ -68,7 +68,7 @@ export function CountStepper({
     return (
       <div className="flex items-center justify-center gap-[10px]">
         <Button
-          size="sm"
+          size="compact"
           className="min-w-0 px-2"
           aria-label={`Remove one ${subject}`}
           disabled={atMin}
@@ -84,7 +84,7 @@ export function CountStepper({
         </span>
         {liveRegion}
         <Button
-          size="sm"
+          size="compact"
           className="min-w-0 px-2"
           aria-label={`Add one ${subject}`}
           disabled={atMax}

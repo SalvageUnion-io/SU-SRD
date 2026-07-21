@@ -102,7 +102,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
             <div className="ml-auto flex shrink-0 items-center gap-1.5">
               {refEntity && (
                 <Button
-                  size="xs"
+                  size="mini"
                   aria-label={`View ${npc.refName} details`}
                   onClick={detailControl.onClick}
                 >
@@ -110,7 +110,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
                 </Button>
               )}
               <Button
-                size="xs"
+                size="mini"
                 aria-label={`Remove ${npc.name} from the tray`}
                 onClick={() => setConfirmRemove(true)}
               >
@@ -171,7 +171,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
                   className="w-32 rounded-[2px] border-chrome border-ink/40 bg-paper px-1.5 py-0.5 font-body text-xs text-ink placeholder:text-wk-muted focus:border-ink focus:outline-none"
                 />
                 <Button
-                  size="xs"
+                  size="mini"
                   aria-label={`Confirm new condition for ${npc.name}`}
                   onClick={addCondition}
                   disabled={conditionDraft.trim() === ''}
@@ -209,12 +209,12 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
             {ENCOUNTER_SCHEMA_LABEL[npc.refSchema]} itself is unaffected.
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setConfirmRemove(false)}>
+            <Button variant="ghost" size="compact" onClick={() => setConfirmRemove(false)}>
               Cancel
             </Button>
             <Button
               variant="danger"
-              size="sm"
+              size="compact"
               onClick={() => {
                 setConfirmRemove(false)
                 void storeState.delete(npc.id)

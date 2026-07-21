@@ -230,7 +230,7 @@ type CardRemoveButtonProps = {
 export function CardRemoveButton({ name, onRemove, className }: CardRemoveButtonProps) {
   return (
     <Button
-      size="xs"
+      size="mini"
       aria-label={`Remove ${name}`}
       onClick={onRemove}
       className={cn(EDIT_CUE_CLASS, 'min-h-11 sm:min-h-6 print:hidden', className)}

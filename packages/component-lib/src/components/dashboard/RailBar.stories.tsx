@@ -12,7 +12,7 @@ export default { title: 'Compositions/Dashboard/Rail Bar' }
 const ReturnLink = (
   <a
     href="#dashboard"
-    className={buttonVariants({ surface: 'instrument', variant: 'ghost', size: 'sm' })}
+    className={buttonVariants({ surface: 'instrument', variant: 'ghost', size: 'compact' })}
   >
     ◄ Return to Workspace
   </a>

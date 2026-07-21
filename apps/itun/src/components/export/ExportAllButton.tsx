@@ -40,7 +40,7 @@ export function ExportAllButton() {
 
   return (
     <div className="flex flex-col gap-1">
-      <Button size="sm" disabled={busy} onClick={() => void handleExportAll()}>
+      <Button size="compact" disabled={busy} onClick={() => void handleExportAll()}>
         {busy ? 'Exporting…' : 'Download all'}
       </Button>
       {error && <p className="font-body text-xs text-status-bad">{error}</p>}

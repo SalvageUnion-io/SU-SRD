@@ -250,7 +250,7 @@ export function Roster() {
               {SEGMENTS.map((seg) => (
                 <Button
                   key={seg.kind}
-                  size="sm"
+                  size="compact"
                   variant={activeSegment === seg.kind ? 'primary' : 'default'}
                   aria-pressed={activeSegment === seg.kind}
                   onClick={() => setActiveSegment(seg.kind)}
@@ -317,7 +317,10 @@ export function Roster() {
                 headExtra={
                   <AppLink
                     href="/mechs/patterns"
-                    className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'no-underline')}
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'compact' }),
+                      'no-underline'
+                    )}
                   >
                     Patterns
                   </AppLink>
@@ -402,10 +405,10 @@ export function Roster() {
             This action cannot be undone. {deleteTarget?.name ?? ''} will be permanently removed.
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="sm" onClick={handleCancelDelete}>
+            <Button variant="ghost" size="compact" onClick={handleCancelDelete}>
               Cancel
             </Button>
-            <Button variant="danger" size="sm" onClick={() => void handleConfirmDelete()}>
+            <Button variant="danger" size="compact" onClick={() => void handleConfirmDelete()}>
               Delete
             </Button>
           </div>
@@ -442,7 +445,7 @@ function FirstRunWelcome() {
         // Top rung deliberately: this is the Roster's page-level primary CTA. The
         // sm/md merge dropped the default to the app's secondary workhorse size,
         // which reads underweight for a primary page action.
-        className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'no-underline')}
+        className={cn(buttonVariants({ variant: 'primary', size: 'full' }), 'no-underline')}
       >
         Build your first pilot
       </AppLink>
@@ -501,7 +504,10 @@ function RosterColumn({
           {children.length > 0 && (
             <AppLink
               href={createHref}
-              className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
+              className={cn(
+                buttonVariants({ variant: 'default', size: 'compact' }),
+                'no-underline'
+              )}
             >
               + {createLabel}
             </AppLink>
@@ -516,7 +522,10 @@ function RosterColumn({
           action={
             <AppLink
               href={createHref}
-              className={cn(buttonVariants({ variant: 'primary', size: 'sm' }), 'no-underline')}
+              className={cn(
+                buttonVariants({ variant: 'primary', size: 'compact' }),
+                'no-underline'
+              )}
             >
               {createLabel}
             </AppLink>

@@ -411,7 +411,7 @@ export function Dial({ items, activeIndex, onActiveIndexChange, renderConfig }: 
       </div>
       <div className="pc-wheel-ctl">
         <Button
-          size="sm"
+          size="compact"
           className="min-w-0 flex-1 px-2"
           onClick={() => stepBy(-1)}
           aria-label="Dial up"
@@ -419,7 +419,7 @@ export function Dial({ items, activeIndex, onActiveIndexChange, renderConfig }: 
           ▲
         </Button>
         <Button
-          size="sm"
+          size="compact"
           className="min-w-0 flex-1 px-2"
           onClick={() => stepBy(1)}
           aria-label="Dial down"
@@ -428,7 +428,7 @@ export function Dial({ items, activeIndex, onActiveIndexChange, renderConfig }: 
         </Button>
         {canConfigure && (
           <Button
-            size="sm"
+            size="compact"
             className="min-w-0 shrink-0 px-2"
             onClick={() => setConfigOpen((o) => !o)}
             aria-label="Configure dial"

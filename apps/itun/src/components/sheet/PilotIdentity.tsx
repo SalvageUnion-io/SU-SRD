@@ -244,10 +244,10 @@ export function PilotIdentityPanel({
         title="Change Class"
         footer={
           <>
-            <Button variant="ghost" size="sm" onClick={() => setClassPickerOpen(false)}>
+            <Button variant="ghost" size="compact" onClick={() => setClassPickerOpen(false)}>
               Cancel
             </Button>
-            <Button variant="primary" size="sm" onClick={confirmClass}>
+            <Button variant="primary" size="compact" onClick={confirmClass}>
               Change Class
             </Button>
           </>

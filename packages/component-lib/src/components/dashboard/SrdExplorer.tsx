@@ -213,7 +213,7 @@ function SrdCategoryList({
   return (
     <div className="pc-srd-list">
       <div className="pc-srd-crumb">
-        <Button size="xs" onClick={onBack}>
+        <Button size="mini" onClick={onBack}>
           ◀ Categories
         </Button>
         <span className="pc-srd-crumb-title">
@@ -245,7 +245,7 @@ function SrdEntity({ entity, onBack }: { entity: SURefEntity; onBack: () => void
   return (
     <div className="pc-srd-entity">
       <div className="pc-srd-crumb">
-        <Button size="xs" onClick={onBack}>
+        <Button size="mini" onClick={onBack}>
           ◀ Back
         </Button>
       </div>

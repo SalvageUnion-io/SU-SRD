@@ -223,14 +223,14 @@ export function EntityRow(props: EntityRowProps) {
         <div className="flex shrink-0 items-center gap-1.5">
           <Link
             href={sheetHref}
-            className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'no-underline')}
+            className={cn(buttonVariants({ variant: 'default', size: 'compact' }), 'no-underline')}
           >
             View
           </Link>
           {onDeleteClick && (
             <Button
               variant="ghost"
-              size="sm"
+              size="compact"
               aria-label={`Delete ${name}`}
               onClick={onDeleteClick}
               className="border-transparent px-2 text-status-bad hover:bg-transparent hover:text-status-bad"

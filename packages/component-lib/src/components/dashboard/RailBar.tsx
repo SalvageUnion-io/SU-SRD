@@ -42,14 +42,14 @@ export function RailBar({ title, fam = 'mech', returnControl, onLeaveDowntime }:
       {onLeaveDowntime ? (
         <Button
           variant="ghost"
-          size="sm"
+          size="compact"
           title="Return to the previous mount"
           onClick={onLeaveDowntime}
         >
           ◄ Leave Downtime
         </Button>
       ) : (
-        <Button variant="ghost" size="sm" title="Rules & sources — planned" disabled>
+        <Button variant="ghost" size="compact" title="Rules & sources — planned" disabled>
           ⚙ Settings
         </Button>
       )}

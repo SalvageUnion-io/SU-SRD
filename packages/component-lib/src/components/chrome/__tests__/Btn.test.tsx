@@ -32,11 +32,11 @@ describe('Button', () => {
     expect(screen.getByRole('button').className).toContain('bg-status-bad')
   })
 
-  test('sm and lg sizes adjust padding/type scale', () => {
-    render(<Button size="sm">Small</Button>)
+  test('compact and full rungs adjust padding/type scale', () => {
+    render(<Button size="compact">Small</Button>)
     expect(screen.getByRole('button').className).toContain('text-xs')
     cleanup()
-    render(<Button size="lg">Large</Button>)
+    render(<Button size="full">Large</Button>)
     expect(screen.getByRole('button').className).toContain('text-lede')
   })
 

@@ -16,7 +16,7 @@ export const Default: Story = () => (
       headline="No mechs yet"
       body="Build your first chassis to see it here."
       action={
-        <Button variant="primary" size="sm">
+        <Button variant="primary" size="compact">
           New mech ▸
         </Button>
       }
@@ -40,7 +40,7 @@ export const Quiet: Story = () => (
       icon={<Glyph name="gear" className="size-7 text-wk-muted" />}
       body="No systems installed yet."
       action={
-        <Button variant="primary" size="sm">
+        <Button variant="primary" size="compact">
           + Add system
         </Button>
       }

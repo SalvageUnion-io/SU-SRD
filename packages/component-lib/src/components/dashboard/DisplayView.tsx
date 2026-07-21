@@ -58,7 +58,7 @@ function TablesView() {
       <div className="pc-tables-bar">
         <span className="pc-tables-lab">Roll table</span>
         <Button
-          size="sm"
+          size="compact"
           className="min-w-0 flex-1 justify-start text-left"
           onClick={() => setPickerOpen(true)}
           aria-haspopup="dialog"
@@ -92,7 +92,7 @@ function TablesView() {
         <div className="pc-rollhist">
           <div className="pc-rollhist-head">
             <span className="pc-rollhist-title">Roll history</span>
-            <Button size="xs" onClick={() => setHistory([])}>
+            <Button size="mini" onClick={() => setHistory([])}>
               Clear
             </Button>
           </div>

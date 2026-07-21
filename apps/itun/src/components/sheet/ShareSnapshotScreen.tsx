@@ -291,7 +291,7 @@ export function ShareSnapshotScreen({
                 onFocus={(event) => event.currentTarget.select()}
               />
               <Button
-                size="sm"
+                size="compact"
                 onClick={() => void handleCopy()}
                 disabled={!shareUrl}
                 aria-label="Copy share URL"
@@ -353,7 +353,7 @@ export function ShareSnapshotScreen({
                       /s/{link.id}
                     </code>
                     <Button
-                      size="sm"
+                      size="compact"
                       variant="danger"
                       className="min-h-11 shrink-0 sm:min-h-9"
                       aria-label={`Remove shared link ${link.id}`}

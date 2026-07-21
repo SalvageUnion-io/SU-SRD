@@ -280,12 +280,12 @@ function BlankCreateDialog({
         )}
 
         <div className="flex justify-end gap-2">
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={pending}>
+          <Button variant="ghost" size="compact" onClick={onClose} disabled={pending}>
             Cancel
           </Button>
           <Button
             variant="primary"
-            size="sm"
+            size="compact"
             onClick={handleCreate}
             disabled={pending || !canSubmit}
             aria-label={`Create blank ${label.toLowerCase()}`}
@@ -326,7 +326,7 @@ function NewEntityScreen({
           </p>
         </div>
         <div className="p-4 text-center">
-          <Button variant="ghost" size="sm" onClick={() => setMode(undefined)}>
+          <Button variant="ghost" size="compact" onClick={() => setMode(undefined)}>
             ← Back to the doors
           </Button>
         </div>

@@ -77,7 +77,7 @@ export function AddNpcControl({ onAdd }: AddNpcControlProps) {
             >
               <ReferenceEntityCard data={candidate.entity} size="medium" extent="head" />
               <Button
-                size="sm"
+                size="compact"
                 variant="primary"
                 aria-label={`Add ${candidate.name} to the tray`}
                 title={`Track a new ${ENCOUNTER_SCHEMA_LABEL[candidate.schema]} instance of ${candidate.name}.`}

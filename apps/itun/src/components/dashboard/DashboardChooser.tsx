@@ -244,7 +244,7 @@ export function DashboardChooser({
   return (
     <>
       <Button
-        size="sm"
+        size="compact"
         onClick={openDialog}
         className={cn(className)}
         aria-label="Launch the Dashboard"
@@ -329,7 +329,7 @@ export function DashboardChooser({
           <div className="flex justify-between gap-2">
             <Button
               variant="ghost"
-              size="sm"
+              size="compact"
               onClick={stepIndex === 0 ? closeDialog : goBack}
               disabled={pending}
             >
@@ -338,7 +338,7 @@ export function DashboardChooser({
             {step === 'crawler' ? (
               <Button
                 variant="primary"
-                size="sm"
+                size="compact"
                 onClick={() => void handleLaunch()}
                 disabled={pending}
                 aria-label="Launch the Dashboard for the chosen crew"
@@ -346,7 +346,7 @@ export function DashboardChooser({
                 {pending ? 'Launching…' : 'Launch'}
               </Button>
             ) : (
-              <Button variant="primary" size="sm" onClick={goNext} disabled={pending}>
+              <Button variant="primary" size="compact" onClick={goNext} disabled={pending}>
                 Next
               </Button>
             )}
