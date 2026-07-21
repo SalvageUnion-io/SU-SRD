@@ -978,70 +978,13 @@ function ReferenceEntityCardInner({
   // other size but collapses the whole card to one line. Actions render it too:
   // their type reads "Action" and, carrying no TL/tree, they show no tail.
   if (size === 'small' && extent === 'head') {
-    // Action shortform: name · Cost · type · Damage · range (each when present).
-    // The NAME always leads (left-aligned so a stack of action badges reads down
-    // a name column), then the AP/EP cost pennant, the action type as a stamp,
-    // then Damage / Range as [label|value] Stat cells (if relevant).
-    if (isAction && action) {
-      // Name colour matches the header title everywhere else (onBandText): white
-      // on the tone band, ink only on the light ghosted/greyed bands.
-      const actionBadgeText = onBandText
-      const actionAccent = accentSurface(headerBg, headerBgColor)
-      const typeLabel = action.actionType ? formatActionType(action.actionType) : undefined
-      const damageValue = action.damage
-        ? `${action.damage.amount}${action.damage.damageType ?? ''}`
-        : undefined
-      const rangeValue =
-        action.range && action.range.length > 0 ? action.range.join(' / ') : undefined
-      return (
-        <div className={outerClassName} {...outerInteraction}>
-          <div
-            className={cn(
-              'inline-flex max-w-full items-center gap-2 self-start overflow-hidden rounded-card px-2 py-1',
-              actionAccent.className
-            )}
-            style={{ ...actionAccent.style, ...frameStyle }}
-          >
-            <span
-              className={cn(
-                'min-w-0 truncate font-cond text-sm font-bold uppercase leading-none tracking-caps-tight',
-                actionBadgeText
-              )}
-            >
-              {name}
-            </span>
-            {costNode}
-            {typeLabel && (
-              <Badge shape="stamp" size="mini">
-                {typeLabel}
-              </Badge>
-            )}
-            {damageValue && (
-              <Stat key="damage" orientation="horizontal" label="Damage" value={damageValue} xs />
-            )}
-            {rangeValue && (
-              <Stat key="range" orientation="horizontal" label="Range" value={rangeValue} xs />
-            )}
-          </div>
-        </div>
-      )
-    }
-    // Name colour matches the header title everywhere else (onBandText): white on
-    // the tone band, ink only on the light ghosted/greyed bands. (Previously used
-    // the adaptive on-tone colour, which went dark on light tones — out of step
-    // with how the same name renders in the full/compact/listing header.)
-    const badgeTextClass = onBandText
+    // ONE shell for both shortforms: the tone-filled pill (accent surface, 3px
+    // frame, whole-card interaction plumbing) with the truncating NAME leading.
+    // The name colour matches the header title everywhere else (onBandText):
+    // white on the tone band, ink only on the light ghosted/greyed bands. Only
+    // the tail cells differ between the action and entity forms.
     const badgeAccent = accentSurface(headerBg, headerBgColor)
-    // The classification tail as Stat cells (matching the sub-header's axis
-    // markers): abilities show [Ability Tree | …] [Level | n]; a TL-bearing
-    // entity shows [TL | n]; everything else (actions, actors) shows nothing.
-    const badgeStats: StatItem[] =
-      axisMarkers.length > 0
-        ? axisMarkers.map((m) => ({ key: m.label, label: m.label, value: m.value }))
-        : techLevel != null
-          ? [{ key: 'tech-level', label: 'TL', value: String(techLevel) }]
-          : []
-    return (
+    const badgeShell = (tail: ReactNode) => (
       <div className={outerClassName} {...outerInteraction}>
         <div
           className={cn(
@@ -1053,16 +996,56 @@ function ReferenceEntityCardInner({
           <span
             className={cn(
               'min-w-0 truncate font-cond text-sm font-bold uppercase leading-none tracking-caps-tight',
-              badgeTextClass
+              onBandText
             )}
           >
             {name}
           </span>
-          {badgeStats.map((s) => (
-            <Stat key={s.key} orientation="horizontal" label={s.label} value={s.value} xs />
-          ))}
+          {tail}
         </div>
       </div>
+    )
+    // Action shortform tail: Cost · type · Damage · range (each when present) —
+    // the NAME leads (left-aligned so a stack of action badges reads down a name
+    // column), then the AP/EP cost pennant, the action type as a stamp, then
+    // Damage / Range as [label|value] Stat cells (if relevant).
+    if (isAction && action) {
+      const typeLabel = action.actionType ? formatActionType(action.actionType) : undefined
+      const damageValue = action.damage
+        ? `${action.damage.amount}${action.damage.damageType ?? ''}`
+        : undefined
+      const rangeValue =
+        action.range && action.range.length > 0 ? action.range.join(' / ') : undefined
+      return badgeShell(
+        <>
+          {costNode}
+          {typeLabel && (
+            <Badge shape="stamp" size="mini">
+              {typeLabel}
+            </Badge>
+          )}
+          {damageValue && (
+            <Stat key="damage" orientation="horizontal" label="Damage" value={damageValue} xs />
+          )}
+          {rangeValue && (
+            <Stat key="range" orientation="horizontal" label="Range" value={rangeValue} xs />
+          )}
+        </>
+      )
+    }
+    // Entity shortform tail — the classification as Stat cells (matching the
+    // sub-header's axis markers): abilities show [Ability Tree | …] [Level | n];
+    // a TL-bearing entity shows [TL | n]; everything else shows nothing.
+    const badgeStats: StatItem[] =
+      axisMarkers.length > 0
+        ? axisMarkers.map((m) => ({ key: m.label, label: m.label, value: m.value }))
+        : techLevel != null
+          ? [{ key: 'tech-level', label: 'TL', value: String(techLevel) }]
+          : []
+    return badgeShell(
+      badgeStats.map((s) => (
+        <Stat key={s.key} orientation="horizontal" label={s.label} value={s.value} xs />
+      ))
     )
   }
 
