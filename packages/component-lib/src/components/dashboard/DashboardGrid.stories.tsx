@@ -9,7 +9,7 @@ export default { title: 'Compositions/Dashboard/Grid' }
 /**
  * The four-region scaffold (rail / primary / wheel / display) inside the scaled
  * canvas. Slots stand in for the store-wired instruments (RailBar, Active Item
- * band, Dial, DisplayView). `data-mount='mech'` tints the rail green.
+ * band, Dial, DisplayPanel). `data-mount='mech'` tints the rail green.
  */
 export const Default: Story = () => (
   <div className="flex flex-col gap-3">

@@ -7,7 +7,7 @@ import { PatternEquipmentItem } from './PatternEquipmentItem'
 import { cn } from '../../../utils/cn'
 import { getReferenceEntitySpacing } from '../referenceEntityTypes'
 
-type ReferenceEntityChassisAbilitiesContentProps = {
+type ChassisAbilitiesContentProps = {
   chassisName?: string
   /** Optional override; falls back to the card display-state context. */
   spacing?: ReturnType<typeof getReferenceEntitySpacing>
@@ -19,14 +19,14 @@ type ReferenceEntityChassisAbilitiesContentProps = {
   hideDrone?: boolean
 }
 
-export function ReferenceEntityChassisAbilitiesContent({
+export function ChassisAbilitiesContent({
   chassisName,
   spacing: spacingProp,
   compact,
   chassisAbilities,
   droneEquipment,
   hideDrone,
-}: ReferenceEntityChassisAbilitiesContentProps) {
+}: ChassisAbilitiesContentProps) {
   const spacing = spacingProp ?? getReferenceEntitySpacing(compact)
   if (!chassisAbilities || chassisAbilities.length === 0) return null
 

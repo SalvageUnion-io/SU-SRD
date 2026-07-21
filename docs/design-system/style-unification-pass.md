@@ -80,7 +80,7 @@ action-economy foot; not a separate primitive.
   `ActiveBand` (ActiveItemBand). Too high-level; the ITUN Dashboard needs its own
   design work first (the dark `pc-*` instrument skin, mount state machine, etc.).
 - **Entity Display pass** — the `ReferenceEntityDisplay` subtree, `SheetHero`,
-  `InstrumentPanel` (DisplayView), the full `*Sheet` renders. These render entity
+  `InstrumentPanel` (DisplayPanel), the full `*Sheet` renders. These render entity
   _content_ + entity-level controls.
 
 ## 4. The Ladle conversion convention (per-increment procedure)

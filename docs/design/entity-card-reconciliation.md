@@ -163,7 +163,7 @@ OG screenshots + a11y. Risk: medium (SEO H1 + OG pixel compare).
 
 ### Stage c — migrate ITUN surface-by-surface (lowest-risk first)
 
-1. **Dashboard** — `DisplayView`, `SrdExplorer` (needs `footActions`).
+1. **Dashboard** — `DisplayPanel`, `SrdExplorer` (needs `footActions`).
 2. **Wizard** — swap the inner RED in `wizard/SelCard.tsx` (keep the external `Sel`
    halo) → migrates every SelCard consumer at once; then direct-RED steps/reviews
    (`ClassStep`, `ReviewStep`, `ChassisStep`, `MechReviewStep`, `CrawlerTypeStep`,

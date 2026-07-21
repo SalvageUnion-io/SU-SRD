@@ -1,7 +1,7 @@
 /**
  * SrdExplorer — the Dashboard's SRD Explorer focus (D4).
  *
- * Replaces the old hard stub in `DisplayView`'s `srd` branch. Two ways in:
+ * Replaces the old hard stub in `DisplayPanel`'s `srd` branch. Two ways in:
  *
  *  1. A **search box** over the whole SRD, driven by component-lib's shared
  *     `useSearchCombobox` (the same hook behind the global search) — schema hits

@@ -22,7 +22,7 @@ const SRC = import.meta.dir
  * Barrel-exported components that intentionally have no standalone story.
  *
  * Currently EMPTY, and that is the healthy state. Every former entry
- * (`CardImage`, `ControlButtons`, `ReferenceEntityChassisAbilitiesContent`,
+ * (`CardImage`, `ControlButtons`, `ChassisAbilitiesContent`,
  * `SectionSeparator`) was an internal sub-part that had been published from the
  * barrel with no consumer outside this package; the barrel prune un-exported
  * them, so they are no longer public and need no exemption. Add a name here

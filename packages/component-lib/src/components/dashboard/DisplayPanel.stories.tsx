@@ -3,10 +3,10 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { InstrumentStage } from '../../stories/_dashboardStage'
-import { DisplayView } from './DisplayView'
+import { DisplayPanel } from './DisplayPanel'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
-export default { title: 'Compositions/Dashboard/Display View' }
+export default { title: 'Compositions/Dashboard/Display Panel' }
 
 /**
  * The main display, "forward" under glass. Here it shows a statful entity focus:
@@ -24,7 +24,7 @@ export const Default: Story = () => {
           className="pc-display-light"
           style={{ height: 520, borderRadius: 'var(--radius-panel)' }}
         >
-          <DisplayView
+          <DisplayPanel
             content={{
               kind: 'entity',
               data: chassis,

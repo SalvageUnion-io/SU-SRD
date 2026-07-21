@@ -23,7 +23,7 @@ import type { EntityLookup } from '../sheet/composition'
 import { ActiveItemBand } from './ActiveItemBand'
 import { DialConfig } from './DialConfig'
 import { applyDialPrefs, configurableKinds, dialItems } from './dialItems'
-import { DisplayView } from './DisplayView'
+import { DisplayPanel } from './DisplayPanel'
 import { DowntimeWizard } from './DowntimeWizard'
 import { AppLink } from '../shared/AppLink'
 
@@ -130,7 +130,7 @@ export function Dashboard({ id }: { id: string }) {
           isDowntime ? (
             <DowntimeWizard crawler={crawler} />
           ) : (
-            <DisplayView focus={focus} mech={mech} pilot={pilot} crawler={crawler} />
+            <DisplayPanel focus={focus} mech={mech} pilot={pilot} crawler={crawler} />
           )
         }
         wheel={

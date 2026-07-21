@@ -1,5 +1,5 @@
 /**
- * Tests for DisplayView — the Dashboard's main display. Verifies each dial-focus
+ * Tests for DisplayPanel — the Dashboard's main display. Verifies each dial-focus
  * kind renders without throwing and reuses the real reference components:
  * a resolvable chassis → a ReferenceEntityCard card; Tables → a RollTable;
  * unresolvable slugs → a graceful note (never a crash).
@@ -15,7 +15,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
-import { DisplayView } from '../DisplayView'
+import { DisplayPanel } from '../DisplayPanel'
 import type { DialItem } from '../dialItems'
 
 let chassisSlug = 'iron-mongrel'
@@ -31,12 +31,12 @@ function renderDV(focus: DialItem | undefined, mechChassis = chassisSlug) {
   const crawler = { id: 'c1', name: 'Hauler', techLevel: '3' } as unknown as Crawler
   return render(
     <EntityHrefProvider value={() => undefined}>
-      <DisplayView focus={focus} mech={mech} pilot={null} crawler={crawler} />
+      <DisplayPanel focus={focus} mech={mech} pilot={null} crawler={crawler} />
     </EntityHrefProvider>
   )
 }
 
-describe('DisplayView', () => {
+describe('DisplayPanel', () => {
   test('mech focus → a resolvable chassis renders a reference card', () => {
     const focus: DialItem = {
       key: 'mech:m1',

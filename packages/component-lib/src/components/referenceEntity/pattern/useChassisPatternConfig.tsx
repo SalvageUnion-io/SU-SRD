@@ -9,7 +9,7 @@ import {
 import { cn } from '../../../utils/cn'
 import { Badge } from '../../chrome/Badge'
 import { Content } from '../Content'
-import { ReferenceEntityChassisAbilitiesContent } from './ReferenceEntityChassisAbilitiesContent'
+import { ChassisAbilitiesContent } from './ChassisAbilitiesContent'
 import { resolvePatternOverride, computeSvOverride } from './patternOverrideUtils'
 import { getReferenceEntityFontSizes, getReferenceEntitySpacing } from '../referenceEntityTypes'
 import type { PatternOverrideData } from '../referenceEntityTypes'
@@ -176,7 +176,7 @@ export function useChassisPatternConfig(
           </div>
         )}
         {hasChassisAbilities && (
-          <ReferenceEntityChassisAbilitiesContent
+          <ChassisAbilitiesContent
             chassisName={chassisName}
             spacing={spacing}
             compact={compact}

@@ -1,13 +1,13 @@
 /**
- * DisplayView (ITUN binding) — resolves the Dial focus into what the Dashboard's
+ * DisplayPanel (ITUN binding) — resolves the Dial focus into what the Dashboard's
  * main display shows, then hands a pure `content` to the presentational
- * DisplayView in component-lib. Statless focuses map to the Tables view, the SRD
+ * DisplayPanel in component-lib. Statless focuses map to the Tables view, the SRD
  * Explorer, or the store/rules-wired Actions deck (passed as a slot); statful
  * focuses resolve the entity's reference data + build the entity-level controls
  * (Load Into Mech / Enter Downtime / Full sheet →) off the play-state store.
  */
 
-import { DisplayView as DisplayViewView } from 'component-lib'
+import { DisplayPanel as DisplayPanelView } from 'component-lib'
 import type { DisplayContent, ReferenceEntityControl } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
@@ -21,14 +21,14 @@ import { usePlayStateStore } from '../../stores/playStateStore'
 import { ActionsDeck } from './ActionsDeck'
 import type { DialItem } from './dialItems'
 
-type DisplayViewProps = {
+type DisplayPanelProps = {
   focus: DialItem | undefined
   mech: Mech
   pilot: Pilot | null
   crawler: Crawler | null
 }
 
-export function DisplayView({ focus, mech, pilot, crawler }: DisplayViewProps) {
+export function DisplayPanel({ focus, mech, pilot, crawler }: DisplayPanelProps) {
   const enterDowntime = usePlayStateStore((s) => s.enterDowntime)
   const mount = usePlayStateStore((s) => s.mount)
   const setMount = usePlayStateStore((s) => s.setMount)
@@ -100,5 +100,5 @@ export function DisplayView({ focus, mech, pilot, crawler }: DisplayViewProps) {
     return { kind: 'note', text: focus.label }
   })()
 
-  return <DisplayViewView content={content} />
+  return <DisplayPanelView content={content} />
 }

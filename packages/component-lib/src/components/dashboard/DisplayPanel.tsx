@@ -1,5 +1,5 @@
 /**
- * DisplayView — the Dashboard's main display: the ONE surface that reads
+ * DisplayPanel — the Dashboard's main display: the ONE surface that reads
  * "forward". Presentational: the ITUN wrapper resolves the Dial focus (+ store /
  * rules) into a discriminated `content`, and this renders it — the faithful light
  * SRD reference document (reused ReferenceEntityCard / RollTable), the Tables
@@ -158,9 +158,9 @@ export type DisplayContent =
   | { kind: 'slot'; node: ReactNode }
   | { kind: 'entity'; data: SURefEntity | null; note: string; controls?: ReferenceEntityControl[] }
 
-export type DisplayViewProps = { content: DisplayContent }
+export type DisplayPanelProps = { content: DisplayContent }
 
-export function DisplayView({ content }: DisplayViewProps) {
+export function DisplayPanel({ content }: DisplayPanelProps) {
   switch (content.kind) {
     case 'note':
       return <div className="pc-display-note">{content.text}</div>
