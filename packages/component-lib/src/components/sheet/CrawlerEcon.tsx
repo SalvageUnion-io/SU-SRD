@@ -42,21 +42,14 @@ type CrawlerEconFrameProps = {
   /** The SP `VitalGauge` — rendered at the top of the Inset body. */
   gauge: ReactNode
   items: EconLozItem[]
-  className?: string
 }
 
 /** The economy Inset: SP gauge on top, the stat readout row below. */
-export function CrawlerEconFrame({ gauge, items, className }: CrawlerEconFrameProps) {
+export function CrawlerEconFrame({ gauge, items }: CrawlerEconFrameProps) {
   return (
-    // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the economy frame; the Inset section can't take aria-label without becoming a region landmark
+    // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the economy frame; Inset exposes no aria-label of its own, and a <section> here would become a region landmark once named
     <div role="group" aria-label="Crawler economy">
-      <Inset
-        tone="crawler"
-        tag="Crawler"
-        label="Economy"
-        className={className}
-        bodyClassName="flex flex-col gap-3"
-      >
+      <Inset tone="crawler" tag="Crawler" label="Economy" bodyClassName="flex flex-col gap-3">
         {gauge}
         {items.length > 0 && (
           <div className="grid grid-cols-[repeat(auto-fit,minmax(92px,1fr))] gap-2.5">

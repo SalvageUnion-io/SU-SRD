@@ -10,7 +10,7 @@
  */
 
 import { useMemo, useState } from 'react'
-import { Button, FilterChip, ReferenceEntityCard } from 'component-lib'
+import { Badge, Button, Input, ReferenceEntityCard } from 'component-lib'
 
 import { ENCOUNTER_REF_SCHEMAS } from '../../lib/schemas/encounterNpc'
 import type { EncounterRefSchema } from '../../lib/schemas/encounterNpc'
@@ -43,29 +43,36 @@ export function AddNpcControl({ onAdd }: AddNpcControlProps) {
   return (
     <div className="flex flex-col gap-2.5">
       <div className="flex flex-wrap items-center gap-1.5">
-        <FilterChip
-          label="All"
-          active={activeSchema === null}
+        <Badge
+          shape="chip"
+          as="button"
+          aria-pressed={activeSchema === null}
+          surface={activeSchema === null ? 'solid' : 'ghost'}
           onClick={() => setActiveSchema(null)}
-        />
+        >
+          All
+        </Badge>
         {ENCOUNTER_REF_SCHEMAS.map((schema) => (
-          <FilterChip
+          <Badge
             key={schema}
-            label={ENCOUNTER_SCHEMA_LABEL[schema]}
-            active={activeSchema === schema}
+            shape="chip"
+            as="button"
+            aria-pressed={activeSchema === schema}
+            surface={activeSchema === schema ? 'solid' : 'ghost'}
             onClick={() => setActiveSchema(activeSchema === schema ? null : schema)}
-          />
+          >
+            {ENCOUNTER_SCHEMA_LABEL[schema]}
+          </Badge>
         ))}
       </div>
 
-      <input
+      <Input
         type="text"
         name="encounter-npc-search"
         placeholder="Search NPCs, squads, creatures…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         aria-label="Search reference NPCs"
-        className="w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2 font-body text-sm text-ink placeholder:text-wk-muted focus:outline-2 focus:outline-offset-2 focus:outline-rust"
       />
 
       {matches.length > 0 ? (

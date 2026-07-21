@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { EntityGrid, EntityGridRow } from './EntityGrid'
-import { DisplayCard } from './DisplayCard'
+import { Card } from './Card'
 import { Button } from '../chrome/Button'
 import { Text } from '../base/Text'
 import { Badge } from '../chrome/Badge'
@@ -51,9 +51,9 @@ export const Default: Story = () => (
   <Gallery rule="EntityGrid: 1 column on mobile, max 2 on desktop, equal-height rows (26px row gap / 18px column gap). Left row folds footMeta into the card foot ('card'); right row breaks the economy out into a 152px rail callout ('rail') — real .50 Cal Machine Gun activation cost, EP 2 / +HEAT 1, above stacked action buttons. Rust rides only the Use control.">
     <EntityGrid>
       <EntityGridRow footMeta={[{ label: 'SP', value: 12 }]}>
-        <DisplayCard headerBg="bg-mech" headerContent={cardHeader('Salvage Rig')}>
+        <Card headerBg="bg-mech" headerContent={cardHeader('Salvage Rig')}>
           {body}
-        </DisplayCard>
+        </Card>
       </EntityGridRow>
       <EntityGridRow
         mode="rail"
@@ -69,9 +69,9 @@ export const Default: Story = () => (
           </>
         }
       >
-        <DisplayCard headerBg="bg-mech" headerContent={cardHeader('.50 Cal Machine Gun')}>
+        <Card headerBg="bg-mech" headerContent={cardHeader('.50 Cal Machine Gun')}>
           {body}
-        </DisplayCard>
+        </Card>
       </EntityGridRow>
     </EntityGrid>
   </Gallery>

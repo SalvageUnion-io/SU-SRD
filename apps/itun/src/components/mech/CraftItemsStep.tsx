@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
-import { MasonryColumns, ReferenceEntityCard, TreeSep } from 'component-lib'
+import { MasonryColumns, ReferenceEntityCard, Slab } from 'component-lib'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 
 type CraftItemsStepProps = {
@@ -49,7 +49,7 @@ export function CraftItemsStep({
 
   return (
     <div className="w-full space-y-5">
-      <TreeSep name={`Tech 1 ${noun}s`} suffix="Duplicates allowed" />
+      <Slab variant="solid" label={`Tech 1 ${noun}s`} count="Duplicates allowed" />
       <MasonryColumns maxColumns={2}>
         {items.map((item) => {
           const name = item.name ?? item.id

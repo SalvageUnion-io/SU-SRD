@@ -184,7 +184,7 @@ describe('SchemaViewerIsland', () => {
       />
     )
 
-    // Click the FilterChip for 'Nope' — no entity carries this source, so the
+    // Click the 'Nope' source filter chip — no entity carries this source, so the
     // grid should be empty and the empty-state message + clear button appear.
     const nopeChip = screen.getByRole('button', { name: 'Nope' })
     fireEvent.click(nopeChip)

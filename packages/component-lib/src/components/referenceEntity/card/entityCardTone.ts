@@ -6,13 +6,14 @@ import {
   isAbility,
   SalvageUnionReference,
 } from 'salvageunion-reference'
+import type { CardSize } from '../../shared/displayMode'
 import { TECH_LEVEL_BG } from '../../shared/techLevelStyles'
 import { borderColorFromHeaderBg, calculateBackgroundColor } from '../referenceEntityHelpers'
 /** The six card domains + `action`. Lives here, with the domain logic. */
 export type CardDomain = 'pilot' | 'mech' | 'crawler' | 'actor' | 'gear' | 'glossary' | 'action'
 
 /* The sizes a card renders at are NOT declared here. They live once, at the
- * DisplayCard layer (`shared/displayMode.ts`), and the entity card imports
+ * Card layer (`shared/displayMode.ts`), and the entity card imports
  * `CardSize` directly — an alias here would just be the second name that let
  * `head` and `listing` drift apart in the first place. */
 
@@ -163,14 +164,50 @@ export function entityHostTone(entity: SURefMetaEntity): string {
 }
 
 /**
- * DEPTH = nesting level → title type scale. depth 0 (full/solo) is the dominant
- * name-tab; every nesting level steps the header font DOWN one rung, floored at
- * `text-badge` so deeply-nested cards stay legible.
+ * DEPTH × SIZE → title type scale, resolving THE nested-title invariant: a card
+ * at depth N+1 renders a strictly smaller title than its parent at depth N, for
+ * as long as the ladder has room, and never a larger one once it bottoms out.
+ *
+ * Two axes drive one index into {@link TITLE_SIZE_LADDER}:
+ *
+ * - DEPTH is the primary step. Each nesting level moves ONE rung down the
+ *   ladder — this is what makes a child strictly smaller than its parent.
+ * - SIZE is an OFFSET, never a floor. `large` starts at rung 0 (the dominant
+ *   name-tab), `medium` at rung 1, `small` at rung 2. It shifts the whole depth
+ *   ramp down without flattening it. (It USED to be a `Math.max(depth, floor)`
+ *   clamp, which collapsed depth 0 and depth 1 onto the same rung — a small
+ *   depth-0 card and its depth-1 child both landed on rung 2, so the child was
+ *   not smaller. An offset keeps consecutive depths one rung apart at every
+ *   size.) The offsets are chosen so depth 0 reproduces the historical sizes
+ *   exactly: large→`text-5xl`, medium→`text-xl`, small→`text-base`.
+ *
+ * THE FLOOR, honestly stated. The ladder bottoms out at `text-badge` (11px), the
+ * legibility floor: below it a nested title stops being readable, so the type
+ * cannot keep shrinking forever. Past the last rung the invariant weakens from
+ * "strictly smaller than the parent" to "never LARGER than the parent" — two
+ * cards nested past the floor share the floor rung. The ladder has six rungs, so
+ * this only bites well beyond `MAX_DEPTH` (3): across every PRODUCED combination
+ * — depths 0..3 (actions force a min depth of 1) at each size — every step is
+ * still strictly smaller. Nested children are always spawned at `size='medium'`,
+ * so a medium child at depth N+1 (rung N+2) is strictly smaller than any
+ * large/medium parent at depth N, and never larger than a small parent (they
+ * meet only at the shared floor).
  */
-const TITLE_SIZE_LADDER = ['text-5xl', 'text-xl', 'text-base', 'text-sm'] as const
+const TITLE_SIZE_LADDER = [
+  'text-5xl',
+  'text-xl',
+  'text-base',
+  'text-sm',
+  'text-xs',
+  'text-badge',
+] as const
 
-export function titleSizeClass(depth: number): string {
-  const index = Math.min(Math.max(depth, 0), TITLE_SIZE_LADDER.length - 1)
+/** SIZE as a starting OFFSET into the ladder (not a floor) — see docblock. */
+const SIZE_LADDER_OFFSET: Record<CardSize, number> = { large: 0, medium: 1, small: 2 }
+
+export function titleSizeClass(depth: number, size: CardSize = 'large'): string {
+  const rung = Math.max(depth, 0) + SIZE_LADDER_OFFSET[size]
+  const index = Math.min(rung, TITLE_SIZE_LADDER.length - 1)
   return TITLE_SIZE_LADDER[index] ?? 'text-badge'
 }
 

@@ -10,7 +10,7 @@ import {
   MasonryColumns,
   ReferenceEntityCard,
   Sel,
-  TreeSep,
+  Slab,
   useChassisPatternConfig,
 } from 'component-lib'
 import { matchesRef } from '../../lib/rules/resolveRefs'
@@ -113,7 +113,7 @@ export function MechChassisStep({
 
   return (
     <div className="w-full space-y-5">
-      <TreeSep name={isEdit ? 'Chassis' : 'Tech 1 Chassis'} suffix="Choose 1" />
+      <Slab variant="solid" label={isEdit ? 'Chassis' : 'Tech 1 Chassis'} count="Choose 1" />
       <MasonryColumns maxColumns={2} radio ariaLabel="Chassis">
         {chassisPool.map((chassis) => {
           const cost = chassis.salvageValue
@@ -147,7 +147,7 @@ export function MechChassisStep({
         </p>
       ) : (
         <>
-          <TreeSep name="Start from a pattern?" suffix="Optional" />
+          <Slab variant="solid" label="Start from a pattern?" count="Optional" />
           <MasonryColumns maxColumns={2} radio ariaLabel="Starting pattern">
             {patternPool.map((pattern) => (
               <PatternSelCard

@@ -108,14 +108,14 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 
 ### Action facets · Entities · Chrome
 
-| Role               | Reference                               | Live Sheet                                                      | Dashboard                                                | Listing                                | Tooltip                        |
-| ------------------ | --------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------- | -------------------------------------- | ------------------------------ |
-| **Cost (AP/EP)**   | Cost pennant                            | Cost pennant read-only                                          | pennant = rust ActionsDeck Btn label · tap spends `auto` | Cost pennant                           | Cost pennant                   |
-| **Range**          | Range badge + tooltip                   | Range badge (never interactive)                                 | Range badge                                              | Range badge                            | badge (own tooltip suppressed) |
-| **Action type**    | Action-type stamp                       | stamp                                                           | stamp = ActionsDeck grouping key                         | stamp                                  | stamp                          |
-| **Entity card**    | DisplayCard full — THE canonical render | DisplayCard compact→expand · chrome layered on, never replacing | DisplayCard instrument-skin · actions → deck             | DisplayCard header-only row, clickable | DisplayCard dense hovercard    |
-| **Section header** | Slab                                    | Slab                                                            | Slab instrument                                          | Slab divider                           | — (bare Stamp at most)         |
-| **Source**         | in card foot                            | Change Log row (provenance = history)                           | Change Log row, instrument                               | dense                                  | —                              |
+| Role               | Reference                        | Live Sheet                                               | Dashboard                                                | Listing                         | Tooltip                        |
+| ------------------ | -------------------------------- | -------------------------------------------------------- | -------------------------------------------------------- | ------------------------------- | ------------------------------ |
+| **Cost (AP/EP)**   | Cost pennant                     | Cost pennant read-only                                   | pennant = rust ActionsDeck Btn label · tap spends `auto` | Cost pennant                    | Cost pennant                   |
+| **Range**          | Range badge + tooltip            | Range badge (never interactive)                          | Range badge                                              | Range badge                     | badge (own tooltip suppressed) |
+| **Action type**    | Action-type stamp                | stamp                                                    | stamp = ActionsDeck grouping key                         | stamp                           | stamp                          |
+| **Entity card**    | Card full — THE canonical render | Card compact→expand · chrome layered on, never replacing | Card instrument-skin · actions → deck                    | Card header-only row, clickable | Card dense hovercard           |
+| **Section header** | Slab                             | Slab                                                     | Slab instrument                                          | Slab divider                    | — (bare Stamp at most)         |
+| **Source**         | in card foot                     | Change Log row (provenance = history)                    | Change Log row, instrument                               | dense                           | —                              |
 
 ---
 
@@ -181,7 +181,7 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    cost — is a **Stat** in the anatomy its context calls for (horizontal
    `label | value`, framed tracker, box, inline chip), **never** hand-assembled
    text like `<span>SP {n}</span>`. More broadly, every game component renders
-   through the canonical shared primitives (DisplayCard · Stat ·
+   through the canonical shared primitives (Card · Stat ·
    VitalGauge · Badge · ConditionSwatch · SlotGrid · RollTable · …) — a surface
    never reinvents a primitive's markup one-off. If you are about to type a stat
    into a `<span>`, you want a Stat.
@@ -259,7 +259,7 @@ untracked outside ITUN.
 
 | Weight | Token                         | Applies to                                                                   |
 | ------ | ----------------------------- | ---------------------------------------------------------------------------- |
-| 3px    | `--bw-entity`                 | DisplayCard frame (full)                                                     |
+| 3px    | `--bw-entity`                 | Card frame (full)                                                            |
 | 2px    | `--bw-entity-compact` _(new)_ | compact card frame                                                           |
 | 1.5px  | `--bw-chrome`                 | Stat box, gauge segments, inputs, buttons, pips, steppers                    |
 | 1px    | `--bw-hairline` _(new)_       | value-cell badge frame & table rules — the ink stamp inside carries the mass |
@@ -317,14 +317,14 @@ VitalGauge) are **named compositions**, not atoms.
 ### Composition tree
 
 ```
-DisplayCard   = Frame(3px, tone) + band + [Badge · StampSeam] + body + expand + foot
+Card   = Frame(3px, tone) + band + [Badge · StampSeam] + body + expand + foot
 Stat   = the labeled-value primitive: vertical (Well) | horizontal (=ValueDisplay);
                 read|edit · +max · +label · +pips · mini
 VitalGauge    = Stamp + numeral (+ Well edit) + Gauge(bar)
 StatControl   = Well(number, edit) + StepBtn×2
 StatusBadge   = Badge(tone) + ConditionSwatch
 Tally         = (ConditionSwatch + count) × 3
-RollTable✦    = DisplayCard + SRD description + banded table
+RollTable✦    = Card + SRD description + banded table
 ```
 
 ---

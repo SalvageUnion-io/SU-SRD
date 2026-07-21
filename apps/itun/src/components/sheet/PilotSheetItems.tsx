@@ -10,6 +10,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefEntity } from 'salvageunion-reference'
 import {
   Button,
+  Input,
   Panel,
   ReferenceEntityCard,
   type ReferenceEntityControl,
@@ -362,8 +363,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
     setQty(1)
   }
 
-  const inputClass =
-    'rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-xs text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
+  const compactInput = 'px-2 py-1.5 text-xs'
 
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-[3px] border-chrome border-dashed border-wk-faint p-2.5">
@@ -376,34 +376,42 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
       >
         + Scrap
       </Button>
-      <input
+      <Input
         type="text"
         value={name}
         aria-label="New item name"
         placeholder="Item name"
         onChange={(e) => setName(e.target.value)}
-        className={`${inputClass} w-36 flex-1`}
+        className={`${compactInput} w-36 flex-1`}
       />
-      <label className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted">
+      <label
+        htmlFor="new-item-slots"
+        className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted"
+      >
         Slots
-        <input
+        <Input
+          id="new-item-slots"
           type="number"
           min={0}
           value={slots}
           aria-label="New item slot cost"
           onChange={(e) => setSlots(Number(e.target.value))}
-          className={`${inputClass} w-14`}
+          className={`${compactInput} w-14`}
         />
       </label>
-      <label className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted">
+      <label
+        htmlFor="new-item-qty"
+        className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted"
+      >
         Qty
-        <input
+        <Input
+          id="new-item-qty"
           type="number"
           min={1}
           value={qty}
           aria-label="New item quantity"
           onChange={(e) => setQty(Math.max(1, Number(e.target.value)))}
-          className={`${inputClass} w-14`}
+          className={`${compactInput} w-14`}
         />
       </label>
       <Button

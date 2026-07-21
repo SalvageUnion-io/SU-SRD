@@ -154,7 +154,7 @@ Reports violations with impact level (critical/serious/moderate/minor), node exa
 
 ### Component Accessibility Patterns
 
-**Clickable cards** (`DisplayCard.tsx`):
+**Clickable cards** (`Card.tsx`):
 
 ```tsx
 <div

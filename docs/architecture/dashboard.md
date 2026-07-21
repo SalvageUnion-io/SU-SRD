@@ -289,14 +289,14 @@ responsibility**, not all in the app:
 
 > **Superseded.** This section originally described a `footActions` +
 > `Erow` / `Ecflow` / `ActionCardErow` mechanism in `src/components/sheet/`. All
-> of it has since been deleted — `DisplayCard` no longer has a `footActions`
+> of it has since been deleted — `Card` no longer has a `footActions`
 > prop, and the `Erow` family is gone (see the note at the top of
 > `packages/component-lib/src/components/shared/EntityGrid.tsx`, which
 > re-implements what those did).
 
 What survives of the vocabulary:
 
-- `DisplayCard` still exposes `footMeta?: CardFootMeta[]`
+- `Card` still exposes `footMeta?: CardFootMeta[]`
   (`type CardFootMeta = { label: string; value: ReactNode }`, exported from the
   barrel). That is the card-foot meta row, and it is meta only.
 - Select/alter interactivity is now expressed as typed **`controls`**
@@ -821,7 +821,7 @@ load-bearing; the ADR files are the authoritative records.
 | `vbar()`/`segGauge()`/`gcells()`                       | `DashboardGauge` (Dashboard-local; distinct from `component-lib`'s `VitalGauge`)     |
 | `metaButtons()`/`metaAct()` (Activate/Roll/Push/Apply) | `ActionsDeck`'s resolve view, calling `heatCheck.ts`/`takeDamage.ts`/`itemEconomy()` |
 | `performPush`/`Heat Check`/`Reactor Overload`          | `performPush`, `performHeatCheck`, `reactorOverloadOutcome` (`heatCheck.ts`)         |
-| foot-meta economy                                      | `ReferenceEntityCard` `controls` + `DisplayCard.footMeta` (§3.3)                     |
+| foot-meta economy                                      | `ReferenceEntityCard` `controls` + `Card.footMeta` (§3.3)                            |
 | `resolveSheetComposition` (mockup ref)                 | `resolveSheetComposition()` (`src/components/sheet/composition.ts`)                  |
 
 <!-- Link reference definitions for the [ADR-xxx] shorthands used above. -->

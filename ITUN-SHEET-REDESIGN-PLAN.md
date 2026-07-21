@@ -27,7 +27,7 @@ The sheets already carry a surprising amount of official-sheet DNA:
   printed wordmark.
 - Border-weight token system (`--bw-entity/rail/pill/chrome`), black pseudoheader stamps,
   `StatBlock` trackers, a `ChassisStats` spec strip, rail chips for linked entities.
-- **All game-data cards already render via `ReferenceEntityDisplay` / `DisplayCard`.**
+- **All game-data cards already render via `ReferenceEntityDisplay` / `Card`.**
 
 ## Gap analysis — current sheet vs. the official poster
 
@@ -53,7 +53,7 @@ exploration spanned three fidelities (faithful-poster → SRD-bridge → SaaS-da
 reviewed the official PDFs and **converged on a single target**:
 
 - **Keep the broad two-column poster layout** of the official sheets (region-for-region), but render
-  it **with the existing SRD assets** (`DisplayCard` / `ReferenceEntityDisplay`, `StatBlock`, `Slab`,
+  it **with the existing SRD assets** (`Card` / `ReferenceEntityDisplay`, `StatBlock`, `Slab`,
   `Panel`, `MChip`, tokens) — nudged into the poster arrangement, not a new aesthetic.
 - **No vertical wordmark.** The current slim top bar (back + SU mark + name pseudoheader stamp +
   kind pill + Edit/Share/⋯) stays as the sheet's chrome.

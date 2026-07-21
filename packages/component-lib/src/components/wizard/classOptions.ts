@@ -31,19 +31,6 @@ function isSpecialisationClass(cls: unknown): cls is SURefClass {
   )
 }
 
-/** First text content block — used as the OptRow description line. */
-export function classDescription(cls: SURefClass): string | undefined {
-  const content = (cls as { content?: unknown }).content
-  if (Array.isArray(content)) {
-    const firstText = content.find(
-      (b) =>
-        typeof b === 'object' && b !== null && typeof (b as { text?: unknown }).text === 'string'
-    ) as { text: string } | undefined
-    return firstText?.text
-  }
-  return undefined
-}
-
 /**
  * Selectable classes for the wizard. Create mode: base classes only.
  * Edit mode (`includeSpecialisations`): base classes plus Advanced/Hybrid

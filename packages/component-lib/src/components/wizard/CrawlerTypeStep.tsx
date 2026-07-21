@@ -2,8 +2,7 @@ import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
 import { Callout } from '../chrome/Callout'
 import { EmptyState } from '../chrome/EmptyState'
-import { OptRow } from '../chrome/OptRow'
-import { TreeSep } from '../chrome/TreeSep'
+import { Slab } from '../chrome/Slab'
 import { MasonryColumns } from '../shared/MasonryColumns'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 
@@ -13,16 +12,12 @@ type CrawlerTypeOptionListProps = {
   onSelect: (id: string) => void
 }
 
-/** First paragraph of an entity's `content`, if any. */
-function firstParagraph(entity: SURefCrawler): string {
-  const first = entity.content?.[0]
-  return typeof first?.value === 'string' ? first.value : ''
-}
-
 /**
- * Master pane for the Crawler step: one OptRow per crawler type
- * (Augmented / Battle / Engineering / Exploratory / Trade Caravan), the active
- * row driving the detail pane.
+ * Master pane for the Crawler step: each crawler type
+ * (Augmented / Battle / Engineering / Exploratory / Trade Caravan) rendered as
+ * its own reference card at catalog extent, the checked card driving the detail
+ * pane. Exactly one is chosen, so the pane is a `radiogroup` and each card
+ * announces `aria-checked`.
  */
 export function CrawlerTypeOptionList({
   types,
@@ -30,14 +25,18 @@ export function CrawlerTypeOptionList({
   onSelect,
 }: CrawlerTypeOptionListProps) {
   return (
-    <div>
+    <div role="radiogroup" aria-label="Crawler type">
       {types.map((type) => (
-        <OptRow
+        <ReferenceEntityCard
           key={type.id}
-          name={type.name}
-          desc={type.npc?.position ?? firstParagraph(type)}
-          active={type.id === selectedType}
-          onClick={() => onSelect(type.id)}
+          data={type as unknown as SURefEntity}
+          size="medium"
+          extent="catalog"
+          className="mb-2"
+          selected={type.id === selectedType}
+          selectionRole="radio"
+          cardClickLabel={type.name}
+          onCardClick={() => onSelect(type.id)}
         />
       ))}
     </div>
@@ -97,7 +96,7 @@ export function CrawlerTypeSelectStep({
 
   return (
     <div className="w-full space-y-5">
-      <TreeSep name="Crawler Types" suffix="Choose 1" />
+      <Slab variant="solid" label="Crawler Types" count="Choose 1" />
       <MasonryColumns maxColumns={2} radio ariaLabel="Crawler type">
         {types.map((type) => {
           const slots = crawlerWeaponSlots(type.mutations)
@@ -123,7 +122,7 @@ export function CrawlerTypeSelectStep({
 
       {selected ? (
         <>
-          <TreeSep name="Your Crawler Type" suffix={selected.name} />
+          <Slab variant="solid" label="Your Crawler Type" count={selected.name} />
           <div className="max-w-3xl space-y-3">
             <ReferenceEntityCard data={selected as unknown as SURefEntity} />
             {isAugmented && (

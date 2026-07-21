@@ -13,7 +13,7 @@ Shared React component library for the SURef monorepo. Consumed by `apps/srd` an
 - **Theme** — colors, tech-level tokens, recipes
 - **Typography** — `Text`
 - **UI primitives** — `Toaster` / `toast`, `ModalShell`, `ReferenceEntityDisplayTooltip`
-- **Entity display system** — `DisplayCard`, `ReferenceEntityDisplay` and its slot components, the choice-card layer, and control factories (`addControl`, `deleteControl`, `navigateControl`)
+- **Entity display system** — `Card`, `ReferenceEntityDisplay` and its slot components, the choice-card layer, and control factories (`addControl`, `deleteControl`, `navigateControl`)
 - **Shared components** — `ValueDisplay`, `StatDisplay`, `StatsBar`, `RollTable`, `FilterChip`, skeletons
 - **Utilities** — `nameToSlug`, `getEntitySlug`, `parseTraitReferences` helpers, `cn()`
 
@@ -31,7 +31,7 @@ Workspace dependency:
 Import from the barrel:
 
 ```ts
-import { ReferenceEntityDisplay, DisplayCard, Text } from 'component-lib'
+import { ReferenceEntityDisplay, Card, Text } from 'component-lib'
 ```
 
 ## Scripts

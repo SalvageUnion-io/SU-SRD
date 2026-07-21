@@ -10,13 +10,13 @@
  */
 
 import { useMemo, useState } from 'react'
-import { Button, Conditions, ModalShell, Stat, useDetailModal } from 'component-lib'
+import { Button, Conditions, Input, ModalShell, Stat, useDetailModal } from 'component-lib'
 
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import type { EncounterNpc, MediatorRollResult } from '../../lib/schemas/encounterNpc'
 import type { useEncounterStore } from '../../stores/encounterStore'
-import { DisplayCard } from 'component-lib'
+import { Card } from 'component-lib'
 import { InlineEditField } from 'component-lib'
 import { MediatorRollControl } from './MediatorRollControl'
 import { ENCOUNTER_SCHEMA_LABEL, resolveCandidate } from './referenceNpcs'
@@ -74,7 +74,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
 
   return (
     <>
-      <DisplayCard
+      <Card
         headerBg="bg-ink"
         bodyPadding="p-2.5"
         // Head bar: schema tag + instance name + reference name; Details/Remove ride the right slot.
@@ -156,7 +156,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
                     removeLabel={(condition) => `Clear ${condition} on ${npc.name}`}
                   />
                 )}
-                <input
+                <Input
                   type="text"
                   value={conditionDraft}
                   onChange={(e) => setConditionDraft(e.target.value)}
@@ -168,7 +168,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
                   }}
                   placeholder="Add condition…"
                   aria-label={`Add condition to ${npc.name}`}
-                  className="w-32 rounded-[2px] border-chrome border-ink/40 bg-paper px-1.5 py-0.5 font-body text-xs text-ink placeholder:text-wk-muted focus:border-ink focus:outline-none"
+                  className="w-32 px-1.5 py-0.5 text-xs"
                 />
                 <Button
                   size="mini"
@@ -192,7 +192,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
             />
           </div>
         </div>
-      </DisplayCard>
+      </Card>
 
       <ModalShell
         open={confirmRemove}

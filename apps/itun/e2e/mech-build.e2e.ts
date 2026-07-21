@@ -4,7 +4,7 @@ import { clickNext, installLoadoutItem, pickByName, waitForReady } from './_help
 /**
  * Mech-only build — steps through the chassis-first WizShell wizard
  * (Chassis -> Pattern -> Loadout -> Identity -> Review) and submits.
- * Verifies the OptRow master-detail chassis + pattern steps and the combined
+ * Verifies the entity-card chassis + pattern steps (radio cells) and the combined
  * Loadout step work in a real browser and that submit lands on the dashboard
  * with the mech visible.
  */

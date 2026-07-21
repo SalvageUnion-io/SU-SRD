@@ -1,5 +1,5 @@
 /**
- * Unit tests for InstallStep's tech-tier FilterChip row.
+ * Unit tests for InstallStep's tech-tier filter-chip row (Badge `shape="chip"`).
  *
  * Focus: the Bio (B) and Nanite (N) chips are reachable and actually filter the
  * catalog down to their non-numeric tier — the behaviour added alongside the

@@ -3,7 +3,7 @@
 > **Why this doc is short.** Its previous version described a three-layer stack
 > whose middle layer — `ReferenceEntityDisplay` — no longer exists. It also
 > documented `StatsBar`, `StaticChoiceCard`, `useReferenceEntityDisplayState`,
-> `ReferenceEntityHideConfig`, three deleted control presets, DisplayCard tabs
+> `ReferenceEntityHideConfig`, three deleted control presets, Card tabs
 > and sticky headers, and three ITUN consumer components, none of which are in
 > the codebase. Roughly two thirds of its specific claims were false.
 >
@@ -25,23 +25,23 @@ There is no single stack. There are **two card shells**, deliberately separate:
   escape the clip, book-style text sub-header, identity footer) and owns entity
   recursion: nested systems/modules/actions/grants render as nested cards,
   bounded by a `MAX_DEPTH` guard.
-- **`DisplayCard`** — `packages/component-lib/src/components/shared/DisplayCard.tsx`.
+- **`Card`** — `packages/component-lib/src/components/shared/Card.tsx`.
   The generic four-band container (header / sub-header / body-plus-expand /
   footer) that non-entity surfaces compose: `ModalShell`, `SheetSection` /
   `SheetSectionCard`, `Callout`, `Skeleton`, and app-side panels such as ITUN's
   encounter cards.
 
 **They are NOT being merged, and `ReferenceEntityCard` does not render through
-`DisplayCard`** (it imports only the `CardFootMeta` type from it). A full
+`Card`** (it imports only the `CardFootMeta` type from it). A full
 assessment found the composition impossible without visual deltas across every
 SRD page — the frame-element difference alone shifts every absolute overlay by
-3px, ghosted sub-header tones are underivable inside DisplayCard, and the two
+3px, ghosted sub-header tones are underivable inside Card, and the two
 resolve `cardClick` fallback in opposite directions. The entity card's header is
 also semantically richer: it distinguishes a stat cluster from flavour prose to
-decide which side yields, and DisplayCard's header slot is opaque to its
+decide which side yields, and Card's header slot is opaque to its
 content.
 
-So: **do not add entity-card features to DisplayCard**, and do not route the
+So: **do not add entity-card features to Card**, and do not route the
 entity card through it. What the two share is **vocabulary**, not DOM —
 `displayMode`, the controls contract, `CardFootMeta`, `foldStatusControl`.
 
@@ -50,7 +50,7 @@ entity card through it. What the two share is **vocabulary**, not DOM —
 | Rendering…                                                  | Use                                        |
 | ----------------------------------------------------------- | ------------------------------------------ |
 | A reference entity (anything from `salvageunion-reference`) | `ReferenceEntityCard`, always              |
-| A non-entity container (modal body, sheet section, panel)   | `DisplayCard`                              |
+| A non-entity container (modal body, sheet section, panel)   | `Card`                                     |
 | A grid of entity cards                                      | `EntityGrid` / `EntityGridRow` around them |
 
 Never hand-assemble entity markup, and never hand-assemble a `label | value`
@@ -66,7 +66,7 @@ Card size is **two orthogonal axes**, defined and documented in
 - `extent`: `full | head | catalog` — how much of the entity renders.
 
 Both shells take `size` / `extent` and resolve them through
-`resolveCardDisplay`; DisplayCard's internal layout then projects them to
+`resolveCardDisplay`; Card's internal layout then projects them to
 `{ compact, listing }` via `displayBooleans`. They are independent — a `small`
 card can still show its whole content, which the old conflated enum could not
 express.

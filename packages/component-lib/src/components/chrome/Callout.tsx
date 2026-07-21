@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import type { SizeRung } from '../../styles/sizing'
-import { DisplayCard } from '../shared/DisplayCard'
+import { Card } from '../shared/Card'
 import { Badge } from './Badge'
 
 /**
@@ -51,9 +51,9 @@ type CalloutProps = {
  * derived from the tone (a 12% paper mix), so a callout cannot drift off the
  * colour system one prop at a time.
  *
- * Composed on `DisplayCard` — it is a card (frame, optional header band, paper
+ * Composed on `Card` — it is a card (frame, optional header band, paper
  * body) and was the last card-shaped thing hand-rolling its own div stack. Two
- * DisplayCard capabilities exist because this component needs them, and both
+ * Card capabilities exist because this component needs them, and both
  * are generally right: an omitted `headerContent` paints NO band (a label-less
  * callout is just a framed paper panel), and an explicit `borderColor` wins
  * over the header-derived default (the accent frame is deliberately a different
@@ -62,7 +62,7 @@ type CalloutProps = {
 export function Callout({ label, tone = 'ink', size = 'full', children, className }: CalloutProps) {
   const compact = size === 'compact'
   return (
-    <DisplayCard
+    <Card
       size={compact ? 'medium' : 'large'}
       borderColor={CALLOUT_ACCENT[tone]}
       headerBgColor={label ? bandTint(tone) : undefined}
@@ -77,10 +77,10 @@ export function Callout({ label, tone = 'ink', size = 'full', children, classNam
       // it sizes to the stamp riding in it.
       headerStyle={{ className: cn('min-h-0', compact ? 'px-2 py-1' : 'px-3 py-1.5') }}
       bodyPadding={cn('leading-snug text-ink', compact ? 'p-2 text-xs' : 'p-3 text-sm')}
-      // Replaces DisplayCard's default drop shadow — a callout sits flat in prose.
+      // Replaces Card's default drop shadow — a callout sits flat in prose.
       cardStyle={{ className: cn('overflow-hidden', className) }}
     >
       {children}
-    </DisplayCard>
+    </Card>
   )
 }

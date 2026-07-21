@@ -12,7 +12,7 @@ test('build a pilot from scratch, then edit to add a 4th ability', async ({ page
   await page.goto('/pilots/new')
   await waitForReady(page)
 
-  // Step 1: Class — OptRow master list, detail card on the right
+  // Step 1: Class — selectable class entity cards, ability pool below
   await pickByName(page, 'Engineer')
   await clickNext(page)
 
@@ -64,7 +64,7 @@ test('build a pilot from scratch, then edit to add a 4th ability', async ({ page
   await expect(page.getByText('Edit Pilot')).toBeVisible()
   await clickNext(page)
 
-  // Abilities in edit mode: all levels offered (TreeSep groups), uncapped.
+  // Abilities in edit mode: all levels offered (Slab groups), uncapped.
   // 'Talk Shop' is Mechanical Knowledge level 2 — a legal 4th pick.
   await pickByName(page, 'Talk Shop')
   await clickNext(page) // Equipment

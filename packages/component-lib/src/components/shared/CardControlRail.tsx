@@ -23,7 +23,7 @@ type CardControlRailProps = {
  * top-right frame edge, holding every seal and the action cluster so they sit
  * NEXT TO each other.
  *
- * This was two separate implementations. `DisplayCard` pinned a lone controls
+ * This was two separate implementations. `Card` pinned a lone controls
  * cluster at `right-0` and rendered the condition badge somewhere else entirely
  * (inline, inside the header row), while `ReferenceEntityCard` grew the real
  * thing: a flex row collapsing the status seal, selection seal, count seal and
@@ -32,9 +32,19 @@ type CardControlRailProps = {
  * entity card's version here gives both layers the working geometry, and gives
  * `status` exactly one rendering path — a `controls` entry — instead of two.
  *
- * `flex-wrap` + `justify-end` keeps a crowded rail (seal + stepper + three
- * controls) inside the card width instead of overflowing the frame; the row
- * grows upward from the frame edge because each line is the same height.
+ * The rail is CENTRED on the card's top edge (`left-1/2 -translate-x-1/2` +
+ * `justify-center`), not pinned to the right corner. Centring does NOT relax the
+ * overflow containment: the containment comes from `flex-wrap` +
+ * `max-w-[calc(100%-1rem)]`, which cap the row at the card width minus a 0.5rem
+ * gutter each side and wrap a crowded rail (status seal + selection seal + count
+ * seal + three controls) onto stacked, equal-height lines rather than letting it
+ * escape the frame. `justify` only sets how those wrapped lines align INSIDE
+ * that capped box — it has no bearing on whether the box overflows — so moving
+ * from `justify-end` to `justify-center` keeps the exact same bound. Because the
+ * box is centred, the max-width leaves the gutter symmetric (0.5rem each side)
+ * instead of only on the left. Centring must not reorder the cells: `status`
+ * stays the first child so a card carrying both a condition and a selection seal
+ * keeps the condition leftmost within the (now centred) row.
  */
 export function CardControlRail({ controls, compact = false, seals }: CardControlRailProps) {
   const visible = (controls ?? []).filter((c) => !c.hidden)
@@ -52,7 +62,7 @@ export function CardControlRail({ controls, compact = false, seals }: CardContro
   return (
     <div
       className={cn(
-        'absolute right-2 z-30 flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-end gap-1.5',
+        'absolute left-1/2 z-30 flex max-w-[calc(100%-1rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-1.5',
         compact ? 'top-0 -translate-y-1/2' : '-mt-2'
       )}
     >

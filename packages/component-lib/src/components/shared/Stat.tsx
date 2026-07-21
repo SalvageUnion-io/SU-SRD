@@ -14,7 +14,10 @@ import type { EntityStatus } from './entityStatus'
  * prop-controlled component with TWO anatomies — it absorbs the former
  * ValueDisplay (horizontal label|value) and StatControl (box + steppers):
  *
- *   orientation="horizontal"  -> the horizontal [label | value] cell.
+ *   orientation="horizontal"  -> the horizontal [label | value] cell, in either
+ *                                material: `surface="plate"` (default, the
+ *                                stamp pair) or `surface="plain"` (running
+ *                                text — the former StatLine).
  *   (default)                 -> the centred value box with Badge stamps
  *                                above/below; mode="edit" adds +/- steppers.
  *
@@ -76,7 +79,10 @@ type StatPropKey =
   | 'min'
   | 'bottomLabel'
   | 'orientation'
+  | 'surface'
   | 'mode'
+  | 'step'
+  | 'stepperLabel'
   | 'inverse'
   | 'size'
   | 'onChange'
@@ -105,7 +111,29 @@ type HorizontalValueProps = Exact<{
   label: StatValue
   orientation: 'horizontal'
   value?: StatValue
-  /** Optional max — renders the value as `value /max` (muted /max suffix). */
+  /**
+   * The cell's MATERIAL — same geometry (`label` then `value`, inline), two
+   * finishes (canonical primitive language §0: geometry is constant across
+   * contexts; only materials, density and interactivity change).
+   *
+   *   `plate` (default) — the stamp pair on a bordered, rounded cell.
+   *   `plain`           — RUNNING TEXT: `SP 9/13`, no plate, no border, no
+   *                       radius. The label inherits the surrounding line's
+   *                       colour and the reading is a `<b>` so a text container
+   *                       can weight it (the sheet rail body does exactly this).
+   *
+   * `plain` exists because the linked-units rail is specified as running text
+   * rather than plates, and that gap had grown its OWN primitive (`StatLine`)
+   * arguing running text and plates were "different jobs". They are not: they
+   * are one `label | value` cell in two materials, so the fix was this rung —
+   * ruleset §3.7, every `label | value` renders through `Stat`.
+   *
+   * `plain` is a text finish: `state`, `bgColor`/`textColor` and `inverse` all
+   * style the plate and are inert on it.
+   */
+  surface?: 'plate' | 'plain'
+  /** Optional max — renders the value as `value /max` (muted /max suffix on
+   * `plate`; part of the bold reading on `plain`, which is unbroken text). */
   max?: number
   /** Optional second label line — renders the label cell as a two-line stack
    * (`label` on top, `bottomLabel` below), e.g. "Tech" / "Level". */
@@ -133,6 +161,24 @@ type HorizontalValueProps = Exact<{
   onChange?: (value: number) => void
   mode?: 'read' | 'edit'
   min?: number
+  /**
+   * Increment per press (default 1). The crawler Trading Bay trades scrap in
+   * fixed exchange lots, so its quantity stepper moves by the lot size rather
+   * than by one — it had grown a hand-assembled `StepButton` pair for exactly
+   * that reason. A stepper that counts by N is the same control at a different
+   * granularity, so the fix is this rung, not a bespoke cluster.
+   */
+  step?: number
+  /**
+   * Accessible-name stem for the +/- buttons — they read
+   * `Decrease {stepperLabel}` / `Increase {stepperLabel}`. Defaults to `label`.
+   *
+   * The plate's visible `label` is a terse code ('SCRAP', 'QTY') sized for the
+   * cell, while a stepper's accessible name wants the full noun phrase
+   * ('contribution', 'trade amount by 5'). Hand-assembled steppers took their
+   * name from the caller; this keeps that contract when they fold onto Stat.
+   */
+  stepperLabel?: string
   /** When set, wrap the cell in the entity/keyword hover-tooltip (resolves
    * `label` within `schemaName`); unresolved refs render plain (no tooltip). */
   entityTooltip?: { schemaName: SURefEnumSchemaName; label: StatValue }
@@ -222,6 +268,7 @@ function HorizontalValue({
   value,
   max,
   bottomLabel,
+  surface = 'plate',
   size = 'full',
   inverse = false,
   inline = true,
@@ -231,6 +278,8 @@ function HorizontalValue({
   onChange,
   mode = 'read',
   min = 0,
+  step = 1,
+  stepperLabel,
   className,
 }: HorizontalValueProps) {
   const fontSize = size === 'mini' ? 'text-label' : size === 'compact' ? 'text-xs' : 'text-sm'
@@ -241,6 +290,32 @@ function HorizontalValue({
   // The CELL draws the single rounded border; the `inverse` plate's own inset
   // ring would double it, so both halves suppress it with `ring-0`.
   const plate = 'ring-0 leading-none'
+
+  // PLAIN material — running text (`SP 9/13`). No plate, no border, no radius;
+  // an inert inline `<span>` so it neither breaks the line's flow nor changes
+  // how the surrounding sentence wraps. The reading (value AND `/max`) is one
+  // unbroken `<b>`: on a text line the slash belongs to the number, so it is
+  // not split off and muted the way the plate's `/max` suffix is.
+  //
+  // `plain` is a READ finish and returns here: a +/- stepper column belongs to
+  // a cell with an edge, not to a word in a sentence, so `mode="edit"` has no
+  // plain rendering (use the plate material when the stat is editable).
+  if (surface === 'plain') {
+    return (
+      <span className={className}>
+        {label}
+        {value !== undefined && (
+          <>
+            {' '}
+            <b>
+              {value}
+              {max !== undefined && `/${max}`}
+            </b>
+          </>
+        )}
+      </span>
+    )
+  }
 
   const cell = (
     <span
@@ -318,13 +393,14 @@ function HorizontalValue({
   const btnBase =
     'flex min-h-11 items-center justify-center rounded-badge border border-ink font-body font-bold leading-none transition-colors sm:min-h-0'
 
+  const stepName = stepperLabel ?? label
   return (
     <span className="inline-flex w-fit items-stretch gap-0.5">
       {cell}
       <button
         type="button"
-        aria-label={`Decrease ${label}`}
-        onClick={() => onChange?.(Math.max(min, numericValue - 1))}
+        aria-label={`Decrease ${stepName}`}
+        onClick={() => onChange?.(Math.max(min, numericValue - step))}
         disabled={atMin}
         className={cn(
           btnBase,
@@ -337,9 +413,9 @@ function HorizontalValue({
       </button>
       <button
         type="button"
-        aria-label={`Increase ${label}`}
+        aria-label={`Increase ${stepName}`}
         onClick={() =>
-          onChange?.(max !== undefined ? Math.min(max, numericValue + 1) : numericValue + 1)
+          onChange?.(max !== undefined ? Math.min(max, numericValue + step) : numericValue + step)
         }
         disabled={!!atMax}
         className={cn(

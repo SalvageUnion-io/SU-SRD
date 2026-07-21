@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 import { cn } from '../../../utils/cn'
-import type { CardFootMeta } from '../../shared/DisplayCard'
+import type { CardFootMeta } from '../../shared/Card'
 
 export type { CardDomain } from './entityCardTone'
 

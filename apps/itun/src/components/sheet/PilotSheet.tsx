@@ -36,7 +36,7 @@ import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility } from 'salvageunion-reference'
-import { Panel, Stat, StepButton, VitalGauge } from 'component-lib'
+import { Panel, Stat, VitalGauge } from 'component-lib'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
@@ -67,11 +67,16 @@ import {
 } from './PilotSheetItems'
 
 // ---------------------------------------------------------------------------
-// TpBlock — pilot Training Points as the poster's bordered `.tpblock` (G9:
-// stamp / 30px numeral / caption), in the Vitals card's dashed-topped `.vrow`
-// beside Conditions. Keeps the StatBlock unbounded-counter accessible
-// contract it replaces — role="group" aria-label "TP {value}" and
-// Increase/Decrease TP steppers — so existing tests keep passing.
+// TpBlock — pilot Training Points, in the Vitals card's dashed-topped `.vrow`
+// beside Conditions.
+//
+// This was a hand-assembled `.tpblock` (stamp / 30px numeral / caption / a
+// bespoke StepButton pair) arguing the poster's framed TP readout was its own
+// thing. It is not: it is the canonical value box at its headline rung —
+// `Stat` `size="full"` is stamp / 26px numeral / bottom stamp with the +/-
+// stepper column, which is the same anatomy the HP and AP gauges above it
+// already use. `ariaLabel` keeps the unbounded-counter accessible contract
+// (role="group" named "TP {value}", Increase/Decrease TP steppers).
 // ---------------------------------------------------------------------------
 
 function TpBlock({
@@ -84,34 +89,15 @@ function TpBlock({
   editable: boolean
 }) {
   return (
-    // biome-ignore lint/a11y/useSemanticElements: a framed TP readout is not a <fieldset>; role="group" carries the same grouping semantics
-    <div
-      role="group"
-      aria-label={`TP ${value}`}
-      className="flex shrink-0 flex-col items-center gap-1 rounded-[3px] border-2 border-ink bg-paper px-3.5 py-2 text-center"
-    >
-      <span className="box-decoration-clone inline bg-ink px-[0.5em] pb-[0.16em] pt-[0.1em] font-cond text-[11px] font-bold uppercase leading-[1.5] tracking-widest text-paper">
-        TP
-      </span>
-      <span className="flex items-center gap-1.5">
-        {editable && (
-          <StepButton aria-label="Decrease TP" onClick={() => onChange?.(Math.max(0, value - 1))}>
-            &ndash;
-          </StepButton>
-        )}
-        <span className="min-w-[1.4em] font-body text-[30px] font-bold leading-[1.05] tabular-nums text-ink">
-          {value}
-        </span>
-        {editable && (
-          <StepButton aria-label="Increase TP" onClick={() => onChange?.(value + 1)}>
-            +
-          </StepButton>
-        )}
-      </span>
-      <span className="font-cond text-[8px] font-semibold uppercase leading-none tracking-[0.16em] text-ink/55">
-        Training Points
-      </span>
-    </div>
+    <Stat
+      label="TP"
+      value={value}
+      bottomLabel="Training Points"
+      size="full"
+      ariaLabel={`TP ${value}`}
+      mode={editable ? 'edit' : 'read'}
+      onChange={editable ? onChange : undefined}
+    />
   )
 }
 

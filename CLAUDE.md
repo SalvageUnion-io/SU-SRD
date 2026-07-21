@@ -17,7 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## UI Development
 
-- Always reuse existing shared components (e.g., EntityDisplay, DisplayCard) rather than building custom one-off UI. Check for existing patterns in the shared packages first before creating new components.
+- Always reuse existing shared components (e.g., EntityDisplay, Card) rather than building custom one-off UI. Check for existing patterns in the shared packages first before creating new components.
 - When making CSS/layout changes, get the first attempt right by carefully considering the rendering context (e.g., float doesn't work inside grid/flex containers). If a visual change requires iteration, ask the user to confirm via screenshot before making further adjustments. Prefer simple, well-understood CSS patterns over clever approaches.
 - For UI components, prefer compact/listing card displays by default (header-only, clickable) rather than full inline expanded displays. Ask if unsure about the level of detail to render.
 
@@ -116,7 +116,7 @@ discord-bot (standalone, depends on salvageunion-reference)
 
 Detailed cross-cutting architecture docs live in `docs/architecture/`:
 
-- **[display-system.md](docs/architecture/display-system.md)** — Three-layer rendering stack: DisplayCard -> ReferenceEntityDisplay -> consumer patterns
+- **[display-system.md](docs/architecture/display-system.md)** — Three-layer rendering stack: Card -> ReferenceEntityDisplay -> consumer patterns
 - **[data-flow.md](docs/architecture/data-flow.md)** — Reference data + player data resolution, TanStack Query patterns, IndexedDB hydration
 - **[seo-accessibility.md](docs/architecture/seo-accessibility.md)** — SEO strategy (srd) and WCAG 2.1 AA compliance patterns
 - **[package-contracts.md](docs/architecture/package-contracts.md)** — Package APIs, dependency rules, cross-package change checklist

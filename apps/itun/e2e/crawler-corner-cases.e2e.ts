@@ -4,14 +4,15 @@ import { clickNext, pickByName, waitForReady } from './_helpers'
 /**
  * CrawlerBuilder corner cases (WizShell flow: Crawler -> Systems -> Crew ->
  * Identity -> Review):
- *  - The CTA is gated: disabled on the Crawler step until a crawler type OptRow
+ *  - The CTA is gated: disabled on the Crawler step until a crawler type card
  *    is picked, disabled again on Identity until a name is entered.
  *  - The Systems step reveals the Sel grid (new crawlers are fixed at TL1, so
  *    the offer is the TL1-and-below systems; tech level is raised later on the
  *    live sheet, not in the wizard).
  *
- * Crawler types render as native OptRow <button>s in the 320px master pane —
- * accessible name includes the type name ('Augmented' … 'Trade Caravan').
+ * Crawler types render as `ReferenceEntityCard` radio cells (role="radio",
+ * aria-checked) whose accessible name is the type name ('Augmented' … 'Trade
+ * Caravan') — `pickByName` matches radios as well as buttons.
  * Systems render as Sel-wrapped `<div role="button">` cards, so
  * `div[role="button"]` counts only system cards, never the nav buttons. The
  * primary CTA is labelled from the steps array ('Next · Systems →' etc.) and

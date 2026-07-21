@@ -3,7 +3,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { MasonryColumns } from '../components/shared/MasonryColumns'
 import { FilterRow } from '../components/shared/FilterRow'
-import { DisplayCard } from '../components/shared/DisplayCard'
+import { Card } from '../components/shared/Card'
 import { Badge } from '../components/chrome/Badge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -19,7 +19,7 @@ const traits = SalvageUnionReference.Traits.all()
 
 function ChassisRow({ name }: { name: string }) {
   return (
-    <DisplayCard
+    <Card
       extent="head"
       headerBg="bg-mech"
       headerContent={<span className="font-cond font-bold uppercase text-ink">{name}</span>}

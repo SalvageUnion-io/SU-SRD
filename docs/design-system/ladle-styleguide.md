@@ -448,7 +448,7 @@ Rules that hold here:
   concatenation. `StoryDefault`/`Story` are the exported types; a plain object with the biome-ignore
   comment is our house style.
 - **`title` is `Group[/Sub-group]/Title Case With Spaces`** and matches the component's display name:
-  `Atoms/Stat`, `Containers/Display Card`, `Compositions/Dashboard/Grid`. Ladle turns `/` into sidebar
+  `Atoms/Stat`, `Containers/Card`, `Compositions/Dashboard/Grid`. Ladle turns `/` into sidebar
   nesting and title-cases/space-splits segment names automatically. Titles must be **unique** across
   files — two files claiming one title silently collapse the nav.
 - **The file keeps the component symbol name** — `Stat.stories.tsx` — so a symbol grep still finds
@@ -478,7 +478,7 @@ complex, read top-to-bottom):
    `Stat` composes `Text` + `Tooltip`, `CountStepper` composes `StepButton`. Domain knowledge, not
    composition, is the line between an atom and a composition.
 3. **Containers** — content-agnostic wrappers / state shells that would still make sense with entirely
-   different content inside (e.g. `Display Card`, `Modal`, `Inset`, `Toast`).
+   different content inside (e.g. `Card`, `Modal`, `Inset`, `Toast`).
 4. **Compositions** — domain/game components: they know about Salvage Union entities, or they assemble
    atoms into a product surface (e.g. the Reference Entity family, Roll Table, `Dashboard/*`).
 
@@ -549,9 +549,9 @@ case better. Usually it does. (This keeps us aligned with the real-data rule bel
 - Rationale: a story is a preview of what ships. Fake data hides the rendering bugs (overflow, wrapping,
   tone, empty-state) that only surface with production content — which is exactly what a styleguide
   exists to catch.
-- **The one sanctioned exception:** a genuinely generic container primitive (e.g. `DisplayCard`) may use
+- **The one sanctioned exception:** a genuinely generic container primitive (e.g. `Card`) may use
   abstract content, because it _is_ content-agnostic. When you do this, say so in a comment (as
-  `DisplayCard.stories.tsx` does).
+  `Card.stories.tsx` does).
 
 ### 6.5 Shared helpers, not copy-paste
 

@@ -2,9 +2,9 @@ import { useState, useMemo, useEffect, Suspense } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getTechLevel, getSource, getEntitySlug, getTree } from 'salvageunion-reference'
 import {
+  Badge,
   ReferenceEntityCard,
   Skeleton,
-  FilterChip,
   FilterRow,
   MasonryColumns,
   TECH_LEVEL_STYLES,
@@ -226,30 +226,39 @@ export function SchemaViewerIsland({
                   {techLevels.length > 1 && (
                     <div className="md:flex-1">
                       <FilterRow label="Tech Level">
-                        <FilterChip
-                          label="All"
-                          active={techLevelFilters.size === 0}
+                        <Badge
+                          shape="chip"
+                          as="button"
+                          aria-pressed={techLevelFilters.size === 0}
+                          surface={techLevelFilters.size === 0 ? 'solid' : 'ghost'}
                           onClick={() => setTechLevelFilters(new Set())}
-                        />
+                        >
+                          All
+                        </Badge>
                         {techLevels.map((level) => {
                           const numericLevel = typeof level === 'number' ? level : undefined
-                          const swatchStyle =
+                          const swatch =
                             numericLevel !== undefined
                               ? `var(--color-tl-${numericLevel})`
                               : undefined
+                          const active = techLevelFilters.has(String(level))
                           return (
-                            // colorClass is only consumed in the non-swatch (B/N) branch; a
-                            // numeric chip renders the swatch and ignores it, so omit it there.
-                            <FilterChip
+                            // Numeric tiers carry a colour swatch; B/N have no swatch and
+                            // tint the active fill via TECH_LEVEL_STYLES (className override).
+                            <Badge
                               key={String(level)}
-                              label={techLevelLabel(level)}
-                              active={techLevelFilters.has(String(level))}
-                              onClick={() => toggleTechLevel(level)}
-                              colorClass={
-                                swatchStyle ? undefined : TECH_LEVEL_STYLES[String(level)]
+                              shape="chip"
+                              as="button"
+                              aria-pressed={active}
+                              surface={active ? 'solid' : 'ghost'}
+                              swatch={swatch}
+                              className={
+                                active && !swatch ? TECH_LEVEL_STYLES[String(level)] : undefined
                               }
-                              swatchStyle={swatchStyle}
-                            />
+                              onClick={() => toggleTechLevel(level)}
+                            >
+                              {techLevelLabel(level)}
+                            </Badge>
                           )
                         })}
                       </FilterRow>
@@ -260,36 +269,52 @@ export function SchemaViewerIsland({
 
               {sources.length > 1 && (
                 <FilterRow label="Source">
-                  <FilterChip
-                    label="All"
-                    active={sourceFilters.size === 0}
+                  <Badge
+                    shape="chip"
+                    as="button"
+                    aria-pressed={sourceFilters.size === 0}
+                    surface={sourceFilters.size === 0 ? 'solid' : 'ghost'}
                     onClick={() => setSourceFilters(new Set())}
-                  />
+                  >
+                    All
+                  </Badge>
                   {sources.map((source) => (
-                    <FilterChip
+                    <Badge
                       key={source}
-                      label={source}
-                      active={sourceFilters.has(source)}
+                      shape="chip"
+                      as="button"
+                      aria-pressed={sourceFilters.has(source)}
+                      surface={sourceFilters.has(source) ? 'solid' : 'ghost'}
                       onClick={() => toggleSource(source)}
-                    />
+                    >
+                      {source}
+                    </Badge>
                   ))}
                 </FilterRow>
               )}
 
               {trees.length > 1 && (
                 <FilterRow label="Tree">
-                  <FilterChip
-                    label="All"
-                    active={treeFilters.size === 0}
+                  <Badge
+                    shape="chip"
+                    as="button"
+                    aria-pressed={treeFilters.size === 0}
+                    surface={treeFilters.size === 0 ? 'solid' : 'ghost'}
                     onClick={() => setTreeFilters(new Set())}
-                  />
+                  >
+                    All
+                  </Badge>
                   {trees.map((tree) => (
-                    <FilterChip
+                    <Badge
                       key={tree}
-                      label={tree}
-                      active={treeFilters.has(tree)}
+                      shape="chip"
+                      as="button"
+                      aria-pressed={treeFilters.has(tree)}
+                      surface={treeFilters.has(tree) ? 'solid' : 'ghost'}
                       onClick={() => toggleTree(tree)}
-                    />
+                    >
+                      {tree}
+                    </Badge>
                   ))}
                 </FilterRow>
               )}

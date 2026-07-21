@@ -1,5 +1,5 @@
 /**
- * Callout composes DisplayCard, so its anatomy is now the product of another
+ * Callout composes Card, so its anatomy is now the product of another
  * component's layout rules rather than its own div stack. These pin the three
  * things that composition could silently change: the frame takes the tone's
  * ACCENT (not the derived band tint), a label-less callout paints NO header

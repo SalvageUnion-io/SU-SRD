@@ -21,7 +21,6 @@ import type { ReactNode } from 'react'
 
 import { Inset } from '../shared/Inset'
 import { InlineEditField } from '../chrome/InlineEditField'
-import { InlineEditTextArea } from './InlineEditTextArea'
 import { NpcFactsEditor } from './NpcFactsEditor'
 
 type NpcInsetProps = {
@@ -99,7 +98,7 @@ export function NpcInset({
   onFactsChange,
 }: NpcInsetProps) {
   return (
-    // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the crew-lead inset so multiple insets per crawler stay distinguishable; the Inset section can't take aria-label without becoming a region landmark
+    // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the crew-lead inset so multiple insets per crawler stay distinguishable; Inset exposes no aria-label of its own, and a <section> here would become a region landmark once named
     <div role="group" aria-label={`${bayName} crew lead`}>
       <Inset
         tone="crawler"
@@ -164,9 +163,10 @@ export function NpcInset({
           </NpcRow>
           <NpcRow label="Detail" grow>
             {onDetailChange ? (
-              <InlineEditTextArea
+              <InlineEditField
+                multiline
                 value={detail}
-                onSave={onDetailChange}
+                onSave={(next) => onDetailChange(String(next))}
                 ariaLabel={`Edit ${bayName} crew detail`}
                 placeholder="Add a detail…"
               />

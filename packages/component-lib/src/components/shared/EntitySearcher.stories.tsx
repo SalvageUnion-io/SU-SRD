@@ -23,7 +23,7 @@ export default {
 }
 
 /**
- * EntitySearcher is a self-contained DisplayCard: title + close badge in the
+ * EntitySearcher is a self-contained Card: title + close badge in the
  * header, search + filters in the sub-header band, the pool filling a padded
  * internally-scrolling body, and the "Results" box pinned floating bottom-right.
  * This is the one layout — the Catalog modal and every sheet picker use it (in a

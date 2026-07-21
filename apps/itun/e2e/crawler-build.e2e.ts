@@ -3,7 +3,7 @@ import { clickNext, pickByName, waitForReady } from './_helpers'
 
 /**
  * Crawler build + edit on the WizShell skeleton (plan 3.2/3.6):
- * Crawler (OptRow crawler-type master list) -> Systems (Sel grid) ->
+ * Crawler (crawler-type entity cards, radio) -> Systems (Sel grid) ->
  * Crew (bay-NPC details) -> Identity -> Review -> 'Create Crawler ✦'.
  * Tech level is fixed at TL1 on create; bays are not chosen — every crawler
  * seeds the full SRD bay set on creation.
@@ -12,7 +12,7 @@ test('build a crawler from scratch', async ({ page }) => {
   await page.goto('/crawlers/new')
   await waitForReady(page)
 
-  // Step 1 — Crawler. OptRow per crawler type; pick Battle.
+  // Step 1 — Crawler. One entity card per crawler type; pick Battle.
   await pickByName(page, 'Battle')
   await clickNext(page) // -> Systems
 

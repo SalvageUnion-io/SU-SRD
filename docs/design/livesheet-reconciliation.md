@@ -31,7 +31,7 @@ Three drivers, all confirmed this round:
 1. **Harmonize with the canon.** After the style-unification + entity-card
    refresh (PR #466), the sheet shell should read as a sibling of the rest of
    the system — one paper, one action colour (rust), the shared border/type/
-   radius scales, `Stamp`/`Slab`/`DisplayCard`/`Stat`/`VitalGauge`. Today the
+   radius scales, `Stamp`/`Slab`/`Card`/`Stat`/`VitalGauge`. Today the
    sheet shell still carries pre-canon drift (arbitrary `text-[30px]` /
    `tracking-widest` / `rounded-[8px]`, local `TpBlock`, hand-rolled rows).
 2. **Resemble the official Starter Set sheets.** A two-column poster of labeled
@@ -97,7 +97,7 @@ same arc the entity card followed.
   What it was:
   `LiveSheetPoster.tsx` + `LiveSheetPoster.stories.tsx`, titled
   `Compositions/Live Sheet`. The "Union Poster" **assembled entirely from
-  existing primitives** — `DisplayCard` (identity + vitals bands), `VitalGauge`
+  existing primitives** — `Card` (identity + vitals bands), `VitalGauge`
   (kept — segmented), `Stat` (TP box), `Badge` stamp (field labels), `Slab`
   (section headers), `ReferenceEntityCard` (ability/equipment rows, compact),
   `ConditionSwatch`, `EmptyState` (the empty image seat). Read-only + editable +
@@ -158,13 +158,13 @@ From the redesign plan + this round's additions:
 
 ## Decisions — RESOLVED this round
 
-1. **Image placement** ✅ — a reserved seat inside the identity `DisplayCard`:
+1. **Image placement** ✅ — a reserved seat inside the identity `Card`:
    a 3:4 **portrait-left** for pilots; the same seat stretches to a **banner**
    for mech/crawler art. Empty = the same seat as an `EmptyState` dropzone.
 2. **Vitals gauge** ✅ — **keep the segmented `VitalGauge`** (no dial/ring). Heat
    redlines its top segments near cap (mech).
 3. **Section framing** ✅ — lighter **`Slab`** headers for collection sections;
-   `DisplayCard` only frames the identity + vitals bands.
+   `Card` only frames the identity + vitals bands.
 4. **Where the canonical primitive lives** ✅ — one **shell, three variants**
    ("so the three screens cannot drift apart," matching today's `LiveSheet`).
    The Pilot poster's sub-parts (image seat, field grid, vitals band, collection

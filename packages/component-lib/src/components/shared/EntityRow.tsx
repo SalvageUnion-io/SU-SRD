@@ -8,7 +8,7 @@ import { Stat } from './Stat'
 
 /**
  * EntityRow — a header-only clickable listing ROW: the compact, one-line
- * translation of a `DisplayCard` for roster / index surfaces.
+ * translation of a `Card` for roster / index surfaces.
  *
  * Anatomy (grounded in ITUN's `EntityListItem`, re-composed on canon atoms):
  * a hover-lift frame (2px ink border, faint tone-wash background) fronted by a

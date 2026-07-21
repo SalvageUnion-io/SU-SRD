@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { Badge, type BadgeTone } from './Badge'
@@ -110,6 +110,76 @@ export const Keywords: Story = () => (
     </div>
   </div>
 )
+
+// The interactive filter-chip rung (`as="button"`) — the former FilterChip,
+// now a Badge that toggles. The call site owns the pressed state: it drives
+// `surface` (solid pressed / ghost unpressed) and passes `aria-pressed`, so the
+// Badge stays presentational. `swatch` prefixes a colour swatch (tech-level
+// filters). Numeric tiers carry the swatch; Bio/Nanite tint the active fill.
+const TL_FILTERS = [1, 2, 3, 4, 5, 6] as const
+function useToggleSet<T>() {
+  const [set, setSet] = useState<Set<T>>(() => new Set())
+  const toggle = (value: T) =>
+    setSet((prev) => {
+      const next = new Set(prev)
+      if (next.has(value)) next.delete(value)
+      else next.add(value)
+      return next
+    })
+  return { set, toggle, clear: () => setSet(new Set()) }
+}
+export const Filter: Story = () => {
+  const keywords = useToggleSet<string>()
+  const tls = useToggleSet<number>()
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <Caption>plain toggle — solid when pressed, ghost when not</Caption>
+        <Row>
+          <Badge
+            shape="chip"
+            as="button"
+            aria-pressed={keywords.set.size === 0}
+            surface={keywords.set.size === 0 ? 'solid' : 'ghost'}
+            onClick={keywords.clear}
+          >
+            All
+          </Badge>
+          {keywordTags.map((keyword) => (
+            <Badge
+              key={keyword}
+              shape="chip"
+              as="button"
+              aria-pressed={keywords.set.has(keyword)}
+              surface={keywords.set.has(keyword) ? 'solid' : 'ghost'}
+              onClick={() => keywords.toggle(keyword)}
+            >
+              {keyword}
+            </Badge>
+          ))}
+        </Row>
+      </div>
+      <div>
+        <Caption>swatch — the tech-level filter chips</Caption>
+        <Row>
+          {TL_FILTERS.map((tl) => (
+            <Badge
+              key={tl}
+              shape="chip"
+              as="button"
+              aria-pressed={tls.set.has(tl)}
+              surface={tls.set.has(tl) ? 'solid' : 'ghost'}
+              swatch={`var(--color-tl-${tl})`}
+              onClick={() => tls.toggle(tl)}
+            >
+              {`TL${tl}`}
+            </Badge>
+          ))}
+        </Row>
+      </div>
+    </div>
+  )
+}
 
 // The SQUARE stamp shape (shape="stamp") — the ink label/header/tab/eyebrow atom
 // (the former Stamp). Sizes, plates, and the seam that rides a container's border.

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { SearchResult } from 'salvageunion-reference'
-import { FilterChip, FilterRow, SearchField } from 'component-lib'
+import { Badge, FilterRow, SearchField } from 'component-lib'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
@@ -130,18 +130,26 @@ function SearchResults({ query, index }: { query: string; index: CompactSearchEn
 
       {facets.length > 1 && (
         <FilterRow label="Type">
-          <FilterChip
-            label="All"
-            active={activeFacet === null}
+          <Badge
+            shape="chip"
+            as="button"
+            aria-pressed={activeFacet === null}
+            surface={activeFacet === null ? 'solid' : 'ghost'}
             onClick={() => setSchemaFacet(null)}
-          />
+          >
+            All
+          </Badge>
           {facets.map((f) => (
-            <FilterChip
+            <Badge
               key={f.schemaName}
-              label={`${f.label} (${f.count})`}
-              active={activeFacet === f.schemaName}
+              shape="chip"
+              as="button"
+              aria-pressed={activeFacet === f.schemaName}
+              surface={activeFacet === f.schemaName ? 'solid' : 'ghost'}
               onClick={() => setSchemaFacet(f.schemaName)}
-            />
+            >
+              {`${f.label} (${f.count})`}
+            </Badge>
           ))}
         </FilterRow>
       )}

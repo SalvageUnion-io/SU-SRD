@@ -41,7 +41,7 @@ import { ActivationCost } from '../../shared/ActivationCost'
 import { CardImage } from '../../shared/CardImage'
 import { CardControlRail } from '../../shared/CardControlRail'
 import { foldStatusControl } from '../../shared/foldStatusControl'
-import type { CardFootMeta } from '../../shared/DisplayCard'
+import type { CardFootMeta } from '../../shared/Card'
 import { Stat } from '../../shared/Stat'
 import type { StatItem } from '../../shared/statsBarTypes'
 import { Content } from '../Content'
@@ -505,14 +505,12 @@ function ReferenceEntityCardInner({
     effTechLevel !== undefined &&
     effTechLevel > baseTechLevel
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
-  // Title size steps down with depth; a solo COMPACT/LISTING card (depth 0) floors
-  // to rung 1 (text-xl, not the full text-5xl) so "compact" actually compacts the
-  // title. `full` keeps the depth-driven size (srd renders full → unaffected).
-  // `small` steps the title down one further rung than `medium` — the size
-  // axis, not the extent, is what drives the type ladder.
-  const titleClass = titleSizeClass(
-    size === 'large' ? depth : Math.max(depth, size === 'small' ? 2 : 1)
-  )
+  // Title size steps down with depth, offset by size: `large` starts at the full
+  // text-5xl name-tab, `medium` one rung down (text-xl), `small` two (text-base)
+  // — so "compact" actually compacts the title. Size is an OFFSET, not a floor,
+  // so a card at depth N+1 is always strictly smaller than its parent at depth N
+  // (until the ladder's legibility floor). See `titleSizeClass`.
+  const titleClass = titleSizeClass(depth, size)
   // ARTWORK — `getAssetUrl` yields the entity's `.webp` when `hasArtwork`; the
   // chassis art also stands in for its full PATTERN view (but not the tight
   // pattern-summary list rows).
@@ -796,7 +794,7 @@ function ReferenceEntityCardInner({
     ? { border: `3px solid ${frameColor}`, boxShadow: '0 0 0 3px var(--color-rust)' }
     : { border: `3px solid ${frameColor}` }
   // Condition — routed into the shared rail as a status CONTROL rather than a
-  // bespoke seal, via the same `foldStatusControl` the DisplayCard shell uses,
+  // bespoke seal, via the same `foldStatusControl` the Card shell uses,
   // so the badge (and the fold rule) has one implementation across both card
   // layers. The prop stays public (it is purely presentational).
   const railControls = foldStatusControl(overlayControls, status, {
@@ -835,7 +833,7 @@ function ReferenceEntityCardInner({
       />
     </div>
   ) : null
-  // The top-right rail now lives at the DisplayCard layer (`CardControlRail`) —
+  // The top-right rail now lives at the Card layer (`CardControlRail`) —
   // this card inherits it. Selection and multi-select seals ride in as `seals`
   // because they carry bespoke tone styling the control variants don't cover;
   // the status and action cells come through `controls`.
@@ -1763,7 +1761,7 @@ export function ReferenceEntityCard({
 }: ReferenceEntityCardWrapperProps): ReactNode {
   if (!data) return null
 
-  // The size / extent / compact / listing reconciliation is the DisplayCard
+  // The size / extent / compact / listing reconciliation is the Card
   // layer's rule — inherited, not restated here.
   const display = resolveCardDisplay({ size, extent })
 

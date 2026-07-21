@@ -9,7 +9,6 @@ import { Slab } from '../Slab'
 import { Conditions, ConditionChip } from '../Conditions'
 import { Button } from '../Button'
 import { StepButton } from '../SmallButtons'
-import { TreeSep } from '../TreeSep'
 import { StatusBadge } from '../StatusBadge'
 import { Badge } from '../Badge'
 import { Glyph } from '../glyphs'
@@ -204,15 +203,6 @@ describe('StepButton / Button xs', () => {
   test('Button size="mini" renders the compact uppercase action (former MiniBtn)', () => {
     render(<Button size="mini">⇄ Swap</Button>)
     expect(screen.getByRole('button', { name: '⇄ Swap' }).className).toContain('uppercase')
-  })
-})
-
-describe('TreeSep', () => {
-  test('renders the tree-name tag and the ghost TREE tag between rules', () => {
-    render(<TreeSep name="Engineering" />)
-    expect(screen.getByText('Engineering')).toBeTruthy()
-    expect(screen.getByText('Tree')).toBeTruthy()
-    expect(screen.getByRole('separator')).toBeTruthy()
   })
 })
 

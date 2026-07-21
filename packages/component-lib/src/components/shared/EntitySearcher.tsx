@@ -22,12 +22,12 @@ import { SalvageUnionReference, searchIn } from 'salvageunion-reference'
 import type { EntitySchemaName, SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { matchesRef, type TechLevel } from 'salvageunion-reference/rules'
 import { cn } from '../../utils/cn'
+import { Badge } from '../chrome/Badge'
 import { Panel } from '../chrome/Panel'
 import { Button } from '../chrome/Button'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { statBlockRowStarts } from '../stat/pipRows'
-import { DisplayCard } from './DisplayCard'
-import { FilterChip } from './FilterChip'
+import { Card } from './Card'
 import { FilterRow } from './FilterRow'
 import { MasonryColumns } from './MasonryColumns'
 
@@ -89,7 +89,7 @@ type EntitySearcherProps = {
   chosenLabel?: string
   /** Copy shown when nothing matches the filters. */
   emptyMessage?: string
-  /** The title rendered in the searcher's DisplayCard header. */
+  /** The title rendered in the searcher's Card header. */
   title?: string
   /** Close handler — renders the header's close badge. */
   onClose?: () => void
@@ -247,7 +247,7 @@ export function EntitySearcher({
     setter(next)
   }
 
-  // ---- Sub-parts of the searcher DisplayCard ----
+  // ---- Sub-parts of the searcher Card ----
   const searchInput = (
     <label className="flex w-full items-center gap-2 rounded-card border-chrome border-ink bg-paper px-3 py-2 focus-within:ring-[3px] focus-within:ring-rust/25">
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="opacity-70">
@@ -339,8 +339,18 @@ export function EntitySearcher({
 
   const renderFacetRow = (row: FacetRowConfig) => (
     <FilterRow key={row.label} label={row.label} onDark>
-      {row.chips.map(({ key, ...chip }) => (
-        <FilterChip key={key} {...chip} />
+      {row.chips.map(({ key, label, active, onClick, swatchStyle }) => (
+        <Badge
+          key={key}
+          shape="chip"
+          as="button"
+          aria-pressed={active}
+          surface={active ? 'solid' : 'ghost'}
+          swatch={swatchStyle}
+          onClick={onClick}
+        >
+          {label}
+        </Badge>
       ))}
     </FilterRow>
   )
@@ -396,12 +406,12 @@ export function EntitySearcher({
     </div>
   )
 
-  // A self-contained DisplayCard: title + close badge in the header, search +
+  // A self-contained Card: title + close badge in the header, search +
   // all filters in the sub-header band, the pool filling a padded internally-
   // scrolling body, and the "Results" box pinned floating bottom-right.
   return (
     <div className="relative">
-      <DisplayCard
+      <Card
         headerBg="bg-pilot"
         bodyPadding="p-0"
         headerContent={
@@ -429,7 +439,7 @@ export function EntitySearcher({
           <div className="mb-3">{summaryNode}</div>
           {poolNode}
         </div>
-      </DisplayCard>
+      </Card>
 
       {/* Pinned floating "Results" box — absolute to the card frame (NOT the
           scrolling body), so it stays put in the bottom-right above content.

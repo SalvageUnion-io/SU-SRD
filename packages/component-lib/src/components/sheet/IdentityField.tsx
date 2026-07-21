@@ -18,6 +18,7 @@
  */
 
 import type { ReactNode } from 'react'
+import { Badge } from '../chrome/Badge'
 import { Glyph } from '../chrome/glyphs'
 import { InlineEditField } from '../chrome/InlineEditField'
 
@@ -81,9 +82,9 @@ export function IdentityField({
     return (
       <div className={cn('flex min-w-0 flex-col', className)}>
         <span className="mb-[2px] flex items-center justify-between gap-2">
-          <span className="bg-ink px-1.5 pb-px pt-[2px] font-cond text-label font-bold uppercase leading-none tracking-caps text-paper">
+          <Badge shape="stamp" size="mini">
             {label}
-          </span>
+          </Badge>
           {labelAction}
         </span>
         <button

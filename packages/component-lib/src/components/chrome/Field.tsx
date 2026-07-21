@@ -88,28 +88,49 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
   )
 })
 
-type SelectProps = ComponentPropsWithoutRef<'select'>
+type SelectProps = ComponentPropsWithoutRef<'select'> & {
+  /**
+   * Faux-select rung: strip the native disclosure (`appearance-none`) and draw a
+   * consistent ink chevron inside the field. This is the one sanctioned way to
+   * customise the affordance — a caller that wants the styled arrow opts in here
+   * rather than re-typing the skin with its own absolute-positioned glyph.
+   */
+  chevron?: boolean
+}
 
 /**
  * Native `<select>` in the `Input` skin (design-spec §2.5): the app's
  * hand-copied `SELECT_CLASS` promoted to a real atom — same paper / 1.5px-ink /
  * 3px-radius / rust-ring chrome as `Input`, `Field`-wrappable, keeping the
  * native disclosure affordance. Compact call-sites pass `px-2 py-1.5` via
- * `className`.
+ * `className`; `chevron` swaps the native arrow for the styled faux-select one.
  */
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
-  { className, ...props },
+  { className, chevron = false, ...props },
   ref
 ) {
-  return (
+  const select = (
     <select
       ref={ref}
       className={cn(
         'w-full min-h-11 rounded-card border-chrome border-ink bg-paper px-3 py-2.5 font-body text-sm text-ink',
         INPUT_FOCUS,
+        chevron && 'cursor-pointer appearance-none pr-8',
         className
       )}
       {...props}
     />
+  )
+  if (!chevron) return select
+  return (
+    <span className="relative inline-block">
+      {select}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-wk-muted"
+      >
+        ▾
+      </span>
+    </span>
   )
 })

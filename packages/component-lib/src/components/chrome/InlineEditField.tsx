@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { Glyph } from './glyphs'
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
-import { Input } from './Field'
+import { Input, Textarea } from './Field'
 import { Badge } from './Badge'
 import { FieldError } from './FieldError'
 
@@ -41,11 +41,6 @@ type InlineEditFieldProps = {
 // ---------------------------------------------------------------------------
 // Pen glyph — pinned inside the labeled value box (design-spec `.ifield .pen`)
 // ---------------------------------------------------------------------------
-
-// Shared input skin, mirroring Field's Input focus-ring pattern (ring-rust/25,
-// paper bg, 1.5px ink border, 3px radius) so the textarea matches the input.
-const CONTROL_SKIN =
-  'w-full rounded-card border-chrome border-ink bg-paper px-3 py-2 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/25'
 
 const ERROR_SKIN = 'border-status-bad focus:ring-status-bad/25'
 
@@ -171,7 +166,7 @@ export function InlineEditField({
     // Edit — multiline textarea
     // -----------------------------------------------------------------------
     inner = (
-      <textarea
+      <Textarea
         ref={areaRef}
         value={draft}
         rows={3}
@@ -188,7 +183,7 @@ export function InlineEditField({
             cancel()
           }
         }}
-        className={cn(CONTROL_SKIN, 'resize-none')}
+        className="resize-none"
       />
     )
   } else {

@@ -22,7 +22,7 @@
  */
 
 import { useId } from 'react'
-import { DisplayCard, SlotGrid, Stat } from 'component-lib'
+import { Card, SlotGrid, Stat } from 'component-lib'
 
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
@@ -287,7 +287,7 @@ export function StorageManifest({
       data-storage-side={side}
     >
       {/* Hold panel */}
-      <DisplayCard
+      <Card
         headerBg="bg-ink"
         headerContent={
           <>
@@ -388,7 +388,7 @@ export function StorageManifest({
             ))}
           </ul>
         )}
-      </DisplayCard>
+      </Card>
 
       {/* Counterpart panel */}
       <div

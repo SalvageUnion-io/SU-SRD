@@ -62,7 +62,7 @@ export function Skeleton({ mode = 'card', rows = 3, compact = false, className }
     )
   }
 
-  // card — frame + band + body, mirroring the DisplayCard anatomy. `compact`
+  // card — frame + band + body, mirroring the Card anatomy. `compact`
   // mirrors the medium (compact) card density: shorter band, tighter body.
   return (
     <div

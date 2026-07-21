@@ -1,17 +1,17 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
-import { DisplayCard } from './DisplayCard'
-import type { CardFootMeta } from './DisplayCard'
+import { Card } from './Card'
+import type { CardFootMeta } from './Card'
 import type { StatItem } from './statsBarTypes'
 import { Text } from '../base/Text'
 import { Badge } from '../chrome/Badge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
-  title: 'Containers/Display Card',
+  title: 'Containers/Card',
 }
 
-// DisplayCard is the GENERIC container primitive — its stories demonstrate
+// Card is the GENERIC container primitive — its stories demonstrate
 // the shell (header / sub-header / body / footer) with abstract content,
 // never real SRD entities. Entity-specific rendering lives one layer up, in
 // ReferenceEntityCard's own stories. The only "real" content here is the
@@ -77,19 +77,19 @@ function Cell({
  * both present and absent, so their optionality is obvious.
  */
 export const Bands: Story = () => (
-  <Gallery rule="DisplayCard is a generic four-band shell: header (required) + optional sub-header + optional body + optional footer. Sub-header and footer are each independently opt-in — every combination below uses the same abstract content so the arrangement is the only thing changing.">
+  <Gallery rule="Card is a generic four-band shell: header (required) + optional sub-header + optional body + optional footer. Sub-header and footer are each independently opt-in — every combination below uses the same abstract content so the arrangement is the only thing changing.">
     <Cell label="header only (listing — body/sub-header/footer hidden)" width="w-[380px]">
-      <DisplayCard headerBg="bg-mech" headerContent={header} extent="head">
+      <Card headerBg="bg-mech" headerContent={header} extent="head">
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
     <Cell label="header + sub-header (stats — compact horizontal)" width="w-[380px]">
-      <DisplayCard headerBg="bg-mech" headerContent={header} stats={genericStats} size="medium">
+      <Card headerBg="bg-mech" headerContent={header} stats={genericStats} size="medium">
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
     <Cell label="header + sub-header (subHeader node, no stats)" width="w-[380px]">
-      <DisplayCard
+      <Card
         headerBg="bg-mech"
         headerContent={header}
         subHeader={
@@ -102,15 +102,15 @@ export const Bands: Story = () => (
         }
       >
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
     <Cell label="header + footer (no sub-header)" width="w-[380px]">
-      <DisplayCard headerBg="bg-mech" headerContent={header} footMeta={genericFootMeta}>
+      <Card headerBg="bg-mech" headerContent={header} footMeta={genericFootMeta}>
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
     <Cell label="header + sub-header + footer (all four bands)" width="w-[380px]">
-      <DisplayCard
+      <Card
         headerBg="bg-mech"
         headerContent={header}
         stats={genericStats}
@@ -118,12 +118,12 @@ export const Bands: Story = () => (
         size="medium"
       >
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
     <Cell label="header only (no sub-header, no footer)" width="w-[380px]">
-      <DisplayCard headerBg="bg-mech" headerContent={header}>
+      <Card headerBg="bg-mech" headerContent={header}>
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
   </Gallery>
 )
@@ -132,29 +132,29 @@ export const Bands: Story = () => (
 export const Densities: Story = () => (
   <Gallery rule="Two booleans span the density range: compact (reduced spacing) and listing (header-only clickable row). disabled dims the whole card.">
     <Cell label="default">
-      <DisplayCard headerBg="bg-mech" headerContent={header} footMeta={genericFootMeta}>
+      <Card headerBg="bg-mech" headerContent={header} footMeta={genericFootMeta}>
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
     <Cell label="compact">
-      <DisplayCard headerBg="bg-mech" headerContent={header} size="medium">
+      <Card headerBg="bg-mech" headerContent={header} size="medium">
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
     <Cell label="listing">
-      <DisplayCard headerBg="bg-mech" headerContent={header} extent="head">
+      <Card headerBg="bg-mech" headerContent={header} extent="head">
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
     <Cell label="compact listing">
-      <DisplayCard headerBg="bg-mech" headerContent={header} size="medium" extent="head">
+      <Card headerBg="bg-mech" headerContent={header} size="medium" extent="head">
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
     <Cell label="disabled">
-      <DisplayCard headerBg="bg-mech" headerContent={header} disabled>
+      <Card headerBg="bg-mech" headerContent={header} disabled>
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
   </Gallery>
 )
@@ -163,19 +163,19 @@ export const Densities: Story = () => (
 export const Status: Story = () => (
   <Gallery rule="status drives the condition treatment — intact is pristine; damaged/destroyed apply the warm brick-red state overlay (a treatment, never a second hue).">
     <Cell label='status="intact"'>
-      <DisplayCard headerBg="bg-mech" headerContent={header} status="intact">
+      <Card headerBg="bg-mech" headerContent={header} status="intact">
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
     <Cell label='status="damaged"'>
-      <DisplayCard headerBg="bg-mech" headerContent={header} status="damaged">
+      <Card headerBg="bg-mech" headerContent={header} status="damaged">
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
     <Cell label='status="destroyed"'>
-      <DisplayCard headerBg="bg-mech" headerContent={header} status="destroyed">
+      <Card headerBg="bg-mech" headerContent={header} status="destroyed">
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
   </Gallery>
 )
@@ -184,9 +184,9 @@ export const Status: Story = () => (
 export const Features: Story = () => (
   <Gallery rule="Feature slots layer onto the same shell: a label callout stamp riding the top border.">
     <Cell label="label">
-      <DisplayCard headerBg="bg-mech" headerContent={header} label="Category">
+      <Card headerBg="bg-mech" headerContent={header} label="Category">
         {body}
-      </DisplayCard>
+      </Card>
     </Cell>
   </Gallery>
 )

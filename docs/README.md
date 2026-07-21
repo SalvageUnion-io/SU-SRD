@@ -28,23 +28,23 @@ conventions, then the relevant architecture doc below.
 
 ### [`design-system/`](design-system/) — The canonical primitive language
 
-| Doc                                                                              | Scope                                                                                                                                                                                             |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [ruleset.md](design-system/ruleset.md)                                           | **Canon** — the governing laws: context laws, the rendering matrix, foundations, the irreducible atom set, the merge map, value-cell + StampSeam laws                                             |
-| [canonical-primitive-language.md](design-system/canonical-primitive-language.md) | The buildable migration plan — primitive catalog, token codification, phased merge order                                                                                                          |
-| [style-unification-pass.md](design-system/style-unification-pass.md)             | **Standing operating knowledge** for the ongoing pass — the layer ladder, the current DisplayCard tidy-up scope, per-primitive rules, the Ladle conversion procedure, and the migration work-list |
+| Doc                                                                              | Scope                                                                                                                                                                                      |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [ruleset.md](design-system/ruleset.md)                                           | **Canon** — the governing laws: context laws, the rendering matrix, foundations, the irreducible atom set, the merge map, value-cell + StampSeam laws                                      |
+| [canonical-primitive-language.md](design-system/canonical-primitive-language.md) | The buildable migration plan — primitive catalog, token codification, phased merge order                                                                                                   |
+| [style-unification-pass.md](design-system/style-unification-pass.md)             | **Standing operating knowledge** for the ongoing pass — the layer ladder, the current Card tidy-up scope, per-primitive rules, the Ladle conversion procedure, and the migration work-list |
 
 ### [`architecture/`](architecture/) — Cross-cutting architecture
 
-| Doc                                                               | Scope                                                                            |
-| ----------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| [display-system.md](architecture/display-system.md)               | The two card shells (ReferenceEntityCard / DisplayCard), size × extent, controls |
-| [data-flow.md](architecture/data-flow.md)                         | Reference data + player data hydration, IndexedDB, Zustand, TanStack Query       |
-| [package-contracts.md](architecture/package-contracts.md)         | Package APIs, dependency rules, cross-package change checklist                   |
-| [rules-engine-boundary.md](architecture/rules-engine-boundary.md) | **Rules & the ITUN Surfaces** — enforcement mode × rule-class matrix             |
-| [dashboard.md](architecture/dashboard.md)                         | The Dashboard (Guided-Play surface) design — layout, instruments, canvas         |
-| [combat-loop.md](architecture/combat-loop.md)                     | Action activation, heat checks, conditions — current local-first flow            |
-| [seo-accessibility.md](architecture/seo-accessibility.md)         | SEO strategy (srd) + WCAG 2.1 AA patterns                                        |
+| Doc                                                               | Scope                                                                      |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [display-system.md](architecture/display-system.md)               | The two card shells (ReferenceEntityCard / Card), size × extent, controls  |
+| [data-flow.md](architecture/data-flow.md)                         | Reference data + player data hydration, IndexedDB, Zustand, TanStack Query |
+| [package-contracts.md](architecture/package-contracts.md)         | Package APIs, dependency rules, cross-package change checklist             |
+| [rules-engine-boundary.md](architecture/rules-engine-boundary.md) | **Rules & the ITUN Surfaces** — enforcement mode × rule-class matrix       |
+| [dashboard.md](architecture/dashboard.md)                         | The Dashboard (Guided-Play surface) design — layout, instruments, canvas   |
+| [combat-loop.md](architecture/combat-loop.md)                     | Action activation, heat checks, conditions — current local-first flow      |
+| [seo-accessibility.md](architecture/seo-accessibility.md)         | SEO strategy (srd) + WCAG 2.1 AA patterns                                  |
 
 ### `docs/rules/` — Agent-readable rules digest (generated, gitignored)
 

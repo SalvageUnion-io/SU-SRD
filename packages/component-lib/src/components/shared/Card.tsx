@@ -15,7 +15,7 @@ import { foldStatusControl } from './foldStatusControl'
 /** Inline foot meta entry (design-spec §2.1 `.ec__metafoot`), e.g. AP COST · 1 */
 export type CardFootMeta = { label: string; value: ReactNode }
 
-type DisplayCardProps = {
+type CardProps = {
   /** Background color class for header and footer (e.g., "bg-mech"). Default: "" */
   headerBg?: string
   /** Optional CSS color for border derivation */
@@ -69,6 +69,18 @@ type DisplayCardProps = {
   headerStyle?: { className?: string; style?: CSSProperties }
   /** CSS color for card borders (external + internal). Defaults to 'black'. */
   borderColor?: string
+  /** Frame WEIGHT — which `--bw-*` rung the card's border is drawn at. Orthogonal
+   * to `borderColor` (which colour) and to `size` (how big).
+   *
+   * - `entity` (default, `--bw-entity` 3px) — the standalone card frame.
+   * - `chrome` (`--bw-chrome` 1.5px) — the sub-panel weight, for a boxed card
+   *   nested INSIDE another card's body or expand slot. A nested panel wearing
+   *   the full 3px entity frame competes with its parent's frame; the border
+   *   glossary (ruleset §4.3) already reserves chrome for exactly this.
+   *
+   * This is a rung, not an escape hatch: the weight was hardcoded at 3px, which
+   * is why `Inset` hand-rolled its own frame instead of composing Card. */
+  frame?: 'entity' | 'chrome'
   /** Content rendered in the sub-header band, alongside/instead of `stats` —
    * a darker shade of the header tone directly below the header content row.
    * The band renders when either `subHeader` or `stats` is provided; no band
@@ -82,7 +94,7 @@ type DisplayCardProps = {
 /**
  * The sub-header band's stat row — a tight, non-wrapping `[StatItem → Stat]`
  * cluster inside the wrapping band. Folded in from the former standalone `StatsBar`
- * (DisplayCard was its only consumer): each item skips when its value is undefined,
+ * (Card was its only consumer): each item skips when its value is undefined,
  * an `onChange` item renders the edit-mode +/- stepper (coercing a string value to
  * a number), and tooltips gate on `suppressTooltips`.
  */
@@ -137,7 +149,7 @@ function SubHeaderStats({
   )
 }
 
-export function DisplayCard({
+export function Card({
   headerBg = '',
   headerBgColor,
   headerContent,
@@ -158,9 +170,10 @@ export function DisplayCard({
   cardStyle,
   headerStyle: headerStyleProp,
   borderColor: borderColorProp,
+  frame = 'entity',
   subHeader,
   stats,
-}: DisplayCardProps) {
+}: CardProps) {
   const display = resolveCardDisplay({ size, extent })
   const { compact: isCompact, listing: isListing } = displayBooleans(display)
   const hasCallout = !!label
@@ -210,9 +223,10 @@ export function DisplayCard({
   )
 
   const defaultBodyPadding = 'p-0'
-  // 3px for both compact and non-compact — the codex .a-card is 3px and .cx does
-  // not override it.
-  const borderWidth = 3
+  // Frame weight comes from the border glossary, not a literal: `entity` (3px)
+  // for both compact and non-compact — the codex .a-card is 3px and .cx does
+  // not override it — and `chrome` (1.5px) for a card nested inside another.
+  const borderWidth = frame === 'chrome' ? 'var(--bw-chrome)' : 'var(--bw-entity)'
 
   const showBody = !isListing && !!children
 
@@ -237,7 +251,16 @@ export function DisplayCard({
         // A frame is drawn for a toned card OR one that asked for a border
         // outright; an untoned, unframed card still renders borderless.
         ...(headerBg || headerBgColor || borderColorProp
-          ? { border: `${borderWidth}px solid ${effectiveBorderColor}` }
+          ? // Longhand, not the `border` shorthand: a shorthand carrying `var()`
+            // is valid CSS but is mis-parsed by happy-dom (it re-serialises
+            // `border: var(--bw-chrome) solid var(--color-ink)` as
+            // `border-width: var(--color-ink)`), so the shorthand is untestable
+            // in this repo's test environment. Longhand is unambiguous in both.
+            {
+              borderWidth,
+              borderStyle: 'solid',
+              borderColor: effectiveBorderColor,
+            }
           : {}),
         ...cardStyle?.style,
       }}
@@ -265,7 +288,7 @@ export function DisplayCard({
       {/* Inner wrapper clips backgrounds to border-radius. */}
       <div
         className={cn('flex flex-1 overflow-hidden', !isListing && 'flex-col')}
-        style={{ borderRadius: `calc(3px - ${borderWidth}px)` }}
+        style={{ borderRadius: `calc(var(--radius-card) - ${borderWidth})` }}
       >
         {/* Header wrapper — contains the content row. */}
         <div className="w-full">

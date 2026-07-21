@@ -1,5 +1,5 @@
 /**
- * THE card sizing vocabulary — owned here, at the `DisplayCard` layer, and
+ * THE card sizing vocabulary — owned here, at the `Card` layer, and
  * inherited by every card that composes it (notably `ReferenceEntityCard`).
  *
  * Two axes, deliberately ORTHOGONAL. They used to be one conflated enum
@@ -31,7 +31,7 @@ export type CardExtent = 'full' | 'head' | 'catalog'
 export type CardDisplay = { size: CardSize; extent: CardExtent }
 
 /**
- * The size → `{compact, listing}` projection that `DisplayCard`'s layout still
+ * The size → `{compact, listing}` projection that `Card`'s layout still
  * reads from. `compact` covers both reduced rungs, since `small` inherits
  * medium's tighter padding and then steps its type down further.
  */

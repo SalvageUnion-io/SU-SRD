@@ -19,7 +19,7 @@
  */
 
 import { useState } from 'react'
-import { Button, ModalShell, Slab, StepButton, FieldError } from 'component-lib'
+import { Button, ModalShell, Select, Slab, Stat, FieldError } from 'component-lib'
 
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
@@ -53,9 +53,6 @@ export type CrawlerEconomyDialog = 'upkeep' | 'upgrade' | 'trade'
 
 const TRADING_BAY = 'Trading Bay'
 const SCRAP_TLS = [1, 2, 3, 4, 5, 6] as const
-
-const SELECT_CLASS =
-  'rounded-[3px] border-chrome border-ink bg-paper px-2 py-1.5 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22]'
 
 type CrawlerEconomyControlProps = {
   crawler: Crawler
@@ -327,25 +324,17 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
               <span className="font-cond text-xs font-bold uppercase tracking-caps-snug text-ink">
                 Contribute scrap (Tech {tl}+)
               </span>
-              <span className="inline-flex items-center gap-1.5">
-                <StepButton
-                  aria-label="Decrease contribution"
-                  disabled={contribution <= 1}
-                  onClick={() => setContribution((c) => Math.max(1, c - 1))}
-                >
-                  &ndash;
-                </StepButton>
-                <span className="min-w-6 text-center font-body text-sm font-bold text-ink">
-                  {contribution}
-                </span>
-                <StepButton
-                  aria-label="Increase contribution"
-                  disabled={contribution >= contributable}
-                  onClick={() => setContribution((c) => Math.min(contributable, c + 1))}
-                >
-                  +
-                </StepButton>
-              </span>
+              <Stat
+                orientation="horizontal"
+                size="compact"
+                label="Scrap"
+                value={contribution}
+                min={1}
+                max={contributable}
+                mode="edit"
+                stepperLabel="contribution"
+                onChange={setContribution}
+              />
               <Button
                 size="compact"
                 variant="default"
@@ -467,10 +456,14 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
                 count="fixed equal-value rates · no bartering"
               />
               <div className="flex flex-wrap items-end gap-3">
-                <label className="flex flex-col gap-1 font-cond text-label font-bold uppercase tracking-caps text-ink">
+                <label
+                  htmlFor="trade-from-tl"
+                  className="flex flex-col gap-1 font-cond text-label font-bold uppercase tracking-caps text-ink"
+                >
                   From
-                  <select
-                    className={SELECT_CLASS}
+                  <Select
+                    id="trade-from-tl"
+                    className="px-2 py-1.5"
                     value={fromTl}
                     onChange={(e) => pickFrom(Number(e.target.value))}
                   >
@@ -479,12 +472,16 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
                         Tech {t} ({scrapPoolBucket(pool, t)} in pool)
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
-                <label className="flex flex-col gap-1 font-cond text-label font-bold uppercase tracking-caps text-ink">
+                <label
+                  htmlFor="trade-to-tl"
+                  className="flex flex-col gap-1 font-cond text-label font-bold uppercase tracking-caps text-ink"
+                >
                   To
-                  <select
-                    className={SELECT_CLASS}
+                  <Select
+                    id="trade-to-tl"
+                    className="px-2 py-1.5"
                     value={toTl}
                     onChange={(e) => pickTo(Number(e.target.value))}
                   >
@@ -493,25 +490,20 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
                         Tech {t}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
-                <span className="inline-flex items-center gap-1.5 pb-1">
-                  <StepButton
-                    aria-label={`Decrease trade amount by ${step}`}
-                    disabled={count <= step}
-                    onClick={() => setCount((c) => Math.max(step, c - step))}
-                  >
-                    &ndash;
-                  </StepButton>
-                  <span className="min-w-6 text-center font-body text-sm font-bold text-ink">
-                    {count}
-                  </span>
-                  <StepButton
-                    aria-label={`Increase trade amount by ${step}`}
-                    onClick={() => setCount((c) => c + step)}
-                  >
-                    +
-                  </StepButton>
+                <span className="inline-flex pb-1">
+                  <Stat
+                    orientation="horizontal"
+                    size="compact"
+                    label="Qty"
+                    value={count}
+                    min={step}
+                    step={step}
+                    mode="edit"
+                    stepperLabel={`trade amount by ${step}`}
+                    onChange={setCount}
+                  />
                 </span>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-3">

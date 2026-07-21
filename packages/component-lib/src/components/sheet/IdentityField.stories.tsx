@@ -2,7 +2,6 @@ import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { Caption } from '../../stories/_harness'
 import { IdentityField } from './IdentityField'
-import { InlineEditTextArea } from './InlineEditTextArea'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -15,7 +14,6 @@ export default {
  */
 export const Default: Story = () => {
   const [callsign, setCallsign] = useState('Rook')
-  const [motto, setMotto] = useState('Everyone walks away.')
   const [editing, setEditing] = useState(false)
 
   return (
@@ -32,11 +30,6 @@ export const Default: Story = () => {
             onEditClick={() => setEditing((v) => !v)}
           />
         </div>
-      </div>
-
-      <div>
-        <Caption>InlineEditTextArea — multiline free text</Caption>
-        <InlineEditTextArea value={motto} onSave={setMotto} ariaLabel="Edit motto" />
       </div>
     </div>
   )

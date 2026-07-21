@@ -8,7 +8,7 @@
  *   - SectionEditButton / SectionAddButton: rebuilt on HButton — icon + label,
  *     stable accessible names.
  *   - cardRemoveControls: the per-card ✕ (+ optional ⇄) icon-only cluster fed
- *     to DisplayCard's card-level `controls` slot.
+ *     to Card's card-level `controls` slot.
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'

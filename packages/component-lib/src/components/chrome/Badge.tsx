@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
 import type { ElementType, HTMLAttributes, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
+import { FOCUS_RING } from './interaction'
 import { STAMP_SEAM } from './stampSeam'
 import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE, type SizeRung } from '../../styles/sizing'
 
@@ -70,8 +71,23 @@ type BadgeChipProps = {
   surface?: BadgeSurface
   /** Tone fill for `surface="tone"`. */
   tone?: BadgeTone
+  /**
+   * Optional leading 14×14 colour swatch (an inline CSS `background` value, e.g.
+   * `var(--color-tl-1)`) rendered before the label. This is the tech-level
+   * filter-chip rung — a swatch-prefixed chip, no longer its own component.
+   */
+  swatch?: string
+  /**
+   * Render as a different element. The chip's escape hatch is interactivity:
+   * `as="button"` turns the chip into a toggle. When overridden the chip gains
+   * `cursor-pointer` + the shared rust focus ring, and a `button` defaults to
+   * `type="button"`. The call site owns the toggle state — drive `surface`
+   * (`solid` when pressed / `ghost` when not) and pass `aria-pressed` yourself,
+   * so the Badge stays presentational.
+   */
+  as?: ElementType
   className?: string
-}
+} & Omit<HTMLAttributes<HTMLElement>, 'children' | 'className'>
 
 /**
  * The SQUARE stamp (`shape="stamp"`): the one ink label/header/tab/eyebrow atom
@@ -163,18 +179,39 @@ export const Badge = forwardRef<HTMLElement, BadgeProps>(function Badge(props, r
       </Tag>
     )
   }
-  const { children, surface = 'solid', tone, className } = props
+  const {
+    children,
+    surface = 'solid',
+    tone,
+    swatch,
+    as: Tag = 'span',
+    className,
+    shape: _shape,
+    ...rest
+  } = props
+  const interactive = Tag !== 'span'
   return (
-    <span
-      ref={ref as React.Ref<HTMLSpanElement>}
+    <Tag
+      ref={ref}
+      {...(Tag === 'button' ? { type: 'button' } : {})}
       className={cn(
         'inline-flex h-[22px] items-center rounded-badge font-cond text-badge font-semibold uppercase leading-none',
+        swatch != null && 'gap-1.5',
+        interactive && cn('cursor-pointer', FOCUS_RING),
         BADGE_SURFACE[surface],
         surface === 'tone' && tone && BADGE_TONES[tone],
         className
       )}
+      {...rest}
     >
+      {swatch != null && (
+        <i
+          aria-hidden="true"
+          className="block h-3.5 w-3.5 shrink-0 rounded-pip border border-ink"
+          style={{ background: swatch }}
+        />
+      )}
       {children}
-    </span>
+    </Tag>
   )
 })

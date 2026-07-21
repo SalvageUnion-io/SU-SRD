@@ -1,6 +1,6 @@
 ---
 paths:
-  - packages/component-lib/src/components/shared/DisplayCard*
+  - packages/component-lib/src/components/shared/Card*
   - packages/component-lib/src/components/referenceEntity/**
 ---
 
@@ -14,7 +14,7 @@ See `docs/architecture/display-system.md` for the architecture, and
 > design-system pass landed. It still described `ReferenceEntityDisplay`
 > (deleted), `StatsBar` (deleted), `BlockContentRendererView` /
 > `StaticChoiceCard` (deleted), three control presets that no longer exist, and
-> `DisplayCard`'s `compact` / `listing` booleans (replaced). An agent following
+> `Card`'s `compact` / `listing` booleans (replaced). An agent following
 > it would have reached for half a dozen things that aren't there.
 >
 > A rules file is loaded into every session that touches this area, so a stale
@@ -30,20 +30,20 @@ There are two, and the separation is a decision, not an accident:
   data. Every SRD entity goes through it. It implements the printed-card spec:
   the frame lives on the inner clipping element so the seam stamp can escape the
   clip, plus a book-style text sub-header and an identity footer.
-- **`DisplayCard`** (`shared/`) — the generic four-band container (header /
+- **`Card`** (`shared/`) — the generic four-band container (header /
   sub-header / body / footer) that the poster, sheet and modal surfaces compose.
   `ModalShell` is built on it.
 
 **They are NOT being merged.** A full assessment found the composition impossible
 without visual deltas across every SRD page — the frame-element difference alone
 shifts every absolute overlay by 3px, ghosted sub-header tones are underivable
-inside DisplayCard, and the two resolve `cardClick` fallback in opposite
+inside Card, and the two resolve `cardClick` fallback in opposite
 directions (first-wins vs last-wins). The entity card's header is also
 semantically richer: it distinguishes a stat cluster from flavour prose to decide
-which side yields, and DisplayCard's header slot is opaque to its content, so
+which side yields, and Card's header slot is opaque to its content, so
 that rule cannot live there.
 
-So: **do not add entity-card features to DisplayCard**, and do not route the
+So: **do not add entity-card features to Card**, and do not route the
 entity card through it. Share the VOCABULARY (`displayMode`, the controls
 contract, `CardFootMeta`, `foldStatusControl`) — not the DOM.
 
@@ -63,7 +63,7 @@ duplicates an axis.
 - Rendering a reference entity (chassis, ability, equipment, action, NPC…)?
   **`ReferenceEntityCard`.** Always. Never hand-assemble entity markup.
 - Rendering a non-entity container (a modal body, a sheet section, a poster
-  panel)? **`DisplayCard`.**
+  panel)? **`Card`.**
 
 ## Customisation is by slot, never by schema
 

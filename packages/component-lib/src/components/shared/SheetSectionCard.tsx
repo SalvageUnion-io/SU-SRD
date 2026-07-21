@@ -1,7 +1,7 @@
 /**
  * SheetSectionCard — the poster `.dcard` section container (redesign D5).
  *
- * Composes the shared `DisplayCard` (never a hand-rolled div) into the poster's
+ * Composes the shared `Card` (never a hand-rolled div) into the poster's
  * accent-framed section card:
  *   - 3px `var(--tone)` border (the sheet accent), radius 3;
  *   - an accent HEADER band in the `chead` shape — a left group (black-stamp
@@ -22,7 +22,7 @@
 
 import type { ReactNode } from 'react'
 import { Badge } from '../chrome/Badge'
-import { DisplayCard } from './DisplayCard'
+import { Card } from './Card'
 import { cn } from '../../utils/cn'
 
 type SheetSectionCardProps = {
@@ -44,7 +44,7 @@ type SheetSectionCardProps = {
   children: ReactNode
 }
 
-/** DisplayCard-composed poster section container. */
+/** Card-composed poster section container. */
 export function SheetSectionCard({
   title,
   count,
@@ -55,9 +55,9 @@ export function SheetSectionCard({
   children,
 }: SheetSectionCardProps) {
   return (
-    <DisplayCard
+    <Card
       // Accent band on header + footer; `headerBg` must be truthy for
-      // DisplayCard to draw the 3px border (borderColor → the accent tone).
+      // Card to draw the 3px border (borderColor → the accent tone).
       headerBg="bg-[var(--tone)]"
       borderColor="var(--tone)"
       // `.sheet-section` keeps the print page-break rule; cardStyle.className
@@ -95,6 +95,6 @@ export function SheetSectionCard({
           {children}
         </div>
       </div>
-    </DisplayCard>
+    </Card>
   )
 }

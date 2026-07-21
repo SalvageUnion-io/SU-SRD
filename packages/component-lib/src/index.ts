@@ -1,6 +1,6 @@
 // Types
 export type { ReferenceEntityControl } from './components/referenceEntity/referenceEntityControlTypes'
-export type { CardFootMeta } from './components/shared/DisplayCard'
+export type { CardFootMeta } from './components/shared/Card'
 
 // Base typography
 export { Text } from './components/base/Text'
@@ -35,7 +35,7 @@ export { useChassisPatternConfig } from './components/referenceEntity/pattern/us
 export { getClassSelections } from './components/referenceEntity/classSelectionUtils'
 
 // Shared components
-export { DisplayCard } from './components/shared/DisplayCard'
+export { Card } from './components/shared/Card'
 export { useSearchCombobox } from './components/shared/useSearchCombobox'
 export type { SearchComboboxResult } from './components/shared/useSearchCombobox'
 export { Footer } from './components/shared/Footer'
@@ -51,7 +51,6 @@ export { WizShell, WizTracker } from './components/shared/WizShell'
 export { KofiButton } from './components/shared/KofiButton'
 export { Stat } from './components/shared/Stat'
 export type { StatTone, StatState } from './components/shared/Stat'
-export { FilterChip } from './components/shared/FilterChip'
 export { FilterRow } from './components/shared/FilterRow'
 export { MasonryColumns } from './components/shared/MasonryColumns'
 export { ModalShell } from './components/shared/ModalShell'
@@ -88,7 +87,7 @@ export { Glyph } from './components/chrome/glyphs'
 // text/tracking/border-width utilities (consumers must not re-wrap twMerge
 // with the default config, which drops them as unknown "colors").
 export { cn } from './utils/cn'
-export { Field, Input, Select } from './components/chrome/Field'
+export { Field, Input, Select, Textarea } from './components/chrome/Field'
 export { Sel } from './components/chrome/Sel'
 export { KvRow } from './components/chrome/KvRow'
 export { ModeDoor } from './components/chrome/ModeDoor'
@@ -110,15 +109,16 @@ export { DisplayPanel } from './components/dashboard/DisplayPanel'
 export type { DisplayContent } from './components/dashboard/DisplayPanel'
 export { ActionsDeck } from './components/dashboard/ActionsDeck'
 export type { ActionsDeckView, DeckGroup } from './components/dashboard/ActionsDeck'
-export { OptRow } from './components/chrome/OptRow'
 export { CountStepper } from './components/chrome/CountStepper'
 export { Panel, Row } from './components/chrome/Panel'
 export { Slab } from './components/chrome/Slab'
 // ConditionChip is deliberately NOT exported: it is an internal sub-part of
 // Conditions (its only consumer), demonstrated via that component's story.
 export { Conditions } from './components/chrome/Conditions'
-export { StepButton } from './components/chrome/SmallButtons'
-export { TreeSep } from './components/chrome/TreeSep'
+// StepButton is deliberately NOT exported: it is an internal atom composed by
+// CountStepper (its only consumer), demonstrated via its own co-located story.
+// Every hand-assembled '-'/value/'+' cluster in the apps now renders through
+// Stat's stepper anatomy instead, so nothing outside this package needs it.
 export { StatusBadge } from './components/chrome/StatusBadge'
 export type { EntityStatus } from './components/chrome/StatusBadge'
 
@@ -128,8 +128,6 @@ export { Changelog } from './changelog/Changelog'
 
 // Stat trackers (ITUN design handoff — design-spec §2.7)
 export { VitalGauge } from './components/stat/VitalGauge'
-export { StatLine } from './components/stat/StatLine'
-export type { StatLineItem } from './components/stat/StatLine'
 export { BayStatus } from './components/stat/BayStatus'
 // Only `heatDangerFrom` survives — `heatLevel`/`HeatLevel`/`HEAT_HIGH_RATIO`
 // were measured to zero consumers and deleted.
@@ -175,7 +173,6 @@ export type { RollTableDeps } from './components/wizard/rollTableHelpers'
 export { selectableClasses } from './components/wizard/classOptions'
 export { RosterSkeleton } from './components/shared/RosterSkeleton'
 export { SheetSkeleton } from './components/sheet/SheetSkeleton'
-export { InlineEditTextArea } from './components/sheet/InlineEditTextArea'
 export { IdentityField } from './components/sheet/IdentityField'
 export { NpcInset } from './components/sheet/NpcInset'
 export { SheetActionsMenu } from './components/sheet/SheetActionsMenu'

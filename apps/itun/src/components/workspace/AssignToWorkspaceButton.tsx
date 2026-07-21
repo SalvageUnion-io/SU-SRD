@@ -21,7 +21,7 @@ import { useState } from 'react'
 import { useWorkspaceActions, useWorkspaces } from '../../hooks/queries'
 import type { Workspace } from '../../lib/schemas/workspace'
 import type { AssignableType } from '../../stores/types'
-import { FieldError } from 'component-lib'
+import { FieldError, Select } from 'component-lib'
 
 // ---------------------------------------------------------------------------
 // Injectable store type
@@ -105,12 +105,12 @@ export function AssignToWorkspaceButton({
         >
           Workspace:
         </label>
-        <select
+        <Select
           id={`workspace-assign-${entityId}`}
           value={selectValue}
           onChange={(e) => void handleChange(e)}
           disabled={pending}
-          className="min-h-11 rounded-[3px] border-chrome border-ink bg-paper py-2 pl-3 pr-8 text-sm focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22] disabled:opacity-50 sm:min-h-9"
+          className="w-auto disabled:opacity-50 sm:min-h-9"
           aria-label="Assign to workspace"
         >
           <option value={UNASSIGNED_VALUE}>Unassigned</option>
@@ -119,7 +119,7 @@ export function AssignToWorkspaceButton({
               {ws.name}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
       {error && <FieldError className="mt-1">{error}</FieldError>}
     </div>

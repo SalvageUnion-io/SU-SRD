@@ -14,13 +14,13 @@ See [dataviz-idioms.md](dataviz-idioms.md) — pip magnitude consistency, the UN
 
 ## Three-Layer Display System
 
-1. **DisplayCard** (`packages/component-lib/src/components/shared/DisplayCard.tsx`): Low-level card with two boolean props (`compact` for reduced spacing, `listing` for header-only), controls architecture, stats system (StatsBar), tabs, sticky headers
+1. **Card** (`packages/component-lib/src/components/shared/Card.tsx`): Low-level card with two boolean props (`compact` for reduced spacing, `listing` for header-only), controls architecture, stats system (StatsBar), tabs, sticky headers
 2. **ReferenceEntityDisplay** (`packages/component-lib/src/components/referenceEntity/`): Entity renderer with generic slot props (titleOverride, subtitleExtra, statsOverride, abilitiesSection, afterExtraContent, footerOverride). Uses data-shape detection, not schema-name checks.
 3. **Consumer hooks**: Return slot props to spread onto ReferenceEntityDisplay (e.g., `useChassisPatternConfig`)
 
 ## Key Shared Components
 
-- `DisplayCard` — Card primitive (replaces old Card component)
+- `Card` — Card primitive (replaces old Card component)
 - `ReferenceEntityDisplay` — Entity renderer (replaces old EntityDisplay)
 - `FilterChip` — Toggle chip with `aria-pressed`
 - `StatsBar` / `StatDisplay` / `StatControl` — Stats rendering (read-only or interactive)
@@ -64,7 +64,7 @@ App is now built on a rigorous internal "design-spec" (§ references in every co
 
 Two canonical templates every new ITUN surface should match:
 
-- **Dialog family** = component-lib `ModalShell` (base-ui Dialog, backdrop `bg-black/80`, DisplayCard pseudoheader, close top-right). ITUN wrappers: `shared/ConfirmDialog.tsx` (body `flex flex-col gap-4 bg-paper p-5`, action row `flex justify-end gap-2`, ghost Cancel + primary/danger confirm, headerBg su-orange / su-rust danger) and `shared/SelectorDialog.tsx` (radio pick-one). Downtime/Crafting/ScrapMech/CrawlerEconomy/GlobalSearch route through ModalShell.
+- **Dialog family** = component-lib `ModalShell` (base-ui Dialog, backdrop `bg-black/80`, Card pseudoheader, close top-right). ITUN wrappers: `shared/ConfirmDialog.tsx` (body `flex flex-col gap-4 bg-paper p-5`, action row `flex justify-end gap-2`, ghost Cancel + primary/danger confirm, headerBg su-orange / su-rust danger) and `shared/SelectorDialog.tsx` (radio pick-one). Downtime/Crafting/ScrapMech/CrawlerEconomy/GlobalSearch route through ModalShell.
 - **Roll-prompt family** = `sheet/HeatCheckControl.tsx`: `<Slab label>` header, `Btn size="sm"` primary/danger, readout `<p role="status" className="font-body text-sm text-ink">`, advisory `<p role="alert" className="mt-2 rounded-[3px] border-chrome border-status-warn bg-paper px-3 py-2 ... text-rust">`, flags `font-cond text-xs font-bold uppercase text-status-bad/text-rust` + MiniBtn Clear. TakeDamage/PilotTakeDamage/Salvage-ClaimPicker/QuickRollFab-pushNote conform.
 - **Popover chrome** (non-modal): QuickRollFab + SheetActionsMenu share `z-30 rounded-[6px] border-2 border-ink bg-paper shadow-[0_14px_28px_-14px_rgba(40,32,25,0.55)]` + `shared/useDismiss.ts`.
 
@@ -80,7 +80,7 @@ Two canonical templates every new ITUN surface should match:
 
 - `eslint-plugin-jsx-a11y` in all ESLint configs
 - `tools/a11y-scan.ts` (puppeteer + axe-core) for runtime scanning
-- DisplayCard: `role="button"` + `tabIndex={0}` when clickable, Enter/Space keydown
+- Card: `role="button"` + `tabIndex={0}` when clickable, Enter/Space keydown
 - Tab panels: `role="tablist"` / `role="tab"` / `aria-selected`
 - Search: ARIA combobox with `aria-activedescendant`
 - Mobile touch targets: 44x44px min via `@media (pointer: coarse)`

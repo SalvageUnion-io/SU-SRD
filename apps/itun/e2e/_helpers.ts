@@ -3,15 +3,45 @@ import { type Page, type Locator, expect } from '@playwright/test'
 /**
  * Shared helpers for ITUN end-to-end tests.
  *
- * Wizard picks are role=button targets of two shapes: `Sel`-wrapped entity
- * cards and `EntityChoiceCard`s render a `<div role="button">` (Sel carries
- * an aria-label with the entity name); WizShell master panes render native
- * `OptRow` <button>s. `getByRole('button')` covers both — we match by
- * accessible text/name containing the entity name, the same pattern used by
- * the in-app integration tests.
+ * Every pickable entity in a wizard or picker pane is a `ReferenceEntityCard`
+ * with a whole-card click. Its interactive wrapper takes its role from
+ * `selectionRole`: an exclusive "choose exactly one" pane (class, chassis,
+ * crawler type, pattern) renders `role="radio"` + `aria-checked`, while a
+ * multi-pick pane (abilities, equipment, systems) renders `role="button"` +
+ * `aria-pressed`. `Sel`-wrapped cells are plain `<div role="button">`.
+ *
+ * So a pick target is "a radio OR a button" — matching only one of the two
+ * silently misses whole steps, which is exactly how these specs rotted while
+ * the panes migrated onto the entity card. We match by accessible text
+ * containing the entity name, the same pattern the in-app integration tests
+ * use.
  */
+export function pickTargets(page: Page): Locator {
+  return page.getByRole('button').or(page.getByRole('radio'))
+}
+
 export function choiceCardByName(page: Page, name: string): Locator {
-  return page.getByRole('button').filter({ hasText: name }).first()
+  return pickTargets(page).filter({ hasText: name }).first()
+}
+
+/**
+ * Every option cell a pick pane offers — chosen or not. The entity card only
+ * emits `aria-pressed` / `aria-checked` when it was given a `selectionRole`,
+ * so this matches selectable cells and nothing else (nav buttons, the stepper
+ * and the wizard CTA carry neither attribute).
+ */
+export function optionCells(page: Page): Locator {
+  return page.locator('[aria-pressed], [aria-checked]')
+}
+
+/**
+ * The currently-chosen option cell(s). Covers both selection semantics — a
+ * multi-pick pane's `aria-pressed` toggle and an exclusive pane's
+ * `aria-checked` radio — so the "exactly one option is current" assertion
+ * survives a pane moving between the two.
+ */
+export function selectedOption(page: Page): Locator {
+  return page.locator('[aria-pressed="true"], [aria-checked="true"]')
 }
 
 /**

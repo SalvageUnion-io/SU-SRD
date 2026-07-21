@@ -1,6 +1,7 @@
 import { describe, test, expect, afterEach } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import { DisplayCard } from '../DisplayCard'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { Card } from '../Card'
 import type { ReferenceEntityControl } from '../../referenceEntity/referenceEntityControlTypes'
 
 function makeTestControl(overrides: Partial<ReferenceEntityControl> = {}): ReferenceEntityControl {
@@ -25,53 +26,53 @@ function headerRowAround(text: string): HTMLElement {
   return row
 }
 
-describe('DisplayCard', () => {
+describe('Card', () => {
   afterEach(cleanup)
   test('renders header content', () => {
     render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>My Header</span>}>
+      <Card headerBg="bg-mech" headerContent={<span>My Header</span>}>
         <p>Body</p>
-      </DisplayCard>
+      </Card>
     )
     expect(screen.getByText('My Header')).toBeTruthy()
   })
 
   test('renders body content in full mode', () => {
     render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>}>
+      <Card headerBg="bg-mech" headerContent={<span>Header</span>}>
         <p>Body content</p>
-      </DisplayCard>
+      </Card>
     )
     expect(screen.getByText('Body content')).toBeTruthy()
   })
 
   test('renders footer content in full mode', () => {
     render(
-      <DisplayCard
+      <Card
         headerBg="bg-mech"
         headerContent={<span>Header</span>}
         footerContent={<span>Footer info</span>}
       >
         <p>Body</p>
-      </DisplayCard>
+      </Card>
     )
     expect(screen.getByText('Footer info')).toBeTruthy()
   })
 
   test('renders label as pseudoheader', () => {
     render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} label="CHASSIS">
+      <Card headerBg="bg-mech" headerContent={<span>Header</span>} label="CHASSIS">
         <p>Body</p>
-      </DisplayCard>
+      </Card>
     )
     expect(screen.getByText('CHASSIS')).toBeTruthy()
   })
 
   test('non-compact card WITH a callout top-aligns the header row and pads it', () => {
     render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} label="CHASSIS">
+      <Card headerBg="bg-mech" headerContent={<span>Header</span>} label="CHASSIS">
         <p>Body</p>
-      </DisplayCard>
+      </Card>
     )
     const headerRow = headerRowAround('Header')
     expect(headerRow.className).toContain('items-start')
@@ -83,14 +84,9 @@ describe('DisplayCard', () => {
 
   test('compact card WITH a callout uses pt-3 and top-aligns the header row', () => {
     render(
-      <DisplayCard
-        headerBg="bg-mech"
-        headerContent={<span>Header</span>}
-        label="CHASSIS"
-        size="medium"
-      >
+      <Card headerBg="bg-mech" headerContent={<span>Header</span>} label="CHASSIS" size="medium">
         <p>Body</p>
-      </DisplayCard>
+      </Card>
     )
     const headerRow = headerRowAround('Header')
     expect(headerRow.className).toContain('pt-3')
@@ -99,9 +95,9 @@ describe('DisplayCard', () => {
 
   test('card WITHOUT any callout centres the header row and omits callout padding', () => {
     render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>}>
+      <Card headerBg="bg-mech" headerContent={<span>Header</span>}>
         <p>Body</p>
-      </DisplayCard>
+      </Card>
     )
     const headerRow = headerRowAround('Header')
     expect(headerRow.className).toContain('items-center')
@@ -113,7 +109,7 @@ describe('DisplayCard', () => {
 
   test('listing boolean hides body and footer', () => {
     render(
-      <DisplayCard
+      <Card
         headerBg="bg-mech"
         headerContent={<span>Header</span>}
         footerContent={<span>Footer</span>}
@@ -121,7 +117,7 @@ describe('DisplayCard', () => {
         extent="head"
       >
         <p>Body content</p>
-      </DisplayCard>
+      </Card>
     )
     expect(screen.getByText('Header')).toBeTruthy()
     expect(screen.queryByText('Body content')).toBeNull()
@@ -130,29 +126,62 @@ describe('DisplayCard', () => {
 
   test('full + listing renders full-size header-only card', () => {
     const { container } = render(
-      <DisplayCard
+      <Card
         headerBg="bg-mech"
         headerContent={<span>Full Listing</span>}
         footerContent={<span>Footer</span>}
         extent="head"
       >
         <p>Body content</p>
-      </DisplayCard>
+      </Card>
     )
     expect(screen.getByText('Full Listing')).toBeTruthy()
     // Body and footer hidden
     expect(screen.queryByText('Body content')).toBeNull()
     expect(screen.queryByText('Footer')).toBeNull()
-    // Full-size header: 80px min-height, 3px border
+    // Full-size header: 80px min-height, entity-weight (3px) border. The weight
+    // is named by its border-glossary token rather than the literal, so the
+    // assertion tracks the token the component actually emits.
     const wrapper = container.firstElementChild as HTMLElement
-    expect(wrapper.style.border).toContain('3px')
+    expect(wrapper.style.borderWidth).toBe('var(--bw-entity)')
+  })
+
+  test('frame="chrome" draws the nested sub-panel border weight', () => {
+    const { container } = render(
+      <Card frame="chrome" headerBg="bg-ink" headerContent={<span>Crew</span>}>
+        <p>Body</p>
+      </Card>
+    )
+    const wrapper = container.firstElementChild as HTMLElement
+    expect(wrapper.style.borderWidth).toBe('var(--bw-chrome)')
+  })
+
+  test('frame weight is subtracted from the inner clip radius', () => {
+    // Asserted through SSR rather than the rendered DOM: the radius is
+    // `calc(var(--radius-card) - var(--bw-*))`, and happy-dom's CSS parser
+    // drops any `calc()` containing `var()` outright (the style attribute comes
+    // back null), so this is simply not observable via the DOM in this
+    // environment. The markup React emits is, and it is what browsers parse.
+    const chrome = renderToStaticMarkup(
+      <Card frame="chrome" headerBg="bg-ink" headerContent={<span>Crew</span>}>
+        <p>Body</p>
+      </Card>
+    )
+    expect(chrome).toContain('calc(var(--radius-card) - var(--bw-chrome))')
+
+    const entity = renderToStaticMarkup(
+      <Card headerBg="bg-mech" headerContent={<span>Chassis</span>}>
+        <p>Body</p>
+      </Card>
+    )
+    expect(entity).toContain('calc(var(--radius-card) - var(--bw-entity))')
   })
 
   test('default body padding is p-0', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>}>
+      <Card headerBg="bg-mech" headerContent={<span>Header</span>}>
         <p>Body</p>
-      </DisplayCard>
+      </Card>
     )
     const body = container.querySelector('.p-0')
     expect(body).toBeTruthy()
@@ -160,16 +189,16 @@ describe('DisplayCard', () => {
 
   test('does not render body when children is undefined', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Header only</span>} />
+      <Card headerBg="bg-mech" headerContent={<span>Header only</span>} />
     )
     expect(container.querySelector('.bg-paper')).toBeNull()
   })
 
   test('disabled state keeps original header background and applies opacity', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Disabled</span>} disabled>
+      <Card headerBg="bg-mech" headerContent={<span>Disabled</span>} disabled>
         <p>Body</p>
-      </DisplayCard>
+      </Card>
     )
     const header = headerRowAround('Disabled')
     expect(header.className).toContain('bg-mech')
@@ -180,9 +209,9 @@ describe('DisplayCard', () => {
 
   test('bodyPadding overrides default padding', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} bodyPadding="p-4">
+      <Card headerBg="bg-mech" headerContent={<span>Header</span>} bodyPadding="p-4">
         <p>Body</p>
-      </DisplayCard>
+      </Card>
     )
     const body = container.querySelector('.p-4')
     expect(body).toBeTruthy()
@@ -192,7 +221,7 @@ describe('DisplayCard', () => {
   test('cardClick control makes entire card clickable in listing mode', () => {
     let clicked = false
     const { container } = render(
-      <DisplayCard
+      <Card
         headerBg="bg-mech"
         headerContent={<span>Row</span>}
         size="medium"
@@ -217,7 +246,7 @@ describe('DisplayCard', () => {
   test('cardClick control makes entire card clickable in full mode', () => {
     let clicked = false
     const { container } = render(
-      <DisplayCard
+      <Card
         headerBg="bg-mech"
         headerContent={<span>Full</span>}
         controls={[
@@ -231,7 +260,7 @@ describe('DisplayCard', () => {
         ]}
       >
         <p>Body</p>
-      </DisplayCard>
+      </Card>
     )
     const wrapper = container.firstElementChild as HTMLElement
     expect(wrapper.getAttribute('role')).toBe('button')
@@ -242,7 +271,7 @@ describe('DisplayCard', () => {
 
   test('non-cardClick control does not make card clickable', () => {
     const { container } = render(
-      <DisplayCard
+      <Card
         headerBg="bg-mech"
         headerContent={<span>Row</span>}
         size="medium"
@@ -259,7 +288,7 @@ describe('DisplayCard', () => {
   test('multiple cardClick controls: last one wins', () => {
     let clickedKey = ''
     const { container } = render(
-      <DisplayCard
+      <Card
         headerBg="bg-mech"
         headerContent={<span>Row</span>}
         size="medium"
@@ -291,7 +320,7 @@ describe('DisplayCard', () => {
   test('onCardClick prop takes priority over cardClick controls', () => {
     let source = ''
     const { container } = render(
-      <DisplayCard
+      <Card
         headerBg="bg-mech"
         headerContent={<span>Row</span>}
         size="medium"
@@ -316,7 +345,7 @@ describe('DisplayCard', () => {
 
   test('cardClick adds hover scale classes to wrapper', () => {
     const { container } = render(
-      <DisplayCard
+      <Card
         headerBg="bg-mech"
         headerContent={<span>Row</span>}
         size="medium"
@@ -330,9 +359,9 @@ describe('DisplayCard', () => {
 
   test('button mode exposes a focus-visible ring with contrast offset', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Row</span>} onCardClick={() => {}}>
+      <Card headerBg="bg-mech" headerContent={<span>Row</span>} onCardClick={() => {}}>
         <p>Body</p>
-      </DisplayCard>
+      </Card>
     )
     const wrapper = container.firstElementChild as HTMLElement
     // Wrapper should be keyboard-focusable when clickable
@@ -348,9 +377,9 @@ describe('DisplayCard', () => {
 
   test('non-button (non-clickable) card does not render focus ring classes', () => {
     const { container } = render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Static</span>}>
+      <Card headerBg="bg-mech" headerContent={<span>Static</span>}>
         <p>Body</p>
-      </DisplayCard>
+      </Card>
     )
     const wrapper = container.firstElementChild as HTMLElement
     expect(wrapper.getAttribute('role')).toBeNull()
@@ -361,13 +390,13 @@ describe('DisplayCard', () => {
 
   test('cardStyle overrides default shadow class', () => {
     const { container } = render(
-      <DisplayCard
+      <Card
         headerBg="bg-mech"
         headerContent={<span>Header</span>}
         cardStyle={{ className: 'custom-card-class' }}
       >
         <p>Body</p>
-      </DisplayCard>
+      </Card>
     )
     const wrapper = container.firstElementChild as HTMLElement
     expect(wrapper.className).toContain('custom-card-class')
@@ -376,13 +405,13 @@ describe('DisplayCard', () => {
 
   test('headerStyle applies className and inline style to header', () => {
     render(
-      <DisplayCard
+      <Card
         headerBg="bg-mech"
         headerContent={<span>Header</span>}
         headerStyle={{ className: 'custom-header', style: { backgroundImage: 'url(test)' } }}
       >
         <p>Body</p>
-      </DisplayCard>
+      </Card>
     )
     const header = headerRowAround('Header')
     expect(header.className).toContain('custom-header')

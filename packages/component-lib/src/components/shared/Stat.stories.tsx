@@ -150,6 +150,63 @@ export const Horizontal: Story = () => (
     <Cell label='mode="edit" → + steppers'>
       <Stat label="HP" value={7} max={10} orientation="horizontal" mode="edit" onChange={noop} />
     </Cell>
+    <Cell label='surface="plain" → running text'>
+      <Stat
+        label="Heat"
+        value={Math.ceil(heat * 0.5)}
+        max={heat}
+        orientation="horizontal"
+        surface="plain"
+      />
+    </Cell>
+  </Gallery>
+)
+
+/**
+ * The horizontal cell's PLAIN material — running text, for stats printed inside
+ * a sentence rather than on a plate. This is the ITUN sheet rail's vitals body,
+ * rendered exactly as the app renders it: the ` · ` join and any trailing word
+ * ("Intact") belong to the LINE and stay at the call site, because neither is a
+ * property of a stat.
+ */
+export const PlainMaterial: Story = () => (
+  <Gallery rule="surface='plain' → the same [label | value] geometry with no plate, no border and no radius. The label inherits the line's colour; the reading (value AND /max) is one bold <b>, so a text container can weight it. It absorbed StatLine, which argued running text was a different job — it is the same cell in a different material.">
+    <div className="w-full max-w-md border-l-[3px] border-ink bg-paper px-2.5 py-2 font-cond text-[12px] font-semibold uppercase leading-snug tracking-caps text-ink/70 [&_b]:font-bold [&_b]:text-ink">
+      <Stat
+        orientation="horizontal"
+        surface="plain"
+        label="SP"
+        value={Math.ceil(sp * 0.7)}
+        max={sp}
+      />
+      {' · '}
+      <Stat
+        orientation="horizontal"
+        surface="plain"
+        label="EP"
+        value={Math.ceil(ep * 0.5)}
+        max={ep}
+      />
+      {' · '}
+      <Stat
+        orientation="horizontal"
+        surface="plain"
+        label="Heat"
+        value={Math.ceil(heat * 0.4)}
+        max={heat}
+      />
+    </div>
+    <div className="w-full max-w-md border-l-[3px] border-ink bg-paper px-2.5 py-2 font-cond text-[12px] font-semibold uppercase leading-snug tracking-caps text-ink/70 [&_b]:font-bold [&_b]:text-ink">
+      <Stat
+        orientation="horizontal"
+        surface="plain"
+        label="SP"
+        value={Math.ceil(sp * 0.7)}
+        max={sp}
+      />
+      {' · '}
+      <Stat orientation="horizontal" surface="plain" label="Bays" value={4} max={5} /> Intact
+    </div>
   </Gallery>
 )
 

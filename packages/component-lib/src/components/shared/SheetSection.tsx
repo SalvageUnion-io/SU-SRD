@@ -5,7 +5,7 @@
  *
  *   (A) FIELD sections: `SectionEditButton` — a per-section Edit/Done toggle
  *       that flips ONLY its own section's fields into inline-edit
- *       (InlineEditField / InlineEditTextArea). No global edit mode.
+ *       (InlineEditField, single-line or `multiline`). No global edit mode.
  *   (B) COLLECTION sections: `SectionAddButton` — an always-visible,
  *       always-ENABLED '+ Add' opening the ONE shared picker modal
  *       (`SheetPickerModal` over ModalShell); `CardRemoveButton` is the
@@ -40,9 +40,9 @@ export const EDIT_CUE_CLASS =
   'outline-dashed outline-2 outline-offset-2 outline-[color:var(--tone-deep,var(--color-rust))]'
 
 /**
- * DisplayCard `cardStyle` override that stamps the editing cue onto a removable
+ * Card `cardStyle` override that stamps the editing cue onto a removable
  * entity card (redesign G4: the cue moves from the per-card control BUTTON onto
- * the CARD). Includes `shadow-lg` because DisplayCard's `cardStyle.className`
+ * the CARD). Includes `shadow-lg` because Card's `cardStyle.className`
  * REPLACES the default shadow.
  */
 // biome-ignore lint/style/useComponentExportOnlyModules: the removable-card style pairs with EDIT_CUE_CLASS as part of the shared edit-language vocabulary
@@ -179,7 +179,7 @@ export function SectionAddButton({ label, onClick, className }: SectionAddButton
 
 // ---------------------------------------------------------------------------
 // Per-card controls (redesign G4) — the ✕ remove (+ optional ⇄ swap) cluster
-// rendered icon-only in the entity-card HEADER top-right via DisplayCard's
+// rendered icon-only in the entity-card HEADER top-right via Card's
 // card-level `controls` slot (never in the foot). The editing cue moves onto
 // the CARD (REMOVABLE_CARD_STYLE), not these buttons.
 // ---------------------------------------------------------------------------
@@ -197,7 +197,7 @@ type CardControlOptions = {
 }
 
 /**
- * Build the DisplayCard `controls` array for a removable entity card. Icon-only
+ * Build the Card `controls` array for a removable entity card. Icon-only
  * controls (`icon` + no `label`) render as 28/32px squares by ControlButtons.
  */
 // biome-ignore lint/style/useComponentExportOnlyModules: the card-controls factory is part of the edit-language vocabulary colocated with the section components

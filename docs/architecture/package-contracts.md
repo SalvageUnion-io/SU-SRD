@@ -198,10 +198,11 @@ barrel:
 - **Constants** — `TECH_LEVEL_STYLES` / `techLevelLabel`
 - **Base typography** — `Text`
 - **UI primitives** — `Toaster` / `toast`, `ModalShell`
-- **Chrome primitives** (`src/components/chrome/`) — `Badge`, `Button`, `Callout`, `EmptyState`, `FieldError`, `Glyph`, `Field`/`Input`/`Select`, `Panel`/`Row`, `Slab`, `OptRow`, `CountStepper`, `StatusBadge`, `Conditions`, `Sel`, `KvRow`, and friends
-- **Stat trackers** (`src/components/stat/`) — `VitalGauge`, `StatLine`, `BayStatus`, `heatDangerFrom`
+- **Chrome primitives** (`src/components/chrome/`) — `Badge`, `Button`, `Callout`, `EmptyState`, `FieldError`, `Glyph`, `Field`/`Input`/`Select`, `Panel`/`Row`, `Slab`, `CountStepper`, `StatusBadge`, `Conditions`, `Sel`, `KvRow`, and friends
+- **Stat trackers** (`src/components/stat/`) — `VitalGauge`, `BayStatus`, `heatDangerFrom` (the running-text `StatLine` was
+  absorbed into `Stat` as `orientation="horizontal" surface="plain"`)
 - **Entity display system** — `ReferenceEntityCard`, the href/detail-link providers, `ClassAbilityTree`, `entityHostTone`/`resolveSchemaDomain`, `navigateControl`, `useDetailModal`, `useChassisPatternConfig`, `Skeleton`
-- **Shared components** — `DisplayCard`, `AppBar`, `Footer`, `FilterChip`/`FilterRow`, `EntityGrid`/`EntityRow`, `EntitySearcher`, `SlotGrid`, `Stat`, `CatalogTile`, `StaticEntityContent`, …
+- **Shared components** — `Card`, `AppBar`, `Footer`, `FilterChip`/`FilterRow`, `EntityGrid`/`EntityRow`, `EntitySearcher`, `SlotGrid`, `Stat`, `CatalogTile`, `StaticEntityContent`, …
 - **Dashboard shell** (`src/components/dashboard/`) — `DashboardCanvas`, `DashboardGrid`, `RailBar`, `Dial`/`DialConfig`, `DisplayPanel`, `ActionsDeck`, `ActiveItemBand`/`StorageBay`
 - **Sheet presentation** (`src/components/sheet/`) — `SheetHero`/`ChassisStats`, `CrawlerEconFrame`, `ConditionsEditor`, `SnapshotQr`, …
 - **Wizard steps** (`src/components/wizard/`) — `ClassOptionList`, `CrawlerTypeSelectStep`, `EquipmentStep`, …

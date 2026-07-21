@@ -2,7 +2,7 @@ import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 
 import { matchesRef, resolveChassisRef } from '../../lib/rules/resolveRefs'
-import { EmptyState, OptRow, ReferenceEntityCard } from 'component-lib'
+import { EmptyState, ReferenceEntityCard } from 'component-lib'
 
 type ChassisLike = {
   id: string
@@ -15,19 +15,26 @@ type ChassisOptionListProps = {
 }
 
 /**
- * Master pane for the Chassis step (design §3.2b): OptRow per chassis, the
- * active row drives the detail pane.
+ * Master pane for the Chassis step (design §3.2b): each chassis rendered as its
+ * own reference card at catalog extent (artwork + name + description), the
+ * checked card driving the detail pane. Exactly one is chosen, so the pane is a
+ * `radiogroup` and each card announces `aria-checked`.
  */
 export function ChassisOptionList({ selectedChassis, onSelect }: ChassisOptionListProps) {
-  const allChassis = SalvageUnionReference.Chassis.all() as unknown as ChassisLike[]
+  const allChassis = SalvageUnionReference.Chassis.all()
   return (
-    <div>
+    <div role="radiogroup" aria-label="Chassis">
       {allChassis.map((chassis) => (
-        <OptRow
+        <ReferenceEntityCard
           key={chassis.id}
-          name={chassis.name}
-          active={matchesRef(chassis, selectedChassis)}
-          onClick={() => onSelect(nameToSlug(chassis.name))}
+          data={chassis as unknown as SURefEntity}
+          size="medium"
+          extent="catalog"
+          className="mb-2"
+          selected={matchesRef(chassis as unknown as ChassisLike, selectedChassis)}
+          selectionRole="radio"
+          cardClickLabel={chassis.name}
+          onCardClick={() => onSelect(nameToSlug(chassis.name))}
         />
       ))}
     </div>

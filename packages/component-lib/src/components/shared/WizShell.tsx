@@ -23,7 +23,7 @@ type WizShellProps = {
   /** Meta line under the title — live counts, helper copy. */
   subtitle?: ReactNode
   /**
-   * Optional 320px master pane (OptRow lists). When present the shell renders
+   * Optional 320px master pane (catalog-card lists). When present the shell renders
    * the three-pane master-detail layout with title/subtitle in this pane;
    * otherwise title/subtitle head the main pane (grid/form/review variant).
    */

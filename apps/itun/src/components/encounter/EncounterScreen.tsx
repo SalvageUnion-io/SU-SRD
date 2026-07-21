@@ -27,7 +27,7 @@ import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import type { MediatorRollResult } from '../../lib/schemas/encounterNpc'
 import { useEncounterStore } from '../../stores/encounterStore'
 import { useWorkspaceStore } from '../../stores/workspaceStore'
-import { DisplayCard } from 'component-lib'
+import { Card } from 'component-lib'
 import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher'
 import { AddNpcControl } from './AddNpcControl'
 import { EncounterNpcCard } from './EncounterNpcCard'
@@ -43,7 +43,7 @@ type EncounterScreenProps = {
   findTable?: FindRollTable
 }
 
-/** Section frame: a DisplayCard panel as an h2 document-outline section. */
+/** Section frame: a Card panel as an h2 document-outline section. */
 function Section({
   title,
   hint,
@@ -55,7 +55,7 @@ function Section({
 }) {
   return (
     <section>
-      <DisplayCard
+      <Card
         headerBg="bg-ink"
         headerContent={
           <>
@@ -72,7 +72,7 @@ function Section({
         bodyPadding="px-3 py-2.5"
       >
         {children}
-      </DisplayCard>
+      </Card>
     </section>
   )
 }

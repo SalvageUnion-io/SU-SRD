@@ -8,7 +8,7 @@ export default {
   title: 'Containers/Skeleton',
 }
 
-/** mode=card — mirrors the DisplayCard anatomy (frame / band / body), at both densities. */
+/** mode=card — mirrors the Card anatomy (frame / band / body), at both densities. */
 export const Card: Story = () => (
   <div className="flex flex-wrap items-start gap-6 bg-paper p-4">
     <div className="w-[380px]">

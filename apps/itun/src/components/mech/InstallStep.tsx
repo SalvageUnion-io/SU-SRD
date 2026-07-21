@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { FilterChip, MasonryColumns, ReferenceEntityCard } from 'component-lib'
+import { Badge, MasonryColumns, ReferenceEntityCard } from 'component-lib'
 import type { TechLevel } from '../../lib/rules/types'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 
@@ -63,13 +63,17 @@ export function InstallStep({ kind, selected, onAdd }: InstallStepProps) {
       {/* biome-ignore lint/a11y/useSemanticElements: a fieldset would need a legend and carries min-content sizing quirks in this flex chip row; role="group" + aria-label conveys the same semantics */}
       <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by tech level">
         {ALL_TLS.map((tl) => (
-          <FilterChip
+          <Badge
             key={tl}
-            label={typeof tl === 'number' ? `TL${tl}` : tl === 'B' ? 'Bio' : 'Nanite'}
-            active={activeTls.includes(tl)}
+            shape="chip"
+            as="button"
+            aria-pressed={activeTls.includes(tl)}
+            surface={activeTls.includes(tl) ? 'solid' : 'ghost'}
+            swatch={`var(--color-tl-${typeof tl === 'number' ? tl : tl.toLowerCase()})`}
             onClick={() => toggleTl(tl)}
-            swatchStyle={`var(--color-tl-${typeof tl === 'number' ? tl : tl.toLowerCase()})`}
-          />
+          >
+            {typeof tl === 'number' ? `TL${tl}` : tl === 'B' ? 'Bio' : 'Nanite'}
+          </Badge>
         ))}
       </div>
 

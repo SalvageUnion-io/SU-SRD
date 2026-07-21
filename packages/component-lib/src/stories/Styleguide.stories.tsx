@@ -72,7 +72,7 @@ export const Overview: Story = () => (
         />
         <GroupRow
           stamp="Containers"
-          body="Content-agnostic wrappers and state shells that hold or announce arbitrary content. Display Card, Modal, Inset, Banner, Toast, Empty State, Skeleton."
+          body="Content-agnostic wrappers and state shells that hold or announce arbitrary content. Card, Modal, Inset, Banner, Toast, Empty State, Skeleton."
         />
         <GroupRow
           stamp="Compositions"
@@ -93,7 +93,7 @@ export const Overview: Story = () => (
         <code className="text-ink">SalvageUnionReference.*</code> fixtures and fed through the real
         components exactly as the apps feed them. A story is a preview of what ships; fake data
         hides the overflow, wrapping, tone, and empty-state bugs a styleguide exists to catch. The
-        one exception is a genuinely generic container primitive (e.g. Display Card), which may show
+        one exception is a genuinely generic container primitive (e.g. Card), which may show
         abstract content because it is content-agnostic.
       </Prose>
     </div>
@@ -144,8 +144,8 @@ export const Anatomies: Story = () => (
     <ul className="flex list-disc flex-col gap-2 pl-6">
       <Rule>
         <span className="font-semibold">Title is Group/Title Case</span> and matches the component's
-        display name — <code>Atoms/Stat</code>, <code>Containers/Display Card</code>. Slashes become
-        sidebar nesting.
+        display name — <code>Atoms/Stat</code>, <code>Containers/Card</code>. Slashes become sidebar
+        nesting.
       </Rule>
       <Rule>
         <span className="font-semibold">The file keeps the component symbol name</span> —{' '}

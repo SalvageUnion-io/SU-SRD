@@ -27,7 +27,7 @@ Foundations (tokens)                                    ← done (#466)
 Atoms (11 + StampSeam)                                  ← done (#466, consolidated in the 469 merge)
 Compositions (StatusBadge · Tally · VitalGauge · RollTable)  ← done (#466)
 Containers (Modal · Tooltip · Toast · EmptyState · Skeleton · InlineRef)  ← done (#466)
-DisplayCard tidy-up  ← THE CURRENT SUB-PASS (§2)
+Card tidy-up  ← THE CURRENT SUB-PASS (§2)
 Entity Display pass (ReferenceEntityDisplay · SheetHero · the *Sheet renders)  ← FUTURE
 Dashboard pass (the ITUN dashboard instruments)  ← FUTURE
 ```
@@ -49,12 +49,12 @@ Dashboard pass (the ITUN dashboard instruments)  ← FUTURE
    bodies are abstract; real SRD data appears only where it is the primitive's
    own mechanic (a cost, a d20 band, a gauge current/max, a condition badge).
    (This overrides the "1:1 real data" law _for mockups only_.)
-5. **DisplayCard content is paper** (`--color-paper #fbfaf7`), a filled reading
+5. **Card content is paper** (`--color-paper #fbfaf7`), a filled reading
    surface; it reads as a panel because the surrounding ground is a step
    off-paper — never because the body is tinted. Header/footer are the solid
    ontology-tone bands; the 3px frame **is** the tone.
 
-## 3. The current sub-pass — DisplayCard tidy-up
+## 3. The current sub-pass — Card tidy-up
 
 Get the card shell clean and complete **before** the Entity Display pass layers
 on more controls. Six in-scope shared primitives; the dashboard instruments and
@@ -64,14 +64,14 @@ the entity-content presets are deferred.
 
 | Primitive           | Is                                                                | Used in                                             | Laws                                                                                                                                                                                                                                      | Composes / preset-of                                                      | Must not                                                               |
 | ------------------- | ----------------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| **DisplayCard**     | the one entity-container shell                                    | srd Reference · ITUN Live Sheet / Listing / Tooltip | 3px frame = the tone; solid tone header/footer bands; **paper body**; callout stamps ride the top edge (StampSeam); the **foot carries the action economy** (`footMeta` read pairs + `footActions` = Use / Uses ± stepper / Repair, rust) | CardHeader · CardImage · HeaderShell · Footer · ControlButtons · StatsBar | never fork a second card for a new size/skin/context — that's a `mode` |
-| **EntityRow**       | header-only clickable listing row                                 | ITUN Roster / Listing                               | header-only, click-through; 6px deep-tone left accent rail; nested entities live in the parent                                                                                                                                            | preset of DisplayCard `head` + rail + actions                             | nothing editable/expandable in place                                   |
-| **EntityGrid**      | the entity-card grid + action-economy injector (layout)           | ITUN Live Sheet                                     | 1 col mobile / max 2 col desktop, equal height; `mode="card"` folds foot into each card, `mode="rail"` puts a 152px callout column beside it                                                                                              | wraps DisplayCard                                                         | never nest entity grids                                                |
+| **Card**            | the one entity-container shell                                    | srd Reference · ITUN Live Sheet / Listing / Tooltip | 3px frame = the tone; solid tone header/footer bands; **paper body**; callout stamps ride the top edge (StampSeam); the **foot carries the action economy** (`footMeta` read pairs + `footActions` = Use / Uses ± stepper / Repair, rust) | CardHeader · CardImage · HeaderShell · Footer · ControlButtons · StatsBar | never fork a second card for a new size/skin/context — that's a `mode` |
+| **EntityRow**       | header-only clickable listing row                                 | ITUN Roster / Listing                               | header-only, click-through; 6px deep-tone left accent rail; nested entities live in the parent                                                                                                                                            | preset of Card `head` + rail + actions                                    | nothing editable/expandable in place                                   |
+| **EntityGrid**      | the entity-card grid + action-economy injector (layout)           | ITUN Live Sheet                                     | 1 col mobile / max 2 col desktop, equal height; `mode="card"` folds foot into each card, `mode="rail"` puts a 152px callout column beside it                                                                                              | wraps Card                                                                | never nest entity grids                                                |
 | **InlineEditField** | click-to-edit value (text / number / textarea / labeled Identity) | ITUN Live Sheet                                     | subtle edit cue → input on click; number validates min/max → red + `role=alert`; `readOnly` strips affordances                                                                                                                            | —                                                                         | never in Reference / Tooltip (nothing edits there)                     |
 | **Inset**           | boxed sub-panel inside a card's expand slot                       | ITUN Live Sheet                                     | 1.5px ink frame on paper; tone head bar; lives in a parent's expand slot                                                                                                                                                                  | —                                                                         | not a standalone card                                                  |
 | **Banner**          | advisory, non-blocking strip                                      | ITUN Live Sheet / Wizard                            | `role=alert` `aria-live=polite`; severity = status tokens; optional Save-anyway / Fix-it (ghost ink, not rust)                                                                                                                            | —                                                                         | never gates/blocks a flow                                              |
 
-**ItemCard is folded into DisplayCard** — it is DisplayCard `compact` + the
+**ItemCard is folded into Card** — it is Card `compact` + the
 action-economy foot; not a separate primitive.
 
 **Deferred (do NOT build in this sub-pass):**
@@ -93,7 +93,7 @@ components awaiting rework. Story titles set the namespace (`title: 'Composition
 **For each in-scope primitive, one verified commit:**
 
 1. **Lift** the shared presentation from ITUN into `packages/component-lib` (keep
-   app-specific data/types/hooks in the app). Skip for DisplayCard (already there).
+   app-specific data/types/hooks in the app). Skip for Card (already there).
 2. **Story** it as a single-page gallery under its namespace, with real SRD data.
    Promote out of `Legacy` if it was parked there; delete the legacy story.
 3. **Migrate** the ITUN (and srd) call sites onto the shared primitive.
@@ -111,7 +111,7 @@ Do smallest blast-radius first:
 | Order | Increment       | Old → new                                                                                               | Importers to migrate |
 | ----- | --------------- | ------------------------------------------------------------------------------------------------------- | -------------------- |
 | 1     | EntityRow       | `roster/EntityListItem` → `EntityRow`                                                                   | 1                    |
-| 2     | ItemCard fold   | `sheet/MechItemCard` → DisplayCard action-economy foot                                                  | 2                    |
+| 2     | ItemCard fold   | `sheet/MechItemCard` → Card action-economy foot                                                         | 2                    |
 | 3     | Inset           | `sheet/NpcInset` (3) + `sheet/CrawlerEcon` (2) → `Inset`                                                | 5                    |
 | 4     | Banner          | `shared/SoftWarningBanner` → `Banner`                                                                   | 3                    |
 | 5     | InlineEditField | `sheet/InlineEditField` (5) + `InlineEditTextArea` (4) + `IdentityField` (7) → `InlineEditField` family | 16                   |

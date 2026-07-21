@@ -1,7 +1,7 @@
 import type { ReactNode, RefObject } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
-import { DisplayCard } from './DisplayCard'
+import { Card } from './Card'
 import { Badge } from '../chrome/Badge'
 
 type ModalShellProps = {
@@ -23,7 +23,7 @@ type ModalShellProps = {
    *  like search. */
   initialFocus?: RefObject<HTMLElement | null>
   /**
-   * Chromeless: skip the DisplayCard header/frame and render `children` as the
+   * Chromeless: skip the Card header/frame and render `children` as the
    * entire modal body inside a NON-scrolling, fit-height popup. The child owns
    * its own frame + header + close control + any internal scroll (e.g. the
    * floating EntitySearcher). `title` is still used for the sr-only a11y label.
@@ -54,7 +54,7 @@ export function ModalShell({
   const headerBgClass = isDanger ? 'bg-status-bad' : 'bg-pilot'
 
   // Bare mode: a fit-height, non-scrolling popup — the child owns its frame and
-  // any internal scroll. Default: a scrolling popup wrapping the DisplayCard.
+  // any internal scroll. Default: a scrolling popup wrapping the Card.
   const overflow = bare ? 'overflow-hidden' : 'overflow-y-auto'
 
   return (
@@ -71,7 +71,7 @@ export function ModalShell({
           {bare ? (
             children
           ) : (
-            <DisplayCard
+            <Card
               headerBg={headerBgClass}
               headerContent={
                 <div className="flex w-full items-center justify-between gap-2">
@@ -115,7 +115,7 @@ export function ModalShell({
               }
             >
               {children}
-            </DisplayCard>
+            </Card>
           )}
         </Dialog.Popup>
       </Dialog.Portal>

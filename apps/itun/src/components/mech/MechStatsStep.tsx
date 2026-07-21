@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { EmptyState, ReferenceEntityCard, Stat, TreeSep, entityHostTone } from 'component-lib'
+import { EmptyState, ReferenceEntityCard, Slab, Stat, entityHostTone } from 'component-lib'
 import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 
@@ -52,7 +52,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
 
       {chassisAbilities.length > 0 && (
         <>
-          <TreeSep name="Chassis Ability" suffix={chassis.name} />
+          <Slab variant="solid" label="Chassis Ability" count={chassis.name} />
           <div className="max-w-2xl space-y-3">
             {chassisAbilities.map((ability) => (
               <ReferenceEntityCard

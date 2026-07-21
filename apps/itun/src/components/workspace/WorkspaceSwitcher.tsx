@@ -18,6 +18,7 @@
  */
 
 import { useState } from 'react'
+import { Select } from 'component-lib'
 
 import { useWorkspaceActions, useWorkspaces } from '../../hooks/queries'
 import { DEFAULT_WORKSPACE_ID, DEFAULT_WORKSPACE_NAME } from '../../lib/defaultWorkspace'
@@ -88,47 +89,40 @@ export function WorkspaceSwitcher({ activeWorkspaceId, onSelect, store }: Worksp
         >
           Workspace
         </label>
-        {/* Faux-select (design-spec §2.5): reuses the `.input` recipe */}
-        <span className="relative inline-block">
-          <select
-            id="workspace-switcher"
-            value={selectValue}
-            onChange={handleChange}
-            className="w-[200px] min-h-11 cursor-pointer appearance-none rounded-[3px] border-chrome border-ink bg-paper py-2 pl-3 pr-8 font-body text-sm text-ink focus:outline-none focus:ring-[3px] focus:ring-rust/[0.22] sm:min-h-9"
-            aria-label="Select workspace"
-          >
-            {/* The built-in Default workspace always exists (created by the v10
-                migration). Surface it synthetically if the migration's record
-                hasn't hydrated into the store yet, so the current selection is
-                never an option-less value. */}
-            {!activeStore.workspaces.some((ws) => ws.id === DEFAULT_WORKSPACE_ID) && (
-              <option value={DEFAULT_WORKSPACE_ID}>{DEFAULT_WORKSPACE_NAME}</option>
-            )}
-            {activeStore.workspaces.map((ws) => (
-              <option key={ws.id} value={ws.id}>
-                {ws.name}
-              </option>
-            ))}
-            {/* The built-in Starter Set is always selectable. Until the user
-                first opens it (which spawns it into this browser) it isn't yet a
-                real workspace, so surface it here as a synthetic option. */}
-            {!activeStore.workspaces.some((ws) => ws.id === STARTER_WORKSPACE_ID) && (
-              <option value={STARTER_WORKSPACE_ID}>Starter Set</option>
-            )}
-            {/* The built-in Eldridge Coast campaign is likewise always
-                selectable; surfaced synthetically until first opened. */}
-            {!activeStore.workspaces.some((ws) => ws.id === ELDRIDGE_WORKSPACE_ID) && (
-              <option value={ELDRIDGE_WORKSPACE_ID}>The Eldridge Coast</option>
-            )}
-            <option value={MANAGE_VALUE}>Manage workspaces…</option>
-          </select>
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-wk-muted"
-          >
-            ▾
-          </span>
-        </span>
+        {/* Faux-select (design-spec §2.5): the shared `Select` chevron rung. */}
+        <Select
+          chevron
+          id="workspace-switcher"
+          value={selectValue}
+          onChange={handleChange}
+          className="w-[200px] sm:min-h-9"
+          aria-label="Select workspace"
+        >
+          {/* The built-in Default workspace always exists (created by the v10
+              migration). Surface it synthetically if the migration's record
+              hasn't hydrated into the store yet, so the current selection is
+              never an option-less value. */}
+          {!activeStore.workspaces.some((ws) => ws.id === DEFAULT_WORKSPACE_ID) && (
+            <option value={DEFAULT_WORKSPACE_ID}>{DEFAULT_WORKSPACE_NAME}</option>
+          )}
+          {activeStore.workspaces.map((ws) => (
+            <option key={ws.id} value={ws.id}>
+              {ws.name}
+            </option>
+          ))}
+          {/* The built-in Starter Set is always selectable. Until the user
+              first opens it (which spawns it into this browser) it isn't yet a
+              real workspace, so surface it here as a synthetic option. */}
+          {!activeStore.workspaces.some((ws) => ws.id === STARTER_WORKSPACE_ID) && (
+            <option value={STARTER_WORKSPACE_ID}>Starter Set</option>
+          )}
+          {/* The built-in Eldridge Coast campaign is likewise always
+              selectable; surfaced synthetically until first opened. */}
+          {!activeStore.workspaces.some((ws) => ws.id === ELDRIDGE_WORKSPACE_ID) && (
+            <option value={ELDRIDGE_WORKSPACE_ID}>The Eldridge Coast</option>
+          )}
+          <option value={MANAGE_VALUE}>Manage workspaces…</option>
+        </Select>
       </div>
 
       <WorkspaceList open={manageOpen} onClose={() => setManageOpen(false)} store={activeStore} />

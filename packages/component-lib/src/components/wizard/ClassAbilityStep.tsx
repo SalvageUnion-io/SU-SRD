@@ -2,7 +2,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { EmptyState } from '../chrome/EmptyState'
 import type { SURefClass, SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
-import { TreeSep } from '../chrome/TreeSep'
+import { Slab } from '../chrome/Slab'
 import { MasonryColumns } from '../shared/MasonryColumns'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { selectableClasses } from './classOptions'
@@ -74,7 +74,7 @@ function editTreesFor(cls: ClassLike, selectedTrees: string[]): string[] {
  * Salvager sees all 15 core-tree Level-1s); the pick is a radio, exactly 1.
  *
  * Edit mode lifts the filters (specialisation classes appear; every level of
- * every class tree, TreeSep-grouped, uncapped toggle) — the soft regime.
+ * every class tree, Slab-grouped, uncapped toggle) — the soft regime.
  */
 export function ClassAbilityStep({
   isEdit,
@@ -129,7 +129,7 @@ export function ClassAbilityStep({
     a.tree.localeCompare(b.tree)
   )
 
-  // Edit mode: every level of every offered tree, TreeSep-grouped.
+  // Edit mode: every level of every offered tree, Slab-grouped.
   const selectedTrees = allAbilities
     .filter((a) => selectedAbilities.includes(a.id))
     .map((a) => a.tree)
@@ -141,11 +141,11 @@ export function ClassAbilityStep({
 
   return (
     <div className="w-full space-y-5">
-      <TreeSep name="Pilot Class" suffix="Choose 1" />
+      <Slab variant="solid" label="Pilot Class" count="Choose 1" />
       <MasonryColumns maxColumns={2}>{legalClasses.map(renderClassCard)}</MasonryColumns>
       {isEdit && classes.specialisations.length > 0 && (
         <>
-          <TreeSep name="Advanced / Hybrid" suffix="Requires 6 core abilities" />
+          <Slab variant="solid" label="Advanced / Hybrid" count="Requires 6 core abilities" />
           <MasonryColumns maxColumns={2}>
             {classes.specialisations.map(renderClassCard)}
           </MasonryColumns>
@@ -159,13 +159,13 @@ export function ClassAbilityStep({
         />
       ) : isEdit ? (
         <>
-          <TreeSep name="Abilities" suffix="Any level" />
+          <Slab variant="solid" label="Abilities" count="Any level" />
           {editTrees.map((tree) => {
             const treeAbilities = editAbilitiesIn(tree)
             if (treeAbilities.length === 0) return null
             return (
               <section key={tree} className="space-y-3">
-                <TreeSep name={tree} />
+                <Slab variant="solid" label={tree} count="Tree" />
                 <MasonryColumns maxColumns={2}>
                   {treeAbilities.map(renderAbilityCard)}
                 </MasonryColumns>
@@ -175,9 +175,10 @@ export function ClassAbilityStep({
         </>
       ) : (
         <>
-          <TreeSep
-            name={`First Ability · ${selectedClass.name} Trees · Level 1`}
-            suffix="Choose 1"
+          <Slab
+            variant="solid"
+            label={`First Ability · ${selectedClass.name} Trees · Level 1`}
+            count="Choose 1"
           />
           <MasonryColumns maxColumns={2}>{legalPool.map(renderAbilityCard)}</MasonryColumns>
           {legalPool.length === 0 && (

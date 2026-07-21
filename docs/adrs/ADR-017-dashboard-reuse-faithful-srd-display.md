@@ -17,7 +17,7 @@ The display renders the **actual** `ReferenceEntityDisplay` + `ActionCard` /
 `NestedActionDisplay` + `ReferenceEntityActions` + `RollTable` from `component-lib` —
 the same light "workshop paperwork" reference document the rest of the app shows.
 Action economy is injected through the existing
-`Erow` / `ActionCardErow` + `DisplayCard.footActions`/`footMeta` pattern, **not** a
+`Erow` / `ActionCardErow` + `Card.footActions`/`footMeta` pattern, **not** a
 new schema-specific renderer. Only the _instruments_ (gauges, bays, dial, buttons)
 are new Dashboard components.
 

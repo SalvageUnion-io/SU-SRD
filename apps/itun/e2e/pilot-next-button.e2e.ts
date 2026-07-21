@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test'
-import { pickByName, waitForReady } from './_helpers'
+import { optionCells, pickByName, waitForReady } from './_helpers'
 
 /**
  * Regression guard: selecting a class on Step 1 must enable the Next CTA.
  *
- * The WizShell class step is a master-detail: OptRow buttons on the left,
- * the selected class's full card + ability trees in the detail pane. A
- * render-time failure inside the detail listing could leave the wizard
- * stuck on the Class step with no way to advance.
+ * The WizShell class step is a master-detail: selectable class entity cards
+ * first, then the chosen class's first-Ability pool. A render-time failure
+ * inside the detail listing could leave the wizard stuck on the Class step
+ * with no way to advance.
  */
 test('Next is disabled before class pick and enabled after', async ({ page }) => {
   await page.goto('/pilots/new')
@@ -28,11 +28,15 @@ test('every base class renders a selectable row', async ({ page }) => {
   await page.goto('/pilots/new')
   await waitForReady(page)
 
-  // Master-detail: each base class is an OptRow <button>; the active row
-  // carries aria-current. SU core book has 6 base classes; allow more from
-  // additional sources. Stepper + footer buttons exist too, so count rows
-  // via the option pane's OptRow look: buttons containing the 'art' slot.
-  const rows = page.getByRole('button').filter({ hasText: 'art' })
+  // Each base class is a selectable entity card. SU core book has 6 base
+  // classes; allow more from additional sources. The stepper, footer and CTA
+  // buttons are NOT selection cells, so counting cells that carry a selection
+  // state (`aria-pressed` / `aria-checked`) counts exactly the class options —
+  // and before a class is picked the ability pool has not rendered, so nothing
+  // else contributes. The previous version counted buttons containing the
+  // literal text 'art', which was `OptRow`'s placeholder art box: that row is
+  // gone, and the count would have matched zero.
+  const rows = optionCells(page)
   await expect(rows.first()).toBeVisible({ timeout: 15_000 })
   expect(await rows.count()).toBeGreaterThanOrEqual(6)
 })

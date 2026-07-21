@@ -59,7 +59,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { EntitySearcher } from 'component-lib'
 import { destroyedUndoToast } from './destroyedUndoToast'
 import { EntityGrid, EntityGridRow } from 'component-lib'
-import { InlineEditTextArea } from 'component-lib'
+import { InlineEditField } from 'component-lib'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
 import { MechItemCard } from './MechItemCard'
@@ -350,10 +350,12 @@ export function MechSheet({
         </dt>
         <dd className="m-0">
           {!readOnly && flavourEditing ? (
-            <InlineEditTextArea
+            <InlineEditField
+              multiline
               value={text}
               ariaLabel={`Edit ${label.toLowerCase()}`}
-              onSave={async (next) => onSave(next)}
+              placeholder="Add a description…"
+              onSave={(next) => onSave(String(next))}
             />
           ) : text.trim().length > 0 ? (
             <p className="m-0 whitespace-pre-wrap font-body text-sm text-ink">{text}</p>

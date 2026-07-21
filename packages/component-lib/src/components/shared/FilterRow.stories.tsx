@@ -2,7 +2,7 @@ import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { getSource, getTechLevel, getTree, SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
-import { FilterChip } from './FilterChip'
+import { Badge } from '../chrome/Badge'
 import { FilterRow } from './FilterRow'
 import { techLevelLabel } from './techLevelStyles'
 
@@ -69,19 +69,27 @@ export const Default: Story = () => {
       <div className="flex flex-col gap-1.5">
         <Caption>Tech Level — swatch chips coloured from the TL palette</Caption>
         <FilterRow label="Tech Level">
-          <FilterChip
-            label="All"
-            active={tlFilters.size === 0}
+          <Badge
+            shape="chip"
+            as="button"
+            aria-pressed={tlFilters.size === 0}
+            surface={tlFilters.size === 0 ? 'solid' : 'ghost'}
             onClick={() => setTlFilters(new Set())}
-          />
+          >
+            All
+          </Badge>
           {techLevels.map((level) => (
-            <FilterChip
+            <Badge
               key={String(level)}
-              label={techLevelLabel(level)}
-              active={tlFilters.has(String(level))}
+              shape="chip"
+              as="button"
+              aria-pressed={tlFilters.has(String(level))}
+              surface={tlFilters.has(String(level)) ? 'solid' : 'ghost'}
+              swatch={typeof level === 'number' ? `var(--color-tl-${level})` : undefined}
               onClick={() => setTlFilters((s) => toggle(s, String(level)))}
-              swatchStyle={typeof level === 'number' ? `var(--color-tl-${level})` : undefined}
-            />
+            >
+              {techLevelLabel(level)}
+            </Badge>
           ))}
         </FilterRow>
       </div>
@@ -89,18 +97,26 @@ export const Default: Story = () => {
       <div className="flex flex-col gap-1.5">
         <Caption>Source — plain chips; the run wraps under the label</Caption>
         <FilterRow label="Source">
-          <FilterChip
-            label="All"
-            active={sourceFilters.size === 0}
+          <Badge
+            shape="chip"
+            as="button"
+            aria-pressed={sourceFilters.size === 0}
+            surface={sourceFilters.size === 0 ? 'solid' : 'ghost'}
             onClick={() => setSourceFilters(new Set())}
-          />
+          >
+            All
+          </Badge>
           {sources.map((source) => (
-            <FilterChip
+            <Badge
               key={source}
-              label={source}
-              active={sourceFilters.has(source)}
+              shape="chip"
+              as="button"
+              aria-pressed={sourceFilters.has(source)}
+              surface={sourceFilters.has(source) ? 'solid' : 'ghost'}
               onClick={() => setSourceFilters((s) => toggle(s, source))}
-            />
+            >
+              {source}
+            </Badge>
           ))}
         </FilterRow>
       </div>
@@ -108,18 +124,26 @@ export const Default: Story = () => {
       <div className="flex flex-col gap-1.5">
         <Caption>Tree — the abilities-only facet</Caption>
         <FilterRow label="Tree">
-          <FilterChip
-            label="All"
-            active={treeFilters.size === 0}
+          <Badge
+            shape="chip"
+            as="button"
+            aria-pressed={treeFilters.size === 0}
+            surface={treeFilters.size === 0 ? 'solid' : 'ghost'}
             onClick={() => setTreeFilters(new Set())}
-          />
+          >
+            All
+          </Badge>
           {trees.map((tree) => (
-            <FilterChip
+            <Badge
               key={tree}
-              label={tree}
-              active={treeFilters.has(tree)}
+              shape="chip"
+              as="button"
+              aria-pressed={treeFilters.has(tree)}
+              surface={treeFilters.has(tree) ? 'solid' : 'ghost'}
               onClick={() => setTreeFilters((s) => toggle(s, tree))}
-            />
+            >
+              {tree}
+            </Badge>
           ))}
         </FilterRow>
       </div>
