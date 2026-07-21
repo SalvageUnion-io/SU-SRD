@@ -5,7 +5,9 @@
  * The hero now carries ONLY the name row + meta (poster region grid, D7):
  * Identity, Vitals and the linked-unit rail all moved into the body's R1/R3
  * poster regions (see `PilotSheet`) — SheetHero no longer receives
- * `identityBlock`/`trackers`/`inset`/`rail`. This component's remaining job
+ * `identityBlock`/`inset`/`rail`, which have since been deleted from it
+ * outright (nothing had passed them since this migration). This component's
+ * remaining job
  * is composing the assigned-mech/home-crawler rail content and handing it to
  * `PilotSheet` as `linkedUnits`.
  */

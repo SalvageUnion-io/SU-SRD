@@ -9,9 +9,15 @@
  * compose it without forking the frame. Identity/vitals/linked-unit-rail
  * content lives in each sheet's BODY poster regions now (Phase 2 — pilot,
  * mech, crawler all migrated); the hero itself carries only the name row +
- * meta on every variant. The `rail` slot (linked-entity rail stitched inside
- * the frame's bottom edge) was the last hero-hosted region — crawler's
- * migration retired it, so it no longer exists here.
+ * meta on every variant.
+ *
+ * That migration left four slots behind that nothing ever filled again. The
+ * `rail` slot went with crawler's migration; `inset`, `identityBlock` and
+ * `vitals` outlived it as declared-but-unreachable props — every one of the
+ * seven call sites had stopped passing them, and three sheet files carried
+ * comments saying so while the props stayed on the type. They are gone now,
+ * which is why the VITALS region is a plain gauge stack rather than a
+ * three-child column: `trackers` is the only thing that was ever in it.
  */
 
 import type { ReactNode, Ref } from 'react'
@@ -37,19 +43,6 @@ type SheetHeroProps = {
   specs?: ReactNode
   /** lg StatBlock tracker cluster (rendered inside the VITALS region). */
   trackers?: ReactNode
-  /** Extra inset under the trackers (e.g. Conditions). */
-  inset?: ReactNode
-  /**
-   * Poster TOP REGION, left: the sheet's labeled IDENTITY block (IdentityField
-   * grid with its own per-section Edit button). Slot-based — each sheet
-   * supplies its own fields (redesign Task A.1).
-   */
-  identityBlock?: ReactNode
-  /**
-   * Poster TOP REGION, right: extra VITALS content beyond `trackers`
-   * (e.g. a labeled gauge cluster). Rendered between trackers and inset.
-   */
-  vitals?: ReactNode
   /** Forwarded to the hero root for the shell's condense observer. */
   heroRef?: Ref<HTMLElement>
   className?: string
@@ -62,15 +55,12 @@ export function SheetHero({
   identity = [],
   specs,
   trackers,
-  inset,
-  identityBlock,
-  vitals,
   heroRef,
   className,
 }: SheetHeroProps) {
   const identityLines = identity.filter((line) => line.value.trim().length > 0)
-  const hasIdentityRegion = Boolean(specs || identityLines.length > 0 || identityBlock)
-  const hasVitalsRegion = Boolean(trackers || vitals || inset)
+  const hasIdentityRegion = Boolean(specs || identityLines.length > 0)
+  const hasVitalsRegion = Boolean(trackers)
 
   return (
     <section
@@ -130,21 +120,14 @@ export function SheetHero({
                     ))}
                   </dl>
                 )}
-                {identityBlock}
               </div>
             )}
 
             {hasVitalsRegion && (
-              <div className="flex min-w-0 flex-col gap-2.5">
-                {trackers && (
-                  // Full-width vertical gauge stack (poster `.gauge` column): each
-                  // gauge owns its row, dashed deep-40 separators between them.
-                  <div className="flex w-full flex-col [&>*+*]:mt-[14px] [&>*+*]:border-t [&>*+*]:border-dashed [&>*+*]:border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] [&>*+*]:pt-[14px]">
-                    {trackers}
-                  </div>
-                )}
-                {vitals}
-                {inset}
+              // Full-width vertical gauge stack (poster `.gauge` column): each
+              // gauge owns its row, dashed deep-40 separators between them.
+              <div className="flex w-full min-w-0 flex-col [&>*+*]:mt-[14px] [&>*+*]:border-t [&>*+*]:border-dashed [&>*+*]:border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] [&>*+*]:pt-[14px]">
+                {trackers}
               </div>
             )}
           </div>

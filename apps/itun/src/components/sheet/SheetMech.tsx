@@ -5,7 +5,8 @@
  * The hero now carries ONLY the name row + meta (poster region grid, D7):
  * Identity, Vitals and the linked-unit rail all moved into the body's R1/R4
  * poster regions (see `MechSheet`) — SheetHero no longer receives
- * `identityBlock`/`trackers`/`inset`/`rail`, mirroring SheetPilot. This
+ * `identityBlock`/`inset`/`rail`, which have since been deleted from it
+ * outright, mirroring SheetPilot. This
  * component's remaining job is the condensed top-bar strip and composing the
  * assigned-pilot/home-crawler rail content handed to `MechSheet` as
  * `linkedUnits`. Push / Heat Check are Guided-Play transactions that live on

@@ -5,7 +5,8 @@
  * The hero now carries ONLY the name row + meta (poster region grid, D7):
  * Identity, the economy readouts and the linked-unit rail all moved into the
  * body's poster regions (see `CrawlerSheet`) — SheetHero no longer receives
- * `identityBlock`/`trackers`/`vitals`/`rail`, mirroring SheetPilot/SheetMech.
+ * `identityBlock`/`vitals`/`rail`, which have since been deleted from it
+ * outright, mirroring SheetPilot/SheetMech.
  * This component's remaining job is composing the economy band (the poster
  * `.econ` frame — `CrawlerEconFrame` — wrapping the SP `VitalGauge` + the
  * Tech-LVL/Upkeep/Upgrade/Trade/Crew lozenges, the R-4 action entry points)
