@@ -62,9 +62,11 @@ import type { EntityCardSubHeaderCell } from './EntityCardSubHeader'
 import { resolveFoldedAction } from './resolveFoldedAction'
 import { stripHostParenthetical } from './stripHostParenthetical'
 import {
+  formatClassRequirements,
   ghostActionTone,
   resolveAxisMarkers,
   resolveCardTone,
+  resolveClassRequirements,
   resolveEyebrow,
   titleSizeClass,
 } from './entityCardTone'
@@ -971,8 +973,19 @@ function ReferenceEntityCardInner({
   const dedupedEntityCells = entityCells.filter(
     (cell) => !foldedActionCells.some((folded) => folded.key === cell.key)
   )
+  // A HYBRID class names the two ability trees it advances from, in the
+  // sub-header row and LEADING it (the requirement is the first thing a reader
+  // needs off a hybrid). The two trees are joined by "or", never a comma list —
+  // a pilot qualifies through ONE of them, not both. Base classes have no
+  // requirements entry, so this is empty for them and the row is unchanged.
+  const classRequirement = formatClassRequirements(resolveClassRequirements(entity))
+  const classRequirementCells: EntityCardSubHeaderCell[] = classRequirement
+    ? [{ key: 'class-requires', label: 'Requires', value: classRequirement }]
+    : []
   const baseCells: EntityCardSubHeaderCell[] =
-    isAction && action ? actionCells(action) : [...foldedActionCells, ...dedupedEntityCells]
+    isAction && action
+      ? actionCells(action)
+      : [...classRequirementCells, ...foldedActionCells, ...dedupedEntityCells]
   // dvSourceContent — the content whose `datavalues` block (Damage/Range) feeds
   // the resolver's base stats (a self-action's content for a self-action entity).
   const entityContentForDv = 'content' in entity ? entity.content : undefined

@@ -56,6 +56,16 @@ const equipment = pick(
   (e) => e.name === 'Grenade',
   'equipment'
 )
+// One real class per KIND, for the class-kind stamp story: a plain base class,
+// a hybrid (which also carries the "Requires <tree> or <tree>" sub-header line),
+// and the Salvager — the dataset's only non-advanceable class.
+const baseClass = pick(SalvageUnionReference.Classes.all(), (c) => c.name === 'Soldier', 'class')
+const hybridClass = pick(SalvageUnionReference.Classes.all(), (c) => c.name === 'Cyborg', 'class')
+const nonAdvanceableClass = pick(
+  SalvageUnionReference.Classes.all(),
+  (c) => c.name === 'Salvager',
+  'class'
+)
 // A real crawler bay (schema `crawler-bays`) — Command Bay has content + a crew NPC.
 const crawlerBay = pick(
   SalvageUnionReference.CrawlerBays.all(),
@@ -168,6 +178,35 @@ export const Catalog: Story = () => (
     {[ability, system, chassis, bioTitan, crawler, equipment, crawlerBay].map((entity) => (
       <ReferenceEntityCard key={idOf(entity)} data={entity} size="medium" extent="catalog" />
     ))}
+  </div>
+)
+
+/**
+ * CLASS KIND — every pilot class stamps WHICH KIND it is in the seam, derived
+ * from the flags already in the data (`hybrid`, `advanceable`): BASE, HYBRID, or
+ * NON-ADVANCEABLE (the Salvager, alone — it advances into nothing). A HYBRID
+ * additionally names the two ability trees it advances from in the sub-header
+ * row, joined by **"or"**: a pilot qualifies through ONE of them, not both.
+ *
+ * The second grid is the same three at `extent="catalog"`. The kind stamp is the
+ * one piece of chrome that DELIBERATELY survives the catalog suppression — a
+ * reader scanning the class index needs to know a hybrid is unavailable at
+ * creation before they open anything.
+ */
+export const ClassKinds: Story = () => (
+  <div className="flex flex-col gap-6 p-4">
+    <Caption>full cards — base / hybrid / non-advanceable</Caption>
+    <div className="flex flex-col gap-10">
+      {[baseClass, hybridClass, nonAdvanceableClass].map((entity) => (
+        <ReferenceEntityCard key={idOf(entity)} data={entity} />
+      ))}
+    </div>
+    <Caption>catalog tiles — the kind stamp survives</Caption>
+    <div className="grid gap-4 md:grid-cols-3">
+      {[baseClass, hybridClass, nonAdvanceableClass].map((entity) => (
+        <ReferenceEntityCard key={idOf(entity)} data={entity} size="medium" extent="catalog" />
+      ))}
+    </div>
   </div>
 )
 

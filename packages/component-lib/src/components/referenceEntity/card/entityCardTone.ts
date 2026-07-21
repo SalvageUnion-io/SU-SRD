@@ -1,5 +1,11 @@
 import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
-import { getDisplayName, getTechLevel, getTechLevelNumber, isAbility } from 'salvageunion-reference'
+import {
+  getDisplayName,
+  getTechLevel,
+  getTechLevelNumber,
+  isAbility,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import { TECH_LEVEL_BG } from '../../shared/techLevelStyles'
 import { borderColorFromHeaderBg, calculateBackgroundColor } from '../referenceEntityHelpers'
 /** The six card domains + `action`. Lives here, with the domain logic. */
@@ -183,6 +189,78 @@ export function resolveEyebrow(schemaName: SURefEnumSchemaName | 'actions'): Eye
   return { type: getDisplayName(schemaName) }
 }
 
+/**
+ * The three kinds of pilot CLASS, as the stamp reads them.
+ *
+ * DERIVED, never stored. There is no `kind` field in `classes.json` and one must
+ * not be added: the two flags below are already the authority, and a third
+ * denormalised copy would be free to drift out of sync with them. This reads
+ * those two explicit booleans — it is not a heuristic over unrelated stats
+ * (contrast the `legalStarting` ruling, which forbade *computing* a badge from
+ * tech level / SV; that inferred a fact the data never stated, this one does not).
+ */
+export type ClassKind = 'BASE' | 'HYBRID' | 'NON-ADVANCEABLE'
+
+/**
+ * Is this entity a pilot CLASS? A DATA-SHAPE check, per the display-system rule
+ * that the card layer never branches on a schema-name string. `coreTrees` and
+ * `hybrid` are top-level keys of `classes.json` and of nothing else.
+ */
+export function isClassEntity(entity: SURefMetaEntity): boolean {
+  if (entity == null || typeof entity !== 'object') return false
+  return 'coreTrees' in entity || 'hybrid' in entity
+}
+
+/**
+ * Which KIND of class this is — the content of the class stampseal.
+ *
+ * ORDER IS LOAD-BEARING, and so is the `=== false`:
+ * 1. `hybrid === true` → HYBRID (Fabricator, Cyborg, Union Rep, Smuggler, Ranger).
+ * 2. `advanceable === false` → NON-ADVANCEABLE (the Salvager, and only it — its
+ *    own rules text: "they cannot advance into any of the Hybrid Classes, nor do
+ *    they have any Advanced or Legendary Abilities").
+ * 3. otherwise → BASE (Engineer, Hacker, Hauler, Scout, Soldier).
+ *
+ * `advanceable` is `undefined` on every hybrid and a real boolean only on the
+ * base classes, so this MUST test `=== false` rather than falsiness — a
+ * `!advanceable` test would stamp all five hybrids NON-ADVANCEABLE.
+ */
+export function resolveClassKind(entity: SURefMetaEntity): ClassKind | undefined {
+  if (!isClassEntity(entity)) return undefined
+  if ('hybrid' in entity && entity.hybrid === true) return 'HYBRID'
+  if ('advanceable' in entity && entity.advanceable === false) return 'NON-ADVANCEABLE'
+  return 'BASE'
+}
+
+/**
+ * The ability trees a HYBRID class requires, read from
+ * `ability-tree-requirements.json` by the class's own NAME (a hybrid class and
+ * its tree share a name). Base classes have no entry under their own name —
+ * only their `Advanced X` / `Legendary X` trees do — so this naturally returns
+ * `[]` for them and the requirements line renders for hybrids only. No
+ * special-casing: absent entry ⇒ nothing rendered.
+ */
+export function resolveClassRequirements(entity: SURefMetaEntity): string[] {
+  if (resolveClassKind(entity) !== 'HYBRID') return []
+  const name = 'name' in entity && entity.name != null ? String(entity.name) : ''
+  if (!name) return []
+  const req = SalvageUnionReference.findIn('ability-tree-requirements', (r) => r.name === name)
+  const requirement = req?.requirement
+  return Array.isArray(requirement) ? requirement.map(String) : []
+}
+
+/**
+ * The requirements as the sub-header renders them: joined by **"or"**.
+ *
+ * The relation is a genuine DISJUNCTION — a pilot advances into a hybrid from
+ * ONE of its two parent trees, not from both — so this is never a comma list
+ * and never "and". The literal stored tree names are shown; mapping a tree back
+ * to its owning class would be an inference the data does not make.
+ */
+export function formatClassRequirements(requirements: string[]): string | undefined {
+  return requirements.length > 0 ? requirements.join(' or ') : undefined
+}
+
 export type AxisMarker = { label: string; value?: string }
 
 /**
@@ -194,6 +272,9 @@ export type AxisMarker = { label: string; value?: string }
  * - ABILITIES → ONE combined `[<tree> | <level>]` pill: the tree NAME is the
  *   (black) label cell, the level the value. Tree-only abilities show just the
  *   name; a level with no tree falls back to `[Level | <n>]`.
+ * - CLASSES → ONE `[Class | <KIND>]` pill naming which kind of class it is
+ *   (BASE / HYBRID / NON-ADVANCEABLE), same `[label | value]` vocabulary as the
+ *   pattern card's `[Chassis | Little Sestra]`.
  * - TECH-LEVEL-ABLE entities (systems/modules/equipment/drones/vehicles — any
  *   entity carrying a `techLevel`) → `[Tech Level | <n>]`.
  * - Everything else → `[]` (just the TYPE stamp, no axis pills).
@@ -211,5 +292,15 @@ export function resolveAxisMarkers(entity: SURefMetaEntity): AxisMarker[] {
     if (level) return [{ label: 'Level', value: level }]
     return []
   }
+  // CLASS KIND — the one axis pill that survives `extent="catalog"`. Catalog
+  // tiles otherwise suppress card chrome, but WHICH KIND of class a tile is
+  // (base / hybrid / non-advanceable) is the single most load-bearing fact on a
+  // class listing page: a hybrid can't be taken at creation and the Salvager
+  // never advances, so a reader scanning the index needs it before they open
+  // anything. This is a deliberate, ruled exception to the catalog suppression,
+  // not an oversight — the seam is not gated on extent, so returning the marker
+  // here is what carries it onto the tile. Keep it that way.
+  const classKind = resolveClassKind(entity)
+  if (classKind) return [{ label: 'Class', value: classKind }]
   return []
 }
