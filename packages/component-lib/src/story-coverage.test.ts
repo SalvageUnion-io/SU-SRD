@@ -60,9 +60,6 @@ const CATALOG_PAGES = new Set([
   'Sizing',
   'Layout',
   'RenderingMatrix',
-  // TEMPORARY: PR 466 change-review page — delete this entry with the story
-  // once the review lands.
-  'ChangeReview',
 ])
 
 /**
