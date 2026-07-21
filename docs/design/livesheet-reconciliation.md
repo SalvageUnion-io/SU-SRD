@@ -8,13 +8,19 @@ canonical (`ReferenceEntityCard`); this pass is the **frame, top bar, identity
 band, vitals/gauges, section framing, region arrangement, image affordance, and
 the responsive story** — never an entity-card rewrite.
 
-> **STATUS: direction committed (Pilot).** The Pilot poster is built from
-> existing primitives as `Compositions/Live Sheet` (read-only + editable +
-> mobile), still Ladle-only. The **legacy "before" capture and the Legacy → New
-> comparison have been removed** — we've committed to the new direction. The L1
-> brainstorm record stays at `docs/design/livesheet-mockup.html`. Remaining: the
-> mech and crawler poster parity, then the L3 app cutover (promote the poster to
-> a real component wired to ITUN data/store).
+> **STATUS: direction committed (Pilot); the artifact is gone.** The Pilot
+> poster was built from existing primitives as `Compositions/Live Sheet` and has
+> since been **deleted** under the rule that nothing lives only in the Ladle
+> catalog — it had no consumer but its own story. The legacy "before" capture
+> and the Legacy → New comparison were removed earlier, on committing to the
+> direction.
+>
+> So the surviving record of this direction is the L1 brainstorm at
+> `docs/design/livesheet-mockup.html`, this document, and git history. Remaining
+> work is unchanged in substance but different in shape: mech and crawler no
+> longer have a working sibling to match, so the next build should go straight
+> to L3 — a real component wired to ITUN data/store — rather than reconstructing
+> a Ladle-only poster first.
 
 ---
 
