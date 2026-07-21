@@ -30,22 +30,18 @@ const labelled = SalvageUnionReference.Actions.all()
   | { label?: string; value?: unknown }
   | undefined
 
-const MECH = 'var(--color-sheet-mech)'
-const CRAWLER = 'var(--color-sheet-crawler)'
-const DAMAGED = 'var(--color-status-bad)'
-
 const Body = ({ children }: { children: string }) => (
   <span className="block font-body text-sm text-ink">{children}</span>
 )
 
-/** Every anatomy: body-only, labelled, tinted, damaged, compact. */
+/** Every anatomy: body-only, labelled + tinted, damaged, compact. */
 export const Default: Story = () => (
   <div className="flex max-w-xl flex-col gap-6">
     <div className="flex flex-col gap-1.5">
-      <p className="font-body text-xs text-wk-muted">Body-only bullets (mech accent)</p>
+      <p className="font-body text-xs text-wk-muted">Body-only bullets (mech tone)</p>
       {settlements.map((b, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: static SRD list, order-stable
-        <Callout key={i} accent={MECH}>
+        <Callout key={i} tone="mech">
           <Body>{String(b.value ?? '')}</Body>
         </Callout>
       ))}
@@ -53,31 +49,30 @@ export const Default: Story = () => (
 
     {labelled && (
       <div className="flex flex-col gap-1.5">
-        <p className="font-body text-xs text-wk-muted">Labelled (crawler accent + tint)</p>
-        <Callout
-          label={String(labelled.label)}
-          accent={CRAWLER}
-          headerBg="color-mix(in srgb, var(--color-sheet-crawler) 12%, var(--color-paper))"
-        >
+        <p className="font-body text-xs text-wk-muted">Labelled (crawler tone + derived tint)</p>
+        <Callout label={String(labelled.label)} tone="crawler">
           <Body>{String(labelled.value ?? '')}</Body>
         </Callout>
       </div>
     )}
 
     <div className="flex flex-col gap-1.5">
-      <p className="font-body text-xs text-wk-muted">When Damaged (status-bad accent)</p>
-      <Callout
-        label="When Damaged"
-        accent={DAMAGED}
-        headerBg="color-mix(in srgb, var(--color-status-bad) 15%, var(--color-paper))"
-      >
+      <p className="font-body text-xs text-wk-muted">When Damaged (bad tone)</p>
+      <Callout label="When Damaged" tone="bad">
         <Body>The Med Bay cannot heal Pilots until it is repaired to Intact Condition.</Body>
       </Callout>
     </div>
 
     <div className="flex flex-col gap-1.5">
+      <p className="font-body text-xs text-wk-muted">Neutral ink (default tone)</p>
+      <Callout label="Reminder">
+        <Body>Apply it on each Pilot&rsquo;s sheet yourself.</Body>
+      </Callout>
+    </div>
+
+    <div className="flex flex-col gap-1.5">
       <p className="font-body text-xs text-wk-muted">Compact</p>
-      <Callout compact accent={MECH}>
+      <Callout compact tone="mech">
         <Body>
           {String(settlements[0]?.value ?? 'Corporate Arcos typically have a Tech Level of 5-6.')}
         </Body>

@@ -1,8 +1,8 @@
 import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
+import { Callout } from '../chrome/Callout'
 import { EmptyState } from '../chrome/EmptyState'
 import { OptRow } from '../chrome/OptRow'
-import { Panel } from '../chrome/Panel'
 import { TreeSep } from '../chrome/TreeSep'
 import { MasonryColumns } from '../shared/MasonryColumns'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
@@ -127,14 +127,13 @@ export function CrawlerTypeSelectStep({
           <div className="max-w-3xl space-y-3">
             <ReferenceEntityCard data={selected as unknown as SURefEntity} />
             {isAugmented && (
-              <Panel className="px-3 py-2.5 font-body text-sm text-ink">
-                <span className="font-cond font-bold uppercase tracking-caps">
-                  Augmented bonus —{' '}
+              <Callout label="Augmented Bonus" tone="crawler">
+                <span className="block font-body">
+                  Every Pilot gains <strong>+1 Training Point</strong>, spendable on the{' '}
+                  <strong>Augment ability tree only</strong>. Apply it on each Pilot&rsquo;s sheet
+                  yourself — the wizard never writes to other characters.
                 </span>
-                every Pilot gains <strong>+1 Training Point</strong>, spendable on the{' '}
-                <strong>Augment ability tree only</strong>. Apply it on each Pilot&rsquo;s sheet
-                yourself — the wizard never writes to other characters.
-              </Panel>
+              </Callout>
             )}
           </div>
         </>

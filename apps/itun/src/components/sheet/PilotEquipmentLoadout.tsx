@@ -19,7 +19,7 @@ import { useEquipmentLoadout } from '../shared/useEquipmentLoadout'
 import type { EquipmentLoadout } from '../shared/useEquipmentLoadout'
 import type { useEntityStore } from '../../stores/entityStore'
 import { EntitySearcher } from 'component-lib'
-import { Ecflow, Erow } from './Erow'
+import { EntityGrid, EntityGridRow } from 'component-lib'
 import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
 import { SectionAddButton, SheetPickerModal } from 'component-lib'
@@ -79,12 +79,12 @@ export function PilotEquipmentLoadout({
     }
     const conditions = kind === 'system' ? loadout.systemConditions : loadout.moduleConditions
     return (
-      <Ecflow>
+      <EntityGrid>
         {slugs.map((itemSlug, index) => {
           const condition = conditions?.[itemSlug] ?? 'intact'
           return (
             // biome-ignore lint/suspicious/noArrayIndexKey: the same slug may be installed more than once; install order is stable
-            <Erow key={`${itemSlug}-${index}`}>
+            <EntityGridRow key={`${itemSlug}-${index}`}>
               <MechItemCard
                 slug={itemSlug}
                 entity={kind === 'system' ? resolveSystem(itemSlug) : resolveModule(itemSlug)}
@@ -109,10 +109,10 @@ export function PilotEquipmentLoadout({
                       }
                 }
               />
-            </Erow>
+            </EntityGridRow>
           )
         })}
-      </Ecflow>
+      </EntityGrid>
     )
   }
 

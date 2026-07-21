@@ -6,7 +6,7 @@
  *   - Stowing a SCRAP lot deposits the crawler's matching TL pool bucket
  *     instead of minting a crawler lot.
  *   - Unlinked crawler → Stow disabled with an honest title reason.
- *   - Over-capacity renders honest red pips (data-cpip="over"), never
+ *   - Over-capacity renders honest red SlotGrid cells (status-bad), never
  *     clamped.
  *
  * Conventions: toBeTruthy() not toBeInTheDocument(), dep-injected store.
@@ -153,15 +153,21 @@ describe('MechSheet — The Hold (Stow →)', () => {
     expect(stow.getAttribute('title')).toMatch(/no crawler linked/i)
   })
 
-  test('over-capacity renders honest red pips (never clamped)', () => {
-    // Cap 6 (Scrapper) but 8 units held → 2 over-pips.
+  test('over-capacity renders honest red SlotGrid cells (never clamped)', () => {
+    // Cap 6 (Scrapper) but 8 units held → 2 over-capacity cells.
     const mech = makeMech({
       cargoLots: [makeUnitLot('Big Thing', { units: 8 })],
     })
-    const { container } = render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
+    render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
 
-    expect(container.querySelectorAll('[data-cpip="over"]').length).toBe(2)
-    expect(container.querySelectorAll('[data-cpip="on"]').length).toBe(6)
+    // The capacity strip is the canonical SlotGrid: filled = cargo-toned
+    // cells, over-capacity = status-bad cells, and the accessible label
+    // narrates the overflow.
+    const grid = screen.getByRole('img', {
+      name: /hold 8 of 6 slots used — over capacity/i,
+    })
+    expect(grid.querySelectorAll('.bg-status-bad').length).toBe(2)
+    expect(grid.querySelectorAll('.bg-cargo').length).toBe(6)
     expect(screen.getByText(/over capacity/i)).toBeTruthy()
   })
 

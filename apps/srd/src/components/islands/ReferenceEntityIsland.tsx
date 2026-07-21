@@ -3,7 +3,7 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { isAbility } from 'salvageunion-reference'
 import {
   ReferenceEntityCard,
-  CardSkeleton,
+  Skeleton,
   getClassSelections,
   ClassAbilityTree,
   EntityHrefProvider,
@@ -59,12 +59,12 @@ export function ReferenceEntityIsland({
         schemas={preloadSchemas}
         fallback={
           <div className="mx-auto w-full max-w-6xl p-4">
-            <CardSkeleton compact={compact} />
+            <Skeleton mode="card" compact={compact} />
           </div>
         }
       >
         <div className="mx-auto w-full max-w-6xl p-4">
-          <Suspense fallback={<CardSkeleton compact={compact} />}>
+          <Suspense fallback={<Skeleton mode="card" compact={compact} />}>
             <EntityHrefProvider value={srdEntityHref}>
               <EntityDetailLinkProvider value={true}>
                 <ReferenceEntityCard

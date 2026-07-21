@@ -3,14 +3,15 @@
  * - condense = sticky bar + MiniStat strip, fade-in driven by an
  *   IntersectionObserver threshold with aria-hidden + pointer-events gating
  * - syncStats overlays derived values onto strip items by key
- * - Erow mode 'card' folds footMeta into the card foot
+ *
+ * (The entity-grid primitive tests live with the shared component:
+ * component-lib EntityGrid.test.tsx.)
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, render, screen } from '@testing-library/react'
 
 import { LiveSheet } from '../LiveSheet'
-import { Ecflow, Erow } from '../Erow'
 import { must } from '../../__tests__/must'
 
 afterEach(() => {
@@ -182,72 +183,5 @@ describe('LiveSheet — strip values and syncStats', () => {
     const folded = must(screen.getByText('3/4').parentElement)
     expect(folded.classList.contains('hidden')).toBe(true)
     expect(folded.classList.contains('sm:inline-flex')).toBe(true)
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Erow — card mode folds footMeta into the wrapped card's foot props
-// (card actions ride the card's own controls overlay, not the foot)
-// ---------------------------------------------------------------------------
-
-type StubCardProps = {
-  footMeta?: Array<{ label: string; value: React.ReactNode }>
-}
-
-// biome-ignore lint/style/useComponentExportOnlyModules: test-local stub component; Fast Refresh does not apply to test files
-function StubCard({ footMeta }: StubCardProps) {
-  return (
-    <div>
-      <span>Card body</span>
-      {footMeta?.map((m) => (
-        <span key={m.label}>
-          {m.label}: {m.value}
-        </span>
-      ))}
-    </div>
-  )
-}
-
-describe('Erow — mode card (shipped default)', () => {
-  test('injects footMeta into the wrapped card', () => {
-    render(
-      <Ecflow>
-        <Erow footMeta={[{ label: 'AP Cost', value: 1 }]}>
-          <StubCard />
-        </Erow>
-      </Ecflow>
-    )
-    expect(screen.getByText('AP Cost: 1')).toBeTruthy()
-  })
-
-  test('Ecflow caps the entity-card grid at 2 columns on desktop, 1 on mobile', () => {
-    // Redesign rule: max 2 columns for any entity-card grid.
-    const { container } = render(
-      <Ecflow>
-        <Erow>
-          <StubCard />
-        </Erow>
-      </Ecflow>
-    )
-    const grid = container.firstElementChild as HTMLElement
-    expect(grid.className).toContain('grid-cols-1')
-    expect(grid.className).toContain('md:grid-cols-2')
-  })
-})
-
-describe('Erow — mode rail', () => {
-  test('renders the side callout with meta and actions beside the card', () => {
-    render(
-      <Erow
-        mode="rail"
-        actions={<button type="button">Repair</button>}
-        footMeta={[{ label: 'Slots', value: 2 }]}
-      >
-        <StubCard />
-      </Erow>
-    )
-    expect(screen.getByText('Card body')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Repair' })).toBeTruthy()
-    expect(screen.getByText('Slots')).toBeTruthy()
   })
 })

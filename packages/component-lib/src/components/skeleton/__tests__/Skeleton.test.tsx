@@ -19,4 +19,12 @@ describe('Skeleton', () => {
     const rows = container.querySelectorAll('.border-chrome')
     expect(rows.length).toBe(4)
   })
+
+  test('card mode: compact tightens the band (absorbed CardSkeleton density)', () => {
+    const { container: full } = render(<Skeleton mode="card" />)
+    expect(full.querySelector('.min-h-\\[80px\\]')).not.toBeNull()
+    cleanup()
+    const { container: compact } = render(<Skeleton mode="card" compact />)
+    expect(compact.querySelector('.min-h-\\[60px\\]')).not.toBeNull()
+  })
 })

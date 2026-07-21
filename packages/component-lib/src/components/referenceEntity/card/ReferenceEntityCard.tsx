@@ -45,6 +45,7 @@ import { STAMP_SEAM } from '../../chrome/stampSeam'
 import { ActivationCost } from '../../shared/ActivationCost'
 import { CardImage } from '../../shared/CardImage'
 import { CardControlRail } from '../../shared/CardControlRail'
+import { foldStatusControl } from '../../shared/DisplayCard'
 import type { CardFootMeta } from '../../shared/DisplayCard'
 import { Stat } from '../../shared/Stat'
 import type { StatItem } from '../../shared/statsBarTypes'
@@ -60,6 +61,7 @@ import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
 import { EntityCardSubHeader } from './EntityCardSubHeader'
 import type { EntityCardSubHeaderCell } from './EntityCardSubHeader'
 import { resolveFoldedAction } from './resolveFoldedAction'
+import { stripHostParenthetical } from './stripHostParenthetical'
 import {
   ghostActionTone,
   resolveAxisMarkers,
@@ -105,6 +107,12 @@ export type ReferenceEntityCardProps = {
   /** The SUMMONING (parent) entity's tone as a resolvable CSS colour — threaded
    * onto a nested ACTION card, whose bands are this tone GHOSTED. */
   hostTone?: string
+  /** The SUMMONING (parent) entity's display name — threaded alongside
+   * `hostTone` so a nested ACTION whose dataset name carries the ` (Host)`
+   * disambiguation suffix (e.g. "Refine (Nanite Sifter)") drops it when the
+   * host card already establishes that context. Display-only; the data keeps
+   * the full unique name. */
+  hostName?: string
   /** The parent is damaged/destroyed — threaded down so every nested card in the
    * subtree gets the same grey treatment as the damaged parent. */
   hostDown?: boolean
@@ -456,6 +464,7 @@ function ReferenceEntityCardInner({
   parentSeal,
   pattern,
   hostTone,
+  hostName,
   hostDown,
   chassisName,
   droneLoadout,
@@ -647,7 +656,15 @@ function ReferenceEntityCardInner({
   const isPatternListing = isPattern && extent === 'head'
   // A pattern's title is its name in QUOTES — `"SURVEYOR"`. The word "Pattern"
   // is no longer carried in the data (chassis.json), so nothing to strip here.
-  const name = titleOverride ?? (isPattern ? `"${pattern.name}"` : entityName)
+  // A nested ACTION drops its ` (Host)` disambiguation suffix when the host is
+  // this card's own context (display only — `entityName` keeps the full name).
+  const name =
+    titleOverride ??
+    (isPattern
+      ? `"${pattern.name}"`
+      : isAction
+        ? stripHostParenthetical(entityName, hostName)
+        : entityName)
   const effectiveSeal = parentSeal
   // `[(CHASSIS)]` content tokens resolve to the owning chassis name — this card's
   // own name when it IS a chassis, else the name threaded down from the parent.
@@ -986,17 +1003,13 @@ function ReferenceEntityCardInner({
     ? { border: `3px solid ${frameColor}`, boxShadow: '0 0 0 3px var(--color-rust)' }
     : { border: `3px solid ${frameColor}` }
   // Condition — routed into the shared rail as a status CONTROL rather than a
-  // bespoke seal, so the badge has one implementation across both card layers.
-  // The prop stays public (it is purely presentational); only the path changed.
-  const railControls: ReferenceEntityControl[] = status
-    ? [
-        {
-          key: '__status',
-          status: { value: status, onClick: onStatusClick, subject: entityName },
-        },
-        ...(overlayControls ?? []),
-      ]
-    : (overlayControls ?? [])
+  // bespoke seal, via the same `foldStatusControl` the DisplayCard shell uses,
+  // so the badge (and the fold rule) has one implementation across both card
+  // layers. The prop stays public (it is purely presentational).
+  const railControls = foldStatusControl(overlayControls, status, {
+    onClick: onStatusClick,
+    subject: entityName,
+  })
   // Label callout — a stamp straddling the top-left frame.
   const labelCallout = label ? (
     <div className={cn('absolute left-3 z-30', compact ? 'top-0 -translate-y-1/2' : '-mt-2')}>
@@ -1533,6 +1546,7 @@ function ReferenceEntityCardInner({
             data={nested}
             parentSeal={seal}
             hostTone={childHostTone}
+            hostName={entityName}
             chassisName={resolvedChassisName}
           />
         </div>
@@ -1553,6 +1567,7 @@ function ReferenceEntityCardInner({
               data={nested}
               parentSeal={seal}
               hostTone={childHostTone}
+              hostName={entityName}
               chassisName={resolvedChassisName}
             />
           ))}
@@ -1575,6 +1590,7 @@ function ReferenceEntityCardInner({
                   data={nested}
                   parentSeal={seal}
                   hostTone={childHostTone}
+                  hostName={entityName}
                   chassisName={resolvedChassisName}
                 />
               </div>
@@ -1590,6 +1606,7 @@ function ReferenceEntityCardInner({
             data={orphan}
             parentSeal={seal}
             hostTone={childHostTone}
+            hostName={entityName}
             chassisName={resolvedChassisName}
           />
         )}
@@ -1694,6 +1711,7 @@ function ReferenceEntityCardInner({
             hostDown={isDown}
             data={npc}
             hostTone={ownToneBase}
+            hostName={entityName}
             chassisName={resolvedChassisName}
             // Thread the write-layer so the NPC's crew choices (Name / Motto /
             // Keepsake) render as real inputs in editable mode — they share the
@@ -1764,7 +1782,7 @@ function ReferenceEntityCardInner({
                   Grenade's own "Grenade" action) would be redundant noise. */}
                 {foldedAction?.name &&
                   foldedAction.name !== entityName &&
-                  renderSectionHeading(foldedAction.name)}
+                  renderSectionHeading(stripHostParenthetical(foldedAction.name, entityName))}
                 <Content
                   body={foldedActionContent}
                   compact={compact}
@@ -1871,6 +1889,7 @@ function ReferenceEntityCardInner({
                     hostDown={isDown}
                     data={action as unknown as SURefEntity}
                     hostTone={ownToneBase}
+                    hostName={entityName}
                     chassisName={resolvedChassisName}
                   />
                 </div>
@@ -1882,6 +1901,7 @@ function ReferenceEntityCardInner({
                   hostDown={isDown}
                   data={action as unknown as SURefEntity}
                   hostTone={ownToneBase}
+                  hostName={entityName}
                   chassisName={resolvedChassisName}
                 />
               )

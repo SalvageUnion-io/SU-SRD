@@ -74,10 +74,27 @@ export function EntityCardHeader({
   const statsNode =
     stats.length > 0 ? <EntityCardStatBox stats={stats} compact={compact || listing} /> : null
 
-  // COMPACT: the title + flavor/stat cluster ALWAYS share ONE row and split the
-  // width dynamically — the cluster never wraps beneath the title, each side wraps
-  // WITHIN its own space. The title takes up to 60% (favoured when both need the
-  // room); the cluster takes the rest (≥40%). FULL: one row (firm gap).
+  // WIDTH ALLOCATION — who yields depends on WHAT occupies the right side.
+  // This rule has regressed in three directions (title under the stats, title
+  // wrapping beside an empty right side, title starved to one letter per line
+  // by flavour prose); EntityCardHeader.test.tsx pins all of them.
+  // - EMPTY → the title owns the full row. Reserving ~40% for a cluster that
+  //   isn't there forced needless wraps ("Coolant Flush" on two lines).
+  // - STAT CLUSTER only → stats are bounded, so they RESERVE their content
+  //   width and the title yields into the remainder (the original
+  //   title-overlapping-the-stats fix — kept).
+  // - FLAVOUR PROSE → prose is arbitrary-length, so IT yields: letting it
+  //   reserve content width drove the title to min-w-0 and stacked it one
+  //   character per line. The title reserves (capped at 60%), the prose wraps
+  //   into the rest.
+  const hasProse = !!rightContent
+  const hasRight = !!(rightContent || statsNode)
+
+  // COMPACT: the title + flavor/stat cluster share ONE row and split the width
+  // dynamically — the cluster never wraps beneath the title, each side wraps
+  // WITHIN its own space. With right-side content the title takes up to 60%
+  // and the cluster (flex-1, basis 0 — so it can never starve the title) takes
+  // the rest; with nothing beside it the title takes the full row.
   if (compact) {
     return (
       <div
@@ -89,8 +106,8 @@ export function EntityCardHeader({
         )}
         style={accent.style}
       >
-        <div className="min-w-0 max-w-[60%]">{titleNode}</div>
-        {(rightContent || statsNode) && (
+        <div className={cn('min-w-0', hasRight ? 'max-w-[60%]' : 'flex-1')}>{titleNode}</div>
+        {hasRight && (
           <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
             {rightContent}
             {statsNode}
@@ -108,14 +125,24 @@ export function EntityCardHeader({
       )}
       style={accent.style}
     >
-      {/* Title column is the FLEXIBLE side — it grows into the free space and
-          wraps within it, yielding first so it can never run under the stats. */}
-      <div className="min-w-0 flex-1">{titleNode}</div>
-      {(rightContent || statsNode) && (
-        // Stats reserve their own width (they don't grow, and hold content size
-        // until the title is fully collapsed) and wrap internally, so the cluster
-        // is never overlapped and never clipped off the card edge.
-        <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+      {/* Stats-only (or empty) right side: the title is the FLEXIBLE side — it
+          grows into the free space and wraps within it, yielding first so it can
+          never run under the stats. With PROSE on the right the roles flip: the
+          title reserves its content width (capped at 60%, shrink-0 so no
+          pathological cluster can squeeze it) and the prose yields. */}
+      <div className={cn('min-w-0', hasProse ? 'max-w-[60%] shrink-0' : 'flex-1')}>{titleNode}</div>
+      {hasRight && (
+        // Stats-only: the cluster reserves its own width (it doesn't grow, and
+        // holds content size until the title is fully collapsed) and wraps
+        // internally, so it is never overlapped and never clipped off the card
+        // edge. With prose the cluster is flex-1 (basis 0): it fills whatever
+        // the title leaves and the prose wraps inside it.
+        <div
+          className={cn(
+            'flex min-w-0 flex-wrap items-center justify-end gap-2',
+            hasProse && 'flex-1'
+          )}
+        >
           {rightContent}
           {statsNode}
         </div>

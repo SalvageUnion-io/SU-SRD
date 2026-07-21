@@ -1,19 +1,47 @@
 import { useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { Stat } from '../components/shared/Stat'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import { InlineRef } from '../components/chrome/InlineRef'
+import { EntityTooltip } from '../components/referenceEntity/EntityTooltip'
 
 /**
- * Hook to parse text content for trait references and replace them with horizontal Stat chips (with an entity hover-tooltip)
+ * One in-prose trait reference, rendered through `InlineRef` (canonical
+ * primitive language §2: InlineRef absorbs parseTraitReferences). The trait
+ * name resolves against the traits schema; when found, the mark is wrapped in
+ * the rich entity hover-tooltip, else it renders as a plain inert mark. No
+ * `href` is passed — component-lib is route-agnostic, so these are the inert
+ * (ink dashed, tooltip-summoning) form of the ref, never the rust link.
+ */
+function TraitRef({ name, param }: { name: string; param?: string }) {
+  const trait = SalvageUnionReference.findIn(
+    'traits',
+    (t) => t.name.toLowerCase() === name.toLowerCase()
+  )
+  const label = param === undefined ? name : `${name} (${param})`
+  const mark = <InlineRef>{label}</InlineRef>
+  if (trait?.id) {
+    return (
+      <EntityTooltip schemaName="traits" entityId={trait.id} openDelay={300}>
+        {mark}
+      </EntityTooltip>
+    )
+  }
+  return mark
+}
+
+/**
+ * Hook to parse text content for trait references and replace them with in-prose
+ * `InlineRef` marks (with an entity hover-tooltip when the trait resolves)
  *
  * Supports two bracket notation patterns:
- * 1. Simple traits: [[trait-name]] -> a horizontal Stat with label="trait-name"
- * 2. Traits with parameters: [[[Trait Name] (parameter)]] -> a horizontal Stat with label="trait-name", value="parameter"
+ * 1. Simple traits: [[trait-name]] -> an InlineRef mark reading "trait-name"
+ * 2. Traits with parameters: [[[Trait Name] (parameter)]] -> an InlineRef mark reading "Trait Name (parameter)"
  *
  * Performance: Uses useMemo to prevent re-parsing on every render
  * Returns original text as-is if no bracket notation found (common case)
  *
  * @param text - The text content to parse
- * @returns Original text string if no matches, or array of React nodes (strings and horizontal Stat chips (with an entity hover-tooltip)) if matches found
+ * @returns Original text string if no matches, or array of React nodes (strings and InlineRef marks) if matches found
  */
 export function useParseTraitReferences(text: string | undefined): ReactNode {
   return useMemo(() => {
@@ -45,31 +73,11 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
         // Paragraph break: block spacer element
         nodes.push(<span key={`break-${match.index}`} className="block h-3" />)
       } else if (match[1] !== undefined && match[2] !== undefined) {
-        const traitName = match[1].trim()
-        const paramValue = match[2].trim()
-
         nodes.push(
-          <Stat
-            key={`trait-${match.index}`}
-            orientation="horizontal"
-            label={traitName}
-            value={paramValue}
-            compact
-            entityTooltip={{ schemaName: 'traits', label: traitName }}
-          />
+          <TraitRef key={`trait-${match.index}`} name={match[1].trim()} param={match[2].trim()} />
         )
       } else if (match[3] !== undefined) {
-        const traitName = match[3].trim()
-
-        nodes.push(
-          <Stat
-            key={`trait-${match.index}`}
-            orientation="horizontal"
-            label={traitName}
-            compact
-            entityTooltip={{ schemaName: 'traits', label: traitName }}
-          />
-        )
+        nodes.push(<TraitRef key={`trait-${match.index}`} name={match[3].trim()} />)
       }
 
       currentIndex = match.index + match[0].length

@@ -76,6 +76,7 @@ export { FilterRow } from './components/shared/FilterRow'
 export { MasonryColumns } from './components/shared/MasonryColumns'
 export { ModalShell } from './components/shared/ModalShell'
 export { EntitySearcher } from './components/shared/EntitySearcher'
+export { EntityGrid, EntityGridRow } from './components/shared/EntityGrid'
 export { EntityRow } from './components/shared/EntityRow'
 export type { EntityRowType, EntityRowStat } from './components/shared/EntityRow'
 export { CatalogChoiceModal } from './components/referenceEntity/choiceCard/CatalogChoiceModal'
@@ -87,7 +88,6 @@ export {
 } from './components/shared/techLevelStyles'
 
 // Skeletons
-export { CardSkeleton } from './components/skeleton/CardSkeleton'
 export { Skeleton } from './components/skeleton/Skeleton'
 export type { SkeletonMode } from './components/skeleton/Skeleton'
 

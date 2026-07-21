@@ -15,7 +15,8 @@
  *   column beside the card: a key/value dl of `footMeta` above a stacked,
  *   full-width action-button column.
  *
- * Re-implemented from ITUN's Ecflow/Erow onto shared component-lib tokens.
+ * Re-implemented from ITUN's Ecflow/Erow (since deleted — the sheets render
+ * through this primitive now) onto shared component-lib tokens.
  */
 
 import { cloneElement } from 'react'

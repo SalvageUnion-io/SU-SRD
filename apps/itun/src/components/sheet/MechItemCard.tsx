@@ -1,5 +1,5 @@
 /**
- * MechItemCard — ONE installed system/module as an Erow'd COMPACT entity card
+ * MechItemCard — ONE installed system/module as an EntityGridRow'd COMPACT entity card
  * (design §4.3, plan 4.5; redesign phase 2: compact listing cards, max 2-up).
  *
  * Every affordance rides the card's controls overlay (no footer actions);

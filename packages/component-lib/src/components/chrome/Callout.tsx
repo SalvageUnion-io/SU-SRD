@@ -3,13 +3,31 @@ import { cn } from '../../utils/cn'
 import { DisplayCard } from '../shared/DisplayCard'
 import { Badge } from './Badge'
 
+/**
+ * Callout accents — the closed set (ruleset §4.1: colour lives in tokens, not
+ * call sites). Entity tones frame entity-flavoured notes; `bad` is the
+ * "When Damaged" accent; `ink` is the neutral note.
+ */
+export type CalloutTone = 'ink' | 'pilot' | 'mech' | 'crawler' | 'bad'
+
+const CALLOUT_ACCENT: Record<CalloutTone, string> = {
+  ink: 'var(--color-ink)',
+  pilot: 'var(--color-sheet-pilot)',
+  mech: 'var(--color-sheet-mech)',
+  crawler: 'var(--color-sheet-crawler)',
+  bad: 'var(--color-status-bad)',
+}
+
+/** The header band is always a pale tint of the accent — one formula, no knob. */
+function bandTint(tone: CalloutTone): string {
+  return `color-mix(in srgb, ${CALLOUT_ACCENT[tone]} 12%, var(--color-paper))`
+}
+
 type CalloutProps = {
   /** Optional stamp header — rendered through the canonical Badge stamp atom. */
   label?: string
-  /** Frame colour — the 3px solid border. Defaults to ink. */
-  accent?: string
-  /** Header-band background behind the label (a tint of the accent). Omit for no band. */
-  headerBg?: string
+  /** Accent tone — the 3px solid frame, and (with a label) the band tint. */
+  tone?: CalloutTone
   /** Compact spacing (dense listings / nested content). */
   compact?: boolean
   /** Body content — a paper panel under the header. */
@@ -24,6 +42,10 @@ type CalloutProps = {
  * following" options, the settlement examples) and crawler-bay "When Damaged"
  * effects. Content-agnostic (a Container, not an Atom).
  *
+ * The accent is a closed `tone` set, never a raw CSS colour — the band tint is
+ * derived from the tone (a 12% paper mix), so a callout cannot drift off the
+ * colour system one prop at a time.
+ *
  * Composed on `DisplayCard` — it is a card (frame, optional header band, paper
  * body) and was the last card-shaped thing hand-rolling its own div stack. Two
  * DisplayCard capabilities exist because this component needs them, and both
@@ -34,8 +56,7 @@ type CalloutProps = {
  */
 export function Callout({
   label,
-  accent = 'var(--color-ink)',
-  headerBg,
+  tone = 'ink',
   compact = false,
   children,
   className,
@@ -43,8 +64,8 @@ export function Callout({
   return (
     <DisplayCard
       size={compact ? 'medium' : 'large'}
-      borderColor={accent}
-      headerBgColor={headerBg}
+      borderColor={CALLOUT_ACCENT[tone]}
+      headerBgColor={label ? bandTint(tone) : undefined}
       headerContent={
         label ? (
           <Badge shape="stamp" size={compact ? 'mini' : 'compact'}>

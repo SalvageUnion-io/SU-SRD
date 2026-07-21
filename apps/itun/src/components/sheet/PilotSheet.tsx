@@ -48,7 +48,7 @@ import { EntitySearcher } from 'component-lib'
 import { useSoftLinks } from '../wiring/useSoftLinks'
 import { ConditionsEditor } from 'component-lib'
 import { destroyedUndoToast } from './destroyedUndoToast'
-import { Ecflow, Erow } from './Erow'
+import { EntityGrid, EntityGridRow } from 'component-lib'
 import { PilotIdentityPanel } from './PilotIdentity'
 import type { UsedToggleKey } from './PilotIdentity'
 import { SectionAddButton, SectionEditButton, SheetPickerModal, Slab } from 'component-lib'
@@ -433,18 +433,18 @@ export function PilotSheet({
         {pilot.abilities.length === 0 ? (
           <p className="font-body text-caption text-wk-muted">No abilities learned yet.</p>
         ) : (
-          <Ecflow>
+          <EntityGrid>
             {pilot.abilities.map((slug) => {
               const ability = resolveAbility(slug)
               if (!ability) {
                 return (
-                  <Erow key={slug}>
+                  <EntityGridRow key={slug}>
                     <Panel className="px-3 py-2.5 font-body text-sm text-wk-muted">{slug}</Panel>
-                  </Erow>
+                  </EntityGridRow>
                 )
               }
               return (
-                <Erow key={ability.id}>
+                <EntityGridRow key={ability.id}>
                   <PilotAbilityItem
                     ability={ability}
                     currentAP={pilot.currentAP ?? pilotMaxAP(pilot)}
@@ -464,10 +464,10 @@ export function PilotSheet({
                     }
                     readOnly={readOnly}
                   />
-                </Erow>
+                </EntityGridRow>
               )
             })}
-          </Ecflow>
+          </EntityGrid>
         )}
       </SheetSectionCard>
 
@@ -488,9 +488,9 @@ export function PilotSheet({
         {pilot.equipment.length === 0 && genericInventory.length === 0 ? (
           <p className="font-body text-caption text-wk-muted">Nothing carried.</p>
         ) : (
-          <Ecflow>
+          <EntityGrid>
             {pilot.equipment.map((slug) => (
-              <Erow key={slug}>
+              <EntityGridRow key={slug}>
                 <PilotEquipmentItem
                   slug={slug}
                   pilotId={pilot.id}
@@ -515,10 +515,10 @@ export function PilotSheet({
                   scalingParent={scalingParent}
                   store={store}
                 />
-              </Erow>
+              </EntityGridRow>
             ))}
             {genericInventory.map((entry, index) => (
-              <Erow key={entry.id}>
+              <EntityGridRow key={entry.id}>
                 <GenericEntryCard
                   entry={entry}
                   onRemove={
@@ -531,9 +531,9 @@ export function PilotSheet({
                         }
                   }
                 />
-              </Erow>
+              </EntityGridRow>
             ))}
-          </Ecflow>
+          </EntityGrid>
         )}
         {!readOnly && (
           <div className="mt-3">

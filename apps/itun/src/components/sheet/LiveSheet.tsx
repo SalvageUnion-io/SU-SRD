@@ -3,7 +3,7 @@
  * One shell, three variants, "so the three screens cannot drift apart".
  *
  * Render-prop contract (binding, plan 4.1):
- *   { variant, name, strip, back, rail, condense, cardActions,
+ *   { variant, name, strip, back, rail, condense,
  *     renderHero, renderBody, syncStats }
  *
  * App bar (poster `.appbar`, design source clean-pilot.html): back + overflow
@@ -70,10 +70,6 @@ type LiveSheetHeroContext = {
   rail: ReactNode
 }
 
-type LiveSheetBodyContext = {
-  cardActions: 'card' | 'rail'
-}
-
 type LiveSheetProps = {
   variant: SheetVariant
   name: string
@@ -93,10 +89,8 @@ type LiveSheetProps = {
   segments?: LiveSheetSegment[]
   /** Sticky condense bar on scroll (default true — shipped tweak default). */
   condense?: boolean
-  /** Erow action placement (default 'card' — shipped tweak default). */
-  cardActions?: 'card' | 'rail'
   renderHero: (ctx: LiveSheetHeroContext) => ReactNode
-  renderBody: (ctx: LiveSheetBodyContext) => ReactNode
+  renderBody: () => ReactNode
   /** Derived stat overlays merged onto strip items by key (e.g. {cargo: used}). */
   syncStats?: Record<string, number>
   /** Trailing top-bar actions (Share/Publish). */
@@ -146,7 +140,6 @@ export function LiveSheet({
   rail,
   segments,
   condense = true,
-  cardActions = 'card',
   renderHero,
   renderBody,
   syncStats,
@@ -279,7 +272,7 @@ export function LiveSheet({
       {/* Body slabs — extra phone bottom padding when the FAB floats so the
           last card's controls stay reachable behind the thumb zone. */}
       <div className={cn('px-4 pb-[34px] pt-[18px] sm:px-[30px] sm:pb-[60px] sm:pt-6')}>
-        {renderBody({ cardActions })}
+        {renderBody()}
       </div>
     </div>
   )

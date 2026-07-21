@@ -178,9 +178,9 @@ describe('Conditions', () => {
     const onAdd = mock(() => {})
     render(<Conditions conditions={['Burning', 'Stunned']} onRemove={onRemove} onAdd={onAdd} />)
     expect(screen.getByText('Burning')).toBeTruthy()
-    fireEvent.click(screen.getByLabelText('Remove Stunned'))
+    fireEvent.click(screen.getByLabelText('Remove condition Stunned'))
     expect(onRemove).toHaveBeenLastCalledWith('Stunned')
-    fireEvent.click(screen.getByRole('button', { name: '+ Add' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Add condition' }))
     expect(onAdd).toHaveBeenCalled()
   })
 

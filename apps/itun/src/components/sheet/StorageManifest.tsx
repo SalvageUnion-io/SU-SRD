@@ -2,8 +2,9 @@
  * StorageManifest — The Hold panel (design §2.12, plan 4.5/4.7).
  *
  * One component, two sides of the mech ⇄ crawler boundary:
- *   - side='mech' (mech sheet): capacity strip (used/cap + pips,
- *     over-capacity rendered honestly as red pips — never clamped), cargo
+ *   - side='mech' (mech sheet): capacity strip (used/cap + the canonical
+ *     SlotGrid cells, over-capacity rendered honestly as red cells — never
+ *     clamped), cargo
  *     chits (linear list, `CargoChit`) with 'Stow →' (whole-lot, SCRAP
  *     deposits the crawler's TL pool bucket), counterpart = the crawler's
  *     unlimited Storage Bay.
@@ -20,13 +21,13 @@
  * buttons entirely.
  */
 
-import { Stat } from 'component-lib'
+import { useId } from 'react'
+import { DisplayCard, SlotGrid, Stat } from 'component-lib'
 
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import { cn } from '../../lib/utils'
-import { DisplayCard } from 'component-lib'
 
 type StorageManifestSide = 'mech' | 'crawler'
 
@@ -44,6 +45,52 @@ type StorageManifestProps = {
 const SIDE_TINT: Record<StorageManifestSide, string> = {
   mech: 'var(--color-mech)',
   crawler: 'var(--color-crawler)',
+}
+
+/**
+ * Diagonal cargo hazard stripes for the BULK marker cell — the poster's
+ * repeating-gradient fill rebuilt as an SVG pattern. Flat repeating patterns
+ * are SVG, never gradient fills (ruleset §3.5 — no gradients, anywhere).
+ */
+function HazardStripes() {
+  const id = useId()
+  return (
+    <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full">
+      <defs>
+        <pattern
+          id={id}
+          width="10"
+          height="10"
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(45)"
+        >
+          <rect width="10" height="10" className="fill-cargo" />
+          <rect x="5" width="5" height="10" className="fill-cargo-deep" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill={`url(#${id})`} />
+    </svg>
+  )
+}
+
+/**
+ * The crawler Hold's poster `.storebody` graph-paper backdrop — a 34px
+ * tone-tinted grid, rebuilt as an SVG pattern for the same §3.5 reason.
+ */
+function GraphPaper() {
+  const id = useId()
+  const line = { fill: 'color-mix(in srgb, var(--tone) 16%, transparent)' }
+  return (
+    <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full">
+      <defs>
+        <pattern id={id} width="34" height="34" patternUnits="userSpaceOnUse">
+          <rect width="34" height="1" style={line} />
+          <rect width="1" height="34" style={line} />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill={`url(#${id})`} />
+    </svg>
+  )
 }
 
 /** Per-unit slot cost of a bulk lot (mirrors the reducer's accounting). */
@@ -96,26 +143,22 @@ function CargoChit({ lot, side, cargo, linked, readOnly }: CargoChitProps) {
     >
       {/* Marker cell: BULK ×N bronze stripes / UNIT ink diamond */}
       <span
-        className="flex w-[42px] shrink-0 flex-col items-center justify-center gap-0.5 py-1.5 text-paper"
-        style={
-          lot.kind === 'bulk'
-            ? {
-                background:
-                  'repeating-linear-gradient(135deg, var(--color-cargo) 0 5px, var(--color-cargo-deep) 5px 10px)',
-              }
-            : { background: 'var(--color-ink)' }
-        }
+        className={cn(
+          'relative flex w-[42px] shrink-0 flex-col items-center justify-center gap-0.5 overflow-hidden py-1.5 text-paper',
+          lot.kind !== 'bulk' && 'bg-ink'
+        )}
       >
+        {lot.kind === 'bulk' && <HazardStripes />}
         {lot.kind === 'bulk' ? (
-          <span className="font-body text-lede font-bold leading-none">
+          <span className="relative font-body text-lede font-bold leading-none">
             &times;{lot.qty ?? lot.units}
           </span>
         ) : (
-          <span aria-hidden="true" className="text-caption leading-none">
+          <span aria-hidden="true" className="relative text-caption leading-none">
             &#9670;
           </span>
         )}
-        <span className="font-cond text-nano font-semibold uppercase tracking-caps">
+        <span className="relative font-cond text-nano font-semibold uppercase tracking-caps">
           {lot.kind === 'bulk' ? 'Bulk' : 'Unit'}
         </span>
       </span>
@@ -256,7 +299,7 @@ export function StorageManifest({
             </span>
           </>
         }
-        cardStyle={{ className: 'shadow-[0_2px_8px_-3px_rgba(40,32,25,0.4)]' }}
+        cardStyle={{ className: 'shadow-[0_2px_8px_-3px_var(--color-ink-50)]' }}
         bodyPadding="p-0"
       >
         {/* Capacity strip */}
@@ -272,28 +315,15 @@ export function StorageManifest({
               <span className="font-cond text-label font-bold uppercase tracking-caps text-ink opacity-70">
                 Units
               </span>
-              <span
-                className="flex flex-wrap gap-1"
-                role="img"
-                aria-label={`Hold ${used} of ${cap} slots used${over ? ' — over capacity' : ''}`}
-              >
-                {Array.from({ length: Math.max(cap, used) }, (_, i) => (
-                  <span
-                    // biome-ignore lint/suspicious/noArrayIndexKey: capacity pips are purely positional — the index IS the pip's identity
-                    key={i}
-                    data-cpip={i < used ? (i >= cap ? 'over' : 'on') : 'off'}
-                    className="h-[13px] w-[13px] rounded-[2px] border-chrome border-ink"
-                    style={{
-                      background:
-                        i < used
-                          ? i >= cap
-                            ? 'var(--color-status-bad)'
-                            : 'var(--color-cargo)'
-                          : 'transparent',
-                    }}
-                  />
-                ))}
-              </span>
+              {/* The canonical addressable-slot cells (ruleset §5 atom 10):
+                  dashed = empty, cargo = filled, status-bad = over-capacity —
+                  never clamped. */}
+              <SlotGrid
+                used={used}
+                cap={cap}
+                scale="sheet"
+                label={`Hold ${used} of ${cap} slots used${over ? ' — over capacity' : ''}`}
+              />
               {free > 0 && (
                 <span className="font-cond text-label font-bold uppercase text-ink opacity-70">
                   {free} free
@@ -330,15 +360,9 @@ export function StorageManifest({
         {lots.length === 0 ? (
           <p className="m-0 px-3 py-4 text-center font-body text-xs text-wk-muted">Hold empty.</p>
         ) : side === 'crawler' ? (
-          <div
-            className="p-3"
-            style={{
-              backgroundColor: 'var(--paper)',
-              backgroundImage:
-                'repeating-linear-gradient(0deg, color-mix(in srgb, var(--tone) 16%, transparent) 0 1px, transparent 1px 34px), repeating-linear-gradient(90deg, color-mix(in srgb, var(--tone) 16%, transparent) 0 1px, transparent 1px 34px)',
-            }}
-          >
-            <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5 p-0">
+          <div className="relative bg-paper p-3">
+            <GraphPaper />
+            <ul className="relative m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5 p-0">
               {lots.map((lot) => (
                 <CargoTile
                   key={lot.id}

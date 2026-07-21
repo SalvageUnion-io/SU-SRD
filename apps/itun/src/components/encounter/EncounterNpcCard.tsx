@@ -10,7 +10,7 @@
  */
 
 import { useMemo, useState } from 'react'
-import { Button, ModalShell, Stat, useDetailModal } from 'component-lib'
+import { Button, Conditions, ModalShell, Stat, useDetailModal } from 'component-lib'
 
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { FindRollTable } from '../../lib/rules/mediatorTables'
@@ -63,7 +63,10 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
     void patch({ conditions: [...npc.conditions, next] })
   }
 
-  function removeCondition(index: number) {
+  /** Remove the first occurrence — identical strings are indistinguishable. */
+  function removeCondition(condition: string) {
+    const index = npc.conditions.indexOf(condition)
+    if (index < 0) return
     void patch({ conditions: npc.conditions.filter((_, i) => i !== index) })
   }
 
@@ -146,25 +149,13 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
                 Conditions
               </span>
               <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                {npc.conditions.map((condition, index) => (
-                  <span
-                    // biome-ignore lint/suspicious/noArrayIndexKey: conditions are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
-                    key={`${condition}-${index}`}
-                    className="inline-flex items-center gap-1 rounded-[2px] border-chrome border-status-warn bg-paper px-1.5 py-0.5 font-cond text-xs font-semibold uppercase text-rust"
-                  >
-                    {condition}
-                    {/* 24px hit area (WCAG 2.5.8) — negative margin keeps the
-                      pill visually compact while the target stays tappable. */}
-                    <button
-                      type="button"
-                      aria-label={`Clear ${condition} on ${npc.name}`}
-                      onClick={() => removeCondition(index)}
-                      className="-my-1 -mr-1 inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-[2px] leading-none text-rust hover:bg-status-warn/20 hover:text-status-bad"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
+                {npc.conditions.length > 0 && (
+                  <Conditions
+                    conditions={npc.conditions}
+                    onRemove={removeCondition}
+                    removeLabel={(condition) => `Clear ${condition} on ${npc.name}`}
+                  />
+                )}
                 <input
                   type="text"
                   value={conditionDraft}

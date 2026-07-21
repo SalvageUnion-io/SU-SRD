@@ -74,7 +74,7 @@ import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
-import { Ecflow, Erow } from './Erow'
+import { EntityGrid, EntityGridRow } from 'component-lib'
 import {
   CardRemoveButton,
   REMOVABLE_CARD_STYLE,
@@ -259,14 +259,14 @@ export function CrawlerSheet({
                 </span>
               }
             >
-              <Ecflow>
+              <EntityGrid>
                 {bays.map((entry, i) => {
                   const isMechBay =
                     entry.bayRef === 'mech-bay' ||
                     resolveCrawlerBay(entry.bayRef)?.name === 'Mech Bay'
                   return (
                     // biome-ignore lint/suspicious/noArrayIndexKey: a crawler may install the same bay type more than once, so bayRef alone is not unique; bays are addressed positionally throughout the sheet
-                    <Erow key={`${entry.bayRef}-${i}`}>
+                    <EntityGridRow key={`${entry.bayRef}-${i}`}>
                       <CrawlerBayCard
                         crawlerId={crawler.id}
                         entry={entry}
@@ -279,10 +279,10 @@ export function CrawlerSheet({
                         readOnly={readOnly}
                         dockedMechName={isMechBay && mech ? mech.name : undefined}
                       />
-                    </Erow>
+                    </EntityGridRow>
                   )
                 })}
-              </Ecflow>
+              </EntityGrid>
             </SheetSectionCard>
           )}
 
@@ -306,11 +306,11 @@ export function CrawlerSheet({
               {crawler.systems.length === 0 ? (
                 <p className="font-body text-caption text-wk-muted">No weapons mounted.</p>
               ) : (
-                <Ecflow>
+                <EntityGrid>
                   {crawler.systems.map((slug) => {
                     const system = resolveCrawlerSystem(slug)
                     return (
-                      <Erow key={slug}>
+                      <EntityGridRow key={slug}>
                         {system ? (
                           <ReferenceEntityCard
                             data={system}
@@ -333,10 +333,10 @@ export function CrawlerSheet({
                             )}
                           </div>
                         )}
-                      </Erow>
+                      </EntityGridRow>
                     )
                   })}
-                </Ecflow>
+                </EntityGrid>
               )}
             </SheetSectionCard>
           )}

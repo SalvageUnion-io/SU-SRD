@@ -7,6 +7,9 @@ type SkeletonProps = {
   mode?: SkeletonMode
   /** Row / line count for `list` and `text` (and body lines for `card`). */
   rows?: number
+  /** `card` only: mirror the compact (medium) card density — shorter band,
+   * tighter body (the absorbed `CardSkeleton compact`). */
+  compact?: boolean
   className?: string
 }
 
@@ -21,13 +24,13 @@ export function Ghost({ className }: { className?: string }) {
  *
  * Mirrors the real anatomy (frame / band / body) with **ink-alpha ghosts on
  * off-white**, so the loaded content drops in with **zero layout shift**. The
- * card-specific `CardSkeleton` is a composition of this idea;
- * this is the atom, driven by `mode` + `rows`.
+ * former card-specific `CardSkeleton` is absorbed here as `mode="card"` (+
+ * `compact`); this is the atom, driven by `mode` + `rows`.
  */
-export function Skeleton({ mode = 'card', rows = 3, className }: SkeletonProps) {
+export function Skeleton({ mode = 'card', rows = 3, compact = false, className }: SkeletonProps) {
   if (mode === 'text') {
     return (
-      <div role="status" aria-label="Loading" className={cn('space-y-2', className)}>
+      <div role="status" aria-label="Loading" className={cn('animate-pulse space-y-2', className)}>
         {Array.from({ length: rows }).map((_, i) => (
           <Ghost
             // biome-ignore lint/suspicious/noArrayIndexKey: ghost lines are positional
@@ -41,7 +44,7 @@ export function Skeleton({ mode = 'card', rows = 3, className }: SkeletonProps) 
 
   if (mode === 'list') {
     return (
-      <div role="status" aria-label="Loading" className={cn('space-y-2', className)}>
+      <div role="status" aria-label="Loading" className={cn('animate-pulse space-y-2', className)}>
         {Array.from({ length: rows }).map((_, i) => (
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: ghost rows are positional
@@ -59,23 +62,35 @@ export function Skeleton({ mode = 'card', rows = 3, className }: SkeletonProps) 
     )
   }
 
-  // card — frame + band + body, mirroring the DisplayCard anatomy.
+  // card — frame + band + body, mirroring the DisplayCard anatomy. `compact`
+  // mirrors the medium (compact) card density: shorter band, tighter body.
   return (
     <div
       role="status"
       aria-label="Loading"
-      className={cn('overflow-hidden rounded-card border-2 border-ink/15 bg-paper', className)}
+      className={cn(
+        'animate-pulse overflow-hidden rounded-card border-2 border-ink/15 bg-paper',
+        className
+      )}
     >
-      <div className="flex items-center gap-2 bg-ink/10 px-3 py-2.5">
-        <Ghost className="h-4 w-2/5 bg-ink/20" />
-        <Ghost className="h-3 w-1/4 bg-ink/15" />
+      <div
+        className={cn(
+          'flex items-center gap-2 bg-ink/10 px-3',
+          compact ? 'min-h-[60px] py-2' : 'min-h-[80px] py-2.5'
+        )}
+      >
+        <Ghost className={cn('w-2/5 bg-ink/20', compact ? 'h-4' : 'h-6')} />
+        <Ghost className={cn('w-1/4 bg-ink/15', compact ? 'h-3' : 'h-4')} />
       </div>
-      <div className="space-y-2 p-3">
+      <div className={cn('space-y-2', compact ? 'p-2' : 'p-3')}>
         {Array.from({ length: rows }).map((_, i) => (
           <Ghost
             // biome-ignore lint/suspicious/noArrayIndexKey: ghost body lines are positional
             key={i}
-            className={cn('h-3', i === rows - 1 ? 'w-3/5' : i % 2 === 0 ? 'w-full' : 'w-4/5')}
+            className={cn(
+              compact ? 'h-3' : 'h-4',
+              i === rows - 1 ? 'w-3/5' : i % 2 === 0 ? 'w-full' : 'w-4/5'
+            )}
           />
         ))}
       </div>

@@ -1,9 +1,12 @@
 /**
  * ConditionsEditor — editable conditions block for the pilot live sheet (W2-3, #254).
  *
- * Renders active conditions as removable chips plus a "+ Add" affordance. There is
- * no canonical pilot-condition enum in salvageunion-reference, so conditions are
- * freeform strings entered via a small inline text input (design board-screens.jsx).
+ * Composes the canonical `Conditions` chip row (chrome/Conditions — Badge-built
+ * warn chips with × remove + the dashed '+ Add' affordance) inside the sheet's
+ * bordered well, adding what an editor needs on top: the "None" empty state and
+ * the inline text input that commits a new freeform condition. There is no
+ * canonical pilot-condition enum in salvageunion-reference, so conditions are
+ * freeform strings entered via that input (design board-screens.jsx).
  *
  * Persistence: onChange receives the next conditions array. Callers wire this to
  * store.update reading the freshest map from the store to avoid stale-closure
@@ -15,7 +18,7 @@
 
 import { useRef, useState } from 'react'
 
-import { cn } from '../../utils/cn'
+import { Conditions } from '../chrome/Conditions'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -25,33 +28,6 @@ type ConditionsEditorProps = {
   conditions: ReadonlyArray<string>
   onChange: (next: string[]) => Promise<void> | void
   readOnly?: boolean
-}
-
-// ---------------------------------------------------------------------------
-// Severity styling
-// ---------------------------------------------------------------------------
-
-/**
- * Conditions that carry a warn/severity tone in the design (amber "Exposed").
- * Compared case-insensitively. Anything not listed gets the neutral ink-fill
- * chip (poster `.cond.on`).
- */
-const WARN_CONDITIONS = new Set(['exposed'])
-
-/** Fill/border/text classes for a PRESENT (`.cond.on`) condition chip. */
-function chipToneClasses(condition: string): string {
-  if (WARN_CONDITIONS.has(condition.trim().toLowerCase())) {
-    return 'border-caution bg-caution text-ink'
-  }
-  return 'border-ink bg-ink text-paper'
-}
-
-/** The chip's leading dot (poster `.cond .dot` — accent-filled when ON). */
-function chipDotClasses(condition: string): string {
-  if (WARN_CONDITIONS.has(condition.trim().toLowerCase())) {
-    return 'border-ink bg-ink'
-  }
-  return 'border-[color:var(--tone,var(--color-pilot))] bg-[var(--tone,var(--color-pilot))]'
 }
 
 // ---------------------------------------------------------------------------
@@ -93,17 +69,13 @@ export function ConditionsEditor({
     cancelAdd()
   }
 
-  async function removeAt(index: number) {
+  /** Remove the first occurrence — identical strings are indistinguishable. */
+  async function remove(condition: string) {
     if (readOnly) return
+    const index = conditions.indexOf(condition)
+    if (index < 0) return
     await onChange(conditions.filter((_, i) => i !== index))
   }
-
-  // Poster `.cond` chip shape: 2px border, rounded-badge, min-h-8, a leading
-  // dot, cond-caps text. Present conditions always render the `.cond.on`
-  // fill (ink or warn-tone) + accent/ink dot; the "+ Add" affordance below
-  // uses the unset shape (solid ink-35 border, no dashed rule).
-  const chipBase =
-    'inline-flex min-h-8 items-center gap-1.5 rounded-badge border-2 px-2.5 py-1.5 font-cond text-label-lg font-bold uppercase leading-none tracking-caps'
 
   return (
     <div className="flex min-h-12 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-paper p-2.5">
@@ -111,81 +83,38 @@ export function ConditionsEditor({
         <span className="font-body text-xs text-wk-muted">None</span>
       )}
 
-      {conditions.map((condition, index) =>
-        readOnly ? (
-          // biome-ignore lint/suspicious/noArrayIndexKey: conditions are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
-          <span key={`${condition}-${index}`} className={cn(chipBase, chipToneClasses(condition))}>
-            <span
-              aria-hidden="true"
-              className={cn(
-                'h-[9px] w-[9px] shrink-0 rounded-full border-2',
-                chipDotClasses(condition)
-              )}
-            />
-            {condition}
-          </span>
-        ) : (
-          // biome-ignore lint/suspicious/noArrayIndexKey: conditions are free-form strings that may repeat; value+index is the most stable key available and chips hold no state
-          <span key={`${condition}-${index}`} className={cn(chipBase, chipToneClasses(condition))}>
-            <span
-              aria-hidden="true"
-              className={cn(
-                'h-[9px] w-[9px] shrink-0 rounded-full border-2',
-                chipDotClasses(condition)
-              )}
-            />
-            {condition}
-            <button
-              type="button"
-              aria-label={`Remove condition ${condition}`}
-              onClick={() => {
-                void removeAt(index)
-              }}
-              className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-pip leading-none hover:bg-paper/20"
-            >
-              <span aria-hidden className="text-[12px]">
-                ×
-              </span>
-            </button>
-          </span>
-        )
+      {/* Only rendered when it has chips or the '+ Add' affordance to show —
+          an empty row would still count as a flex item and double the gap. */}
+      {(conditions.length > 0 || (!readOnly && !adding)) && (
+        <Conditions
+          conditions={[...conditions]}
+          onRemove={readOnly ? undefined : (condition) => void remove(condition)}
+          onAdd={readOnly || adding ? undefined : startAdd}
+        />
       )}
 
-      {!readOnly &&
-        (adding ? (
-          <input
-            ref={inputRef}
-            type="text"
-            value={draft}
-            aria-label="New condition"
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                void commitAdd()
-              } else if (e.key === 'Escape') {
-                e.preventDefault()
-                cancelAdd()
-              }
-            }}
-            onBlur={() => {
+      {!readOnly && adding && (
+        <input
+          ref={inputRef}
+          type="text"
+          value={draft}
+          aria-label="New condition"
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
               void commitAdd()
-            }}
-            className="w-28 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge uppercase tracking-caps text-ink focus:outline-none focus:ring-1 focus:ring-rust/25"
-          />
-        ) : (
-          <button
-            type="button"
-            aria-label="Add condition"
-            onClick={startAdd}
-            className={cn(
-              chipBase,
-              'border-ink/35 bg-paper text-ink/55 hover:border-ink hover:text-ink'
-            )}
-          >
-            + Add
-          </button>
-        ))}
+            } else if (e.key === 'Escape') {
+              e.preventDefault()
+              cancelAdd()
+            }
+          }}
+          onBlur={() => {
+            void commitAdd()
+          }}
+          className="w-28 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge uppercase tracking-caps text-ink focus:outline-none focus:ring-1 focus:ring-rust/25"
+        />
+      )}
     </div>
   )
 }

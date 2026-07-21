@@ -9,8 +9,9 @@
  *   R1: Identity (span 7, the pattern-name/chassis fields + the 8-lozenge
  *       chassis-stats strip) ∥ Vitals (span 5, SP/EP/Heat `VitalGauge`s +
  *       Conditions).
- *   R2: Chassis Ability (span 7, the chassis's ability actions as Erow'd
- *       cards with a Use action that spends EP; blocked while shut down) ∥
+ *   R2: Chassis Ability (span 7, the chassis's ability actions as
+ *       EntityGridRow'd cards with a Use action that spends EP; blocked while
+ *       shut down) ∥
  *       Quirk & Appearance (span 5, ONE combined field section as a 2-row
  *       dt/dd list — the poster has no separate Quirk/Appearance cards).
  *   R3: Systems & Modules — KEPT as the existing two-section split (each its
@@ -45,7 +46,8 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { Stat, VitalGauge, heatDangerFrom, FieldError } from 'component-lib'
+import type { SURefEntity } from 'salvageunion-reference'
+import { Stat, VitalGauge, heatDangerFrom, FieldError, ReferenceEntityCard } from 'component-lib'
 
 import { useCargo } from '../../lib/cargo/useCargo'
 import { computeMechCapacity } from '../../lib/rules/capacity'
@@ -55,9 +57,8 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { ItemCondition, Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { EntitySearcher } from 'component-lib'
-import { ActionCardErow } from './ActionCardErow'
 import { destroyedUndoToast } from './destroyedUndoToast'
-import { Ecflow, Erow } from './Erow'
+import { EntityGrid, EntityGridRow } from 'component-lib'
 import { InlineEditTextArea } from 'component-lib'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
@@ -348,10 +349,10 @@ export function MechSheet({
       )
     }
     return (
-      <Ecflow>
+      <EntityGrid>
         {slugs.map((slug, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: the same system/module slug may be installed more than once, so the slug alone is not unique; install order is stable
-          <Erow key={`${slug}-${index}`}>
+          <EntityGridRow key={`${slug}-${index}`}>
             <MechItemCard
               slug={slug}
               entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
@@ -376,9 +377,9 @@ export function MechSheet({
                     }
               }
             />
-          </Erow>
+          </EntityGridRow>
         ))}
-      </Ecflow>
+      </EntityGrid>
     )
   }
 
@@ -513,7 +514,7 @@ export function MechSheet({
                 />
               }
             >
-              <Ecflow>
+              <EntityGrid>
                 {chassisAbilities.map((ability) => {
                   // Activating an ability (spending its EP) is a Guided-Play
                   // transaction — it lives on the Dashboard, not the Free-Edit
@@ -522,14 +523,22 @@ export function MechSheet({
                   const epCost =
                     typeof ability.activationCost === 'number' ? ability.activationCost : 0
                   return (
-                    <ActionCardErow
+                    // The ability's action card is not an entity card (no card
+                    // foot / controls of its own), so the EP cost renders in
+                    // the row's 'rail' callout beside it.
+                    <EntityGridRow
                       key={ability.id}
-                      ability={ability}
+                      mode="rail"
                       footMeta={epCost > 0 ? [{ label: 'EP Cost', value: epCost }] : undefined}
-                    />
+                    >
+                      <ReferenceEntityCard
+                        data={ability as unknown as SURefEntity}
+                        hostTone="var(--color-sheet-mech-deep)"
+                      />
+                    </EntityGridRow>
                   )
                 })}
-              </Ecflow>
+              </EntityGrid>
             </SheetSectionCard>
           </div>
         )}

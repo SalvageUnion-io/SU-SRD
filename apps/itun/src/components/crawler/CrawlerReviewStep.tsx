@@ -5,7 +5,7 @@ import type {
   SURefSystem,
 } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
-import { KvRow, Panel, ReferenceEntityCard, FieldError } from 'component-lib'
+import { Callout, KvRow, Panel, ReferenceEntityCard, FieldError } from 'component-lib'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
 
@@ -87,11 +87,12 @@ export function CrawlerReviewStep({
           {submitError && <FieldError className="mt-3">{submitError}</FieldError>}
         </Panel>
         {isAugmented && (
-          <Panel className="px-3 py-2.5 font-body text-sm text-ink">
-            <span className="font-cond font-bold uppercase tracking-caps">Reminder — </span>
-            every Pilot gains <strong>+1 Training Point</strong> (Augment ability tree only). Apply
-            it on each Pilot&rsquo;s sheet yourself.
-          </Panel>
+          <Callout label="Reminder" tone="crawler">
+            <span className="block font-body">
+              Every Pilot gains <strong>+1 Training Point</strong> (Augment ability tree only).
+              Apply it on each Pilot&rsquo;s sheet yourself.
+            </span>
+          </Callout>
         )}
       </div>
 
