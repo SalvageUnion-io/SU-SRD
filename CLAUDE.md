@@ -169,7 +169,11 @@ Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageU
 
 ### Development Workflow
 
-In the entity display system, card-level display state (compact, spacing, fontSize, damaged, disabled) flows through ReferenceEntityDisplayContext (packages/component-lib .../displayStateContext.ts) — nested components read it automatically, with explicit props as overrides. When adding NEW props that must reach nested components, verify the pass-through; run typecheck immediately after edits.
+In the entity display system, card size is TWO orthogonal axes — `size` (`large | medium | small`) and `extent` (`full | head | catalog`) — defined in `packages/component-lib/src/components/shared/displayMode.ts`. Nested cards derive their own rendering from these plus their nesting depth, rather than reading a shared context.
+
+This paragraph previously described a `ReferenceEntityDisplayContext` in a `displayStateContext.ts`, carrying `compact` / `spacing` / `fontSize` / `damaged` / `disabled`. None of that exists: the context, the file, and the `compact` / `listing` booleans were all removed when `ReferenceEntityCard` replaced the legacy render core. It is recorded here because this file is loaded into every session, so a stale claim in it is followed rather than checked — an agent would have gone looking for a context that had not existed for months.
+
+When adding a prop that must reach nested cards, pass it explicitly and run typecheck immediately after the edit.
 
 ### Debugging
 

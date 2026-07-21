@@ -79,8 +79,17 @@ same arc the entity card followed.
   Fable-authored design deck exploring the reconciled direction for all three
   sheets (desktop + mobile), the image affordance (empty + filled), and a
   decisions/variations panel. Built from the canonical vocabulary + tokens.
-- **L2 Pilot target — DONE.** `packages/component-lib/src/stories/livesheet/`
-  (`LiveSheetPoster.tsx` + `LiveSheetPoster.stories.tsx`), titled
+- **L2 Pilot target — DONE, then DELETED.** The poster lived at
+  `packages/component-lib/src/components/livesheet/` and was removed under the
+  standing rule that a component whose only consumer is its own story does not
+  stay in the tree. It was the clearest case in the repo: 621 lines reachable
+  only from Ladle. The direction it proved is preserved in the L1 mockup above
+  and in git history (`git show 046b244a~1 -- '*LiveSheetPoster*'`); when mech
+  and crawler are built, rebuild the pilot poster alongside them against real
+  app consumers rather than restoring a Ladle-only artifact.
+
+  What it was:
+  `LiveSheetPoster.tsx` + `LiveSheetPoster.stories.tsx`, titled
   `Compositions/Live Sheet`. The "Union Poster" **assembled entirely from
   existing primitives** — `DisplayCard` (identity + vitals bands), `VitalGauge`
   (kept — segmented), `Stat` (TP box), `Badge` stamp (field labels), `Slab`
@@ -89,12 +98,16 @@ same arc the entity card followed.
   390px mobile stories on real ORM data. Whitespace/legibility-first; the
   linked-player-entity rail stays at the bottom. Ladle-only, not barrel-exported.
   Both identity + vitals bands carry the accent header.
+
 - **L2 Legacy → New comparison — DONE, then REMOVED.** The three-way
   `Comparison` story (before · new read-only · new editable, one shared
   `pilotFixture`) served the review; it was deleted with the legacy capture on
   committing to the direction. The poster stories are now `Compositions/Live
 Sheet` → `Pilot` (read-only) · `Editable` · `Mobile`.
-- **Mech + Crawler target — TODO.** Pilot is the reference implementation; mech
+- **Mech + Crawler target — TODO.** The pilot poster was the reference
+  implementation and has since been deleted (see above), so this now starts
+  from the L1 mockup and the primitives themselves rather than from a working
+  sibling. Mech
   (Identity + ChassisStats ∥ SP/EP/Heat vitals — Heat gauge redlines near cap;
   **Chassis Ability rendered through `ReferenceEntityCard`, matching the SRD
   reference-entity chassis-ability rendering**; Systems ∥ Modules; Hold) and

@@ -314,4 +314,52 @@ describe('Ladle catalog: co-location', () => {
       .sort()
     expect(offenders).toEqual([])
   })
+
+  /**
+   * NOTHING LIVES ONLY IN THE CATALOG.
+   *
+   * A module whose only importers are `.stories.tsx` files is not a component —
+   * it is a prototype that the catalog keeps alive. It ships in no app, is
+   * exercised by no test, and yet is maintained, refactored and reviewed as
+   * though it were product code. `LiveSheetPoster` was 621 such lines: a
+   * genuinely good design exploration that nonetheless had to be read, moved
+   * and kept compiling by everyone who touched this package.
+   *
+   * The rule is the same one that applies to test-only code: delete it, or move
+   * it to a harness location where its role is explicit. Explore in a branch or
+   * a design doc — the catalog demonstrates what ships.
+   *
+   * HARNESS FILES ARE EXEMPT BY NAMING, not by allowlist: a leading underscore
+   * (`_harness.tsx`, `_dashboardStage.tsx`) marks shared story scaffolding,
+   * which is exactly the "move it to a harness location" outcome. That keeps the
+   * exemption self-documenting instead of a list that goes stale.
+   */
+  test('no module exists only to be rendered by a story', () => {
+    const modules = [...new Glob('**/*.{ts,tsx}').scanSync(SRC)]
+      .filter((f) => !f.endsWith('.stories.tsx'))
+      .filter((f) => !f.includes('__tests__') && !/\.test\.tsx?$/.test(f))
+      .filter((f) => !basename(f).startsWith('_'))
+
+    const importsOf = (file: string) => {
+      const body = readFileSync(join(SRC, file), 'utf8')
+      const dir = dirname(file)
+      return [...body.matchAll(/from\s+['"](\.[^'"]+)['"]/g)].map((m) =>
+        join(dir, m[1] ?? '').replace(/\\/g, '/')
+      )
+    }
+
+    const storyImports = new Set(storyFiles.flatMap(importsOf))
+    const otherImports = new Set(
+      [...modules, ...[...new Glob('**/*.test.{ts,tsx}').scanSync(SRC)]].flatMap(importsOf)
+    )
+
+    const offenders = modules
+      .filter((f) => {
+        const key = f.replace(/\.tsx?$/, '')
+        return storyImports.has(key) && !otherImports.has(key)
+      })
+      .map((f) => `${f} is imported only by stories — delete it, or make it a _harness file`)
+      .sort()
+    expect(offenders).toEqual([])
+  })
 })
