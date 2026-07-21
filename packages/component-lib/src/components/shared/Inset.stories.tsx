@@ -32,7 +32,7 @@ function Stage({ rule, children }: { rule: string; children: ReactNode }) {
 function Loz({ label, value, action }: { label: string; value: number; action?: ReactNode }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <Stat label={label} value={value} />
+      <Stat display label={label} value={value} />
       {action}
     </div>
   )

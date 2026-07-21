@@ -78,6 +78,7 @@ type StatPropKey =
   | 'inverse'
   | 'compact'
   | 'xs'
+  | 'display'
   | 'onChange'
   | 'onClick'
   | 'hoverText'
@@ -152,6 +153,22 @@ type ValueBoxProps = Exact<{
   state?: StatBorderState
   ariaLabel?: string
   compact?: boolean
+  /**
+   * DISPLAY rung — the readout is the thing being read, not an annotation.
+   * A 64px box with a `text-display` (26px) numeral, for figures meant to carry
+   * a panel at a glance (the crawler economy's Scrap / Tech Level / Crew).
+   *
+   * This exists because those readouts were previously hand-assembled in spans
+   * with an arbitrary 26px numeral and a hand-built `/max` slash — the library's
+   * worst §3.7 offender. Folding them onto Stat without a display rung shrank
+   * them to a 13px annotation, which was a legible loss on a headline number.
+   * The primitive was missing an anatomy, so the surface grew its own; the fix
+   * is the rung, not the hand-rolled markup.
+   *
+   * Mutually exclusive with `compact` / `xs` — display is the top of the same
+   * axis, not a modifier on top of it.
+   */
+  display?: boolean
   flash?: boolean
   inverse?: boolean
   hoverText?: string
@@ -339,6 +356,7 @@ function ValueBox({
   state = 'default',
   ariaLabel,
   compact = false,
+  display = false,
   flash = false,
   inverse = false,
   hoverText,
@@ -392,11 +410,11 @@ function ValueBox({
   const canEdit = mode === 'edit' && onChange !== undefined && Number.isFinite(numericValue)
   const atMin = numericValue <= min
   const atMax = max !== undefined && numericValue >= max
-  const btnSize = compact ? 'h-3 w-3 text-micro' : 'h-4 w-4 text-xs'
+  const btnSize = compact ? 'h-3 w-3 text-micro' : display ? 'h-5 w-5 text-sm' : 'h-4 w-4 text-xs'
   const btnResting = inverse ? 'border-paper bg-ink text-paper' : 'border-ink bg-paper text-ink'
   const btnHover = inverse ? 'hover:bg-paper hover:text-ink' : 'hover:bg-ink hover:text-paper'
 
-  const boxSize = compact ? 'h-8 min-w-8 px-0.5' : 'h-12 w-12'
+  const boxSize = compact ? 'h-8 min-w-8 px-0.5' : display ? 'h-16 min-w-16 px-1' : 'h-12 w-12'
   const boxRadius = compact ? 'rounded-card' : 'rounded-panel'
   // Disabled state: reduce overall opacity to signal disabled while preserving
   // foreground/background contrast. The default bg-paper / text-ink pair
@@ -412,12 +430,18 @@ function ValueBox({
       className={cn(
         'flex w-full items-baseline justify-center gap-px overflow-hidden whitespace-nowrap text-center font-bold',
         trueValueColor,
-        compact ? 'text-xs' : 'text-[0.85rem]'
+        compact ? 'text-xs' : display ? 'text-display' : 'text-caption'
       )}
     >
       {value}
       {max !== undefined && (
-        <span className={cn('font-normal', mutedMaxColor, compact ? 'text-micro' : 'text-label')}>
+        <span
+          className={cn(
+            'font-normal',
+            mutedMaxColor,
+            compact ? 'text-micro' : display ? 'text-caption' : 'text-label'
+          )}
+        >
           /{max}
         </span>
       )}

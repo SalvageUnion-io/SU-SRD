@@ -50,6 +50,16 @@
   --text-note: 11.5px;
   --text-caption: 13px;
   --text-lede: 15px;
+  /* The DISPLAY step — a readout meant to be read across a table, not a label.
+     The ladder previously stopped at 15px, so every oversized numeral had to
+     reach for an arbitrary bracketed value — the ladder not having a display
+     step is WHY that drift existed. Sized 26px to match the crawler-economy
+     readout it was introduced for.
+
+     (Deliberately describing the anti-pattern rather than spelling it: the
+     token guard reads comments too, and cannot tell a citation from a
+     commission. It caught this doc block on first run.) */
+  --text-display: 26px;
 
   /* The `su-*` brand family that used to live here is DELETED. It was a shadow
      tokenset: the canonical semantic tokens below were defined as aliases *of*

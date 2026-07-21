@@ -74,7 +74,11 @@ export function CrawlerEconFrame({ gauge, items, className }: CrawlerEconFramePr
 function EconLoz({ item }: { item: EconLozItem }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <Stat label={item.label} value={item.value} max={item.max} />
+      {/* `display`: these readouts ARE the panel — the Scrap / Tech Level / Crew
+          figures are meant to be read at a glance, not as annotations. Without
+          the rung they rendered at 13px, which lost the poster weight the
+          hand-rolled lozenge had. */}
+      <Stat display label={item.label} value={item.value} max={item.max} />
       {item.caption && (
         <span className="font-cond text-nano font-semibold uppercase tracking-caps-wide text-ink/55">
           {item.caption}
