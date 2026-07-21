@@ -68,7 +68,7 @@
     "format": "biome format --write . && prettier --write '**/*.md' '**/*.{yml,yaml}' --ignore-unknown --log-level=warn",
     "format:check": "biome format . && prettier --check '**/*.md' '**/*.{yml,yaml}' --ignore-unknown --log-level=warn",
     "test": "bun --filter \"*\" test",
-    "test:coverage": "bun --filter \"*\" test:coverage",
+    "test:coverage": "bun --filter salvageunion-reference test:coverage && bun --filter component-lib test:coverage && bun --filter srd test:coverage && bun --filter itun test:coverage && bun --filter discord-bot test:coverage",
     "test:package": "bun --filter salvageunion-reference test",
     "test:react": "bun --filter component-lib test",
     "test:web": "bun --filter srd test",

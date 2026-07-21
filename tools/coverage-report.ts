@@ -91,11 +91,25 @@ function parseLcov(path: string, workspaceRoot: string): { linesFound: number; l
 
 const results: WorkspaceCoverage[] = []
 const missing: string[] = []
+/** workspace -> why its lcov was absent. Keyed by NAME: `missing` stays a list
+ *  of bare workspace names because it is used for `baseline[...]` lookups. */
+const missingWhy: Record<string, string> = {}
 
 for (const workspace of WORKSPACES) {
   const lcovPath = join(root, workspace, 'coverage', 'lcov.info')
   if (!existsSync(lcovPath)) {
+    // Say WHICH of the two failures this is. A missing coverage DIRECTORY means
+    // the workspace's `test:coverage` never ran (or died before writing
+    // anything); a present directory with no lcov.info means the run happened
+    // but the reporter produced nothing. Those have different causes and the
+    // bare "(missing)" row could not tell them apart — which cost a real
+    // debugging cycle when apps/srd intermittently reported nothing in CI
+    // while its tests passed and exited 0.
+    const dir = join(root, workspace, 'coverage')
     missing.push(workspace)
+    missingWhy[workspace] = existsSync(dir)
+      ? 'coverage/ exists but holds no lcov.info — the run happened and the reporter produced nothing'
+      : 'no coverage/ directory at all — test:coverage did not run to completion'
     continue
   }
   const { linesFound, linesHit } = parseLcov(lcovPath, join(root, workspace))
@@ -174,7 +188,7 @@ if (regressions.length > 0) {
     if (r.status === 'missing') {
       lines.push(
         // biome-ignore lint/style/noNonNullAssertion: 'missing' rows are only pushed when baselinePct !== undefined (see rows construction above)
-        `- \`${r.workspace}\`: no coverage output was produced (baseline ${r.baselinePct!.toFixed(2)}%). A workspace with a recorded baseline must keep producing \`coverage/lcov.info\`.`
+        `- \`${r.workspace}\`: no coverage output was produced (baseline ${r.baselinePct!.toFixed(2)}%) — ${missingWhy[r.workspace] ?? 'reason unknown'}. A workspace with a recorded baseline must keep producing \`coverage/lcov.info\`.`
       )
     } else {
       lines.push(
