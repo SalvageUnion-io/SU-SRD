@@ -1,5 +1,5 @@
 import { Button } from '../chrome/Button'
-import { IdentityField } from '../sheet/IdentityField'
+import { Field } from '../chrome/Field'
 import type { MechRollField, MechRollTableDeps } from './mechRollTables'
 import { rollForMechField } from './mechRollTables'
 
@@ -42,7 +42,7 @@ export function MechFlavorStep({
 
   return (
     <div className="max-w-3xl space-y-3">
-      <IdentityField
+      <Field
         label={label}
         value={value}
         editing

@@ -5,7 +5,7 @@ import { ReferenceEntityCard, navigateControl } from 'component-lib'
 import { findNpcChoiceByName } from '../../lib/crawlerRefs'
 import type { ResolvedNpc } from '../../lib/crawlerRefs'
 import type { CrawlerWizardFormState, CrewNpcForm } from '../../lib/wizard/crawlerFormState'
-import { IdentityField } from 'component-lib'
+import { Field } from 'component-lib'
 
 type NpcSource = {
   /** Stable key — the bay ref or the type ref. */
@@ -101,7 +101,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
             />
             {isOpen && (
               <div className="grid grid-cols-1 gap-3 pb-2 pl-3 sm:grid-cols-2">
-                <IdentityField
+                <Field
                   label="Name"
                   value={value.name ?? ''}
                   editing
@@ -109,7 +109,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
                   placeholder="Name this crew lead"
                   ariaLabel={`${source.npc.position ?? 'crew'} name`}
                 />
-                <IdentityField
+                <Field
                   label="Background"
                   value={value.description ?? ''}
                   editing
@@ -118,7 +118,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
                   ariaLabel={`${source.npc.position ?? 'crew'} background`}
                 />
                 {showKeepsake && (
-                  <IdentityField
+                  <Field
                     label="Keepsake"
                     value={value.keepsake ?? ''}
                     editing
@@ -128,7 +128,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
                   />
                 )}
                 {showMotto && (
-                  <IdentityField
+                  <Field
                     label="Motto"
                     value={value.motto ?? ''}
                     editing

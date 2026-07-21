@@ -28,7 +28,7 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import { cn } from '../../lib/utils'
 import { ClassDetail, ClassOptionList } from 'component-lib'
 import { selectableClasses } from 'component-lib'
-import { IdentityField } from 'component-lib'
+import { Field } from 'component-lib'
 import { SheetPickerModal } from 'component-lib'
 import type { SheetPatch } from './sheetViewProps'
 
@@ -169,25 +169,25 @@ export function PilotIdentityPanel({
         <div className="flex min-w-0 flex-col gap-3">
           {/* Name lives here too: with the global Edit toggle gone, this is
               the pilot's name edit surface (the hero title mirrors it). */}
-          <IdentityField
+          <Field
             label="Name"
             value={pilot.name}
             editing={isEditing}
             onSave={saveRequired('name')}
           />
-          <IdentityField
+          <Field
             label="Callsign"
             value={pilot.callsign}
             editing={isEditing}
             onSave={saveRequired('callsign')}
           />
-          <IdentityField
+          <Field
             label="Class"
             value={resolveClassName(pilot.classRef)}
             editing={isEditing}
             onEditClick={openClassPicker}
           />
-          <IdentityField
+          <Field
             label="Appearance"
             value={pilot.appearance}
             editing={isEditing}
@@ -196,7 +196,7 @@ export function PilotIdentityPanel({
           />
         </div>
         <div className="flex min-w-0 flex-col gap-3">
-          <IdentityField
+          <Field
             label="Motto"
             value={pilot.motto}
             editing={isEditing}
@@ -204,7 +204,7 @@ export function PilotIdentityPanel({
             onSave={saveText('motto')}
             labelAction={usedChip('motto', 'motto')}
           />
-          <IdentityField
+          <Field
             label="Keepsake"
             value={pilot.keepsake}
             editing={isEditing}
@@ -212,7 +212,7 @@ export function PilotIdentityPanel({
             onSave={saveText('keepsake')}
             labelAction={usedChip('keepsake', 'keepsake')}
           />
-          <IdentityField
+          <Field
             label="Background"
             value={pilot.background}
             editing={isEditing}
@@ -227,7 +227,7 @@ export function PilotIdentityPanel({
           freeform backstory previously rendered via SheetDescription now
           lives as an extra full-width identity field. */}
       <div className="mt-3">
-        <IdentityField
+        <Field
           label="Bio"
           value={pilot.description ?? ''}
           editing={isEditing}

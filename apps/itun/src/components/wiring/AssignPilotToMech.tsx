@@ -13,7 +13,7 @@
  */
 
 import { useState } from 'react'
-import { Button, FieldError, ModalShell } from 'component-lib'
+import { Button, FieldError, ModalShell, Radio } from 'component-lib'
 
 import { usePilots } from '../../hooks/queries'
 import type { Pilot } from '../../lib/schemas/pilot'
@@ -107,23 +107,15 @@ export function AssignPilotToMech({
           ) : (
             <div className="space-y-2">
               {pilots.map((pilot) => (
-                <label
+                <Radio
                   key={pilot.id}
-                  className="flex cursor-pointer items-center gap-2 rounded-card border-chrome border-ink bg-paper p-2 hover:bg-wk-bg-2"
-                >
-                  <input
-                    type="radio"
-                    name="pilot-select"
-                    value={pilot.id}
-                    checked={selectedPilotId === pilot.id}
-                    onChange={() => setSelectedPilotId(pilot.id)}
-                    className="accent-rust"
-                  />
-                  <span className="font-body text-sm font-medium text-ink">{pilot.name}</span>
-                  {pilot.callsign && (
-                    <span className="font-body text-xs text-wk-muted">{`“${pilot.callsign}”`}</span>
-                  )}
-                </label>
+                  name="pilot-select"
+                  value={pilot.id}
+                  checked={selectedPilotId === pilot.id}
+                  onChange={() => setSelectedPilotId(pilot.id)}
+                  label={pilot.name}
+                  description={pilot.callsign ? `“${pilot.callsign}”` : undefined}
+                />
               ))}
             </div>
           )}

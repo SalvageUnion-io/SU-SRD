@@ -25,7 +25,7 @@ import { useState } from 'react'
 import type { Mech } from '../../lib/schemas/mech'
 import { cn } from '../../lib/utils'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
-import { IdentityField } from 'component-lib'
+import { Field } from 'component-lib'
 import type { SheetPatch } from './sheetViewProps'
 
 type MechIdentityPanelProps = {
@@ -77,7 +77,7 @@ export function MechIdentityPanel({
     <section aria-label="Mech identity" className={cn('min-w-0', className)}>
       <div className="flex min-w-0 flex-col gap-3">
         {/* The prominent identity: pattern name (== the mech's name). */}
-        <IdentityField
+        <Field
           label="Pattern Name"
           value={mech.name}
           editing={isEditing}
@@ -85,16 +85,13 @@ export function MechIdentityPanel({
         />
         {/* Secondary meta: chassis (picker-backed) + Tech Level (derived). */}
         <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
-          <IdentityField
+          <Field
             label="Chassis"
             value={chassisName}
             editing={isEditing}
             onEditClick={() => setChassisPickerOpen(true)}
           />
-          <IdentityField
-            label="Tech Level"
-            value={techLevel !== undefined ? String(techLevel) : ''}
-          />
+          <Field label="Tech Level" value={techLevel !== undefined ? String(techLevel) : ''} />
         </div>
       </div>
 

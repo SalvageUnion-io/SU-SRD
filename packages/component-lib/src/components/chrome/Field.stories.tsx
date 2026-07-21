@@ -1,4 +1,5 @@
 import type { Story } from '@ladle/react'
+import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { Field, Input, Select, Textarea } from './Field'
@@ -76,3 +77,53 @@ export const Default: Story = () => (
     </div>
   </div>
 )
+
+/**
+ * Edit-in-place & picker — the absorbed IdentityField. Same straddling stamp;
+ * the dashed edit cue (not a pen) marks an editable field. Read-only fields
+ * carry a plain ink border. The sheet identity rows render exactly this way.
+ */
+export const Identity: Story = () => {
+  const [callsign, setCallsign] = useState('Ace')
+  const [motto, setMotto] = useState('No retreat, no surrender')
+
+  return (
+    <div className="sheet--pilot flex max-w-md flex-col gap-8 bg-paper p-8">
+      <div className="flex flex-col gap-2">
+        <Caption>Edit-in-place, editing — dashed cue = "write here"; click to type.</Caption>
+        <Field label="Callsign" value={callsign} editing onSave={setCallsign} />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Caption>Read-only — plain ink border, no cue (locked section / snapshot).</Caption>
+        <Field label="Callsign" value={callsign} />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Caption>Picker-backed — a button box opening the shared modal (real class).</Caption>
+        <Field
+          label="Class"
+          value={baseClasses()[0] ?? 'Salvager'}
+          editing
+          onEditClick={() => {}}
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Caption>Multiline + labelAction — the USED plate rides the opposite seam.</Caption>
+        <Field
+          label="Motto"
+          value={motto}
+          editing
+          multiline
+          onSave={setMotto}
+          labelAction={
+            <span className="rounded-full border-2 border-ink bg-ink px-2 py-0.5 font-cond text-[9.5px] font-bold uppercase leading-none tracking-caps-wide text-paper">
+              Used
+            </span>
+          }
+        />
+      </div>
+    </div>
+  )
+}

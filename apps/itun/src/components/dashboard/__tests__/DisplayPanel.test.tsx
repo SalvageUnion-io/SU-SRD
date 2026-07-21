@@ -186,7 +186,7 @@ describe('DisplayPanel', () => {
     }
     const { container } = renderDV(focus)
     // The explorer renders its search + tiles, never the generic placeholder.
-    expect(container.querySelector('.pc-srd-input')).toBeTruthy()
+    expect(container.querySelector('input[role="combobox"]')).toBeTruthy()
     expect(container.querySelectorAll('.pc-srd-tile').length).toBe(8)
     expect(container.querySelector('.pc-display-note')).toBeNull()
   })

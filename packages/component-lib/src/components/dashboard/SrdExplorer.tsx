@@ -21,6 +21,7 @@ import { useEffect, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { Button } from '../chrome/Button'
+import { Input } from '../chrome/Field'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { useSearchCombobox } from '../shared/useSearchCombobox'
 
@@ -143,9 +144,7 @@ function SrdHome({
   return (
     <div className="pc-srd-home">
       <div className="pc-srd-search">
-        <input
-          type="text"
-          className="pc-srd-input"
+        <Input
           placeholder="Search the SRD — chassis, systems, abilities, tables…"
           value={query}
           onChange={(e) => handleInput(e.target.value)}

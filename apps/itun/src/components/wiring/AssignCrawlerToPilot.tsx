@@ -15,7 +15,7 @@
  */
 
 import { useState } from 'react'
-import { Button, FieldError, ModalShell } from 'component-lib'
+import { Button, FieldError, ModalShell, Radio } from 'component-lib'
 
 import { useCrawlers } from '../../hooks/queries'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -109,21 +109,15 @@ export function AssignCrawlerToPilot({
           ) : (
             <div className="space-y-2">
               {crawlers.map((crawler) => (
-                <label
+                <Radio
                   key={crawler.id}
-                  className="flex cursor-pointer items-center gap-2 rounded-card border-chrome border-ink bg-paper p-2 hover:bg-wk-bg-2"
-                >
-                  <input
-                    type="radio"
-                    name="crawler-select"
-                    value={crawler.id}
-                    checked={selectedCrawlerId === crawler.id}
-                    onChange={() => setSelectedCrawlerId(crawler.id)}
-                    className="accent-rust"
-                  />
-                  <span className="font-body text-sm font-medium text-ink">{crawler.name}</span>
-                  <span className="font-body text-xs text-wk-muted">{crawler.techLevel}</span>
-                </label>
+                  name="crawler-select"
+                  value={crawler.id}
+                  checked={selectedCrawlerId === crawler.id}
+                  onChange={() => setSelectedCrawlerId(crawler.id)}
+                  label={crawler.name}
+                  description={crawler.techLevel}
+                />
               ))}
             </div>
           )}

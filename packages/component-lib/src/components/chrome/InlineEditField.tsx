@@ -1,9 +1,6 @@
 import { useRef, useState } from 'react'
-import { Glyph } from './glyphs'
-import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { Input, Textarea } from './Field'
-import { Badge } from './Badge'
 import { FieldError } from './FieldError'
 
 // ---------------------------------------------------------------------------
@@ -22,15 +19,14 @@ type InlineEditFieldProps = {
   /** 3-row textarea instead of a single-line input (Enter without Shift commits). */
   multiline?: boolean
   /**
-   * Optional uppercase label. When set, renders the IdentityField look: a small
-   * black label tab ~2px above a tone-bordered value box with a pinned pen.
+   * Frame the control as a full-width, ink-bordered value box (paper bg,
+   * `Input` skin) instead of inline text. This is the shape `Field` wraps its
+   * straddling stamp around for the sheet identity rows: the border is drawn
+   * ONCE (on the display box, or on the edit `Input` that replaces it), so
+   * there is never a box-in-box border. Plain (unset) stays inline editable
+   * text for stat/name cells.
    */
-  label?: string
-  /**
-   * Optional control rendered on the label row, opposite the label stamp (e.g.
-   * a roll-assist `Button`). Only shown in the labeled (`label` set) layout.
-   */
-  labelAction?: ReactNode
+  bordered?: boolean
   placeholder?: string
   /** Strip the edit affordance — renders as plain text only. */
   readOnly?: boolean
@@ -38,14 +34,12 @@ type InlineEditFieldProps = {
   className?: string
 }
 
-// ---------------------------------------------------------------------------
-// Pen glyph — pinned inside the labeled value box (design-spec `.ifield .pen`)
-// ---------------------------------------------------------------------------
-
 const ERROR_SKIN = 'border-status-bad focus:ring-status-bad/25'
 
 // ---------------------------------------------------------------------------
-// Component
+// Component — the pure edit-in-place engine. Labelling + the straddling stamp
+// live in `Field`; this atom owns only the click-to-edit / validate / commit
+// behaviour and (optionally, via `bordered`) the single value-box frame.
 // ---------------------------------------------------------------------------
 
 export function InlineEditField({
@@ -55,8 +49,7 @@ export function InlineEditField({
   min,
   max,
   multiline = false,
-  label,
-  labelAction,
+  bordered = false,
   placeholder,
   readOnly = false,
   ariaLabel,
@@ -67,9 +60,6 @@ export function InlineEditField({
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const areaRef = useRef<HTMLTextAreaElement>(null)
-
-  const fieldLabel = ariaLabel ?? label
-  const boxed = label !== undefined
 
   function startEdit() {
     if (readOnly) return
@@ -121,7 +111,7 @@ export function InlineEditField({
   }
 
   // -------------------------------------------------------------------------
-  // Display (not editing)
+  // Inner node (display readout, or the active editor)
   // -------------------------------------------------------------------------
 
   let inner: React.ReactNode
@@ -134,7 +124,7 @@ export function InlineEditField({
       <span
         role={readOnly ? undefined : 'button'}
         tabIndex={readOnly ? undefined : 0}
-        aria-label={fieldLabel}
+        aria-label={ariaLabel}
         onClick={readOnly ? undefined : startEdit}
         onKeyDown={
           readOnly
@@ -148,29 +138,29 @@ export function InlineEditField({
         }
         className={cn(
           // The display state is the tap target that opens the editor, so it
-          // keeps a 44px minimum in BOTH layouts — the sheet variant this
-          // component absorbed guaranteed that, and dropping to min-h-9 when
-          // not `boxed` would have silently shrunk it below the touch target.
+          // keeps a 44px minimum in BOTH layouts — dropping to min-h-9 would
+          // have silently shrunk it below the touch target.
           'inline-flex min-h-11 items-center font-body font-bold text-ink',
-          boxed && 'w-full pr-6',
+          // Bordered mode fills its value box; plain mode stays inline.
+          bordered && 'w-full rounded-card px-3',
           !hasValue && 'font-normal text-wk-muted',
           !readOnly &&
-            'cursor-pointer rounded-card px-1 hover:bg-wk-bg-2 focus:outline-none focus:ring-[3px] focus:ring-rust/25'
+            cn(
+              'cursor-pointer hover:bg-wk-bg-2 focus:outline-none focus:ring-[3px] focus:ring-rust/25',
+              !bordered && 'rounded-card px-1'
+            )
         )}
       >
         {hasValue ? value : (placeholder ?? '—')}
       </span>
     )
   } else if (multiline) {
-    // -----------------------------------------------------------------------
-    // Edit — multiline textarea
-    // -----------------------------------------------------------------------
     inner = (
       <Textarea
         ref={areaRef}
         value={draft}
         rows={3}
-        aria-label={fieldLabel}
+        aria-label={ariaLabel}
         placeholder={placeholder}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={(e) => void commit(e.target.value)}
@@ -187,9 +177,7 @@ export function InlineEditField({
       />
     )
   } else {
-    // -----------------------------------------------------------------------
-    // Edit — single-line input (reuses Field's Input skin + focus ring)
-    // -----------------------------------------------------------------------
+    // Single-line editor — reuses Field's Input skin (paper / ink border / rust ring).
     inner = (
       <span className="flex w-full flex-col gap-1">
         <Input
@@ -198,7 +186,7 @@ export function InlineEditField({
           value={draft}
           min={min}
           max={max}
-          aria-label={fieldLabel}
+          aria-label={ariaLabel}
           aria-invalid={error !== null}
           placeholder={placeholder}
           onChange={(e) => {
@@ -223,48 +211,34 @@ export function InlineEditField({
   }
 
   // -------------------------------------------------------------------------
-  // Plain (no label): return the inner node directly
+  // Plain (inline text) — the stat / name-cell shape, unchanged
   // -------------------------------------------------------------------------
 
-  if (!boxed) {
+  if (!bordered) {
     // The wrapper carries the same 44px minimum as the display state it holds,
     // so an unlabelled field is a full touch target from the outside too.
     return <span className={cn('inline-flex min-h-11', className)}>{inner}</span>
   }
 
   // -------------------------------------------------------------------------
-  // Labeled (IdentityField look): label tab ~2px above a tone-bordered box
+  // Bordered value box — the border is drawn once. While editing, the `Input`
+  // / `Textarea` IS the full-width bordered control, so the box just holds it
+  // (no second border); at rest, the box supplies the frame around the readout.
+  // `className` (e.g. `Field`'s dashed edit cue) frames the box in both states.
   // -------------------------------------------------------------------------
 
+  if (editing) {
+    return <div className={cn('w-full', className)}>{inner}</div>
+  }
+
   return (
-    <div className={cn('flex min-w-0 flex-col', className)}>
-      {labelAction ? (
-        <div className="mb-0.5 flex items-center justify-between gap-2">
-          <Badge shape="stamp" size="mini">
-            {label}
-          </Badge>
-          {labelAction}
-        </div>
-      ) : (
-        <Badge shape="stamp" size="mini" className="mb-0.5">
-          {label}
-        </Badge>
+    <div
+      className={cn(
+        'flex min-h-11 w-full items-center rounded-card border-chrome border-ink bg-paper',
+        className
       )}
-      <span
-        className={cn(
-          'relative flex min-h-11 items-center rounded-card border-2 bg-paper px-3',
-          !readOnly && 'pr-9'
-        )}
-        style={{ borderColor: 'var(--tone-deep, var(--color-ink))' }}
-      >
-        {inner}
-        {!readOnly && !editing && (
-          <Glyph
-            name="pencil"
-            className="pointer-events-none absolute right-2.5 top-1/2 h-[15px] w-[15px] -translate-y-1/2 text-ink/55"
-          />
-        )}
-      </span>
+    >
+      {inner}
     </div>
   )
 }

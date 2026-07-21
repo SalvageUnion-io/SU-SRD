@@ -1034,23 +1034,7 @@
 .pc-srd-search {
   position: relative;
 }
-.pc-srd-input {
-  width: 100%;
-  padding: 8px 11px;
-  border: var(--bw-chrome) solid var(--color-wk-faint);
-  border-radius: var(--radius-card);
-  background: var(--color-paper);
-  color: var(--color-ink);
-  font-family: var(--font-body);
-  font-size: var(--text-caption);
-}
-.pc-srd-input::placeholder {
-  color: var(--color-wk-muted);
-}
-.pc-srd-input:focus {
-  outline: none;
-  border-color: var(--color-ink);
-}
+/* The search field itself is the shared `Input` primitive (chrome/Field). */
 .pc-srd-live {
   position: absolute;
   width: 1px;

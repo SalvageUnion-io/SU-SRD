@@ -1,6 +1,5 @@
 import { Button, Field, Input, Panel, Slab } from 'component-lib'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
-import { IdentityField } from 'component-lib'
 import { rollCrawlerName } from './crawlerRollTables'
 import type { CrawlerRollTableDeps } from './crawlerRollTables'
 
@@ -44,7 +43,7 @@ export function CrawlerIdentityStep({
 
   return (
     <div className="max-w-3xl space-y-5">
-      <IdentityField
+      <Field
         label="Crawler Name"
         value={name}
         editing
@@ -57,7 +56,7 @@ export function CrawlerIdentityStep({
         }
       />
 
-      <IdentityField
+      <Field
         label="Description"
         value={description}
         editing

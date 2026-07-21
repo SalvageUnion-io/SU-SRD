@@ -31,7 +31,7 @@ import { cn } from '../../lib/utils'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerSheetItems'
-import { IdentityField } from 'component-lib'
+import { Field } from 'component-lib'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps'
 
 /** The standalone ability card never re-renders the action's choice UI. */
@@ -111,8 +111,8 @@ export function CrawlerIdentityPanel({
       <div className="flex min-w-0 flex-col gap-3">
         {/* Poster field row: Name (prominent) + Type (picker-backed). */}
         <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
-          <IdentityField label="Name" value={crawler.name} editing={isEditing} onSave={saveName} />
-          <IdentityField
+          <Field label="Name" value={crawler.name} editing={isEditing} onSave={saveName} />
+          <Field
             label="Type"
             value={type?.name ?? ''}
             editing={isEditing}
@@ -147,7 +147,7 @@ export function CrawlerIdentityPanel({
         )}
 
         {/* Description panel — same FIELD section (edits with Identity). */}
-        <IdentityField
+        <Field
           label="Description"
           value={crawler.description ?? ''}
           editing={isEditing}

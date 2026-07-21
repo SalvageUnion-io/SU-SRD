@@ -42,7 +42,7 @@ const TILE_LABELS = [
 describe('SrdExplorer', () => {
   test('renders a search box + the 8 category tiles', () => {
     const { container } = renderSrd()
-    expect(container.querySelector('.pc-srd-input')).toBeTruthy()
+    expect(container.querySelector('input[role="combobox"]')).toBeTruthy()
     const labels = [...container.querySelectorAll('.pc-srd-tile-label')].map((t) => t.textContent)
     expect(labels).toEqual(TILE_LABELS)
   })
@@ -94,7 +94,7 @@ describe('SrdExplorer', () => {
 
   test('search surfaces results and picking an entity drills in', async () => {
     const { container } = renderSrd()
-    const input = container.querySelector('.pc-srd-input') as HTMLInputElement
+    const input = container.querySelector('input[role="combobox"]') as HTMLInputElement
     // A broad query that matches entities.
     fireEvent.change(input, { target: { value: 'iron' } })
     const result = await waitFor(() => {

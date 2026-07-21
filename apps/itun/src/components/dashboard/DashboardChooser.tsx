@@ -27,7 +27,7 @@
 import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Button, ModalShell, FieldError } from 'component-lib'
+import { Button, ModalShell, FieldError, Radio } from 'component-lib'
 
 import { useCrawlers, useMechs, usePilots, useSoftLinkList } from '../../hooks/queries'
 import type { Crawler } from '../../lib/schemas/crawler'
@@ -388,23 +388,15 @@ function ChooserList({
     <div className="space-y-2">
       {options.length === 0 && <p className="font-body text-sm text-wk-muted">{emptyMessage}</p>}
       {rows.map((option) => (
-        <label
+        <Radio
           key={option.id || '__none__'}
-          className="flex cursor-pointer items-center gap-2 rounded-[3px] border-chrome border-ink bg-paper p-2 hover:bg-wk-bg-2"
-        >
-          <input
-            type="radio"
-            name={name}
-            value={option.id}
-            checked={selectedId === option.id}
-            onChange={() => onSelect(option.id)}
-            className="accent-rust"
-          />
-          <span className="font-body text-sm font-medium text-ink">{option.label}</span>
-          {option.sublabel && (
-            <span className="font-body text-xs text-wk-muted">{option.sublabel}</span>
-          )}
-        </label>
+          name={name}
+          value={option.id}
+          checked={selectedId === option.id}
+          onChange={() => onSelect(option.id)}
+          label={option.label}
+          description={option.sublabel}
+        />
       ))}
     </div>
   )
