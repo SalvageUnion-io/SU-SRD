@@ -157,13 +157,23 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    `EXEMPTIONS` table with a written reason, because the checker matches the
    CSS function and cannot itself tell a hard stop from a blend.
 
-   **One standing exemption is genuinely shading and is deliberately deferred:**
-   the `.pilot-panel` distressed-metal skin on srd's `/about` (12 declarations
-   in `apps/srd/src/styles/global.css`) — rust blooms, a brushed-steel base and
-   rivet highlights. It is an _illustration_ rendered in CSS rather than UI
-   chrome, which is why the no-shading law reads oddly against it. It is
-   exempted pending a design decision on whether the skin stays; it is not
-   evidence that shading is permitted in product surfaces.
+   **There are no shading exemptions.** The last one — the `.pilot-panel`
+   distressed-metal skin on srd's `/about` (12 declarations: five soft rust
+   blooms, a five-stop steel ramp, four domed rivets and a fade-to-transparent
+   rule) — was flattened rather than exempted. It was tempting to argue that a
+   CSS _illustration_ sits outside a law about UI chrome; the ruling was that
+   it does not, and the skin lost its blends.
+
+   The flattening cost less than expected, because the weathering was never
+   coming from the gradients: `#plate-damage`, an SVG displacement filter, does
+   that work and still does. The rust blooms are the one real loss — a bloom is
+   inherently a blend, and a hard-stop version reads as blotches, so they were
+   dropped rather than banded. The rivets keep their domed read from their
+   existing inset box-shadows.
+
+   Consequence worth noting for future sweeps: flattening those 12 declarations
+   also removed 22 raw colour literals, so `raw-color` fell 120 → 98 in the same
+   change. Gradient shading and off-token colour tend to travel together.
 
    Anything else is a defect.
 

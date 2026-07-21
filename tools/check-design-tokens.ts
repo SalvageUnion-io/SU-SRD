@@ -171,12 +171,6 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
     reason:
       'Ruleset §3.5 hard-stop pattern: the QR placeholder is a repeating-conic checkerboard on ink/paper tokens. A checkerboard is a pattern, not shading.',
   },
-  {
-    file: 'apps/srd/src/styles/global.css',
-    rules: ['gradient'],
-    reason:
-      'DEFERRED, NOT SANCTIONED — the only genuine shading left in the repo. The .pilot-panel distressed-metal skin on /about (rust blooms, brushed-steel base, rivet highlights) is a CSS illustration rather than UI chrome. Exempt pending a design decision on whether the skin stays; see ruleset §3.5. Do not cite this entry as precedent for shading in a product surface.',
-  },
 ]
 
 function walk(dir: string): string[] {
