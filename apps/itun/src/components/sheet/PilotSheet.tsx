@@ -42,6 +42,9 @@ import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
+import { enrichPilotSnapshot } from '../../lib/rules/pilotSnapshot'
+import { SoftWarningDialog } from '../shared/SoftWarningDialog'
+import { useSoftWarnings } from '../shared/useSoftWarnings'
 import { useEntityStore } from '../../stores/entityStore'
 import { type ClassLike, treesFor } from '../pilot/abilityTrees'
 import { EntitySearcher } from 'component-lib'
@@ -147,6 +150,33 @@ export function PilotSheet({
   // Edit/Done toggle, now rendered in the SheetSectionCard header (Phase 2).
   const [identityEditing, setIdentityEditing] = useState(false)
 
+  // Soft warnings (REQ-012, ADR-021) on BUILD edits only — ability add/remove
+  // and the class change. Advisory, never blocking: a clean edit saves straight
+  // through and the dialog never appears. Vitals/live-play writes (HP, AP, TP,
+  // conditions, uses, Spend AP) deliberately bypass this — they are transient
+  // state, not the build these rules evaluate, and would warn on every tick.
+  // `enrichPilotSnapshot` is REQUIRED: Pilot.abilities is a slug array, and the
+  // tier/tree checks need the resolved ability structs.
+  const softWarnings = useSoftWarnings({
+    entityType: 'pilot',
+    entityId: pilot.id,
+    toSnapshot: (p) => enrichPilotSnapshot(p),
+    store,
+  })
+  const [warningSubtitle, setWarningSubtitle] = useState<string | null>(null)
+
+  /**
+   * Preview a build patch: save immediately when clean, otherwise raise the
+   * confirm-and-proceed dialog. `label` describes the pending edit.
+   */
+  function saveBuildEdit(fields: Partial<Pilot>, label: string) {
+    if (softWarnings.preview(fields).length === 0) {
+      void softWarnings.saveAnyway()
+      return
+    }
+    setWarningSubtitle(label)
+  }
+
   // Resolve the pilot's crawler (if any) via the pilot-to-crawler SoftLink,
   // then compute the EFFECTIVE crawler Tech Level used to scale choice caps
   // (e.g. the Modification choice). A linked crawler's techLevel wins; with no
@@ -206,9 +236,20 @@ export function PilotSheet({
     return storeState.get('pilot', pilot.id) ?? pilot
   }
 
-  /** Partial merge on this pilot, reading the freshest record when needed. */
+  /**
+   * Partial merge on this pilot, reading the freshest record when needed.
+   *
+   * A `classRef` change is a BUILD edit (it can trip CLASS_PREREQUISITE —
+   * switching to an Advanced/Hybrid specialisation without the 6-core gate),
+   * so it routes through the soft-warning flow. Every other field here
+   * (vitals, TP, identity text) writes straight through.
+   */
   const patchPilot: SheetPatch = (input) => {
     const fields = typeof input === 'function' ? input(freshPilot()) : input
+    if ('classRef' in fields) {
+      saveBuildEdit(fields, 'Change class')
+      return
+    }
     void storeState.update('pilot', pilot.id, fields)
   }
 
@@ -243,15 +284,20 @@ export function PilotSheet({
   // available, writes through on toggle (ITUN auto-saves; no Save button).
   // Reads the FRESHEST record so rapid toggles in the picker grid don't race
   // the async store write.
-  // TODO(redesign): rule-gate add/remove (TP budget / maxAbilities / slot
-  // caps) — deferred; users self-manage for now.
+  // Advisory only (soft warnings), never rule-GATED: the cap, tree order and
+  // the Advanced/Legendary prerequisites surface in a confirm dialog and the
+  // user may always proceed.
   function toggleAbility(abilityId: string) {
-    const abilities = freshPilot().abilities
-    void storeState.update('pilot', pilot.id, {
-      abilities: abilities.includes(abilityId)
-        ? abilities.filter((a) => a !== abilityId)
-        : [...abilities, abilityId],
-    })
+    const fresh = freshPilot()
+    const abilities = fresh.abilities
+    const removing = abilities.includes(abilityId)
+    const name = resolveAbility(abilityId)?.name ?? abilityId
+    saveBuildEdit(
+      {
+        abilities: removing ? abilities.filter((a) => a !== abilityId) : [...abilities, abilityId],
+      },
+      `${removing ? 'Remove' : 'Add'} ${name}`
+    )
   }
 
   function toggleEquipment(equipmentId: string) {
@@ -604,6 +650,21 @@ export function PilotSheet({
           budget={{ label: 'Inventory slots', used: slotsUsed, max: slotsCap }}
         />
       </SheetPickerModal>
+
+      {/* Advisory confirm — only mounts when a build edit tripped a rule. */}
+      <SoftWarningDialog
+        open={warningSubtitle !== null}
+        warnings={softWarnings.warnings}
+        subtitle={warningSubtitle ?? undefined}
+        onCancel={() => {
+          softWarnings.fixIt()
+          setWarningSubtitle(null)
+        }}
+        onSaveAnyway={() => {
+          void softWarnings.saveAnyway()
+          setWarningSubtitle(null)
+        }}
+      />
     </section>
   )
 }

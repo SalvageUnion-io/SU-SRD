@@ -64,6 +64,8 @@ import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
 import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
+import { SoftWarningDialog } from '../shared/SoftWarningDialog'
+import { useSoftWarnings } from '../shared/useSoftWarnings'
 import { SectionAddButton, SectionEditButton, SheetPickerModal, Slab } from 'component-lib'
 import { SheetSectionCard } from 'component-lib'
 import type { ChassisStatItem } from 'component-lib'
@@ -137,6 +139,19 @@ export function MechSheet({
   // SheetSectionCard header (Phase 2).
   const [identityEditing, setIdentityEditing] = useState(false)
   const [flavourEditing, setFlavourEditing] = useState(false)
+
+  // Soft warnings (REQ-012, ADR-021) on the one mech BUILD edit the rules
+  // evaluate: system removal. Play-state writes (SP/EP/heat, conditions, item
+  // activation) deliberately bypass this — they are transient combat state.
+  // `toSnapshot` is REQUIRED: Mech.systems is a slug array, while the rules
+  // read `{ ref, requires }` structs.
+  const softWarnings = useSoftWarnings({
+    entityType: 'mech',
+    entityId: mech.id,
+    toSnapshot: (m) => ({ systems: m.systems.map((ref) => ({ ref })) }),
+    store,
+  })
+  const [warningSubtitle, setWarningSubtitle] = useState<string | null>(null)
 
   // Derived maxima (plan 2.5): chassis stat + hand-edited modifiers.
   const maxSP = mechMaxSP(mech, chassis)
@@ -228,15 +243,28 @@ export function MechSheet({
     )
   }
 
+  /**
+   * Remove one installed item. System removal is the one mech BUILD edit the
+   * soft-warning rules evaluate (SYSTEM_DEPENDENCY_REMOVED — "a system another
+   * system depends on is being removed"), so it previews first and confirms
+   * only when something is flagged. Module removal has no such rule and writes
+   * straight through.
+   */
   function removeItem(kind: ItemKind, index: number) {
     const fresh = freshMech()
-    void storeState.update(
-      'mech',
-      mech.id,
-      kind === 'system'
-        ? { systems: fresh.systems.filter((_, i) => i !== index) }
-        : { modules: fresh.modules.filter((_, i) => i !== index) }
-    )
+    if (kind === 'module') {
+      void storeState.update('mech', mech.id, {
+        modules: fresh.modules.filter((_, i) => i !== index),
+      })
+      return
+    }
+    const removed = fresh.systems[index]
+    const patch = { systems: fresh.systems.filter((_, i) => i !== index) }
+    if (softWarnings.preview(patch).length === 0) {
+      void softWarnings.saveAnyway()
+      return
+    }
+    setWarningSubtitle(`Remove ${(removed && resolveSystem(removed)?.name) || removed || 'system'}`)
   }
 
   /** Write one item's condition (used by the cycle and the toast Undo). */
@@ -680,6 +708,21 @@ export function MechSheet({
           ]}
         />
       </SheetPickerModal>
+
+      {/* Advisory confirm — only mounts when a build edit tripped a rule. */}
+      <SoftWarningDialog
+        open={warningSubtitle !== null}
+        warnings={softWarnings.warnings}
+        subtitle={warningSubtitle ?? undefined}
+        onCancel={() => {
+          softWarnings.fixIt()
+          setWarningSubtitle(null)
+        }}
+        onSaveAnyway={() => {
+          void softWarnings.saveAnyway()
+          setWarningSubtitle(null)
+        }}
+      />
     </section>
   )
 }
