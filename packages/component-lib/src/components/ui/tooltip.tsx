@@ -1,5 +1,7 @@
+import { useContext } from 'react'
 import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
 import { cn } from '../../utils/cn'
+import { InsideTooltipContext } from './insideTooltipContext'
 
 type TooltipProps = {
   children: React.ReactNode
@@ -9,6 +11,9 @@ type TooltipProps = {
 }
 
 export function Tooltip({ children, content, side = 'top', delayDuration = 200 }: TooltipProps) {
+  // Terminal law: inside a tooltip popup, a nested tooltip renders bare.
+  const insideTooltip = useContext(InsideTooltipContext)
+  if (insideTooltip) return <>{children}</>
   return (
     <BaseTooltip.Provider delay={delayDuration} closeDelay={0}>
       <BaseTooltip.Root>

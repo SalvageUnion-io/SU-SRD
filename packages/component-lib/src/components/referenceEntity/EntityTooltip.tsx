@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
+import { useContext } from 'react'
 import { SalvageUnionReference, isKeyword } from 'salvageunion-reference'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import { Tooltip } from '@base-ui/react/tooltip'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
+import { InsideTooltipContext } from '../ui/insideTooltipContext'
 import { Tooltip as SimpleTooltip } from '../ui/tooltip'
 
 type EntityTooltipBase = {
@@ -76,6 +78,10 @@ export function EntityTooltip({
   ...address
 }: EntityTooltipProps) {
   const closeDelay = 100
+  // Terminal law (ruleset §1): inside another tooltip's popup, render the
+  // children bare — a hovercard never arms a nested hovercard (and never
+  // wraps its trigger in a role="button" span there).
+  const insideTooltip = useContext(InsideTooltipContext)
   const entityId =
     address.entityId ??
     (address.entityName ? resolveIdByName(schemaName, address.entityName) : undefined)
@@ -83,7 +89,7 @@ export function EntityTooltip({
   // never cost the caller its own content.
   const entity = entityId ? SalvageUnionReference.get(schemaName, entityId) : undefined
 
-  if (!entity) {
+  if (!entity || insideTooltip) {
     return <>{children}</>
   }
 
@@ -138,7 +144,16 @@ export function EntityTooltip({
         <Tooltip.Portal>
           <Tooltip.Positioner sideOffset={5} align="start">
             <Tooltip.Popup className="z-50 max-h-[80vh] max-w-[500px] overflow-y-auto border-none bg-transparent p-0 shadow-2xl">
-              <ReferenceEntityCard data={entity} size="medium" />
+              {/* The DENSE, TERMINAL hovercard (ruleset §1 Tooltip context):
+                  the catalog-extent card — seam, header, sub-header, artwork,
+                  body prose — with every nested element (entity cards, action
+                  grids, pattern lists, expandable choice listings) suppressed
+                  by the extent, and the InsideTooltipContext making every
+                  tooltip primitive in the subtree inert (no nested hovercards
+                  from trait/keyword refs or Stat cells). */}
+              <InsideTooltipContext.Provider value={true}>
+                <ReferenceEntityCard data={entity} size="medium" extent="catalog" />
+              </InsideTooltipContext.Provider>
             </Tooltip.Popup>
           </Tooltip.Positioner>
         </Tooltip.Portal>

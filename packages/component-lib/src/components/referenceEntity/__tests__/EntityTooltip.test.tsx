@@ -28,6 +28,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { EntityTooltip } from '../EntityTooltip'
+import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['chassis', 'systems', 'classes'])
@@ -82,6 +83,21 @@ describe('EntityTooltip addressing', () => {
       <EntityTooltip schemaName="chassis" entityId="__nonexistent_id__">
         <span>trigger</span>
       </EntityTooltip>
+    )
+    expect(screen.getByText('trigger')).toBeTruthy()
+    expect(container.querySelector('[data-base-ui-tooltip-trigger]')).toBeNull()
+  })
+
+  test('inside another tooltip popup it is TERMINAL — children bare, no nested trigger', () => {
+    // Ruleset §1 Tooltip context law: no nested tooltips, ever. A resolvable
+    // entity ref inside a hovercard must not arm a second hovercard.
+    const chassis = firstChassis()
+    const { container } = render(
+      <InsideTooltipContext.Provider value={true}>
+        <EntityTooltip schemaName="chassis" entityId={chassis.id}>
+          <span>trigger</span>
+        </EntityTooltip>
+      </InsideTooltipContext.Provider>
     )
     expect(screen.getByText('trigger')).toBeTruthy()
     expect(container.querySelector('[data-base-ui-tooltip-trigger]')).toBeNull()
