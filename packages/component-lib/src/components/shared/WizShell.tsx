@@ -132,7 +132,7 @@ function RailStep({
         className={cn(
           'grid shrink-0 place-items-center rounded-badge font-cond font-bold',
           active
-            ? 'h-11 w-11 bg-ink text-[23px] text-paper shadow-[0_0_0_4px_var(--tone)] lg:-ml-[5px]'
+            ? 'h-11 w-11 bg-ink text-2xl leading-none text-paper shadow-[0_0_0_4px_var(--tone)] lg:-ml-[5px]'
             : 'h-[34px] w-[34px]',
           !active && done && 'bg-ink text-[17px] text-pilot',
           !active &&
@@ -204,7 +204,7 @@ export function WizShell({
     <header>
       <h1 className="m-0">
         {/* Ink-stamp step heading (SheetHero name-chip treatment). */}
-        <span className="inline bg-ink box-decoration-clone px-2 pb-[3px] pt-[2px] font-cond text-[22px] font-bold uppercase leading-[1.35] tracking-[0.01em] text-paper">
+        <span className="inline bg-ink box-decoration-clone px-2 pb-[3px] pt-[2px] font-cond text-[22px] font-bold uppercase leading-[1.35] tracking-normal text-paper">
           <span className="text-pilot">
             Step {active + 1} of {steps.length}
           </span>
@@ -319,7 +319,7 @@ export function WizShell({
         className="border-b-4 border-paper/95 px-5 pb-2.5 pt-5 sm:px-7"
         style={{ background: 'var(--tone)' }}
       >
-        <p className="m-0 font-cond text-[clamp(26px,4vw,40px)] font-bold uppercase leading-[0.98] tracking-[0.5px] text-paper [text-shadow:0_2px_0_rgba(0,0,0,0.22)]">
+        <p className="m-0 font-cond text-[clamp(26px,4vw,40px)] font-bold uppercase leading-[0.98] tracking-normal text-paper [text-shadow:0_2px_0_rgba(0,0,0,0.22)]">
           {eyebrow}
         </p>
       </header>
@@ -402,7 +402,7 @@ export function WizShell({
                   {active + 1}
                 </span>
                 <header>
-                  <h1 className="m-0 font-cond text-[25px] font-bold uppercase leading-[1.05] text-paper [text-shadow:0_1px_0_rgba(0,0,0,0.38)]">
+                  <h1 className="m-0 font-cond text-display font-bold uppercase leading-[1.05] text-paper [text-shadow:0_1px_0_rgba(0,0,0,0.38)]">
                     <span className="sr-only">
                       Step {active + 1} of {steps.length} ·{' '}
                     </span>

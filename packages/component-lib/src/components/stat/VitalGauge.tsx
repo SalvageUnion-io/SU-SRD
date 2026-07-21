@@ -263,6 +263,15 @@ export function VitalGauge({
             </span>
           )}
         </span>
+        {/* The numeral sizes below are off-ladder ON PURPOSE, not un-burnt debt:
+            the type scale runs nano 8 … lede 15 and then jumps to display 26,
+            so the 16–30px band the gauge numeral lives in has no rung at all.
+            The nearest rung to the hero numeral is display (26px), 7–13% below
+            it — a visible shrink of the one figure the gauge exists to show.
+            Closing this needs new rungs in theme.css (a ladder decision, and a
+            repo-wide one: WizShell, AppBar, CountStepper, ModeDoor, SheetHero
+            and ITUN's PilotSheet all reach into the same empty band), not a
+            local substitution. */}
         <span className="whitespace-nowrap font-cond font-bold leading-none tabular-nums">
           <b
             className={cn(
@@ -367,7 +376,7 @@ export function VitalGauge({
       </div>
 
       {/* Caption — right-aligned Current / Max; an override note sits left. */}
-      <div className="mt-1.5 flex items-center justify-end gap-1 font-cond text-[8.5px] font-semibold uppercase leading-none tracking-eyebrow text-ink/55">
+      <div className="mt-1.5 flex items-center justify-end gap-1 font-cond text-nano font-semibold uppercase leading-none tracking-eyebrow text-ink/55">
         {isOverridden && (
           <span className="mr-auto tracking-caps-snug text-[var(--tone-deep)]">
             overridden from {overriddenFrom}

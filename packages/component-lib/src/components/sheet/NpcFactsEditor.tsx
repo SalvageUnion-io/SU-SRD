@@ -61,7 +61,7 @@ export function NpcFactsEditor({
   }
 
   const chipBase =
-    'inline-flex items-center gap-1 rounded-badge px-2 py-0.5 font-cond text-badge font-semibold tracking-[.03em]'
+    'inline-flex items-center gap-1 rounded-badge px-2 py-0.5 font-cond text-badge font-semibold tracking-caps-tight'
 
   return (
     <div className="flex min-h-10 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-paper p-2">
@@ -121,7 +121,7 @@ export function NpcFactsEditor({
             onBlur={() => {
               void commitAdd()
             }}
-            className="w-40 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge tracking-[.03em] text-ink focus:outline-none focus:ring-1 focus:ring-rust/25"
+            className="w-40 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge tracking-caps-tight text-ink focus:outline-none focus:ring-1 focus:ring-rust/25"
           />
         ) : (
           <button

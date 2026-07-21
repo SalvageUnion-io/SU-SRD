@@ -24,7 +24,7 @@ const TAB =
   'absolute -left-3.5 top-[18px] grid h-12 w-11 place-items-center rounded-[2px] bg-ink font-cond text-[22px] font-bold text-paper shadow-[0_8px_14px_-8px_rgba(0,0,0,0.55)]'
 const HEAD =
   'mb-1.5 ml-[34px] block font-cond text-[27px] font-bold uppercase leading-none tracking-caps-tight'
-const BODY = 'ml-[34px] block font-body text-[13px] leading-[1.55] text-ink'
+const BODY = 'ml-[34px] block font-body text-caption leading-[1.55] text-ink'
 const CITE = 'ml-[34px] mt-2.5 block font-body text-[12.5px] font-bold text-ink'
 
 /** guided emphasis: a ground gap, a 3px ink ring, then a soft drop shadow. */

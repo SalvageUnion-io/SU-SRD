@@ -16,7 +16,7 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * only `ghost` has an instrument recolour — the sole variant the HUD uses.
  */
 export const buttonVariants = cva(
-  `inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-card border-chrome font-body font-medium tracking-[0.01em] transition-colors duration-[120ms] ${FOCUS_RING} ${DISABLED}`,
+  `inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-card border-chrome font-body font-medium tracking-normal transition-colors duration-[120ms] ${FOCUS_RING} ${DISABLED}`,
   {
     variants: {
       variant: {

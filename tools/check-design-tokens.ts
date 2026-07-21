@@ -131,9 +131,9 @@ const RULES: Rule[] = [
 const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
   {
     file: 'packages/component-lib/src/styles/theme.css',
-    rules: ['raw-color'],
+    rules: ['raw-color', 'arbitrary-border-width'],
     reason:
-      'The token definitions themselves — this file is where colour is allowed to be a literal.',
+      'The token definitions themselves — this file is where colour is allowed to be a literal. arbitrary-border-width is exempt for a different reason: the file authors no borders at all, it defines the --bw-* ladder. Its one match is the prose in the ladder doc-comment ("never `border-[1.5px]`") — the rule text quoting the form it forbids. Rewording the comment to dodge the regex would make the canon harder to read to satisfy a lint.',
   },
   {
     file: 'packages/component-lib/src/components/chrome/Slab.tsx',
@@ -143,9 +143,28 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
   },
   {
     file: 'packages/component-lib/src/stories',
-    rules: ['raw-color', 'arbitrary-font-size', 'arbitrary-tracking', 'pure-white', 'gradient'],
+    rules: [
+      'raw-color',
+      'arbitrary-font-size',
+      'arbitrary-tracking',
+      'arbitrary-border-width',
+      'pure-white',
+      'gradient',
+    ],
     reason:
-      'Foundations catalog pages render token specimens and deliberately show off-system values as counter-examples.',
+      'Foundations catalog pages render token specimens and deliberately show off-system values as counter-examples. arbitrary-border-width is on the list for exactly that reason: the sole match is Theme.stories.tsx printing the border ladder\'s own caption, "never border-[1.5px]" — the counter-example is the content. (This entry is the directory, so it also covers the two non-story helpers here, _harness.tsx and _dashboardStage.tsx.)',
+  },
+  {
+    file: '.stories.tsx',
+    rules: [
+      'raw-color',
+      'arbitrary-font-size',
+      'arbitrary-tracking',
+      'arbitrary-border-width',
+      'pure-white',
+    ],
+    reason:
+      'Ladle stories are specimens, not shipped surfaces — the same standing the Foundations catalog pages above already have, extended to the co-located ones so the rule does not depend on which directory a story happens to live in. Their literals are harness scaffolding: the --tone/--ground custom properties the consuming APP supplies at runtime (ModeDoor, VitalGauge), a dark backdrop to prove contrast against, a #ccc outline on a resize container (DashboardGrid/DashboardCanvas), and swatch props fed as data (FilterChip). Nothing here reaches a user, and tokenising a stand-in for app-supplied context would make the story demonstrate something other than what ships. Note the cost, since it is real: stories are where new surfaces get prototyped, so this is the one place drift can incubate un-flagged — a literal that graduates from a story into a component is caught at the component, not here. `gradient` is deliberately NOT on this list: a gradient is banned by §3.5 on shading grounds that a specimen does not escape, and the one sanctioned story gradient (CatalogTile.stories.tsx) is named individually below.',
   },
   {
     file: 'packages/component-lib/src/components/shared/CatalogTile.tsx',
@@ -173,9 +192,15 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
   },
   {
     file: 'apps/srd/src/styles/global.css',
-    rules: ['gradient'],
+    rules: ['gradient', 'raw-color'],
     reason:
-      'Ruleset §3.5 THE one-off: the .pilot-panel distressed-metal effect on srd /about is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of a rusted plate rather than a UI surface. Not precedent — no second one-off without an explicit ruling.',
+      'Ruleset §3.5 THE one-off: the .pilot-panel distressed-metal effect on srd /about is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of a rusted plate rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust blooms, the steel plate, the rivet heads and the engraved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. CAVEAT, since a file-level exemption is blunter than the rationale: it also swallows three literals outside the illustration block — the .catalog-item hover box-shadow and .catalog-item__name text-shadow (real shadow debt on an authored surface, still owed a token) and one #fff in the print block. Line-scoping the exemption was considered and rejected as too brittle to survive edits to this file; they are recorded here instead of silently absorbed.',
+  },
+  {
+    file: 'apps/srd/src/pages/greembeem.astro',
+    rules: ['raw-color'],
+    reason:
+      "Not an SRD surface. This is a standalone novelty page — a Wikipedia pastiche for an in-joke episode list — that is `noindex, nofollow`, excluded from the sitemap in astro.config.mjs, linked from nowhere in the repo, and carries its own self-contained inline <style> importing nothing from the theme. Its literals ARE the joke: #a2a9b1 borders, #f8f9fa chrome and #3366cc links are MediaWiki's palette, and reskinning them in Salvage Union tokens would destroy the only thing the page does. It shares the deploy, not the design system.",
   },
 ]
 
@@ -207,8 +232,14 @@ const violations: Violation[] = []
 for (const dir of SCAN_DIRS) {
   for (const file of walk(join(ROOT, dir))) {
     const relPath = relative(ROOT, file)
-    // Generated files and test fixtures are not authored surfaces.
+    // Generated files and test fixtures are not authored surfaces. Test files
+    // are here rather than in EXEMPTIONS because it is a category, not a
+    // judgement call about one file: a colour literal in a test is an ASSERTION
+    // about behaviour (`expect(borderColorFromHeaderBg('bg-pilot', '#D46A30'))
+    // .toBe('#D46A30')` — the point of the case is that an arbitrary override
+    // passes through untouched). Tokenising it would delete the test.
     if (relPath.includes('.gen.') || relPath.includes('routeTree')) continue
+    if (relPath.includes('__tests__') || /\.test\.[tj]sx?$/.test(relPath)) continue
 
     const lines = readFileSync(file, 'utf8').split('\n')
     for (const rule of RULES) {
