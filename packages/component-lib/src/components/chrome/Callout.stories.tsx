@@ -72,7 +72,7 @@ export const Default: Story = () => (
 
     <div className="flex flex-col gap-1.5">
       <p className="font-body text-xs text-wk-muted">Compact</p>
-      <Callout compact tone="mech">
+      <Callout size="compact" tone="mech">
         <Body>
           {String(settlements[0]?.value ?? 'Corporate Arcos typically have a Tech Level of 5-6.')}
         </Body>

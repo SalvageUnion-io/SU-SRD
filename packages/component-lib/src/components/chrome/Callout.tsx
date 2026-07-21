@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
+import type { SizeRung } from '../../styles/sizing'
 import { DisplayCard } from '../shared/DisplayCard'
 import { Badge } from './Badge'
 
@@ -28,8 +29,12 @@ type CalloutProps = {
   label?: string
   /** Accent tone — the 3px solid frame, and (with a label) the band tint. */
   tone?: CalloutTone
-  /** Compact spacing (dense listings / nested content). */
-  compact?: boolean
+  /**
+   * Size on the canonical rung ladder (`src/styles/sizing.ts`) — two rungs:
+   * `full` (default) is the reading note; `compact` tightens the band, body
+   * padding and type for dense listings / nested content.
+   */
+  size?: Extract<SizeRung, 'full' | 'compact'>
   /** Body content — a paper panel under the header. */
   children?: ReactNode
   className?: string
@@ -54,13 +59,8 @@ type CalloutProps = {
  * over the header-derived default (the accent frame is deliberately a different
  * colour from the header tint).
  */
-export function Callout({
-  label,
-  tone = 'ink',
-  compact = false,
-  children,
-  className,
-}: CalloutProps) {
+export function Callout({ label, tone = 'ink', size = 'full', children, className }: CalloutProps) {
+  const compact = size === 'compact'
   return (
     <DisplayCard
       size={compact ? 'medium' : 'large'}
