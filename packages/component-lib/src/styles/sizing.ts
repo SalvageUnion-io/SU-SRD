@@ -31,7 +31,13 @@
 
 export type SizeRung = 'full' | 'compact' | 'mini'
 
-/** The default rung. Stated once so no component invents a different default. */
+/**
+ * The default rung for scan-past elements — stamps, chips, cells — stated once
+ * so no component invents a different default. A component whose RESTING
+ * anatomy is a destination readout (VitalGauge's poster bar, Callout's reading
+ * note) instead documents an explicit `full` default on its own axis: the rung
+ * NAMES are universal; which rung a component rests at follows its intent.
+ */
 export const DEFAULT_RUNG: SizeRung = 'compact'
 
 /**
