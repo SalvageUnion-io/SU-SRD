@@ -10,6 +10,7 @@ import { Badge } from '../chrome/Badge'
 import type { EntityStatus } from '../chrome/StatusBadge'
 import { displayBooleans, resolveCardDisplay } from './displayMode'
 import type { CardExtent, CardSize } from './displayMode'
+import { foldStatusControl } from './foldStatusControl'
 
 /** Inline foot meta entry (design-spec §2.1 `.ec__metafoot`), e.g. AP COST · 1 */
 export type CardFootMeta = { label: string; value: ReactNode }
@@ -105,28 +106,6 @@ type DisplayCardProps = {
   /** Stats rendered in the sub-header band — a darker shade of the header tone
    * directly below the header content row. No band renders when empty. */
   stats?: StatItem[]
-}
-
-/**
- * Fold the presentational `status` sugar into a `__status` CONTROL leading the
- * rail. This is the ONE realization of the condition badge across both card
- * shells — `DisplayCard` and `ReferenceEntityCard` both call it, so the fold
- * rule (status first, then the caller's controls) cannot drift between them.
- */
-export function foldStatusControl(
-  controls: ReferenceEntityControl[] | undefined,
-  status: EntityStatus | undefined,
-  opts?: { onClick?: () => void; subject?: string }
-): ReferenceEntityControl[] {
-  return status
-    ? [
-        {
-          key: '__status',
-          status: { value: status, onClick: opts?.onClick, subject: opts?.subject },
-        },
-        ...(controls ?? []),
-      ]
-    : (controls ?? [])
 }
 
 const DEFAULT_TAB_KEY = '__default'
