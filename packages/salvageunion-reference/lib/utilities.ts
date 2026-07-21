@@ -795,7 +795,28 @@ export function getEntityNameFromSystemModule(entity: SURefObjectSystemModule): 
  * @returns The normalized pattern name
  */
 export function normalizePatternName(patternName: string): string {
-  return patternName.replace(/\s+Pattern$/i, '')
+  // Equivalent to `patternName.replace(/\s+Pattern$/i, '')` without that
+  // regex's quadratic backtracking on a long whitespace run (the engine
+  // retried `\s+` from every position before failing the `Pattern$` literal).
+  //
+  // Semantics preserved exactly, including the sharp edges:
+  //   - no trailing-whitespace tolerance — "Iron Pattern  " is UNCHANGED,
+  //     because the suffix must sit at the very end of the string. (A
+  //     `trimEnd()`-first rewrite would wrongly strip it.)
+  //   - `\s+` requires at least one separator, so bare "Pattern" is UNCHANGED.
+  //   - the `i` flag's casing rules are kept by reusing an `i`-flag regex for
+  //     the literal rather than hand-rolling `toLowerCase()`, which differs on
+  //     characters like `İ` and `ſ`.
+  if (!/Pattern$/i.test(patternName)) {
+    return patternName
+  }
+  const suffixStart = patternName.length - 'Pattern'.length
+  let cut = suffixStart
+  while (cut > 0 && /\s/.test(patternName[cut - 1] as string)) {
+    cut--
+  }
+  // No whitespace before the literal (e.g. "IronPattern") -> no match.
+  return cut === suffixStart ? patternName : patternName.slice(0, cut)
 }
 
 /**
@@ -1158,11 +1179,21 @@ export type ParsedTraitReference = {
 export function parseTraitReferences(text: string): ParsedTraitReference[] {
   const references: ParsedTraitReference[] = []
 
+  // The name/param classes exclude their own OPENING delimiter as well as the
+  // closing one, so every scan is bounded at the next `[` / `(` instead of
+  // running to end-of-string from each of many `[[` starts (quadratic).
+  //
+  // The word-shape requirement that used to live in the regex
+  // (`[A-Z][A-Za-z-]+(?:\s+[A-Z][A-Za-z-]+)*`) moved to `isTraitName` below:
+  // as a regex it nested a quantifier inside a quantifier, which backtracks
+  // quadratically on input like `[[[Aa Aa Aa Aa …`. The predicate is a linear
+  // scan and accepts exactly the same set of names.
+
   // Pattern for parameterized traits: [[[TraitName] (param)]]
-  const paramPattern = /\[\[\[([A-Z][A-Za-z-]+(?:\s+[A-Z][A-Za-z-]+)*)\]\s+\(([^)]+)\)\]\]/g
+  const paramPattern = /\[\[\[([^\][]+)\]\s+\(([^)(]+)\)\]\]/g
 
   // Pattern for simple traits: [[TraitName]]
-  const simplePattern = /\[\[([A-Z][A-Za-z-]+(?:\s+[A-Z][A-Za-z-]+)*)\]\]/g
+  const simplePattern = /\[\[([^\][]+)\]\]/g
 
   // Find all parameterized trait references first
   let match = paramPattern.exec(text)

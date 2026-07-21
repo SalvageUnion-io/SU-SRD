@@ -25,6 +25,9 @@ import {
   getCargoCapacity,
   getHitPoints,
   getAssetUrl,
+  getPatterns,
+  normalizePatternName,
+  resolveFormationMember,
 } from './utilities.js'
 
 // Import SalvageUnionReference - use lazy getter to avoid initialization issues
@@ -680,5 +683,114 @@ describe('Property Extractors', () => {
       const assetUrl = getAssetUrl(ability)
       expect(assetUrl).toBeUndefined()
     })
+  })
+})
+
+/**
+ * normalizePatternName was rewritten to drop a `\s+Pattern$` regex whose `\s+`
+ * backtracked quadratically on a long whitespace run (CodeQL js/redos). The
+ * rewrite is meant to be EXACTLY behaviour-preserving, so these tests pin both
+ * the sharp edges of the old semantics and the performance property that is
+ * the only real evidence the ReDoS is gone.
+ */
+describe('normalizePatternName', () => {
+  /** Every pattern name carried by real chassis data. */
+  function realPatternNames(): string[] {
+    const names: string[] = []
+    for (const chassis of getReference().Chassis.all()) {
+      for (const pattern of getPatterns(chassis) ?? []) {
+        names.push(pattern.name)
+      }
+    }
+    return names
+  }
+
+  it('leaves every real pattern name in the dataset untouched', () => {
+    const names = realPatternNames()
+    // Guard against the corpus silently emptying out and the test passing vacuously.
+    expect(names.length).toBeGreaterThan(100)
+    for (const name of names) {
+      expect(normalizePatternName(name)).toBe(name)
+    }
+  })
+
+  it('still matches real formation members through the normalized comparison', () => {
+    // resolveFormationMember is the production caller: it compares a faction's
+    // declared pattern against chassis pattern names via normalizePatternName.
+    let checked = 0
+    for (const faction of getReference().Factions.all()) {
+      const formation = (faction as unknown as { formation?: unknown }).formation
+      if (!Array.isArray(formation)) continue
+      for (const member of formation) {
+        if (!member || typeof member !== 'object' || !('pattern' in member)) continue
+        const resolved = resolveFormationMember(
+          member as Parameters<typeof resolveFormationMember>[0]
+        )
+        if (!resolved?.pattern) continue
+        checked++
+        expect(normalizePatternName(resolved.pattern.name)).toBe(
+          normalizePatternName((member as { pattern: string }).pattern)
+        )
+      }
+    }
+    expect(checked).toBeGreaterThan(0)
+  })
+
+  it('strips a single-space " Pattern" suffix', () => {
+    expect(normalizePatternName('Iron Mongrel Pattern')).toBe('Iron Mongrel')
+  })
+
+  it('strips a multi-space separator, consuming all of it', () => {
+    expect(normalizePatternName('Iron  Pattern')).toBe('Iron')
+  })
+
+  it('leaves a bare "Pattern" unchanged (the separator is required)', () => {
+    // The old regex was `\s+Pattern$` — at least one whitespace char is
+    // mandatory, so a name that IS the literal must survive intact.
+    expect(normalizePatternName('Pattern')).toBe('Pattern')
+  })
+
+  it('leaves "IronPattern" unchanged (no separator before the literal)', () => {
+    expect(normalizePatternName('IronPattern')).toBe('IronPattern')
+  })
+
+  it('leaves trailing whitespace after the suffix unchanged', () => {
+    // The old regex was `$`-anchored with NO trailing-whitespace tolerance, so
+    // "Iron Pattern  " does not match at all. A rewrite that trimEnd()s first
+    // would wrongly return "Iron"; this locks the original behaviour.
+    expect(normalizePatternName('Iron Pattern  ')).toBe('Iron Pattern  ')
+    expect(normalizePatternName('Iron Pattern\n')).toBe('Iron Pattern\n')
+  })
+
+  it('matches the suffix case-insensitively', () => {
+    expect(normalizePatternName('Iron pattern')).toBe('Iron')
+    expect(normalizePatternName('Iron PATTERN')).toBe('Iron')
+    expect(normalizePatternName('Iron PaTtErN')).toBe('Iron')
+  })
+
+  it('treats any whitespace run as the separator', () => {
+    expect(normalizePatternName('Iron\tPattern')).toBe('Iron')
+    expect(normalizePatternName('Iron \t\n Pattern')).toBe('Iron')
+  })
+
+  it('reduces a name that is nothing but separator + suffix to the empty string', () => {
+    expect(normalizePatternName(' Pattern')).toBe('')
+  })
+
+  it('completes on a pathological whitespace run (ReDoS regression)', () => {
+    // 200k spaces followed by nothing that can complete the suffix: the old
+    // `\s+Pattern$` retried `\s+` from every one of those positions, which is
+    // quadratic. The rewrite is a single linear scan.
+    const pathological = `${' '.repeat(200_000)}!`
+    const start = performance.now()
+    expect(normalizePatternName(pathological)).toBe(pathological)
+    expect(performance.now() - start).toBeLessThan(1000)
+  })
+
+  it('completes on a pathological whitespace run that DOES end in the suffix', () => {
+    const pathological = `Iron${' '.repeat(200_000)}Pattern`
+    const start = performance.now()
+    expect(normalizePatternName(pathological)).toBe('Iron')
+    expect(performance.now() - start).toBeLessThan(1000)
   })
 })

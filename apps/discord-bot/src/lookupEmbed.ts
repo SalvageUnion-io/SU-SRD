@@ -61,9 +61,17 @@ export type LookupEmbed = {
 
 type AnyRecord = Record<string, unknown>
 
-/** Escape the chars that would break a markdown link label. */
+/**
+ * Escape the chars that would break a markdown link label.
+ *
+ * The backslash itself is in the class: escaping only the metacharacters lets
+ * a literal `\` in the name pair with the backslash we add, so `\]` would emit
+ * `\\]` — an escaped backslash followed by an *unescaped* `]` that closes the
+ * label early. Both are escaped in the same single pass; a second pass over
+ * `\` would double-escape the ones this pass introduced.
+ */
 function escapeLabel(text: string): string {
-  return text.replace(/[[\]()]/g, '\\$&')
+  return text.replace(/[\\[\]()]/g, '\\$&')
 }
 
 /**

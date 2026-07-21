@@ -188,3 +188,81 @@ describe('buildLookupEmbed — content depth', () => {
     expect(firstColumn?.value).toContain('1.')
   })
 })
+
+/**
+ * escapeLabel (module-private) guards every markdown label the embed emits.
+ * It used to escape only `[ ] ( )`, leaving a literal backslash in a name free
+ * to pair with the backslash we add — `\]` became `\\]`, i.e. an ESCAPED
+ * BACKSLASH followed by an UNESCAPED `]` that closes the label early and lets
+ * the rest of the name leak out as raw markdown (CodeQL js/incomplete-sanitization).
+ * The backslash is now in the class, escaped in the same single pass.
+ *
+ * These drive it black-box through the two labels it guards: a chassis pattern
+ * name (chassisSections) and a trait name inside body text (linkifyTraitRefs).
+ */
+describe('markdown label escaping', () => {
+  /** A real chassis, used as the carrier for adversarial label content. */
+  function goliath(): SURefEntity {
+    const chassis = SalvageUnionReference.Chassis.find((c) => c.name === 'Goliath')
+    if (!chassis) throw new Error('expected the Goliath chassis')
+    return chassis as unknown as SURefEntity
+  }
+
+  function embedWith(overrides: Record<string, unknown>): LookupEmbed {
+    return buildLookupEmbed(
+      { ...goliath(), schemaName: 'chassis', ...overrides } as unknown as SURefEntity & {
+        schemaName: SURefEnumSchemaName
+      },
+      'chassis'
+    )
+  }
+
+  test('real pattern names pass through untouched', () => {
+    const e = buildLookupEmbed(
+      { ...goliath(), schemaName: 'chassis' } as unknown as SURefEntity & {
+        schemaName: SURefEnumSchemaName
+      },
+      'chassis'
+    )
+    // Real SRD names carry no markdown metacharacters, so nothing is escaped.
+    expect(e.description).toContain('• **Scrapjack** — 7 systems, 3 modules')
+    expect(e.description).not.toContain('\\')
+  })
+
+  test('a literal backslash in a label is itself escaped', () => {
+    const e = embedWith({ patterns: [{ name: 'Evil\\', systems: [], modules: [] }] })
+    // Two backslashes: `\\` renders as one literal backslash and cannot pair
+    // with whatever follows. The OLD class `[[\]()]` omitted the backslash, so
+    // it emitted a single `\` here — the exact breakout this pins against.
+    expect(e.description).toContain('• **Evil\\\\** — 0 systems, 0 modules')
+    expect(e.description).not.toContain('**Evil\\** ')
+  })
+
+  test('brackets and parens in a label are escaped', () => {
+    const e = embedWith({ patterns: [{ name: 'Brac[ke]t (s)', systems: [], modules: [] }] })
+    expect(e.description).toContain('• **Brac\\[ke\\]t \\(s\\)** — 0 systems, 0 modules')
+  })
+
+  test('a trailing backslash cannot break out of a markdown link label', () => {
+    const e = embedWith({
+      patterns: [],
+      content: [{ type: 'paragraph', value: 'Gains the [[Vulnerable\\]] Trait.' }],
+    })
+    // The label must end `\\]` — an escaped backslash, then the REAL closing
+    // bracket. Under the old class this was `\]`, which escaped the closing
+    // bracket instead, so the link label ran on and Discord rendered raw text.
+    expect(e.description).toContain(
+      '[Vulnerable\\\\](https://salvageunion.io/schema/traits/item/vulnerable)'
+    )
+    expect(e.description).not.toContain('[Vulnerable\\](')
+  })
+
+  test('escaping stays linear on a pathological label', () => {
+    const pathological = '['.repeat(50_000)
+    const start = performance.now()
+    const e = embedWith({ patterns: [{ name: pathological, systems: [], modules: [] }] })
+    expect(performance.now() - start).toBeLessThan(1000)
+    // Still a valid embed after the escape doubles the length (enforce() trims).
+    assertValid(e, 'pathological pattern name')
+  })
+})

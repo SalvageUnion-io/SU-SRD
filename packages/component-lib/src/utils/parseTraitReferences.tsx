@@ -59,8 +59,15 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
     const nodes: ReactNode[] = []
     let currentIndex = 0
 
-    // Combined regex: trait references (both forms) and paragraph breaks
-    const combinedRegex = /\[\[\[([^\]]+)\]\s*\(([^)]+)\)\]\]|\[\[([^\]]+)\]\]|\n\n/g
+    // Combined regex: trait references (both forms) and paragraph breaks.
+    //
+    // The name/param classes exclude their own OPENING delimiter (`[^\][]`,
+    // `[^)(]`) as well as the closing one. A trait name can never contain a
+    // bracket and a parameter never contains a paren, so this matches exactly
+    // the same strings — but it bounds every scan at the next opening
+    // delimiter. With the opener admitted, input like `[[[[[[[…` made the
+    // engine re-scan the remainder from each `[[` start, which is quadratic.
+    const combinedRegex = /\[\[\[([^\][]+)\]\s*\(([^)(]+)\)\]\]|\[\[([^\][]+)\]\]|\n\n/g
 
     let match: RegExpExecArray | null = combinedRegex.exec(text)
 
