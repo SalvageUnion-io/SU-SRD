@@ -43,7 +43,7 @@ export function ExportAllButton() {
       <Button size="sm" disabled={busy} onClick={() => void handleExportAll()}>
         {busy ? 'Exporting…' : 'Download all'}
       </Button>
-      {error && <p className="font-body text-xs text-danger">{error}</p>}
+      {error && <p className="font-body text-xs text-status-bad">{error}</p>}
     </div>
   )
 }

@@ -50,7 +50,7 @@ export function ExportEntityButton({ type, id, name }: ExportEntityButtonProps) 
       <Button size="sm" disabled={busy} onClick={() => void handleExport()} className="min-h-11">
         {busy ? 'Exporting…' : 'Export'}
       </Button>
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && <p className="text-sm text-status-bad">{error}</p>}
     </div>
   )
 }

@@ -274,7 +274,7 @@ function BlankCreateDialog({
         )}
 
         {error && (
-          <p className="m-0 font-body text-sm text-danger" role="alert">
+          <p className="m-0 font-body text-sm text-status-bad" role="alert">
             {error}
           </p>
         )}

@@ -233,7 +233,7 @@ export function EntityRow(props: EntityRowProps) {
               size="sm"
               aria-label={`Delete ${name}`}
               onClick={onDeleteClick}
-              className="border-transparent px-2 text-danger hover:bg-transparent hover:text-danger"
+              className="border-transparent px-2 text-status-bad hover:bg-transparent hover:text-status-bad"
             >
               <Trash2 aria-hidden="true" className="size-4" />
             </Button>

@@ -74,7 +74,7 @@ export function UnassignLinkButton({
         variant="ghost"
         size="sm"
         onClick={openConfirm}
-        className={cn('text-danger hover:text-danger', className)}
+        className={cn('text-status-bad hover:text-status-bad', className)}
         aria-label={`${label} — remove soft link`}
       >
         {label}

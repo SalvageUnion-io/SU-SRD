@@ -47,7 +47,7 @@ type InlineEditFieldProps = {
 const CONTROL_SKIN =
   'w-full rounded-card border-chrome border-ink bg-paper px-3 py-2 font-body text-sm text-ink placeholder:text-wk-faint focus:outline-none focus:ring-[3px] focus:ring-rust/25'
 
-const ERROR_SKIN = 'border-danger focus:ring-danger/25'
+const ERROR_SKIN = 'border-status-bad focus:ring-status-bad/25'
 
 // ---------------------------------------------------------------------------
 // Component

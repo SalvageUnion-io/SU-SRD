@@ -26,7 +26,7 @@ type FieldErrorProps = {
  * This gap was previously filled by 22 hand-rolled `<p role="alert">` spellings
  * across itun, srd and this package, in ~8 different class combinations and
  * split across TWO colour tokens for one semantic (6× `text-rust`, 10×
- * `text-danger`). Rust is the ACTION colour (buttons, AP costs, primary CTAs),
+ * `text-status-bad`). Rust is the ACTION colour (buttons, AP costs, primary CTAs),
  * so spending it on errors overloaded it — `danger` is canonical here.
  *
  * The type scale is likewise unified: call sites ran 9× `text-sm` (14px), 6×
@@ -55,7 +55,7 @@ export function FieldError({ children, className, id }: FieldErrorProps) {
     <span
       id={id}
       role="alert"
-      className={cn('block font-body text-caption text-danger', className)}
+      className={cn('block font-body text-caption text-status-bad', className)}
     >
       {children}
     </span>

@@ -23,7 +23,7 @@ export const buttonVariants = cva(
         default: 'border-ink bg-paper text-ink hover:bg-wk-bg-2',
         primary: 'border-rust bg-rust text-paper hover:border-rust-hi hover:bg-rust-hi',
         ghost: 'border-ink bg-transparent text-ink hover:bg-wk-bg-2',
-        danger: 'border-danger bg-danger text-paper hover:opacity-90',
+        danger: 'border-status-bad bg-status-bad text-paper hover:opacity-90',
       },
       surface: {
         // Light app chrome — the paper/ink/rust world (the existing default).

@@ -234,7 +234,7 @@ function WorkspaceListInner({ onClose, store }: WorkspaceListInnerProps) {
                         size="sm"
                         onClick={() => void handleDelete(ws.id)}
                         aria-label={`Delete workspace ${ws.name}`}
-                        className="text-danger hover:text-danger"
+                        className="text-status-bad hover:text-status-bad"
                       >
                         Delete
                       </Button>

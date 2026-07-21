@@ -24,9 +24,12 @@ describe('Button', () => {
     expect(screen.getByRole('button').className).toContain('bg-transparent')
   })
 
-  test('danger variant uses the danger fill', () => {
+  test('danger variant uses the status-bad fill', () => {
     render(<Button variant="danger">Delete</Button>)
-    expect(screen.getByRole('button').className).toContain('bg-danger')
+    // status-bad, not a bespoke `danger` red: --color-danger was the third red
+    // in a set that should have had one, and is retired. status-bad is the
+    // sanctioned state token (ruleset §3.3).
+    expect(screen.getByRole('button').className).toContain('bg-status-bad')
   })
 
   test('sm and lg sizes adjust padding/type scale', () => {

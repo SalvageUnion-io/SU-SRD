@@ -51,7 +51,7 @@ export function ModalShell({
   // happened to rewrite the literal alongside the token. A union removes the
   // class of bug rather than fixing an instance of it.
   const isDanger = tone === 'danger'
-  const headerBgClass = isDanger ? 'bg-adversary' : 'bg-pilot'
+  const headerBgClass = isDanger ? 'bg-status-bad' : 'bg-pilot'
 
   // Bare mode: a fit-height, non-scrolling popup — the child owns its frame and
   // any internal scroll. Default: a scrolling popup wrapping the DisplayCard.

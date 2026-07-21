@@ -146,7 +146,12 @@
      `--color-paper`, restoring the "one paper" law (§4.1). */
   --color-band-cream: rgb(243, 237, 226); /* #f3ede2 */
   --color-rust-hi: rgb(138, 64, 25); /* #8a4019 primary hover */
-  --color-danger: rgb(154, 70, 51); /* #9a4633 .btn--danger */
+  /* `--color-danger` (#9a4633) is RETIRED. It was the third red in a set that
+     should have had one: `--color-status-bad` is the sanctioned state token
+     (ruleset §3.3), and `--color-adversary` is an ONTOLOGY hue that was doing
+     state's job at the modal header. Destructive/error surfaces now all resolve
+     to status-bad; adversary stays ontology-only (creature/faction/NPC headers,
+     which are correct and untouched). */
 
   /* Workshop (light) ground — the step off-paper that makes a card read as a
      panel (style-unification-pass.md §2.5). */
