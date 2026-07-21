@@ -605,7 +605,7 @@ function ReferenceEntityCardInner({
           orientation="horizontal"
           label={marker.label}
           value={marker.value}
-          xs
+          size="mini"
         />
       ))}
     </div>
@@ -893,10 +893,10 @@ function ReferenceEntityCardInner({
             </Badge>
           )}
           {damageValue && (
-            <Stat key="damage" orientation="horizontal" label="Damage" value={damageValue} xs />
+            <Stat key="damage" orientation="horizontal" label="Damage" value={damageValue} size="mini" />
           )}
           {rangeValue && (
-            <Stat key="range" orientation="horizontal" label="Range" value={rangeValue} xs />
+            <Stat key="range" orientation="horizontal" label="Range" value={rangeValue} size="mini" />
           )}
         </>
       )
@@ -912,7 +912,7 @@ function ReferenceEntityCardInner({
           : []
     return badgeShell(
       badgeStats.map((s) => (
-        <Stat key={s.key} orientation="horizontal" label={s.label} value={s.value} xs />
+        <Stat key={s.key} orientation="horizontal" label={s.label} value={s.value} size="mini" />
       ))
     )
   }
@@ -1161,7 +1161,7 @@ function ReferenceEntityCardInner({
           label="Bonus per Tech Level"
           bgColor="var(--color-status-ok)"
           textColor="var(--color-paper)"
-          compact={compact}
+          size={compact ? 'compact' : 'full'}
         />
         <div className="flex flex-wrap items-start gap-1.5">
           {bonusCellList.map((cell) =>
@@ -1173,7 +1173,7 @@ function ReferenceEntityCardInner({
                 orientation="horizontal"
                 label={cell.label}
                 value={`${cell.value}${cell.bottomLabel ? ` ${cell.bottomLabel}` : ''}`}
-                compact={compact}
+                size={compact ? 'compact' : 'full'}
               />
             ) : (
               <Stat
@@ -1181,7 +1181,10 @@ function ReferenceEntityCardInner({
                 label={cell.label}
                 bottomLabel={cell.bottomLabel}
                 value={cell.value}
-                compact={compact}
+                // VALUE BOX, not horizontal: its rungs sit one step down, so
+                // `compact` maps to `mini` here while the horizontal cells above
+                // map it to `compact`. Same prop, same file, different ladder.
+                size={compact ? 'mini' : 'compact'}
               />
             )
           )}

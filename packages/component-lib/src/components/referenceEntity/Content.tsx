@@ -41,7 +41,7 @@ function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?
       orientation="horizontal"
       label={item.label}
       value={value}
-      compact={compact}
+      size={compact ? 'compact' : 'full'}
       inline={false}
       entityTooltip={entityTooltip}
     />

@@ -15,13 +15,13 @@ import {
 export function StatsStep() {
   return (
     <div className="flex flex-wrap gap-4">
-      <Stat label="HP" value={PILOT_BASE_HP} max={PILOT_BASE_HP} compact />
-      <Stat label="AP" value={PILOT_BASE_AP} max={PILOT_BASE_AP} compact />
+      <Stat label="HP" value={PILOT_BASE_HP} max={PILOT_BASE_HP} size="mini" />
+      <Stat label="AP" value={PILOT_BASE_AP} max={PILOT_BASE_AP} size="mini" />
       <Stat
         label="INV"
         value={PILOT_BASE_INVENTORY_SLOTS}
         max={PILOT_BASE_INVENTORY_SLOTS}
-        compact
+        size="mini"
       />
     </div>
   )

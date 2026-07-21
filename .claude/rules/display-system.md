@@ -99,5 +99,5 @@ through **`Stat`**, in the anatomy its context calls for. Never hand-assemble on
 in a `<span>`. This is ruleset §3.7, and it is the most frequently broken rule in
 this codebase. When a surface seems to need its own, the cause is almost always
 that `Stat` is missing a rung, not that the surface is special — a readout that
-IS the thing being read, rather than an annotation on it, is `Stat`'s `display`
-rung.
+IS the thing being read, rather than an annotation on it, is `Stat`'s `full`
+rung (`size="full"`, the canonical ladder's top step).

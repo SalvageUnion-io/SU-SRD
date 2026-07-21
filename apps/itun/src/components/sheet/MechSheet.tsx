@@ -508,7 +508,7 @@ export function MechSheet({
               count={
                 <Stat
                   orientation="horizontal"
-                  compact
+                  size="compact"
                   label="Actions"
                   value={chassisAbilities.length}
                 />

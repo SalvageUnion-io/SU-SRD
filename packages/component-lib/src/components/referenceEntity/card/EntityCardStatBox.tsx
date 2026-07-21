@@ -38,7 +38,7 @@ export function EntityCardStatBox({ stats, compact = false }: EntityCardStatBoxP
           label={stat.label}
           value={stat.value}
           bottomLabel={stat.bottomLabel}
-          compact
+          size="compact"
           state={stat.state}
           onChange={stat.onChange}
           mode={stat.onChange ? editMode : 'read'}

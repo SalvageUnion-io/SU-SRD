@@ -36,13 +36,18 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
   return (
     <div className="w-full space-y-5">
       <div className="flex flex-wrap gap-4">
-        <Stat label="SP" value={chassis.structurePoints} max={chassis.structurePoints} compact />
-        <Stat label="EP" value={chassis.energyPoints} max={chassis.energyPoints} compact />
-        <Stat label="HEAT" value={chassis.heatCapacity} max={chassis.heatCapacity} compact />
-        <Stat label="SYS" value={chassis.systemSlots} max={chassis.systemSlots} compact />
-        <Stat label="MOD" value={chassis.moduleSlots} max={chassis.moduleSlots} compact />
-        <Stat label="CARGO" value={chassis.cargoCapacity} max={chassis.cargoCapacity} compact />
-        <Stat label="SV" value={chassis.salvageValue} compact />
+        <Stat
+          label="SP"
+          value={chassis.structurePoints}
+          max={chassis.structurePoints}
+          size="mini"
+        />
+        <Stat label="EP" value={chassis.energyPoints} max={chassis.energyPoints} size="mini" />
+        <Stat label="HEAT" value={chassis.heatCapacity} max={chassis.heatCapacity} size="mini" />
+        <Stat label="SYS" value={chassis.systemSlots} max={chassis.systemSlots} size="mini" />
+        <Stat label="MOD" value={chassis.moduleSlots} max={chassis.moduleSlots} size="mini" />
+        <Stat label="CARGO" value={chassis.cargoCapacity} max={chassis.cargoCapacity} size="mini" />
+        <Stat label="SV" value={chassis.salvageValue} size="mini" />
       </div>
 
       {chassisAbilities.length > 0 && (

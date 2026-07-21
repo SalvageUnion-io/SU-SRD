@@ -32,7 +32,7 @@ function Stage({ rule, children }: { rule: string; children: ReactNode }) {
 function Loz({ label, value, action }: { label: string; value: number; action?: ReactNode }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <Stat display label={label} value={value} />
+      <Stat size="full" label={label} value={value} />
       {action}
     </div>
   )
@@ -56,7 +56,7 @@ export const CrewLead: Story = () => (
       }
       bodyClassName="flex flex-wrap items-start gap-3"
     >
-      <Stat label="HP" value={3} max={4} compact />
+      <Stat label="HP" value={3} max={4} size="mini" />
       <dl className="m-0 min-w-0 flex-1 space-y-1.5">
         <div className="flex items-baseline gap-1.5">
           <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps text-ink">

@@ -116,7 +116,7 @@ function SubHeaderStats({
               max={stat.outOfMax}
               bottomLabel={stat.bottomLabel}
               mode={(stat.canEdit ?? true) ? 'edit' : 'read'}
-              compact={compact}
+              size={compact ? 'mini' : 'compact'}
               onChange={stat.onChange}
             />
           )
@@ -135,7 +135,7 @@ function SubHeaderStats({
             flash={stat.flash}
             disabled={stat.disabled}
             ariaLabel={stat.ariaLabel}
-            compact={compact}
+            size={compact ? 'mini' : 'compact'}
             onClick={stat.onClick}
           />
         )

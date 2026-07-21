@@ -30,7 +30,7 @@ type SheetSectionCardProps = {
   title: string
   /**
    * Optional count/meta tag after the title (poster `.tag`). Typically a
-   * `<Stat orientation="horizontal" compact label=… value=… />` LABEL·VALUE chip.
+   * `<Stat orientation="horizontal" size="compact" label=… value=… />` LABEL·VALUE chip.
    */
   count?: ReactNode
   /** Header-right controls (the section's `HButton` — Edit/Done or + Add). */

@@ -71,8 +71,11 @@ export const ValueBox: Story = () => (
     <Cell label="current / max">
       <Stat label="SP" value={Math.ceil(sp * 0.5)} max={sp} />
     </Cell>
-    <Cell label="compact">
-      <Stat label="SP" value={sp} compact />
+    <Cell label='size="full"'>
+      <Stat label="SP" value={sp} max={sp} size="full" />
+    </Cell>
+    <Cell label='size="mini"'>
+      <Stat label="SP" value={sp} size="mini" />
     </Cell>
     <Cell label="disabled">
       <Stat label="SP" value={sp} disabled />
@@ -138,6 +141,12 @@ export const Horizontal: Story = () => (
     <Cell label="inverse">
       <Stat label="TRAIT" value={traitLabel} orientation="horizontal" inverse />
     </Cell>
+    <Cell label='size="compact"'>
+      <Stat label="TL" value={tl} orientation="horizontal" size="compact" />
+    </Cell>
+    <Cell label='size="mini"'>
+      <Stat label="TL" value={tl} orientation="horizontal" size="mini" />
+    </Cell>
     <Cell label='mode="edit" → + steppers'>
       <Stat label="HP" value={7} max={10} orientation="horizontal" mode="edit" onChange={noop} />
     </Cell>
@@ -153,14 +162,14 @@ export const CompactHeaderCluster: Story = () => (
       className="grid w-fit justify-items-end gap-1"
       style={{ gridTemplateColumns: 'repeat(4, max-content)' }}
     >
-      <Stat orientation="horizontal" label="TL" value={tl} compact />
-      <Stat orientation="horizontal" label="SP" value={sp} compact />
-      <Stat orientation="horizontal" label="EP" value={ep} compact />
-      <Stat orientation="horizontal" label="SV" value={chassis?.salvageValue ?? 2} compact />
-      <Stat orientation="horizontal" label="Sys" value={chassis?.systemSlots ?? 7} compact />
-      <Stat orientation="horizontal" label="Mod" value={chassis?.moduleSlots ?? 2} compact />
-      <Stat orientation="horizontal" label="Cargo" value={cargo} compact />
-      <Stat orientation="horizontal" label="Heat" value={heat} compact />
+      <Stat orientation="horizontal" label="TL" value={tl} size="compact" />
+      <Stat orientation="horizontal" label="SP" value={sp} size="compact" />
+      <Stat orientation="horizontal" label="EP" value={ep} size="compact" />
+      <Stat orientation="horizontal" label="SV" value={chassis?.salvageValue ?? 2} size="compact" />
+      <Stat orientation="horizontal" label="Sys" value={chassis?.systemSlots ?? 7} size="compact" />
+      <Stat orientation="horizontal" label="Mod" value={chassis?.moduleSlots ?? 2} size="compact" />
+      <Stat orientation="horizontal" label="Cargo" value={cargo} size="compact" />
+      <Stat orientation="horizontal" label="Heat" value={heat} size="compact" />
     </div>
   </Gallery>
 )

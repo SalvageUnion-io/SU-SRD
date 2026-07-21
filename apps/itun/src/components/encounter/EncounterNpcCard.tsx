@@ -127,7 +127,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
               label={npc.statKind === 'sp' ? 'SP' : 'HP'}
               value={npc.currentHp}
               max={npc.maxHp}
-              compact
+              size="mini"
               mode="edit"
               onChange={handleHpChange}
             />

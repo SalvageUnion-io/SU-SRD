@@ -213,7 +213,7 @@ export function EntityRow(props: EntityRowProps) {
                   label={stat.label}
                   value={stat.value}
                   orientation="horizontal"
-                  xs
+                  size="mini"
                 />
               ))}
             </div>

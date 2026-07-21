@@ -422,7 +422,12 @@ export function PilotSheet({
       <SheetSectionCard
         title="Abilities"
         count={
-          <Stat orientation="horizontal" compact label="Known" value={pilot.abilities.length} />
+          <Stat
+            orientation="horizontal"
+            size="compact"
+            label="Known"
+            value={pilot.abilities.length}
+          />
         }
         controls={
           readOnly ? undefined : (

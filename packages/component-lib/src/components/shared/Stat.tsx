@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { SalvageUnionReference, EntitySchemaNames } from 'salvageunion-reference'
 import type { EntitySchemaName, SURefEnumSchemaName } from 'salvageunion-reference'
 import { cn } from '../../utils/cn'
+import type { SizeRung } from '../../styles/sizing'
 import { Text } from '../base/Text'
 import { Tooltip } from '../ui/tooltip'
 import { EntityTooltip } from '../referenceEntity/EntityTooltip'
@@ -76,9 +77,7 @@ type StatPropKey =
   | 'orientation'
   | 'mode'
   | 'inverse'
-  | 'compact'
-  | 'xs'
-  | 'display'
+  | 'size'
   | 'onChange'
   | 'onClick'
   | 'hoverText'
@@ -110,9 +109,14 @@ type HorizontalValueProps = Exact<{
   /** Optional second label line — renders the label cell as a two-line stack
    * (`label` on top, `bottomLabel` below), e.g. "Tech" / "Level". */
   bottomLabel?: StatValue
-  compact?: boolean
-  /** Extra-small (text-label / 10px) — the seam-tag size. */
-  xs?: boolean
+  /**
+   * Ladder rung (styles/sizing.ts). This anatomy's resting state is a reading
+   * cell, so it defaults to `full`; `compact` is the listing-row scale (the
+   * former `compact` boolean) and `mini` the seam-tag size (text-label / 10px,
+   * the former `xs`). One axis — the old compact+xs boolean pair could be
+   * combined into a rung that didn't exist; a single `size` cannot.
+   */
+  size?: SizeRung
   inverse?: boolean
   /** inline-flex (default) vs flex. */
   inline?: boolean
@@ -152,23 +156,25 @@ type ValueBoxProps = Exact<{
   /** State overlay — drives the border colour only (see StatBorderState). */
   state?: StatBorderState
   ariaLabel?: string
-  compact?: boolean
   /**
-   * DISPLAY rung — the readout is the thing being read, not an annotation.
-   * A 64px box with a `text-display` (26px) numeral, for figures meant to carry
-   * a panel at a glance (the crawler economy's Scrap / Tech Level / Crew).
+   * Ladder rung (styles/sizing.ts). The box's resting state is a scan-past
+   * cell, so it defaults to `compact`; `mini` is the dense 32px box (the
+   * former `compact` boolean).
    *
-   * This exists because those readouts were previously hand-assembled in spans
-   * with an arbitrary 26px numeral and a hand-built `/max` slash — the library's
-   * worst §3.7 offender. Folding them onto Stat without a display rung shrank
+   * `full` is the readout-as-destination rung — a 64px box with a
+   * `text-display` (26px) numeral, for figures meant to carry a panel at a
+   * glance (the crawler economy's Scrap / Tech Level / Crew). It exists
+   * because those readouts were previously hand-assembled in spans with an
+   * arbitrary 26px numeral and a hand-built `/max` slash — the library's
+   * worst §3.7 offender. Folding them onto Stat without a top rung shrank
    * them to a 13px annotation, which was a legible loss on a headline number.
-   * The primitive was missing an anatomy, so the surface grew its own; the fix
-   * is the rung, not the hand-rolled markup.
+   * The primitive was missing an anatomy, so the surface grew its own; the
+   * fix is the rung, not the hand-rolled markup.
    *
-   * Mutually exclusive with `compact` / `xs` — display is the top of the same
-   * axis, not a modifier on top of it.
+   * One axis: the old `display` and `compact` booleans could contradict each
+   * other; a single `size` cannot.
    */
-  display?: boolean
+  size?: SizeRung
   flash?: boolean
   inverse?: boolean
   hoverText?: string
@@ -215,8 +221,7 @@ function HorizontalValue({
   value,
   max,
   bottomLabel,
-  compact = false,
-  xs = false,
+  size = 'full',
   inverse = false,
   inline = true,
   state = 'default',
@@ -227,8 +232,9 @@ function HorizontalValue({
   min = 0,
   className,
 }: HorizontalValueProps) {
-  const fontSize = xs ? 'text-label' : compact ? 'text-xs' : 'text-sm'
-  const fontWeight = xs ? 'font-bold' : compact ? 'font-normal' : 'font-semibold'
+  const fontSize = size === 'mini' ? 'text-label' : size === 'compact' ? 'text-xs' : 'text-sm'
+  const fontWeight =
+    size === 'mini' ? 'font-bold' : size === 'compact' ? 'font-normal' : 'font-semibold'
   const mainVariant = inverse ? 'pseudoheaderInverse' : 'pseudoheader'
   const valueVariant = inverse ? 'pseudoheader' : 'pseudoheaderInverse'
 
@@ -294,7 +300,7 @@ function HorizontalValue({
   const atMax = max !== undefined && numericValue >= max
   // Buttons sit SIDE BY SIDE after the value cell and stretch to its height, so
   // the stepper adds no vertical height to the row.
-  const btnSize = compact ? 'w-4 text-xs' : 'w-5 text-sm'
+  const btnSize = size === 'compact' ? 'w-4 text-xs' : 'w-5 text-sm'
   const btnResting = inverse ? 'border-paper bg-ink text-paper' : 'border-ink bg-paper text-ink'
   const btnHover = inverse ? 'hover:bg-paper hover:text-ink' : 'hover:bg-ink hover:text-paper'
   const btnBase =
@@ -355,8 +361,7 @@ function ValueBox({
   mode = 'read',
   state = 'default',
   ariaLabel,
-  compact = false,
-  display = false,
+  size = 'compact',
   flash = false,
   inverse = false,
   hoverText,
@@ -399,10 +404,10 @@ function ValueBox({
     }
   }, [])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: label/bottomLabel/compact are intentional extra deps — label scaling must re-measure whenever the rendered text or size changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: label/bottomLabel/size are intentional extra deps — label scaling must re-measure whenever the rendered text or size changes
   useEffect(() => {
     scaleLabels()
-  }, [label, bottomLabel, compact, scaleLabels])
+  }, [label, bottomLabel, size, scaleLabels])
 
   if (value === undefined) return null
 
@@ -410,12 +415,14 @@ function ValueBox({
   const canEdit = mode === 'edit' && onChange !== undefined && Number.isFinite(numericValue)
   const atMin = numericValue <= min
   const atMax = max !== undefined && numericValue >= max
-  const btnSize = compact ? 'h-3 w-3 text-micro' : display ? 'h-5 w-5 text-sm' : 'h-4 w-4 text-xs'
+  const btnSize =
+    size === 'mini' ? 'h-3 w-3 text-micro' : size === 'full' ? 'h-5 w-5 text-sm' : 'h-4 w-4 text-xs'
   const btnResting = inverse ? 'border-paper bg-ink text-paper' : 'border-ink bg-paper text-ink'
   const btnHover = inverse ? 'hover:bg-paper hover:text-ink' : 'hover:bg-ink hover:text-paper'
 
-  const boxSize = compact ? 'h-8 min-w-8 px-0.5' : display ? 'h-16 min-w-16 px-1' : 'h-12 w-12'
-  const boxRadius = compact ? 'rounded-card' : 'rounded-panel'
+  const boxSize =
+    size === 'mini' ? 'h-8 min-w-8 px-0.5' : size === 'full' ? 'h-16 min-w-16 px-1' : 'h-12 w-12'
+  const boxRadius = size === 'mini' ? 'rounded-card' : 'rounded-panel'
   // Disabled state: reduce overall opacity to signal disabled while preserving
   // foreground/background contrast. The default bg-paper / text-ink pair
   // has a 16:1 base ratio; at 60% opacity the effective ratio is ~9.6:1, still
@@ -430,7 +437,7 @@ function ValueBox({
       className={cn(
         'flex w-full items-baseline justify-center gap-px overflow-hidden whitespace-nowrap text-center font-bold',
         trueValueColor,
-        compact ? 'text-xs' : display ? 'text-display' : 'text-caption'
+        size === 'mini' ? 'text-xs' : size === 'full' ? 'text-display' : 'text-caption'
       )}
     >
       {value}
@@ -439,7 +446,7 @@ function ValueBox({
           className={cn(
             'font-normal',
             mutedMaxColor,
-            compact ? 'text-micro' : display ? 'text-caption' : 'text-label'
+            size === 'mini' ? 'text-micro' : size === 'full' ? 'text-caption' : 'text-label'
           )}
         >
           /{max}
@@ -454,7 +461,7 @@ function ValueBox({
       role="group"
       className={cn(
         'flex flex-col items-center gap-0 overflow-visible',
-        compact ? 'min-w-8' : 'w-12',
+        size === 'mini' ? 'min-w-8' : 'w-12',
         disabledClass,
         className
       )}
@@ -466,7 +473,7 @@ function ValueBox({
         as="span"
         className={cn(
           'z-[1] -mb-2 origin-center self-center whitespace-nowrap uppercase',
-          compact ? 'text-label' : 'text-xs'
+          size === 'mini' ? 'text-label' : 'text-xs'
         )}
         id={labelId}
       >
@@ -485,7 +492,7 @@ function ValueBox({
             boxRadius,
             trueBg,
             trueBorderColor,
-            compact ? 'border' : 'border-chrome',
+            size === 'mini' ? 'border' : 'border-chrome',
             disabled
               ? 'pointer-events-none'
               : 'cursor-pointer hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pilot',
@@ -504,7 +511,7 @@ function ValueBox({
             boxRadius,
             trueBg,
             trueBorderColor,
-            compact ? 'border' : 'border-chrome',
+            size === 'mini' ? 'border' : 'border-chrome',
             isFlashing && 'animate-[growShrink_3s_ease-out] motion-reduce:animate-none'
           )}
         >
@@ -517,7 +524,7 @@ function ValueBox({
         as="span"
         className={cn(
           'z-[1] -mt-2 origin-center self-center whitespace-nowrap uppercase',
-          compact ? 'text-label' : 'text-xs',
+          size === 'mini' ? 'text-label' : 'text-xs',
           !bottomLabel && 'invisible'
         )}
       >
@@ -539,7 +546,7 @@ function ValueBox({
       className={cn(
         'invisible z-[1] origin-center self-center whitespace-nowrap uppercase',
         edge === 'top' ? '-mb-2' : '-mt-2',
-        compact ? 'text-label' : 'text-xs'
+        size === 'mini' ? 'text-label' : 'text-xs'
       )}
     >
       {' '}

@@ -131,7 +131,7 @@ export function NpcInset({
             label="HP"
             value={hp}
             max={maxHp}
-            compact
+            size="mini"
             mode={onHpChange ? 'edit' : 'read'}
             onChange={onHpChange}
           />

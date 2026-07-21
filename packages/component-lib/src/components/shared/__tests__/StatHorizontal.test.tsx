@@ -22,7 +22,9 @@ describe('Stat (horizontal)', () => {
   })
 
   test('renders compact variant with smaller text', () => {
-    const { container } = render(<Stat orientation="horizontal" label="SP" value={5} compact />)
+    const { container } = render(
+      <Stat orientation="horizontal" label="SP" value={5} size="compact" />
+    )
     const textElements = container.querySelectorAll('.text-xs')
     expect(textElements.length).toBeGreaterThan(0)
   })

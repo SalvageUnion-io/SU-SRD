@@ -105,7 +105,7 @@ export function useChassisPatternConfig(
         <Stat
           orientation="horizontal"
           label="Legal Starting Pattern"
-          compact={compact}
+          size={compact ? 'compact' : 'full'}
           inline={false}
           state="modified"
         />
@@ -115,7 +115,7 @@ export function useChassisPatternConfig(
           orientation="horizontal"
           label="Chassis"
           value={chassisName}
-          compact={compact}
+          size={compact ? 'compact' : 'full'}
           inline={false}
         />
       )}
