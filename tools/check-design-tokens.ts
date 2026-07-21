@@ -171,6 +171,12 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
     reason:
       'Ruleset §3.5 hard-stop pattern: the QR placeholder is a repeating-conic checkerboard on ink/paper tokens. A checkerboard is a pattern, not shading.',
   },
+  {
+    file: 'apps/srd/src/styles/global.css',
+    rules: ['gradient'],
+    reason:
+      'Ruleset §3.5 THE one-off: the .pilot-panel distressed-metal effect on srd /about is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of a rusted plate rather than a UI surface. Not precedent — no second one-off without an explicit ruling.',
+  },
 ]
 
 function walk(dir: string): string[] {

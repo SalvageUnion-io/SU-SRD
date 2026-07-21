@@ -157,23 +157,21 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    `EXEMPTIONS` table with a written reason, because the checker matches the
    CSS function and cannot itself tell a hard stop from a blend.
 
-   **There are no shading exemptions.** The last one — the `.pilot-panel`
-   distressed-metal skin on srd's `/about` (12 declarations: five soft rust
-   blooms, a five-stop steel ramp, four domed rivets and a fade-to-transparent
-   rule) — was flattened rather than exempted. It was tempting to argue that a
-   CSS _illustration_ sits outside a law about UI chrome; the ruling was that
-   it does not, and the skin lost its blends.
+   **There is exactly ONE shading exemption, and it is a ruled one-off:** the
+   `.pilot-panel` distressed-metal effect on srd's `/about` (12 declarations in
+   `apps/srd/src/styles/global.css` — five soft rust blooms, a five-stop steel
+   ramp, four domed rivets and a fade-to-transparent rule).
 
-   The flattening cost less than expected, because the weathering was never
-   coming from the gradients: `#plate-damage`, an SVG displacement filter, does
-   that work and still does. The rust blooms are the one real loss — a bloom is
-   inherently a blend, and a hard-stop version reads as blotches, so they were
-   dropped rather than banded. The rivets keep their domed read from their
-   existing inset box-shadows.
+   It is exempt because it is a **picture**, not a surface: a CSS illustration
+   of a rusted, riveted plate, on one page, behind prose. The no-shading law
+   governs how the product renders game data and chrome; it was never trying to
+   ban an illustration, and flattening this one produced a worse page for no
+   principled gain.
 
-   Consequence worth noting for future sweeps: flattening those 12 declarations
-   also removed 22 raw colour literals, so `raw-color` fell 120 → 98 in the same
-   change. Gradient shading and off-token colour tend to travel together.
+   **This is not precedent.** "It's decorative" is exactly the argument that
+   would erode the law everywhere, so the exemption is written as an instance,
+   not a category: `/about`'s panel, and nothing else. A second one-off needs
+   its own explicit ruling, not an appeal to this entry.
 
    Anything else is a defect.
 
