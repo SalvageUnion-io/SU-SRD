@@ -295,7 +295,6 @@ export function SheetPickerModal({
         }}
         title={title}
         maxWidth={maxWidth}
-        align="center"
         bare
       >
         {searcher}
@@ -310,9 +309,7 @@ export function SheetPickerModal({
         if (!next) onClose()
       }}
       title={title}
-      headerBg="bg-pilot"
       maxWidth={maxWidth}
-      align="center"
     >
       <div className="bg-paper p-5">{children}</div>
       {footer && (

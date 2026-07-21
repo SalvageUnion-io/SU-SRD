@@ -16,12 +16,6 @@ type ModalShellProps = {
    * constructive flows, 'danger' (adversary rust) for destructive confirms.
    */
   tone?: 'action' | 'danger'
-  /**
-   * @deprecated Legacy raw header class — use `tone` instead. Only 'bg-adversary'
-   * maps to 'danger'; anything else renders the 'action' tone. Kept solely for
-   * SheetSection (owned elsewhere) until its call site migrates.
-   */
-  headerBg?: string
   maxWidth?: string
   align?: 'center' | 'top'
   /** Element to focus when the dialog opens (defaults to base-ui's first
@@ -45,15 +39,18 @@ export function ModalShell({
   subtitle,
   description,
   tone,
-  headerBg,
   maxWidth = 'max-w-3xl',
   align = 'center',
   initialFocus,
   bare = false,
   children,
 }: ModalShellProps) {
-  const resolvedTone = tone ?? (headerBg === 'bg-adversary' ? 'danger' : 'action')
-  const isDanger = resolvedTone === 'danger'
+  // `tone` is the whole API now. It replaced a `headerBg` raw-class prop whose
+  // behaviour hung on a string comparison (`headerBg === 'bg-adversary'`) — a
+  // shape that had already survived one token migration only because a sweep
+  // happened to rewrite the literal alongside the token. A union removes the
+  // class of bug rather than fixing an instance of it.
+  const isDanger = tone === 'danger'
   const headerBgClass = isDanger ? 'bg-adversary' : 'bg-pilot'
 
   // Bare mode: a fit-height, non-scrolling popup — the child owns its frame and
