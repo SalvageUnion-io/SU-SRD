@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import { cn } from '../../../utils/cn'
 import type { CardFootMeta } from '../../shared/DisplayCard'
 
@@ -14,6 +16,12 @@ type EntityCardIdentityFooterProps = {
   /** Write-layer: inline `[label value]` meta pairs (cost / SV) folded into the
    * footer's right side, before the source/page. */
   footMeta?: CardFootMeta[]
+  /**
+   * App-supplied cross-link (ITUN's "View in SRD →"), sourced from
+   * `EntityExternalLinkProvider`. Full extent only — the card passes
+   * `undefined` for head/catalog so listings stay uncluttered.
+   */
+  externalLink?: ReactNode
   compact?: boolean
 }
 
@@ -33,13 +41,16 @@ export function EntityCardIdentityFooter({
   booklet,
   page,
   footMeta,
+  externalLink,
   compact = false,
 }: EntityCardIdentityFooterProps) {
   const sourceLabel = source && booklet ? `${source} (${booklet})` : source
   const rightParts = [sourceLabel, page !== undefined ? `p.${page}` : undefined].filter(
     (part): part is string => !!part
   )
-  const hasFootExtras = (footMeta?.length ?? 0) > 0
+  // Foot extras force the band even without source/page data — they are
+  // affordances, not source chrome.
+  const hasFootExtras = (footMeta?.length ?? 0) > 0 || !!externalLink
 
   if (!typeLabel && rightParts.length === 0 && !hasFootExtras) return null
 
@@ -68,6 +79,7 @@ export function EntityCardIdentityFooter({
           </span>
         ))}
         {rightParts.length > 0 && <span className={textClass}>{rightParts.join(' · ')}</span>}
+        {externalLink && <span className={cn(textClass, 'shrink-0')}>{externalLink}</span>}
       </div>
     </div>
   )

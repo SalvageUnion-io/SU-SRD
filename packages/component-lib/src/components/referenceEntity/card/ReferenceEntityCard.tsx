@@ -48,6 +48,7 @@ import { Content } from '../Content'
 import { ChoiceGroups } from '../choiceCard/ChoiceGroups'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
+import { useEntityExternalLink } from '../ReferenceEntityDisplay/entityHrefContext'
 import type { ReferenceEntityControl } from '../ReferenceEntityDisplay/referenceEntityControlTypes'
 import { accentDeepColor, accentSurface, borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { buildReferenceEntityStats } from '../ReferenceEntityDisplay/referenceEntityStatsConfig'
@@ -382,6 +383,10 @@ function ReferenceEntityCardInner({
   // discriminant that isn't reflected in the static `SURefEntity` union type —
   // the same cast-at-the-boundary pattern used throughout the display system.
   const entity = data as SURefMetaEntity
+  // App-supplied cross-link (ITUN's "View in SRD →"). Must be read here,
+  // above the `!schemaName` / extent early-returns below, so the hook runs
+  // unconditionally on every render.
+  const externalLinkNode = useEntityExternalLink(data)
   const schemaName = (
     'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
   ) as SURefEnumSchemaName | 'actions' | undefined
@@ -1709,6 +1714,7 @@ function ReferenceEntityCardInner({
                 booklet={getBooklet(entity)}
                 page={getPageReference(entity)}
                 footMeta={footMeta}
+                externalLink={extent === 'full' ? externalLinkNode : undefined}
                 compact={compact}
               />
             )))}
