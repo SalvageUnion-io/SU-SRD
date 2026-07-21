@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { useMemo, useState } from 'react'
 import type {
   SURefEntity,
   SURefEnumSchemaName,
@@ -29,12 +28,8 @@ import {
   resolveDataValueForTechLevel,
   resolveGrantedEntities,
 } from 'salvageunion-reference'
-import {
-  isSchemaOnlyCatalogChoice,
-  resolveCatalogChoiceEntities,
-} from 'salvageunion-reference/rules'
+import { isSchemaOnlyCatalogChoice } from 'salvageunion-reference/rules'
 import { cn } from '../../../utils/cn'
-import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { EntityStatus } from '../../shared/entityStatus'
 import { type CardExtent, type CardSize, resolveCardDisplay } from '../../shared/displayMode'
 import { FOCUS_RING, activateOnKey } from '../../chrome/interaction'
@@ -56,6 +51,9 @@ import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
 import type { ReferenceEntityControl } from '../ReferenceEntityDisplay/referenceEntityControlTypes'
 import { accentDeepColor, accentSurface, borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { buildReferenceEntityStats } from '../ReferenceEntityDisplay/referenceEntityStatsConfig'
+import { CatalogChoiceListing } from './CatalogChoiceListing'
+import { anchorBonusMarker, anchorChoiceMarkers } from './choiceAnchoring'
+import { firstParagraphText } from './firstParagraphText'
 import { EntityCardHeader } from './EntityCardHeader'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
 import { EntityCardSubHeader } from './EntityCardSubHeader'
@@ -307,149 +305,6 @@ function bonusCells(bonus: SURefObjectBonusPerTechLevel): BonusCell[] {
       ? [{ key: `bonus-${field}`, label: top, bottomLabel: bottom, value: `+${amount}` }]
       : []
   })
-}
-
-/** First paragraph of a content array as plain text — the pattern-listing hint. */
-function firstParagraphText(content: SURefObjectContentBlock[] | undefined): string | undefined {
-  const paragraph = content?.find((block) => block?.type === 'paragraph')
-  return paragraph ? parseContentBlockString(paragraph) : undefined
-}
-
-/**
- * A SCHEMA-ONLY catalog choice — "pick any entity from the collection" (the
- * Armament Bay's Weapons System = any Mech System dealing SP damage). Two faces:
- *
- * - **Editable** launches the shared `CatalogChoiceModal` (search + facets +
- *   rail) via a "Choose…" button, and shows the current pick as a real listing
- *   card. Single-select — the modal owns the pool (filtered to the catalog).
- * - **Read-only** is a static reference: an expandable listing of the qualifying
- *   entities, each a real `ReferenceEntityCard` (listing/header-only).
- *
- * The collection is resolved LAZILY — only when the picker/listing is opened —
- * so the default render touches no cross-schema collection (the target schema,
- * e.g. `systems`/`chassis`, need not be preloaded to show a bay/system).
- * Resolution is guarded: an unloaded target schema resolves to empty, never a
- * throw.
- */
-function CatalogChoiceListing({
-  choice,
-  techLevel,
-  depth,
-  hostTone,
-  chassisName,
-  selections,
-  onSelectionChange,
-}: {
-  choice: SURefObjectChoice
-  techLevel?: number
-  depth: number
-  hostTone?: string
-  chassisName?: string
-  selections?: ChoiceSelections
-  onSelectionChange?: (selections: ChoiceSelections) => void
-}): ReactNode {
-  const [open, setOpen] = useState(false)
-  const [modalOpen, setModalOpen] = useState(false)
-  const editable = !!onSelectionChange
-  const chosen = selections?.[choice.id]?.[0]
-  // The choice owns its prompt prose (the content data owns the prose).
-  const prompt = firstParagraphText(choice.content)
-
-  // The chosen entity (editable), resolved on demand and guarded — shown as a
-  // real listing card so the pick reads like every other entity on the sheet.
-  const chosenEntity = useMemo(() => {
-    if (!chosen) return undefined
-    try {
-      return resolveCatalogChoiceEntities(
-        choice,
-        typeof techLevel === 'number' ? { techLevel } : undefined
-      ).find((e) => e.name === chosen) as unknown as SURefEntity | undefined
-    } catch {
-      return undefined
-    }
-  }, [choice, chosen, techLevel])
-
-  // EDITABLE — the modal picker (launched by a button), plus the current pick.
-  if (editable) {
-    return (
-      <div className="flex flex-col gap-1.5">
-        {prompt && <p className="font-body text-xs text-ink/70">{prompt}</p>}
-        {chosenEntity && (
-          <ReferenceEntityCardInner
-            size="medium"
-            extent="head"
-            depth={depth + 1}
-            data={chosenEntity}
-            hostTone={hostTone}
-            chassisName={chassisName}
-          />
-        )}
-        <button
-          type="button"
-          onClick={() => setModalOpen(true)}
-          className="w-fit rounded-badge border-2 border-rust bg-rust px-3 py-1 font-cond text-badge font-bold uppercase tracking-caps-tight text-paper hover:border-rust-hi hover:bg-rust-hi"
-        >
-          {chosen ? `Change — ${chosen}` : `Choose ${choice.name}…`}
-        </button>
-        <CatalogChoiceModal
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          choice={choice}
-          techLevel={techLevel}
-          selected={selections?.[choice.id] ?? []}
-          onSelect={(values) => onSelectionChange?.({ ...(selections ?? {}), [choice.id]: values })}
-        />
-      </div>
-    )
-  }
-
-  // READ-ONLY — a static reference listing, resolved lazily on expand.
-  let entities: SURefEntity[] = []
-  if (open) {
-    try {
-      entities = resolveCatalogChoiceEntities(
-        choice,
-        typeof techLevel === 'number' ? { techLevel } : undefined
-      ) as unknown as SURefEntity[]
-    } catch {
-      entities = []
-    }
-  }
-  const summary = chosen ? `${choice.name}: ${chosen}` : choice.name
-  return (
-    <div className="flex flex-col gap-1.5">
-      {prompt && <p className="font-body text-xs text-ink/70">{prompt}</p>}
-      <details
-        open={open}
-        onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
-        className="text-xs"
-      >
-        <summary className="cursor-pointer font-cond uppercase leading-none tracking-caps-tight text-ink/70">
-          {summary}
-        </summary>
-        {open && (
-          <div className="mt-2 flex flex-col gap-1.5">
-            {entities.map((entity, index) => {
-              const name = typeof entity.name === 'string' ? entity.name : ''
-              const key =
-                'id' in entity && typeof entity.id === 'string' ? entity.id : `${name}-${index}`
-              return (
-                <ReferenceEntityCardInner
-                  key={key}
-                  size="medium"
-                  extent="head"
-                  depth={depth + 1}
-                  data={entity}
-                  hostTone={hostTone}
-                  chassisName={chassisName}
-                />
-              )
-            })}
-          </div>
-        )}
-      </details>
-    </div>
-  )
 }
 
 /**
@@ -1352,11 +1207,19 @@ function ReferenceEntityCardInner({
           <CatalogChoiceListing
             choice={choice}
             techLevel={typeof effTechLevel === 'number' ? effTechLevel : undefined}
-            depth={depth}
-            hostTone={ownToneBase}
-            chassisName={resolvedChassisName}
             selections={selections}
             onSelectionChange={editableChoices ? onSelectionChange : undefined}
+            renderEntity={(resolved, key) => (
+              <ReferenceEntityCardInner
+                key={key}
+                size="medium"
+                extent="head"
+                depth={depth + 1}
+                data={resolved}
+                hostTone={ownToneBase}
+                chassisName={resolvedChassisName}
+              />
+            )}
           />
         </div>
       )
@@ -1376,68 +1239,13 @@ function ReferenceEntityCardInner({
     )
   }
 
-  // AUTO-ANCHOR unmarked choices to the prose that introduces them: for a choice
-  // with no explicit `{type:'choice'}` marker, inject one right after the LAST
-  // content block that mentions the choice (a significant word from its name), so
-  // it renders inline at its describing sentence — e.g. A.I. Personality after
-  // "…the A.I. Personality Table for this or consider your own." A choice that
-  // matches nothing falls to the trailing position below.
-  const STOP_WORDS = new Set(['ai', 'the', 'and', 'for', 'your', 'you'])
-  const choiceKeywords = (name: string): string[] =>
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, ' ')
-      .split(/\s+/)
-      .filter((w) => w.length > 2 && !STOP_WORDS.has(w))
-  const blockLowerText = (b: SURefObjectContentBlock): string =>
-    b && b.type !== 'choice' && typeof (b as { value?: unknown }).value === 'string'
-      ? String((b as { value: string }).value).toLowerCase()
-      : ''
+  // AUTO-ANCHOR unmarked choices to the prose that introduces them, then the
+  // bonus-per-tech-level marker to ITS prose — the pure splice walks live in
+  // choiceAnchoring.ts; a choice/bonus that matches nothing falls to the
+  // trailing position below.
   const anchoredBlocks: SURefObjectContentBlock[] = [...bodyBlocks]
-  if (!hide?.choices) {
-    const marked = new Set(
-      anchoredBlocks
-        .map((b) => (b?.type === 'choice' ? (b as { choiceId?: string }).choiceId : undefined))
-        .filter((id): id is string => !!id)
-    )
-    for (const choice of entityChoices) {
-      if (marked.has(choice.id)) continue
-      const kws = choiceKeywords(choice.name)
-      if (kws.length === 0) continue
-      let idx = -1
-      for (let i = 0; i < anchoredBlocks.length; i++) {
-        const block = anchoredBlocks[i]
-        const t = block ? blockLowerText(block) : ''
-        if (t && kws.some((k) => t.includes(k))) idx = i
-      }
-      if (idx >= 0) {
-        anchoredBlocks.splice(idx + 1, 0, {
-          type: 'choice',
-          choiceId: choice.id,
-        } as SURefObjectContentBlock)
-        marked.add(choice.id)
-      }
-    }
-  }
-
-  // Anchor the BONUS-PER-TECH-LEVEL box right after the prose that describes it
-  // (e.g. "…its damage increases by 1 SP per Tech Level…"), so it sits WITH its
-  // prose instead of trailing at the card's foot. Falls back to the trailing
-  // position when no describing block is found.
-  let bonusAnchored = false
-  if (bonusNode) {
-    const bonusKws = ['per tech level', 'tech level']
-    let bIdx = -1
-    for (let i = 0; i < anchoredBlocks.length; i++) {
-      const block = anchoredBlocks[i]
-      const t = block ? blockLowerText(block) : ''
-      if (t && bonusKws.some((k) => t.includes(k))) bIdx = i
-    }
-    if (bIdx >= 0) {
-      anchoredBlocks.splice(bIdx + 1, 0, { type: 'bonus' } as unknown as SURefObjectContentBlock)
-      bonusAnchored = true
-    }
-  }
+  if (!hide?.choices) anchorChoiceMarkers(anchoredBlocks, entityChoices)
+  const bonusAnchored = bonusNode ? anchorBonusMarker(anchoredBlocks) : false
 
   // The interleave walk runs in BOTH modes — read-only renders the same choice
   // cards, static (readable); editable makes them selectable.
