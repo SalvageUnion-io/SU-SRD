@@ -810,88 +810,6 @@ function ReferenceEntityCardInner({
     costNode
   )
 
-  // SUB-HEADER cells — action range/damage/traits, then entity traits, then any
-  // FREEFORM (simple text input) choices.
-  //
-  // CHOICE PLACEMENT splits by kind:
-  // EVERYTHING INLINE (choice-plan Stage 7): every choice renders in the BODY,
-  // at its prose, in both modes — no choice is ever hoisted to the sub-header.
-  // The old "Choose | <name>" freeform sub-header cell is retired; the sub-header
-  // keeps only the general facet hoist (type/range/damage/traits). `hide.choices`
-  // still suppresses choices entirely.
-  const editableChoices = !!onSelectionChange
-  // A folded single action surfaces its type/range/damage/traits into the
-  // sub-header; entity traits follow, deduped so a shared trait (e.g.
-  // "Explosive") isn't listed twice.
-  const foldedActionCells = foldedActionFields ? actionCells(foldedActionFields) : []
-  const entityCells = traitCells(getTraits(entity) ?? [])
-  const dedupedEntityCells = entityCells.filter(
-    (cell) => !foldedActionCells.some((folded) => folded.key === cell.key)
-  )
-  const baseCells: EntityCardSubHeaderCell[] =
-    isAction && action ? actionCells(action) : [...foldedActionCells, ...dedupedEntityCells]
-  // dvSourceContent — the content whose `datavalues` block (Damage/Range) feeds
-  // the resolver's base stats (a self-action's content for a self-action entity).
-  const entityContentForDv = 'content' in entity ? entity.content : undefined
-  const dvSourceContent =
-    (foldedAction && foldedAction.name === entityName
-      ? foldedAction.content
-      : entityContentForDv) ?? entityContentForDv
-
-  // MODIFIED-STATS LANGUAGE + DATAVALUES BUBBLE. `resolveChoiceView` applies the
-  // selected choice effects to the entity's base datavalues + traits; diffing it
-  // against the base (no selections) tells us what a choice CHANGED. Anything a
-  // choice touched gets a RUST cell BORDER (the "modified" colour) — a choice-ADDED
-  // trait (picking "Ballistic" → the Ballistic trait) and any datavalue an effect
-  // UPGRADED (Damage 2→3, Range → Far; the value itself updates too). With no
-  // selections this is just the base view — so Damage/Range still bubble normally.
-  const resolvable = {
-    content: dvSourceContent,
-    traits: getTraits(entity) ?? [],
-    choices: entityChoices,
-  }
-  const resolvedView = resolveChoiceView(resolvable, selections ?? {})
-  const baseView = resolveChoiceView(resolvable, {})
-  const baseTraitKeys = new Set(baseView.traits.map((t) => String(t.type).toLowerCase()))
-  const addedTraitCells: EntityCardSubHeaderCell[] = traitCells(
-    resolvedView.traits.filter((t) => !baseTraitKeys.has(String(t.type).toLowerCase()))
-  ).map((c) => ({ ...c, borderColor: MODIFIED }))
-  const fmtDv = (dv: { value?: unknown; unit?: string }): string => {
-    const v = dv.value == null ? '' : String(dv.value)
-    return dv.unit ? `${v}${dv.unit}` : v
-  }
-  const baseDvMap = new Map(
-    baseView.datavalues
-      .filter((d) => d.label != null)
-      .map((d) => [String(d.label).toLowerCase(), fmtDv(d)])
-  )
-  const existingLabels = new Set(baseCells.map((c) => String(c.label).toLowerCase()))
-  const datavalueCells: EntityCardSubHeaderCell[] = resolvedView.datavalues
-    .filter((d) => d.label != null && !existingLabels.has(String(d.label).toLowerCase()))
-    .map((d) => {
-      // TL scaling rides ON TOP of any choice effect already applied by
-      // `resolveChoiceView`: the resolved value is the effective TL1 value, and
-      // `perTechLevel` adds per tech level above the first. A scaled value is
-      // "modified" (rust border), same language as a choice-touched stat.
-      const perTechLevel = perTechLevelByLabel.get(String(d.label).toLowerCase())
-      const scaled =
-        perTechLevel !== undefined
-          ? resolveDataValueForTechLevel(
-              { label: d.label, value: d.value, unit: d.unit, perTechLevel },
-              effTechLevel
-            )
-          : { value: d.value, scaled: false }
-      const val = fmtDv({ value: scaled.value, unit: d.unit })
-      const changed = baseDvMap.get(String(d.label).toLowerCase()) !== val || scaled.scaled
-      return {
-        key: `dv-${d.label}`,
-        label: String(d.label),
-        value: val,
-        ...(changed ? { borderColor: MODIFIED } : {}),
-      }
-    })
-  const cells: EntityCardSubHeaderCell[] = [...baseCells, ...addedTraitCells, ...datavalueCells]
-
   // ABILITY flavor — the short description hint, shown WHITE in the header's
   // top-right (abilities have no numeric vitals, so the axis is free for it).
   const description =
@@ -1166,6 +1084,88 @@ function ReferenceEntityCardInner({
       </div>
     )
   }
+
+  // SUB-HEADER cells — action range/damage/traits, then entity traits, then any
+  // FREEFORM (simple text input) choices.
+  //
+  // CHOICE PLACEMENT splits by kind:
+  // EVERYTHING INLINE (choice-plan Stage 7): every choice renders in the BODY,
+  // at its prose, in both modes — no choice is ever hoisted to the sub-header.
+  // The old "Choose | <name>" freeform sub-header cell is retired; the sub-header
+  // keeps only the general facet hoist (type/range/damage/traits). `hide.choices`
+  // still suppresses choices entirely.
+  const editableChoices = !!onSelectionChange
+  // A folded single action surfaces its type/range/damage/traits into the
+  // sub-header; entity traits follow, deduped so a shared trait (e.g.
+  // "Explosive") isn't listed twice.
+  const foldedActionCells = foldedActionFields ? actionCells(foldedActionFields) : []
+  const entityCells = traitCells(getTraits(entity) ?? [])
+  const dedupedEntityCells = entityCells.filter(
+    (cell) => !foldedActionCells.some((folded) => folded.key === cell.key)
+  )
+  const baseCells: EntityCardSubHeaderCell[] =
+    isAction && action ? actionCells(action) : [...foldedActionCells, ...dedupedEntityCells]
+  // dvSourceContent — the content whose `datavalues` block (Damage/Range) feeds
+  // the resolver's base stats (a self-action's content for a self-action entity).
+  const entityContentForDv = 'content' in entity ? entity.content : undefined
+  const dvSourceContent =
+    (foldedAction && foldedAction.name === entityName
+      ? foldedAction.content
+      : entityContentForDv) ?? entityContentForDv
+
+  // MODIFIED-STATS LANGUAGE + DATAVALUES BUBBLE. `resolveChoiceView` applies the
+  // selected choice effects to the entity's base datavalues + traits; diffing it
+  // against the base (no selections) tells us what a choice CHANGED. Anything a
+  // choice touched gets a RUST cell BORDER (the "modified" colour) — a choice-ADDED
+  // trait (picking "Ballistic" → the Ballistic trait) and any datavalue an effect
+  // UPGRADED (Damage 2→3, Range → Far; the value itself updates too). With no
+  // selections this is just the base view — so Damage/Range still bubble normally.
+  const resolvable = {
+    content: dvSourceContent,
+    traits: getTraits(entity) ?? [],
+    choices: entityChoices,
+  }
+  const resolvedView = resolveChoiceView(resolvable, selections ?? {})
+  const baseView = resolveChoiceView(resolvable, {})
+  const baseTraitKeys = new Set(baseView.traits.map((t) => String(t.type).toLowerCase()))
+  const addedTraitCells: EntityCardSubHeaderCell[] = traitCells(
+    resolvedView.traits.filter((t) => !baseTraitKeys.has(String(t.type).toLowerCase()))
+  ).map((c) => ({ ...c, borderColor: MODIFIED }))
+  const fmtDv = (dv: { value?: unknown; unit?: string }): string => {
+    const v = dv.value == null ? '' : String(dv.value)
+    return dv.unit ? `${v}${dv.unit}` : v
+  }
+  const baseDvMap = new Map(
+    baseView.datavalues
+      .filter((d) => d.label != null)
+      .map((d) => [String(d.label).toLowerCase(), fmtDv(d)])
+  )
+  const existingLabels = new Set(baseCells.map((c) => String(c.label).toLowerCase()))
+  const datavalueCells: EntityCardSubHeaderCell[] = resolvedView.datavalues
+    .filter((d) => d.label != null && !existingLabels.has(String(d.label).toLowerCase()))
+    .map((d) => {
+      // TL scaling rides ON TOP of any choice effect already applied by
+      // `resolveChoiceView`: the resolved value is the effective TL1 value, and
+      // `perTechLevel` adds per tech level above the first. A scaled value is
+      // "modified" (rust border), same language as a choice-touched stat.
+      const perTechLevel = perTechLevelByLabel.get(String(d.label).toLowerCase())
+      const scaled =
+        perTechLevel !== undefined
+          ? resolveDataValueForTechLevel(
+              { label: d.label, value: d.value, unit: d.unit, perTechLevel },
+              effTechLevel
+            )
+          : { value: d.value, scaled: false }
+      const val = fmtDv({ value: scaled.value, unit: d.unit })
+      const changed = baseDvMap.get(String(d.label).toLowerCase()) !== val || scaled.scaled
+      return {
+        key: `dv-${d.label}`,
+        label: String(d.label),
+        value: val,
+        ...(changed ? { borderColor: MODIFIED } : {}),
+      }
+    })
+  const cells: EntityCardSubHeaderCell[] = [...baseCells, ...addedTraitCells, ...datavalueCells]
 
   // BODY — content + nested groups. Granting abilities collapse: the ability's
   // own content AND actions are suppressed (they belong to the granted entity);
