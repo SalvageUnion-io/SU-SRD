@@ -184,7 +184,7 @@ export function EncounterNpcCard({ npc, store, roll, findTable }: EncounterNpcCa
             {/* Per-NPC Mediator rolls (persisted on the instance) */}
             <MediatorRollControl
               scopeLabel={npc.name}
-              compact
+              size="compact"
               lastResult={npc.lastMediatorRoll ?? null}
               onResult={handleRollResult}
               roll={roll}

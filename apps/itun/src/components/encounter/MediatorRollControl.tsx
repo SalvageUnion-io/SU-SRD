@@ -48,8 +48,12 @@ type MediatorRollControlProps = {
   lastResult?: MediatorRollResult | null
   /** Receives each roll result — caller persists (per NPC) or holds it (global). */
   onResult: (result: MediatorRollResult) => void | Promise<void>
-  /** Compact xs Button row for per-NPC embedding; full Button row otherwise. */
-  compact?: boolean
+  /**
+   * Size on the canonical rung ladder (component-lib `src/styles/sizing.ts`):
+   * `full` (default) is the standalone Button row; `compact` is the xs-Button
+   * row for per-NPC embedding.
+   */
+  size?: 'full' | 'compact'
   /** Injectable d20 roller — defaults to a randsum-backed roll. */
   roll?: Roll
   /** Injectable roll-table lookup — defaults to SalvageUnionReference. */
@@ -60,10 +64,11 @@ export function MediatorRollControl({
   scopeLabel,
   lastResult,
   onResult,
-  compact = false,
+  size = 'full',
   roll = defaultRoll,
   findTable = defaultFindTable,
 }: MediatorRollControlProps) {
+  const compact = size === 'compact'
   function handleRoll(table: MediatorTableId) {
     const result = performMediatorRoll({ table, roll, findTable })
     if (result === null) return
