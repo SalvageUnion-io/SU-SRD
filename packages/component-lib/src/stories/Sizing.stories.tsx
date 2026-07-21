@@ -97,7 +97,10 @@ export const Default: Story = () => (
         Three rungs, named for what they are for. A component offers the rungs it genuinely has and
         names them from this list — a two-rung component with{' '}
         <code className="font-mono text-note">compact</code> and{' '}
-        <code className="font-mono text-note">mini</code> is correct and complete.
+        <code className="font-mono text-note">mini</code> is correct and complete. Scan-past
+        elements rest at <code className="font-mono text-note">compact</code>; a component whose
+        resting anatomy is a destination readout (the poster gauge, the reading callout) rests at{' '}
+        <code className="font-mono text-note">full</code>.
       </p>
     </div>
 
