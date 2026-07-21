@@ -59,7 +59,21 @@ const RULES: Rule[] = [
     id: 'raw-color',
     rule: 'ruleset §4.1 — colour lives in tokens, not call sites',
     fix: 'Add or reuse a token in theme.css and reference it via a Tailwind utility or var(--color-*).',
-    pattern: /#[0-9a-fA-F]{3,8}\b|\brgba?\([^)]*\)/g,
+    // The `(?!\d{1,3}\b)` guard excludes an all-DIGIT run of 1-3 characters —
+    // i.e. `#466`, `#12`, `#7`. Those are PR / issue references in prose, and
+    // this rule fired on them: writing "PR #466" in a comment counted as
+    // committing a raw colour. That is a false positive expensive enough to
+    // matter, because the natural workaround is to stop citing PR numbers in
+    // comments — degrading the code's provenance to satisfy a lint.
+    //
+    // The tradeoff is deliberate and narrow: it also stops flagging a 3-digit
+    // all-numeric shorthand hex such as `#000`. Those are rare (the only ones
+    // here live in the print stylesheet, already exempt), and pure black/white
+    // are additionally covered by the `pure-white` rule and the paper law. A
+    // shorthand with any letter (`#fff`, `#a1b`) is still caught, as is every
+    // 6-digit form. Colour-carrying matches lose almost nothing; prose stops
+    // being punished.
+    pattern: /#(?!\d{1,3}\b)[0-9a-fA-F]{3,8}\b|\brgba?\([^)]*\)/g,
   },
   {
     id: 'gradient',
