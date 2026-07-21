@@ -439,7 +439,10 @@ function FirstRunWelcome() {
       </p>
       <AppLink
         href="/pilots/new"
-        className={cn(buttonVariants({ variant: 'primary', size: 'md' }), 'no-underline')}
+        // Top rung deliberately: this is the Roster's page-level primary CTA. The
+        // sm/md merge dropped the default to the app's secondary workhorse size,
+        // which reads underweight for a primary page action.
+        className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'no-underline')}
       >
         Build your first pilot
       </AppLink>
