@@ -32,7 +32,8 @@ The corollaries the rest of the ruleset makes precise:
   not by a special fill (the value-cell law, §7).
 - **State is a treatment, not a hue** — redline / strike / X ride _on top of_ the
   ontology colour; state never introduces a second colour.
-- **No gradients, anywhere.** No colour outside the closed set (§4).
+- **No gradient shading.** Hard-stop bands (patterns) are fine; smooth
+  interpolation is not. No colour outside the closed set (§4). See §3.5.
 
 ---
 
@@ -134,14 +135,38 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
    outcomes. Even in the bot the tiers are re-toned to the warm workshop palette
    (brick / ember / ochre / olive / slate — off stock Material hues); the web
    status tokens move with them, so damaged-red reads warm brick, not neon.
-5. **No gradients. Closed colour set.** No colour outside §4's set; no gradient
-   anywhere (half-fills and X's are `clip-path` + SVG, never gradient fills).
-   **Two named exemptions, and only these two:** the `Slab` dashed leader (a
-   deliberate control-panel shape built on ink tokens), and the **srd catalog
-   tile ramps** (`CatalogTile`'s `--catalog-bg`, which carries the tech-level and
-   ability-tier ramps on the landing page — the ramp is a wayfinding cue, not
-   decoration). Both are encoded in `tools/check-design-tokens.ts`'s `EXEMPTIONS`
-   table, which requires a written reason per entry. Anything else is a defect.
+5. **No gradient SHADING. Closed colour set.** No colour outside §4's set.
+   What is banned is **smooth interpolation between colours** — the soft,
+   dimensional, airbrushed look. Half-fills and X's are `clip-path` + SVG,
+   never gradient fills.
+
+   **The line is hard stops, not the CSS function.** A `linear-gradient` whose
+   colour stops are coincident (`… var(--color-tl-1) 16.7%, var(--color-tl-2)
+16.7% …`) does not blend: it paints flat bands, and is a **pattern** — the
+   same category as a hatch, a stripe or a checkerboard. Patterns built from
+   hard stops on §4 tokens are permitted. This was previously written as "two
+   named exemptions, and only these two", which had already been overtaken:
+   every sanctioned case was a hard-stop pattern, and each new one had to be
+   argued from precedent rather than principle. Naming the principle retires
+   that.
+
+   Sanctioned patterns today: the `Slab` dashed leader, the **srd catalog tile
+   ramps** (`CatalogTile`/`catalogColors` — tech-level and ability-tier bands
+   as a wayfinding cue) and its story, and the snapshot QR placeholder
+   checkerboard. Each is still listed in `tools/check-design-tokens.ts`'s
+   `EXEMPTIONS` table with a written reason, because the checker matches the
+   CSS function and cannot itself tell a hard stop from a blend.
+
+   **One standing exemption is genuinely shading and is deliberately deferred:**
+   the `.pilot-panel` distressed-metal skin on srd's `/about` (12 declarations
+   in `apps/srd/src/styles/global.css`) — rust blooms, a brushed-steel base and
+   rivet highlights. It is an _illustration_ rendered in CSS rather than UI
+   chrome, which is why the no-shading law reads oddly against it. It is
+   exempted pending a design decision on whether the skin stays; it is not
+   evidence that shading is permitted in product surfaces.
+
+   Anything else is a defect.
+
 6. **Copy is 1:1 with real SRD data**, everywhere — catalog stories included.
 7. **Stats render through Stat; game data renders through the shared
    primitives.** Any `label | value` — a stat, cap, vital, tech level, range,

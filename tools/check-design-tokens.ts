@@ -77,8 +77,15 @@ const RULES: Rule[] = [
   },
   {
     id: 'gradient',
-    rule: 'ruleset §3.5 — no gradients, anywhere',
-    fix: 'Use a solid token fill. Half-fills and X marks are clip-path or SVG, never gradient fills.',
+    rule: 'ruleset §3.5 — no gradient SHADING (hard-stop patterns are allowed)',
+    // The law bans smooth interpolation, not the CSS function — a gradient
+    // whose stops are coincident paints flat bands and is a PATTERN. That
+    // distinction is not reliably decidable by regex (stops can be var()s,
+    // computed, or split across lines), so this matches every gradient and
+    // sanctioned patterns are declared in EXEMPTIONS with a written reason.
+    // Deliberately blunt: a false positive costs one exemption line, a false
+    // negative lets real shading ship.
+    fix: 'Use a solid token fill, or hard colour stops if you mean a pattern. Half-fills and X marks are clip-path or SVG, never gradient fills.',
     pattern: /linear-gradient|radial-gradient|conic-gradient/g,
   },
   {
@@ -151,6 +158,24 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
     rules: ['gradient', 'raw-color'],
     reason:
       'Named exemption in ruleset §3.5: the source of the catalog tile ramps CatalogTile renders. Same wayfinding rationale.',
+  },
+  {
+    file: 'packages/component-lib/src/components/shared/CatalogTile.stories.tsx',
+    rules: ['gradient'],
+    reason:
+      'Ruleset §3.5 hard-stop pattern: the story restates the real tech-level ramp (six coincident-stop bands, no blending) because component-lib cannot import catalogColors from an app. Exempt for the same reason the component it demonstrates is.',
+  },
+  {
+    file: 'apps/itun/src/components/sheet/ShareSnapshotScreen.tsx',
+    rules: ['gradient'],
+    reason:
+      'Ruleset §3.5 hard-stop pattern: the QR placeholder is a repeating-conic checkerboard on ink/paper tokens. A checkerboard is a pattern, not shading.',
+  },
+  {
+    file: 'apps/srd/src/styles/global.css',
+    rules: ['gradient'],
+    reason:
+      'DEFERRED, NOT SANCTIONED — the only genuine shading left in the repo. The .pilot-panel distressed-metal skin on /about (rust blooms, brushed-steel base, rivet highlights) is a CSS illustration rather than UI chrome. Exempt pending a design decision on whether the skin stays; see ruleset §3.5. Do not cite this entry as precedent for shading in a product surface.',
   },
 ]
 

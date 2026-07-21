@@ -377,8 +377,10 @@ export function ShareSnapshotScreen({
                   aria-hidden="true"
                   className="h-[84px] w-[84px] shrink-0 rounded-[3px] border-chrome border-ink"
                   style={{
+                    // Hard-stop checkerboard standing in for the unpublished QR
+                    // code — a repeating PATTERN, not shading (see ruleset §3.5).
                     background:
-                      'repeating-conic-gradient(var(--color-ink) 0 25%, #fff 0 50%) 0 / 16px 16px',
+                      'repeating-conic-gradient(var(--color-ink) 0 25%, var(--color-paper) 0 50%) 0 / 16px 16px',
                   }}
                 />
               )}
