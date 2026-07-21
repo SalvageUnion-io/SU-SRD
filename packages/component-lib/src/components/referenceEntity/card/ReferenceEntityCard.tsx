@@ -87,6 +87,19 @@ function isTitanicAction(action: { name?: string }): boolean {
   return /titanic action/i.test(action.name ?? '')
 }
 
+/** FLAT-mode wrapper: when the body has a left ANCHOR (image / floated NPC),
+ * each nested card wraps in a `flow-root` block so it flows beside the float,
+ * then full width once past it; non-flat renders the card bare (its own key on
+ * the card). ONE helper so the five flat/non-flat call sites can't drift. */
+function wrapFlat(flat: boolean, key: string | undefined, card: ReactNode): ReactNode {
+  if (!flat) return card
+  return (
+    <div key={key} className="mb-1.5 flow-root">
+      {card}
+    </div>
+  )
+}
+
 export type ReferenceEntityCardProps = {
   data: SURefEntity
   size?: CardSize
@@ -1519,21 +1532,24 @@ function ReferenceEntityCardInner({
     childHostTone?: string,
     flat = false
   ): ReactNode => {
+    // The ONE nested-card construction all three layouts share.
+    const card = (nested: SURefEntity, index: number): ReactNode => (
+      <ReferenceEntityCardInner
+        key={cardKey(nested, index)}
+        size="medium"
+        depth={depth + 1}
+        hostDown={isDown}
+        data={nested}
+        parentSeal={seal}
+        hostTone={childHostTone}
+        hostName={entityName}
+        chassisName={resolvedChassisName}
+      />
+    )
     if (flat) {
-      return entities.map((nested, index) => (
-        <div key={cardKey(nested, index)} className="mb-1.5 flow-root">
-          <ReferenceEntityCardInner
-            size="medium"
-            depth={depth + 1}
-            hostDown={isDown}
-            data={nested}
-            parentSeal={seal}
-            hostTone={childHostTone}
-            hostName={entityName}
-            chassisName={resolvedChassisName}
-          />
-        </div>
-      ))
+      return entities.map((nested, index) =>
+        wrapFlat(true, cardKey(nested, index), card(nested, index))
+      )
     }
     // COMPACT parent → nested entities stack as a SINGLE column (one per row): a
     // compact card is narrow, so a 2-up masonry cramps its nested cards. Full
@@ -1541,19 +1557,7 @@ function ReferenceEntityCardInner({
     if (compact) {
       return (
         <div className="flex flex-col gap-1.5">
-          {entities.map((nested, index) => (
-            <ReferenceEntityCardInner
-              key={cardKey(nested, index)}
-              size="medium"
-              depth={depth + 1}
-              hostDown={isDown}
-              data={nested}
-              parentSeal={seal}
-              hostTone={childHostTone}
-              hostName={entityName}
-              chassisName={resolvedChassisName}
-            />
-          ))}
+          {entities.map((nested, index) => card(nested, index))}
         </div>
       )
     }
@@ -1566,33 +1570,12 @@ function ReferenceEntityCardInner({
           <div className="columns-1 gap-1.5 sm:columns-2">
             {columnCards.map((nested, index) => (
               <div key={cardKey(nested, index)} className="mb-1.5 break-inside-avoid">
-                <ReferenceEntityCardInner
-                  size="medium"
-                  depth={depth + 1}
-                  hostDown={isDown}
-                  data={nested}
-                  parentSeal={seal}
-                  hostTone={childHostTone}
-                  hostName={entityName}
-                  chassisName={resolvedChassisName}
-                />
+                {card(nested, index)}
               </div>
             ))}
           </div>
         )}
-        {orphan && (
-          <ReferenceEntityCardInner
-            key={cardKey(orphan, entities.length - 1)}
-            size="medium"
-            depth={depth + 1}
-            hostDown={isDown}
-            data={orphan}
-            parentSeal={seal}
-            hostTone={childHostTone}
-            hostName={entityName}
-            chassisName={resolvedChassisName}
-          />
-        )}
+        {orphan && card(orphan, entities.length - 1)}
       </>
     )
   }
@@ -1645,17 +1628,9 @@ function ReferenceEntityCardInner({
     <div key={label} className={flat ? 'mb-1.5' : 'flex flex-col gap-1'}>
       <Slab variant="dashed" label={label} />
       {entities.map((item, index) =>
-        flat ? (
-          <div key={cardKey(item, index)} className="mb-1.5 flow-root">
-            <ReferenceEntityCardInner
-              size="medium"
-              extent="head"
-              depth={depth + 1}
-              hostDown={isDown}
-              data={item}
-            />
-          </div>
-        ) : (
+        wrapFlat(
+          flat,
+          cardKey(item, index),
           <ReferenceEntityCardInner
             key={cardKey(item, index)}
             size="medium"
@@ -1817,18 +1792,9 @@ function ReferenceEntityCardInner({
           {/* DRONE — the compact drone card; its systems + modules render INSIDE
               the drone card (via the `droneLoadout` prop), NOT here. */}
           {droneInfo &&
-            (flat ? (
-              <div className="mb-1.5 flow-root">
-                <ReferenceEntityCardInner
-                  size="medium"
-                  depth={depth + 1}
-                  hostDown={isDown}
-                  data={droneInfo.drone}
-                  chassisName={resolvedChassisName}
-                  droneLoadout={{ systems: droneInfo.systems, modules: droneInfo.modules }}
-                />
-              </div>
-            ) : (
+            wrapFlat(
+              flat,
+              undefined,
               <ReferenceEntityCardInner
                 size="medium"
                 depth={depth + 1}
@@ -1837,7 +1803,7 @@ function ReferenceEntityCardInner({
                 chassisName={resolvedChassisName}
                 droneLoadout={{ systems: droneInfo.systems, modules: droneInfo.modules }}
               />
-            ))}
+            )}
 
           {/* THIS card's OWN drone loadout (when it is a drone) — systems +
               modules as listings, nested inside the drone card's own body. */}
@@ -1861,22 +1827,9 @@ function ReferenceEntityCardInner({
           {/* Titanic actions — a full-width row of their own, never masonry. */}
           {!hide?.actions &&
             titanicActions.map((action, index) =>
-              flat ? (
-                <div
-                  key={cardKey(action as unknown as SURefEntity, index)}
-                  className="mb-1.5 flow-root"
-                >
-                  <ReferenceEntityCardInner
-                    size="medium"
-                    depth={depth + 1}
-                    hostDown={isDown}
-                    data={action as unknown as SURefEntity}
-                    hostTone={ownToneBase}
-                    hostName={entityName}
-                    chassisName={resolvedChassisName}
-                  />
-                </div>
-              ) : (
+              wrapFlat(
+                flat,
+                cardKey(action as unknown as SURefEntity, index),
                 <ReferenceEntityCardInner
                   key={cardKey(action as unknown as SURefEntity, index)}
                   size="medium"
@@ -1896,18 +1849,9 @@ function ReferenceEntityCardInner({
               <Slab variant="dashed" label="Patterns" />
               <div className={flat ? undefined : 'flex flex-col gap-1.5'}>
                 {patternList.map((pat) =>
-                  flat ? (
-                    <div key={pat.name} className="mb-1.5 flow-root">
-                      <ReferenceEntityCardInner
-                        data={data}
-                        pattern={pat}
-                        size="medium"
-                        extent="head"
-                        depth={depth + 1}
-                        hostDown={isDown}
-                      />
-                    </div>
-                  ) : (
+                  wrapFlat(
+                    flat,
+                    pat.name,
                     <ReferenceEntityCardInner
                       key={pat.name}
                       data={data}
