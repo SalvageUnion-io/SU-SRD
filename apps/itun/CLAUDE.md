@@ -19,20 +19,26 @@ Functions ([ADR-001](../../docs/adrs/ADR-001-local-first-no-backend.md),
 
 ## Persistence (read before touching data)
 
-- Player data lives in **IndexedDB** via `idb` (`src/lib/db/`). Stores: `pilots`,
-  `mechs`, `crawlers`, `mechPatterns`, `workspaces`, `softLinks`.
+- Player data lives in **IndexedDB** via `idb` (`src/lib/db/`). Stores
+  (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `workspaces`,
+  `softLinks`, `mechPatterns`, `encounterNpcs`, and the append-only
+  `changeLog` provenance store ([ADR-022](../../docs/adrs/ADR-022-provenance-log-and-overrides.md)) —
+  the last is keyed by an autoIncrement `seq`, not `id`, and has no CRUD
+  surface (`src/lib/db/changeLog.ts` exposes append/list only).
 - **Zod schemas (`src/lib/schemas/`) are the source of truth** for entity shape;
   the DB layer parses on read/write ([ADR-002](../../docs/adrs/ADR-002-indexeddb-idb-zod.md)).
 - Reads are salvage-tolerant (lenient re-parse + warning on version skew); rows
   heal on next write. See `src/lib/db/crud.ts`.
 - Schema/version changes go through `src/lib/db/migrations/` (see its README).
 - Records store **slug references** into `salvageunion-reference` (e.g.
-  `class_ref: 'hybrid-wolf'`), never copies of game data; resolve them against
-  `SalvageUnionReference` at render time.
+  `classRef: 'salvager'` on a pilot, `chassisRef` on a mech), never copies of
+  game data; resolve them against `SalvageUnionReference` at render time.
 
 ## State flow (`src/stores/`)
 
-- `entityStore` (pilots/mechs/crawlers/softLinks) and `workspaceStore`.
+- `entityStore` (pilots/mechs/crawlers/softLinks), plus `workspaceStore`,
+  `activeWorkspaceStore`, `patternStore`, `encounterStore`, and the ephemeral
+  `playStateStore` (Dashboard mount state).
 - **Lazy auto-hydration:** first `list(type)` loads from IndexedDB; later reads
   are synchronous.
 - **Write-through:** `update`/`create`/`delete` persist to IndexedDB first, then
@@ -43,14 +49,31 @@ Functions ([ADR-001](../../docs/adrs/ADR-001-local-first-no-backend.md),
 
 ## Combat / rules
 
-- Pure math lives in `salvageunion-reference/lib/combatUtils.ts`; ITUN-local heat
-  rules in `src/lib/rules/` (`heatCheck.ts`, `derivedStats.ts`).
-- Action activation: `activateItem` in `src/components/sheet/MechSheet.tsx`
-  applies EP/heat/uses as one write-through ([ADR-008](../../docs/adrs/ADR-008-sequential-mutations.md)).
-- Heat check: `HeatCheckControl.tsx`. Non-destructive outcomes auto-apply;
-  destructive condition changes are player-driven via the card status badge (`StatusBadge`)
+- Pure math lives in `salvageunion-reference` — `lib/combatUtils.ts` plus
+  `lib/rules/` (heat check, take damage, core mechanic, …). `src/lib/rules/` is
+  ITUN's re-export + app-local layer: `heatCheck.ts` re-exports the package's
+  `performHeatCheck` / `performPush` / `clampHeat` and adds `defaultRoll` (the
+  `@randsum/roller` binding) and `heatCheckPatch` (effect → `Partial<Mech>`);
+  `derivedStats.ts` computes the derived maxima.
+- **Play actions live on the Dashboard, not the Live Sheet.** Activation and
+  heat check are assembled as patches in
+  `src/components/dashboard/dashboardRules.ts` (`activationPatch`,
+  `heatCheckOncePatch`, `pushPatch`, `mechDamagePatch`, …) and applied by
+  `ActionsDeck.tsx` / `ActiveItemBand.tsx` as one write-through
+  ([ADR-008](../../docs/adrs/ADR-008-sequential-mutations.md),
+  [ADR-021](../../docs/adrs/ADR-021-itun-surface-taxonomy.md)).
+- Non-destructive heat-check outcomes auto-apply; destructive condition changes
+  stay player-driven via the card status badge (`StatusBadge` from
+  `component-lib`, wired through `MechItemCard.tsx` → `cycleItemCondition` in
+  `src/components/sheet/MechSheet.tsx`)
   ([ADR-007](../../docs/adrs/ADR-007-automation-boundary.md),
   [ADR-009](../../docs/adrs/ADR-009-condition-model-destroyed-color.md)).
+- Sheet-side play-control panels (`HeatCheckControl`, `TakeDamageControl`,
+  `SalvageControl`, `CraftingControl`, `DowntimeControl`, `ScrapMechControl`)
+  were **removed** in the poster redesign — see the header comments in
+  `MechSheet.tsx` / `CrawlerSheet.tsx`. Don't reintroduce them; the surviving
+  sheet-local controls are `CrawlerEconomyControl.tsx` and the encounter tray's
+  `MediatorRollControl.tsx`.
 - Full picture: [docs/architecture/combat-loop.md](../../docs/architecture/combat-loop.md).
 
 ## Conventions

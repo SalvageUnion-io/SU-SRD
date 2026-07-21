@@ -5,7 +5,9 @@ player spend resources, track heat, run heat checks, and record equipment
 conditions on their own mech. It is **local-first** ([ADR-001](../adrs/ADR-001-local-first-no-backend.md)):
 all state lives in the player's IndexedDB and is mutated client-side through the
 Zustand stores ([ADR-003](../adrs/ADR-003-zustand-hydration.md)). There is no
-backend, no RPC, no change log, and no turn enforcement.
+backend, no RPC, and no turn enforcement. There **is** an append-only
+`changeLog` provenance store ([ADR-022](../adrs/ADR-022-provenance-log-and-overrides.md)) —
+it records what happened; it is not an undo/redo system.
 
 ## Core principles
 
@@ -39,17 +41,30 @@ nextCondition(current): ItemCondition                      // intact → damaged
 applySpDamage(currentSp, damage): { newSp, hpDamage }      // hpDamage = floor(damage / 2)
 ```
 
-### `apps/itun/src/lib/rules/heatCheck.ts`
+### `salvageunion-reference/lib/rules/heatCheck.ts`
 
-ITUN-local heat-check rules (exported via `src/lib/rules/index.ts`), also pure
-with an injectable die roller (`defaultRoll`, backed by `@randsum/roller`):
+The heat-check math is pure and lives in the package (ADR-006), with an
+injectable die roller:
 
 ```typescript
 clampHeat(heat, cap): number
 reactorOverloadOutcome(roll): 'meltdown' | 'system-destroyed' | 'module-destroyed' | 'overheat' | 'safe'
 performHeatCheck({ heat, currentSP, roll, now? }): HeatCheckEffect
-performPush({ heat, heatCap, currentSP, roll, now? }): { nextHeat, effect }
+performPush({ heat, heatCap, currentSP, roll, now? }): PushResult   // { nextHeat, effect }
 ```
+
+### `apps/itun/src/lib/rules/heatCheck.ts`
+
+A thin app-local layer (exported via `src/lib/rules/index.ts`). It re-exports
+all four functions above and adds the two pieces that can't be pure:
+
+```typescript
+defaultRoll: Roll                                        // @randsum/roller binding
+heatCheckPatch(effect, currentHeat?): Partial<Mech>       // effect → durable-state patch
+```
+
+The rest of `apps/itun/src/lib/rules/` follows the same shape — the package owns
+the math, the app owns the roller binding and the patch assembly.
 
 `reactorOverloadOutcome` bands a d20: `1` meltdown, `2–5` system destroyed,
 `6–10` module destroyed, `11–19` overheat, `20` safe.
@@ -58,13 +73,14 @@ performPush({ heat, heatCap, currentSP, roll, now? }): { nextHeat, effect }
 
 ## Action activation
 
-**Where:** `activateItem(slug, economy)` in
-`apps/itun/src/components/sheet/MechSheet.tsx`. The item's cost is
+**Where:** the Dashboard's `ActionsDeck.tsx`, over `activationPatch()` in
+`apps/itun/src/components/dashboard/dashboardRules.ts`. Per-item cost is
 computed by `itemEconomy()` in `sheet/mechItemRules.ts` (primary action's
-`activationCost`, summed `Hot` amounts, max `Uses`).
+`activationCost`, summed `Hot` amounts, max `Uses`); the Deck resolves a
+**per-action** economy via `economyForActivation()`.
 
-`activateItem` builds one patch and applies it as a **single sequential
-write-through** ([ADR-008](../adrs/ADR-008-sequential-mutations.md)):
+`activationPatch` builds one patch and the caller applies it as a **single
+sequential write-through** ([ADR-008](../adrs/ADR-008-sequential-mutations.md)):
 
 1. Deduct EP (`currentEP`) if `epCost > 0`.
 2. Apply heat via `clampHeat(currentHeat + heat, heatCap)` if `heat > 0`.
@@ -82,22 +98,25 @@ tolerate partial application.
 
 **Destructive-write policy** (one vocabulary across every control):
 
-- **Irreversible cross-entity moves** (scrap-mech, entity delete) → a
-  `ConfirmDialog` before anything is written.
-- **Reversible destructive writes** (item marked Destroyed, an automation
-  rule setting `destroyed`) → the write applies immediately (player stays in
-  control, ADR-007) with a visible reversal affordance: the inline **Clear**
-  strip when it sits next to the flag (HeatCheckControl), plus the one-click
-  **Undo toast** (`destroyedUndoToast`) when the write happens away from a
-  Clear affordance (item badges, Critical Damage results).
+- **Destructive automation outcomes** (a Meltdown's mech `destroyed` flag, a
+  Critical Damage / Critical Injury roll, Eject) → held back from the
+  auto-applied patch and offered as an explicit player-confirmed step. On the
+  Dashboard this is `autoApplyPatch()` in `dashboardRules.ts`, which strips
+  `destroyed` out of a `heatCheckPatch` result and returns `meltdown: true` for
+  the caller to prompt on.
+- **Reversible destructive writes** (an item marked Destroyed) → the write
+  applies immediately (player stays in control, ADR-007) with a one-click
+  **Undo toast** (`sheet/destroyedUndoToast.ts`).
 
 ---
 
 ## Heat check & reactor overload
 
-**Where:** `HeatCheckControl.tsx` (a control, not a modal), wired into the mech
-sheet. It rolls d20 vs. current heat via `performHeatCheck`, records the result
-in `lastHeatCheck`, and calls `storeState.update('mech', …)` to apply effects.
+**Where:** the **Dashboard**, not the Live Sheet. `ActiveItemBand.tsx` (the
+reactor band) and `ActionsDeck.tsx` call `heatCheckOncePatch()` / `pushPatch()`
+in `dashboardRules.ts`, which run `performHeatCheck` / `performPush`, map the
+effect through `heatCheckPatch()`, record the result in `lastHeatCheck`, and
+call `storeState.update('mech', …)` to apply it.
 
 Auto-applied (non-destructive):
 
@@ -109,20 +128,25 @@ Auto-applied (non-destructive):
 Requires explicit player action (destructive):
 
 - **6–10 (module destroyed) / 2–5 (system destroyed)** — `requiresPlayerChoice`
-  is set; the control shows an advisory prompt. It does **not** auto-mark
-  anything — the player marks the chosen item via its `ConditionToggle`
+  is set and the surface shows an advisory readout. It does **not** auto-mark
+  anything — the player marks the chosen item via its `StatusBadge`
   ([ADR-009](../adrs/ADR-009-condition-model-destroyed-color.md)).
-- **1 (meltdown)** — sets the mech `destroyed` flag; player handles consequences
-  and can clear it manually.
+- **1 (meltdown)** — `heatCheckPatch` sets the mech `destroyed` flag, but the
+  Dashboard's `autoApplyPatch` strips it back out and returns `meltdown: true`
+  so the player confirms the destruction explicitly.
 
 The player can clear `shutdown` / `vulnerable` / `destroyed` flags individually
-(manual restart/correction).
+(manual restart/correction) — on the sheet via the Conditions chips in the
+Vitals card (`MechConditionsEditor`), and on the Dashboard via the reactor
+band's Shutdown toggle (`shutdownTogglePatch`).
 
-### Push
+### Push and Vent
 
-`HeatCheckControl` has an inline **Push (+2 Heat)** button → `performPush`
-(adds 2 heat, clamped, then runs a heat check immediately). There is no separate
-push modal or `pushUtils.ts`.
+`ActiveItemBand` / `ActionsDeck` expose **Push (+2 Heat)** → `pushPatch` →
+`performPush` (adds 2 heat, clamped, then runs a heat check immediately). Push
+is locked when `heat + 2 > heatCap` (Quick Ref p.233). The band also has an
+**Emergency Vent** (`VENT_PATCH` — Heat→0 plus `vulnerable`) and a Shutdown
+toggle, kept as distinct controls. There is no push modal and no `pushUtils.ts`.
 
 ---
 
@@ -130,10 +154,11 @@ push modal or `pushUtils.ts`.
 
 Item condition is a per-slug map on the mech record — `systemConditions` and
 `moduleConditions` (`'intact' | 'damaged' | 'destroyed'`). The player drives
-changes via the `ConditionToggle` ([ADR-009](../adrs/ADR-009-condition-model-destroyed-color.md));
-`cycleItemCondition` in `MechSheet.tsx` advances the value and writes the updated
-map with `storeState.update('mech', …)`. Destroyed reads as semantic red
-(`bg-roll-cascade`). Condition changes are never auto-applied.
+changes via the `StatusBadge` on `MechItemCard.tsx`
+([ADR-009](../adrs/ADR-009-condition-model-destroyed-color.md)); that badge's
+`onStatusCycle` runs `cycleItemCondition` in `MechSheet.tsx`, which advances the
+value (`nextCondition`) and writes the updated map with
+`storeState.update('mech', …)`. Condition changes are never auto-applied.
 
 ---
 
@@ -148,46 +173,63 @@ modifiers (`maxSpModifier`, `maxEpModifier`, `maxHeatModifier`,
 
 ---
 
-## The rules controls (design-review R-1…R-7, shipped in #333)
+## The rules controls — where they live today
 
-Each control follows the HeatCheckControl / ADR-007 pattern — deterministic
-bookkeeping auto-applies; destructive or narrative choices stay player-driven.
-Pure math lives in `src/lib/rules/*` (injectable rollers, fully unit-tested);
-the control is a thin stateful wrapper.
+The rules **math** all still exists under `apps/itun/src/lib/rules/*`
+(injectable rollers, unit-tested) and is exported from `src/lib/rules/index.ts`.
+The **surfaces** on top of it were reorganized by the poster redesign and the
+ADR-021 surface split: most play controls moved off the Live Sheet onto the
+Dashboard, and several were deleted outright. Every surviving surface follows
+the ADR-007 pattern — deterministic bookkeeping auto-applies, destructive or
+narrative choices stay player-driven.
 
-- **Take Damage** — `TakeDamageControl.tsx` (mech, Core Book p.239-240) +
-  `PilotTakeDamageControl.tsx` (pilot, p.241) over `lib/rules/takeDamage.ts`.
-  SP/HP reduction, halving rules, and the Critical Damage / Critical Injury
-  d20 bands auto-apply their deterministic effects (recorded roll, 1 SP/HP on
-  Miraculous Survival, `destroyed` on Catastrophic, 'Chassis Damaged' /
-  'Unconscious' conditions). WHICH System/Module dies is marked by the player;
-  a Fatal Injury is advisory — the app never kills a pilot automatically.
-- **Salvage** — `SalvageControl.tsx` over `lib/rules/salvage.ts` (pp.244-248):
-  Area Salvage and Mech Salvage rollers on the crawler sheet. Found Scrap
-  deposits into the crawler's TL pool buckets; 20-band wreck chassis lands in
-  the hold as a Damaged lot; Jackpot!/system claims open a player-driven picker.
-- **Scrap a mech** — `ScrapMechControl.tsx` over `lib/rules/scrapMech.ts`
-  (p.248): deposits the breakdown and hands off cargo, then deletes the mech —
-  in one atomic `transfer()`.
-- **Downtime** — `DowntimeControl.tsx` over `lib/rules/downtime.ts`
-  (p.227-228): the one-click per-session loop (restore, repair ≤ crawler TL,
-  Med-Bay healing bands, +1 TP, recharge Uses).
-- **Crawler economy** — `CrawlerEconomyControl.tsx` over
-  `lib/rules/crawlerEconomy.ts` (p.218-223): Upkeep + Deterioration roll,
-  Upgrade, Scrap exchange, Trading Bay availability.
-- **Crafting** — `CraftingControl.tsx` over `lib/rules/crafting.ts`
-  (p.222/p.244): craft ≤ crawler TL, cost drawn from the shared pool.
-- **Dice & Mediator** — `QuickRollFab.tsx` (sheet-wide roller) and the
-  encounter tray's `MediatorRollControl.tsx` over `lib/rules/coreMechanic.ts`
-  / `mediatorTables.ts`.
+**On the Dashboard** (`src/components/dashboard/`):
+
+- **Take Damage / Critical Damage / Critical Injury** — `ActiveItemBand.tsx`
+  over `dashboardRules.ts` (`mechDamagePatch`, `critDamagePatch`,
+  `pilotDamagePatch`, `critInjuryPatch`) → `lib/rules/takeDamage.ts`. The SP/HP
+  value of a self-declared hit auto-applies; the Critical roll at 0 and marking
+  the mech Destroyed are explicit player-confirmed steps.
+- **Reactor** — Push / Heat Check / Vent / Shutdown, see above.
+- **Action activation & core roll** — `ActionsDeck.tsx` over `activationPatch`
+  and `lib/rules/coreMechanic.ts`.
+- **Downtime** — `DowntimeWizard.tsx`, which uses `mechBayStatus` /
+  `medBayStatus` from `lib/rules/downtime.ts`.
+
+**On the Live Sheet / encounter tray:**
+
+- **Crawler economy** — `sheet/CrawlerEconomyControl.tsx` over
+  `lib/rules/crawlerEconomy.ts` (p.218-223), mounted by `SheetCrawler.tsx`:
+  Upkeep + Deterioration roll, Upgrade, Scrap exchange, Trading Bay
+  availability.
+- **Mediator tables** — `encounter/MediatorRollControl.tsx` over
+  `lib/rules/mediatorTables.ts`.
+- Per-card activation and repair on `MechItemCard.tsx` / `MechSheet.tsx`
+  (`setItemUses`, `repairItem`, `cycleItemCondition`).
+
+**Rules modules with no UI surface today.** These are live, tested pure
+modules that currently have _no_ component consumer — their controls were
+deleted in the redesign (see the `CrawlerSheet.tsx` / `MechSheet.tsx` header
+comments) and not re-homed:
+
+- `lib/rules/salvage.ts` (pp.244-248) — `SalvageControl` deleted.
+- `lib/rules/crafting.ts` (p.222/p.244) — `CraftingControl` deleted.
+- `lib/rules/scrapMech.ts` (p.248) — `ScrapMechControl` deleted.
+
+**Surfaces that no longer exist** — do not reference them: `HeatCheckControl`,
+`TakeDamageControl`, `PilotTakeDamageControl`, `SalvageControl`,
+`CraftingControl`, `DowntimeControl`, `ScrapMechControl`, `ConditionToggle`,
+and `QuickRollFab` (whose removal from the Live Sheet is recorded in
+[ADR-021](../adrs/ADR-021-itun-surface-taxonomy.md)).
 
 ## Not implemented
 
 The following appeared in earlier (backend-era) designs and **do not exist** in
 the current local-first app — do not document or assume them:
 
-- Any change log, undo/redo, or `reversible` tracking (a narrow exception: the
-  destroyed-item undo toast, `destroyedUndoToast.ts`).
+- Any general undo/redo or `reversible` tracking. The one reversal affordance is
+  the destroyed-item undo toast (`sheet/destroyedUndoToast.ts`). (The `changeLog`
+  store is append-only provenance, not undo — see ADR-022.)
 - Any backend RPC (`apply_mech_damage`), `entity_refs` table, or `useUpdateMech`
   hook — state is plain `entityStore.update(...)` write-through (or
   `entityStore.transfer(...)` for cross-entity moves).

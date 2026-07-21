@@ -17,32 +17,26 @@ type Props = {
   canonical?: string
   ogType?: string
   ogImage?: string
+  /** Descriptive alt text for the og:image. Defaults to the page title. */
+  ogImageAlt?: string
   structuredData?: Record<string, unknown>
+  additionalStructuredData?: Record<string, unknown>[]
   noindex?: boolean
   preloadImage?: string
   breadcrumbs?: BreadcrumbItem[]
+  /** Optional descriptive tail shown after the breadcrumb trail */
+  breadcrumbDescription?: string
 }
 ```
 
 **Renders:**
 
 - `<title>`, `<meta name="description">`, `<link rel="canonical">`
-- Open Graph: `og:title`, `og:description`, `og:url`, `og:type`, `og:site_name`, `og:image` + `og:image:width`/`height`/`alt` — **all OG images are 1200×630** (the default banner and the per-entity screenshots below)
+- Open Graph: `og:title`, `og:description`, `og:url`, `og:type`, `og:site_name`, `og:image` + `og:image:width`/`height`/`alt` — **all OG images are 1200×630** (the site-wide default banner, `DEFAULT_OG_IMAGE` in `src/lib/constants.ts`)
 - Twitter Cards: `twitter:card` (`summary_large_image`), `twitter:title`, `twitter:description`, `twitter:image`
 - Favicons: SVG, PNG 96x96, Apple Touch Icon 180x180
 - Web manifest: `site.webmanifest`
 - Web fonts: Barlow superfamily self-hosted via `@fontsource/barlow` and `@fontsource/barlow-semi-condensed`; served same-origin under the strict `font-src 'self'` CSP, bundled into `/_astro/` by Vite with `font-display: swap`
-
-### Per-entity OG images (`scripts/og-screenshots.ts`)
-
-After `astro build`, a Playwright pass renders the REAL `ReferenceEntityDisplay`
-card for every entity via the `/og-card/` harness page and screenshots it to
-`dist/schema/{schemaId}/item/{itemId}.og.png` — the path each item page
-references as its og:image (PR #331). The pass is **incremental**: a
-content-hash manifest + PNG cache under `node_modules/.cache/srd-og/`
-restores unchanged entities and only re-renders what changed; when nothing
-changed the browser never launches. `OG_SCREENSHOTS_NO_CACHE=1` forces a full
-regen; `OG_SCREENSHOTS_SKIP=1` skips the pass entirely.
 
 ### Machine-readable surfaces
 
@@ -58,14 +52,16 @@ regen; `OG_SCREENSHOTS_SKIP=1` skips the pass entirely.
 
 ### Structured Data (JSON-LD)
 
-Three Schema.org types, rendered as `<script type="application/ld+json">`:
+Rendered as `<script type="application/ld+json">`. The main content types (the
+one-off page types — `AboutPage`, `WebPage`, `SoftwareApplication`,
+`TechArticle` — are not listed; grep `@type` under `apps/srd/src/pages/`):
 
-| Type             | Page                                               | Key properties                                                         |
-| ---------------- | -------------------------------------------------- | ---------------------------------------------------------------------- |
-| `WebSite`        | Homepage (`index.astro`)                           | name, url                                                              |
-| `CollectionPage` | Schema pages (`[schemaId]/index.astro`)            | description, item count, creator (Organization), keywords              |
-| `ItemPage`       | Entity pages (`[schemaId]/item/[itemId].astro`)    | name, tech level (PropertyValue), source (Book), parent CollectionPage |
-| `BreadcrumbList` | All pages with breadcrumbs (`TopNavigation.astro`) | Positional list items with URLs                                        |
+| Type             | Page                                            | Key properties                                                         |
+| ---------------- | ----------------------------------------------- | ---------------------------------------------------------------------- |
+| `WebSite`        | Homepage (`index.astro`)                        | name, url                                                              |
+| `CollectionPage` | Schema pages (`[schemaId]/index.astro`)         | description, item count, creator (Organization), keywords              |
+| `ItemPage`       | Entity pages (`[schemaId]/item/[itemId].astro`) | name, tech level (PropertyValue), source (Book), parent CollectionPage |
+| `BreadcrumbList` | All pages with breadcrumbs (`AppBar.tsx`)       | Positional list items with URLs                                        |
 
 Entity page meta descriptions are derived from the first static content paragraph, truncated to 155 characters.
 
@@ -80,7 +76,7 @@ Entity pages use progressive enhancement so crawlers see full text content even 
 - Gathers trait names
 - Returns `StaticEntitySummary`
 
-**2. Static HTML** (`StaticEntityContent.astro`):
+**2. Static HTML** (`StaticEntityContent` — `component-lib`'s `src/components/shared/StaticEntityContent.tsx`, rendered from `apps/srd/src/components/EntityView.astro`):
 
 ```html
 <div data-static-fallback>
@@ -93,7 +89,7 @@ Entity pages use progressive enhancement so crawlers see full text content even 
 ```
 
 **3. Client-side replacement** (`ReferenceEntityIsland.tsx`):
-On React hydration, removes `[data-static-fallback]` element and replaces with the interactive `ReferenceEntityDisplay`.
+On React hydration, removes `[data-static-fallback]` elements and replaces them with the interactive `ReferenceEntityCard`.
 
 ### Sitemap & Robots
 
@@ -137,18 +133,23 @@ Reports violations with impact level (critical/serious/moderate/minor), node exa
 
 ### Landmark Structure
 
-| Element    | Location                            | ARIA                           |
-| ---------- | ----------------------------------- | ------------------------------ |
-| `<nav>`    | `TopNavigation.astro`               | `aria-label="Main navigation"` |
-| `<nav>`    | `TopNavigation.astro` (breadcrumbs) | `aria-label="Breadcrumb"`      |
-| `<main>`   | `BaseLayout.astro`                  | Wraps all page content         |
-| `<footer>` | `Footer.tsx`                        | Implicit landmark              |
+| Element    | Location                   | ARIA                           |
+| ---------- | -------------------------- | ------------------------------ |
+| `<nav>`    | `AppBar.tsx`               | `aria-label="Main navigation"` |
+| `<nav>`    | `AppBar.tsx` (breadcrumbs) | `aria-label="Breadcrumb"`      |
+| `<main>`   | `BaseLayout.astro`         | Wraps all page content         |
+| `<footer>` | `Footer.tsx`               | Implicit landmark              |
+
+`AppBar` and `Footer` both live in `component-lib` (`src/components/shared/`);
+`srd` reaches the nav through `TopNavigation.astro` → `SiteHeader.tsx` → `AppBar`.
 
 ### Heading Structure
 
 - Homepage: `<h1 class="sr-only">` (hidden, for screen readers)
 - Schema pages: `<h1>` for main heading with pseudoheader label
-- Entity pages: `titleAs="h1"` prop on `ReferenceEntityDisplay`
+- Entity pages: `titleAs="h1"`, passed from `EntityView.astro` through
+  `ReferenceEntityIsland` to `ReferenceEntityCard`, which forwards it to
+  `EntityCardHeader` as the title element (defaults to `span`)
 - All pages have exactly one `<h1>`
 
 ### Component Accessibility Patterns
@@ -166,32 +167,34 @@ Reports violations with impact level (critical/serious/moderate/minor), node exa
 
 In `SchemaViewerIsland.tsx`, entity cards are wrapped in `<a>` tags for semantic HTML navigation with `aria-label={item.name}`.
 
-**Tab panels** (`DisplayCard.tsx`):
+**Tab panels** (`ActionsDeck.tsx`):
 
 ```tsx
-<div role="tablist">
-  <button role="tab" aria-selected={isActive} />
+<div role="tablist" aria-label="Filter actions by timing">
+  <button type="button" role="tab" aria-selected={view.activeTab === t} />
 </div>
 ```
 
-**Combobox search** (`SearchIsland.tsx`):
+**Combobox search** (`SearchIsland.tsx`, driven by `component-lib`'s
+`useSearchCombobox` hook — the hook supplies `inputProps` including
+`aria-activedescendant`, plus `optionId()` for the option ids):
 
 ```tsx
 <input
-  role="combobox"
+  {...inputProps}
   aria-label="Search the SRD"
+  role="combobox"
   aria-expanded={isOpen}
-  aria-controls="search-results"
-  aria-activedescendant={selectedIndex >= 0 ? `search-result-${selectedIndex}` : undefined}
+  aria-controls={listboxId}
 />
-<div id="search-results" role="listbox">
-  <a role="option" aria-selected={isSelected} />
+<div id={listboxId} role="listbox">
+  <a id={optionId(index)} role="option" aria-selected={index === selectedIndex} />
 </div>
 ```
 
 Keyboard: ArrowDown/ArrowUp navigate, Enter opens, Escape closes, Cmd+K/Ctrl+K focuses.
 
-**Breadcrumbs** (`TopNavigation.astro`):
+**Breadcrumbs** (`AppBar.tsx`):
 
 - Separators: `aria-hidden="true"`
 - Current page: `aria-current="page"`
@@ -205,25 +208,28 @@ Keyboard: ArrowDown/ArrowUp navigate, Enter opens, Escape closes, Cmd+K/Ctrl+K f
 </button>
 ```
 
-**Focus management**: Modals (Radix Dialog) trap focus and restore on close. Search dropdown manages `aria-activedescendant` for virtual focus.
+**Focus management**: Modals (`ModalShell`, built on Base UI's `Dialog` from `@base-ui/react/dialog`) trap focus and restore on close. Search dropdown manages `aria-activedescendant` for virtual focus.
 
 ### Color Contrast
 
 SU brand colors are designed for WCAG 2.1 AA compliance:
 
-| Token                    | Value               | Usage                        |
-| ------------------------ | ------------------- | ---------------------------- |
-| `--color-su-orange-dark` | `rgb(168, 82, 34)`  | Text accent (5.5:1 vs white) |
-| `--color-su-green-dark`  | `rgb(92, 121, 108)` | Mech header backgrounds      |
-| `--color-su-pink`        | `rgb(206, 88, 152)` | Crawler accent               |
-| `--color-su-black`       | `rgb(40, 32, 25)`   | Primary text                 |
-| `--color-su-grey-dark`   | `rgb(80, 80, 80)`   | Secondary/muted text         |
+Tokens are defined in `component-lib`'s `src/styles/theme.css`, which is the
+source of truth for values. The `su-*` brand family this section used to name is
+**deleted** — it was a shadow tokenset the semantic tokens aliased, so one colour
+had two spellings. Values were preserved; only the names changed:
 
-**Key principle**: Brand colors (green, pink, orange) are used as background accents or on large header text, never as small body text on white. Recent fixes (commit `5a87011`) addressed:
+| Token             | Value                | Usage                    |
+| ----------------- | -------------------- | ------------------------ |
+| `--color-rust`    | `rgb(168, 82, 34)`   | The single action colour |
+| `--color-mech`    | `rgb(122, 151, 138)` | Mech entity accent       |
+| `--color-crawler` | `rgb(206, 88, 152)`  | Crawler entity accent    |
+| `--color-ink`     | `rgb(40, 32, 25)`    | Primary text             |
+| `--color-ink-2`   | `rgb(70, 61, 49)`    | Secondary ink            |
 
-- Darkened `su-orange-dark` for 5.5:1 contrast ratio
-- FilterChip inactive state: replaced `opacity-30` with explicit `text-su-grey-dark`
-- Added proper landmark structure across all pages
+**Key principle**: entity accent colours (mech green, crawler pink, pilot orange)
+are used as background accents or on large header text, never as small body text
+on paper.
 
 ### Mobile Accessibility
 

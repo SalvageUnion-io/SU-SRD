@@ -1,10 +1,33 @@
 # ITUN Design Review — Findings Report
 
+> ## ⚠️ HISTORICAL DOCUMENT — NOT A LIVE BACKLOG
+>
+> **Status as of 2026-07-21: 20 of 26 findings are RESOLVED in the codebase.** This report was written on 2026-07-01 and has since been substantially implemented. **Do not work from it as a task list** — you will redo finished work.
+>
+> Every finding below now carries an inline **status marker**, verified against source on 2026-07-21 (symbol definitions and file paths checked, not just prose mentions):
+>
+> - **RESOLVED** — shipped; evidence cited inline.
+> - **PARTIAL** — the pure-rules or structural half landed; the remainder is named explicitly.
+> - **STILL OPEN** — no implementation found.
+> - **SUPERSEDED** — the need was met by a different design than the one proposed here.
+>
+> **What superseded this report.** The play surface was rebuilt under [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) (surface/mode taxonomy) and [ADR-022](docs/adrs/ADR-022-provenance-log-and-overrides.md): `play/` became the **Dashboard**, `dashboard/` became the **Roster**, and rules enforcement moved to a per-mode model. Most of the rules-utility backlog (§3) landed as pure modules in `apps/itun/src/lib/rules/` driven by `apps/itun/src/components/dashboard/dashboardRules.ts` — a different shape than the per-sheet controls this report proposed. Design-language work continued in `docs/architecture/dashboard.md` and ADRs 023–026.
+>
+> **The genuinely outstanding items** (see markers for detail): **T-5** (hardcoded pixel typography/spacing — still ~30 non-test files), **T-2** (assign dialogs still duplicated), **T-6** (partial), and the UI-surface halves of **R-3** (salvage rollers) and **R-7** (crafting / scrap-a-mech) — whose rules layers are written and tested but have **zero component consumers**.
+>
+> **Stale references in the original prose below, corrected here rather than in place:** `HeatCheckControl.tsx` — cited throughout §3 as the template — **no longer exists as a file**; heat logic now lives in `apps/itun/src/lib/rules/heatCheck.ts` plus `dashboardRules.ts` and `CrawlerEconomyControl.tsx`. `applySpDamage` is described as "written, unused" — it is now consumed by `packages/salvageunion-reference/lib/rules/takeDamage.ts`. The `src/components/ui/` directory and the `Btn` symbol no longer exist anywhere in the repo.
+>
+> The findings are preserved verbatim below because the reasoning and rules citations remain useful. Only status markers were added.
+
+---
+
 _Deep agentic review, 2026-07-01. Four parallel review dimensions: SRD parity, tidiness/uniformity, rules utility (vs. Salvage Union Digital Edition 1.2 + Quick Ref 2.0 extracts), and UX/visual design. No changes made — worktree `itun-design-review` is clean and ready for implementation._
 
 ---
 
 ## Executive summary
+
+_(Written 2026-07-01. Reflects the state of the app then, not now — see the status banner above. In particular the four numbered gaps below have since been closed or largely closed.)_
 
 ITUN is structurally healthy — the `LiveSheet`/`SheetHero` shell, the wizard's three-pane `WizShell`, the semantic token system, and the ADR-007 automation pattern (exemplified by `HeatCheckControl`) are all strong and should not be touched. The recent token-unification pass (#329) already closed most of the _style_ gap with the SRD site.
 
@@ -32,6 +55,15 @@ Entity rendering (both apps use `ReferenceEntityDisplay` with the same mode syst
 
 ### Gaps to close
 
+**All four RESOLVED** (verified 2026-07-21):
+
+- **P-1 — RESOLVED.** `AppHeader` was built in the shared library (`packages/component-lib/src/components/shared/AppHeader.tsx`, with stories) and is rendered in `apps/itun/src/routes/__root.tsx:82`. The Roster carries a comment pointing at it as the single home for brand identity.
+- **P-2 — RESOLVED.** `apps/itun/src/components/shared/GlobalSearch.tsx` is app-wide reference search opened by Cmd/Ctrl+K or the `AppHeader` trigger, with tests at `shared/__tests__/GlobalSearch.test.tsx`. Its header comment cites this finding by number.
+- **P-3 — RESOLVED, via a different strategy than either option offered.** Rather than per-card placement, `srdEntityExternalLink` (`apps/itun/src/components/contextual/srdEntityExternalLink.tsx`) is injected app-wide through an `EntityExternalLinkProvider` in `shared/GameDataReady.tsx:97`, so every full entity card and detail modal renders the link in its foot band. `ViewInSRDLink.tsx` and `lib/srd-deep-link.ts` both still exist with tests.
+- **P-4 — RESOLVED.** `apps/itun/src/components/shared/RouteFallbacks.tsx` centralizes the treatment in the `font-cond ... uppercase tracking-caps-tight` brand vocabulary; `__root.tsx:27` wires `errorComponent`, and `routes/sheet/$kind/$id.tsx:27` uses `SheetKindNotFound`.
+
+_Original finding text follows._
+
 | #   | Finding                            | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Files                                                                                                                        |
 | --- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
 | P-1 | **No brand chrome**                | SRD's signature header (`bg-su-ink-dark`, 3px `su-orange-dark` bottom border, SU mark, `font-cond` wordmark) is absent. `__root.tsx` renders a bare `<Outlet/>`; the dashboard invents its own plaintext `ITUN [Beta] — Saved Builds` h1. **Design decision needed**: render a shared `AppHeader` on dashboard/wizard/detail routes but suppress it on `/sheet/*` (the sheet's sticky bar is its chrome — a global header would double-stack), or fold a small SU mark into the sheet bar. | `src/routes/__root.tsx`, new `src/components/shared/AppHeader.tsx`; brand ref: `apps/srd/src/components/TopNavigation.astro` |
@@ -42,6 +74,18 @@ Entity rendering (both apps use `ReferenceEntityDisplay` with the same mode syst
 ---
 
 ## 2. Tidy and uniform — internal consistency findings
+
+**Status: T-1, T-3, T-4, T-7 RESOLVED; T-2 and T-6 PARTIAL; T-5 STILL OPEN** (verified 2026-07-21):
+
+- **T-1 — RESOLVED.** `apps/itun/src/components/ui/` no longer exists. The shared component was renamed `Btn` → `Button` (`packages/component-lib/src/components/chrome/Button.tsx`); **zero** `Btn` symbols remain anywhere in `apps/itun/src` or `packages/component-lib/src`, and ~23 ITUN files import the shared `Button`.
+- **T-2 — PARTIAL.** Both files shrank from ~195 to **151 lines each** and now share `ModalShell` plus a `useSoftLinks` hook (`apps/itun/src/components/wiring/useSoftLinks.ts`), but the proposed `GenericSelectorDialog<T>` was **not** built — no such symbol exists. The two selector bodies are still written twice.
+- **T-3 — RESOLVED.** **Zero** hand-rolled dialogs remain. `UnassignLinkButton` and `DeleteConfirmDialog` were deleted outright; `AssignPilotToMech`, `AssignCrawlerToPilot`, `WorkspaceList`, and `SavePatternButton` all import `ModalShell`; `WorkspaceSwitcher` no longer contains a dialog at all. `useDialogA11y` has **zero** hits repo-wide, and `ModalShell` has ~20 ITUN consumers. The only remaining `role="dialog"` string in ITUN is an assertion inside `dashboard/__tests__/DisplayPanel.test.tsx`.
+- **T-4 — RESOLVED.** **Zero** occurrences of `bg-background`, `text-muted-foreground`, or `text-foreground` remain in `apps/itun/src` (including `wiring/`). The sweep finished; the proposed lint rule was not added.
+- **T-5 — STILL OPEN, and the largest surviving item.** The five specific values called out (`text-[10.5px]`, `text-[7px]`, `tracking-[0.12em]`, `px-[26px]`, `lg:w-[196px]`) are gone, but **~30 non-test ITUN files still carry arbitrary bracket values**, and no `LAYOUT` constants module exists. The named files `Sheet.tsx`, `StorageManifest.tsx` are still among them; `Erow.tsx` and `WizShell.tsx` no longer exist under those names.
+- **T-6 — PARTIAL.** Three of the four shrank substantially: `Sheet.tsx` 784 → **253**, `CrawlerSheet.tsx` 622 → **385**, `PilotSheet.tsx` 754 → **670**. `ShareSnapshotScreen.tsx` **grew**, 500 → **565**. The opportunistic approach recommended here was followed.
+- **T-7 — RESOLVED.** The proposed `src/hooks/queries/` layer exists (`entities.ts`, `workspaces.ts`, `useHydrateEntities.ts`, barrel `index.ts`) and is consumed (e.g. `usePilots()` in `AssignPilotToMech`). Direct subscriptions in non-test `.tsx` are down from 46+ to **3** `useEntityStore(...)` plus **12** `useEntityStore.getState()`.
+
+_Original finding text follows._
 
 | #   | Finding                                                         | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Effort  |
 | --- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
@@ -64,6 +108,20 @@ Entity rendering (both apps use `ReferenceEntityDisplay` with the same mode syst
 
 ### The ranked gap backlog (frequency × hand-tracking pain)
 
+**Status: R-1, R-2, R-4, R-5, R-6 RESOLVED; R-3 and R-7 PARTIAL (rules written, no UI)** (verified 2026-07-21).
+
+Note the shape differs from what this section proposed: the rules landed as pure modules in `apps/itun/src/lib/rules/` driven from the **Dashboard** (`apps/itun/src/components/dashboard/dashboardRules.ts`), per ADR-021 — not as per-sheet controls modeled on `HeatCheckControl.tsx`, which no longer exists as a file.
+
+- **R-1 — RESOLVED.** `apps/itun/src/lib/rules/takeDamage.ts` exists (and a shared `packages/salvageunion-reference/lib/rules/takeDamage.ts` that does consume `applySpDamage`). `dashboardRules.ts` exports `mechDamagePatch` (with the `vulnerable` doubling), `pilotDamagePatch`, `critDamagePatch`, `critInjuryPatch`, `describeCritDamage`, and `describeCritInjury`; the surface is `dashboard/ActiveItemBand.tsx`.
+- **R-2 — RESOLVED.** `apps/itun/src/lib/rules/downtime.ts` (`DOWNTIME_STEP_KEYS`, `allDowntimeSteps`, `resolveDowntimeScope`, `medBayStatus`, `mechBayStatus`, `repairableItems`, `downtimeMechPatch`, `DOWNTIME_UPKEEP_SCRAP`, `NEVER_RECHARGE_EQUIPMENT`) driving `dashboard/DowntimeWizard.tsx`.
+- **R-3 — PARTIAL: rules yes, UI no.** `apps/itun/src/lib/rules/salvage.ts` is fully implemented and tested (`areaSalvageBand`, `performAreaSalvage`, `areaJackpotClaim`, `claimAllows`, `takeFromClaim`, `claimExhausted`, `mechSalvageBand`, `halfSalvageScrap`, `performMechSalvage`, `damagedSalvageLot`), but **no component or route imports any of it** — the player-facing roller is still unbuilt. This is real outstanding work.
+- **R-4 — RESOLVED.** `apps/itun/src/lib/rules/crawlerEconomy.ts` (exporting `DeteriorationEffect`, `TradingRollResult`) driving `apps/itun/src/components/sheet/CrawlerEconomyControl.tsx`, with tests.
+- **R-5 — RESOLVED.** `apps/itun/src/components/encounter/` exists: `EncounterScreen.tsx`, `AddNpcControl.tsx`, `EncounterNpcCard.tsx`, `MediatorRollControl.tsx`, `referenceNpcs.ts`, plus `lib/rules/mediatorTables.ts` and `lib/schemas/encounterNpc.ts`.
+- **R-6 — RESOLVED.** `apps/itun/src/lib/rules/coreMechanic.ts` re-exports `CORE_ROLL_BANDS` (defined in the reference package), consumed for band label + summary at `dashboard/ActionsDeck.tsx:268`. `dashboardRules.ts` also carries `pushPatch`, `heatCheckOncePatch`, `VENT_PATCH`, and `isDestructiveOutcome`. The roll color tokens are defined in `theme.css` and now underpin `--color-status-ok/warn/bad`.
+- **R-7 — PARTIAL: rules yes, UI no.** `apps/itun/src/lib/rules/crafting.ts` (`CRAFTING_BAY`, `craftableAtTl`, `craftQuote`, `craftedLot`) and `lib/rules/scrapMech.ts` (`mechScrapComponents`, `scrapMechBreakdown`, `depositScrapDeposits`, `handOffCargo`) both exist and are tested, but **no component imports either**. Same shape as R-3 — outstanding work.
+
+_Original finding text follows._
+
 | Rank | Gap                                                                      | Rules                    | What's needed                                                                                                                                                                                                                                                                                                      | What already exists                                                                                                                                             |
 | ---- | ------------------------------------------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | R-1  | **Take-Damage control + Critical Damage / Critical Injury roll prompts** | pp. 239–242              | "Take Damage" on mech/pilot sheets: enter N, SP↔HP conversion, Vulnerable ×2; on 0 SP / 0 HP, a roll prompt in the `HeatCheckControl` style (auto-record, player marks the destroyed item / injury lands in the `injuries` schema). Happens multiple times per combat; the most error-prone live math in the game. | `applySpDamage` in `packages/salvageunion-reference/lib/combatUtils.ts` — **written, unused**. `docs/architecture/combat-loop.md` lists this as the known hole. |
@@ -82,6 +140,17 @@ Explicitly out of scope by design (ADR-001 honor system, ADR-007 automation boun
 
 The reviewer's structural verdict: leave `LiveSheet`/`SheetHero`, the hero↔strip lockstep, the mobile segmented switch, and `WizShell` alone — the gaps are **chrome, escalation, loading, and rolling**, not architecture.
 
+**Status: U-1, U-2, U-4, U-5 RESOLVED; U-3 SUPERSEDED; U-6 mostly RESOLVED** (verified 2026-07-21):
+
+- **U-1 — RESOLVED.** `packages/component-lib/src/components/stat/heatLevel.ts` defines `heatDangerFrom(max)` at a 0.7 ratio, citing this finding by number; `pipRows.ts` `trackSegmentState` returns a `'danger'` state past `dangerFrom`, and `VitalGauge.tsx` consumes it. ITUN passes it at `sheet/MechSheet.tsx:502` and `sheet/ShareSnapshotScreen.tsx:524`. Note `PIP_FILL` no longer exists as a symbol. The `--animate-heat-pulse` keyframe is defined in `theme.css` but **no component applies it** — the color escalation shipped, the pulse did not.
+- **U-2 — RESOLVED.** `shared/GameDataReady.tsx` renders a branded `GameDataFallback`: SU cargo mark on `bg-ink-deep`, `font-cond uppercase` status text kept in the a11y tree via `role="status"`, and a `motion-safe:`-guarded rust loader bar.
+- **U-3 — SUPERSEDED, not built as specified.** There is no sheet FAB component (only a stale layout comment at `sheet/LiveSheet.tsx:272`). The function this finding wanted — banded d20 results with push bookkeeping — instead landed on the Dashboard via R-6 (`dashboard/ActionsDeck.tsx` + `CORE_ROLL_BANDS`), consistent with ADR-021 putting play actions on the Dashboard rather than the live sheet.
+- **U-4 — RESOLVED.** `roster/Roster.tsx` renders each `↳ Name` segment as a link to the target entity's live sheet (see the comment at `Roster.tsx:145` citing this finding, and the covering test in `roster/__tests__/Roster.test.tsx:303`). Note `EntityListItem` no longer exists; the Roster replaced it.
+- **U-5 — RESOLVED.** The `LiveSheet` app bar was rebuilt: at rest it is a slim strip of back + overflow icon buttons around the SU mark, with the name/stamp/MiniStat strip fading in only on condense (IntersectionObserver, `aria-hidden` + `pointer-events:none` while hidden). See the binding contract comment at the top of `sheet/LiveSheet.tsx`.
+- **U-6 — mostly RESOLVED.** Undo-toast: `sheet/destroyedUndoToast.ts` exists, is wired into `PilotSheet.tsx` and `MechSheet.tsx`, and has a dedicated test. Empty-state glyphs: `component-lib/src/components/chrome/EmptyState.tsx` accepts an `icon` node documented as "an entity-tone lucide icon". Wizard CTA: `ctaFullWidth` has **zero** hits repo-wide — the wizard was rebuilt, so the claim no longer maps to anything checkable.
+
+_Original finding text follows._
+
 | #   | Finding                                 | Detail                                                                                                                                                                                                                                                                                                                                                                           |
 | --- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | U-1 | **Heat never escalates visually**       | `PIP_FILL.heat` is the same static orange at 1/10 and 10/10. Heat is the game's core tension mechanic. Add thresholds in `StatBlock`/`MiniStat`: ≥~70% cap → top pips go `status-bad` red; at cap → red border + subtle pulse; escalate the "Push (+2 Heat)" button toward destructive styling as heat climbs. Shared-component change — verify srd (inert there without a max). |
@@ -94,6 +163,10 @@ The reviewer's structural verdict: leave `LiveSheet`/`SheetHero`, the hero↔str
 ---
 
 ## Proposed roadmap
+
+> **⚠️ This roadmap is spent. Phases 1–4 are done and Phase 5 is mostly done — do not execute it.**
+>
+> What remains from the whole sequence, per the markers above: **T-5** (typography/spacing scale + `LAYOUT` module — untouched), **T-2** (`GenericSelectorDialog` — not built), the leftover half of **T-6** (`ShareSnapshotScreen.tsx`, which grew), and the **UI surfaces for R-3 and R-7**, whose rules layers are written and tested but have zero component consumers. Everything else in Phases 1–5 shipped, though R-1/R-6/U-3 landed on the Dashboard rather than on the live sheets.
 
 Sequenced so each phase is independently shippable and the tidiness work lands _before_ the features that would otherwise copy the mess.
 
@@ -128,6 +201,8 @@ Sequenced so each phase is independently shippable and the tidiness work lands _
 ---
 
 ## What NOT to change (explicitly blessed)
+
+_Still broadly good guidance, with two corrections: `HeatCheckControl` is named below as the pattern to follow but **no longer exists as a file** — the live equivalent is `apps/itun/src/lib/rules/heatCheck.ts` plus the pure-patch driver `apps/itun/src/components/dashboard/dashboardRules.ts`. `WizShell` likewise no longer exists under that name. The ADR-007 boundary itself remains in force, now alongside ADR-021's per-mode enforcement model._
 
 - `LiveSheet`/`SheetHero` architecture and the store-backed hero↔strip lockstep
 - `WizShell` three-pane wizard pattern

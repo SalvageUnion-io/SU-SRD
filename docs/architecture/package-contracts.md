@@ -106,7 +106,7 @@ All entity types (`SURef*`), enum types (`SURefEnum*`), common types (`SURefComm
 
 ### Dependencies
 
-- **Runtime:** `zod` (^4.4.3)
+- **Runtime:** `zod` (^4.4.3), `jsonc-parser` (^3.3.1)
 - **Dev only:** none (`devDependencies` is empty — validation tooling runs on Bun + the runtime deps)
 
 ### Generated Files (do not edit)
@@ -189,28 +189,33 @@ Consuming apps' Vite/Astro bundlers compile `.ts/.tsx` files directly. No interm
 
 ### Public API (`src/index.ts` is the source of truth)
 
-The barrel exports ~100 names. Do NOT trust any hand-maintained list (an
-earlier revision of this doc said "64 named exports" and drifted); instead,
-know the categories and check the barrel:
+The barrel exports 144 names. Do NOT trust any hand-maintained list (earlier
+revisions of this doc said "64 named exports", then "~100", and named several
+exports that no longer exist); instead, know the categories and check the
+barrel:
 
-- **Types** — display/config types (`DataValue`, `CardFootMeta`, choice-card types, …)
-- **Constants** — `ENTITY_STATS_CONFIG`, tech-level style maps
-- **Base typography** — `Text`, `Heading`
-- **UI primitives** — `Toaster`, `ModalShell`
-- **Chrome primitives** (`src/components/chrome/`) — `Btn`, `MiniBtn`, `Tag`, `Pill`, `Panel`, `OptRow`, `Stepper`, `Field`, `Input`, and friends
-- **Stat display** (`src/components/stat/`) — `StatBlock`, `MiniStat`, heat-level helpers
-- **Entity display system** — `ReferenceEntityDisplay` + tooltips/sections/skeletons, `getReferenceEntitySpacing`
-- **Interactive choice cards** — `ChoiceGroups`/`ChoiceGroup`/`ChoiceCard` + selection helpers
-- **Shared components** — `DisplayCard`, `RollTable`, `FilterChip`/`FilterRow`, `ValueDisplay`, `Footer`, …
-- **Utilities** — color helpers, `cn`, filtering/enrichment helpers
-- **Content rendering** — `Content`, `DataValueDisplayView`
+- **Types** — `ReferenceEntityControl`, `CardFootMeta`, `CardDomain`, `ChoiceSelections`, `EntityHrefBuilder`, …
+- **Constants** — `TECH_LEVEL_STYLES` / `techLevelLabel`
+- **Base typography** — `Text`
+- **UI primitives** — `Toaster` / `toast`, `ModalShell`
+- **Chrome primitives** (`src/components/chrome/`) — `Badge`, `Button`, `Callout`, `EmptyState`, `FieldError`, `Glyph`, `Field`/`Input`/`Select`, `Panel`/`Row`, `Slab`, `OptRow`, `CountStepper`, `StatusBadge`, `Conditions`, `Sel`, `KvRow`, and friends
+- **Stat trackers** (`src/components/stat/`) — `VitalGauge`, `StatLine`, `BayStatus`, `heatDangerFrom`
+- **Entity display system** — `ReferenceEntityCard`, the href/detail-link providers, `ClassAbilityTree`, `entityHostTone`/`resolveSchemaDomain`, `navigateControl`, `useDetailModal`, `useChassisPatternConfig`, `Skeleton`
+- **Shared components** — `DisplayCard`, `AppBar`, `Footer`, `FilterChip`/`FilterRow`, `EntityGrid`/`EntityRow`, `EntitySearcher`, `SlotGrid`, `Stat`, `CatalogTile`, `StaticEntityContent`, …
+- **Dashboard shell** (`src/components/dashboard/`) — `DashboardCanvas`, `DashboardGrid`, `RailBar`, `Dial`/`DialConfig`, `DisplayPanel`, `ActionsDeck`, `ActiveItemBand`/`StorageBay`
+- **Sheet presentation** (`src/components/sheet/`) — `SheetHero`/`ChassisStats`, `CrawlerEconFrame`, `ConditionsEditor`, `SnapshotQr`, …
+- **Wizard steps** (`src/components/wizard/`) — `ClassOptionList`, `CrawlerTypeSelectStep`, `EquipmentStep`, …
+- **Changelog** — `parseChangelog`, `mergeChangelogs`, `Changelog`
+- **Utilities** — the single `cn()` (its tailwind-merge config knows the custom utilities; never re-wrap `twMerge` with the default config)
 
-Note: there is no exported `Tooltip` primitive — entity tooltips ship as
-`EntityTooltip`.
+Note: some components are deliberately internal and NOT exported — there is no
+`Tooltip` primitive, `EntityTooltip` is used inside the entity card rather than
+published, and `ConditionChip` ships only as a sub-part of `Conditions`.
 
 ### Dependencies
 
-- **Peer dependencies** (must be provided by consuming apps): `react`, `react-dom`, `@radix-ui/react-dialog`, `@radix-ui/react-hover-card`, `@radix-ui/react-tooltip`, `salvageunion-reference`, `lucide-react`, `sonner`, `class-variance-authority`, `clsx`, `tailwind-merge`, `@randsum/roller`
+- **Peer dependencies** (must be provided by consuming apps): `react`, `react-dom`, `@base-ui/react`, `salvageunion-reference`, `lucide-react`, `sonner`, `class-variance-authority`, `clsx`, `tailwind-merge`, `@randsum/roller`
+- **Direct dependency**: `qrcode`
 - **No backend/data-source dependency** — fully data-source agnostic
 
 ### Design Principles
@@ -230,7 +235,7 @@ Note: there is no exported `Tooltip` primitive — entity tooltips ship as
 
 - `salvageunion-reference` (workspace:\*) — game data
 - `component-lib` (workspace:\*) — shared components + theme
-- `@radix-ui/react-dialog` — search modal
+- `@base-ui/react` — headless UI primitives (dialog, etc.)
 
 ### Does Not Use
 
@@ -258,8 +263,8 @@ Note: there is no exported `Tooltip` primitive — entity tooltips ship as
 - `idb` — IndexedDB wrapper for local-first persistence (`src/lib/db/`)
 - `@tanstack/react-router`, `@tanstack/react-query` — routing + async/derived data
 - `zustand` — write-through entity/workspace stores (`src/stores/`)
-- `zod` — schema validation for player records + input
-- Radix UI (dialog, dropdown-menu, separator, slot, tabs, tooltip)
+- `@base-ui/react` — headless UI primitives
+- `@netlify/blobs` — snapshot-sharing Netlify Functions storage
 
 Local-first: there is no auth and no backend other than the
 stateless snapshot-sharing Netlify Functions (see

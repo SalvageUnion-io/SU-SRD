@@ -589,7 +589,7 @@ directory**. Practical consequences:
 - **Adding a public component ⇒ add its story in the same change.** No "I'll story it later."
 - The only escape is the test's `ALLOWLIST`, reserved for genuine internal sub-parts demonstrated
   through their parent (each entry needs a one-line rationale). Current entries: `CardHeader`,
-  `CardImage`, `ControlButtons`, `ReferenceEntityChassisAbilitiesContent`, `SectionSeparator`.
+  `CardImage`, `ControlButtons`, `ChassisAbilitiesContent`, `SectionSeparator`.
 - The guard also fails on **stale** allowlist entries — a name that has since gained its own story, or
   no longer exists. So when you story a previously-allowlisted component (or delete one), prune the
   allowlist in the same change.
