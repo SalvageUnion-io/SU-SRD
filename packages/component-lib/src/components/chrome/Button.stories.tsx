@@ -10,14 +10,17 @@ export default {
 // The `.btn` cva ships four variants (buttonVariants.ts). `secondary` / `control`
 // are named in the codex but not yet implemented — only the real ones render.
 const BTN_VARIANTS = ['default', 'primary', 'ghost', 'danger'] as const
-const BTN_SIZES = ['sm', 'md', 'lg'] as const
+// `sm` and `md` are merged at sm's rendering (see buttonVariants.ts), so the
+// gallery shows the two DISTINCT sizes — the merged workhorse scale (also the
+// default) and `lg` — not a ghost cell for a rung that no longer renders.
+const BTN_SIZES = ['sm', 'lg'] as const
 
 type BtnVariant = (typeof BTN_VARIANTS)[number]
 
 /**
- * One story per variant: every size (sm/md/lg) plus the disabled treatment
- * (opacity .4, pointer-events none). Labels are sentence-case bodies — a Button is
- * never a stamp.
+ * One story per variant: each distinct size (sm — merged with md, the default
+ * scale — and lg) plus the disabled treatment (opacity .4, pointer-events
+ * none). Labels are sentence-case bodies — a Button is never a stamp.
  */
 function VariantShowcase({ variant, label }: { variant: BtnVariant; label: string }) {
   return (
@@ -56,11 +59,11 @@ export const Ghost: Story = () => <VariantShowcase variant="ghost" label="Detail
 /** `danger` — the warm bad tone for destructive actions. */
 export const Danger: Story = () => <VariantShowcase variant="danger" label="Eject" />
 
-/** Every variant side-by-side at md, plus the disabled row, for a scan. */
+/** Every variant side-by-side at the default size, plus the disabled row. */
 export const AllVariants: Story = () => (
   <div className="flex flex-col gap-5">
     <div>
-      <Caption>every variant · md</Caption>
+      <Caption>every variant · default size</Caption>
       <div className="flex flex-wrap items-start gap-3">
         {BTN_VARIANTS.map((variant) => (
           <Button key={variant} variant={variant}>

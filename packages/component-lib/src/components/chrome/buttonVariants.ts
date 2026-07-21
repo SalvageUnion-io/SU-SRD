@@ -37,8 +37,13 @@ export const buttonVariants = cva(
         // radius, condensed caps, tight padding) for secondary controls like
         // '⇄ Swap' / '✕ Remove'. Overrides the base radius/font/gap via twMerge.
         xs: 'gap-1 rounded-badge px-2 py-[3px] font-cond text-label-lg font-semibold uppercase tracking-normal',
+        // `sm` and `md` are MERGED at sm's rendering: the axis had four rungs
+        // where the ladder names three, and sm (~124 callers) was the de facto
+        // workhorse while md — the declared default — had almost no explicit
+        // callers. The default therefore now renders at sm's scale; a follow-up
+        // renames the axis to the canonical full/compact/mini rungs.
         sm: 'px-[11px] py-[6px] text-xs',
-        md: 'px-4 py-[9px] text-caption',
+        md: 'px-[11px] py-[6px] text-xs',
         lg: 'px-[22px] py-3 text-lede',
       },
     },
