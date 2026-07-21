@@ -13,6 +13,18 @@ function makeTestControl(overrides: Partial<ReferenceEntityControl> = {}): Refer
   }
 }
 
+/**
+ * The header band is a purely visual row (no landmark role, no label), so the
+ * accessible route to it is through its visible content: query the rendered
+ * header text, then step up to the row that wraps it. Replaces the deleted
+ * test-only `headerTestId` prop.
+ */
+function headerRowAround(text: string): HTMLElement {
+  const row = screen.getByText(text).parentElement
+  if (!row) throw new Error(`no header row wrapping "${text}"`)
+  return row
+}
+
 describe('DisplayCard', () => {
   afterEach(cleanup)
   test('renders header content', () => {
@@ -57,16 +69,11 @@ describe('DisplayCard', () => {
 
   test('non-compact card WITH a callout top-aligns the header row and pads it', () => {
     render(
-      <DisplayCard
-        headerBg="bg-mech"
-        headerContent={<span>Header</span>}
-        label="CHASSIS"
-        headerTestId="frame-header-container"
-      >
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} label="CHASSIS">
         <p>Body</p>
       </DisplayCard>
     )
-    const headerRow = screen.getByTestId('frame-header-container')
+    const headerRow = headerRowAround('Header')
     expect(headerRow.className).toContain('items-start')
     // Non-compact callout clearance: the seam is the small (compact) stamp, so
     // pt-5 clears it with a thin, consistent gap under the callout.
@@ -81,27 +88,22 @@ describe('DisplayCard', () => {
         headerContent={<span>Header</span>}
         label="CHASSIS"
         size="medium"
-        headerTestId="frame-header-container"
       >
         <p>Body</p>
       </DisplayCard>
     )
-    const headerRow = screen.getByTestId('frame-header-container')
+    const headerRow = headerRowAround('Header')
     expect(headerRow.className).toContain('pt-3')
     expect(headerRow.className).toContain('items-start')
   })
 
   test('card WITHOUT any callout centres the header row and omits callout padding', () => {
     render(
-      <DisplayCard
-        headerBg="bg-mech"
-        headerContent={<span>Header</span>}
-        headerTestId="frame-header-container"
-      >
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>}>
         <p>Body</p>
       </DisplayCard>
     )
-    const headerRow = screen.getByTestId('frame-header-container')
+    const headerRow = headerRowAround('Header')
     expect(headerRow.className).toContain('items-center')
     // Only the callout-specific paddings should be absent (base px-3 py-* remain).
     expect(headerRow.className).not.toContain('pt-4')
@@ -165,16 +167,11 @@ describe('DisplayCard', () => {
 
   test('disabled state keeps original header background and applies opacity', () => {
     const { container } = render(
-      <DisplayCard
-        headerBg="bg-mech"
-        headerContent={<span>Disabled</span>}
-        disabled
-        headerTestId="test-header"
-      >
+      <DisplayCard headerBg="bg-mech" headerContent={<span>Disabled</span>} disabled>
         <p>Body</p>
       </DisplayCard>
     )
-    const header = screen.getByTestId('test-header')
+    const header = headerRowAround('Disabled')
     expect(header.className).toContain('bg-mech')
     // Outer wrapper gets opacity-50
     const wrapper = container.firstElementChild as HTMLElement
@@ -192,15 +189,6 @@ describe('DisplayCard', () => {
     expect(container.querySelector('.p-0')).toBeNull()
   })
 
-  test('headerTestId passes data-testid to header div', () => {
-    render(
-      <DisplayCard headerBg="bg-mech" headerContent={<span>Header</span>} headerTestId="my-header">
-        <p>Body</p>
-      </DisplayCard>
-    )
-    expect(screen.getByTestId('my-header')).toBeTruthy()
-  })
-
   test('cardClick control makes entire card clickable in listing mode', () => {
     let clicked = false
     const { container } = render(
@@ -209,7 +197,6 @@ describe('DisplayCard', () => {
         headerContent={<span>Row</span>}
         size="medium"
         extent="head"
-        headerTestId="header"
         controls={[
           makeTestControl({
             cardClick: true,
@@ -393,12 +380,11 @@ describe('DisplayCard', () => {
         headerBg="bg-mech"
         headerContent={<span>Header</span>}
         headerStyle={{ className: 'custom-header', style: { backgroundImage: 'url(test)' } }}
-        headerTestId="test-header"
       >
         <p>Body</p>
       </DisplayCard>
     )
-    const header = screen.getByTestId('test-header')
+    const header = headerRowAround('Header')
     expect(header.className).toContain('custom-header')
     expect(header.style.backgroundImage).toContain('test')
   })

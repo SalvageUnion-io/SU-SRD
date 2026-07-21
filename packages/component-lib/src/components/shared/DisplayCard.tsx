@@ -18,13 +18,6 @@ export type CardFootMeta = { label: string; value: ReactNode }
 type DisplayCardProps = {
   /** Background color class for header and footer (e.g., "bg-mech"). Default: "" */
   headerBg?: string
-  /**
-   * Test-only hook on the header band. Zero production passers BY DESIGN — the
-   * DisplayCard suite uses it to target the band directly. Kept deliberately:
-   * deleting live test infrastructure to satisfy a "no production callers"
-   * audit optimises the metric, not the code.
-   */
-  headerTestId?: string
   /** Optional CSS color for border derivation */
   headerBgColor?: string
   /** Content rendered inside the header bar. Omit it and NO header band is
@@ -146,7 +139,6 @@ function SubHeaderStats({
 
 export function DisplayCard({
   headerBg = '',
-  headerTestId,
   headerBgColor,
   headerContent,
   footerContent,
@@ -308,7 +300,6 @@ export function DisplayCard({
                 ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
                 ...headerStyleProp?.style,
               }}
-              data-testid={headerTestId}
             >
               {headerContent}
             </div>

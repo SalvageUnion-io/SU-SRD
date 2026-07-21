@@ -58,8 +58,6 @@ type NavDrawerProps = {
   triggerClassName?: string
   /** Panel width class. Defaults to full-width; ITUN uses a narrower drawer. */
   panelClassName?: string
-  /** Start opened — for stories/tests; the apps leave it closed. */
-  defaultOpen?: boolean
 }
 
 // Full-width catalog tile (former `.catalog-item`, compact drawer variant).
@@ -78,9 +76,8 @@ export function NavDrawer({
   LinkComponent = 'a',
   triggerClassName,
   panelClassName = 'w-full',
-  defaultOpen = false,
 }: NavDrawerProps) {
-  const [open, setOpen] = useState(defaultOpen)
+  const [open, setOpen] = useState(false)
   const close = () => setOpen(false)
 
   return (

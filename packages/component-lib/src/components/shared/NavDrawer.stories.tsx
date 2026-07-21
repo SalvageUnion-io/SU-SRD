@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import type { Story } from '@ladle/react'
 import { NavDrawer } from './NavDrawer'
 import { SearchField } from './SearchField'
@@ -40,23 +41,34 @@ const CATEGORIES = [
  * brand + search + catalog categories + primary nav links (active = rust). The
  * ITUN builder uses the same component with just `navItems` (no categories or
  * search) and a narrower panel.
+ *
+ * The drawer opens itself on mount by clicking its own hamburger trigger —
+ * the same path a user takes — rather than through a `defaultOpen` prop the
+ * apps never pass (that story-only prop was deleted).
  */
-export const Default: Story = () => (
-  <NavDrawer
-    brand={<SrdBrand />}
-    categories={CATEGORIES}
-    search={<SearchField placeholder="Search…" aria-label="Search the SRD" />}
-    navItems={[
-      { label: 'ABOUT', href: '/about/', active: true },
-      { label: 'CHANGELOG', href: '/changelog/' },
-      { label: 'DISCORD', href: '/discord/' },
-      { label: 'BUILDER ↗', href: 'https://intheunionnow.com', external: true },
-      {
-        label: 'BUY THE GAME',
-        href: 'https://leyline.press/collections/salvage-union',
-        external: true,
-      },
-    ]}
-    defaultOpen
-  />
-)
+export const Default: Story = () => {
+  const frameRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    frameRef.current?.querySelector<HTMLButtonElement>('[aria-label="Open menu"]')?.click()
+  }, [])
+  return (
+    <div ref={frameRef}>
+      <NavDrawer
+        brand={<SrdBrand />}
+        categories={CATEGORIES}
+        search={<SearchField placeholder="Search…" aria-label="Search the SRD" />}
+        navItems={[
+          { label: 'ABOUT', href: '/about/', active: true },
+          { label: 'CHANGELOG', href: '/changelog/' },
+          { label: 'DISCORD', href: '/discord/' },
+          { label: 'BUILDER ↗', href: 'https://intheunionnow.com', external: true },
+          {
+            label: 'BUY THE GAME',
+            href: 'https://leyline.press/collections/salvage-union',
+            external: true,
+          },
+        ]}
+      />
+    </div>
+  )
+}
