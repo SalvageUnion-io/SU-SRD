@@ -2,10 +2,10 @@ import type { SURefEntity, SURefMetaAction, SURefMetaEntity } from 'salvageunion
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
 import { entityHostTone } from '../card/entityCardTone'
-import { SectionSeparator } from './SectionSeparator'
+import { SectionSeparator } from '../SectionSeparator'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 import { cn } from '../../../utils/cn'
-import { getReferenceEntitySpacing } from './referenceEntityDisplayTypes'
+import { getReferenceEntitySpacing } from '../referenceEntityTypes'
 
 type ReferenceEntityChassisAbilitiesContentProps = {
   chassisName?: string

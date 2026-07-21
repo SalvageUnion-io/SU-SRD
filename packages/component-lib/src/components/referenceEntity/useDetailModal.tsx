@@ -3,12 +3,12 @@ import type { ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
-import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
-import type { ReferenceEntityCardHideConfig } from '../card/ReferenceEntityCard'
+import { ReferenceEntityCard } from './card/ReferenceEntityCard'
+import type { ReferenceEntityCardHideConfig } from './card/ReferenceEntityCard'
 import { DetailIcon } from './DetailIcon'
 import { useEntityHref, useEntityDetailLink } from './entityHrefContext'
 import type { ReferenceEntityControl } from './referenceEntityControlTypes'
-import type { StatItem } from '../../shared/statsBarTypes'
+import type { StatItem } from '../shared/statsBarTypes'
 
 type UseDetailModalOptions = {
   children?: ReactNode

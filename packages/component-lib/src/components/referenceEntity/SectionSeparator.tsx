@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { Badge } from '../../chrome/Badge'
-import { cn } from '../../../utils/cn'
+import { Badge } from '../chrome/Badge'
+import { cn } from '../../utils/cn'
 
 type SectionSeparatorProps = {
   label: string

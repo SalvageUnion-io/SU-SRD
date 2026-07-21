@@ -6,7 +6,7 @@ import {
   getTechLevelNumber,
   normalizePatternName,
 } from 'salvageunion-reference'
-import type { PatternOverrideData } from './referenceEntityDisplayTypes'
+import type { PatternOverrideData } from '../referenceEntityTypes'
 
 type PatternItem = { name: string; count?: number }
 

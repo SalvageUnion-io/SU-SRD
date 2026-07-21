@@ -21,7 +21,7 @@ import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
-import { EntityExternalLinkProvider } from '../../ReferenceEntityDisplay/entityHrefContext'
+import { EntityExternalLinkProvider } from '../../entityHrefContext'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const chassis = () => {

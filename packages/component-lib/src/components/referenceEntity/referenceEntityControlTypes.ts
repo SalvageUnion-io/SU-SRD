@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { EntityStatus } from '../../shared/entityStatus'
+import type { EntityStatus } from '../shared/entityStatus'
 
 export type ReferenceEntityControlVariant = 'primary' | 'danger' | 'ghost'
 

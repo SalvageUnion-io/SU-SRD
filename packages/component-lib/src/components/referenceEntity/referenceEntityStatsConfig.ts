@@ -15,7 +15,7 @@ import {
   getCargoCapacity,
   getHitPoints,
 } from 'salvageunion-reference'
-import type { StatItem } from '../../shared/statsBarTypes'
+import type { StatItem } from '../shared/statsBarTypes'
 
 type StatConfig = {
   /** Getter function to extract stat value from entity */

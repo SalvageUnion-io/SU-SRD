@@ -1,6 +1,6 @@
 import type { SURefEntity } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
-import { useDetailModal } from './useDetailModal'
+import { useDetailModal } from '../useDetailModal'
 
 export function PatternEquipmentItem({ data }: { data: SURefEntity }) {
   const detailModal = useDetailModal(data)

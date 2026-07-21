@@ -26,7 +26,7 @@ import {
 import { Button } from '../chrome/Button'
 import { Glyph } from '../chrome/glyphs'
 import { ModalShell } from './ModalShell'
-import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
+import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
 
 import { cn } from '../../utils/cn'
 

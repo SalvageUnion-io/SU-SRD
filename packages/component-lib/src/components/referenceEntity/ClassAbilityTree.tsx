@@ -2,8 +2,8 @@ import { useMemo } from 'react'
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
 import { SalvageUnionReference, isCoreClass, isBaseAdvancedClass } from 'salvageunion-reference'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
-import { SectionSeparator } from './ReferenceEntityDisplay/SectionSeparator'
-import { useDetailModal } from './ReferenceEntityDisplay/useDetailModal'
+import { SectionSeparator } from './SectionSeparator'
+import { useDetailModal } from './useDetailModal'
 
 type TreeGroup = { tree: string; abilities: SURefAbility[] }
 

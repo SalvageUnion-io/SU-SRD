@@ -1,7 +1,7 @@
 import { describe, test, expect, afterEach } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { DisplayCard } from '../DisplayCard'
-import type { ReferenceEntityControl } from '../../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
+import type { ReferenceEntityControl } from '../../referenceEntity/referenceEntityControlTypes'
 
 function makeTestControl(overrides: Partial<ReferenceEntityControl> = {}): ReferenceEntityControl {
   return {

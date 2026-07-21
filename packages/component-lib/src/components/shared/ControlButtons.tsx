@@ -8,7 +8,7 @@ import { StatusBadge } from '../chrome/StatusBadge'
 import type {
   ReferenceEntityControl,
   ReferenceEntityControlVariant,
-} from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
+} from '../referenceEntity/referenceEntityControlTypes'
 
 /**
  * Per-variant segment colours: `bg`/`text` fill the primary segment, and

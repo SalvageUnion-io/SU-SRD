@@ -1,5 +1,5 @@
 // Types
-export type { ReferenceEntityControl } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
+export type { ReferenceEntityControl } from './components/referenceEntity/referenceEntityControlTypes'
 export type { CardFootMeta } from './components/shared/DisplayCard'
 
 // Base typography
@@ -14,11 +14,11 @@ export {
   EntityHrefProvider,
   EntityDetailLinkProvider,
   EntityExternalLinkProvider,
-} from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
+} from './components/referenceEntity/entityHrefContext'
 export type {
   EntityHrefBuilder,
   EntityExternalLinkBuilder,
-} from './components/referenceEntity/ReferenceEntityDisplay/entityHrefContext'
+} from './components/referenceEntity/entityHrefContext'
 export { ClassAbilityTree } from './components/referenceEntity/ClassAbilityTree'
 export {
   entityHostTone,
@@ -29,10 +29,10 @@ export type { CardDomain } from './components/referenceEntity/card/entityCardTon
 // Entity controls — `navigateControl` is the only live preset. `addControl`,
 // `deleteControl` and `selectControl` were measured to zero production call
 // sites and deleted; consumers build controls directly.
-export { navigateControl } from './components/referenceEntity/ReferenceEntityDisplay/referenceEntityControls'
-export { useDetailModal } from './components/referenceEntity/ReferenceEntityDisplay/useDetailModal'
-export { useChassisPatternConfig } from './components/referenceEntity/ReferenceEntityDisplay/useChassisPatternConfig'
-export { getClassSelections } from './components/referenceEntity/ReferenceEntityDisplay/classSelectionUtils'
+export { navigateControl } from './components/referenceEntity/referenceEntityControls'
+export { useDetailModal } from './components/referenceEntity/useDetailModal'
+export { useChassisPatternConfig } from './components/referenceEntity/pattern/useChassisPatternConfig'
+export { getClassSelections } from './components/referenceEntity/classSelectionUtils'
 
 // Shared components
 export { DisplayCard } from './components/shared/DisplayCard'

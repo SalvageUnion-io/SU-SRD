@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { ControlButtons } from './ControlButtons'
-import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
+import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
 
 type CardControlRailProps = {
   /** Every card affordance — action buttons and the typed item variants

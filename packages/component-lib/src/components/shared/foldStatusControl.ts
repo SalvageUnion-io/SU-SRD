@@ -1,4 +1,4 @@
-import type { ReferenceEntityControl } from '../referenceEntity/ReferenceEntityDisplay/referenceEntityControlTypes'
+import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
 import type { EntityStatus } from './entityStatus'
 
 /**

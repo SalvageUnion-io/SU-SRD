@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from 'bun:test'
 import { render, screen, cleanup, renderHook } from '@testing-library/react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { useChassisPatternConfig } from '../useChassisPatternConfig'
-import type { PatternOverrideData } from '../referenceEntityDisplayTypes'
+import type { PatternOverrideData } from '../../referenceEntityTypes'
 
 /**
  * "Legal Starting Pattern" is an explicit data tag on a pattern (`legalStarting`),

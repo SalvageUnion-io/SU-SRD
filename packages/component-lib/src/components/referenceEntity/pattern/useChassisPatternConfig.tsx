@@ -11,15 +11,12 @@ import { Badge } from '../../chrome/Badge'
 import { Content } from '../Content'
 import { ReferenceEntityChassisAbilitiesContent } from './ReferenceEntityChassisAbilitiesContent'
 import { resolvePatternOverride, computeSvOverride } from './patternOverrideUtils'
-import {
-  getReferenceEntityFontSizes,
-  getReferenceEntitySpacing,
-} from './referenceEntityDisplayTypes'
-import type { PatternOverrideData } from './referenceEntityDisplayTypes'
+import { getReferenceEntityFontSizes, getReferenceEntitySpacing } from '../referenceEntityTypes'
+import type { PatternOverrideData } from '../referenceEntityTypes'
 import type { ReferenceEntityCardHideConfig } from '../card/ReferenceEntityCard'
 import { Stat } from '../../shared/Stat'
 import type { StatItem } from '../../shared/statsBarTypes'
-import { SectionSeparator } from './SectionSeparator'
+import { SectionSeparator } from '../SectionSeparator'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 
 type ChassisPatternConfig = {
