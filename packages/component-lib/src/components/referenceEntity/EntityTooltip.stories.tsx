@@ -3,7 +3,7 @@ import { EntityTooltip } from './EntityTooltip'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
 import { InsideTooltipContext } from '../ui/insideTooltipContext'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Text } from '../base/Text'
+import { Badge } from '../chrome/Badge'
 import { Stat } from '../shared/Stat'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
@@ -26,9 +26,9 @@ export const Default: Story = () => (
     </p>
     <div className="flex flex-wrap items-start gap-8">
       <EntityTooltip schemaName="systems" entityId={system?.id ?? ''}>
-        <Text variant="pseudoheader" className="cursor-help">
+        <Badge shape="stamp" className="cursor-help">
           Hover {system?.name}
-        </Text>
+        </Badge>
       </EntityTooltip>
       <EntityTooltip schemaName="systems" entityId={system?.id ?? ''}>
         <Stat orientation="horizontal" label={system?.name ?? 'System'} value="TL 2" />

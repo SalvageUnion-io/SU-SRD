@@ -2,7 +2,7 @@ import type { ReactNode, RefObject } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import { DisplayCard } from './DisplayCard'
-import { Text } from '../base/Text'
+import { Badge } from '../chrome/Badge'
 
 type ModalShellProps = {
   open: boolean
@@ -76,17 +76,29 @@ export function ModalShell({
               headerContent={
                 <div className="flex w-full items-center justify-between gap-2">
                   <div className="flex min-w-0 flex-col gap-0.5">
-                    <Text
-                      as="span"
-                      variant="pseudoheader"
-                      className={`${isDanger ? 'text-xl' : 'text-2xl'} text-paper`}
+                    {/*
+                     * `text-xl` / `text-2xl` sit ABOVE the stamp ladder's top
+                     * rung (`full` = `text-sm`), so the dialog title keeps an
+                     * explicit font-size override rather than inventing a new
+                     * rung. `leading-none` must trail it — a font-size utility
+                     * reinstates its own line-height, and the stamp is a
+                     * single-line plate.
+                     */}
+                    <Badge
+                      shape="stamp"
+                      size="mini"
+                      className={`${isDanger ? 'text-xl' : 'text-2xl'} block self-start leading-none text-paper`}
                     >
                       {title}
-                    </Text>
+                    </Badge>
                     {subtitle && (
-                      <Text as="span" variant="pseudoheader" className="text-xs text-paper/80">
+                      <Badge
+                        shape="stamp"
+                        size="mini"
+                        className="block self-start text-xs leading-none text-paper/80"
+                      >
                         {subtitle}
-                      </Text>
+                      </Badge>
                     )}
                   </div>
                   <Dialog.Close

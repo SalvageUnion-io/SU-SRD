@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Text } from '../../base/Text'
+import { Badge } from '../../chrome/Badge'
 import { cn } from '../../../utils/cn'
 
 type SectionSeparatorProps = {
@@ -22,17 +22,31 @@ export function SectionSeparator({
     <div className="relative flex items-center gap-3">
       <div className="flex-1 border-t border-dashed border-wk-faint" aria-hidden="true" />
       <span className="inline-flex shrink-0 border border-ink">
-        <Text variant="pseudoheader" as="span" className={cn(resolvedFontSize, 'font-semibold')}>
+        {/*
+         * `block self-start` keeps each half hugging its own content instead of
+         * stretching to the taller sibling; `leading-none` must trail the font
+         * size, which otherwise reinstates its own line-height. `font-semibold`
+         * is a deliberate downgrade from the stamp's `font-bold` — the separator
+         * caption reads lighter than a card header.
+         */}
+        <Badge
+          shape="stamp"
+          size="mini"
+          className={cn(resolvedFontSize, 'block self-start font-semibold leading-none')}
+        >
           {label}
-        </Text>
+        </Badge>
         {value !== undefined && (
-          <Text
-            variant="pseudoheaderInverse"
-            as="span"
-            className={cn(resolvedFontSize, 'font-semibold')}
+          <Badge
+            shape="stamp"
+            size="mini"
+            surface="inverse"
+            // `ring-0`: the outer span already draws the ink border, so the
+            // inverse plate's own ring would double the seam.
+            className={cn(resolvedFontSize, 'block self-start font-semibold leading-none ring-0')}
           >
             {value}
-          </Text>
+          </Badge>
         )}
       </span>
       <div className="flex-1 border-t border-dashed border-wk-faint" aria-hidden="true" />

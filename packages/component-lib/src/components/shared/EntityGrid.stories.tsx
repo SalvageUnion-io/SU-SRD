@@ -4,6 +4,7 @@ import { EntityGrid, EntityGridRow } from './EntityGrid'
 import { DisplayCard } from './DisplayCard'
 import { Button } from '../chrome/Button'
 import { Text } from '../base/Text'
+import { Badge } from '../chrome/Badge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -12,11 +13,7 @@ export default {
 
 /** Header for a generic entity card — abstract, so the grid + economy read as the subject. */
 function cardHeader(title: string) {
-  return (
-    <Text variant="pseudoheader" as="span">
-      {title}
-    </Text>
-  )
+  return <Badge shape="stamp">{title}</Badge>
 }
 
 /** Abstract body — a stand-in for whatever card the layout primitive holds. */

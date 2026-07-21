@@ -7,7 +7,7 @@ import {
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
-import { Text } from '../../base/Text'
+import { Badge } from '../../chrome/Badge'
 import { Content } from '../Content'
 import { ReferenceEntityChassisAbilitiesContent } from './ReferenceEntityChassisAbilitiesContent'
 import { resolvePatternOverride, computeSvOverride } from './patternOverrideUtils'
@@ -133,27 +133,40 @@ export function useChassisPatternConfig(
       <div className={spacing.sectionSpaceYClass}>
         {overridePatternData && (
           <div className={spacing.smallSpaceYClass}>
+            {/*
+             * The row is `items-center`, so `self-start` is load-bearing: these
+             * three stamps carry different font sizes and must stay TOP aligned,
+             * not centred against the tallest. `leading-none` trails the font
+             * size, which would otherwise reinstate its own line-height.
+             */}
             <div className="flex items-center gap-2">
-              <Text
-                variant="pseudoheader"
-                as="span"
-                className={cn(compact ? 'text-xs' : 'text-sm', 'font-bold uppercase')}
+              <Badge
+                shape="stamp"
+                size="mini"
+                className={cn(
+                  compact ? 'text-xs' : 'text-sm',
+                  'block self-start font-bold uppercase leading-none'
+                )}
               >
                 {normalizePatternName(overridePatternData.name)}
-              </Text>
+              </Badge>
               {overridePatternData.page && (
-                <Text variant="pseudoheader" as="span" className="text-xs font-semibold uppercase">
+                <Badge
+                  shape="stamp"
+                  size="mini"
+                  className="block self-start text-xs font-semibold uppercase leading-none"
+                >
                   Page {overridePatternData.page}
-                </Text>
+                </Badge>
               )}
               {!compact && overridePatternData.source && (
-                <Text
-                  variant="pseudoheader"
-                  as="span"
-                  className="text-xs font-semibold uppercase opacity-70"
+                <Badge
+                  shape="stamp"
+                  size="mini"
+                  className="block self-start text-xs font-semibold uppercase leading-none opacity-70"
                 >
                   {overridePatternData.source}
-                </Text>
+                </Badge>
               )}
             </div>
             {overridePatternData.content && overridePatternData.content.length > 0 && (

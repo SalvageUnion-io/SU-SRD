@@ -4,6 +4,7 @@ import { DisplayCard } from './DisplayCard'
 import type { CardFootMeta } from './DisplayCard'
 import type { StatItem } from './statsBarTypes'
 import { Text } from '../base/Text'
+import { Badge } from '../chrome/Badge'
 
 // biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
@@ -17,11 +18,7 @@ export default {
 // status badge (intact/damaged/destroyed) — that's the primitive's own
 // mechanic, not an entity concern.
 
-const header = (
-  <Text variant="pseudoheader" as="span">
-    Card Title
-  </Text>
-)
+const header = <Badge shape="stamp">Card Title</Badge>
 
 const body = (
   <div className="p-3">

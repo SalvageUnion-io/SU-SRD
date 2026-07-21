@@ -48,7 +48,7 @@ const SCALE: { cls: string; token: string; px: string; use: string }[] = [
     cls: 'text-label-lg',
     token: '--text-label-lg',
     px: '10.5px',
-    use: 'pseudoheader / rail caps label',
+    use: 'stamp / rail caps label',
   },
   {
     cls: 'text-badge',
@@ -116,7 +116,7 @@ const TRACKING: { cls: string; token: string; value: string; use: string }[] = [
 
 /** The `Text` component's variant roles (components/base/Text.tsx). */
 const ROLES: {
-  variant: 'default' | 'body' | 'hint' | 'flavor' | 'pseudoheader' | 'pseudoheaderInverse'
+  variant: 'default' | 'body' | 'hint' | 'flavor'
   use: string
   sample: string
 }[] = [
@@ -132,12 +132,6 @@ const ROLES: {
     use: 'italic flavor — secondary ink, ability flavor lines',
     sample: specimenBody,
   },
-  {
-    variant: 'pseudoheader',
-    use: 'ink-on-paper caps header block (the stamp treatment)',
-    sample: specimenName,
-  },
-  { variant: 'pseudoheaderInverse', use: 'paper-on-ink caps header block', sample: specimenName },
 ]
 
 // ── Layout helpers ────────────────────────────────────────────────────────────
@@ -258,7 +252,7 @@ export const Tracking: Story = () => (
 export const Roles: Story = () => (
   <Section
     title="Text roles — the variant vocabulary"
-    blurb="components/base/Text.tsx. Reach for the role by intent, not by hand-styling: the same six roles read consistently on every surface."
+    blurb="components/base/Text.tsx. Text is the PROSE primitive — reach for the role by intent, not by hand-styling. The square ink label is NOT here: it is Badge shape=&quot;stamp&quot; (Atoms/Badge)."
   >
     {ROLES.map((r) => (
       <Row

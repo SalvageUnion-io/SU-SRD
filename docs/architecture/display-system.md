@@ -189,7 +189,7 @@ The `damageOverlayText` prop renders a semi-translucent overlay with a red dange
 ```tsx
 <div className="pointer-events-none absolute inset-0 z-10 ... bg-black/50">
   <div className="border-2 border-red-500/60 bg-red-800/90 ...">
-    <Text variant="pseudoheader">Damaged</Text>
+    <Badge shape="stamp">Damaged</Badge>
     <Text>{damageOverlayText}</Text>
   </div>
 </div>

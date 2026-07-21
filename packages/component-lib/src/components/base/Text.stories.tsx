@@ -7,7 +7,7 @@ export default {
   title: 'Atoms/Text',
 }
 
-/** Every Text variant on one page — default/body prose, hint + flavor asides, and the pseudoheader stamps. */
+/** Every Text variant on one page — default/body prose plus the hint + flavor asides. */
 export const Default: Story = () => (
   <div className="flex flex-col gap-6">
     <div className="flex flex-col gap-2">
@@ -42,21 +42,11 @@ export const Default: Story = () => (
     </div>
 
     <div className="flex flex-col gap-2">
-      <Caption>variant="pseudoheader" — ink stamp (lg / sm / xs)</Caption>
-      <Text variant="pseudoheader">Salvage Union</Text>
-      <Text variant="pseudoheader" className="text-sm">
-        Melee Weapons
-      </Text>
-      <Text variant="pseudoheader" className="text-xs">
-        Heat &amp; Damage
-      </Text>
-    </div>
-
-    <div className="flex flex-col gap-2 bg-ink p-3">
-      <Caption>variant="pseudoheaderInverse" — paper stamp on ink</Caption>
-      <Text variant="pseudoheaderInverse">Overheated</Text>
-      <Text variant="pseudoheaderInverse" className="text-sm">
-        Cascade Failure
+      <Caption>
+        no stamp variant — the square ink label is Badge shape=&quot;stamp&quot; (Atoms/Badge)
+      </Caption>
+      <Text variant="flavor">
+        Text is the PROSE primitive. A label plate is a Badge; Text never renders one.
       </Text>
     </div>
   </div>

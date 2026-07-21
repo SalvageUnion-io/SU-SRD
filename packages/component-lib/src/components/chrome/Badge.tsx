@@ -76,8 +76,10 @@ type BadgeChipProps = {
 /**
  * The SQUARE stamp (`shape="stamp"`): the one ink label/header/tab/eyebrow atom
  * (ruleset §5, atom 1). Square (no radius), condensed-bold uppercase, line-height
- * 1, `tracking-caps-tight`; adds the `size` / `surface` / `seam` axes. The visual
- * is shared with `Text variant="pseudoheader"`.
+ * 1, `tracking-caps-tight`; adds the `size` / `surface` / `seam` axes. This is
+ * the SOLE implementation of the ink stamp — `Text`'s `pseudoheader` /
+ * `pseudoheaderInverse` variants rendered the same plate and were retired onto
+ * it (ruleset §0: one kind × one context = one primitive).
  */
 type BadgeStampProps = {
   children: ReactNode

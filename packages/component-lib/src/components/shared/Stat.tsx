@@ -3,7 +3,8 @@ import { SalvageUnionReference, EntitySchemaNames } from 'salvageunion-reference
 import type { EntitySchemaName, SURefEnumSchemaName } from 'salvageunion-reference'
 import { cn } from '../../utils/cn'
 import type { SizeRung } from '../../styles/sizing'
-import { Text } from '../base/Text'
+import { Badge } from '../chrome/Badge'
+import type { StampSurface } from '../chrome/Badge'
 import { Tooltip } from '../ui/tooltip'
 import { EntityTooltip } from '../referenceEntity/EntityTooltip'
 import type { EntityStatus } from './entityStatus'
@@ -14,7 +15,7 @@ import type { EntityStatus } from './entityStatus'
  * ValueDisplay (horizontal label|value) and StatControl (box + steppers):
  *
  *   orientation="horizontal"  -> the horizontal [label | value] cell.
- *   (default)                 -> the centred value box with pseudoheader stamps
+ *   (default)                 -> the centred value box with Badge stamps
  *                                above/below; mode="edit" adds +/- steppers.
  *
  * Both anatomies render ONE canonical ink-on-paper cell — no per-stat fill or
@@ -146,7 +147,7 @@ type ValueBoxProps = Exact<{
   max?: number
   /** Minimum for edit-mode steppers. */
   min?: number
-  /** Bottom pseudoheader stamp. */
+  /** Bottom stamp. */
   bottomLabel?: string
   labelId?: string
   disabled?: boolean
@@ -214,7 +215,7 @@ function renderStat(props: StatProps) {
 
 /* ------------------------------------------------------------------ *
  * Horizontal [label | value] — the former ValueDisplay. Ink/paper     *
- * pseudoheader pair, rounded; state rides the border.                 *
+ * stamp pair, rounded; state rides the border.                        *
  * ------------------------------------------------------------------ */
 function HorizontalValue({
   label,
@@ -235,8 +236,11 @@ function HorizontalValue({
   const fontSize = size === 'mini' ? 'text-label' : size === 'compact' ? 'text-xs' : 'text-sm'
   const fontWeight =
     size === 'mini' ? 'font-bold' : size === 'compact' ? 'font-normal' : 'font-semibold'
-  const mainVariant = inverse ? 'pseudoheaderInverse' : 'pseudoheader'
-  const valueVariant = inverse ? 'pseudoheader' : 'pseudoheaderInverse'
+  const mainSurface: StampSurface = inverse ? 'inverse' : 'on-ink'
+  const valueSurface: StampSurface = inverse ? 'on-ink' : 'inverse'
+  // The CELL draws the single rounded border; the `inverse` plate's own inset
+  // ring would double it, so both halves suppress it with `ring-0`.
+  const plate = 'ring-0 leading-none'
 
   const cell = (
     <span
@@ -248,18 +252,20 @@ function HorizontalValue({
         className
       )}
     >
-      <Text
-        variant={mainVariant}
-        as="span"
+      <Badge
+        shape="stamp"
+        size="mini"
+        surface={mainSurface}
         className={cn(
-          // Stretch to the FULL cell height (overriding the pseudoheader variant's
-          // self-start) so the label's ink background always covers the whole cell,
-          // and center the text vertically — even when the row stretches the cell.
+          // Stretch to the FULL cell height (overriding the stamp's w-fit
+          // inline-block) so the label's ink background always covers the whole
+          // cell, and center the text vertically — even when the row stretches it.
           'flex items-center justify-center self-stretch uppercase',
           fontSize,
           fontWeight,
           // Two-line label cell (e.g. "Tech" / "Level") when a bottomLabel is set.
-          bottomLabel !== undefined && 'flex-col leading-[0.95]'
+          bottomLabel !== undefined && 'flex-col',
+          plate
         )}
         style={bgColor || textColor ? { backgroundColor: bgColor, color: textColor } : undefined}
       >
@@ -271,12 +277,18 @@ function HorizontalValue({
         ) : (
           label
         )}
-      </Text>
+      </Badge>
       {value !== undefined && (
-        <Text
-          variant={valueVariant}
-          as="span"
-          className={cn('flex items-center gap-px self-stretch uppercase', fontSize, fontWeight)}
+        <Badge
+          shape="stamp"
+          size="mini"
+          surface={valueSurface}
+          className={cn(
+            'flex items-center gap-px self-stretch uppercase',
+            fontSize,
+            fontWeight,
+            plate
+          )}
         >
           {value}
           {max !== undefined && (
@@ -284,7 +296,7 @@ function HorizontalValue({
               /{max}
             </span>
           )}
-        </Text>
+        </Badge>
       )}
     </span>
   )
@@ -467,18 +479,24 @@ function ValueBox({
       )}
       aria-label={combinedAriaLabel}
     >
-      <Text
+      {/*
+       * `topLabelRef` MUST land on this DOM node — the overflow squeeze measures
+       * the stamp's scrollWidth against the box. Badge forwards its ref to the
+       * rendered element for exactly this reason.
+       */}
+      <Badge
         ref={topLabelRef}
-        variant="pseudoheader"
-        as="span"
+        shape="stamp"
+        size="mini"
         className={cn(
-          'z-[1] -mb-2 origin-center self-center whitespace-nowrap uppercase',
-          size === 'mini' ? 'text-label' : 'text-xs'
+          'block z-[1] -mb-2 origin-center self-center whitespace-nowrap uppercase',
+          size === 'mini' ? 'text-label' : 'text-xs',
+          'leading-none'
         )}
         id={labelId}
       >
         {label}
-      </Text>
+      </Badge>
       {onClick ? (
         <button
           ref={boxRef as React.Ref<HTMLButtonElement>}
@@ -518,18 +536,19 @@ function ValueBox({
           {valueReadout}
         </div>
       )}
-      <Text
+      <Badge
         ref={bottomLabelRef}
-        variant="pseudoheader"
-        as="span"
+        shape="stamp"
+        size="mini"
         className={cn(
-          'z-[1] -mt-2 origin-center self-center whitespace-nowrap uppercase',
+          'block z-[1] -mt-2 origin-center self-center whitespace-nowrap uppercase',
           size === 'mini' ? 'text-label' : 'text-xs',
+          'leading-none',
           !bottomLabel && 'invisible'
         )}
       >
         {bottomLabel || ' '}
-      </Text>
+      </Badge>
     </div>
   )
 
@@ -539,18 +558,20 @@ function ValueBox({
   // The spacers reserve the label LINE HEIGHT only — a non-breaking space, not
   // the real label text (which would duplicate a queryable "HP"/"Level" node).
   const stepperSpacer = (edge: 'top' | 'bottom') => (
-    <Text
-      variant="pseudoheader"
-      as="span"
+    // `aria-hidden` reaches the DOM through Badge's HTMLAttributes spread.
+    <Badge
+      shape="stamp"
+      size="mini"
       aria-hidden
       className={cn(
-        'invisible z-[1] origin-center self-center whitespace-nowrap uppercase',
+        'invisible block z-[1] origin-center self-center whitespace-nowrap uppercase',
         edge === 'top' ? '-mb-2' : '-mt-2',
-        size === 'mini' ? 'text-label' : 'text-xs'
+        size === 'mini' ? 'text-label' : 'text-xs',
+        'leading-none'
       )}
     >
       {' '}
-    </Text>
+    </Badge>
   )
   const content = canEdit ? (
     <div className="flex items-center gap-0.5">

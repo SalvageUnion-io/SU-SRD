@@ -402,16 +402,16 @@ export const Default: Story = () => (
     >
       {system && (
         <EntityTooltip schemaName="systems" entityId={system.id}>
-          <Text variant="pseudoheader" className="cursor-help">
+          <Badge shape="stamp" className="cursor-help">
             by entityId — {system.name}
-          </Text>
+          </Badge>
         </EntityTooltip>
       )}
       {naniteSifter && (
         <EntityTooltip schemaName="systems" entityName={naniteSifter.name}>
-          <Text variant="pseudoheader" className="cursor-help">
+          <Badge shape="stamp" className="cursor-help">
             by entityName — {naniteSifter.name}
-          </Text>
+          </Badge>
         </EntityTooltip>
       )}
     </Row>
@@ -451,9 +451,9 @@ export const Default: Story = () => (
     >
       {chassis && (
         <EntityTooltip schemaName="chassis" entityId={chassis.id}>
-          <Text variant="pseudoheader" className="cursor-help">
+          <Badge shape="stamp" className="cursor-help">
             Hover — {chassis.name}
-          </Text>
+          </Badge>
         </EntityTooltip>
       )}
     </Row>

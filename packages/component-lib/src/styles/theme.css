@@ -36,7 +36,7 @@
        nano     8px    smallest markers — TL glyphs, unit suffixes
        micro    9px    dense caps meta labels (NPC insets, encounter cards)
        label    10px   standard uppercase font-cond field/section label
-       label-lg 10.5px pseudoheader / rail caps label
+       label-lg 10.5px stamp / rail caps label
        badge    11px   badges, pills, compact caps values
        note     11.5px small body copy in rails and insets
        caption  13px   small body copy — hints, empty states, subtitles
