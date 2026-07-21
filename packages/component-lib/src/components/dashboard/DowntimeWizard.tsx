@@ -115,7 +115,7 @@ export function DowntimeWizard({
 
         {table && (
           <div className="pc-dt-table">
-            <RollTable table={table} tableName={tableName} compact showCommand />
+            <RollTable table={table} tableName={tableName} size="compact" showCommand />
           </div>
         )}
 

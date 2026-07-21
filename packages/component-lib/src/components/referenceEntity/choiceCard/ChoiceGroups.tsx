@@ -247,7 +247,7 @@ function ChoiceOptionGroup({
           <RollTable
             table={table}
             tableName={`${tableName} Table`}
-            compact
+            size="compact"
             collapsible
             onRollResult={readOnly ? undefined : (text) => onFreeTextChange(text)}
           />

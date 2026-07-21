@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { Text } from '../base/Text'
 import { cn } from '../../utils/cn'
+import type { SizeRung } from '../../styles/sizing'
 
 type DigestedRollTable = {
   order: number
@@ -28,7 +29,12 @@ type RollTableDisplayProps = {
   table: RollTableType
   showCommand?: boolean
   disabled?: boolean
-  compact?: boolean
+  /**
+   * Ladder rung (styles/sizing.ts) — two rungs: `full` (default) is the
+   * reading table; `compact` tightens rows, result text and action chips for
+   * dense listings / nested content.
+   */
+  size?: Extract<SizeRung, 'full' | 'compact'>
   tableName?: string
   /** Only allow a single roll — disables the roll button after first use and hides reroll */
   singleRoll?: boolean
@@ -296,7 +302,7 @@ function getColumnEntry(
 }
 
 function ColumnsRollTable({
-  compact,
+  size = 'full',
   disabled,
   table,
   showCommand = false,
@@ -305,6 +311,7 @@ function ColumnsRollTable({
   onRollResult,
   collapsible = false,
 }: RollTableDisplayProps) {
+  const compact = size === 'compact'
   const [result, setResult] = useState<ColumnsRollResult | null>(null)
   const [rollAnnouncement, setRollAnnouncement] = useState('')
   const [hasRolled, setHasRolled] = useState(false)
@@ -460,7 +467,7 @@ export function RollTable(props: RollTableDisplayProps) {
 }
 
 function StandardRollTable({
-  compact,
+  size = 'full',
   disabled,
   table,
   showCommand = false,
@@ -469,6 +476,7 @@ function StandardRollTable({
   onRollResult,
   collapsible = false,
 }: RollTableDisplayProps) {
+  const compact = size === 'compact'
   const digestedTable = digestRollTable(table)
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null)
   const [hasRolled, setHasRolled] = useState(false)

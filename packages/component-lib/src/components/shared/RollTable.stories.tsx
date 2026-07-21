@@ -30,13 +30,14 @@ function Row({
   )
 }
 
-/** The banded d20 table — bare, with the roll command, compact, and disabled. */
+/** The banded d20 table — bare, with the roll command, size="compact", and disabled. */
 export const Default: Story = () =>
   table ? (
     <div className="flex flex-col gap-6 bg-paper p-5 text-ink">
       <p className="max-w-2xl font-body text-xs leading-relaxed text-ink-2">
-        The banded d20 roll table. showCommand adds the rust Roll control + command name; compact
-        tightens for rails/tooltips; disabled suppresses the Roll action (Reference surface).
+        The banded d20 roll table. showCommand adds the rust Roll control + command name;
+        size=&quot;compact&quot; tightens for rails/tooltips; disabled suppresses the Roll action
+        (Reference surface).
       </p>
       <Row label="bare">
         <RollTable table={table} />
@@ -44,8 +45,8 @@ export const Default: Story = () =>
       <Row label="showCommand">
         <RollTable table={table} showCommand tableName={tableName} />
       </Row>
-      <Row label="compact" width="w-[420px]">
-        <RollTable table={table} compact showCommand tableName={tableName} />
+      <Row label='size="compact"' width="w-[420px]">
+        <RollTable table={table} size="compact" showCommand tableName={tableName} />
       </Row>
       <Row label="disabled (Reference)">
         <RollTable table={table} showCommand tableName={tableName} disabled />

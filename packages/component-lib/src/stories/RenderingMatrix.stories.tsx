@@ -135,7 +135,7 @@ const rows: MatrixRow[] = [
           table={rollTable}
           tableName={rollTableEntity?.name}
           showCommand
-          compact
+          size="compact"
           disabled
         />
       </div>
