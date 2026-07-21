@@ -70,13 +70,13 @@ export function LoadoutPanel({
           The wizard has no sheet-tone context, so feed VitalGauge its accent via
           its own `style` (--tone / --tone-deep) — ink for the slot budget, rust
           for Energy — preserving the old ink/rust distinction. Over-capacity
-          segments read red natively. `compact` = the single-line gauge. */}
+          segments read red natively. `size="compact"` = the single-line gauge. */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <h2 className="whitespace-nowrap font-cond text-sm font-bold uppercase tracking-caps text-ink">
           Loadout · <span className="text-rust">{name}</span>
         </h2>
         <VitalGauge
-          compact
+          size="compact"
           readOnly
           label={slotLabel}
           value={slotsUsed}
@@ -86,7 +86,7 @@ export function LoadoutPanel({
           }
         />
         <VitalGauge
-          compact
+          size="compact"
           readOnly
           label="Energy"
           value={energyValue}

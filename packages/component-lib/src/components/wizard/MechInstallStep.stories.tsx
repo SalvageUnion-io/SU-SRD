@@ -88,14 +88,14 @@ function LegacyLoadoutPanel({
             { '--tone': 'var(--color-ink)', '--tone-deep': 'var(--color-ink)' } as CSSProperties
           }
         >
-          <VitalGauge compact readOnly label={slotLabel} value={slotsUsed} max={slotsMax} />
+          <VitalGauge size="compact" readOnly label={slotLabel} value={slotsUsed} max={slotsMax} />
         </div>
         <div
           style={
             { '--tone': 'var(--color-rust)', '--tone-deep': 'var(--color-rust)' } as CSSProperties
           }
         >
-          <VitalGauge compact readOnly label="Energy" value={energyValue} max={energyMax} />
+          <VitalGauge size="compact" readOnly label="Energy" value={energyValue} max={energyMax} />
         </div>
       </div>
 

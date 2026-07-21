@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent } from 'react'
 
 import { cn } from '../../utils/cn'
+import type { SizeRung } from '../../styles/sizing'
 import { POSTER_STAMP } from '../chrome/posterStamp'
 import { pipClickValue, statBlockRowStarts, trackSegmentState } from './pipRows'
 
@@ -37,11 +38,16 @@ export type VitalGaugeProps = {
   /** First 0-based segment index that reads as danger (status-bad) when lit. */
   danger?: number
   /**
-   * Single-row COMPACT layout (the dashboard-instrument cue): label · one
-   * segment row · value/max, all on one line — no big numeral, no caption, no
-   * multi-row split. The full poster gauge is the default (compact unset).
+   * Size on the canonical rung ladder (`src/styles/sizing.ts`) — the gauge has
+   * two rungs:
+   *
+   *   `full` (default) — the multi-row poster gauge: big numeral + caption. A
+   *          gauge is a destination readout, so its resting rung is `full`.
+   *   `compact` — the single-row layout (the dashboard-instrument cue): label ·
+   *          one segment row · value/max, all on one line — no big numeral, no
+   *          caption, no multi-row split.
    */
-  compact?: boolean
+  size?: Extract<SizeRung, 'full' | 'compact'>
   /**
    * Surface skin (RenderingMatrix `skin sheet|instrument`): `sheet` (default,
    * light paper ground — ink label + numeral) or `instrument` (a dark ground —
@@ -78,7 +84,7 @@ export function VitalGauge({
   caption,
   readOnly,
   danger,
-  compact,
+  size = 'full',
   surface = 'sheet',
   style,
   className,
@@ -175,7 +181,7 @@ export function VitalGauge({
 
   // COMPACT — the single-row instrument bar (dashboard cue): label · one segment
   // row · value/max on one line. No big numeral, caption, or multi-row split.
-  if (compact) {
+  if (size === 'compact') {
     return (
       // biome-ignore lint/a11y/noStaticElementInteractions: role=group is a keyboard widget (arrow keys adjust the value); the segment buttons carry the click semantics
       // biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is dynamically group|img — both support aria-label — but biome can't resolve the ternary

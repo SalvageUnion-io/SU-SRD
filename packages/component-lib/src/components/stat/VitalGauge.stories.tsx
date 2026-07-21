@@ -97,10 +97,16 @@ export const Compact: Story = () => (
       surface) instead of a bespoke bar.
     </p>
     <Row label="compact · sheet surface" skin="sheet--mech">
-      <VitalGauge label="Heat" value={heat - 1} max={heat} danger={Math.max(1, heat - 2)} compact />
+      <VitalGauge
+        label="Heat"
+        value={heat - 1}
+        max={heat}
+        danger={Math.max(1, heat - 2)}
+        size="compact"
+      />
     </Row>
     <Row label="compact · editable" skin="sheet--pilot">
-      <VitalGauge label="EP" value={Math.ceil(ep / 2)} max={ep} compact onChange={noop} />
+      <VitalGauge label="EP" value={Math.ceil(ep / 2)} max={ep} size="compact" onChange={noop} />
     </Row>
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-col gap-2 rounded-card bg-[#1b1712] p-3">
@@ -108,7 +114,7 @@ export const Compact: Story = () => (
           label="SP"
           value={12}
           max={15}
-          compact
+          size="compact"
           surface="instrument"
           readOnly
           style={{ '--tone': '#8fb996', '--tone-deep': '#4f6b55' } as CSSProperties}
@@ -118,7 +124,7 @@ export const Compact: Story = () => (
           value={5}
           max={6}
           danger={4}
-          compact
+          size="compact"
           surface="instrument"
           readOnly
           style={{ '--tone': '#c98b5e', '--tone-deep': '#7d4f2f' } as CSSProperties}
