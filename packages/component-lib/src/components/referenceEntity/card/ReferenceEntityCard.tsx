@@ -893,10 +893,22 @@ function ReferenceEntityCardInner({
             </Badge>
           )}
           {damageValue && (
-            <Stat key="damage" orientation="horizontal" label="Damage" value={damageValue} size="mini" />
+            <Stat
+              key="damage"
+              orientation="horizontal"
+              label="Damage"
+              value={damageValue}
+              size="mini"
+            />
           )}
           {rangeValue && (
-            <Stat key="range" orientation="horizontal" label="Range" value={rangeValue} size="mini" />
+            <Stat
+              key="range"
+              orientation="horizontal"
+              label="Range"
+              value={rangeValue}
+              size="mini"
+            />
           )}
         </>
       )
