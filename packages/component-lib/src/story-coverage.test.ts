@@ -18,17 +18,19 @@ import { basename, dirname, join } from 'node:path'
 
 const SRC = import.meta.dir
 
-/** Barrel-exported components that intentionally have no standalone story. */
-const ALLOWLIST = new Set([
-  // DisplayCard internal sub-parts — demonstrated via DisplayCard's stories.
-  'CardImage',
-  // Sub-parts / slots demonstrated via their parent composition.
-  'ControlButtons', // rendered via DisplayCard foot actions
-  'ReferenceEntityChassisAbilitiesContent', // render-prop slot
-  // Redundant with the canonical Slab (ruleset: "slabs section"); pending
-  // retirement — its Separators story was dropped as a duplicate.
-  'SectionSeparator',
-])
+/**
+ * Barrel-exported components that intentionally have no standalone story.
+ *
+ * Currently EMPTY, and that is the healthy state. Every former entry
+ * (`CardImage`, `ControlButtons`, `ReferenceEntityChassisAbilitiesContent`,
+ * `SectionSeparator`) was an internal sub-part that had been published from the
+ * barrel with no consumer outside this package; the barrel prune un-exported
+ * them, so they are no longer public and need no exemption. Add a name here
+ * only when a genuine sub-part must be public and is demonstrated through its
+ * parent's story — with a one-line rationale. The stale-entry test below keeps
+ * this list honest.
+ */
+const ALLOWLIST = new Set<string>([])
 
 /** Sanctioned top-level story groups, in sidebar order (see `.ladle/config.mjs`). */
 const GROUPS = ['Foundations', 'Atoms', 'Containers', 'Compositions'] as const
