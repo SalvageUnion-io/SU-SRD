@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react'
-import { type CSSProperties, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
@@ -23,6 +24,10 @@ type InstallItemLike = {
 }
 
 const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
+
+// Gauge tones for the two budget readouts (slots = ink, energy = rust).
+const INK_TONE: CSSVarStyle = { '--tone': 'var(--color-ink)', '--tone-deep': 'var(--color-ink)' }
+const RUST_TONE: CSSVarStyle = { '--tone': 'var(--color-rust)', '--tone-deep': 'var(--color-rust)' }
 
 /** Sort rank for a tech level: numeric tiers 1–6, then Bio (B), then Nanite (N). */
 function tlRank(tl: TechLevel): number {
@@ -82,18 +87,10 @@ function LegacyLoadoutPanel({
         <h2 className="whitespace-nowrap font-cond text-sm font-bold uppercase tracking-caps text-ink">
           Loadout · <span className="text-rust">{name}</span>
         </h2>
-        <div
-          style={
-            { '--tone': 'var(--color-ink)', '--tone-deep': 'var(--color-ink)' } as CSSProperties
-          }
-        >
+        <div style={INK_TONE}>
           <VitalGauge size="compact" readOnly label={slotLabel} value={slotsUsed} max={slotsMax} />
         </div>
-        <div
-          style={
-            { '--tone': 'var(--color-rust)', '--tone-deep': 'var(--color-rust)' } as CSSProperties
-          }
-        >
+        <div style={RUST_TONE}>
           <VitalGauge size="compact" readOnly label="Energy" value={energyValue} max={energyMax} />
         </div>
       </div>

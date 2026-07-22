@@ -12,10 +12,18 @@
  * contexts (tests without either API) publishing is a no-op.
  */
 
+import { STORE_NAMES } from './stores'
 import type { StoreName } from './stores'
 
 const CHANNEL_NAME = 'itun-db'
 const STORAGE_PING_KEY = 'itun-db-ping'
+
+const STORE_NAME_SET: ReadonlySet<string> = new Set(Object.values(STORE_NAMES))
+
+/** Narrows a cross-tab message payload to a known object-store name. */
+function isStoreName(value: string): value is StoreName {
+  return STORE_NAME_SET.has(value)
+}
 
 type StoreChangeListener = (store: StoreName) => void
 
@@ -42,7 +50,7 @@ function ensureInitialized(): void {
     channel = new BroadcastChannel(CHANNEL_NAME)
     channel.onmessage = (event: MessageEvent) => {
       const store = (event.data as { store?: unknown } | null)?.store
-      if (typeof store === 'string') notify(store as StoreName)
+      if (typeof store === 'string' && isStoreName(store)) notify(store)
     }
     return
   }
@@ -52,7 +60,7 @@ function ensureInitialized(): void {
       if (event.key !== STORAGE_PING_KEY || event.newValue === null) return
       try {
         const parsed = JSON.parse(event.newValue) as { store?: unknown }
-        if (typeof parsed.store === 'string') notify(parsed.store as StoreName)
+        if (typeof parsed.store === 'string' && isStoreName(parsed.store)) notify(parsed.store)
       } catch {
         // Malformed ping — ignore.
       }

@@ -10,7 +10,7 @@ type SURClassesAccessor = {
  * are true base classes (Engineer, Hauler, etc.). Advanced/Hybrid
  * specialisation classes in salvageunion-reference do NOT expose coreTrees.
  */
-function isBaseClass(cls: unknown): cls is SURefClass & { coreTrees: string[] } {
+function isBaseClass(cls: unknown): cls is SelectableBaseClass {
   return (
     typeof cls === 'object' &&
     cls !== null &&
@@ -31,6 +31,9 @@ function isSpecialisationClass(cls: unknown): cls is SURefClass {
   )
 }
 
+/** A base class as narrowed by `isBaseClass` — `coreTrees` guaranteed present. */
+export type SelectableBaseClass = SURefClass & { coreTrees: string[] }
+
 /**
  * Selectable classes for the wizard. Create mode: base classes only.
  * Edit mode (`includeSpecialisations`): base classes plus Advanced/Hybrid
@@ -40,7 +43,7 @@ function isSpecialisationClass(cls: unknown): cls is SURefClass {
 export function selectableClasses(
   sur: SURClassesAccessor | undefined,
   includeSpecialisations: boolean
-): { base: SURefClass[]; specialisations: SURefClass[] } {
+): { base: SelectableBaseClass[]; specialisations: SURefClass[] } {
   const all = (sur ?? SalvageUnionReference.Classes).all()
   return {
     base: all.filter(isBaseClass),

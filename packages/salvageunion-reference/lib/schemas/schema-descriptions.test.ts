@@ -261,7 +261,9 @@ describe('Schema descriptions', () => {
           jsonSchema.allOf?.[0]?.description
         expect(description).toBeTruthy()
         expect(typeof description).toBe('string')
-        expect((description as string).length).toBeGreaterThan(5)
+        // The typeof assertion above already failed the test otherwise; narrow without a cast
+        if (typeof description !== 'string') throw new Error('description is not a string')
+        expect(description.length).toBeGreaterThan(5)
       })
     }
   })
@@ -299,7 +301,9 @@ describe('Schema descriptions', () => {
           jsonSchema.allOf?.[0]?.description
         expect(description).toBeTruthy()
         expect(typeof description).toBe('string')
-        expect((description as string).length).toBeGreaterThan(5)
+        // The typeof assertion above already failed the test otherwise; narrow without a cast
+        if (typeof description !== 'string') throw new Error('description is not a string')
+        expect(description.length).toBeGreaterThan(5)
       })
     }
   })

@@ -133,7 +133,9 @@ describe('SearchIsland', () => {
     })
 
     expect(navigate).toHaveBeenCalledTimes(1)
-    const secondHref = (options[1] as HTMLAnchorElement).getAttribute('href')
+    const second = options[1]
+    if (!(second instanceof HTMLAnchorElement)) throw new Error('expected the second option link')
+    const secondHref = second.getAttribute('href')
     expect(navigate).toHaveBeenCalledWith(secondHref)
   })
 

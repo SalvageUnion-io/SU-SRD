@@ -67,11 +67,9 @@ export function Dashboard({ id }: { id: string }) {
     )
   }
 
-  // Cast mirrors Sheet.tsx: the store's generic get is compatible with the
-  // EntityLookup shape but TS can't align the conditional return types.
   const lookup: EntityLookup = {
     get: (type, entityId) => storeState.get(type, entityId),
-  } as EntityLookup
+  }
   const composition = resolveSheetComposition({
     kind: 'mech',
     id,

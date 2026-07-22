@@ -5,6 +5,15 @@
 import type { SURefEntity, SURefEnumSchemaName } from './types/index.js'
 import { getSchemaCatalog, getDataMaps } from './ModelFactory.js'
 import { extractActions } from './utilities.js'
+import { SchemaNameSchema } from './schemas/enums.js'
+
+/** Runtime membership set for the canonical schema-name enum. */
+const SCHEMA_NAME_SET: ReadonlySet<string> = new Set(SchemaNameSchema.options)
+
+/** Type guard: is this catalog id a canonical SURefEnumSchemaName? */
+function isSchemaName(id: string): id is SURefEnumSchemaName {
+  return SCHEMA_NAME_SET.has(id)
+}
 
 export interface SearchOptions {
   query: string
@@ -58,7 +67,10 @@ function buildSearchIndex(): SearchIndexEntry[] {
   const schemasToIndex = schemaCatalog.schemas.filter((s) => !s.meta)
 
   for (const schema of schemasToIndex) {
-    const schemaId = schema.id as SURefEnumSchemaName
+    // Every non-meta catalog id is in the enum, so this guard is a runtime
+    // no-op — but it narrows schema.id without an assertion.
+    if (!isSchemaName(schema.id)) continue
+    const schemaId = schema.id
     const data = dataMap[schemaId]
 
     if (!data || !Array.isArray(data)) {

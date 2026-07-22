@@ -107,11 +107,12 @@ import {
 /**
  * Erased view of {@link lazyModelMap} for dynamic (arbitrary string id) access,
  * where the caller cannot statically know which schema's entity type applies
- * (e.g. preload() iterating a runtime list of ids). The single `as` here is the
- * one deliberate soundness boundary for the lazy-loading indirection: the id →
- * backing-model correspondence is guaranteed at runtime by loadSchemas().
+ * (e.g. preload() iterating a runtime list of ids). This is a checked widening,
+ * not a cast: every per-schema `LazyModel<T>` is assignable to
+ * `LazyModel<unknown>`, and the id → backing-model correspondence is guaranteed
+ * at runtime by loadSchemas().
  */
-const lazyModelsById = lazyModelMap as Record<string, LazyModel<unknown>>
+const lazyModelsById: Record<string, LazyModel<unknown> | undefined> = lazyModelMap
 
 export type * from './types/index.js'
 
@@ -324,8 +325,12 @@ export class SalvageUnionReference {
     const schemaName = parts[0]
     const id = parts[1]
     if (!schemaName || !id) return null
-    if (!(SchemaToModelMap as Record<string, string>)[schemaName]) return null
+    if (!(schemaName in SchemaToModelMap)) return null
 
+    // Sole assertion: the registry key set is a superset of SURefEnumSchemaName
+    // ('actions' and 'catalog-categories' are registered but not in the zod
+    // enum), and this public signature predates that split. Narrowing the
+    // guard to the enum would reject 'actions::…' refs — a behavior change.
     return { schemaName: schemaName as SURefEnumSchemaName, id }
   }
 
@@ -340,7 +345,7 @@ export class SalvageUnionReference {
     const parsed = SalvageUnionReference.parseRef(ref)
     if (!parsed) return undefined
     if (parsed.schemaName in SchemaToModelMap) {
-      return SalvageUnionReference.get(parsed.schemaName as keyof SchemaToEntityMap, parsed.id)
+      return SalvageUnionReference.get(parsed.schemaName, parsed.id)
     }
     return undefined
   }

@@ -1,6 +1,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { KvRow, Panel, ReferenceEntityCard, FieldError } from 'component-lib'
+import { isRecord } from '../../lib/isRecord'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 
 type SURFindAll = { findAll: (fn: (x: unknown) => boolean) => unknown[] }
@@ -17,6 +18,11 @@ type ReviewStepProps = {
 
 type Named = { id: string; name: string }
 
+/** Runtime narrow for the unknown-typed injectable SUR accessors. */
+function isNamed(x: unknown): x is Named {
+  return isRecord(x) && typeof x.id === 'string' && typeof x.name === 'string'
+}
+
 /**
  * Review step (design §3.2 Review): kv-panel of the build's fields on the
  * left, the chosen ability + equipment cards stacked on the right (equipment
@@ -27,15 +33,16 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
   const surAbilities = _sur?.Abilities ?? SalvageUnionReference.Abilities
   const surEquipment = _sur?.Equipment ?? SalvageUnionReference.Equipment
 
-  const selectedClass = form.classId
-    ? (surClasses.find((c) => (c as Named).id === form.classId) as Named | undefined)
+  const foundClass = form.classId
+    ? surClasses.find((c) => isNamed(c) && c.id === form.classId)
     : undefined
+  const selectedClass = isNamed(foundClass) ? foundClass : undefined
   const chosenAbilities = form.abilities
-    .map((id) => surAbilities.findAll((a) => (a as Named).id === id)[0])
-    .filter((a): a is Named => a !== undefined)
+    .map((id) => surAbilities.findAll((a) => isNamed(a) && a.id === id)[0])
+    .filter(isNamed)
   const chosenEquipment = form.equipment
-    .map((id) => surEquipment.findAll((e) => (e as Named).id === id)[0])
-    .filter((e): e is Named => e !== undefined)
+    .map((id) => surEquipment.findAll((e) => isNamed(e) && e.id === id)[0])
+    .filter(isNamed)
 
   const rows: [string, string | null][] = [
     ['Name', form.name.trim() || null],

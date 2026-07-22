@@ -55,5 +55,7 @@ export const Route = createFileRoute('/sheet/$kind/$id_/share')({
 
 function SharePage() {
   const { kind, id } = Route.useParams()
-  return <ShareSnapshotScreen kind={kind as EntityRef['type']} id={id} />
+  // The loader already 404s unknown kinds; this re-narrow keeps it cast-free.
+  if (!isSheetKind(kind)) return <ShareKindNotFound />
+  return <ShareSnapshotScreen kind={kind} id={id} />
 }

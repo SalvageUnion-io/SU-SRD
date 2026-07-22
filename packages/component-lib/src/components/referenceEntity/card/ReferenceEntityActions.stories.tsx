@@ -1,11 +1,6 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
-import type {
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefMetaAction,
-  SURefMetaEntity,
-} from 'salvageunion-reference'
+import type { SURefEnumSchemaName, SURefMetaAction, SURefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, extractVisibleActions } from 'salvageunion-reference'
 import { borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { ReferenceEntityCard } from './ReferenceEntityCard'
@@ -40,17 +35,17 @@ function pick<T>(list: T[], predicate: (item: T) => boolean, label: string): T {
  * Resolve a parent entity's tone base EXACTLY as the card does internally — the
  * value threaded to the action as `hostTone`, which the action then ghosts.
  */
-function parentToneBase(parent: SURefEntity): string {
-  const schemaName = (parent as { schemaName?: string }).schemaName as
-    | SURefEnumSchemaName
-    | 'actions'
-  const tone = resolveCardTone(schemaName, parent as SURefMetaEntity)
+function parentToneBase(parent: SURefMetaEntity): string {
+  const schemaName = (
+    'schemaName' in parent && typeof parent.schemaName === 'string' ? parent.schemaName : undefined
+  ) as SURefEnumSchemaName | 'actions'
+  const tone = resolveCardTone(schemaName, parent)
   return borderColorFromHeaderBg(tone.bg, tone.bgColor) ?? 'var(--color-ink)'
 }
 
 /** Pick a named action off a parent via the same resolver the card uses. */
-function actionOf(parent: SURefEntity, actionName: string): SURefMetaAction {
-  const actions = extractVisibleActions(parent as SURefMetaEntity) ?? []
+function actionOf(parent: SURefMetaEntity, actionName: string): SURefMetaAction {
+  const actions = extractVisibleActions(parent) ?? []
   return pick(actions, (a) => a.name === actionName, `${actionName} action`)
 }
 
@@ -70,7 +65,7 @@ const engineering = pick(
 
 type ActionSpec = {
   /** Parent entity that summons the action. */
-  parent: SURefEntity
+  parent: SURefMetaEntity
   /** Human label for the parent + the tone the action inherits. */
   parentLabel: string
   /** The action to render. */
@@ -127,7 +122,7 @@ function ActionSpecCard({ spec }: { spec: ActionSpec }): ReactNode {
     <div className="flex flex-col gap-1.5">
       <code className="font-body text-nano text-ink-2">{spec.parentLabel}</code>
       <ReferenceEntityCard
-        data={spec.action as unknown as SURefEntity}
+        data={spec.action}
         hostTone={parentToneBase(spec.parent)}
         size="medium"
       />
@@ -183,7 +178,7 @@ export const Badge: Story = () => (
       <div key={spec.parentLabel} className="flex flex-col items-start gap-1.5">
         <code className="font-body text-nano text-ink-2">{spec.parentLabel}</code>
         <ReferenceEntityCard
-          data={spec.action as unknown as SURefEntity}
+          data={spec.action}
           hostTone={parentToneBase(spec.parent)}
           size="small"
           extent="head"

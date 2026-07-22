@@ -215,7 +215,8 @@ describe('SchemaViewerIsland', () => {
     )
 
     const nameInput = screen.getByRole('searchbox', { name: 'Filter items by name' })
-    expect((nameInput as HTMLInputElement).value).toBe(knownName)
+    if (!(nameInput instanceof HTMLInputElement)) throw new Error('expected an <input> searchbox')
+    expect(nameInput.value).toBe(knownName)
 
     // Only the matching card(s) render — the shared view was restored.
     const links = document.querySelectorAll('a[aria-label]')

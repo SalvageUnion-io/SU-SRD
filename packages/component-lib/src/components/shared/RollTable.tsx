@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
-import { resultForTable, resultForColumnsTable, isColumnsTable } from 'salvageunion-reference'
+import { resultForTable, resultForColumnsTable } from 'salvageunion-reference'
 import type { SURefObjectTable, SURefObjectTableContent } from 'salvageunion-reference'
 import { roll } from '@randsum/roller'
 import { Copy } from 'lucide-react'
@@ -316,7 +316,7 @@ function ColumnsRollTable({
   singleRoll = false,
   onRollResult,
   collapsible = false,
-}: RollTableDisplayProps) {
+}: Omit<RollTableDisplayProps, 'table'> & { table: ColumnsTableData }) {
   const compact = size === 'compact'
   const [result, setResult] = useState<ColumnsRollResult | null>(null)
   const [rollAnnouncement, setRollAnnouncement] = useState('')
@@ -331,7 +331,7 @@ function ColumnsRollTable({
     }
   }, [result])
 
-  const tableData = table as ColumnsTableData
+  const tableData = table
 
   const handleRoll = () => {
     if (singleRoll && hasRolled) return
@@ -340,7 +340,7 @@ function ColumnsRollTable({
     setRollAnnouncement('')
     const colRoll = roll('1d20').total
     const entryRoll = roll('1d20').total
-    const res = resultForColumnsTable(table as SURefObjectTable, colRoll, entryRoll)
+    const res = resultForColumnsTable(table, colRoll, entryRoll)
     setTimeout(() => {
       if (res.success) {
         setResult({
@@ -466,8 +466,11 @@ function ColumnsRollTable({
 }
 
 export function RollTable(props: RollTableDisplayProps) {
-  if (isColumnsTable(props.table as SURefObjectTable)) {
-    return <ColumnsRollTable {...props} />
+  // `type` is a discriminant: only the SURefObjectTable columns member carries
+  // 'columns', so this narrowing is exactly `isColumnsTable`.
+  const { table } = props
+  if (table.type === 'columns') {
+    return <ColumnsRollTable {...props} table={table} />
   }
   return <StandardRollTable {...props} />
 }

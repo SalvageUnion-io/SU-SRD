@@ -137,6 +137,17 @@ export function getPageReference(entity: SURefMetaEntity): number | undefined {
  * @returns The actions array or undefined
  */
 export function extractActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
+  return extractActionsFromCarrier(entity)
+}
+
+/**
+ * Internal widened form of {@link extractActions}: also accepts a bare
+ * `SURefObjectSystemModule` (an `actions` carrier that is not itself an
+ * entity), so system-module callers don't need an entity assertion.
+ */
+function extractActionsFromCarrier(
+  entity: SURefMetaEntity | SURefObjectSystemModule
+): SURefMetaAction[] | undefined {
   if (!('actions' in entity) || !Array.isArray(entity.actions)) {
     return undefined
   }
@@ -341,7 +352,7 @@ export function getAssetUrl(entity: SURefMetaEntity): string | undefined {
   if (!('schemaName' in entity) || typeof entity.schemaName !== 'string') {
     return undefined
   }
-  const slug = getEntitySlug(entity as unknown as SURefEntity)
+  const slug = getEntitySlug(entity)
   return `${ASSET_BASE_URL}/${entity.schemaName}/${slug}.webp`
 }
 
@@ -785,7 +796,7 @@ export function isSystemModule(entity: SURefMetaEntity): boolean {
  * @returns The entity name or undefined if not found
  */
 export function getEntityNameFromSystemModule(entity: SURefObjectSystemModule): string | undefined {
-  const resolvedActions = extractActions(entity as SURefMetaEntity)
+  const resolvedActions = extractActionsFromCarrier(entity)
   return resolvedActions?.find((a) => !a.hidden)?.name
 }
 

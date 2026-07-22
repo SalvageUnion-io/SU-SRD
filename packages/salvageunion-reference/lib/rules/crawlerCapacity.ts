@@ -85,8 +85,15 @@ export type CrawlerCapacityResult = {
 
 const VALID_TECH_LEVELS = [1, 2, 3, 4, 5, 6] as const
 
+type ValidTechLevel = (typeof VALID_TECH_LEVELS)[number]
+
+/** Type guard: is this number a valid crawler tech level (1–6)? */
+function isValidTechLevel(techLevel: number): techLevel is ValidTechLevel {
+  return VALID_TECH_LEVELS.some((tl) => tl === techLevel)
+}
+
 /** Bays available at each tech level (index by tl-1). */
-const BAYS_BY_TL: Record<number, number> = {
+const BAYS_BY_TL: Record<ValidTechLevel, number> = {
   1: 2,
   2: 4,
   3: 6,
@@ -137,11 +144,7 @@ export function computeCrawlerCapacity(crawler: CrawlerCapacityInput): CrawlerCa
     })
   }
 
-  const isValidTL = VALID_TECH_LEVELS.includes(
-    crawler.techLevel as (typeof VALID_TECH_LEVELS)[number]
-  )
-
-  if (!isValidTL) {
+  if (!isValidTechLevel(crawler.techLevel)) {
     violations.push({
       kind: 'tech-level-unknown',
       message: `Tech level ${crawler.techLevel} is not a valid crawler tech level (expected 1–6).`,
@@ -156,8 +159,9 @@ export function computeCrawlerCapacity(crawler: CrawlerCapacityInput): CrawlerCa
     }
   }
 
-  // biome-ignore lint/style/noNonNullAssertion: the isValidTL early return above guarantees techLevel is a key of BAYS_BY_TL; a `?? 0` fallback would silently mask a table/validation mismatch
-  const baysMax = BAYS_BY_TL[crawler.techLevel]!
+  // The isValidTechLevel early return above narrows techLevel to a key of
+  // BAYS_BY_TL, so this lookup is statically total — no `!` needed.
+  const baysMax = BAYS_BY_TL[crawler.techLevel]
   const baysUsed = crawler.bays.length
 
   if (baysUsed > baysMax) {

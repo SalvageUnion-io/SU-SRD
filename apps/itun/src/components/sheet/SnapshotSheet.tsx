@@ -19,6 +19,7 @@
 import { useMemo } from 'react'
 import { create } from 'zustand'
 
+import { isRecord } from '../../lib/isRecord'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
@@ -47,16 +48,14 @@ function parseSnapshot(snapshot: Record<string, unknown>): ParseResult {
   const kind = snapshot.kind
   const entity = snapshot.entity
 
-  if (entity === null || typeof entity !== 'object' || Array.isArray(entity)) {
+  if (!isRecord(entity) || Array.isArray(entity)) {
     return { ok: false, reason: 'Snapshot entity is missing or invalid.' }
   }
 
   if (kind === 'pilot') {
     // Snapshots published before the vestigial `rollResults` removal still
     // carry the field — same rewrite parseImportBundle applies.
-    const parsed = PilotSchema.safeParse(
-      normalizeLegacyPilotRecord(entity as Record<string, unknown>)
-    )
+    const parsed = PilotSchema.safeParse(normalizeLegacyPilotRecord(entity))
     if (!parsed.success) {
       return {
         ok: false,
@@ -69,9 +68,7 @@ function parseSnapshot(snapshot: Record<string, unknown>): ParseResult {
   if (kind === 'mech') {
     // Snapshots published before the cargo→cargoLots rename carry a legacy
     // `cargo: string[]` field — same rewrite parseImportBundle applies.
-    const parsed = MechSchema.safeParse(
-      normalizeLegacyCargoRecord(entity as Record<string, unknown>)
-    )
+    const parsed = MechSchema.safeParse(normalizeLegacyCargoRecord(entity))
     if (!parsed.success) {
       return {
         ok: false,

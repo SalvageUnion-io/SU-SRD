@@ -75,7 +75,8 @@ export const Route = createFileRoute('/sheet/$kind/$id')({
 
 function SheetPage() {
   const { kind, id } = Route.useParams()
-  const entityKind = kind as EntityRef['type']
+  // The loader already 404s unknown kinds; this re-narrow keeps it cast-free.
+  if (!isSheetKind(kind)) return <SheetKindNotFound />
 
-  return <Sheet kind={entityKind} id={id} />
+  return <Sheet kind={kind} id={id} />
 }

@@ -44,6 +44,16 @@ import type { TechLevel } from './types'
 /** The numeric scrap tech levels (pool bucket keys are tl1..tl6). */
 const SCRAP_TLS = [1, 2, 3, 4, 5, 6] as const
 
+/** Tech levels with a sequential upgrade above them, and that next level. */
+const UPGRADABLE_TLS = [1, 2, 3, 4, 5] as const
+const NEXT_TL: Record<(typeof UPGRADABLE_TLS)[number], TechLevel> = {
+  1: 2,
+  2: 3,
+  3: 4,
+  4: 5,
+  5: 6,
+}
+
 // ---------------------------------------------------------------------------
 // Pool draws (TL-or-higher, lowest bucket first)
 // ---------------------------------------------------------------------------
@@ -233,7 +243,11 @@ export function crawlerUpgradeQuote(
   upgradePool: number
 ): CrawlerUpgradeQuote | null {
   if (crawlerTl < 1 || crawlerTl >= 6) return null
-  const cost = tierUpgradeCost(crawlerTl as TechLevel, (crawlerTl + 1) as TechLevel)
+  // Membership narrow (not a cast): non-integer inputs fall out here exactly
+  // as tierUpgradeCost would have resolved them — no record, null cost.
+  const fromTl = UPGRADABLE_TLS.find((tl) => tl === crawlerTl)
+  if (fromTl === undefined) return null
+  const cost = tierUpgradeCost(fromTl, NEXT_TL[fromTl])
   if (cost === null) return null
   return {
     fromTl: crawlerTl,

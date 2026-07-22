@@ -101,8 +101,16 @@ function wrapFlat(flat: boolean, key: string | undefined, card: ReactNode): Reac
   )
 }
 
+/**
+ * What a card can render: the plain reference union PLUS the meta union —
+ * actions, ability-tree requirements and crawler tech levels are meta-only,
+ * and nested recursion (folded/grid/titanic actions, chassis abilities) feeds
+ * them straight back through the card.
+ */
+export type ReferenceCardEntity = SURefEntity | SURefMetaEntity
+
 export type ReferenceEntityCardProps = {
-  data: SURefEntity
+  data: ReferenceCardEntity
   size?: CardSize
   /** How much of the entity renders — orthogonal to `size`, so a `small` card
    * can still show its whole content. */
@@ -387,8 +395,9 @@ function ReferenceEntityCardInner({
   const entity = data as SURefMetaEntity
   // App-supplied cross-link (ITUN's "View in SRD →"). Must be read here,
   // above the `!schemaName` / extent early-returns below, so the hook runs
-  // unconditionally on every render.
-  const externalLinkNode = useEntityExternalLink(data)
+  // unconditionally on every render. The app-facing builder contract stays
+  // `SURefEntity` — the same boundary cast as `entity` above.
+  const externalLinkNode = useEntityExternalLink(data as SURefEntity)
   const schemaName = (
     'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
   ) as SURefEnumSchemaName | 'actions' | undefined
@@ -584,7 +593,7 @@ function ReferenceEntityCardInner({
   // otherwise a lone action still folds its facets. Siblings render as their own
   // cards below (gridActions). See resolveFoldedAction for the full rule.
   const foldedAction = resolveFoldedAction(foldableActions, entityName)
-  const foldedActionFields = foldedAction ? (foldedAction as unknown as ActionFields) : undefined
+  const foldedActionFields: ActionFields | undefined = foldedAction ?? undefined
 
   const seam = (
     <div className={cn(STAMP_SEAM, 'left-[15px] flex items-center gap-1.5')}>
@@ -625,7 +634,7 @@ function ReferenceEntityCardInner({
       : buildReferenceEntityStats(entity, {
           compact,
           primaryOnly: !!primaryStatsOnly || extent === 'head',
-          schemaName: schemaName as SURefEnumSchemaName,
+          schemaName,
           techLevel,
         })
   // TECH LEVEL is a header headline stat (value box), NOT a seam pill — a
@@ -1074,9 +1083,7 @@ function ReferenceEntityCardInner({
   // Chassis abilities render for both the basic chassis AND the pattern view
   // (a pattern's `entity` IS its chassis), so gate on `canExpand`, not
   // `canExpandEntity` (which excludes patterns).
-  const chassisAbilityEntities = (canExpand
-    ? (getChassisAbilities(entity) ?? [])
-    : []) as unknown as SURefEntity[]
+  const chassisAbilityEntities = canExpand ? (getChassisAbilities(entity) ?? []) : []
   const allActions =
     canExpandEntity && !isGrantingAbility ? (extractVisibleActions(entity) ?? []) : []
 
@@ -1350,20 +1357,20 @@ function ReferenceEntityCardInner({
   const droneSystems = ownDroneLoadout?.systems ?? []
   const droneModules = ownDroneLoadout?.modules ?? []
 
-  const cardKey = (nested: SURefEntity, index: number): string =>
+  const cardKey = (nested: ReferenceCardEntity, index: number): string =>
     `${'id' in nested && typeof nested.id === 'string' ? nested.id : 'nested'}-${index}`
 
   // Nested cards. FLAT mode (there's a left ANCHOR — image or NPC) renders each
   // card as a `flow-root` block so it flows beside the floated anchor, then full
   // width once past it. Non-flat renders the 2-col masonry.
   const renderNested = (
-    entities: SURefEntity[],
+    entities: ReferenceCardEntity[],
     seal?: { label: string; tone: string },
     childHostTone?: string,
     flat = false
   ): ReactNode => {
     // The ONE nested-card construction all three layouts share.
-    const card = (nested: SURefEntity, index: number): ReactNode => (
+    const card = (nested: ReferenceCardEntity, index: number): ReactNode => (
       <ReferenceEntityCardInner
         key={cardKey(nested, index)}
         size="medium"
@@ -1414,7 +1421,7 @@ function ReferenceEntityCardInner({
   // Everything else (Systems/Modules/Drones) keeps its dashed Slab separator.
   const renderGroup = (
     label: string,
-    entities: SURefEntity[],
+    entities: ReferenceCardEntity[],
     opts?: { slab?: boolean; seal?: { label: string; tone: string }; hostTone?: string },
     flat = false
   ): ReactNode => (
@@ -1424,7 +1431,11 @@ function ReferenceEntityCardInner({
     </div>
   )
 
-  const renderNestedGroup = (label: string, entities: SURefEntity[], flat = false): ReactNode => {
+  const renderNestedGroup = (
+    label: string,
+    entities: ReferenceCardEntity[],
+    flat = false
+  ): ReactNode => {
     if (label === 'Grants')
       return renderGroup(
         label,
@@ -1454,7 +1465,11 @@ function ReferenceEntityCardInner({
   )
 
   // A dashed-Slab group of LISTING rows (drone systems / modules) — flat-aware.
-  const renderListingGroup = (label: string, entities: SURefEntity[], flat = false): ReactNode => (
+  const renderListingGroup = (
+    label: string,
+    entities: ReferenceCardEntity[],
+    flat = false
+  ): ReactNode => (
     <div key={label} className={flat ? 'mb-1.5' : 'flex flex-col gap-1'}>
       <Slab variant="dashed" label={label} />
       {entities.map((item, index) =>
@@ -1648,7 +1663,7 @@ function ReferenceEntityCardInner({
             gridActions.length > 0 &&
             renderGroup(
               'Actions',
-              gridActions as unknown as SURefEntity[],
+              gridActions,
               // No "Actions" Slab — the action cards render on their own.
               { hostTone: ownToneBase, slab: false },
               flat
@@ -1659,13 +1674,13 @@ function ReferenceEntityCardInner({
             titanicActions.map((action, index) =>
               wrapFlat(
                 flat,
-                cardKey(action as unknown as SURefEntity, index),
+                cardKey(action, index),
                 <ReferenceEntityCardInner
-                  key={cardKey(action as unknown as SURefEntity, index)}
+                  key={cardKey(action, index)}
                   size="medium"
                   depth={depth + 1}
                   hostDown={isDown}
-                  data={action as unknown as SURefEntity}
+                  data={action}
                   hostTone={ownToneBase}
                   hostName={entityName}
                   chassisName={resolvedChassisName}
@@ -1731,7 +1746,7 @@ export type ReferenceEntityCardWrapperProps = Omit<
   ReferenceEntityCardProps,
   'data' | 'size' | 'extent'
 > & {
-  data: SURefEntity | undefined
+  data: ReferenceCardEntity | undefined
   size?: CardSize
   extent?: CardExtent
 }

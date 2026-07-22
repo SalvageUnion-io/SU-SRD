@@ -34,6 +34,7 @@
  */
 
 import type { UpgradeTransaction } from './index'
+import { isRecord } from '../../isRecord'
 import { STORE_NAMES } from '../stores'
 
 /** The Battle crawler type's SRD id + name at ship time (frozen snapshot). */
@@ -65,8 +66,8 @@ export async function migrate(tx: UpgradeTransaction): Promise<void> {
   let cursor = await tx.objectStore(STORE_NAMES.crawlers).openCursor()
   while (cursor) {
     const raw = cursor.value as unknown
-    if (typeof raw === 'object' && raw !== null) {
-      const next = normalizeCrawlerMaxSpRecord(raw as Record<string, unknown>)
+    if (isRecord(raw)) {
+      const next = normalizeCrawlerMaxSpRecord(raw)
       if (next) await cursor.update(next)
     }
     cursor = await cursor.continue()

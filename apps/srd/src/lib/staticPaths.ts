@@ -5,7 +5,8 @@ import {
   getEntitySchemas,
   getReferenceEntityData,
 } from './gameData'
-import type { SURefEnumSchemaName, SURefEntity } from 'salvageunion-reference'
+import type { SURefEntity } from 'salvageunion-reference'
+import { isSchemaName } from './schemaName'
 
 const catalog = getSchemaCatalog()
 
@@ -40,8 +41,11 @@ export function getItemStaticPaths() {
   // orphans with 404 breadcrumbs. Their content renders inline on the pages
   // of the entities that own it.
   for (const schema of catalog.schemas.filter((s) => !s.meta)) {
+    // Runtime-validated narrowing (string catalog id → schema name) instead
+    // of an assertion; a non-canonical id is skipped, same as a load failure.
+    if (!isSchemaName(schema.id)) continue
     try {
-      const items = SalvageUnionReference.findAllIn(schema.id as SURefEnumSchemaName, () => true)
+      const items = SalvageUnionReference.findAllIn(schema.id, () => true)
       const entries = items.filter(
         (item): item is typeof item & { id: string } => 'id' in item && !!item.id
       )

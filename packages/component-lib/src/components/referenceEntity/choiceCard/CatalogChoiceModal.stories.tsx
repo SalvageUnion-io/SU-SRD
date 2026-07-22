@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
-import { getChoices, SalvageUnionReference, type SURefEntity } from 'salvageunion-reference'
+import { getChoices, SalvageUnionReference } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
 import { Caption } from '../../../stories/_harness'
 import { Button } from '../../chrome/Button'
@@ -30,10 +30,10 @@ function PickerDemo({ techLevel }: { techLevel?: number }) {
   // Mirror the card: resolve the pick back to its entity and show it as a
   // listing card, so the selection reads like every other entity on the sheet.
   const chosenEntity = chosen
-    ? (resolveCatalogChoiceEntities(
+    ? resolveCatalogChoiceEntities(
         choice,
         typeof techLevel === 'number' ? { techLevel } : undefined
-      ).find((e) => e.name === chosen) as unknown as SURefEntity | undefined)
+      ).find((e) => e.name === chosen)
     : undefined
   return (
     <div className="flex w-full max-w-md flex-col items-start gap-1.5">

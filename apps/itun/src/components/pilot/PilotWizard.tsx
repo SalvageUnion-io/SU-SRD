@@ -176,9 +176,9 @@ export function PilotWizard({
 }: PilotWizardProps) {
   // Use injected SUR or the real module (for testing without module mocking)
   const sur: SURDeps = _sur ?? {
-    Classes: SalvageUnionReference.Classes as unknown as SURDeps['Classes'],
-    Abilities: SalvageUnionReference.Abilities as unknown as SURDeps['Abilities'],
-    Equipment: SalvageUnionReference.Equipment as unknown as SURDeps['Equipment'],
+    Classes: SalvageUnionReference.Classes,
+    Abilities: SalvageUnionReference.Abilities,
+    Equipment: SalvageUnionReference.Equipment,
   }
 
   const isEdit = pilotId !== undefined

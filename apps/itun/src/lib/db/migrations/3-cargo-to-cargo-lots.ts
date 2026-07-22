@@ -11,6 +11,7 @@
  */
 
 import type { UpgradeTransaction } from './index'
+import { isRecord } from '../../isRecord'
 import { normalizeLegacyCargoRecord } from '../../schemas/cargoLot'
 import { STORE_NAMES } from '../stores'
 
@@ -20,12 +21,8 @@ export async function migrate(tx: UpgradeTransaction): Promise<void> {
     let cursor = await tx.objectStore(storeName).openCursor()
     while (cursor) {
       const raw = cursor.value as unknown
-      if (
-        typeof raw === 'object' &&
-        raw !== null &&
-        Array.isArray((raw as Record<string, unknown>).cargo)
-      ) {
-        await cursor.update(normalizeLegacyCargoRecord(raw as Record<string, unknown>))
+      if (isRecord(raw) && Array.isArray(raw.cargo)) {
+        await cursor.update(normalizeLegacyCargoRecord(raw))
       }
       cursor = await cursor.continue()
     }

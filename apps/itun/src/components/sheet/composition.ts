@@ -25,15 +25,17 @@ import type { EntityRef } from '../../lib/schemas/entity'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLink } from '../../lib/schemas/softLink'
+import type { EntityForType } from '../../stores/types'
 
 type CompositionMode = 'wired' | 'pilot-only' | 'mech-only' | 'crawler-only'
 
-/** Minimal read surface — matches the old Sheet.tsx dep-injection type. */
+/**
+ * Minimal read surface — matches the old Sheet.tsx dep-injection type.
+ * Returns EntityForType<T> (the store's own mapping) so the live store's
+ * generic `get` is directly assignable without a cast.
+ */
 export type EntityLookup = {
-  get: <T extends EntityRef['type']>(
-    type: T,
-    id: string
-  ) => (T extends 'pilot' ? Pilot : T extends 'mech' ? Mech : Crawler) | null
+  get: <T extends EntityRef['type']>(type: T, id: string) => EntityForType<T> | null
 }
 
 export type SheetComposition = {

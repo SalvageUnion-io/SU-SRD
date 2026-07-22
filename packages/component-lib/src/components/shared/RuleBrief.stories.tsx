@@ -1,13 +1,14 @@
 import type { Story } from '@ladle/react'
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { Caption } from '../../stories/_harness'
 import { RuleBrief } from './RuleBrief'
 
 export default { title: 'Compositions/Rule Brief' }
 
-const MECH_TONE = {
+const MECH_TONE: CSSVarStyle = {
   '--tone': 'var(--color-mech)',
   '--tone-deep': 'var(--color-sheet-mech-deep)',
-} as React.CSSProperties
+}
 
 /** The "THE RULE" callout every wizard step opens with — composes SheetSectionCard. */
 export const Default: Story = () => (

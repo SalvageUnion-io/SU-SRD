@@ -47,7 +47,10 @@ describe('resolveDataValueForTechLevel', () => {
       ?.flatMap((b) => (Array.isArray(b.value) ? b.value : []))
       .find((v) => v.label === 'Damage')
     expect(dv?.perTechLevel).toBe(1)
-    expect(resolveDataValueForTechLevel(dv as SURefObjectDataValue, 3)).toEqual({
+    // The assertion above already failed the test if dv is missing — this
+    // guard exists to narrow the type without an assertion.
+    if (!dv) throw new Error('Custom Sniper Rifle Damage data value not found')
+    expect(resolveDataValueForTechLevel(dv, 3)).toEqual({
       value: 4,
       scaled: true,
     })

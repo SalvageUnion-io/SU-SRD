@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useMemo, useState } from 'react'
-import type { SURefEntity, SURefObjectChoice } from 'salvageunion-reference'
+import type { SURefEntity, SURefMetaEntity, SURefObjectChoice } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
@@ -37,7 +37,7 @@ export function CatalogChoiceListing({
   selections?: ChoiceSelections
   onSelectionChange?: (selections: ChoiceSelections) => void
   /** Renders one resolved entity as a listing card (key included by the caller). */
-  renderEntity: (entity: SURefEntity, key: string) => ReactNode
+  renderEntity: (entity: SURefEntity | SURefMetaEntity, key: string) => ReactNode
 }): ReactNode {
   const [open, setOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
@@ -54,7 +54,7 @@ export function CatalogChoiceListing({
       return resolveCatalogChoiceEntities(
         choice,
         typeof techLevel === 'number' ? { techLevel } : undefined
-      ).find((e) => e.name === chosen) as unknown as SURefEntity | undefined
+      ).find((e) => e.name === chosen)
     } catch {
       return undefined
     }
@@ -86,13 +86,13 @@ export function CatalogChoiceListing({
   }
 
   // READ-ONLY — a static reference listing, resolved lazily on expand.
-  let entities: SURefEntity[] = []
+  let entities: SURefMetaEntity[] = []
   if (open) {
     try {
       entities = resolveCatalogChoiceEntities(
         choice,
         typeof techLevel === 'number' ? { techLevel } : undefined
-      ) as unknown as SURefEntity[]
+      )
     } catch {
       entities = []
     }

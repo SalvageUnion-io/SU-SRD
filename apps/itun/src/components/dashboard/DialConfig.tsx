@@ -42,8 +42,8 @@ export function DialConfig({ kinds, prefs, onChange, onClose }: DialConfigProps)
   }))
 
   const onToggle = (id: string) => {
-    const kind = id as DialKind
-    if (kind === LOCKED_DIAL_KIND) return
+    const kind = order.find((k) => k === id)
+    if (kind === undefined || kind === LOCKED_DIAL_KIND) return
     const next = new Set(hidden)
     if (next.has(kind)) next.delete(kind)
     else next.add(kind)
@@ -51,7 +51,7 @@ export function DialConfig({ kinds, prefs, onChange, onClose }: DialConfigProps)
   }
 
   const onMove = (id: string, delta: -1 | 1) => {
-    const index = order.indexOf(id as DialKind)
+    const index = order.findIndex((k) => k === id)
     const target = index + delta
     if (index < 0 || target < 0 || target >= order.length) return
     const next = [...order]

@@ -17,7 +17,7 @@
  */
 import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
 import { getEntitySlug } from 'salvageunion-reference'
-import type { SURefEnumSchemaName } from 'salvageunion-reference'
+import { isSchemaName } from './schemaName'
 import type { CompactSearchEntry } from './searchIndexTypes'
 
 /** Recursively extract display text from a ContentBlock tree (mirrors
@@ -42,6 +42,10 @@ export function buildSearchIndexEntries(): CompactSearchEntry[] {
   const entries: CompactSearchEntry[] = []
 
   for (const schema of getEntitySchemas()) {
+    // Runtime-validated narrowing (string catalog id → schema name) instead
+    // of asserting; getEntitySchemas() only yields canonical schema ids, so
+    // this never actually skips.
+    if (!isSchemaName(schema.id)) continue
     const model = getModel(schema.id)
     if (!model) continue
 
@@ -73,9 +77,7 @@ export function buildSearchIndexEntries(): CompactSearchEntry[] {
         id: entity.id,
         name: entity.name,
         slug: getEntitySlug(entity),
-        // One honest write-side cast: the JSON catalog types `id` as plain
-        // string, but getEntitySchemas() only yields canonical schema ids.
-        schemaName: schema.id as SURefEnumSchemaName,
+        schemaName: schema.id,
         schemaTitle: schema.title,
         text: parts.join(' ').toLowerCase(),
       })

@@ -50,7 +50,7 @@ import {
   TIMING_TABS,
 } from './dashboardRules'
 import type { MechItemEconomy } from '../sheet/mechItemRules'
-import type { PlayAction, PlayActionCurrency, RangeBand, TimingTab } from './dashboardRules'
+import type { PlayAction, PlayActionCurrency, TimingTab } from './dashboardRules'
 
 type ActionsDeckProps = {
   mech: Mech
@@ -315,13 +315,19 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
     kind: 'list',
     tabs: TIMING_TABS,
     activeTab: tab,
-    onTab: (t) => setTab(t as TimingTab),
+    onTab: (t) => {
+      const next = TIMING_TABS.find((x) => x === t)
+      if (next !== undefined) setTab(next)
+    },
     groupingLabel: grouping === 'source' ? 'Source' : 'Timing',
     groupingTitle: grouping === 'source' ? 'Group by timing' : 'Group by source',
     onToggleGrouping: () => setGrouping((g) => (g === 'source' ? 'timing' : 'source')),
     rangeBands: RANGE_BANDS,
     activeRange: range,
-    onRange: (b) => setRange(b as RangeBand),
+    onRange: (b) => {
+      const next = RANGE_BANDS.find((x) => x === b)
+      if (next !== undefined) setRange(next)
+    },
     reachText: `${reach.inReach} / ${reach.total} in reach`,
     sources,
     sourceFilter,

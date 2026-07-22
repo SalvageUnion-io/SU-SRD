@@ -13,6 +13,7 @@ import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import { rollAgainRow } from '../customId.js'
 import { BRAND_NAME } from '../format.js'
 import { buildLookupEmbed } from '../lookupEmbed.js'
+import { isSchemaName } from '../schemaName.js'
 
 type Hit = {
   schemaName: SURefEnumSchemaName
@@ -83,7 +84,11 @@ function choiceValue(hit: Hit): string {
 function findByChoiceValue(value: string): Hit | null {
   const separator = value.indexOf('::')
   if (separator === -1) return null
-  const schemaName = value.slice(0, separator) as SURefEnumSchemaName
+  // The choice value round-trips through the Discord client, so validate the
+  // schema-name half at runtime rather than asserting — an unknown schema
+  // resolves to null exactly as findEntityBySlug would have returned.
+  const schemaName = value.slice(0, separator)
+  if (!isSchemaName(schemaName)) return null
   const slug = value.slice(separator + 2)
   const entity = findEntityBySlug(schemaName, slug)
   if (!entity) return null

@@ -20,6 +20,7 @@
  */
 
 import { DEFAULT_WORKSPACE, DEFAULT_WORKSPACE_ID } from '../../defaultWorkspace'
+import { isRecord } from '../../isRecord'
 import { STORE_NAMES } from '../stores'
 import type { UpgradeTransaction } from './index'
 
@@ -45,12 +46,9 @@ export async function migrate(tx: UpgradeTransaction): Promise<void> {
     let cursor = await tx.objectStore(storeName).openCursor()
     while (cursor) {
       const raw = cursor.value as unknown
-      if (typeof raw === 'object' && raw !== null) {
-        const rec = raw as Record<string, unknown>
-        // == null catches both an absent and an explicitly-null workspaceId.
-        if (rec.workspaceId == null) {
-          await cursor.update({ ...rec, workspaceId: DEFAULT_WORKSPACE_ID })
-        }
+      // == null catches both an absent and an explicitly-null workspaceId.
+      if (isRecord(raw) && raw.workspaceId == null) {
+        await cursor.update({ ...raw, workspaceId: DEFAULT_WORKSPACE_ID })
       }
       cursor = await cursor.continue()
     }

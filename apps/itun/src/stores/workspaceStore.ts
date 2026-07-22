@@ -118,32 +118,22 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
       const entityStore = useEntityStore.getState()
       for (const type of ASSIGNABLE_TYPES) {
         await entityStore.hydrate(type)
-        const members = (
-          entityStore.list(type) as (EntityForType<typeof type> & {
-            workspaceId?: string
-          })[]
-        ).filter((e) => e.workspaceId === id)
+        const members = entityStore.list(type).filter((e) => e.workspaceId === id)
         for (const member of members) {
           await entityStore.update(type, member.id, {
             workspaceId: DEFAULT_WORKSPACE_ID,
-          } as Partial<EntityForType<typeof type>>)
+          })
         }
       }
       await base.delete(id)
     },
 
     async assign(entityType, entityId, workspaceId) {
-      await useEntityStore
-        .getState()
-        .update(entityType, entityId, { workspaceId } as Partial<EntityForType<typeof entityType>>)
+      await useEntityStore.getState().update(entityType, entityId, { workspaceId })
     },
 
     async unassign(entityType, entityId) {
-      await useEntityStore
-        .getState()
-        .update(entityType, entityId, { workspaceId: undefined } as Partial<
-          EntityForType<typeof entityType>
-        >)
+      await useEntityStore.getState().update(entityType, entityId, { workspaceId: undefined })
     },
 
     listForWorkspace<T extends AssignableType>(workspaceId: string, type: T): EntityForType<T>[] {

@@ -19,7 +19,11 @@
 
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference, searchIn } from 'salvageunion-reference'
-import type { EntitySchemaName, SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
+import type {
+  EntitySchemaName,
+  SchemaToEntityMap,
+  SURefEnumSchemaName,
+} from 'salvageunion-reference'
 import { matchesRef, type TechLevel } from 'salvageunion-reference/rules'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
@@ -31,13 +35,21 @@ import { Card } from './Card'
 import { FilterRow } from './FilterRow'
 import { MasonryColumns } from './MasonryColumns'
 
+/** A tech level as the reference data carries it — schema-typed `number`, not
+ * the rules module's 1–6 literal union, so ORM entities assign structurally. */
+type TechLevelLike = number | 'B' | 'N'
+
 /** The minimum shape the searcher reads off a reference entity. */
 type EntityLike = {
   id: string
   name: string
-  techLevel?: TechLevel
-  traits?: ReadonlyArray<{ type: string }>
+  techLevel?: TechLevelLike
+  traits?: Array<{ type: string; amount?: string | number }>
 }
+
+/** A pool row: the structural `EntityLike` view the searcher reads, WITHOUT
+ * losing the reference-entity identity `ReferenceEntityCard` renders. */
+type PoolEntity = EntityLike & SchemaToEntityMap[EntitySchemaName]
 
 /** Which built-in facets to show, plus an optional schema-specific category. */
 type FacetConfig = {
@@ -98,17 +110,17 @@ type EntitySearcherProps = {
 const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
 
 /** Sort rank for a tech level: numeric tiers 1–6, then Bio (B), then Nanite (N). */
-function tlRank(tl: TechLevel): number {
+function tlRank(tl: TechLevelLike): number {
   if (tl === 'B') return 7
   if (tl === 'N') return 8
   return tl
 }
 
-function tlLabel(tl: TechLevel): string {
+function tlLabel(tl: TechLevelLike): string {
   return typeof tl === 'number' ? `TL${tl}` : tl === 'B' ? 'Bio' : 'Nanite'
 }
 
-function tlSwatch(tl: TechLevel): string {
+function tlSwatch(tl: TechLevelLike): string {
   return `var(--color-tl-${typeof tl === 'number' ? tl : tl.toLowerCase()})`
 }
 
@@ -130,16 +142,16 @@ export function EntitySearcher({
   onClose,
 }: EntitySearcherProps) {
   const [query, setQuery] = useState('')
-  const [activeTls, setActiveTls] = useState<Set<TechLevel>>(() => new Set())
+  const [activeTls, setActiveTls] = useState<Set<TechLevelLike>>(() => new Set())
   const [activeCats, setActiveCats] = useState<Set<string>>(() => new Set())
   const [activeTraits, setActiveTraits] = useState<Set<string>>(() => new Set())
   const [status, setStatus] = useState<'all' | 'equipped' | 'available'>('all')
 
   // Base pool — the whole collection, optionally narrowed, sorted by TL then name.
   const pool = useMemo(() => {
-    const items = SalvageUnionReference.findAllIn(schema, (item) =>
-      filter ? filter(item as EntityLike) : true
-    ) as unknown as EntityLike[]
+    const items: PoolEntity[] = SalvageUnionReference.findAllIn(schema, (item) =>
+      filter ? filter(item) : true
+    )
     return [...items].sort((a, b) => {
       const ta = a.techLevel
       const tb = b.techLevel
@@ -151,7 +163,9 @@ export function EntitySearcher({
   // Available facet options, derived from the pool. A facet with <2 options is
   // useless, so it hides itself (also hides TL/traits on schemas that lack them).
   const tlOptions = useMemo(() => {
-    const present = new Set(pool.map((i) => i.techLevel).filter((t): t is TechLevel => t != null))
+    const present = new Set(
+      pool.map((i) => i.techLevel).filter((t): t is TechLevelLike => t != null)
+    )
     return ALL_TLS.filter((tl) => present.has(tl))
   }, [pool])
 
@@ -184,7 +198,7 @@ export function EntitySearcher({
   const searchOrder = useMemo(() => {
     const q = query.trim()
     if (!q) return null
-    const ranked = searchIn(schema as SURefEnumSchemaName, q) as unknown as EntityLike[]
+    const ranked: EntityLike[] = searchIn(schema as SURefEnumSchemaName, q)
     const order = new Map<string, number>()
     ranked.forEach((e, i) => {
       order.set(e.id, i)
@@ -386,7 +400,7 @@ export function EntitySearcher({
           return (
             <ReferenceEntityCard
               key={item.id}
-              data={item as unknown as SURefEntity}
+              data={item}
               size="medium"
               selected={isSelected}
               selectionRole="toggle"
@@ -473,18 +487,14 @@ function CountCard({
   count,
   onAdd,
 }: {
-  entity: EntityLike
+  entity: PoolEntity
   count: number
   onAdd: () => void
 }) {
   const installed = count > 0
   return (
     <div className={cn('rounded-panel', installed && 'shadow-[0_0_0_3px_var(--color-rust)]')}>
-      <ReferenceEntityCard
-        data={entity as unknown as SURefEntity}
-        size="medium"
-        hide={{ actions: true, choices: true }}
-      />
+      <ReferenceEntityCard data={entity} size="medium" hide={{ actions: true, choices: true }} />
       <div className="mt-1.5 flex items-center gap-2 px-1">
         {installed && (
           <span className="font-cond text-badge font-bold uppercase tracking-caps text-ink">
@@ -528,7 +538,7 @@ function SelectionRail({
 }) {
   const budgets = budget ? (Array.isArray(budget) ? budget : [budget]) : []
   const entries = useMemo(() => {
-    const all = SalvageUnionReference.findAllIn(schema, () => true) as unknown as EntityLike[]
+    const all: PoolEntity[] = SalvageUnionReference.findAllIn(schema, () => true)
     const totals = new Map<string, number>()
     for (const ref of selected) totals.set(ref, (totals.get(ref) ?? 0) + 1)
     const seen = new Map<string, number>()
@@ -568,7 +578,7 @@ function SelectionRail({
           <div key={index} data-testid="rail-entry" className="flex items-start gap-2">
             <div className="min-w-0 flex-1">
               <ReferenceEntityCard
-                data={entity as unknown as SURefEntity}
+                data={entity}
                 size="medium"
                 extent="head"
                 hide={{ actions: true, choices: true }}

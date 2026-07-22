@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import type { CSSProperties, ElementType, ReactNode } from 'react'
+import type { ElementType, ReactNode } from 'react'
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { Dialog } from '@base-ui/react/dialog'
 import { Menu, X } from 'lucide-react'
 import { buttonVariants } from '../chrome/buttonVariants'
@@ -133,26 +134,27 @@ export function NavDrawer({
                 <div className="flex items-center gap-3">
                   <Badge shape="stamp">{cat.label}</Badge>
                 </div>
-                {cat.schemas.map((schema) => (
-                  <a
-                    key={schema.id}
-                    href={schema.href || `/schema/${schema.id}/`}
-                    className={TILE}
-                    style={
-                      {
-                        '--catalog-bg': schema.catalogBg,
-                        ...(schema.catalogLabel ? { '--catalog-label': schema.catalogLabel } : {}),
-                      } as CSSProperties
-                    }
-                    onClick={close}
-                  >
-                    {schema.catalogLabel ? (
-                      <span className={TILE_LABEL}>{schema.displayName}</span>
-                    ) : (
-                      schema.displayName
-                    )}
-                  </a>
-                ))}
+                {cat.schemas.map((schema) => {
+                  const tileStyle: CSSVarStyle = {
+                    '--catalog-bg': schema.catalogBg,
+                    ...(schema.catalogLabel ? { '--catalog-label': schema.catalogLabel } : {}),
+                  }
+                  return (
+                    <a
+                      key={schema.id}
+                      href={schema.href || `/schema/${schema.id}/`}
+                      className={TILE}
+                      style={tileStyle}
+                      onClick={close}
+                    >
+                      {schema.catalogLabel ? (
+                        <span className={TILE_LABEL}>{schema.displayName}</span>
+                      ) : (
+                        schema.displayName
+                      )}
+                    </a>
+                  )
+                })}
               </div>
             ))}
 

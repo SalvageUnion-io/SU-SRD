@@ -11,7 +11,7 @@
  * gauge the live sheet uses. No app/data coupling.
  */
 
-import type { CSSProperties } from 'react'
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { VitalGauge } from '../stat/VitalGauge'
 
 export type GaugeTone = 'mech' | 'pilot' | 'crawler'
@@ -33,6 +33,7 @@ export type DashboardGaugeProps = {
 
 export function DashboardGauge({ label, value, max, tone = 'mech', danger }: DashboardGaugeProps) {
   const [t, td] = TONES[tone]
+  const toneStyle: CSSVarStyle = { '--tone': t, '--tone-deep': td }
   return (
     <VitalGauge
       size="compact"
@@ -42,7 +43,7 @@ export function DashboardGauge({ label, value, max, tone = 'mech', danger }: Das
       value={value}
       max={max}
       danger={danger}
-      style={{ '--tone': t, '--tone-deep': td } as CSSProperties}
+      style={toneStyle}
     />
   )
 }

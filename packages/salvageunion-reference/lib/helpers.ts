@@ -4,6 +4,7 @@
  */
 
 import { SalvageUnionReference, SchemaToDisplayName, SchemaToModelMap } from './index.js'
+import { lazyModelMap } from './generated/schemaRegistry.generated.js'
 import type {
   SURefAbility,
   SURefChassis,
@@ -86,11 +87,12 @@ export function getModel(
   schemaName: string | SURefEnumSchemaName
 ): ModelWithMetadata<SURefEntity> | undefined {
   const normalized = normalizeSchemaName(schemaName)
-  const modelName: string | undefined = SchemaToModelMap[normalized]
-  if (!modelName) return undefined
-  return (SalvageUnionReference as unknown as Record<string, ModelWithMetadata<SURefEntity>>)[
-    modelName
-  ]
+  // Sole assertion: lazyModelMap's per-schema union includes meta-entity models
+  // (ability-tree-requirements, crawler-tech-levels) whose element types are not
+  // in SURefEntity, so the union cannot be assigned to the declared
+  // SURefEntity-typed model. `| undefined` stays honest for runtime-invalid
+  // schema names passed through normalizeSchemaName's string overload.
+  return lazyModelMap[normalized] as ModelWithMetadata<SURefEntity> | undefined
 }
 
 /**
@@ -99,10 +101,7 @@ export function getModel(
  * walk — used by the display layer (Grants block) and any tooling.
  */
 export function resolveGrantedEntities(entity: SURefEntity): SURefEntity[] {
-  const grants =
-    'grants' in entity && Array.isArray(entity.grants)
-      ? (entity.grants as Array<{ name: string; schema: string }>)
-      : []
+  const grants = 'grants' in entity && Array.isArray(entity.grants) ? entity.grants : []
   return grants
     .filter((grant) => grant.schema !== 'choice')
     .map(
@@ -119,14 +118,18 @@ export function resolveGrantedEntities(entity: SURefEntity): SURefEntity[] {
  * Useful for dynamic model access
  */
 export function getModelMap(): Record<SURefEnumSchemaName, ModelWithMetadata<SURefEntity>> {
-  const map = {} as Record<SURefEnumSchemaName, ModelWithMetadata<SURefEntity>>
+  const map: Record<string, ModelWithMetadata<SURefEntity>> = {}
   for (const schemaName in SchemaToModelMap) {
-    const model = getModel(schemaName as SURefEnumSchemaName)
+    const model = getModel(schemaName)
     if (model) {
-      map[schemaName as SURefEnumSchemaName] = model
+      map[schemaName] = model
     }
   }
-  return map
+  // Sole assertion (the incremental-builder edge): TS cannot prove the loop
+  // populated every enum key. The registry key set it iterates is in fact a
+  // superset of SURefEnumSchemaName, preserved as-is so the returned map keeps
+  // its historical 'actions'/'catalog-categories' entries.
+  return map as Record<SURefEnumSchemaName, ModelWithMetadata<SURefEntity>>
 }
 
 /**

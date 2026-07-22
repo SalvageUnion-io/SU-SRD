@@ -106,7 +106,7 @@ export function LoadoutPanel({
         ) : (
           chosenEntries.map(({ entity, ref, index, copy }) => {
             const total = totals.get(ref) ?? 1
-            const itemName = (entity as { name?: string }).name ?? ref
+            const itemName = entity.name ?? ref
             return (
               <span
                 key={index}

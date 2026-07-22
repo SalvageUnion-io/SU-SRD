@@ -1,12 +1,8 @@
+import { isRecord } from '../isRecord'
 import { normalizeLegacyCargoRecord } from '../schemas/cargoLot'
 import { ExportBundleSchema } from '../schemas/exportBundle'
 import type { ExportBundle } from '../schemas/exportBundle'
 import { normalizeLegacyPilotRecord } from '../schemas/pilot'
-
-/** Narrow an unknown JSON value to a plain record (non-null, non-array object). */
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
-}
 
 /**
  * Bundles written before the cargo→cargoLots rename carry mechs (and

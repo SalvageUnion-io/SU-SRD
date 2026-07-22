@@ -1,4 +1,5 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import type { CSSVarStyle } from '../../../styles/cssVars'
 import { useCallback, useState } from 'react'
 import type { SURefObjectChoice } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -203,7 +204,7 @@ function ChoiceOptionGroup({
   compact?: boolean
   toneColor?: string
 }): ReactNode {
-  const toneVar = { '--tone-deep': toneColor } as CSSProperties
+  const toneVar: CSSVarStyle = { '--tone-deep': toneColor }
   const kind = getChoiceSourceKind(choice)
   const value = selected[0] ?? ''
 

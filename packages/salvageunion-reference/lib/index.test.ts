@@ -70,16 +70,19 @@ describe('SalvageUnionReference static properties', () => {
       expect(prop).not.toBeUndefined()
       expect(prop).not.toBeNull()
 
-      // Check that it's a BaseModel instance
+      // Check that it's a BaseModel instance (the instanceof assertion above
+      // throws on failure, so this guard is dead at runtime — it exists to
+      // narrow the type without an assertion)
       expect(prop).toBeInstanceOf(BaseModel)
+      if (!(prop instanceof BaseModel)) continue
 
       // Check that it has the expected methods
-      expect(typeof (prop as BaseModel<unknown>).all).toBe('function')
-      expect(typeof (prop as BaseModel<unknown>).find).toBe('function')
-      expect(typeof (prop as BaseModel<unknown>).findAll).toBe('function')
+      expect(typeof prop.all).toBe('function')
+      expect(typeof prop.find).toBe('function')
+      expect(typeof prop.findAll).toBe('function')
 
       // Check that .all() returns an array
-      const allData = (prop as BaseModel<unknown>).all()
+      const allData = prop.all()
       expect(Array.isArray(allData)).toBe(true)
 
       // Log for debugging
@@ -88,8 +91,9 @@ describe('SalvageUnionReference static properties', () => {
   })
 
   it('should have specific expected models', () => {
-    // Test a few key models explicitly
-    const expectedModels = [
+    // Test a few key models explicitly (checked annotation: every name must
+    // be a real static of SalvageUnionReference)
+    const expectedModels: (keyof typeof SalvageUnionReference)[] = [
       'Abilities',
       'Chassis',
       'Systems',
@@ -101,10 +105,12 @@ describe('SalvageUnionReference static properties', () => {
     ]
 
     for (const modelName of expectedModels) {
-      const model = SalvageUnionReference[modelName as keyof typeof SalvageUnionReference]
+      const model = SalvageUnionReference[modelName]
       expect(model).toBeDefined()
       expect(model).toBeInstanceOf(BaseModel)
-      expect((model as BaseModel<unknown>).all().length).toBeGreaterThan(0)
+      // The instanceof assertion above throws on failure — this guard only narrows
+      if (!(model instanceof BaseModel)) continue
+      expect(model.all().length).toBeGreaterThan(0)
     }
   })
 })

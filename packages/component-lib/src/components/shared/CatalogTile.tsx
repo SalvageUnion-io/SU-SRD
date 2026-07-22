@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { cn } from '../../utils/cn'
 
 /**
@@ -60,10 +60,10 @@ export function CatalogTile({
 }: CatalogTileProps) {
   const isGhost = variant === 'ghost'
 
-  const style = {
+  const style: CSSVarStyle = {
     ...(catalogBg ? { '--catalog-bg': catalogBg } : {}),
     ...(catalogLabel ? { '--catalog-label': catalogLabel } : {}),
-  } as CSSProperties
+  }
 
   return (
     <a href={href} className={cn(TILE_BASE, isGhost ? TILE_GHOST : TILE_DEFAULT)} style={style}>

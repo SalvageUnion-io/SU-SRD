@@ -5,11 +5,6 @@ import {
   resolveGrantedEntities,
 } from 'salvageunion-reference'
 
-/** A single embedded chassis-ability object may name a drone configuration. */
-type ChassisAbilityLike = { drone?: unknown }
-/** A crawler/bay carries its commander as an embedded npc object. */
-type EmbeddedNpc = { name?: unknown; position?: unknown }
-
 /** A labelled group of nested entities — rendered as a `Slab` separator + a
  * grid of depth+1 cards. */
 export type NestedGroup = {
@@ -60,14 +55,15 @@ export function resolveNestedEntities(entity: SURefMetaEntity): NestedGroup[] {
   // chassis card shows a pattern LIST, and the per-pattern loadout is a separate
   // rendering (`resolvePatternGroups`, the pattern view).
 
-  // 2. Chassis-ability drones.
+  // 2. Chassis-ability drones (object-shaped abilities naming a drone).
   if ('chassisAbilities' in entity && Array.isArray(entity.chassisAbilities)) {
-    for (const ability of entity.chassisAbilities as ChassisAbilityLike[]) {
-      if (typeof ability.drone === 'string') {
-        const droneName = ability.drone
+    for (const ability of entity.chassisAbilities) {
+      if (typeof ability !== 'object' || ability === null || !('drone' in ability)) continue
+      const { drone } = ability
+      if (typeof drone === 'string') {
         push(
           'Drones',
-          SalvageUnionReference.findIn('drones', (x) => x.name === droneName)
+          SalvageUnionReference.findIn('drones', (x) => x.name === drone)
         )
       }
     }
@@ -76,11 +72,11 @@ export function resolveNestedEntities(entity: SURefMetaEntity): NestedGroup[] {
   // 3. Crawler commander NPC — the embedded npc object, synthesized into an
   // npcs-schema entity so it routes through the same card (npc/monster tone).
   if ('npc' in entity && entity.npc && typeof entity.npc === 'object') {
-    const embedded = entity.npc as EmbeddedNpc
+    const embedded = entity.npc
     const npcName =
-      typeof embedded.name === 'string'
+      'name' in embedded && typeof embedded.name === 'string'
         ? embedded.name
-        : typeof embedded.position === 'string'
+        : 'position' in embedded && typeof embedded.position === 'string'
           ? embedded.position
           : undefined
     if (npcName) {
@@ -150,10 +146,9 @@ export type DroneLoadout = {
 }
 
 function resolveLoadout(
-  drone: SURefEntity,
   systemNames: string[],
   moduleNames: string[]
-): DroneLoadout {
+): { systems: SURefEntity[]; modules: SURefEntity[] } {
   const systems = systemNames.flatMap((name) => {
     const found = SalvageUnionReference.findIn('systems', (s) => s.name === name)
     return found ? [found] : []
@@ -162,7 +157,7 @@ function resolveLoadout(
     const found = SalvageUnionReference.findIn('modules', (m) => m.name === name)
     return found ? [found] : []
   })
-  return { drone, systems, modules }
+  return { systems, modules }
 }
 
 /** The drone a CHASSIS controls — named by a chassis ability's `drone` field;
@@ -177,7 +172,7 @@ export function resolveChassisDrone(entity: SURefMetaEntity): DroneLoadout | und
   if (!drone) return undefined
   const droneSystems = Array.isArray(drone.systems) ? drone.systems : []
   const droneModules = Array.isArray(drone.modules) ? drone.modules : []
-  return resolveLoadout(drone, droneSystems, droneModules)
+  return { drone, ...resolveLoadout(droneSystems, droneModules) }
 }
 
 /** The drone a PATTERN specifies — named + loadout come from `pattern.drones[0]`. */
@@ -186,7 +181,7 @@ export function resolvePatternDrone(pattern: SURefObjectPattern): DroneLoadout |
   if (!config) return undefined
   const drone = SalvageUnionReference.findIn('drones', (d) => d.name === config.name)
   if (!drone) return undefined
-  return resolveLoadout(drone, config.systems ?? [], config.modules ?? [])
+  return { drone, ...resolveLoadout(config.systems ?? [], config.modules ?? []) }
 }
 
 /** A drone's OWN systems/modules loadout (from its `systems`/`modules` name
@@ -195,14 +190,10 @@ export function resolveDroneOwnLoadout(entity: SURefMetaEntity): {
   systems: SURefEntity[]
   modules: SURefEntity[]
 } {
-  const names = (key: 'systems' | 'modules'): string[] => {
-    const value = (entity as Record<string, unknown>)[key]
-    return Array.isArray(value) ? value.filter((n): n is string => typeof n === 'string') : []
-  }
-  const { systems, modules } = resolveLoadout(
-    entity as SURefEntity,
-    names('systems'),
-    names('modules')
+  const names = (value: unknown): string[] =>
+    Array.isArray(value) ? value.filter((n): n is string => typeof n === 'string') : []
+  return resolveLoadout(
+    names('systems' in entity ? entity.systems : undefined),
+    names('modules' in entity ? entity.modules : undefined)
   )
-  return { systems, modules }
 }

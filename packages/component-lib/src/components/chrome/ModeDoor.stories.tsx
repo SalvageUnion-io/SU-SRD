@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
-import type { CSSProperties } from 'react'
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { Caption } from '../../stories/_harness'
 import { ModeDoor } from './ModeDoor'
 import { Sel } from './Sel'
@@ -11,11 +11,11 @@ export default {
 
 // The doors read `--tone` (plate fill) and `--ground` (halo gap) from the sheet
 // surface; stand them in inline for the story.
-const SURFACE: CSSProperties = {
+const SURFACE: CSSVarStyle = {
   '--tone': '#b8532a',
   '--ground': '#f3ece2',
   background: 'var(--ground)',
-} as CSSProperties
+}
 
 /** The two onboarding doors side by side, plus the ink-double Sel ring. */
 export const Default: Story = () => {

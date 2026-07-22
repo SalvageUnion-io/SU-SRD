@@ -1,4 +1,5 @@
 import type { Story } from '@ladle/react'
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { Caption } from '../../stories/_harness'
 import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
@@ -7,10 +8,10 @@ import { SheetSectionCard } from './SheetSectionCard'
 export default { title: 'Containers/Sheet Section Card' }
 
 // Themes via --tone / --tone-deep (pilot orange), the same route the live sheets use.
-const PILOT_TONE = {
+const PILOT_TONE: CSSVarStyle = {
   '--tone': 'var(--color-pilot)',
   '--tone-deep': 'var(--color-rust)',
-} as React.CSSProperties
+}
 
 /** The poster section frame — accent header band, deep-tone left rule, footer. */
 export const Default: Story = () => (

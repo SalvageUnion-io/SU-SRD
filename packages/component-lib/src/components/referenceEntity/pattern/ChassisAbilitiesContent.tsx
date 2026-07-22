@@ -1,4 +1,4 @@
-import type { SURefEntity, SURefMetaAction } from 'salvageunion-reference'
+import type { SURefMetaAction } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
 import { entityHostTone } from '../card/entityCardTone'
@@ -65,7 +65,7 @@ export function ChassisAbilitiesContent({
         <ReferenceEntityCard
           size="medium"
           key={ability.id}
-          data={ability as unknown as SURefEntity}
+          data={ability}
           chassisName={chassisName}
           hostTone={abilityHostTone}
         />

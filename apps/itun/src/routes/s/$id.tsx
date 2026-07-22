@@ -94,7 +94,7 @@ export function SnapshotPageInner({ snapshot, notFound, error }: SnapshotPageInn
     return null
   }
 
-  return <SnapshotSheet snapshot={snapshot as Record<string, unknown>} />
+  return <SnapshotSheet snapshot={snapshot} />
 }
 
 function SnapshotPage() {

@@ -44,6 +44,36 @@ import type { SheetPatch } from './sheetViewProps'
 // Re-exported so existing consumers (PublishButton, tests) keep their import.
 export type { EntityLookup } from './composition'
 
+/**
+ * The sheet's own entity, resolved with its kind as a discriminant so the
+ * per-kind dispatch below narrows without casts.
+ */
+type ResolvedSheetEntity =
+  | { kind: 'pilot'; entity: Pilot }
+  | { kind: 'mech'; entity: Mech }
+  | { kind: 'crawler'; entity: Crawler }
+
+function resolveSheetEntity(
+  lookup: EntityLookup,
+  kind: EntityRef['type'],
+  id: string
+): ResolvedSheetEntity | null {
+  switch (kind) {
+    case 'pilot': {
+      const entity = lookup.get(kind, id)
+      return entity === null ? null : { kind, entity }
+    }
+    case 'mech': {
+      const entity = lookup.get(kind, id)
+      return entity === null ? null : { kind, entity }
+    }
+    case 'crawler': {
+      const entity = lookup.get(kind, id)
+      return entity === null ? null : { kind, entity }
+    }
+  }
+}
+
 type SheetProps = {
   kind: EntityRef['type']
   id: string
@@ -68,11 +98,9 @@ export function Sheet({
   const storeState = store()
   const [changeLogOpen, setChangeLogOpen] = useState(false)
 
-  const lookup: EntityLookup =
-    entityStore ??
-    ({
-      get: (type, entityId) => storeState.get(type, entityId),
-    } as EntityLookup)
+  const lookup: EntityLookup = entityStore ?? {
+    get: (type, entityId) => storeState.get(type, entityId),
+  }
   const links = softLinkStore ? softLinkStore.softLinks : storeState.softLinks
 
   const composition = resolveSheetComposition({
@@ -81,9 +109,9 @@ export function Sheet({
     links,
     store: lookup,
   })
-  const entity = lookup.get(kind, id)
+  const resolved = resolveSheetEntity(lookup, kind, id)
 
-  if (!entity) {
+  if (!resolved) {
     // Styled not-found with an exit path — this is the most-visited surface
     // in the app; a bare one-liner stranded the user (audit item 7).
     return (
@@ -106,6 +134,7 @@ export function Sheet({
     )
   }
 
+  const { entity } = resolved
   const wired = composition.mode === 'wired'
   const back = { href: '/', label: 'Roster' }
   // Top-bar trailing actions (app-bar right group, design source
@@ -225,12 +254,12 @@ export function Sheet({
   }
 
   const sheetView =
-    kind === 'pilot' ? (
-      <SheetPilot pilot={entity as Pilot} {...common} />
-    ) : kind === 'mech' ? (
-      <SheetMech mech={entity as Mech} {...common} />
+    resolved.kind === 'pilot' ? (
+      <SheetPilot pilot={resolved.entity} {...common} />
+    ) : resolved.kind === 'mech' ? (
+      <SheetMech mech={resolved.entity} {...common} />
     ) : (
-      <SheetCrawler crawler={entity as Crawler} {...common} />
+      <SheetCrawler crawler={resolved.entity} {...common} />
     )
 
   return (

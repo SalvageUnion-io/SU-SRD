@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { VitalGauge } from './VitalGauge'
@@ -9,6 +10,10 @@ export default {
 }
 
 const noop = () => {}
+
+// Instrument-surface tones for the dark-ground pair (SP green, Heat ember).
+const SP_TONE: CSSVarStyle = { '--tone': '#8fb996', '--tone-deep': '#4f6b55' }
+const HEAT_TONE: CSSVarStyle = { '--tone': '#c98b5e', '--tone-deep': '#7d4f2f' }
 
 // Real chassis stats drive every gauge (reference data preloaded by .ladle/components.tsx).
 const chassis = SalvageUnionReference.Chassis.all()[0]
@@ -116,7 +121,7 @@ export const Compact: Story = () => (
           size="compact"
           surface="instrument"
           readOnly
-          style={{ '--tone': '#8fb996', '--tone-deep': '#4f6b55' } as CSSProperties}
+          style={SP_TONE}
         />
         <VitalGauge
           label="Heat"
@@ -126,7 +131,7 @@ export const Compact: Story = () => (
           size="compact"
           surface="instrument"
           readOnly
-          style={{ '--tone': '#c98b5e', '--tone-deep': '#7d4f2f' } as CSSProperties}
+          style={HEAT_TONE}
         />
       </div>
       <code className="text-nano text-ink-2">compact · instrument surface (dark ground)</code>

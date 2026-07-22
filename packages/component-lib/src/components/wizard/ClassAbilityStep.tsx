@@ -84,16 +84,16 @@ export function ClassAbilityStep({
   onSelectAbility,
   _sur,
 }: ClassAbilityStepProps) {
-  const surClasses = _sur?.Classes ?? (SalvageUnionReference.Classes as SURClassesAccessor)
-  const surAbilities = _sur?.Abilities ?? (SalvageUnionReference.Abilities as SURAbilitiesAccessor)
+  const surClasses: SURClassesAccessor = _sur?.Classes ?? SalvageUnionReference.Classes
+  const surAbilities: SURAbilitiesAccessor = _sur?.Abilities ?? SalvageUnionReference.Abilities
 
   const classes = selectableClasses(surClasses, isEdit)
   const legalClasses = isEdit
     ? classes.base
-    : classes.base.filter((c) => isLegalCreationClass((c as ClassLike).coreTrees))
-  const selectedClass = [...classes.base, ...classes.specialisations].find(
+    : classes.base.filter((c) => isLegalCreationClass(c.coreTrees))
+  const selectedClass: ClassLike | undefined = [...classes.base, ...classes.specialisations].find(
     (c) => c.id === classId
-  ) as ClassLike | undefined
+  )
 
   const allAbilities = surAbilities.findAll(() => true) as AbilityLike[]
 

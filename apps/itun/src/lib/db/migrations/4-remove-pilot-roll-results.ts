@@ -11,6 +11,7 @@
  */
 
 import type { UpgradeTransaction } from './index'
+import { isRecord } from '../../isRecord'
 import { normalizeLegacyPilotRecord } from '../../schemas/pilot'
 import { STORE_NAMES } from '../stores'
 
@@ -19,8 +20,8 @@ export async function migrate(tx: UpgradeTransaction): Promise<void> {
   let cursor = await tx.objectStore(STORE_NAMES.pilots).openCursor()
   while (cursor) {
     const raw = cursor.value as unknown
-    if (typeof raw === 'object' && raw !== null && 'rollResults' in raw) {
-      await cursor.update(normalizeLegacyPilotRecord(raw as Record<string, unknown>))
+    if (isRecord(raw) && 'rollResults' in raw) {
+      await cursor.update(normalizeLegacyPilotRecord(raw))
     }
     cursor = await cursor.continue()
   }

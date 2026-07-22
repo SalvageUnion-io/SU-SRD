@@ -178,7 +178,7 @@ export function ShareSnapshotScreen({
     // Bare-entity snapshot payload (v1) — wired composition is post-beta.
     const payload: SnapshotPayload = {
       kind,
-      entity: entity as unknown as Record<string, unknown>,
+      entity,
     }
 
     try {
@@ -272,7 +272,7 @@ export function ShareSnapshotScreen({
         {/* Preview panel — the build as a read-only entity card */}
         <Panel className="p-4 sm:p-5">
           <h2 className={PANEL_HEADING_CLASS}>Snapshot preview</h2>
-          <SnapshotPreviewCard kind={kind} entity={entity} />
+          <SnapshotPreviewCard entity={entity} />
           <p className="text-wk-muted mb-0 mt-3.5 font-body text-caption leading-relaxed">
             A snapshot is frozen at publish time — later edits to {entity.name} won&rsquo;t change
             what the link shows. Publish again to share an updated build.
@@ -418,8 +418,16 @@ export function ShareSnapshotScreen({
 // ---------------------------------------------------------------------------
 
 type SnapshotPreviewCardProps = {
-  kind: EntityRef['type']
   entity: Pilot | Mech | Crawler
+}
+
+/** Shape guards — `callsign` is required on (and unique to) Pilot, `chassisRef` on Mech. */
+function isPilot(entity: Pilot | Mech | Crawler): entity is Pilot {
+  return 'callsign' in entity
+}
+
+function isMech(entity: Pilot | Mech | Crawler): entity is Mech {
+  return 'chassisRef' in entity
 }
 
 /**
@@ -427,9 +435,9 @@ type SnapshotPreviewCardProps = {
  * SheetHero frame the live sheets use, with static StatBlocks and no
  * rail/conditions affordances (everything a snapshot freezes is here).
  */
-function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
-  if (kind === 'pilot') {
-    const pilot = entity as Pilot
+function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
+  if (isPilot(entity)) {
+    const pilot = entity
     const maxHP = Math.max(0, pilotMaxHP(pilot))
     const maxAP = Math.max(0, pilotMaxAP(pilot))
     return (
@@ -469,8 +477,8 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
     )
   }
 
-  if (kind === 'mech') {
-    const mech = entity as Mech
+  if (isMech(entity)) {
+    const mech = entity
     const chassis = resolveChassisRef(mech.chassisRef)
     const maxSP = mechMaxSP(mech, chassis)
     const maxEP = mechMaxEP(mech, chassis)
@@ -542,7 +550,7 @@ function SnapshotPreviewCard({ kind, entity }: SnapshotPreviewCardProps) {
     )
   }
 
-  const crawler = entity as Crawler
+  const crawler = entity
   const maxSP = crawlerMaxSP(crawler)
   const tl = parseCrawlerTechLevel(crawler.techLevel)
   const states = (crawler.crawlerBays ?? []).map((bay) => bay.condition ?? 'intact')

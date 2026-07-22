@@ -28,8 +28,10 @@ export class BaseModel<T> {
     // Pre-stamp schemaName on each entity and build ID map
     this.idMap = new Map()
     this.data = data.map((item) => {
+      // Sole assertion (the JSON-ingest edge): raw data rows are T; stamping
+      // adds the runtime schemaName discriminant the static type can't carry.
       const stamped = item as T & { schemaName: string }
-      ;(stamped as Record<string, unknown>).schemaName = schemaName
+      stamped.schemaName = schemaName
       if (
         typeof item === 'object' &&
         item !== null &&

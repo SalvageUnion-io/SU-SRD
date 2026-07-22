@@ -64,7 +64,7 @@ export function statTrackFor(entity: unknown): { maxHp: number; statKind: 'hp' |
   return { maxHp: 0, statKind: 'hp' }
 }
 
-function modelFor(schema: EncounterRefSchema): { all: () => ReadonlyArray<unknown> } {
+function modelFor(schema: EncounterRefSchema): { all: () => ReadonlyArray<SURefEntity> } {
   switch (schema) {
     case 'npcs':
       return SalvageUnionReference.NPCs
@@ -81,22 +81,21 @@ function modelFor(schema: EncounterRefSchema): { all: () => ReadonlyArray<unknow
   }
 }
 
-function toCandidate(schema: EncounterRefSchema, raw: unknown): EncounterCandidate | null {
-  const entity = raw as SURefEntity
-  const name = (raw as StatFields).name
+function toCandidate(schema: EncounterRefSchema, entity: SURefEntity): EncounterCandidate | null {
+  const name = entity.name
   if (typeof name !== 'string' || name.length === 0) return null
   return {
     schema,
     entity,
     name,
     slug: getEntitySlug(entity),
-    ...statTrackFor(raw),
+    ...statTrackFor(entity),
   }
 }
 
 /** All candidates of one schema, name-sorted. Empty when data isn't loaded. */
 export function listCandidates(schema: EncounterRefSchema): EncounterCandidate[] {
-  let raw: ReadonlyArray<unknown>
+  let raw: ReadonlyArray<SURefEntity>
   try {
     raw = modelFor(schema).all()
   } catch {

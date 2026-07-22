@@ -28,6 +28,7 @@
 import { nameToSlug } from 'salvageunion-reference'
 
 import type { UpgradeTransaction } from './index'
+import { isRecord } from '../../isRecord'
 import { STORE_NAMES } from '../stores'
 
 /** Slugify one ref; leaves empty strings untouched. */
@@ -36,11 +37,10 @@ function slugifyRef(ref: unknown): unknown {
 }
 
 /** Re-key a ref-keyed record map with slugified keys (later entries win). */
-function slugifyKeys(map: unknown): unknown {
-  if (typeof map !== 'object' || map === null || Array.isArray(map)) return map
+function slugifyKeys(map: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(map as Record<string, unknown>)) {
-    out[typeof key === 'string' && key !== '' ? nameToSlug(key) : key] = value
+  for (const [key, value] of Object.entries(map)) {
+    out[key !== '' ? nameToSlug(key) : key] = value
   }
   return out
 }
@@ -71,9 +71,9 @@ export function normalizeRefsRecord(raw: Record<string, unknown>): Record<string
 
   for (const field of ['systemConditions', 'moduleConditions', 'itemUses'] as const) {
     const value = raw[field]
-    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      const rekeyed = slugifyKeys(value) as Record<string, unknown>
-      if (Object.keys(rekeyed).some((key) => !(key in (value as Record<string, unknown>)))) {
+    if (isRecord(value) && !Array.isArray(value)) {
+      const rekeyed = slugifyKeys(value)
+      if (Object.keys(rekeyed).some((key) => !(key in value))) {
         next[field] = rekeyed
         changed = true
       }
@@ -89,8 +89,8 @@ export async function migrate(tx: UpgradeTransaction): Promise<void> {
     let cursor = await tx.objectStore(storeName).openCursor()
     while (cursor) {
       const raw = cursor.value as unknown
-      if (typeof raw === 'object' && raw !== null) {
-        const next = normalizeRefsRecord(raw as Record<string, unknown>)
+      if (isRecord(raw)) {
+        const next = normalizeRefsRecord(raw)
         if (next) await cursor.update(next)
       }
       cursor = await cursor.continue()

@@ -62,7 +62,8 @@ describe('SearchResultsIsland', () => {
       render(<SearchResultsIsland />)
 
       const input = await screen.findByRole('searchbox', { name: 'Search the SRD' })
-      expect((input as HTMLInputElement).value).toBe('chassis')
+      if (!(input instanceof HTMLInputElement)) throw new Error('expected an <input> searchbox')
+      expect(input.value).toBe('chassis')
 
       fireEvent.change(input, { target: { value: 'module' } })
 

@@ -3,6 +3,7 @@ import type {
   SURefEnumSchemaName,
   SURefEntity,
 } from 'salvageunion-reference'
+import { isSchemaName } from './schemaName'
 
 export type CatalogCategory = {
   id: string
@@ -76,10 +77,11 @@ export function buildCatalogCategories({
   return catalogCategories.map((cat) => {
     if (cat.flat) {
       // Flat catalog categories are static config that always lists exactly
-      // one schema; guard instead of asserting so malformed config renders
-      // an empty section rather than crashing the build.
-      const schemaName = cat.schemas[0] as SURefEnumSchemaName | undefined
-      if (!schemaName) {
+      // one schema; guard (runtime schema-name validation, not an assertion)
+      // so malformed config renders an empty section rather than crashing
+      // the build.
+      const schemaName = cat.schemas[0]
+      if (!schemaName || !isSchemaName(schemaName)) {
         return { label: cat.name.toUpperCase(), schemas: [] }
       }
       const items = findAllIn(schemaName, () => true)

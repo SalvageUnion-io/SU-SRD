@@ -92,7 +92,7 @@ function toEntityResult(result: SearchResult): SearchComboboxResult {
     title: result.entityName,
     group: result.schemaTitle.replace('Salvage Union ', ''),
     schemaId: result.schemaName,
-    entity: result.entity as SearchResult['entity'] & SURefEntity,
+    entity: result.entity,
   }
 }
 

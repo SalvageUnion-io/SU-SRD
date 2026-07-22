@@ -55,6 +55,12 @@ function classByName(name: string): SURefClass {
   return cls
 }
 
+/** Narrow away `undefined` from a lookup; throws (failing the test) when missing. */
+function mustFind<T>(value: T | undefined, label: string): T {
+  if (value === undefined) throw new Error(`${label} not found`)
+  return value
+}
+
 /**
  * The neutral input the predicates take: a class's core trees, or `undefined`
  * for a specialisation class that has none (narrowed off the class union).
@@ -126,18 +132,20 @@ describe('legalCreationAbilities', () => {
 
   it('excludes higher-level abilities of a legal core tree', () => {
     const engineerTrees = coreTreesOf('Engineer')
-    const level2 = allAbilities().find(
-      (a) => a.tree === 'Mechanical Knowledge' && a.level === 2
-    ) as SURefAbility
+    const level2 = mustFind(
+      allAbilities().find((a) => a.tree === 'Mechanical Knowledge' && a.level === 2),
+      'Mechanical Knowledge level-2 ability'
+    )
     expect(level2).toBeDefined()
     expect(isLegalCreationAbility(level2, engineerTrees)).toBe(false)
   })
 
   it("excludes another core class's tree Level-1s", () => {
     const engineerTrees = coreTreesOf('Engineer')
-    const soldierL1 = allAbilities().find(
-      (a) => a.tree === 'Gladiatorial Combat' && a.level === 1
-    ) as SURefAbility
+    const soldierL1 = mustFind(
+      allAbilities().find((a) => a.tree === 'Gladiatorial Combat' && a.level === 1),
+      'Gladiatorial Combat level-1 ability'
+    )
     expect(soldierL1).toBeDefined()
     expect(isLegalCreationAbility(soldierL1, engineerTrees)).toBe(false)
   })
@@ -194,9 +202,12 @@ describe('isLegalCreationChassis / System / Module (Tech 1 only)', () => {
       expect(c.techLevel === 1).toBe(false)
     }
     // The book's own example chassis is legal.
-    const mule = chassis.find((c) => c.name === 'Mule')
+    const mule = mustFind(
+      chassis.find((c) => c.name === 'Mule'),
+      'Mule chassis'
+    )
     expect(mule).toBeDefined()
-    expect(isLegalCreationChassis((mule as SURefChassis).techLevel)).toBe(true)
+    expect(isLegalCreationChassis(mule.techLevel)).toBe(true)
   })
 
   it('accepts Tech 1 systems/modules and rejects every higher/expansion tier', () => {
