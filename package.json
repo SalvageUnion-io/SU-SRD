@@ -13,7 +13,10 @@
     "shell-quote": "1.10.0",
     "js-yaml": "4.3.0",
     "filelist": "2.0.2",
-    "brace-expansion": "5.0.7"
+    "brace-expansion": "5.0.7",
+    "svgo": "4.0.2",
+    "sharp": "0.35.3",
+    "fast-uri": "4.1.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.3",
