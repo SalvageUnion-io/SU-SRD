@@ -2,6 +2,7 @@ import { forwardRef } from 'react'
 import type { InputHTMLAttributes } from 'react'
 import { Search } from 'lucide-react'
 import { cn } from '../../utils/cn'
+import { FOCUS_WITHIN } from '../chrome/interaction'
 
 /**
  * SearchField — the shared search box (canonical; hoisted from the SRD search
@@ -30,7 +31,8 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
   return (
     <div
       className={cn(
-        'flex items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-ink-2 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-pilot',
+        'flex items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-ink-2',
+        FOCUS_WITHIN,
         containerClassName
       )}
     >

@@ -11,6 +11,7 @@ import {
   techLevelLabel,
   EntityHrefProvider,
   EntityDetailLinkProvider,
+  FOCUS_RING,
 } from 'component-lib'
 import { GameDataGate, type SchemaList } from '../../lib/useGameData'
 import { srdEntityHref } from '../../lib/entityHref'
@@ -330,7 +331,7 @@ export function SchemaViewerIsland({
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="cursor-pointer rounded-card px-2 py-0.5 font-cond text-xs font-semibold uppercase transition-colors bg-wk-faint text-ink hover:bg-wk-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pilot"
+                    className={`cursor-pointer rounded-card px-2 py-0.5 font-cond text-xs font-semibold uppercase transition-colors bg-wk-faint text-ink hover:bg-wk-muted ${FOCUS_RING}`}
                   >
                     Clear filters
                   </button>

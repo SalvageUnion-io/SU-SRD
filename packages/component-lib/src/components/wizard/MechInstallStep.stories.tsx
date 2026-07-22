@@ -1,6 +1,7 @@
 import type { Story } from '@ladle/react'
 import { useMemo, useState } from 'react'
 import type { CSSVarStyle } from '../../styles/cssVars'
+import { FOCUS_RING } from '../chrome/interaction'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefModule, SURefSystem } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
@@ -118,7 +119,7 @@ function LegacyLoadoutPanel({
                   type="button"
                   onClick={() => onRemove(index)}
                   aria-label={`Remove ${itemName}`}
-                  className="flex size-5 shrink-0 items-center justify-center rounded-sm text-xs text-ink transition-colors hover:bg-ink hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                  className={`flex size-5 shrink-0 items-center justify-center rounded-sm text-xs text-ink transition-colors hover:bg-ink hover:text-paper ${FOCUS_RING}`}
                 >
                   ✕
                 </button>

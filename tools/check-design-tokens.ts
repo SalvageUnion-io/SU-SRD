@@ -79,8 +79,19 @@ const RULES: Rule[] = [
     // 3. `(?<!&)` excludes a `#` preceded by `&` — an HTML numeric character
     //    entity like `&#8599;` (↗) or `&#9670;` (◆) in JSX. A 4-digit entity is
     //    a valid hex *length*, so only the lookbehind can tell it from a colour.
+    //
+    // 4. The `rgb()` arm uses `(?<![a-zA-Z0-9])` where it used to use `\b`. This
+    //    is not a cosmetic tidy: `_` is a WORD character, so `\b` never fired
+    //    inside a Tailwind arbitrary value, where `_` is the space separator.
+    //    Every `shadow-[0_5px_18px_rgba(...)]` in the codebase — the hover lifts
+    //    on the catalog tile, the entity row, the wizard door — was invisible to
+    //    this rule, which is the exact place raw colour is most likely to hide,
+    //    since there is no shadow token ladder to reach for instead. The new
+    //    lookbehind still refuses a letter or digit before `rgb`, so an
+    //    identifier ending in it (`srgb(`) is not a false positive, while `_`,
+    //    `(`, space and line-start all correctly count as a boundary.
     pattern:
-      /(?<!&)#(?!\d{1,3}\b)(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b|\brgba?\([^)]*\)/g,
+      /(?<!&)#(?!\d{1,3}\b)(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b|(?<![a-zA-Z0-9])rgba?\([^)]*\)/g,
   },
   {
     id: 'gradient',
@@ -287,6 +298,23 @@ for (const v of violations) {
  * enforced today.
  *
  * Rebaseline (only ever downward) with: bun run check:tokens --update-baseline
+ *
+ * ONE SANCTIONED EXCEPTION to "only ever downward", recorded because a silent
+ * upward bump is exactly what this ratchet exists to prevent: when a rule is
+ * made STRICTER, its count rises without anyone having written a new violation.
+ * That happened once, to `raw-color` (11 -> 35), when its `rgb()` arm stopped
+ * using `\b` — a boundary that could never fire inside a Tailwind arbitrary
+ * value, because `_` is a word character. The 24 newly-counted literals are all
+ * pre-existing `shadow-[..._rgba(...)]` / `[text-shadow:..._rgba(...)]` values
+ * that had been present and uncounted; not one of them is new drift.
+ *
+ * They are baselined rather than fixed because there is no shadow/scrim token
+ * ladder to convert them to — inventing one is a design decision with real
+ * visual consequences across the wizard doors, roll tables and hover lifts, not
+ * a lint cleanup. The debt is now VISIBLE and frozen, which is the point.
+ *
+ * The rule stands: a stricter rule may rebaseline upward ONCE, in the same
+ * commit that tightens it, with the reason written down. Drift may not.
  */
 const BASELINE_PATH = join(import.meta.dir, 'design-tokens-baseline.json')
 

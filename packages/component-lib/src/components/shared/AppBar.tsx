@@ -1,6 +1,7 @@
 import { Fragment } from 'react'
 import type { ElementType, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
+import { FOCUS_RING } from '../chrome/interaction'
 
 /**
  * AppBar — the shared masthead both SU surfaces are built from (the internal
@@ -56,8 +57,7 @@ type AppBarProps = {
   breadcrumbDescription?: string
 }
 
-const NAV_LINK =
-  'inline-flex shrink-0 items-center font-cond text-lede font-semibold uppercase tracking-caps-tight text-paper/60 no-underline transition-colors hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pilot'
+const NAV_LINK = `inline-flex shrink-0 items-center font-cond text-lede font-semibold uppercase tracking-caps-tight text-paper/60 no-underline transition-colors hover:text-paper ${FOCUS_RING}`
 
 const NAV_LINK_ACTIVE = 'text-paper'
 

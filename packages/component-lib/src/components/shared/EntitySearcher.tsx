@@ -26,6 +26,7 @@ import type {
 } from 'salvageunion-reference'
 import { matchesRef, type TechLevel } from 'salvageunion-reference/rules'
 import { cn } from '../../utils/cn'
+import { FOCUS_WITHIN } from '../chrome/interaction'
 import { Badge } from '../chrome/Badge'
 import { Panel } from '../chrome/Panel'
 import { Button } from '../chrome/Button'
@@ -263,7 +264,12 @@ export function EntitySearcher({
 
   // ---- Sub-parts of the searcher Card ----
   const searchInput = (
-    <label className="flex w-full items-center gap-2 rounded-card border-chrome border-ink bg-paper px-3 py-2 focus-within:ring-[3px] focus-within:ring-rust/25">
+    <label
+      className={cn(
+        'flex w-full items-center gap-2 rounded-card border-chrome border-ink bg-paper px-3 py-2',
+        FOCUS_WITHIN
+      )}
+    >
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="opacity-70">
         <circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" strokeWidth="2" />
         <line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" strokeWidth="2" />

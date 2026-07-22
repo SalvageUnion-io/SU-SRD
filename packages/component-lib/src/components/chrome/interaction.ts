@@ -16,6 +16,35 @@ export const FOCUS_RING =
  */
 export const INPUT_FOCUS = 'focus:outline-none focus:ring-[3px] focus:ring-rust/25'
 
+/**
+ * The same rust ring again, raised by a focusable DESCENDANT — the search-field
+ * shape, where the bordered shell is the thing that should look focused but the
+ * `<input>` inside is what actually takes focus. The inner control carries
+ * `focus:outline-none` itself, so this is ring-only: there is no outline on the
+ * shell to suppress, and pretending otherwise would imply the shell is
+ * focusable when it is not.
+ *
+ * This third rung exists because both search shells had already invented it —
+ * one as a pilot OUTLINE, one as the rust ring inline — which is the usual
+ * signal that the vocabulary was missing a word, not that the surfaces were
+ * special.
+ */
+export const FOCUS_WITHIN = 'focus-within:ring-[3px] focus-within:ring-rust/25'
+
+/**
+ * The ON-TONE rung: an ink ring with a paper offset, for a focusable surface
+ * whose own background is an arbitrary ENTITY TONE rather than paper — a
+ * clickable entity card can be pale pilot or near-black `tl-6`, and the 25%-alpha
+ * rust ring simply disappears against the dark end of that ramp.
+ *
+ * This is a real exception, not drift, so it is named instead of inlined: the
+ * ring is the accessibility affordance, and a rung that vanishes on a legal
+ * background is not one. Reach for it ONLY when the background is caller-supplied
+ * tone; everything sitting on paper uses `FOCUS_RING`.
+ */
+export const FOCUS_RING_ON_TONE =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-paper'
+
 /** The canonical disabled treatment (opacity + no pointer events). */
 export const DISABLED = 'disabled:pointer-events-none disabled:opacity-40'
 

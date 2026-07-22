@@ -5,6 +5,7 @@ import { cn } from '../../utils/cn'
 import type { SizeRung } from '../../styles/sizing'
 import { Badge } from '../chrome/Badge'
 import type { StampSurface } from '../chrome/Badge'
+import { FOCUS_RING } from '../chrome/interaction'
 import { Tooltip } from '../ui/tooltip'
 import { EntityTooltip } from '../referenceEntity/EntityTooltip'
 import type { EntityStatus } from './entityStatus'
@@ -595,9 +596,7 @@ function ValueBox({
             trueBg,
             trueBorderColor,
             size === 'mini' ? 'border' : 'border-chrome',
-            disabled
-              ? 'pointer-events-none'
-              : 'cursor-pointer hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pilot',
+            disabled ? 'pointer-events-none' : cn('cursor-pointer hover:opacity-80', FOCUS_RING),
             isFlashing && 'animate-[growShrink_3s_ease-out] motion-reduce:animate-none'
           )}
           aria-label={combinedAriaLabel}

@@ -25,6 +25,7 @@ import { Badge } from '../chrome/Badge'
 import { Stat } from '../shared/Stat'
 
 import { cn } from '../../utils/cn'
+import { FOCUS_RING } from '../chrome/interaction'
 
 type HeroIdentityLine = {
   label: string
@@ -176,7 +177,10 @@ export function ChassisStats({ items, className }: ChassisStatsProps) {
             aria-label={item.actionLabel ?? item.code}
             title={item.actionLabel}
             onClick={item.onClick}
-            className="cursor-pointer rounded-card text-left transition-transform duration-[120ms] hover:-translate-y-px focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25"
+            className={cn(
+              'cursor-pointer rounded-card text-left transition-transform duration-[120ms] hover:-translate-y-px',
+              FOCUS_RING
+            )}
           >
             {block}
           </button>

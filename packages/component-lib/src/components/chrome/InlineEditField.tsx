@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { cn } from '../../utils/cn'
+import { INPUT_FOCUS } from './interaction'
 import { Input, Textarea } from './Field'
 import { FieldError } from './FieldError'
 
@@ -145,10 +146,7 @@ export function InlineEditField({
           bordered && 'w-full rounded-card px-3',
           !hasValue && 'font-normal text-wk-muted',
           !readOnly &&
-            cn(
-              'cursor-pointer hover:bg-wk-bg-2 focus:outline-none focus:ring-[3px] focus:ring-rust/25',
-              !bordered && 'rounded-card px-1'
-            )
+            cn('cursor-pointer hover:bg-wk-bg-2', INPUT_FOCUS, !bordered && 'rounded-card px-1')
         )}
       >
         {hasValue ? value : (placeholder ?? '—')}
