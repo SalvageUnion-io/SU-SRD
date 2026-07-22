@@ -171,9 +171,15 @@ export function DisplayPanel({ content }: DisplayPanelProps) {
     case 'slot':
       return <>{content.node}</>
     case 'entity':
+      // Centre the card at a document width, the way the srd reference page
+      // does (`mx-auto w-full max-w-*`). Without it the full `large` card
+      // stretches to the whole panel and reads squashed — wide-and-short header
+      // stats, over-wide art. `pc-display-scroll` only provides the scroll box.
       return (
         <div className="pc-display-scroll">
-          <EntityCard data={content.data} note={content.note} controls={content.controls} />
+          <div className="mx-auto w-full max-w-2xl">
+            <EntityCard data={content.data} note={content.note} controls={content.controls} />
+          </div>
         </div>
       )
   }
