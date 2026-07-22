@@ -5,7 +5,6 @@ import { Caption } from '../../stories/_harness'
 import { ModeDoor } from './ModeDoor'
 import { Sel } from './Sel'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Atoms/Mode Door',
 }

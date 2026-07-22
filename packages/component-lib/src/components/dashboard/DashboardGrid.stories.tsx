@@ -3,7 +3,6 @@ import { Caption } from '../../stories/_harness'
 import { DashboardCanvas } from './DashboardCanvas'
 import { DashboardGrid } from './DashboardGrid'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default { title: 'Compositions/Dashboard/Grid' }
 
 /**

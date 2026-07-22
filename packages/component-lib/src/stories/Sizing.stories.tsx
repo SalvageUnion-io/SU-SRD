@@ -6,7 +6,6 @@ import { Badge } from '../components/chrome/Badge'
 import { Text } from '../components/base/Text'
 import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE, type SizeRung } from '../styles/sizing'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Foundations/Sizing',
 }

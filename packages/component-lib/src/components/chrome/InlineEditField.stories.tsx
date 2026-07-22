@@ -2,7 +2,6 @@ import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { InlineEditField } from './InlineEditField'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Atoms/Inline Edit Field',
 }

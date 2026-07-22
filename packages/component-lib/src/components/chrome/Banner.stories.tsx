@@ -3,7 +3,6 @@ import type { ReactNode } from 'react'
 import { Banner } from './Banner'
 import type { BannerWarning } from './Banner'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Containers/Banner',
 }

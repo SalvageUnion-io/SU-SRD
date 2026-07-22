@@ -10,7 +10,6 @@ import { CountStepper } from './CountStepper'
  * equipment so the accessible labels ("Add one …") read as they ship. It
  * normally rides an entity card's controls overlay as a `stepper` control (see In Card).
  */
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Atoms/Count Stepper',
 }

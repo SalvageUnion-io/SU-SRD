@@ -3,7 +3,6 @@ import type { ReactNode } from 'react'
 import { Content } from './Content'
 import type { SURefObjectContentBlock } from 'salvageunion-reference'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Entity/Content',
 }

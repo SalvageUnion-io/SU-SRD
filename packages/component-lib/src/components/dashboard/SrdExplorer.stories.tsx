@@ -3,7 +3,6 @@ import { Caption } from '../../stories/_harness'
 import { InstrumentStage } from '../../stories/_dashboardStage'
 import { SrdExplorer } from './SrdExplorer'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default { title: 'Compositions/Dashboard/SRD Explorer' }
 
 /**

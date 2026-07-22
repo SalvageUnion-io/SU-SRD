@@ -4,7 +4,6 @@ import { BayStatus } from './BayStatus'
 import type { EntityStatus } from '../shared/entityStatus'
 import { Caption } from '../../stories/_harness'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Atoms/Bay Status',
 }

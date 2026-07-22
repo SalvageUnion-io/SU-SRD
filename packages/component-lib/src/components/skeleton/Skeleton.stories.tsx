@@ -3,7 +3,6 @@ import { Caption } from '../../stories/_harness'
 
 import { Skeleton } from './Skeleton'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Containers/Skeleton',
 }

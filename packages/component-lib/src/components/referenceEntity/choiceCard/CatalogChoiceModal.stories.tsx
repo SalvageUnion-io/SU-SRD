@@ -14,7 +14,6 @@ import type { ChoiceSelections } from './choiceSelectionHelpers'
  * card's Choose… button. The fixture is the real Armament Bay's Weapons System
  * choice (any Mech System dealing SP damage).
  */
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Entity/Catalog Choice Modal',
 }

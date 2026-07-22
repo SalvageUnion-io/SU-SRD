@@ -11,7 +11,6 @@ import { borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { ReferenceEntityCard } from './ReferenceEntityCard'
 import { resolveCardTone } from './entityCardTone'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Entity/Reference Entity Actions',
 }

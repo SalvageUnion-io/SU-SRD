@@ -11,7 +11,6 @@ import { MasonryColumns } from './MasonryColumns'
  * (md / xl), capped by `maxColumns`; `radio` adds radiogroup semantics for
  * exactly-one pickers.
  */
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Containers/Masonry Columns',
 }

@@ -10,7 +10,6 @@ import {
   type StorageLot,
 } from './ActiveItemBand'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default { title: 'Compositions/Dashboard/Active Item Band' }
 
 /**

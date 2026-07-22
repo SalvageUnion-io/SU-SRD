@@ -1,7 +1,6 @@
 import type { Story } from '@ladle/react'
 import { RecoveryPanel } from './RecoveryPanel'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Containers/Recovery Panel',
 }

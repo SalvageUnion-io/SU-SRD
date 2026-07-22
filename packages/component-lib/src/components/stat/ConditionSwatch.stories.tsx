@@ -3,7 +3,6 @@ import { Caption } from '../../stories/_harness'
 
 import { ConditionSwatch } from './ConditionSwatch'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Atoms/Condition Swatch',
 }

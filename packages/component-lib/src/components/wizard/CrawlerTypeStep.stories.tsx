@@ -4,7 +4,6 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { CrawlerTypeDetail, CrawlerTypeOptionList, CrawlerTypeSelectStep } from './CrawlerTypeStep'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Wizard/Crawler Type Step',
 }

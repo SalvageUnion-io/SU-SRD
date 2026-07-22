@@ -3,7 +3,6 @@ import type { ReactNode } from 'react'
 import { RollTable } from './RollTable'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Catalog/Roll Table',
 }

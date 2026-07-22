@@ -20,7 +20,6 @@ const TECH_LEVEL_RAMP = `linear-gradient(to right, ${[1, 2, 3, 4, 5, 6]
   })
   .join(', ')})`
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Atoms/Catalog Tile',
 }

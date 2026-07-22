@@ -4,7 +4,6 @@ import { Caption } from '../../stories/_harness'
 import { FieldError } from './FieldError'
 import { Field, Input } from './Field'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Atoms/Field Error',
 }

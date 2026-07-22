@@ -6,7 +6,6 @@ import { NpcFactsEditor } from './NpcFactsEditor'
 import { NpcInset } from './NpcInset'
 import { SheetActionsMenu } from './SheetActionsMenu'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/NPC Inset',
 }

@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { Caption } from '../../stories/_harness'
 import { EquipmentStep } from './EquipmentStep'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Wizard/Equipment Step',
 }

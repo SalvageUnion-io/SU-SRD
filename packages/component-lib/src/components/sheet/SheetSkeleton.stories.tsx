@@ -2,7 +2,6 @@ import type { Story } from '@ladle/react'
 import { Caption } from '../../stories/_harness'
 import { SheetSkeleton } from './SheetSkeleton'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Containers/Sheet Skeleton',
 }

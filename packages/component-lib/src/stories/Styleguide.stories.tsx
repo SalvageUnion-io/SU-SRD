@@ -2,7 +2,6 @@ import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { Caption } from './_harness'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Foundations/Styleguide',
 }
@@ -131,7 +130,6 @@ export const Conventions: Story = () => (
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Stat } from './Stat'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle meta default export
 export default { title: 'Atoms/Stat' }
 
 const chassis = SalvageUnionReference.Chassis.all()[0]   // REAL data, module top level

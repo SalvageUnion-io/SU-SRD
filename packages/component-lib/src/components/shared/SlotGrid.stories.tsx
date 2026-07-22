@@ -4,7 +4,6 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { SlotGrid } from './SlotGrid'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Atoms/Slot Grid',
 }

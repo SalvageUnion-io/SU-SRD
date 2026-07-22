@@ -6,7 +6,6 @@ import { FilterRow } from '../components/shared/FilterRow'
 import { Card } from '../components/shared/Card'
 import { Badge } from '../components/chrome/Badge'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Foundations/Layout',
 }

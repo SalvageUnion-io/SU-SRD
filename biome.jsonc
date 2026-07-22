@@ -229,6 +229,23 @@
       }
     },
     {
+      // Ladle story files MUST export a `default` meta object alongside their
+      // named story components — it is the required shape, not a smell. The
+      // useComponentExportOnlyModules rule (a React Fast-Refresh guard) does
+      // not apply to a static Ladle catalog, so it is disabled for stories
+      // here rather than suppressed with a per-file `biome-ignore` on every
+      // one of ~100 story files. This override sorts AFTER the block above
+      // that enables the rule, so it wins for the matched paths.
+      "includes": ["**/*.stories.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useComponentExportOnlyModules": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["apps/srd/**"],
       "linter": {
         "rules": {

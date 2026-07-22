@@ -6,7 +6,6 @@ import type { StatItem } from './statsBarTypes'
 import { Text } from '../base/Text'
 import { Badge } from '../chrome/Badge'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Containers/Card',
 }

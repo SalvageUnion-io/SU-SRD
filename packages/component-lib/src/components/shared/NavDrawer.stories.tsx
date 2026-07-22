@@ -3,7 +3,6 @@ import type { Story } from '@ladle/react'
 import { NavDrawer } from './NavDrawer'
 import { SearchField } from './SearchField'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Shell/Nav Drawer',
 }

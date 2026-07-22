@@ -7,7 +7,6 @@ import { ConditionsEditor } from './ConditionsEditor'
 import { CrawlerEconFrame } from './CrawlerEcon'
 import { ChassisStats, SheetHero } from './SheetHero'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Sheet Presentation',
 }

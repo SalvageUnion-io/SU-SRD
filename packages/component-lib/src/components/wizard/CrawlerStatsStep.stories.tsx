@@ -3,7 +3,6 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { CrawlerStatsStep } from './CrawlerStatsStep'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Wizard/Crawler Stats Step',
 }

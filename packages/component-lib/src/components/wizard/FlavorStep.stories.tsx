@@ -4,7 +4,6 @@ import { Caption } from '../../stories/_harness'
 import { FlavorStep } from './FlavorStep'
 import { RollTableButton } from './RollTableButton'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Wizard/Flavor Step',
 }

@@ -6,7 +6,6 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { Badge } from '../chrome/Badge'
 import { Stat } from '../shared/Stat'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Entity/Entity Tooltip',
 }

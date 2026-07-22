@@ -2,7 +2,6 @@ import type { Story } from '@ladle/react'
 import { Caption } from '../../stories/_harness'
 import { GainScrapStep } from './GainScrapStep'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Wizard/Gain Scrap Step',
 }

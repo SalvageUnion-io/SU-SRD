@@ -4,7 +4,6 @@ import { EmptyState } from './EmptyState'
 import { Button } from './Button'
 import { Glyph } from './glyphs'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Containers/Empty State',
 }

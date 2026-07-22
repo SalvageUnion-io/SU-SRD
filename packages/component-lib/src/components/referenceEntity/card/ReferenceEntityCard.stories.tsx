@@ -8,7 +8,6 @@ import type { StatItem } from '../../shared/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { ReferenceEntityCard } from './ReferenceEntityCard'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Entity/Reference Entity Card',
 }

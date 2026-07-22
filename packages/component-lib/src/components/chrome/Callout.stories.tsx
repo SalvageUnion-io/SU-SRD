@@ -8,7 +8,6 @@ import { Callout } from './Callout'
  * The one shape behind list-item content blocks, "When Damaged" effects, and
  * similar accented notes. Real SRD content throughout.
  */
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Containers/Callout',
 }

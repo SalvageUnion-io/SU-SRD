@@ -6,7 +6,6 @@ import { ModalShell } from './ModalShell'
 import { Button } from '../chrome/Button'
 import { Text } from '../base/Text'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Containers/Modal Shell',
 }

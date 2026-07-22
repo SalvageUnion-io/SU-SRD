@@ -6,7 +6,6 @@ import { Stat } from './Stat'
 import { Button } from '../chrome/Button'
 import { VitalGauge } from '../stat/VitalGauge'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Containers/Inset',
 }

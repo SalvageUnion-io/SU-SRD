@@ -12,7 +12,6 @@ import { techLevelLabel } from './techLevelStyles'
  * beside it. Facet values here are derived from the real dataset, exactly as
  * the reference site derives them.
  */
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Containers/Filter Row',
 }

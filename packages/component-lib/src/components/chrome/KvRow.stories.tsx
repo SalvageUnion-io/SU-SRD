@@ -2,7 +2,6 @@ import type { Story } from '@ladle/react'
 import { Caption } from '../../stories/_harness'
 import { KvRow } from './KvRow'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Atoms/Kv Row',
 }

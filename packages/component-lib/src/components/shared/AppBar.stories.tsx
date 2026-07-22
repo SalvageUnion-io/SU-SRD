@@ -2,7 +2,6 @@ import type { Story } from '@ladle/react'
 import { AppBar } from './AppBar'
 import { SearchField } from './SearchField'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Shell/App Bar',
 }

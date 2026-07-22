@@ -3,7 +3,6 @@ import { Caption } from '../../stories/_harness'
 
 import { Glyph, type GlyphName } from './glyphs'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Atoms/Glyph',
 }

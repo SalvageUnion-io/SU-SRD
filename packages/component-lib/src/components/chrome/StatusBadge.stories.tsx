@@ -5,7 +5,6 @@ import { Caption } from '../../stories/_harness'
 import { StatusBadge } from './StatusBadge'
 import type { EntityStatus } from './StatusBadge'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Status Badge',
 }

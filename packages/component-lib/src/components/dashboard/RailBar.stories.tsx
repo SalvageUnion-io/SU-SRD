@@ -4,7 +4,6 @@ import { InstrumentStage } from '../../stories/_dashboardStage'
 import { buttonVariants } from '../chrome/buttonVariants'
 import { RailBar } from './RailBar'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default { title: 'Compositions/Dashboard/Rail Bar' }
 
 /** Stand-in for the app's router return link (an AppLink styled via

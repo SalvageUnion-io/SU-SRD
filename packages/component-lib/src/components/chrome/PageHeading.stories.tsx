@@ -2,7 +2,6 @@ import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { PageHeading } from './PageHeading'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Atoms/Page Heading',
 }

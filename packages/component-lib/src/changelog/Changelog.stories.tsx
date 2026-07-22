@@ -3,7 +3,6 @@ import { Caption } from '../stories/_harness'
 import { Changelog } from './Changelog'
 import type { ChangelogEntry } from './parseChangelog'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default { title: 'Compositions/Changelog' }
 
 // Real-shaped release entries (version headline, area badge, merged newest-first)

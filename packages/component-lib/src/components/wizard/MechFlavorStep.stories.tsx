@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { Caption } from '../../stories/_harness'
 import { MechFlavorStep } from './MechFlavorStep'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Mech Flavor Step',
 }

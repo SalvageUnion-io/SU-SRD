@@ -10,7 +10,6 @@ import { ConditionSwatch } from '../components/stat/ConditionSwatch'
 import { SlotGrid } from '../components/shared/SlotGrid'
 import { RollTable } from '../components/shared/RollTable'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Foundations/Rendering Matrix',
 }

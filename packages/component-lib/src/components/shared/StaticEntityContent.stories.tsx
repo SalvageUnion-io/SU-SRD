@@ -2,7 +2,6 @@ import type { Story } from '@ladle/react'
 import { SalvageUnionReference, extractStaticEntitySummary } from 'salvageunion-reference'
 import { StaticEntityContent } from './StaticEntityContent'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Entity/Static Entity Content',
 }

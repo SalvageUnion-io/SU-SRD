@@ -5,7 +5,6 @@ import type { SURefSystem } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { SystemsList } from './SystemsList'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Wizard/Systems List',
 }

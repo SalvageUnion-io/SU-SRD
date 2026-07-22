@@ -2,7 +2,6 @@ import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { WizShell, WizTracker } from './WizShell'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Wizard/Wiz Shell',
 }

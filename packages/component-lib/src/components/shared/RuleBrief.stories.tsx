@@ -2,7 +2,6 @@ import type { Story } from '@ladle/react'
 import { Caption } from '../../stories/_harness'
 import { RuleBrief } from './RuleBrief'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default { title: 'Compositions/Rule Brief' }
 
 const MECH_TONE = {

@@ -4,7 +4,6 @@ import { Caption } from '../../stories/_harness'
 import { ClassDetail, ClassOptionList } from './ClassStep'
 import { selectableClasses } from './classOptions'
 
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Wizard/Class Step',
 }

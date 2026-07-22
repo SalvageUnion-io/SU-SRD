@@ -17,7 +17,6 @@ import { MasonryColumns } from './MasonryColumns'
  * ReferenceEntityCard cards) and the CatalogChoiceModal that wraps it for a
  * single-select catalog choice.
  */
-// biome-ignore lint/style/useComponentExportOnlyModules: Ladle stories require a default meta export alongside story components
 export default {
   title: 'Compositions/Catalog/Entity Searcher',
 }
