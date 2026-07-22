@@ -59,21 +59,28 @@ const RULES: Rule[] = [
     id: 'raw-color',
     rule: 'ruleset §4.1 — colour lives in tokens, not call sites',
     fix: 'Add or reuse a token in theme.css and reference it via a Tailwind utility or var(--color-*).',
-    // The `(?!\d{1,3}\b)` guard excludes an all-DIGIT run of 1-3 characters —
-    // i.e. `#466`, `#12`, `#7`. Those are PR / issue references in prose, and
-    // this rule fired on them: writing "PR #466" in a comment counted as
-    // committing a raw colour. That is a false positive expensive enough to
-    // matter, because the natural workaround is to stop citing PR numbers in
-    // comments — degrading the code's provenance to satisfy a lint.
+    // Two guards keep this from firing on things that only LOOK like hex:
     //
-    // The tradeoff is deliberate and narrow: it also stops flagging a 3-digit
-    // all-numeric shorthand hex such as `#000`. Those are rare (the only ones
-    // here live in the print stylesheet, already exempt), and pure black/white
-    // are additionally covered by the `pure-white` rule and the paper law. A
-    // shorthand with any letter (`#fff`, `#a1b`) is still caught, as is every
-    // 6-digit form. Colour-carrying matches lose almost nothing; prose stops
-    // being punished.
-    pattern: /#(?!\d{1,3}\b)[0-9a-fA-F]{3,8}\b|\brgba?\([^)]*\)/g,
+    // 1. Length is restricted to VALID CSS hex-colour lengths — 3, 4, 6, 8. A
+    //    run of any OTHER length is not a colour, so `#30581` and `#10005`
+    //    (5-digit GitHub issue references, e.g. `microsoft/TypeScript#30581`,
+    //    and the `&#10005;` ✕ character entity) no longer match. Previously the
+    //    open `{3,8}` matched them and the rule punished citing an issue number
+    //    in a comment — the same provenance-degrading false positive as PR refs.
+    //
+    // 2. `(?!\d{1,3}\b)` still excludes a 3-digit ALL-numeric run (`#466`, a PR
+    //    ref, is a valid *length* but never a colour anyone means). That also
+    //    drops a 3-digit all-numeric shorthand like `#000`; those are rare, live
+    //    only in the already-exempt print stylesheet, and pure black/white are
+    //    covered by the `pure-white` rule and the paper law regardless. A
+    //    shorthand with any letter (`#fff`, `#a1b`) and every 6-/8-digit form is
+    //    still caught. Colour-carrying matches lose nothing; prose stops firing.
+    //
+    // 3. `(?<!&)` excludes a `#` preceded by `&` — an HTML numeric character
+    //    entity like `&#8599;` (↗) or `&#9670;` (◆) in JSX. A 4-digit entity is
+    //    a valid hex *length*, so only the lookbehind can tell it from a colour.
+    pattern:
+      /(?<!&)#(?!\d{1,3}\b)(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b|\brgba?\([^)]*\)/g,
   },
   {
     id: 'gradient',
