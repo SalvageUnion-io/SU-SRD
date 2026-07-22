@@ -8,12 +8,7 @@
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type {
-  SURefMetaAction,
-  SURefMetaEntity,
-  SURefModule,
-  SURefSystem,
-} from 'salvageunion-reference'
+import type { SURefMetaAction, SURefModule, SURefSystem } from 'salvageunion-reference'
 
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { resolveModuleRef, resolveSystemRef } from '../../lib/rules/resolveRefs'
@@ -55,7 +50,7 @@ function traitAmount(trait: { amount?: unknown }): number {
 }
 
 function itemActions(entity: MechItem): SURefMetaAction[] {
-  return SalvageUnionReference.resolveActions(entity as unknown as SURefMetaEntity) ?? []
+  return SalvageUnionReference.resolveActions(entity) ?? []
 }
 
 export function itemEconomy(entity: MechItem): MechItemEconomy {

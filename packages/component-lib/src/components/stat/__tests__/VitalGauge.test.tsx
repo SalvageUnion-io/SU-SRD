@@ -5,6 +5,11 @@ import { VitalGauge } from '../VitalGauge'
 afterEach(cleanup)
 
 /** Narrow a possibly-null query result, failing the test loudly if absent. */
+function mustInput(el: HTMLElement | null | undefined): HTMLInputElement {
+  if (!(el instanceof HTMLInputElement)) throw new Error('expected an <input> element')
+  return el
+}
+
 function must<T>(value: T | null | undefined): T {
   if (value == null) throw new Error('Expected element to be present')
   return value
@@ -123,7 +128,7 @@ describe('VitalGauge — cap override (ADR-022)', () => {
       <VitalGauge label="SP" value={9} max={13} onChange={() => {}} onMaxChange={onMaxChange} />
     )
     fireEvent.click(screen.getByRole('button', { name: /override sp max/i }))
-    const input = must(screen.getByLabelText('Set SP max')) as HTMLInputElement
+    const input = mustInput(screen.getByLabelText('Set SP max'))
     fireEvent.change(input, { target: { value: '16' } })
     fireEvent.keyDown(input, { key: 'Enter' })
     // A trailing blur (fired when the input unmounts on Enter) must NOT commit
@@ -157,7 +162,7 @@ describe('VitalGauge — cap override (ADR-022)', () => {
       <VitalGauge label="SP" value={9} max={13} onChange={() => {}} onMaxChange={onMaxChange} />
     )
     fireEvent.click(screen.getByRole('button', { name: /override sp max/i }))
-    const input = must(screen.getByLabelText('Set SP max')) as HTMLInputElement
+    const input = mustInput(screen.getByLabelText('Set SP max'))
     fireEvent.change(input, { target: { value: '99' } })
     fireEvent.keyDown(input, { key: 'Escape' })
     expect(onMaxChange).not.toHaveBeenCalled()

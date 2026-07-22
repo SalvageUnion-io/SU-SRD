@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference, nameToSlug, normalizePatternName } from 'salvageunion-reference'
-import type { SURefChassis, SURefEntity } from 'salvageunion-reference'
+import type { SURefChassis } from 'salvageunion-reference'
 import {
   isLegalCreationChassis,
   legalStartingPatterns,
@@ -52,13 +52,13 @@ function PatternSelCard({
   onToggle: () => void
 }) {
   const config = useChassisPatternConfig(
-    chassis as SURefEntity,
+    chassis,
     { name: pattern.name, systems: pattern.systems, modules: pattern.modules },
     true
   )
   return (
     <ReferenceEntityCard
-      data={chassis as SURefEntity}
+      data={chassis}
       size="medium"
       selected={selected}
       selectionRole="radio"
@@ -124,7 +124,7 @@ export function MechChassisStep({
           return (
             <ReferenceEntityCard
               key={chassis.id}
-              data={chassis as SURefEntity}
+              data={chassis}
               size="medium"
               selected={matchesRef(chassis, chassisName)}
               selectionRole="radio"

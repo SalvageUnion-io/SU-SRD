@@ -93,8 +93,8 @@ async function pick(name: string): Promise<void> {
 }
 
 /** The primary CTA is labeled from the steps array: 'Next · {step} →'. */
-function getNextButton(): HTMLElement {
-  return screen.getByRole('button', { name: /^Next ·/ })
+function getNextButton(): HTMLButtonElement {
+  return screen.getByRole<HTMLButtonElement>('button', { name: /^Next ·/ })
 }
 
 async function clickNext(): Promise<void> {
@@ -119,8 +119,8 @@ function firstTech1Equipment(): { id: string; name: string } {
 
 /** Fill the Callsign step (Name + Callsign) and advance. */
 async function fillCallsign(name: string, callsign: string): Promise<void> {
-  const nameInput = screen.getByLabelText(/^Name/) as HTMLInputElement
-  const callsignInput = screen.getByLabelText(/Callsign/) as HTMLInputElement
+  const nameInput = screen.getByLabelText<HTMLInputElement>(/^Name/)
+  const callsignInput = screen.getByLabelText<HTMLInputElement>(/Callsign/)
   await act(async () => {
     fireEvent.change(nameInput, { target: { value: name } })
     fireEvent.change(callsignInput, { target: { value: callsign } })
@@ -140,21 +140,21 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     // --- Step 1: Your Stats — display-only, Next always enabled ---
     // The fixed pilot stats render as read-only value boxes (HP 10/10, …).
     expect(screen.getByLabelText('HP')).toBeTruthy()
-    expect((getNextButton() as HTMLButtonElement).disabled).toBe(false)
+    expect(getNextButton().disabled).toBe(false)
     await clickNext()
 
     // --- Step 2: Class & First Ability (merged, both gates hard) ---
     // Next locked until class + exactly 1 legal ability.
-    expect((getNextButton() as HTMLButtonElement).disabled).toBe(true)
+    expect(getNextButton().disabled).toBe(true)
     await pick('Engineer')
     expect(screen.getByText('Choose your first Ability to continue')).toBeTruthy()
     await pick('Engineering Expertise')
     expect(screen.getByTestId('ability-count').textContent).toContain('1 / 1')
-    expect((getNextButton() as HTMLButtonElement).disabled).toBe(false)
+    expect(getNextButton().disabled).toBe(false)
     await clickNext()
 
     // --- Step 3: Equipment — exactly 2 Tech 1 picks (duplicates allowed) ---
-    expect((getNextButton() as HTMLButtonElement).disabled).toBe(true)
+    expect(getNextButton().disabled).toBe(true)
     expect(screen.getByText(/Choose 2 more equipment items to continue/i)).toBeTruthy()
     const item = firstTech1Equipment()
     await pick(item.name) // card click adds copy #1
@@ -163,16 +163,16 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
       fireEvent.click(screen.getByRole('button', { name: `Add one ${item.name}` })) // copy #2
     })
     expect(screen.getByTestId('equipment-count').textContent).toContain('2 / 2')
-    expect((getNextButton() as HTMLButtonElement).disabled).toBe(false)
+    expect(getNextButton().disabled).toBe(false)
     // At the budget every '+' disables.
-    const plusButtons = screen.getAllByRole('button', { name: /^Add one / })
+    const plusButtons = screen.getAllByRole<HTMLButtonElement>('button', { name: /^Add one / })
     for (const plus of plusButtons) {
-      expect((plus as HTMLButtonElement).disabled).toBe(true)
+      expect(plus.disabled).toBe(true)
     }
     await clickNext()
 
     // --- Step 4: Callsign (Name + Callsign required) ---
-    expect((getNextButton() as HTMLButtonElement).disabled).toBe(true)
+    expect(getNextButton().disabled).toBe(true)
     await fillCallsign('Mira Voss', 'Sparks')
     await clickNext()
 
@@ -233,7 +233,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     await pick('Engineering Expertise') // Mechanical Knowledge L1
     await pick('Soldier') // Mechanical Knowledge ∉ Soldier trees
     expect(screen.getByTestId('ability-count').textContent).toContain('0 / 1')
-    expect((getNextButton() as HTMLButtonElement).disabled).toBe(true)
+    expect(getNextButton().disabled).toBe(true)
   }, 30000)
 
   it('keeps a still-legal ability across a class change (Salvager shares core trees)', async () => {
@@ -283,7 +283,8 @@ describe('PilotWizard — hard creation enforcement', () => {
     await clickNext()
 
     const item = firstTech1Equipment()
-    const plus = () => screen.getByRole('button', { name: `Add one ${item.name}` })
+    const plus = () =>
+      screen.getByRole<HTMLButtonElement>('button', { name: `Add one ${item.name}` })
     const minus = () => screen.getByRole('button', { name: `Remove one ${item.name}` })
 
     await act(async () => {
@@ -293,12 +294,12 @@ describe('PilotWizard — hard creation enforcement', () => {
       fireEvent.click(plus())
     })
     expect(screen.getByTestId('equipment-count').textContent).toContain('2 / 2')
-    expect((plus() as HTMLButtonElement).disabled).toBe(true)
+    expect(plus().disabled).toBe(true)
     await act(async () => {
       fireEvent.click(minus())
     })
     expect(screen.getByTestId('equipment-count').textContent).toContain('1 / 2')
-    expect((plus() as HTMLButtonElement).disabled).toBe(false)
+    expect(plus().disabled).toBe(false)
   }, 30000)
 
   it('slot preview uses pilotInventory math, not pick count', async () => {

@@ -18,6 +18,11 @@ import { useEntityStore } from '../../../stores/entityStore'
 
 const VALID_KINDS: EntityRef['type'][] = ['pilot', 'mech', 'crawler']
 
+/** Route-param guard: narrows the raw `$kind` segment to a sheet kind. */
+function isSheetKind(kind: string): kind is EntityRef['type'] {
+  return VALID_KINDS.some((k) => k === kind)
+}
+
 function ShareKindNotFound() {
   const params = Route.useParams()
   return (
@@ -39,11 +44,10 @@ function ShareKindNotFound() {
 
 export const Route = createFileRoute('/sheet/$kind/$id_/share')({
   loader: async ({ params }) => {
-    const kind = params.kind as EntityRef['type']
-    if (!VALID_KINDS.includes(kind)) {
+    if (!isSheetKind(params.kind)) {
       throw notFound()
     }
-    await useEntityStore.getState().hydrate(kind)
+    await useEntityStore.getState().hydrate(params.kind)
   },
   component: SharePage,
   notFoundComponent: ShareKindNotFound,

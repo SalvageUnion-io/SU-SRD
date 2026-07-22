@@ -65,7 +65,7 @@ function coreTreesOf(name: string): readonly string[] | undefined {
 }
 
 function allAbilities(): SURefAbility[] {
-  return SalvageUnionReference.Abilities.all() as SURefAbility[]
+  return SalvageUnionReference.Abilities.all()
 }
 
 describe('isLegalCreationClass', () => {
@@ -145,7 +145,7 @@ describe('legalCreationAbilities', () => {
 
 describe('isLegalCreationEquipment', () => {
   it('accepts Tech 1 and rejects every higher tier in the real catalog', () => {
-    const equipment = SalvageUnionReference.Equipment.all() as SURefEquipment[]
+    const equipment: SURefEquipment[] = SalvageUnionReference.Equipment.all()
     const legal = equipment.filter((e) => isLegalCreationEquipment(e))
     expect(legal.length).toBeGreaterThan(0)
     for (const item of legal) expect(item.techLevel).toBe(1)
@@ -186,7 +186,7 @@ describe('pilot pick budgets (1 ability / 2 equipment)', () => {
 
 describe('isLegalCreationChassis / System / Module (Tech 1 only)', () => {
   it('accepts exactly the Tech 1 chassis in the real catalog', () => {
-    const chassis = SalvageUnionReference.Chassis.all() as SURefChassis[]
+    const chassis: SURefChassis[] = SalvageUnionReference.Chassis.all()
     const legal = chassis.filter((c) => isLegalCreationChassis(c.techLevel))
     expect(legal.length).toBeGreaterThan(0)
     for (const c of legal) expect(c.techLevel).toBe(1)
@@ -204,7 +204,7 @@ describe('isLegalCreationChassis / System / Module (Tech 1 only)', () => {
       [SalvageUnionReference.Systems, isLegalCreationSystem],
       [SalvageUnionReference.Modules, isLegalCreationModule],
     ] as const) {
-      const items = accessor.all() as { techLevel: number | string }[]
+      const items: { techLevel: number | string }[] = accessor.all()
       const legal = items.filter((i) => predicate(i.techLevel))
       expect(legal.length).toBeGreaterThan(0)
       for (const item of legal) expect(item.techLevel).toBe(1)
@@ -228,7 +228,7 @@ describe('legalStartingPatterns (stored data tag — never computed)', () => {
   })
 
   it('every filtered pattern in the real catalog carries the stored flag', () => {
-    const chassis = SalvageUnionReference.Chassis.all() as SURefChassis[]
+    const chassis: SURefChassis[] = SalvageUnionReference.Chassis.all()
     const allPatterns = chassis.flatMap((c) => c.patterns)
     const legal = legalStartingPatterns(allPatterns)
     expect(legal.length).toBeGreaterThan(0)

@@ -41,7 +41,7 @@ describe('resolveCatalogChoiceEntities — Armament Bay Weapons System', () => {
     const capped = resolveCatalogChoiceEntities(armamentBayChoice, { techLevel: 2 })
     expect(capped.length).toBeGreaterThan(0)
     for (const e of capped) {
-      const tl = (e as { techLevel?: unknown }).techLevel
+      const tl = 'techLevel' in e ? e.techLevel : undefined
       if (typeof tl === 'number') expect(tl).toBeLessThanOrEqual(2)
     }
     // a lower cap yields no more systems than a higher one
@@ -56,7 +56,7 @@ describe('resolveCatalogChoiceEntities — Armament Bay Weapons System', () => {
   test('orders the listing by Tech Level then name (non-numeric last)', () => {
     const resolved = resolveCatalogChoiceEntities(armamentBayChoice)
     const rank = (e: unknown): number => {
-      const tl = (e as { techLevel?: unknown }).techLevel
+      const tl = typeof e === 'object' && e !== null && 'techLevel' in e ? e.techLevel : undefined
       return typeof tl === 'number' ? tl : Number.POSITIVE_INFINITY
     }
     for (let i = 1; i < resolved.length; i++) {

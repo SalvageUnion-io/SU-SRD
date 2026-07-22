@@ -62,7 +62,7 @@ describe('WorkspaceSwitcher — render', () => {
       />
     )
     expect(screen.queryByRole('option', { name: /all builds/i })).toBeNull()
-    const select = screen.getByRole('combobox') as HTMLSelectElement
+    const select = screen.getByRole<HTMLSelectElement>('combobox')
     // Falls back to the synthetic Default option when the store has no record yet.
     expect(select.value).toBe(DEFAULT_WORKSPACE_ID)
     expect(screen.getByRole('option', { name: /default workspace/i })).toBeTruthy()
@@ -87,7 +87,7 @@ describe('WorkspaceSwitcher — render', () => {
     render(
       <WorkspaceSwitcher activeWorkspaceId="ws-1" onSelect={() => {}} store={makeStore([ws])} />
     )
-    const select = screen.getByRole('combobox') as HTMLSelectElement
+    const select = screen.getByRole<HTMLSelectElement>('combobox')
     expect(select.value).toBe('ws-1')
   })
 })

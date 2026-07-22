@@ -20,6 +20,12 @@ function makeTestControl(overrides: Partial<ReferenceEntityControl> = {}): Refer
  * header text, then step up to the row that wraps it. Replaces the deleted
  * test-only `headerTestId` prop.
  */
+function rootEl(container: Element): HTMLElement {
+  const el = container.firstElementChild
+  if (!(el instanceof HTMLElement)) throw new Error('expected an HTMLElement card root')
+  return el
+}
+
 function headerRowAround(text: string): HTMLElement {
   const row = screen.getByText(text).parentElement
   if (!row) throw new Error(`no header row wrapping "${text}"`)
@@ -142,7 +148,7 @@ describe('Card', () => {
     // Full-size header: 80px min-height, entity-weight (3px) border. The weight
     // is named by its border-glossary token rather than the literal, so the
     // assertion tracks the token the component actually emits.
-    const wrapper = container.firstElementChild as HTMLElement
+    const wrapper = rootEl(container)
     expect(wrapper.style.borderWidth).toBe('var(--bw-entity)')
   })
 
@@ -152,7 +158,7 @@ describe('Card', () => {
         <p>Body</p>
       </Card>
     )
-    const wrapper = container.firstElementChild as HTMLElement
+    const wrapper = rootEl(container)
     expect(wrapper.style.borderWidth).toBe('var(--bw-chrome)')
   })
 
@@ -203,7 +209,7 @@ describe('Card', () => {
     const header = headerRowAround('Disabled')
     expect(header.className).toContain('bg-mech')
     // Outer wrapper gets opacity-50
-    const wrapper = container.firstElementChild as HTMLElement
+    const wrapper = rootEl(container)
     expect(wrapper.className).toContain('opacity-50')
   })
 
@@ -237,7 +243,7 @@ describe('Card', () => {
         ]}
       />
     )
-    const wrapper = container.firstElementChild as HTMLElement
+    const wrapper = rootEl(container)
     expect(wrapper.getAttribute('role')).toBe('button')
     fireEvent.click(wrapper)
     expect(clicked).toBe(true)
@@ -262,7 +268,7 @@ describe('Card', () => {
         <p>Body</p>
       </Card>
     )
-    const wrapper = container.firstElementChild as HTMLElement
+    const wrapper = rootEl(container)
     expect(wrapper.getAttribute('role')).toBe('button')
     expect(wrapper.className).toContain('cursor-pointer')
     fireEvent.click(wrapper)
@@ -279,7 +285,7 @@ describe('Card', () => {
         controls={[makeTestControl({ cardClick: false })]}
       />
     )
-    const wrapper = container.firstElementChild as HTMLElement
+    const wrapper = rootEl(container)
     expect(wrapper.getAttribute('role')).toBeNull()
     // The control button itself still renders
     expect(screen.getByRole('button', { name: 'Test' })).toBeTruthy()
@@ -313,7 +319,7 @@ describe('Card', () => {
         ]}
       />
     )
-    fireEvent.click(container.firstElementChild as HTMLElement)
+    fireEvent.click(rootEl(container))
     expect(clickedKey).toBe('second')
   })
 
@@ -339,7 +345,7 @@ describe('Card', () => {
         ]}
       />
     )
-    fireEvent.click(container.firstElementChild as HTMLElement)
+    fireEvent.click(rootEl(container))
     expect(source).toBe('prop')
   })
 
@@ -353,7 +359,7 @@ describe('Card', () => {
         controls={[makeTestControl({ cardClick: true, hidden: true })]}
       />
     )
-    const wrapper = container.firstElementChild as HTMLElement
+    const wrapper = rootEl(container)
     expect(wrapper.className).toContain('md:hover:scale-[1.02]')
   })
 
@@ -363,7 +369,7 @@ describe('Card', () => {
         <p>Body</p>
       </Card>
     )
-    const wrapper = container.firstElementChild as HTMLElement
+    const wrapper = rootEl(container)
     // Wrapper should be keyboard-focusable when clickable
     expect(wrapper.getAttribute('tabIndex')).toBe('0')
     expect(wrapper.getAttribute('role')).toBe('button')
@@ -381,7 +387,7 @@ describe('Card', () => {
         <p>Body</p>
       </Card>
     )
-    const wrapper = container.firstElementChild as HTMLElement
+    const wrapper = rootEl(container)
     expect(wrapper.getAttribute('role')).toBeNull()
     expect(wrapper.className).not.toContain('focus-visible:ring-2')
   })
@@ -398,7 +404,7 @@ describe('Card', () => {
         <p>Body</p>
       </Card>
     )
-    const wrapper = container.firstElementChild as HTMLElement
+    const wrapper = rootEl(container)
     expect(wrapper.className).toContain('custom-card-class')
     expect(wrapper.className).not.toContain('shadow-lg')
   })

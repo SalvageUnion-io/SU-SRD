@@ -35,6 +35,18 @@ const nameChoice: SURefObjectChoice = {
 
 const parent = { techLevel: 2 }
 
+/** Narrow a queried element to a real `<button>`, failing loudly otherwise. */
+function asButton(el: HTMLElement): HTMLButtonElement {
+  if (!(el instanceof HTMLButtonElement)) throw new Error('expected a <button> element')
+  return el
+}
+
+/** Narrow a queried element to a real `<input>`, failing loudly otherwise. */
+function asInput(el: HTMLElement): HTMLInputElement {
+  if (!(el instanceof HTMLInputElement)) throw new Error('expected an <input> element')
+  return el
+}
+
 afterEach(cleanup)
 
 describe('ChoiceGroups — uncontrolled (ephemeral) state', () => {
@@ -102,7 +114,7 @@ describe('ChoiceGroups — multi-select cap (scalesWithField)', () => {
     const laser = screen.getByRole('button', { name: /Laser Guidance/ })
 
     // Below the cap nothing is disabled.
-    expect((laser as HTMLButtonElement).disabled).toBe(false)
+    expect(asButton(laser).disabled).toBe(false)
 
     fireEvent.click(rangefinder)
     expect(rangefinder.getAttribute('aria-pressed')).toBe('true')
@@ -110,16 +122,16 @@ describe('ChoiceGroups — multi-select cap (scalesWithField)', () => {
 
     // Cap is 1 (techLevel) and met: the unchosen options disable, and even a
     // forced click cannot push the selection past the cap.
-    expect((laser as HTMLButtonElement).disabled).toBe(true)
+    expect(asButton(laser).disabled).toBe(true)
     fireEvent.click(laser)
     expect(laser.getAttribute('aria-pressed')).toBe('false')
     expect(screen.getByText('1/1')).toBeTruthy()
 
     // The chosen option stays clickable — deselecting reopens the cap.
-    expect((rangefinder as HTMLButtonElement).disabled).toBe(false)
+    expect(asButton(rangefinder).disabled).toBe(false)
     fireEvent.click(rangefinder)
     expect(rangefinder.getAttribute('aria-pressed')).toBe('false')
-    expect((laser as HTMLButtonElement).disabled).toBe(false)
+    expect(asButton(laser).disabled).toBe(false)
   })
 
   test('a higher-tech parent widens the cap (Modifications ≤ TL)', () => {
@@ -132,7 +144,7 @@ describe('ChoiceGroups — multi-select cap (scalesWithField)', () => {
     fireEvent.click(laser)
     // techLevel: 2 → cap 2 reached; the third option disables and won't select.
     expect(screen.getByText('2/2')).toBeTruthy()
-    expect((highCalibre as HTMLButtonElement).disabled).toBe(true)
+    expect(asButton(highCalibre).disabled).toBe(true)
     fireEvent.click(highCalibre)
     expect(highCalibre.getAttribute('aria-pressed')).toBe('false')
   })
@@ -141,7 +153,7 @@ describe('ChoiceGroups — multi-select cap (scalesWithField)', () => {
 describe('ChoiceGroups — free-text choice', () => {
   test('renders an editable field and updates its value (no Chosen/Not Chosen stamp)', () => {
     render(<ChoiceGroups choices={[nameChoice]} parent={parent} />)
-    const field = screen.getByLabelText('Name') as HTMLInputElement
+    const field = asInput(screen.getByLabelText('Name'))
     expect(field).toBeTruthy()
     // Free-text input cards carry no Chosen / Not Chosen status stamp.
     expect(screen.queryByText('Not Chosen')).toBeNull()

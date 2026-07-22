@@ -64,7 +64,7 @@ export async function instantiateMechFromPattern(
     currentSP: chassis?.structurePoints,
     currentEP: chassis?.energyPoints,
     currentHeat: 0,
-  } as MechCreateInput)
+  })
   return mech.id
 }
 
@@ -83,6 +83,6 @@ export async function createBaseCrawler(store: LaunchStore, tl: number): Promise
     systems: [],
     crawlerBays: seedDefaultCrawlerBays(),
     ...(typeof maxSP === 'number' ? { currentSP: maxSP } : {}),
-  } as CrawlerCreateInput)
+  })
   return crawler.id
 }

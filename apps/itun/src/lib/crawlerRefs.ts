@@ -35,8 +35,7 @@ type ResolvedCrawlerEntity = {
 /** Resolve a stored crawler-type ref (id or name) to its SRD entity. */
 export function resolveCrawlerType(ref: string): ResolvedCrawlerEntity | null {
   try {
-    const all =
-      SalvageUnionReference.Crawlers.all() as unknown as ReadonlyArray<ResolvedCrawlerEntity>
+    const all: ReadonlyArray<ResolvedCrawlerEntity> = SalvageUnionReference.Crawlers.all()
     return all.find((c) => c.id === ref || c.name === ref) ?? null
   } catch {
     return null
@@ -46,8 +45,7 @@ export function resolveCrawlerType(ref: string): ResolvedCrawlerEntity | null {
 /** Resolve a stored crawler-bay ref (id or name) to its SRD entity. */
 export function resolveCrawlerBay(ref: string): ResolvedCrawlerEntity | null {
   try {
-    const all =
-      SalvageUnionReference.CrawlerBays.all() as unknown as ReadonlyArray<ResolvedCrawlerEntity>
+    const all: ReadonlyArray<ResolvedCrawlerEntity> = SalvageUnionReference.CrawlerBays.all()
     return all.find((b) => b.id === ref || b.name === ref) ?? null
   } catch {
     return null

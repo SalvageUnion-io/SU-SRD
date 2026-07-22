@@ -56,7 +56,7 @@ describe('CraftItemsStep — budget clamps (single source of truth)', () => {
       />
     )
     expect(
-      (screen.getByRole('button', { name: `Add one ${item.name}` }) as HTMLButtonElement).disabled
+      screen.getByRole<HTMLButtonElement>('button', { name: `Add one ${item.name}` }).disabled
     ).toBe(false)
 
     // With the one copy taken (scrap now 1, sv 2), a second overspends → + off.
@@ -70,7 +70,7 @@ describe('CraftItemsStep — budget clamps (single source of truth)', () => {
       />
     )
     expect(
-      (screen.getByRole('button', { name: `Add one ${item.name}` }) as HTMLButtonElement).disabled
+      screen.getByRole<HTMLButtonElement>('button', { name: `Add one ${item.name}` }).disabled
     ).toBe(true)
   })
 
@@ -120,12 +120,12 @@ describe('CraftItemsStep — budget clamps (single source of truth)', () => {
         slotsRemaining={0}
       />
     )
-    const plus = screen.getByRole('button', {
+    const plus = screen.getByRole<HTMLButtonElement>('button', {
       name: `Add one ${item.name}`,
-    }) as HTMLButtonElement
-    const minus = screen.getByRole('button', {
+    })
+    const minus = screen.getByRole<HTMLButtonElement>('button', {
       name: `Remove one ${item.name}`,
-    }) as HTMLButtonElement
+    })
     expect(plus.disabled).toBe(true) // maxCount === count
     expect(minus.disabled).toBe(false) // refunds stay available
   })

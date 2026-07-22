@@ -14,7 +14,7 @@ const chassis = SalvageUnionReference.Chassis.all()
   .slice(0, 4)
   .map((c) => ({
     name: c.name,
-    tl: (c as { techLevel?: number }).techLevel,
+    tl: c.techLevel,
   }))
 
 /** Real systems, for the multi-select checkbox column. */

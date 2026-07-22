@@ -19,7 +19,7 @@ import { AppHeader } from 'component-lib'
 describe('AppHeader', () => {
   test('renders the "IN THE UNION NOW" wordmark with the Beta pill, linked home', () => {
     render(<AppHeader />)
-    const brand = screen.getByRole('link', { name: /IN THE UNION NOW/i }) as HTMLAnchorElement
+    const brand = screen.getByRole<HTMLAnchorElement>('link', { name: /IN THE UNION NOW/i })
     expect(brand.getAttribute('href')).toBe('/')
     expect(brand.textContent).toContain('IN THE UNION NOW')
     expect(brand.textContent).toContain('Beta')
@@ -28,13 +28,13 @@ describe('AppHeader', () => {
 
   test('renders the SU mark', () => {
     render(<AppHeader />)
-    const mark = screen.getByRole('img', { name: 'Salvage Union' }) as HTMLImageElement
+    const mark = screen.getByRole<HTMLImageElement>('img', { name: 'Salvage Union' })
     expect(mark.getAttribute('src')).toBe('/logos/su-cargo-dark.svg')
   })
 
   test('links out to the SRD site in a new tab', () => {
     render(<AppHeader />)
-    const srdLink = screen.getByRole('link', { name: /SRD/i }) as HTMLAnchorElement
+    const srdLink = screen.getByRole<HTMLAnchorElement>('link', { name: /SRD/i })
     expect(srdLink.getAttribute('href')).toBe('https://salvageunion.io')
     expect(srdLink.getAttribute('target')).toBe('_blank')
     expect(srdLink.getAttribute('rel')).toBe('noopener noreferrer')
@@ -42,7 +42,7 @@ describe('AppHeader', () => {
 
   test('links out to the SRD Discord page in a new tab', () => {
     render(<AppHeader />)
-    const discordLink = screen.getByRole('link', { name: /discord/i }) as HTMLAnchorElement
+    const discordLink = screen.getByRole<HTMLAnchorElement>('link', { name: /discord/i })
     expect(discordLink.getAttribute('href')).toBe('https://salvageunion.io/discord/')
     expect(discordLink.getAttribute('target')).toBe('_blank')
     expect(discordLink.getAttribute('rel')).toBe('noopener noreferrer')
@@ -50,7 +50,7 @@ describe('AppHeader', () => {
 
   test('links out to buy the game in a new tab', () => {
     render(<AppHeader />)
-    const buyLink = screen.getByRole('link', { name: /buy the game/i }) as HTMLAnchorElement
+    const buyLink = screen.getByRole<HTMLAnchorElement>('link', { name: /buy the game/i })
     expect(buyLink.getAttribute('href')).toBe('https://leyline.press/collections/salvage-union')
     expect(buyLink.getAttribute('target')).toBe('_blank')
     expect(buyLink.getAttribute('rel')).toBe('noopener noreferrer')
@@ -81,13 +81,13 @@ describe('AppHeader', () => {
     const drawer = screen.getByRole('dialog')
     expect(within(drawer).getByRole('link', { name: /encounter/i })).toBeTruthy()
     expect(within(drawer).getByRole('link', { name: /SRD/i })).toBeTruthy()
-    const drawerDiscord = within(drawer).getByRole('link', {
+    const drawerDiscord = within(drawer).getByRole<HTMLAnchorElement>('link', {
       name: /discord/i,
-    }) as HTMLAnchorElement
+    })
     expect(drawerDiscord.getAttribute('href')).toBe('https://salvageunion.io/discord/')
-    const buy = within(drawer).getByRole('link', {
+    const buy = within(drawer).getByRole<HTMLAnchorElement>('link', {
       name: /buy the game/i,
-    }) as HTMLAnchorElement
+    })
     expect(buy.getAttribute('href')).toBe('https://leyline.press/collections/salvage-union')
   })
 })

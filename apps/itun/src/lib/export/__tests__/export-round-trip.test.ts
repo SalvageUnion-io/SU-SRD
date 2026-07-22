@@ -283,15 +283,14 @@ describe('export round-trip — field fidelity', () => {
     const importedWs = verifyWorkspaceStore.list()[0]
     expect(importedPilot).toBeDefined()
     expect(importedWs).toBeDefined()
+    if (!importedPilot) throw new Error('expected imported pilot')
     if (!importedWs) throw new Error('expected imported workspace')
 
     // Every field except id/createdAt/updatedAt/workspaceId is preserved exactly.
-    expect(stable(importedPilot as unknown as Record<string, unknown>)).toEqual(
-      stable(created as unknown as Record<string, unknown>)
-    )
+    expect(stable(importedPilot)).toEqual(stable(created))
     // workspaceId is intentionally remapped — to the NEW workspace's id.
-    expect((importedPilot as { workspaceId?: string }).workspaceId).toBe(importedWs.id)
-    expect((importedPilot as { workspaceId?: string }).workspaceId).not.toBe(ws.id)
+    expect(importedPilot.workspaceId).toBe(importedWs.id)
+    expect(importedPilot.workspaceId).not.toBe(ws.id)
 
     // Sanity: the exported bundle actually carried the rich fields (i.e. the
     // round trip exercised them, not an accidentally-empty pilot).
@@ -315,10 +314,9 @@ describe('export round-trip — field fidelity', () => {
     await verifyEntityStore.hydrate('mech')
     const importedMech = verifyEntityStore.list('mech')[0]
     expect(importedMech).toBeDefined()
+    if (!importedMech) throw new Error('expected imported mech')
 
-    expect(stable(importedMech as unknown as Record<string, unknown>)).toEqual(
-      stable(created as unknown as Record<string, unknown>)
-    )
+    expect(stable(importedMech)).toEqual(stable(created))
   })
 
   test('crawler: crawlerBays/typeNpc/scrapPool/bayChoices all survive', async () => {
@@ -337,10 +335,9 @@ describe('export round-trip — field fidelity', () => {
     await verifyEntityStore.hydrate('crawler')
     const importedCrawler = verifyEntityStore.list('crawler')[0]
     expect(importedCrawler).toBeDefined()
+    if (!importedCrawler) throw new Error('expected imported crawler')
 
-    expect(stable(importedCrawler as unknown as Record<string, unknown>)).toEqual(
-      stable(created as unknown as Record<string, unknown>)
-    )
+    expect(stable(importedCrawler)).toEqual(stable(created))
   })
 
   test('mechPattern: bulk SCRAP cargo lot survives (no workspaceId field to remap)', async () => {
@@ -354,10 +351,9 @@ describe('export round-trip — field fidelity', () => {
 
     const imported = (await mechPatterns.list())[0]
     expect(imported).toBeDefined()
+    if (!imported) throw new Error('expected imported record')
 
-    expect(stable(imported as unknown as Record<string, unknown>)).toEqual(
-      stable(created as unknown as Record<string, unknown>)
-    )
+    expect(stable(imported)).toEqual(stable(created))
   })
 
   test('encounterNpc: conditions + lastMediatorRoll survive, workspaceId remaps to new workspace', async () => {
@@ -381,15 +377,14 @@ describe('export round-trip — field fidelity', () => {
     const imported = (await encounterNpcs.list())[0]
     expect(imported).toBeDefined()
     expect(importedWs).toBeDefined()
+    if (!imported) throw new Error('expected imported record')
     if (!importedWs) throw new Error('expected imported workspace')
 
     // Every field except id/createdAt/updatedAt/workspaceId is preserved exactly.
-    expect(stable(imported as unknown as Record<string, unknown>)).toEqual(
-      stable(created as unknown as Record<string, unknown>)
-    )
+    expect(stable(imported)).toEqual(stable(created))
     // workspaceId is intentionally remapped — to the NEW workspace's id.
-    expect((imported as { workspaceId?: string }).workspaceId).toBe(importedWs.id)
-    expect((imported as { workspaceId?: string }).workspaceId).not.toBe(ws.id)
+    expect(imported.workspaceId).toBe(importedWs.id)
+    expect(imported.workspaceId).not.toBe(ws.id)
 
     // Sanity: the exported bundle actually carried the rich fields.
     expect(parsed.encounterNpcs[0]?.conditions).toEqual(['bleeding'])
@@ -467,9 +462,9 @@ describe('export round-trip — cross-entity full backup', () => {
     }
 
     // All three entities re-point at the SAME new workspace id.
-    expect((importedPilot as { workspaceId?: string }).workspaceId).toBe(importedWs.id)
-    expect((importedMech as { workspaceId?: string }).workspaceId).toBe(importedWs.id)
-    expect((importedCrawler as { workspaceId?: string }).workspaceId).toBe(importedWs.id)
+    expect(importedPilot.workspaceId).toBe(importedWs.id)
+    expect(importedMech.workspaceId).toBe(importedWs.id)
+    expect(importedCrawler.workspaceId).toBe(importedWs.id)
 
     // Both softLinks remapped to the fresh entity ids — no dangling refs.
     expect(importedLinks).toHaveLength(2)
@@ -491,14 +486,8 @@ describe('export round-trip — cross-entity full backup', () => {
     expect((importedEncounterNpcs[0] as { workspaceId?: string }).workspaceId).toBe(importedWs.id)
 
     // Deep field fidelity, same as the per-entity tests above.
-    expect(stable(importedPilot as unknown as Record<string, unknown>)).toEqual(
-      stable({ ...pilot } as unknown as Record<string, unknown>)
-    )
-    expect(stable(importedMech as unknown as Record<string, unknown>)).toEqual(
-      stable({ ...mech } as unknown as Record<string, unknown>)
-    )
-    expect(stable(importedCrawler as unknown as Record<string, unknown>)).toEqual(
-      stable({ ...crawler } as unknown as Record<string, unknown>)
-    )
+    expect(stable(importedPilot)).toEqual(stable({ ...pilot }))
+    expect(stable(importedMech)).toEqual(stable({ ...mech }))
+    expect(stable(importedCrawler)).toEqual(stable({ ...crawler }))
   })
 })

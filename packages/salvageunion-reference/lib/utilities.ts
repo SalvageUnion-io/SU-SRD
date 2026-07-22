@@ -8,7 +8,6 @@ import type {
   SURefMetaAction,
   SURefObjectGrant,
   SURefEntity,
-  SURefEnumSchemaName,
   SURefObjectSystemModule,
   SURefObjectTable,
   SURefObjectTrait,
@@ -21,7 +20,6 @@ import type {
   SURefClass,
   SURefKeyword,
   SURefModule,
-  SURefRollTable,
   SURefSystem,
   SURefObjectAdvancedClass,
   SURefObjectFormationMech,
@@ -143,7 +141,7 @@ export function extractActions(entity: SURefMetaEntity): SURefMetaAction[] | und
     return undefined
   }
 
-  const actionNames = entity.actions as string[]
+  const actionNames = entity.actions
 
   const actionMap = getActionMap()
   if (actionMap.size === 0) {
@@ -337,12 +335,14 @@ export function getHitPoints(entity: SURefMetaEntity): number | undefined {
  * @returns The asset URL, or undefined if the entity has no artwork
  */
 export function getAssetUrl(entity: SURefMetaEntity): string | undefined {
-  const meta = entity as { hasArtwork?: unknown; schemaName?: unknown }
-  if (meta.hasArtwork !== true || typeof meta.schemaName !== 'string') {
+  if (!('hasArtwork' in entity) || entity.hasArtwork !== true) {
+    return undefined
+  }
+  if (!('schemaName' in entity) || typeof entity.schemaName !== 'string') {
     return undefined
   }
   const slug = getEntitySlug(entity as unknown as SURefEntity)
-  return `${ASSET_BASE_URL}/${meta.schemaName}/${slug}.webp`
+  return `${ASSET_BASE_URL}/${entity.schemaName}/${slug}.webp`
 }
 
 /**
@@ -427,7 +427,7 @@ export function getTree(entity: SURefMetaEntity): unknown | undefined {
  */
 export function getRequirement(entity: SURefMetaEntity): string[] | undefined {
   return 'requirement' in entity && Array.isArray(entity.requirement)
-    ? (entity.requirement as string[])
+    ? entity.requirement
     : undefined
 }
 
@@ -530,8 +530,8 @@ export function resolveFormationMember(
 
   // Non-chassis entity types: look up by name in the given schema
   const found = SalvageUnionReference.findIn(
-    schemaName as SURefEnumSchemaName,
-    (e) => 'name' in e && (e as { name: string }).name === member.chassis
+    schemaName,
+    (e) => 'name' in e && e.name === member.chassis
   )
   return found ? { entity: found } : undefined
 }
@@ -812,7 +812,7 @@ export function normalizePatternName(patternName: string): string {
   }
   const suffixStart = patternName.length - 'Pattern'.length
   let cut = suffixStart
-  while (cut > 0 && /\s/.test(patternName[cut - 1] as string)) {
+  while (cut > 0 && /\s/.test(patternName.charAt(cut - 1))) {
     cut--
   }
   // No whitespace before the literal (e.g. "IronPattern") -> no match.
@@ -974,14 +974,11 @@ export function getTable(entity: SURefMetaEntity): SURefObjectTable | undefined 
 
   // Check for tableName reference
   if ('tableName' in entity && typeof entity.tableName === 'string') {
-    const rollTablesModel = getModel('roll-tables')
-    if (rollTablesModel) {
-      const rollTable = rollTablesModel.find(
-        (rt) => 'name' in rt && rt.name === entity.tableName
-      ) as SURefRollTable | undefined
-      if (rollTable?.table) {
-        return rollTable.table
-      }
+    const rollTable = SalvageUnionReference.RollTables.find(
+      (rt) => 'name' in rt && rt.name === entity.tableName
+    )
+    if (rollTable?.table) {
+      return rollTable.table
     }
   }
 
@@ -1006,14 +1003,11 @@ export function getTable(entity: SURefMetaEntity): SURefObjectTable | undefined 
     'tableName' in matchingAction &&
     typeof matchingAction.tableName === 'string'
   ) {
-    const rollTablesModel = getModel('roll-tables')
-    if (rollTablesModel) {
-      const rollTable = rollTablesModel.find(
-        (rt) => 'name' in rt && rt.name === matchingAction.tableName
-      ) as SURefRollTable | undefined
-      if (rollTable?.table) {
-        return rollTable.table
-      }
+    const rollTable = SalvageUnionReference.RollTables.find(
+      (rt) => 'name' in rt && rt.name === matchingAction.tableName
+    )
+    if (rollTable?.table) {
+      return rollTable.table
     }
   }
 
@@ -1084,8 +1078,7 @@ export function getChoices(entity: SURefMetaEntity): SURefObjectChoice[] | undef
           continue
         }
 
-        const schema = grant.schema as SURefEnumSchemaName
-        const model = getModel(schema.toLowerCase())
+        const model = getModel(grant.schema.toLowerCase())
         if (!model) continue
 
         const grantedEntity = model.find((e: SURefEntity) => e.name === grant.name)
@@ -1141,7 +1134,7 @@ export function getGrants(entity: SURefMetaEntity): SURefObjectGrant[] | undefin
  */
 export function getRequiredTraits(action: SURefMetaAction): string[] {
   if ('requiredTraits' in action && Array.isArray(action.requiredTraits)) {
-    return action.requiredTraits as string[]
+    return action.requiredTraits
   }
   return []
 }

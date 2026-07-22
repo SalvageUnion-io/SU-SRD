@@ -15,8 +15,8 @@ function isBaseClass(cls: unknown): cls is SURefClass & { coreTrees: string[] } 
     typeof cls === 'object' &&
     cls !== null &&
     'coreTrees' in cls &&
-    Array.isArray((cls as { coreTrees: unknown }).coreTrees) &&
-    ((cls as { coreTrees: string[] }).coreTrees?.length ?? 0) > 0
+    Array.isArray(cls.coreTrees) &&
+    cls.coreTrees.length > 0
   )
 }
 

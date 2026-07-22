@@ -462,7 +462,7 @@ function ReferenceEntityCardInner({
   const MODIFIED = 'var(--color-rust)'
   const baseTechLevel = typeof techLevel === 'number' ? techLevel : undefined
   const scalingTechLevel =
-    typeof scalingParent?.techLevel === 'number' ? (scalingParent.techLevel as number) : undefined
+    typeof scalingParent?.techLevel === 'number' ? scalingParent.techLevel : undefined
   const resolvedTechLevel = scalingTechLevel ?? baseTechLevel
   const effTechLevel =
     resolvedTechLevel !== undefined && baseTechLevel !== undefined
@@ -475,9 +475,7 @@ function ReferenceEntityCardInner({
   // A datavalue that scales per Tech Level (e.g. Custom Sniper/Missile Damage
   // "+1 SP per Tech Level") is ALSO a Bonus-per-Tech-Level box (label / +N / unit).
   const dataValueBonuses: BonusCell[] = []
-  for (const block of 'content' in entity
-    ? ((entity.content ?? []) as SURefObjectContentBlock[])
-    : []) {
+  for (const block of 'content' in entity ? (entity.content ?? []) : []) {
     if (Array.isArray(block.value)) {
       for (const dv of block.value) {
         if (typeof dv.perTechLevel === 'number' && dv.label != null) {
@@ -549,7 +547,7 @@ function ReferenceEntityCardInner({
   // The "Titanic Actions" entry is a meta-descriptor for the titanic-action
   // SYSTEM, not a regular action — it suppresses the "Action" seam stamp and
   // shows its rules text as a header hint (not in the body).
-  const isTitanicMeta = isAction && isTitanicAction(entity as { name?: string })
+  const isTitanicMeta = isAction && isTitanicAction(entity)
   // Actions AND patterns carry NO seam type stamp — an action's classification
   // lives in the sub-header row (see actionCells); patterns just show the name.
   // Entities show their schema type. On FULL cards the type moves to the footer
@@ -689,10 +687,7 @@ function ReferenceEntityCardInner({
     isAbility(entity) && typeof entity.description === 'string' ? entity.description : undefined
   // TITANIC: the intro paragraph becomes the top-right hint; the REMAINING
   // content blocks (the options list) render in the body.
-  const titanicContent =
-    isTitanicMeta && 'content' in entity
-      ? (entity.content as SURefObjectContentBlock[] | undefined)
-      : undefined
+  const titanicContent = isTitanicMeta && 'content' in entity ? entity.content : undefined
   const titanicIntro = titanicContent?.[0]
   const titanicIntroIsParagraph = titanicIntro?.type === 'paragraph'
   const titanicHintText =
@@ -1094,7 +1089,7 @@ function ReferenceEntityCardInner({
       : []
   const patternList: SURefObjectPattern[] =
     !isPattern && !isCatalog && 'patterns' in entity && Array.isArray(entity.patterns)
-      ? (entity.patterns as SURefObjectPattern[])
+      ? entity.patterns
       : []
   // Artwork is shown on full + nested cards (CardImage handles the compact size).
   const showImage = !!assetUrl
@@ -1110,7 +1105,7 @@ function ReferenceEntityCardInner({
       block.value === damagedEffect
     )
       return false
-    if (isGrantContext && (block as { lead?: boolean }).lead === true) return false
+    if (isGrantContext && block.lead === true) return false
     return true
   })
   // TITANIC actions always get their own full-width row (never the masonry).
@@ -1141,9 +1136,7 @@ function ReferenceEntityCardInner({
   // content is empty) are both preserved.
   const isSelfAction = foldSingleAction && foldedAction?.name === entityName
   const blockPlainText = (b: SURefObjectContentBlock): string =>
-    b && b.type !== 'choice' && typeof (b as { value?: unknown }).value === 'string'
-      ? String((b as { value: string }).value)
-      : ''
+    b && b.type !== 'choice' && typeof b.value === 'string' ? b.value : ''
   const entityBodyBlocks = (bodyContent ?? []).filter((b) => b?.type !== 'datavalues')
   const selfActionBlocks =
     isSelfAction && foldedActionContent
@@ -1156,7 +1149,7 @@ function ReferenceEntityCardInner({
         return t.length === 0 || !selfActionText.includes(t.slice(0, 40))
       })
     : entityBodyBlocks
-  const bodyBlocks = [...dedupedEntityBlocks, ...selfActionBlocks] as SURefObjectContentBlock[]
+  const bodyBlocks: SURefObjectContentBlock[] = [...dedupedEntityBlocks, ...selfActionBlocks]
   const showBody =
     isPattern || isTitanicMeta ? bodyBlocks.length > 0 : !isGrantingAbility && bodyBlocks.length > 0
 
@@ -1174,9 +1167,7 @@ function ReferenceEntityCardInner({
   // + the "+N" deltas. Damage rides HORIZONTAL (as everywhere), other stats are
   // vertical value boxes. Built here so the interleave walk can anchor it.
   const bonusPerTechLevel =
-    'bonusPerTechLevel' in entity && entity.bonusPerTechLevel
-      ? (entity.bonusPerTechLevel as SURefObjectBonusPerTechLevel)
-      : undefined
+    'bonusPerTechLevel' in entity && entity.bonusPerTechLevel ? entity.bonusPerTechLevel : undefined
   const bonusCellList: BonusCell[] = [
     ...(bonusPerTechLevel ? bonusCells(bonusPerTechLevel) : []),
     ...dataValueBonuses,

@@ -43,8 +43,10 @@ function readAll(): PublishedSnapshot[] {
       (row): row is PublishedSnapshot =>
         typeof row === 'object' &&
         row !== null &&
-        typeof (row as PublishedSnapshot).id === 'string' &&
-        typeof (row as PublishedSnapshot).entityId === 'string'
+        'id' in row &&
+        typeof row.id === 'string' &&
+        'entityId' in row &&
+        typeof row.entityId === 'string'
     )
   } catch {
     return []

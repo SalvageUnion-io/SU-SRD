@@ -41,7 +41,7 @@ type RefOption = { value: string; label: string }
 /** All classes, id-valued — deliberately unfiltered (incl. specialisations). */
 function classOptions(): RefOption[] {
   try {
-    const all = SalvageUnionReference.Classes.all() as ReadonlyArray<{ id: string; name: string }>
+    const all = SalvageUnionReference.Classes.all()
     return all.map((c) => ({ value: c.id, label: c.name }))
   } catch {
     return []

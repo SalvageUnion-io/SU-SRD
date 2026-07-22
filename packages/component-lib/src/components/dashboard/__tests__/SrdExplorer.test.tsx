@@ -20,6 +20,18 @@ beforeAll(async () => {
 // the body-scoped role queries below must not see a prior test's leftover DOM.
 afterEach(cleanup)
 
+/** Narrow a found element to a real `<button>`, failing loudly otherwise. */
+function mustButton(el: Element | null | undefined): HTMLButtonElement {
+  if (!(el instanceof HTMLButtonElement)) throw new Error('expected a <button> element')
+  return el
+}
+
+/** Narrow a found element to a real `<input>`, failing loudly otherwise. */
+function mustInput(el: Element | null): HTMLInputElement {
+  if (!(el instanceof HTMLInputElement)) throw new Error('expected an <input> element')
+  return el
+}
+
 function renderSrd() {
   return render(
     <EntityHrefProvider value={() => undefined}>
@@ -49,9 +61,11 @@ describe('SrdExplorer', () => {
 
   test('picking a tile lists that category with rows', () => {
     const { container, getAllByRole } = renderSrd()
-    const chassisTile = getAllByRole('button').find(
-      (b) => b.querySelector('.pc-srd-tile-label')?.textContent === 'Chassis'
-    ) as HTMLButtonElement
+    const chassisTile = mustButton(
+      getAllByRole('button').find(
+        (b) => b.querySelector('.pc-srd-tile-label')?.textContent === 'Chassis'
+      )
+    )
     fireEvent.click(chassisTile)
     // Now in the category listing.
     expect(container.querySelector('.pc-srd-crumb-title')?.textContent).toContain('Chassis')
@@ -60,19 +74,21 @@ describe('SrdExplorer', () => {
 
   test('picking a row drills into a reference card, back returns to the list', () => {
     const { container } = renderSrd()
-    const chassisTile = [...container.querySelectorAll('.pc-srd-tile')].find(
-      (b) => b.querySelector('.pc-srd-tile-label')?.textContent === 'Chassis'
-    ) as HTMLButtonElement
+    const chassisTile = mustButton(
+      [...container.querySelectorAll('.pc-srd-tile')].find(
+        (b) => b.querySelector('.pc-srd-tile-label')?.textContent === 'Chassis'
+      )
+    )
     fireEvent.click(chassisTile)
-    const firstRow = container.querySelector('.pc-srd-row') as HTMLButtonElement
+    const firstRow = mustButton(container.querySelector('.pc-srd-row'))
     fireEvent.click(firstRow)
     // The reference card renders; no longer a listing.
     expect(container.querySelector('.pc-srd-entity')).toBeTruthy()
     expect(container.querySelector('.pc-srd-rows')).toBeNull()
     // Back returns to the Chassis listing.
-    const back = [...container.querySelectorAll('button')].find((b) =>
-      b.textContent?.startsWith('◀')
-    ) as HTMLButtonElement
+    const back = mustButton(
+      [...container.querySelectorAll('button')].find((b) => b.textContent?.startsWith('◀'))
+    )
     fireEvent.click(back)
     expect(container.querySelector('.pc-srd-crumb-title')?.textContent).toContain('Chassis')
     expect(container.querySelectorAll('.pc-srd-row').length).toBeGreaterThan(0)
@@ -80,13 +96,13 @@ describe('SrdExplorer', () => {
 
   test('category back affordance returns to the tiles home', () => {
     const { container } = renderSrd()
-    const tile = container.querySelector('.pc-srd-tile') as HTMLButtonElement
+    const tile = mustButton(container.querySelector('.pc-srd-tile'))
     fireEvent.click(tile)
     expect(container.querySelector('.pc-srd-rows')).toBeTruthy()
     fireEvent.click(
-      [...container.querySelectorAll('button')].find((b) =>
-        b.textContent?.startsWith('◀')
-      ) as HTMLButtonElement
+      mustButton(
+        [...container.querySelectorAll('button')].find((b) => b.textContent?.startsWith('◀'))
+      )
     )
     // Back at the tiles home.
     expect(container.querySelectorAll('.pc-srd-tile').length).toBe(8)
@@ -94,13 +110,13 @@ describe('SrdExplorer', () => {
 
   test('search surfaces results and picking an entity drills in', async () => {
     const { container } = renderSrd()
-    const input = container.querySelector('input[role="combobox"]') as HTMLInputElement
+    const input = mustInput(container.querySelector('input[role="combobox"]'))
     // A broad query that matches entities.
     fireEvent.change(input, { target: { value: 'iron' } })
     const result = await waitFor(() => {
       const el = container.querySelector('.pc-srd-result')
       if (!el) throw new Error('no results yet')
-      return el as HTMLButtonElement
+      return mustButton(el)
     })
     fireEvent.click(result)
     // Either a category (schema hit) or an entity card — a schema hit lists,

@@ -20,7 +20,6 @@
  */
 
 import { useState } from 'react'
-import type { SURefClass } from 'salvageunion-reference'
 import { Button } from 'component-lib'
 
 import { resolveClassName } from '../../lib/classRef'
@@ -126,7 +125,7 @@ export function PilotIdentityPanel({
     ? selectableClasses(undefined, true)
     : { base: [], specialisations: [] }
   const allClasses = [...base, ...specialisations]
-  const selectedClass = allClasses.find((c) => c.id === pendingClass) as SURefClass | undefined
+  const selectedClass = allClasses.find((c) => c.id === pendingClass)
 
   const canEdit = patch !== undefined
   const isEditing = editing && canEdit

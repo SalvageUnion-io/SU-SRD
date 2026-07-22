@@ -27,9 +27,6 @@ import { useSearchCombobox } from '../shared/useSearchCombobox'
 
 const HIDE_CHOICES = { choices: true } as const
 
-/** A drillable SRD row — every entity carries an id + name. */
-type SrdRow = { id: string; name: string }
-
 type SrdCategory = {
   /** Stable key (matches the ORM `schemaName` so search-schema hits map here). */
   schemaName: string
@@ -51,57 +48,57 @@ const SRD_CATEGORIES: readonly SrdCategory[] = [
     schemaName: 'chassis',
     label: 'Chassis',
     stamp: 'CHS',
-    all: () => SalvageUnionReference.Chassis.all() as unknown as SURefEntity[],
+    all: () => SalvageUnionReference.Chassis.all(),
   },
   {
     schemaName: 'systems',
     label: 'Systems',
     stamp: 'SYS',
-    all: () => SalvageUnionReference.Systems.all() as unknown as SURefEntity[],
+    all: () => SalvageUnionReference.Systems.all(),
   },
   {
     schemaName: 'modules',
     label: 'Modules',
     stamp: 'MOD',
-    all: () => SalvageUnionReference.Modules.all() as unknown as SURefEntity[],
+    all: () => SalvageUnionReference.Modules.all(),
   },
   {
     schemaName: 'abilities',
     label: 'Pilot Abilities',
     stamp: 'ABL',
-    all: () => SalvageUnionReference.Abilities.all() as unknown as SURefEntity[],
+    all: () => SalvageUnionReference.Abilities.all(),
   },
   {
     schemaName: 'equipment',
     label: 'Equipment',
     stamp: 'EQP',
-    all: () => SalvageUnionReference.Equipment.all() as unknown as SURefEntity[],
+    all: () => SalvageUnionReference.Equipment.all(),
   },
   {
     schemaName: 'npcs',
     label: 'NPCs',
     stamp: 'NPC',
-    all: () => SalvageUnionReference.NPCs.all() as unknown as SURefEntity[],
+    all: () => SalvageUnionReference.NPCs.all(),
   },
   {
     schemaName: 'crawler-bays',
     label: 'Crawler Bays',
     stamp: 'BAY',
-    all: () => SalvageUnionReference.CrawlerBays.all() as unknown as SURefEntity[],
+    all: () => SalvageUnionReference.CrawlerBays.all(),
   },
   {
     schemaName: 'roll-tables',
     label: 'Roll Tables',
     stamp: 'TBL',
-    all: () => SalvageUnionReference.RollTables.all() as unknown as SURefEntity[],
+    all: () => SalvageUnionReference.RollTables.all(),
   },
 ] as const
 
 /** Sort rows by name for a predictable listing. */
 function sortRows(entities: SURefEntity[]): SURefEntity[] {
   return [...entities].sort((a, b) => {
-    const an = (a as SrdRow).name ?? ''
-    const bn = (b as SrdRow).name ?? ''
+    const an = a.name ?? ''
+    const bn = b.name ?? ''
     return an.localeCompare(bn)
   })
 }
@@ -224,7 +221,7 @@ function SrdCategoryList({
       ) : (
         <ul className="pc-srd-rows">
           {rows.map((entity) => {
-            const row = entity as SrdRow
+            const row = entity
             return (
               <li key={row.id}>
                 <button type="button" className="pc-srd-row" onClick={() => onPickEntity(entity)}>

@@ -6,11 +6,13 @@
  * ships to the browser as a small static JSON asset instead of the full
  * ~1.3 MB reference corpus.
  */
+import type { SURefEnumSchemaName } from 'salvageunion-reference'
+
 export type CompactSearchEntry = {
   id: string
   name: string
   slug: string
-  schemaName: string
+  schemaName: SURefEnumSchemaName
   schemaTitle: string
   /** Lowercased, concatenated searchable text (name + description/effect/
    *  goals/assets/weaknesses/content + resolved action content). */

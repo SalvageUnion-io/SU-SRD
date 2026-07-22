@@ -182,11 +182,9 @@ describe('ShareSnapshotScreen — publish flow', () => {
 
     await waitFor(() => {
       expect(
-        (
-          screen.getByRole('button', {
-            name: /publish snapshot/i,
-          }) as HTMLButtonElement
-        ).disabled
+        screen.getByRole<HTMLButtonElement>('button', {
+          name: /publish snapshot/i,
+        }).disabled
       ).toBe(false)
     })
 
@@ -202,7 +200,7 @@ describe('ShareSnapshotScreen — publish flow', () => {
     expect((payload.entity as Pilot).id).toBe('pilot-1')
 
     await waitFor(() => {
-      const input = screen.getByLabelText('Share URL') as HTMLInputElement
+      const input = screen.getByLabelText<HTMLInputElement>('Share URL')
       expect(input.value).toContain('/s/abc123')
     })
   })
@@ -223,18 +221,16 @@ describe('ShareSnapshotScreen — publish flow', () => {
       />
     )
 
-    const copyBtn = screen.getByRole('button', {
+    const copyBtn = screen.getByRole<HTMLButtonElement>('button', {
       name: /copy share url/i,
-    }) as HTMLButtonElement
+    })
     expect(copyBtn.disabled).toBe(true)
 
     await waitFor(() => {
       expect(
-        (
-          screen.getByRole('button', {
-            name: /publish snapshot/i,
-          }) as HTMLButtonElement
-        ).disabled
+        screen.getByRole<HTMLButtonElement>('button', {
+          name: /publish snapshot/i,
+        }).disabled
       ).toBe(false)
     })
     await act(async () => {
@@ -267,11 +263,9 @@ describe('ShareSnapshotScreen — publish flow', () => {
 
     await waitFor(() => {
       expect(
-        (
-          screen.getByRole('button', {
-            name: /publish snapshot/i,
-          }) as HTMLButtonElement
-        ).disabled
+        screen.getByRole<HTMLButtonElement>('button', {
+          name: /publish snapshot/i,
+        }).disabled
       ).toBe(false)
     })
     await act(async () => {
@@ -304,7 +298,7 @@ describe('ShareSnapshotScreen — revoke / un-publish', () => {
 
     await waitFor(() => {
       expect(
-        (screen.getByRole('button', { name: /publish snapshot/i }) as HTMLButtonElement).disabled
+        screen.getByRole<HTMLButtonElement>('button', { name: /publish snapshot/i }).disabled
       ).toBe(false)
     })
     await act(async () => {
@@ -331,7 +325,7 @@ describe('ShareSnapshotScreen — revoke / un-publish', () => {
 
     await waitFor(() => {
       expect(
-        (screen.getByRole('button', { name: /publish snapshot/i }) as HTMLButtonElement).disabled
+        screen.getByRole<HTMLButtonElement>('button', { name: /publish snapshot/i }).disabled
       ).toBe(false)
     })
     await act(async () => {
@@ -390,9 +384,9 @@ describe('ShareSnapshotScreen — backend feature-detect (S6)', () => {
         publishFn={makePublishFn({ id: 'a', url: '/api/snapshots/a' })}
       />
     )
-    const btn = screen.getByRole('button', {
+    const btn = screen.getByRole<HTMLButtonElement>('button', {
       name: /publish snapshot/i,
-    }) as HTMLButtonElement
+    })
     expect(btn.disabled).toBe(true)
   })
 

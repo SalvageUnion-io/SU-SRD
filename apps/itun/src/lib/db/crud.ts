@@ -152,7 +152,7 @@ export function makeStore<T extends EntityBase>(
     const existing = salvageRead(raw, `id="${id}"`) ?? (raw as Record<string, unknown>)
     const now = new Date().toISOString()
     const candidate: Record<string, unknown> = {
-      ...(existing as Record<string, unknown>),
+      ...existing,
       ...patch,
       id, // id is immutable
     }

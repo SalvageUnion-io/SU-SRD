@@ -75,8 +75,13 @@ export function buildCatalogCategories({
 }: BuildCatalogCategoriesOptions): CatalogSection[] {
   return catalogCategories.map((cat) => {
     if (cat.flat) {
-      // biome-ignore lint/style/noNonNullAssertion: flat catalog categories are static config that always lists exactly one schema
-      const schemaName = cat.schemas[0]! as SURefEnumSchemaName
+      // Flat catalog categories are static config that always lists exactly
+      // one schema; guard instead of asserting so malformed config renders
+      // an empty section rather than crashing the build.
+      const schemaName = cat.schemas[0] as SURefEnumSchemaName | undefined
+      if (!schemaName) {
+        return { label: cat.name.toUpperCase(), schemas: [] }
+      }
       const items = findAllIn(schemaName, () => true)
       return {
         label: cat.name.toUpperCase(),
@@ -84,12 +89,13 @@ export function buildCatalogCategories({
           const display = getReferenceEntityData(item as SURefEntity)
           const rawName = item.name
           const labelText = catalogNameOverrides[rawName] ?? rawName
+          const guideColor = typeof item.guideColor === 'string' ? item.guideColor : undefined
           return {
             id: item.id,
             href: `/schema/${schemaName}/item/${display.slug}/`,
             displayName: rawName,
             label: labelText,
-            catalogBg: (item as { guideColor?: string }).guideColor || getCatalogBg(schemaName),
+            catalogBg: guideColor || getCatalogBg(schemaName),
           }
         }),
       }

@@ -1,4 +1,4 @@
-import type { SURefClass, SURefEntity } from 'salvageunion-reference'
+import type { SURefClass } from 'salvageunion-reference'
 import { EmptyState } from '../chrome/EmptyState'
 import { Slab } from '../chrome/Slab'
 import { ClassAbilityTree } from '../referenceEntity/ClassAbilityTree'
@@ -29,7 +29,7 @@ function ClassOptionCard({
 }) {
   return (
     <ReferenceEntityCard
-      data={cls as unknown as SURefEntity}
+      data={cls}
       size="medium"
       extent="catalog"
       className="mb-2"
@@ -104,7 +104,7 @@ export function ClassDetail({ selectedClass }: ClassDetailProps) {
   }
   return (
     <ReferenceEntityCard
-      data={selectedClass as unknown as SURefEntity}
+      data={selectedClass}
       afterExtraContent={<ClassAbilityTree classEntity={selectedClass} />}
     />
   )

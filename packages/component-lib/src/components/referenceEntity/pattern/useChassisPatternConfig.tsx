@@ -47,7 +47,7 @@ export function useChassisPatternConfig(
 ): ChassisPatternConfig | null {
   const spacing = useMemo(() => getReferenceEntitySpacing(compact), [compact])
   const fontSize = useMemo(() => getReferenceEntityFontSizes(compact), [compact])
-  const chassisName = 'name' in data ? (data.name as string) : undefined
+  const chassisName = data.name
 
   // All hooks must be called unconditionally (before any early return)
   const overridePatternData = useMemo(
@@ -71,7 +71,7 @@ export function useChassisPatternConfig(
             const found = SalvageUnionReference.Systems.find((s) => s.name === sys.name)
             if (!found) return []
             const count = sys.count ?? 1
-            return Array(count).fill(found) as SURefEntity[]
+            return Array.from({ length: count }, () => found)
           })
         : [],
     [patternOverride]
@@ -84,7 +84,7 @@ export function useChassisPatternConfig(
             const found = SalvageUnionReference.Modules.find((m) => m.name === mod.name)
             if (!found) return []
             const count = mod.count ?? 1
-            return Array(count).fill(found) as SURefEntity[]
+            return Array.from({ length: count }, () => found)
           })
         : [],
     [patternOverride]

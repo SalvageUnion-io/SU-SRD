@@ -1,4 +1,4 @@
-import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
+import type { SURefCrawler } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
 import { Callout } from '../chrome/Callout'
 import { EmptyState } from '../chrome/EmptyState'
@@ -29,7 +29,7 @@ export function CrawlerTypeOptionList({
       {types.map((type) => (
         <ReferenceEntityCard
           key={type.id}
-          data={type as unknown as SURefEntity}
+          data={type}
           size="medium"
           extent="catalog"
           className="mb-2"
@@ -61,7 +61,7 @@ export function CrawlerTypeDetail({ selected }: CrawlerTypeDetailProps) {
       />
     )
   }
-  return <ReferenceEntityCard data={selected as unknown as SURefEntity} />
+  return <ReferenceEntityCard data={selected} />
 }
 
 type CrawlerTypeSelectStepProps = {
@@ -124,7 +124,7 @@ export function CrawlerTypeSelectStep({
         <>
           <Slab variant="solid" label="Your Crawler Type" count={selected.name} />
           <div className="max-w-3xl space-y-3">
-            <ReferenceEntityCard data={selected as unknown as SURefEntity} />
+            <ReferenceEntityCard data={selected} />
             {isAugmented && (
               <Callout label="Augmented Bonus" tone="crawler">
                 <span className="block font-body">

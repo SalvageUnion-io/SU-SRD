@@ -21,8 +21,8 @@ const MECH_ACCENT = 'var(--color-sheet-mech)'
 
 /** The outermost element — the framed card wrapper. */
 function frame(container: HTMLElement): HTMLElement {
-  const el = container.firstElementChild as HTMLElement | null
-  if (!el) throw new Error('callout rendered nothing')
+  const el = container.firstElementChild
+  if (!(el instanceof HTMLElement)) throw new Error('callout rendered nothing')
   return el
 }
 

@@ -96,8 +96,8 @@ const surveyorPattern = pick(
   'Little Sestra pattern'
 )
 
-const nameOf = (e: SURefEntity): string => String((e as { name?: unknown }).name ?? '')
-const idOf = (e: SURefEntity): string => String((e as { id?: unknown }).id ?? nameOf(e))
+const nameOf = (e: SURefEntity): string => e.name
+const idOf = (e: SURefEntity): string => e.id
 
 /** One entity rendered as the canonical card. */
 function One({ entity }: { entity: SURefEntity }): ReactNode {
@@ -433,8 +433,8 @@ export const InlineChoices: Story = () => {
 const hasChoices = (e: SURefEntity): boolean => (getChoices(e) ?? []).length > 0
 
 const isSelfActionMulti = (e: SURefEntity): boolean => {
-  const actions = (e as { actions?: unknown }).actions
-  const name = (e as { name?: unknown }).name
+  const actions = 'actions' in e ? e.actions : undefined
+  const name = e.name
   return (
     Array.isArray(actions) &&
     actions.length > 1 &&
@@ -470,7 +470,7 @@ export const ChoiceEntities: Story = () => {
     ...SalvageUnionReference.Equipment.all(),
     ...SalvageUnionReference.Drones.all(),
     ...SalvageUnionReference.CrawlerBays.all(),
-  ].filter((e) => hasChoices(e as SURefEntity)) as SURefEntity[]
+  ].filter((e) => hasChoices(e))
   return (
     <div className="flex flex-col gap-6 p-4">
       <p className="max-w-prose font-body text-xs text-ink-2">
@@ -493,7 +493,7 @@ export const CollapseEntities: Story = () => {
     ...SalvageUnionReference.Modules.all(),
     ...SalvageUnionReference.Abilities.all(),
     ...SalvageUnionReference.Equipment.all(),
-  ].filter((e) => isSelfActionMulti(e as SURefEntity)) as SURefEntity[]
+  ].filter((e) => isSelfActionMulti(e))
   return (
     <div className="flex flex-col gap-4 p-4">
       <p className="max-w-prose font-body text-xs text-ink-2">

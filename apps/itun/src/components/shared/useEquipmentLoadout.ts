@@ -23,7 +23,6 @@ import { useCallback } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 
 import { useEntityStore } from '../../stores/entityStore'
-import type { Pilot } from '../../lib/schemas/pilot'
 import type { ItemCondition } from '../../lib/schemas/mech'
 
 /** One equipment instance's installed loadout + per-item condition/uses. */
@@ -70,7 +69,7 @@ export function useEquipmentLoadout(
 
   /** Freshest entry for this equipment slug, read from the store at call time. */
   const current = useCallback((): EquipmentLoadout => {
-    const fresh = storeState.get('pilot', pilotId) as Pilot | undefined
+    const fresh = storeState.get('pilot', pilotId)
     const entry = fresh?.equipmentLoadouts?.[slug]
     return {
       systems: entry?.systems ?? [],
@@ -84,7 +83,7 @@ export function useEquipmentLoadout(
   /** Merge this slug's next entry into the freshest pilot record. */
   const write = useCallback(
     (next: EquipmentLoadout) => {
-      const fresh = storeState.get('pilot', pilotId) as Pilot | undefined
+      const fresh = storeState.get('pilot', pilotId)
       const prevAll = fresh?.equipmentLoadouts ?? {}
       void storeState.update('pilot', pilotId, {
         equipmentLoadouts: { ...prevAll, [slug]: next },

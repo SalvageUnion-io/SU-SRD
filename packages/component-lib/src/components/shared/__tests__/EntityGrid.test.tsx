@@ -31,6 +31,12 @@ function StubCard({ footMeta }: StubCardProps) {
   )
 }
 
+function rootEl(container: Element): HTMLElement {
+  const el = container.firstElementChild
+  if (!(el instanceof HTMLElement)) throw new Error('expected an HTMLElement root')
+  return el
+}
+
 describe('EntityGridRow — mode card (default)', () => {
   afterEach(cleanup)
 
@@ -54,7 +60,7 @@ describe('EntityGridRow — mode card (default)', () => {
         </EntityGridRow>
       </EntityGrid>
     )
-    const grid = container.firstElementChild as HTMLElement
+    const grid = rootEl(container)
     expect(grid.className).toContain('grid-cols-1')
     expect(grid.className).toContain('md:grid-cols-2')
   })

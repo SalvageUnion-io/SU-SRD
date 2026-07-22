@@ -31,7 +31,17 @@ import {
   nameToSlug,
   replaceChassisPlaceholder,
 } from 'salvageunion-reference'
-import type { SURefEntity, SURefEnumSchemaName, SURefMetaAction } from 'salvageunion-reference'
+import type {
+  SURefChassis,
+  SURefEntity,
+  SURefEnumSchemaName,
+  SURefMetaAction,
+  SURefObjectContent,
+  SURefObjectDataValue,
+  SURefObjectTable,
+  SURefObjectTableContent,
+  SURefObjectTrait,
+} from 'salvageunion-reference'
 
 import { truncate } from './format.js'
 
@@ -58,8 +68,6 @@ export type LookupEmbed = {
   fields: { name: string; value: string; inline?: boolean }[]
   footer: string
 }
-
-type AnyRecord = Record<string, unknown>
 
 /**
  * Escape the chars that would break a markdown link label.
@@ -106,16 +114,7 @@ function linkifyTraitRefs(text: string): string {
   })
 }
 
-type ContentBlock = {
-  type?: string
-  value?: unknown
-  label?: string
-  items?: { type?: string; value?: unknown; label?: string }[]
-}
-
-type DataValue = { label: string | number; value?: string | number; unit?: string }
-
-function renderDataValues(values: DataValue[]): string {
+function renderDataValues(values: SURefObjectDataValue[]): string {
   return values
     .map((dv) =>
       dv.value !== undefined && dv.value !== ''
@@ -126,13 +125,13 @@ function renderDataValues(values: DataValue[]): string {
 }
 
 /** Flatten structured content blocks into Discord-flavored markdown. */
-function flattenContent(blocks: ContentBlock[] | undefined, chassisName?: string): string {
+function flattenContent(blocks: SURefObjectContent | undefined, chassisName?: string): string {
   if (!Array.isArray(blocks)) return ''
   const sections: string[] = []
   for (const block of blocks) {
     const type = block.type ?? 'paragraph'
     if (Array.isArray(block.value)) {
-      const dv = renderDataValues(block.value as DataValue[])
+      const dv = renderDataValues(block.value)
       if (dv) sections.push(dv)
       continue
     }
@@ -183,36 +182,31 @@ function flattenContent(blocks: ContentBlock[] | undefined, chassisName?: string
   return sections.join('\n\n')
 }
 
-type Trait = { type?: string; amount?: number }
-type Damage = { amount?: number; damageType?: string }
-
 /** Traits an action carries, each linked to its glossary page. */
-function renderTraits(traits: unknown): string {
+function renderTraits(traits: SURefObjectTrait[] | undefined): string {
   if (!Array.isArray(traits)) return ''
-  const parts = (traits as Trait[])
-    .filter((t) => typeof t.type === 'string')
-    .map((t) => {
-      const link = entityLink('traits', t.type as string)
-      return typeof t.amount === 'number' ? `${link} ${t.amount}` : link
-    })
+  const parts = traits.map((t) => {
+    const link = entityLink('traits', t.type)
+    return typeof t.amount === 'number' ? `${link} ${t.amount}` : link
+  })
   return parts.join(', ')
 }
 
 /** One-line stat summary for an action (range / damage / cost / type). */
-function actionStatLine(action: AnyRecord): string {
+function actionStatLine(action: SURefMetaAction): string {
   const parts: string[] = []
-  if (Array.isArray(action.range) && action.range.length) {
-    parts.push(`**Range:** ${(action.range as string[]).join('/')}`)
+  if (action.range?.length) {
+    parts.push(`**Range:** ${action.range.join('/')}`)
   }
-  const dmg = action.damage as Damage | undefined
+  const dmg = action.damage
   if (dmg && typeof dmg.amount === 'number') {
     parts.push(`**Damage:** ${dmg.amount}${dmg.damageType ? ` ${dmg.damageType}` : ''}`)
   }
   if (typeof action.activationCost === 'number') {
-    const cur = typeof action.activationCurrency === 'string' ? ` ${action.activationCurrency}` : ''
+    const cur = action.activationCurrency ? ` ${action.activationCurrency}` : ''
     parts.push(`**Cost:** ${action.activationCost}${cur}`)
   }
-  if (typeof action.actionType === 'string' && action.actionType !== 'Passive') {
+  if (action.actionType && action.actionType !== 'Passive') {
     parts.push(`**${action.actionType}**`)
   }
   return parts.join(' • ')
@@ -221,57 +215,51 @@ function actionStatLine(action: AnyRecord): string {
 /** Render one resolved action to a markdown chunk. `ownName` suppresses a
  *  redundant title when the action shares the entity's name. */
 function renderAction(action: SURefMetaAction, ownName: string, chassisName?: string): string {
-  const a = action as unknown as AnyRecord
-  const title = (a.displayName as string) || (a.name as string) || ''
+  const title = action.displayName || action.name
   const lines: string[] = []
   if (title && title !== ownName) lines.push(`__${escapeLabel(title)}__`)
 
-  const stat = actionStatLine(a)
+  const stat = actionStatLine(action)
   if (stat) lines.push(stat)
 
-  const body = flattenContent(a.content as ContentBlock[] | undefined, chassisName)
+  const body = flattenContent(action.content, chassisName)
   if (body) lines.push(body)
 
-  const traits = renderTraits(a.traits)
+  const traits = renderTraits(action.traits)
   if (traits) lines.push(`**Traits:** ${traits}`)
 
-  if (typeof a.tableName === 'string' && a.tableName) {
-    lines.push(`**Rolls on:** ${entityLink('roll-tables', a.tableName as string)}`)
+  if (action.tableName) {
+    lines.push(`**Rolls on:** ${entityLink('roll-tables', action.tableName)}`)
   }
-  if (typeof a.drone === 'string' && a.drone) {
-    lines.push(`**Deploys:** ${entityLink('drones', a.drone as string)}`)
+  if (action.drone) {
+    lines.push(`**Deploys:** ${entityLink('drones', action.drone)}`)
   }
-  const choices = a.choices
-  if (Array.isArray(choices)) {
-    for (const c of choices as AnyRecord[]) {
-      const cname = typeof c.name === 'string' ? c.name : 'Choice'
-      const cbody = flattenContent(c.content as ContentBlock[] | undefined, chassisName)
-      const table =
-        typeof c.rollTable === 'string' && c.rollTable
-          ? ` (${entityLink('roll-tables', c.rollTable as string)})`
-          : ''
-      lines.push(`**Choice — ${escapeLabel(cname)}:**${table}${cbody ? ` ${cbody}` : ''}`)
-    }
+  for (const c of action.choices ?? []) {
+    const cbody = flattenContent(c.content, chassisName)
+    const table = c.rollTable ? ` (${entityLink('roll-tables', c.rollTable)})` : ''
+    lines.push(`**Choice — ${escapeLabel(c.name)}:**${table}${cbody ? ` ${cbody}` : ''}`)
   }
   return lines.join('\n')
 }
 
-function statFields(entity: AnyRecord): LookupEmbed['fields'] {
+function statFields(entity: SURefEntity): LookupEmbed['fields'] {
   const fields: LookupEmbed['fields'] = []
   const push = (name: string, value: unknown) => {
     if (value !== undefined && value !== null && value !== '') {
       fields.push({ name, value: String(value), inline: true })
     }
   }
-  const tl = getTechLevel(entity as unknown as SURefEntity)
-  push('Tech Level', tl)
-  push('Salvage Value', getSalvageValue(entity as unknown as SURefEntity))
-  push('Slots', getSlotsRequired(entity as unknown as SURefEntity))
+  push('Tech Level', getTechLevel(entity))
+  push('Salvage Value', getSalvageValue(entity))
+  push('Slots', getSlotsRequired(entity))
   return fields
 }
 
 /** Chassis-specific stat grid + patterns (a genuine structural special case). */
-function chassisSections(entity: AnyRecord): { fields: LookupEmbed['fields']; patterns: string } {
+function chassisSections(entity: SURefChassis): {
+  fields: LookupEmbed['fields']
+  patterns: string
+} {
   const fields: LookupEmbed['fields'] = []
   const push = (name: string, value: unknown) => {
     if (typeof value === 'number') fields.push({ name, value: String(value), inline: true })
@@ -284,23 +272,21 @@ function chassisSections(entity: AnyRecord): { fields: LookupEmbed['fields']; pa
   push('Module Slots', entity.moduleSlots)
 
   let patterns = ''
-  if (Array.isArray(entity.patterns) && entity.patterns.length) {
-    const rows = (entity.patterns as AnyRecord[]).map((p) => {
-      const name = typeof p.name === 'string' ? escapeLabel(p.name) : 'Pattern'
-      const systems = Array.isArray(p.systems) ? (p.systems as AnyRecord[]).length : 0
-      const modules = Array.isArray(p.modules) ? (p.modules as AnyRecord[]).length : 0
+  if (entity.patterns.length) {
+    const rows = entity.patterns.map((p) => {
+      const name = escapeLabel(p.name)
       const legal = p.legalStarting ? ' ✅' : ''
-      return `• **${name}**${legal} — ${systems} systems, ${modules} modules`
+      return `• **${name}**${legal} — ${p.systems.length} systems, ${p.modules.length} modules`
     })
     patterns = `**Patterns**\n${rows.join('\n')}`
   }
   return { fields, patterns }
 }
 
-function footerFor(entity: AnyRecord): string {
+function footerFor(entity: SURefEntity): string {
   const parts: string[] = []
   if (typeof entity.source === 'string') parts.push(entity.source)
-  const page = getPageReference(entity as unknown as SURefEntity)
+  const page = getPageReference(entity)
   if (typeof page === 'number') parts.push(`p.${page}`)
   parts.push('Salvage Union Reference')
   return truncate(parts.join(' · '), LIMIT.footer)
@@ -346,24 +332,14 @@ function enforce(embed: LookupEmbed): LookupEmbed {
   return embed
 }
 
-type TableEntry = { label?: string; value?: string }
-
 /** The first number in a roll key ("11-19" → 11, "20" → 20). */
 function rollKeyStart(key: string): number {
   const n = Number.parseInt(key.split('-')[0]?.trim() ?? '', 10)
   return Number.isNaN(n) ? 0 : n
 }
 
-/** A table's roll keys (excluding the `type` discriminant), high roll first to
- *  match the web's RollTable ordering. */
-function tableRollKeys(table: AnyRecord): string[] {
-  return Object.keys(table)
-    .filter((key) => key !== 'type')
-    .sort((a, b) => rollKeyStart(b) - rollKeyStart(a))
-}
-
 /** One row of a d20 table: `` `key` **label** — value ``, trait refs linked. */
-function renderTableRow(key: string, entry: TableEntry): string {
+function renderTableRow(key: string, entry: SURefObjectTableContent): string {
   const label = entry.label ? `**${escapeLabel(entry.label)}** — ` : ''
   return `\`${key}\` ${label}${linkifyTraitRefs(entry.value ?? '')}`.trimEnd()
 }
@@ -376,7 +352,7 @@ function renderTableRow(key: string, entry: TableEntry): string {
  * bucket becomes its own field.
  */
 function rollTableSections(
-  table: AnyRecord,
+  table: SURefObjectTable,
   name: string,
   sections: string[],
   fields: LookupEmbed['fields']
@@ -384,21 +360,24 @@ function rollTableSections(
   const hint = `Roll it with \`/su roll table: ${name}\`.`
   if (table.type === 'columns') {
     sections.push(`${hint} Two rolls: first the column, then the entry (1-20).`)
-    for (const columnKey of Object.keys(table).filter((key) => key !== 'type')) {
-      const column = table[columnKey] as AnyRecord
-      const entries = Object.keys(column)
-        .sort((a, b) => rollKeyStart(a) - rollKeyStart(b))
-        .map((entryKey) => {
-          const entry = column[entryKey] as TableEntry
-          return `${entryKey}. ${linkifyTraitRefs(entry?.value ?? '')}`
-        })
+    for (const [columnKey, column] of Object.entries(table)) {
+      // `typeof column === 'string'` skips the `type` discriminant, leaving
+      // only the column buckets (each a 1-20 map of table entries).
+      if (typeof column === 'string') continue
+      const entries = Object.entries(column)
+        .sort(([a], [b]) => rollKeyStart(a) - rollKeyStart(b))
+        .map(([entryKey, entry]) => `${entryKey}. ${linkifyTraitRefs(entry.value ?? '')}`)
       fields.push({ name: `Roll ${columnKey}`, value: entries.join('\n') || '—', inline: true })
     }
     return
   }
   // Lead with the roll hint so it survives description-shedding on huge tables.
   sections.push(hint)
-  const rows = tableRollKeys(table).map((key) => renderTableRow(key, table[key] as TableEntry))
+  const rows = Object.entries(table)
+    // High roll first, to match the web's RollTable ordering. The `type`
+    // discriminant is the only string value; the rest are table entries.
+    .sort(([a], [b]) => rollKeyStart(b) - rollKeyStart(a))
+    .flatMap(([key, entry]) => (typeof entry === 'string' ? [] : [renderTableRow(key, entry)]))
   if (rows.length) sections.push(rows.join('\n'))
 }
 
@@ -410,26 +389,25 @@ export function buildLookupEmbed(
   entity: SURefEntity & { schemaName?: SURefEnumSchemaName },
   schemaName: SURefEnumSchemaName
 ): LookupEmbed {
-  const e = entity as unknown as AnyRecord
-  const name = typeof e.name === 'string' ? (e.name as string) : entity.id
-  const displayType = (SchemaToDisplayName as Record<string, string>)[schemaName] ?? schemaName
+  const name = entity.name
+  const displayType = SchemaToDisplayName[schemaName] ?? schemaName
 
   const fields: LookupEmbed['fields'] = [{ name: 'Type', value: displayType, inline: true }]
   const sections: string[] = []
 
   // Lead description: an entity's own `description`, then its content blocks.
-  if (typeof e.description === 'string' && e.description) {
-    sections.push(linkifyTraitRefs(e.description as string))
+  if ('description' in entity && entity.description) {
+    sections.push(linkifyTraitRefs(entity.description))
   }
   // Chassis ability/flavor text carries [(CHASSIS)] placeholders — replace
   // with the chassis name, as the web does. Non-chassis entities have no
   // chassis context, so the token is left as-is (also matching the web).
   const chassisName = schemaName === 'chassis' ? name : undefined
-  const ownContent = flattenContent(e.content as ContentBlock[] | undefined, chassisName)
+  const ownContent = flattenContent(entity.content, chassisName)
   if (ownContent) sections.push(ownContent)
 
-  if (schemaName === 'chassis') {
-    const { fields: chassisFields, patterns } = chassisSections(e)
+  if (schemaName === 'chassis' && 'chassisAbilities' in entity) {
+    const { fields: chassisFields, patterns } = chassisSections(entity)
     const tl = getTechLevel(entity)
     if (tl !== undefined) fields.push({ name: 'Tech Level', value: String(tl), inline: true })
     const sv = getSalvageValue(entity)
@@ -439,13 +417,10 @@ export function buildLookupEmbed(
       sections.push(renderAction(ability, name, chassisName))
     }
     if (patterns) sections.push(patterns)
-  } else if (schemaName === 'roll-tables') {
-    const table = e.table
-    if (table && typeof table === 'object') {
-      rollTableSections(table as AnyRecord, name, sections, fields)
-    }
+  } else if (schemaName === 'roll-tables' && 'table' in entity) {
+    rollTableSections(entity.table, name, sections, fields)
   } else {
-    fields.push(...statFields(e))
+    fields.push(...statFields(entity))
     for (const action of extractVisibleActions(entity) ?? []) {
       sections.push(renderAction(action, name))
     }
@@ -457,6 +432,6 @@ export function buildLookupEmbed(
     color: NEUTRAL,
     description: sections.filter(Boolean).join('\n\n') || undefined,
     fields,
-    footer: footerFor(e),
+    footer: footerFor(entity),
   })
 }

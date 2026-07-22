@@ -66,11 +66,9 @@ function buildSearchIndex(): SearchIndexEntry[] {
     }
 
     for (const entity of data as SURefEntity[]) {
-      const entityWithSchema = {
+      const entityWithSchema: SURefEntity & { schemaName: SURefEnumSchemaName } = {
         ...entity,
         schemaName: schemaId,
-      } as SURefEntity & {
-        schemaName: SURefEnumSchemaName
       }
 
       const resolvedActions = extractActions(entity)
@@ -86,49 +84,51 @@ function buildSearchIndex(): SearchIndexEntry[] {
         : ''
 
       const nameText = entity.name.toLowerCase()
-      const entry: SearchIndexEntry = {
+      const descriptionText =
+        'description' in entity && typeof entity.description === 'string'
+          ? entity.description.toLowerCase()
+          : ''
+      const effectText =
+        'effect' in entity && typeof entity.effect === 'string' ? entity.effect.toLowerCase() : ''
+      const goalsText =
+        'goals' in entity && typeof entity.goals === 'string' ? entity.goals.toLowerCase() : ''
+      const assetsText =
+        'assets' in entity && typeof entity.assets === 'string' ? entity.assets.toLowerCase() : ''
+      const weaknessesText =
+        'weaknesses' in entity && typeof entity.weaknesses === 'string'
+          ? entity.weaknesses.toLowerCase()
+          : ''
+      const contentText =
+        'content' in entity && entity.content
+          ? extractContentText(entity.content).toLowerCase()
+          : ''
+
+      const fieldPairs: Array<readonly [string, string]> = [['name', nameText]]
+      if (descriptionText) fieldPairs.push(['description', descriptionText])
+      if (effectText) fieldPairs.push(['effect', effectText])
+      if (goalsText) fieldPairs.push(['goals', goalsText])
+      if (assetsText) fieldPairs.push(['assets', assetsText])
+      if (weaknessesText) fieldPairs.push(['weaknesses', weaknessesText])
+      if (contentText) fieldPairs.push(['content', contentText])
+      if (actionsText) fieldPairs.push(['actions.content', actionsText])
+
+      entries.push({
         schemaName: schemaId,
         schemaTitle: schema.title,
         entity: entityWithSchema,
         entityId: entity.id,
         entityName: entity.name,
         nameText,
-        descriptionText:
-          'description' in entity && typeof entity.description === 'string'
-            ? entity.description.toLowerCase()
-            : '',
-        effectText:
-          'effect' in entity && typeof entity.effect === 'string'
-            ? entity.effect.toLowerCase()
-            : '',
-        goalsText:
-          'goals' in entity && typeof entity.goals === 'string' ? entity.goals.toLowerCase() : '',
-        assetsText:
-          'assets' in entity && typeof entity.assets === 'string'
-            ? entity.assets.toLowerCase()
-            : '',
-        weaknessesText:
-          'weaknesses' in entity && typeof entity.weaknesses === 'string'
-            ? entity.weaknesses.toLowerCase()
-            : '',
-        contentText:
-          'content' in entity && entity.content
-            ? extractContentText(entity.content).toLowerCase()
-            : '',
+        descriptionText,
+        effectText,
+        goalsText,
+        assetsText,
+        weaknessesText,
+        contentText,
         actionsText,
-        fields: [],
+        fields: fieldPairs,
         nameWords: nameText.split(/[^a-z0-9]+/).filter(Boolean),
-      }
-      entries.push(entry)
-      const fieldPairs: Array<readonly [string, string]> = [['name', entry.nameText]]
-      if (entry.descriptionText) fieldPairs.push(['description', entry.descriptionText])
-      if (entry.effectText) fieldPairs.push(['effect', entry.effectText])
-      if (entry.goalsText) fieldPairs.push(['goals', entry.goalsText])
-      if (entry.assetsText) fieldPairs.push(['assets', entry.assetsText])
-      if (entry.weaknessesText) fieldPairs.push(['weaknesses', entry.weaknessesText])
-      if (entry.contentText) fieldPairs.push(['content', entry.contentText])
-      if (entry.actionsText) fieldPairs.push(['actions.content', entry.actionsText])
-      ;(entry as { fields: ReadonlyArray<readonly [string, string]> }).fields = fieldPairs
+      })
     }
   }
 
@@ -191,22 +191,21 @@ function extractContentText(content: unknown): string {
   }
 
   if (typeof content === 'object' && content !== null) {
-    const block = content as Record<string, unknown>
     let text = ''
 
     // Extract value field
-    if ('value' in block && typeof block.value === 'string') {
-      text += `${block.value} `
+    if ('value' in content && typeof content.value === 'string') {
+      text += `${content.value} `
     }
 
     // Extract label field
-    if ('label' in block && typeof block.label === 'string') {
-      text += `${block.label} `
+    if ('label' in content && typeof content.label === 'string') {
+      text += `${content.label} `
     }
 
     // Recursively extract from nested items
-    if ('items' in block && Array.isArray(block.items)) {
-      text += extractContentText(block.items)
+    if ('items' in content && Array.isArray(content.items)) {
+      text += extractContentText(content.items)
     }
 
     return text

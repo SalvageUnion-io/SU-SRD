@@ -367,14 +367,15 @@ export function Dial({ items, activeIndex, onActiveIndexChange, renderConfig }: 
     return { it, i, o, phase, h: heightAt(phase), w: widthAt(phase) }
   })
   const hByO = new Map(seats.map((s) => [s.o, s.h]))
-  const topByO = new Map<number, number>([[0, VIEW_TOP - frac * (TRACK_H + GAP)]])
+  const top0 = VIEW_TOP - frac * (TRACK_H + GAP)
+  const topByO = new Map<number, number>([[0, top0]])
   const maxO = Math.max(...seats.map((s) => s.o))
   const minO = Math.min(...seats.map((s) => s.o))
-  for (let o = 1, t = topByO.get(0) as number; o <= maxO; o++) {
+  for (let o = 1, t = top0; o <= maxO; o++) {
     t += (hByO.get(o - 1) as number) + GAP
     topByO.set(o, t)
   }
-  for (let o = -1, t = topByO.get(0) as number; o >= minO; o--) {
+  for (let o = -1, t = top0; o >= minO; o--) {
     t -= (hByO.get(o) as number) + GAP
     topByO.set(o, t)
   }

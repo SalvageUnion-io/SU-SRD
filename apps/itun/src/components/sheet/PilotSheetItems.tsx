@@ -7,7 +7,7 @@
 
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefAbility, SURefEntity } from 'salvageunion-reference'
+import type { SURefAbility } from 'salvageunion-reference'
 import {
   Button,
   Input,
@@ -17,7 +17,7 @@ import {
   Stat,
   StatusBadge,
 } from 'component-lib'
-import type { CardFootMeta, ChoiceSelections, EntityStatus } from 'component-lib'
+import type { CardFootMeta, ChoiceSelections } from 'component-lib'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry } from '../../lib/schemas/pilot'
@@ -46,7 +46,7 @@ const CONDITION_CYCLE: Record<ItemCondition, ItemCondition> = {
 
 // biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
 export function resolveAbility(slug: string): SURefAbility | null {
-  const all = SalvageUnionReference.Abilities.all() as ReadonlyArray<SURefAbility>
+  const all = SalvageUnionReference.Abilities.all()
   // Slug-tolerant (matchesRef): seeded pilots store kebab ability slugs.
   return all.find((a) => matchesRef(a, slug)) ?? null
 }
@@ -123,7 +123,7 @@ export function PilotAbilityItem({
 
   return (
     <ReferenceEntityCard
-      data={ability as unknown as SURefEntity}
+      data={ability}
       size="medium"
       label={ability.tree}
       hide={HIDE_CHOICES}
@@ -261,17 +261,17 @@ export function PilotEquipmentItem({
     controls.push(...cardRemoveControls({ name: equipment.name, onRemove }))
   }
 
-  const equipmentRecord = equipment as unknown as Record<string, unknown> & { name?: string }
+  const equipmentRecord: Record<string, unknown> & { name?: string } = equipment
 
   return (
     <>
       <ReferenceEntityCard
-        data={equipment as unknown as SURefEntity}
+        data={equipment}
         size="medium"
         selections={selections}
         onSelectionChange={readOnly ? undefined : setSelections}
         scalingParent={scalingParent}
-        status={condition as EntityStatus}
+        status={condition}
         onStatusClick={
           readOnly
             ? undefined

@@ -30,8 +30,13 @@ export class BaseModel<T> {
     this.data = data.map((item) => {
       const stamped = item as T & { schemaName: string }
       ;(stamped as Record<string, unknown>).schemaName = schemaName
-      if (typeof item === 'object' && item !== null && 'id' in item) {
-        this.idMap.set((item as Record<string, unknown>).id as string, stamped)
+      if (
+        typeof item === 'object' &&
+        item !== null &&
+        'id' in item &&
+        typeof item.id === 'string'
+      ) {
+        this.idMap.set(item.id, stamped)
       }
       return stamped
     })

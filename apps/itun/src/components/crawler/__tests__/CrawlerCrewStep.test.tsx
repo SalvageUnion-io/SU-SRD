@@ -51,7 +51,7 @@ function expandRow(name: string): void {
 /** Open a click-to-edit IdentityField and return its input. */
 function openField(editLabel: string): HTMLInputElement {
   fireEvent.click(screen.getByRole('button', { name: editLabel }))
-  return screen.getByRole('textbox', { name: editLabel }) as HTMLInputElement
+  return screen.getByRole<HTMLInputElement>('textbox', { name: editLabel })
 }
 
 describe('CrawlerCrewStep', () => {

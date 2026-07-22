@@ -201,11 +201,11 @@ export function PilotSheet({
   // which read-only snapshot renders never preload (the picker never opens there).
   const abilityTrees = useMemo(() => {
     if (picker !== 'abilities') return null
-    const cls = SalvageUnionReference.Classes.find(
-      (c) => (c as { id: string }).id === pilot.classRef
-    ) as ClassLike | undefined
+    const cls: ClassLike | undefined = SalvageUnionReference.Classes.find(
+      (c) => c.id === pilot.classRef
+    )
     if (!cls) return null
-    const selectedTrees = (SalvageUnionReference.Abilities.all() as ReadonlyArray<SURefAbility>)
+    const selectedTrees = SalvageUnionReference.Abilities.all()
       .filter((a) => pilot.abilities.includes(a.id))
       .map((a) => a.tree)
     return new Set(treesFor(cls, true, selectedTrees))

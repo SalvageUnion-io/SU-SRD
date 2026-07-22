@@ -102,7 +102,7 @@ describe('Additional Type Guards', () => {
       const advancedClass = defined(
         getReference().Classes.find((c): boolean => {
           if (!('advancedTree' in c) || !c.advancedTree) return false
-          const hasHybrid = 'hybrid' in c && (c as { hybrid?: boolean }).hybrid === true
+          const hasHybrid = 'hybrid' in c && c.hybrid === true
           return !hasHybrid
         })
       )
@@ -719,17 +719,15 @@ describe('normalizePatternName', () => {
     // declared pattern against chassis pattern names via normalizePatternName.
     let checked = 0
     for (const faction of getReference().Factions.all()) {
-      const formation = (faction as unknown as { formation?: unknown }).formation
+      const formation = faction.formation
       if (!Array.isArray(formation)) continue
       for (const member of formation) {
-        if (!member || typeof member !== 'object' || !('pattern' in member)) continue
-        const resolved = resolveFormationMember(
-          member as Parameters<typeof resolveFormationMember>[0]
-        )
+        if (!member || typeof member !== 'object' || typeof member.pattern !== 'string') continue
+        const resolved = resolveFormationMember(member)
         if (!resolved?.pattern) continue
         checked++
         expect(normalizePatternName(resolved.pattern.name)).toBe(
-          normalizePatternName((member as { pattern: string }).pattern)
+          normalizePatternName(member.pattern)
         )
       }
     }

@@ -150,9 +150,9 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
 
-    const useBtn = screen.getByRole('button', {
+    const useBtn = screen.getByRole<HTMLButtonElement>('button', {
       name: 'Use First Aid Kit',
-    }) as HTMLButtonElement
+    })
     expect(useBtn.disabled).toBe(true)
 
     await act(async () => {

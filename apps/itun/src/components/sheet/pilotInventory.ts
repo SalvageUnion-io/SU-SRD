@@ -16,7 +16,7 @@
  */
 
 import { SalvageUnionReference, getInventorySlots, getTraits } from 'salvageunion-reference'
-import type { SURefEquipment, SURefMetaEntity } from 'salvageunion-reference'
+import type { SURefEquipment } from 'salvageunion-reference'
 
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 import { PILOT_BASE_INVENTORY_SLOTS } from '../../lib/rules/derivedStats'
@@ -29,7 +29,7 @@ import { matchesRef } from '../../lib/rules/resolveRefs'
  * fails every slug and renders the item as a raw-slug chit.
  */
 export function resolveEquipment(slug: string): SURefEquipment | null {
-  const all = SalvageUnionReference.Equipment.all() as ReadonlyArray<SURefEquipment>
+  const all = SalvageUnionReference.Equipment.all()
   return all.find((e) => matchesRef(e, slug)) ?? null
 }
 
@@ -39,7 +39,7 @@ export function resolveEquipment(slug: string): SURefEquipment | null {
  */
 export function equipmentSlotCost(equipment: SURefEquipment | null): number {
   if (!equipment) return 1
-  return getInventorySlots(equipment as unknown as SURefMetaEntity)
+  return getInventorySlots(equipment)
 }
 
 /**
@@ -48,7 +48,7 @@ export function equipmentSlotCost(equipment: SURefEquipment | null): number {
  */
 export function equipmentMaxUses(equipment: SURefEquipment | null): number | null {
   if (!equipment) return null
-  const traits = getTraits(equipment as unknown as SURefMetaEntity)
+  const traits = getTraits(equipment)
   for (const trait of traits ?? []) {
     if (trait.type === 'uses' && typeof trait.amount === 'number') {
       return trait.amount

@@ -30,8 +30,12 @@ export const Default: Story = () => {
       const i = rs.findIndex((r) => r.id === id)
       const j = i + delta
       if (i < 0 || j < 0 || j >= rs.length) return rs
+      const a = rs[i]
+      const b = rs[j]
+      if (!a || !b) return rs
       const next = [...rs]
-      ;[next[i], next[j]] = [next[j] as DialConfigRow, next[i] as DialConfigRow]
+      next[i] = b
+      next[j] = a
       return next
     })
   return (

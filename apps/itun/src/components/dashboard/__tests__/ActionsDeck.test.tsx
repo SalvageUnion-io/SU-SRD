@@ -13,7 +13,6 @@ import { beforeAll, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefMetaEntity } from 'salvageunion-reference'
 
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
@@ -45,7 +44,7 @@ let epApModule: { id: string; actionName: string } | null = null
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
   // A system whose primary action costs EP → Activate produces a currentEP patch.
-  for (const sys of SalvageUnionReference.Systems.all() as Array<{ id?: string }>) {
+  for (const sys of SalvageUnionReference.Systems.all()) {
     if (!sys.id) continue
     const resolved = resolveSystem(sys.id)
     if (resolved && itemEconomy(resolved).epCost > 0) {
@@ -54,12 +53,10 @@ beforeAll(async () => {
     }
   }
   // A system carrying a variable-Hot ('X') action (for the Hot(X) stepper).
-  for (const sys of SalvageUnionReference.Systems.all() as Array<{ id?: string }>) {
+  for (const sys of SalvageUnionReference.Systems.all()) {
     if (!sys.id) continue
     const resolved = resolveSystem(sys.id)
-    const acts = resolved
-      ? (SalvageUnionReference.resolveActions(resolved as unknown as SURefMetaEntity) ?? [])
-      : []
+    const acts = resolved ? (SalvageUnionReference.resolveActions(resolved) ?? []) : []
     const hit = acts.find((a) => !a.hidden && hasVariableHot(a))
     if (hit) {
       varHotSystem = { id: sys.id, actionName: hit.name }
@@ -67,12 +64,10 @@ beforeAll(async () => {
     }
   }
   // A module carrying an 'EP or AP' action (for the EP/AP cost radios).
-  for (const mod of SalvageUnionReference.Modules.all() as Array<{ id?: string }>) {
+  for (const mod of SalvageUnionReference.Modules.all()) {
     if (!mod.id) continue
     const resolved = resolveModule(mod.id)
-    const acts = resolved
-      ? (SalvageUnionReference.resolveActions(resolved as unknown as SURefMetaEntity) ?? [])
-      : []
+    const acts = resolved ? (SalvageUnionReference.resolveActions(resolved) ?? []) : []
     const hit = acts.find((a) => !a.hidden && hasCurrencyChoice(a) && a.activationCost === 1)
     if (hit) {
       epApModule = { id: mod.id, actionName: hit.name }
@@ -116,7 +111,8 @@ function clickActionByName(container: HTMLElement, name: string) {
 /** Click the deck card for the system's primary (EP-costed) action. */
 function clickPrimaryAction(container: HTMLElement): { epCost: number } {
   const item = resolveSystem(costedSystemId)
-  const actions = SalvageUnionReference.resolveActions(item as unknown as SURefMetaEntity) ?? []
+  if (!item) throw new Error(`unresolved system ${costedSystemId}`)
+  const actions = SalvageUnionReference.resolveActions(item) ?? []
   const primary = actions.find((a) => typeof a.activationCost === 'number') ?? actions[0]
   const card = deckCards(container).find(
     (el) => el.getAttribute('aria-label') === (primary?.name ?? '')
@@ -202,10 +198,10 @@ describe('ActionsDeck', () => {
     expect(screen.getByText('◀ Back')).toBeTruthy()
     expect(screen.getByText('Clear')).toBeTruthy()
     // Apply is disabled until there is a roll to commit.
-    const apply = screen.getByText('Apply') as HTMLButtonElement
+    const apply = screen.getByText<HTMLButtonElement>('Apply')
     expect(apply.disabled).toBe(true)
     fireEvent.click(screen.getByText('Roll'))
-    expect((screen.getByText('Apply') as HTMLButtonElement).disabled).toBe(false)
+    expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
     // Clear resets the resolve state (the roll readout disappears).
     fireEvent.click(screen.getByText('Clear'))
     expect(container.querySelector('.pc-deck-roll')).toBeNull()
@@ -249,10 +245,13 @@ describe('ActionsDeck', () => {
     fireEvent.click(screen.getByLabelText('Increase Hot'))
     expect(container.querySelector('.pc-deck-hotx-proj')?.textContent).toContain('Heat 2/')
     fireEvent.click(screen.getByText('Activate'))
-    const action = SalvageUnionReference.resolveActions(
-      resolveSystem(sys.id) as unknown as SURefMetaEntity
-    )?.find((a) => a.name === sys.actionName)
-    const expectedHeat = hotHeatFor(action as NonNullable<typeof action>, 2)
+    const resolvedSystem = resolveSystem(sys.id)
+    if (!resolvedSystem) throw new Error(`unresolved system ${sys.id}`)
+    const action = SalvageUnionReference.resolveActions(resolvedSystem)?.find(
+      (a) => a.name === sys.actionName
+    )
+    if (!action) throw new Error(`missing action ${sys.actionName}`)
+    const expectedHeat = hotHeatFor(action, 2)
     expect(calls).toHaveLength(1)
     expect(calls[0]?.patch.currentHeat).toBe(expectedHeat)
   })

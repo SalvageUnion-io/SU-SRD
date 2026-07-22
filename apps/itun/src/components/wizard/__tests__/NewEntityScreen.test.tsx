@@ -204,7 +204,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
         onCreated={noop}
       />
     )
-    const select = screen.getByLabelText(/class \(optional\)/i) as HTMLSelectElement
+    const select = screen.getByLabelText<HTMLSelectElement>(/class \(optional\)/i)
     // "None" + the complete class catalog, nothing filtered out.
     expect(select.options.length).toBe(SalvageUnionReference.Classes.all().length + 1)
   })
@@ -219,7 +219,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
         onCreated={noop}
       />
     )
-    const select = screen.getByLabelText(/chassis \(optional\)/i) as HTMLSelectElement
+    const select = screen.getByLabelText<HTMLSelectElement>(/chassis \(optional\)/i)
     expect(select.options.length).toBe(SalvageUnionReference.Chassis.all().length + 1)
   })
 
@@ -233,7 +233,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
         onCreated={noop}
       />
     )
-    const select = screen.getByLabelText(/tech level/i) as HTMLSelectElement
+    const select = screen.getByLabelText<HTMLSelectElement>(/tech level/i)
     expect(select.options.length).toBe(6)
     expect(select.value).toBe('1')
   })

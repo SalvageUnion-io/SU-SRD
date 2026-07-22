@@ -16,14 +16,14 @@
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefAbility, SURefMetaEntity } from 'salvageunion-reference'
+import type { SURefAbility } from 'salvageunion-reference'
 
 /**
  * Resolve the fixed AP cost of an ability, or null if there is no fixed numeric
  * cost (variable 'X' cost, zero cost, or no resolvable actions).
  */
 export function resolveAbilityApCost(ability: SURefAbility): number | null {
-  const actions = SalvageUnionReference.resolveActions(ability as unknown as SURefMetaEntity)
+  const actions = SalvageUnionReference.resolveActions(ability)
   if (!actions || actions.length === 0) return null
 
   for (const action of actions) {

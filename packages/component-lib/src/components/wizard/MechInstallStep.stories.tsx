@@ -71,7 +71,7 @@ function LegacyLoadoutPanel({
     if (!found) return []
     const copy = (seen.get(ref) ?? 0) + 1
     seen.set(ref, copy)
-    return [{ entity: found as unknown as SURefEntity, ref, index, copy }]
+    return [{ entity: found, ref, index, copy }]
   })
   const totals = new Map<string, number>()
   for (const ref of chosen) totals.set(ref, (totals.get(ref) ?? 0) + 1)
@@ -108,7 +108,7 @@ function LegacyLoadoutPanel({
         ) : (
           chosenEntries.map(({ entity, ref, index, copy }) => {
             const total = totals.get(ref) ?? 1
-            const itemName = (entity as { name?: string }).name ?? ref
+            const itemName = entity.name ?? ref
             return (
               <span
                 key={index}

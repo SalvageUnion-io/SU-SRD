@@ -10,7 +10,7 @@ export default {
   title: 'Compositions/Wizard/Systems List',
 }
 
-const weaponSystems = SalvageUnionReference.Systems.all().slice(0, 4) as SURefSystem[]
+const weaponSystems: SURefSystem[] = SalvageUnionReference.Systems.all().slice(0, 4)
 
 /**
  * The crawler Armament-Bay picker. `maxSelectable` is the bay's weapon

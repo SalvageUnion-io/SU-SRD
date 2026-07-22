@@ -33,7 +33,7 @@ type EntityStoreState = ReturnType<typeof useEntityStore.getState>
 type ListKey = 'pilots' | 'mechs' | 'crawlers' | 'softLinks'
 
 function listKeyFor(type: EntityType): ListKey {
-  return `${type}s` as ListKey
+  return `${type}s`
 }
 
 // ---------------------------------------------------------------------------

@@ -221,7 +221,7 @@ export function CrawlerBuilder({
       const tls = SalvageUnionReference.CrawlerTechLevels.all()
       setTechLevels([...tls].sort((a, b) => a.techLevel - b.techLevel))
       setAllSystems(SalvageUnionReference.Systems.all())
-      setAllBays(SalvageUnionReference.CrawlerBays.all() as unknown as SURefEntity[])
+      setAllBays(SalvageUnionReference.CrawlerBays.all())
       setTypes(SalvageUnionReference.Crawlers.all())
     })
   }, [])

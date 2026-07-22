@@ -156,11 +156,11 @@ function resolveLoadout(
 ): DroneLoadout {
   const systems = systemNames.flatMap((name) => {
     const found = SalvageUnionReference.findIn('systems', (s) => s.name === name)
-    return found ? [found as SURefEntity] : []
+    return found ? [found] : []
   })
   const modules = moduleNames.flatMap((name) => {
     const found = SalvageUnionReference.findIn('modules', (m) => m.name === name)
-    return found ? [found as SURefEntity] : []
+    return found ? [found] : []
   })
   return { drone, systems, modules }
 }
@@ -175,13 +175,9 @@ export function resolveChassisDrone(entity: SURefMetaEntity): DroneLoadout | und
   if (!droneName) return undefined
   const drone = SalvageUnionReference.findIn('drones', (d) => d.name === droneName)
   if (!drone) return undefined
-  const droneSystems = Array.isArray((drone as { systems?: unknown }).systems)
-    ? (drone as { systems: string[] }).systems
-    : []
-  const droneModules = Array.isArray((drone as { modules?: unknown }).modules)
-    ? (drone as { modules: string[] }).modules
-    : []
-  return resolveLoadout(drone as SURefEntity, droneSystems, droneModules)
+  const droneSystems = Array.isArray(drone.systems) ? drone.systems : []
+  const droneModules = Array.isArray(drone.modules) ? drone.modules : []
+  return resolveLoadout(drone, droneSystems, droneModules)
 }
 
 /** The drone a PATTERN specifies — named + loadout come from `pattern.drones[0]`. */
@@ -190,7 +186,7 @@ export function resolvePatternDrone(pattern: SURefObjectPattern): DroneLoadout |
   if (!config) return undefined
   const drone = SalvageUnionReference.findIn('drones', (d) => d.name === config.name)
   if (!drone) return undefined
-  return resolveLoadout(drone as SURefEntity, config.systems ?? [], config.modules ?? [])
+  return resolveLoadout(drone, config.systems ?? [], config.modules ?? [])
 }
 
 /** A drone's OWN systems/modules loadout (from its `systems`/`modules` name

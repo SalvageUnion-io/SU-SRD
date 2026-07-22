@@ -12,11 +12,7 @@ export default {
 /** Base pilot classes (those with core trees), driven from real SRD data. */
 function baseClasses(): string[] {
   return SalvageUnionReference.Classes.all()
-    .filter(
-      (c) =>
-        Array.isArray((c as { coreTrees?: unknown[] }).coreTrees) &&
-        (c as { coreTrees: unknown[] }).coreTrees.length > 0
-    )
+    .filter((c) => 'coreTrees' in c && Array.isArray(c.coreTrees) && c.coreTrees.length > 0)
     .map((c) => c.name)
 }
 

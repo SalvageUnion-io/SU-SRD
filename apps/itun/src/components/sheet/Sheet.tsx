@@ -207,10 +207,7 @@ export function Sheet({
    * race the async store.update round-trip (see SheetPatch docs).
    */
   const patch: SheetPatch = (input) => {
-    const fields =
-      typeof input === 'function'
-        ? input((storeState.get(kind, id) ?? entity) as Pilot | Mech | Crawler)
-        : input
+    const fields = typeof input === 'function' ? input(storeState.get(kind, id) ?? entity) : input
     void storeState.update(kind, id, fields)
   }
 

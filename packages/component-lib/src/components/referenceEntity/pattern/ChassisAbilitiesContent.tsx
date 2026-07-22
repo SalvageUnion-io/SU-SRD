@@ -1,4 +1,4 @@
-import type { SURefEntity, SURefMetaAction, SURefMetaEntity } from 'salvageunion-reference'
+import type { SURefEntity, SURefMetaAction } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
 import { entityHostTone } from '../card/entityCardTone'
@@ -34,9 +34,7 @@ export function ChassisAbilitiesContent({
   const chassis = chassisName
     ? SalvageUnionReference.Chassis.find((c) => c.name === chassisName)
     : undefined
-  const abilityHostTone = chassis
-    ? entityHostTone(chassis as unknown as SURefMetaEntity)
-    : undefined
+  const abilityHostTone = chassis ? entityHostTone(chassis) : undefined
 
   const droneAbility = chassisAbilities.find((a) => a.drone)
   const droneEntity = droneAbility?.drone

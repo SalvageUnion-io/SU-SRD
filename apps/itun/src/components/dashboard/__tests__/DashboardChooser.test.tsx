@@ -294,7 +294,7 @@ describe('DashboardChooser — wizard', () => {
       () =>
         screen.queryByRole('button', { name: 'Launch the Dashboard for the chosen crew' }) !== null
     )
-    const crawlerRadio = screen.getByRole('radio', { name: /Tenacity/ }) as HTMLInputElement
+    const crawlerRadio = screen.getByRole<HTMLInputElement>('radio', { name: /Tenacity/ })
     expect(crawlerRadio.checked).toBe(true)
 
     await act(async () => {

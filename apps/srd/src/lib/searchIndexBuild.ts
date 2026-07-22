@@ -17,7 +17,7 @@
  */
 import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
 import { getEntitySlug } from 'salvageunion-reference'
-import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
+import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import type { CompactSearchEntry } from './searchIndexTypes'
 
 /** Recursively extract display text from a ContentBlock tree (mirrors
@@ -26,11 +26,11 @@ function extractContentText(content: unknown): string {
   if (!content) return ''
   if (Array.isArray(content)) return content.map(extractContentText).join(' ')
   if (typeof content === 'object' && content !== null) {
-    const block = content as Record<string, unknown>
     let text = ''
-    if ('value' in block && typeof block.value === 'string') text += `${block.value} `
-    if ('label' in block && typeof block.label === 'string') text += `${block.label} `
-    if ('items' in block && Array.isArray(block.items)) text += extractContentText(block.items)
+    if ('value' in content && typeof content.value === 'string') text += `${content.value} `
+    if ('label' in content && typeof content.label === 'string') text += `${content.label} `
+    if ('items' in content && Array.isArray(content.items))
+      text += extractContentText(content.items)
     return text
   }
   return ''
@@ -45,24 +45,26 @@ export function buildSearchIndexEntries(): CompactSearchEntry[] {
     const model = getModel(schema.id)
     if (!model) continue
 
-    for (const entity of model.all() as SURefEntity[]) {
+    for (const entity of model.all()) {
       const parts: string[] = [entity.name]
 
+      // Entity union members are object-literal types, so they satisfy the
+      // implicit string index signature — an annotation, not a cast.
+      const record: Record<string, unknown> = entity
       for (const field of TEXT_FIELDS) {
-        if (field in entity && typeof (entity as Record<string, unknown>)[field] === 'string') {
-          parts.push((entity as Record<string, unknown>)[field] as string)
-        }
+        const value = record[field]
+        if (typeof value === 'string') parts.push(value)
       }
 
-      if ('content' in entity && (entity as Record<string, unknown>).content) {
-        parts.push(extractContentText((entity as Record<string, unknown>).content))
+      if (record.content) {
+        parts.push(extractContentText(record.content))
       }
 
-      const resolvedActions = SalvageUnionReference.resolveActions(entity as SURefMetaEntity)
+      const resolvedActions = SalvageUnionReference.resolveActions(entity)
       if (resolvedActions) {
         for (const action of resolvedActions) {
           if (action && typeof action === 'object' && 'content' in action) {
-            parts.push(extractContentText((action as { content: unknown }).content))
+            parts.push(extractContentText(action.content))
           }
         }
       }
@@ -71,7 +73,9 @@ export function buildSearchIndexEntries(): CompactSearchEntry[] {
         id: entity.id,
         name: entity.name,
         slug: getEntitySlug(entity),
-        schemaName: schema.id,
+        // One honest write-side cast: the JSON catalog types `id` as plain
+        // string, but getEntitySchemas() only yields canonical schema ids.
+        schemaName: schema.id as SURefEnumSchemaName,
         schemaTitle: schema.title,
         text: parts.join(' ').toLowerCase(),
       })

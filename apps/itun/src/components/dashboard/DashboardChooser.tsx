@@ -88,10 +88,7 @@ const STEP_ORDER: readonly Step[] = ['pilot', 'mech', 'crawler']
 /** Chassis "TL n" annotation for a mech row, best-effort. */
 function chassisMeta(chassisRef: string): string | undefined {
   try {
-    const all = SalvageUnionReference.Chassis.all() as ReadonlyArray<{
-      name: string
-      techLevel?: number
-    }>
+    const all = SalvageUnionReference.Chassis.all()
     const c = all.find((x) => x.name === chassisRef)
     if (!c) return chassisRef || undefined
     return c.techLevel != null ? `${c.name} · TL ${c.techLevel}` : c.name

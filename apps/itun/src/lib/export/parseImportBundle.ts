@@ -3,6 +3,11 @@ import { ExportBundleSchema } from '../schemas/exportBundle'
 import type { ExportBundle } from '../schemas/exportBundle'
 import { normalizeLegacyPilotRecord } from '../schemas/pilot'
 
+/** Narrow an unknown JSON value to a plain record (non-null, non-array object). */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
 /**
  * Bundles written before the cargo→cargoLots rename carry mechs (and
  * patterns) with a legacy `cargo: string[]` field, and bundles written before
@@ -11,24 +16,20 @@ import { normalizeLegacyPilotRecord } from '../schemas/pilot'
  * backups stay importable.
  */
 function normalizeLegacyBundle(raw: unknown): unknown {
-  if (typeof raw !== 'object' || raw === null) return raw
-  const bundle = { ...(raw as Record<string, unknown>) }
+  if (!isRecord(raw)) return raw
+  const bundle = { ...raw }
 
   const entities = bundle.entities
-  if (typeof entities === 'object' && entities !== null) {
-    const entitiesCopy = { ...(entities as Record<string, unknown>) }
+  if (isRecord(entities)) {
+    const entitiesCopy = { ...entities }
     if (Array.isArray(entitiesCopy.mechs)) {
       entitiesCopy.mechs = (entitiesCopy.mechs as unknown[]).map((m) =>
-        typeof m === 'object' && m !== null
-          ? normalizeLegacyCargoRecord(m as Record<string, unknown>)
-          : m
+        isRecord(m) ? normalizeLegacyCargoRecord(m) : m
       )
     }
     if (Array.isArray(entitiesCopy.pilots)) {
       entitiesCopy.pilots = (entitiesCopy.pilots as unknown[]).map((p) =>
-        typeof p === 'object' && p !== null
-          ? normalizeLegacyPilotRecord(p as Record<string, unknown>)
-          : p
+        isRecord(p) ? normalizeLegacyPilotRecord(p) : p
       )
     }
     bundle.entities = entitiesCopy
@@ -36,9 +37,7 @@ function normalizeLegacyBundle(raw: unknown): unknown {
 
   if (Array.isArray(bundle.mechPatterns)) {
     bundle.mechPatterns = (bundle.mechPatterns as unknown[]).map((p) =>
-      typeof p === 'object' && p !== null
-        ? normalizeLegacyCargoRecord(p as Record<string, unknown>)
-        : p
+      isRecord(p) ? normalizeLegacyCargoRecord(p) : p
     )
   }
 
@@ -72,14 +71,9 @@ export function parseImportBundle(jsonText: string): ExportBundle {
   raw = normalizeLegacyBundle(raw)
 
   // Check schemaVersion early to give a clearer error before full Zod parse.
-  if (
-    typeof raw === 'object' &&
-    raw !== null &&
-    'schemaVersion' in raw &&
-    (raw as Record<string, unknown>).schemaVersion !== 1
-  ) {
+  if (isRecord(raw) && 'schemaVersion' in raw && raw.schemaVersion !== 1) {
     throw new Error(
-      `Import failed: unsupported schemaVersion "${String((raw as Record<string, unknown>).schemaVersion)}". Only version 1 is supported.`
+      `Import failed: unsupported schemaVersion "${String(raw.schemaVersion)}". Only version 1 is supported.`
     )
   }
 

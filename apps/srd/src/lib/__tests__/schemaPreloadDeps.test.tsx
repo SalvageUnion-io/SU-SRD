@@ -74,7 +74,7 @@ describe('schemaPreloadDeps render-equivalence', () => {
 
     it(`${schema.id}: computed preload list (${preloadList.join(', ')}) renders identically to 'all'`, async () => {
       const model = getModel(schema.id)
-      const entities = (model?.all() ?? []) as SURefEntity[]
+      const entities: SURefEntity[] = model?.all() ?? []
       expect(entities.length).toBeGreaterThan(0)
 
       resetAllForTesting()

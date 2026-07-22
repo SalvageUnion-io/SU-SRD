@@ -54,7 +54,7 @@ function matchesFilter(entity: SURefMetaEntity, filter: CatalogFilter): boolean 
 /** Stable listing order: Tech Level ascending (non-numeric last), then name. */
 function byTechThenName(a: SURefMetaEntity, b: SURefMetaEntity): number {
   const tl = (e: SURefMetaEntity): number => {
-    const v = (e as { techLevel?: unknown }).techLevel
+    const v = 'techLevel' in e ? e.techLevel : undefined
     return typeof v === 'number' ? v : Number.POSITIVE_INFINITY
   }
   const diff = tl(a) - tl(b)
@@ -113,7 +113,7 @@ export function resolveCatalogChoiceEntities(
     const cap = opts.techLevel
     entities = entities.filter((e) => {
       if (!('techLevel' in e)) return true // no Tech Level → not capped
-      const tl = (e as { techLevel?: unknown }).techLevel
+      const tl = e.techLevel
       // "of the Tech Level or lower" — numeric ≤ cap; a non-numeric Tech Level
       // (N/B) is not "of a lower Tech Level" and is excluded (matches the
       // crawler wizard's numeric-only weapon cap).

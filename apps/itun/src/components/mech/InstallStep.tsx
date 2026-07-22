@@ -1,21 +1,13 @@
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefEntity } from 'salvageunion-reference'
 import { Badge, MasonryColumns, ReferenceEntityCard } from 'component-lib'
 import type { TechLevel } from '../../lib/rules/types'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 
-type InstallItemLike = {
-  id: string
-  name: string
-  techLevel: TechLevel
-  slotsRequired: number
-}
-
 const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
 
 /** Sort rank for a tech level: numeric tiers 1–6, then Bio (B), then Nanite (N). */
-function tlRank(tl: TechLevel): number {
+function tlRank(tl: number | 'B' | 'N'): number {
   if (tl === 'B') return 7
   if (tl === 'N') return 8
   return tl
@@ -45,14 +37,16 @@ export function InstallStep({ kind, selected, onAdd }: InstallStepProps) {
   const allItems = useMemo(() => {
     const accessor =
       kind === 'systems' ? SalvageUnionReference.Systems : SalvageUnionReference.Modules
-    const items = accessor.all() as unknown as InstallItemLike[]
+    const items = accessor.all()
     return [...items].sort(
       (a, b) => tlRank(a.techLevel) - tlRank(b.techLevel) || a.name.localeCompare(b.name)
     )
   }, [kind])
 
   const visible =
-    activeTls.length === 0 ? allItems : allItems.filter((i) => activeTls.includes(i.techLevel))
+    activeTls.length === 0
+      ? allItems
+      : allItems.filter((i) => activeTls.some((t) => t === i.techLevel))
 
   function toggleTl(tl: TechLevel) {
     setActiveTls((prev) => (prev.includes(tl) ? prev.filter((t) => t !== tl) : [...prev, tl]))
@@ -89,7 +83,7 @@ export function InstallStep({ kind, selected, onAdd }: InstallStepProps) {
             return (
               <ReferenceEntityCard
                 key={item.id}
-                data={item as unknown as SURefEntity}
+                data={item}
                 size="medium"
                 selected={installed}
                 hide={{ actions: true, choices: true }}

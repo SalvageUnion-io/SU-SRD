@@ -341,7 +341,8 @@ export function SchemaViewerIsland({
                 <EntityDetailLinkProvider value={true}>
                   <MasonryColumns>
                     {filteredData.map((item: SURefEntity) => {
-                      const tree = schemaId === 'abilities' ? (getTree(item) as string) : undefined
+                      const treeValue = schemaId === 'abilities' ? getTree(item) : undefined
+                      const tree = typeof treeValue === 'string' ? treeValue : undefined
                       return (
                         <a
                           key={item.id}

@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefEntity } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
 import { MasonryColumns, ReferenceEntityCard, Slab } from 'component-lib'
 import { matchesRef } from '../../lib/rules/resolveRefs'
@@ -77,7 +76,7 @@ export function CraftItemsStep({
           return (
             <ReferenceEntityCard
               key={item.id}
-              data={item as unknown as SURefEntity}
+              data={item}
               size="medium"
               selected={count >= 1}
               selectionRole="toggle"

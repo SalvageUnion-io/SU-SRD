@@ -42,7 +42,7 @@ type RollHistoryEntry = {
  * history. Self-contained (reads the ORM roll tables).
  */
 function TablesView() {
-  const tables = SalvageUnionReference.RollTables.all() as unknown as RollTableEntity[]
+  const tables: RollTableEntity[] = SalvageUnionReference.RollTables.all()
   const [tableId, setTableId] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [history, setHistory] = useState<RollHistoryEntry[]>([])

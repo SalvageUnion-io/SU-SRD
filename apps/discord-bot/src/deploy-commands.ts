@@ -17,14 +17,16 @@ async function deployCommands(): Promise<void> {
       const data = await rest.put(Routes.applicationCommands(config.discordClientId), {
         body: commandData,
       })
-      console.log(`Successfully reloaded ${(data as unknown[]).length} global commands.`)
+      const count = Array.isArray(data) ? data.length : 0
+      console.log(`Successfully reloaded ${count} global commands.`)
     } else if (config.discordGuildId) {
       // Deploy to specific guild (instant)
       const data = await rest.put(
         Routes.applicationGuildCommands(config.discordClientId, config.discordGuildId),
         { body: commandData }
       )
-      console.log(`Successfully reloaded ${(data as unknown[]).length} guild commands.`)
+      const count = Array.isArray(data) ? data.length : 0
+      console.log(`Successfully reloaded ${count} guild commands.`)
     } else {
       console.error(
         'No DISCORD_GUILD_ID set for development. Use DEPLOY_GLOBAL=true for production.'

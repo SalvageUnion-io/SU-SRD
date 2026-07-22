@@ -46,7 +46,7 @@ const titleWrapper = () => {
   return el
 }
 // The right-side column is the title wrapper's only sibling.
-const rightColumn = () => titleWrapper().nextElementSibling as HTMLElement | null
+const rightColumn = () => titleWrapper().nextElementSibling
 
 describe.each([false, true])('EntityCardHeader width allocation (compact=%p)', (compact) => {
   const base = {

@@ -34,7 +34,7 @@ function resolveClassTrees(classEntity: SURefClass): ResolvedTrees {
 
   if (isCoreClass(classEntity)) {
     return {
-      coreTrees: classEntity.coreTrees.map(resolveTree).filter(Boolean) as TreeGroup[],
+      coreTrees: classEntity.coreTrees.map(resolveTree).filter((g): g is TreeGroup => g !== null),
       advancedTree: classEntity.advancedTree ? resolveTree(classEntity.advancedTree) : null,
       legendaryTree: classEntity.legendaryTree ? resolveTree(classEntity.legendaryTree) : null,
     }

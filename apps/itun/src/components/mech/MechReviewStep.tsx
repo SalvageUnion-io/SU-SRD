@@ -1,4 +1,3 @@
-import type { SURefEntity } from 'salvageunion-reference'
 import { KvRow, Panel, ReferenceEntityCard, FieldError } from 'component-lib'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
@@ -28,11 +27,11 @@ type MechReviewStepProps = {
 export function MechReviewStep({ form, isEdit, submitError, bankedScrap }: MechReviewStepProps) {
   const chosenSystems = form.systems.flatMap((ref) => {
     const found = resolveSystemRef(ref)
-    return found ? [found as unknown as SURefEntity] : []
+    return found ? [found] : []
   })
   const chosenModules = form.modules.flatMap((ref) => {
     const found = resolveModuleRef(ref)
-    return found ? [found as unknown as SURefEntity] : []
+    return found ? [found] : []
   })
 
   const rows: [string, string | null][] = [

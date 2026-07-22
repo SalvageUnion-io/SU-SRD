@@ -230,7 +230,7 @@ export class SalvageUnionReference {
 
       try {
         const backing = getLoadedModel(id, toPascalCase(id))
-        lazyModel._install(backing as BaseModel<unknown>)
+        lazyModel._install(backing)
       } catch {
         // Already logged during load; skip gracefully
       }
@@ -324,8 +324,7 @@ export class SalvageUnionReference {
     const schemaName = parts[0]
     const id = parts[1]
     if (!schemaName || !id) return null
-    if (!(SchemaToModelMap as Record<string, string>)[schemaName as SURefEnumSchemaName])
-      return null
+    if (!(SchemaToModelMap as Record<string, string>)[schemaName]) return null
 
     return { schemaName: schemaName as SURefEnumSchemaName, id }
   }

@@ -71,7 +71,7 @@ describe('AssignToWorkspaceButton — render', () => {
 
   test('defaults to "Unassigned" when no currentWorkspaceId', () => {
     render(<AssignToWorkspaceButton entityType="pilot" entityId="pilot-1" store={makeStore()} />)
-    const select = screen.getByRole('combobox') as HTMLSelectElement
+    const select = screen.getByRole<HTMLSelectElement>('combobox')
     expect(select.value).toBe('__unassigned__')
   })
 
@@ -85,7 +85,7 @@ describe('AssignToWorkspaceButton — render', () => {
         store={makeStore([ws])}
       />
     )
-    const select = screen.getByRole('combobox') as HTMLSelectElement
+    const select = screen.getByRole<HTMLSelectElement>('combobox')
     expect(select.value).toBe('ws-1')
   })
 

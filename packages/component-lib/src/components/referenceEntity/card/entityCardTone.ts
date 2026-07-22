@@ -62,7 +62,8 @@ const SCHEMA_DOMAIN: Record<SURefEnumSchemaName, CardDomain> = {
  * a consumer keying off schema ids by hand drifts the moment a schema is added.
  */
 export function resolveSchemaDomain(schemaName: string): CardDomain | undefined {
-  return SCHEMA_DOMAIN[schemaName as SURefEnumSchemaName]
+  const domainBySchema: Partial<Record<string, CardDomain>> = SCHEMA_DOMAIN
+  return domainBySchema[schemaName]
 }
 
 export type DomainTone = {

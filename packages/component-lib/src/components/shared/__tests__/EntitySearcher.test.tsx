@@ -24,7 +24,7 @@ afterEach(() => {
 type Equip = { id: string; name: string; techLevel: number | 'B' | 'N' }
 
 function allEquipment(): Equip[] {
-  return SalvageUnionReference.Equipment.all() as unknown as Equip[]
+  return SalvageUnionReference.Equipment.all()
 }
 
 function nth(list: Equip[], i: number): Equip {
@@ -69,7 +69,9 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
         idOf={(i) => i.id}
       />
     )
-    fireEvent.click(screen.getAllByRole('button', { name: eq.name })[0] as HTMLElement)
+    const toggleBtn = screen.getAllByRole('button', { name: eq.name })[0]
+    if (!toggleBtn) throw new Error('no toggle button rendered')
+    fireEvent.click(toggleBtn)
     expect(toggled).toEqual([eq.id])
   })
 
@@ -118,10 +120,7 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
 
 describe('EntitySearcher — systems (count mode)', () => {
   it('shows an Add affordance and emits idOf on add', () => {
-    const sys = SalvageUnionReference.Systems.all() as unknown as Array<{
-      id: string
-      name: string
-    }>
+    const sys = SalvageUnionReference.Systems.all()
     const first = sys[0]
     if (!first) throw new Error('No systems in reference data')
     const added: string[] = []
@@ -135,11 +134,11 @@ describe('EntitySearcher — systems (count mode)', () => {
         chosenLabel="Installed"
       />
     )
-    fireEvent.click(
-      screen.getAllByRole('button', {
-        name: new RegExp(`Add ${first.name}`, 'i'),
-      })[0] as HTMLElement
-    )
+    const addBtn = screen.getAllByRole('button', {
+      name: new RegExp(`Add ${first.name}`, 'i'),
+    })[0]
+    if (!addBtn) throw new Error('no Add button rendered')
+    fireEvent.click(addBtn)
     expect(added).toEqual([first.name])
   })
 })

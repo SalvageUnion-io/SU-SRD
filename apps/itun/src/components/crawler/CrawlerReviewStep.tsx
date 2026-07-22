@@ -1,9 +1,4 @@
-import type {
-  SURefCrawler,
-  SURefEntity,
-  SURefMetaCrawlerTechLevel,
-  SURefSystem,
-} from 'salvageunion-reference'
+import type { SURefCrawler, SURefMetaCrawlerTechLevel, SURefSystem } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 import { Callout, KvRow, Panel, ReferenceEntityCard, FieldError } from 'component-lib'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
@@ -99,16 +94,12 @@ export function CrawlerReviewStep({
       {/* chosen cards */}
       <div className="space-y-3">
         {selectedType && (
-          <ReferenceEntityCard
-            data={selectedType as unknown as SURefEntity}
-            size="medium"
-            hide={{ choices: true }}
-          />
+          <ReferenceEntityCard data={selectedType} size="medium" hide={{ choices: true }} />
         )}
         {systems.map((system) => (
           <ReferenceEntityCard
             key={system.id}
-            data={system as unknown as SURefEntity}
+            data={system}
             size="medium"
             status="intact"
             hide={{ actions: true, choices: true }}

@@ -64,7 +64,7 @@ export function findEntityBySlug(
       if (!('name' in item) || !item.name) {
         return false
       }
-      const itemSlug = nameToSlug(item.name as string)
+      const itemSlug = nameToSlug(item.name)
       return itemSlug === slug
     })
     return entity || null
@@ -79,7 +79,7 @@ export function findEntityBySlug(
  */
 export function getEntitySlug(entity: SURefEntity): string {
   if ('name' in entity && entity.name) {
-    return nameToSlug(entity.name as string)
+    return nameToSlug(entity.name)
   }
   return entity.id
 }

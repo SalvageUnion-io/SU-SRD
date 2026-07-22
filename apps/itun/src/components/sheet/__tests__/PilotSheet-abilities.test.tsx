@@ -116,9 +116,9 @@ describe('PilotSheet — spend AP (Slice D)', () => {
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
 
-    const spendBtn = screen.getByRole('button', {
+    const spendBtn = screen.getByRole<HTMLButtonElement>('button', {
       name: /spend 3 ap for talk shop/i,
-    }) as HTMLButtonElement
+    })
     expect(spendBtn.disabled).toBe(true)
 
     await act(async () => {

@@ -13,12 +13,12 @@ export function getClassSelections(data: SURefEntity): ClassSelections {
   let selectedClass: SURefClass | undefined
   let selectedAdvancedClass: SURefClass | undefined
 
-  if ('coreTrees' in data && Array.isArray((data as { coreTrees: string[] }).coreTrees)) {
-    selectedClass = data as SURefClass
+  if ('coreTrees' in data && Array.isArray(data.coreTrees)) {
+    selectedClass = data
   }
 
-  if ('hybrid' in data && (data as { hybrid?: boolean }).hybrid === true) {
-    selectedAdvancedClass = data as SURefClass
+  if ('hybrid' in data && data.hybrid === true) {
+    selectedAdvancedClass = data
   }
 
   return { selectedClass, selectedAdvancedClass }

@@ -12,7 +12,7 @@ const catalog = getSchemaCatalog()
 export function getSchemaStaticPaths() {
   return getEntitySchemas().map((schema) => {
     const model = getModel(schema.id)
-    const data = model ? (model.all() as SURefEntity[]) : []
+    const data: SURefEntity[] = model ? model.all() : []
     return {
       params: { schemaId: schema.id },
       props: {

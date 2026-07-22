@@ -34,8 +34,8 @@ const crowdedSeals = [
 ]
 
 function railEl(container: HTMLElement): HTMLElement {
-  const el = container.querySelector('div.absolute') as HTMLElement | null
-  if (!el) throw new Error('no absolute rail rendered')
+  const el = container.querySelector('div.absolute')
+  if (!(el instanceof HTMLElement)) throw new Error('no absolute rail rendered')
   return el
 }
 

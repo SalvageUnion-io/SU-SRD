@@ -129,7 +129,7 @@ export function useSoftWarnings<T extends AssignableType>(
     patch: Partial<EntityForType<T>>,
     context?: Partial<SoftWarningContext>
   ): SoftWarning[] {
-    const before = storeState.get(entityType, entityId) as EntityForType<T> | null
+    const before = storeState.get(entityType, entityId)
 
     if (!before) {
       // Entity not yet loaded — store patch but can't evaluate warnings yet.
@@ -167,7 +167,7 @@ export function useSoftWarnings<T extends AssignableType>(
     // Clear state after a successful save.
     setWarnings([])
     pendingPatch.current = null
-    return updated as EntityForType<T>
+    return updated
   }
 
   function fixIt(): void {

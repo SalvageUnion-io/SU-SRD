@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react'
-import { SalvageUnionReference, type SURefObjectContentBlock } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { Callout } from './Callout'
 
@@ -14,21 +14,14 @@ export default {
 }
 
 function listItems(actionName: string): { label?: string; value?: unknown }[] {
-  const action = SalvageUnionReference.Actions.all().find(
-    (a) => (a as { name?: string }).name === actionName
-  ) as { content?: SURefObjectContentBlock[] } | undefined
-  return (action?.content ?? []).filter((b) => b?.type === 'list-item') as {
-    label?: string
-    value?: unknown
-  }[]
+  const action = SalvageUnionReference.Actions.all().find((a) => a.name === actionName)
+  return (action?.content ?? []).filter((b) => b?.type === 'list-item')
 }
 
 const settlements = listItems('Mech Acquisition') // unlabelled tech-level examples
 const labelled = SalvageUnionReference.Actions.all()
-  .flatMap((a) => (a as { content?: SURefObjectContentBlock[] }).content ?? [])
-  .find((b) => b?.type === 'list-item' && !!(b as { label?: string }).label) as
-  | { label?: string; value?: unknown }
-  | undefined
+  .flatMap((a) => a.content ?? [])
+  .find((b) => b?.type === 'list-item' && !!b.label)
 
 const Body = ({ children }: { children: string }) => (
   <span className="block font-body text-sm text-ink">{children}</span>

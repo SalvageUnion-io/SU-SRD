@@ -24,7 +24,6 @@
  */
 
 import { useState } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
 import { Button, ModalShell, ReferenceEntityCard, StatusBadge } from 'component-lib'
 import type { CardFootMeta, ReferenceEntityControl } from 'component-lib'
 
@@ -235,7 +234,7 @@ export function MechItemCard({
   return (
     <>
       <ReferenceEntityCard
-        data={entity as unknown as SURefEntity}
+        data={entity}
         size="medium"
         hide={HIDE_CHOICES}
         status={condition}

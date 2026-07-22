@@ -230,6 +230,14 @@ type ValueBoxProps = Exact<{
 
 type StatProps = HorizontalValueProps | ValueBoxProps
 
+/** Narrow a schema name to the entity subset `findIn` accepts. */
+function isEntitySchemaName(
+  value: SURefEnumSchemaName
+): value is SURefEnumSchemaName & EntitySchemaName {
+  const names: ReadonlySet<string> = EntitySchemaNames
+  return names.has(value)
+}
+
 export function Stat(props: StatProps) {
   const inner = renderStat(props)
   const entityTooltip = 'entityTooltip' in props ? props.entityTooltip : undefined
@@ -237,9 +245,9 @@ export function Stat(props: StatProps) {
     // Resolve the trait/keyword to a real entity; wrap in the hover-tooltip when
     // found (the former TraitKeywordDisplayView), else render plain.
     const { schemaName, label } = entityTooltip
-    const entity = EntitySchemaNames.has(schemaName as EntitySchemaName)
+    const entity = isEntitySchemaName(schemaName)
       ? SalvageUnionReference.findIn(
-          schemaName as EntitySchemaName,
+          schemaName,
           (t) => t.name.toLowerCase() === String(label).toLowerCase()
         )
       : undefined

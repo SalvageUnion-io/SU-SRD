@@ -55,7 +55,7 @@ type ResolveArgs = {
 
 export function resolveSheetComposition({ kind, id, links, store }: ResolveArgs): SheetComposition {
   const empty: SheetComposition = {
-    mode: `${kind}-only` as CompositionMode,
+    mode: `${kind}-only`,
     pilot: null,
     mech: null,
     crawler: null,

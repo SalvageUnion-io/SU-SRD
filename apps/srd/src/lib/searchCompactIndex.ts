@@ -12,7 +12,7 @@
  * no preload, no `salvageunion-reference` import — at the cost of losing
  * fine-grained field-match ranking.
  */
-import type { SearchOptions, SearchResult, SURefEnumSchemaName } from 'salvageunion-reference'
+import type { SearchOptions, SearchResult } from 'salvageunion-reference'
 import type { CompactSearchEntry } from './searchIndexTypes'
 
 /** Minimum token length before typo (edit-distance-1) matching applies —
@@ -56,7 +56,7 @@ export function searchCompactIndex(
   const results: SearchResult[] = []
 
   for (const entry of index) {
-    if (schemasToSearch && !schemasToSearch.has(entry.schemaName as SURefEnumSchemaName)) continue
+    if (schemasToSearch && !schemasToSearch.has(entry.schemaName)) continue
 
     const nameText = entry.name.toLowerCase()
     let usedTypo = false
@@ -83,7 +83,7 @@ export function searchCompactIndex(
     if (usedTypo) score -= 15
 
     results.push({
-      schemaName: entry.schemaName as SURefEnumSchemaName,
+      schemaName: entry.schemaName,
       schemaTitle: entry.schemaTitle,
       // Minimal stub — see doc comment above. `as` is intentional/narrow: the
       // full SURefEntity shape is never read by any srd consumer.

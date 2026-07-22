@@ -33,8 +33,9 @@ afterEach(cleanup)
  * nearest `div.flex`, which would stop at a cluster wrapper.
  */
 function rail(el: HTMLElement): HTMLElement {
-  const parent = el.closest('div.absolute.flex') as HTMLElement | null
-  if (!parent) throw new Error('no absolute flex ancestor — the cell is not in the rail')
+  const parent = el.closest('div.absolute.flex')
+  if (!(parent instanceof HTMLElement))
+    throw new Error('no absolute flex ancestor — the cell is not in the rail')
   return parent
 }
 

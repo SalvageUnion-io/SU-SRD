@@ -1,13 +1,7 @@
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import type { SURefEntity } from 'salvageunion-reference'
 
 import { matchesRef, resolveChassisRef } from '../../lib/rules/resolveRefs'
 import { EmptyState, ReferenceEntityCard } from 'component-lib'
-
-type ChassisLike = {
-  id: string
-  name: string
-}
 
 type ChassisOptionListProps = {
   selectedChassis: string
@@ -27,11 +21,11 @@ export function ChassisOptionList({ selectedChassis, onSelect }: ChassisOptionLi
       {allChassis.map((chassis) => (
         <ReferenceEntityCard
           key={chassis.id}
-          data={chassis as unknown as SURefEntity}
+          data={chassis}
           size="medium"
           extent="catalog"
           className="mb-2"
-          selected={matchesRef(chassis as unknown as ChassisLike, selectedChassis)}
+          selected={matchesRef(chassis, selectedChassis)}
           selectionRole="radio"
           cardClickLabel={chassis.name}
           onCardClick={() => onSelect(nameToSlug(chassis.name))}
@@ -52,9 +46,7 @@ type ChassisDetailProps = {
  * chassis card shows the bare chassis only.
  */
 export function ChassisDetail({ chassisName }: ChassisDetailProps) {
-  const chassis = chassisName
-    ? ((resolveChassisRef(chassisName) ?? undefined) as unknown as ChassisLike | undefined)
-    : undefined
+  const chassis = chassisName ? (resolveChassisRef(chassisName) ?? undefined) : undefined
 
   if (!chassis) {
     return (
@@ -66,10 +58,5 @@ export function ChassisDetail({ chassisName }: ChassisDetailProps) {
     )
   }
 
-  return (
-    <ReferenceEntityCard
-      data={chassis as unknown as SURefEntity}
-      hide={{ patterns: true, choices: true }}
-    />
-  )
+  return <ReferenceEntityCard data={chassis} hide={{ patterns: true, choices: true }} />
 }

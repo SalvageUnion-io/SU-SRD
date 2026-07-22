@@ -27,7 +27,7 @@ type CrawlerCrewStepProps = {
 
 /** Read the embedded NPC off a bay/type entity (data-shape check). */
 function npcOf(entity: SURefEntity): ResolvedNpc | undefined {
-  return 'npc' in entity && entity.npc != null ? (entity.npc as ResolvedNpc) : undefined
+  return 'npc' in entity && entity.npc != null ? entity.npc : undefined
 }
 
 /**
@@ -47,11 +47,11 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
 
   const sources: NpcSource[] = []
 
-  const typeNpc = selectedType ? npcOf(selectedType as unknown as SURefEntity) : undefined
+  const typeNpc = selectedType ? npcOf(selectedType) : undefined
   if (selectedType && typeNpc) {
     sources.push({
       ref: selectedType.id,
-      entity: selectedType as unknown as SURefEntity,
+      entity: selectedType,
       npc: typeNpc,
     })
   }

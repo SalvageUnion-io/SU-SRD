@@ -32,8 +32,10 @@ const SIZES: CardSize[] = ['large', 'medium', 'small']
 const DEPTHS = [0, 1, 2, 3, 4, 5, 6]
 
 /** Rank on the ladder: bigger rank = smaller title. Unknown class ⇒ -1 (fails). */
+const LADDER_CLASSES: readonly string[] = LADDER_LARGEST_FIRST
+
 function rank(cls: string): number {
-  return (LADDER_LARGEST_FIRST as readonly string[]).indexOf(cls)
+  return LADDER_CLASSES.indexOf(cls)
 }
 
 describe('titleSizeClass — nested-title invariant', () => {

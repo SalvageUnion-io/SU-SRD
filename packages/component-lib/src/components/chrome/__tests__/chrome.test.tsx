@@ -15,6 +15,12 @@ import { Glyph } from '../glyphs'
 
 afterEach(cleanup)
 
+function rootEl(container: Element): HTMLElement {
+  const el = container.firstElementChild
+  if (!(el instanceof HTMLElement)) throw new Error('expected an HTMLElement root')
+  return el
+}
+
 describe('Field / Input', () => {
   test('renders label wired to the input, with a required asterisk inside the stamp', () => {
     render(
@@ -154,7 +160,7 @@ describe('EmptyState', () => {
         action={<button type="button">Create</button>}
       />
     )
-    const root = container.firstElementChild as HTMLElement
+    const root = rootEl(container)
     expect(root.className).toContain('border-dashed')
     expect(root.className).toContain('border-wk-faint')
     expect(root.className).toContain('text-center')
@@ -222,7 +228,7 @@ describe('Stamp', () => {
         SP
       </Badge>
     )
-    const stamp = container.firstElementChild as HTMLElement
+    const stamp = rootEl(container)
     expect(stamp.className).toContain('bg-paper')
     expect(stamp.className).toContain('text-ink')
     // StampSeam: self-height-centred over the top border.

@@ -32,10 +32,7 @@ type EntityTooltipProps = EntityTooltipBase &
  * EntityTooltip already had.
  */
 function resolveIdByName(schemaName: SURefEnumSchemaName, name: string): string | undefined {
-  const entity = SalvageUnionReference.findIn(
-    schemaName,
-    (e): e is typeof e => 'name' in e && (e as { name: unknown }).name === name
-  )
+  const entity = SalvageUnionReference.findIn(schemaName, (e) => 'name' in e && e.name === name)
   return entity?.id
 }
 

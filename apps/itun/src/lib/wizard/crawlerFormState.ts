@@ -193,7 +193,7 @@ export function seedDefaultCrawlerBays(): CrawlerBayEntry[] {
   type BayWithNpc = { id: string; expansion?: boolean; npc?: { hitPoints?: number } }
   let bays: BayWithNpc[]
   try {
-    bays = SalvageUnionReference.CrawlerBays.all() as unknown as BayWithNpc[]
+    bays = SalvageUnionReference.CrawlerBays.all()
   } catch {
     bays = []
   }

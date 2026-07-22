@@ -67,11 +67,7 @@ export function buildTableLookupMessage(tableName: string, iconURL?: string): Lo
   if (!entity) {
     return { error: `Could not find table: "${tableName}".` }
   }
-  return buildLookupMessage(
-    { ...entity, schemaName: 'roll-tables' } as SURefEntity & { schemaName: SURefEnumSchemaName },
-    'roll-tables',
-    iconURL
-  )
+  return buildLookupMessage({ ...entity, schemaName: 'roll-tables' }, 'roll-tables', iconURL)
 }
 
 /**
@@ -91,7 +87,7 @@ function findByChoiceValue(value: string): Hit | null {
   const slug = value.slice(separator + 2)
   const entity = findEntityBySlug(schemaName, slug)
   if (!entity) return null
-  return { schemaName, entity: { ...entity, schemaName } as Hit['entity'] }
+  return { schemaName, entity: { ...entity, schemaName } }
 }
 
 export const lookupCommand = {

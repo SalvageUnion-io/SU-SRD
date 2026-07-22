@@ -11,7 +11,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
  */
 export function resolveClassName(ref: string): string {
   try {
-    const all = SalvageUnionReference.Classes.all() as ReadonlyArray<{ id: string; name: string }>
+    const all = SalvageUnionReference.Classes.all()
     const match = all.find(
       (c) => c.id === ref || c.name === ref || c.name.toLowerCase() === ref.toLowerCase()
     )

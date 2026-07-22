@@ -47,7 +47,7 @@ export function DisplayPanel({ focus, mech, pilot, crawler }: DisplayPanelProps)
 
     // Statful entity focus → its reference card + entity-level foot actions.
     if (focus.key.startsWith('mech:')) {
-      const chassis = resolveChassisRef(mech.chassisRef) as SURefEntity | null
+      const chassis = resolveChassisRef(mech.chassisRef)
       const controls: ReferenceEntityControl[] = []
       if (mount === 'pilot') {
         controls.push({
@@ -67,8 +67,7 @@ export function DisplayPanel({ focus, mech, pilot, crawler }: DisplayPanelProps)
       }
     }
     if (focus.key.startsWith('pilot:') && pilot) {
-      const cls = (SalvageUnionReference.Classes.find((c) => c.id === pilot.classRef) ??
-        null) as SURefEntity | null
+      const cls = SalvageUnionReference.Classes.find((c) => c.id === pilot.classRef) ?? null
       return {
         kind: 'entity',
         data: cls,

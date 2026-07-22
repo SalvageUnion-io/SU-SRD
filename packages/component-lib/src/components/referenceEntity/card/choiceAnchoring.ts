@@ -13,9 +13,7 @@ const choiceKeywords = (name: string): string[] =>
 
 /** A block's prose, lowercased — empty for choice markers / non-string blocks. */
 const blockLowerText = (b: SURefObjectContentBlock): string =>
-  b && b.type !== 'choice' && typeof (b as { value?: unknown }).value === 'string'
-    ? String((b as { value: string }).value).toLowerCase()
-    : ''
+  b && b.type !== 'choice' && typeof b.value === 'string' ? b.value.toLowerCase() : ''
 
 /**
  * AUTO-ANCHOR unmarked choices to the prose that introduces them: for a choice
@@ -33,7 +31,7 @@ export function anchorChoiceMarkers(
 ): void {
   const marked = new Set(
     blocks
-      .map((b) => (b?.type === 'choice' ? (b as { choiceId?: string }).choiceId : undefined))
+      .map((b) => (b?.type === 'choice' ? b.choiceId : undefined))
       .filter((id): id is string => !!id)
   )
   for (const choice of choices) {
@@ -50,7 +48,7 @@ export function anchorChoiceMarkers(
       blocks.splice(idx + 1, 0, {
         type: 'choice',
         choiceId: choice.id,
-      } as SURefObjectContentBlock)
+      })
       marked.add(choice.id)
     }
   }

@@ -30,10 +30,12 @@ describe('CountStepper', () => {
     const { rerender } = render(
       <CountStepper subject="Med Kit" count={0} onChange={() => {}} max={2} />
     )
-    const removeBtn = () =>
-      screen.getByRole('button', { name: 'Remove one Med Kit' }) as HTMLButtonElement
-    const addBtn = () =>
-      screen.getByRole('button', { name: 'Add one Med Kit' }) as HTMLButtonElement
+    const mustButton = (el: HTMLElement): HTMLButtonElement => {
+      if (!(el instanceof HTMLButtonElement)) throw new Error('expected a <button> element')
+      return el
+    }
+    const removeBtn = () => mustButton(screen.getByRole('button', { name: 'Remove one Med Kit' }))
+    const addBtn = () => mustButton(screen.getByRole('button', { name: 'Add one Med Kit' }))
     expect(removeBtn().disabled).toBe(true)
     expect(addBtn().disabled).toBe(false)
     rerender(<CountStepper subject="Med Kit" count={2} onChange={() => {}} max={2} />)

@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefEntity } from 'salvageunion-reference'
 import { Glyph, VitalGauge } from 'component-lib'
 import { cn } from '../../lib/utils'
 import { matchesRef } from '../../lib/rules/resolveRefs'
@@ -59,7 +58,7 @@ export function LoadoutPanel({
     if (!found) return []
     const copy = (seen.get(ref) ?? 0) + 1
     seen.set(ref, copy)
-    return [{ entity: found as unknown as SURefEntity, ref, index, copy }]
+    return [{ entity: found, ref, index, copy }]
   })
   const totals = new Map<string, number>()
   for (const ref of chosen) totals.set(ref, (totals.get(ref) ?? 0) + 1)

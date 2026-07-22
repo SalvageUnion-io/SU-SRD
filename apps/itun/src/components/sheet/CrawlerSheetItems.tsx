@@ -21,11 +21,8 @@ export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 // biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
 export function resolveCrawlerSystem(ref: string): SURefEntity | null {
   try {
-    const all = SalvageUnionReference.Systems.all() as ReadonlyArray<{
-      id: string
-      name: string
-    }>
-    return (all.find((s) => s.id === ref || s.name === ref) ?? null) as SURefEntity | null
+    const all = SalvageUnionReference.Systems.all()
+    return all.find((s) => s.id === ref || s.name === ref) ?? null
   } catch {
     return null
   }

@@ -61,9 +61,7 @@ describe('ReferenceEntityCard size="medium" extent="catalog"', () => {
   })
 
   test('a MINI catalog tile drops the artwork; every other size keeps it', () => {
-    const withArt = SalvageUnionReference.Chassis.all().find(
-      (c) => (c as { hasArtwork?: boolean }).hasArtwork
-    )
+    const withArt = SalvageUnionReference.Chassis.all().find((c) => c.hasArtwork)
     if (!withArt) throw new Error('no chassis with artwork in fixtures — the probe is vacuous')
 
     const medium = render(<ReferenceEntityCard data={withArt} size="medium" extent="catalog" />)

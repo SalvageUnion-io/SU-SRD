@@ -37,14 +37,15 @@ function buildTreeTierIndex(): TreeTierIndex {
     legendary: new Set(),
   }
   for (const cls of SalvageUnionReference.Classes.all()) {
-    const c = cls as {
-      coreTrees?: string[]
-      advancedTree?: string
-      legendaryTree?: string
+    if ('coreTrees' in cls && Array.isArray(cls.coreTrees)) {
+      for (const tree of cls.coreTrees) index.core.add(tree)
     }
-    for (const tree of c.coreTrees ?? []) index.core.add(tree)
-    if (c.advancedTree) index.advanced.add(c.advancedTree)
-    if (c.legendaryTree) index.legendary.add(c.legendaryTree)
+    if ('advancedTree' in cls && typeof cls.advancedTree === 'string' && cls.advancedTree) {
+      index.advanced.add(cls.advancedTree)
+    }
+    if ('legendaryTree' in cls && typeof cls.legendaryTree === 'string' && cls.legendaryTree) {
+      index.legendary.add(cls.legendaryTree)
+    }
   }
   return index
 }
@@ -82,7 +83,7 @@ export function enrichPilotSnapshot(pilot: {
   const abilities: AbilityInput[] = pilot.abilities.map((ref) => {
     const ability = SalvageUnionReference.Abilities.find((a) => a.id === ref || a.name === ref)
     if (!ability) return { ref }
-    const level = ability.level as number | 'L' | 'G'
+    const level = ability.level
     const tier = level === 'L' ? 'legendary' : tierForTree(ability.tree, treeIndex)
     return {
       ref,

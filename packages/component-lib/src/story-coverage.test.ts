@@ -34,6 +34,7 @@ const ALLOWLIST = new Set<string>([])
 
 /** Sanctioned top-level story groups, in sidebar order (see `.ladle/config.mjs`). */
 const GROUPS = ['Foundations', 'Atoms', 'Containers', 'Compositions'] as const
+const groupNames: readonly string[] = GROUPS
 
 /**
  * Sanctioned sub-groups, per top-level group. A sub-group exists only where a
@@ -203,7 +204,7 @@ describe('Ladle catalog: taxonomy', () => {
       const title = s.title
       if (!title) continue
       const [group, ...rest] = title.split('/')
-      if (!group || !GROUPS.includes(group as (typeof GROUPS)[number])) continue
+      if (!group || !groupNames.includes(group)) continue
       if (rest.length === 1) continue // Group/Leaf — always fine
       if (rest.length > 2) {
         offenders.push(`${s.file}: '${title}' nests deeper than Group/Sub-group/Leaf`)

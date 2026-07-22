@@ -9,26 +9,27 @@ import type { PatternOverrideData } from '../../referenceEntityTypes'
  * The Mule chassis (SV 7, TL 1) carries the "Hauler Pattern"; its systems and
  * modules are real, known-value fixtures used here to hand-verify the sums.
  */
-const mule = SalvageUnionReference.Chassis.find((c) => c.name === 'Mule') as SURefEntity
-const nonChassis = SalvageUnionReference.Systems.find(
-  (s) => s.name === '.50 Cal Machine Gun'
-) as SURefEntity
+const muleFound = SalvageUnionReference.Chassis.find((c) => c.name === 'Mule')
+const nonChassisFound = SalvageUnionReference.Systems.find((s) => s.name === '.50 Cal Machine Gun')
+if (!muleFound || !nonChassisFound) throw new Error('fixture entities missing from reference data')
+const mule: SURefEntity = muleFound
+const nonChassis: SURefEntity = nonChassisFound
 
 describe('resolvePatternOverride', () => {
   test('matches a pattern by its normalized name (suffix-insensitive)', () => {
     // "Hauler" normalizes to the same key as the stored "Hauler Pattern".
-    const override = { name: 'Hauler', systems: [], modules: [] } as PatternOverrideData
+    const override: PatternOverrideData = { name: 'Hauler', systems: [], modules: [] }
     const resolved = resolvePatternOverride(mule, override)
     expect(resolved?.name).toBe('Hauler')
   })
 
   test('returns undefined when no pattern name matches', () => {
-    const override = { name: 'Nonexistent', systems: [], modules: [] } as PatternOverrideData
+    const override: PatternOverrideData = { name: 'Nonexistent', systems: [], modules: [] }
     expect(resolvePatternOverride(mule, override)).toBeUndefined()
   })
 
   test('returns undefined for an entity that has no patterns', () => {
-    const override = { name: 'Hauler', systems: [], modules: [] } as PatternOverrideData
+    const override: PatternOverrideData = { name: 'Hauler', systems: [], modules: [] }
     expect(resolvePatternOverride(nonChassis, override)).toBeUndefined()
   })
 })
@@ -41,11 +42,11 @@ describe('computeSvOverride', () => {
     //   Escape Hatch ............ SV 1  × TL 1 × count 2      = 2
     //   Comms Module ............ SV 1  × TL 1 × count 1      = 1
     //                                                    total = 12
-    const override = {
+    const override: PatternOverrideData = {
       name: 'Custom',
       systems: [{ name: '.50 Cal Machine Gun' }, { name: 'Escape Hatch', count: 2 }],
       modules: [{ name: 'Comms Module' }],
-    } as PatternOverrideData
+    }
 
     const result = computeSvOverride(mule, override)
     expect(result.value).toBe(12)
@@ -53,11 +54,11 @@ describe('computeSvOverride', () => {
   })
 
   test('ignores items whose name resolves to no entity', () => {
-    const override = {
+    const override: PatternOverrideData = {
       name: 'Custom',
       systems: [{ name: 'Totally Fake System' }],
       modules: [],
-    } as PatternOverrideData
+    }
 
     // Only the chassis contributes: 7 × 1 = 7.
     expect(computeSvOverride(mule, override).value).toBe(7)

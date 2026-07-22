@@ -100,7 +100,7 @@ async function pick(name: string): Promise<void> {
 
 /** The primary CTA is labeled from the steps array: 'Next · {step} →'. */
 function getNextButton(): HTMLButtonElement {
-  return screen.getByRole('button', { name: /^Next ·/ }) as HTMLButtonElement
+  return screen.getByRole<HTMLButtonElement>('button', { name: /^Next ·/ })
 }
 
 async function clickNext(): Promise<void> {
@@ -125,7 +125,7 @@ async function fillField(editLabel: string, value: string): Promise<void> {
   await act(async () => {
     fireEvent.click(screen.getByRole('button', { name: editLabel }))
   })
-  const input = screen.getByRole('textbox', { name: editLabel }) as HTMLInputElement
+  const input = screen.getByRole<HTMLInputElement>('textbox', { name: editLabel })
   await act(async () => {
     fireEvent.change(input, { target: { value } })
     fireEvent.blur(input, { target: { value } })

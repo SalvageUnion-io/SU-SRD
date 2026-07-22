@@ -47,10 +47,7 @@ function resolveTypeAbilities(typeRef: string | undefined): SURefEntity[] {
   try {
     const refs = resolveCrawlerType(typeRef)?.actions ?? []
     if (refs.length === 0) return []
-    const actions = SalvageUnionReference.Actions.all() as ReadonlyArray<{
-      id: string
-      name: string
-    }>
+    const actions = SalvageUnionReference.Actions.all()
     return refs
       .map((ref) => actions.find((a) => a.id === ref || a.name === ref))
       .filter((a) => a !== undefined) as unknown as SURefEntity[]

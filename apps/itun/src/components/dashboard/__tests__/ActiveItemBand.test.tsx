@@ -49,7 +49,7 @@ describe('ActiveItemBand', () => {
 
   test('Dismount is disabled when no pilot is assigned', () => {
     render(<ActiveItemBand mech={mech} pilot={null} />)
-    expect((screen.getByText('Dismount') as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.getByText<HTMLButtonElement>('Dismount').disabled).toBe(true)
   })
 
   test('Dismount → pilot band, Board → back to the mech band', () => {

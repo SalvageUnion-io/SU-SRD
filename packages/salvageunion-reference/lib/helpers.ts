@@ -50,7 +50,7 @@ import { ActionTypeSchema } from './schemas/enums.js'
  * @returns The display name or the schema name if not found
  */
 export function getDisplayName(schemaName: SURefEnumSchemaName): string {
-  return (SchemaToDisplayName as Record<string, string>)[schemaName] || schemaName
+  return SchemaToDisplayName[schemaName] || schemaName
 }
 
 /**
@@ -86,7 +86,7 @@ export function getModel(
   schemaName: string | SURefEnumSchemaName
 ): ModelWithMetadata<SURefEntity> | undefined {
   const normalized = normalizeSchemaName(schemaName)
-  const modelName = (SchemaToModelMap as Record<string, string>)[normalized]
+  const modelName: string | undefined = SchemaToModelMap[normalized]
   if (!modelName) return undefined
   return (SalvageUnionReference as unknown as Record<string, ModelWithMetadata<SURefEntity>>)[
     modelName
@@ -107,7 +107,7 @@ export function resolveGrantedEntities(entity: SURefEntity): SURefEntity[] {
     .filter((grant) => grant.schema !== 'choice')
     .map(
       (grant): SURefEntity | null =>
-        getModel((grant.schema as SURefEnumSchemaName).toLowerCase())?.find(
+        getModel(grant.schema.toLowerCase())?.find(
           (e: SURefEntity) => 'name' in e && e.name === grant.name
         ) ?? null
     )
@@ -156,9 +156,7 @@ export function getNameById(
 ): string {
   if (!id) return fallback
   const entity = SalvageUnionReference.get(schemaName, id)
-  return (
-    entity && 'name' in entity && typeof entity.name === 'string' ? entity.name : fallback
-  ) as string
+  return entity && 'name' in entity && typeof entity.name === 'string' ? entity.name : fallback
 }
 
 // ============================================================================
@@ -224,7 +222,7 @@ export function findCoreClass(className: string): SURefClass | undefined {
 export function findHybridClass(className: string): SURefObjectAdvancedClass | undefined {
   const cls = SalvageUnionReference.findIn('classes', (c) => c.name === className)
   if (cls && 'hybrid' in cls && cls.hybrid === true) {
-    return cls as SURefObjectAdvancedClass
+    return cls
   }
   return undefined
 }
@@ -411,7 +409,7 @@ export function getTechLevels(): readonly number[] {
   const techLevels = SalvageUnionReference.CrawlerTechLevels.all()
     .map((tl) => tl.techLevel)
     .sort((a, b) => a - b)
-  return techLevels as readonly number[]
+  return techLevels
 }
 
 /**

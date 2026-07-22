@@ -9486,6 +9486,12 @@ export {};
 // === lib/utils/resultForTable.d.ts ===
 import type { SURefObjectTable, SURefObjectTableContent } from '../types/index.js';
 /**
+ * The multi-column (two-roll) member of the table union
+ */
+type ColumnsTable = Extract<SURefObjectTable, {
+    type: 'columns';
+}>;
+/**
  * Result type for columns table roll resolution (two d20 rolls)
  */
 export type ColumnsTableRollResult = {
@@ -9497,7 +9503,7 @@ export type ColumnsTableRollResult = {
 /**
  * Checks whether a table is a columns-type table (multi-column, two-roll)
  */
-export declare function isColumnsTable(table: SURefObjectTable | undefined): boolean;
+export declare function isColumnsTable(table: SURefObjectTable | undefined): table is ColumnsTable;
 /**
  * Resolves two d20 rolls against a columns-type table
  *
@@ -9531,6 +9537,7 @@ export type TableRollResult = {
  * }
  */
 export declare function resultForTable(table: SURefObjectTable | undefined, roll: number): TableRollResult;
+export {};
 //# sourceMappingURL=resultForTable.d.ts.map
 // === lib/zod.d.ts ===
 /**

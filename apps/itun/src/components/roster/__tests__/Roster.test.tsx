@@ -248,7 +248,7 @@ describe('Roster — Starter Set (spawned on first visit)', () => {
 
     expect(screen.getByRole('heading', { name: /Welcome to In the Union Now/i })).toBeTruthy()
     // The switcher offers Starter Set even before it exists as a workspace.
-    const switcher = screen.getByLabelText('Select workspace') as HTMLSelectElement
+    const switcher = screen.getByLabelText<HTMLSelectElement>('Select workspace')
     expect([...switcher.options].some((o) => o.textContent === 'Starter Set')).toBe(true)
     // Nothing spawned yet — no crew rendered.
     expect(screen.queryByText('Bonesaw')).toBeFalsy()

@@ -101,11 +101,7 @@ export function CatalogChoiceListing({
   return (
     <div className="flex flex-col gap-1.5">
       {prompt && <p className="font-body text-xs text-ink/70">{prompt}</p>}
-      <details
-        open={open}
-        onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
-        className="text-xs"
-      >
+      <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)} className="text-xs">
         <summary className="cursor-pointer font-cond uppercase leading-none tracking-caps-tight text-ink/70">
           {summary}
         </summary>
