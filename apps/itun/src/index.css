@@ -5,54 +5,13 @@
 @source '../../../packages/component-lib/src';
 
 /*
- * ShadCN runtime tokens — map to SU brand colors so generic ShadCN
- * components (Button, Dialog, Input, etc.) inherit the same look as the
- * srd SRD site instead of falling back to Tailwind defaults.
- *
- * Keep names ShadCN expects (no `--color-` prefix). Tailwind v4 picks
- * these up through the `bg-background` / `text-foreground` shorthand via
- * the component-lib theme `@theme` block; this :root block is the override
- * layer that points each one at an SU brand variable.
+ * (Removed: a ShadCN runtime-token :root block — --primary / --card / --ring
+ * and 13 siblings — that existed for generic ShadCN components in
+ * src/components/ui/. That directory no longer exists and nothing consumed
+ * the tokens; --background / --foreground, the only two anything read, are
+ * defined in component-lib's theme.css and still resolve from there. The lib
+ * is the single token source; this app-side layer was a second one.)
  */
-:root {
-  /* Page shell + body */
-  --background: var(--color-paper);
-  --foreground: var(--color-ink);
-
-  /* Cards / popovers */
-  --card: var(--color-paper);
-  --card-foreground: var(--color-ink);
-  --popover: var(--color-paper);
-  --popover-foreground: var(--color-ink);
-
-  /* Primary — Salvage orange. Mirrors `.btn-active` on the SRD. */
-  --primary: var(--color-rust);
-  --primary-foreground: var(--color-paper);
-
-  /* Secondary — pale blue (matches the SRD main-area chrome). */
-  --secondary: var(--color-wk-bg);
-  --secondary-foreground: var(--color-ink);
-
-  /* Muted — used for subtle backgrounds + muted text. */
-  --muted: var(--color-wk-bg);
-  --muted-foreground: var(--color-ink-2);
-
-  /* Accent — orange-light for hover halos and selected list items. */
-  --accent: var(--color-pilot-light);
-  --accent-foreground: var(--color-ink);
-
-  /* Destructive — rust, not red. */
-  --destructive: var(--color-adversary);
-  --destructive-foreground: var(--color-paper);
-
-  /* Borders / inputs / focus rings. */
-  --border: var(--color-wk-faint);
-  --input: var(--color-wk-faint);
-  --ring: var(--color-pilot);
-
-  /* Radius — keep ShadCN defaults; SRD cards rely on their own borders. */
-  --radius: 0.375rem;
-}
 
 /*
  * Indeterminate loader bar (branded loading states, e.g. GameDataReady).
@@ -121,24 +80,6 @@ h6 {
 }
 
 /*
- * Section dividers matching the SRD `catalog-header` pattern — line,
- * label, line. Available as `<div class="su-section-header"><span>Label
- * </span></div>` and reused across the dashboard / builders.
- */
-.su-section-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.su-section-header::before,
-.su-section-header::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--color-wk-faint);
-}
-
-/*
  * Print / PDF export (#82, #258 — audit item 15). The live sheet doubles as
  * the print layout: chrome (header, rails, controls, FABs, toasts) hides,
  * paper goes white with dark ink, and stat pip rows keep their fills via
@@ -160,8 +101,7 @@ h6 {
   nav,
   button,
   [role='dialog'],
-  [data-sonner-toaster],
-  .su-print-hidden {
+  [data-sonner-toaster] {
     /* biome-ignore lint/complexity/noImportantStyles: must beat Tailwind display utilities (flex/grid) on chrome elements */
     display: none !important;
   }

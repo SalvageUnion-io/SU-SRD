@@ -80,7 +80,6 @@
    * Hide non-printable elements
    * ------------------------------------------------------------------------- */
   nav,
-  .no-print,
   button:not([data-print]) {
     display: none !important;
   }
@@ -93,8 +92,7 @@
   /* -------------------------------------------------------------------------
    * Container overrides — full-width, no padding
    * ------------------------------------------------------------------------- */
-  main,
-  .sheet-wrapper {
+  main {
     max-width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -106,8 +104,6 @@
    * .sheet-section:  top-level sections (PilotSheet/MechSheet/CrawlerSheet)
    *                  each render as <section> with aria-labelledby; we target
    *                  the rendered <section> element directly as well.
-   * .card:           DisplayCard-style containers in component-lib
-   * .stat-row:       stat grid rows
    * dl:              the stats <dl> in MechSheet
    * li:              individual list items (systems, modules, cargo)
    * img:             never break inside an image
@@ -124,17 +120,8 @@
     break-before: auto;
   }
 
-  /* Force page-break when a section is explicitly marked */
-  section[data-page-break],
-  [data-page-break] {
-    page-break-before: always;
-    break-before: page;
-  }
-
-  /* .card targets DisplayCard-style containers in component-lib;
-   * section[class*="border-ink"] targets the restyled SU panel sections. */
-  .card,
-  .stat-row,
+  /* The restyled SU panel sections carry a border-ink class from the entity
+   * card; keep them whole across a page break. */
   section[class*='border-ink'] {
     page-break-inside: avoid;
     break-inside: avoid;
@@ -171,7 +158,7 @@
   }
 
   /* -------------------------------------------------------------------------
-   * Stat pips (component-lib StatBlock + StatDisplay) — keep trackable boxes on paper.
+   * Stat pips (component-lib Stat + VitalGauge) — keep trackable boxes on paper.
    *
    * The global `*` reset above forces every background to white, which would
    * erase a filled pip's fill and make it indistinguishable from an empty one.
