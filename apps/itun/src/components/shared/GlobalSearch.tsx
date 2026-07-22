@@ -20,7 +20,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { ModalShell, useDetailModal, useSearchCombobox } from 'component-lib'
+import { INPUT_FOCUS, ModalShell, useDetailModal, useSearchCombobox } from 'component-lib'
 import type { SearchComboboxResult } from 'component-lib'
 
 import { deepLinkToSchema } from '../../lib/srd-deep-link'
@@ -108,7 +108,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             role="combobox"
             aria-expanded={hasSearched && results.length > 0}
             aria-controls={listboxId}
-            className="w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2 font-body text-sm text-ink placeholder:text-wk-muted focus:outline-2 focus:outline-offset-2 focus:outline-rust"
+            className={`w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2 font-body text-sm text-ink placeholder:text-wk-muted ${INPUT_FOCUS}`}
           />
 
           {hasSearched &&

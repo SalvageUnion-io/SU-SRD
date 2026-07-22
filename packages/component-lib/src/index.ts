@@ -75,6 +75,20 @@ export { Badge } from './components/chrome/Badge'
 export type { BadgeTone } from './components/chrome/Badge'
 export { Button } from './components/chrome/Button'
 export { buttonVariants } from './components/chrome/buttonVariants'
+/**
+ * The focus vocabulary. Exported because the APPS need it, not only the lib:
+ * srd and itun each had their own hand-rolled focus treatment (a pilot outline,
+ * a rust outline) purely because the canonical rungs stopped at the package
+ * boundary. A design system the consuming apps cannot import is one they will
+ * re-invent.
+ */
+export {
+  FOCUS_RING,
+  FOCUS_RING_ON_TONE,
+  FOCUS_WITHIN,
+  INPUT_FOCUS,
+  DISABLED,
+} from './components/chrome/interaction'
 // EmptyState — dashed stamp-headline empty slot (ruleset §"Empty state")
 export { EmptyState } from './components/chrome/EmptyState'
 // FieldError — the one single-message validation line (role="alert", danger tone)

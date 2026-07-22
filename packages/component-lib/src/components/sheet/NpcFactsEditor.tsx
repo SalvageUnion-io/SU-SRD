@@ -14,6 +14,7 @@
 import { useRef, useState } from 'react'
 
 import { cn } from '../../utils/cn'
+import { INPUT_FOCUS } from '../chrome/interaction'
 
 type NpcFactsEditorProps = {
   facts: ReadonlyArray<string>
@@ -121,7 +122,10 @@ export function NpcFactsEditor({
             onBlur={() => {
               void commitAdd()
             }}
-            className="w-40 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge tracking-caps-tight text-ink focus:outline-none focus:ring-1 focus:ring-rust/25"
+            className={cn(
+              'w-40 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge tracking-caps-tight text-ink',
+              INPUT_FOCUS
+            )}
           />
         ) : (
           <button

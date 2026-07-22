@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Glyph, VitalGauge } from 'component-lib'
+import { FOCUS_RING, Glyph, VitalGauge } from 'component-lib'
 import { cn } from '../../lib/utils'
 import { matchesRef } from '../../lib/rules/resolveRefs'
 
@@ -126,7 +126,7 @@ export function LoadoutPanel({
                   type="button"
                   onClick={() => onRemove(index)}
                   aria-label={`Remove ${itemName}`}
-                  className="flex size-5 shrink-0 items-center justify-center rounded-sm text-xs text-ink transition-colors hover:bg-ink hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                  className={`flex size-5 shrink-0 items-center justify-center rounded-sm text-xs text-ink transition-colors hover:bg-ink hover:text-paper ${FOCUS_RING}`}
                 >
                   <Glyph name="x" />
                 </button>

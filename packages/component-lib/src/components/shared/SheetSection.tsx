@@ -29,6 +29,7 @@ import { ModalShell } from './ModalShell'
 import { EDIT_CUE_CLASS } from './editLanguage'
 
 import { cn } from '../../utils/cn'
+import { FOCUS_RING } from '../chrome/interaction'
 
 // ---------------------------------------------------------------------------
 // HButton — the container-header control button (design `.hbtn`, clean-edit.html
@@ -41,8 +42,7 @@ import { cn } from '../../utils/cn'
 
 type HButtonVariant = 'edit' | 'done' | 'add'
 
-const HBTN_BASE =
-  'inline-flex cursor-pointer items-center gap-1.5 rounded-card border-2 px-3 font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide whitespace-nowrap transition-colors min-h-11 sm:min-h-8 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rust/25 print:hidden'
+const HBTN_BASE = `inline-flex cursor-pointer items-center gap-1.5 rounded-card border-2 px-3 font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide whitespace-nowrap transition-colors min-h-11 sm:min-h-8 ${FOCUS_RING} print:hidden`
 
 const HBTN_VARIANT: Record<HButtonVariant, string> = {
   edit: 'border-ink bg-paper text-ink hover:bg-ink hover:text-paper',

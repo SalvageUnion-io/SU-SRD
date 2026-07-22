@@ -19,6 +19,8 @@
 import { useRef, useState } from 'react'
 
 import { Conditions } from '../chrome/Conditions'
+import { INPUT_FOCUS } from '../chrome/interaction'
+import { cn } from '../../utils/cn'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -112,7 +114,10 @@ export function ConditionsEditor({
           onBlur={() => {
             void commitAdd()
           }}
-          className="w-28 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge uppercase tracking-caps text-ink focus:outline-none focus:ring-1 focus:ring-rust/25"
+          className={cn(
+            'w-28 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge uppercase tracking-caps text-ink',
+            INPUT_FOCUS
+          )}
         />
       )}
     </div>

@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react'
 import type { SURefObjectChoice } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
+import { INPUT_FOCUS } from '../../chrome/interaction'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Badge } from '../../chrome/Badge'
 import { RollTable } from '../../shared/RollTable'
@@ -140,8 +141,7 @@ function StampsealField({
   multiline?: boolean
   onChange: (value: string) => void
 }): ReactNode {
-  const fieldClass =
-    'peer w-full rounded border border-ink/20 bg-paper px-2 pt-3.5 pb-1 font-body text-xs text-ink focus:border-rust focus:outline-none'
+  const fieldClass = `peer w-full rounded border border-ink/20 bg-paper px-2 pt-3.5 pb-1 font-body text-xs text-ink focus:border-rust ${INPUT_FOCUS}`
   const badge = (
     // A single space placeholder makes `:placeholder-shown` track "is empty".
     <span

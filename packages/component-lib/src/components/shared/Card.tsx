@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
+import { FOCUS_RING_ON_TONE } from '../chrome/interaction'
 import { CardControlRail } from './CardControlRail'
 import { Stat } from './Stat'
 import type { StatItem } from './statsBarTypes'
@@ -239,11 +240,10 @@ export function Card({
         'relative flex shrink-0 flex-col overflow-visible rounded-card',
         cardStyle?.className || 'shadow-lg',
         disabled && 'opacity-50',
-        // Focus ring for button mode: uses a dark inner ring + white outer offset
-        // so the outline stays visible on both light backgrounds (e.g., bg-paper)
-        // and dark tech-level backgrounds (e.g., tl-5/tl-6).
-        resolvedCardClick &&
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-paper',
+        // Button mode focuses ON TONE — a card's own background may be any
+        // entity tone, including the near-black end of the tech-level ramp,
+        // where the 25%-alpha rust ring disappears. See FOCUS_RING_ON_TONE.
+        resolvedCardClick && FOCUS_RING_ON_TONE,
         isCardHoverable &&
           'cursor-pointer transition-all duration-200 md:hover:z-10 md:hover:-translate-y-0.5 md:hover:scale-[1.02]'
       )}

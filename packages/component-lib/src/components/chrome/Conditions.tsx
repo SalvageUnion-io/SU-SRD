@@ -1,4 +1,5 @@
 import { cn } from '../../utils/cn'
+import { FOCUS_RING } from './interaction'
 import { Badge } from './Badge'
 
 type ConditionChipProps = {
@@ -40,7 +41,7 @@ export function ConditionChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className="cursor-pointer uppercase focus-visible:outline-none"
+      className={cn('cursor-pointer rounded-badge uppercase', FOCUS_RING)}
     >
       {label}
     </button>
