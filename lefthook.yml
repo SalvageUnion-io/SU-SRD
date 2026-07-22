@@ -53,3 +53,12 @@ pre-push:
       # typecheck. The utility simply stops being generated and the element
       # renders unstyled. This check is the only mechanical backstop for that.
       run: bun run check:tokens
+
+    styling-ownership:
+      # Guards the source-of-truth property: component-lib owns all shared
+      # styling. Catches app-local `@theme` tokens, dead app CSS, and breaks in
+      # the dashboard `pc-*` class contract (used-but-undefined / defined-but-
+      # unused). Like design-tokens, none of these fail typecheck — a stray app
+      # token or a className referencing an undefined class renders unstyled with
+      # no compiler error. Ratchets downward from a committed baseline.
+      run: bun run check:styling
