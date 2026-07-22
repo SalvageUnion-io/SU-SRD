@@ -1,5 +1,6 @@
 import type { CSSVarStyle } from '../../styles/cssVars'
 import { cn } from '../../utils/cn'
+import { CATALOG_TILE_CHROME, CATALOG_TILE_FILL, CATALOG_TILE_LABEL } from '../chrome/catalogTile'
 
 /**
  * CatalogTile — the shared catalog-tile link (canonical; converted from
@@ -9,9 +10,10 @@ import { cn } from '../../utils/cn'
  *
  * The tile fill (and optional label chip fill) are driven by the `catalogBg` /
  * `catalogLabel` colour strings, applied as CSS custom properties so a caller
- * can pass any gradient or token. Styling is self-contained (the former
- * `.catalog-item` global rules, replicated as utilities) so it renders
- * identically in Ladle and in the static site.
+ * can pass any gradient or token. The frame, hover lift, focus ring and name
+ * plate come from `chrome/catalogTile` — shared with `NavDrawer`, which renders
+ * the same tile in its mobile drawer and used to carry a verbatim second copy
+ * of both strings.
  */
 
 type CatalogTileProps = {
@@ -29,27 +31,24 @@ type CatalogTileProps = {
   variant?: 'default' | 'ghost'
 }
 
-// Geometry + interaction shared by both variants. `--catalog-bg` may be a colour
-// OR a gradient (tech-level ramps, the ability tier ramp), so the default fill
-// must use the `background` shorthand — `bg-[…]` compiles to `background-color`,
-// which silently drops a `linear-gradient()` and left those tiles unfilled with
-// unreadable paper text on the pale page ground.
-const TILE_BASE =
-  'flex min-h-[54px] flex-col items-center justify-center rounded-card border-chrome border-ink px-[15px] py-[13px] no-underline transition-[box-shadow,transform] duration-[120ms] hover:-translate-y-0.5 hover:shadow-[0_5px_18px_rgba(34,30,23,0.18)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pilot'
+/** What the GRID tile adds to the shared chrome. The drawer tile is a
+ *  full-width block instead, which is why this is not in the shared constant. */
+const TILE_LAYOUT = 'flex min-h-[54px] flex-col items-center justify-center'
 
-const TILE_DEFAULT = '[background:var(--catalog-bg)] text-paper'
 const TILE_GHOST = 'bg-paper text-ink'
 
+// Type comes off the ladder: `text-lede` (15px) and `tracking-caps-tight`
+// (0.04em) replace a hand-set 16px size and 0.02em tracking — both arbitrary
+// bracket values of the kind the token guard tracks. The 1px and 0.02em deltas
+// are the price of being on the scale. (Named in prose rather than quoted in
+// their utility form on purpose: the guard reads comments, and a citation of
+// the thing you removed counts as the thing itself.)
 const NAME =
-  'font-cond text-[16px] font-semibold uppercase leading-[1.2] tracking-[0.02em] text-paper [text-shadow:0_1px_2px_rgba(0,0,0,0.75)]'
+  'font-cond text-lede font-semibold uppercase leading-[1.2] tracking-caps-tight text-paper [text-shadow:0_1px_2px_rgba(0,0,0,0.75)]'
 
-const NAME_LABEL =
-  'inline-block rounded-badge bg-[var(--catalog-label)] px-[10px] py-0.5 [text-shadow:none]'
-
-// Ghost name — cond/bold/uppercase at text-lg (1.125rem) with 0.02em tracking
-// and no text-shadow (ink on paper needs none), matching the former
-// `.catalog-item--ghost`.
-const NAME_GHOST = 'font-cond text-lg font-bold uppercase tracking-[0.02em] text-ink'
+// Ghost name — cond/bold/uppercase at text-lg with no text-shadow (ink on paper
+// needs none), matching the former `.catalog-item--ghost`.
+const NAME_GHOST = 'font-cond text-lg font-bold uppercase tracking-caps-tight text-ink'
 
 export function CatalogTile({
   href,
@@ -66,8 +65,14 @@ export function CatalogTile({
   }
 
   return (
-    <a href={href} className={cn(TILE_BASE, isGhost ? TILE_GHOST : TILE_DEFAULT)} style={style}>
-      <span className={isGhost ? NAME_GHOST : cn(NAME, catalogLabel && NAME_LABEL)}>{name}</span>
+    <a
+      href={href}
+      className={cn(CATALOG_TILE_CHROME, TILE_LAYOUT, isGhost ? TILE_GHOST : CATALOG_TILE_FILL)}
+      style={style}
+    >
+      <span className={isGhost ? NAME_GHOST : cn(NAME, catalogLabel && CATALOG_TILE_LABEL)}>
+        {name}
+      </span>
     </a>
   )
 }
