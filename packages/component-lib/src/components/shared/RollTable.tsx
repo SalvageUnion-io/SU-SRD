@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import type { Dispatch, SetStateAction } from 'react'
+import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { resultForTable, resultForColumnsTable } from 'salvageunion-reference'
 import type { SURefObjectTable, SURefObjectTableContent } from 'salvageunion-reference'
 import { roll } from '@randsum/roller'
-import { Copy } from 'lucide-react'
+import { Copy, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { Text } from '../base/Text'
@@ -231,11 +231,14 @@ function ResultActionBar({
   resultText,
   onReroll,
   hideReroll,
+  onClear,
 }: {
   compact?: boolean
   resultText: string
   onReroll: () => void
   hideReroll?: boolean
+  /** When provided, renders a Clear action that resets the current result. */
+  onClear?: () => void
 }) {
   const handleCopy = useCallback(
     (e: React.MouseEvent) => {
@@ -255,6 +258,23 @@ function ResultActionBar({
     [onReroll]
   )
 
+  const handleClear = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onClear?.()
+    },
+    [onClear]
+  )
+
+  // Shared box metrics so Copy / Reroll / Clear line up as equal-sized buttons:
+  // identical border, padding and text size (compact and non-compact each
+  // consistent). Only the fill colour differs per action.
+  const boxMetrics = cn(
+    'flex cursor-pointer items-center gap-1 border border-ink font-bold',
+    compact ? 'px-2 text-xs' : 'px-3 text-sm'
+  )
+  const iconSize = compact ? 'h-3 w-3' : 'h-3.5 w-3.5'
+
   return (
     <div
       className={cn(
@@ -265,26 +285,31 @@ function ResultActionBar({
       <button
         type="button"
         onClick={handleCopy}
-        className={cn(
-          'flex cursor-pointer items-center gap-1 border border-ink bg-wk-faint font-bold text-ink hover:bg-wk-faint/80',
-          compact ? 'px-2 text-xs' : 'px-3 text-sm'
-        )}
+        className={cn(boxMetrics, 'bg-wk-faint text-ink hover:bg-wk-faint/80')}
         aria-label="Copy result to clipboard"
       >
         Copy
-        <Copy className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
+        <Copy className={iconSize} />
       </button>
       {!hideReroll && (
         <button
           type="button"
           onClick={handleReroll}
-          className={cn(
-            'flex cursor-pointer items-center gap-1 bg-ink font-bold text-paper hover:bg-brand-srd',
-            compact ? 'px-2 text-xs' : 'px-3 text-sm'
-          )}
+          className={cn(boxMetrics, 'bg-ink text-paper hover:bg-brand-srd')}
         >
           Reroll
           <DiceIcon compact={compact} />
+        </button>
+      )}
+      {onClear && (
+        <button
+          type="button"
+          onClick={handleClear}
+          className={cn(boxMetrics, 'bg-paper text-ink hover:bg-band-cream')}
+          aria-label="Clear result"
+        >
+          Clear
+          <X className={iconSize} />
         </button>
       )}
     </div>
@@ -298,28 +323,32 @@ function ResultActionBar({
  * grid-template-rows `0fr → 1fr` idiom (a child clipped by `overflow-hidden`),
  * so the panel animates to its natural height with no magic max-height.
  *
- * The `ResultActionBar` (Copy/Reroll) is a SIBLING of the clipped grid, not a
- * child, because it deliberately protrudes below its parent (`bottom-[-26px]`)
- * and would otherwise be clipped by the reveal's `overflow-hidden`.
+ * The `ResultActionBar` (Copy/Reroll/Clear) is a SIBLING of the clipped grid,
+ * not a child, because it deliberately protrudes below its parent
+ * (`bottom-[-26px]`) and would otherwise be clipped by the reveal's
+ * `overflow-hidden`.
+ *
+ * `children` is the single rolled row, supplied by each variant so it MIRRORS
+ * that variant's own expanded-row markup (the roll `#` cell + result text).
  */
 function CollapsedResultSlideout({
   show,
   hasResult,
-  label,
-  value,
   resultText,
   compact,
   onReroll,
   hideReroll,
+  onClear,
+  children,
 }: {
   show: boolean
   hasResult: boolean
-  label: string | null
-  value: string
   resultText: string
   compact?: boolean
   onReroll: () => void
   hideReroll?: boolean
+  onClear: () => void
+  children: ReactNode
 }) {
   if (!show) return null
   return (
@@ -337,7 +366,7 @@ function CollapsedResultSlideout({
               compact ? 'px-2 py-1.5' : 'px-3 py-2'
             )}
           >
-            <RollTableDescription label={label} value={value} compact={compact} />
+            {children}
           </div>
         </div>
       </div>
@@ -347,6 +376,7 @@ function CollapsedResultSlideout({
           resultText={resultText}
           onReroll={onReroll}
           hideReroll={hideReroll}
+          onClear={onClear}
         />
       )}
     </div>
@@ -443,13 +473,17 @@ function ColumnsRollTable({
         <CollapsedResultSlideout
           show={collapsible && !expanded}
           hasResult={!!result}
-          label={null}
-          value={result?.value ?? ''}
           resultText={result?.value ?? ''}
           compact={compact}
           onReroll={handleRoll}
           hideReroll={singleRoll}
-        />
+          onClear={handleClear}
+        >
+          {/* Mirror the expanded cell: bold roll `#` then the result text. */}
+          <div className={cn('text-left text-ink', compact ? 'text-xs' : 'text-base')}>
+            <span className="font-bold">{result?.entryKey}:</span> {result?.value}
+          </div>
+        </CollapsedResultSlideout>
 
         {expanded && (
           <div className="overflow-visible">
@@ -627,13 +661,43 @@ function StandardRollTable({
         <CollapsedResultSlideout
           show={collapsible && !expanded}
           hasResult={!!highlightedEntry}
-          label={highlightedEntry?.label ?? null}
-          value={highlightedEntry?.value ?? ''}
           resultText={collapsedResultText}
           compact={compact}
           onReroll={handleRoll}
           hideReroll={singleRoll}
-        />
+          onClear={handleClearHighlight}
+        >
+          {/* Mirror the expanded row: the 52px roll `#` cell + the description. */}
+          <div className={cn('flex flex-row flex-wrap', compact ? 'gap-1' : 'gap-2')}>
+            <div
+              className={cn(
+                'flex w-[52px] shrink-0 flex-col items-center justify-center self-stretch border-r border-ink/20 font-normal tabular-nums',
+                compact ? 'py-1' : 'py-2'
+              )}
+            >
+              <Text
+                className={cn(
+                  'whitespace-nowrap text-center font-bold leading-none text-ink',
+                  compact ? 'text-sm' : 'text-lg'
+                )}
+              >
+                {highlightedEntry?.key}
+              </Text>
+            </div>
+            <div
+              className={cn(
+                'flex flex-[4] flex-row flex-wrap items-center',
+                compact ? 'py-0.5' : 'py-1'
+              )}
+            >
+              <RollTableDescription
+                label={highlightedEntry?.label ?? null}
+                value={highlightedEntry?.value ?? ''}
+                compact={compact}
+              />
+            </div>
+          </div>
+        </CollapsedResultSlideout>
         {expanded && (
           <table className="w-full border-collapse">
             <caption className="sr-only">{tableName || 'Roll table'}</caption>
