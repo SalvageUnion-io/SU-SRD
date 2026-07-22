@@ -4,48 +4,100 @@ export default {
   viteConfig: './vite.config.ts',
   // Shell relayout (injected into Ladle's own <head> — the officially-blessed
   // route for "repositioning the sidebar"). Ladle already docks the addon/controls
-  // toolbar (.ladle-addons) at the bottom natively; here we keep the nav
-  // (.ladle-aside) as the standard vertical story tree but turn it into a RIGHT-EDGE
-  // auto-hiding overlay: collapsed to a thin strip on the right, it slides open
-  // toward the LEFT (width grows) on hover / focus-within (focus-within preserves
-  // the '/' search reveal) and overlays the content, so story content (.ladle-main)
-  // stays full-width. Desktop only — Ladle is already a stacked column on mobile.
-  // These target Ladle's internal shell classes (not a public API); pinned to
-  // @ladle/react 5.1.1 — RE-VERIFY on any Ladle upgrade (see
+  // toolbar (.ladle-addons) at the bottom natively; here the nav (.ladle-aside)
+  // becomes a HAMBURGER-TOGGLED right-edge overlay rather than a hover-reveal
+  // strip. It was a 3rem sliver that expanded on hover — discoverable only if you
+  // knew to aim at it, and easy to open by accident. Now a fixed hamburger button
+  // (top-right) toggles the full nav in and out; the panel is off-screen until
+  // opened, so story content (.ladle-main) is always full-width. Escape closes it,
+  // and '/' opens it before focusing search (Ladle's shortcut lives inside the
+  // aside, which is off-screen when closed). Desktop only — Ladle is a stacked
+  // column with its own nav on mobile, so the button and overlay hide below 768px.
+  //
+  // The toggle button is appended to <body>, OUTSIDE Ladle's React root, so React
+  // never reconciles it away; the open/closed state is a class on <html>, also
+  // outside React. These target Ladle's internal shell classes (not a public API);
+  // pinned to @ladle/react 5.1.1 — RE-VERIFY on any Ladle upgrade (see
   // docs/design-system/ladle-styleguide.md §5.5/§9).
   appendToHead: `
     <style>
+      #ladle-nav-toggle { display: none; }
       @media (min-width: 768px) {
         .ladle-aside {
           position: fixed !important;
           right: 0; top: 0; bottom: 0; left: auto !important;
-          width: 3rem;
+          width: 18rem;
           min-width: 0 !important;
           max-width: none !important;
           flex: none !important;
           z-index: 100;
-          overflow: hidden;
+          overflow: auto;
           border-left: 2px solid var(--ladle-color-accent, #6b7280);
           box-shadow: -6px 0 20px rgba(0, 0, 0, 0.18);
-          transition: width 0.16s ease-out;
+          transform: translateX(100%);
+          transition: transform 0.18s ease-out;
         }
-        .ladle-aside:hover,
-        .ladle-aside:focus-within {
-          width: 18rem;
-          overflow: auto;
-        }
+        html.ladle-nav-open .ladle-aside { transform: translateX(0); }
         .ladle-main {
           width: 100% !important;
           max-width: none !important;
-          padding-right: 3.5rem;
         }
         .ladle-resize-handle { display: none !important; }
         .ladle-addons {
           inset-inline-start: 1rem !important;
           inset-inline-end: auto !important;
         }
+        #ladle-nav-toggle {
+          position: fixed;
+          top: 0.75rem;
+          right: 0.75rem;
+          z-index: 101;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 2.5rem;
+          height: 2.5rem;
+          padding: 0;
+          font-size: 1.25rem;
+          line-height: 1;
+          cursor: pointer;
+          background: var(--ladle-color-background, #fff);
+          color: var(--ladle-color-text, #111);
+          border: 2px solid var(--ladle-color-accent, #6b7280);
+          border-radius: 0.375rem;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          transition: right 0.18s ease-out;
+        }
+        html.ladle-nav-open #ladle-nav-toggle { right: 18.75rem; }
       }
     </style>
+    <script>
+      (function () {
+        function ensureToggle() {
+          if (!document.body || document.getElementById('ladle-nav-toggle')) return;
+          var btn = document.createElement('button');
+          btn.id = 'ladle-nav-toggle';
+          btn.type = 'button';
+          btn.setAttribute('aria-label', 'Toggle navigation');
+          btn.textContent = '\\u2630';
+          btn.addEventListener('click', function () {
+            document.documentElement.classList.toggle('ladle-nav-open');
+          });
+          document.body.appendChild(btn);
+        }
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') {
+            document.documentElement.classList.remove('ladle-nav-open');
+          } else if (e.key === '/' && document.activeElement &&
+                     document.activeElement.tagName !== 'INPUT' &&
+                     document.activeElement.tagName !== 'TEXTAREA') {
+            document.documentElement.classList.add('ladle-nav-open');
+          }
+        });
+        if (document.body) ensureToggle();
+        else document.addEventListener('DOMContentLoaded', ensureToggle);
+      })();
+    </script>
   `,
   // Open on the orientation page (Foundations/Styleguide → Overview) instead of
   // whatever sorts first, so the catalog has a front door. Story id joins every

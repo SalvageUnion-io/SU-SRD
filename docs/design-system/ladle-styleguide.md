@@ -133,26 +133,26 @@ The story-id format `defaultStory` targets joins every title segment and the exp
 
 ### 3.1 Every config option (with Ladle's defaults)
 
-| Option                 | Default                                | Notes / our value                                                                                                                                                                                                                                            |
-| ---------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `stories`              | `src/**/*.stories.{js,jsx,ts,tsx,mdx}` | We narrow to `src/**/*.stories.{ts,tsx}` (TS only, no MDX).                                                                                                                                                                                                  |
-| `defaultStory`         | `""`                                   | Story key to open on load. We open on `foundations--styleguide--overview` (the orientation page).                                                                                                                                                            |
-| `storyOrder`           | identity `(s) => s`                    | A function or array (supports `["folder*"]` wildcards). We sort by the four-group taxonomy — see §6.2.                                                                                                                                                       |
-| `viteConfig`           | `undefined`                            | Path to a Vite config Ladle should merge. We point at `./vite.config.ts` (Tailwind only — see §5.1).                                                                                                                                                         |
-| `outDir`               | `build`                                | We use `build-ladle`.                                                                                                                                                                                                                                        |
-| `base`                 | `undefined`                            | Base path for sub-path deploys (e.g. GitHub Pages).                                                                                                                                                                                                          |
-| `port` / `previewPort` | `61000` / `8080`                       | Dev / preview server ports. `61000` is the URL the VR harness hits.                                                                                                                                                                                          |
-| `host` / `previewHost` | —                                      | Bind host for dev / preview.                                                                                                                                                                                                                                 |
-| `hmrHost` / `hmrPort`  | `undefined`                            | HMR overrides (rarely needed).                                                                                                                                                                                                                               |
-| `mode`                 | Vite mode                              | Affects `.env` loading.                                                                                                                                                                                                                                      |
-| `appendToHead`         | `""`                                   | Inject raw CSS/HTML into Ladle's own shell `<head>`. We use it for the **shell relayout** (§5.5) — a `<style>` block that docks the nav as a right-edge auto-hiding sidebar (slides open leftward). Story-content CSS still comes through the provider (§5). |
-| `expandStoryTree`      | `false`                                | Auto-expand the whole sidebar on load.                                                                                                                                                                                                                       |
-| `noWatch`              | `false`                                | Disable file watching.                                                                                                                                                                                                                                       |
-| `disableHttp2`         | `false`                                | —                                                                                                                                                                                                                                                            |
-| `hotkeys`              | see below                              | Per-action key arrays.                                                                                                                                                                                                                                       |
-| `i18n`                 | one tooltip string                     | UI copy overrides.                                                                                                                                                                                                                                           |
-| `onDevServerStart`     | no-op                                  | Hook fired when the dev server boots.                                                                                                                                                                                                                        |
-| `addons`               | see §5.4                               | Per-addon `{ enabled, defaultState, … }`. We enable `a11y` (axe).                                                                                                                                                                                            |
+| Option                 | Default                                | Notes / our value                                                                                                                                                                                                                                         |
+| ---------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `stories`              | `src/**/*.stories.{js,jsx,ts,tsx,mdx}` | We narrow to `src/**/*.stories.{ts,tsx}` (TS only, no MDX).                                                                                                                                                                                               |
+| `defaultStory`         | `""`                                   | Story key to open on load. We open on `foundations--styleguide--overview` (the orientation page).                                                                                                                                                         |
+| `storyOrder`           | identity `(s) => s`                    | A function or array (supports `["folder*"]` wildcards). We sort by the four-group taxonomy — see §6.2.                                                                                                                                                    |
+| `viteConfig`           | `undefined`                            | Path to a Vite config Ladle should merge. We point at `./vite.config.ts` (Tailwind only — see §5.1).                                                                                                                                                      |
+| `outDir`               | `build`                                | We use `build-ladle`.                                                                                                                                                                                                                                     |
+| `base`                 | `undefined`                            | Base path for sub-path deploys (e.g. GitHub Pages).                                                                                                                                                                                                       |
+| `port` / `previewPort` | `61000` / `8080`                       | Dev / preview server ports. `61000` is the URL the VR harness hits.                                                                                                                                                                                       |
+| `host` / `previewHost` | —                                      | Bind host for dev / preview.                                                                                                                                                                                                                              |
+| `hmrHost` / `hmrPort`  | `undefined`                            | HMR overrides (rarely needed).                                                                                                                                                                                                                            |
+| `mode`                 | Vite mode                              | Affects `.env` loading.                                                                                                                                                                                                                                   |
+| `appendToHead`         | `""`                                   | Inject raw CSS/HTML into Ladle's own shell `<head>`. We use it for the **shell relayout** (§5.5) — a `<style>` + `<script>` block that toggles the nav as a hamburger-driven right-edge overlay. Story-content CSS still comes through the provider (§5). |
+| `expandStoryTree`      | `false`                                | Auto-expand the whole sidebar on load.                                                                                                                                                                                                                    |
+| `noWatch`              | `false`                                | Disable file watching.                                                                                                                                                                                                                                    |
+| `disableHttp2`         | `false`                                | —                                                                                                                                                                                                                                                         |
+| `hotkeys`              | see below                              | Per-action key arrays.                                                                                                                                                                                                                                    |
+| `i18n`                 | one tooltip string                     | UI copy overrides.                                                                                                                                                                                                                                        |
+| `onDevServerStart`     | no-op                                  | Hook fired when the dev server boots.                                                                                                                                                                                                                     |
+| `addons`               | see §5.4                               | Per-addon `{ enabled, defaultState, … }`. We enable `a11y` (axe).                                                                                                                                                                                         |
 
 Default hotkeys (override individually via `hotkeys: { … }`):
 
@@ -345,21 +345,26 @@ addons: {
 }
 ```
 
-### 5.5 Shell relayout — right-edge auto-hiding nav, full-bleed content
+### 5.5 Shell relayout — hamburger-toggled nav, full-bleed content
 
 Ladle's default shell puts the story-nav sidebar on the left (reserving a fixed column) and the
 addon/controls toolbar floating bottom-left. We relayout the shell so the **story content is always
-full-width** while keeping a **standard vertical nav** that gets out of the way:
+full-width** while the nav opens on demand from a **hamburger toggle**:
 
 - **Controls stay at the bottom (native).** Ladle already pins the addon toolbar (`.ladle-addons`) to
   `position: fixed; bottom: 0` — no work needed; we only nudge it to the bottom-left.
-- **Nav becomes a right-edge auto-hiding sidebar.** A `<style>` block in `appendToHead` (`.ladle/config.mjs`)
-  pulls the nav (`.ladle-aside`) out of the flex row (`position: fixed; right/top/bottom: 0`), collapses
-  it to a ~3rem right strip, and **slides it open leftward** to `18rem` on `:hover` / `:focus-within`
-  — as an **overlay that reserves no layout space**, so `.ladle-main` stays full-width (`width: 100%`,
-  with a small `padding-right` to clear the collapsed strip). The story tree stays its normal vertical
-  list and scrolls vertically. `:focus-within` keeps the `/` search reveal working; the drag-resize
-  handle is hidden. Desktop-only (`min-width: 768px`); Ladle already stacks to a column on mobile.
+- **Nav is a hamburger-toggled right-edge overlay.** A `<style>` + `<script>` block in `appendToHead`
+  (`.ladle/config.mjs`) pulls the nav (`.ladle-aside`) out of the flex row
+  (`position: fixed; right/top/bottom: 0`), parks it off-screen (`transform: translateX(100%)`), and a
+  fixed **hamburger button** (top-right, appended to `<body>` outside Ladle's React root) toggles the
+  `ladle-nav-open` class on `<html>` to slide it in at `18rem`. It is an **overlay that reserves no
+  layout space**, so `.ladle-main` stays full-width. **Escape** closes it; **`/`** opens it before
+  focusing search (Ladle's shortcut lives inside the aside, which is off-screen when closed). The
+  drag-resize handle is hidden. Desktop-only (`min-width: 768px`); Ladle already stacks to a column
+  with its own nav on mobile, so both the button and the overlay hide below 768px.
+  - This replaced an earlier **hover-reveal strip** (a ~3rem sliver that expanded on `:hover` /
+    `:focus-within`). It was half-hidden — discoverable only if you knew to aim at it, and easy to
+    open by accident. The explicit toggle is the fix.
 
 **This is the officially-blessed route** — Ladle's docs cite `appendToHead` for "repositioning the
 sidebar." But it targets Ladle's **internal shell classes** (`.ladle-aside` / `.ladle-main` /
