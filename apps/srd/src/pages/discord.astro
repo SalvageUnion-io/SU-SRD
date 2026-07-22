@@ -1,6 +1,15 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
+import { buttonVariants, cn } from 'component-lib'
 import { SITE_URL, ITUN_URL } from '../lib/constants'
+
+// The install CTA is an <a> styled as THE primary (rust) action — the lib
+// Button recipe as a class string (buttonVariants), keeping the condensed
+// uppercase treatment this hero link uses.
+const installButtonClass = cn(
+  buttonVariants({ variant: 'primary' }),
+  'font-cond text-base uppercase tracking-caps-snug'
+)
 
 // The client id is public by design — it appears in every Discord invite
 // URL. The bot itself authenticates with its token, never this id.
@@ -57,7 +66,7 @@ const breadcrumbs = [
             href={INSTALL_URL}
             target="_blank"
             rel="noopener noreferrer"
-            class="btn btn-active inline-block font-cond text-base uppercase tracking-caps-snug"
+            class={installButtonClass}
           >
             Add to your Discord server
           </a>

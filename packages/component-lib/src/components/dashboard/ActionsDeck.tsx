@@ -120,6 +120,18 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
 
           {currencyChoice && (
             <fieldset className="pc-deck-cost-choice">
+              {/*
+               * Deliberately NATIVE radios, not the chrome `Radio` primitive.
+               * That primitive is a self-framed choice-row card
+               * (`rounded-card border-chrome border-ink bg-paper p-2` around a
+               * `font-body` label). Here the two options are compact inline
+               * `pc-deck-radio` labels inside the already-bordered
+               * `pc-deck-cost-choice` fieldset; the framed primitive would turn
+               * the tight EP/AP pair into two bordered cards nested in a bordered
+               * fieldset (foreign to this instrument). The `name` stays a real
+               * radio-group form name. Adopt only once `Radio` grows a
+               * bare/instrument rung (just the accent-rust input, no framed row).
+               */}
               <legend className="pc-deck-cost-choice-lab">Pay with</legend>
               <label className="pc-deck-radio">
                 <input

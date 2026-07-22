@@ -30,7 +30,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { Badge, Stat } from 'component-lib'
+import { Badge, buttonVariants, Stat } from 'component-lib'
 import type { BadgeTone, StatTone } from 'component-lib'
 
 import { cn } from '../../lib/utils'
@@ -126,10 +126,6 @@ function useCondensed(target: RefObject<HTMLElement | null>, enabled: boolean): 
 
   return enabled && condensed
 }
-
-/** Design §2.4 `.btn.btn--sm` recipe as utilities, shared by both segment states. */
-const SEGMENT_BTN_CLASS =
-  'inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-[3px] border-chrome px-[11px] py-[6px] font-body text-xs font-medium tracking-[0.01em] no-underline transition-colors duration-[120ms]'
 
 export function LiveSheet({
   variant,
@@ -244,7 +240,10 @@ export function LiveSheet({
                 <span
                   key={segment.key}
                   aria-current="page"
-                  className={cn(SEGMENT_BTN_CLASS, 'border-rust bg-rust text-paper')}
+                  className={cn(
+                    buttonVariants({ variant: 'primary', size: 'compact' }),
+                    'flex-1 no-underline'
+                  )}
                 >
                   {segment.label}
                 </span>
@@ -252,7 +251,10 @@ export function LiveSheet({
                 <AppLink
                   key={segment.key}
                   href={segment.href}
-                  className={cn(SEGMENT_BTN_CLASS, 'border-ink bg-paper text-ink hover:bg-wk-bg-2')}
+                  className={cn(
+                    buttonVariants({ variant: 'default', size: 'compact' }),
+                    'flex-1 no-underline'
+                  )}
                 >
                   {segment.label}
                 </AppLink>

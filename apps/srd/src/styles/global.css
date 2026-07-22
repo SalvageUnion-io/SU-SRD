@@ -15,44 +15,11 @@
   display: none;
 }
 
-/* Button system */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.375rem 1rem;
-  border: 1px solid transparent;
-  border-radius: var(--radius-card);
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.25rem;
-  transition:
-    color 0.15s,
-    background-color 0.15s,
-    border-color 0.15s;
-}
+/* (The `.btn` / `.btn-active` / `.btn-inactive` system was retired — the action
+   button is the shared component-lib `Button` (and `buttonVariants` for links),
+   which owns that treatment as the single source of truth.)
 
-.btn-active {
-  background-color: var(--color-rust);
-  border-color: var(--color-rust);
-  color: var(--color-paper);
-}
-
-.btn-inactive {
-  color: var(--color-ink);
-}
-
-.btn-inactive:hover {
-  background-color: var(--color-rust);
-  border-color: var(--color-rust);
-  color: var(--color-paper);
-}
-
-.btn:focus-visible {
-  outline: 2px solid var(--color-pilot);
-  outline-offset: 2px;
-}
-
-/* (.nav-link and .breadcrumb-text were retired — the masthead is the shared
+   (.nav-link and .breadcrumb-text were retired — the masthead is the shared
    component-lib AppBar, which owns those treatments as utilities.) */
 
 /* Catalog category headers — line / [PSEUDOHEADER] / line */
@@ -82,46 +49,10 @@
   white-space: nowrap;
 }
 
-/* Catalog tiles — full-bleed color, .srd-tile treatment */
-.catalog-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 54px;
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  background: var(--catalog-bg);
-  color: var(--color-paper);
-  padding: 13px 15px;
-  text-decoration: none;
-  transition:
-    box-shadow 0.12s,
-    transform 0.12s;
-}
-
-.catalog-item:hover {
-  box-shadow: 0 5px 18px rgba(34, 30, 23, 0.18);
-  transform: translateY(-2px);
-}
-
-.catalog-item:focus-visible {
-  outline: 2px solid var(--color-pilot);
-  outline-offset: 2px;
-}
-
-/* Ghost variant — white/black tile that reuses the shared geometry + hover/focus
-   of .catalog-item (e.g. the 404 "Return to Home" link). Apply alongside
-   .catalog-item: class="catalog-item catalog-item--ghost". */
-.catalog-item--ghost {
-  background: var(--color-paper);
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-size: 1.125rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
+/* (The `.catalog-item` family — tile, hover, focus, `--ghost`, `__name`,
+   `-label` — was retired: it is the shared component-lib `CatalogTile`, which
+   owns the tile markup (incl. the `variant="ghost"` 404 link) as the single
+   source of truth.) */
 
 /* Page H1 "band" — black stamp heading used on about / api / changelog. Per-page
    modifiers (e.g. text-center) stay as inline utilities alongside the class. */
@@ -149,31 +80,6 @@
   line-height: 1.75rem;
   font-weight: 700;
   text-transform: uppercase;
-}
-
-/* Tile name line — font-cond, bold, uppercase, text-shadow for legibility on gradients.
-   Shadow alpha must stay ≥ 0.75: axe contrast-checks white text against the shadow
-   blended over the lightest gradients, and 0.5 lands just under the 4.5:1 AA bar. */
-.catalog-item__name {
-  font-family: var(--font-cond);
-  font-weight: 600;
-  font-size: 16px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--color-paper);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
-  line-height: 1.2;
-  text-align: center;
-}
-
-/* Disambiguation badge — solid label color behind the name so equipment /
-   systems / modules read clearly over their tech-level gradient. */
-.catalog-item-label {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: var(--radius-badge);
-  background: var(--catalog-label);
-  text-shadow: none;
 }
 
 /* Shadow wrapper — clip-path kills box-shadow, so shadow lives here */

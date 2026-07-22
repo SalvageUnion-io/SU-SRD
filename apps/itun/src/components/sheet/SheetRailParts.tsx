@@ -9,7 +9,7 @@
  */
 
 import { Fragment } from 'react'
-import { Stat } from 'component-lib'
+import { buttonVariants, Stat } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
@@ -60,10 +60,8 @@ export function RailCta({
     <AppLink
       href={href}
       className={cn(
-        'rounded-[3px] border-chrome px-2.5 py-1.5 text-center font-body text-xs font-medium no-underline transition-colors duration-[120ms]',
-        primary
-          ? 'border-rust bg-rust text-paper hover:bg-rust-hi'
-          : 'border-ink bg-paper text-ink hover:bg-wk-bg-2'
+        buttonVariants({ variant: primary ? 'primary' : 'default', size: 'compact' }),
+        'no-underline'
       )}
     >
       {label}

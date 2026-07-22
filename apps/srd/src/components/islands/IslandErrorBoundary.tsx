@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react'
+import { RecoveryPanel } from 'component-lib'
 
 type Props = { children: ReactNode }
 type State = { error: Error | null }
@@ -10,6 +11,10 @@ type State = { error: Error | null }
  * Without this, a render error inside an island leaves the page blank
  * (the static fallback is removed once data is ready, and the island is
  * the only remaining content).
+ *
+ * The recovery UI is the shared component-lib `RecoveryPanel` (also used by
+ * itun's root error component); the island-specific action here is a full
+ * page reload.
  */
 export class IslandErrorBoundary extends Component<Props, State> {
   state: State = { error: null }
@@ -21,15 +26,12 @@ export class IslandErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="mx-auto w-full max-w-6xl p-4 text-sm">
-          <p className="mb-2 font-bold">Something went wrong rendering this entry.</p>
-          <button
-            type="button"
-            className="btn btn-inactive"
-            onClick={() => window.location.reload()}
-          >
-            Reload page
-          </button>
+        <div className="mx-auto flex w-full max-w-6xl justify-center p-4">
+          <RecoveryPanel
+            title="Something went wrong"
+            message="Something went wrong rendering this entry."
+            action={{ label: 'Reload page', onClick: () => window.location.reload() }}
+          />
         </div>
       )
     }

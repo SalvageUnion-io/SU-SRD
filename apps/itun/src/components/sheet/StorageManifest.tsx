@@ -5,11 +5,11 @@
  *   - side='mech' (mech sheet): capacity strip (used/cap + the canonical
  *     SlotGrid cells, over-capacity rendered honestly as red cells — never
  *     clamped), cargo
- *     chits (linear list, `CargoChit`) with 'Stow →' (whole-lot, SCRAP
+ *     chits (linear list, `CargoLotItem`) with 'Stow →' (whole-lot, SCRAP
  *     deposits the crawler's TL pool bucket), counterpart = the crawler's
  *     unlimited Storage Bay.
  *   - side='crawler' (crawler sheet): '∞ unlimited' strip, a dense poster
- *     `.storegrid` of magenta `.slot` tiles (`CargoTile`, graph-paper
+ *     `.storegrid` of magenta `.slot` tiles (the same `CargoLotItem`, graph-paper
  *     `.storebody` backdrop) with '← Load' (cap-checked; bulk partial-fill
  *     shows a dynamic 'Load N' label), counterpart = the docked mech's
  *     capacity. The tile-grid presentation is crawler-only — the mech Hold
@@ -22,7 +22,7 @@
  */
 
 import { useId } from 'react'
-import { Card, SlotGrid, Stat } from 'component-lib'
+import { Button, Card, SlotGrid, Stat } from 'component-lib'
 
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
@@ -99,17 +99,26 @@ function perUnitCost(lot: CargoLot): number {
   return Math.max(1, Math.round(lot.units / lot.qty))
 }
 
-type CargoChitProps = {
-  lot: CargoLot
-  side: StorageManifestSide
-  cargo: UseCargoResult
-  /** Whether the receiving side of the boundary is linked. */
+/**
+ * The cap-checked move affordance shared by both Hold layouts — the single
+ * source of the button label + disabled reason that the linear mech chit and
+ * the poster crawler tile previously duplicated.
+ *
+ *   - The boundary gate is per-`side`: mech stows to the crawler ('Stow →',
+ *     disabled when no crawler is linked), crawler loads onto the mech
+ *     ('← Load', disabled when no mech is docked).
+ *   - Only the crawler side is cap-checked (the mech Hold's Storage Bay target
+ *     is unlimited), so the fit-math runs solely for `side === 'crawler'`:
+ *     bulk lots partial-fill up to the free slots (dynamic 'Load N' label),
+ *     unit lots move whole-or-not.
+ */
+function moveAffordance(
+  lot: CargoLot,
+  side: StorageManifestSide,
+  cargo: UseCargoResult,
   linked: boolean
-  readOnly: boolean
-}
-
-function CargoChit({ lot, side, cargo, linked, readOnly }: CargoChitProps) {
-  let label = 'Stow →'
+): { label: string; disabledReason: string | null } {
+  let label = side === 'mech' ? 'Stow →' : '← Load'
   let disabledReason: string | null = linked
     ? null
     : side === 'mech'
@@ -131,9 +140,74 @@ function CargoChit({ lot, side, cargo, linked, readOnly }: CargoChitProps) {
     label = partial && fitsQty > 0 ? `← Load ${fitsQty}` : '← Load'
   }
 
+  return { label, disabledReason }
+}
+
+type CargoLotItemProps = {
+  lot: CargoLot
+  side: StorageManifestSide
+  cargo: UseCargoResult
+  /** Whether the receiving side of the boundary is linked. */
+  linked: boolean
+  readOnly: boolean
+}
+
+/**
+ * CargoLotItem — one lot, rendered for either side of the mech ⇄ crawler
+ * boundary. Both presentations and their (formerly duplicated) cap-checked
+ * move affordance now live here:
+ *   - `side === 'mech'`    → the linear chit (marker cell + name + units cell)
+ *     with a 'Stow →' button, laid out in the mech Hold's flat list.
+ *   - `side === 'crawler'` → the poster `.slot` tile (magenta `--tone`, name
+ *     stamp over an MChip qty/TL tag) with the cap-checked '← Load' button.
+ * The label + disabled reason come from the shared `moveAffordance`, and both
+ * move buttons route through the shared `Button` (variant differs only to keep
+ * each layout's ground: `ghost` for the chit's transparent cell, `default` for
+ * the tile's paper chip).
+ */
+function CargoLotItem({ lot, side, cargo, linked, readOnly }: CargoLotItemProps) {
+  const { label, disabledReason } = moveAffordance(lot, side, cargo, linked)
+
   function handleMove() {
     if (side === 'mech') void cargo.stow(lot.id)
     else void cargo.load(lot.id)
+  }
+
+  const moveDisabled = disabledReason !== null
+
+  if (side === 'crawler') {
+    const tag =
+      lot.kind === 'bulk'
+        ? { label: '×', value: lot.qty ?? lot.units }
+        : lot.tl !== undefined
+          ? { label: 'TL', value: lot.tl }
+          : { label: 'U', value: lot.units }
+
+    return (
+      <li
+        className="flex min-h-[64px] flex-col gap-1.5 rounded-[3px] border-2 p-2"
+        style={{ borderColor: 'var(--tone)', background: 'var(--tone)' }}
+      >
+        <div className="flex flex-wrap items-start justify-between gap-1.5">
+          <span className="box-decoration-clone min-w-0 flex-1 break-words bg-ink px-1.5 py-0.5 font-cond text-[11px] font-bold uppercase leading-[1.4] text-paper">
+            {lot.name}
+          </span>
+          <Stat orientation="horizontal" label={tag.label} value={tag.value} className="shrink-0" />
+        </div>
+        {!readOnly && (
+          <Button
+            variant="default"
+            disabled={moveDisabled}
+            title={disabledReason ?? undefined}
+            aria-label={`Load ${lot.name}`}
+            onClick={handleMove}
+            className="mt-auto self-end rounded-[2px] border-0 px-2 py-0.5 font-cond text-[10px] font-bold uppercase tracking-caps-tight hover:bg-[var(--color-cargo-pale)]"
+          >
+            {label}
+          </Button>
+        )}
+      </li>
+    )
   }
 
   return (
@@ -186,84 +260,16 @@ function CargoChit({ lot, side, cargo, linked, readOnly }: CargoChitProps) {
 
       {/* Move button */}
       {!readOnly && (
-        <button
-          type="button"
-          disabled={disabledReason !== null}
+        <Button
+          variant="ghost"
+          disabled={moveDisabled}
           title={disabledReason ?? undefined}
           aria-label={`${side === 'mech' ? 'Stow' : 'Load'} ${lot.name}`}
           onClick={handleMove}
-          className="shrink-0 cursor-pointer px-2.5 font-cond text-label font-bold uppercase tracking-caps-tight text-ink transition-colors duration-[120ms] hover:bg-[var(--color-cargo-pale)] disabled:cursor-not-allowed disabled:opacity-40"
+          className="shrink-0 rounded-none border-0 px-2.5 py-0 font-cond text-label font-bold uppercase tracking-caps-tight hover:bg-[var(--color-cargo-pale)]"
         >
           {label}
-        </button>
-      )}
-    </li>
-  )
-}
-
-type CargoTileProps = {
-  lot: CargoLot
-  cargo: UseCargoResult
-  /** Whether a mech is docked (the crawler Hold's Load target). */
-  linked: boolean
-  readOnly: boolean
-}
-
-/**
- * CargoTile — the crawler Hold's poster `.slot`: a magenta `--tone` tile
- * stamping the item name over an `MChip` qty/TL tag, with the '← Load'
- * transfer button (same cap-checked affordance as `CargoChit`'s crawler
- * branch, reimplemented here since the mech-side chit keeps its own linear
- * layout untouched).
- */
-function CargoTile({ lot, cargo, linked, readOnly }: CargoTileProps) {
-  let label = '← Load'
-  let disabledReason: string | null = linked ? null : 'No mech docked — nothing to load onto.'
-
-  if (disabledReason === null) {
-    const per = perUnitCost(lot)
-    const fitsQty =
-      lot.kind === 'bulk' && lot.qty !== undefined
-        ? Math.min(lot.qty, Math.floor(cargo.usage.free / per))
-        : lot.units <= cargo.usage.free
-          ? 1
-          : 0
-    if (fitsQty <= 0) {
-      disabledReason = `"${lot.name}" does not fit — ${cargo.usage.free} slots free.`
-    }
-    const partial = lot.kind === 'bulk' && lot.qty !== undefined && fitsQty < lot.qty
-    label = partial && fitsQty > 0 ? `← Load ${fitsQty}` : '← Load'
-  }
-
-  const tag =
-    lot.kind === 'bulk'
-      ? { label: '×', value: lot.qty ?? lot.units }
-      : lot.tl !== undefined
-        ? { label: 'TL', value: lot.tl }
-        : { label: 'U', value: lot.units }
-
-  return (
-    <li
-      className="flex min-h-[64px] flex-col gap-1.5 rounded-[3px] border-2 p-2"
-      style={{ borderColor: 'var(--tone)', background: 'var(--tone)' }}
-    >
-      <div className="flex flex-wrap items-start justify-between gap-1.5">
-        <span className="box-decoration-clone min-w-0 flex-1 break-words bg-ink px-1.5 py-0.5 font-cond text-[11px] font-bold uppercase leading-[1.4] text-paper">
-          {lot.name}
-        </span>
-        <Stat orientation="horizontal" label={tag.label} value={tag.value} className="shrink-0" />
-      </div>
-      {!readOnly && (
-        <button
-          type="button"
-          disabled={disabledReason !== null}
-          title={disabledReason ?? undefined}
-          aria-label={`Load ${lot.name}`}
-          onClick={() => void cargo.load(lot.id)}
-          className="mt-auto self-end rounded-[2px] bg-paper px-2 py-0.5 font-cond text-[10px] font-bold uppercase tracking-caps-tight text-ink transition-colors duration-[120ms] hover:bg-[var(--color-cargo-pale)] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {label}
-        </button>
+        </Button>
       )}
     </li>
   )
@@ -354,7 +360,7 @@ export function StorageManifest({
           )}
         </div>
 
-        {/* Lot list — the mech Hold keeps the linear CargoChit list; the
+        {/* Lot list — the mech Hold keeps the linear CargoLotItem chit list; the
             crawler Hold renders the poster's dense `.storegrid` of magenta
             `.slot` tiles on a graph-paper `.storebody` backdrop. */}
         {lots.length === 0 ? (
@@ -364,9 +370,10 @@ export function StorageManifest({
             <GraphPaper />
             <ul className="relative m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5 p-0">
               {lots.map((lot) => (
-                <CargoTile
+                <CargoLotItem
                   key={lot.id}
                   lot={lot}
+                  side={side}
                   cargo={cargo}
                   linked={linkedCounterpart !== null}
                   readOnly={readOnly}
@@ -377,7 +384,7 @@ export function StorageManifest({
         ) : (
           <ul className="m-0 flex list-none flex-col gap-[7px] p-[11px]">
             {lots.map((lot) => (
-              <CargoChit
+              <CargoLotItem
                 key={lot.id}
                 lot={lot}
                 side={side}

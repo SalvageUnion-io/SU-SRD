@@ -48,5 +48,7 @@ export const Default: Story = () => (
       catalogBg="var(--color-ink)"
       catalogLabel="var(--color-rust)"
     />
+    {/* Ghost variant — paper fill / ink text, the 404 "Return to Home" link. */}
+    <CatalogTile href="/" name="Return to Home" variant="ghost" />
   </div>
 )

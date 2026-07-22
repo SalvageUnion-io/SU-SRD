@@ -8,14 +8,15 @@
  */
 
 import { cn } from '../../utils/cn'
+import { Ghost } from '../skeleton/Skeleton'
 
 /** Row-shaped shimmer placeholder matching component-lib's `Row` frame. */
 function SkeletonRow() {
   return (
     <li className="list-none">
       <div className="rounded-card border-chrome border-ink/15 bg-paper px-3 py-2.5">
-        <div className="h-4 w-2/5 rounded bg-ink/10" />
-        <div className="mt-2 h-3 w-3/5 rounded bg-ink/5" />
+        <Ghost className="h-4 w-2/5" />
+        <Ghost className="mt-2 h-3 w-3/5 bg-ink/5" />
       </div>
     </li>
   )
@@ -25,8 +26,8 @@ function SkeletonColumn({ hiddenOnMobile = false }: { hiddenOnMobile?: boolean }
   return (
     <section aria-hidden="true" className={cn(hiddenOnMobile && 'hidden md:block')}>
       <div className="mb-3 flex items-center justify-between">
-        <div className="h-5 w-24 rounded bg-rust/25" />
-        <div className="h-7 w-28 rounded-card border-chrome border-ink/10 bg-paper" />
+        <Ghost className="h-5 w-24 bg-rust/25" />
+        <Ghost className="h-7 w-28 rounded-card border-chrome border-ink/10 bg-paper" />
       </div>
       <ul className="flex flex-col gap-2.5">
         <SkeletonRow />

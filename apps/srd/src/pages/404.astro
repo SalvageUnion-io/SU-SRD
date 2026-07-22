@@ -28,7 +28,7 @@ const schemas = catalog.schemas.filter((s) => !s.meta).slice(0, 6)
       </p>
 
       <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <a href="/" class="catalog-item catalog-item--ghost">Return to Home</a>
+        <CatalogTile href="/" name="Return to Home" variant="ghost" />
         {schemas.map((schema) => (
           <CatalogTile
             href={`/schema/${schema.id}/`}

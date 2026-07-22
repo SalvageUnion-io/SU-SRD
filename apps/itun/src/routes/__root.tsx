@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { createRootRoute, Outlet } from '@tanstack/react-router'
 import type { ErrorComponentProps } from '@tanstack/react-router'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { Button, EntityHrefProvider, Toaster } from 'component-lib'
+import { EntityHrefProvider, RecoveryPanel, Toaster } from 'component-lib'
 import { AppHeader } from 'component-lib'
 import { queryClient } from '../lib/queryClient'
 import { itunEntityHref } from '../lib/entityHref'
@@ -43,25 +43,25 @@ function RootErrorComponent({ error }: ErrorComponentProps) {
     (error as { name?: string } | null)?.name === 'BlockedUpgradeError'
 
   return (
-    <main role="alert" className="flex min-h-dvh items-center justify-center bg-wk-bg p-6">
-      <div className="flex w-full max-w-xl flex-col items-center gap-4 rounded-[6px] border-chrome border-ink bg-paper p-6 text-center sm:p-8">
-        <h1 className="font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
-          {isBlockedUpgrade ? 'Close the other tab' : 'Something went wrong'}
-        </h1>
-        <p className="font-body text-sm text-wk-muted">
-          {isBlockedUpgrade
+    <main className="flex min-h-dvh items-center justify-center bg-wk-bg p-6">
+      <RecoveryPanel
+        title={isBlockedUpgrade ? 'Close the other tab' : 'Something went wrong'}
+        message={
+          isBlockedUpgrade
             ? 'In the Union Now is open in another browser tab running an older version, which is blocking this one from loading. Close every other In the Union Now tab, then reload. Your saved data is safe.'
-            : 'The app hit an unexpected error. Your saved data is stored locally and is not affected.'}
-        </p>
+            : 'The app hit an unexpected error. Your saved data is stored locally and is not affected.'
+        }
+        action={{
+          label: isBlockedUpgrade ? 'Reload' : 'Reload app',
+          onClick: () => window.location.reload(),
+        }}
+      >
         {import.meta.env.DEV && (
           <pre className="max-w-full overflow-auto rounded-[3px] border-chrome border-ink/20 bg-wk-bg p-3 text-left text-xs text-ink">
             {error.message}
           </pre>
         )}
-        <Button variant="primary" onClick={() => window.location.reload()}>
-          {isBlockedUpgrade ? 'Reload' : 'Reload app'}
-        </Button>
-      </div>
+      </RecoveryPanel>
     </main>
   )
 }

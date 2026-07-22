@@ -80,6 +80,9 @@ export { FieldError } from './components/chrome/FieldError'
 // Callout — accent-framed note (stamp header + accent-bar body); list-items,
 // "When Damaged" effects, and similar accented notes compose on it.
 export { Callout } from './components/chrome/Callout'
+// RecoveryPanel — the shared error-recovery card (title / message / primary
+// action) behind srd's island error boundary and itun's root error component.
+export { RecoveryPanel } from './components/shared/RecoveryPanel'
 // Icon glyphs — currentColor, 1em, CSP-safe (ruleset §5, atom 11)
 export { Glyph } from './components/chrome/glyphs'
 

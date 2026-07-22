@@ -25,6 +25,7 @@ import {
   Badge,
   BayStatus,
   Button,
+  buttonVariants,
   Input,
   Panel,
   Row,
@@ -63,6 +64,7 @@ import {
   removePublishedSnapshot,
 } from '../../lib/snapshot/publishedSnapshots'
 import type { PublishedSnapshot } from '../../lib/snapshot/publishedSnapshots'
+import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
 
 import type { EntityLookup } from './composition'
@@ -396,7 +398,10 @@ export function ShareSnapshotScreen({
             actions={
               <AppLink
                 href={sheetHref}
-                className="rounded-[3px] border-chrome border-ink bg-paper px-[11px] py-[6px] font-body text-xs font-medium text-ink no-underline transition-colors duration-[120ms] hover:bg-wk-bg-2"
+                className={cn(
+                  buttonVariants({ variant: 'default', size: 'compact' }),
+                  'no-underline'
+                )}
               >
                 Open print view
               </AppLink>

@@ -11,6 +11,7 @@
  */
 import { useState, useEffect, useCallback, useSyncExternalStore, type ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { Button } from 'component-lib'
 
 /** A preload request: every schema (`'all'`), or an explicit subset. */
 export type SchemaList = string[] | 'all'
@@ -193,9 +194,9 @@ export function GameDataGate({
     return (
       <div className="flex flex-col items-start gap-3 p-4">
         <p className="text-sm">Failed to load game data.</p>
-        <button type="button" className="btn btn-inactive" onClick={load}>
+        <Button variant="ghost" onClick={load}>
           Retry loading game data
-        </button>
+        </Button>
       </div>
     )
   }

@@ -18,7 +18,7 @@
 
 import { useState } from 'react'
 import { Users } from 'lucide-react'
-import { EmptyState } from 'component-lib'
+import { EmptyState, Skeleton } from 'component-lib'
 
 import { setActiveWorkspaceId, useActiveWorkspaceId } from '../../hooks/queries'
 import { useHydrateOnMount } from '../../hooks/queries/useHydrateEntities'
@@ -152,14 +152,10 @@ export function EncounterScreen({
         <div className="flex flex-col gap-3">
           <Section title="Tracked NPCs" hint={`${npcs.length} in play`}>
             {!hydrated ? (
-              // Same pulse-skeleton idiom as DashboardSkeleton/SheetSkeleton:
-              // placeholder rows shaped like the NPC cards they stand in for.
-              <div role="status" aria-label="Loading encounter" className="animate-pulse">
-                <div className="flex flex-col gap-2.5">
-                  <div className="h-16 rounded-[3px] border-chrome border-ink/15 bg-ink/10" />
-                  <div className="h-16 rounded-[3px] border-chrome border-ink/15 bg-ink/10" />
-                </div>
-              </div>
+              // Canonical Skeleton atom, `list` mode: placeholder rows shaped
+              // like the NPC cards they stand in for (was a hand-rolled
+              // pulse-ghost block).
+              <Skeleton mode="list" rows={2} />
             ) : npcs.length === 0 ? (
               <EmptyState
                 variant="quiet"
