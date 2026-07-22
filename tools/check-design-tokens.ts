@@ -174,10 +174,10 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
       'Ladle stories are specimens, not shipped surfaces — the same standing the Foundations catalog pages above already have, extended to the co-located ones so the rule does not depend on which directory a story happens to live in. Their literals are harness scaffolding: the --tone/--ground custom properties the consuming APP supplies at runtime (ModeDoor, VitalGauge), a dark backdrop to prove contrast against, a #ccc outline on a resize container (DashboardGrid/DashboardCanvas), and swatch props fed as data (FilterChip). Nothing here reaches a user, and tokenising a stand-in for app-supplied context would make the story demonstrate something other than what ships. Note the cost, since it is real: stories are where new surfaces get prototyped, so this is the one place drift can incubate un-flagged — a literal that graduates from a story into a component is caught at the component, not here. `gradient` is deliberately NOT on this list: a gradient is banned by §3.5 on shading grounds that a specimen does not escape, and the one sanctioned story gradient (CatalogTile.stories.tsx) is named individually below.',
   },
   {
-    file: 'packages/component-lib/src/components/shared/CatalogTile.tsx',
+    file: 'packages/component-lib/src/components/chrome/catalogTile.ts',
     rules: ['gradient'],
     reason:
-      'Named exemption in ruleset §3.5: the srd catalog tile ramps (--catalog-bg) carry the tech-level and ability-tier ramps on the landing page. The ramp is a wayfinding cue, not decoration.',
+      'Named exemption in ruleset §3.5: the srd catalog tile ramps (--catalog-bg) carry the tech-level and ability-tier ramps on the landing page. The ramp is a wayfinding cue, not decoration. The exemption moved here from shared/CatalogTile.tsx along with the treatment itself: the only match is the doc comment explaining WHY the fill must use the `background` shorthand — it names the `linear-gradient()` that `background-color` silently drops. That comment is the reason the bug stays fixed, so it is not reworded to dodge the regex.',
   },
   {
     file: 'apps/srd/src/lib/catalogColors.ts',

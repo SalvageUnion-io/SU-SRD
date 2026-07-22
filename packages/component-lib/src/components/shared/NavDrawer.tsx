@@ -5,6 +5,8 @@ import { Dialog } from '@base-ui/react/dialog'
 import { Menu, X } from 'lucide-react'
 import { buttonVariants } from '../chrome/buttonVariants'
 import { Badge } from '../chrome/Badge'
+import { CATALOG_TILE_CHROME, CATALOG_TILE_FILL, CATALOG_TILE_LABEL } from '../chrome/catalogTile'
+import { FOCUS_RING } from '../chrome/interaction'
 import { cn } from '../../utils/cn'
 
 /**
@@ -63,12 +65,12 @@ type NavDrawerProps = {
 }
 
 // Full-width catalog tile (former `.catalog-item`, compact drawer variant).
-const TILE =
-  // `background` shorthand, not `bg-[…]`/`background-color` — `--catalog-bg` may
-  // be a gradient (see CatalogTile), which background-color silently drops.
-  'block w-full rounded-card border-chrome border-ink [background:var(--catalog-bg)] px-[15px] py-[13px] text-center text-sm text-paper no-underline transition-[box-shadow,transform] duration-[120ms] hover:-translate-y-0.5 hover:shadow-[0_5px_18px_rgba(34,30,23,0.18)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pilot'
+// The frame, fill and name plate are the SHARED tile treatment; the drawer only
+// adds its own layout (full-width block, centred, one step down in type). This
+// file used to carry a verbatim copy of both strings, so the two tiles drifted.
+const TILE = cn(CATALOG_TILE_CHROME, CATALOG_TILE_FILL, 'block w-full text-center text-sm')
 
-const TILE_LABEL = 'inline-block rounded-badge bg-[var(--catalog-label)] px-[10px] py-0.5'
+const TILE_LABEL = CATALOG_TILE_LABEL
 
 export function NavDrawer({
   brand,
@@ -90,7 +92,7 @@ export function NavDrawer({
             type="button"
             aria-label="Open menu"
             className={cn(
-              'rounded-md p-2 text-paper transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pilot',
+              cn('rounded-md p-2 text-paper transition-colors', FOCUS_RING),
               triggerClassName
             )}
           >
@@ -117,7 +119,10 @@ export function NavDrawer({
                 <button
                   type="button"
                   aria-label="Close menu"
-                  className="flex items-center justify-center rounded-md p-1 text-ink/60 transition-colors hover:bg-ink/10 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pilot"
+                  className={cn(
+                    'flex items-center justify-center rounded-md p-1 text-ink/60 transition-colors hover:bg-ink/10 hover:text-ink',
+                    FOCUS_RING
+                  )}
                 >
                   <X size={22} aria-hidden="true" />
                 </button>
