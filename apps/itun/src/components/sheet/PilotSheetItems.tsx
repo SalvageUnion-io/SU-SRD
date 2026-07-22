@@ -117,7 +117,6 @@ export function PilotAbilityItem({
     <ReferenceEntityCard
       data={ability}
       size="medium"
-      label={ability.tree}
       hide={HIDE_CHOICES}
       footMeta={footMeta}
       controls={controls.length > 0 ? controls : undefined}

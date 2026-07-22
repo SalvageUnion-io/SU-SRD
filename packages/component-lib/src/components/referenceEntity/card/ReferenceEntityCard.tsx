@@ -220,8 +220,6 @@ export type ReferenceEntityCardProps = {
   footMeta?: CardFootMeta[]
   /** Overrides the header's top-right flavor slot. */
   rightContent?: ReactNode
-  /** Callout stamp above the frame. */
-  label?: string
   className?: string
   /** Extra className on the card root (legacy `cardStyle`, e.g. the
    * removable-card treatment). `className` alone covers the same case. */
@@ -376,7 +374,6 @@ function ReferenceEntityCardInner({
   footerOverride,
   footMeta,
   rightContent: rightContentProp,
-  label,
   className,
   cardStyle,
   titleAs,
@@ -809,14 +806,16 @@ function ReferenceEntityCardInner({
     onClick: onStatusClick,
     subject: entityName,
   })
-  // Label callout — a stamp straddling the top-left frame.
-  const labelCallout = label ? (
-    <div className={cn('absolute left-3 z-30', compact ? 'top-0 -translate-y-1/2' : '-mt-2')}>
-      <Badge shape="stamp" size="mini">
-        {label}
-      </Badge>
-    </div>
-  ) : null
+  // (There was a `label` CALLOUT here — a second mini stamp at `left-3 z-30`,
+  // straddling the same top-left corner as the seam at `left-[15px] z-10`. It
+  // is deleted, not merely unused. Every one of its four call sites passed the
+  // ability's TREE, which the seam pill already states with the level
+  // (`[Forging | 1]`), so the callout painted OVER the pill: same corner, higher
+  // z-index, a different vertical offset (`-mt-2` vs `-translate-y-1/2`), which
+  // left just a sliver of the pill's white level cell poking above a stamp
+  // reading "FORGING TREE". The level — the fact the callout did not carry —
+  // was the part hidden. Keeping the prop around would leave a loaded gun: it
+  // has no non-duplicating use, and passing it re-creates the collision.)
   // Selection seal — an `ok`-tone "chosen" stamp riding the top-right frame when
   // selected (the picker-cell affordance formerly overlaid by SelCard).
   const selectionSealNode =
@@ -949,7 +948,6 @@ function ReferenceEntityCardInner({
     return (
       <div className={outerClassName} {...outerInteraction}>
         {seam}
-        {labelCallout}
         {topRightRail}
         <div
           className="flex flex-1 flex-col overflow-hidden rounded-card bg-paper"
@@ -1533,7 +1531,6 @@ function ReferenceEntityCardInner({
   return (
     <div className={outerClassName} {...outerInteraction}>
       {seam}
-      {labelCallout}
       {topRightRail}
       <div
         className="flex flex-1 flex-col overflow-hidden rounded-card bg-paper"
