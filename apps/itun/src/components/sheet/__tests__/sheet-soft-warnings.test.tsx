@@ -26,6 +26,7 @@ import { PilotSheet } from '../PilotSheet'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -64,11 +65,8 @@ function makePilot(overrides: Partial<Pilot> = {}): Pilot {
 
 function makePilotStore(pilot: Pilot, captured: CapturedUpdate[]): typeof useEntityStore {
   let current = pilot
-  const storeState = {
+  return makeEntityStoreMock({
     pilots: [pilot],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
@@ -82,8 +80,7 @@ function makePilotStore(pilot: Pilot, captured: CapturedUpdate[]): typeof useEnt
       return current
     }),
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 const fakeChassis = {
@@ -115,11 +112,8 @@ function makeMech(overrides: Partial<Mech> = {}): Mech {
 
 function makeMechStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStore {
   let current = mech
-  const storeState = {
-    pilots: [],
+  return makeEntityStoreMock({
     mechs: [mech],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
@@ -133,8 +127,7 @@ function makeMechStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntity
       return current
     }),
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 async function click(name: RegExp) {

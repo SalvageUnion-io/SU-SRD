@@ -17,6 +17,7 @@ import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { seedDefaultCrawlerBays } from '../../../lib/wizard/crawlerFormState'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
+import { makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
 import { Sheet } from '../Sheet'
 import type { EntityLookup } from '../Sheet'
 
@@ -88,7 +89,7 @@ const lookup: EntityLookup = {
   },
 } as EntityLookup
 
-const noLinks: SoftLinkStore = { softLinks: [] } as unknown as SoftLinkStore
+const noLinks: SoftLinkStore = makeSoftLinkStoreMock()
 
 describe('blank entities render on their live sheets', () => {
   test('blank pilot (classRef "") renders without crashing', () => {

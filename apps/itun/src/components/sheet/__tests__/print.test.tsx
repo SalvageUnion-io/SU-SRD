@@ -22,8 +22,7 @@ import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
-import type { SoftLink } from '../../../lib/schemas/softLink'
-import { mock } from 'bun:test'
+import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
 
 // ---------------------------------------------------------------------------
 // Preload chassis data so MechSheet can resolve chassisRef
@@ -100,20 +99,11 @@ const fakeCrawler: Crawler = {
 type AnyEntity = Pilot | Mech | Crawler
 
 function makeEntityStore(entities: AnyEntity[]): EntityLookup {
-  return {
-    get: ((_type: unknown, id: string) =>
-      entities.find((e) => e.id === id) ?? null) as unknown as EntityLookup['get'],
-  }
+  return makeEntityLookupMock(entities)
 }
 
 function makeEmptySoftLinkStore(): SoftLinkStore {
-  // The create mock return value is unused in print tests; cast is safe
-  const createMock = mock(async () => undefined) as unknown as SoftLinkStore['create']
-  return {
-    softLinks: [] as SoftLink[],
-    create: createMock,
-    delete: mock(async () => undefined),
-  }
+  return makeSoftLinkStoreMock()
 }
 
 // ---------------------------------------------------------------------------

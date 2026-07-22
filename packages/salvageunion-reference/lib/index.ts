@@ -5,7 +5,7 @@
  * Models are loaded lazily via SalvageUnionReference.preload().
  */
 
-import type { BaseModel, ModelWithMetadata } from './BaseModel.js'
+import type { ModelWithMetadata } from './BaseModel.js'
 import type { LazyModel } from './LazyModel.js'
 import {
   getLoadedModel,
@@ -391,21 +391,16 @@ export class SalvageUnionReference {
   /**
    * Get all entities from multiple schemas, tagged with their schema name
    */
-  public static getAllBySchemaNames(
-    schemaNames: (keyof SchemaToEntityMap)[]
-  ): Array<{ schemaName: keyof SchemaToEntityMap; entity: SURefMetaEntity }> {
-    const result: Array<{
-      schemaName: keyof SchemaToEntityMap
-      entity: SURefMetaEntity
-    }> = []
+  public static getAllBySchemaNames<K extends keyof SchemaToEntityMap>(
+    schemaNames: K[]
+  ): Array<{ schemaName: K; entity: SchemaToEntityMap[K] }> {
+    const result: Array<{ schemaName: K; entity: SchemaToEntityMap[K] }> = []
     for (const schemaName of schemaNames) {
-      // Irreducible cast: lazyModelMap[schemaName] is a union of per-schema
-      // LazyModels, but that union includes non-meta entity types (e.g.
-      // catalog-categories -> SURefCatalogCategory, which is intentionally NOT
-      // in SURefMetaEntity), so neither a plain `as` nor a mapped-type narrowing
-      // applies. Callers only ever pass entity/meta schema names, so the
-      // narrowed entities are valid SURefMetaEntity in practice.
-      const model = lazyModelMap[schemaName] as unknown as BaseModel<SURefMetaEntity>
+      // lazyModelMap is a homomorphic mapped type, so a generic indexed access
+      // resolves to LazyModel<SchemaToEntityMap[K]> — no cast needed, and the
+      // result is typed by the exact schemas the caller passed (e.g.
+      // catalog-categories entities are no longer mislabelled SURefMetaEntity).
+      const model = lazyModelMap[schemaName]
       for (const entity of model.all()) {
         result.push({ schemaName, entity })
       }

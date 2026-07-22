@@ -3,10 +3,9 @@ import {
   type ButtonBuilder,
   EmbedBuilder,
   MessageFlags,
-  type ChatInputCommandInteraction,
-  type AutocompleteInteraction,
   type SlashCommandSubcommandBuilder,
 } from 'discord.js'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { roll as rollDie } from '@randsum/roller'
 import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
 
@@ -86,7 +85,7 @@ export const rollCommand = {
       )
   },
 
-  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+  async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
     const focusedValue = interaction.options.getFocused().toLowerCase()
 
     const filtered = getRollTables()
@@ -97,7 +96,7 @@ export const rollCommand = {
     await interaction.respond(filtered.map((name) => ({ name, value: name })))
   },
 
-  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+  async execute(interaction: CommandExecuteInteraction): Promise<void> {
     const tableName = interaction.options.getString('table') ?? 'Core Mechanic'
     const message = buildRollMessage(tableName, interaction.client.user?.displayAvatarURL())
     if ('error' in message) {

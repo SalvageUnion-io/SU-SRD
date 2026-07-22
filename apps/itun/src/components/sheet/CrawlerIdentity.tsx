@@ -22,7 +22,7 @@
 
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefMetaAction } from 'salvageunion-reference'
 import { ReferenceEntityCard } from 'component-lib'
 
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
@@ -42,7 +42,7 @@ const HIDE_CHOICES = { choices: true } as const
  * action entities. Salvage-tolerant like the other crawler ref lookups: a
  * missing catalog resolves to an empty list rather than throwing.
  */
-function resolveTypeAbilities(typeRef: string | undefined): SURefEntity[] {
+function resolveTypeAbilities(typeRef: string | undefined): SURefMetaAction[] {
   if (!typeRef) return []
   try {
     const refs = resolveCrawlerType(typeRef)?.actions ?? []
@@ -50,7 +50,7 @@ function resolveTypeAbilities(typeRef: string | undefined): SURefEntity[] {
     const actions = SalvageUnionReference.Actions.all()
     return refs
       .map((ref) => actions.find((a) => a.id === ref || a.name === ref))
-      .filter((a) => a !== undefined) as unknown as SURefEntity[]
+      .filter((a) => a !== undefined)
   } catch {
     return []
   }

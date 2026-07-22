@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
 import { isLegalCreationAbility } from 'salvageunion-reference/rules'
 import { toast } from 'component-lib'
 import { usePilot } from '../../hooks/queries'
@@ -91,11 +92,11 @@ const STEP_TITLES: Record<PilotWizardStepId, string> = {
  */
 type SURDeps = {
   Classes: {
-    all: () => unknown[]
-    find: (fn: (x: unknown) => boolean) => unknown
+    all: () => SURefClass[]
+    find: (fn: (x: SURefClass) => boolean) => SURefClass | undefined
   }
-  Abilities: { findAll: (fn: (x: unknown) => boolean) => unknown[] }
-  Equipment: { findAll: (fn: (x: unknown) => boolean) => unknown[] }
+  Abilities: { findAll: (fn: (x: SURefAbility) => boolean) => SURefAbility[] }
+  Equipment: { findAll: (fn: (x: SURefEquipment) => boolean) => SURefEquipment[] }
 }
 
 type PilotWizardProps = {

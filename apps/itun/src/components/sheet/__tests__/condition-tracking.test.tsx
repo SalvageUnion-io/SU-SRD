@@ -21,6 +21,7 @@ import { PilotSheet } from '../PilotSheet'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
 
 // PilotSheet resolves equipment/ability slugs; MechSheet resolves
@@ -38,42 +39,32 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 function makeMechStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
-  const updateMock = updateSpy ?? mock(async () => mech)
-  const storeState = {
-    pilots: [],
+  return makeEntityStoreMock({
     mechs: [mech],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
     get: mock((_type: string, id: string) => (id === mech.id ? mech : null)),
     create: mock(async () => mech),
-    update: updateMock,
+    update: updateSpy ?? mock(async () => mech),
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 function makePilotStubStore(
   pilot: Pilot,
   updateSpy?: ReturnType<typeof mock>
 ): typeof useEntityStore {
-  const updateMock = updateSpy ?? mock(async () => pilot)
-  const storeState = {
+  return makeEntityStoreMock({
     pilots: [pilot],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [pilot]),
     get: mock((_type: string, id: string) => (id === pilot.id ? pilot : null)),
     create: mock(async () => pilot),
-    update: updateMock,
+    update: updateSpy ?? mock(async () => pilot),
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -272,11 +263,8 @@ describe('MechSheet — condition merge reads live store, not stale prop (#240 r
       ...fakeMech,
       systemConditions: { 'prior-system': 'destroyed' },
     }
-    const storeState = {
-      pilots: [],
+    const store = makeEntityStoreMock({
       mechs: [freshMech],
-      crawlers: [],
-      softLinks: [],
       hydrated: {
         pilots: false,
         mechs: true,
@@ -290,8 +278,7 @@ describe('MechSheet — condition merge reads live store, not stale prop (#240 r
       create: mock(async () => fakeMech),
       update: updateSpy,
       delete: mock(async () => {}),
-    }
-    const store = (() => storeState) as unknown as typeof useEntityStore
+    })
 
     render(<MechSheet mech={propMech} chassis={fakeChassis} store={store} />)
 

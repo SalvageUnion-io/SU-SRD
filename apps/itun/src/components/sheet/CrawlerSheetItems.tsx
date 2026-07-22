@@ -89,7 +89,7 @@ export function CrawlerBayCard({
     store
   )
   const bay = resolveCrawlerBay(entry.bayRef)
-  const detail = useDetailModal(bay ? (bay as unknown as SURefEntity) : undefined)
+  const detail = useDetailModal(bay ?? undefined)
 
   if (!bay) {
     return (
@@ -209,7 +209,7 @@ export function CrawlerBayCard({
 
   // The card renders WITHOUT the SRD npc block — the crew lead lives in the
   // expand inset instead (design §4.4); the rules text lives in the modal.
-  const cardData = { ...bay, npc: undefined } as unknown as SURefEntity
+  const cardData: SURefEntity = { ...bay, npc: undefined }
 
   return (
     <>
@@ -337,6 +337,9 @@ export function CrawlerTypeCard({
 
   // Card renders WITHOUT the SRD npc block — the special NPC lives in the
   // inset. Compact placement also strips `actions` (see the prop doc).
+  // Double-cast is irreducible here: `npc`/`actions` are REQUIRED on
+  // SURefCrawler, so the stripped object satisfies no SURefEntity member and
+  // the card's hide config has no `npc` switch to express this instead.
   const cardData = {
     ...type,
     npc: undefined,

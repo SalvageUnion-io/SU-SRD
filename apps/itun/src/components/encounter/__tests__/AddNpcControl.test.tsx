@@ -7,6 +7,7 @@
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
+import type { SURefBioTitan, SURefNPC } from 'salvageunion-reference'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 import { AddNpcControl } from '../AddNpcControl'
@@ -18,12 +19,25 @@ afterEach(() => {
   cleanup()
 })
 
-const MOCK_NPCS = [
-  { id: 'npc-1', name: 'Raider', hitPoints: 3, schemaName: 'npcs' },
-  { id: 'npc-2', name: 'Trooper', hitPoints: 5, schemaName: 'npcs' },
+const NPC_BASE = {
+  source: 'Salvage Union Workshop Manual',
+  page: 1,
+  indexable: true,
+  blackMarket: false,
+} as const
+const MOCK_NPCS: Array<SURefNPC & { schemaName: string }> = [
+  { id: 'npc-1', name: 'Raider', hitPoints: 3, schemaName: 'npcs', ...NPC_BASE },
+  { id: 'npc-2', name: 'Trooper', hitPoints: 5, schemaName: 'npcs', ...NPC_BASE },
 ]
-const MOCK_BIO_TITANS = [
-  { id: 'bt-1', name: 'Scylla', structurePoints: 39, schemaName: 'bio-titans' },
+const MOCK_BIO_TITANS: Array<SURefBioTitan & { schemaName: string }> = [
+  {
+    id: 'bt-1',
+    name: 'Scylla',
+    structurePoints: 39,
+    actions: [],
+    schemaName: 'bio-titans',
+    ...NPC_BASE,
+  },
 ]
 
 async function patchReference(empty = false): Promise<() => void> {
@@ -37,15 +51,8 @@ async function patchReference(empty = false): Promise<() => void> {
     SalvageUnionReference.Meld,
   ]
   const originals = models.map((m) => m.all.bind(m))
-  SalvageUnionReference.NPCs.all = mock(
-    () => (empty ? [] : MOCK_NPCS) as unknown as ReturnType<typeof SalvageUnionReference.NPCs.all>
-  )
-  SalvageUnionReference.BioTitans.all = mock(
-    () =>
-      (empty ? [] : MOCK_BIO_TITANS) as unknown as ReturnType<
-        typeof SalvageUnionReference.BioTitans.all
-      >
-  )
+  SalvageUnionReference.NPCs.all = mock(() => (empty ? [] : MOCK_NPCS))
+  SalvageUnionReference.BioTitans.all = mock(() => (empty ? [] : MOCK_BIO_TITANS))
   SalvageUnionReference.Squads.all = mock(() => [])
   SalvageUnionReference.Creatures.all = mock(() => [])
   SalvageUnionReference.Vehicles.all = mock(() => [])

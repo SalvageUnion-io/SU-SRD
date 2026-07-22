@@ -7,9 +7,8 @@
 import { describe, expect, test } from 'bun:test'
 
 import type { CockpitPrefs } from '../../../lib/schemas/cockpitPrefs'
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Pilot } from '../../../lib/schemas/pilot'
 import { applyDialPrefs, configurableKinds, orderKinds, type DialItem } from '../dialItems'
+import { crawlerFixture, pilotFixture } from '../../__tests__/fixtures'
 
 function items(): DialItem[] {
   return [
@@ -56,8 +55,8 @@ describe('applyDialPrefs', () => {
 describe('orderKinds', () => {
   test('applies the stored order, keeping unlisted kinds in default position', () => {
     const kinds = configurableKinds({
-      pilot: { id: 'p' } as unknown as Pilot,
-      crawler: { id: 'c' } as unknown as Crawler,
+      pilot: pilotFixture({ id: 'p' }),
+      crawler: crawlerFixture({ id: 'c' }),
     })
     const prefs: CockpitPrefs = { hidden: [], order: ['crawler', 'actions'] }
     expect(orderKinds(kinds, prefs)).toEqual([
@@ -79,7 +78,7 @@ describe('configurableKinds', () => {
       'tables',
       'srd',
     ])
-    expect(configurableKinds({ pilot: { id: 'p' } as unknown as Pilot, crawler: null })).toContain(
+    expect(configurableKinds({ pilot: pilotFixture({ id: 'p' }), crawler: null })).toContain(
       'pilot'
     )
   })

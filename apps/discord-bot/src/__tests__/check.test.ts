@@ -11,22 +11,35 @@ import { MessageFlags } from 'discord.js'
 
 import { buildCheckMessage, checkCommand } from '../commands/check.js'
 
-type ReplyArg = { content?: string; embeds?: unknown[]; components?: unknown[]; flags?: number }
+// A recorded reply payload — a structural SUPERTYPE of InteractionReplyOptions
+// (readonly arrays, wide flags) so the mock satisfies the narrow
+// CommandExecuteInteraction contract with no forced cast.
+type ReplyArg = {
+  content?: string
+  embeds?: readonly unknown[]
+  components?: readonly unknown[]
+  flags?: unknown
+}
 
-/** Mock ChatInputCommandInteraction for `/su check`, recording the reply. */
+/** Mock of the narrow execute-interaction surface, recording the reply. */
 function mockChatInput(dice: string | null) {
   const replies: ReplyArg[] = []
-  const interaction = {
-    options: {
-      getString: (name: string) => (name === 'dice' ? dice : null),
-    },
+  // Overload-declared so the required-form `getString('dice', true)` types as
+  // string, exactly as discord.js declares it.
+  function getString(name: string, required: true): string
+  function getString(name: string, required?: boolean): string | null
+  function getString(name: string): string | null {
+    return name === 'dice' ? dice : null
+  }
+  const interaction: Parameters<typeof checkCommand.execute>[0] = {
+    options: { getSubcommand: () => 'check', getString },
     // execute reads client.user for embed branding; no avatar in tests.
     client: { user: null },
     reply: (arg: ReplyArg) => {
       replies.push(arg)
       return Promise.resolve()
     },
-  } as unknown as Parameters<typeof checkCommand.execute>[0]
+  }
   return { interaction, replies }
 }
 

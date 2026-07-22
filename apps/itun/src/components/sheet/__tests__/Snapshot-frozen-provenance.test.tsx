@@ -20,6 +20,8 @@ import type { Mech } from '../../../lib/schemas/mech'
 import { useEntityStore } from '../../../stores/entityStore'
 import { Sheet } from '../Sheet'
 import { ShareSnapshotScreen } from '../ShareSnapshotScreen'
+import { makeEntityLookupMock } from '../../__tests__/mockEntityStore'
+import { must } from '../../__tests__/must'
 
 const basePilotInput = {
   schemaVersion: 1 as const,
@@ -52,10 +54,7 @@ const overriddenMech: Mech = {
 }
 
 function makeEntityStore(entities: Mech[]): EntityLookup {
-  return {
-    get: ((_type: unknown, id: string) =>
-      entities.find((e) => e.id === id) ?? null) as unknown as EntityLookup['get'],
-  }
+  return makeEntityLookupMock(entities)
 }
 
 function resetEntityStore(): void {
@@ -85,11 +84,12 @@ afterEach(() => {
 
 describe('Frozen surface — Change Log stays out of the snapshot (P5.1)', () => {
   test('a published payload is exactly {kind, entity} with no history/provenance', async () => {
-    let captured: SnapshotPayload | null = null
-    const publishFn = mock(async (payload: SnapshotPayload): Promise<PublishResult> => {
-      captured = payload
-      return { id: 'a', url: '/api/snapshots/a' }
-    })
+    const publishFn = mock(
+      async (_payload: SnapshotPayload): Promise<PublishResult> => ({
+        id: 'a',
+        url: '/api/snapshots/a',
+      })
+    )
 
     render(
       <ShareSnapshotScreen
@@ -108,8 +108,8 @@ describe('Frozen surface — Change Log stays out of the snapshot (P5.1)', () =>
       fireEvent.click(screen.getByRole('button', { name: /publish snapshot/i }))
     })
 
-    await waitFor(() => expect(captured).not.toBeNull())
-    const payload = captured as unknown as SnapshotPayload
+    await waitFor(() => expect(publishFn).toHaveBeenCalled())
+    const payload: SnapshotPayload = must(publishFn.mock.calls[0], 'captured publish call')[0]
     expect(Object.keys(payload).sort()).toEqual(['entity', 'kind'])
     const entity = payload.entity as Record<string, unknown>
     // The append-only log lives in its own store — it must not ride along.

@@ -80,14 +80,14 @@ export function CrawlerSystemsEditModal({
         schema="systems"
         selected={crawler.systems}
         filter={(item) => {
-          const s = item as unknown as SURefSystem
+          const s = item as SURefSystem
           const installed = crawler.systems.some((id) => id === s.id || id === s.name)
           // Keep installed weapons visible/removable even above the current TL.
           if (installed) return isWeaponSystem(s)
           if (typeof s.techLevel !== 'number' || tl === null || s.techLevel > tl) return false
           return isWeaponSystem(s)
         }}
-        idOf={(item) => (item as unknown as SURefSystem).id}
+        idOf={(item) => (item as SURefSystem).id}
         onToggle={(ref) =>
           // Toggle exactly one weapon on the FRESHEST systems array so a rapid
           // second toggle can't overwrite the first. Weapons are unique.

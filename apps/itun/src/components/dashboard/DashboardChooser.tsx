@@ -187,10 +187,7 @@ export function DashboardChooser({
     setPending(true)
     setError(null)
     try {
-      // Cast mirrors Sheet.tsx's EntityLookup: the store's generic create/delete
-      // satisfy this narrowed surface at runtime; TS can't align the generics.
-      const writeStore: LinkWriteStore & LaunchStore =
-        store ?? (useEntityStore.getState() as unknown as LinkWriteStore & LaunchStore)
+      const writeStore: LinkWriteStore & LaunchStore = store ?? useEntityStore.getState()
 
       // Resolve the mech choice: a pattern token instantiates a stand-in mech
       // first; a plain id is an existing mech.

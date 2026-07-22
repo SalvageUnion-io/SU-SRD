@@ -23,23 +23,44 @@ afterEach(() => {
 // test can drive the hero in/out of view.
 // ---------------------------------------------------------------------------
 
-type IOCallback = (entries: Array<{ isIntersecting: boolean }>) => void
+let observerCallbacks: IntersectionObserverCallback[] = []
 
-let observerCallbacks: IOCallback[] = []
-
-class MockIntersectionObserver {
-  constructor(cb: IOCallback) {
+class MockIntersectionObserver implements IntersectionObserver {
+  readonly root: Element | Document | null = null
+  readonly rootMargin = '0px'
+  readonly scrollMargin = '0px'
+  readonly thresholds: ReadonlyArray<number> = []
+  constructor(cb: IntersectionObserverCallback) {
     observerCallbacks.push(cb)
   }
   observe() {}
   unobserve() {}
   disconnect() {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return []
+  }
+}
+
+/** Inert observer instance handed to callbacks as their second argument. */
+const observerStub: IntersectionObserver = {
+  root: null,
+  rootMargin: '0px',
+  scrollMargin: '0px',
+  thresholds: [],
+  observe: () => {},
+  unobserve: () => {},
+  disconnect: () => {},
+  takeRecords: () => [],
+}
+
+/** The component only reads `isIntersecting` — single narrowing assertion. */
+function ioEntry(isIntersecting: boolean): IntersectionObserverEntry {
+  return { isIntersecting } as IntersectionObserverEntry
 }
 
 beforeEach(() => {
   observerCallbacks = []
-  globalThis.IntersectionObserver =
-    MockIntersectionObserver as unknown as typeof IntersectionObserver
+  globalThis.IntersectionObserver = MockIntersectionObserver
 })
 
 function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
@@ -86,7 +107,7 @@ describe('LiveSheet — condensed identity (name stamp + kind pill)', () => {
   test('name and kind pill fade in once the hero scrolls out of view', () => {
     renderShell()
     act(() => {
-      must(observerCallbacks[0])([{ isIntersecting: false }])
+      must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
     expect(screen.getByText('Mara Vex').closest('[aria-hidden="false"]')).not.toBeNull()
     expect(screen.getByText('Pilot')).toBeTruthy()
@@ -113,7 +134,7 @@ describe('LiveSheet — condense strip gating (S11)', () => {
     expect(observerCallbacks.length).toBe(1)
 
     act(() => {
-      must(observerCallbacks[0])([{ isIntersecting: false }])
+      must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
 
     const wrapper = stripWrapper()
@@ -128,10 +149,10 @@ describe('LiveSheet — condense strip gating (S11)', () => {
   test('hero back in view: strip hides again', () => {
     renderShell()
     act(() => {
-      must(observerCallbacks[0])([{ isIntersecting: false }])
+      must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
     act(() => {
-      must(observerCallbacks[0])([{ isIntersecting: true }])
+      must(observerCallbacks[0])([ioEntry(true)], observerStub)
     })
     expect(stripWrapper().getAttribute('aria-hidden')).toBe('true')
   })
@@ -154,7 +175,7 @@ describe('LiveSheet — strip values and syncStats', () => {
   test('syncStats overlays derived values onto matching strip keys', () => {
     renderShell({ syncStats: { cargo: 4 } })
     act(() => {
-      must(observerCallbacks[0])([{ isIntersecting: false }])
+      must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
     expect(screen.getByText('4/6')).toBeTruthy()
     // Non-overlaid keys keep their own value
@@ -174,7 +195,7 @@ describe('LiveSheet — strip values and syncStats', () => {
       ],
     })
     act(() => {
-      must(observerCallbacks[0])([{ isIntersecting: false }])
+      must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
     // Priority readout always visible; non-priority carries the fold classes.
     // The fold class rides the outer stat cell (the value text's parent).

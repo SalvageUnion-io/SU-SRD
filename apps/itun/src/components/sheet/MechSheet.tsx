@@ -46,7 +46,6 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import type { SURefEntity } from 'salvageunion-reference'
 import { Stat, VitalGauge, heatDangerFrom, FieldError, ReferenceEntityCard } from 'component-lib'
 
 import { useCargo } from '../../lib/cargo/useCargo'
@@ -561,10 +560,7 @@ export function MechSheet({
                       mode="rail"
                       footMeta={epCost > 0 ? [{ label: 'EP Cost', value: epCost }] : undefined}
                     >
-                      <ReferenceEntityCard
-                        data={ability as unknown as SURefEntity}
-                        hostTone="var(--color-sheet-mech-deep)"
-                      />
+                      <ReferenceEntityCard data={ability} hostTone="var(--color-sheet-mech-deep)" />
                     </EntityGridRow>
                   )
                 })}

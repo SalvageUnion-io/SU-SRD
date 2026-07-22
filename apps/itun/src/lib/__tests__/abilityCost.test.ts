@@ -42,13 +42,17 @@ describe('resolveAbilityApCost', () => {
   })
 
   test('returns null when the ability has no resolvable actions', () => {
-    const bogus = {
+    const bogus: SURefAbility = {
       id: 'bogus',
       name: 'Nonexistent Ability',
+      source: 'Salvage Union Workshop Manual',
+      page: 1,
+      indexable: true,
+      blackMarket: false,
       tree: 'Mechanical Knowledge',
       level: 1,
       actions: [],
-    } as unknown as SURefAbility
+    }
     expect(resolveAbilityApCost(bogus)).toBeNull()
   })
 })

@@ -18,7 +18,6 @@ import { useState } from 'react'
 import { ActionsDeck as ActionsDeckView } from 'component-lib'
 import type { ActionsDeckView as ActionsDeckViewModel, DeckGroup } from 'component-lib'
 import { canActivateAction } from 'salvageunion-reference'
-import type { SURefEntity } from 'salvageunion-reference'
 
 import { CORE_ROLL_BANDS, describePushOutcome, performCoreRoll } from '../../lib/rules/coreMechanic'
 import type { CoreRollResult } from '../../lib/rules/coreMechanic'
@@ -225,7 +224,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
       kind: 'resolve',
       onBack: close,
       costLabel: cost.length > 0 ? cost.join(' · ') : 'No cost',
-      entity: selected.action as unknown as SURefEntity,
+      entity: selected.action,
       currencyChoice: currencyChoice
         ? {
             epCost: eco.epCost,
@@ -298,7 +297,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
         key: action.key,
         // The raw action entity drives the canonical shortform badge card; the
         // deck no longer hand-assembles stamp/name/meta/cost rows.
-        entity: action.action as unknown as SURefEntity,
+        entity: action.action,
         name: action.name,
         locked: !reachable,
         lockTitle:

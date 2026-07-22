@@ -9,27 +9,13 @@ import { beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
 import { usePlayStateStore } from '../../../stores/playStateStore'
 import { ActiveItemBand } from '../ActiveItemBand'
+import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 
-const mech = {
-  id: 'm1',
-  name: 'Iron Mongrel',
-  chassisRef: 'unknown-chassis',
-  systems: [],
-  modules: [],
-  cargoLots: [],
-} as unknown as Mech
+const mech = mechFixture({ id: 'm1', name: 'Iron Mongrel', chassisRef: 'unknown-chassis' })
 
-const pilot = {
-  id: 'p1',
-  name: 'Vesh',
-  abilities: [],
-  equipment: [],
-  conditions: [],
-} as unknown as Pilot
+const pilot = pilotFixture({ id: 'p1', name: 'Vesh' })
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')

@@ -614,10 +614,10 @@ export function hasTraits(
 
 /**
  * Type guard to check if an entity is an Ability
- * @param entity - The entity to check
+ * @param entity - The entity to check (null/undefined accepted; both return false)
  * @returns True if the entity is an Ability
  */
-export function isAbility(entity: SURefMetaEntity): entity is SURefAbility {
+export function isAbility(entity: SURefMetaEntity | null | undefined): entity is SURefAbility {
   return entity !== null && typeof entity === 'object' && 'tree' in entity && 'level' in entity
 }
 

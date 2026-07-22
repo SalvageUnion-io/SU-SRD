@@ -1,19 +1,12 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EmptyState } from '../chrome/EmptyState'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefEquipment } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
 import { MasonryColumns } from '../shared/MasonryColumns'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 
 type SUREquipmentAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
-}
-
-type EquipmentLike = {
-  id: string
-  name: string
-  techLevel: number
-  actions: string[]
 }
 
 type EquipmentStepProps = {
@@ -50,14 +43,20 @@ export function EquipmentStep({
   const surEquipment = _sur?.Equipment ?? SalvageUnionReference.Equipment
   const isCreate = budget !== undefined
 
+  // The injectable accessor is `unknown`-typed for test seams (itun's
+  // PilotWizard passes the same shape), so the ONE cast lives here at the
+  // seam: the production accessor really returns `SURefEquipment[]`, and a
+  // properly-typed item then flows into the card with no further forcing.
   const equipment = (
     isCreate
-      ? surEquipment.findAll((e: unknown) => isLegalCreationEquipment(e as EquipmentLike))
+      ? surEquipment.findAll((e: unknown) => isLegalCreationEquipment(e as SURefEquipment))
       : surEquipment.findAll(() => true)
-  ) as EquipmentLike[]
+  ) as SURefEquipment[]
   const sorted = isCreate
     ? equipment
-    : [...equipment].sort((a, b) => a.techLevel - b.techLevel || a.name.localeCompare(b.name))
+    : [...equipment].sort(
+        (a, b) => Number(a.techLevel) - Number(b.techLevel) || a.name.localeCompare(b.name)
+      )
 
   // Copies picked per id (create mode allows duplicates).
   const counts = new Map<string, number>()
@@ -76,7 +75,7 @@ export function EquipmentStep({
             return (
               <ReferenceEntityCard
                 key={item.id}
-                data={item as unknown as SURefEntity}
+                data={item}
                 size="medium"
                 selected={count >= 1}
                 selectionRole="toggle"
@@ -103,7 +102,7 @@ export function EquipmentStep({
           return (
             <ReferenceEntityCard
               key={item.id}
-              data={item as unknown as SURefEntity}
+              data={item}
               size="medium"
               selected={selectedEquipment.includes(item.id)}
               selectionRole="toggle"

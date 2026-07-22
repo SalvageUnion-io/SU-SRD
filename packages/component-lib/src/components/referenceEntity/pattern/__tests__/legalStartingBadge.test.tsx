@@ -16,6 +16,8 @@ describe('useChassisPatternConfig legal starting badge', () => {
 
   // Synthetic chassis: one pattern explicitly tagged, one not. Resolution is by
   // pattern name against this chassis's own patterns, so the dataset is irrelevant.
+  // (Double-cast kept: the synthetic patterns lack SURefObjectPattern's other
+  // fields and the chassis lacks source/page, so no single cast is comparable.)
   const chassis = {
     id: 'test-chassis',
     name: 'Testudo',

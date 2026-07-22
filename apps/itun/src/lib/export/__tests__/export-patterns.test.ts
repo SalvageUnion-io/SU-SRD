@@ -12,6 +12,7 @@ import { useWorkspaceStore } from '../../../stores/workspaceStore'
 import { buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
 import { parseImportBundle } from '../parseImportBundle'
+import { must } from '../../../components/__tests__/must'
 
 function resetStores(): void {
   useEntityStore.setState({
@@ -137,10 +138,10 @@ describe('parseImportBundle — legacy compatibility', () => {
     const parsed = parseImportBundle(JSON.stringify(legacyBundle))
     expect(parsed.mechPatterns).toEqual([]) // schema default fills
     expect(parsed.encounterNpcs).toEqual([]) // schema default fills (added later than mechPatterns, same pattern)
-    const mech = parsed.entities.mechs[0]
-    expect(mech?.cargoLots).toHaveLength(1)
-    expect(mech?.cargoLots[0]?.name).toBe('Salvaged plating')
-    expect('cargo' in (mech as unknown as Record<string, unknown>)).toBe(false)
+    const mech = must(parsed.entities.mechs[0], 'imported mech')
+    expect(mech.cargoLots).toHaveLength(1)
+    expect(mech.cargoLots[0]?.name).toBe('Salvaged plating')
+    expect('cargo' in mech).toBe(false)
   })
 
   test('legacy patterns with cargo arrays are normalized too', () => {

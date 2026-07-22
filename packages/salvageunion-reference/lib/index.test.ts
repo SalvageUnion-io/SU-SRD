@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import {
-  SalvageUnionReference,
-  type SURefEntity,
-  EntitySchemaNames,
-  SchemaToModelMap,
-} from './index.js'
+import { SalvageUnionReference, EntitySchemaNames, SchemaToModelMap } from './index.js'
 import { BaseModel } from './BaseModel.js'
 import {
   isAbility,
@@ -455,8 +450,8 @@ describe('Type Guards', () => {
   })
 
   it('should return false for null or undefined', () => {
-    expect(isAbility(null as unknown as SURefEntity)).toBe(false)
-    expect(isAbility(undefined as unknown as SURefEntity)).toBe(false)
+    expect(isAbility(null)).toBe(false)
+    expect(isAbility(undefined)).toBe(false)
   })
 })
 

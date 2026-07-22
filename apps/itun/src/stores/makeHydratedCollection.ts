@@ -87,6 +87,10 @@ export function makeHydratedCollectionSlice<
   ): HydratedCollectionSlice<K, T> & HydratedCollectionActions<T, CreateInput> {
     const records = () => get()[key] as T[]
     return {
+      // Irreducible double-cast: TS widens a computed single-key literal to a
+      // string index signature, which it will not relate to Record<K, T[]> for
+      // a generic K even via a direct assertion (design limitation, same
+      // family as microsoft/TypeScript#30581).
       ...({ [key]: [] } as unknown as Record<K, T[]>),
       hydrated: false,
 

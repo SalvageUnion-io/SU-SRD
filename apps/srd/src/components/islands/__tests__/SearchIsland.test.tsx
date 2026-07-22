@@ -15,10 +15,15 @@ describe('SearchIsland', () => {
 
   beforeEach(() => {
     resetSearchIndexForTests()
-    const mockFetch = (async () =>
-      new Response(JSON.stringify(index), {
-        headers: { 'Content-Type': 'application/json' },
-      })) as unknown as typeof fetch
+    // `Object.assign` carries the real `fetch.preconnect` so the mock satisfies
+    // Bun's `typeof fetch` structurally — no forced cast.
+    const mockFetch: typeof fetch = Object.assign(
+      async () =>
+        new Response(JSON.stringify(index), {
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      { preconnect: fetch.preconnect }
+    )
     fetchSpy = spyOn(globalThis, 'fetch').mockImplementation(mockFetch)
   })
 
@@ -165,8 +170,10 @@ describe('SearchIsland', () => {
     resetSearchIndexForTests()
     let resolveFetch!: (res: Response) => void
     fetchSpy?.mockRestore()
-    const pendingFetch = (() =>
-      new Promise<Response>((res) => (resolveFetch = res))) as unknown as typeof fetch
+    const pendingFetch: typeof fetch = Object.assign(
+      () => new Promise<Response>((res) => (resolveFetch = res)),
+      { preconnect: fetch.preconnect }
+    )
     fetchSpy = spyOn(globalThis, 'fetch').mockImplementation(pendingFetch)
 
     try {

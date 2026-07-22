@@ -22,6 +22,7 @@ import type { PublishResult, SnapshotPayload } from '../../../lib/snapshot/clien
 import { recordPublishedSnapshot } from '../../../lib/snapshot/publishedSnapshots'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
+import { makeEntityLookupMock } from '../../__tests__/mockEntityStore'
 
 // Preload chassis data so the mech preview can resolve chassis stats
 beforeAll(async () => {
@@ -70,10 +71,7 @@ const fakeMech: Mech = {
 }
 
 function makeEntityStore(entities: Array<Pilot | Mech>): EntityLookup {
-  return {
-    get: ((_type: unknown, id: string) =>
-      entities.find((e) => e.id === id) ?? null) as unknown as EntityLookup['get'],
-  }
+  return makeEntityLookupMock(entities)
 }
 
 const probeUp = () => Promise.resolve(true)

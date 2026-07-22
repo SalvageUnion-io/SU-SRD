@@ -19,6 +19,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { PilotSheet } from '../PilotSheet'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 
 beforeAll(async () => {
   // PilotSheet resolves abilities + their action AP costs from reference data,
@@ -58,11 +59,8 @@ function makePilot(overrides: Partial<Pilot> = {}): Pilot {
 
 function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
   const updateMock = updateSpy ?? mock(async () => pilot)
-  const storeState = {
+  return makeEntityStoreMock({
     pilots: [pilot],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [pilot]),
@@ -70,8 +68,7 @@ function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeo
     create: mock(async () => pilot),
     update: updateMock,
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 describe('PilotSheet — ability AP cost (Slice D)', () => {

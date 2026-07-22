@@ -21,7 +21,7 @@ import {
   type LaunchStore,
 } from '../dashboardLaunch'
 
-const pattern = {
+const pattern: MechPattern = {
   id: 'pat-1',
   schemaVersion: 1,
   name: 'Iron Frame',
@@ -29,7 +29,8 @@ const pattern = {
   systems: ['auto-cannon'],
   modules: [],
   cargoLots: [],
-} as unknown as MechPattern
+  createdAt: '2026-01-01T00:00:00.000Z',
+}
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -55,7 +56,7 @@ afterEach(async () => {
   await _clearAllStores()
 })
 
-const store = () => useEntityStore.getState() as unknown as LaunchStore
+const store = (): LaunchStore => useEntityStore.getState()
 
 describe('selection tokens', () => {
   test('encode/decode round-trip', () => {

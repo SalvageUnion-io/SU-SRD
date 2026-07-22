@@ -11,7 +11,7 @@
  * DISCORD_TOKEN is unset), so we set the env and import it dynamically after.
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { MessageFlags } from 'discord.js'
+import { MessageFlags, SlashCommandBuilder } from 'discord.js'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import type { Command } from '../commands/index.js'
@@ -68,18 +68,19 @@ function mockInteraction(opts: MockOptions) {
   return { interaction, replies, followUps, autocompleteResponses }
 }
 
-/** A command whose autocomplete/execute record whether they ran. */
+/** A command whose autocomplete/execute record whether they ran — a REAL
+ * builder as `data` and no-arg handlers satisfy `Command` structurally. */
 function spyCommand(): { command: Command; calls: { execute: number; autocomplete: number } } {
   const calls = { execute: 0, autocomplete: 0 }
-  const command = {
-    data: { name: 'su' },
+  const command: Command = {
+    data: new SlashCommandBuilder().setName('su'),
     execute: async () => {
       calls.execute += 1
     },
     autocomplete: async () => {
       calls.autocomplete += 1
     },
-  } as unknown as Command
+  }
   return { command, calls }
 }
 
@@ -173,11 +174,11 @@ describe('handleInteractionCreate — button branch', () => {
 describe('handleInteractionCreate — error branches', () => {
   function throwingCommand(): Command {
     return {
-      data: { name: 'su' },
+      data: new SlashCommandBuilder().setName('su'),
       execute: async () => {
         throw new Error('boom')
       },
-    } as unknown as Command
+    }
   }
 
   test('a fresh interaction (not replied) uses reply for the error notice', async () => {

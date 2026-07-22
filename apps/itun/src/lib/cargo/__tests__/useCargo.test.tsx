@@ -10,6 +10,7 @@ import { cleanup, renderHook } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import type { CargoLot } from '../../schemas/cargoLot'
 import { makeScrapLot } from '../../schemas/cargoLot'
 import type { Crawler } from '../../schemas/crawler'
@@ -70,9 +71,11 @@ type CapturedUpdate = {
 function makeStore(captured: CapturedUpdate[]): typeof useEntityStore {
   const update = mock(async (type: string, id: string, patch: Record<string, unknown>) => {
     captured.push({ type, id, patch })
-    return { id, ...patch }
+    // The hook ignores update()'s resolved value; echo the patch back typed
+    // against the store's entity union via a single (checked) assertion.
+    return { id, ...patch } as Mech
   })
-  const storeState = {
+  return makeEntityStoreMock({
     update,
     // The hook commits through transfer() (atomic multi-entity write);
     // forward each update onto the capture list so assertions stay simple.
@@ -81,8 +84,7 @@ function makeStore(captured: CapturedUpdate[]): typeof useEntityStore {
         for (const u of ops.updates ?? []) await update(u.type, u.id, u.patch)
       }
     ),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 const unitLot: CargoLot = {

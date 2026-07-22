@@ -14,7 +14,7 @@
  * Fixture/store setup mirrors Sheet-topbar-segments.test.tsx.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
@@ -26,6 +26,7 @@ import type { Pilot } from '../../../lib/schemas/pilot'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { SoftLink } from '../../../lib/schemas/softLink'
+import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -87,21 +88,12 @@ const fakeCrawler: Crawler = {
 type AnyEntity = Pilot | Mech | Crawler
 
 function makeEntityStore(entities: AnyEntity[]): EntityLookup {
-  return {
-    // EntityLookup's conditional return type can't be satisfied without a cast
-    get: ((_type: unknown, id: string) =>
-      entities.find((e) => e.id === id) ?? null) as unknown as EntityLookup['get'],
-  }
+  return makeEntityLookupMock(entities)
 }
 
 function makeSoftLinkStore(links: SoftLink[]): SoftLinkStore {
   // The create mock is unused here; cast is safe — these tests never assign()
-  const createMock = mock(async () => links[0]) as unknown as SoftLinkStore['create']
-  return {
-    softLinks: links,
-    create: createMock,
-    delete: mock(async () => undefined),
-  }
+  return makeSoftLinkStoreMock(links)
 }
 
 function makeLink(

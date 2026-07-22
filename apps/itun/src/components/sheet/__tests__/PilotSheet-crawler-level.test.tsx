@@ -30,7 +30,7 @@ import { PilotSheet } from '../PilotSheet'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
-import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 
 const SNIPER_NAME = 'Custom Sniper Rifle'
 let SNIPER_ID = ''
@@ -104,9 +104,8 @@ function makeStore(opts: {
       return pilot
     })
 
-  const storeState = {
+  const store = makeEntityStoreMock({
     pilots: [pilot],
-    mechs: [],
     crawlers: crawler ? [crawler] : [],
     softLinks,
     hydrated: { pilots: true, mechs: false, crawlers: !!crawler, softLinks: true },
@@ -120,8 +119,7 @@ function makeStore(opts: {
     create: mock(async () => pilot),
     update: updateMock,
     delete: mock(async () => {}),
-  }
-  const store = (() => storeState) as unknown as typeof useEntityStore
+  })
   return { store, updateMock }
 }
 

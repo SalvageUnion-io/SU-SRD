@@ -17,6 +17,7 @@ import { makeScrapLot } from '../../../lib/schemas/cargoLot'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -68,11 +69,9 @@ const fakeCrawler = {
 
 function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
   const updateMock = updateSpy ?? mock(async () => mech)
-  const storeState = {
-    pilots: [],
+  return makeEntityStoreMock({
     mechs: [mech],
     crawlers: [fakeCrawler],
-    softLinks: [],
     hydrated: { pilots: false, mechs: true, crawlers: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
@@ -84,8 +83,7 @@ function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof 
     create: mock(async () => mech),
     update: updateMock,
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 describe('MechSheet — readOnly', () => {

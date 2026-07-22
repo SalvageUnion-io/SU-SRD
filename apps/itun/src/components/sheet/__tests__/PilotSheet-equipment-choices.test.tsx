@@ -19,7 +19,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { PilotSheet } from '../PilotSheet'
 import type { Pilot } from '../../../lib/schemas/pilot'
-import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 
 // PilotSheet resolves equipment slugs via salvageunion-reference at render, and
 // the choice cards deep-link trait/keyword entities — preload 'all' so those
@@ -65,11 +65,8 @@ function makePilotStubStore(initial: Pilot, updateSpy?: ReturnType<typeof mock>)
       return current
     })
 
-  const storeState = {
+  const store = makeEntityStoreMock({
     pilots: [current],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
@@ -77,8 +74,7 @@ function makePilotStubStore(initial: Pilot, updateSpy?: ReturnType<typeof mock>)
     create: mock(async () => current),
     update: updateMock,
     delete: mock(async () => {}),
-  }
-  const store = (() => storeState) as unknown as typeof useEntityStore
+  })
   return { store, updateMock }
 }
 
@@ -89,11 +85,7 @@ function makeEmptyStore() {
   const updateMock = mock(async () => {
     throw new Error('update should not be called in read-only snapshot')
   })
-  const storeState = {
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
+  const store = makeEntityStoreMock({
     hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => []),
@@ -101,8 +93,7 @@ function makeEmptyStore() {
     create: mock(async () => null),
     update: updateMock,
     delete: mock(async () => {}),
-  }
-  const store = (() => storeState) as unknown as typeof useEntityStore
+  })
   return { store, updateMock }
 }
 

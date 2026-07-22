@@ -13,6 +13,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MechConditionsEditor } from '../MechConditionsEditor'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
 
 afterEach(() => {
@@ -38,11 +39,8 @@ function makeMech(overrides: Partial<Mech>): Mech {
 type CapturedUpdate = { patch: Partial<Mech> }
 
 function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStore {
-  const storeState = {
-    pilots: [],
+  return makeEntityStoreMock({
     mechs: [mech],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
@@ -54,8 +52,7 @@ function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStor
       return mech
     }),
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 describe('MechConditionsEditor', () => {

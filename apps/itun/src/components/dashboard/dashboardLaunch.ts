@@ -17,19 +17,21 @@
 
 import { findChassisByRef } from '../../lib/rules/derivedStats'
 import { crawlerMaxSP } from '../../lib/rules/derivedStats'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
 import type { MechPattern } from '../../lib/schemas/pattern'
+import type { CreateInput, EntityForType } from '../../stores/types'
 import { seedDefaultCrawlerBays } from '../../lib/wizard/crawlerFormState'
 
-/** Minimal create surface for the launch helpers — injectable for tests. */
+/**
+ * Minimal create surface for the launch helpers — injectable for tests.
+ * Declared with the entity store's own generic vocabulary (CreateInput /
+ * EntityForType) so the live store satisfies it structurally, no cast needed.
+ */
 export type LaunchStore = {
-  create: (<T extends 'mech'>(type: T, input: MechCreateInput) => Promise<Mech>) &
-    (<T extends 'crawler'>(type: T, input: CrawlerCreateInput) => Promise<Crawler>)
+  create: <T extends 'mech' | 'crawler'>(
+    type: T,
+    input: CreateInput<T>
+  ) => Promise<EntityForType<T>>
 }
-
-type MechCreateInput = Omit<Mech, 'id' | 'createdAt' | 'updatedAt'>
-type CrawlerCreateInput = Omit<Crawler, 'id' | 'createdAt' | 'updatedAt'>
 
 /** The Tech Levels a default base crawler can be spun up at. */
 export const DEFAULT_CRAWLER_TLS = [1, 2, 3, 4, 5, 6] as const

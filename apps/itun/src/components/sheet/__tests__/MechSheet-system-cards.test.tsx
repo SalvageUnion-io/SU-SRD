@@ -22,6 +22,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { MechSheet } from '../MechSheet'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 
 // MechSheet resolves system/module slugs against the reference data at render.
 beforeAll(async () => {
@@ -65,11 +66,8 @@ function makeMech(overrides: Partial<Mech>): Mech {
 
 function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
   const updateMock = updateSpy ?? mock(async () => mech)
-  const storeState = {
-    pilots: [],
+  return makeEntityStoreMock({
     mechs: [mech],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
@@ -78,8 +76,7 @@ function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof 
     create: mock(async () => mech),
     update: updateMock,
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 describe('MechSheet — system/module entity cards (plan 4.5)', () => {

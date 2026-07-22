@@ -11,8 +11,6 @@ import { beforeAll, describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import type { Roll } from '../../../lib/rules/heatCheck'
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
 import {
   VENT_PATCH,
   actionInRange,
@@ -40,6 +38,7 @@ import {
   tabMatchesAction,
 } from '../dashboardRules'
 import type { PlayAction } from '../dashboardRules'
+import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 
 /** A deterministic roller that returns the queued values, then 20. */
 function seqRoll(values: number[]): Roll {
@@ -195,13 +194,7 @@ describe('buildMechActions', () => {
     }) as { id?: string } | undefined
     expect(chassis?.id).toBeTruthy()
 
-    const mech = {
-      id: 'm1',
-      name: 'Rig',
-      chassisRef: chassis?.id ?? '',
-      systems: [],
-      modules: [],
-    } as unknown as Mech
+    const mech = mechFixture({ id: 'm1', name: 'Rig', chassisRef: chassis?.id ?? '' })
     const deck = buildMechActions(mech)
     expect(deck.length).toBeGreaterThan(0)
     expect(deck.every((pa) => pa.stamp === 'CHS')).toBe(true)
@@ -216,13 +209,12 @@ describe('buildMechActions', () => {
     }) as { id?: string } | undefined
 
     if (!multi?.id) return // dataset has none — nothing to assert
-    const mech = {
+    const mech = mechFixture({
       id: 'm3',
       name: 'Rig',
       chassisRef: 'not-a-real-chassis',
       systems: [multi.id],
-      modules: [],
-    } as unknown as Mech
+    })
     const deck = buildMechActions(mech)
     expect(deck.length).toBeGreaterThan(1)
     expect(deck.every((pa) => pa.stamp === 'SYS')).toBe(true)
@@ -232,13 +224,7 @@ describe('buildMechActions', () => {
   })
 
   test('empty for an unresolvable chassis with no items', () => {
-    const mech = {
-      id: 'm2',
-      name: 'Ghost',
-      chassisRef: 'not-a-real-chassis',
-      systems: [],
-      modules: [],
-    } as unknown as Mech
+    const mech = mechFixture({ id: 'm2', name: 'Ghost', chassisRef: 'not-a-real-chassis' })
     expect(buildMechActions(mech)).toEqual([])
   })
 })
@@ -251,12 +237,7 @@ describe('buildPilotActions', () => {
     }) as { id?: string } | undefined
     expect(ability?.id).toBeTruthy()
 
-    const pilot = {
-      id: 'p1',
-      name: 'Vex',
-      abilities: [ability?.id ?? ''],
-      equipment: [],
-    } as unknown as Pilot
+    const pilot = pilotFixture({ id: 'p1', name: 'Vex', abilities: [ability?.id ?? ''] })
     const deck = buildPilotActions(pilot)
     expect(deck.length).toBeGreaterThan(0)
     expect(deck.every((pa) => pa.stamp === 'ABL')).toBe(true)
@@ -264,7 +245,7 @@ describe('buildPilotActions', () => {
   })
 
   test('empty for a pilot with no abilities or equipment', () => {
-    const pilot = { id: 'p2', name: 'Ghost', abilities: [], equipment: [] } as unknown as Pilot
+    const pilot = pilotFixture({ id: 'p2', name: 'Ghost' })
     expect(buildPilotActions(pilot)).toEqual([])
   })
 })

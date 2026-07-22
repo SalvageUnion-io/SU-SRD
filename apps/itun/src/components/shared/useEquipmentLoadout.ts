@@ -37,10 +37,14 @@ export type EquipmentLoadout = {
 /** Which collection an installed item belongs to. */
 export type LoadoutKind = 'system' | 'module'
 
-/** Stable empty loadout — frozen so a fresh literal never defeats memoisation. */
+/** Stable empty loadout — frozen so a fresh literal never defeats memoisation.
+ * The arrays are frozen as a statement (not via `freeze`'s Readonly return) so
+ * the declared `string[]` shape survives without any type-forcing cast. */
+const EMPTY_ITEMS: string[] = []
+Object.freeze(EMPTY_ITEMS)
 const EMPTY_LOADOUT: EquipmentLoadout = Object.freeze({
-  systems: Object.freeze([]) as unknown as string[],
-  modules: Object.freeze([]) as unknown as string[],
+  systems: EMPTY_ITEMS,
+  modules: EMPTY_ITEMS,
 })
 
 type UseEquipmentLoadoutResult = {

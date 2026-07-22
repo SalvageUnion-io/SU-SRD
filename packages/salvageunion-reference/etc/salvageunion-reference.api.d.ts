@@ -970,9 +970,9 @@ export declare class SalvageUnionReference {
     /**
      * Get all entities from multiple schemas, tagged with their schema name
      */
-    static getAllBySchemaNames(schemaNames: (keyof SchemaToEntityMap)[]): Array<{
-        schemaName: keyof SchemaToEntityMap;
-        entity: SURefMetaEntity;
+    static getAllBySchemaNames<K extends keyof SchemaToEntityMap>(schemaNames: K[]): Array<{
+        schemaName: K;
+        entity: SchemaToEntityMap[K];
     }>;
 }
 /**
@@ -9271,10 +9271,10 @@ export declare function hasTraits(entity: SURefMetaEntity): entity is SURefMetaE
 };
 /**
  * Type guard to check if an entity is an Ability
- * @param entity - The entity to check
+ * @param entity - The entity to check (null/undefined accepted; both return false)
  * @returns True if the entity is an Ability
  */
-export declare function isAbility(entity: SURefMetaEntity): entity is SURefAbility;
+export declare function isAbility(entity: SURefMetaEntity | null | undefined): entity is SURefAbility;
 /**
  * Type guard to check if an entity is a System
  * Note: Systems and Modules share the same schema, so this checks for

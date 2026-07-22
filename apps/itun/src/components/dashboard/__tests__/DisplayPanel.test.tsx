@@ -13,10 +13,9 @@ import { fireEvent, render, waitFor } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Mech } from '../../../lib/schemas/mech'
 import { DisplayPanel } from '../DisplayPanel'
 import type { DialItem } from '../dialItems'
+import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
 
 let chassisSlug = 'iron-mongrel'
 
@@ -27,8 +26,8 @@ beforeAll(async () => {
 })
 
 function renderDV(focus: DialItem | undefined, mechChassis = chassisSlug) {
-  const mech = { id: 'm1', name: 'Rig', chassisRef: mechChassis } as unknown as Mech
-  const crawler = { id: 'c1', name: 'Hauler', techLevel: '3' } as unknown as Crawler
+  const mech = mechFixture({ id: 'm1', name: 'Rig', chassisRef: mechChassis })
+  const crawler = crawlerFixture({ id: 'c1', name: 'Hauler', techLevel: '3' })
   return render(
     <EntityHrefProvider value={() => undefined}>
       <DisplayPanel focus={focus} mech={mech} pilot={null} crawler={crawler} />

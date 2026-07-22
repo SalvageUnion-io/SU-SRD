@@ -80,6 +80,10 @@ export function resolveNestedEntities(entity: SURefMetaEntity): NestedGroup[] {
           ? embedded.position
           : undefined
     if (npcName) {
+      // Deliberate serialization-boundary cast: the embedded crawler-commander
+      // object (position/hitPoints/…) is NOT a full npcs-schema entity (no
+      // id/source/page), so no honest single cast exists — the card renders
+      // it defensively by data-shape checks.
       const synthesized = {
         ...embedded,
         name: npcName,

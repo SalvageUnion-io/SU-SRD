@@ -54,6 +54,7 @@ import { accentDeepColor, accentSurface, borderColorFromHeaderBg } from '../refe
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
 import { CatalogChoiceListing } from './CatalogChoiceListing'
 import { anchorBonusMarker, anchorChoiceMarkers } from './choiceAnchoring'
+import type { AnchoredContentBlock } from './choiceAnchoring'
 import { firstParagraphText } from './firstParagraphText'
 import { EntityCardHeader } from './EntityCardHeader'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
@@ -1272,7 +1273,7 @@ function ReferenceEntityCardInner({
   // bonus-per-tech-level marker to ITS prose — the pure splice walks live in
   // choiceAnchoring.ts; a choice/bonus that matches nothing falls to the
   // trailing position below.
-  const anchoredBlocks: SURefObjectContentBlock[] = [...bodyBlocks]
+  const anchoredBlocks: AnchoredContentBlock[] = [...bodyBlocks]
   if (!hide?.choices) anchorChoiceMarkers(anchoredBlocks, entityChoices)
   const bonusAnchored = bonusNode ? anchorBonusMarker(anchoredBlocks) : false
 
@@ -1312,7 +1313,7 @@ function ReferenceEntityCardInner({
         }
         continue // markers never contribute body text
       }
-      if ((block as { type?: string })?.type === 'bonus') {
+      if (block?.type === 'bonus') {
         flush()
         if (bonusNode) bodyNodes.push(bonusNode)
         continue

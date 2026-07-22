@@ -15,6 +15,7 @@ import { Toaster, toast } from 'component-lib'
 import { MechSheet } from '../MechSheet'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
 
 beforeAll(async () => {
@@ -66,11 +67,8 @@ function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStor
     current = { ...current, ...patch }
     return current
   })
-  const storeState = {
-    pilots: [],
+  return makeEntityStoreMock({
     mechs: [mech],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
@@ -78,8 +76,7 @@ function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStor
     create: mock(async () => mech),
     update: updateMock,
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 describe('MechSheet — destroyed-undo toast (U-6)', () => {

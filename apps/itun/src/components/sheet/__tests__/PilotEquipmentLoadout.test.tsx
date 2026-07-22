@@ -19,6 +19,7 @@ import { PilotEquipmentLoadout } from '../PilotEquipmentLoadout'
 import { isLoadoutHost } from '../pilotInventory'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 
 // Installed system/module cards resolve via reference + nest trait/keyword
 // lookups, so preload 'all'.
@@ -36,12 +37,24 @@ const SURVEY_DRONE = { name: 'Survey Drone', systemSlots: 3, moduleSlots: 1 }
 const SEED = { systems: ['red-laser'], modules: ['comms-module'] }
 
 function makeStore(): typeof useEntityStore {
-  const current = { id: PILOT_ID } as unknown as Pilot
-  const storeState = {
+  const current: Pilot = {
+    id: PILOT_ID,
+    schemaVersion: 1,
+    name: 'Loadout Pilot',
+    callsign: 'Loadout',
+    classRef: 'scavenger',
+    abilities: [],
+    equipment: [],
+    motto: '',
+    keepsake: '',
+    appearance: '',
+    background: '',
+    conditions: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+  return makeEntityStoreMock({
     pilots: [current],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
@@ -49,8 +62,7 @@ function makeStore(): typeof useEntityStore {
     create: mock(async () => current),
     update: mock(async () => current),
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 describe('isLoadoutHost', () => {

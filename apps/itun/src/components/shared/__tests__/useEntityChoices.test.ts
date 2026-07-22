@@ -17,7 +17,7 @@ import { act, renderHook } from '@testing-library/react'
 
 import { useEntityChoices } from '../useEntityChoices'
 import type { Pilot } from '../../../lib/schemas/pilot'
-import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -58,11 +58,8 @@ function makeStore(initial: Pilot) {
     return current
   })
 
-  const storeState = {
+  const store = makeEntityStoreMock({
     pilots: [current],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
@@ -70,9 +67,7 @@ function makeStore(initial: Pilot) {
     create: mock(async () => current),
     update: updateFn,
     delete: mock(async () => {}),
-  }
-
-  const store = (() => storeState) as unknown as typeof useEntityStore
+  })
   return { store, updateFn, getCurrent: () => current }
 }
 
@@ -181,7 +176,7 @@ describe('useEntityChoices — setSelections persistence', () => {
     )
 
     // Simulate a concurrent write to a sibling item through the same store.
-    await store().update('pilot', PILOT_ID, {
+    await store.getState().update('pilot', PILOT_ID, {
       equipmentChoices: { 'auto-turret': { 'choice-name': ['Sentinel'] } },
     })
 

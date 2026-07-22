@@ -1,5 +1,16 @@
 import type { SURefObjectChoice, SURefObjectContentBlock } from 'salvageunion-reference'
 
+/**
+ * Synthetic CLIENT-SIDE marker spliced into a card's body walk: renders the
+ * bonus-per-tech-level box at this position. Never present in reference data —
+ * `value`/`choiceId` are declared `undefined` so union-wide property reads
+ * (`blockLowerText`, the body walk) stay type-safe without casts.
+ */
+export type BonusMarkerBlock = { type: 'bonus'; value?: undefined; choiceId?: undefined }
+
+/** A reference content block, or the synthetic `{type:'bonus'}` marker. */
+export type AnchoredContentBlock = SURefObjectContentBlock | BonusMarkerBlock
+
 /** Words too generic to anchor a choice by (see `anchorChoiceMarkers`). */
 const STOP_WORDS = new Set(['ai', 'the', 'and', 'for', 'your', 'you'])
 
@@ -12,7 +23,7 @@ const choiceKeywords = (name: string): string[] =>
     .filter((w) => w.length > 2 && !STOP_WORDS.has(w))
 
 /** A block's prose, lowercased — empty for choice markers / non-string blocks. */
-const blockLowerText = (b: SURefObjectContentBlock): string =>
+const blockLowerText = (b: AnchoredContentBlock): string =>
   b && b.type !== 'choice' && typeof b.value === 'string' ? b.value.toLowerCase() : ''
 
 /**
@@ -26,7 +37,7 @@ const blockLowerText = (b: SURefObjectContentBlock): string =>
  * Mutates `blocks` in place (the caller owns the copy).
  */
 export function anchorChoiceMarkers(
-  blocks: SURefObjectContentBlock[],
+  blocks: AnchoredContentBlock[],
   choices: SURefObjectChoice[]
 ): void {
   const marked = new Set(
@@ -63,7 +74,7 @@ export function anchorChoiceMarkers(
  * Mutates `blocks` in place; returns whether a describing block was found
  * (false ⇒ the caller renders the box at the trailing position).
  */
-export function anchorBonusMarker(blocks: SURefObjectContentBlock[]): boolean {
+export function anchorBonusMarker(blocks: AnchoredContentBlock[]): boolean {
   const bonusKws = ['per tech level', 'tech level']
   let bIdx = -1
   for (let i = 0; i < blocks.length; i++) {
@@ -72,7 +83,7 @@ export function anchorBonusMarker(blocks: SURefObjectContentBlock[]): boolean {
     if (t && bonusKws.some((k) => t.includes(k))) bIdx = i
   }
   if (bIdx >= 0) {
-    blocks.splice(bIdx + 1, 0, { type: 'bonus' } as unknown as SURefObjectContentBlock)
+    blocks.splice(bIdx + 1, 0, { type: 'bonus' })
     return true
   }
   return false

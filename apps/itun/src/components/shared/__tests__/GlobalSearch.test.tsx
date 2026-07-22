@@ -118,7 +118,7 @@ describe('GlobalSearch', () => {
   test('picking a category row opens the SRD schema page in a new tab', async () => {
     const openSpy = mock(() => null)
     const originalOpen = window.open
-    window.open = openSpy as unknown as typeof window.open
+    window.open = openSpy
     try {
       render(<Harness />)
       await typeQuery('chassis')

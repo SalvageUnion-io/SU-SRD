@@ -10,7 +10,6 @@
 import { DisplayPanel as DisplayPanelView } from 'component-lib'
 import type { DisplayContent, ReferenceEntityControl } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefEntity } from 'salvageunion-reference'
 
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { resolveChassisRef } from '../../lib/rules/resolveRefs'
@@ -76,9 +75,7 @@ export function DisplayPanel({ focus, mech, pilot, crawler }: DisplayPanelProps)
       }
     }
     if (focus.key.startsWith('crawler:') && crawler) {
-      const crawlerRef = crawler.type
-        ? (resolveCrawlerType(crawler.type) as unknown as SURefEntity | null)
-        : null
+      const crawlerRef = crawler.type ? resolveCrawlerType(crawler.type) : null
       return {
         kind: 'entity',
         data: crawlerRef,

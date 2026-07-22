@@ -20,18 +20,20 @@ import { itemEconomy, resolveModule, resolveSystem } from '../../sheet/mechItemR
 import { ActionsDeck } from '../ActionsDeck'
 import { hasCurrencyChoice, hasVariableHot, hotHeatFor } from '../dashboardRules'
 import type { PlayStore } from '../ActiveItemBand'
+import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 
 type Call = { type: string; id: string; patch: Record<string, unknown> }
 
-function stubStore(entity: { id: string }): { store: PlayStore; calls: Call[] } {
+function stubStore(entity: Mech | Pilot): { store: PlayStore; calls: Call[] } {
   const calls: Call[] = []
-  const store = {
-    get: (_type: string, id: string) => (id === entity.id ? entity : null),
-    update: async (type: string, id: string, patch: Record<string, unknown>) => {
+  const store: PlayStore = makeEntityStoreMock({
+    get: (_type, id) => (id === entity.id ? entity : null),
+    update: async (type, id, patch) => {
       calls.push({ type, id, patch })
       return entity
     },
-  } as unknown as PlayStore
+  }).getState()
   return { store, calls }
 }
 
@@ -77,15 +79,14 @@ beforeAll(async () => {
 })
 
 function makeMech(): Mech {
-  return {
+  return mechFixture({
     id: 'm1',
     name: 'Rig',
     chassisRef: 'unknown-chassis',
     systems: [costedSystemId],
-    modules: [],
     currentEP: 6,
     currentHeat: 0,
-  } as unknown as Mech
+  })
 }
 
 function renderDeck(mech: Mech, store: PlayStore) {
@@ -227,16 +228,15 @@ describe('ActionsDeck', () => {
   test('Hot(X) stepper projects heat and drives the Activate patch', () => {
     expect(varHotSystem).toBeTruthy()
     const sys = varHotSystem as { id: string; actionName: string }
-    const mech = {
+    const mech = mechFixture({
       id: 'm1',
       name: 'Rig',
       chassisRef: 'unknown-chassis',
       systems: [sys.id],
-      modules: [],
       currentEP: 6,
       currentHeat: 0,
       maxHeatModifier: 50,
-    } as unknown as Mech
+    })
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickActionByName(container, sys.actionName)
@@ -259,35 +259,28 @@ describe('ActionsDeck', () => {
   test('EP/AP cost radios: choosing AP spends the pilot AP', () => {
     expect(epApModule).toBeTruthy()
     const mod = epApModule as { id: string; actionName: string }
-    const mech = {
+    const mech = mechFixture({
       id: 'm1',
       name: 'Rig',
       chassisRef: 'unknown-chassis',
-      systems: [],
       modules: [mod.id],
       currentEP: 6,
       currentHeat: 0,
-    } as unknown as Mech
-    const pilot = {
-      id: 'p1',
-      name: 'Vex',
-      abilities: [],
-      equipment: [],
-      currentAP: 5,
-    } as unknown as Pilot
+    })
+    const pilot = pilotFixture({ id: 'p1', name: 'Vex', currentAP: 5 })
     const calls: Call[] = []
-    const store = {
-      get: (type: string, id: string) =>
+    const store: PlayStore = makeEntityStoreMock({
+      get: (type, id) =>
         type === 'mech' && id === mech.id
           ? mech
           : type === 'pilot' && id === pilot.id
             ? pilot
             : null,
-      update: async (type: string, id: string, patch: Record<string, unknown>) => {
+      update: async (type, id, patch) => {
         calls.push({ type, id, patch })
         return mech
       },
-    } as unknown as PlayStore
+    }).getState()
     const { container } = render(
       <EntityHrefProvider value={() => undefined}>
         <ActionsDeck mech={mech} pilot={pilot} mount="mech" store={store} />
@@ -308,13 +301,12 @@ describe('ActionsDeck', () => {
       const acts = SalvageUnionReference.resolveActions(a)
       return acts !== undefined && acts.filter((x) => !x.hidden).length > 0
     }) as { id?: string } | undefined
-    const pilot = {
+    const pilot = pilotFixture({
       id: 'p1',
       name: 'Vex',
       abilities: [ability?.id ?? ''],
-      equipment: [],
       currentAP: 5,
-    } as unknown as Pilot
+    })
     const { store } = stubStore(pilot)
     const { container } = render(
       <EntityHrefProvider value={() => undefined}>

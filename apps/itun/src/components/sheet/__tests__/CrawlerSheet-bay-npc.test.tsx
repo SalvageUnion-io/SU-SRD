@@ -18,12 +18,14 @@
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
+import type { SURefCrawlerBay } from 'salvageunion-reference'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 
 import { CrawlerSheet } from '../CrawlerSheet'
 import { CrawlerSchema } from '../../../lib/schemas/crawler'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 
 afterEach(() => {
   cleanup()
@@ -36,11 +38,15 @@ afterEach(() => {
 const KEEPSAKE_CHOICE_ID = 'command-bay-keepsake-1'
 const MOTTO_CHOICE_ID = 'command-bay-motto-1'
 
-const MOCK_BAYS = [
+const MOCK_BAYS: Array<SURefCrawlerBay & { schemaName: string }> = [
   {
     id: 'command-bay',
     name: 'Command Bay',
     schemaName: 'crawler-bays',
+    source: 'Salvage Union Workshop Manual',
+    page: 1,
+    indexable: true,
+    blackMarket: false,
     npc: {
       position: 'Princeps',
       hitPoints: 4,
@@ -55,6 +61,10 @@ const MOCK_BAYS = [
     id: 'mech-bay',
     name: 'Mech Bay',
     schemaName: 'crawler-bays',
+    source: 'Salvage Union Workshop Manual',
+    page: 1,
+    indexable: true,
+    blackMarket: false,
     npc: { position: 'Greaser', hitPoints: 4 },
   },
 ]
@@ -63,7 +73,7 @@ async function patchCrawlerBays(): Promise<() => void> {
   const { SalvageUnionReference } = await import('salvageunion-reference')
   const original = SalvageUnionReference.CrawlerBays.all.bind(SalvageUnionReference.CrawlerBays)
   SalvageUnionReference.CrawlerBays.all = mock(
-    () => MOCK_BAYS as unknown as ReturnType<typeof SalvageUnionReference.CrawlerBays.all>
+    (): Array<SURefCrawlerBay & { schemaName: string }> => MOCK_BAYS
   )
   return () => {
     SalvageUnionReference.CrawlerBays.all = original
@@ -103,11 +113,8 @@ type Spies = {
 function makeStubStore(crawler: Crawler, spies?: Partial<Spies>): typeof useEntityStore {
   const update = spies?.update ?? mock(async () => crawler)
   const updateCrawlerBay = spies?.updateCrawlerBay ?? mock(async () => crawler)
-  const storeState = {
-    pilots: [],
-    mechs: [],
+  return makeEntityStoreMock({
     crawlers: [crawler],
-    softLinks: [],
     hydrated: { pilots: false, mechs: false, crawlers: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [crawler]),
@@ -116,8 +123,7 @@ function makeStubStore(crawler: Crawler, spies?: Partial<Spies>): typeof useEnti
     update,
     updateCrawlerBay,
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 // ---------------------------------------------------------------------------

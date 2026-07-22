@@ -39,7 +39,7 @@ describe('buildReferenceEntityStats', () => {
   })
 
   test('an entity with no stat values yields an empty list', () => {
-    const bare = { id: 'x', name: 'Bare' } as unknown as SURefMetaEntity
+    const bare = { id: 'x', name: 'Bare' } as SURefMetaEntity
     expect(buildReferenceEntityStats(bare, { compact: false })).toEqual([])
   })
 

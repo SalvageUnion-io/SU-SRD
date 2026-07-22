@@ -29,13 +29,15 @@ import type { SnapshotPayload, PublishResult } from '../client'
 // ---------------------------------------------------------------------------
 
 type FetchStubOptions = {
+  /** Redundant with `status` now that the stub returns real Responses — kept so call sites stay declarative. */
   ok: boolean
   status: number
   body: unknown
 }
 
 /**
- * Returns a fetch-compatible function that always responds with the given stub.
+ * Returns a fetch-compatible function that always responds with the given
+ * stub as a REAL `Response` (so it satisfies `typeof fetch` with no cast).
  * Keeps track of calls in the `calls` array for assertion.
  */
 function makeFetchStub(response: FetchStubOptions): {
@@ -43,15 +45,18 @@ function makeFetchStub(response: FetchStubOptions): {
   calls: Array<[string, RequestInit | undefined]>
 } {
   const calls: Array<[string, RequestInit | undefined]> = []
-  const fn = (async (url: string, opts?: RequestInit) => {
-    calls.push([url, opts])
-    return {
-      ok: response.ok,
-      status: response.status,
-      json: async () => response.body,
-    }
-  }) as unknown as typeof fetch
+  const fn = asFetch(async (url, opts) => {
+    calls.push([String(url), opts])
+    return Response.json(response.body, { status: response.status })
+  })
   return { fn, calls }
+}
+
+/** Wraps a handler as `typeof fetch` — Bun's fetch also carries `preconnect`. */
+function asFetch(
+  impl: (url: RequestInfo | URL, init?: RequestInit) => Promise<Response>
+): typeof fetch {
+  return Object.assign(impl, { preconnect: globalThis.fetch.preconnect })
 }
 
 let originalFetch: typeof fetch
@@ -215,16 +220,11 @@ describe('publish → retrieve round-trip', () => {
     }
     let callCount = 0
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    global.fetch = (async (_url: string, _opts?: RequestInit) => {
+    global.fetch = asFetch(async () => {
       callCount++
-      if (callCount === 1) {
-        // POST /api/snapshots
-        return { ok: true, status: 200, json: async () => publishResult }
-      }
-      // GET /api/snapshots/rt-001
-      return { ok: true, status: 200, json: async () => payload }
-    }) as unknown as typeof fetch
+      // POST /api/snapshots first, then GET /api/snapshots/rt-001
+      return Response.json(callCount === 1 ? publishResult : payload, { status: 200 })
+    })
 
     const published = await publishSnapshot(payload)
     expect(published.id).toBe('rt-001')
@@ -315,9 +315,9 @@ describe('probeSnapshotService', () => {
   })
 
   test('resolves false (never throws) on a network error', async () => {
-    global.fetch = (async () => {
+    global.fetch = asFetch(async () => {
       throw new TypeError('Failed to fetch')
-    }) as unknown as typeof fetch
+    })
     expect(await probeSnapshotService()).toBe(false)
   })
 })

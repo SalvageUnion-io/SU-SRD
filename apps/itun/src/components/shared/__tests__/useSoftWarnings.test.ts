@@ -17,6 +17,9 @@ import { act, renderHook } from '@testing-library/react'
 import { useSoftWarnings } from '../useSoftWarnings'
 import type { SoftWarning } from '../../../lib/rules/types'
 import type { Pilot } from '../../../lib/schemas/pilot'
+import { pilotFixture } from '../../__tests__/fixtures'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { must } from '../../__tests__/must'
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -24,15 +27,7 @@ import type { Pilot } from '../../../lib/schemas/pilot'
 
 const PILOT_ID = 'pilot-abc-123'
 
-/** Minimal Pilot shape that satisfies EntityForType<'pilot'> */
-const fakePilot = {
-  id: PILOT_ID,
-  name: 'Test Pilot',
-  level: 3,
-  abilities: [],
-  createdAt: '2026-01-01T00:00:00Z',
-  updatedAt: '2026-01-01T00:00:00Z',
-} as unknown as Pilot
+const fakePilot: Pilot = pilotFixture({ id: PILOT_ID, name: 'Test Pilot' })
 
 const fakeWarning: SoftWarning = {
   code: 'ABILITY_LEVEL_PREREQUISITE',
@@ -47,29 +42,22 @@ const fakeWarning: SoftWarning = {
 function makeStore(opts: { entity?: Pilot | null; updateResult?: Pilot }) {
   const entity = opts.entity ?? fakePilot
   const updateResult = opts.updateResult ?? { ...fakePilot, name: 'Updated' }
-  const updateFn = mock(async () => updateResult)
+  const updateFn = mock(async (_type: string, _id: string, _patch: Partial<Pilot>) => updateResult)
 
-  const storeState = {
+  const storeHook = makeEntityStoreMock({
     get: mock(() => entity),
     update: updateFn,
-    // Unused by the hook but part of the store shape
-    pilots: [],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
-    hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => []),
-    create: mock(async () => ({})),
     delete: mock(async () => {}),
-  }
+  })
 
-  // The hook calls store() — return a hook-shaped function
-  const storeHook = () =>
-    storeState as unknown as ReturnType<typeof import('../../../stores/entityStore').useEntityStore>
-
-  return { storeState, storeHook, updateFn }
+  return { storeHook, updateFn }
 }
+
+/** The argument view the tests assert on — snapshots overlap it structurally. */
+type SnapshotView = { id?: string; name?: string; abilities?: unknown; systems?: unknown }
+type CtxView = { entityType?: string; techLevelDowngraded?: boolean }
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -78,15 +66,17 @@ function makeStore(opts: { entity?: Pilot | null; updateResult?: Pilot }) {
 describe('useSoftWarnings', () => {
   describe('preview()', () => {
     test('invokes evaluate with before and after snapshots', async () => {
-      const evaluateFn = mock((): SoftWarning[] => [])
+      const evaluateFn = mock(
+        (_b: SnapshotView, _a: SnapshotView, _c: CtxView): SoftWarning[] => []
+      )
       const { storeHook } = makeStore({})
 
       const { result } = renderHook(() =>
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
-          evaluate: evaluateFn as Parameters<typeof useSoftWarnings>[0]['evaluate'],
-          store: storeHook as never,
+          evaluate: evaluateFn,
+          store: storeHook,
         })
       )
 
@@ -97,29 +87,27 @@ describe('useSoftWarnings', () => {
       })
 
       expect(evaluateFn).toHaveBeenCalledTimes(1)
-      const [calledBefore, calledAfter, calledCtx] = evaluateFn.mock.calls[0] as unknown as [
-        unknown,
-        unknown,
-        unknown,
-      ]
+      const [calledBefore, calledAfter, calledCtx] = must(evaluateFn.mock.calls[0])
       // before should be the original entity
-      expect((calledBefore as { id: string }).id).toBe(PILOT_ID)
+      expect(calledBefore.id).toBe(PILOT_ID)
       // after should have the patch applied
-      expect((calledAfter as { name: string }).name).toBe('New Name')
+      expect(calledAfter.name).toBe('New Name')
       // context should carry entityType
-      expect((calledCtx as { entityType: string }).entityType).toBe('pilot')
+      expect(calledCtx.entityType).toBe('pilot')
     })
 
     test('updates warnings array with evaluate return value', async () => {
-      const evaluateFn = mock((): SoftWarning[] => [fakeWarning])
+      const evaluateFn = mock((_b: SnapshotView, _a: SnapshotView, _c: CtxView): SoftWarning[] => [
+        fakeWarning,
+      ])
       const { storeHook } = makeStore({})
 
       const { result } = renderHook(() =>
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
-          evaluate: evaluateFn as Parameters<typeof useSoftWarnings>[0]['evaluate'],
-          store: storeHook as never,
+          evaluate: evaluateFn,
+          store: storeHook,
         })
       )
 
@@ -133,15 +121,17 @@ describe('useSoftWarnings', () => {
     })
 
     test('sets warnings to empty array when evaluate returns none', async () => {
-      const evaluateFn = mock((): SoftWarning[] => [])
+      const evaluateFn = mock(
+        (_b: SnapshotView, _a: SnapshotView, _c: CtxView): SoftWarning[] => []
+      )
       const { storeHook } = makeStore({})
 
       const { result } = renderHook(() =>
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
-          evaluate: evaluateFn as Parameters<typeof useSoftWarnings>[0]['evaluate'],
-          store: storeHook as never,
+          evaluate: evaluateFn,
+          store: storeHook,
         })
       )
 
@@ -153,15 +143,17 @@ describe('useSoftWarnings', () => {
     })
 
     test('passes context options through to evaluate', async () => {
-      const evaluateFn = mock((): SoftWarning[] => [])
+      const evaluateFn = mock(
+        (_b: SnapshotView, _a: SnapshotView, _c: CtxView): SoftWarning[] => []
+      )
       const { storeHook } = makeStore({})
 
       const { result } = renderHook(() =>
         useSoftWarnings({
           entityType: 'mech',
           entityId: PILOT_ID,
-          evaluate: evaluateFn as Parameters<typeof useSoftWarnings>[0]['evaluate'],
-          store: storeHook as never,
+          evaluate: evaluateFn,
+          store: storeHook,
         })
       )
 
@@ -169,26 +161,24 @@ describe('useSoftWarnings', () => {
         result.current.preview({ name: 'Mech' }, { techLevelDowngraded: true })
       })
 
-      const [, , calledCtx] = evaluateFn.mock.calls[0] as unknown as [
-        unknown,
-        unknown,
-        { techLevelDowngraded?: boolean },
-      ]
+      const [, , calledCtx] = must(evaluateFn.mock.calls[0])
       expect(calledCtx.techLevelDowngraded).toBe(true)
     })
   })
 
   describe('saveAnyway()', () => {
     test('calls store.update with the pending patch', async () => {
-      const evaluateFn = mock((): SoftWarning[] => [fakeWarning])
+      const evaluateFn = mock((_b: SnapshotView, _a: SnapshotView, _c: CtxView): SoftWarning[] => [
+        fakeWarning,
+      ])
       const { storeHook, updateFn } = makeStore({})
 
       const { result } = renderHook(() =>
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
-          evaluate: evaluateFn as Parameters<typeof useSoftWarnings>[0]['evaluate'],
-          store: storeHook as never,
+          evaluate: evaluateFn,
+          store: storeHook,
         })
       )
 
@@ -201,26 +191,24 @@ describe('useSoftWarnings', () => {
       })
 
       expect(updateFn).toHaveBeenCalledTimes(1)
-      const [calledType, calledId, calledPatch] = updateFn.mock.calls[0] as unknown as [
-        string,
-        string,
-        unknown,
-      ]
+      const [calledType, calledId, calledPatch] = must(updateFn.mock.calls[0])
       expect(calledType).toBe('pilot')
       expect(calledId).toBe(PILOT_ID)
-      expect((calledPatch as { name: string }).name).toBe('Save Me')
+      expect(calledPatch.name).toBe('Save Me')
     })
 
     test('clears warnings after successful save', async () => {
-      const evaluateFn = mock((): SoftWarning[] => [fakeWarning])
+      const evaluateFn = mock((_b: SnapshotView, _a: SnapshotView, _c: CtxView): SoftWarning[] => [
+        fakeWarning,
+      ])
       const { storeHook } = makeStore({})
 
       const { result } = renderHook(() =>
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
-          evaluate: evaluateFn as Parameters<typeof useSoftWarnings>[0]['evaluate'],
-          store: storeHook as never,
+          evaluate: evaluateFn,
+          store: storeHook,
         })
       )
 
@@ -244,7 +232,7 @@ describe('useSoftWarnings', () => {
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
-          store: storeHook as never,
+          store: storeHook,
         })
       )
 
@@ -257,15 +245,17 @@ describe('useSoftWarnings', () => {
 
   describe('fixIt()', () => {
     test('clears warnings without calling store.update', async () => {
-      const evaluateFn = mock((): SoftWarning[] => [fakeWarning])
+      const evaluateFn = mock((_b: SnapshotView, _a: SnapshotView, _c: CtxView): SoftWarning[] => [
+        fakeWarning,
+      ])
       const { storeHook, updateFn } = makeStore({})
 
       const { result } = renderHook(() =>
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
-          evaluate: evaluateFn as Parameters<typeof useSoftWarnings>[0]['evaluate'],
-          store: storeHook as never,
+          evaluate: evaluateFn,
+          store: storeHook,
         })
       )
 
@@ -290,7 +280,7 @@ describe('useSoftWarnings', () => {
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
-          store: storeHook as never,
+          store: storeHook,
         })
       )
 

@@ -280,12 +280,12 @@ function actionEconomy(action: SURefMetaAction): MechItemEconomy {
   return { epCost, heat, maxUses }
 }
 
-function entityActions(entity: { name?: string }): SURefMetaAction[] {
-  return SalvageUnionReference.resolveActions(entity as unknown as SURefMetaEntity) ?? []
+function entityActions(entity: SURefMetaEntity): SURefMetaAction[] {
+  return SalvageUnionReference.resolveActions(entity) ?? []
 }
 
 /** Non-rendering `hidden` actions are book-keeping only — never deck cards. */
-function deckActions(entity: { name?: string }): SURefMetaAction[] {
+function deckActions(entity: SURefMetaEntity): SURefMetaAction[] {
   return entityActions(entity).filter((a) => !a.hidden)
 }
 
@@ -298,7 +298,7 @@ function deckActions(entity: { name?: string }): SURefMetaAction[] {
 export function buildMechActions(mech: Mech): PlayAction[] {
   const out: PlayAction[] = []
 
-  const chassis = resolveChassisRef(mech.chassisRef) as { name?: string } | null
+  const chassis = resolveChassisRef(mech.chassisRef)
   if (chassis) {
     const chassisName = chassis.name ?? mech.chassisRef
     deckActions(chassis).forEach((action, i) => {
@@ -364,7 +364,7 @@ export function buildPilotActions(pilot: Pilot): PlayAction[] {
   for (const slug of pilot.abilities ?? []) {
     const ability = resolveAbilityBySlug(slug)
     if (!ability) continue
-    deckActions(ability as unknown as { name?: string }).forEach((action, i) => {
+    deckActions(ability).forEach((action, i) => {
       out.push({
         key: `ability:${slug}:${action.id ?? i}`,
         name: action.name,
@@ -384,7 +384,7 @@ export function buildPilotActions(pilot: Pilot): PlayAction[] {
     const equip: SURefEquipment | null = resolveEquipment(slug)
     if (!equip) continue
     const condition = pilot.equipmentConditions?.[slug] ?? 'intact'
-    deckActions(equip as unknown as { name?: string }).forEach((action, i) => {
+    deckActions(equip).forEach((action, i) => {
       out.push({
         key: `equipment:${slug}:${action.id ?? i}`,
         name: action.name,

@@ -36,6 +36,7 @@ import type { Pilot } from '../../../lib/schemas/pilot'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { SoftLink } from '../../../lib/schemas/softLink'
+import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
 
 // ---------------------------------------------------------------------------
 // Preload reference data
@@ -96,19 +97,11 @@ const fakeCrawler: Crawler = {
 type AnyEntity = Pilot | Mech | Crawler
 
 function makeEntityStore(entities: AnyEntity[]): EntityLookup {
-  return {
-    get: ((_type: unknown, id: string) =>
-      entities.find((e) => e.id === id) ?? null) as unknown as EntityLookup['get'],
-  }
+  return makeEntityLookupMock(entities)
 }
 
 function makeSoftLinkStore(links: SoftLink[]): SoftLinkStore {
-  return {
-    softLinks: links,
-    // The create mock is unused in these tests; cast is safe — they never assign()
-    create: (async () => links[0]) as unknown as SoftLinkStore['create'],
-    delete: async () => undefined,
-  }
+  return makeSoftLinkStoreMock(links)
 }
 
 function makeMechToPilotLink(mechId: string, pilotId: string): SoftLink {

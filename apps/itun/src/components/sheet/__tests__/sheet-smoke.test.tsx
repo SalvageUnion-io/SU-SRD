@@ -35,6 +35,11 @@ import type { Pilot } from '../../../lib/schemas/pilot'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
+import {
+  makeEntityStoreMock,
+  makeEntityLookupMock,
+  makeSoftLinkStoreMock,
+} from '../../__tests__/mockEntityStore'
 import { SnapshotPageInner } from '../../../routes/s/$id'
 import { must } from '../../__tests__/must'
 
@@ -103,19 +108,11 @@ const fakeCrawler: Crawler = {
 type AnyEntity = Pilot | Mech | Crawler
 
 function makeEntityStore(entities: AnyEntity[]): EntityLookup {
-  return {
-    get: ((_type: unknown, id: string) =>
-      entities.find((e) => e.id === id) ?? null) as unknown as EntityLookup['get'],
-  }
+  return makeEntityLookupMock(entities)
 }
 
 function makeSoftLinkStore(links: SoftLink[]): SoftLinkStore {
-  const createMock = mock(async () => links[0]) as unknown as SoftLinkStore['create']
-  return {
-    softLinks: links,
-    create: createMock,
-    delete: mock(async () => undefined),
-  }
+  return makeSoftLinkStoreMock(links)
 }
 
 function makeMechToPilotLink(mechId: string, pilotId: string): SoftLink {
@@ -142,21 +139,16 @@ function makeZustandLikeStore(
     return { ...entity, ...patch } as Mech
   })
 
-  const storeState = {
-    pilots: [],
+  return makeEntityStoreMock({
     mechs,
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => mechs),
     get: mock((_type: string, id: string) => mechs.find((e) => e.id === id) ?? null),
-    create: mock(async () => mechs[0]),
+    create: mock(async () => mechs[0] ?? null),
     update: updateMock,
     delete: mock(async () => {}),
-  }
-
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 // ---------------------------------------------------------------------------

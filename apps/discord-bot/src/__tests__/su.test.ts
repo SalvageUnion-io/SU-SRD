@@ -37,21 +37,30 @@ describe('/su command', () => {
   })
 
   test('execute throws loudly on an unknown subcommand', async () => {
-    const interaction = {
-      options: { getSubcommand: () => 'nonsense' },
-    } as unknown as Parameters<typeof suCommand.execute>[0]
+    // The narrow CommandExecuteInteraction surface is satisfied structurally —
+    // getString's required-form overload is declared, the impl never runs here.
+    function getString(name: string, required: true): string
+    function getString(name: string, required?: boolean): string | null
+    function getString(): string | null {
+      return null
+    }
+    const interaction: Parameters<typeof suCommand.execute>[0] = {
+      options: { getSubcommand: () => 'nonsense', getString },
+      client: { user: null },
+      reply: () => Promise.resolve(),
+    }
     await expect(suCommand.execute(interaction)).rejects.toThrow('Unknown /su subcommand')
   })
 
   test('autocomplete responds empty on an unknown subcommand', async () => {
     let responded: unknown = null
-    const interaction = {
-      options: { getSubcommand: () => 'nonsense' },
-      respond: (choices: unknown) => {
+    const interaction: Parameters<typeof suCommand.autocomplete>[0] = {
+      options: { getSubcommand: () => 'nonsense', getFocused: () => '' },
+      respond: (choices) => {
         responded = choices
         return Promise.resolve()
       },
-    } as unknown as Parameters<typeof suCommand.autocomplete>[0]
+    }
     await suCommand.autocomplete(interaction)
     expect(responded).toEqual([])
   })

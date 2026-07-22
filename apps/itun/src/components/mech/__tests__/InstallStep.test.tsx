@@ -27,9 +27,7 @@ afterEach(() => {
 function firstAtTL(kind: 'systems' | 'modules', tl: TechLevel): { id: string; name: string } {
   const accessor =
     kind === 'systems' ? SalvageUnionReference.Systems : SalvageUnionReference.Modules
-  const found = (
-    accessor.all() as unknown as Array<{ id: string; name: string; techLevel: TechLevel }>
-  ).find((s) => s.techLevel === tl)
+  const found = accessor.all().find((s) => s.techLevel === tl)
   if (!found) throw new Error(`No ${kind} at tech level ${String(tl)} in reference data`)
   return found
 }

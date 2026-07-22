@@ -2,7 +2,7 @@ import type { Story } from '@ladle/react'
 import { useMemo, useState } from 'react'
 import type { CSSVarStyle } from '../../styles/cssVars'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefModule, SURefSystem } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
 import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
@@ -14,14 +14,8 @@ import { Caption } from '../../stories/_harness'
 
 export default { title: 'Compositions/Wizard/Mech Install Step' }
 
-// Local mirrors of the app-only types (InstallStep.tsx lines 9-16).
+// Local mirror of the app-only type (InstallStep.tsx lines 9-16).
 type TechLevel = 1 | 2 | 3 | 4 | 5 | 6 | 'B' | 'N'
-type InstallItemLike = {
-  id: string
-  name: string
-  techLevel: TechLevel
-  slotsRequired: number
-}
 
 const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
 
@@ -30,7 +24,7 @@ const INK_TONE: CSSVarStyle = { '--tone': 'var(--color-ink)', '--tone-deep': 'va
 const RUST_TONE: CSSVarStyle = { '--tone': 'var(--color-rust)', '--tone-deep': 'var(--color-rust)' }
 
 /** Sort rank for a tech level: numeric tiers 1–6, then Bio (B), then Nanite (N). */
-function tlRank(tl: TechLevel): number {
+function tlRank(tl: number | 'B' | 'N'): number {
   if (tl === 'B') return 7
   if (tl === 'N') return 8
   return tl
@@ -150,16 +144,17 @@ function LegacyInstallStep({ kind }: { kind: 'systems' | 'modules' }) {
   const [selected, setSelected] = useState<string[]>([])
 
   const allItems = useMemo(() => {
-    const accessor =
-      kind === 'systems' ? SalvageUnionReference.Systems : SalvageUnionReference.Modules
-    const items = accessor.all() as unknown as InstallItemLike[]
+    const items: (SURefSystem | SURefModule)[] =
+      kind === 'systems' ? SalvageUnionReference.Systems.all() : SalvageUnionReference.Modules.all()
     return [...items].sort(
       (a, b) => tlRank(a.techLevel) - tlRank(b.techLevel) || a.name.localeCompare(b.name)
     )
   }, [kind])
 
   const visible =
-    activeTls.length === 0 ? allItems : allItems.filter((i) => activeTls.includes(i.techLevel))
+    activeTls.length === 0
+      ? allItems
+      : allItems.filter((i) => activeTls.some((t) => t === i.techLevel))
 
   function toggleTl(tl: TechLevel) {
     setActiveTls((prev) => (prev.includes(tl) ? prev.filter((t) => t !== tl) : [...prev, tl]))
@@ -201,7 +196,7 @@ function LegacyInstallStep({ kind }: { kind: 'systems' | 'modules' }) {
               return (
                 <ReferenceEntityCard
                   key={item.id}
-                  data={item as unknown as SURefEntity}
+                  data={item}
                   size="medium"
                   selected={installed}
                   hide={{ actions: true, choices: true }}

@@ -23,6 +23,7 @@ import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
 import { DB_VERSION, _clearAllStores, openItunDatabase, pilots } from '../index'
 import { STORE_NAMES } from '../stores'
+import { must } from '../../../components/__tests__/must'
 
 const TEST_DB_NAME = 'itun-migrations-test'
 
@@ -136,7 +137,7 @@ describe('v2 → current migrations (v3 cargo → cargoLots, v4 rollResults remo
         expect(typeof lot.id).toBe('string')
         expect(lot.code.length).toBeGreaterThan(0)
       }
-      expect('cargo' in (mech as unknown as Record<string, unknown>)).toBe(false)
+      expect('cargo' in mech).toBe(false)
       // Untouched live state survives the rewrite.
       expect(mech.currentSP).toBe(8)
 
@@ -219,7 +220,7 @@ describe('v2 → current migrations (v3 cargo → cargoLots, v4 rollResults remo
       expect(db.version).toBe(DB_VERSION)
       const mech = MechSchema.parse(await db.get(STORE_NAMES.mechs, 'mech-v2-1'))
       expect(mech.cargoLots.map((l) => l.name)).toEqual(['Salvaged plating', 'ration-pack'])
-      expect('cargo' in (mech as unknown as Record<string, unknown>)).toBe(false)
+      expect('cargo' in mech).toBe(false)
     } finally {
       db.close()
     }
@@ -291,7 +292,7 @@ describe('salvage read path', () => {
     try {
       const record = await pilots.get('pilot-drifted')
       expect(record).not.toBeNull()
-      expect('fieldFromTheFuture' in (record as unknown as Record<string, unknown>)).toBe(false)
+      expect('fieldFromTheFuture' in must(record)).toBe(false)
 
       // list() hydration also survives — the drifted record is included.
       const all = await pilots.list()

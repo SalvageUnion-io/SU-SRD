@@ -15,7 +15,6 @@
 import { afterEach, beforeAll, describe, expect, it, mock } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
 
 import { CrawlerCrewStep } from '../CrawlerCrewStep'
 import type { CrewNpcForm } from '../../../lib/wizard/crawlerFormState'
@@ -29,14 +28,12 @@ afterEach(() => {
   cleanup()
 })
 
-function crewedBays(): SURefEntity[] {
-  return (SalvageUnionReference.CrawlerBays.all() as unknown as SURefEntity[]).filter(
-    (b) => (b as { npc?: unknown }).npc != null
-  )
+function crewedBays() {
+  return SalvageUnionReference.CrawlerBays.all().filter((b) => b.npc != null)
 }
 
-function bayByName(name: string): SURefEntity {
-  return must(crewedBays().find((b) => (b as { name?: string }).name === name))
+function bayByName(name: string) {
+  return must(crewedBays().find((b) => b.name === name))
 }
 
 /** Expand a roster row by clicking its entity card (cardClick → role=button). */
@@ -122,22 +119,17 @@ describe('CrawlerCrewStep', () => {
     fireEvent.change(input, { target: { value: 'Maddox' } })
     fireEvent.blur(input, { target: { value: 'Maddox' } })
     expect(onChange).toHaveBeenCalledWith({
-      crew: { [(command as { id: string }).id]: { name: 'Maddox' } },
+      crew: { [command.id]: { name: 'Maddox' } },
     })
   })
 
   it('renders existing crew values in the expanded row', () => {
     const command = bayByName('Command Bay')
     const crew: Record<string, CrewNpcForm> = {
-      [(command as { id: string }).id]: { name: 'Maddox', motto: 'Hold the line' },
+      [command.id]: { name: 'Maddox', motto: 'Hold the line' },
     }
     render(
-      <CrawlerCrewStep
-        bays={[command]}
-        selectedType={undefined as unknown as SURefCrawler | undefined}
-        crew={crew}
-        onChange={() => {}}
-      />
+      <CrawlerCrewStep bays={[command]} selectedType={undefined} crew={crew} onChange={() => {}} />
     )
     expandRow('Command Bay')
     expect(screen.getByRole('button', { name: 'Edit princeps name' }).textContent).toContain(

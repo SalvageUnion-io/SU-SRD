@@ -3,10 +3,9 @@ import {
   type ButtonBuilder,
   EmbedBuilder,
   MessageFlags,
-  type ChatInputCommandInteraction,
-  type AutocompleteInteraction,
   type SlashCommandSubcommandBuilder,
 } from 'discord.js'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { search, getEntitySlug, findEntityBySlug, nameToSlug } from 'salvageunion-reference'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 
@@ -110,7 +109,7 @@ export const lookupCommand = {
       )
   },
 
-  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+  async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
     const focusedValue = interaction.options.getFocused()
     if (!focusedValue.trim()) {
       await interaction.respond([])
@@ -129,7 +128,7 @@ export const lookupCommand = {
     )
   },
 
-  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+  async execute(interaction: CommandExecuteInteraction): Promise<void> {
     const input = interaction.options.getString('entity', true)
 
     // Autocomplete selections arrive as `schemaName::slug`; free-typed text

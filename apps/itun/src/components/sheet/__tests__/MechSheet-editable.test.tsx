@@ -24,7 +24,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { MechSheet } from '../MechSheet'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
-import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
 
 beforeAll(async () => {
@@ -85,11 +85,9 @@ type CapturedUpdate = {
 
 function makeStore(mech: Mech, captured: CapturedUpdate[], crawler?: Crawler) {
   let currentMech = mech
-  const storeState = {
-    pilots: [],
+  return makeEntityStoreMock({
     mechs: [mech],
     crawlers: crawler ? [crawler] : [],
-    softLinks: [],
     hydrated: { pilots: false, mechs: true, crawlers: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [currentMech]),
@@ -105,8 +103,7 @@ function makeStore(mech: Mech, captured: CapturedUpdate[], crawler?: Crawler) {
       return currentMech
     }),
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 function clickButton(name: RegExp) {

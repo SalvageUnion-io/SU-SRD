@@ -7,10 +7,10 @@
  * the reference card in the resolve panel is the reused ReferenceEntityCard.
  */
 
-import type { SURefEntity } from 'salvageunion-reference'
 import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
+import type { ReferenceCardEntity } from '../referenceEntity/card/ReferenceEntityCard'
 
 /**
  * A render-ready action row. The action ENTITY drives a shortform
@@ -21,7 +21,8 @@ import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard
  */
 export type DeckRow = {
   key: string
-  entity: SURefEntity
+  /** Any card-renderable entity — ACTIONS are meta-entities, not `SURefEntity`. */
+  entity: ReferenceCardEntity
   /** Accessible name for the clickable badge (the action name). */
   name: string
   locked: boolean
@@ -32,7 +33,7 @@ export type DeckGroup = { label: string; rows: DeckRow[] }
 export type ActionsDeckResolve = {
   onBack: () => void
   costLabel: string
-  entity: SURefEntity
+  entity: ReferenceCardEntity
   /** EP-vs-AP cost radio for `activationCurrency === 'EP or AP'` actions. */
   currencyChoice?: {
     epCost: number

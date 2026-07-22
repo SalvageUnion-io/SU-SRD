@@ -1,11 +1,14 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
 import { KvRow, Panel, ReferenceEntityCard, FieldError } from 'component-lib'
-import { isRecord } from '../../lib/isRecord'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 
-type SURFindAll = { findAll: (fn: (x: unknown) => boolean) => unknown[] }
-type SURFind = { find: (fn: (x: unknown) => boolean) => unknown }
+/**
+ * Typed lookup surfaces for the injectable SUR seam — declared against the
+ * real reference entity types so results feed entity cards without casts.
+ */
+type SURFindAll<T> = { findAll: (fn: (x: T) => boolean) => T[] }
+type SURFind<T> = { find: (fn: (x: T) => boolean) => T | undefined }
 
 type ReviewStepProps = {
   form: PilotWizardFormState
@@ -13,14 +16,11 @@ type ReviewStepProps = {
   trainingPoints?: number
   submitError: string | null
   /** Injectable SUR for testing. */
-  _sur?: { Classes: SURFind; Abilities: SURFindAll; Equipment: SURFindAll }
-}
-
-type Named = { id: string; name: string }
-
-/** Runtime narrow for the unknown-typed injectable SUR accessors. */
-function isNamed(x: unknown): x is Named {
-  return isRecord(x) && typeof x.id === 'string' && typeof x.name === 'string'
+  _sur?: {
+    Classes: SURFind<SURefClass>
+    Abilities: SURFindAll<SURefAbility>
+    Equipment: SURFindAll<SURefEquipment>
+  }
 }
 
 /**
@@ -33,16 +33,13 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
   const surAbilities = _sur?.Abilities ?? SalvageUnionReference.Abilities
   const surEquipment = _sur?.Equipment ?? SalvageUnionReference.Equipment
 
-  const foundClass = form.classId
-    ? surClasses.find((c) => isNamed(c) && c.id === form.classId)
-    : undefined
-  const selectedClass = isNamed(foundClass) ? foundClass : undefined
+  const selectedClass = form.classId ? surClasses.find((c) => c.id === form.classId) : undefined
   const chosenAbilities = form.abilities
-    .map((id) => surAbilities.findAll((a) => isNamed(a) && a.id === id)[0])
-    .filter(isNamed)
+    .map((id) => surAbilities.findAll((a) => a.id === id)[0])
+    .filter((a) => a !== undefined)
   const chosenEquipment = form.equipment
-    .map((id) => surEquipment.findAll((e) => isNamed(e) && e.id === id)[0])
-    .filter(isNamed)
+    .map((id) => surEquipment.findAll((e) => e.id === id)[0])
+    .filter((e) => e !== undefined)
 
   const rows: [string, string | null][] = [
     ['Name', form.name.trim() || null],
@@ -80,7 +77,7 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
         {chosenAbilities.map((ability) => (
           <ReferenceEntityCard
             key={ability.id}
-            data={ability as unknown as SURefEntity}
+            data={ability}
             size="medium"
             hide={{ actions: true, choices: true }}
           />
@@ -91,7 +88,7 @@ export function ReviewStep({ form, trainingPoints, submitError, _sur }: ReviewSt
             // alone cannot key the list.
             // biome-ignore lint/suspicious/noArrayIndexKey: id alone can't disambiguate duplicate picks; id+index is the stablest available key
             key={`${item.id}-${i}`}
-            data={item as unknown as SURefEntity}
+            data={item}
             size="medium"
             status="intact"
             hide={{ actions: true, choices: true }}

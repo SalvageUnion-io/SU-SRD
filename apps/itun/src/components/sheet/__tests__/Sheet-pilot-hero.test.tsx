@@ -23,6 +23,11 @@ import type { EntityLookup } from '../Sheet'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
+import {
+  makeEntityStoreMock,
+  makeEntityLookupMock,
+  makeSoftLinkStoreMock,
+} from '../../__tests__/mockEntityStore'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -60,11 +65,8 @@ function makePilot(overrides: Partial<Pilot> = {}): Pilot {
 
 function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
   const updateMock = updateSpy ?? mock(async () => pilot)
-  const storeState = {
+  return makeEntityStoreMock({
     pilots: [pilot],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [pilot]),
@@ -72,24 +74,15 @@ function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeo
     create: mock(async () => pilot),
     update: updateMock,
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 function makeEntityStore(pilot: Pilot): EntityLookup {
-  return {
-    get: ((_type: unknown, id: string) =>
-      id === pilot.id ? pilot : null) as unknown as EntityLookup['get'],
-  }
+  return makeEntityLookupMock([pilot])
 }
 
 function makeSoftLinkStore(): SoftLinkStore {
-  const createMock = mock(async () => undefined) as unknown as SoftLinkStore['create']
-  return {
-    softLinks: [],
-    create: createMock,
-    delete: mock(async () => undefined),
-  }
+  return makeSoftLinkStoreMock()
 }
 
 function renderHero(pilot: Pilot, updateSpy?: ReturnType<typeof mock>, readOnly = false) {

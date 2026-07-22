@@ -49,6 +49,7 @@ import {
   workspaces,
 } from '../index'
 import { STORE_NAMES } from '../stores'
+import { must } from '../../../components/__tests__/must'
 
 /** Overwrite a record's raw bytes in IDB, bypassing all Zod validation. */
 async function putRaw(storeName: string, record: unknown): Promise<void> {
@@ -104,7 +105,7 @@ describe('salvage read: top-level unknown field strips only that field', () => {
     try {
       const record = await mechs.get(created.id)
       expect(record).not.toBeNull()
-      expect('fieldFromTheFuture' in (record as unknown as Record<string, unknown>)).toBe(false)
+      expect('fieldFromTheFuture' in must(record)).toBe(false)
       // Every other field survives — this is the "nothing else is dropped" check.
       expect(record).toEqual(created)
       expect(warnings.some((w) => w.includes('salvage path'))).toBe(true)
@@ -129,7 +130,7 @@ describe('salvage read: top-level unknown field strips only that field', () => {
     try {
       const record = await crawlers.get(created.id)
       expect(record).not.toBeNull()
-      expect('fieldFromTheFuture' in (record as unknown as Record<string, unknown>)).toBe(false)
+      expect('fieldFromTheFuture' in must(record)).toBe(false)
       expect(record).toEqual(created)
       expect(warnings.some((w) => w.includes('salvage path'))).toBe(true)
     } finally {
@@ -256,10 +257,7 @@ describe('salvage read: unknown key in a NESTED strict sub-schema drops only tha
       // conditions, the rest of the cargo lot) round-trips exactly.
       const record = await mechs.get(created.id)
       expect(record).not.toBeNull()
-      expect(
-        'fieldFromTheFuture' in
-          ((record as unknown as { cargoLots: Record<string, unknown>[] }).cargoLots[0] ?? {})
-      ).toBe(false)
+      expect('fieldFromTheFuture' in (must(record).cargoLots[0] ?? {})).toBe(false)
       expect(record).toEqual(created)
       // list() surfaces it too, not just get().
       const all = await mechs.list()
@@ -297,10 +295,7 @@ describe('salvage read: unknown key in a NESTED strict sub-schema drops only tha
     try {
       const record = await pilots.get(created.id)
       expect(record).not.toBeNull()
-      expect(
-        'newSeverityMeta' in
-          ((record as unknown as { injuries: Record<string, unknown>[] }).injuries[0] ?? {})
-      ).toBe(false)
+      expect('newSeverityMeta' in (must(record).injuries?.[0] ?? {})).toBe(false)
       expect(record).toEqual(created)
       const all = await pilots.list()
       expect(all.some((p) => p.id === created.id)).toBe(true)
@@ -325,9 +320,7 @@ describe('salvage read: unknown key in a NESTED strict sub-schema drops only tha
     try {
       const record = await softLinks.get(created.id)
       expect(record).not.toBeNull()
-      expect(
-        'endpointVersion' in ((record as unknown as { from: Record<string, unknown> }).from ?? {})
-      ).toBe(false)
+      expect('endpointVersion' in must(record).from).toBe(false)
       expect(record).toEqual(created)
       const all = await softLinks.list()
       expect(all.some((l) => l.id === created.id)).toBe(true)
@@ -357,10 +350,7 @@ describe('salvage read: unknown key in a NESTED strict sub-schema drops only tha
     try {
       const record = await crawlers.get(created.id)
       expect(record).not.toBeNull()
-      expect(
-        'npcMorale' in
-          ((record as unknown as { crawlerBays: Record<string, unknown>[] }).crawlerBays[0] ?? {})
-      ).toBe(false)
+      expect('npcMorale' in (must(record).crawlerBays?.[0] ?? {})).toBe(false)
       expect(record).toEqual(created)
       const all = await crawlers.list()
       expect(all.some((c) => c.id === created.id)).toBe(true)

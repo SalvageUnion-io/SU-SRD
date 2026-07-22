@@ -5,20 +5,12 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
-import type { Crawler } from '../../../lib/schemas/crawler'
-import type { Mech } from '../../../lib/schemas/mech'
-import type { Pilot } from '../../../lib/schemas/pilot'
 import { dialItems } from '../dialItems'
+import { crawlerFixture, mechFixture, pilotFixture } from '../../__tests__/fixtures'
 
-const mech = {
-  id: 'm1',
-  name: 'Iron Mongrel',
-  chassisRef: 'x',
-  systems: [],
-  modules: [],
-} as unknown as Mech
-const pilot = { id: 'p1', name: 'Vesh', abilities: [], conditions: [] } as unknown as Pilot
-const crawler = { id: 'c1', name: 'Union Hauler', techLevel: '3' } as unknown as Crawler
+const mech = mechFixture({ id: 'm1', name: 'Iron Mongrel', chassisRef: 'x' })
+const pilot = pilotFixture({ id: 'p1', name: 'Vesh' })
+const crawler = crawlerFixture({ id: 'c1', name: 'Union Hauler', techLevel: '3' })
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')

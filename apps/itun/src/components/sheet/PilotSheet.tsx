@@ -606,12 +606,10 @@ export function PilotSheet({
           onToggle={toggleAbility}
           idOf={(item) => item.id}
           filter={
-            abilityTrees
-              ? (item) => abilityTrees.has((item as unknown as SURefAbility).tree)
-              : undefined
+            abilityTrees ? (item) => abilityTrees.has((item as SURefAbility).tree) : undefined
           }
           facets={{
-            category: { label: 'Tree', of: (item) => (item as unknown as SURefAbility).tree },
+            category: { label: 'Tree', of: (item) => (item as SURefAbility).tree },
           }}
           railName={pilot.name}
           chosenLabel="Learned"

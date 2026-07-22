@@ -24,7 +24,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { CrawlerEconomyControl } from '../CrawlerEconomyControl'
 import type { Roll } from '../../../lib/rules/heatCheck'
 import type { Crawler } from '../../../lib/schemas/crawler'
-import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['crawler-bays', 'crawler-tech-levels'])
@@ -63,11 +63,8 @@ function makeStubStore(crawler: Crawler) {
   const updateCrawlerBay = mock<
     (id: string, bayRef: string, patch: BayPatch, index?: number) => Promise<Crawler>
   >(async () => crawler)
-  const storeState = {
-    pilots: [],
-    mechs: [],
+  const store = makeEntityStoreMock({
     crawlers: [crawler],
-    softLinks: [],
     hydrated: { pilots: false, mechs: false, crawlers: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [crawler]),
@@ -76,9 +73,9 @@ function makeStubStore(crawler: Crawler) {
     update,
     updateCrawlerBay,
     delete: mock(async () => {}),
-  }
+  })
   return {
-    store: (() => storeState) as unknown as typeof useEntityStore,
+    store,
     update,
     updateCrawlerBay,
   }

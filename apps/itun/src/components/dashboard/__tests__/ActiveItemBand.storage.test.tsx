@@ -13,6 +13,8 @@ import type { Mech } from '../../../lib/schemas/mech'
 import { usePlayStateStore } from '../../../stores/playStateStore'
 import { ActiveItemBand } from '../ActiveItemBand'
 import type { PlayStore } from '../ActiveItemBand'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { mechFixture } from '../../__tests__/fixtures'
 
 const lotA: CargoLot = {
   id: 'lot-a',
@@ -33,29 +35,27 @@ const lotB: CargoLot = {
   code: 'SCR-T3',
 }
 
-const mech = {
+const mech = mechFixture({
   id: 'm1',
   name: 'Iron Mongrel',
   chassisRef: 'unknown-chassis',
-  systems: [],
-  modules: [],
   cargoLots: [lotA, lotB],
   currentSP: 10,
   // Deterministic cargo cap (unknown chassis contributes 0): used 5 / cap 6.
   maxCargoModifier: 6,
-} as unknown as Mech
+})
 
 type Call = { type: string; id: string; patch: Record<string, unknown> }
 
 function stubStore(entities: Mech[]): { store: PlayStore; calls: Call[] } {
   const calls: Call[] = []
-  const store = {
-    get: (_type: string, id: string) => entities.find((e) => e.id === id) ?? null,
-    update: async (type: string, id: string, patch: Record<string, unknown>) => {
+  const store: PlayStore = makeEntityStoreMock({
+    get: (_type, id) => entities.find((e) => e.id === id) ?? null,
+    update: async (type, id, patch) => {
       calls.push({ type, id, patch })
-      return entities.find((e) => e.id === id)
+      return entities.find((e) => e.id === id) ?? null
     },
-  } as unknown as PlayStore
+  }).getState()
   return { store, calls }
 }
 

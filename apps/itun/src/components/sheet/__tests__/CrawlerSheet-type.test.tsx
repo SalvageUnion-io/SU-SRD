@@ -16,11 +16,13 @@
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
+import type { SURefCrawler } from 'salvageunion-reference'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 
 import { CrawlerIdentityPanel } from '../CrawlerIdentity'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 
 afterEach(() => {
   cleanup()
@@ -36,11 +38,15 @@ const BATTLE_MOTTO_ID = 'battle-motto-1'
 
 const AUGMENTED_REF = 'augmented-type'
 
-const MOCK_TYPES = [
+const MOCK_TYPES: Array<SURefCrawler & { schemaName: string }> = [
   {
     id: BATTLE_REF,
     name: 'Battle',
     schemaName: 'crawlers',
+    source: 'Salvage Union Workshop Manual',
+    page: 1,
+    indexable: true,
+    blackMarket: false,
     actions: ['Improved Armour and Armaments'],
     content: [{ type: 'paragraph', value: 'Bristles with armour and armaments.' }],
     npc: {
@@ -57,6 +63,10 @@ const MOCK_TYPES = [
     id: AUGMENTED_REF,
     name: 'Augmented',
     schemaName: 'crawlers',
+    source: 'Salvage Union Workshop Manual',
+    page: 1,
+    indexable: true,
+    blackMarket: false,
     actions: ['Crawler Wide Augments'],
     content: [{ type: 'paragraph', value: 'Nearly everyone is augmented.' }],
     npc: {
@@ -74,7 +84,7 @@ async function patchCrawlers(): Promise<() => void> {
   const { SalvageUnionReference } = await import('salvageunion-reference')
   const original = SalvageUnionReference.Crawlers.all.bind(SalvageUnionReference.Crawlers)
   SalvageUnionReference.Crawlers.all = mock(
-    () => MOCK_TYPES as unknown as ReturnType<typeof SalvageUnionReference.Crawlers.all>
+    (): Array<SURefCrawler & { schemaName: string }> => MOCK_TYPES
   )
   return () => {
     SalvageUnionReference.Crawlers.all = original
@@ -87,11 +97,8 @@ async function patchCrawlers(): Promise<() => void> {
 
 function makeStubStore(crawler: Crawler, update?: ReturnType<typeof mock>): typeof useEntityStore {
   const updateMock = update ?? mock(async () => crawler)
-  const storeState = {
-    pilots: [],
-    mechs: [],
+  return makeEntityStoreMock({
     crawlers: [crawler],
-    softLinks: [],
     hydrated: { pilots: false, mechs: false, crawlers: true, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [crawler]),
@@ -100,8 +107,7 @@ function makeStubStore(crawler: Crawler, update?: ReturnType<typeof mock>): type
     update: updateMock,
     updateCrawlerBay: mock(async () => crawler),
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 function makeCrawler(overrides?: Partial<Crawler>): Crawler {
@@ -126,7 +132,12 @@ function makeCrawler(overrides?: Partial<Crawler>): Crawler {
 /** Render the identity panel the way SheetCrawler does (store + storeState). */
 function renderIdentity(crawler: Crawler, store: typeof useEntityStore) {
   return render(
-    <CrawlerIdentityPanel crawler={crawler} store={store} storeState={store()} readOnly={false} />
+    <CrawlerIdentityPanel
+      crawler={crawler}
+      store={store}
+      storeState={store.getState()}
+      readOnly={false}
+    />
   )
 }
 

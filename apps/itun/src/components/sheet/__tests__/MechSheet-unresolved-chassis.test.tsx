@@ -14,6 +14,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { MechSheet } from '../MechSheet'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -40,11 +41,8 @@ const fakeMech: Mech = {
 }
 
 function makeStubStore(mech: Mech): typeof useEntityStore {
-  const storeState = {
-    pilots: [],
+  return makeEntityStoreMock({
     mechs: [mech],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: false, mechs: true, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [mech]),
@@ -53,8 +51,7 @@ function makeStubStore(mech: Mech): typeof useEntityStore {
     create: mock(async () => mech),
     update: mock(async () => mech),
     delete: mock(async () => {}),
-  }
-  return (() => storeState) as unknown as typeof useEntityStore
+  })
 }
 
 describe('MechSheet — unresolved chassis (chassis=null)', () => {

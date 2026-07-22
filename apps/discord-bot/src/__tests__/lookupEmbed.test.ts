@@ -182,7 +182,7 @@ describe('markdown label escaping', () => {
 
   function embedWith(overrides: Record<string, unknown>): LookupEmbed {
     return buildLookupEmbed(
-      { ...goliath(), schemaName: 'chassis', ...overrides } as unknown as SURefEntity & {
+      { ...goliath(), schemaName: 'chassis', ...overrides } as SURefEntity & {
         schemaName: SURefEnumSchemaName
       },
       'chassis'

@@ -1,7 +1,6 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { SURefEntity } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { InstrumentStage } from '../../stories/_dashboardStage'
 import { ActionsDeck, type DeckGroup } from './ActionsDeck'
@@ -17,10 +16,7 @@ const RANGES = ['Close', 'Medium', 'Long', 'Far'] as const
  * row is locked (dimmed in place) to exercise the reach/overheat overlay.
  */
 function realGroups(): DeckGroup[] {
-  const actions = SalvageUnionReference.Actions.all() as unknown as (SURefEntity & {
-    id: string
-    name: string
-  })[]
+  const actions = SalvageUnionReference.Actions.all()
   const chassisAction = actions.find((a) => /ram/i.test(a.name)) ?? actions[0]
   const rest = actions.filter((a) => a !== chassisAction).slice(0, 5)
   return [

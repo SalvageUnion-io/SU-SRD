@@ -9,7 +9,7 @@ import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
  * `bio-titans` schema so no other entity gains a derived bio-salvage stat.
  */
 describe('Bio-Titan bio-salvage derivation', () => {
-  const bioTitan = { id: 'x', name: 'Scylla', structurePoints: 39 } as unknown as SURefMetaEntity
+  const bioTitan = { id: 'x', name: 'Scylla', structurePoints: 39 } as SURefMetaEntity
 
   const findBioSalvage = (stats: ReturnType<typeof buildReferenceEntityStats>) =>
     stats.find((s) => s.label === 'Bio' && s.bottomLabel === 'SV')
@@ -41,7 +41,7 @@ describe('Bio-Titan bio-salvage derivation', () => {
       name: 'Chimerium Mutant',
       hitPoints: 10,
       bioSalvageValue: 3,
-    } as unknown as SURefMetaEntity
+    } as SURefMetaEntity
     const stats = buildReferenceEntityStats(npc, { compact: false, schemaName: 'npcs' })
     const bioSalvage = findBioSalvage(stats)
     expect(bioSalvage?.value).toBe('3')

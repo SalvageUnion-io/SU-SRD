@@ -16,7 +16,7 @@ import { act, renderHook } from '@testing-library/react'
 
 import { useEquipmentLoadout } from '../useEquipmentLoadout'
 import type { Pilot } from '../../../lib/schemas/pilot'
-import type { useEntityStore } from '../../../stores/entityStore'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 
 const PILOT_ID = 'pilot-loadout-1'
 const SLUG = 'survey-drone'
@@ -47,11 +47,8 @@ function makeStore(initial: Pilot) {
     current = { ...current, ...patch }
     return current
   })
-  const storeState = {
+  const store = makeEntityStoreMock({
     pilots: [current],
-    mechs: [],
-    crawlers: [],
-    softLinks: [],
     hydrated: { pilots: true, mechs: false, crawlers: false, softLinks: false },
     hydrate: mock(async () => {}),
     list: mock(() => [current]),
@@ -59,8 +56,7 @@ function makeStore(initial: Pilot) {
     create: mock(async () => current),
     update: updateFn,
     delete: mock(async () => {}),
-  }
-  const store = (() => storeState) as unknown as typeof useEntityStore
+  })
   return { store, updateFn, getCurrent: () => current }
 }
 

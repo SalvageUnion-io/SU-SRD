@@ -13,12 +13,9 @@
  * subcommand, so their logic and tests are untouched.
  */
 
-import {
-  SlashCommandBuilder,
-  type AutocompleteInteraction,
-  type ChatInputCommandInteraction,
-} from 'discord.js'
+import { SlashCommandBuilder } from 'discord.js'
 
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { checkCommand } from './check.js'
 import { lookupCommand } from './lookup.js'
 import { rollCommand } from './roll.js'
@@ -31,7 +28,7 @@ export const suCommand = {
     .addSubcommand((sub) => checkCommand.subcommand(sub))
     .addSubcommand((sub) => lookupCommand.subcommand(sub)),
 
-  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+  async execute(interaction: CommandExecuteInteraction): Promise<void> {
     switch (interaction.options.getSubcommand()) {
       case 'roll':
         return rollCommand.execute(interaction)
@@ -46,7 +43,7 @@ export const suCommand = {
     }
   },
 
-  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+  async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
     switch (interaction.options.getSubcommand()) {
       case 'roll':
         return rollCommand.autocomplete(interaction)

@@ -12,6 +12,7 @@
  */
 
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { SURefCrawler, SURefCrawlerBay } from 'salvageunion-reference'
 
 /** A freeform/permanent NPC choice (its id + display name). */
 export type ResolvedNpcChoice = { id: string; name: string }
@@ -23,19 +24,13 @@ export type ResolvedNpc = {
   choices?: ReadonlyArray<ResolvedNpcChoice>
 }
 
-/** A resolved crawler type or bay entity. */
-type ResolvedCrawlerEntity = {
-  id: string
-  name: string
-  npc?: ResolvedNpc
-  /** Special-ability action refs (crawler types only; ids or names). */
-  actions?: ReadonlyArray<string>
-}
-
-/** Resolve a stored crawler-type ref (id or name) to its SRD entity. */
-export function resolveCrawlerType(ref: string): ResolvedCrawlerEntity | null {
+/**
+ * Resolve a stored crawler-type ref (id or name) to its SRD entity — the full
+ * reference record, so consumers can hand it straight to entity cards.
+ */
+export function resolveCrawlerType(ref: string): (SURefCrawler & { schemaName: string }) | null {
   try {
-    const all: ReadonlyArray<ResolvedCrawlerEntity> = SalvageUnionReference.Crawlers.all()
+    const all = SalvageUnionReference.Crawlers.all()
     return all.find((c) => c.id === ref || c.name === ref) ?? null
   } catch {
     return null
@@ -43,9 +38,9 @@ export function resolveCrawlerType(ref: string): ResolvedCrawlerEntity | null {
 }
 
 /** Resolve a stored crawler-bay ref (id or name) to its SRD entity. */
-export function resolveCrawlerBay(ref: string): ResolvedCrawlerEntity | null {
+export function resolveCrawlerBay(ref: string): (SURefCrawlerBay & { schemaName: string }) | null {
   try {
-    const all: ReadonlyArray<ResolvedCrawlerEntity> = SalvageUnionReference.CrawlerBays.all()
+    const all = SalvageUnionReference.CrawlerBays.all()
     return all.find((b) => b.id === ref || b.name === ref) ?? null
   } catch {
     return null

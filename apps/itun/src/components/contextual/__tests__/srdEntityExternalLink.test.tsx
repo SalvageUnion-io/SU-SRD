@@ -12,6 +12,7 @@ import { render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { srdEntityExternalLink } from '../srdEntityExternalLink'
+import { must } from '../../__tests__/must'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -19,8 +20,8 @@ beforeAll(async () => {
 
 describe('srdEntityExternalLink', () => {
   it('builds a "View in SRD →" link for a catalog entity', () => {
-    const chassis = SalvageUnionReference.Chassis.find((c) => c.name === 'Mule')
-    const node = srdEntityExternalLink(chassis as unknown as SURefEntity)
+    const chassis = must(SalvageUnionReference.Chassis.find((c) => c.name === 'Mule'))
+    const node = srdEntityExternalLink(chassis)
     expect(node).toBeTruthy()
 
     const { container } = render(node)
@@ -32,16 +33,28 @@ describe('srdEntityExternalLink', () => {
   })
 
   it('returns undefined for entities without a schemaName', () => {
-    const entity = { id: 'x', name: 'No Schema' } as unknown as SURefEntity
+    // A complete keyword entity that simply carries no schemaName tag.
+    const entity: SURefEntity = {
+      id: 'x',
+      name: 'No Schema',
+      source: 'Salvage Union Workshop Manual',
+      page: 1,
+      indexable: true,
+      blackMarket: false,
+    }
     expect(srdEntityExternalLink(entity)).toBeUndefined()
   })
 
   it('returns undefined for schemas outside the SRD catalog', () => {
-    const entity = {
+    const entity: SURefEntity & { schemaName: string } = {
       id: 'x',
       name: 'Ghost',
+      source: 'Salvage Union Workshop Manual',
+      page: 1,
+      indexable: true,
+      blackMarket: false,
       schemaName: 'not-a-schema',
-    } as unknown as SURefEntity
+    }
     expect(srdEntityExternalLink(entity)).toBeUndefined()
   })
 })

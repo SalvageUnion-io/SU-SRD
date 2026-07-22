@@ -1,6 +1,6 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EmptyState } from '../chrome/EmptyState'
-import type { SURefClass, SURefEntity } from 'salvageunion-reference'
+import type { SURefAbility, SURefClass } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
 import { Slab } from '../chrome/Slab'
 import { MasonryColumns } from '../shared/MasonryColumns'
@@ -13,13 +13,6 @@ type SURClassesAccessor = {
 }
 type SURAbilitiesAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
-}
-
-type AbilityLike = {
-  id: string
-  name: string
-  tree: string
-  level: number | 'L' | 'G'
 }
 
 type ClassLike = {
@@ -95,7 +88,11 @@ export function ClassAbilityStep({
     (c) => c.id === classId
   )
 
-  const allAbilities = surAbilities.findAll(() => true) as AbilityLike[]
+  // The injectable accessor is `unknown`-typed for test seams (itun's
+  // PilotWizard passes the same shape), so the ONE cast lives here at the
+  // seam: the production accessor really returns `SURefAbility[]`, and a
+  // properly-typed ability then flows into the card with no further forcing.
+  const allAbilities = surAbilities.findAll(() => true) as SURefAbility[]
 
   const renderClassCard = (cls: SURefClass) => (
     <ReferenceEntityCard
@@ -110,10 +107,10 @@ export function ClassAbilityStep({
     />
   )
 
-  const renderAbilityCard = (ability: AbilityLike) => (
+  const renderAbilityCard = (ability: SURefAbility) => (
     <ReferenceEntityCard
       key={ability.id}
-      data={ability as unknown as SURefEntity}
+      data={ability}
       size="medium"
       selected={selectedAbilities.includes(ability.id)}
       selectionRole="toggle"
@@ -134,7 +131,7 @@ export function ClassAbilityStep({
     .filter((a) => selectedAbilities.includes(a.id))
     .map((a) => a.tree)
   const editTrees = selectedClass ? editTreesFor(selectedClass, selectedTrees) : []
-  const editAbilitiesIn = (tree: string): AbilityLike[] =>
+  const editAbilitiesIn = (tree: string): SURefAbility[] =>
     allAbilities
       .filter((a) => a.tree === tree)
       .sort((a, b) => levelOrder(a.level) - levelOrder(b.level))

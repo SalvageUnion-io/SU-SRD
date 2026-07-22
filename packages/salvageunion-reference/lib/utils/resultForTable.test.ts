@@ -296,6 +296,12 @@ describe('resultForTable', () => {
         source: 'Salvage Union Workshop Manual' as const,
         name: 'Test Old',
         section: 'test',
+        // Irreducible cast: this fixture deliberately uses the OLD persisted
+        // string format ('Label: Value'), which the current schema type cannot
+        // represent (entries are `{ value, label? }` objects). resultForTable
+        // still handles it at runtime for backward compatibility — that is the
+        // behavior under test. A single `as` will not compile (string vs object
+        // entries have no overlap), so the double-cast stays.
         table: {
           '1': 'Label: Value with colon',
           '20': 'Just a value',
@@ -321,13 +327,35 @@ describe('resultForTable', () => {
   })
 })
 
+// The multi-column member of the table union, and one of its columns
+type ColumnsTable = Extract<SURefObjectTable, { type: 'columns' }>
+type ColumnEntries = ColumnsTable['1-4']
+
 // Helper to build a column with 20 entries
-function buildColumn(prefix: string): Record<string, { value: string }> {
-  const col: Record<string, { value: string }> = {}
-  for (let i = 1; i <= 20; i++) {
-    col[i.toString()] = { value: `${prefix}${i}` }
+function buildColumn(prefix: string): ColumnEntries {
+  const entry = (n: number) => ({ value: `${prefix}${n}` })
+  return {
+    '1': entry(1),
+    '2': entry(2),
+    '3': entry(3),
+    '4': entry(4),
+    '5': entry(5),
+    '6': entry(6),
+    '7': entry(7),
+    '8': entry(8),
+    '9': entry(9),
+    '10': entry(10),
+    '11': entry(11),
+    '12': entry(12),
+    '13': entry(13),
+    '14': entry(14),
+    '15': entry(15),
+    '16': entry(16),
+    '17': entry(17),
+    '18': entry(18),
+    '19': entry(19),
+    '20': entry(20),
   }
-  return col
 }
 
 const mockColumnsTable: SURefObjectTable = {
@@ -337,7 +365,7 @@ const mockColumnsTable: SURefObjectTable = {
   '9-12': buildColumn('C'),
   '13-16': buildColumn('D'),
   '17-20': buildColumn('E'),
-} as unknown as SURefObjectTable
+}
 
 describe('isColumnsTable', () => {
   it('should return true for columns-type tables', () => {

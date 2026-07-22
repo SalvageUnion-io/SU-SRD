@@ -9,6 +9,7 @@ import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
+import { makeEntityLookupMock } from '../../__tests__/mockEntityStore'
 import { resolveSheetComposition } from '../composition'
 import type { EntityLookup } from '../composition'
 
@@ -57,11 +58,7 @@ const crawler: Crawler = {
 }
 
 function lookup(entities: Array<Pilot | Mech | Crawler>): EntityLookup {
-  return {
-    // EntityLookup's conditional return type can't be satisfied without a cast
-    get: ((_type: unknown, id: string) =>
-      entities.find((e) => e.id === id) ?? null) as unknown as EntityLookup['get'],
-  }
+  return makeEntityLookupMock(entities)
 }
 
 function link(id: string, type: SoftLink['type'], fromId: string, toId: string): SoftLink {

@@ -8,7 +8,7 @@
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { ActivityType } from 'discord.js'
-import type { Client } from 'discord.js'
+import type { ReadyClient } from '../events/ready.js'
 
 process.env.DISCORD_TOKEN ??= 'test-token'
 process.env.DISCORD_CLIENT_ID ??= 'test-client-id'
@@ -19,12 +19,17 @@ beforeAll(async () => {
   ;({ handleReady } = await import('../events/ready.js'))
 })
 
-type PresenceArg = { status?: string; activities?: { name: string; type: number }[] }
+// A structural SUPERTYPE of discord.js's PresenceData, so the recording mock
+// satisfies handleReady's narrow ReadyClient surface with no forced cast.
+type PresenceArg = {
+  status?: string
+  activities?: readonly { name: string; type?: number }[]
+}
 
-/** Minimal Client<true> stand-in recording the presence set on login. */
+/** Minimal ReadyClient stand-in recording the presence set on login. */
 function mockClient() {
   const presences: PresenceArg[] = []
-  const client = {
+  const client: ReadyClient = {
     user: {
       tag: 'SalvageUnion#0001',
       setPresence: (presence: PresenceArg) => {
@@ -32,7 +37,7 @@ function mockClient() {
       },
     },
     guilds: { cache: { size: 3 } },
-  } as unknown as Client<true>
+  }
   return { client, presences }
 }
 

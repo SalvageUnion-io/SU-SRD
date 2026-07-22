@@ -13,9 +13,9 @@ import { fireEvent, render } from '@testing-library/react'
 import { EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
-import type { Crawler } from '../../../lib/schemas/crawler'
 import { usePlayStateStore } from '../../../stores/playStateStore'
 import { DowntimeWizard } from '../DowntimeWizard'
+import { crawlerFixture } from '../../__tests__/fixtures'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -31,7 +31,7 @@ beforeEach(() => {
   })
 })
 
-const crawler = { id: 'c1', name: 'Hauler', techLevel: '3', crawlerBays: [] } as unknown as Crawler
+const crawler = crawlerFixture({ id: 'c1', name: 'Hauler', techLevel: '3', crawlerBays: [] })
 
 function renderWizard() {
   return render(
