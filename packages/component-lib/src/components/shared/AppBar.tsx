@@ -57,7 +57,7 @@ type AppBarProps = {
 }
 
 const NAV_LINK =
-  'inline-flex shrink-0 items-center font-cond text-lede font-semibold uppercase tracking-caps-tight text-ink-50 no-underline transition-colors hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pilot'
+  'inline-flex shrink-0 items-center font-cond text-lede font-semibold uppercase tracking-caps-tight text-paper/60 no-underline transition-colors hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pilot'
 
 const NAV_LINK_ACTIVE = 'text-paper'
 
