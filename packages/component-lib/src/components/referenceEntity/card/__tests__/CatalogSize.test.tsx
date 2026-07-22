@@ -7,7 +7,7 @@
  */
 import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, resolveGrantedEntities } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** A chassis carries a `patterns` list + chassis abilities at full size. */
@@ -89,16 +89,29 @@ describe('ReferenceEntityCard size="medium" extent="catalog"', () => {
     expect(screen.queryByText(/Choose a Weapons System to mount/i)).toBeTruthy()
   })
 
-  test('a granting ability still shows its own prose (grants are suppressed, not collapsed)', () => {
-    const granting = SalvageUnionReference.Abilities.all().find(
-      (a) => Array.isArray(a.grants) && a.grants.length > 0 && (a.content?.length ?? 0) > 0
-    )
-    // Not every dataset ships a granting ability with prose; skip rather than fail.
-    if (!granting) return
+  test('a grant-equipment ability catalog tile surfaces the granted entity opening description', () => {
+    // Holo Companion is a granting ability with NO own content — it only grants
+    // the Holo Companion equipment. In catalog mode the granted CARD is
+    // suppressed, so without the granted-lead branch the tile body would be empty.
+    // Instead the tile surfaces the granted equipment's opening paragraph.
+    const holo = SalvageUnionReference.Abilities.all().find((a) => a.name === 'Holo Companion')
+    if (!holo) throw new Error('Holo Companion ability fixture missing')
+    // Precondition that makes this a real probe (not the old silently-skipping
+    // `content?.length > 0` selector, which no real grant ability satisfies).
+    expect(holo.content?.length ?? 0).toBe(0)
 
-    render(<ReferenceEntityCard data={granting} size="medium" extent="catalog" />)
-    expect(screen.getByText(granting.name)).toBeTruthy()
-    // The card body is not empty — the ability's own description survived.
-    expect(document.body.textContent?.length ?? 0).toBeGreaterThan(granting.name.length)
+    const granted = resolveGrantedEntities(holo)
+    expect(granted.length).toBeGreaterThan(0)
+    const grantContent = (granted[0] as { content?: { type?: string; value?: unknown }[] }).content
+    const leadBlock = grantContent?.find((b) => b?.type === 'paragraph')
+    const lead = typeof leadBlock?.value === 'string' ? leadBlock.value : undefined
+    expect(lead).toBeTruthy()
+
+    render(<ReferenceEntityCard data={holo} size="medium" extent="catalog" />)
+    expect(screen.getByText(holo.name)).toBeTruthy()
+    // The granted equipment's opening description now renders in the tile body,
+    // while the granted card itself stays suppressed (no "Grants" seal stamp).
+    expect(screen.getByText(lead as string)).toBeTruthy()
+    expect(screen.queryByText('Grants')).toBeNull()
   })
 })

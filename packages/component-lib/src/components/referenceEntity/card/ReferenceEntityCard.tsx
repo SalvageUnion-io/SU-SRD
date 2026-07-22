@@ -606,8 +606,11 @@ function ReferenceEntityCardInner({
           {effectiveSeal.label}
         </span>
       )}
-      {/* Type stamp on NESTED cards only — full cards show the type in the footer. */}
-      {depth > 0 && seamType && (
+      {/* Type stamp on NESTED cards only — full cards show the type in the footer.
+          Suppressed when a parent seal already brands the card (e.g. a "Grants"
+          nested card): the seal is the contextually-informative stamp, so the
+          redundant schema-type stamp is dropped to keep ONE stamp on the seam. */}
+      {depth > 0 && seamType && !effectiveSeal && (
         <Badge shape="stamp" size="mini">
           {seamType}
         </Badge>
@@ -1059,6 +1062,18 @@ function ReferenceEntityCardInner({
   // entity cards. A catalog tile suppresses those cards, so it must NOT collapse
   // — otherwise the tile renders with no description at all.
   const isGrantingAbility = !isCatalog && isAbility(entity) && grantedCount > 0
+  // CATALOG grant lead — a grant-equipment ability carries NO own content (only a
+  // description), so its catalog tile would render with an empty body. The nested
+  // grant cards are suppressed here (canExpand is false in catalog mode), so
+  // instead surface each granted entity's OPENING paragraph as the tile's body
+  // prose — rendered through `Content` so it matches the tile's description text.
+  const catalogGrantBlocks: SURefObjectContentBlock[] =
+    isCatalog && grantedCount > 0
+      ? resolveGrantedEntities(entity as SURefEntity).flatMap((g) => {
+          const lead = firstParagraphText('content' in g ? g.content : undefined)
+          return lead ? [{ type: 'paragraph' as const, value: lead }] : []
+        })
+      : []
   const content = 'content' in entity ? entity.content : undefined
   // The crawler-bay damaged-effect string also appears as the last content
   // paragraph; it renders in the "WHEN DAMAGED" callout, so it's filtered out of
@@ -1557,6 +1572,19 @@ function ReferenceEntityCardInner({
               markers — in both read-only and editable. Content gets a clear gap
               (mb-3) before nested-card sections. */}
           {bodyNodes.length > 0 && <>{bodyNodes}</>}
+          {/* CATALOG grant-lead prose — a grant-equipment ability's tile has no
+              own body, so show the granted entity's opening description here,
+              styled through Content to match the tile's other body prose. */}
+          {catalogGrantBlocks.length > 0 && (
+            <Content
+              body={catalogGrantBlocks}
+              compact={compact}
+              chassisName={resolvedChassisName}
+              fontSize={compact ? 'text-xs' : 'text-sm'}
+              headerBg={tone.bg}
+              headerBgColor={tone.bgColor}
+            />
+          )}
           {/* A SELF-action's content already renders AS the body above; only a
               differently-named folded action renders here (with its name heading). */}
           {!isSelfAction &&

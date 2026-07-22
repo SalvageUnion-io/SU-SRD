@@ -55,10 +55,19 @@ export function EntityCardSubHeader({
   // inter-cell gap is the SAME (gap-1.5) at both sizes.
 
   // Book-style sub-header: the stat cells read as ONE line of basic cream
-  // (paper-tone) text — each cell as "LABEL value" — separated by " // ", matching
-  // the rulebook's trait line rather than a row of stamps.
-  const cellToText = (cell: EntityCardSubHeaderCell) =>
-    cell.value != null && cell.value !== '' ? `${cell.label} ${cell.value}` : cell.label
+  // (paper-tone) text, separated by " // ", matching the rulebook's trait line
+  // rather than a row of stamps. Each cell's `label value` pairing is punctuated
+  // by kind:
+  //   - a RANGE cell reads "Range: Close" (colon after the label);
+  //   - a NUMERIC value reads "Heat (4)" / "Blast (3)" (value in parens);
+  //   - everything else (e.g. "Damage 5SP", a label-only keyword) is unchanged.
+  const cellToText = (cell: EntityCardSubHeaderCell) => {
+    if (cell.value == null || cell.value === '') return cell.label
+    if (cell.key === 'range' || cell.label === 'Range') return `${cell.label}: ${cell.value}`
+    const isNumeric = typeof cell.value === 'number' || /^\d+$/.test(String(cell.value))
+    if (isNumeric) return `${cell.label} (${cell.value})`
+    return `${cell.label} ${cell.value}`
+  }
   const parts = cells.map(cellToText)
 
   return (
