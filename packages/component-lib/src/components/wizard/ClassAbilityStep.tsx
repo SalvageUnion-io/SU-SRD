@@ -115,13 +115,13 @@ export function ClassAbilityStep({
       selected={selectedAbilities.includes(ability.id)}
       selectionRole="toggle"
       cardClickLabel={ability.name}
-      label={ability.tree}
       onCardClick={() => onSelectAbility(ability.id)}
       hide={{ actions: true, choices: true }}
     />
   )
 
-  // Create mode: the class's legal Level-1 pool, flat, tree label on the card.
+  // Create mode: the class's legal Level-1 pool, flat. The card names its own
+  // tree in the seam pill (`[Forging | 1]`), so the pool needs no extra label.
   const legalPool = legalCreationAbilities(allAbilities, selectedClass?.coreTrees).sort((a, b) =>
     a.tree.localeCompare(b.tree)
   )

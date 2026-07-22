@@ -340,28 +340,23 @@ export function SchemaViewerIsland({
               <EntityHrefProvider value={srdEntityHref}>
                 <EntityDetailLinkProvider value={true}>
                   <MasonryColumns>
-                    {filteredData.map((item: SURefEntity) => {
-                      const treeValue = schemaId === 'abilities' ? getTree(item) : undefined
-                      const tree = typeof treeValue === 'string' ? treeValue : undefined
-                      return (
-                        <a
-                          key={item.id}
-                          href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
-                          aria-label={item.name}
-                          className="relative block"
-                        >
-                          <Suspense fallback={<Skeleton mode="card" compact />}>
-                            <ReferenceEntityCard
-                              data={item}
-                              size="medium"
-                              extent="catalog"
-                              label={tree}
-                              cardClickable
-                            />
-                          </Suspense>
-                        </a>
-                      )
-                    })}
+                    {filteredData.map((item: SURefEntity) => (
+                      <a
+                        key={item.id}
+                        href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
+                        aria-label={item.name}
+                        className="relative block"
+                      >
+                        <Suspense fallback={<Skeleton mode="card" compact />}>
+                          <ReferenceEntityCard
+                            data={item}
+                            size="medium"
+                            extent="catalog"
+                            cardClickable
+                          />
+                        </Suspense>
+                      </a>
+                    ))}
                   </MasonryColumns>
                 </EntityDetailLinkProvider>
               </EntityHrefProvider>

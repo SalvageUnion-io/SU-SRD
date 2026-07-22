@@ -12,7 +12,6 @@ import type { StatItem } from '../shared/statsBarTypes'
 
 type UseDetailModalOptions = {
   children?: ReactNode
-  label?: string
   /** Controls to render in the modal's entity header */
   modalControls?: ReferenceEntityControl[]
   /** Generic override props */
@@ -97,11 +96,6 @@ export function useDetailModal(
                   disabled={false}
                   hide={options?.hide}
                   controls={options?.modalControls}
-                  label={
-                    schemaName === 'abilities' && 'tree' in data && data.tree
-                      ? `${data.tree} Tree`
-                      : options?.label
-                  }
                   titleOverride={options?.titleOverride}
                   subtitleExtra={options?.subtitleExtra}
                   statsOverride={options?.statsOverride}

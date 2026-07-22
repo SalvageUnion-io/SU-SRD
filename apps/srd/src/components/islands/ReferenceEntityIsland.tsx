@@ -1,6 +1,5 @@
 import { Suspense, useEffect, useMemo } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { isAbility } from 'salvageunion-reference'
 import {
   ReferenceEntityCard,
   Skeleton,
@@ -74,7 +73,6 @@ export function ReferenceEntityIsland({
                   afterExtraContent={
                     classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
                   }
-                  label={isAbility(item) && item.tree ? `${item.tree} tree` : undefined}
                 />
               </EntityDetailLinkProvider>
             </EntityHrefProvider>
