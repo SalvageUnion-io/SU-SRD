@@ -26,46 +26,9 @@ import {
 import { Button } from '../chrome/Button'
 import { Glyph } from '../chrome/glyphs'
 import { ModalShell } from './ModalShell'
-import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
+import { EDIT_CUE_CLASS } from './editLanguage'
 
 import { cn } from '../../utils/cn'
-
-/**
- * The ONE editing cue (redesign rule): dashed outline in the sheet's deep
- * tone on anything that is currently editable via a section Edit or a
- * per-card control.
- */
-// biome-ignore lint/style/useComponentExportOnlyModules: the shared editing-cue class constant belongs beside the section components that define the edit language
-export const EDIT_CUE_CLASS =
-  'outline-dashed outline-2 outline-offset-2 outline-[color:var(--tone-deep,var(--color-rust))]'
-
-/**
- * Card `cardStyle` override that stamps the editing cue onto a removable
- * entity card (redesign G4: the cue moves from the per-card control BUTTON onto
- * the CARD). Includes `shadow-lg` because Card's `cardStyle.className`
- * REPLACES the default shadow.
- */
-// biome-ignore lint/style/useComponentExportOnlyModules: the removable-card style pairs with EDIT_CUE_CLASS as part of the shared edit-language vocabulary
-export const REMOVABLE_CARD_STYLE: { className: string } = {
-  className: cn('shadow-lg', EDIT_CUE_CLASS),
-}
-
-// ---------------------------------------------------------------------------
-// Icons — inline strokes matching clean-edit.html's control glyphs. Each takes
-// a className so it can size to its host button (design `.hbtn svg` / `.ctl svg`).
-// ---------------------------------------------------------------------------
-
-/**
- * The edit-language affordances now come from the shared {@link Glyph} set —
- * these thin adapters exist only because `cardRemoveControls` takes a component
- * reference rather than a glyph name.
- */
-const SwapGlyph = ({ className }: { className?: string }) => (
-  <Glyph name="swap" className={className} />
-)
-const RemoveGlyph = ({ className }: { className?: string }) => (
-  <Glyph name="remove" className={className} />
-)
 
 // ---------------------------------------------------------------------------
 // HButton — the container-header control button (design `.hbtn`, clean-edit.html
@@ -179,45 +142,12 @@ export function SectionAddButton({ label, onClick, className }: SectionAddButton
 
 // ---------------------------------------------------------------------------
 // Per-card controls (redesign G4) — the ✕ remove (+ optional ⇄ swap) cluster
-// rendered icon-only in the entity-card HEADER top-right via Card's
-// card-level `controls` slot (never in the foot). The editing cue moves onto
-// the CARD (REMOVABLE_CARD_STYLE), not these buttons.
+// renders icon-only in the entity-card HEADER top-right via Card's card-level
+// `controls` slot (never in the foot). The `cardRemoveControls` factory that
+// builds that cluster, plus the shared editing cue it stamps onto the card,
+// live in `./editLanguage` (a components-free module). `CardRemoveButton` below
+// is the standalone button variant.
 // ---------------------------------------------------------------------------
-
-type CardControlOptions = {
-  /** Entity name for the accessible labels ("Remove {name}" / "Swap {name}"). */
-  name: string
-  onRemove: () => void
-  /**
-   * Optional single-select-replace swap. When provided a ⇄ control renders
-   * before ✕. Deferred for most collections in Phase 1B (no replace handler
-   * wired yet); ✕-only until then.
-   */
-  onSwap?: () => void
-}
-
-/**
- * Build the Card `controls` array for a removable entity card. Icon-only
- * controls (`icon` + no `label`) render as 28/32px squares by ControlButtons.
- */
-// biome-ignore lint/style/useComponentExportOnlyModules: the card-controls factory is part of the edit-language vocabulary colocated with the section components
-export function cardRemoveControls({
-  name,
-  onRemove,
-  onSwap,
-}: CardControlOptions): ReferenceEntityControl[] {
-  const controls: ReferenceEntityControl[] = []
-  if (onSwap) {
-    controls.push({ key: 'swap', ariaLabel: `Swap ${name}`, icon: SwapGlyph, onClick: onSwap })
-  }
-  controls.push({
-    key: 'remove',
-    ariaLabel: `Remove ${name}`,
-    icon: RemoveGlyph,
-    onClick: onRemove,
-  })
-  return controls
-}
 
 type CardRemoveButtonProps = {
   /** The card's entity name, for the accessible label. */

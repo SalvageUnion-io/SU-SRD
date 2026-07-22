@@ -31,12 +31,6 @@ function slotMax(equipment: Record<string, unknown>, field: 'systemSlots' | 'mod
   return typeof raw === 'number' ? raw : 0
 }
 
-/** True when the resolved equipment is a loadout host (carries slot fields). */
-// biome-ignore lint/style/useComponentExportOnlyModules: gate helper colocated with the loadout component it guards
-export function isLoadoutHost(equipment: Record<string, unknown> | null): boolean {
-  return !!equipment && ('systemSlots' in equipment || 'moduleSlots' in equipment)
-}
-
 type Kind = 'system' | 'module'
 
 type PilotEquipmentLoadoutProps = {

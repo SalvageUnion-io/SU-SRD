@@ -1,7 +1,7 @@
 import { forwardRef } from 'react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
-import { EDIT_CUE_CLASS } from '../shared/SheetSection'
+import { EDIT_CUE_CLASS } from '../shared/editLanguage'
 import { Badge } from './Badge'
 import { InlineEditField } from './InlineEditField'
 import { INPUT_FOCUS } from './interaction'

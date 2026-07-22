@@ -16,7 +16,8 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { ControlButtons } from '../ControlButtons'
 
 import { Slab } from '../../chrome/Slab'
-import { HButton, SectionAddButton, SectionEditButton, cardRemoveControls } from '../SheetSection'
+import { HButton, SectionAddButton, SectionEditButton } from '../SheetSection'
+import { cardRemoveControls } from '../editLanguage'
 
 describe('HButton', () => {
   afterEach(cleanup)

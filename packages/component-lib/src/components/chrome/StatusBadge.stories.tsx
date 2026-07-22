@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { StatusBadge } from './StatusBadge'
-import type { EntityStatus } from './StatusBadge'
+import type { EntityStatus } from '../shared/entityStatus'
 
 export default {
   title: 'Compositions/Status Badge',

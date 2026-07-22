@@ -6,7 +6,6 @@
  */
 
 import { useState } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility } from 'salvageunion-reference'
 import {
   Button,
@@ -22,16 +21,16 @@ import type { CardFootMeta, ChoiceSelections } from 'component-lib'
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry } from '../../lib/schemas/pilot'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
-import { matchesRef } from '../../lib/rules/resolveRefs'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import type { EquipmentLoadout } from '../shared/useEquipmentLoadout'
-import { PilotEquipmentLoadout, isLoadoutHost } from './PilotEquipmentLoadout'
+import { PilotEquipmentLoadout } from './PilotEquipmentLoadout'
 import { CardRemoveButton, REMOVABLE_CARD_STYLE, cardRemoveControls } from 'component-lib'
 import {
   equipmentMaxUses,
   equipmentSlotCost,
   genericEntrySlots,
+  isLoadoutHost,
   resolveEquipment,
 } from './pilotInventory'
 
@@ -42,13 +41,6 @@ const CONDITION_CYCLE: Record<ItemCondition, ItemCondition> = {
   intact: 'damaged',
   damaged: 'destroyed',
   destroyed: 'intact',
-}
-
-// biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
-export function resolveAbility(slug: string): SURefAbility | null {
-  const all = SalvageUnionReference.Abilities.all()
-  // Slug-tolerant (matchesRef): seeded pilots store kebab ability slugs.
-  return all.find((a) => matchesRef(a, slug)) ?? null
 }
 
 // ---------------------------------------------------------------------------

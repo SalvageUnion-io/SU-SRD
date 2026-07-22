@@ -1,3 +1,5 @@
+import { SRDLink } from 'component-lib'
+
 import { deepLinkTo } from '../../lib/srd-deep-link'
 
 type ViewInSRDLinkProps = {
@@ -9,24 +11,16 @@ type ViewInSRDLinkProps = {
 }
 
 /**
- * Link component that deep-links to a srd entity page.
- * Opens in a new tab.
+ * ITUN adapter for the shared `SRDLink`. Owns the app-specific bit — resolving
+ * the srd deep-link URL via `deepLinkTo` (ADR-011: the URL logic stays in the
+ * app) — and hands the resolved `href` to the generic component-lib link.
  */
 export function ViewInSRDLink({ schemaName, slug, entityName, className }: ViewInSRDLinkProps) {
-  const href = deepLinkTo({ schemaName, slug })
-  const ariaLabel = entityName
-    ? `View ${entityName} in SRD (opens in new tab)`
-    : 'View in SRD (opens in new tab)'
-
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={ariaLabel}
+    <SRDLink
+      href={deepLinkTo({ schemaName, slug })}
+      entityName={entityName}
       className={className}
-    >
-      View in SRD →
-    </a>
+    />
   )
 }

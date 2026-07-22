@@ -21,14 +21,36 @@ export const BRAND_NAME = 'Salvage Union'
 const NEUTRAL_EMBED_COLOR = 0xb7410e
 
 /**
- * Core Mechanic tier color for a d20 roll (20 crit → 1 cascade failure).
+ * Single source for the Core Mechanic roll-outcome embed colors. These mirror
+ * the canon `--color-roll-*` ramp in
+ * `packages/component-lib/src/styles/theme.css` — the tokens are the authority,
+ * and each value here is the same rgb() converted to the 0xRRGGBB integer a
+ * Discord embed needs. Keep in lockstep with theme.css; do not introduce
+ * off-canon hues.
+ */
+export const ROLL_COLORS = {
+  /** 20 · Nailed It — from `--color-roll-nailed: rgb(75, 134, 160)` (#4b86a0). */
+  nailed: 0x4b86a0,
+  /** 11–19 · Success — from `--color-roll-success: rgb(111, 138, 74)` (#6f8a4a). */
+  success: 0x6f8a4a,
+  /** 6–10 · Tough Choice — from `--color-roll-tough: rgb(193, 154, 62)` (#c19a3e). */
+  tough: 0xc19a3e,
+  /** 2–5 · Failure — from `--color-roll-failure: rgb(192, 122, 47)` (#c07a2f). */
+  failure: 0xc07a2f,
+  /** 1 · Cascade Failure — from `--color-roll-cascade: rgb(176, 67, 43)` (#b0432b). */
+  cascade: 0xb0432b,
+} as const
+
+/**
+ * Core Mechanic tier color for a d20 roll (20 Nailed It → 1 Cascade Failure),
+ * drawn from the canon-mirroring {@link ROLL_COLORS} map.
  */
 export function getColor(roll: number): number {
-  if (roll === 20) return 0x00ff00 // Green - Critical success
-  if (roll >= 11) return 0x228b22 // Dark green - Success
-  if (roll >= 6) return 0xffd700 // Gold - Partial success
-  if (roll >= 2) return 0xff4500 // Orange-red - Failure
-  return 0x8b0000 // Dark red - Critical failure
+  if (roll === 20) return ROLL_COLORS.nailed
+  if (roll >= 11) return ROLL_COLORS.success
+  if (roll >= 6) return ROLL_COLORS.tough
+  if (roll >= 2) return ROLL_COLORS.failure
+  return ROLL_COLORS.cascade
 }
 
 /** Truncate to Discord's limits without splitting mid-word when possible. */

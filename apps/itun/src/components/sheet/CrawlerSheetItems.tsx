@@ -4,7 +4,6 @@
  * Presentational + callback-driven — CrawlerSheet owns all persistence.
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { type ReferenceEntityControl, ReferenceEntityCard, useDetailModal } from 'component-lib'
 import type { CardFootMeta, ChoiceSelections } from 'component-lib'
@@ -14,23 +13,9 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { NpcInset } from 'component-lib'
+import { BAY_REPAIR_COST } from './crawlerSheetItemRules'
 
 export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
-
-/** Resolve a stored crawler-system ref (id or name) to its SRD entity [gap 20]. */
-// biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
-export function resolveCrawlerSystem(ref: string): SURefEntity | null {
-  try {
-    const all = SalvageUnionReference.Systems.all()
-    return all.find((s) => s.id === ref || s.name === ref) ?? null
-  } catch {
-    return null
-  }
-}
-
-/** Bay repair cost: 5 Scrap of crawler TL or higher (rules C8, S12). */
-// biome-ignore lint/style/useComponentExportOnlyModules: shared control helpers, colocated by design (audit items 24/19)
-export const BAY_REPAIR_COST = 5
 
 /** Each bay's function-action verb (design §4.4 — Dock/Craft/Heal/Mount…). */
 
@@ -368,6 +353,3 @@ export function CrawlerTypeCard({
     />
   )
 }
-
-// biome-ignore lint/style/useComponentExportOnlyModules: shared tech-level constant, used by the crawler sheet's bay-repair pool math
-export const SCRAP_TLS = [1, 2, 3, 4, 5, 6] as const

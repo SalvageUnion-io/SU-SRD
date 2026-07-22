@@ -86,13 +86,9 @@ import {
 import { SheetSectionCard } from 'component-lib'
 import { StorageManifest } from './StorageManifest'
 
-import {
-  BAY_REPAIR_COST,
-  CrawlerBayCard,
-  SCRAP_TLS,
-  resolveCrawlerSystem,
-} from './CrawlerSheetItems'
+import { CrawlerBayCard } from './CrawlerSheetItems'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
+import { BAY_REPAIR_COST, SCRAP_TLS, resolveCrawlerSystem } from './crawlerSheetItemRules'
 
 type CrawlerSheetProps = {
   crawler: Crawler

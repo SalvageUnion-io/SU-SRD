@@ -44,6 +44,8 @@ export type { AppBarNavItem } from './components/shared/AppBar'
 export { CatalogTile } from './components/shared/CatalogTile'
 export { StaticEntityContent } from './components/shared/StaticEntityContent'
 export { SearchField } from './components/shared/SearchField'
+export { MobileSearchDialog } from './components/shared/MobileSearchDialog'
+export { SRDLink } from './components/shared/SRDLink'
 export { NavDrawer } from './components/shared/NavDrawer'
 export type { NavDrawerItem } from './components/shared/NavDrawer'
 export { Banner } from './components/chrome/Banner'
@@ -126,7 +128,7 @@ export { Conditions } from './components/chrome/Conditions'
 // Every hand-assembled '-'/value/'+' cluster in the apps now renders through
 // Stat's stepper anatomy instead, so nothing outside this package needs it.
 export { StatusBadge } from './components/chrome/StatusBadge'
-export type { EntityStatus } from './components/chrome/StatusBadge'
+export type { EntityStatus } from './components/shared/entityStatus'
 
 // Changelog (shared markdown parser + presentational view)
 export { parseChangelog, mergeChangelogs } from './changelog/parseChangelog'
@@ -190,9 +192,8 @@ export {
   SectionEditButton,
   SheetPickerModal,
   CardRemoveButton,
-  cardRemoveControls,
-  REMOVABLE_CARD_STYLE,
 } from './components/shared/SheetSection'
+export { cardRemoveControls, REMOVABLE_CARD_STYLE } from './components/shared/editLanguage'
 export { RuleBrief } from './components/shared/RuleBrief'
 export type { StepRule } from './components/shared/RuleBrief'
 export { OffRulesEscape } from './components/shared/OffRulesEscape'

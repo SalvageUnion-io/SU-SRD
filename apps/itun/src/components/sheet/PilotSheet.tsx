@@ -63,8 +63,8 @@ import {
   GenericEntryCard,
   PilotAbilityItem,
   PilotEquipmentItem,
-  resolveAbility,
 } from './PilotSheetItems'
+import { resolveAbility } from './pilotAbilities'
 
 // ---------------------------------------------------------------------------
 // TpBlock — pilot Training Points, in the Vitals card's dashed-topped `.vrow`

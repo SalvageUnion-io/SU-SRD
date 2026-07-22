@@ -20,7 +20,7 @@
  */
 
 import { useState } from 'react'
-import { Button } from 'component-lib'
+import { Badge, Button } from 'component-lib'
 
 import { resolveClassName } from '../../lib/classRef'
 import type { Pilot } from '../../lib/schemas/pilot'
@@ -49,8 +49,9 @@ function UsedChip({
   used: boolean
   onToggle?: (next: boolean) => void
 }) {
-  const base =
-    'inline-flex min-h-[28px] items-center gap-1.5 rounded-full border-2 py-[4px] pl-[6px] pr-[10px] font-cond text-[9.5px] font-bold uppercase leading-none tracking-caps-wide'
+  // Hollow leading dot; ON = tone-filled. Rendered as the chip's leading child
+  // (Badge's `swatch` is a square colour plate, so the round toggle dot rides
+  // as `children` with an explicit gap).
   const dot = (
     <span
       aria-hidden="true"
@@ -61,31 +62,30 @@ function UsedChip({
     />
   )
   if (!onToggle) {
+    // Read-only: a static 'USED' stamp, shown only when set.
     if (!used) return null
     return (
-      <span className={cn(base, 'border-ink bg-ink text-paper')}>
+      <Badge shape="chip" surface="solid" className="gap-1.5">
         {dot}
         Used
-      </span>
+      </Badge>
     )
   }
+  // Interactive: the Badge aria-pressed toggle pattern — solid when pressed,
+  // ghost when not; Badge supplies cursor + focus ring.
   return (
-    <button
-      type="button"
+    <Badge
+      as="button"
+      shape="chip"
+      surface={used ? 'solid' : 'ghost'}
       aria-pressed={used}
       aria-label={used ? `Reset ${label} used` : `Mark ${label} used`}
       onClick={() => onToggle(!used)}
-      className={cn(
-        base,
-        'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rust/40',
-        used
-          ? 'border-ink bg-ink text-paper'
-          : 'border-ink/55 bg-paper text-ink/55 hover:border-ink hover:text-ink'
-      )}
+      className="gap-1.5"
     >
       {dot}
       Used
-    </button>
+    </Badge>
   )
 }
 
