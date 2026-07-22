@@ -1,4 +1,5 @@
 ---
+import { PageHeading } from 'component-lib'
 import BaseLayout from '../../layouts/BaseLayout.astro'
 
 const lastUpdated = '6 July 2026'
@@ -10,7 +11,7 @@ const lastUpdated = '6 July 2026'
 >
   <div class="flex w-full flex-1 flex-col py-12">
     <div class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6">
-      <h1 class="page-heading">Salvage Union Bot — Privacy Policy</h1>
+      <PageHeading>Salvage Union Bot — Privacy Policy</PageHeading>
       <p class="text-xs uppercase tracking-caps-snug text-ink/60">Last updated: {lastUpdated}</p>
 
       <section class="flex flex-col gap-4 text-sm leading-relaxed">
@@ -19,7 +20,7 @@ const lastUpdated = '6 July 2026'
         </p>
 
         <div>
-          <h2 class="page-subheading mb-1">What we collect</h2>
+          <PageHeading variant="subheading" className="mb-1">What we collect</PageHeading>
           <p>
             Nothing persistent. The Bot is stateless. It responds to slash-command and button
             interactions in real time and keeps no record of them afterward.
@@ -43,7 +44,7 @@ const lastUpdated = '6 July 2026'
         </div>
 
         <div>
-          <h2 class="page-subheading mb-1">Error diagnostics</h2>
+          <PageHeading variant="subheading" className="mb-1">Error diagnostics</PageHeading>
           <p>
             To keep the Bot reliable, unexpected errors may be sent to our error-monitoring provider
             (Sentry). These reports can include technical details about the error and the interaction
@@ -53,7 +54,7 @@ const lastUpdated = '6 July 2026'
         </div>
 
         <div>
-          <h2 class="page-subheading mb-1">Third parties</h2>
+          <PageHeading variant="subheading" className="mb-1">Third parties</PageHeading>
           <ul class="flex list-disc flex-col gap-1 pl-5">
             <li>
               <strong>Discord</strong> — your use of the Bot is also governed by Discord&rsquo;s
@@ -64,7 +65,7 @@ const lastUpdated = '6 July 2026'
         </div>
 
         <div>
-          <h2 class="page-subheading mb-1">Data requests</h2>
+          <PageHeading variant="subheading" className="mb-1">Data requests</PageHeading>
           <p>
             Because we store no personal data, there is nothing to export or delete. For any privacy
             questions, contact{' '}

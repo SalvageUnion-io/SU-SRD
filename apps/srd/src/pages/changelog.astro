@@ -1,7 +1,7 @@
 ---
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { Changelog, mergeChangelogs, parseChangelog } from 'component-lib'
+import { Changelog, mergeChangelogs, PageHeading, parseChangelog } from 'component-lib'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import { SITE_URL } from '../lib/constants'
 
@@ -43,9 +43,7 @@ const breadcrumbs = [
 >
   <div class="flex w-full flex-1 flex-col py-12">
     <div class="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6">
-      <h1 class="page-heading">
-        Changelog
-      </h1>
+      <PageHeading>Changelog</PageHeading>
 
       <p class="text-sm leading-relaxed">
         Major changes to the SRD site, the In The Union Now builder, and the Discord bot. For full commit history see the

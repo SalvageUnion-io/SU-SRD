@@ -116,6 +116,8 @@ export type { ActionsDeckView, DeckGroup } from './components/dashboard/ActionsD
 export { CountStepper } from './components/chrome/CountStepper'
 export { Panel, Row } from './components/chrome/Panel'
 export { Slab } from './components/chrome/Slab'
+export { SectionHeader } from './components/chrome/SectionHeader'
+export { PageHeading } from './components/chrome/PageHeading'
 // ConditionChip is deliberately NOT exported: it is an internal sub-part of
 // Conditions (its only consumer), demonstrated via that component's story.
 export { Conditions } from './components/chrome/Conditions'

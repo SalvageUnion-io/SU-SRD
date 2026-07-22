@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets'
+import { PageHeading } from 'component-lib'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import eldridgeCoastMap from '../assets/eldridge-coast-map.png'
 import { KofiButtonIsland } from '../components/islands/KofiButtonIsland'
@@ -91,13 +92,11 @@ const structuredData = {
       </div>
       </div>
 
-      <h1 class="page-heading text-center">
-        About the Salvage Union SRD
-      </h1>
+      <PageHeading className="text-center">About the Salvage Union SRD</PageHeading>
 
       <!-- What is this? -->
       <section class="text-sm leading-relaxed text-center">
-        <h2 class="mb-2 page-subheading">What is this?</h2>
+        <PageHeading variant="subheading" className="mb-2">What is this?</PageHeading>
         <p class="mb-2">
           This is an unofficial, community-built System Reference Document (SRD) for{' '}
           <a
@@ -132,7 +131,7 @@ const structuredData = {
 
       <!-- Support -->
       <section class="text-sm leading-relaxed text-center">
-        <h2 class="mb-2 page-subheading">Support the project</h2>
+        <PageHeading variant="subheading" className="mb-2">Support the project</PageHeading>
         <p class="mb-4">
           This reference is free and open source. If it's been useful at your table, you can chip in
           toward hosting and development.

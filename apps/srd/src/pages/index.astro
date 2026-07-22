@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { CatalogTile } from 'component-lib'
+import { CatalogTile, SectionHeader } from 'component-lib'
 import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from '../lib/gameData'
 import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 import { buildCatalogCategories } from '../lib/catalogHelpers'
@@ -42,9 +42,7 @@ const categories = buildCatalogCategories({
       <div class="flex flex-col gap-6">
         {categories.map((cat) => (
           <div>
-            <div class="catalog-header mb-2">
-              <h2 class="catalog-group-title">{cat.label}</h2>
-            </div>
+            <SectionHeader label={cat.label} className="mb-2" />
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {cat.schemas.map((card) => (
                 <CatalogTile

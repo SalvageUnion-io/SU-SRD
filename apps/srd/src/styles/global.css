@@ -22,65 +22,14 @@
    (.nav-link and .breadcrumb-text were retired — the masthead is the shared
    component-lib AppBar, which owns those treatments as utilities.) */
 
-/* Catalog category headers — line / [PSEUDOHEADER] / line */
-.catalog-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.catalog-header::before,
-.catalog-header::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--color-wk-faint);
-}
-
-/* Group title label — rust/orange-dark, condensed, wide tracking */
-.catalog-group-title {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  font-size: var(--text-caption);
-  letter-spacing: var(--tracking-caps-wide);
-  text-transform: uppercase;
-  color: var(--color-rust);
-  line-height: 1;
-  white-space: nowrap;
-}
+/* Catalog category headers (line / [LABEL] / line) and the page H1/H2 heading
+   band were promoted into component-lib as `SectionHeader` and `PageHeading` —
+   the single source of truth for these cross-app treatments. */
 
 /* (The `.catalog-item` family — tile, hover, focus, `--ghost`, `__name`,
    `-label` — was retired: it is the shared component-lib `CatalogTile`, which
    owns the tile markup (incl. the `variant="ghost"` 404 link) as the single
    source of truth.) */
-
-/* Page H1 "band" — black stamp heading used on about / api / changelog. Per-page
-   modifiers (e.g. text-center) stay as inline utilities alongside the class. */
-.page-heading {
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-  background: var(--color-ink);
-  color: var(--color-paper);
-  padding: 0.25rem 0.5rem;
-  font-family: var(--font-cond);
-  font-size: 1.875rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-}
-
-/* Page H2 subheading — matches `font-cond text-lg font-bold uppercase` exactly
-   (incl. text-lg's 1.75rem line-height). Used by the about/api H2s. NB: do not
-   apply where a Tailwind leading-* override is needed (e.g. changelog) — this
-   unlayered rule outranks utility-layer classes and would win the line-height. */
-.page-subheading {
-  font-family: var(--font-cond);
-  font-size: 1.125rem;
-  line-height: 1.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
 
 /* Shadow wrapper — clip-path kills box-shadow, so shadow lives here */
 .pilot-panel-shadow {

@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { buttonVariants, cn } from 'component-lib'
+import { buttonVariants, cn, PageHeading } from 'component-lib'
 import { SITE_URL, ITUN_URL } from '../lib/constants'
 
 // The install CTA is an <a> styled as THE primary (rust) action — the lib
@@ -47,7 +47,7 @@ const breadcrumbs = [
 >
   <div class="flex w-full flex-1 flex-col py-12">
     <div class="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6">
-      <h1 class="page-heading">Discord Bot</h1>
+      <PageHeading>Discord Bot</PageHeading>
 
       <!-- Overview + install -->
       <section class="flex flex-col gap-4 text-sm leading-relaxed">
@@ -75,7 +75,7 @@ const breadcrumbs = [
 
       <!-- Commands -->
       <section class="flex flex-col gap-6">
-        <h2 class="page-subheading">Commands</h2>
+        <PageHeading variant="subheading">Commands</PageHeading>
 
         <div class="rounded-panel border-2 border-wk-faint bg-paper">
           <div class="border-b-2 border-wk-faint px-5 py-3">
@@ -147,7 +147,7 @@ const breadcrumbs = [
 
       <!-- Notes -->
       <section class="flex flex-col gap-3 text-sm leading-relaxed">
-        <h2 class="page-subheading">Good to know</h2>
+        <PageHeading variant="subheading">Good to know</PageHeading>
         <ul class="ml-5 flex list-disc flex-col gap-2">
           <li>
             Typing <code class="rounded-card bg-wk-bg px-1 py-0.5">/su</code> filters

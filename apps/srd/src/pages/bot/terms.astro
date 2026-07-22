@@ -1,4 +1,5 @@
 ---
+import { PageHeading } from 'component-lib'
 import BaseLayout from '../../layouts/BaseLayout.astro'
 
 const lastUpdated = '6 July 2026'
@@ -10,7 +11,7 @@ const lastUpdated = '6 July 2026'
 >
   <div class="flex w-full flex-1 flex-col py-12">
     <div class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6">
-      <h1 class="page-heading">Salvage Union Bot — Terms of Service</h1>
+      <PageHeading>Salvage Union Bot — Terms of Service</PageHeading>
       <p class="text-xs uppercase tracking-caps-snug text-ink/60">Last updated: {lastUpdated}</p>
 
       <section class="flex flex-col gap-4 text-sm leading-relaxed">
@@ -20,7 +21,7 @@ const lastUpdated = '6 July 2026'
         </p>
 
         <div>
-          <h2 class="page-subheading mb-1">The service</h2>
+          <PageHeading variant="subheading" className="mb-1">The service</PageHeading>
           <p>
             The Bot provides dice-rolling and reference lookups for the Salvage Union tabletop
             roleplaying game via Discord slash commands (<code>/su</code>). It is provided free of
@@ -30,7 +31,7 @@ const lastUpdated = '6 July 2026'
         </div>
 
         <div>
-          <h2 class="page-subheading mb-1">Acceptable use</h2>
+          <PageHeading variant="subheading" className="mb-1">Acceptable use</PageHeading>
           <p>
             Don&rsquo;t use the Bot to break Discord&rsquo;s Terms of Service or Community
             Guidelines, to abuse or overload the service, or for any unlawful purpose.
@@ -38,7 +39,7 @@ const lastUpdated = '6 July 2026'
         </div>
 
         <div>
-          <h2 class="page-subheading mb-1">Intellectual property</h2>
+          <PageHeading variant="subheading" className="mb-1">Intellectual property</PageHeading>
           <p>
             Salvage Union is copyrighted by{' '}
             <a
@@ -53,7 +54,7 @@ const lastUpdated = '6 July 2026'
         </div>
 
         <div>
-          <h2 class="page-subheading mb-1">Liability</h2>
+          <PageHeading variant="subheading" className="mb-1">Liability</PageHeading>
           <p>
             To the maximum extent permitted by law, the operators of the Bot are not liable for any
             damages arising from its use or unavailability.
@@ -61,7 +62,7 @@ const lastUpdated = '6 July 2026'
         </div>
 
         <div>
-          <h2 class="page-subheading mb-1">Contact</h2>
+          <PageHeading variant="subheading" className="mb-1">Contact</PageHeading>
           <p>
             Questions about these terms:{' '}
             <a
