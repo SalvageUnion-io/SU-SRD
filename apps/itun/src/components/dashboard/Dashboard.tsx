@@ -58,7 +58,7 @@ export function Dashboard({ id }: { id: string }) {
     return (
       <DashboardCanvas>
         <DashboardGrid
-          rail={<span className="pc-stamp pc-stamp-mech">Mech not found</span>}
+          rail={<span>Mech not found</span>}
           primary={<div className="pc-placeholder">No mech with id “{id}”.</div>}
           display={<div className="pc-fill">—</div>}
           wheel={<div className="pc-placeholder">Dial</div>}

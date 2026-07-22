@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react'
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
+import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
 import { Input } from '../chrome/Field'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
@@ -186,7 +187,9 @@ function SrdHome({
             className="pc-srd-tile"
             onClick={() => onPickCategory(cat.schemaName)}
           >
-            <span className="pc-srd-tile-stamp">{cat.stamp}</span>
+            <Badge shape="stamp" size="mini" className="rounded-card px-[5px] py-0.5 text-label">
+              {cat.stamp}
+            </Badge>
             <span className="pc-srd-tile-label">{cat.label}</span>
           </button>
         ))}
@@ -213,7 +216,10 @@ function SrdCategoryList({
           ◀ Categories
         </Button>
         <span className="pc-srd-crumb-title">
-          <span className="pc-srd-tile-stamp">{category.stamp}</span> {category.label}
+          <Badge shape="stamp" size="mini" className="rounded-card px-[5px] py-0.5 text-label">
+            {category.stamp}
+          </Badge>{' '}
+          {category.label}
         </span>
       </div>
       {rows.length === 0 ? (

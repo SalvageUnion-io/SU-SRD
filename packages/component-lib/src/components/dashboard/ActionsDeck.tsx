@@ -8,6 +8,7 @@
  */
 
 import type { SURefEntity } from 'salvageunion-reference'
+import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 
@@ -316,7 +317,9 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
                 }
                 title={`Filter the deck to “${src.label}” actions.`}
               >
-                <span className="pc-deck-stamp">{src.stamp}</span>
+                <Badge shape="stamp" size="mini" className="rounded-card px-1 py-px text-label">
+                  {src.stamp}
+                </Badge>
                 {src.label}
               </button>
             ))}
@@ -329,7 +332,7 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
       ) : (
         <div className="pc-deck">
           {view.groups.map((group) => (
-            <section key={group.label} className="pc-deck-group">
+            <section key={group.label}>
               <h3 className="pc-deck-group-lab">{group.label}</h3>
               <ul className="pc-deck-list">
                 {group.rows.map((row) => (

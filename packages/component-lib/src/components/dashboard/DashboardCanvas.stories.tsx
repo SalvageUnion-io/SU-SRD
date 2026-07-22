@@ -15,7 +15,7 @@ export const Default: Story = () => (
     <Caption>Scale-to-fit HUD canvas (1280×800), letterboxed on the warm-paper ground.</Caption>
     <div style={{ height: 520, resize: 'both', overflow: 'hidden', border: '1px solid #ccc' }}>
       <DashboardCanvas>
-        <div className="pc-canvas-placeholder">
+        <div className="pc-placeholder">
           <span
             style={{
               position: 'absolute',

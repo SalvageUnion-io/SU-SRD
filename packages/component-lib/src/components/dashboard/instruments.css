@@ -33,7 +33,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
-  font-size: 12px;
+  font-size: var(--text-note);
   color: var(--color-wk-muted);
 }
 
@@ -183,31 +183,6 @@
   flex-direction: column;
   gap: 5px;
 }
-.pc-deck-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  width: 100%;
-  padding: 9px 12px;
-  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 18%, transparent);
-  border-radius: var(--radius-card);
-  background: var(--color-paper);
-  color: var(--color-ink);
-  cursor: pointer;
-  text-align: left;
-  font-family: var(--font-cond);
-  font-weight: 700;
-  font-size: 14px;
-}
-.pc-deck-item:hover {
-  border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
-}
-.pc-deck-item-cost {
-  font-size: 12px;
-  color: var(--color-wk-muted);
-  white-space: nowrap;
-}
 .pc-deck-panel {
   display: flex;
   flex-direction: column;
@@ -219,22 +194,10 @@
   justify-content: space-between;
   gap: 10px;
 }
-.pc-deck-back {
-  border: none;
-  background: none;
-  padding: 0;
-  cursor: pointer;
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: 12px;
-  color: var(--color-wk-muted);
-}
 .pc-deck-cost {
   font-family: var(--font-cond);
   font-weight: 700;
-  font-size: 12px;
+  font-size: var(--text-note);
   color: var(--color-wk-muted);
 }
 .pc-deck-controls {
@@ -271,7 +234,7 @@
 .pc-deck-pushlog {
   margin: 0;
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: var(--text-note);
   line-height: 1.4;
   color: var(--color-wk-muted);
 }
@@ -292,7 +255,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
-  font-size: 12px;
+  font-size: var(--text-note);
   color: var(--color-wk-muted);
 }
 .pc-deck-radio {
@@ -314,7 +277,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
-  font-size: 12px;
+  font-size: var(--text-note);
   color: var(--color-wk-muted);
 }
 .pc-deck-hotx-proj {
@@ -337,7 +300,7 @@
 .pc-deck-apply-route {
   margin: 0;
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: var(--text-note);
   line-height: 1.4;
   color: var(--color-sheet-crawler-deep);
 }
@@ -365,7 +328,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
-  font-size: 12px;
+  font-size: var(--text-note);
 }
 .pc-deck-tab:hover {
   border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
@@ -391,7 +354,7 @@
   cursor: pointer;
   font-family: var(--font-cond);
   font-weight: 700;
-  font-size: 12px;
+  font-size: var(--text-note);
 }
 .pc-deck-tool:hover {
   border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
@@ -411,7 +374,7 @@
   cursor: pointer;
   font-family: var(--font-cond);
   font-weight: 700;
-  font-size: 12px;
+  font-size: var(--text-note);
 }
 .pc-deck-range-btn.is-active {
   background: var(--color-ink);
@@ -445,7 +408,7 @@
   cursor: pointer;
   font-family: var(--font-cond);
   font-weight: 700;
-  font-size: 12px;
+  font-size: var(--text-note);
   max-width: 100%;
 }
 .pc-deck-source:hover {
@@ -459,61 +422,7 @@
   border-color: var(--color-sheet-pilot-deep);
   box-shadow: inset 0 0 0 1px var(--color-sheet-pilot-deep);
 }
-.pc-deck-stamp {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1px 4px;
-  border-radius: var(--radius-card);
-  background: var(--color-ink);
-  color: var(--color-paper);
-  font-family: var(--font-cond);
-  font-weight: 700;
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-caps-tight);
-}
-.pc-deck-item-main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  flex: 1;
-}
-.pc-deck-item-meta {
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: var(--text-badge);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  color: var(--color-wk-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.pc-deck-item.is-locked {
-  opacity: 0.42;
-}
-
 /* ---- Crawler focus → Enter Downtime (light display, Phase 6) ---- */
-.pc-crawler-focus {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  height: 100%;
-  text-align: center;
-  padding: 24px 16px;
-}
-.pc-crawler-focus-name {
-  margin: 0;
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: 18px;
-  color: var(--color-ink);
-}
 .pc-crawler-focus-note {
   margin: 0;
   font-family: var(--font-body);
@@ -554,7 +463,7 @@
   font-family: var(--font-cond);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  font-size: 12px;
+  font-size: var(--text-note);
   color: var(--color-wk-muted);
 }
 .pc-dt-step-name {
@@ -589,7 +498,7 @@
 .pc-dt-note {
   margin: 0;
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: var(--text-note);
   line-height: 1.4;
   color: var(--color-wk-muted);
 }
@@ -703,7 +612,7 @@
 }
 /* Statless titles (Actions / Tables / SRD) read large in the tall active slot. */
 .pc-cell-active.statless .pc-cell-title {
-  font-size: 26px;
+  font-size: var(--text-display);
 }
 .pc-cell-sub {
   font-family: var(--font-cond);
@@ -781,7 +690,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
-  font-size: 12px;
+  font-size: var(--text-note);
   color: var(--color-ink);
 }
 .pc-dialcfg-lab.hidden {
@@ -923,7 +832,7 @@
 }
 .pc-rollhist-text {
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: var(--text-note);
   color: var(--color-ink);
 }
 
@@ -993,7 +902,7 @@
 }
 .pc-tablepick-empty {
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: var(--text-note);
   color: var(--color-wk-muted);
   text-align: center;
   padding: 4px 0;
@@ -1006,7 +915,7 @@
   background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: var(--text-note);
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -1028,6 +937,15 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+/* The category-listing and entity-detail view roots. Unlike .pc-srd-home they
+   are plain flow blocks (NOT flex): their leading .pc-srd-crumb carries its own
+   bottom margin, so a flex gap here would double the crumb-to-content spacing.
+   Declared to close the pc-* class contract; `display: block` is what the bare
+   <div> already rendered, so there is no visual change. */
+.pc-srd-list,
+.pc-srd-entity {
+  display: block;
 }
 
 /* Search box + combobox results. */
@@ -1090,7 +1008,7 @@
 .pc-srd-noresults {
   margin-top: 6px;
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: var(--text-note);
   color: var(--color-wk-muted);
 }
 
@@ -1115,21 +1033,9 @@
   background: var(--color-wk-bg-2);
   border-color: var(--color-ink);
 }
-.pc-srd-tile-stamp {
-  display: inline-block;
-  padding: 2px 5px;
-  background: var(--color-ink);
-  color: var(--color-paper);
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-label);
-  border-radius: var(--radius-card);
-}
 .pc-srd-tile-label {
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: var(--text-note);
   font-weight: 600;
   color: var(--color-ink);
   text-align: center;
@@ -1141,9 +1047,6 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
-}
-.pc-srd-back:hover {
-  background: var(--color-wk-bg-2);
 }
 .pc-srd-crumb-title {
   display: flex;
