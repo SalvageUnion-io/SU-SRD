@@ -1449,22 +1449,6 @@ function ReferenceEntityCardInner({
     return renderGroup(label, entities, undefined, flat)
   }
 
-  // A named content sub-section heading (e.g. a folded action's name): a
-  // CENTERED black pseudoheader label flanked by dashed separator lines — the
-  // OLD card's section-heading treatment, so a folded action keeps its name.
-  const renderSectionHeading = (label: string): ReactNode => (
-    <div className="flex items-center gap-2">
-      <span aria-hidden="true" className="h-0 flex-1 border-t border-dashed border-ink/40" />
-      <span
-        className="shrink-0 bg-ink px-1 py-0.5 font-cond text-xs font-bold uppercase tracking-caps-tight text-paper"
-        style={{ lineHeight: 1 }}
-      >
-        {label}
-      </span>
-      <span aria-hidden="true" className="h-0 flex-1 border-t border-dashed border-ink/40" />
-    </div>
-  )
-
   // A dashed-Slab group of LISTING rows (drone systems / modules) — flat-aware.
   const renderListingGroup = (
     label: string,
@@ -1581,12 +1565,16 @@ function ReferenceEntityCardInner({
             foldedActionContent &&
             foldedActionContent.length > 0 && (
               <div className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
-                {/* The folded action keeps its NAME as a centered section heading
-                  ONLY when it differs from the entity — a same-named action (e.g.
-                  Grenade's own "Grenade" action) would be redundant noise. */}
-                {foldedAction?.name &&
-                  foldedAction.name !== entityName &&
-                  renderSectionHeading(stripHostParenthetical(foldedAction.name, entityName))}
+                {/* The folded action keeps its NAME as a left-anchored Slab
+                  stamp ONLY when it differs from the entity — a same-named
+                  action (e.g. Grenade's own "Grenade" action) would be
+                  redundant noise. */}
+                {foldedAction?.name && foldedAction.name !== entityName && (
+                  <Slab
+                    variant="solid"
+                    label={stripHostParenthetical(foldedAction.name, entityName)}
+                  />
+                )}
                 <Content
                   body={foldedActionContent}
                   compact={compact}

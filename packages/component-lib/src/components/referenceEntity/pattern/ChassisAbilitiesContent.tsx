@@ -2,7 +2,7 @@ import type { SURefMetaAction } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
 import { entityHostTone } from '../card/entityCardTone'
-import { SectionSeparator } from '../SectionSeparator'
+import { Slab } from '../../chrome/Slab'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 import { cn } from '../../../utils/cn'
 import { getReferenceEntitySpacing } from '../referenceEntityTypes'
@@ -81,7 +81,7 @@ export function ChassisAbilitiesContent({
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {resolvedSystems.length > 0 && (
                 <div className={spacing.smallSpaceYClass}>
-                  <SectionSeparator label="Systems" fontSize="text-xs" />
+                  <Slab variant="solid" label="Systems" />
                   {resolvedSystems.map((entity, idx) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: static pattern list; index disambiguates duplicate system ids
                     <PatternEquipmentItem key={`drone-sys-${entity.id}-${idx}`} data={entity} />
@@ -90,7 +90,7 @@ export function ChassisAbilitiesContent({
               )}
               {resolvedModules.length > 0 && (
                 <div className={spacing.smallSpaceYClass}>
-                  <SectionSeparator label="Modules" fontSize="text-xs" />
+                  <Slab variant="solid" label="Modules" />
                   {resolvedModules.map((entity, idx) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: static pattern list; index disambiguates duplicate module ids
                     <PatternEquipmentItem key={`drone-mod-${entity.id}-${idx}`} data={entity} />

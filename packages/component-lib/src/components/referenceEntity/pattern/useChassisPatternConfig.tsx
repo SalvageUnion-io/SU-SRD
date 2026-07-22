@@ -16,7 +16,7 @@ import type { PatternOverrideData } from '../referenceEntityTypes'
 import type { ReferenceEntityCardHideConfig } from '../card/ReferenceEntityCard'
 import { Stat } from '../../shared/Stat'
 import type { StatItem } from '../../shared/statsBarTypes'
-import { SectionSeparator } from '../SectionSeparator'
+import { Slab } from '../../chrome/Slab'
 import { PatternEquipmentItem } from './PatternEquipmentItem'
 
 type ChassisPatternConfig = {
@@ -196,7 +196,7 @@ export function useChassisPatternConfig(
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {hasSystems && (
           <div className={spacing.smallSpaceYClass}>
-            <SectionSeparator label="Systems" fontSize="text-xs" />
+            <Slab variant="solid" label="Systems" />
             {resolvedSystems.map((entity, idx) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: static pattern list; index disambiguates duplicate system ids
               <PatternEquipmentItem key={`pat-sys-${entity.id}-${idx}`} data={entity} />
@@ -205,7 +205,7 @@ export function useChassisPatternConfig(
         )}
         {hasModules && (
           <div className={spacing.smallSpaceYClass}>
-            <SectionSeparator label="Modules" fontSize="text-xs" />
+            <Slab variant="solid" label="Modules" />
             {resolvedModules.map((entity, idx) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: static pattern list; index disambiguates duplicate module ids
               <PatternEquipmentItem key={`pat-mod-${entity.id}-${idx}`} data={entity} />

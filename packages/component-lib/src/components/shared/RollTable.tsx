@@ -291,6 +291,68 @@ function ResultActionBar({
   )
 }
 
+/**
+ * The collapsed-table result slide-out. When a collapsible table is ROLLED
+ * while collapsed, the full table stays hidden and only the rolled result
+ * slides out from below the header — a genuine height reveal via the
+ * grid-template-rows `0fr → 1fr` idiom (a child clipped by `overflow-hidden`),
+ * so the panel animates to its natural height with no magic max-height.
+ *
+ * The `ResultActionBar` (Copy/Reroll) is a SIBLING of the clipped grid, not a
+ * child, because it deliberately protrudes below its parent (`bottom-[-26px]`)
+ * and would otherwise be clipped by the reveal's `overflow-hidden`.
+ */
+function CollapsedResultSlideout({
+  show,
+  hasResult,
+  label,
+  value,
+  resultText,
+  compact,
+  onReroll,
+  hideReroll,
+}: {
+  show: boolean
+  hasResult: boolean
+  label: string | null
+  value: string
+  resultText: string
+  compact?: boolean
+  onReroll: () => void
+  hideReroll?: boolean
+}) {
+  if (!show) return null
+  return (
+    <div className="relative">
+      <div
+        className={cn(
+          'grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out',
+          hasResult ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+        )}
+      >
+        <div className="min-h-0">
+          <div
+            className={cn(
+              'border-t-2 border-pilot-light bg-band-cream',
+              compact ? 'px-2 py-1.5' : 'px-3 py-2'
+            )}
+          >
+            <RollTableDescription label={label} value={value} compact={compact} />
+          </div>
+        </div>
+      </div>
+      {hasResult && (
+        <ResultActionBar
+          compact={compact}
+          resultText={resultText}
+          onReroll={onReroll}
+          hideReroll={hideReroll}
+        />
+      )}
+    </div>
+  )
+}
+
 const COLUMN_KEYS = ['1-4', '5-8', '9-12', '13-16', '17-20'] as const
 
 type ColumnsRollResult = {
@@ -335,7 +397,6 @@ function ColumnsRollTable({
 
   const handleRoll = () => {
     if (singleRoll && hasRolled) return
-    if (collapsible) setExpanded(true)
     setResult(null)
     setRollAnnouncement('')
     const colRoll = roll('1d20').total
@@ -377,6 +438,17 @@ function ColumnsRollTable({
           singleRoll={singleRoll}
           hasRolled={hasRolled}
           handleRoll={handleRoll}
+        />
+
+        <CollapsedResultSlideout
+          show={collapsible && !expanded}
+          hasResult={!!result}
+          label={null}
+          value={result?.value ?? ''}
+          resultText={result?.value ?? ''}
+          compact={compact}
+          onReroll={handleRoll}
+          hideReroll={singleRoll}
         />
 
         {expanded && (
@@ -502,7 +574,6 @@ function StandardRollTable({
 
   const handleRoll = () => {
     if (singleRoll && hasRolled) return
-    if (collapsible) setExpanded(true)
     setHighlightedKey(null)
     setRollAnnouncement('')
     const { key } = resultForTable(table as SURefObjectTable, roll('1d20').total)
@@ -525,6 +596,15 @@ function StandardRollTable({
     setRollAnnouncement('')
   }
 
+  const highlightedEntry = highlightedKey
+    ? digestedTable.find((d) => d.key === highlightedKey)
+    : undefined
+  const collapsedResultText = highlightedEntry
+    ? highlightedEntry.label
+      ? `${highlightedEntry.label}: ${highlightedEntry.value}`
+      : highlightedEntry.value
+    : ''
+
   return (
     <div className="relative overflow-visible">
       {/* Screen reader announcement for roll results */}
@@ -543,6 +623,16 @@ function StandardRollTable({
           singleRoll={singleRoll}
           hasRolled={hasRolled}
           handleRoll={handleRoll}
+        />
+        <CollapsedResultSlideout
+          show={collapsible && !expanded}
+          hasResult={!!highlightedEntry}
+          label={highlightedEntry?.label ?? null}
+          value={highlightedEntry?.value ?? ''}
+          resultText={collapsedResultText}
+          compact={compact}
+          onReroll={handleRoll}
+          hideReroll={singleRoll}
         />
         {expanded && (
           <table className="w-full border-collapse">

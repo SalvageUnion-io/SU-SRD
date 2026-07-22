@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
 import { SalvageUnionReference, isCoreClass, isBaseAdvancedClass } from 'salvageunion-reference'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
-import { SectionSeparator } from './SectionSeparator'
+import { Slab } from '../chrome/Slab'
 import { useDetailModal } from './useDetailModal'
 
 type TreeGroup = { tree: string; abilities: SURefAbility[] }
@@ -76,7 +76,7 @@ function TreeSection({
   return (
     <div className="space-y-4">
       <div className="pt-2">
-        <SectionSeparator label={tree} value="Tree" compact />
+        <Slab variant="solid" label={tree} count="Tree" />
       </div>
       {abilities.map((ability) => (
         <AbilityTreeListing
