@@ -47,9 +47,15 @@ const DESKTOP_NAV: AppBarNavItem[] = [
 
 /** ITUN's two-tone brand tag for the mobile drawer. */
 const ITUN_DRAWER_BRAND = (
-  <span className="inline-flex shrink-0 border border-ink font-cond text-sm font-bold uppercase leading-none tracking-caps-tight">
-    <span className="bg-ink px-1.5 py-1 text-paper">In the Union</span>
-    <span className="bg-paper px-1.5 py-1 text-ink">Now</span>
+  <span className="inline-flex shrink-0 border border-ink">
+    <Badge shape="stamp" size="full" className="px-1.5">
+      In the Union
+    </Badge>
+    {/* `ring-0`: the outer span draws the ink frame, so the inverse plate's own
+        ring would double the seam. */}
+    <Badge shape="stamp" size="full" surface="inverse" className="px-1.5 ring-0">
+      Now
+    </Badge>
   </span>
 )
 

@@ -1,4 +1,4 @@
-import { NavDrawer, type NavDrawerItem } from 'component-lib'
+import { NavDrawer, Badge, type NavDrawerItem } from 'component-lib'
 import { SearchIsland } from './SearchIsland'
 import { ITUN_URL } from '../../lib/constants'
 
@@ -22,9 +22,21 @@ type MobileNavIslandProps = {
 
 const SRD_BRAND = (
   <a href="/">
-    <span className="inline-flex shrink-0 cursor-pointer border border-ink font-cond text-xl font-bold uppercase leading-none tracking-tight">
-      <span className="bg-ink px-1 py-0.5 text-paper">Salvage Union</span>
-      <span className="bg-paper px-1 py-0.5 text-ink">SRD</span>
+    <span className="inline-flex shrink-0 cursor-pointer border border-ink">
+      {/* `text-xl` sits above the stamp ladder's top rung (`full` = `text-sm`),
+          so the wordmark keeps an explicit font-size override. */}
+      <Badge shape="stamp" size="full" className="px-1 py-0.5 text-xl tracking-tight">
+        Salvage Union
+      </Badge>
+      {/* `ring-0`: the outer span draws the ink frame. */}
+      <Badge
+        shape="stamp"
+        size="full"
+        surface="inverse"
+        className="px-1 py-0.5 text-xl tracking-tight ring-0"
+      >
+        SRD
+      </Badge>
     </span>
   </a>
 )

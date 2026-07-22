@@ -91,13 +91,26 @@ export function RailChip({
           the left, live status + the open chevron on the right. */}
       <span className="flex items-start justify-between gap-2.5 px-3 pt-2.5 pb-2">
         <span className="flex min-w-0 flex-col items-start gap-1.5">
-          <span className="inline-flex items-stretch self-start overflow-hidden rounded-[2px] border-chrome border-ink font-cond text-label-lg font-bold uppercase leading-none tracking-caps-wide">
-            <span className="bg-ink px-2 py-1 text-paper">{roleLabel}</span>
-            {tl !== undefined && <span className="bg-paper px-2 py-1 text-ink">{`TL${tl}`}</span>}
+          <span className="inline-flex items-stretch self-start overflow-hidden rounded-[2px] border-chrome border-ink">
+            <Badge shape="stamp" size="mini" className="px-2 py-1 tracking-caps-wide">
+              {roleLabel}
+            </Badge>
+            {tl !== undefined && (
+              <Badge
+                shape="stamp"
+                size="mini"
+                surface="inverse"
+                // `ring-0`: the outer span draws the ink frame, so the inverse
+                // plate's own ring would double the seam.
+                className="px-2 py-1 tracking-caps-wide ring-0"
+              >
+                {`TL${tl}`}
+              </Badge>
+            )}
           </span>
-          <span className="min-w-0 truncate bg-ink px-1.5 py-0.5 font-cond text-base font-bold uppercase leading-tight text-paper">
+          <Badge shape="stamp" size="full" className="block min-w-0 max-w-full truncate">
             {name}
-          </span>
+          </Badge>
         </span>
         <span className="flex shrink-0 items-center gap-1.5 pt-0.5">
           {status && (
@@ -121,9 +134,9 @@ export function RailChip({
         className="mt-auto flex items-center justify-between gap-2 border-t-2 border-ink px-2.5 py-1.5"
         style={{ background: RAIL_BG[tone] }}
       >
-        <span className="bg-ink px-2 py-1 font-cond text-label-lg font-bold uppercase leading-none tracking-caps-snug text-paper">
+        <Badge shape="stamp" size="mini" className="px-2 py-1 tracking-caps-snug">
           Open sheet &rarr;
-        </span>
+        </Badge>
         <span className="flex items-center gap-1.5">
           {onSwap && (
             <Button size="mini" onClick={handleSwap}>

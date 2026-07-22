@@ -3,6 +3,7 @@ import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 import { Menu, X } from 'lucide-react'
 import { buttonVariants } from '../chrome/buttonVariants'
+import { Badge } from '../chrome/Badge'
 import { cn } from '../../utils/cn'
 
 /**
@@ -130,9 +131,7 @@ export function NavDrawer({
             {categories?.map((cat) => (
               <div key={cat.label} className="mb-2 flex flex-col gap-2">
                 <div className="flex items-center gap-3">
-                  <span className="bg-ink px-1 font-cond font-bold uppercase leading-none tracking-caps-tight text-paper">
-                    {cat.label}
-                  </span>
+                  <Badge shape="stamp">{cat.label}</Badge>
                 </div>
                 {cat.schemas.map((schema) => (
                   <a

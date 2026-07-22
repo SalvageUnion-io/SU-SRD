@@ -22,7 +22,7 @@
  */
 
 import { useId } from 'react'
-import { Button, Card, SlotGrid, Stat } from 'component-lib'
+import { Badge, Button, Card, SlotGrid, Stat } from 'component-lib'
 
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
@@ -189,9 +189,14 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly }: CargoLotItemProps)
         style={{ borderColor: 'var(--tone)', background: 'var(--tone)' }}
       >
         <div className="flex flex-wrap items-start justify-between gap-1.5">
-          <span className="box-decoration-clone min-w-0 flex-1 break-words bg-ink px-1.5 py-0.5 font-cond text-[11px] font-bold uppercase leading-[1.4] text-paper">
+          <Badge
+            shape="stamp"
+            size="mini"
+            leading="leading-[1.4]"
+            className="min-w-0 flex-1 break-words"
+          >
             {lot.name}
-          </span>
+          </Badge>
           <Stat orientation="horizontal" label={tag.label} value={tag.value} className="shrink-0" />
         </div>
         {!readOnly && (
@@ -413,9 +418,9 @@ export function StorageManifest({
         </span>
         {linkedCounterpart !== null ? (
           <>
-            <span className="self-start bg-ink px-2 py-0.5 font-cond text-base font-bold uppercase leading-tight text-paper">
+            <Badge shape="stamp" size="full" className="self-start">
               {linkedCounterpart}
-            </span>
+            </Badge>
             {side === 'mech' ? (
               <span className="font-body text-xs text-ink">
                 &infin; Storage Bay &middot; unlimited

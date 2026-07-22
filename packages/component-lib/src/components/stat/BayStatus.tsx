@@ -1,4 +1,5 @@
 import { cn } from '../../utils/cn'
+import { Badge } from '../chrome/Badge'
 import type { EntityStatus } from '../shared/entityStatus'
 import { ConditionSwatch } from './ConditionSwatch'
 import { statBlockRowStarts } from './pipRows'
@@ -42,15 +43,19 @@ export function BayStatus({ states, label = 'Bays', onBayClick, className }: Bay
         className
       )}
     >
-      {/* Header tab */}
-      <div className="flex items-center justify-between gap-3 bg-ink px-2 py-1">
-        <span className="font-cond text-xs font-bold uppercase leading-none tracking-caps-wide text-paper">
-          {label}
-        </span>
-        <span className="font-cond text-micro uppercase leading-none text-paper/60">
+      {/* Header tab — the ink caps plate is Badge shape="stamp"; the band's
+          flex layout + padding + wide caps tracking ride as className. */}
+      <Badge
+        shape="stamp"
+        as="div"
+        size="compact"
+        className="flex w-full items-center justify-between gap-3 px-2 py-1 tracking-caps-wide"
+      >
+        <span>{label}</span>
+        <span className="font-normal text-micro tracking-normal text-paper/60">
           {states.length} {states.length === 1 ? 'bay' : 'bays'}
         </span>
-      </div>
+      </Badge>
 
       {/* Legend — counts per present state */}
       {tallies.length > 0 && (

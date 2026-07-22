@@ -7,6 +7,7 @@ import { Copy } from 'lucide-react'
 import { toast } from 'sonner'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { Text } from '../base/Text'
+import { Badge } from '../chrome/Badge'
 import { cn } from '../../utils/cn'
 import type { SizeRung } from '../../styles/sizing'
 
@@ -80,7 +81,12 @@ function RollTableHeader({
 }) {
   if (!showHeader) return null
   return (
-    <div className="flex items-center justify-between gap-2 bg-ink px-2.5 py-1.5 font-cond text-xs font-bold uppercase tracking-caps-snug text-paper">
+    <Badge
+      shape="stamp"
+      as="div"
+      size="compact"
+      className="flex w-full items-center justify-between gap-2 px-2.5 py-1.5 tracking-caps-snug"
+    >
       <span className="inline-flex items-center gap-3">
         {collapsible && (
           <ExpandToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
@@ -108,7 +114,7 @@ function RollTableHeader({
           </button>
         </span>
       )}
-    </div>
+    </Badge>
   )
 }
 
