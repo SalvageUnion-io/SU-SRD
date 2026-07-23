@@ -6,6 +6,37 @@ export type MarkdownSectionContent = {
 }
 
 /**
+ * Drop the leading HTML comment block, line by line.
+ *
+ * A line scan rather than a `<!--[\s\S]*?-->` replace, which CodeQL flags twice
+ * over — as polynomial ReDoS (input starting with many unterminated `<!--`),
+ * and as incomplete multi-character sanitization (removing one `<!-- -->` span
+ * can splice a fresh `<!--` back together out of the text either side of it).
+ * Neither is reachable from a repo-controlled build-time file whose output is
+ * rendered as React text, but the scan is linear and can't reintroduce the
+ * sequence, so there is nothing to argue about. Whole lines go, which suits the
+ * documented format: the comment is a block of its own.
+ */
+function dropCommentLines(markdown: string): string {
+  const kept: string[] = []
+  let inComment = false
+
+  for (const line of markdown.split('\n')) {
+    if (inComment) {
+      if (line.includes('-->')) inComment = false
+      continue
+    }
+    if (line.trimStart().startsWith('<!--')) {
+      inComment = !line.includes('-->')
+      continue
+    }
+    kept.push(line)
+  }
+
+  return kept.join('\n')
+}
+
+/**
  * Parse one of the repo-root prose documents (`ABOUT_JRVS.md`,
  * `LLM_STATEMENT.md`) into its heading + paragraphs.
  *
@@ -16,9 +47,7 @@ export type MarkdownSectionContent = {
  * to one would render as literal text rather than silently breaking.
  */
 export function parseMarkdownSection(markdown: string): MarkdownSectionContent {
-  const withoutComments = markdown.replace(/<!--[\s\S]*?-->/g, '')
-
-  const blocks = withoutComments
+  const blocks = dropCommentLines(markdown)
     .split(/\n\s*\n/)
     .map((block) => block.trim())
     .filter(Boolean)

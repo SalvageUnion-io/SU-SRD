@@ -27,6 +27,23 @@ describe('parseMarkdownSection', () => {
   test('tolerates a file with no heading', () => {
     expect(parseMarkdownSection('just prose')).toEqual({ heading: '', paragraphs: ['just prose'] })
   })
+
+  test('drops a multi-line comment block even when blank lines split it', () => {
+    const { heading, paragraphs } = parseMarkdownSection(
+      '<!--\n  note\n\n  more note\n-->\n\n# Head\n\nbody\n'
+    )
+    expect(heading).toBe('Head')
+    expect(paragraphs).toEqual(['body'])
+  })
+
+  test('never partially removes a comment span, so nothing can be spliced', () => {
+    // A single `<!--[\s\S]*?-->` replace turns this into a fresh `<!--`, by
+    // cutting the inner span out and joining the text either side of it. Whole
+    // lines are kept or dropped here, so the line survives verbatim and is
+    // rendered as literal text.
+    const line = '<!<!-- comment -->-- still here'
+    expect(parseMarkdownSection(line).paragraphs).toEqual([line])
+  })
 })
 
 describe('the repo-root prose documents', () => {
