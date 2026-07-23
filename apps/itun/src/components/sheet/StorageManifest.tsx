@@ -43,12 +43,31 @@
  */
 
 import { useId, useState } from 'react'
-import { Badge, Button, Card, Input, SlotGrid, Stat } from 'component-lib'
+import { Badge, Button, Card, Input, SlotGrid, Stat, toast } from 'component-lib'
 
+import type { CargoTransferResult } from '../../lib/cargo/cargoTransfer'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
 import { makeUnitLot, totalLotUnits } from '../../lib/schemas/cargoLot'
 import { cn } from '../../lib/utils'
+
+/**
+ * Every cargo move can REFUSE — no crawler linked, over the mech's cap, or a
+ * patch that failed its schema parse. Discarding the result would leave the
+ * player staring at a button that silently did nothing, so route each dispatch
+ * through here and surface the reason.
+ */
+function report(pending: Promise<CargoTransferResult>): void {
+  void pending.then((result) => {
+    if (!result.ok) toast.error(result.reason)
+  })
+}
+
+/** A slot cost is a non-negative INTEGER (`CargoLotSchema.units` is `.int()`). */
+function coerceSlots(raw: string): number {
+  const parsed = Math.trunc(Number(raw))
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : 0
+}
 
 type StorageManifestSide = 'mech' | 'crawler'
 
@@ -195,8 +214,8 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
   const { label, disabledReason } = moveAffordance(lot, side, cargo, linked)
 
   function handleMove() {
-    if (side === 'mech') void cargo.stow(lot.id)
-    else void cargo.load(lot.id)
+    if (side === 'mech') report(cargo.stow(lot.id))
+    else report(cargo.load(lot.id))
   }
 
   const moveDisabled = disabledReason !== null
@@ -356,7 +375,7 @@ function HoldAdder({
   function commit() {
     const trimmed = name.trim()
     if (!trimmed) return
-    onAdd(makeUnitLot(trimmed, { units: Math.max(0, slots) }))
+    onAdd(makeUnitLot(trimmed, { units: coerceSlots(String(slots)) }))
     setName('')
     setSlots(1)
   }
@@ -385,9 +404,14 @@ function HoldAdder({
           id={slotsId}
           type="number"
           min={0}
+          step={1}
           value={slots}
           aria-label="New cargo slot cost"
-          onChange={(e) => setSlots(Math.max(0, Number(e.target.value)))}
+          // `CargoLotSchema.units` is `.int()`, and a `type="number"` field still
+          // accepts a typed "1.5". Without truncating here the lot fails its Zod
+          // parse on commit — and since the form clears itself immediately, the
+          // cargo would just vanish. Coerce at the edge instead.
+          onChange={(e) => setSlots(coerceSlots(e.target.value))}
           className={`${compactInput} w-14`}
         />
       </label>
@@ -505,7 +529,7 @@ export function StorageManifest({
                   cargo={cargo}
                   linked={linkedCounterpart !== null}
                   readOnly={readOnly}
-                  onRemove={() => void cargo.removeCrawlerLot(lot.id)}
+                  onRemove={() => report(cargo.removeCrawlerLot(lot.id))}
                 />
               ))}
             </ul>
@@ -520,7 +544,7 @@ export function StorageManifest({
                 cargo={cargo}
                 linked={linkedCounterpart !== null}
                 readOnly={readOnly}
-                onRemove={() => void cargo.removeMechLot(lot.id)}
+                onRemove={() => report(cargo.removeMechLot(lot.id))}
               />
             ))}
           </ul>
@@ -535,7 +559,7 @@ export function StorageManifest({
               verb={side === 'mech' ? 'Load' : 'Stow'}
               containerLabel={side === 'mech' ? 'mech hold' : 'Storage Bay'}
               onAdd={(lot) =>
-                side === 'mech' ? void cargo.addMechLot(lot) : void cargo.addCrawlerLot(lot)
+                side === 'mech' ? report(cargo.addMechLot(lot)) : report(cargo.addCrawlerLot(lot))
               }
             />
           </div>
