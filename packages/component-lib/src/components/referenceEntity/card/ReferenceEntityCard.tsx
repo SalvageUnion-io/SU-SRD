@@ -218,6 +218,19 @@ export type ReferenceEntityCardProps = {
   subtitleExtra?: ReactNode
   abilitiesSection?: ReactNode
   afterExtraContent?: ReactNode
+  /** ASIDE LEAD — opt in when this card's `afterExtraContent` is a SECTION of
+   * its own (the class pages' ability trees) rather than trailing body content.
+   * The artwork and flavour prose become a centred lead row and the trailing
+   * section spans the full width beneath, instead of wrapping the illustration.
+   *
+   * Explicit, NOT inferred from `afterExtraContent`: that slot is generic, and
+   * its other producer is a pattern's Systems/Modules loadout
+   * (`useChassisPatternConfig`). A pattern card renders with the CHASSIS as its
+   * `data`, so it inherits the chassis artwork and would otherwise satisfy an
+   * inferred gate — flipping every ITUN mech-wizard pattern card on an
+   * artwork-bearing chassis to a layout meant only for class pages. Only the
+   * class consumers set this. */
+  asideLead?: boolean
   afterChoicesContent?: ReactNode
   footerOverride?: ReactNode
   /** Write-layer: inline `[label value]` meta pairs (cost / SV) folded into the
@@ -380,6 +393,7 @@ function ReferenceEntityCardInner({
   subtitleExtra,
   abilitiesSection,
   afterExtraContent,
+  asideLead: asideLeadRequested = false,
   afterChoicesContent,
   footerOverride,
   footMeta,
@@ -1613,14 +1627,34 @@ function ReferenceEntityCardInner({
     !showImage && !isPattern ? nestedGroups.find((group) => group.label === 'NPCs') : undefined
   const anchorNpcEntities = npcGroup?.entities ?? []
   const hasAnchor = showImage || anchorNpcEntities.length > 0
-  const flat = hasAnchor
+  // ASIDE LEAD — an artwork card whose trailing section is a SECTION of its own
+  // (the class pages' ability trees). Those trees are their own grid of cards;
+  // letting them flow around the illustration reads as wrapped text, not as a
+  // section. So the artwork and the flavour prose become a centred two-column
+  // LEAD, and everything after it — the trailing section included — spans the
+  // full width beneath both. No float, so nothing wraps.
+  //
+  // The consumer OPTS IN via `asideLead`; it is never inferred from
+  // `afterExtraContent` being present. That slot is generic, and a pattern's
+  // Systems/Modules loadout fills it too — and since a pattern card renders
+  // with the CHASSIS as its `data`, it inherits the chassis artwork and would
+  // satisfy an inferred gate, dragging every artwork-chassis pattern card into
+  // a class-page layout. Artwork + a trailing section are still required: with
+  // neither there is no lead row to build.
+  const asideLead = asideLeadRequested && showImage && !!afterExtraContent
+  const flat = hasAnchor && !asideLead
   const inFlowGroups = (isPattern ? patternGroups : nestedGroups).filter(
     (group) => group !== npcGroup
   )
 
   const anchorNode: ReactNode =
     showImage && assetUrl ? (
-      <CardImage url={assetUrl} alt={`${entityName} illustration`} compact={compact} />
+      <CardImage
+        url={assetUrl}
+        alt={`${entityName} illustration`}
+        compact={compact}
+        aside={asideLead}
+      />
     ) : anchorNpcEntities.length > 0 ? (
       <div className="mb-1.5 w-full shrink-0 md:float-right md:w-1/2 md:max-w-full md:pl-3">
         {anchorNpcEntities.map((npc, index) => (
@@ -1692,12 +1726,23 @@ function ReferenceEntityCardInner({
             isDown && 'opacity-60'
           )}
         >
-          {anchorNode}
           {/* The interleave walk builds the WHOLE body — content segments (via
               Content) with choice cards dropped in at their
               markers — in both read-only and editable. Content gets a clear gap
-              (mb-3) before nested-card sections. */}
-          {bodyNodes.length > 0 && <>{bodyNodes}</>}
+              (mb-3) before nested-card sections.
+              In ASIDE LEAD the anchor and that prose are a centred row; otherwise
+              the anchor floats and the prose flows around it, as before. */}
+          {asideLead ? (
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+              {anchorNode}
+              {bodyNodes.length > 0 && <div className="min-w-0 flex-1">{bodyNodes}</div>}
+            </div>
+          ) : (
+            <>
+              {anchorNode}
+              {bodyNodes.length > 0 && <>{bodyNodes}</>}
+            </>
+          )}
           {/* CATALOG grant-lead prose — a grant-equipment ability's tile has no
               own body, so show the granted entity's opening description here,
               styled through Content to match the tile's other body prose. */}

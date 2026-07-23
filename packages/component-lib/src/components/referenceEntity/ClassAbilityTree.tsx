@@ -98,6 +98,9 @@ export function ClassAbilityTree({ classEntity, activeAbilityIds }: ClassAbility
 
   return (
     <div className="space-y-1.5">
+      {/* The trees are a full-width section of their own beneath the class
+          artwork + flavour, so they get a section Slab like any other group. */}
+      <Slab variant="dashed" label="Abilities" />
       {hasCoreTrees && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {trees.coreTrees.map((group) => (
