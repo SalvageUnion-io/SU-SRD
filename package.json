@@ -94,9 +94,7 @@
     "check:styling": "bun tools/check-styling-ownership.ts",
     "check:all": "bun run check:schemas && concurrently -g 'bun run lint' 'bun run format:check' && bun run typecheck && concurrently -g 'bun run test' 'bun run validate:all' 'bun run knip' 'bun run check:audit' 'bun run check:tokens' 'bun run check:styling'",
     "fix:all": "bun run lint -- --write && bun run format",
-    "ladle": "bun --filter component-lib ladle",
-    "ladle:web": "bun --filter srd ladle",
-    "ladle:itun": "bun --filter itun ladle"
+    "ladle": "bun --filter component-lib ladle"
   },
   "patchedDependencies": {
     "@ladle/react@5.1.1": "patches/@ladle%2Freact@5.1.1.patch"

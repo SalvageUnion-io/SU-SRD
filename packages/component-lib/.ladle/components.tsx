@@ -9,7 +9,7 @@ import '../src/styles/ladle.css'
  * Ladle's router dynamically imports that story's chunk. Without a preload
  * gate ahead of that import, every model access throws "Schema not loaded"
  * (see salvageunion-reference's LazyModel guard) and the story renders
- * nothing — silently blank, not an error page. `apps/in-the-union-now`'s
+ * nothing — silently blank, not an error page. `apps/itun`'s
  * `GameDataReady` and `apps/srd`'s `useGameData` use the same
  * `use()` + `Suspense` gate for the same reason; mirrored here so Ladle
  * (and the visual-regression harness built on it) actually renders content.
