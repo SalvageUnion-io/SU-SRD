@@ -43,6 +43,7 @@ export function EntityCardStatBox({ stats, compact = false }: EntityCardStatBoxP
           onChange={stat.onChange}
           mode={stat.onChange ? editMode : 'read'}
           max={stat.outOfMax}
+          hoverText={stat.hoverText}
         />
       )
     }
@@ -59,6 +60,7 @@ export function EntityCardStatBox({ stats, compact = false }: EntityCardStatBoxP
         state={stat.state}
         mode={editMode}
         onChange={stat.onChange}
+        hoverText={stat.hoverText}
       />
     ) : (
       <Stat

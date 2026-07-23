@@ -262,6 +262,9 @@ function traitCells(traits: SURefObjectTrait[]): EntityCardSubHeaderCell[] {
     key: `trait-${trait.type}`,
     label: capitalize(trait.type),
     value: trait.amount != null ? String(trait.amount) : undefined,
+    // The trait line is a glossary of named rules — each name summons its own
+    // entry, the same as an in-prose `[[trait]]` reference.
+    entityRef: { schemaName: 'traits' as const, name: trait.type },
   }))
 }
 
@@ -1064,10 +1067,20 @@ function ReferenceEntityCardInner({
           : { value: d.value, scaled: false }
       const val = fmtDv({ value: scaled.value, unit: d.unit })
       const changed = baseDvMap.get(String(d.label).toLowerCase()) !== val || scaled.scaled
+      // A datavalue that IS a named rules term (`type: "trait" | "keyword"`)
+      // keeps its glossary hovercard — the legacy sub-header resolved exactly
+      // these two types against the traits / keywords schemas.
+      const refSchema =
+        d.type === 'trait'
+          ? ('traits' as const)
+          : d.type === 'keyword'
+            ? ('keywords' as const)
+            : undefined
       return {
         key: `dv-${d.label}`,
         label: String(d.label),
         value: val,
+        ...(refSchema ? { entityRef: { schemaName: refSchema, name: String(d.label) } } : {}),
         ...(changed ? { borderColor: MODIFIED } : {}),
       }
     })
