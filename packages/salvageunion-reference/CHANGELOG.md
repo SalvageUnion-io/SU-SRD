@@ -7,6 +7,61 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.3.5...salvageunion-reference-v2.4.0) (2026-07-23)
+
+
+### Features
+
+* **architecture:** mechanically enforce architecture invariants (Biome + supplementary scripts) ([#387](https://github.com/SalvageUnion-io/SU-SRD/issues/387)) ([9bb37d2](https://github.com/SalvageUnion-io/SU-SRD/commit/9bb37d259cf57a2f5f6470fa94661034dad3eae5))
+* **assets:** unify artwork on WebP, shrink about-page map ([#321](https://github.com/SalvageUnion-io/SU-SRD/issues/321)) ([f94082a](https://github.com/SalvageUnion-io/SU-SRD/commit/f94082aeaa8639b5109de65756a005dc009ddaac))
+* audit sweep — 13 high-priority UX/DX/gameplay fixes across ITUN, suref-web, bot, packages ([#366](https://github.com/SalvageUnion-io/SU-SRD/issues/366)) ([04b854f](https://github.com/SalvageUnion-io/SU-SRD/commit/04b854fe9f5563f0f5b94bb84f696df434776281))
+* audit sweep — 30 high-impact changes across ITUN, suref-web, bot, and packages ([#334](https://github.com/SalvageUnion-io/SU-SRD/issues/334)) ([afddf9d](https://github.com/SalvageUnion-io/SU-SRD/commit/afddf9d7530d41891b2da1a634682db49dece24a))
+* derived release changelogs + ref public-surface gate (ADR-024/025) ([#472](https://github.com/SalvageUnion-io/SU-SRD/issues/472)) ([4f10b63](https://github.com/SalvageUnion-io/SU-SRD/commit/4f10b63a069214f41d6a84625c785a9785e658a9))
+* high-value batch — ITUN cross-links/Sentry, suref-web e2e/Sentry, bot tests, CI (Dependabot/CodeQL/coverage/visual), package hardening ([#339](https://github.com/SalvageUnion-io/SU-SRD/issues/339)) ([1131678](https://github.com/SalvageUnion-io/SU-SRD/commit/1131678cee9c0bcec74685f73e5e5105ca02f811))
+* **itun:** built-in Starter Set workspace (Reclamation of the Wastes roster) ([698d36e](https://github.com/SalvageUnion-io/SU-SRD/commit/698d36e828b7be6a34300d51be04bdad7a9d44a0))
+* **itun:** built-in Starter Set workspace (Reclamation of the Wastes roster) ([#371](https://github.com/SalvageUnion-io/SU-SRD/issues/371)) ([698d36e](https://github.com/SalvageUnion-io/SU-SRD/commit/698d36e828b7be6a34300d51be04bdad7a9d44a0))
+* **itun:** close rules-vs-ITUN gaps (Phases 0-2) ([eef9059](https://github.com/SalvageUnion-io/SU-SRD/commit/eef90595411eda76c11faf79ddb1ec411588b187))
+* **itun:** crawler wizard — book-order steps + type/weapon/SP enforcement (Phase 5) ([#426](https://github.com/SalvageUnion-io/SU-SRD/issues/426)) ([3b9680e](https://github.com/SalvageUnion-io/SU-SRD/commit/3b9680e96a8ab4431f4d64a1ce316cc020734f64))
+* **itun:** mech wizard — book-order steps + 20-Scrap budget enforcement (Phase 4) ([#422](https://github.com/SalvageUnion-io/SU-SRD/issues/422)) ([cf2b587](https://github.com/SalvageUnion-io/SU-SRD/commit/cf2b58712830e198927b662f4acd1759dc71427f))
+* **itun:** model Eldridge Coast companions as equipment loadouts (2/2) ([#464](https://github.com/SalvageUnion-io/SU-SRD/issues/464)) ([c18d6a5](https://github.com/SalvageUnion-io/SU-SRD/commit/c18d6a54d90a6960e15b3ea3840bf49f120401f8))
+* **itun:** pilot wizard — book-order steps + hard creation enforcement (Phase 3) ([#421](https://github.com/SalvageUnion-io/SU-SRD/issues/421)) ([0c566d8](https://github.com/SalvageUnion-io/SU-SRD/commit/0c566d8b1712d2f94d75c411cf3c519e1b2691ea))
+* **itun:** rebuild in-the-union-now as a local-first app; remove itun-legacy ([#239](https://github.com/SalvageUnion-io/SU-SRD/issues/239)) ([c162917](https://github.com/SalvageUnion-io/SU-SRD/commit/c162917be8f9c900c3320e021d3f1051e0b5840b))
+* **itun:** single-surface live sheets — poster redesign + section-based editing ([#395](https://github.com/SalvageUnion-io/SU-SRD/issues/395)) ([daaead6](https://github.com/SalvageUnion-io/SU-SRD/commit/daaead69fe374f12503d91c7ddcb48a1724718ce))
+* **itun:** sum installed system/module stat bonuses into mech derived maxima ([#327](https://github.com/SalvageUnion-io/SU-SRD/issues/327)) ([bcc73e2](https://github.com/SalvageUnion-io/SU-SRD/commit/bcc73e25f7a457f4aeaa4ee476df9993d0c5e625))
+* migrate entity artwork off Supabase to Netlify Blobs ([#298](https://github.com/SalvageUnion-io/SU-SRD/issues/298)) ([8b678bb](https://github.com/SalvageUnion-io/SU-SRD/commit/8b678bbdd0e189eb2d7c45dd3a6d87caaa5c9720))
+* PASS sprint + suref-web cleanup ([#170](https://github.com/SalvageUnion-io/SU-SRD/issues/170)) ([199e86f](https://github.com/SalvageUnion-io/SU-SRD/commit/199e86fd243d894c4f3dab0ce2d071fe10c3171a))
+* **reference:** model vehicle loadouts as actions, not installable systems ([#269](https://github.com/SalvageUnion-io/SU-SRD/issues/269)) ([f4a49fe](https://github.com/SalvageUnion-io/SU-SRD/commit/f4a49fed3e1e55c21a40fb8aef95aec94ff2638b))
+* **salvageunion-reference:** add expansion crawler bays ([#266](https://github.com/SalvageUnion-io/SU-SRD/issues/266)) ([0585206](https://github.com/SalvageUnion-io/SU-SRD/commit/05852064b29b09fc9978a561c5573d710abcbc0b))
+* **salvageunion-reference:** move Tier 1/2 rules modules into the package (ADR-006) ([#382](https://github.com/SalvageUnion-io/SU-SRD/issues/382)) ([52eb79c](https://github.com/SalvageUnion-io/SU-SRD/commit/52eb79ca2a0a87b60af766f6dceb1664d90baba1))
+* **salvageunion-reference:** unified validation runner + CST-preserving data editor ([#381](https://github.com/SalvageUnion-io/SU-SRD/issues/381)) ([56f0faa](https://github.com/SalvageUnion-io/SU-SRD/commit/56f0faaf56f1fe264ef6d5d8c829970ec6fbc057))
+* SRD audit remediation — licensing, data fidelity, search/UX, SEO/perf/PWA, DX ([#268](https://github.com/SalvageUnion-io/SU-SRD/issues/268)) ([ab3648e](https://github.com/SalvageUnion-io/SU-SRD/commit/ab3648edc37905d02e4a20680d5cf31b15e03ad9))
+* **suref-react,suref-web:** SRD + shared design-system restyle ([#260](https://github.com/SalvageUnion-io/SU-SRD/issues/260)) ([1072bb2](https://github.com/SalvageUnion-io/SU-SRD/commit/1072bb224512981fb6b5b468c04284ba679e7453))
+* **suref-web:** add /schema/v1 JSON API endpoints ([#107](https://github.com/SalvageUnion-io/SU-SRD/issues/107)) ([d9922ae](https://github.com/SalvageUnion-io/SU-SRD/commit/d9922ae4dfbc95e5d3a0510586d3d49c18eb7d47))
+* **suref-web:** filter abilities by tree ([#459](https://github.com/SalvageUnion-io/SU-SRD/issues/459)) ([5f747f3](https://github.com/SalvageUnion-io/SU-SRD/commit/5f747f347d2cca546556e36f54204149e339c5e7))
+* **suss:** archive Salvage Union Starter Set content ([#180](https://github.com/SalvageUnion-io/SU-SRD/issues/180)) ([2cfae8d](https://github.com/SalvageUnion-io/SU-SRD/commit/2cfae8dee9bc1e10c478b649284290e7c01acce5))
+* **titans:** equip Iron Lady with mech modules and theme new sources ([#181](https://github.com/SalvageUnion-io/SU-SRD/issues/181)) ([edb63d7](https://github.com/SalvageUnion-io/SU-SRD/commit/edb63d71973ee4b0cd006ae00a553ccbeceeaf3c))
+
+
+### Bug Fixes
+
+* actions audit — data quality and PDF accuracy fixes ([b2ff5b7](https://github.com/SalvageUnion-io/SU-SRD/commit/b2ff5b71780f73165d89c36b7ec784932d9aa0d7))
+* **data:** remove broken Elite Blade Squad asset_url ([#299](https://github.com/SalvageUnion-io/SU-SRD/issues/299)) ([f846fa0](https://github.com/SalvageUnion-io/SU-SRD/commit/f846fa044de771c24137ee22d56d79cc8d99bbeb))
+* **data:** update Wader chassis stats to Rainmaker 2.0a ([#337](https://github.com/SalvageUnion-io/SU-SRD/issues/337)) ([9617842](https://github.com/SalvageUnion-io/SU-SRD/commit/9617842818b4d9e780e9c994ad2dc2bc312a061d))
+* **itun:** heat check trigger fires unconditionally ([dbf472f](https://github.com/SalvageUnion-io/SU-SRD/commit/dbf472ff2c6a9c31d37fed97e8c118ec28b1375f)), closes [#174](https://github.com/SalvageUnion-io/SU-SRD/issues/174)
+* **itun:** pilot armor reduces HP damage in cascade calc ([3ad5776](https://github.com/SalvageUnion-io/SU-SRD/commit/3ad5776e392eb1e553939e20dca8e77b5e0a434d)), closes [#175](https://github.com/SalvageUnion-io/SU-SRD/issues/175)
+* **itun:** seed only base crawler bays on new crawlers ([#325](https://github.com/SalvageUnion-io/SU-SRD/issues/325)) ([7fbdfa4](https://github.com/SalvageUnion-io/SU-SRD/commit/7fbdfa4a770ffcd5dd44fce4d633f61619721f84))
+* **reference:** add missing Fabrication Bay options ([#290](https://github.com/SalvageUnion-io/SU-SRD/issues/290)) ([210042c](https://github.com/SalvageUnion-io/SU-SRD/commit/210042c9618e0a815ed07906b7256111b1b63621))
+* **reference:** align Adv. Epoxy Applicator self-action name for bubble-up ([#293](https://github.com/SalvageUnion-io/SU-SRD/issues/293)) ([df60536](https://github.com/SalvageUnion-io/SU-SRD/commit/df605366396dbbc00a439aa37a45b66cf6ff1fdc))
+* **reference:** remove spurious 2 AP cost from First Aid Kit ([#288](https://github.com/SalvageUnion-io/SU-SRD/issues/288)) ([ce25085](https://github.com/SalvageUnion-io/SU-SRD/commit/ce25085c6ee060cee690e509ef1380cc6183386b))
+* render mech action/ability costs as EP by source (Auto-Doctor + chassis) ([#274](https://github.com/SalvageUnion-io/SU-SRD/issues/274)) ([9566eb0](https://github.com/SalvageUnion-io/SU-SRD/commit/9566eb0349b6ebe3282ee7a167dbfc2c96866f28))
+* **salvageunion-reference:** add missing Smuggler hybrid class to classes.json ([a8d579e](https://github.com/SalvageUnion-io/SU-SRD/commit/a8d579e344e3a62caf65327fa38fb6be88f07c6e))
+* **salvageunion-reference:** full copy audit — 120 fixes across all source PDFs ([13d8fe3](https://github.com/SalvageUnion-io/SU-SRD/commit/13d8fe359230609c95f4ee2ebf89a4b4c14e801b))
+* **salvageunion-reference:** resolve CodeQL js/polynomial-redos in nameToSlug ([#384](https://github.com/SalvageUnion-io/SU-SRD/issues/384)) ([a3302ed](https://github.com/SalvageUnion-io/SU-SRD/commit/a3302ed78fe6e1a00d5afde1418e066bf4bfc691))
+* skip prepare script in CI to fix Render deployment ([1c8ecc3](https://github.com/SalvageUnion-io/SU-SRD/commit/1c8ecc3f01d2c7d3e24a88f4ca26b4dc6098c1a3))
+* **suref-react:** drive Legal Starting Pattern badge from data tag ([#292](https://github.com/SalvageUnion-io/SU-SRD/issues/292)) ([09d0745](https://github.com/SalvageUnion-io/SU-SRD/commit/09d0745dfe788ea6dab120d8d4ba2a992b7a785d))
+* **suref-web:** eliminate Zod JIT eval to satisfy strict CSP ([#283](https://github.com/SalvageUnion-io/SU-SRD/issues/283)) ([2693869](https://github.com/SalvageUnion-io/SU-SRD/commit/26938696fb4b17aa0869ece9f47ea4921479f331))
+* use --ignore-scripts for Render build to avoid lifecycle failures ([a5c3857](https://github.com/SalvageUnion-io/SU-SRD/commit/a5c3857e16d2c2d735fe2f609d9fde587eb2d19b))
+
 ## [2.0.1] - 2025-01-13
 
 ### Fixed
