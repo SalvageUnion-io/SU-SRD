@@ -32,7 +32,16 @@ type EntityTooltipProps = EntityTooltipBase &
  * EntityTooltip already had.
  */
 function resolveIdByName(schemaName: SURefEnumSchemaName, name: string): string | undefined {
-  const entity = SalvageUnionReference.findIn(schemaName, (e) => 'name' in e && e.name === name)
+  // Case-INSENSITIVE, like every other name→entity lookup in the library
+  // (`parseTraitReferences`, `Stat`'s `entityTooltip`). Callers address entities
+  // with the name as it reads on the surface — a capitalised trait type
+  // ("Explosive") against a stored name that may be cased differently — and an
+  // exact match silently dropped the hovercard on exactly those.
+  const target = name.toLowerCase()
+  const entity = SalvageUnionReference.findIn(
+    schemaName,
+    (e) => 'name' in e && String(e.name).toLowerCase() === target
+  )
   return entity?.id
 }
 

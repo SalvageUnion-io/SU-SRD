@@ -28,6 +28,20 @@ describe('Changelog', () => {
     expect(screen.getByText('Fixed a typo')).toBeTruthy()
   })
 
+  test('each entry is a Card, not a bespoke panel', () => {
+    // The listing composes the shared card shell, so it inherits the card
+    // language (seam stamp, frame weight, header band) instead of restating it.
+    const entries: ChangelogEntry[] = [
+      { date: '2026-07-20', version: '1.2.3', area: 'Data', items: ['Added a chassis'] },
+    ]
+    const { container } = render(<Changelog entries={entries} />)
+    const frame = container.querySelector('li > div')
+    expect(frame?.className).toContain('rounded-card')
+    // Card draws its frame as longhand inline style off the border glossary;
+    // `chrome` is the sub-panel weight this listing asks for.
+    expect(frame?.getAttribute('style')).toContain('var(--bw-chrome)')
+  })
+
   test('uses the title as the headline for historical (unversioned) entries', () => {
     const entries: ChangelogEntry[] = [
       { date: '2026-07-14', title: 'Support on Ko-fi', area: 'Site', items: ['Added a link'] },

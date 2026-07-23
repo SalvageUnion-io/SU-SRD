@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import type { ReactElement } from 'react'
 import { SalvageUnionReference, EntitySchemaNames } from 'salvageunion-reference'
 import type { EntitySchemaName, SURefEnumSchemaName } from 'salvageunion-reference'
 import { cn } from '../../utils/cn'
@@ -183,6 +184,10 @@ type HorizontalValueProps = Exact<{
   /** When set, wrap the cell in the entity/keyword hover-tooltip (resolves
    * `label` within `schemaName`); unresolved refs render plain (no tooltip). */
   entityTooltip?: { schemaName: SURefEnumSchemaName; label: StatValue }
+  /** Plain-text hover explanation (the stat's glossary line). Same contract as
+   * the value box's `hoverText` — a compact header cell states the SAME stat as
+   * the full box, so it must be able to explain itself too. */
+  hoverText?: string
   className?: string
 }>
 
@@ -289,6 +294,7 @@ function HorizontalValue({
   min = 0,
   step = 1,
   stepperLabel,
+  hoverText,
   className,
 }: HorizontalValueProps) {
   const fontSize = size === 'mini' ? 'text-label' : size === 'compact' ? 'text-xs' : 'text-sm'
@@ -300,6 +306,13 @@ function HorizontalValue({
   // ring would double it, so both halves suppress it with `ring-0`.
   const plate = 'ring-0 leading-none'
 
+  // The hover explanation rides the OUTERMOST node of whichever anatomy we
+  // return, so it works on the bare cell, the running-text finish and the
+  // cell+stepper cluster alike. `Tooltip` is already inert inside a hovercard
+  // (InsideTooltipContext), so nested cards need no extra suppression here.
+  const withHover = (node: ReactElement) =>
+    hoverText ? <Tooltip content={hoverText}>{node}</Tooltip> : node
+
   // PLAIN material — running text (`SP 9/13`). No plate, no border, no radius;
   // an inert inline `<span>` so it neither breaks the line's flow nor changes
   // how the surrounding sentence wraps. The reading (value AND `/max`) is one
@@ -310,7 +323,7 @@ function HorizontalValue({
   // a cell with an edge, not to a word in a sentence, so `mode="edit"` has no
   // plain rendering (use the plate material when the stat is editable).
   if (surface === 'plain') {
-    return (
+    return withHover(
       <span className={className}>
         {label}
         {value !== undefined && (
@@ -390,7 +403,7 @@ function HorizontalValue({
   // right. Read-only (no edit / no onChange) returns the bare cell, unchanged.
   const numericValue = typeof value === 'number' ? value : Number(value)
   const canEdit = mode === 'edit' && onChange !== undefined && Number.isFinite(numericValue)
-  if (!canEdit) return cell
+  if (!canEdit) return withHover(cell)
 
   const atMin = numericValue <= min
   const atMax = max !== undefined && numericValue >= max
@@ -403,7 +416,7 @@ function HorizontalValue({
     'flex min-h-11 items-center justify-center rounded-badge border border-ink font-body font-bold leading-none transition-colors sm:min-h-0'
 
   const stepName = stepperLabel ?? label
-  return (
+  return withHover(
     <span className="inline-flex w-fit items-stretch gap-0.5">
       {cell}
       <button

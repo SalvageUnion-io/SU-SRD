@@ -1,5 +1,4 @@
-import { Badge } from '../components/chrome/Badge'
-import { Panel } from '../components/chrome/Panel'
+import { Card } from '../components/shared/Card'
 import { cn } from '../utils/cn'
 import type { ChangelogEntry } from './parseChangelog'
 
@@ -14,9 +13,23 @@ function entryHeadline(entry: ChangelogEntry): string {
 }
 
 /**
- * Presentational, data-source-agnostic changelog renderer. Each entry is a
- * paper panel with a headline (version or title), a muted date, an area badge,
- * and a semantic bullet list. Shared by both sites so they render identically.
+ * Presentational, data-source-agnostic changelog renderer. Shared by both sites
+ * so they render identically.
+ *
+ * Each entry is a **`Card`** — the generic four-band container — not a bespoke
+ * listing. It previously hand-assembled a `Panel` around its own header row
+ * (heading + `Badge` + `<time>`), which is the exact shape Card already models:
+ * the area is the card's SEAM stamp (`label`), the version/title is the header
+ * band, and the bullets are the body. Rebuilding that by hand meant the
+ * changelog drifted from every other listing surface in the apps — its frame
+ * weight, radius, seam placement and header padding were all set independently
+ * of the card language rather than inherited from it.
+ *
+ * The rungs it picks: `size="medium"` (this is a LIST of entries, so it takes
+ * the listing density, not the dominant solo scale), `frame="chrome"` for the
+ * 1.5px sub-panel weight the changelog has always had, and no `headerBg` — the
+ * band stays on paper, so an entry reads as the quiet, chrome-level listing it
+ * is rather than a toned entity card.
  */
 export function Changelog({ entries, className }: ChangelogProps) {
   if (entries.length === 0) {
@@ -31,21 +44,26 @@ export function Changelog({ entries, className }: ChangelogProps) {
     <ol className={cn('flex list-none flex-col gap-4', className)}>
       {entries.map((entry, index) => (
         <li key={`${entry.area}-${entry.date}-${entry.version ?? entry.title ?? index}`}>
-          <Panel className="p-4">
-            <div className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <h3 className="font-cond text-lg font-bold uppercase leading-tight tracking-caps-tight text-ink">
-                {entryHeadline(entry)}
-              </h3>
-              <Badge surface="outline" className="shrink-0">
-                {entry.area}
-              </Badge>
-              <time
-                dateTime={entry.date}
-                className="ml-auto font-body text-xs text-wk-muted tabular-nums"
-              >
-                {entry.date}
-              </time>
-            </div>
+          <Card
+            label={entry.area}
+            size="medium"
+            frame="chrome"
+            borderColor="var(--color-ink)"
+            bodyPadding="px-4 pb-3 pt-1"
+            headerContent={
+              <>
+                <h3 className="font-cond text-lg font-bold uppercase leading-tight tracking-caps-tight text-ink">
+                  {entryHeadline(entry)}
+                </h3>
+                <time
+                  dateTime={entry.date}
+                  className="ml-auto font-body text-xs text-wk-muted tabular-nums"
+                >
+                  {entry.date}
+                </time>
+              </>
+            }
+          >
             {entry.items.length > 0 && (
               <ul className="ml-4 list-disc space-y-1 font-body text-sm text-ink-2 marker:text-wk-muted">
                 {entry.items.map((item) => (
@@ -53,7 +71,7 @@ export function Changelog({ entries, className }: ChangelogProps) {
                 ))}
               </ul>
             )}
-          </Panel>
+          </Card>
         </li>
       ))}
     </ol>

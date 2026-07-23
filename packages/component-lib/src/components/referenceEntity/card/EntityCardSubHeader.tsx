@@ -1,5 +1,8 @@
+import { Fragment } from 'react'
 import type { ReactNode } from 'react'
+import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
+import { EntityTooltip } from '../EntityTooltip'
 
 /** One sub-header cell — a horizontal Stat `[label | value]` (value
  * optional for label-only keywords, e.g. "Immobile"). The MODIFIED-STATS language
@@ -13,6 +16,13 @@ export type EntityCardSubHeaderCell = {
   borderColor?: string
   /** Raw CSS colour for the label fill — marks an added/modified trait. */
   labelBg?: string
+  /**
+   * The rules entity this cell NAMES — a trait ("Explosive"), a keyword. When
+   * set, the segment summons that entity's hovercard on hover, the same as an
+   * in-prose `[[trait]]` reference does. Unresolvable refs render as plain text,
+   * so a cell never loses its reading to a missing entity.
+   */
+  entityRef?: { schemaName: SURefEnumSchemaName; name: string }
 }
 
 type EntityCardSubHeaderProps = {
@@ -91,7 +101,27 @@ export function EntityCardSubHeader({
     if (isTrait || isNumeric) return `${cell.label} (${cell.value})`
     return `${cell.label} ${cell.value}`
   }
-  const parts = cells.map(cellToText)
+  // Each cell is still ONE segment of the book's trait line, but a segment that
+  // NAMES a rules entity keeps that entity's hovercard — the affordance the
+  // per-cell stamps used to carry, and that an in-prose `[[trait]]` reference
+  // still carries. Flattening the row to a single string had silently dropped
+  // it, so a card's own traits were the one place the glossary was unreachable.
+  const parts = cells.map((cell) => {
+    const text = cellToText(cell)
+    if (!cell.entityRef) return { key: cell.key, node: text as ReactNode }
+    return {
+      key: cell.key,
+      node: (
+        <EntityTooltip
+          schemaName={cell.entityRef.schemaName}
+          entityName={cell.entityRef.name}
+          openDelay={300}
+        >
+          <span className="cursor-help">{text}</span>
+        </EntityTooltip>
+      ) as ReactNode,
+    }
+  })
 
   return (
     <div
@@ -116,7 +146,12 @@ export function EntityCardSubHeader({
             compact ? 'text-xs' : 'text-sm'
           )}
         >
-          {parts.join(' // ')}
+          {parts.map((part, i) => (
+            <Fragment key={part.key}>
+              {i > 0 && ' // '}
+              {part.node}
+            </Fragment>
+          ))}
         </span>
       )}
     </div>
