@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { ReactNode } from 'react'
 import type {
   SURefEntity,
@@ -51,8 +50,7 @@ import { Content } from '../Content'
 import { ChoiceGroups } from '../choiceCard/ChoiceGroups'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
-import { EntityDetailDialog } from '../EntityDetailDialog'
-import { useEntityExternalLink, usePatternExternalLink } from '../entityHrefContext'
+import { useEntityExternalLink, usePatternHref } from '../entityHrefContext'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { accentDeepColor, accentSurface, borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
@@ -402,10 +400,6 @@ function ReferenceEntityCardInner({
   // unconditionally on every render. The app-facing builder contract stays
   // `SURefEntity` — the same boundary cast as `entity` above.
   const externalLinkNode = useEntityExternalLink(data as SURefEntity)
-  // A PATTERN's own page link — same foot-band slot, but addressed by
-  // (chassis, pattern) because a pattern is not an entity. Read here for the
-  // same unconditional-hook reason as the line above.
-  const patternLinkNode = usePatternExternalLink(data as SURefEntity, pattern)
   const schemaName = (
     'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
   ) as SURefEnumSchemaName | 'actions' | undefined
@@ -1820,9 +1814,7 @@ function ReferenceEntityCardInner({
                 booklet={getBooklet(entity)}
                 page={getPageReference(entity)}
                 footMeta={footMeta}
-                externalLink={
-                  extent === 'full' ? (isPattern ? patternLinkNode : externalLinkNode) : undefined
-                }
+                externalLink={extent === 'full' ? externalLinkNode : undefined}
                 compact={compact}
               />
             )))}
@@ -1832,14 +1824,18 @@ function ReferenceEntityCardInner({
 }
 
 /**
- * `PatternListRow` — one row of a chassis card's Patterns list. A pattern has no
- * page of its own inside the card (its `data` IS the chassis), so the row opens
- * the FULL pattern view in a detail dialog rather than navigating: the same
- * "click the name, read the pattern" move every other nested entity gets.
+ * `PatternListRow` — one row of a chassis card's Patterns list, linking to the
+ * pattern's own page.
  *
- * It lives here, beside the recursive card, so the dialog's content is the very
- * same `ReferenceEntityCardInner` the row is a `head` of — no import cycle, and
- * no second pattern renderer to keep in step.
+ * A real `<a>`, not a click handler: a pattern page is a page like any other
+ * entity's, so the row has to open in a new tab on middle-click, show its
+ * destination on hover, and be followable by a crawler. The anchor carries the
+ * interaction; the card inside it takes `cardClickable` for the hover-lift
+ * affordance ONLY, which is why it doesn't also become a `role=button` nested
+ * inside a link.
+ *
+ * With no `PatternHrefProvider` above it (any app whose patterns have no pages)
+ * the row renders exactly as it always did — inert, not a link to nowhere.
  */
 function PatternListRow({
   chassis,
@@ -1854,30 +1850,27 @@ function PatternListRow({
   depth: number
   hostDown?: boolean
 }) {
-  const [open, setOpen] = useState(false)
-  const patternName = normalizePatternName(pattern.name)
+  const href = usePatternHref(chassis as SURefEntity, pattern)
+  const card = (
+    <ReferenceEntityCardInner
+      data={chassis}
+      pattern={pattern}
+      size="medium"
+      extent="head"
+      depth={depth}
+      hostDown={hostDown}
+      cardClickable={!!href}
+    />
+  )
+  if (!href) return card
   return (
-    <>
-      <ReferenceEntityCardInner
-        data={chassis}
-        pattern={pattern}
-        size="medium"
-        extent="head"
-        depth={depth}
-        hostDown={hostDown}
-        onCardClick={() => setOpen(true)}
-        cardClickLabel={`${patternName} — ${chassisName} pattern`}
-      />
-      <EntityDetailDialog
-        open={open}
-        onOpenChange={setOpen}
-        title={`${patternName} — ${chassisName} pattern`}
-      >
-        {/* depth 0 — the dialog shows the pattern as its own full card,
-            identity footer and all, exactly as its standalone page does. */}
-        <ReferenceEntityCardInner data={chassis} pattern={pattern} size="large" extent="full" />
-      </EntityDetailDialog>
-    </>
+    <a
+      href={href}
+      aria-label={`${normalizePatternName(pattern.name)} — ${chassisName} pattern`}
+      className={cn('block rounded-card', FOCUS_RING)}
+    >
+      {card}
+    </a>
   )
 }
 

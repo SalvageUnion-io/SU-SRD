@@ -57,29 +57,30 @@ export function useEntityExternalLink(entity: SURefEntity | undefined): ReactNod
 }
 
 /**
- * Builds the link node for a chassis PATTERN's own page. Patterns are nested
- * objects on a chassis, not entities — they have no id and no `schemaName`, so
- * `EntityExternalLinkBuilder` (which sees only the entity, i.e. the chassis)
- * cannot address one. This builder takes both halves of a pattern's identity,
- * and a full pattern card renders the result in its foot band in place of the
- * entity link. srd supplies it (its patterns DO have pages); apps that don't,
- * get nothing, exactly as before.
+ * Builds the href of a chassis PATTERN's own page. Patterns are nested objects
+ * on a chassis, not entities — they have no id and no `schemaName`, so
+ * `EntityHrefBuilder` (which sees only the entity, i.e. the chassis) cannot
+ * address one. This builder takes both halves of a pattern's identity.
+ *
+ * A chassis card's pattern rows become real links when it is provided. Apps
+ * whose patterns have no page (ITUN) provide nothing, and the rows stay inert
+ * rather than navigating somewhere that doesn't exist.
  */
-export type PatternExternalLinkBuilder = (
+export type PatternHrefBuilder = (
   chassis: SURefEntity,
   pattern: SURefObjectPattern
-) => ReactNode | undefined
+) => string | undefined
 
-const PatternExternalLinkContext = createContext<PatternExternalLinkBuilder | undefined>(undefined)
+const PatternHrefContext = createContext<PatternHrefBuilder | undefined>(undefined)
 
-/** Provide an app-specific pattern-page link builder to nested entity displays. */
-export const PatternExternalLinkProvider = PatternExternalLinkContext.Provider
+/** Provide an app-specific pattern-page href builder to nested entity displays. */
+export const PatternHrefProvider = PatternHrefContext.Provider
 
-/** Resolve a pattern's page link via the provided builder (undefined when none). */
-export function usePatternExternalLink(
+/** Resolve a pattern's page href via the provided builder (undefined when none). */
+export function usePatternHref(
   chassis: SURefEntity | undefined,
   pattern: SURefObjectPattern | undefined
-): ReactNode | undefined {
-  const builder = useContext(PatternExternalLinkContext)
+): string | undefined {
+  const builder = useContext(PatternHrefContext)
   return builder && chassis && pattern ? builder(chassis, pattern) : undefined
 }

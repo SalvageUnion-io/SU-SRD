@@ -7,11 +7,11 @@ import {
   ClassAbilityTree,
   EntityHrefProvider,
   EntityDetailLinkProvider,
-  PatternExternalLinkProvider,
+  PatternHrefProvider,
 } from 'component-lib'
 import { GameDataGate, useGameData, type SchemaList } from '../../lib/useGameData'
 import { srdEntityHref } from '../../lib/entityHref'
-import { srdPatternExternalLink } from './srdPatternExternalLink'
+import { srdPatternHref } from '../../lib/patternHref'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type ReferenceEntityIslandProps = {
@@ -72,11 +72,10 @@ export function ReferenceEntityIsland({
           <Suspense fallback={<Skeleton mode="card" compact={compact} />}>
             <EntityHrefProvider value={srdEntityHref}>
               <EntityDetailLinkProvider value={true}>
-                {/* The pattern-page link is offered on cards that CONTAIN a
-                    pattern view (a chassis's rows open one in a dialog), not on
-                    the pattern page itself — there it would link to the page
-                    the reader is already on. */}
-                <PatternExternalLinkProvider value={pattern ? undefined : srdPatternExternalLink}>
+                {/* Pattern rows on a chassis card link to the pattern's own
+                    page. Harmless on the pattern page itself, whose card is a
+                    pattern view and so carries no pattern list. */}
+                <PatternHrefProvider value={srdPatternHref}>
                   <ReferenceEntityCard
                     data={item}
                     pattern={pattern}
@@ -86,7 +85,7 @@ export function ReferenceEntityIsland({
                       classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
                     }
                   />
-                </PatternExternalLinkProvider>
+                </PatternHrefProvider>
               </EntityDetailLinkProvider>
             </EntityHrefProvider>
           </Suspense>

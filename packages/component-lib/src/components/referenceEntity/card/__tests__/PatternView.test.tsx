@@ -1,16 +1,20 @@
 /**
  * A chassis PATTERN has no entity of its own — it is a nested object on the
- * chassis, so its card's `data` IS the chassis. These tests pin the two things
- * that makes true of the UI:
+ * chassis, so its card's `data` IS the chassis. These tests pin the three
+ * things that makes true of the UI:
  *
- * 1. A pattern row in a chassis's Patterns list opens the full pattern view in a
- *    detail dialog (it can't navigate to an entity page it doesn't have).
- * 2. The full pattern view reads chassis prose → chassis ability → pattern prose
+ * 1. A pattern row in a chassis's Patterns list is a real link to that
+ *    pattern's own page, resolved through `PatternHrefProvider`.
+ * 2. With no provider (an app whose patterns have no pages) the row stays inert
+ *    rather than linking nowhere.
+ * 3. The full pattern view reads chassis prose → chassis ability → pattern prose
  *    → systems → modules, so the pattern is framed by the chassis it belongs to.
  */
 import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { cleanup, render, screen } from '@testing-library/react'
+import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import { PatternHrefProvider } from '../../entityHrefContext'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** The Mule — a chassis carrying patterns, a chassis ability and chassis prose. */
@@ -20,6 +24,10 @@ const mule = () => {
   return found
 }
 
+/** Stands in for srd's route builder. */
+const testPatternHref = (chassis: SURefEntity, pattern: SURefObjectPattern) =>
+  `/chassis/${'name' in chassis ? nameToSlug(String(chassis.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
+
 afterEach(cleanup)
 
 describe('chassis pattern rows', () => {
@@ -27,30 +35,27 @@ describe('chassis pattern rows', () => {
     await SalvageUnionReference.preload('all')
   })
 
-  test('every pattern row is an activatable control named for its pattern', () => {
+  test('each row links to its pattern page', () => {
     const chassis = mule()
-    render(<ReferenceEntityCard data={chassis} />)
+    render(
+      <PatternHrefProvider value={testPatternHref}>
+        <ReferenceEntityCard data={chassis} />
+      </PatternHrefProvider>
+    )
 
-    const rows = screen.getAllByRole('button', { name: /— Mule pattern$/ })
-    expect(rows.length).toBe(chassis.patterns?.length ?? 0)
-    expect(rows.length).toBeGreaterThan(0)
-    expect(screen.getByRole('button', { name: 'Hauler — Mule pattern' })).toBeDefined()
+    const links = screen.getAllByRole('link', { name: /— Mule pattern$/ })
+    expect(links.length).toBe(chassis.patterns?.length ?? 0)
+    expect(links.length).toBeGreaterThan(0)
+
+    const hauler = screen.getByRole('link', { name: 'Hauler — Mule pattern' })
+    expect(hauler.getAttribute('href')).toBe('/chassis/mule/pattern/hauler')
   })
 
-  test('clicking a pattern row opens the pattern in a dialog', () => {
-    const chassis = mule()
-    render(<ReferenceEntityCard data={chassis} />)
-
-    expect(screen.queryByRole('dialog')).toBeNull()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Hauler — Mule pattern' }))
-
-    const dialog = screen.getByRole('dialog')
-    expect(dialog).toBeDefined()
-    // The dialog holds the FULL pattern view: the pattern's own loadout, which
-    // the collapsed row never shows.
-    expect(dialog.textContent).toContain('Transport Hold')
-    expect(dialog.textContent).toContain('Hauler')
+  test('without a href builder the row is not a link', () => {
+    render(<ReferenceEntityCard data={mule()} />)
+    expect(screen.queryAllByRole('link', { name: /— Mule pattern$/ }).length).toBe(0)
+    // The row itself still renders — it just isn't navigable.
+    expect(screen.queryAllByText(/Hauler/).length).toBeGreaterThan(0)
   })
 })
 
