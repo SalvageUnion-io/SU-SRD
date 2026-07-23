@@ -1613,14 +1613,26 @@ function ReferenceEntityCardInner({
     !showImage && !isPattern ? nestedGroups.find((group) => group.label === 'NPCs') : undefined
   const anchorNpcEntities = npcGroup?.entities ?? []
   const hasAnchor = showImage || anchorNpcEntities.length > 0
-  const flat = hasAnchor
+  // ASIDE LEAD — an artwork card that also has a full-width trailing section
+  // (`afterExtraContent`, i.e. the class pages' ability trees). Those trees are
+  // their own grid of cards; letting them flow around the illustration reads as
+  // wrapped text, not as a section. So the artwork and the flavour prose become
+  // a centred two-column LEAD, and everything after it — the trailing section
+  // included — spans the full width beneath both. No float, so nothing wraps.
+  const asideLead = showImage && !!afterExtraContent
+  const flat = hasAnchor && !asideLead
   const inFlowGroups = (isPattern ? patternGroups : nestedGroups).filter(
     (group) => group !== npcGroup
   )
 
   const anchorNode: ReactNode =
     showImage && assetUrl ? (
-      <CardImage url={assetUrl} alt={`${entityName} illustration`} compact={compact} />
+      <CardImage
+        url={assetUrl}
+        alt={`${entityName} illustration`}
+        compact={compact}
+        aside={asideLead}
+      />
     ) : anchorNpcEntities.length > 0 ? (
       <div className="mb-1.5 w-full shrink-0 md:float-right md:w-1/2 md:max-w-full md:pl-3">
         {anchorNpcEntities.map((npc, index) => (
@@ -1692,12 +1704,23 @@ function ReferenceEntityCardInner({
             isDown && 'opacity-60'
           )}
         >
-          {anchorNode}
           {/* The interleave walk builds the WHOLE body — content segments (via
               Content) with choice cards dropped in at their
               markers — in both read-only and editable. Content gets a clear gap
-              (mb-3) before nested-card sections. */}
-          {bodyNodes.length > 0 && <>{bodyNodes}</>}
+              (mb-3) before nested-card sections.
+              In ASIDE LEAD the anchor and that prose are a centred row; otherwise
+              the anchor floats and the prose flows around it, as before. */}
+          {asideLead ? (
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+              {anchorNode}
+              {bodyNodes.length > 0 && <div className="min-w-0 flex-1">{bodyNodes}</div>}
+            </div>
+          ) : (
+            <>
+              {anchorNode}
+              {bodyNodes.length > 0 && <>{bodyNodes}</>}
+            </>
+          )}
           {/* CATALOG grant-lead prose — a grant-equipment ability's tile has no
               own body, so show the granted entity's opening description here,
               styled through Content to match the tile's other body prose. */}

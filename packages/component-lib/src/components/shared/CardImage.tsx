@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
+import { cn } from '../../utils/cn'
 
 type CardImageProps = {
   url?: string
   alt: string
   compact?: boolean
+  /**
+   * ASIDE mode: the image is a flex-row sibling of the body prose rather than a
+   * float, so the text sits centred beside it instead of wrapping around it.
+   * Used by cards whose trailing section (`afterExtraContent`) owns the full
+   * width beneath — see `ReferenceEntityCard`'s aside lead.
+   */
+  aside?: boolean
 }
 
 /**
@@ -21,7 +29,7 @@ type CardImageProps = {
  * capability this library has a consumer for; when one exists it should arrive
  * as a deliberate design with the danger tone resolved, not as a dormant branch.
  */
-export function CardImage({ url, alt, compact }: CardImageProps) {
+export function CardImage({ url, alt, compact, aside }: CardImageProps) {
   const [showImage, setShowImage] = useState(true)
   const [loaded, setLoaded] = useState(false)
   const imgRef = useRef<HTMLImageElement>(null)
@@ -56,7 +64,10 @@ export function CardImage({ url, alt, compact }: CardImageProps) {
 
   return (
     <div
-      className="mx-auto shrink-0 bg-paper align-top md:mx-0 md:float-left md:mr-4"
+      className={cn(
+        'mx-auto shrink-0 bg-paper align-top md:mx-0',
+        !aside && 'md:float-left md:mr-4'
+      )}
       style={{ width: containerWidth, maxWidth: '100%', shapeOutside: 'margin-box' }}
     >
       <div
