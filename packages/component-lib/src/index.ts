@@ -151,6 +151,9 @@ export type { EntityStatus } from './components/shared/entityStatus'
 export { parseChangelog, mergeChangelogs } from './changelog/parseChangelog'
 export { Changelog } from './changelog/Changelog'
 
+// Colophon (renders the repo-root ABOUT_JRVS.md + LLM_STATEMENT.md on both about pages)
+export { Colophon } from './components/shared/Colophon'
+
 // Stat trackers (ITUN design handoff — design-spec §2.7)
 export { VitalGauge } from './components/stat/VitalGauge'
 export { BayStatus } from './components/stat/BayStatus'

@@ -1,10 +1,19 @@
 ---
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { Image } from 'astro:assets'
-import { PageHeading } from 'component-lib'
+import { PageHeading, Slab } from 'component-lib'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import eldridgeCoastMap from '../assets/eldridge-coast-map.png'
-import { KofiButtonIsland } from '../components/islands/KofiButtonIsland'
+import { ColophonIsland } from '../components/islands/ColophonIsland'
 import { SITE_URL } from '../lib/constants'
+
+// The shared colophon prose, read at build time from the repo root so both this
+// site and ITUN render the same words. Same constraint as /changelog: Astro's
+// build pipeline rejects Vite `?raw` imports of `.md`, so this reads the files
+// via node:fs from the build working directory (the app root) instead.
+const aboutJrvsMd = readFileSync(resolve(process.cwd(), '../../ABOUT_JRVS.md'), 'utf8')
+const llmStatementMd = readFileSync(resolve(process.cwd(), '../../LLM_STATEMENT.md'), 'utf8')
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
 
@@ -95,8 +104,8 @@ const structuredData = {
       <PageHeading className="text-center">About the Salvage Union SRD</PageHeading>
 
       <!-- What is this? -->
-      <section class="text-sm leading-relaxed text-center">
-        <PageHeading variant="subheading" className="mb-2">What is this?</PageHeading>
+      <section class="text-sm leading-relaxed">
+        <Slab as="h2" variant="solid" label="What is this?" />
         <p class="mb-2">
           This is an unofficial, community-built System Reference Document (SRD) for{' '}
           <a
@@ -129,15 +138,8 @@ const structuredData = {
         </p>
       </section>
 
-      <!-- Support -->
-      <section class="text-sm leading-relaxed text-center">
-        <PageHeading variant="subheading" className="mb-2">Support the project</PageHeading>
-        <p class="mb-4">
-          This reference is free and open source. If it's been useful at your table, you can chip in
-          toward hosting and development.
-        </p>
-        <KofiButtonIsland client:visible />
-      </section>
+      <!-- Colophon: About the Dev + support | LLM Statement (shared with ITUN) -->
+      <ColophonIsland aboutMarkdown={aboutJrvsMd} llmMarkdown={llmStatementMd} client:visible />
     </div>
   </div>
 
