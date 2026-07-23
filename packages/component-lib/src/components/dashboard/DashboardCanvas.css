@@ -29,22 +29,21 @@
 }
 
 /*
- * KNOWN GAP — the letterbox fill.
+ * The ground is the host's own background (set in DashboardCanvas.tsx) and it
+ * fills correctly — verified by sampling the rendered pixels at 834x1112, where
+ * every point below the scaled canvas reads the ink-deep ground.
  *
- * The ground is painted as the host's own background (DashboardCanvas.tsx),
- * and the host's height is measured in JS as viewport-height-minus-top-offset.
- * At viewport sizes where the canvas is scaled down, that box does not always
- * reach the bottom of the screen, so a band of the page's own background shows
- * below the HUD. This was invisible while the ground was near-white paper — it
- * matched the page behind it — and only became visible when the ground went
- * dark.
+ * Recorded because a previous pass believed otherwise and left a "KNOWN GAP"
+ * note here claiming the letterbox showed bare page under the HUD. It does not.
+ * That came from misreading a screenshot: the pale band beneath the instruments
+ * is the DISPLAY panel (--color-paper), not the page. Two fixes were built for
+ * the imaginary defect and both were reverted — a `position: fixed` fill inside
+ * `.pc-root` (invisible at a negative z-index, covers the app header at a
+ * positive one) and a `body:has(.pc-root)` page ground (unnecessary; the
+ * control test paints identically without it).
  *
- * A viewport-anchored `position: fixed` fill was tried and reverted: at a
- * negative z-index the page background paints over it, and at a positive one it
- * covers the app header. The correct fix is to make the host's height honest
- * rather than to paint around it, which is a change to the scale/measure effect
- * and did not belong in this pass. Desktop sizes (1440, 1920, and short
- * viewports) are unaffected — the canvas fills the host there.
+ * `position: relative` above is the one survivor, and is retained on its own
+ * merit: the canvas is a positioned context for its instruments.
  */
 
 /* Fixed design canvas — scaled to fit by DashboardCanvas. Never scrolls. The

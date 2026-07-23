@@ -82,14 +82,14 @@ export function DashboardCanvas({ children }: { children: ReactNode }) {
   return (
     <div
       ref={hostRef}
-      // NOTE: still centred. Top-aligning the canvas (so a tablet's leftover
-      // height collects below the HUD rather than splitting into equal bands
-      // above and below) was tried and reverted: with `items-start` plus a
-      // `top center` transform origin the ground stopped painting below the
-      // scaled canvas, leaving a bright band across the lower viewport. The
-      // host measures full height (1017px of a 1112px viewport at 834×1112),
-      // so the cause is not the height calculation and was not worth shipping
-      // a visible regression to chase. Revisit with the letterbox finding.
+      // Centred, so a downscaled canvas letterboxes evenly above and below.
+      //
+      // Top-aligning it (collecting the slack under the HUD instead) was tried
+      // and reverted on the belief that it stopped the ground painting to the
+      // bottom of the screen. That was a misreading: the pale band was the
+      // DISPLAY panel, not bare page. Sampled pixels show the ground reaching
+      // the viewport bottom either way, so the choice between the two is an
+      // open styling question and not a defect.
       className="pc-root flex w-full items-center justify-center overflow-hidden"
       style={{ background: 'var(--color-ink-deep)', height: hostH }}
     >
