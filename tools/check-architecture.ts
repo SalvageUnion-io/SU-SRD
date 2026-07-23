@@ -38,7 +38,7 @@
  * Exemptions (see inline comments below for the specific rationale on each):
  *   - `.preload()` / `.isLoaded()` — the lifecycle bootstrap methods the
  *     whole preload contract exists to call eagerly at module scope
- *     (apps/suref-web/src/lib/gameData.ts, apps/discord-bot/src/index.ts).
+ *     (apps/srd/src/lib/gameData.ts, apps/discord-bot/src/index.ts).
  *   - `**\/*.stories.tsx` — Ladle fixtures deliberately read accessors at
  *     module top level; safe because Ladle only evaluates a story's module
  *     after `.ladle/components.tsx`'s `PreloadGate` resolves, since Ladle
@@ -68,10 +68,10 @@ import ts from 'typescript-classic'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 
 const INCLUDE_GLOBS = [
-  'apps/in-the-union-now/src/**/*.{ts,tsx}',
-  'apps/suref-web/src/**/*.{ts,tsx}',
+  'apps/itun/src/**/*.{ts,tsx}',
+  'apps/srd/src/**/*.{ts,tsx}',
   'apps/discord-bot/src/**/*.ts',
-  'packages/suref-react/src/**/*.{ts,tsx}',
+  'packages/component-lib/src/**/*.{ts,tsx}',
   'packages/salvageunion-reference/lib/**/*.ts',
 ]
 

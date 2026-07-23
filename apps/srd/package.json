@@ -1,0 +1,45 @@
+{
+  "name": "srd",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "license": "Salvage Union Open Game Licence 1.0b",
+  "scripts": {
+    "dev": "astro dev",
+    "typecheck": "astro check && tsc --noEmit -p tsconfig.json",
+    "build": "astro build",
+    "preview": "astro preview",
+    "lint": "biome lint .",
+    "format": "biome format --write . && prettier --write '**/*.md' --ignore-unknown --log-level=warn",
+    "sanity": "bun run lint -- --write && bun run format && bun run typecheck",
+    "format:check": "biome format . && prettier --check '**/*.md' --ignore-unknown --log-level=warn",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --coverage-dir=coverage",
+    "test:watch": "bun test --watch",
+    "test:e2e": "playwright test",
+    "e2e:install": "playwright install --with-deps chromium",
+    "clean": "rm -rf dist node_modules/.vite .astro",
+    "check": "bun run lint && bun run format:check && bun run typecheck"
+  },
+  "dependencies": {
+    "@astrojs/check": "0.9.9",
+    "@astrojs/react": "^6.0.1",
+    "@astrojs/sitemap": "^3.7.3",
+    "@base-ui/react": "1.6.0",
+    "@fontsource/barlow": "5.2.8",
+    "@fontsource/barlow-semi-condensed": "5.2.7",
+    "@sentry/browser": "10.65.0",
+    "astro": "^7.0.9",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "salvageunion-reference": "workspace:*",
+    "component-lib": "workspace:*"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1",
+    "@vite-pwa/astro": "1.2.0",
+    "playwright": "1.61.1",
+    "sharp": "0.35.3",
+    "typescript": "6.0.3"
+  }
+}

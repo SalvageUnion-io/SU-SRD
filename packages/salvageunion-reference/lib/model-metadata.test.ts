@@ -100,7 +100,8 @@ describe('Model Metadata', () => {
     })
 
     it('should have all schema names', () => {
-      const expectedSchemas = [
+      // Checked annotation: every listed id must be a real SchemaToDisplayName key
+      const expectedSchemas: (keyof typeof SchemaToDisplayName)[] = [
         'abilities',
         'ability-tree-requirements',
         'bio-titans',
@@ -124,7 +125,7 @@ describe('Model Metadata', () => {
       ]
 
       for (const schema of expectedSchemas) {
-        expect(SchemaToDisplayName[schema as keyof typeof SchemaToDisplayName]).toBeDefined()
+        expect(SchemaToDisplayName[schema]).toBeDefined()
       }
     })
   })
@@ -134,9 +135,9 @@ describe('Model Metadata', () => {
       const schemaName = getReference().Abilities.schemaName
       const displayName = getReference().Abilities.displayName
 
-      expect(SchemaToDisplayName[schemaName as keyof typeof SchemaToDisplayName] as string).toBe(
-        displayName
-      )
+      // Checked widening of the display-name literal union for the matcher
+      const mapped: string = SchemaToDisplayName[schemaName as keyof typeof SchemaToDisplayName]
+      expect(mapped).toBe(displayName)
     })
 
     it('should work for all models', () => {
@@ -155,9 +156,9 @@ describe('Model Metadata', () => {
         const schemaName = model.schemaName
         const displayName = model.displayName
 
-        expect(SchemaToDisplayName[schemaName as keyof typeof SchemaToDisplayName] as string).toBe(
-          displayName
-        )
+        // Checked widening of the display-name literal union for the matcher
+        const mapped: string = SchemaToDisplayName[schemaName as keyof typeof SchemaToDisplayName]
+        expect(mapped).toBe(displayName)
       }
     })
   })

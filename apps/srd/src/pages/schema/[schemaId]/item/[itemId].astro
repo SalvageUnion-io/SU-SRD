@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro'
+import { getItemStaticPaths } from '../../../../lib/staticPaths'
+import EntityView from '../../../../components/EntityView.astro'
+import { getReferenceEntityData, extractStaticEntitySummary } from '../../../../lib/gameData'
+import { SITE_URL } from '../../../../lib/constants'
+
+export function getStaticPaths() {
+  return getItemStaticPaths()
+}
+
+const { item, schema, itemName, itemDescription } = Astro.props
+const { schemaId, itemId } = Astro.params
+
+const schemaName = schema.displayName || 'Item'
+const canonicalUrl = `${SITE_URL}/schema/${schemaId}/item/${itemId}/`
+
+const displayData = item ? getReferenceEntityData(item) : null
+const staticSummary = item ? extractStaticEntitySummary(item) : null
+
+// Build meta description: first content paragraph > stat line > schema fallback
+const firstParagraph = staticSummary?.contentParagraphs[0]
+const statLine = staticSummary?.stats
+  .slice(0, 4)
+  .map((s) => `${s.label} ${s.value}`)
+  .join(', ')
+const traitLine = staticSummary?.traits.length
+  ? ` Traits: ${staticSummary.traits.join(', ')}.`
+  : ''
+const metaDescription = firstParagraph
+  ? firstParagraph.length > 155
+    ? firstParagraph.slice(0, 152) + '...'
+    : firstParagraph
+  : statLine
+    ? `${itemName} — ${schemaName} for the Salvage Union TTRPG. ${statLine}.${traitLine}`.slice(
+        0,
+        158,
+      )
+    : itemDescription ||
+      `${itemName}: ${schemaName} reference for the Salvage Union tabletop RPG.`
+
+const structuredData: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemPage',
+  name: itemName,
+  description: metaDescription,
+  url: canonicalUrl,
+  keywords: [
+    'Salvage Union',
+    'TTRPG',
+    'SRD',
+    'System Reference Document',
+    schemaName,
+    itemName,
+  ],
+  isPartOf: {
+    '@type': 'CollectionPage',
+    name: `${schemaName} - Salvage Union SRD`,
+    url: `${SITE_URL}/schema/${schemaId}/`,
+  },
+  mainEntity: {
+    '@type': 'Thing',
+    name: itemName,
+    description: metaDescription,
+    ...(displayData?.source
+      ? {
+          isPartOf: {
+            '@type': 'Book',
+            name: displayData.source,
+            author: { '@type': 'Organization', name: 'Leyline Press' },
+          },
+        }
+      : {}),
+  },
+}
+
+if (displayData?.techLevel != null) {
+  structuredData.additionalProperty = {
+    '@type': 'PropertyValue',
+    name: 'Tech Level',
+    value: displayData.techLevel,
+  }
+}
+
+// Real artwork (assetUrl) preloads for the on-page view. The og:image falls back
+// to the site-wide default (BaseLayout's DEFAULT_OG_IMAGE); per-entity card
+// screenshots are no longer generated at build time.
+const preloadImage = displayData?.assetUrl
+---
+
+<BaseLayout
+  title={`${itemName} - ${schemaName} - Salvage Union System Reference Document`}
+  description={metaDescription}
+  canonical={canonicalUrl}
+  ogType="article"
+  structuredData={structuredData}
+  preloadImage={preloadImage}
+  breadcrumbs={[
+    { name: 'SRD', url: `${SITE_URL}/` },
+    { name: schemaName, url: `${SITE_URL}/schema/${schemaId}/` },
+    { name: itemName, url: canonicalUrl },
+  ]}
+>
+  <article class="flex min-h-full flex-1 flex-col items-center justify-center p-4">
+    {/* The Entity renders as one unit — interactive island card + its static
+        SEO / no-JS sub-content (EntityView). */}
+    <EntityView item={item} schemaId={schemaId!} />
+  </article>
+</BaseLayout>

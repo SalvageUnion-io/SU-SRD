@@ -141,10 +141,8 @@ export function getDataMaps(): {
     const propName = toPascalCase(schemaId)
     const model = modelRegistry[propName]
     if (model) {
-      dataMap[schemaId] = model.all() as unknown[]
-      schemaMap[schemaId] = (
-        model as BaseModel<unknown> & { schema: Record<string, unknown> }
-      ).schema
+      dataMap[schemaId] = model.all()
+      schemaMap[schemaId] = model.schema
     }
   }
 

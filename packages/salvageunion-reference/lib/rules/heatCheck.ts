@@ -20,7 +20,7 @@
  * This module is PURE: no React, no IndexedDB, no real randomness. The d20 is
  * injected via a `Roll` function so every function is deterministic in tests.
  * The production caller (ITUN's MechSheet) passes a real RNG-backed roller —
- * see `apps/in-the-union-now/src/lib/rules/heatCheck.ts`'s `defaultRoll`
+ * see `apps/itun/src/lib/rules/heatCheck.ts`'s `defaultRoll`
  * (kept app-local: it depends on `@randsum/roller`, a UI-adjacent concern
  * outside the pure-math boundary this module owns) and `heatCheckPatch`
  * (kept app-local: it assembles a `Partial<Mech>` write-through patch, which
@@ -29,7 +29,7 @@
  * The functions here compute the *deterministic* parts of the outcome (clamped
  * heat, SP damage, shutdown/vulnerable/destroyed flags) and report the table
  * band. Marking WHICH System/Module is destroyed (the 2-5 / 6-10 bands) is left
- * to the player via the existing ConditionToggle — this module never auto-picks.
+ * to the player via the card status badge — this module never auto-picks.
  */
 
 import type { HeatCheckEffect, PushResult, ReactorOverloadOutcome, Roll } from './types.js'

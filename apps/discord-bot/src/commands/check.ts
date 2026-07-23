@@ -15,9 +15,9 @@ import {
   type ButtonBuilder,
   EmbedBuilder,
   MessageFlags,
-  type ChatInputCommandInteraction,
   type SlashCommandSubcommandBuilder,
 } from 'discord.js'
+import type { CommandExecuteInteraction } from './interactions.js'
 import { roll } from '@randsum/roller'
 import type { DiceNotation, RollerRollResult } from '@randsum/roller'
 
@@ -81,7 +81,7 @@ export const checkCommand = {
       )
   },
 
-  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+  async execute(interaction: CommandExecuteInteraction): Promise<void> {
     const notation = interaction.options.getString('dice', true)
     const message = buildCheckMessage(notation, interaction.client.user?.displayAvatarURL())
     if ('error' in message) {

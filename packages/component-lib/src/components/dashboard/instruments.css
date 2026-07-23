@@ -1,0 +1,1151 @@
+/*
+ * Dashboard ("Pit HUD") instrument stylesheet — the `.pc-*` surfaces that fill
+ * the layout regions: rail buttons, stamps, the Active Item band, the dial, and
+ * the light "document under glass" display content.
+ *
+ * The Dashboard is warm-paper INSTRUMENTS ON A DARK GROUND — the same paper/ink
+ * book vocabulary as the wizard, SRD and live sheets, arranged as an instrument
+ * panel and laid on a recessed workbench. There is NO private token layer:
+ * every rule references the canonical `--color-*` / `--bw-*` / `--radius-*` /
+ * `--text-*` / `--tracking-*` tokens (component-lib theme.css) directly. Three
+ * grounds, and brightest always means "read this": `--color-ink-deep` behind
+ * everything, `--color-band-cream` for instrument chassis, `--color-paper` for
+ * the display and the dial's active seat. Hue encodes ONTOLOGY (mech green / pilot orange / crawler pink),
+ * never identity; the one hard 2.5px (--bw-rail) border marks a "forward" surface
+ * (rail + display); everything else is flat/inset (ADR-018).
+ *
+ * The layout shell lives beside this file: `.pc-root`/`.pc-canvas`
+ * (DashboardCanvas.css) and the `.pc-grid` regions (DashboardGrid.css).
+ */
+
+.pc-display-scroll {
+  height: 100%;
+  overflow-y: auto;
+  padding: 12px;
+}
+.pc-display-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 16px;
+  text-align: center;
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-note);
+  color: var(--color-ink-50);
+}
+
+/* ---- Active Item band: responsibility bays (gauge + button grid) ---- */
+/* The Active Item band is an INSTRUMENT surface: cream chassis on the dark
+   canvas ground. Before the ground went dark it could be transparent (paper on
+   paper); now it has to carry its own card or its gauges and bay dividers would
+   float on the workbench. */
+.pc-band {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  background: var(--color-band-cream);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
+  border-radius: var(--radius-panel);
+  padding: 7px 9px;
+}
+.pc-band-id {
+  flex: 0 0 auto;
+}
+.pc-bays {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+.pc-bay {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  padding: 2px 13px;
+}
+.pc-bay + .pc-bay {
+  border-left: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
+}
+.pc-bay-lab {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-micro);
+  line-height: 1;
+  color: var(--color-ink-50);
+}
+.pc-bay-gauges {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.pc-btn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-top: auto;
+  grid-auto-rows: 27px;
+  align-content: end;
+}
+/* A gauge-less bay has no middle content, so floor-pinning its buttons leaves a
+   void the height of the band. Centre the whole bay instead and let the button
+   grid sit with its label. */
+.pc-bay[data-nogauge] {
+  justify-content: center;
+}
+.pc-bay[data-nogauge] .pc-btn-grid {
+  margin-top: 0;
+}
+/* ---- Resolve overlay: roll readouts + player-confirmed steps (Phase 5) ---- */
+.pc-band {
+  position: relative;
+}
+.pc-resolve {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px 10px;
+  background: var(--color-band-cream);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 40%, transparent);
+  border-radius: var(--radius-panel);
+  z-index: 2;
+}
+.pc-resolve-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+/* Gauges kept live in the overlay header, so the value you are editing and the
+   value it changes are on screen together. Sized to share the row with the
+   title and Close without pushing either out. */
+.pc-resolve-gauges {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 260px;
+}
+.pc-resolve-title {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
+  color: var(--color-ink-50);
+}
+.pc-resolve-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  justify-content: center;
+}
+.pc-resolve-log {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  color: var(--color-ink);
+  text-align: center;
+}
+.pc-resolve-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+.pc-step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.pc-step-num {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 24px;
+  min-width: 44px;
+  text-align: center;
+  color: var(--color-ink);
+}
+
+/* ---- Actions deck (light display surface, Phase 5) ---- */
+.pc-deck {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pc-deck-empty {
+  padding: 12px;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-ink-50);
+  text-align: center;
+}
+.pc-deck-group-lab {
+  margin: 0 0 6px;
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
+  color: var(--color-ink-50);
+}
+.pc-deck-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.pc-deck-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pc-deck-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.pc-deck-cost {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-size: var(--text-note);
+  color: var(--color-ink-50);
+}
+.pc-deck-controls {
+  display: flex;
+  gap: 8px;
+}
+.pc-deck-roll {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+}
+.pc-deck-d20 {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 34px;
+  line-height: 1;
+  min-width: 48px;
+  text-align: center;
+  color: var(--color-ink);
+}
+.pc-deck-band {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-ink);
+}
+.pc-deck-pushlog {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-note);
+  line-height: 1.4;
+  color: var(--color-ink-50);
+}
+
+/* ---- Resolve flow: cost choice, Hot(X) stepper, Apply readouts (D2) ---- */
+.pc-deck-cost-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 8px 10px;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+  border-radius: var(--radius-card);
+}
+.pc-deck-cost-choice-lab {
+  padding: 0;
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-note);
+  color: var(--color-ink-50);
+}
+.pc-deck-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.pc-deck-hotx {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pc-deck-hotx-lab {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-note);
+  color: var(--color-ink-50);
+}
+.pc-deck-hotx-proj {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-caption);
+  color: var(--color-ink);
+}
+.pc-deck-hotx-proj.is-over {
+  color: var(--color-sheet-crawler-deep);
+}
+.pc-deck-applied {
+  margin: 0;
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-size: var(--text-caption);
+  color: var(--color-status-ok);
+}
+.pc-deck-apply-route {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-note);
+  line-height: 1.4;
+  color: var(--color-sheet-crawler-deep);
+}
+
+/* ---- Deck controls bar (D1: timing tabs, grouping, range, source tags) ---- */
+.pc-deck-controls-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.pc-deck-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.pc-deck-tab {
+  padding: 5px 10px;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink-50);
+  cursor: pointer;
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-note);
+}
+.pc-deck-tab:hover {
+  border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
+}
+.pc-deck-tab.is-active {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-paper);
+}
+.pc-deck-toolrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pc-deck-tool {
+  padding: 5px 10px;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  cursor: pointer;
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-size: var(--text-note);
+}
+.pc-deck-tool:hover {
+  border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
+}
+.pc-deck-range {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pc-deck-range-btn {
+  width: 26px;
+  height: 26px;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink-50);
+  cursor: pointer;
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-size: var(--text-note);
+}
+.pc-deck-range-btn.is-active {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-paper);
+}
+.pc-deck-reach {
+  margin-left: 6px;
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-size: var(--text-badge);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  color: var(--color-ink-50);
+  white-space: nowrap;
+}
+.pc-deck-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.pc-deck-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 22%, transparent);
+  border-radius: var(--radius-badge);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  cursor: pointer;
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-size: var(--text-note);
+  max-width: 100%;
+}
+.pc-deck-source:hover {
+  border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
+}
+.pc-deck-fam-mech .pc-deck-source.is-active {
+  border-color: var(--color-sheet-mech-deep);
+  box-shadow: inset 0 0 0 1px var(--color-sheet-mech-deep);
+}
+.pc-deck-fam-pilot .pc-deck-source.is-active {
+  border-color: var(--color-sheet-pilot-deep);
+  box-shadow: inset 0 0 0 1px var(--color-sheet-pilot-deep);
+}
+/* ---- Crawler focus → Enter Downtime (light display, Phase 6) ---- */
+.pc-crawler-focus-note {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  color: var(--color-ink-50);
+  max-width: 40ch;
+}
+.pc-entity-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  text-align: center;
+  padding: 24px 16px;
+}
+.pc-entity-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+/* ---- Downtime wizard (light display, Phase 6) ---- */
+.pc-dt {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pc-dt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.pc-dt-count {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-note);
+  color: var(--color-ink-50);
+}
+.pc-dt-step-name {
+  margin: 0;
+  padding: 0 0 4px;
+  border-bottom: var(--bw-rail) solid var(--color-sheet-crawler-deep);
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: 20px;
+  line-height: 1.1;
+  color: var(--color-ink);
+}
+.pc-dt-gate {
+  margin: 0;
+  padding: 10px 12px 10px 28px;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  color: var(--color-ink);
+}
+.pc-dt-gate li + li {
+  margin-top: 4px;
+}
+.pc-dt-table {
+  margin-top: 2px;
+}
+.pc-dt-note {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-note);
+  line-height: 1.4;
+  color: var(--color-ink-50);
+}
+.pc-dt-controls {
+  display: flex;
+  gap: 8px;
+}
+/* DashboardGauge's bespoke segmented bar was retired — it now renders through
+   the shared VitalGauge (surface="instrument"); see DashboardGauge.tsx. */
+
+/* ---- Rotary Dial (momentum wheel) ---- */
+.pc-wheel-col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  overflow: visible;
+}
+/* The stage the wheel rolls in: seats are absolutely stacked and JS sets each
+   seat's real top + height. Clipped so cards rolling off the top don't bleed
+   over the rail and cards off the bottom don't spill past the controls. The
+   active slot is flush with the top, so the active card aligns with the
+   primary row (its top edge = the Active row's top). */
+.pc-wheel-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  /* Clip vertically (cards rolling off the top don't bleed over the rail) but
+     NOT horizontally, so the wider active card can overhang left into the
+     primary row's reserved space (the viewfinder = the intersection corner). */
+  overflow: visible;
+  clip-path: inset(0 -400px);
+  touch-action: none;
+  cursor: grab;
+}
+.pc-wheel-stage:active {
+  cursor: grabbing;
+}
+/* Explicit, so the `hidden` attribute the Dial sets while its config panel is
+   open cannot be defeated by a future `display` declaration on the class. */
+.pc-wheel-stage[hidden] {
+  display: none;
+}
+/* Seats are stacked; JS sets each seat's real top + width + height from the
+   scroll position (no scale — labels keep their size and match the mech stamp). */
+.pc-wheel-seat {
+  position: absolute;
+  right: 0;
+  will-change: top, width, height;
+}
+.pc-cell {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
+  border-radius: var(--radius-panel);
+  background: var(--color-band-cream);
+  box-shadow: inset 0 1px 2px var(--color-ink-8);
+  cursor: pointer;
+  padding: 5px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+  color: var(--color-ink);
+  overflow: hidden;
+}
+/* The seat in the viewfinder is the SAME cream as the cells queued behind it.
+   It used to be paper, on a "brightest = active" reading — but that made the
+   active card the one odd surface in a column of matching ones, and the dial
+   already marks it by size and by its heavier border. One card background
+   across the whole cockpit; emphasis comes from the frame, not the fill. */
+.pc-cell-active {
+  border-color: color-mix(in srgb, var(--color-ink) 55%, transparent);
+  background: var(--color-band-cream);
+  box-shadow: inset 0 1px 3px var(--color-ink-8);
+  cursor: default;
+}
+.pc-cell.statless {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+/* Match the Active Item band's entity stamp (a Badge shape="stamp") so the dial
+   cell labels line up with, and stay the same size as, that label. */
+/* The dial card's entity stamp. `align-self: flex-start` keeps it chip-width,
+   but a long enough label ("Crawler · Crawler #430 'Tenacity'") still wrapped to
+   two lines and swelled the stamp into a full-width banner — the heaviest block
+   on the screen, and loudest for the least urgent item in the rail. A stamp is a
+   label, not a paragraph: hold it to one line and clip. */
+.pc-cell-lab {
+  align-self: flex-start;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-caption);
+  line-height: 1;
+  padding: 5px 9px 6px;
+  border-radius: 0; /* stamps are square (ruleset §4.4) */
+  color: var(--color-paper);
+}
+.pc-cell-lab.mech {
+  background: var(--color-sheet-mech-deep);
+}
+.pc-cell-lab.pilot {
+  background: var(--color-sheet-pilot-deep);
+}
+.pc-cell-lab.crawler {
+  background: var(--color-sheet-crawler-deep);
+}
+.pc-cell-gauges {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pc-cell-title {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-lede);
+  line-height: 1;
+  color: var(--color-ink);
+}
+/*
+ * Statless cells (Actions / Tables / SRD) carry no gauges, so in the tall active
+ * seat they used to be a single centred title scaled to `--text-display`: the
+ * largest element AND the largest type on the whole surface, containing two
+ * words, directly above a display panel already showing that same view. It read
+ * as an unfinished panel, and the plain centred text made it a sibling of
+ * `.pc-placeholder` ("not built yet") rather than of the rich entity cards.
+ *
+ * The seat's geometry is deliberately NOT changed here — the dial's height/width
+ * interpolation and scroll accumulation are shared by every cell, and this
+ * branch holds the dashboard's layout fixed. What changes is the weight: the
+ * title drops to the same rung the entity cells use and becomes an ink slab, so
+ * the cell reads as a labelled instrument plate at rest instead of empty space.
+ */
+.pc-cell-active.statless .pc-cell-title {
+  align-self: stretch;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  padding: 6px 10px 7px;
+  font-size: var(--text-lede);
+}
+.pc-cell-sub {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-micro);
+  color: var(--color-ink-50);
+}
+.pc-wheel-ctl {
+  display: flex;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+/* --------------------------------------------------------------------------
+ * Phase 7 — dial config (⚙), cargo-hold overlay, table picker.
+ * ------------------------------------------------------------------------ */
+
+/* The ⚙ gear sits alongside ▲▼ but is intrinsically sized, not stretched. */
+/* Dial-config overlay — covers the dial column like the resolve overlay. */
+.pc-dialcfg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px 10px;
+  background: var(--color-band-cream);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 40%, transparent);
+  border-radius: var(--radius-panel);
+  z-index: 3;
+}
+.pc-dialcfg-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.pc-dialcfg-title {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
+  color: var(--color-ink-50);
+}
+.pc-dialcfg-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+.pc-dialcfg-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+}
+/* Wrapper only — the switch inside is a `Toggle`, which owns its own <label>,
+   cursor and hit target, so this no longer claims `cursor: pointer` for a
+   region that is mostly inert text. */
+.pc-dialcfg-show {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.pc-dialcfg-lab {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-note);
+  color: var(--color-ink);
+}
+.pc-dialcfg-lab.hidden {
+  color: var(--color-ink-50);
+  text-decoration: line-through;
+}
+.pc-dialcfg-move {
+  display: flex;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+/* Cargo-hold overlay body (inside the mech-band resolve overlay). */
+.pc-cargo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-height: 0;
+}
+.pc-cargo-usage {
+  margin: 0;
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
+  color: var(--color-ink-50);
+  text-align: center;
+}
+.pc-cargo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+.pc-cargo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+}
+.pc-cargo-name {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-ink);
+}
+.pc-cargo-code {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-caps-tight);
+  color: var(--color-ink-50);
+}
+.pc-cargo-units {
+  font-size: var(--text-badge);
+  color: var(--color-ink-50);
+}
+/* ------------------------------------------------------------------------
+ * D3 — Tables focus: 5-column category picker + roll history.
+ * All light-themed to sit on the display "paper" (var(--color-paper) / var(--color-ink)).
+ * ------------------------------------------------------------------------ */
+
+/* Positioning context for the picker overlay. */
+.pc-tables {
+  position: relative;
+}
+
+/* Mini-bar: label + the "open picker" button. */
+.pc-tables-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.pc-tables-lab {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
+  color: var(--color-ink-50);
+}
+/* Roll history — last N results with a clear. */
+.pc-rollhist {
+  margin-top: 14px;
+  border-top: var(--bw-chrome) solid var(--color-ink-30);
+  padding-top: 8px;
+}
+.pc-rollhist-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.pc-rollhist-title {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
+  color: var(--color-ink-50);
+}
+.pc-rollhist-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.pc-rollhist-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 5px 7px;
+  border: var(--bw-chrome) solid var(--color-ink-30);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+}
+.pc-rollhist-src {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-label);
+  color: var(--color-ink-50);
+}
+.pc-rollhist-text {
+  font-family: var(--font-body);
+  font-size: var(--text-note);
+  color: var(--color-ink);
+}
+
+/* Full picker overlay — covers the display area with the 5-column grid. */
+.pc-tablepick {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  background: var(--color-band-cream);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-panel);
+  z-index: 4;
+}
+.pc-tablepick-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+.pc-tablepick-title {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-badge);
+  color: var(--color-ink-50);
+}
+.pc-tablepick-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  overflow-y: auto;
+}
+.pc-tablepick-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.pc-tablepick-cat {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 4px 6px;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-label);
+  text-align: center;
+}
+.pc-tablepick-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pc-tablepick-empty {
+  font-family: var(--font-body);
+  font-size: var(--text-note);
+  color: var(--color-ink-50);
+  text-align: center;
+  padding: 4px 0;
+}
+.pc-tablepick-item {
+  width: 100%;
+  padding: 5px 7px;
+  border: var(--bw-chrome) solid var(--color-ink-30);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-note);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.pc-tablepick-item:hover {
+  background: var(--color-ink-8);
+  border-color: var(--color-ink-30);
+}
+.pc-tablepick-item[data-selected] {
+  border-color: var(--color-ink);
+  background: var(--color-ink-8);
+}
+
+/* ── SRD Explorer (D4) ───────────────────────────────────────────────── */
+.pc-srd {
+  position: relative;
+}
+.pc-srd-home {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+/* The category-listing and entity-detail view roots. Unlike .pc-srd-home they
+   are plain flow blocks (NOT flex): their leading .pc-srd-crumb carries its own
+   bottom margin, so a flex gap here would double the crumb-to-content spacing.
+   Declared to close the pc-* class contract; `display: block` is what the bare
+   <div> already rendered, so there is no visual change. */
+.pc-srd-list,
+.pc-srd-entity {
+  display: block;
+}
+
+/* Search box + combobox results. */
+.pc-srd-search {
+  position: relative;
+}
+/* The search field itself is the shared `Input` primitive (chrome/Field). */
+.pc-srd-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.pc-srd-results {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.pc-srd-result {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 9px;
+  border: var(--bw-chrome) solid var(--color-ink-30);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  text-align: left;
+  cursor: pointer;
+}
+.pc-srd-result:hover,
+.pc-srd-result[data-active] {
+  background: var(--color-ink-8);
+  border-color: var(--color-ink-30);
+}
+.pc-srd-result-title {
+  font-weight: 600;
+  min-width: 0;
+}
+.pc-srd-result-group {
+  flex: 0 0 auto;
+  font-family: var(--font-cond);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps-tight);
+  font-size: var(--text-label);
+  color: var(--color-ink-50);
+}
+.pc-srd-noresults {
+  margin-top: 6px;
+  font-family: var(--font-body);
+  font-size: var(--text-note);
+  color: var(--color-ink-50);
+}
+
+/* 8 category tiles. */
+.pc-srd-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.pc-srd-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 6px;
+  border: var(--bw-chrome) solid var(--color-ink-30);
+  border-radius: var(--radius-panel);
+  background: var(--color-paper);
+  cursor: pointer;
+}
+.pc-srd-tile:hover {
+  background: var(--color-ink-8);
+  border-color: var(--color-ink);
+}
+.pc-srd-tile-label {
+  font-family: var(--font-body);
+  font-size: var(--text-note);
+  font-weight: 600;
+  color: var(--color-ink);
+  text-align: center;
+}
+
+/* Category listing + breadcrumb. */
+.pc-srd-crumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.pc-srd-crumb-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-caption);
+  color: var(--color-ink);
+}
+.pc-srd-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pc-srd-row {
+  width: 100%;
+  padding: 6px 9px;
+  border: var(--bw-chrome) solid var(--color-ink-30);
+  border-radius: var(--radius-card);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.pc-srd-row:hover {
+  background: var(--color-ink-8);
+  border-color: var(--color-ink-30);
+}

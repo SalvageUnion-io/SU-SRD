@@ -26,8 +26,8 @@ jobs:
   # Path filter — decide which areas a change touches so we can skip heavy jobs
   # for unrelated PRs. The dependency graph is baked into each filter:
   #   salvageunion-reference + root config → affect EVERYTHING
-  #   suref-react                          → affects suref-web + in-the-union-now
-  # so an `itun`/`web` change is "itun/web OR suref-react OR reference OR root".
+  #   component-lib                          → affects srd + itun
+  # so an `itun`/`web` change is "itun/web OR component-lib OR reference OR root".
   # `code` = any source/config change (false only for docs-only PRs).
   # ---------------------------------------------------------------------------
   changes:
@@ -67,12 +67,12 @@ jobs:
               - '.github/actions/**'
             itun:
               - *shared
-              - 'apps/in-the-union-now/**'
-              - 'packages/suref-react/**'
+              - 'apps/itun/**'
+              - 'packages/component-lib/**'
             web:
               - *shared
-              - 'apps/suref-web/**'
-              - 'packages/suref-react/**'
+              - 'apps/srd/**'
+              - 'packages/component-lib/**'
             bot:
               - *shared
               - 'apps/discord-bot/**'
@@ -245,7 +245,7 @@ jobs:
     # on its own — NO package.json `overrides` are required. The formerly
     # ignored advisory GHSA-gv7w-rqvm-qjhr no longer appears in the resolved
     # lockfile after the vite 8 upgrade, so no --ignore is needed. Any residual
-    # esbuild advisory pulled by the vite-7-pinned suref-web subtree is `low`
+    # esbuild advisory pulled by the vite-7-pinned srd subtree is `low`
     # severity and sits below this `--audit-level=high` gate.
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
@@ -260,7 +260,7 @@ jobs:
       - name: Audit dependencies
         run: bun audit --audit-level=high
 
-  build-suref-web:
+  build-srd:
     needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
     if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
@@ -271,13 +271,8 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Build suref-web
-        # Skip the headless-chromium og:image pass here — this job only verifies
-        # the build compiles. The real og:images are generated in the Netlify
-        # deploy (which provisions chromium); see scripts/og-screenshots.ts.
-        run: bun --filter suref-web build
-        env:
-          OG_SCREENSHOTS_SKIP: '1'
+      - name: Build srd
+        run: bun --filter srd build
 
   build-itun:
     needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
@@ -290,8 +285,8 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Build in-the-union-now
-        run: bun --filter in-the-union-now build
+      - name: Build itun
+        run: bun --filter itun build
 
   build-discord-bot:
     needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
@@ -305,17 +300,17 @@ jobs:
         uses: ./.github/actions/setup-bun
 
       - name: Build discord-bot
-        run: bun --filter @suref/discord-bot build
+        run: bun --filter discord-bot build
 
   smoke-web:
     # PR-blocking smoke tier (previously e2e/visual only ran nightly, so a
     # broken route could merge to main and sit broken for up to a day). Runs
-    # ONLY apps/suref-web/e2e/smoke.e2e.ts — the full suite stays nightly-only
+    # ONLY apps/srd/e2e/smoke.e2e.ts — the full suite stays nightly-only
     # (.github/workflows/e2e-nightly.yml) so the PR gate stays fast and free of
     # the flakiness that got browser e2e demoted from PR-blocking in the first
     # place. Uses the same hermetic `astro build` + `astro preview` pattern the
     # nightly job already proves works — no live Netlify deploy preview.
-    needs: [changes, build-package, build-suref-web]
+    needs: [changes, build-package, build-srd]
     if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -333,11 +328,11 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
 
       - name: Install Playwright browsers (Chromium)
-        working-directory: apps/suref-web
+        working-directory: apps/srd
         run: bunx playwright install --with-deps chromium
 
       - name: Run smoke test
-        working-directory: apps/suref-web
+        working-directory: apps/srd
         run: bunx playwright test smoke.e2e.ts
 
       - name: Upload Playwright report on failure
@@ -345,20 +340,20 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report-smoke-web
-          path: apps/suref-web/playwright-report/
+          path: apps/srd/playwright-report/
           retention-days: 7
 
   bundle-budget-web:
-    # PR-blocking bundle-size regression guard for suref-web's per-route data
+    # PR-blocking bundle-size regression guard for srd's per-route data
     # loading (src/lib/schemaPreloadDeps.ts, src/lib/searchIndexBuild.ts —
     # see those files' doc comments and the accompanying ADR/audit notes).
-    # Runs ONLY apps/suref-web/e2e/bundle-budget.e2e.ts against the same
+    # Runs ONLY apps/srd/e2e/bundle-budget.e2e.ts against the same
     # hermetic `astro build` + `astro preview` target as smoke-web, asserting
     # (a) large schema-specific data chunks never load on pages that don't
     # need them and (b) total per-route JS stays under a byte budget. Kept as
     # its own job (not folded into smoke-web) so a budget regression reads as
     # its own clearly-named failure rather than an ambiguous smoke failure.
-    needs: [changes, build-package, build-suref-web]
+    needs: [changes, build-package, build-srd]
     if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -376,11 +371,11 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
 
       - name: Install Playwright browsers (Chromium)
-        working-directory: apps/suref-web
+        working-directory: apps/srd
         run: bunx playwright install --with-deps chromium
 
       - name: Run bundle-budget test
-        working-directory: apps/suref-web
+        working-directory: apps/srd
         run: bunx playwright test bundle-budget.e2e.ts
 
       - name: Upload Playwright report on failure
@@ -388,12 +383,12 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report-bundle-budget-web
-          path: apps/suref-web/playwright-report/
+          path: apps/srd/playwright-report/
           retention-days: 7
 
   smoke-itun:
     # PR-blocking smoke tier — same rationale as smoke-web. Runs ONLY
-    # apps/in-the-union-now/e2e/smoke.e2e.ts against a self-contained static
+    # apps/itun/e2e/smoke.e2e.ts against a self-contained static
     # build (`vite preview`, no deploy preview), mirroring e2e-nightly.yml's
     # e2e-itun job.
     needs: [changes, build-package, build-itun]
@@ -414,11 +409,11 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
 
       - name: Install Playwright browsers (Chromium)
-        working-directory: apps/in-the-union-now
+        working-directory: apps/itun
         run: bunx playwright install --with-deps chromium
 
       - name: Run smoke test
-        working-directory: apps/in-the-union-now
+        working-directory: apps/itun
         run: bunx playwright test smoke.e2e.ts
 
       - name: Upload Playwright report on failure
@@ -426,7 +421,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report-smoke-itun
-          path: apps/in-the-union-now/playwright-report/
+          path: apps/itun/playwright-report/
           retention-days: 7
 
   # ---------------------------------------------------------------------------
@@ -447,13 +442,13 @@ jobs:
       - coverage
       - validate
       - audit
-      - build-suref-web
+      - build-srd
       - build-itun
       - build-discord-bot
       - smoke-web
       - bundle-budget-web
       - smoke-itun
-      # NOTE: the FULL browser e2e suites (ITUN + suref-web) still only run
+      # NOTE: the FULL browser e2e suites (ITUN + srd) still only run
       # nightly, not per-PR — see .github/workflows/e2e-nightly.yml.
       # smoke-web/smoke-itun above cover only the PR-blocking smoke tier, so
       # the PR gate stays fast and free of full-suite preview/browser

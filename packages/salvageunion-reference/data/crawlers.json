@@ -9,6 +9,9 @@
       "choices": [
         {
           "id": "e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b",
+          "source": {
+            "kind": "text"
+          },
           "name": "Name",
           "choiceType": "freeform",
           "content": [
@@ -20,6 +23,10 @@
         },
         {
           "id": "19f65af2-84ba-48f4-886f-e3847e257d23",
+          "source": {
+            "kind": "text",
+            "multiline": true
+          },
           "name": "Description",
           "choiceType": "freeform",
           "content": [
@@ -31,6 +38,11 @@
         },
         {
           "id": "c7e2b66a-6b62-446d-90ff-11873089bfe0",
+          "source": {
+            "kind": "table",
+            "rollTable": "A.I. Personality",
+            "orChooseOwn": true
+          },
           "name": "A.I. Personality",
           "choiceType": "permanent",
           "rollTable": "A.I. Personality",
@@ -74,6 +86,9 @@
       "choices": [
         {
           "id": "f2a3b4c5-d6e7-4f8a-9b0c-1d2e3f4a5b6c",
+          "source": {
+            "kind": "text"
+          },
           "name": "Name",
           "choiceType": "freeform",
           "content": [
@@ -85,6 +100,10 @@
         },
         {
           "id": "f416bd09-5ecd-45d4-9289-eb552ffa41e7",
+          "source": {
+            "kind": "text",
+            "multiline": true
+          },
           "name": "Description",
           "choiceType": "freeform",
           "content": [
@@ -96,6 +115,10 @@
         },
         {
           "id": "94e8204d-652c-47f4-93ca-271cebb16459",
+          "source": {
+            "kind": "text",
+            "multiline": true
+          },
           "name": "Keepsake",
           "choiceType": "freeform",
           "content": [
@@ -107,6 +130,10 @@
         },
         {
           "id": "b103d074-5b3c-40af-99ee-805c92814199",
+          "source": {
+            "kind": "text",
+            "multiline": true
+          },
           "name": "Motto",
           "choiceType": "freeform",
           "content": [
@@ -169,6 +196,9 @@
       "choices": [
         {
           "id": "8dce1bee-61a5-4ddf-b6eb-d9095a94b979",
+          "source": {
+            "kind": "text"
+          },
           "name": "Name",
           "choiceType": "freeform",
           "content": [
@@ -180,6 +210,10 @@
         },
         {
           "id": "02895271-f9ff-40f2-bed1-4bc2965777e4",
+          "source": {
+            "kind": "text",
+            "multiline": true
+          },
           "name": "Description",
           "choiceType": "freeform",
           "content": [
@@ -191,6 +225,10 @@
         },
         {
           "id": "60ba7d94-db45-4af2-bbc2-1032e7796a96",
+          "source": {
+            "kind": "text",
+            "multiline": true
+          },
           "name": "Keepsake",
           "choiceType": "freeform",
           "content": [
@@ -202,6 +240,10 @@
         },
         {
           "id": "c7b714c8-9cfd-4a43-980f-b995491002bc",
+          "source": {
+            "kind": "text",
+            "multiline": true
+          },
           "name": "Motto",
           "choiceType": "freeform",
           "content": [
@@ -249,6 +291,9 @@
       "choices": [
         {
           "id": "cb48cd4a-9315-4235-8b43-7b69378ccb71",
+          "source": {
+            "kind": "text"
+          },
           "name": "Name",
           "choiceType": "freeform",
           "content": [
@@ -260,6 +305,10 @@
         },
         {
           "id": "1c5311fb-5cac-4cf7-8642-11f3d64f5a68",
+          "source": {
+            "kind": "text",
+            "multiline": true
+          },
           "name": "Description",
           "choiceType": "freeform",
           "content": [
@@ -271,6 +320,10 @@
         },
         {
           "id": "235a2a03-b2f2-4fb3-8afb-a1e87155b4c6",
+          "source": {
+            "kind": "text",
+            "multiline": true
+          },
           "name": "Keepsake",
           "choiceType": "freeform",
           "content": [
@@ -282,6 +335,10 @@
         },
         {
           "id": "f0aa1340-f2a2-41a3-96b1-865afd27f25a",
+          "source": {
+            "kind": "text",
+            "multiline": true
+          },
           "name": "Motto",
           "choiceType": "freeform",
           "content": [
@@ -325,6 +382,9 @@
       "choices": [
         {
           "id": "7dbac16e-ad47-4847-8da1-7aa8b0b03866",
+          "source": {
+            "kind": "text"
+          },
           "name": "Name",
           "choiceType": "freeform",
           "content": [
@@ -336,6 +396,10 @@
         },
         {
           "id": "4c523002-9d55-4f59-b9f9-541407fd1bae",
+          "source": {
+            "kind": "text",
+            "multiline": true
+          },
           "name": "Description",
           "choiceType": "freeform",
           "content": [
@@ -347,6 +411,10 @@
         },
         {
           "id": "53bc208d-ca95-4e7c-9b0c-c8797d4a79f1",
+          "source": {
+            "kind": "text",
+            "multiline": true
+          },
           "name": "Keepsake",
           "choiceType": "freeform",
           "content": [
@@ -358,6 +426,10 @@
         },
         {
           "id": "726f68cb-93ee-4f0d-ac45-9f18bebdfd36",
+          "source": {
+            "kind": "text",
+            "multiline": true
+          },
           "name": "Motto",
           "choiceType": "freeform",
           "content": [

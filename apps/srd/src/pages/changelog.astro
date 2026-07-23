@@ -1,0 +1,63 @@
+---
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { Changelog, mergeChangelogs, PageHeading, parseChangelog } from 'component-lib'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import { SITE_URL } from '../lib/constants'
+
+// Rendered at build time (Node) by merging this app's CHANGELOG.md with the
+// salvageunion-reference package CHANGELOG.md. Read via node:fs from the build
+// working directory (the app root when `astro build` runs). NOTE: Astro's build
+// pipeline rejects Vite `?raw` imports of `.md` (rolldown resolution error), so
+// unlike ITUN this site cannot inline the markdown — it reads it at build here.
+const root = process.cwd()
+const webMd = readFileSync(resolve(root, 'CHANGELOG.md'), 'utf8')
+const refMd = readFileSync(resolve(root, '../../packages/salvageunion-reference/CHANGELOG.md'), 'utf8')
+
+const entries = mergeChangelogs(parseChangelog(webMd, 'Site'), parseChangelog(refMd, 'Data'))
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Changelog - Salvage Union SRD',
+  description: 'Major changes to salvageunion.io and its companion tools over time.',
+  url: `${SITE_URL}/changelog/`,
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'Salvage Union System Reference Document',
+    url: `${SITE_URL}/`,
+  },
+}
+
+const breadcrumbs = [
+  { name: 'Home', url: `${SITE_URL}/` },
+  { name: 'Changelog', url: `${SITE_URL}/changelog/` },
+]
+---
+
+<BaseLayout
+  title="Changelog - Salvage Union System Reference Document"
+  description="Major changes to salvageunion.io and its companion tools over time."
+  structuredData={structuredData}
+  breadcrumbs={breadcrumbs}
+>
+  <div class="flex w-full flex-1 flex-col py-12">
+    <div class="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6">
+      <PageHeading>Changelog</PageHeading>
+
+      <p class="text-sm leading-relaxed">
+        Major changes to the SRD site, the In The Union Now builder, and the Discord bot. For full commit history see the
+        <a
+          href="https://github.com/alxjrvs/SU-SRD/commits/main"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-bold text-rust hover:underline"
+        >
+          GitHub repository
+        </a>.
+      </p>
+
+      <Changelog entries={entries} />
+    </div>
+  </div>
+</BaseLayout>

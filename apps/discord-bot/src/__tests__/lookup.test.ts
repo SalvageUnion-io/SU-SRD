@@ -18,36 +18,43 @@ beforeAll(async () => {
   await SalvageUnionReference.preload('all')
 })
 
-type ReplyArg = { content?: string; embeds?: unknown[]; flags?: number }
+// A recorded reply payload — a structural SUPERTYPE of InteractionReplyOptions
+// (readonly arrays, wide flags) so the mock satisfies the narrow
+// CommandExecuteInteraction contract with no forced cast.
+type ReplyArg = { content?: string; embeds?: readonly unknown[]; flags?: unknown }
 
-/** Mock ChatInputCommandInteraction for `/su lookup`, recording the reply. */
+/** Mock of the narrow execute-interaction surface, recording the reply. */
 function mockChatInput(entity: string) {
   const replies: ReplyArg[] = []
-  const interaction = {
-    options: {
-      // lookup.execute reads getString('entity', true).
-      getString: (name: string) => (name === 'entity' ? entity : null),
-    },
+  // lookup.execute reads getString('entity', true) — overload-declared to
+  // mirror discord.js's required-form getString.
+  function getString(name: string, required: true): string
+  function getString(name: string, required?: boolean): string | null
+  function getString(name: string): string | null {
+    return name === 'entity' ? entity : null
+  }
+  const interaction: Parameters<typeof lookupCommand.execute>[0] = {
+    options: { getSubcommand: () => 'lookup', getString },
     // execute reads client.user for embed branding; no avatar in tests.
     client: { user: null },
     reply: (arg: ReplyArg) => {
       replies.push(arg)
       return Promise.resolve()
     },
-  } as unknown as Parameters<typeof lookupCommand.execute>[0]
+  }
   return { interaction, replies }
 }
 
-/** Mock AutocompleteInteraction, recording the responded choices. */
+/** Mock of the narrow autocomplete-interaction surface, recording the choices. */
 function mockAutocomplete(focused: string) {
   const responses: { name: string; value: string }[][] = []
-  const interaction = {
-    options: { getFocused: () => focused },
+  const interaction: Parameters<typeof lookupCommand.autocomplete>[0] = {
+    options: { getSubcommand: () => 'lookup', getFocused: () => focused },
     respond: (choices: { name: string; value: string }[]) => {
       responses.push(choices)
       return Promise.resolve()
     },
-  } as unknown as Parameters<typeof lookupCommand.autocomplete>[0]
+  }
   return { interaction, responses }
 }
 

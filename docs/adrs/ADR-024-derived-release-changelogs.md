@@ -8,12 +8,12 @@ Accepted.
 
 The two user-facing sites announce changes very differently today:
 
-- **`apps/suref-web`** has a hand-maintained changelog: a typed array in
+- **`apps/srd`** has a hand-maintained changelog: a typed array in
   `src/lib/changelog.ts` (`{ date, title, items[] }`) rendered at `/changelog`
   and linked from the top/mobile nav. Its upkeep is governed by a "Changelog
-  Maintenance" section in [`apps/suref-web/CLAUDE.md`](../../apps/suref-web/CLAUDE.md)
+  Maintenance" section in [`apps/srd/CLAUDE.md`](../../apps/srd/CLAUDE.md)
   — one hand-authored entry **per PR**, edited in place on the branch.
-- **`apps/in-the-union-now`** has **no** release changelog at all. Its About
+- **`apps/itun`** has **no** release changelog at all. Its About
   page is static, and its in-app "Change Log" is a **per-entity provenance
   trail** ([ADR-022](ADR-022-provenance-log-and-overrides.md)), not release
   notes.
@@ -45,9 +45,9 @@ components. This ADR covers the two **site** components;
 `salvageunion-reference` component and its surface gate. They share the one
 config.
 
-- **Two separate site streams.** `apps/suref-web` and `apps/in-the-union-now`
+- **Two separate site streams.** `apps/srd` and `apps/itun`
   are each independently versioned with their **own** generated `CHANGELOG.md`.
-  Streams are separate so a suref-web visitor never sees ITUN entries and vice
+  Streams are separate so an SRD-site visitor never sees ITUN entries and vice
   versa — preserving the scoping the current hand-written web changelog already
   enforces.
 
@@ -61,8 +61,8 @@ config.
   builds must not depend on a live API or token). Entries carry a small area
   tag (e.g. _App_ vs _Data_).
 
-- **`suref-react` is deliberately not its own stream.** It is an internal
-  shared library with no independent release surface. A pure-`suref-react` PR
+- **`component-lib` is deliberately not its own stream.** It is an internal
+  shared library with no independent release surface. A pure-`component-lib` PR
   with no app file touched will **not** appear on either site's changelog — an
   accepted gap (in practice a user-visible shared-UI change rides with an app
   change). Promote it to a component later if the gap ever bites. The
@@ -73,15 +73,15 @@ config.
   release PR's `CHANGELOG.md`/body **before merging** — a batched, per-release
   choice, not per-PR work.
 
-- **Seeding & migration.** `.release-please-manifest.json` seeds `suref-web`
-  at `1.0.0` and `in-the-union-now` at `0.1.0`, with `bootstrap-sha` at the
+- **Seeding & migration.** `.release-please-manifest.json` seeds `srd`
+  at `1.0.0` and `itun` at `0.1.0`, with `bootstrap-sha` at the
   adopting commit so the first release PR is forward-looking. The existing
   ~35 `changelog.ts` entries are **backfilled** into
-  `apps/suref-web/CHANGELOG.md` as a historical tail (nothing is lost);
+  `apps/srd/CHANGELOG.md` as a historical tail (nothing is lost);
   `changelog.ts` is then removed and the `/changelog` page reads the markdown.
 
 - **This supersedes the "Changelog Maintenance" section of
-  `apps/suref-web/CLAUDE.md`** (per-PR hand-authored entries). It is replaced by
+  `apps/srd/CLAUDE.md`** (per-PR hand-authored entries). It is replaced by
   guidance to write a good conventional PR title; the changelog is generated.
 
 - **CI / merge interplay.** release-please runs as a workflow on push to `main`.
@@ -99,7 +99,7 @@ config.
   changelog for free**.
 - **Auto-notes are terser** than the current curated prose. The release PR is
   the place to optionally polish. Accepted trade for least-processing.
-- **Pure-`suref-react` PRs may not surface** on either site changelog
+- **Pure-`component-lib` PRs may not surface** on either site changelog
   (documented gap above).
 - **New moving parts:** a release-please workflow + a PAT repo secret (admin,
   one-time). If the secret is absent, release PRs won't get the required check

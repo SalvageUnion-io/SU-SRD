@@ -6,6 +6,24 @@ import type { SURefObjectTable, SURefObjectTableContent } from '../types/index.j
 const COLUMN_RANGE_KEYS = ['1-4', '5-8', '9-12', '13-16', '17-20'] as const
 
 /**
+ * The multi-column (two-roll) member of the table union
+ */
+type ColumnsTable = Extract<SURefObjectTable, { type: 'columns' }>
+
+/**
+ * Entry keys ('1'–'20') within a single column of a columns-type table
+ */
+type ColumnEntryKey = keyof ColumnsTable[(typeof COLUMN_RANGE_KEYS)[number]]
+
+/**
+ * Checks whether a string is a valid column entry key ('1' through '20')
+ */
+function isColumnEntryKey(key: string): key is ColumnEntryKey {
+  const n = Number(key)
+  return Number.isInteger(n) && n >= 1 && n <= 20 && key === String(n)
+}
+
+/**
  * Result type for columns table roll resolution (two d20 rolls)
  */
 export type ColumnsTableRollResult = {
@@ -18,9 +36,9 @@ export type ColumnsTableRollResult = {
 /**
  * Checks whether a table is a columns-type table (multi-column, two-roll)
  */
-export function isColumnsTable(table: SURefObjectTable | undefined): boolean {
+export function isColumnsTable(table: SURefObjectTable | undefined): table is ColumnsTable {
   if (!table) return false
-  return (table as Record<string, unknown>).type === 'columns'
+  return table.type === 'columns'
 }
 
 /**
@@ -50,10 +68,8 @@ export function resultForColumnsTable(
   if (entryRoll < 1 || entryRoll > 20)
     return fail(`Entry roll must be between 1 and 20, got ${entryRoll}`)
 
-  const tableData = table as Record<string, unknown>
-
   // Find which column the columnRoll falls in
-  let columnKey: string | undefined
+  let columnKey: (typeof COLUMN_RANGE_KEYS)[number] | undefined
   for (const rangeKey of COLUMN_RANGE_KEYS) {
     if (rollInRange(columnRoll, rangeKey)) {
       columnKey = rangeKey
@@ -63,11 +79,12 @@ export function resultForColumnsTable(
 
   if (!columnKey) return fail(`No column found for roll ${columnRoll}`)
 
-  const column = tableData[columnKey] as Record<string, unknown> | undefined
+  const column = table[columnKey]
   if (!column) return fail(`Column ${columnKey} not found in table`)
 
   const entryKey = entryRoll.toString()
-  const entry = column[entryKey] as SURefObjectTableContent | undefined
+  if (!isColumnEntryKey(entryKey)) return fail(`Entry ${entryKey} not found in column ${columnKey}`)
+  const entry = column[entryKey]
   if (!entry) return fail(`Entry ${entryKey} not found in column ${columnKey}`)
 
   return {
@@ -119,7 +136,7 @@ export function resultForTable(table: SURefObjectTable | undefined, roll: number
     }
   }
 
-  const tableData = table as Record<string, unknown>
+  const tableData: Record<string, unknown> = table
   const numericKeys = Object.keys(tableData).filter((k) => /^\d+(-\d+)?$/.test(k))
 
   // Detect if this is a flat table (has all 20 individual keys)
@@ -153,11 +170,10 @@ function formatTableContent(content: unknown): { label?: string; value: string }
 
   // Handle new tableContent format: { label?: string, value: string }
   if (typeof content === 'object' && content !== null && 'value' in content) {
-    const tableContent = content as { label?: string; value: string }
-    if (typeof tableContent.value === 'string') {
+    if (typeof content.value === 'string') {
       return {
-        label: typeof tableContent.label === 'string' ? tableContent.label : undefined,
-        value: tableContent.value,
+        label: 'label' in content && typeof content.label === 'string' ? content.label : undefined,
+        value: content.value,
       }
     }
   }

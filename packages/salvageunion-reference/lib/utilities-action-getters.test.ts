@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'bun:test'
-import { getDataMaps } from './ModelFactory.js'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {
@@ -63,12 +62,7 @@ describe('Action Property Getters', () => {
     })
 
     test('should extract from action when action name matches entity name', () => {
-      const { dataMap } = getDataMaps()
-      const actionsData = dataMap.actions as Array<{
-        id: string
-        name: string
-        activationCost?: number
-      }>
+      const actionsData = getReference().Actions.all()
 
       // Find an existing action with activationCost = 3
       const testAction = actionsData.find((a) => a.activationCost === 3)
@@ -87,12 +81,7 @@ describe('Action Property Getters', () => {
     })
 
     test('should return undefined when action name does not match entity name', () => {
-      const { dataMap } = getDataMaps()
-      const actionsData = dataMap.actions as Array<{
-        id: string
-        name: string
-        activationCost?: number
-      }>
+      const actionsData = getReference().Actions.all()
       const testAction = actionsData.find((a) => a.activationCost === 3)
 
       if (testAction) {
@@ -108,8 +97,7 @@ describe('Action Property Getters', () => {
     })
 
     test('should prefer base-level property over matching action', () => {
-      const { dataMap } = getDataMaps()
-      const actionsData = dataMap.actions as Array<{ id: string; name: string }>
+      const actionsData = getReference().Actions.all()
       const testAction = actionsData[0]
 
       if (testAction) {
@@ -145,12 +133,7 @@ describe('Action Property Getters', () => {
     })
 
     test('should extract from matching action when entity has multiple actions', () => {
-      const { dataMap } = getDataMaps()
-      const actionsData = dataMap.actions as Array<{
-        id: string
-        name: string
-        activationCost?: number
-      }>
+      const actionsData = getReference().Actions.all()
 
       // Find an action with activationCost
       const matchingAction = actionsData.find((a) => a.activationCost === 3)
@@ -172,12 +155,7 @@ describe('Action Property Getters', () => {
     })
 
     test('should return undefined when entity has multiple actions but none match entity name', () => {
-      const { dataMap } = getDataMaps()
-      const actionsData = dataMap.actions as Array<{
-        id: string
-        name: string
-        activationCost?: number
-      }>
+      const actionsData = getReference().Actions.all()
 
       const action1 = actionsData.find((a) => a.activationCost === 2)
       const action2 = actionsData.find((a) => a.activationCost === 3 && a.name !== action1?.name)
@@ -205,12 +183,11 @@ describe('Action Property Getters', () => {
     })
 
     test('should extract from action when action name matches entity name', () => {
-      const { dataMap } = getDataMaps()
-      const actionsData = dataMap.actions as Array<{
-        id: string
-        name: string
-        actionType?: string
-      }>
+      // Checked widening, not a cast: 'Attack' is outside the ActionType enum,
+      // so against the precise model type this probe is statically impossible —
+      // the original test deliberately searches for it (dead branch preserved).
+      const actionsData: Array<{ id: string; name: string; actionType?: string }> =
+        getReference().Actions.all()
       const testAction = actionsData.find((a) => a.actionType === 'Attack')
 
       if (testAction?.actionType) {
@@ -225,12 +202,9 @@ describe('Action Property Getters', () => {
     })
 
     test('should return undefined when action name does not match entity name', () => {
-      const { dataMap } = getDataMaps()
-      const actionsData = dataMap.actions as Array<{
-        id: string
-        name: string
-        actionType?: string
-      }>
+      // Checked widening — see the note on the previous test.
+      const actionsData: Array<{ id: string; name: string; actionType?: string }> =
+        getReference().Actions.all()
       const testAction = actionsData.find((a) => a.actionType === 'Attack')
 
       if (testAction) {
@@ -244,12 +218,9 @@ describe('Action Property Getters', () => {
     })
 
     test('should extract from matching action when entity has multiple actions', () => {
-      const { dataMap } = getDataMaps()
-      const actionsData = dataMap.actions as Array<{
-        id: string
-        name: string
-        actionType?: string
-      }>
+      // Checked widening — see the note on the first getActionType probe test.
+      const actionsData: Array<{ id: string; name: string; actionType?: string }> =
+        getReference().Actions.all()
 
       const matchingAction = actionsData.find((a) => a.actionType === 'Attack')
       const otherAction = actionsData.find(
@@ -280,12 +251,7 @@ describe('Action Property Getters', () => {
     })
 
     test('should extract from action when action name matches entity name', () => {
-      const { dataMap } = getDataMaps()
-      const actionsData = dataMap.actions as Array<{
-        id: string
-        name: string
-        range?: string[]
-      }>
+      const actionsData = getReference().Actions.all()
       const testAction = actionsData.find((a) => a.range && a.range.length > 0)
 
       if (testAction?.range) {
@@ -300,12 +266,7 @@ describe('Action Property Getters', () => {
     })
 
     test('should return undefined when action name does not match entity name', () => {
-      const { dataMap } = getDataMaps()
-      const actionsData = dataMap.actions as Array<{
-        id: string
-        name: string
-        range?: string[]
-      }>
+      const actionsData = getReference().Actions.all()
       const testAction = actionsData.find((a) => a.range && a.range.length > 0)
 
       if (testAction) {
@@ -346,12 +307,7 @@ describe('Action Property Getters', () => {
     })
 
     test('should extract from action when action name matches entity name', () => {
-      const { dataMap } = getDataMaps()
-      const actionsData = dataMap.actions as Array<{
-        id: string
-        name: string
-        damage?: { damageType: string; amount: number }
-      }>
+      const actionsData = getReference().Actions.all()
       const testAction = actionsData.find((a) => a.damage)
 
       if (testAction?.damage) {
@@ -366,12 +322,7 @@ describe('Action Property Getters', () => {
     })
 
     test('should return undefined when action name does not match entity name', () => {
-      const { dataMap } = getDataMaps()
-      const actionsData = dataMap.actions as Array<{
-        id: string
-        name: string
-        damage?: { damageType: string; amount: number }
-      }>
+      const actionsData = getReference().Actions.all()
       const testAction = actionsData.find((a) => a.damage)
 
       if (testAction) {
@@ -409,12 +360,7 @@ describe('Action Property Getters', () => {
     })
 
     test('should extract from action when action name matches entity name', () => {
-      const { dataMap } = getDataMaps()
-      const actionsData = dataMap.actions as Array<{
-        id: string
-        name: string
-        traits?: Array<{ type: string; amount?: number }>
-      }>
+      const actionsData = getReference().Actions.all()
       const testAction = actionsData.find((a) => a.traits && a.traits.length > 0)
 
       if (testAction?.traits) {
@@ -429,12 +375,7 @@ describe('Action Property Getters', () => {
     })
 
     test('should return undefined when action name does not match entity name', () => {
-      const { dataMap } = getDataMaps()
-      const actionsData = dataMap.actions as Array<{
-        id: string
-        name: string
-        traits?: Array<{ type: string; amount?: number }>
-      }>
+      const actionsData = getReference().Actions.all()
       const testAction = actionsData.find((a) => a.traits && a.traits.length > 0)
 
       if (testAction) {

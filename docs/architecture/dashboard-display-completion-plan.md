@@ -1,9 +1,34 @@
 # Dashboard "Display" — Completion Plan
 
-> **Status:** Planning / remediation record. **Scope: the Display (center panel)
-> functionality only** — the context-driven content area that follows dial focus
-> (Actions deck, Resolve flow, Tables, SRD Explorer, Entity view). This is a plan,
-> not an implementation.
+> **⚠️ STATUS: COMPLETED — HISTORICAL RECORD. DO NOT WORK FROM THIS DOCUMENT.**
+>
+> Every workstream in §5 shipped on 2026-07-13:
+>
+> - **D5** (EntityView — real entity reference cards + foot actions) — `10b5144b`, PR #450.
+> - **D1–D4** (actions instrument, resolve flow, tables, SRD explorer) — `5089594f`, PR #455.
+> - **D6** was folded into D1–D5 by design, not built separately (see §5).
+>
+> The plan itself was authored the same day (`95b7094d`, PR #446), so the
+> "Missing"/"Partial" gap table in §3 describes the state **before** those two PRs
+> — it has not been true since. §2–§7 are preserved verbatim as the design record
+> of what was built and why.
+>
+> **The code has also moved and been renamed since.** The two files §1 names are
+> now thin ITUN bindings; the presentational components live in
+> `packages/component-lib/src/components/dashboard/` (`DisplayPanel.tsx`,
+> `ActionsDeck.tsx`, `SrdExplorer.tsx`, `TablePickerOverlay.tsx`,
+> `tableCategories.ts`). The `ReferenceEntityDisplay` render stack this plan
+> targets **no longer exists** — it was replaced by `ReferenceEntityCard` plus a
+> typed `controls` API (`ReferenceEntityControl`). Consequently the component and
+> prop names throughout §4 (`ReferenceEntityDisplay`, `ReferenceEntityActions`,
+> `displayStateContext`, `footActions`, `ActionCard`, `Erow`/`ActionCardErow`,
+> `DataValueDisplayView`) are **dead symbols** and have been left uncorrected: they
+> record the API as it stood when the work was planned. For the current stack read
+> [`display-system.md`](display-system.md) and the source, not this file.
+>
+> **Original scope (for context):** the Display (center panel) functionality only —
+> the context-driven content area that follows dial focus (Actions deck, Resolve
+> flow, Tables, SRD Explorer, Entity view).
 >
 > **Reference artifacts:**
 >
@@ -15,7 +40,7 @@
 >   only source of truth for the intended Display behavior.
 > - **The prose spec** — [`dashboard.md`](dashboard.md) §2.2.D + §6 (describes the
 >   mockup by function name but does not reproduce its controls in full).
-> - The `suref-react` render stack the Display reuses:
+> - The `component-lib` render stack the Display reuses:
 >   [`display-system.md`](display-system.md); the play-state model the resolve flow
 >   drives: [`combat-loop.md`](combat-loop.md); and ADRs
 >   [016](../adrs/ADR-016-dashboard-rotary-dial-instrument-split.md) /
@@ -29,9 +54,9 @@
 The **Display** is the lower-left `pc-display` grid cell — the one "forward"
 surface, a **context window that follows the Dial's focus** (`centerMeta()` in the
 mockup). Selecting a different dial item swaps the whole panel. In code it is
-[`DisplayView.tsx`](../../apps/in-the-union-now/src/components/dashboard/DisplayView.tsx)
+[`DisplayPanel.tsx`](../../apps/itun/src/components/dashboard/DisplayPanel.tsx)
 (replaced by `DowntimeWizard` during Downtime), with the Actions mode delegated to
-[`ActionsDeck.tsx`](../../apps/in-the-union-now/src/components/dashboard/ActionsDeck.tsx).
+[`ActionsDeck.tsx`](../../apps/itun/src/components/dashboard/ActionsDeck.tsx).
 
 The Dashboard's _instruments_ (RailBar, ActiveItemBand + its live reactor / damage /
 critical / meltdown / cargo overlays, Dial, DialConfig, DashboardChooser,
@@ -101,7 +126,8 @@ Controls above the `deckgrid`:
 
 ## 3. Built vs. intended — the Display functionality gap
 
-Verified against `DisplayView.tsx` + `ActionsDeck.tsx` in the current worktree.
+> **Historical.** This table was accurate on 2026-07-13 _before_ PRs #450/#455.
+> Every row below has since shipped. Nothing here is outstanding.
 
 | Display capability (mockup)                                                              | Built today                                       | Status                               |
 | ---------------------------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------ |
@@ -124,7 +150,7 @@ Verified against `DisplayView.tsx` + `ActionsDeck.tsx` in the current worktree.
 | `[[links]]` drill into in-display entity card                                            | Navigates away / not wired                        | **Missing**                          |
 
 Evidence: `ActionsDeck.tsx` contains **no** filter / source / grouping / range /
-cost-choice / Hot-stepper controls (only `Activate`/`Roll`/`Push`); `DisplayView.tsx`
+cost-choice / Hot-stepper controls (only `Activate`/`Roll`/`Push`); `DisplayPanel.tsx`
 Tables uses a bare `<select>` (`:49-82`), SRD is a placeholder (`:87-92`), and entity
 focuses render a bare `ReferenceEntityDisplay` with no `footActions`/`statsOverride`/
 `ReferenceEntityActions`/`EntityHrefProvider` anywhere in `components/dashboard/`.
@@ -177,7 +203,7 @@ widened beyond today's primary-action-per-item (`dashboardRules.ts:249`).
   game-rules `Actions` masonry. To keep the built-in actions, don't `hide.actions`;
   to inject entity-level buttons use `afterExtraContent`/`footerOverride`.
 - **`ReferenceEntityActions` and `displayStateContext` are internal** (not in the
-  `suref-react` barrel) — reach them _through_ `ReferenceEntityDisplay`, don't import
+  `component-lib` barrel) — reach them _through_ `ReferenceEntityDisplay`, don't import
   internals. Density is a `compact`/`mode` prop, not a context knob.
 - **`RollTable`** is interactive but its Roll button needs **`showCommand` + a truthy
   `tableName`** (else static grid). Roll math: `rollOnTable`/`resultForTable`
@@ -207,10 +233,15 @@ widened beyond today's primary-action-per-item (`dashboardRules.ts:249`).
   extension — a separate project.
 - **Broader HUD chrome, Settings menu, phone reflow** — not Display content.
 
-## 5. Workstreams (Display-focused)
+## 5. Workstreams (Display-focused) — ALL SHIPPED
+
+> **Historical.** D5 landed in `10b5144b` (PR #450); D1–D4 in `5089594f` (PR #455);
+> D6 was folded into them. The "Touches:" file paths and component/prop names below
+> predate the component-lib lift and the `ReferenceEntityCard` rewrite — see the
+> banner at the top.
 
 Ordered by value. Each is independently shippable and gated on
-`bun --filter in-the-union-now test`, `typecheck`, `lint`, and the ADR-007 boundary
+`bun --filter itun test`, `typecheck`, `lint`, and the ADR-007 boundary
 tests.
 
 ### D5 — EntityView: a real reference document (do first — underpins D1/D4)
@@ -222,7 +253,7 @@ tests.
   `footerOverride` — not a new renderer.
 - Render the **crawler** focus as its real card (today a text note).
 - Provide an in-panel `EntityHrefProvider` (+ `EntityDetailLinkProvider={false}`) so
-  `[[links]]` drill in place. Touches: `DisplayView.tsx` (+ an `EntityView`).
+  `[[links]]` drill in place. Touches: `DisplayPanel.tsx` (+ an `EntityView`).
 
 ### D1 — Actions deck: filters, grouping, range, rich cards (highest visible value)
 
@@ -242,7 +273,7 @@ tests.
   (mirror `buildMechActions` over `pilot.abilities`/`pilot.equipment` via
   `resolveActions`/`resolveAbilityApCost`; AP economy) instead of the mech deck.
 - Touches: `ActionsDeck.tsx`, `dashboardRules.ts`, `playStateStore.ts`,
-  `DisplayView.tsx`.
+  `DisplayPanel.tsx`.
 
 ### D2 — Resolve flow: Apply, cost choice, Hot stepper
 
@@ -261,14 +292,14 @@ tests.
   (COMBAT/PILOT/SALVAGE/CRAWLER/DOWNTIME) driven by an **app-side curated
   name→category map** (§4.4). Roll result + follow-ups in-panel via `RollTable`
   (`showCommand` + `tableName`); **roll history** + Clear.
-- Touches: `DisplayView.tsx` (+ a `TablePickerOverlay` + the category map).
+- Touches: `DisplayPanel.tsx` (+ a `TablePickerOverlay` + the category map).
 
 ### D4 — SRD Explorer (currently a hard stub)
 
 - **Search box** via `useSearchCombobox` / `search()`, **8 category tiles** over the
   real accessors (§4.4), results drilling into `ReferenceEntityDisplay` in-panel
   (shares D5's `EntityHrefProvider`). Respect the preload hazard.
-- Touches: `DisplayView.tsx` (`srd` branch) + a small `SrdExplorer`.
+- Touches: `DisplayPanel.tsx` (`srd` branch) + a small `SrdExplorer`.
 
 ### D6 — Display visual fidelity (fold into D1–D5, not a separate build)
 
@@ -284,7 +315,7 @@ existing `--color-sheet-*` / `--color-rust` / `--color-roll-*` tokens.
 - **Order:** D5 → D1 → D2 → D3 → D4 (D6 folded in). D5's real card +
   `EntityHrefProvider` underpin D4 and the `acell` cards and fix the most visible
   "bare card" gap; D1/D2 restore the action instrument; D3/D4 finish Tables and SRD.
-- **Per-workstream gate:** the checks above + extend `__tests__/DisplayView.test.tsx`
+- **Per-workstream gate:** the checks above + extend `__tests__/DisplayPanel.test.tsx`
   per mode; keep `e2e/display-verification.e2e.ts` green.
 - **ADR-007:** new Apply/resolve writes auto-apply only non-destructive bookkeeping
   and route destructive outcomes through confirm/undo — unit-tested.

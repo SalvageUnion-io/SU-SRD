@@ -1,6 +1,6 @@
 ---
 paths:
-  - 'apps/in-the-union-now/src/**'
+  - 'apps/itun/src/**'
 ---
 
 # TanStack Query Hooks (ITUN)

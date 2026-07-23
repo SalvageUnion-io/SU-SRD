@@ -1,0 +1,254 @@
+import { describe, test, expect, afterEach } from 'bun:test'
+import { useState } from 'react'
+import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import type { SURefObjectChoice } from 'salvageunion-reference'
+import { ChoiceGroups } from '../ChoiceGroups'
+import type { ChoiceSelections } from '../choiceSelectionHelpers'
+
+const weaponTypeChoice: SURefObjectChoice = {
+  id: 'weapon-type',
+  name: 'Weapon Type',
+  choiceType: 'permanent',
+  schema: ['traits'],
+  schemaEntities: ['Ballistic', 'Energy'],
+}
+
+const modificationChoice: SURefObjectChoice = {
+  id: 'modification',
+  name: 'Modification',
+  choiceType: 'permanent',
+  multiSelect: true,
+  constraints: { scalesWithField: 'techLevel' },
+  choiceOptions: [
+    { label: 'Rangefinder', value: 'Rangefinder', description: 'Increases Range to Far.' },
+    { label: 'Laser Guidance', value: 'Laser Guidance', description: 'Spend 2 AP to hit.' },
+    { label: 'High Calibre Rounds', value: 'High Calibre Rounds', description: '+1 SP damage.' },
+  ],
+}
+
+const nameChoice: SURefObjectChoice = {
+  id: 'name',
+  name: 'Name',
+  choiceType: 'freeform',
+  content: [{ type: 'paragraph', value: 'The name of your companion.' }],
+}
+
+const parent = { techLevel: 2 }
+
+/** Narrow a queried element to a real `<button>`, failing loudly otherwise. */
+function asButton(el: HTMLElement): HTMLButtonElement {
+  if (!(el instanceof HTMLButtonElement)) throw new Error('expected a <button> element')
+  return el
+}
+
+/** Narrow a queried element to a real `<input>`, failing loudly otherwise. */
+function asInput(el: HTMLElement): HTMLInputElement {
+  if (!(el instanceof HTMLInputElement)) throw new Error('expected an <input> element')
+  return el
+}
+
+afterEach(cleanup)
+
+describe('ChoiceGroups — uncontrolled (ephemeral) state', () => {
+  test('renders option cards dimmed (unchosen) with no Chosen stamp by default', () => {
+    render(<ChoiceGroups choices={[weaponTypeChoice]} parent={parent} />)
+    expect(screen.getByText('Ballistic')).toBeTruthy()
+    expect(screen.getByText('Energy')).toBeTruthy()
+    // New style: unchosen options carry no stamp; only a chosen option gets "Chosen".
+    expect(screen.queryByText('Chosen')).toBeNull()
+    expect(screen.getByRole('button', { name: /Ballistic/ }).getAttribute('aria-pressed')).toBe(
+      'false'
+    )
+  })
+
+  test('toggles an option on click and back off', () => {
+    render(<ChoiceGroups choices={[weaponTypeChoice]} parent={parent} />)
+    const ballistic = screen.getByRole('button', { name: /Ballistic/ })
+    fireEvent.click(ballistic)
+    expect(ballistic.getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByText('Chosen')).toBeTruthy()
+
+    fireEvent.click(ballistic)
+    expect(ballistic.getAttribute('aria-pressed')).toBe('false')
+    expect(screen.queryByText('Chosen')).toBeNull()
+  })
+})
+
+describe('ChoiceGroups — exclusive vs multi-select', () => {
+  test('exclusive choice deselects the previous option', () => {
+    render(<ChoiceGroups choices={[weaponTypeChoice]} parent={parent} />)
+    const ballistic = screen.getByRole('button', { name: /Ballistic/ })
+    const energy = screen.getByRole('button', { name: /Energy/ })
+
+    fireEvent.click(ballistic)
+    expect(ballistic.getAttribute('aria-pressed')).toBe('true')
+
+    fireEvent.click(energy)
+    expect(energy.getAttribute('aria-pressed')).toBe('true')
+    expect(ballistic.getAttribute('aria-pressed')).toBe('false')
+  })
+
+  test('multi-select choice keeps multiple options selected', () => {
+    render(<ChoiceGroups choices={[modificationChoice]} parent={parent} />)
+    const rangefinder = screen.getByRole('button', { name: /Rangefinder/ })
+    const highCalibre = screen.getByRole('button', { name: /High Calibre Rounds/ })
+
+    fireEvent.click(rangefinder)
+    fireEvent.click(highCalibre)
+
+    expect(rangefinder.getAttribute('aria-pressed')).toBe('true')
+    expect(highCalibre.getAttribute('aria-pressed')).toBe('true')
+  })
+})
+
+describe('ChoiceGroups — multi-select cap (scalesWithField)', () => {
+  test('shows an (n/max) counter resolved from the parent field', () => {
+    render(<ChoiceGroups choices={[modificationChoice]} parent={parent} />)
+    // techLevel: 2 → cap 2, nothing selected yet.
+    expect(screen.getByText('0/2')).toBeTruthy()
+  })
+
+  test('the cap disables unchosen options and rejects picks beyond it', () => {
+    render(<ChoiceGroups choices={[modificationChoice]} parent={{ techLevel: 1 }} />)
+    const rangefinder = screen.getByRole('button', { name: /Rangefinder/ })
+    const laser = screen.getByRole('button', { name: /Laser Guidance/ })
+
+    // Below the cap nothing is disabled.
+    expect(asButton(laser).disabled).toBe(false)
+
+    fireEvent.click(rangefinder)
+    expect(rangefinder.getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByText('1/1')).toBeTruthy()
+
+    // Cap is 1 (techLevel) and met: the unchosen options disable, and even a
+    // forced click cannot push the selection past the cap.
+    expect(asButton(laser).disabled).toBe(true)
+    fireEvent.click(laser)
+    expect(laser.getAttribute('aria-pressed')).toBe('false')
+    expect(screen.getByText('1/1')).toBeTruthy()
+
+    // The chosen option stays clickable — deselecting reopens the cap.
+    expect(asButton(rangefinder).disabled).toBe(false)
+    fireEvent.click(rangefinder)
+    expect(rangefinder.getAttribute('aria-pressed')).toBe('false')
+    expect(asButton(laser).disabled).toBe(false)
+  })
+
+  test('a higher-tech parent widens the cap (Modifications ≤ TL)', () => {
+    render(<ChoiceGroups choices={[modificationChoice]} parent={parent} />)
+    const rangefinder = screen.getByRole('button', { name: /Rangefinder/ })
+    const laser = screen.getByRole('button', { name: /Laser Guidance/ })
+    const highCalibre = screen.getByRole('button', { name: /High Calibre Rounds/ })
+
+    fireEvent.click(rangefinder)
+    fireEvent.click(laser)
+    // techLevel: 2 → cap 2 reached; the third option disables and won't select.
+    expect(screen.getByText('2/2')).toBeTruthy()
+    expect(asButton(highCalibre).disabled).toBe(true)
+    fireEvent.click(highCalibre)
+    expect(highCalibre.getAttribute('aria-pressed')).toBe('false')
+  })
+})
+
+describe('ChoiceGroups — free-text choice', () => {
+  test('renders an editable field and updates its value (no Chosen/Not Chosen stamp)', () => {
+    render(<ChoiceGroups choices={[nameChoice]} parent={parent} />)
+    const field = asInput(screen.getByLabelText('Name'))
+    expect(field).toBeTruthy()
+    // Free-text input cards carry no Chosen / Not Chosen status stamp.
+    expect(screen.queryByText('Not Chosen')).toBeNull()
+    expect(screen.queryByText('Chosen')).toBeNull()
+
+    fireEvent.change(field, { target: { value: 'Rex' } })
+    expect(field.value).toBe('Rex')
+  })
+})
+
+describe('ChoiceGroups — controlled props', () => {
+  test('renders selection from controlled props and reports changes', () => {
+    const calls: ChoiceSelections[] = []
+    render(
+      <ChoiceGroups
+        choices={[weaponTypeChoice]}
+        parent={parent}
+        selections={{ 'weapon-type': ['Ballistic'] }}
+        onSelectionChange={(next) => calls.push(next)}
+      />
+    )
+    const ballistic = screen.getByRole('button', { name: /Ballistic/ })
+    const energy = screen.getByRole('button', { name: /Energy/ })
+    expect(ballistic.getAttribute('aria-pressed')).toBe('true')
+
+    fireEvent.click(energy)
+    // Controlled: parent gets the next map; local DOM does not change until the
+    // parent re-renders with new props.
+    expect(calls.length).toBe(1)
+    expect(calls[0]).toEqual({ 'weapon-type': ['Energy'] })
+    expect(ballistic.getAttribute('aria-pressed')).toBe('true')
+  })
+
+  test('controlled parent owning state drives the displayed selection', () => {
+    function Harness() {
+      const [selections, setSelections] = useState<ChoiceSelections>({})
+      return (
+        <ChoiceGroups
+          choices={[weaponTypeChoice]}
+          parent={parent}
+          selections={selections}
+          onSelectionChange={setSelections}
+        />
+      )
+    }
+    render(<Harness />)
+    const ballistic = screen.getByRole('button', { name: /Ballistic/ })
+    fireEvent.click(ballistic)
+    expect(ballistic.getAttribute('aria-pressed')).toBe('true')
+  })
+})
+
+describe('ChoiceGroups — empty', () => {
+  test('renders nothing when there are no choices', () => {
+    const { container } = render(<ChoiceGroups choices={[]} parent={parent} />)
+    expect(container.firstChild).toBeNull()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// TABLE choice render (Stage 7): A.I. Personality renders via the roll-table
+// HEADER (title + Roll button), rows collapsed behind a Show/Hide toggle —
+// NOT the old bare text box. Needs reference data preloaded so the roll table
+// resolves by name.
+// ---------------------------------------------------------------------------
+import { beforeAll } from 'bun:test'
+import { SalvageUnionReference } from 'salvageunion-reference'
+
+const tableChoice: SURefObjectChoice = {
+  id: 'ai-personality',
+  name: 'A.I. Personality',
+  content: [{ type: 'paragraph', value: 'Roll on the A.I. Personality Table or choose your own.' }],
+  source: { kind: 'table', rollTable: 'A.I. Personality', orChooseOwn: true },
+}
+
+describe('ChoiceGroups — table choice (A.I. Personality)', () => {
+  beforeAll(async () => {
+    await SalvageUnionReference.preload('all')
+  })
+
+  test('renders the cited table header (title + roll), rows collapsed', () => {
+    render(<ChoiceGroups choices={[tableChoice]} readOnly />)
+    // the header names the table and exposes the Roll button…
+    expect(screen.getByText('A.I. Personality Table')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Roll on this table/i })).toBeTruthy()
+    // …but the rows are collapsed by default (no <table> in the DOM yet)
+    expect(screen.queryAllByRole('table').length).toBe(0)
+    // read-only: no input
+    expect(screen.queryByRole('textbox')).toBeNull()
+  })
+
+  test('expands the table rows via the Show toggle', () => {
+    render(<ChoiceGroups choices={[tableChoice]} readOnly />)
+    expect(screen.queryAllByRole('table').length).toBe(0)
+    fireEvent.click(screen.getByRole('button', { name: 'Show' }))
+    expect(screen.getAllByRole('table').length).toBeGreaterThan(0)
+  })
+})

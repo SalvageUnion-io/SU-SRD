@@ -44,3 +44,21 @@ pre-push:
 
     knip:
       run: bun run knip
+
+    design-tokens:
+      # Guards the closed colour set / token scales (ruleset §3–§4). Belongs on
+      # pre-push rather than pre-commit for the same reason as typecheck — but
+      # it is load-bearing here in a way lint is not: these are Tailwind v4
+      # `@theme` tokens, so an off-system or deleted token does NOT fail
+      # typecheck. The utility simply stops being generated and the element
+      # renders unstyled. This check is the only mechanical backstop for that.
+      run: bun run check:tokens
+
+    styling-ownership:
+      # Guards the source-of-truth property: component-lib owns all shared
+      # styling. Catches app-local `@theme` tokens, dead app CSS, and breaks in
+      # the dashboard `pc-*` class contract (used-but-undefined / defined-but-
+      # unused). Like design-tokens, none of these fail typecheck — a stray app
+      # token or a className referencing an undefined class renders unstyled with
+      # no compiler error. Ratchets downward from a committed baseline.
+      run: bun run check:styling

@@ -29,7 +29,7 @@ import {
   copyFileSync,
   appendFileSync,
 } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -51,17 +51,38 @@ type WorkspaceCoverage = {
 
 const WORKSPACES = [
   'packages/salvageunion-reference',
-  'packages/suref-react',
-  'apps/suref-web',
-  'apps/in-the-union-now',
+  'packages/component-lib',
+  'apps/srd',
+  'apps/itun',
   'apps/discord-bot',
 ]
 
-function parseLcov(path: string): { linesFound: number; linesHit: number } {
+/**
+ * Sum a workspace's line coverage from its lcov, counting ONLY files that belong
+ * to that workspace.
+ *
+ * A test run pulls in source from other workspaces (e.g. srd's `preload-reference`
+ * loads `salvageunion-reference`), and Bun reports coverage for every file it
+ * loaded. Summing all records therefore charged one workspace for another's
+ * uncovered lines — srd read 44.8% because it was being measured mostly on
+ * reference-package files its own tests never exercise. Each `SF:` record is
+ * resolved against the lcov's directory and skipped unless it sits inside the
+ * workspace being measured, so the ratchet tracks each workspace's own code.
+ */
+function parseLcov(path: string, workspaceRoot: string): { linesFound: number; linesHit: number } {
   const contents = readFileSync(path, 'utf-8')
+  const lcovDir = dirname(path)
   let linesFound = 0
   let linesHit = 0
+  let include = false
   for (const line of contents.split('\n')) {
+    if (line.startsWith('SF:')) {
+      const file = line.slice(3).trim()
+      const abs = isAbsolute(file) ? file : resolve(lcovDir, file)
+      include = !relative(workspaceRoot, abs).startsWith('..')
+      continue
+    }
+    if (!include) continue
     if (line.startsWith('LF:')) linesFound += Number(line.slice(3))
     if (line.startsWith('LH:')) linesHit += Number(line.slice(3))
   }
@@ -70,14 +91,28 @@ function parseLcov(path: string): { linesFound: number; linesHit: number } {
 
 const results: WorkspaceCoverage[] = []
 const missing: string[] = []
+/** workspace -> why its lcov was absent. Keyed by NAME: `missing` stays a list
+ *  of bare workspace names because it is used for `baseline[...]` lookups. */
+const missingWhy: Record<string, string> = {}
 
 for (const workspace of WORKSPACES) {
   const lcovPath = join(root, workspace, 'coverage', 'lcov.info')
   if (!existsSync(lcovPath)) {
+    // Say WHICH of the two failures this is. A missing coverage DIRECTORY means
+    // the workspace's `test:coverage` never ran (or died before writing
+    // anything); a present directory with no lcov.info means the run happened
+    // but the reporter produced nothing. Those have different causes and the
+    // bare "(missing)" row could not tell them apart — which cost a real
+    // debugging cycle when apps/srd intermittently reported nothing in CI
+    // while its tests passed and exited 0.
+    const dir = join(root, workspace, 'coverage')
     missing.push(workspace)
+    missingWhy[workspace] = existsSync(dir)
+      ? 'coverage/ exists but holds no lcov.info — the run happened and the reporter produced nothing'
+      : 'no coverage/ directory at all — test:coverage did not run to completion'
     continue
   }
-  const { linesFound, linesHit } = parseLcov(lcovPath)
+  const { linesFound, linesHit } = parseLcov(lcovPath, join(root, workspace))
   const pct = linesFound > 0 ? (linesHit / linesFound) * 100 : 0
   results.push({ workspace, lcovPath, linesFound, linesHit, pct })
 }
@@ -153,7 +188,7 @@ if (regressions.length > 0) {
     if (r.status === 'missing') {
       lines.push(
         // biome-ignore lint/style/noNonNullAssertion: 'missing' rows are only pushed when baselinePct !== undefined (see rows construction above)
-        `- \`${r.workspace}\`: no coverage output was produced (baseline ${r.baselinePct!.toFixed(2)}%). A workspace with a recorded baseline must keep producing \`coverage/lcov.info\`.`
+        `- \`${r.workspace}\`: no coverage output was produced (baseline ${r.baselinePct!.toFixed(2)}%) — ${missingWhy[r.workspace] ?? 'reason unknown'}. A workspace with a recorded baseline must keep producing \`coverage/lcov.info\`.`
       )
     } else {
       lines.push(

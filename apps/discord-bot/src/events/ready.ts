@@ -1,7 +1,17 @@
-import { ActivityType, type Client } from 'discord.js'
+import { ActivityType, type PresenceData } from 'discord.js'
 import { captureMessage } from '../observability.js'
 
-export function handleReady(client: Client<true>): void {
+/**
+ * The NARROW client surface handleReady actually reads — interface
+ * segregation over `Client<true>`, which always satisfies it structurally.
+ * Lets tests build a minimal recording client with no forced casts.
+ */
+export type ReadyClient = {
+  user: { tag: string; setPresence(presence: PresenceData): void }
+  guilds: { cache: { size: number } }
+}
+
+export function handleReady(client: ReadyClient): void {
   console.log(`Logged in as ${client.user.tag}`)
   console.log(`Serving ${client.guilds.cache.size} guild(s)`)
   // A steady presence so the bot reads as a live, first-class app rather than

@@ -5,7 +5,7 @@
  * Models are loaded lazily via SalvageUnionReference.preload().
  */
 
-import type { BaseModel, ModelWithMetadata } from './BaseModel.js'
+import type { ModelWithMetadata } from './BaseModel.js'
 import type { LazyModel } from './LazyModel.js'
 import {
   getLoadedModel,
@@ -57,6 +57,7 @@ export {
   getParagraphString,
   replaceChassisPlaceholder,
   parseContentBlockString,
+  resolveDataValueForTechLevel,
 } from './contentBlockHelpers.js'
 
 export {
@@ -106,11 +107,12 @@ import {
 /**
  * Erased view of {@link lazyModelMap} for dynamic (arbitrary string id) access,
  * where the caller cannot statically know which schema's entity type applies
- * (e.g. preload() iterating a runtime list of ids). The single `as` here is the
- * one deliberate soundness boundary for the lazy-loading indirection: the id →
- * backing-model correspondence is guaranteed at runtime by loadSchemas().
+ * (e.g. preload() iterating a runtime list of ids). This is a checked widening,
+ * not a cast: every per-schema `LazyModel<T>` is assignable to
+ * `LazyModel<unknown>`, and the id → backing-model correspondence is guaranteed
+ * at runtime by loadSchemas().
  */
-const lazyModelsById = lazyModelMap as Record<string, LazyModel<unknown>>
+const lazyModelsById: Record<string, LazyModel<unknown> | undefined> = lazyModelMap
 
 export type * from './types/index.js'
 
@@ -229,7 +231,7 @@ export class SalvageUnionReference {
 
       try {
         const backing = getLoadedModel(id, toPascalCase(id))
-        lazyModel._install(backing as BaseModel<unknown>)
+        lazyModel._install(backing)
       } catch {
         // Already logged during load; skip gracefully
       }
@@ -323,9 +325,12 @@ export class SalvageUnionReference {
     const schemaName = parts[0]
     const id = parts[1]
     if (!schemaName || !id) return null
-    if (!(SchemaToModelMap as Record<string, string>)[schemaName as SURefEnumSchemaName])
-      return null
+    if (!(schemaName in SchemaToModelMap)) return null
 
+    // Sole assertion: the registry key set is a superset of SURefEnumSchemaName
+    // ('actions' and 'catalog-categories' are registered but not in the zod
+    // enum), and this public signature predates that split. Narrowing the
+    // guard to the enum would reject 'actions::…' refs — a behavior change.
     return { schemaName: schemaName as SURefEnumSchemaName, id }
   }
 
@@ -340,7 +345,7 @@ export class SalvageUnionReference {
     const parsed = SalvageUnionReference.parseRef(ref)
     if (!parsed) return undefined
     if (parsed.schemaName in SchemaToModelMap) {
-      return SalvageUnionReference.get(parsed.schemaName as keyof SchemaToEntityMap, parsed.id)
+      return SalvageUnionReference.get(parsed.schemaName, parsed.id)
     }
     return undefined
   }
@@ -386,21 +391,16 @@ export class SalvageUnionReference {
   /**
    * Get all entities from multiple schemas, tagged with their schema name
    */
-  public static getAllBySchemaNames(
-    schemaNames: (keyof SchemaToEntityMap)[]
-  ): Array<{ schemaName: keyof SchemaToEntityMap; entity: SURefMetaEntity }> {
-    const result: Array<{
-      schemaName: keyof SchemaToEntityMap
-      entity: SURefMetaEntity
-    }> = []
+  public static getAllBySchemaNames<K extends keyof SchemaToEntityMap>(
+    schemaNames: K[]
+  ): Array<{ schemaName: K; entity: SchemaToEntityMap[K] }> {
+    const result: Array<{ schemaName: K; entity: SchemaToEntityMap[K] }> = []
     for (const schemaName of schemaNames) {
-      // Irreducible cast: lazyModelMap[schemaName] is a union of per-schema
-      // LazyModels, but that union includes non-meta entity types (e.g.
-      // catalog-categories -> SURefCatalogCategory, which is intentionally NOT
-      // in SURefMetaEntity), so neither a plain `as` nor a mapped-type narrowing
-      // applies. Callers only ever pass entity/meta schema names, so the
-      // narrowed entities are valid SURefMetaEntity in practice.
-      const model = lazyModelMap[schemaName] as unknown as BaseModel<SURefMetaEntity>
+      // lazyModelMap is a homomorphic mapped type, so a generic indexed access
+      // resolves to LazyModel<SchemaToEntityMap[K]> — no cast needed, and the
+      // result is typed by the exact schemas the caller passed (e.g.
+      // catalog-categories entities are no longer mislabelled SURefMetaEntity).
+      const model = lazyModelMap[schemaName]
       for (const entity of model.all()) {
         result.push({ schemaName, entity })
       }

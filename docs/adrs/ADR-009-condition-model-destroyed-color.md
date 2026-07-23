@@ -18,7 +18,7 @@ contain an unambiguous "this is destroyed" signal.
 - Equipment condition is a **tri-state**: `intact` → `damaged` → `destroyed`,
   cycling back to `intact`. It is modeled as `ItemCondition` and driven by a
   single controlled component, `ConditionToggle`
-  (`apps/in-the-union-now/src/components/shared/ConditionToggle.tsx`).
+  (`apps/itun/src/components/shared/ConditionToggle.tsx`).
 - The control is **player-driven and keyboard-accessible** (role="button",
   Enter/Space, 44px touch target) and has a **`readOnly` static-badge mode** for
   read-only contexts such as published snapshots

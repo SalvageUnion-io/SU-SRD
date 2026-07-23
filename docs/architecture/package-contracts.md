@@ -7,11 +7,11 @@ This document defines what each package exposes, what it consumes, and the rules
 ```
 salvageunion-reference (game data ORM, no build step)
   |
-  +---> suref-react (shared UI components, no build step)
+  +---> component-lib (shared UI components, no build step)
   |       |
-  |       +---> suref-web (static reference site, Astro 5)
+  |       +---> srd (static reference site, Astro 5)
   |       |
-  |       +---> in-the-union-now (character builder, React 19 + Vite)
+  |       +---> itun (character builder, React 19 + Vite)
   |
   +---> discord-bot (standalone, Discord.js)
 ```
@@ -30,10 +30,10 @@ All workspace dependencies use `workspace:*` protocol. React 19.2.0+ is aligned 
 **This package is private and workspace-internal — it is not published to npm.**
 It has no npm distribution and is consumed only within this monorepo via the
 `workspace:*` protocol. The dataset's actual public interface is the
-CORS-enabled JSON API served by `suref-web`
-(`apps/suref-web/src/pages/schema/[schemaId].json.ts`,
+CORS-enabled JSON API served by `srd`
+(`apps/srd/src/pages/schema/[schemaId].json.ts`,
 `schema/[schemaId].schema.json.ts`, `schema/[schemaId]/item/[itemId].json.ts`,
-documented at `apps/suref-web/src/pages/api.astro`). External consumers should
+documented at `apps/srd/src/pages/api.astro`). External consumers should
 use that API, not `npm install salvageunion-reference`. See
 [ADR-014](../adrs/ADR-014-json-api-public-interface-npm-retired.md) for the
 full rationale.
@@ -106,7 +106,7 @@ All entity types (`SURef*`), enum types (`SURefEnum*`), common types (`SURefComm
 
 ### Dependencies
 
-- **Runtime:** `zod` (^4.4.3)
+- **Runtime:** `zod` (^4.4.3), `jsonc-parser` (^3.3.1)
 - **Dev only:** none (`devDependencies` is empty — validation tooling runs on Bun + the runtime deps)
 
 ### Generated Files (do not edit)
@@ -171,9 +171,9 @@ When storing cross-entity references in new JSON data files, always use the `"sc
 
 ---
 
-## suref-react
+## component-lib
 
-**Location:** `packages/suref-react/`
+**Location:** `packages/component-lib/`
 **Build required:** No (exports TypeScript source directly)
 
 ### Entry Points
@@ -189,28 +189,34 @@ Consuming apps' Vite/Astro bundlers compile `.ts/.tsx` files directly. No interm
 
 ### Public API (`src/index.ts` is the source of truth)
 
-The barrel exports ~100 names. Do NOT trust any hand-maintained list (an
-earlier revision of this doc said "64 named exports" and drifted); instead,
-know the categories and check the barrel:
+The barrel exports 144 names. Do NOT trust any hand-maintained list (earlier
+revisions of this doc said "64 named exports", then "~100", and named several
+exports that no longer exist); instead, know the categories and check the
+barrel:
 
-- **Types** — display/config types (`DataValue`, `StatConfig`, `DisplayCardTab`, choice-card types, …)
-- **Constants** — `ENTITY_STATS_CONFIG`, tech-level style maps
-- **Base typography** — `Text`, `Heading`
-- **UI primitives** — `Toaster`, `ModalShell`
-- **Chrome primitives** (`src/components/chrome/`) — `Btn`, `MiniBtn`, `Tag`, `Pill`, `Panel`, `OptRow`, `Stepper`, `Field`, `Input`, and friends
-- **Stat display** (`src/components/stat/`) — `StatBlock`, `MiniStat`, heat-level helpers
-- **Entity display system** — `ReferenceEntityDisplay` + tooltips/sections/skeletons, `getReferenceEntitySpacing`
-- **Interactive choice cards** — `ChoiceGroups`/`ChoiceGroup`/`ChoiceCard` + selection helpers
-- **Shared components** — `DisplayCard`, `RollTable`, `FilterChip`/`FilterRow`, `ValueDisplay`, `Footer`, …
-- **Utilities** — color helpers, `cn`, filtering/enrichment helpers
-- **Content rendering** — `BlockContentRendererView`, `DataValueDisplayView`
+- **Types** — `ReferenceEntityControl`, `CardFootMeta`, `CardDomain`, `ChoiceSelections`, `EntityHrefBuilder`, …
+- **Constants** — `TECH_LEVEL_STYLES` / `techLevelLabel`
+- **Base typography** — `Text`
+- **UI primitives** — `Toaster` / `toast`, `ModalShell`
+- **Chrome primitives** (`src/components/chrome/`) — `Badge`, `Button`, `Callout`, `EmptyState`, `FieldError`, `Glyph`, `Field`/`Input`/`Select`, `Panel`/`Row`, `Slab`, `CountStepper`, `StatusBadge`, `Conditions`, `Sel`, `KvRow`, and friends
+- **Stat trackers** (`src/components/stat/`) — `VitalGauge`, `BayStatus`, `heatDangerFrom` (the running-text `StatLine` was
+  absorbed into `Stat` as `orientation="horizontal" surface="plain"`)
+- **Entity display system** — `ReferenceEntityCard`, the href/detail-link providers, `ClassAbilityTree`, `entityHostTone`/`resolveSchemaDomain`, `navigateControl`, `useDetailModal`, `useChassisPatternConfig`, `Skeleton`
+- **Shared components** — `Card`, `AppBar`, `Footer`, `FilterChip`/`FilterRow`, `EntityGrid`/`EntityRow`, `EntitySearcher`, `SlotGrid`, `Stat`, `CatalogTile`, `StaticEntityContent`, …
+- **Dashboard shell** (`src/components/dashboard/`) — `DashboardCanvas`, `DashboardGrid`, `RailBar`, `Dial`/`DialConfig`, `DisplayPanel`, `ActionsDeck`, `ActiveItemBand`/`StorageBay`
+- **Sheet presentation** (`src/components/sheet/`) — `SheetHero`/`ChassisStats`, `CrawlerEconFrame`, `ConditionsEditor`, `SnapshotQr`, …
+- **Wizard steps** (`src/components/wizard/`) — `ClassOptionList`, `CrawlerTypeSelectStep`, `EquipmentStep`, …
+- **Changelog** — `parseChangelog`, `mergeChangelogs`, `Changelog`
+- **Utilities** — the single `cn()` (its tailwind-merge config knows the custom utilities; never re-wrap `twMerge` with the default config)
 
-Note: there is no exported `Tooltip` primitive — entity tooltips ship as
-`ReferenceEntityDisplayTooltip`.
+Note: some components are deliberately internal and NOT exported — there is no
+`Tooltip` primitive, `EntityTooltip` is used inside the entity card rather than
+published, and `ConditionChip` ships only as a sub-part of `Conditions`.
 
 ### Dependencies
 
-- **Peer dependencies** (must be provided by consuming apps): `react`, `react-dom`, `@radix-ui/react-dialog`, `@radix-ui/react-hover-card`, `@radix-ui/react-tooltip`, `salvageunion-reference`, `lucide-react`, `sonner`, `class-variance-authority`, `clsx`, `tailwind-merge`, `@randsum/roller`
+- **Peer dependencies** (must be provided by consuming apps): `react`, `react-dom`, `@base-ui/react`, `salvageunion-reference`, `lucide-react`, `sonner`, `class-variance-authority`, `clsx`, `tailwind-merge`, `@randsum/roller`
+- **Direct dependency**: `qrcode`
 - **No backend/data-source dependency** — fully data-source agnostic
 
 ### Design Principles
@@ -221,16 +227,16 @@ Note: there is no exported `Tooltip` primitive — entity tooltips ship as
 
 ---
 
-## suref-web
+## srd
 
-**Location:** `apps/suref-web/`
+**Location:** `apps/srd/`
 **Framework:** Astro 5 + React 19 islands
 
 ### Consumes
 
 - `salvageunion-reference` (workspace:\*) — game data
-- `suref-react` (workspace:\*) — shared components + theme
-- `@radix-ui/react-dialog` — search modal
+- `component-lib` (workspace:\*) — shared components + theme
+- `@base-ui/react` — headless UI primitives (dialog, etc.)
 
 ### Does Not Use
 
@@ -239,27 +245,27 @@ Note: there is no exported `Tooltip` primitive — entity tooltips ship as
 ### Tailwind Source Path
 
 ```css
-/* apps/suref-web/src/styles/global.css */
-@source "../../../../packages/suref-react/src";
-@import 'suref-react/styles/theme.css';
+/* apps/srd/src/styles/global.css */
+@source "../../../../packages/component-lib/src";
+@import 'component-lib/styles/theme.css';
 ```
 
 ---
 
-## in-the-union-now
+## itun
 
-**Location:** `apps/in-the-union-now/`
+**Location:** `apps/itun/`
 **Framework:** React 19 + Vite + TanStack Router/Query
 
 ### Consumes
 
 - `salvageunion-reference` (workspace:\*) — game data
-- `suref-react` (workspace:\*) — shared components + theme
+- `component-lib` (workspace:\*) — shared components + theme
 - `idb` — IndexedDB wrapper for local-first persistence (`src/lib/db/`)
 - `@tanstack/react-router`, `@tanstack/react-query` — routing + async/derived data
 - `zustand` — write-through entity/workspace stores (`src/stores/`)
-- `zod` — schema validation for player records + input
-- Radix UI (dialog, dropdown-menu, separator, slot, tabs, tooltip)
+- `@base-ui/react` — headless UI primitives
+- `@netlify/blobs` — snapshot-sharing Netlify Functions storage
 
 Local-first: there is no auth and no backend other than the
 stateless snapshot-sharing Netlify Functions (see
@@ -269,9 +275,9 @@ IndexedDB.
 ### Tailwind Source Path
 
 ```css
-/* apps/in-the-union-now/src/index.css */
-@source "../../../packages/suref-react/src";
-@import 'suref-react/styles/theme.css';
+/* apps/itun/src/index.css */
+@source "../../../packages/component-lib/src";
+@import 'component-lib/styles/theme.css';
 ```
 
 ---
@@ -287,7 +293,7 @@ IndexedDB.
 
 ### Does Not Use
 
-- React, suref-react, Tailwind
+- React, component-lib, Tailwind
 
 ---
 
@@ -333,7 +339,7 @@ one way:
 
 ```
 salvageunion-reference (game data schema)
-  --> in-the-union-now (derives store shapes, validation, and refs from game data)
+  --> itun (derives store shapes, validation, and refs from game data)
 ```
 
 The reference package must never import from the apps. If you find yourself
@@ -361,7 +367,7 @@ await SalvageUnionReference.preload('all')
 preload = ["./test/preload-reference.ts"]
 ```
 
-All existing consumer packages (`suref-react`, `suref-web`, `in-the-union-now`) follow this pattern. New packages that test any code touching `SalvageUnionReference` must do the same.
+All existing consumer packages (`component-lib`, `srd`, `itun`) follow this pattern. New packages that test any code touching `SalvageUnionReference` must do the same.
 
 ---
 
@@ -378,11 +384,11 @@ When modifying shared packages, follow this checklist:
 - [ ] If adding a new schema, ALL of these registries must gain an entry together (they are hand-maintained in parallel today): `ModelFactory.ts` `dataLoaders` + `jsonSchemaLoaders` + `zodSchemaMap` + `schemaDisplayNames`; `index.ts` `LazyModel` instance + `lazyModelMap` + `SchemaToEntityMap` + `SCHEMA_REGISTRY` + static accessor; `tools/generateJsonSchemas.ts` map. Then verify `preload(['new-schema-id'])` resolves without error
 - [ ] Data integrity: `bun run validate:all` (includes `validate:slugs` — same-named entities in one file shadow each other's slug URLs and will fail the gate)
 
-### 2. After changing `suref-react`
+### 2. After changing `component-lib`
 
 - [ ] Update `src/index.ts` barrel if adding/removing exports
 - [ ] Run typecheck: `bun run typecheck` (checks all consumers)
-- [ ] Run component tests: `bun --filter suref-react test`
+- [ ] Run component tests: `bun --filter component-lib test`
 - [ ] Verify Tailwind `@source` paths in both apps still cover new files
 - [ ] If adding peer dependencies: update both `peerDependencies` and `devDependencies`
 

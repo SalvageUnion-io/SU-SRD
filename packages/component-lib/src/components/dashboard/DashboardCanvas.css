@@ -1,0 +1,75 @@
+/*
+ * DashboardCanvas — the Dashboard ("Pit HUD") layout shell.
+ *
+ * The cockpit reads as PAPER INSTRUMENTS ON A DARK WORKBENCH — a three-level
+ * depth ladder that does the region hierarchy the flat all-paper revision had to
+ * do with hairlines alone:
+ *
+ *   ground      `--color-ink-deep`   the surround AND the canvas behind the
+ *                                    instruments — recessed, never read
+ *   instrument  `--color-band-cream` rail, active-item band, dial cells and the
+ *                                    overlays that replace them — the chassis
+ *   document    `--color-paper`      the display region only — the brightest
+ *                                    surface, so "read this" is pre-attentive
+ *
+ * The instruments and their type stay the warm paper/ink book vocabulary shared
+ * with the wizard, SRD and live sheets; only the ground behind them is dark, so
+ * this is a framing device, not a return to the retired dark instrument skin.
+ * There is still NO private token layer: every surface references the canonical
+ * `--color-*` tokens (component-lib theme.css) directly, not a `--pc-*` alias
+ * set. `.pc-root` only marks the cockpit scope and sets the default ink text +
+ * font. Colour encodes ONTOLOGY (mech green / pilot orange / crawler pink),
+ * never identity (ADR-018).
+ */
+
+.pc-root {
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  position: relative;
+}
+
+/*
+ * The ground is the host's own background (set in DashboardCanvas.tsx) and it
+ * fills correctly — verified by sampling the rendered pixels at 834x1112, where
+ * every point below the scaled canvas reads the ink-deep ground.
+ *
+ * Recorded because a previous pass believed otherwise and left a "KNOWN GAP"
+ * note here claiming the letterbox showed bare page under the HUD. It does not.
+ * That came from misreading a screenshot: the pale band beneath the instruments
+ * is the DISPLAY panel (--color-paper), not the page. Two fixes were built for
+ * the imaginary defect and both were reverted — a `position: fixed` fill inside
+ * `.pc-root` (invisible at a negative z-index, covers the app header at a
+ * positive one) and a `body:has(.pc-root)` page ground (unnecessary; the
+ * control test paints identically without it).
+ *
+ * `position: relative` above is the one survivor, and is retained on its own
+ * merit: the canvas is a positioned context for its instruments.
+ */
+
+/* Fixed design canvas — scaled to fit by DashboardCanvas. Never scrolls. The
+   canvas carries the same dark ground as the surround, so the instruments read
+   as objects laid on one continuous workbench rather than a lit panel floating
+   on an unlit one. The inset ring is a paper hairline (an ink one is invisible
+   against the ground it now sits on). */
+.pc-canvas {
+  width: 1280px;
+  height: 800px;
+  background: var(--color-ink-deep);
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-paper) 14%, transparent);
+}
+
+/* Below the scale floor (phones / heavy zoom) the fixed canvas is abandoned.
+   This message sits DIRECTLY on the dark ground — the one piece of cockpit type
+   with no instrument card under it — so it takes paper ink, not the muted
+   on-paper grey it wore when the ground was white. */
+.pc-reflow {
+  max-width: 340px;
+  padding: 32px;
+  text-align: center;
+  color: color-mix(in srgb, var(--color-paper) 72%, transparent);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}

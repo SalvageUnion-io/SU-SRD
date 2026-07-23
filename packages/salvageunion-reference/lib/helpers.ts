@@ -4,6 +4,7 @@
  */
 
 import { SalvageUnionReference, SchemaToDisplayName, SchemaToModelMap } from './index.js'
+import { lazyModelMap } from './generated/schemaRegistry.generated.js'
 import type {
   SURefAbility,
   SURefChassis,
@@ -50,7 +51,7 @@ import { ActionTypeSchema } from './schemas/enums.js'
  * @returns The display name or the schema name if not found
  */
 export function getDisplayName(schemaName: SURefEnumSchemaName): string {
-  return (SchemaToDisplayName as Record<string, string>)[schemaName] || schemaName
+  return SchemaToDisplayName[schemaName] || schemaName
 }
 
 /**
@@ -86,11 +87,12 @@ export function getModel(
   schemaName: string | SURefEnumSchemaName
 ): ModelWithMetadata<SURefEntity> | undefined {
   const normalized = normalizeSchemaName(schemaName)
-  const modelName = (SchemaToModelMap as Record<string, string>)[normalized]
-  if (!modelName) return undefined
-  return (SalvageUnionReference as unknown as Record<string, ModelWithMetadata<SURefEntity>>)[
-    modelName
-  ]
+  // Sole assertion: lazyModelMap's per-schema union includes meta-entity models
+  // (ability-tree-requirements, crawler-tech-levels) whose element types are not
+  // in SURefEntity, so the union cannot be assigned to the declared
+  // SURefEntity-typed model. `| undefined` stays honest for runtime-invalid
+  // schema names passed through normalizeSchemaName's string overload.
+  return lazyModelMap[normalized] as ModelWithMetadata<SURefEntity> | undefined
 }
 
 /**
@@ -99,15 +101,12 @@ export function getModel(
  * walk — used by the display layer (Grants block) and any tooling.
  */
 export function resolveGrantedEntities(entity: SURefEntity): SURefEntity[] {
-  const grants =
-    'grants' in entity && Array.isArray(entity.grants)
-      ? (entity.grants as Array<{ name: string; schema: string }>)
-      : []
+  const grants = 'grants' in entity && Array.isArray(entity.grants) ? entity.grants : []
   return grants
     .filter((grant) => grant.schema !== 'choice')
     .map(
       (grant): SURefEntity | null =>
-        getModel((grant.schema as SURefEnumSchemaName).toLowerCase())?.find(
+        getModel(grant.schema.toLowerCase())?.find(
           (e: SURefEntity) => 'name' in e && e.name === grant.name
         ) ?? null
     )
@@ -119,14 +118,18 @@ export function resolveGrantedEntities(entity: SURefEntity): SURefEntity[] {
  * Useful for dynamic model access
  */
 export function getModelMap(): Record<SURefEnumSchemaName, ModelWithMetadata<SURefEntity>> {
-  const map = {} as Record<SURefEnumSchemaName, ModelWithMetadata<SURefEntity>>
+  const map: Record<string, ModelWithMetadata<SURefEntity>> = {}
   for (const schemaName in SchemaToModelMap) {
-    const model = getModel(schemaName as SURefEnumSchemaName)
+    const model = getModel(schemaName)
     if (model) {
-      map[schemaName as SURefEnumSchemaName] = model
+      map[schemaName] = model
     }
   }
-  return map
+  // Sole assertion (the incremental-builder edge): TS cannot prove the loop
+  // populated every enum key. The registry key set it iterates is in fact a
+  // superset of SURefEnumSchemaName, preserved as-is so the returned map keeps
+  // its historical 'actions'/'catalog-categories' entries.
+  return map as Record<SURefEnumSchemaName, ModelWithMetadata<SURefEntity>>
 }
 
 /**
@@ -156,9 +159,7 @@ export function getNameById(
 ): string {
   if (!id) return fallback
   const entity = SalvageUnionReference.get(schemaName, id)
-  return (
-    entity && 'name' in entity && typeof entity.name === 'string' ? entity.name : fallback
-  ) as string
+  return entity && 'name' in entity && typeof entity.name === 'string' ? entity.name : fallback
 }
 
 // ============================================================================
@@ -224,7 +225,7 @@ export function findCoreClass(className: string): SURefClass | undefined {
 export function findHybridClass(className: string): SURefObjectAdvancedClass | undefined {
   const cls = SalvageUnionReference.findIn('classes', (c) => c.name === className)
   if (cls && 'hybrid' in cls && cls.hybrid === true) {
-    return cls as SURefObjectAdvancedClass
+    return cls
   }
   return undefined
 }
@@ -411,7 +412,7 @@ export function getTechLevels(): readonly number[] {
   const techLevels = SalvageUnionReference.CrawlerTechLevels.all()
     .map((tl) => tl.techLevel)
     .sort((a, b) => a - b)
-  return techLevels as readonly number[]
+  return techLevels
 }
 
 /**

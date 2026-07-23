@@ -1,381 +1,202 @@
 # Display System Architecture
 
-The entity rendering system is a three-layer stack: **DisplayCard** (flexible card primitive) -> **ReferenceEntityDisplay** (entity renderer with slot props) -> **Consumer patterns** (app-specific customization via hooks and overrides).
+> **Why this doc is short.** Its previous version described a three-layer stack
+> whose middle layer — `ReferenceEntityDisplay` — no longer exists. It also
+> documented `StatsBar`, `StaticChoiceCard`, `useReferenceEntityDisplayState`,
+> `ReferenceEntityHideConfig`, three deleted control presets, Card tabs
+> and sticky headers, and three ITUN consumer components, none of which are in
+> the codebase. Roughly two thirds of its specific claims were false.
+>
+> This version follows the same philosophy as
+> [`.claude/rules/display-system.md`](../../.claude/rules/display-system.md):
+> **state the rules, which change slowly, and point at the source for the
+> roster, which changes fast.** Do not re-add prop tables or component
+> inventories here — they are what rotted last time. Read props off the
+> defining file.
 
-## Layer 1: DisplayCard
+## The two card shells
 
-**File:** `packages/suref-react/src/components/shared/DisplayCard.tsx`
+There is no single stack. There are **two card shells**, deliberately separate:
 
-DisplayCard is the low-level card UI component used by both apps. It handles layout, controls, stats, tabs, and sticky headers.
+- **`ReferenceEntityCard`** — `packages/component-lib/src/components/referenceEntity/card/ReferenceEntityCard.tsx`.
+  THE renderer for game data. Every SRD entity — chassis, ability, equipment,
+  action, NPC, pattern, drone — goes through it, in both apps. It implements the
+  printed-card spec (frame on the inner clipping element so the seam stamp can
+  escape the clip, book-style text sub-header, identity footer) and owns entity
+  recursion: nested systems/modules/actions/grants render as nested cards,
+  bounded by a `MAX_DEPTH` guard.
+- **`Card`** — `packages/component-lib/src/components/shared/Card.tsx`.
+  The generic four-band container (header / sub-header / body-plus-expand /
+  footer) that non-entity surfaces compose: `ModalShell`, `SheetSection` /
+  `SheetSectionCard`, `Callout`, `Skeleton`, and app-side panels such as ITUN's
+  encounter cards.
 
-### Display Modes
+**They are NOT being merged, and `ReferenceEntityCard` does not render through
+`Card`** (it imports only the `CardFootMeta` type from it). A full
+assessment found the composition impossible without visual deltas across every
+SRD page — the frame-element difference alone shifts every absolute overlay by
+3px, ghosted sub-header tones are underivable inside Card, and the two
+resolve `cardClick` fallback in opposite directions. The entity card's header is
+also semantically richer: it distinguishes a stat cluster from flavour prose to
+decide which side yields, and Card's header slot is opaque to its
+content.
 
-Two independent boolean props control display density:
+So: **do not add entity-card features to Card**, and do not route the
+entity card through it. What the two share is **vocabulary**, not DOM —
+`displayMode`, the controls contract, `CardFootMeta`, `foldStatusControl`.
 
-| Prop      | Purpose                                | Effect                                                |
-| --------- | -------------------------------------- | ----------------------------------------------------- |
-| (default) | Standard card with all sections        | Header + Body + Footer, full spacing                  |
-| `compact` | Reduced spacing for grids/inline use   | Header + Body + Footer, smaller text and tighter gaps |
-| `listing` | Header-only rendering for entity lists | Body, footer, and tabs hidden                         |
+### Which one
 
-`compact` and `listing` are orthogonal — a listing card can be compact (tight header) or full-size (spacious header).
+| Rendering…                                                  | Use                                        |
+| ----------------------------------------------------------- | ------------------------------------------ |
+| A reference entity (anything from `salvageunion-reference`) | `ReferenceEntityCard`, always              |
+| A non-entity container (modal body, sheet section, panel)   | `Card`                                     |
+| A grid of entity cards                                      | `EntityGrid` / `EntityGridRow` around them |
 
-```tsx
-<DisplayCard compact listing controls={[navigateControl(onClick)]} stats={headerStats}>
-  {/* body hidden in listing mode */}
-</DisplayCard>
-```
+Never hand-assemble entity markup, and never hand-assemble a `label | value`
+readout — that is `Stat` (ruleset §3.7, and the most frequently broken rule in
+this codebase).
 
-### Controls Architecture
+## Sizing vocabulary
 
-Controls are interactive buttons rendered in the card header. Type: `ReferenceEntityControl[]`.
+Card size is **two orthogonal axes**, defined and documented in
+`packages/component-lib/src/components/shared/displayMode.ts`:
 
-```typescript
-type ReferenceEntityControl = {
-  key: string
-  icon: (props: { className?: string }) => ReactNode
-  onClick: () => void
-  ariaLabel: string
-  variant?: 'primary' | 'danger' | 'ghost' // Visual style
-  hidden?: boolean // Not rendered, but participates in card click
-  cardClick?: boolean // Makes entire card clickable (hover enlarge effect)
-  hoverContent?: ReactNode
-  label?: string
-  className?: string
-}
-```
+- `size`: `large | medium | small` — how big the card renders.
+- `extent`: `full | head | catalog` — how much of the entity renders.
 
-**Preset factories** (`referenceEntityControls.ts`):
+Both shells take `size` / `extent` and resolve them through
+`resolveCardDisplay`; Card's internal layout then projects them to
+`{ compact, listing }` via `displayBooleans`. They are independent — a `small`
+card can still show its whole content, which the old conflated enum could not
+express.
 
-| Factory                             | Icon               | Variant | Behavior                          |
-| ----------------------------------- | ------------------ | ------- | --------------------------------- |
-| `addControl(onClick)`               | Plus               | primary | `hidden: true`, `cardClick: true` |
-| `selectControl(onClick, selected?)` | Circle/CheckCircle | ghost   | Visible toggle button             |
-| `deleteControl(onClick)`            | Trash              | danger  | Visible delete button             |
-| `navigateControl(onClick)`          | DetailIcon         | ghost   | `hidden: true`, `cardClick: true` |
+The old `compact` / `listing` **booleans on the card props are gone**. Do not
+reintroduce a boolean that duplicates an axis. (Some lower-level helpers, e.g.
+`getReferenceEntitySpacing` / `getReferenceEntityFontSizes` in
+`referenceEntityTypes.ts`, still take a plain `compact` boolean — that is the
+projection, not the public vocabulary.)
 
-Hidden controls with `cardClick: true` make the whole card a click target without showing a visible button.
+`ReferenceEntityCard` additionally threads `depth` for nesting: depth 0 is the
+solo card; each level down renders one step tighter and drops its footer.
 
-### Stats System
+## Controls
 
-Stats render in the header via `StatsBar`. Type: `StatItem[]`.
+Every card-level affordance goes through the `controls` API —
+`ReferenceEntityControl[]`, defined in
+`packages/component-lib/src/components/referenceEntity/referenceEntityControlTypes.ts`.
+Both shells accept it and both render it through the shared `CardControlRail`.
 
-```typescript
-type StatItem = {
-  key: string
-  label: string
-  value: number | string | undefined
-  outOfMax?: number // Renders as "value / max"
-  bottomLabel?: string
-  // Visual
-  inverse?: boolean
-  bg?: string
-  valueColor?: string
-  borderColor?: string
-  isOverMax?: boolean
-  flash?: boolean
-  disabled?: boolean
-  // Interactivity
-  onChange?: (newValue: number) => void // Renders +/- buttons (StatControl)
-  onClick?: () => void // Makes stat box itself a button
-}
-```
+The rules that matter:
 
-When `onChange` is present, `StatsBar` renders `StatControl` (interactive with +/- buttons). Otherwise, it renders `StatDisplay` (read-only).
+- A control is a **button by default**, but typed variants (`stepper`, `badge`,
+  `status`, `href`) make it render the matching primitive instead — so quantity
+  steppers, status pills and nav links are all controls, and **no action renders
+  in the footer**. The footer is meta only.
+- `cardClick: true` makes the whole card clickable; `hidden: true` keeps a
+  control out of the visible rail while still contributing its click.
+- The card-level `status` prop is presentational sugar: `foldStatusControl`
+  (`shared/foldStatusControl.ts`) folds it into a `status` control so the
+  condition badge has exactly one implementation.
+- **Only one preset factory survives** — `navigateControl`
+  (`referenceEntity/referenceEntityControls.ts`). `addControl`, `deleteControl`
+  and `selectControl` were measured to zero production call sites and deleted.
+  Build controls directly.
 
-### Tabs
+## Customisation is by slot, never by schema
 
-```typescript
-type DisplayCardTab = {
-  key: string
-  label: string
-  content: ReactNode
-  activeColor?: string // CSS color override for active tab background
-}
-```
-
-- Hidden in listing mode
-- Default tab uses `defaultTabLabel` prop (default: `"Info"`)
-- Active tabs get a pale tinted background (35% color mix with white)
-- Tab bar: monospace, uppercase, `text-xs`
-
-### Sticky Headers
-
-When `stickyHeader: true`, the header sticks to the top of the scroll container. Measures height via ResizeObserver and provides `StickyOffsetContext` so nested section separators can stack below.
-
-### Accessibility
-
-- `role="button"` + `tabIndex={0}` when card is clickable
-- `onKeyDown` handles Enter + Space
-- `role="tablist"` / `role="tab"` / `aria-selected` for tab panels
-
----
-
-## Layer 2: ReferenceEntityDisplay
-
-**Files:** `packages/suref-react/src/components/referenceEntity/ReferenceEntityDisplay/`
-
-ReferenceEntityDisplay wraps DisplayCard with entity-aware rendering. It computes header colors, spacing, typography, and section visibility from entity data, then delegates layout to DisplayCard.
-
-### Generic Slot Props
-
-No entity-specific props exist on ReferenceEntityDisplay. Consumers customize rendering via generic slot props:
-
-```typescript
-type ReferenceEntityDisplayStateInput = {
-  data: SURefEntity
-  schemaName: SURefEnumSchemaName
-  compact: boolean
-
-  // Display modes
-  listing?: boolean
-  damaged?: boolean
-  disabled?: boolean
-  dimHeader?: boolean
-
-  // Slot overrides (no schema-specific knowledge)
-  titleOverride?: string // Overrides computed title
-  subtitleExtra?: ReactNode // Appended after standard subtitle
-  statsOverride?: { value: number; bottomLabel: string } // Overrides SV stat
-  primaryStatsOnly?: boolean // Show only primary stat (SV)
-  abilitiesSection?: ReactNode // Replaces built-in chassis abilities
-  afterExtraContent?: ReactNode // After patterns/damagedEffect, before grants/choices
-  afterChoicesContent?: ReactNode // After choices, before footer
-  footerOverride?: ReactNode // Replaces computed footer
-  titleSlot?: ReactNode // Replaces computed title node entirely
-  titleAs?: 'span' | 'h1' // HTML element for title
-
-  // Visibility toggles
-  hide?: ReferenceEntityHideConfig
-  label?: string // Pseudoheader label above card
-  headerColor?: string // Override header background (Tailwind class)
-  headerBgColor?: string // Override header background (raw CSS color)
-}
-```
-
-### ReferenceEntityHideConfig
-
-```typescript
-type ReferenceEntityHideConfig = {
-  actions?: boolean
-  patterns?: boolean
-  damagedEffect?: boolean
-  choices?: boolean
-  stats?: boolean
-  content?: boolean
-  rollTable?: boolean
-  footer?: boolean
-}
-```
-
-### useReferenceEntityDisplayState Hook
-
-Computes display state from input props + entity data. Returns `ReferenceEntityDisplayState` which extends the input with:
-
-- `title` — From `titleOverride` or `data.name`
-- `techLevel` — Via `getTechLevel(data)`
-- `headerBg` — Schema-driven color, or `bg-su-grey` when `damaged: true`
-- `spacing` — Tailwind class strings for gaps/padding at current compact level
-- `fontSize` — Tailwind class strings for text sizes at current compact level
-- `chassisAbilities`, `effects`, `table`, `assetUrl` — Memoized data-shape extractions
-- `visibleActions`, `actionsToDisplay`, `matchingAction` — Filtered action lists
-
-### Data-Shape Driven Logic
-
-The system detects entity capabilities by checking for properties rather than comparing schema names:
-
-```typescript
-// Example: getClassSelections checks for 'coreTrees' and 'hybrid' properties
-if ('coreTrees' in data && Array.isArray(data.coreTrees)) {
-  selectedClass = data as SURefClass
-}
-```
-
-This keeps the display layer schema-agnostic and enables reuse across entity types.
-
-### Damage Overlay
-
-The `damageOverlayText` prop renders a semi-translucent overlay with a red danger box on top of the card body:
+`ReferenceEntityCard` carries no schema-specific props. Customise with the
+generic slot overrides and the `hide` guard config (both declared on
+`ReferenceEntityCardProps` — read them there, they are deliberately not listed
+here). Never add a schema-specific prop to the component: compute overrides in a
+hook and spread them.
 
 ```tsx
-<div className="pointer-events-none absolute inset-0 z-10 ... bg-black/50">
-  <div className="border-2 border-red-500/60 bg-red-800/90 ...">
-    <Text variant="pseudoheader">Damaged</Text>
-    <Text>{damageOverlayText}</Text>
-  </div>
-</div>
+// The canonical shape — a hook computes generic overrides, the consumer spreads
+const patternConfig = useChassisPatternConfig(chassis, patternOverride, compact)
+<ReferenceEntityCard data={chassis} {...patternConfig} />
 ```
 
-When `damaged: true`, the header switches to `bg-su-grey`.
-
-### Source/Expansion Theming
-
-`getSourceBorderColor(source)` returns themed border colors. Expansion-specific texture styles (crosshatch, bevel, scan-lines) are applied internally by `ReferenceEntityDisplayContent` and are not part of the public API.
-
----
-
-## Layer 2.5: Choice-Card / Grants Layer
-
-This layer sits between ReferenceEntityDisplay (the card frame) and the consumers. It handles granted-equipment choices — entities like the Custom Sniper Rifle that carry selectable options that modify their stat row.
-
-### Choice-Card Components (`choiceCard/`)
-
-**File:** `packages/suref-react/src/components/referenceEntity/choiceCard/`
-
-Three exported variants, all sharing a coloured-header + white-inset-body visual language matching entity cards:
-
-| Component            | Purpose                                                                                                  |
-| -------------------- | -------------------------------------------------------------------------------------------------------- |
-| `ChoiceCard`         | Selectable option (`aria-pressed`, toggles chosen/not-chosen status stamp)                               |
-| `FreeTextChoiceCard` | Editable free-text field (Name / Appearance / A.I. Personality) — always renders as "chosen"             |
-| `StaticChoiceCard`   | Display-only list items (NPC motivations, bullet options); borrowed choice-card chrome, no interactivity |
-
-`BlockContentRendererView` renders `list-item` content blocks as `StaticChoiceCard` (the bordered frame replaces plain bullets).
-
-### ChoiceGroup / ChoiceGroups
-
-`ChoiceGroups` is the top-level interactive renderer for a set of choices. It accepts `choices: SURefObjectChoice[]` and owns the selection state, with two modes:
-
-- **Uncontrolled** (no `selections` / `onSelectionChange` props): self-manages ephemeral React state. Used by `suref-web` — no persistence, lost on refresh.
-- **Controlled** (`selections` + `onSelectionChange` props): caller owns state. Used by ITUN, which wires through its persistence stores.
-
-`ChoiceGroup` (singular) renders one choice — its heading + either option cards or a free-text card.
-
-### choiceSelectionHelpers
-
-`packages/suref-react/src/components/referenceEntity/choiceCard/choiceSelectionHelpers.ts`
-
-Pure helpers (no React), all exported from `suref-react`:
-
-| Export                                               | Purpose                                                                      |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `ChoiceSelections`                                   | Type: `Record<string, string[]>` — selections keyed by choice id             |
-| `ChoiceCardOption`                                   | Distilled option shape (value, label, description, optional schema link)     |
-| `getChoiceCardOptions(choice)`                       | Distils `choiceOptions` or `schemaEntities` into a flat `ChoiceCardOption[]` |
-| `isFreeTextChoice(choice)`                           | Returns true for `choiceType: 'freeform'` or choices with no option source   |
-| `isMultiSelectChoice(choice)`                        | Returns true when `choice.multiSelect === true`                              |
-| `resolveMultiSelectCap(choice, parent)`              | Resolves `constraints.max` or `constraints.scalesWithField` to a numeric cap |
-| `toggleSelection(current, value, multiSelect, cap?)` | Pure selection-set reducer; enforces exclusive/multi-select rules            |
-
-### ReferenceEntityResolvedChoices
-
-Renders the interactive choice-group cards for a choice-bearing entity. Receives `selections` + `onSelectionChange` from the parent display so the header data row and the body cards share one source of truth.
-
-### ReferenceEntityResolvedDataRow
-
-Renders the live resolved data tags in the subtitle/header area. Given `selections`, calls `resolveChoiceView` from `salvageunion-reference` and returns a fragment of `DataValueDisplayView` tags showing: base datavalues with applied effects, resolved traits, and segmented "Choose: …" prompts for unresolved required choices. Updates live as choices are toggled.
-
-### ReferenceEntityGrants
-
-Renders the `Grants` section separator + compact nested `ReferenceEntityDisplay` cards for each entity resolved by `resolveGrantedEntities`. When the parent is compact (listing mode), the nested cards collapse to header-only (`listing: true`). Actions are suppressed on nested cards (the same-named action lives on the ability itself).
-
-**`resolveGrantedEntities` (salvageunion-reference):** the shared helper that walks `entity.grants`, skips `schema: 'choice'` entries, and resolves each remaining grant to a live entity via the ORM. Single source of truth for both the display layer and tooling.
-
-### resolveChoiceView (salvageunion-reference)
-
-`packages/salvageunion-reference/lib/resolveChoiceView.ts`
-
-Pure, deterministic resolver (no I/O). Given an entity and `ChoiceSelections`, returns a `ResolvedChoiceView`:
-
-```typescript
-type ResolvedChoiceView = {
-  datavalues: SURefObjectDataValue[] // base row + applied effects
-  traits: SURefObjectTrait[] // base traits + addTrait effects
-  prompts: ChoicePrompt[] // unresolved required choices
-}
-```
-
-Effects: `addDamage` bumps a Damage datavalue, `setRange` replaces Range, `addTrait` appends a trait. `unit` on a DataValue produces a 3-segment tag `[LABEL][value][unit]` (e.g. "Damage 2 SP"). Exported from `salvageunion-reference` alongside `type ChoiceSelections` and `type ResolvedChoiceView`.
-
-### Entity href injection (route-agnostic)
-
-`packages/suref-react/src/components/referenceEntity/ReferenceEntityDisplay/entityHrefContext.ts`
-
-The shared library does not know app routes. `EntityHrefProvider` supplies an `EntityHrefBuilder` (`(entity) => string | undefined`); `ReferenceEntityGrants`'s nested "View Details" control reads it via `useEntityHref(entity)`. suref-web provides `srdEntityHref` (`/schema/<schema>/item/<slug>/`) at the island level; with no provider there is no link (correct for consumers like ITUN with different routing).
-
-### isGrantingAbility — Ability → Grants Collapse Pattern
-
-When a class ability grants equipment (e.g. "Custom Sniper Rifle"), the entity display re-skins its body:
-
-1. `resolveGrantedEntities(data)` is called; if the result is non-empty **and** the entity is an ability (`isAbility(data)`), `isGrantingAbility` is set to `true`.
-2. **Body substitution:** the ability's own `content` blocks and `Actions` section are suppressed. The body renders the `ReferenceEntityGrants` block — the `Grants` divider plus the nested granted-equipment card (its non-lead content + resolved data row + choice cards).
-3. **Header flavor preserved:** the ability's own `description` still renders in the right-header flavor slot — it does not conflict with the Grants block.
-4. **Compact collapse:** in compact/listing contexts the nested granted-equipment card collapses to header-only (`listing: true` on the inner `ReferenceEntityDisplay`).
-
-The `lead` field on `ContentBlock` marks a granted entity's intro sentence. It renders on the entity's **own page**, but `ReferenceEntityGrants` passes `hideLeadContent` to the nested card so the `lead` block is **hidden when nested in a grant** — there it would duplicate the granting ability's own `description`. Every other content block renders in both places.
-
----
-
-## Layer 3: Consumer Patterns
-
-### useChassisPatternConfig Hook
-
-**File:** `packages/suref-react/src/components/referenceEntity/ReferenceEntityDisplay/useChassisPatternConfig.tsx`
-
-Encapsulates all pattern-override display logic. Returns generic slot props to spread onto ReferenceEntityDisplay:
-
-```typescript
-function useChassisPatternConfig(
-  data: SURefEntity,
-  patternOverride: PatternOverrideData | undefined,
-  compact: boolean
-): ChassisPatternConfig | null
-```
-
-Returns: `{ titleOverride, subtitleExtra, statsOverride, primaryStatsOnly, abilitiesSection, afterExtraContent, hide }`.
-
-Consumer usage (spread pattern):
-
-```tsx
-const patternConfig = useChassisPatternConfig(mechChassis, pattern, compact)
-<ReferenceEntityDisplay data={mechChassis} {...patternConfig} />
-```
-
-### SubEntityCard (ITUN)
-
-**File:** `apps/in-the-union-now/src/components/shared/SubEntityCard.tsx`
-
-Renders equipment, abilities, and comrades with interactive stats and condition tracking. Uses slot props:
-
-- `titleSlot` — `ComradeNameInput` for dynamic comrade naming
-- `subtitleExtra` — `ValueDisplay` showing schema display name
-- `stats` — Interactive stats with +/- via `ENTITY_STATS_CONFIG`
-- `afterChoicesContent` — `EntityModificationSlots` for modification tracking
-
-For granted-equipment choices (e.g. Custom Sniper Rifle), the new `ChoiceGroups` path is used instead: `ReferenceEntityResolvedChoices` (body) + `ReferenceEntityResolvedDataRow` (header subtitle) work together via controlled `selections` / `onSelectionChange` state. ITUN wires these to its persistence stores; suref-web uses the uncontrolled (ephemeral) mode.
-
-### ReferenceEntityPickerModal (ITUN)
-
-**File:** `apps/in-the-union-now/src/components/shared/ReferenceEntityPickerModal.tsx`
-
-Selection UI rendering entities in compact listing mode. Splits entities into selectable, over-capacity (greyed, red outline), and over-budget groups. Uses `addControl()` preset.
-
-### PlayerPilotDisplay (ITUN)
-
-**File:** `apps/in-the-union-now/src/components/pilots/PlayerPilotDisplay.tsx`
-
-Uses DisplayCard directly (not ReferenceEntityDisplay) because pilots aren't reference entities. Demonstrates direct DisplayCard usage with:
-
-- Dynamic controls (navigate, settings, board/unboard, downtime)
-- Context-sensitive stats (boarded: SP/EP/Heat; unboarded: HP/AP)
-- Tabs (Abilities, Mech, Comrades, Actions)
-- Custom header background patterns for boarded/downtime states
-
----
-
-## When to Use Which Layer
-
-| Scenario                                                                          | Layer                                                                  |
-| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Rendering game data entities (chassis, abilities, equipment, etc.)                | ReferenceEntityDisplay                                                 |
-| Rendering player-created entities (pilots) that aren't in reference data          | DisplayCard directly                                                   |
-| Customizing how a reference entity renders (pattern overrides, interactive stats) | Slot props on ReferenceEntityDisplay                                   |
-| Building a reusable entity selection UI                                           | ReferenceEntityPickerModal (listing mode + addControl)                 |
-| Adding new entity-type-specific display logic                                     | Create a hook returning slot props, spread onto ReferenceEntityDisplay |
-
----
-
-## Cross-References
-
-- `.claude/rules/react-components.md` — Component structure conventions, prop type patterns
-- `.claude/rules/display-system.md` — Quick-reference rule for editing display components
+`useChassisPatternConfig`
+(`referenceEntity/pattern/useChassisPatternConfig.tsx`) is the worked example:
+it turns a pattern override into `{ titleOverride, subtitleExtra, statsOverride,
+primaryStatsOnly, abilitiesSection, afterExtraContent, hide }` and knows nothing
+about the card's internals. The rest of the chassis-pattern cluster lives beside
+it in `referenceEntity/pattern/`.
+
+Prefer **data-shape checks** (`'coreTrees' in data`) over schema-name
+comparisons, so the display layer stays schema-agnostic and new entity types
+work without edits. `getClassSelections`
+(`referenceEntity/classSelectionUtils.ts`) is the pattern.
+
+## Choices and grants
+
+Choice-bearing entities (e.g. the Custom Sniper Rifle) resolve through two
+pieces:
+
+- **`resolveChoiceView`** (`packages/salvageunion-reference/lib/resolveChoiceView.ts`)
+  — a pure, deterministic resolver. Given an entity and `ChoiceSelections`
+  (`Record<string, string[]>`), it returns `{ datavalues, traits, prompts }`:
+  the base stat row with choice effects applied, the resolved traits, and
+  prompts for unresolved required choices. `ReferenceEntityCard` calls it, so
+  the header stat row updates live as choices toggle.
+- **`ChoiceGroups`** (`referenceEntity/choiceCard/ChoiceGroups.tsx`) — the
+  interactive renderer, plus `CatalogChoiceModal` for catalog-sourced picks and
+  the pure `choiceSelectionHelpers.ts` (source-kind classification, option
+  distillation, multi-select cap resolution, the `toggleSelection` reducer).
+
+`ChoiceGroups` is **controlled when `selections` is passed, uncontrolled
+otherwise** — the persistence-agnostic split of
+[ADR-010](../adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md). srd uses the
+ephemeral mode; ITUN passes `selections` / `onSelectionChange` down from
+`ReferenceEntityCard` and wires them to its stores via
+`apps/itun/src/components/shared/useEntityChoices.ts`. `readOnly` renders the
+groups statically (snapshots).
+
+**Grants** resolve via `resolveGrantedEntities` (exported from
+`salvageunion-reference`) and render as nested cards carrying a `parentSeal`
+stampseal rather than a separator row. When an _ability_ grants entities, the
+card suppresses the ability's own body content and actions and renders the
+granted cards instead — the ability's description still occupies the header
+flavour slot.
+
+## Route-agnostic linking
+
+`referenceEntity/entityHrefContext.ts` keeps the shared library ignorant of app
+routes. It exposes three providers, each with a matching hook:
+`EntityHrefProvider` (builds a show-page href), `EntityDetailLinkProvider`
+(whether "view details" links out in a new tab or opens the in-place modal), and
+`EntityExternalLinkProvider` (a cross-app link node, e.g. ITUN's "View in SRD
+→"). srd sets the first two; ITUN leaves detail-link off so its detail view
+stays an in-app modal, driven by `useDetailModal`
+(`referenceEntity/useDetailModal.tsx`), which returns `{ control, modal }` to
+spread onto a card.
+
+## Consumer patterns
+
+- **srd** — `apps/srd/src/components/islands/ReferenceEntityIsland.tsx` and
+  `SchemaViewerIsland.tsx` render entities inside a `GameDataGate`, wrapped in
+  `EntityHrefProvider` / `EntityDetailLinkProvider`. Ephemeral choices, no
+  persistence.
+- **ITUN** — sheets (`apps/itun/src/components/sheet/`) and wizards
+  (`.../pilot/`, `.../mech/`, `.../crawler/`) render the same
+  `ReferenceEntityCard` and layer selection, steppers and status cycling on top
+  **via `controls`** — never by replacing the card. `MechItemCard.tsx` is the
+  reference implementation of the write layer (controls overlay + `footMeta`,
+  no footer actions).
+- **Picking** — `shared/EntitySearcher.tsx` is the shared add-modal body
+  (search + facets + rail); selection state rides the card's own `selected` /
+  `count` / `onCountChange` props.
+
+## Cross-references
+
+- [`.claude/rules/display-system.md`](../../.claude/rules/display-system.md) — the
+  session-loaded rules for editing display components
+- [`docs/design-system/ruleset.md`](../design-system/ruleset.md) — the governing
+  design laws
+- [ADR-026](../adrs/ADR-026-entity-card-design-rules.md) — entity-card design
+  rules settled during the single-renderer reconciliation
+- [ADR-010](../adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md) — choices
+  ephemeral (srd) vs persisted (ITUN)
+- [`.claude/rules/react-components.md`](../../.claude/rules/react-components.md) —
+  component structure conventions

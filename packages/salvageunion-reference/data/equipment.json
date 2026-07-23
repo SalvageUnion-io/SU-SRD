@@ -204,7 +204,7 @@
     "source": "Salvage Union Workshop Manual",
     "page": 35,
     "indexable": false,
-    "techLevel": 3,
+    "techLevel": 1,
     "actions": ["Holo Companion", "Project", "Un-Project"],
     "id": "dd96f7c0-3760-4b71-9451-77ced25a3b09",
     "content": [
@@ -229,6 +229,9 @@
     "choices": [
       {
         "id": "a8b9c0d1-e2f3-4a5b-8c9d-0e1f2a3b4c5d",
+        "source": {
+          "kind": "text"
+        },
         "name": "Name",
         "choiceType": "freeform",
         "content": [
@@ -240,6 +243,10 @@
       },
       {
         "id": "982fcebc-0a02-4ae6-8454-3cc451307218",
+        "source": {
+          "kind": "text",
+          "multiline": true
+        },
         "name": "Appearance",
         "choiceType": "freeform",
         "content": [
@@ -639,7 +646,7 @@
   {
     "source": "Salvage Union Workshop Manual",
     "name": "Custom Sniper Rifle",
-    "techLevel": 3,
+    "techLevel": 1,
     "page": 85,
     "id": "fc761f88-48ef-4925-8335-b7a6908a27f3",
     "content": [
@@ -663,7 +670,8 @@
             "label": "Damage",
             "type": "keyword",
             "value": 2,
-            "unit": "SP"
+            "unit": "SP",
+            "perTechLevel": 1
           },
           {
             "label": "Range",
@@ -677,6 +685,13 @@
       {
         "name": "Weapon Type",
         "id": "d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a",
+        "source": {
+          "kind": "catalog",
+          "entities": [
+            "Ballistic",
+            "Energy"
+          ]
+        },
         "choiceType": "permanent",
         "content": [
           {
@@ -689,6 +704,111 @@
       {
         "name": "Modification",
         "id": "8688eb63-550c-4d06-9b50-e1649c442da6",
+        "source": {
+          "kind": "options",
+          "options": [
+            {
+              "label": "Rangefinder",
+              "value": "Rangefinder",
+              "description": "The Custom Sniper Rifle increases its Range to Far.",
+              "effects": [
+                {
+                  "op": "setRange",
+                  "value": "Far"
+                }
+              ]
+            },
+            {
+              "label": "Laser Guidance",
+              "value": "Laser Guidance",
+              "description": "You may spend 2 AP to automatically hit with the Custom Sniper Rifle. It also gains the [[Targeter]] Trait.",
+              "effects": [
+                {
+                  "op": "addTrait",
+                  "value": "Targeter"
+                }
+              ]
+            },
+            {
+              "label": "Pinpoint Targeter",
+              "value": "Pinpoint Targeter",
+              "description": "You may spend 2 AP when you make an attack. If it hits, a System, Module, or appendage of your choice on the target is damaged. It also gains the [[Targeter]] Trait.",
+              "effects": [
+                {
+                  "op": "addTrait",
+                  "value": "Targeter"
+                }
+              ]
+            },
+            {
+              "label": "Dum Dum Rounds",
+              "value": "Dum Dum Rounds",
+              "description": "The Custom Sniper Rifle gains the [[Anti-Organic]] Trait.",
+              "effects": [
+                {
+                  "op": "addTrait",
+                  "value": "Anti-Organic"
+                }
+              ]
+            },
+            {
+              "label": "High Calibre Rounds",
+              "value": "High Calibre Rounds",
+              "description": "The Custom Sniper Rifle deals an additional 1 SP damage.",
+              "effects": [
+                {
+                  "op": "addDamage",
+                  "value": 1,
+                  "unit": "SP"
+                }
+              ]
+            },
+            {
+              "label": "Anti-Matter",
+              "value": "Anti-Matter",
+              "description": "The Custom Sniper Rifle gains the [[Deadly]] Trait.",
+              "effects": [
+                {
+                  "op": "addTrait",
+                  "value": "Deadly"
+                }
+              ]
+            },
+            {
+              "label": "Flashy",
+              "value": "Flashy",
+              "description": "The Custom Sniper Rifle gains the [[Flashy]] Trait.",
+              "effects": [
+                {
+                  "op": "addTrait",
+                  "value": "Flashy"
+                }
+              ]
+            },
+            {
+              "label": "Silencer",
+              "value": "Silencer",
+              "description": "The Custom Sniper Rifle gains the [[Silent]] Trait.",
+              "effects": [
+                {
+                  "op": "addTrait",
+                  "value": "Silent"
+                }
+              ]
+            },
+            {
+              "label": "Compact Design",
+              "value": "Compact Design",
+              "description": "The Custom Sniper Rifle is designed to fold down into a briefcase, making it easily concealable."
+            }
+          ]
+        },
+        "cardinality": {
+          "min": 0,
+          "max": {
+            "scalesWith": "techLevel"
+          }
+        },
         "choiceType": "permanent",
         "content": [
           {
@@ -812,6 +932,9 @@
     "choices": [
       {
         "id": "b9c0d1e2-f3a4-4b5c-9d0e-1f2a3b4c5d6e",
+        "source": {
+          "kind": "text"
+        },
         "name": "Name",
         "choiceType": "freeform",
         "content": [
@@ -823,6 +946,11 @@
       },
       {
         "id": "b1dae587-1448-41df-9194-97d5dd3a23d8",
+        "source": {
+          "kind": "table",
+          "rollTable": "A.I. Personality",
+          "orChooseOwn": true
+        },
         "name": "A.I. Personality",
         "choiceType": "permanent",
         "rollTable": "A.I. Personality",
@@ -1096,13 +1224,18 @@
         "value": "At each Tech Level, you may select an additional Modification for your Custom Missile Launcher."
       },
       {
+        "type": "choice",
+        "choiceId": "d097ed5d-d7d9-46f5-8bda-ba902f09ebc8"
+      },
+      {
         "type": "datavalues",
         "value": [
           {
             "label": "Damage",
             "type": "keyword",
             "value": 3,
-            "unit": "SP"
+            "unit": "SP",
+            "perTechLevel": 1
           },
           {
             "label": "Range",
@@ -1117,6 +1250,100 @@
       {
         "name": "Modification",
         "id": "d097ed5d-d7d9-46f5-8bda-ba902f09ebc8",
+        "source": {
+          "kind": "options",
+          "options": [
+            {
+              "label": "Rangefinder",
+              "value": "Rangefinder",
+              "description": "The Custom Missile increases its Range to Long.",
+              "effects": [
+                {
+                  "op": "setRange",
+                  "value": "Long"
+                }
+              ]
+            },
+            {
+              "label": "Laser Guidance",
+              "value": "Laser Guidance",
+              "description": "You may spend 2 AP to automatically hit with the Custom Missile Launcher. This attack counts as having the [[Targeter]] Trait."
+            },
+            {
+              "label": "A.I. Tracking",
+              "value": "A.I. Tracking",
+              "description": "You may spend 1 AP to give the Custom Missile Launcher the [[Guided]] Trait for the next attack. This attack counts as having the [[Targeter]] Trait."
+            },
+            {
+              "label": "Napalm Rounds",
+              "value": "Napalm Rounds",
+              "description": "The Custom Missile Launcher gains the Anti-Organic and [[[Burn] (1)]] Trait.",
+              "effects": [
+                {
+                  "op": "addTrait",
+                  "value": "Anti-Organic"
+                },
+                {
+                  "op": "addTrait",
+                  "value": "Burn",
+                  "amount": 1
+                }
+              ]
+            },
+            {
+              "label": "Bigger Boom",
+              "value": "Bigger Boom",
+              "description": "The Custom Missile Launcher gains the [[[Explosive] (2)]] Trait.",
+              "effects": [
+                {
+                  "op": "addTrait",
+                  "value": "Explosive",
+                  "amount": 2
+                }
+              ]
+            },
+            {
+              "label": "Flashy",
+              "value": "Flashy",
+              "description": "The Custom Missile Launcher gains the [[Flashy]] Trait.",
+              "effects": [
+                {
+                  "op": "addTrait",
+                  "value": "Flashy"
+                }
+              ]
+            },
+            {
+              "label": "Expanded Warhead",
+              "value": "Expanded Warhead",
+              "description": "The Custom Missile Launcher deals an additional 1 SP damage.",
+              "effects": [
+                {
+                  "op": "addDamage",
+                  "value": 1,
+                  "unit": "SP"
+                }
+              ]
+            },
+            {
+              "label": "Portable",
+              "value": "Portable",
+              "description": "The Custom Missile Launcher loses the [[Heavy]] Trait.",
+              "effects": [
+                {
+                  "op": "removeTrait",
+                  "value": "Heavy"
+                }
+              ]
+            }
+          ]
+        },
+        "cardinality": {
+          "min": 0,
+          "max": {
+            "scalesWith": "techLevel"
+          }
+        },
         "choiceType": "permanent",
         "content": [
           {
@@ -1184,6 +1411,7 @@
   },
   {
     "name": "Survey Drone",
+    "traits": [{ "type": "hover" }],
     "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
@@ -1208,6 +1436,9 @@
     "choices": [
       {
         "id": "0b31fd03-df8b-485b-9a1e-d048496e89b7",
+        "source": {
+          "kind": "text"
+        },
         "name": "Name",
         "choiceType": "freeform",
         "content": [
@@ -1236,7 +1467,7 @@
   {
     "name": "Mecha Companion",
     "indexable": false,
-    "techLevel": 3,
+    "techLevel": 1,
     "moduleSlots": 2,
     "systemSlots": 12,
     "structurePoints": 12,
@@ -1268,6 +1499,9 @@
     "choices": [
       {
         "id": "c0d1e2f3-a4b5-4c6d-9e0f-1a2b3c4d5e6f",
+        "source": {
+          "kind": "text"
+        },
         "name": "Name",
         "choiceType": "freeform",
         "content": [
@@ -1279,6 +1513,10 @@
       },
       {
         "id": "a901dcdc-8c95-4bea-90ee-3c02cd695d93",
+        "source": {
+          "kind": "text",
+          "multiline": true
+        },
         "name": "Appearance",
         "choiceType": "freeform",
         "content": [

@@ -159,7 +159,7 @@ describe('SalvageUnionReference.preload("all")', () => {
   it('all models are BaseModel instances after preload("all")', async () => {
     await SalvageUnionReference.preload('all')
 
-    const modelProps = [
+    const modelProps: (keyof typeof SalvageUnionReference)[] = [
       'Abilities',
       'Chassis',
       'Classes',
@@ -174,7 +174,7 @@ describe('SalvageUnionReference.preload("all")', () => {
       'Guides',
     ]
     for (const prop of modelProps) {
-      const model = SalvageUnionReference[prop as keyof typeof SalvageUnionReference]
+      const model = SalvageUnionReference[prop]
       expect(model).toBeInstanceOf(BaseModel)
     }
   })

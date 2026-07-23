@@ -1,0 +1,382 @@
+/*
+ * Salvage Union Design System - Tailwind v4 Theme
+ * Colors ported from the official Salvage Union aesthetic
+ */
+@theme {
+  /* === Typography === */
+  /* TWO faces, no aliases: Barlow for body/values, Barlow Semi Condensed for
+     all-caps chrome. (`--font-mono` was a legacy alias for Barlow — misleadingly
+     named, since it is NOT a monospace — and is now retired; every reference
+     moved to `font-body` or, for caps labels, `font-cond`.) */
+  --font-body: 'Barlow', system-ui, -apple-system, sans-serif;
+  --font-cond: 'Barlow Semi Condensed', 'Barlow', system-ui, -apple-system, sans-serif;
+
+  /* === Caps tracking steps (canonical primitive language §3) ===
+     Promoted up from the ITUN app so BOTH apps (and the shared components they
+     render) resolve the same letter-spacing ladder. `tracking-caps-tight`
+     (0.04em) is the canonical Stamp/label tracking. Slots around Tailwind's
+     built-ins (wide 0.025 / wider 0.05 / widest 0.1). */
+  --tracking-caps-tight: 0.04em;
+  --tracking-caps-snug: 0.06em;
+  --tracking-caps: 0.08em;
+  --tracking-caps-wide: 0.12em;
+  --tracking-eyebrow: 0.22em;
+
+  /* Radius scale (ruleset §4.4 — the ONE radius vocabulary; never rounded-[Npx]):
+     pip = tracker pips · badge = the stamp-chip family · card = cards, inputs,
+     buttons (the outer 3px) · panel = app-chrome panels & pick cards. Stamps are
+     square (no radius). These generate rounded-pip/badge/card/panel utilities. */
+  --radius-pip: 1px;
+  --radius-badge: 2px;
+  --radius-card: 3px;
+  --radius-panel: 6px;
+
+  /* Semantic type scale (ruleset §4.2 — the ONE font-size ladder; never
+     text-[Npx] for these steps). Shared by every surface (was ITUN-local):
+       nano     8px    smallest markers — TL glyphs, unit suffixes
+       micro    9px    dense caps meta labels (NPC insets, encounter cards)
+       label    10px   standard uppercase font-cond field/section label
+       label-lg 10.5px stamp / rail caps label
+       badge    11px   badges, pills, compact caps values
+       note     11.5px small body copy in rails and insets
+       caption  13px   small body copy — hints, empty states, subtitles
+       lede     15px   emphasized inline values, inset titles
+     Generates text-nano … text-lede. */
+  --text-nano: 8px;
+  --text-micro: 9px;
+  --text-label: 10px;
+  --text-label-lg: 10.5px;
+  --text-badge: 11px;
+  --text-note: 11.5px;
+  --text-caption: 13px;
+  --text-lede: 15px;
+  /* The DISPLAY step — a readout meant to be read across a table, not a label.
+     The ladder previously stopped at 15px, so every oversized numeral had to
+     reach for an arbitrary bracketed value — the ladder not having a display
+     step is WHY that drift existed. Sized 26px to match the crawler-economy
+     readout it was introduced for.
+
+     (Deliberately describing the anti-pattern rather than spelling it: the
+     token guard reads comments too, and cannot tell a citation from a
+     commission. It caught this doc block on first run.) */
+  --text-display: 26px;
+
+  /* …and the note above was right about the CAUSE but only half-fixed it. One
+     display step left a 15px -> 26px canyon, so 28 call sites still had to
+     bracket their own size: 16, 17, 22, 24, 27, 28, 30, 31, 34, 38.
+     Read as a set, those values are already a ~1.2 ratio scale — the drift was
+     people re-deriving the same scale by eye, one component at a time. So the
+     ladder is completed at that ratio rather than invented:
+
+       lede 15 -> readout 17 -> title 22 -> display 26 -> display-lg 31 -> hero 38
+
+     Each rung absorbs a real cluster, so most sites move 0-2px. Two notes on
+     the sites that move furthest, because they are judgement calls, not
+     rounding: the AppBar wordmark's `sm:` step drops 34 -> 31, and VitalGauge's
+     dense/normal numeral pair (28/30) becomes 26/31, which WIDENS the density
+     gap from 2px to 5px — a dense mode should read as denser than a 2px hint.
+     Its supporting `/max` text collapses from a 16/17 pair to one rung: a 1px
+     step is below the resolution any ladder should encode, and density is
+     carried by the numeral beside it. */
+  --text-readout: 17px;
+  --text-title: 22px;
+  --text-display-lg: 31px;
+  --text-hero: 38px;
+
+  /* The `su-*` brand family that used to live here is DELETED. It was a shadow
+     tokenset: the canonical semantic tokens below were defined as aliases *of*
+     it, so the brand names were the real substrate and the semantic layer was a
+     veneer. That let one colour have two spellings — `su-orange-dark` and
+     `rust` were the same #a85222 — which made the "rust = action, only action"
+     law (ruleset §3.1) impossible to audit by search, and let a second reading
+     surface (`su-paper`, a cream) ship alongside `--color-paper`.
+     Every value below is preserved exactly; only the names changed. */
+
+  /* Tech Level Blues */
+  --color-tl-1: rgb(115, 201, 230);
+  --color-tl-2: rgb(87, 169, 200);
+  --color-tl-3: rgb(68, 135, 162);
+  --color-tl-4: rgb(48, 107, 128);
+  --color-tl-5: rgb(30, 83, 100);
+  --color-tl-6: rgb(6, 52, 65);
+  /* Non-numeric equipment tiers (Core Book p.3 "TECH LEVELS"): Bio + Nanite.
+     Lowercase keys (kebab convention) so the `var(--color-tl-${tl})` swatch
+     interpolation stays case-stable — CSS custom-property names are
+     case-sensitive. */
+  --color-tl-b: rgb(86, 156, 104);
+  --color-tl-n: rgb(146, 109, 184);
+
+  /* Entity colors (semantic) — hue encodes ontology (ruleset §3/§4.1).
+     These hold their literal values; nothing aliases a brand name. */
+  --color-pilot: rgb(239, 137, 79); /* #ef894f */
+  --color-pilot-light: rgb(245, 193, 163); /* #f5c1a3 — was also spelled su-peach */
+  --color-mech: rgb(122, 151, 138); /* #7a978a */
+  --color-mech-dark: rgb(92, 121, 108); /* #5c796c */
+  --color-crawler: rgb(206, 88, 152); /* #ce5898 */
+  /* The 5th ontology domain. Previously `su-rust` — a false friend: it is NOT
+     the action rust (#a85222) and never was. It is the shared header tone for
+     the world/opposition schemas: creatures, bio-titans, factions, npcs, meld,
+     squads. Naming it `adversary` removes the collision with the one action
+     colour, which was the most dangerous part of the shadow family. */
+  --color-adversary: rgb(140, 75, 56); /* #8c4b38 */
+
+  /* Class ability-tier ramp (Core Book 2.0a, class ability-tree spreads).
+     Core = brick, Advanced (incl. Hybrid) = pilot, Legendary = crawler — the
+     book reuses the ontology hues for the upper two tiers, so only Core needs
+     its own token. Previously `su-brick` / `su-brick-pale`. */
+  --color-tier-core: rgb(168, 89, 71); /* #a85947 */
+  --color-tier-core-pale: rgb(210, 160, 140); /* #d2a08c */
+
+  /* Roll result tiers — canonical warm state palette (canonical primitive
+     language §3). Re-toned off the old stock-Material hues so damaged/destroyed
+     state (via the --color-status-* aliases below) and the Discord bot's roll
+     outcomes share ONE warm ramp. Web surfaces never colour roll outcomes —
+     tier colour is a bot-only affordance. */
+  --color-roll-cascade: rgb(176, 67, 43); /* #b0432b */
+  --color-roll-failure: rgb(192, 122, 47); /* #c07a2f */
+  --color-roll-tough: rgb(193, 154, 62); /* #c19a3e */
+  --color-roll-success: rgb(111, 138, 74); /* #6f8a4a */
+  --color-roll-nailed: rgb(75, 134, 160); /* #4b86a0 */
+
+  /* === ITUN design-handoff tokens (design-spec §1.1) === */
+  /* Ink / paper / action */
+  --color-ink: rgb(40, 32, 25); /* #282019 */
+  --color-ink-2: rgb(70, 61, 49); /* #463d31 secondary ink */
+  --color-ink-deep: rgb(27, 23, 18); /* #1b1712 — the dark header ground (was su-ink-dark) */
+
+  /* Ink-opacity ramp (canonical-primitive-language.md §3) — hairlines,
+     placeholders, ghosts, disabled fills. This replaces the neutral greys of
+     the shadow family (su-grey/-light/-medium/-dark, su-muted, su-ink-soft,
+     su-sand, su-input-bg), which were true neutrals fighting the warm paper.
+     Warm ink at opacity reads as the same material at distance. */
+  --color-ink-85: rgb(40 32 25 / 0.85);
+  --color-ink-75: rgb(40 32 25 / 0.75);
+  --color-ink-50: rgb(40 32 25 / 0.5);
+  --color-ink-40: rgb(40 32 25 / 0.4);
+  --color-ink-30: rgb(40 32 25 / 0.3);
+  --color-ink-20: rgb(40 32 25 / 0.2);
+  --color-ink-12: rgb(40 32 25 / 0.12);
+  --color-ink-8: rgb(40 32 25 / 0.08);
+  /* The -85 / -40 / -20 rungs were added for SHADOWS, which had been authored
+     as raw `rgba()` inside Tailwind arbitrary values and were invisible to the
+     token guard until its `rgb()` arm stopped using `\b` (a boundary that can
+     never fire next to the `_` separator). Those 26 literals used THREE
+     different bases — pure black, `rgb(40,32,25)` (ink), and `rgb(34,30,23)`
+     (an ink that exists nowhere in this file) — across 16 alpha values, for
+     what is a handful of elevations.
+     They all resolve here, to warm ink at opacity, for the reason the note
+     above already gives: a true-neutral shadow fights warm paper. Each new rung
+     covers a real cluster (0.16-0.22, 0.38-0.45, 0.85-0.90) rather than
+     enshrining one call site's number. */
+  /* Paper — the ONE light surface (ruleset §4.1). NOT pure white and NOT cream:
+     a near-white warm paper. Pure white is retired from the UI — paper is used
+     universally (surfaces, value cells, and text on ink). The only remaining
+     #ffffff is one scoped exception: the @media print sheet (physical paper).
+     The Dashboard cockpit is warm paper too (ruleset §1), so the dark-skin
+     exception this note used to carve out no longer exists. */
+  --color-paper: rgb(251, 250, 247); /* #fbfaf7 */
+  /* Paper at opacity — the inset bevel highlight on a dark surface. One rung,
+     because there is exactly one such highlight; it was `rgba(255,255,255,0.28)`,
+     a pure white that the paper law (§4.1) retired everywhere the guard could
+     actually see. */
+  --color-paper-30: rgb(251 250 247 / 0.3);
+  --color-rust: rgb(168, 82, 34); /* #a85222 — THE single action color */
+  /* The one sanctioned cream. The rendering matrix (ruleset §2) specifies the
+     RollTable as "banded d20, peach/cream", so cream survives for exactly that
+     banding — and nowhere else. Every other former `su-paper` use is now
+     `--color-paper`, restoring the "one paper" law (§4.1). */
+  --color-band-cream: rgb(243, 237, 226); /* #f3ede2 */
+  --color-rust-hi: rgb(138, 64, 25); /* #8a4019 primary hover */
+  /* `--color-danger` (#9a4633) is RETIRED. It was the third red in a set that
+     should have had one: `--color-status-bad` is the sanctioned state token
+     (ruleset §3.3), and `--color-adversary` is an ONTOLOGY hue that was doing
+     state's job at the modal header. Destructive/error surfaces now all resolve
+     to status-bad; adversary stays ontology-only (creature/faction/NPC headers,
+     which are correct and untouched). */
+
+  /* Workshop (light) ground — the step off-paper that makes a card read as a
+     panel (style-unification-pass.md §2.5). */
+  --color-wk-bg: rgb(230, 240, 245); /* #e6f0f5 */
+  --color-wk-bg-2: rgb(215, 230, 238); /* #d7e6ee */
+  --color-wk-muted: rgb(108, 119, 128); /* #6c7780 */
+  --color-wk-faint: rgb(167, 180, 189); /* #a7b4bd */
+  --color-wk-line: rgb(143, 195, 216); /* #8fc3d8 — advisory/info rule (was su-blue) */
+  --color-wk-accent: rgb(125, 206, 235); /* #7dceeb — game-state accent (was su-blue-game) */
+
+  /* Attention fills that are neither an ontology hue nor a status overlay.
+     Values preserved from the shadow family; renamed for what they mark. */
+  --color-caution: rgb(215, 195, 125); /* #d7c37d — was su-sickly-yellow */
+  --color-inert: rgb(192, 192, 192); /* #c0c0c0 — was su-silver */
+
+  /* Status (Intact / Damaged / Destroyed) — aliases of the roll tiers */
+  --color-status-ok: var(--color-roll-success);
+  --color-status-warn: var(--color-roll-failure);
+  --color-status-bad: var(--color-roll-cascade);
+
+  /* Cargo (storage) accent triplet */
+  --color-cargo: rgb(156, 122, 62); /* #9c7a3e */
+  --color-cargo-deep: rgb(111, 85, 39); /* #6f5527 */
+  --color-cargo-pale: rgb(239, 230, 212); /* #efe6d4 */
+
+  /* Sheet tones (Header C live sheets) — base + deep pairs */
+  --color-sheet-pilot: var(--color-pilot); /* #ef894f */
+  --color-sheet-pilot-deep: var(--color-rust); /* #a85222 */
+  --color-sheet-mech: var(--color-mech); /* #7a978a */
+  --color-sheet-mech-deep: rgb(47, 67, 56); /* #2f4338 */
+  --color-sheet-crawler: var(--color-crawler); /* #ce5898 */
+  --color-sheet-crawler-deep: rgb(126, 42, 91); /* #7e2a5b */
+
+  /* Heat-at-cap pulse (design review U-1): a subtle status-bad ring that
+     breathes outward. Use as `motion-safe:animate-heat-pulse` so
+     prefers-reduced-motion suppresses it. */
+  --animate-heat-pulse: heat-pulse 1.5s ease-in-out infinite;
+  @keyframes heat-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-status-bad) 45%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-status-bad) 0%, transparent);
+    }
+  }
+
+  /* Mobile nav-drawer slide — the shared NavDrawer + the SRD mobile-search
+     sheet. Lives here (not in each app's CSS) so the shared drawer animates
+     identically in both apps AND in Ladle. */
+  --animate-slide-in-right: slide-in-right 0.2s ease-out;
+  --animate-slide-out-right: slide-out-right 0.2s ease-in;
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+  @keyframes slide-out-right {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+}
+
+/*
+ * Base CSS custom properties used by body styles and components.
+ * Keep minimal — only define variables that are actually referenced.
+ */
+:root {
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
+
+  /* Border-weight semantic tokens (design-spec §1.3 — load-bearing system):
+     entity = entity cards + hero header; rail = rail cards & Hold frames;
+     pill = pills / status badges / dividers / statins / sblock / counterpart
+     panels; chrome = everything else (buttons, inputs, panels, rows, pips). */
+  --bw-entity: 3px;
+  --bw-rail: 2.5px;
+  --bw-pill: 2px;
+  --bw-chrome: 1.5px;
+}
+
+/*
+ * === Semantic border-width utilities (canonical primitive language §3) ===
+ *
+ * Promoted up from the ITUN app so every surface (srd + ITUN + the shared
+ * components) names border weights by role instead of hardcoding pixels. Only
+ * the NON-native weights get a utility — hairline 1px is native `border`, pill
+ * 2px is native `border-2`; these fill chrome 1.5px / rail 2.5px / entity 3px.
+ * This is the ONE border vocabulary — never `border-[1.5px]`.
+ */
+@utility border-chrome {
+  border-width: var(--bw-chrome);
+}
+@utility border-t-chrome {
+  border-top-width: var(--bw-chrome);
+}
+@utility border-b-chrome {
+  border-bottom-width: var(--bw-chrome);
+}
+@utility border-l-chrome {
+  border-left-width: var(--bw-chrome);
+}
+@utility border-r-chrome {
+  border-right-width: var(--bw-chrome);
+}
+@utility border-rail {
+  border-width: var(--bw-rail);
+}
+@utility border-entity {
+  border-width: var(--bw-entity);
+}
+@utility border-b-entity {
+  border-bottom-width: var(--bw-entity);
+}
+/* The LEFT entity edge — the accent spine on a sheet-section card and the
+   live-sheet rail callout. Both had been writing the pixel by hand, for the
+   ordinary reason: this utility did not exist, so the vocabulary had no word
+   for the thing they were drawing. Adding it is the whole fix; neither call
+   site changes weight. */
+@utility border-l-entity {
+  border-left-width: var(--bw-entity);
+}
+
+/* Per-sheet one-variable theming (design-spec §1.4): each sheet class sets its
+   tone pair and derives the two ground colors via OKLCH relative color.
+   `--sheet-tone` overrides the tone without redefining the grounds. */
+.sheet--pilot,
+.sheet--mech,
+.sheet--crawler {
+  --tone: var(--sheet-tone, var(--tone-default));
+}
+
+.sheet--pilot {
+  --tone-default: var(--color-sheet-pilot);
+  --tone-deep: var(--color-sheet-pilot-deep);
+  --ground: oklch(from var(--tone) 0.955 0.03 h);
+  --ground-2: oklch(from var(--tone) 0.985 0.012 h);
+  /* Wizard step-card fill (wizard-refresh mockup): the sky-blue step cards of
+     the printed Pilot Bay spread, pp.18–19 (#6BB8D6). Opt-in via WizShell's
+     tintedStepCard — only book-order wizards render it. Sky blue is light
+     enough for dark ink. */
+  --tone-card: rgb(107, 184, 214);
+  --tone-card-ink: var(--color-ink);
+}
+
+.sheet--mech {
+  --tone-default: var(--color-sheet-mech);
+  --tone-deep: var(--color-sheet-mech-deep);
+  --ground: oklch(from var(--tone) 0.955 0.022 h);
+  --ground-2: oklch(from var(--tone) 0.985 0.01 h);
+  /* Mech Workshop step-card rust, pp.94–95 (#B0553A). Rust is too dark for
+     ink text — the card ink is WHITE (matching the printed spread's white
+     body copy on the rust step cards). */
+  --tone-card: rgb(176, 85, 58);
+  --tone-card-ink: var(--color-paper);
+}
+
+.sheet--crawler {
+  --tone-default: var(--color-sheet-crawler);
+  --tone-deep: var(--color-sheet-crawler-deep);
+  --ground: oklch(from var(--tone) 0.955 0.03 h);
+  --ground-2: oklch(from var(--tone) 0.985 0.012 h);
+  /* Union Crawler step-card peach, pp.212–213 (#EC9C67) — unused until the
+     crawler wizard's book-order phase opts in. Peach is light enough for
+     dark ink. */
+  --tone-card: rgb(236, 156, 103);
+  --tone-card-ink: var(--color-ink);
+}
+
+/* Mobile-first touch targets */
+@media (pointer: coarse) {
+  button,
+  [role='button'],
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

@@ -4,10 +4,10 @@ Bun workspace monorepo with multiple apps and shared packages.
 
 ## Workspace Structure
 
-- `apps/suref-web/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4)
-- `apps/in-the-union-now/` - Character builder & game manager (React, TanStack Router/Query, ShadCN + Tailwind v4, local-first IndexedDB — no auth, no backend)
+- `apps/srd/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4)
+- `apps/itun/` - Character builder & game manager (React, TanStack Router/Query, ShadCN + Tailwind v4, local-first IndexedDB — no auth, no backend)
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
-- `packages/suref-react/` - Shared React component library (no build step, exports TypeScript source)
+- `packages/component-lib/` - Shared React component library (no build step, exports TypeScript source)
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
 
 ## Bun Workspace Best Practices
@@ -25,7 +25,7 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 - Use `bun` as package manager (not npm/yarn)
 - Root scripts use `bun --filter` to target packages
 - `bun run build:package` only regenerates the package's JSON schemas — apps consume its TypeScript source directly, so no build ordering exists
-- Dev commands: `bun run dev` (suref-web), `bun run dev:itun` (ITUN), `bun run dev:bot` (Discord bot)
+- Dev commands: `bun run dev` (srd), `bun run dev:itun` (ITUN), `bun run dev:bot` (Discord bot)
 - Watch mode: `bun run dev:watch` (watches package changes and app)
 - Type checking: `bun run typecheck` (checks all packages)
 - Linting: `bun run lint` (all packages)
@@ -33,7 +33,7 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 ## Workspace Packages
 
 - `salvageunion-reference` exports TypeScript source directly via `lib/index.ts` (no compile step; `bun run build:package` = JSON-schema regeneration only)
-- `suref-react` has no build step - exports TypeScript source directly via `src/index.ts` barrel
+- `component-lib` has no build step - exports TypeScript source directly via `src/index.ts` barrel
 - Both are imported via workspace protocol in consuming apps
 
 ## Import Conventions

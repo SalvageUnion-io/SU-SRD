@@ -145,11 +145,22 @@ agent writes each \`docs/rules/<slug>.md\` from it. This index is generated from
 \`tools/rules-digest/manifest.ts\`.
 `
 
+/**
+ * Escape a value for a markdown table cell. The backslash is in the class
+ * alongside the pipe: escaping only `|` lets a literal `\` in the label pair
+ * with the backslash we add, so `\|` would emit `\\|` — an escaped backslash
+ * followed by an *unescaped* `|` that splits the row into an extra column.
+ * Both are escaped in one pass; a second pass over `\` would double-escape.
+ */
+export function escapeCell(text: string): string {
+  return text.replace(/[\\|]/g, '\\$&')
+}
+
 function renderReadme(): string {
   const core = manifest.filter((s) => !s.slug.startsWith('expansions/'))
   const exp = manifest.filter((s) => s.slug.startsWith('expansions/'))
   const row = (s: DocSpec) =>
-    `| [${s.slug}.md](${s.slug}.md) | ${s.title} | ${s.sourceLabel.replace(/\|/g, '\\|')} |`
+    `| [${s.slug}.md](${s.slug}.md) | ${s.title} | ${escapeCell(s.sourceLabel)} |`
   const coreTable = [
     '## Topics',
     '',

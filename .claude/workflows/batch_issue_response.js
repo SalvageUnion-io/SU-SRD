@@ -152,7 +152,7 @@ const TRIAGE_SCHEMA = {
     files: {
       type: 'array',
       items: { type: 'string' },
-      description: 'candidate files under apps/in-the-union-now to change',
+      description: 'candidate files under apps/itun to change',
     },
     rules: {
       type: 'array',
@@ -189,7 +189,7 @@ const triageAgent = (fb) =>
       `  ${fb.summary}`,
       fb.source && fb.source !== 'inline' ? `  (source: ${fb.source})` : '',
       '',
-      '1. UX: pinpoint the exact place in apps/in-the-union-now/src this concerns — the route under',
+      '1. UX: pinpoint the exact place in apps/itun/src this concerns — the route under',
       '   src/routes (pilots / mechs / crawlers / sheet / s), the component(s) under src/components,',
       '   and/or the store under src/stores. Name concrete files where you can.',
       '2. RULES: identify the Salvage Union rule(s) that govern the correct behaviour, consulting the',

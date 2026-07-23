@@ -1,0 +1,49 @@
+# component-lib
+
+Shared React component library for the SURef monorepo. Consumed by `apps/srd` and `apps/itun`.
+
+## Design constraints
+
+- **No build step.** Exports TypeScript source directly via `src/index.ts`. Consuming apps compile via their own Vite/Astro setup.
+- **No backend dependency.** Data-source agnostic. Apps pass data in; the library renders it.
+- **Reusable across a static Astro site and a dynamic React SPA.** No framework-specific hooks that assume SSR, routing, or auth.
+
+## Contents
+
+- **Theme** — colors, tech-level tokens, recipes
+- **Typography** — `Text`
+- **UI primitives** — `Toaster` / `toast`, `ModalShell`, `ReferenceEntityDisplayTooltip`
+- **Entity display system** — `Card`, `ReferenceEntityDisplay` and its slot components, the choice-card layer, and control factories (`addControl`, `deleteControl`, `navigateControl`)
+- **Shared components** — `ValueDisplay`, `StatDisplay`, `StatsBar`, `RollTable`, `FilterChip`, skeletons
+- **Utilities** — `nameToSlug`, `getEntitySlug`, `parseTraitReferences` helpers, `cn()`
+
+See [package-contracts.md](../../docs/architecture/package-contracts.md) for the
+full export list.
+
+## Consuming
+
+Workspace dependency:
+
+```json
+"component-lib": "workspace:*"
+```
+
+Import from the barrel:
+
+```ts
+import { ReferenceEntityDisplay, Card, Text } from 'component-lib'
+```
+
+## Scripts
+
+| Script                             | What it does                        |
+| ---------------------------------- | ----------------------------------- |
+| `bun --filter component-lib test`  | Run component tests (happy-dom)     |
+| `bun --filter component-lib ladle` | Launch Ladle for component browsing |
+| `bun run typecheck`                | Typecheck (from repo root)          |
+
+## Documentation
+
+- [`CLAUDE.md`](CLAUDE.md) — conventions for this package
+- [`/docs/architecture/display-system.md`](../../docs/architecture/display-system.md) — 3-layer render stack
+- [`/docs/architecture/package-contracts.md`](../../docs/architecture/package-contracts.md) — package API rules

@@ -52,11 +52,16 @@ describe('rollAgainRow', () => {
     const row = rollAgainRow('roll', 'Core Mechanic', 'Roll again')
     expect(row).not.toBeNull()
     if (!row) throw new Error('expected an action row')
-    const json = row.toJSON() as { components: { custom_id?: string; label?: string }[] }
+    const json = row.toJSON()
     expect(json.components).toHaveLength(1)
-    expect(json.components[0]?.custom_id).toBe('su:roll:Core Mechanic')
+    const [button] = json.components
+    // Narrow the API component union at runtime instead of asserting a shape.
+    if (!button || !('custom_id' in button) || !('label' in button)) {
+      throw new Error('expected a labeled custom-id button')
+    }
+    expect(button.custom_id).toBe('su:roll:Core Mechanic')
     // Label is prefixed with the ↻ repeat symbol (a typographic glyph, not an emoji).
-    expect(json.components[0]?.label).toBe('↻ Roll again')
+    expect(button.label).toBe('↻ Roll again')
   })
 })
 
@@ -65,12 +70,19 @@ describe('rollResultRow', () => {
     const row = rollResultRow('Core Mechanic')
     expect(row).not.toBeNull()
     if (!row) throw new Error('expected an action row')
-    const json = row.toJSON() as { components: { custom_id?: string; label?: string }[] }
+    const json = row.toJSON()
     expect(json.components).toHaveLength(2)
-    expect(json.components[0]?.custom_id).toBe('su:roll:Core Mechanic')
-    expect(json.components[0]?.label).toBe('↻ Roll again')
-    expect(json.components[1]?.custom_id).toBe('su:lookup:Core Mechanic')
-    expect(json.components[1]?.label).toBe('See table')
+    const labeled = json.components.map((c) => {
+      // Narrow the API component union at runtime instead of asserting a shape.
+      if (!('custom_id' in c) || !('label' in c)) {
+        throw new Error('expected a labeled custom-id button')
+      }
+      return c
+    })
+    expect(labeled[0]?.custom_id).toBe('su:roll:Core Mechanic')
+    expect(labeled[0]?.label).toBe('↻ Roll again')
+    expect(labeled[1]?.custom_id).toBe('su:lookup:Core Mechanic')
+    expect(labeled[1]?.label).toBe('See table')
   })
 
   test('drops both buttons when the table name overflows the customId cap', () => {

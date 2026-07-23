@@ -173,6 +173,11 @@
     "choices": [
       {
         "id": "e7c1a3b2-5f84-4d9e-b6a1-2c8d4e9f7a30",
+        "source": {
+          "kind": "table",
+          "rollTable": "A.I. Personality",
+          "orChooseOwn": true
+        },
         "name": "A.I. Personality",
         "choiceType": "permanent",
         "rollTable": "A.I. Personality",

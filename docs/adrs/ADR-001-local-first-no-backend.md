@@ -7,7 +7,7 @@ Accepted
 ## Context
 
 SURef ships player-facing tools for a tabletop RPG: a static SRD reference site
-(`suref-web`), a character builder & game manager (`in-the-union-now`, "ITUN"),
+(`srd`), a character builder & game manager (`itun`, "ITUN"),
 and a Discord dice bot. None of these need a shared server of record: the SRD is
 public read-only data, and a player's pilots/mechs/crawlers are private working
 documents, not multiplayer state.
@@ -24,7 +24,7 @@ backend**.
 
 - All user data lives in the browser (IndexedDB; see [ADR-002](ADR-002-indexeddb-idb-zod.md)).
 - There are no accounts, sessions, tokens, or per-user server records.
-- `suref-web` is a fully static site (see [ADR-012](ADR-012-suref-web-astro-static.md)); it has no server runtime.
+- `srd` is a fully static site (see [ADR-012](ADR-012-srd-astro-static.md)); it has no server runtime.
 - ITUN is a PWA with an auto-updating service worker, so it works offline and
   installs to the home screen.
 - The **only** server-side surface is the optional, unauthenticated snapshot
@@ -42,7 +42,7 @@ backend**.
   character sheet on the honor system, and the table handles sequencing socially
   (see `docs/architecture/rules-engine-boundary.md`).
 - Backups are the user's responsibility; ITUN nudges export (see the backup
-  nudge in `apps/in-the-union-now/src/lib/backupNudge.ts`).
+  nudge in `apps/itun/src/lib/backupNudge.ts`).
 - No login means no gating; every feature is immediately usable.
 - Do **not** reintroduce auth, server-side user storage, or realtime sync
   without a new ADR superseding this one. Multi-user "Games" (cross-user

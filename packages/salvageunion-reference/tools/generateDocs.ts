@@ -172,10 +172,14 @@ interface SchemaIndex {
 function generateSchemaIndex(schemas: SchemaInfo[]): void {
   const outputPath = path.join(process.cwd(), 'schemas', 'index.json')
 
-  // Read existing index if it exists
+  // Read the existing index in a single syscall — `existsSync` followed by
+  // `readFileSync` is a check-then-act pair (the file can vanish in between);
+  // catching ENOENT off the read itself has no such window.
   let existingIndex: SchemaIndex | null = null
-  if (fs.existsSync(outputPath)) {
+  try {
     existingIndex = JSON.parse(fs.readFileSync(outputPath, 'utf-8')) as SchemaIndex
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
   }
 
   const newIndex: SchemaIndex = {
@@ -221,7 +225,20 @@ function generateSchemaIndex(schemas: SchemaInfo[]): void {
     }
   }
 
-  fs.writeFileSync(outputPath, `${JSON.stringify(newIndex, null, 2)}\n`)
+  // Publish the file as ONE atomic step: write the full contents to a temp
+  // file in the SAME directory (so `rename` stays within one filesystem, where
+  // POSIX guarantees it is atomic) and rename it over the target. A reader
+  // therefore sees either the old index or the new one — never a half-written
+  // file, and there is no window between deciding to write and the bytes
+  // landing. Unlink the temp file if the rename itself fails.
+  const tempPath = `${outputPath}.${process.pid}.tmp`
+  try {
+    fs.writeFileSync(tempPath, `${JSON.stringify(newIndex, null, 2)}\n`)
+    fs.renameSync(tempPath, outputPath)
+  } catch (error) {
+    fs.rmSync(tempPath, { force: true })
+    throw error
+  }
   console.log(`✅ Generated schemas/index.json (${schemas.length} schemas)`)
 }
 

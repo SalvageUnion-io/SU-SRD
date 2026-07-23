@@ -8,7 +8,6 @@ import type {
   SURefMetaAction,
   SURefObjectGrant,
   SURefEntity,
-  SURefEnumSchemaName,
   SURefObjectSystemModule,
   SURefObjectTable,
   SURefObjectTrait,
@@ -21,7 +20,6 @@ import type {
   SURefClass,
   SURefKeyword,
   SURefModule,
-  SURefRollTable,
   SURefSystem,
   SURefObjectAdvancedClass,
   SURefObjectFormationMech,
@@ -139,11 +137,22 @@ export function getPageReference(entity: SURefMetaEntity): number | undefined {
  * @returns The actions array or undefined
  */
 export function extractActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
+  return extractActionsFromCarrier(entity)
+}
+
+/**
+ * Internal widened form of {@link extractActions}: also accepts a bare
+ * `SURefObjectSystemModule` (an `actions` carrier that is not itself an
+ * entity), so system-module callers don't need an entity assertion.
+ */
+function extractActionsFromCarrier(
+  entity: SURefMetaEntity | SURefObjectSystemModule
+): SURefMetaAction[] | undefined {
   if (!('actions' in entity) || !Array.isArray(entity.actions)) {
     return undefined
   }
 
-  const actionNames = entity.actions as string[]
+  const actionNames = entity.actions
 
   const actionMap = getActionMap()
   if (actionMap.size === 0) {
@@ -337,12 +346,14 @@ export function getHitPoints(entity: SURefMetaEntity): number | undefined {
  * @returns The asset URL, or undefined if the entity has no artwork
  */
 export function getAssetUrl(entity: SURefMetaEntity): string | undefined {
-  const meta = entity as { hasArtwork?: unknown; schemaName?: unknown }
-  if (meta.hasArtwork !== true || typeof meta.schemaName !== 'string') {
+  if (!('hasArtwork' in entity) || entity.hasArtwork !== true) {
     return undefined
   }
-  const slug = getEntitySlug(entity as unknown as SURefEntity)
-  return `${ASSET_BASE_URL}/${meta.schemaName}/${slug}.webp`
+  if (!('schemaName' in entity) || typeof entity.schemaName !== 'string') {
+    return undefined
+  }
+  const slug = getEntitySlug(entity)
+  return `${ASSET_BASE_URL}/${entity.schemaName}/${slug}.webp`
 }
 
 /**
@@ -427,7 +438,7 @@ export function getTree(entity: SURefMetaEntity): unknown | undefined {
  */
 export function getRequirement(entity: SURefMetaEntity): string[] | undefined {
   return 'requirement' in entity && Array.isArray(entity.requirement)
-    ? (entity.requirement as string[])
+    ? entity.requirement
     : undefined
 }
 
@@ -530,8 +541,8 @@ export function resolveFormationMember(
 
   // Non-chassis entity types: look up by name in the given schema
   const found = SalvageUnionReference.findIn(
-    schemaName as SURefEnumSchemaName,
-    (e) => 'name' in e && (e as { name: string }).name === member.chassis
+    schemaName,
+    (e) => 'name' in e && e.name === member.chassis
   )
   return found ? { entity: found } : undefined
 }
@@ -603,10 +614,10 @@ export function hasTraits(
 
 /**
  * Type guard to check if an entity is an Ability
- * @param entity - The entity to check
+ * @param entity - The entity to check (null/undefined accepted; both return false)
  * @returns True if the entity is an Ability
  */
-export function isAbility(entity: SURefMetaEntity): entity is SURefAbility {
+export function isAbility(entity: SURefMetaEntity | null | undefined): entity is SURefAbility {
   return entity !== null && typeof entity === 'object' && 'tree' in entity && 'level' in entity
 }
 
@@ -785,7 +796,7 @@ export function isSystemModule(entity: SURefMetaEntity): boolean {
  * @returns The entity name or undefined if not found
  */
 export function getEntityNameFromSystemModule(entity: SURefObjectSystemModule): string | undefined {
-  const resolvedActions = extractActions(entity as SURefMetaEntity)
+  const resolvedActions = extractActionsFromCarrier(entity)
   return resolvedActions?.find((a) => !a.hidden)?.name
 }
 
@@ -795,7 +806,28 @@ export function getEntityNameFromSystemModule(entity: SURefObjectSystemModule): 
  * @returns The normalized pattern name
  */
 export function normalizePatternName(patternName: string): string {
-  return patternName.replace(/\s+Pattern$/i, '')
+  // Equivalent to `patternName.replace(/\s+Pattern$/i, '')` without that
+  // regex's quadratic backtracking on a long whitespace run (the engine
+  // retried `\s+` from every position before failing the `Pattern$` literal).
+  //
+  // Semantics preserved exactly, including the sharp edges:
+  //   - no trailing-whitespace tolerance — "Iron Pattern  " is UNCHANGED,
+  //     because the suffix must sit at the very end of the string. (A
+  //     `trimEnd()`-first rewrite would wrongly strip it.)
+  //   - `\s+` requires at least one separator, so bare "Pattern" is UNCHANGED.
+  //   - the `i` flag's casing rules are kept by reusing an `i`-flag regex for
+  //     the literal rather than hand-rolling `toLowerCase()`, which differs on
+  //     characters like `İ` and `ſ`.
+  if (!/Pattern$/i.test(patternName)) {
+    return patternName
+  }
+  const suffixStart = patternName.length - 'Pattern'.length
+  let cut = suffixStart
+  while (cut > 0 && /\s/.test(patternName.charAt(cut - 1))) {
+    cut--
+  }
+  // No whitespace before the literal (e.g. "IronPattern") -> no match.
+  return cut === suffixStart ? patternName : patternName.slice(0, cut)
 }
 
 /**
@@ -820,119 +852,62 @@ export function filterActionsExcludingName(
  * @param entity - The entity to extract activation cost from
  * @returns The activation cost or undefined if not present
  */
-export function getActivationCost(entity: SURefMetaEntity): number | string | undefined {
-  // Check base level first
-  if (
-    'activationCost' in entity &&
-    (typeof entity.activationCost === 'number' || typeof entity.activationCost === 'string')
-  ) {
-    return entity.activationCost
+/**
+ * Resolve a facet field from an entity, falling back to its self-action.
+ * The combat facets (activationCost/actionType/range/damage) live only on
+ * actions in the data; the entity-level view is derived here. One helper
+ * replaces four byte-identical getters (each of whose entity-first branch is
+ * dead for every entity in the repo — kept only for a raw action passed in).
+ */
+function selfActionField<T>(
+  entity: SURefMetaEntity,
+  key: string,
+  valid: (v: unknown) => v is T
+): T | undefined {
+  const ev = (entity as Record<string, unknown>)[key]
+  if (key in entity && valid(ev)) {
+    return ev
   }
-
-  // Check action property (only if action name matches entity name)
   const matchingAction = findMatchingAction(entity)
-  if (
-    matchingAction !== undefined &&
-    matchingAction !== null &&
-    typeof matchingAction === 'object' &&
-    'activationCost' in matchingAction &&
-    (typeof matchingAction.activationCost === 'number' ||
-      typeof matchingAction.activationCost === 'string')
-  ) {
-    return matchingAction.activationCost
+  if (matchingAction && typeof matchingAction === 'object') {
+    const av = (matchingAction as Record<string, unknown>)[key]
+    if (key in matchingAction && valid(av)) {
+      return av
+    }
   }
-
   return undefined
 }
 
+const isNumberOrString = (v: unknown): v is number | string =>
+  typeof v === 'number' || typeof v === 'string'
+const isString = (v: unknown): v is string => typeof v === 'string'
+const isStringArray = (v: unknown): v is string[] => Array.isArray(v)
+type DamageValue = { damageType: string; amount: number | string }
+const isDamage = (v: unknown): v is DamageValue => v !== null && typeof v === 'object'
+
+export function getActivationCost(entity: SURefMetaEntity): number | string | undefined {
+  return selfActionField(entity, 'activationCost', isNumberOrString)
+}
+
 /**
- * Get action type from an entity
- * Checks base level first, then action if action name matches entity name
- * @param entity - The entity to extract action type from
- * @returns The action type or undefined if not present
+ * Get action type from an entity (self-action fallback).
  */
 export function getActionType(entity: SURefMetaEntity): string | undefined {
-  // Check base level first
-  if ('actionType' in entity && typeof entity.actionType === 'string') {
-    return entity.actionType
-  }
-
-  // Check action property (only if action name matches entity name)
-  const matchingAction = findMatchingAction(entity)
-  if (
-    matchingAction !== undefined &&
-    matchingAction !== null &&
-    typeof matchingAction === 'object' &&
-    'actionType' in matchingAction &&
-    typeof matchingAction.actionType === 'string'
-  ) {
-    return matchingAction.actionType
-  }
-
-  return undefined
+  return selfActionField(entity, 'actionType', isString)
 }
 
 /**
- * Get range from an entity
- * Checks base level first, then action if action name matches entity name
- * @param entity - The entity to extract range from
- * @returns The range array or undefined if not present
+ * Get range from an entity (self-action fallback).
  */
 export function getRange(entity: SURefMetaEntity): string[] | undefined {
-  // Check base level first
-  if ('range' in entity && Array.isArray(entity.range)) {
-    return entity.range
-  }
-
-  // Check action property (only if action name matches entity name)
-  const matchingAction = findMatchingAction(entity)
-  if (
-    matchingAction !== undefined &&
-    matchingAction !== null &&
-    typeof matchingAction === 'object' &&
-    'range' in matchingAction &&
-    Array.isArray(matchingAction.range)
-  ) {
-    return matchingAction.range
-  }
-
-  return undefined
+  return selfActionField(entity, 'range', isStringArray)
 }
 
 /**
- * Get damage from an entity
- * Checks base level first, then action if action name matches entity name
- * @param entity - The entity to extract damage from
- * @returns The damage object or undefined if not present
+ * Get damage from an entity (self-action fallback).
  */
-export function getDamage(entity: SURefMetaEntity):
-  | {
-      damageType: string
-      amount: number | string
-    }
-  | undefined {
-  // Check base level first
-  if ('damage' in entity && entity.damage !== null && typeof entity.damage === 'object') {
-    return entity.damage as { damageType: string; amount: number | string }
-  }
-
-  // Check action property (only if action name matches entity name)
-  const matchingAction = findMatchingAction(entity)
-  if (
-    matchingAction !== undefined &&
-    matchingAction !== null &&
-    typeof matchingAction === 'object' &&
-    'damage' in matchingAction &&
-    matchingAction.damage !== null &&
-    typeof matchingAction.damage === 'object'
-  ) {
-    return matchingAction.damage as {
-      damageType: string
-      amount: number | string
-    }
-  }
-
-  return undefined
+export function getDamage(entity: SURefMetaEntity): DamageValue | undefined {
+  return selfActionField(entity, 'damage', isDamage)
 }
 
 /**
@@ -1010,14 +985,11 @@ export function getTable(entity: SURefMetaEntity): SURefObjectTable | undefined 
 
   // Check for tableName reference
   if ('tableName' in entity && typeof entity.tableName === 'string') {
-    const rollTablesModel = getModel('roll-tables')
-    if (rollTablesModel) {
-      const rollTable = rollTablesModel.find(
-        (rt) => 'name' in rt && rt.name === entity.tableName
-      ) as SURefRollTable | undefined
-      if (rollTable?.table) {
-        return rollTable.table
-      }
+    const rollTable = SalvageUnionReference.RollTables.find(
+      (rt) => 'name' in rt && rt.name === entity.tableName
+    )
+    if (rollTable?.table) {
+      return rollTable.table
     }
   }
 
@@ -1042,14 +1014,11 @@ export function getTable(entity: SURefMetaEntity): SURefObjectTable | undefined 
     'tableName' in matchingAction &&
     typeof matchingAction.tableName === 'string'
   ) {
-    const rollTablesModel = getModel('roll-tables')
-    if (rollTablesModel) {
-      const rollTable = rollTablesModel.find(
-        (rt) => 'name' in rt && rt.name === matchingAction.tableName
-      ) as SURefRollTable | undefined
-      if (rollTable?.table) {
-        return rollTable.table
-      }
+    const rollTable = SalvageUnionReference.RollTables.find(
+      (rt) => 'name' in rt && rt.name === matchingAction.tableName
+    )
+    if (rollTable?.table) {
+      return rollTable.table
     }
   }
 
@@ -1120,8 +1089,7 @@ export function getChoices(entity: SURefMetaEntity): SURefObjectChoice[] | undef
           continue
         }
 
-        const schema = grant.schema as SURefEnumSchemaName
-        const model = getModel(schema.toLowerCase())
+        const model = getModel(grant.schema.toLowerCase())
         if (!model) continue
 
         const grantedEntity = model.find((e: SURefEntity) => e.name === grant.name)
@@ -1177,7 +1145,7 @@ export function getGrants(entity: SURefMetaEntity): SURefObjectGrant[] | undefin
  */
 export function getRequiredTraits(action: SURefMetaAction): string[] {
   if ('requiredTraits' in action && Array.isArray(action.requiredTraits)) {
-    return action.requiredTraits as string[]
+    return action.requiredTraits
   }
   return []
 }
@@ -1215,11 +1183,21 @@ export type ParsedTraitReference = {
 export function parseTraitReferences(text: string): ParsedTraitReference[] {
   const references: ParsedTraitReference[] = []
 
+  // The name/param classes exclude their own OPENING delimiter as well as the
+  // closing one, so every scan is bounded at the next `[` / `(` instead of
+  // running to end-of-string from each of many `[[` starts (quadratic).
+  //
+  // The word-shape requirement that used to live in the regex
+  // (`[A-Z][A-Za-z-]+(?:\s+[A-Z][A-Za-z-]+)*`) moved to `isTraitName` below:
+  // as a regex it nested a quantifier inside a quantifier, which backtracks
+  // quadratically on input like `[[[Aa Aa Aa Aa …`. The predicate is a linear
+  // scan and accepts exactly the same set of names.
+
   // Pattern for parameterized traits: [[[TraitName] (param)]]
-  const paramPattern = /\[\[\[([A-Z][A-Za-z-]+(?:\s+[A-Z][A-Za-z-]+)*)\]\s+\(([^)]+)\)\]\]/g
+  const paramPattern = /\[\[\[([^\][]+)\]\s+\(([^)(]+)\)\]\]/g
 
   // Pattern for simple traits: [[TraitName]]
-  const simplePattern = /\[\[([A-Z][A-Za-z-]+(?:\s+[A-Z][A-Za-z-]+)*)\]\]/g
+  const simplePattern = /\[\[([^\][]+)\]\]/g
 
   // Find all parameterized trait references first
   let match = paramPattern.exec(text)

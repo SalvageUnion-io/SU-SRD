@@ -28,7 +28,8 @@
                 "label",
                 "datavalues",
                 "hint",
-                "flavor"
+                "flavor",
+                "choice"
               ],
               "description": "Type of content block for rendering structured text"
             },
@@ -55,11 +56,15 @@
                       "unit": {
                         "type": "string",
                         "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
+                      },
+                      "perTechLevel": {
+                        "type": "number",
+                        "description": "When set, this numeric value scales with the entity's effective tech level: it increases by this amount for each tech level above the first (e.g. Custom Sniper Rifle damage \"+1 SP per Tech Level after the first\")"
                       }
                     },
                     "required": ["label"],
                     "additionalProperties": false,
-                    "description": "A data value with label, optional value, optional type, and optional unit"
+                    "description": "A data value with label, optional value, optional type, optional unit, and optional per-tech-level scaling"
                   },
                   "description": "Array of data values when type is 'datavalues'"
                 }
@@ -68,6 +73,10 @@
             "label": { "type": "string" },
             "level": { "type": "integer", "minimum": 1, "maximum": 6 },
             "lead": { "type": "boolean" },
+            "choiceId": {
+              "type": "string",
+              "description": "When type is \"choice\": the id of the entity choice to render inline at this position"
+            },
             "items": {
               "type": "array",
               "items": {
@@ -83,7 +92,8 @@
                       "label",
                       "datavalues",
                       "hint",
-                      "flavor"
+                      "flavor",
+                      "choice"
                     ],
                     "description": "Type of content block for rendering structured text"
                   },
@@ -110,11 +120,15 @@
                             "unit": {
                               "type": "string",
                               "description": "Optional unit shown after the value (e.g. damage type \"SP\")"
+                            },
+                            "perTechLevel": {
+                              "type": "number",
+                              "description": "When set, this numeric value scales with the entity's effective tech level: it increases by this amount for each tech level above the first (e.g. Custom Sniper Rifle damage \"+1 SP per Tech Level after the first\")"
                             }
                           },
                           "required": ["label"],
                           "additionalProperties": false,
-                          "description": "A data value with label, optional value, optional type, and optional unit"
+                          "description": "A data value with label, optional value, optional type, optional unit, and optional per-tech-level scaling"
                         },
                         "description": "Array of data values when type is 'datavalues'"
                       }

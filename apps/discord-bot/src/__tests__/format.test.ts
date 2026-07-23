@@ -5,7 +5,14 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
 
-import { ROLL_EMBED_FOOTER, buildRollEmbedData, entityUrl, getColor, truncate } from '../format.js'
+import {
+  ROLL_COLORS,
+  ROLL_EMBED_FOOTER,
+  buildRollEmbedData,
+  entityUrl,
+  getColor,
+  truncate,
+} from '../format.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -22,11 +29,11 @@ function fixedRoller(...rolls: number[]) {
 
 describe('getColor', () => {
   test('maps Core Mechanic tiers', () => {
-    expect(getColor(20)).toBe(0x00ff00)
-    expect(getColor(11)).toBe(0x228b22)
-    expect(getColor(6)).toBe(0xffd700)
-    expect(getColor(2)).toBe(0xff4500)
-    expect(getColor(1)).toBe(0x8b0000)
+    expect(getColor(20)).toBe(ROLL_COLORS.nailed)
+    expect(getColor(11)).toBe(ROLL_COLORS.success)
+    expect(getColor(6)).toBe(ROLL_COLORS.tough)
+    expect(getColor(2)).toBe(ROLL_COLORS.failure)
+    expect(getColor(1)).toBe(ROLL_COLORS.cascade)
   })
 })
 
@@ -45,7 +52,7 @@ describe('buildRollEmbedData', () => {
     if (!core) throw new Error('Core Mechanic table missing from reference data')
     const outcome = rollOnTable(core.table, fixedRoller(20))
     const data = buildRollEmbedData('Core Mechanic', outcome)
-    expect(data.color).toBe(0x00ff00)
+    expect(data.color).toBe(ROLL_COLORS.nailed)
     expect(data.fields.map((f) => f.name)).toEqual(['Table', 'Roll', 'Range'])
     expect(data.fields[1]?.value).toBe('20')
     expect(data.description?.length).toBeGreaterThan(0)

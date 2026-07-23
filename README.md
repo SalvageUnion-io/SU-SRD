@@ -17,7 +17,7 @@ bun install
 # Build the reference package (required before apps can resolve types)
 bun run build:package
 
-# Start the reference site dev server (builds package, then serves suref-web)
+# Start the reference site dev server (builds package, then serves srd)
 bun run dev
 ```
 
@@ -29,28 +29,28 @@ Other dev servers: `bun run dev:itun` (character builder), `bun run dev:bot`
 ```
 .
 ├── apps/
-│   ├── suref-web/              # Static SRD reference site (Astro 5 + React islands)
-│   ├── in-the-union-now/       # Character builder & game manager (React 19, local-first)
+│   ├── srd/              # Static SRD reference site (Astro 5 + React islands)
+│   ├── itun/       # Character builder & game manager (React 19, local-first)
 │   └── discord-bot/            # Discord.js bot for rolling on SU tables
 ├── packages/
 │   ├── salvageunion-reference/ # Game-data ORM + schema-validated JSON dataset (built)
-│   └── suref-react/            # Shared React component library (no build step)
+│   └── component-lib/            # Shared React component library (no build step)
 ├── docs/                       # Architecture docs + ADRs (see docs/README.md)
 ├── package.json                # Root workspace configuration
 ├── biome.jsonc                 # Shared Biome (lint + format) config
 └── tsconfig.json               # Shared TypeScript base config
 ```
 
-**Dependency graph:** `salvageunion-reference → suref-react → {suref-web,
-in-the-union-now}`; `discord-bot` is standalone. The reference package must be
+**Dependency graph:** `salvageunion-reference → component-lib → {srd,
+itun}`; `discord-bot` is standalone. The reference package must be
 built (`bun run build:package`) before the apps can resolve its types.
 
 ## Common Commands
 
 ```bash
 # Development
-bun run dev          # Reference site (suref-web)
-bun run dev:itun     # Character builder (in-the-union-now)
+bun run dev          # Reference site (srd)
+bun run dev:itun     # Character builder (itun)
 bun run dev:bot      # Discord bot
 
 # Build
@@ -67,7 +67,7 @@ bun run check:all     # Full CI suite (lint, format, typecheck, test, validate, 
 ```
 
 All root scripts use `bun --filter` to target workspaces; you can also run a
-script in a single workspace directly, e.g. `bun --filter suref-web build` or
+script in a single workspace directly, e.g. `bun --filter srd build` or
 `bun --filter salvageunion-reference test`.
 
 ## Making Changes to salvageunion-reference
@@ -82,7 +82,7 @@ script in a single workspace directly, e.g. `bun --filter suref-web build` or
 
 ## Deployment
 
-- **suref-web** and **in-the-union-now** → Netlify (config in each app's
+- **srd** and **itun** → Netlify (config in each app's
   `netlify.toml`). ITUN also serves the snapshot-sharing backend as Netlify
   Functions — see [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md).
 - **discord-bot** → Render worker (Blueprint in `render.yaml`).

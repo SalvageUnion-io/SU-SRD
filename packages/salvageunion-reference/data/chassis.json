@@ -7,7 +7,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Hauler Pattern",
+        "name": "Hauler",
         "legalStarting": true,
         "systems": [
           {
@@ -48,7 +48,7 @@
         ]
       },
       {
-        "name": "Crusher Pattern",
+        "name": "Crusher",
         "systems": [
           {
             "name": "Red Laser"
@@ -88,7 +88,7 @@
         ]
       },
       {
-        "name": "Evantis Pattern",
+        "name": "Evantis",
         "systems": [
           {
             "name": "Missile Pod"
@@ -155,7 +155,7 @@
         ]
       },
       {
-        "name": "Shunter Pattern",
+        "name": "Shunter",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 13,
@@ -201,7 +201,7 @@
         ]
       },
       {
-        "name": "Appleseed Pattern",
+        "name": "Appleseed",
         "source": "Mech Monday",
         "page": 1,
         "systems": [
@@ -246,7 +246,7 @@
         ]
       },
       {
-        "name": "Bola Spider Pattern",
+        "name": "Bola Spider",
         "source": "Mech Monday",
         "page": 2,
         "systems": [
@@ -279,7 +279,7 @@
         ]
       },
       {
-        "name": "Glorified Truck Pattern",
+        "name": "Glorified Truck",
         "source": "Mech Monday",
         "page": 3,
         "systems": [
@@ -310,7 +310,7 @@
         ]
       },
       {
-        "name": "Guardian Angel Pattern",
+        "name": "Guardian Angel",
         "source": "Mech Monday",
         "page": 4,
         "systems": [
@@ -349,7 +349,7 @@
         ]
       },
       {
-        "name": "Honey Bee Pattern",
+        "name": "Honey Bee",
         "source": "Mech Monday",
         "page": 5,
         "systems": [
@@ -382,7 +382,7 @@
         ]
       },
       {
-        "name": "Party Bus Pattern",
+        "name": "Party Bus",
         "source": "Mech Monday",
         "page": 6,
         "systems": [
@@ -426,7 +426,7 @@
         ]
       },
       {
-        "name": "Steambender Pattern",
+        "name": "Steambender",
         "source": "Mech Monday",
         "page": 8,
         "systems": [
@@ -468,7 +468,7 @@
         ]
       },
       {
-        "name": "Surprise Pattern",
+        "name": "Surprise",
         "source": "Mech Monday",
         "page": 9,
         "systems": [
@@ -498,7 +498,7 @@
         ]
       },
       {
-        "name": "Swayback Wideloader Pattern",
+        "name": "Swayback Wideloader",
         "source": "Mech Monday",
         "page": 10,
         "systems": [
@@ -544,7 +544,7 @@
         ]
       },
       {
-        "name": "Wagon Pattern",
+        "name": "Wagon",
         "source": "Mech Monday",
         "page": 11,
         "systems": [
@@ -575,7 +575,7 @@
         ]
       },
       {
-        "name": "Weatherboy Pattern",
+        "name": "Weatherboy",
         "source": "Mech Monday",
         "page": 12,
         "systems": [
@@ -642,7 +642,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Buzzard Pattern",
+        "name": "Buzzard",
         "legalStarting": true,
         "systems": [
           {
@@ -672,7 +672,7 @@
         ]
       },
       {
-        "name": "Scrap Flinger Pattern",
+        "name": "Scrap Flinger",
         "systems": [
           {
             "name": "Mechapult"
@@ -703,7 +703,7 @@
         ]
       },
       {
-        "name": "Stefanus Pattern",
+        "name": "Stefanus",
         "systems": [
           {
             "name": "Rigging Arm"
@@ -731,7 +731,7 @@
         ]
       },
       {
-        "name": "Madrona Pattern",
+        "name": "Madrona",
         "source": "The Hive",
         "page": 1,
         "systems": [
@@ -765,7 +765,7 @@
         ]
       },
       {
-        "name": "Bomblebee Pattern",
+        "name": "Bomblebee",
         "source": "The Hive",
         "page": 1,
         "systems": [
@@ -790,7 +790,7 @@
         ]
       },
       {
-        "name": "Killer Pattern",
+        "name": "Killer",
         "source": "The Hive",
         "page": 1,
         "systems": [
@@ -823,7 +823,7 @@
         ]
       },
       {
-        "name": "Pop Pattern",
+        "name": "Pop",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 15,
@@ -861,7 +861,7 @@
         ]
       },
       {
-        "name": "M2 Pattern",
+        "name": "M2",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 15,
@@ -898,7 +898,7 @@
         ]
       },
       {
-        "name": "'Shaitan' Pattern",
+        "name": "'Shaitan'",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 15,
@@ -935,7 +935,7 @@
         ]
       },
       {
-        "name": "3CH-0 Pattern",
+        "name": "3CH-0",
         "source": "Mech Monday",
         "page": 1,
         "systems": [
@@ -969,7 +969,7 @@
         ]
       },
       {
-        "name": "Antagonistic Wasp Pattern",
+        "name": "Antagonistic Wasp",
         "source": "Mech Monday",
         "page": 2,
         "systems": [
@@ -1002,7 +1002,7 @@
         ]
       },
       {
-        "name": "Firefighter Pattern",
+        "name": "Firefighter",
         "source": "Mech Monday",
         "page": 3,
         "systems": [
@@ -1041,7 +1041,7 @@
         ]
       },
       {
-        "name": "Honeybee Pattern",
+        "name": "Honeybee",
         "source": "Mech Monday",
         "page": 4,
         "systems": [
@@ -1068,7 +1068,7 @@
         ]
       },
       {
-        "name": "Incident Commander Pattern",
+        "name": "Incident Commander",
         "source": "Mech Monday",
         "page": 5,
         "systems": [
@@ -1107,7 +1107,7 @@
         ]
       },
       {
-        "name": "SFX Pattern",
+        "name": "SFX",
         "source": "Mech Monday",
         "page": 6,
         "systems": [
@@ -1142,7 +1142,7 @@
         ]
       },
       {
-        "name": "Martinet Pattern",
+        "name": "Martinet",
         "source": "Mech Monday",
         "page": 7,
         "systems": [
@@ -1178,7 +1178,7 @@
         ]
       },
       {
-        "name": "Valet Pattern",
+        "name": "Valet",
         "source": "Mech Monday",
         "page": 8,
         "systems": [
@@ -1214,7 +1214,7 @@
         ]
       },
       {
-        "name": "Valkyrie Pattern",
+        "name": "Valkyrie",
         "source": "Mech Monday",
         "page": 9,
         "systems": [
@@ -1278,7 +1278,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Leaky Pattern",
+        "name": "Leaky",
         "legalStarting": true,
         "systems": [
           {
@@ -1313,7 +1313,7 @@
         ]
       },
       {
-        "name": "Rigger Pattern",
+        "name": "Rigger",
         "systems": [
           {
             "name": "Hydraulic Crusher"
@@ -1347,7 +1347,7 @@
         ]
       },
       {
-        "name": "Sakura Pattern",
+        "name": "Sakura",
         "systems": [
           {
             "name": "Articulated Rigging Arm"
@@ -1417,7 +1417,7 @@
         ]
       },
       {
-        "name": "Swiss Cheese Pattern",
+        "name": "Swiss Cheese",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 17,
@@ -1461,7 +1461,7 @@
         ]
       },
       {
-        "name": "The Cleaner Pattern",
+        "name": "The Cleaner",
         "source": "Mech Monday",
         "page": 1,
         "systems": [
@@ -1488,7 +1488,7 @@
         ]
       },
       {
-        "name": "Dumpster Fire Pattern",
+        "name": "Dumpster Fire",
         "source": "Mech Monday",
         "page": 2,
         "systems": [
@@ -1524,7 +1524,7 @@
         ]
       },
       {
-        "name": "The Dungster Pattern",
+        "name": "The Dungster",
         "source": "Mech Monday",
         "page": 3,
         "systems": [
@@ -1558,7 +1558,7 @@
         ]
       },
       {
-        "name": "Killdozer Pattern",
+        "name": "Killdozer",
         "source": "Mech Monday",
         "page": 4,
         "systems": [
@@ -1597,7 +1597,7 @@
         ]
       },
       {
-        "name": "Knock-Down Drag-Out Pattern",
+        "name": "Knock-Down Drag-Out",
         "source": "Mech Monday",
         "page": 5,
         "systems": [
@@ -1655,7 +1655,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Settler Pattern",
+        "name": "Settler",
         "legalStarting": true,
         "systems": [
           {
@@ -1690,7 +1690,7 @@
         ]
       },
       {
-        "name": "Operator Pattern",
+        "name": "Operator",
         "additionalSources": [
           {
             "source": "Thatcher's Mech Base",
@@ -1733,7 +1733,7 @@
         ]
       },
       {
-        "name": "AMS Pattern",
+        "name": "AMS",
         "systems": [
           {
             "name": "Needle Missile Pod"
@@ -1770,7 +1770,7 @@
         ]
       },
       {
-        "name": "Pyrotechnic Pattern",
+        "name": "Pyrotechnic",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 19,
@@ -1814,7 +1814,7 @@
         ]
       },
       {
-        "name": "Party Bus Pattern",
+        "name": "Party Bus",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 19,
@@ -1854,7 +1854,7 @@
         ]
       },
       {
-        "name": "Forty-Niner Pattern",
+        "name": "Forty-Niner",
         "source": "Mech Monday",
         "page": 1,
         "systems": [
@@ -1890,7 +1890,7 @@
         ]
       },
       {
-        "name": "Gossipmonger Pattern",
+        "name": "Gossipmonger",
         "source": "Mech Monday",
         "page": 2,
         "systems": [
@@ -1932,7 +1932,7 @@
         ]
       },
       {
-        "name": "Hedgehog Dilemma Pattern",
+        "name": "Hedgehog Dilemma",
         "source": "Mech Monday",
         "page": 3,
         "systems": [
@@ -1968,7 +1968,7 @@
         ]
       },
       {
-        "name": "Interdictor Pattern",
+        "name": "Interdictor",
         "source": "Mech Monday",
         "page": 4,
         "systems": [
@@ -2004,7 +2004,7 @@
         ]
       },
       {
-        "name": "Pharmacy Pattern",
+        "name": "Pharmacy",
         "source": "Mech Monday",
         "page": 5,
         "systems": [
@@ -2037,7 +2037,7 @@
         ]
       },
       {
-        "name": "Photo Finale Pattern",
+        "name": "Photo Finale",
         "source": "Mech Monday",
         "page": 6,
         "systems": [
@@ -2097,7 +2097,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Shepherd Pattern",
+        "name": "Shepherd",
         "legalStarting": true,
         "systems": [
           {
@@ -2132,7 +2132,7 @@
         ]
       },
       {
-        "name": "Butcher Pattern",
+        "name": "Butcher",
         "systems": [
           {
             "name": "Chainsaw Arm"
@@ -2163,7 +2163,7 @@
         ]
       },
       {
-        "name": "H&V Pattern",
+        "name": "H&V",
         "systems": [
           {
             "name": "Chainsaw Arm",
@@ -2250,7 +2250,7 @@
         ]
       },
       {
-        "name": "Slugger Pattern",
+        "name": "Slugger",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 21,
@@ -2288,7 +2288,7 @@
         ]
       },
       {
-        "name": "Newshound Pattern",
+        "name": "Newshound",
         "source": "Mech Monday",
         "page": 2,
         "systems": [
@@ -2324,7 +2324,7 @@
         ]
       },
       {
-        "name": "Ripley Pattern",
+        "name": "Ripley",
         "source": "Mech Monday",
         "page": 3,
         "systems": [
@@ -2357,7 +2357,7 @@
         ]
       },
       {
-        "name": "Suppressor Pattern",
+        "name": "Suppressor",
         "source": "Mech Monday",
         "page": 4,
         "systems": [
@@ -2424,7 +2424,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Beam Pattern",
+        "name": "Beam",
         "systems": [
           {
             "name": "Blue Mining Laser"
@@ -2464,7 +2464,7 @@
         ]
       },
       {
-        "name": "Steamroller Pattern",
+        "name": "Steamroller",
         "systems": [
           {
             "name": "Green Laser"
@@ -2507,7 +2507,7 @@
         ]
       },
       {
-        "name": "Osiris Pattern",
+        "name": "Osiris",
         "systems": [
           {
             "name": "30mm Autocannon"
@@ -2550,7 +2550,7 @@
         ]
       },
       {
-        "name": "Cargo Pattern",
+        "name": "Cargo",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 23,
@@ -2630,7 +2630,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Legion Pattern",
+        "name": "Legion",
         "systems": [
           {
             "name": "Green Laser"
@@ -2667,7 +2667,7 @@
         ]
       },
       {
-        "name": "Longsaddle Pattern",
+        "name": "Longsaddle",
         "systems": [
           {
             "name": "Long Barrelled Green Laser"
@@ -2704,7 +2704,7 @@
         ]
       },
       {
-        "name": "Opus Pattern",
+        "name": "Opus",
         "systems": [
           {
             "name": "Red Pulse Laser"
@@ -2741,7 +2741,7 @@
         ]
       },
       {
-        "name": "Herrsch Pattern",
+        "name": "Herrsch",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 27,
@@ -2781,7 +2781,7 @@
         ]
       },
       {
-        "name": "Analysis Pattern",
+        "name": "Analysis",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 27,
@@ -2856,7 +2856,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Mauler Pattern",
+        "name": "Mauler",
         "systems": [
           {
             "name": "M2-X Mauler"
@@ -2899,7 +2899,7 @@
         ]
       },
       {
-        "name": "Piggyback Pattern",
+        "name": "Piggyback",
         "systems": [
           {
             "name": "30mm Autocannon"
@@ -2936,7 +2936,7 @@
         ]
       },
       {
-        "name": "Contour Pattern",
+        "name": "Contour",
         "systems": [
           {
             "name": "Red Pulse Laser"
@@ -2973,7 +2973,7 @@
         ]
       },
       {
-        "name": "Blue Bolt Pattern",
+        "name": "Blue Bolt",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 29,
@@ -3034,7 +3034,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Cackler Pattern",
+        "name": "Cackler",
         "systems": [
           {
             "name": "Mining Rig"
@@ -3074,7 +3074,7 @@
         ]
       },
       {
-        "name": "Auger Pattern",
+        "name": "Auger",
         "systems": [
           {
             "name": "Blue Mining Laser"
@@ -3106,7 +3106,7 @@
         ]
       },
       {
-        "name": "Thatcher Pattern",
+        "name": "Thatcher",
         "additionalSources": [
           {
             "source": "Thatcher's Mech Base",
@@ -3182,7 +3182,7 @@
     "salvageValue": 8,
     "patterns": [
       {
-        "name": "Scrapjack Pattern",
+        "name": "Scrapjack",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 25,
@@ -3228,7 +3228,7 @@
         ]
       },
       {
-        "name": "Endeavour Pattern",
+        "name": "Endeavour",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 25,
@@ -3272,7 +3272,7 @@
         ]
       },
       {
-        "name": "Bio Hunter Pattern",
+        "name": "Bio Hunter",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 25,
@@ -3328,7 +3328,7 @@
         ]
       },
       {
-        "name": "Ant Pattern",
+        "name": "Ant",
         "source": "Mech Monday",
         "page": 1,
         "systems": [
@@ -3371,7 +3371,7 @@
         ]
       },
       {
-        "name": "Atomiser Pattern",
+        "name": "Atomiser",
         "source": "Mech Monday",
         "page": 2,
         "systems": [
@@ -3411,7 +3411,7 @@
         ]
       },
       {
-        "name": "Autogenous Pattern",
+        "name": "Autogenous",
         "source": "Mech Monday",
         "page": 3,
         "systems": [
@@ -3450,7 +3450,7 @@
         ]
       },
       {
-        "name": "Doss Pattern",
+        "name": "Doss",
         "source": "Mech Monday",
         "page": 4,
         "systems": [
@@ -3490,7 +3490,7 @@
         ]
       },
       {
-        "name": "Firefly Pattern",
+        "name": "Firefly",
         "source": "Mech Monday",
         "page": 5,
         "systems": [
@@ -3532,7 +3532,7 @@
         ]
       },
       {
-        "name": "Gridiron Webslinger Pattern",
+        "name": "Gridiron Webslinger",
         "source": "Mech Monday",
         "page": 6,
         "systems": [
@@ -3576,7 +3576,7 @@
         ]
       },
       {
-        "name": "Hellion Pattern",
+        "name": "Hellion",
         "source": "Mech Monday",
         "page": 7,
         "systems": [
@@ -3622,7 +3622,7 @@
         ]
       },
       {
-        "name": "King Crab Pattern",
+        "name": "King Crab",
         "source": "Mech Monday",
         "page": 8,
         "systems": [
@@ -3664,7 +3664,7 @@
         ]
       },
       {
-        "name": "Limpet Mine Pattern",
+        "name": "Limpet Mine",
         "source": "Mech Monday",
         "page": 9,
         "systems": [
@@ -3706,7 +3706,7 @@
         ]
       },
       {
-        "name": "Orthrus Pattern",
+        "name": "Orthrus",
         "source": "Mech Monday",
         "page": 10,
         "systems": [
@@ -3746,7 +3746,7 @@
         ]
       },
       {
-        "name": "Picket Pattern",
+        "name": "Picket",
         "source": "Mech Monday",
         "page": 11,
         "systems": [
@@ -3791,7 +3791,7 @@
         ]
       },
       {
-        "name": "Riptide Pattern",
+        "name": "Riptide",
         "source": "Mech Monday",
         "page": 12,
         "systems": [
@@ -3831,7 +3831,7 @@
         ]
       },
       {
-        "name": "Tanks-A-Lot Pattern",
+        "name": "Tanks-A-Lot",
         "source": "Mech Monday",
         "page": 13,
         "systems": [
@@ -3877,7 +3877,7 @@
         ]
       },
       {
-        "name": "Tollmaster Pattern",
+        "name": "Tollmaster",
         "source": "Mech Monday",
         "page": 14,
         "systems": [
@@ -3939,7 +3939,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Blackbeard Pattern",
+        "name": "Blackbeard",
         "systems": [
           {
             "name": "Mini Mortar"
@@ -3988,7 +3988,7 @@
         ]
       },
       {
-        "name": "Saboteur Pattern",
+        "name": "Saboteur",
         "systems": [
           {
             "name": "Torpedo Tubes"
@@ -4034,7 +4034,7 @@
         ]
       },
       {
-        "name": "Aegean Pattern",
+        "name": "Aegean",
         "systems": [
           {
             "name": "Torpedo Tubes"
@@ -4075,7 +4075,7 @@
         ]
       },
       {
-        "name": "TDA Industrial Pattern",
+        "name": "TDA Industrial",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 33,
@@ -4124,7 +4124,7 @@
         ]
       },
       {
-        "name": "Last Resort Pattern",
+        "name": "Last Resort",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 33,
@@ -4181,7 +4181,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Ironmonger Pattern",
+        "name": "Ironmonger",
         "systems": [
           {
             "name": "Mini Mortar"
@@ -4224,7 +4224,7 @@
         ]
       },
       {
-        "name": "Maggie Pattern",
+        "name": "Maggie",
         "additionalSources": [
           {
             "source": "Thatcher's Mech Base",
@@ -4270,7 +4270,7 @@
         ]
       },
       {
-        "name": "Stefanus Pattern",
+        "name": "Stefanus",
         "systems": [
           {
             "name": "Chainsaw Arm"
@@ -4308,7 +4308,7 @@
         ]
       },
       {
-        "name": "Scourer Pattern",
+        "name": "Scourer",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 35,
@@ -4385,7 +4385,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Junker Pattern",
+        "name": "Junker",
         "systems": [
           {
             "name": "Red Laser"
@@ -4425,7 +4425,7 @@
         ]
       },
       {
-        "name": "Reclaimer Pattern",
+        "name": "Reclaimer",
         "systems": [
           {
             "name": "Hydraulic Crusher"
@@ -4462,7 +4462,7 @@
         ]
       },
       {
-        "name": "Sentinel Pattern",
+        "name": "Sentinel",
         "systems": [
           {
             "name": "Missile Pod"
@@ -4493,7 +4493,7 @@
         ]
       },
       {
-        "name": "Furtive Pattern",
+        "name": "Furtive",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 37,
@@ -4567,7 +4567,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Thunder Storm Pattern",
+        "name": "Thunder Storm",
         "systems": [
           {
             "name": ".50 Cal Machine Gun",
@@ -4605,7 +4605,7 @@
         ]
       },
       {
-        "name": "Bastion Pattern",
+        "name": "Bastion",
         "systems": [
           {
             "name": "30mm Autocannon"
@@ -4639,7 +4639,7 @@
         ]
       },
       {
-        "name": "Evantis Pattern",
+        "name": "Evantis",
         "systems": [
           {
             "name": "Railgun"
@@ -4676,7 +4676,7 @@
         ]
       },
       {
-        "name": "Throne Pattern",
+        "name": "Throne",
         "source": "We Were Here First!",
         "page": 47,
         "systems": [
@@ -4710,7 +4710,7 @@
         ]
       },
       {
-        "name": "Queen Bee Pattern",
+        "name": "Queen Bee",
         "source": "The Hive",
         "page": 1,
         "systems": [
@@ -4751,7 +4751,7 @@
         ]
       },
       {
-        "name": "Chauffeur Pattern",
+        "name": "Chauffeur",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 39,
@@ -4804,7 +4804,7 @@
         ]
       },
       {
-        "name": "All Is Dust Pattern",
+        "name": "All Is Dust",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 39,
@@ -4873,7 +4873,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Rifleman Pattern",
+        "name": "Rifleman",
         "systems": [
           {
             "name": "30mm Autocannon",
@@ -4908,7 +4908,7 @@
         ]
       },
       {
-        "name": "Ironmask Pattern",
+        "name": "Ironmask",
         "systems": [
           {
             "name": "Mech Melee Armament",
@@ -4949,7 +4949,7 @@
         ]
       },
       {
-        "name": "Gladiator Pattern",
+        "name": "Gladiator",
         "systems": [
           {
             "name": "Missile Pod"
@@ -4989,7 +4989,7 @@
         ]
       },
       {
-        "name": "Torpedo-Man Pattern",
+        "name": "Torpedo-Man",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 41,
@@ -5024,7 +5024,7 @@
         ]
       },
       {
-        "name": "Steel-Drivingman Pattern",
+        "name": "Steel-Drivingman",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 41,
@@ -5101,7 +5101,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Surveyor Pattern",
+        "name": "Surveyor",
         "systems": [
           {
             "name": "Green Laser"
@@ -5139,7 +5139,7 @@
         ]
       },
       {
-        "name": "Scrounger Pattern",
+        "name": "Scrounger",
         "systems": [
           {
             "name": "Articulated Rigging Arm"
@@ -5177,7 +5177,7 @@
         ]
       },
       {
-        "name": "DronTek Pattern",
+        "name": "DronTek",
         "systems": [
           {
             "name": "Green Laser"
@@ -5239,7 +5239,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Painter Pattern",
+        "name": "Painter",
         "systems": [
           {
             "name": ".50 Cal Machine Gun"
@@ -5285,7 +5285,7 @@
         ]
       },
       {
-        "name": "Battery Pattern",
+        "name": "Battery",
         "systems": [
           {
             "name": "Locomotion System"
@@ -5323,7 +5323,7 @@
         ]
       },
       {
-        "name": "Stefanus Pattern",
+        "name": "Stefanus",
         "systems": [
           {
             "name": "Needle Missile Pod"
@@ -5390,7 +5390,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Stitcher Pattern",
+        "name": "Stitcher",
         "systems": [
           {
             "name": "Green Laser"
@@ -5427,7 +5427,7 @@
         ]
       },
       {
-        "name": "Needler Pattern",
+        "name": "Needler",
         "systems": [
           {
             "name": "Needle Missile Pod",
@@ -5462,7 +5462,7 @@
         ]
       },
       {
-        "name": "Sküm Pattern",
+        "name": "Sküm",
         "systems": [
           {
             "name": "Red Laser"
@@ -5524,7 +5524,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Smuggler Pattern",
+        "name": "Smuggler",
         "systems": [
           {
             "name": ".50 Cal Machine Gun"
@@ -5567,7 +5567,7 @@
         ]
       },
       {
-        "name": "Infiltrator Pattern",
+        "name": "Infiltrator",
         "systems": [
           {
             "name": "Ejection System"
@@ -5613,7 +5613,7 @@
         ]
       },
       {
-        "name": "Sakura Pattern",
+        "name": "Sakura",
         "systems": [
           {
             "name": "Rail Rifle"
@@ -5650,7 +5650,7 @@
         ]
       },
       {
-        "name": "Blueberry Surprise Pattern",
+        "name": "Blueberry Surprise",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 45,
@@ -5696,7 +5696,7 @@
         ]
       },
       {
-        "name": "Refugee Pattern",
+        "name": "Refugee",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 45,
@@ -5739,7 +5739,7 @@
         ]
       },
       {
-        "name": "Monster Games Pattern",
+        "name": "Monster Games",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 45,
@@ -5805,7 +5805,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Sifter Pattern",
+        "name": "Sifter",
         "systems": [
           {
             "name": "Rotary Minigun"
@@ -5842,7 +5842,7 @@
         ]
       },
       {
-        "name": "Deployer Pattern",
+        "name": "Deployer",
         "systems": [
           {
             "name": "Blue Mining Laser"
@@ -5879,7 +5879,7 @@
         ]
       },
       {
-        "name": "Kombu Pattern",
+        "name": "Kombu",
         "systems": [
           {
             "name": "Heavy Duty Mining Rig"
@@ -5943,7 +5943,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Giant Dad Pattern",
+        "name": "Giant Dad",
         "systems": [
           {
             "name": "120mm Cannon"
@@ -5986,7 +5986,7 @@
         ]
       },
       {
-        "name": "Escort Pattern",
+        "name": "Escort",
         "systems": [
           {
             "name": "CACB Laser"
@@ -6029,7 +6029,7 @@
         ]
       },
       {
-        "name": "Aeon Pattern",
+        "name": "Aeon",
         "systems": [
           {
             "name": "Railgun"
@@ -6090,7 +6090,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Sellsword Pattern",
+        "name": "Sellsword",
         "systems": [
           {
             "name": "Rotary Minigun",
@@ -6125,7 +6125,7 @@
         ]
       },
       {
-        "name": "Alien Hunter Pattern",
+        "name": "Alien Hunter",
         "systems": [
           {
             "name": "Blue Beam Laser"
@@ -6171,7 +6171,7 @@
         ]
       },
       {
-        "name": "Evantis Pattern",
+        "name": "Evantis",
         "systems": [
           {
             "name": "Railgun",
@@ -6230,7 +6230,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Primus Pattern",
+        "name": "Primus",
         "systems": [
           {
             "name": "Articulated Rigging Arm",
@@ -6268,7 +6268,7 @@
         ]
       },
       {
-        "name": "VIP Pattern",
+        "name": "VIP",
         "systems": [
           {
             "name": "Green Laser"
@@ -6302,7 +6302,7 @@
         ]
       },
       {
-        "name": "Terminator Pattern",
+        "name": "Terminator",
         "systems": [
           {
             "name": "Articulated Rigging Arm",
@@ -6367,7 +6367,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Scavenger Pattern",
+        "name": "Scavenger",
         "systems": [
           {
             "name": "Needle Missile Pod"
@@ -6410,7 +6410,7 @@
         ]
       },
       {
-        "name": "Chumba Pattern",
+        "name": "Chumba",
         "systems": [
           {
             "name": "FM-3 Flamethrower"
@@ -6450,7 +6450,7 @@
         ]
       },
       {
-        "name": "Contour Pattern",
+        "name": "Contour",
         "systems": [
           {
             "name": "Missile Pod"
@@ -6518,7 +6518,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Fissure Pattern",
+        "name": "Fissure",
         "systems": [
           {
             "name": "Blue Mining Laser"
@@ -6558,7 +6558,7 @@
         ]
       },
       {
-        "name": "Zap Pattern",
+        "name": "Zap",
         "systems": [
           {
             "name": "Blue Beam Laser"
@@ -6592,7 +6592,7 @@
         ]
       },
       {
-        "name": "Laser Boat Pattern",
+        "name": "Laser Boat",
         "systems": [
           {
             "name": "Red Laser",
@@ -6648,7 +6648,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Crawler Pattern",
+        "name": "Crawler",
         "systems": [
           {
             "name": "Plasma Cannon"
@@ -6688,7 +6688,7 @@
         ]
       },
       {
-        "name": "Scuttler Pattern",
+        "name": "Scuttler",
         "systems": [
           {
             "name": "120mm Cannon"
@@ -6731,7 +6731,7 @@
         ]
       },
       {
-        "name": "Rallier Pattern",
+        "name": "Rallier",
         "systems": [
           {
             "name": "Plasma Cannon"
@@ -6792,7 +6792,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Commando Pattern",
+        "name": "Commando",
         "systems": [
           {
             "name": "FM-3 Flamethrower"
@@ -6841,7 +6841,7 @@
         ]
       },
       {
-        "name": "Iron Lung Pattern",
+        "name": "Iron Lung",
         "systems": [
           {
             "name": "Amphibious Locomotion System"
@@ -6887,7 +6887,7 @@
         ]
       },
       {
-        "name": "Sakura Pattern",
+        "name": "Sakura",
         "systems": [
           {
             "name": "Monomolecular Blade"
@@ -6954,7 +6954,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Screamer Pattern",
+        "name": "Screamer",
         "systems": [
           {
             "name": "Monomolecular Blade"
@@ -6991,7 +6991,7 @@
         ]
       },
       {
-        "name": "Breacher Pattern",
+        "name": "Breacher",
         "systems": [
           {
             "name": "120mm Heavy Autocannon"
@@ -7022,7 +7022,7 @@
         ]
       },
       {
-        "name": "Ascension Pattern",
+        "name": "Ascension",
         "systems": [
           {
             "name": "Railgun"
@@ -7130,7 +7130,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Churner Pattern",
+        "name": "Churner",
         "systems": [
           {
             "name": "Heavy Duty Mining Rig"
@@ -7176,7 +7176,7 @@
         ]
       },
       {
-        "name": "Sapper Pattern",
+        "name": "Sapper",
         "systems": [
           {
             "name": "Mole Torpedo"
@@ -7211,7 +7211,7 @@
         ]
       },
       {
-        "name": "M.A.D. Pattern",
+        "name": "M.A.D.",
         "systems": [
           {
             "name": "N15 Fat Boy"
@@ -7275,7 +7275,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Destroyer Pattern",
+        "name": "Destroyer",
         "systems": [
           {
             "name": ".50 Cal Machine Gun",
@@ -7321,7 +7321,7 @@
         ]
       },
       {
-        "name": "Annihilator Pattern",
+        "name": "Annihilator",
         "systems": [
           {
             "name": "Experimental Particle Beam Cannon",
@@ -7362,7 +7362,7 @@
         ]
       },
       {
-        "name": "Evantis Pattern",
+        "name": "Evantis",
         "systems": [
           {
             "name": "120mm Heavy Autocannon",
@@ -7424,7 +7424,7 @@
     "hasArtwork": true,
     "patterns": [
       {
-        "name": "Skimmer Pattern",
+        "name": "Skimmer",
         "systems": [
           {
             "name": "Rail Rifle"
@@ -7482,7 +7482,7 @@
         ]
       },
       {
-        "name": "X-Zero Pattern",
+        "name": "X-Zero",
         "systems": [
           {
             "name": "Ejection System"
@@ -7528,7 +7528,7 @@
         ]
       },
       {
-        "name": "Diplomat Pattern",
+        "name": "Diplomat",
         "systems": [
           {
             "name": "Articulated Rigging Arm",
@@ -7846,7 +7846,7 @@
     "page": 70,
     "patterns": [
       {
-        "name": "Probe Pattern",
+        "name": "Probe",
         "systems": [
           {
             "name": "Bio-Talon"
@@ -7972,7 +7972,7 @@
     "chassisAbilities": ["Integrated Hydrologic Locomotion System"],
     "patterns": [
       {
-        "name": "10 Finger Pattern",
+        "name": "10 Finger",
         "systems": [
           {
             "name": "Rigging Arm"
@@ -8006,7 +8006,7 @@
         ]
       },
       {
-        "name": "Sifter Pattern",
+        "name": "Sifter",
         "systems": [
           {
             "name": "Nanite Sifter"
@@ -8064,7 +8064,7 @@
     "chassisAbilities": ["Dependable Chassis"],
     "patterns": [
       {
-        "name": "DronTek Pattern",
+        "name": "DronTek",
         "systems": [
           {
             "name": "K4 Rifle"
@@ -8140,7 +8140,7 @@
     "chassisAbilities": ["Sub-Zero Engineered Chassis"],
     "patterns": [
       {
-        "name": "Deerstalker Pattern",
+        "name": "Deerstalker",
         "systems": [
           {
             "name": "Mech Melee Armament"
@@ -8211,7 +8211,7 @@
     "chassisAbilities": ["Parasitic Reactor", "Parasitic Membrane"],
     "patterns": [
       {
-        "name": "Stefanus Pattern",
+        "name": "Stefanus",
         "systems": [
           {
             "name": "Needle Missile Pod",
@@ -8290,7 +8290,7 @@
     "chassisAbilities": ["Cumbersome", "Big Brother Drone Controller"],
     "patterns": [
       {
-        "name": "DronTek Pattern",
+        "name": "DronTek",
         "systems": [
           {
             "name": "Stabilising Locomotion System"
@@ -8592,7 +8592,7 @@
     "chassisAbilities": ["Integrated Advanced Deployable Locomotion System"],
     "patterns": [
       {
-        "name": "Hunchback Pattern",
+        "name": "Hunchback",
         "systems": [
           {
             "name": "Long Barrelled Green Laser"
@@ -8883,7 +8883,7 @@
     "page": 10,
     "patterns": [
       {
-        "name": "Mr Miner Pattern",
+        "name": "Mr Miner",
         "systems": [
           {
             "name": "Locomotion System"
@@ -8921,7 +8921,7 @@
         ]
       },
       {
-        "name": "Warrior Pattern",
+        "name": "Warrior",
         "systems": [
           {
             "name": "Armoured Shield"
@@ -8965,7 +8965,7 @@
         ]
       },
       {
-        "name": "Manic Miner Pattern",
+        "name": "Manic Miner",
         "systems": [
           {
             "name": "Locomotion System"
@@ -8999,7 +8999,7 @@
         ]
       },
       {
-        "name": "Bill E Pattern",
+        "name": "Bill E",
         "source": "Mech Monday",
         "page": 1,
         "systems": [
@@ -9038,7 +9038,7 @@
         ]
       },
       {
-        "name": "Court Cat Pattern",
+        "name": "Court Cat",
         "source": "Mech Monday",
         "page": 2,
         "systems": [
@@ -9074,7 +9074,7 @@
         ]
       },
       {
-        "name": "Guano Pattern",
+        "name": "Guano",
         "source": "Mech Monday",
         "page": 3,
         "systems": [
@@ -9110,7 +9110,7 @@
         ]
       },
       {
-        "name": "Mag-Train Pattern",
+        "name": "Mag-Train",
         "source": "Mech Monday",
         "page": 4,
         "systems": [
@@ -9146,7 +9146,7 @@
         ]
       },
       {
-        "name": "Magic Bus Pattern",
+        "name": "Magic Bus",
         "source": "Mech Monday",
         "page": 5,
         "systems": [
@@ -9183,7 +9183,7 @@
         ]
       },
       {
-        "name": "Nyaa~ Pattern",
+        "name": "Nyaa~",
         "source": "Mech Monday",
         "page": 6,
         "systems": [
@@ -9222,7 +9222,7 @@
         ]
       },
       {
-        "name": "Osiris Pattern",
+        "name": "Osiris",
         "source": "Mech Monday",
         "page": 7,
         "systems": [
@@ -9282,7 +9282,7 @@
     "page": 42,
     "patterns": [
       {
-        "name": "Moth Pattern",
+        "name": "Moth",
         "systems": [
           {
             "name": ".50 Cal Machine Gun"
@@ -9328,7 +9328,7 @@
         ]
       },
       {
-        "name": "Grond Pattern",
+        "name": "Grond",
         "systems": [
           {
             "name": "FM-3 Flamethrower",
@@ -9363,7 +9363,7 @@
         ]
       },
       {
-        "name": "APC Pattern",
+        "name": "APC",
         "systems": [
           {
             "name": "30mm Autocannon"

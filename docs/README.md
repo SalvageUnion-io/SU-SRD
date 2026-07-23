@@ -8,7 +8,7 @@ exploring the codebase or planning work.
 **I'm building a new feature** → start with [/CLAUDE.md](../CLAUDE.md) for
 conventions, then the relevant architecture doc below.
 
-**I'm adding/changing a UI component** → [architecture/display-system.md](architecture/display-system.md) + [architecture/package-contracts.md](architecture/package-contracts.md)
+**I'm adding/changing a UI component** → [design-system/ruleset.md](design-system/ruleset.md) (**the governing primitive laws** — one kind × one context = one primitive) + [architecture/display-system.md](architecture/display-system.md) + [architecture/package-contracts.md](architecture/package-contracts.md)
 
 **I'm changing how data flows / persists** → [architecture/data-flow.md](architecture/data-flow.md) + [adrs/ADR-002-indexeddb-idb-zod.md](adrs/ADR-002-indexeddb-idb-zod.md) + [adrs/ADR-003-zustand-hydration.md](adrs/ADR-003-zustand-hydration.md)
 
@@ -20,23 +20,31 @@ conventions, then the relevant architecture doc below.
 
 **I need to know how a Salvage Union rule actually works** → run `bun run rules:regen` to produce the agent-readable rules digest in `docs/rules/` (gitignored — condensed from the PDFs in `rules/`, also gitignored). Read those instead of re-parsing the PDFs.
 
-**I'm changing ITUN's local data layer (IndexedDB schemas/migrations)** → `apps/in-the-union-now/src/lib/db/migrations/` + [architecture/data-flow.md](architecture/data-flow.md)
+**I'm changing ITUN's local data layer (IndexedDB schemas/migrations)** → `apps/itun/src/lib/db/migrations/` + [architecture/data-flow.md](architecture/data-flow.md)
 
 **I'm shipping SEO/a11y work** → [architecture/seo-accessibility.md](architecture/seo-accessibility.md)
 
 ## Directory Map
 
+### [`design-system/`](design-system/) — The canonical primitive language
+
+| Doc                                                                              | Scope                                                                                                                                                                                      |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [ruleset.md](design-system/ruleset.md)                                           | **Canon** — the governing laws: context laws, the rendering matrix, foundations, the irreducible atom set, the merge map, value-cell + StampSeam laws                                      |
+| [canonical-primitive-language.md](design-system/canonical-primitive-language.md) | The buildable migration plan — primitive catalog, token codification, phased merge order                                                                                                   |
+| [style-unification-pass.md](design-system/style-unification-pass.md)             | **Standing operating knowledge** for the ongoing pass — the layer ladder, the current Card tidy-up scope, per-primitive rules, the Ladle conversion procedure, and the migration work-list |
+
 ### [`architecture/`](architecture/) — Cross-cutting architecture
 
 | Doc                                                               | Scope                                                                      |
 | ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| [display-system.md](architecture/display-system.md)               | 3-layer render stack: DisplayCard → ReferenceEntityDisplay → consumers     |
+| [display-system.md](architecture/display-system.md)               | The two card shells (ReferenceEntityCard / Card), size × extent, controls  |
 | [data-flow.md](architecture/data-flow.md)                         | Reference data + player data hydration, IndexedDB, Zustand, TanStack Query |
 | [package-contracts.md](architecture/package-contracts.md)         | Package APIs, dependency rules, cross-package change checklist             |
 | [rules-engine-boundary.md](architecture/rules-engine-boundary.md) | **Rules & the ITUN Surfaces** — enforcement mode × rule-class matrix       |
 | [dashboard.md](architecture/dashboard.md)                         | The Dashboard (Guided-Play surface) design — layout, instruments, canvas   |
 | [combat-loop.md](architecture/combat-loop.md)                     | Action activation, heat checks, conditions — current local-first flow      |
-| [seo-accessibility.md](architecture/seo-accessibility.md)         | SEO strategy (suref-web) + WCAG 2.1 AA patterns                            |
+| [seo-accessibility.md](architecture/seo-accessibility.md)         | SEO strategy (srd) + WCAG 2.1 AA patterns                                  |
 
 ### `docs/rules/` — Agent-readable rules digest (generated, gitignored)
 
@@ -56,9 +64,10 @@ MADR-style records of architecturally significant decisions. ADR-001–014 are
 **live in the code today**. ADR-015–020 are **Accepted** — the Dashboard play
 surface, **built** as the Play Cockpit (`components/play/`, routed at `/play/$id`).
 ADR-021 is the **governing** surface/mode taxonomy and ADR-022 its Change Log
-companion — a target the code is still moving toward. ADR-023–025 are
+companion — a target the code is still moving toward. ADR-023–026 are
 **Accepted**; ADR-024–025 (derived release changelogs + the ref surface gate)
-are being implemented together. Each says so in its Status.
+are being implemented together, and ADR-026 (entity card design rules) is
+**built**. Each says so in its Status.
 Read the matching ADR before proposing alternatives.
 
 | ADR                                                                  | Topic                                                                                                           |
@@ -73,8 +82,8 @@ Read the matching ADR before proposing alternatives.
 | [ADR-008](adrs/ADR-008-sequential-mutations.md)                      | Sequential client-side mutations for action execution                                                           |
 | [ADR-009](adrs/ADR-009-condition-model-destroyed-color.md)           | Item condition model + destroyed semantic color                                                                 |
 | [ADR-010](adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md)        | Choices — ephemeral in the SRD, persisted in ITUN                                                               |
-| [ADR-011](adrs/ADR-011-suref-react-source-no-build.md)               | `suref-react` ships as TypeScript source (no build step)                                                        |
-| [ADR-012](adrs/ADR-012-suref-web-astro-static.md)                    | `suref-web` as an Astro static site with React islands                                                          |
+| [ADR-011](adrs/ADR-011-component-lib-source-no-build.md)             | `component-lib` ships as TypeScript source (no build step)                                                      |
+| [ADR-012](adrs/ADR-012-srd-astro-static.md)                          | `srd` as an Astro static site with React islands                                                                |
 | [ADR-013](adrs/ADR-013-csp-zod-jitless.md)                           | CSP-compliant Zod (jitless) constraint                                                                          |
 | [ADR-014](adrs/ADR-014-json-api-public-interface-npm-retired.md)     | Dataset public interface is the JSON API; npm publishing retired                                                |
 | [ADR-015](adrs/ADR-015-dashboard-distinct-play-surface.md)           | Dashboard is a distinct actual-play surface, separate from live sheets (built)                                  |
@@ -85,9 +94,10 @@ Read the matching ADR before proposing alternatives.
 | [ADR-020](adrs/ADR-020-dashboard-fixed-canvas-scale-to-fit.md)       | Fixed 1280×800 scale-to-fit canvas with a phone-reflow floor (built)                                            |
 | [ADR-021](adrs/ADR-021-itun-surface-taxonomy.md)                     | **Governing** — surface/mode taxonomy; rule enforcement is per-mode (Guided Creation / Free Edit / Guided Play) |
 | [ADR-022](adrs/ADR-022-provenance-log-and-overrides.md)              | Per-entity **Change Log** (provenance, behind a menu) + non-destructive stat overrides (target)                 |
-| [ADR-023](adrs/ADR-023-drone-equipment-installed-loadout.md)         | Drone/companion equipment hosts an installed Systems/Modules loadout                                            |
+| [ADR-023](adrs/ADR-023-drone-equipment-installed-loadout.md)         | Granted drone/companion equipment hosts a real installed Systems/Modules loadout (built)                        |
 | [ADR-024](adrs/ADR-024-derived-release-changelogs.md)                | Derived, per-app release changelogs (release-please) + on-site history; supersedes the web hand-changelog       |
 | [ADR-025](adrs/ADR-025-reference-versioned-releases-surface-gate.md) | Versioned internal releases + public-surface (TS + schema) gate for the ref; partially supersedes ADR-014       |
+| [ADR-026](adrs/ADR-026-entity-card-design-rules.md)                  | **Entity card design rules** — one renderer (shim), choice/stat-atom/modified-stats/tech-level rules (built)    |
 
 > ADR-021 is the governing decision for rules enforcement and takes precedence
 > over prior ADRs where they conflict on _how hard a rule is enforced on which
@@ -100,10 +110,10 @@ Read the matching ADR before proposing alternatives.
 Each app and shared package has its own `CLAUDE.md` with stack-specific
 conventions:
 
-- [`apps/suref-web/CLAUDE.md`](../apps/suref-web/CLAUDE.md) — Static reference site (Astro + islands)
-- [`apps/in-the-union-now/CLAUDE.md`](../apps/in-the-union-now/CLAUDE.md) — Character builder (React, local-first)
+- [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md) — Static reference site (Astro + islands)
+- [`apps/itun/CLAUDE.md`](../apps/itun/CLAUDE.md) — Character builder (React, local-first)
 - [`apps/discord-bot/CLAUDE.md`](../apps/discord-bot/CLAUDE.md) — Discord.js bot
 - [`packages/salvageunion-reference/CLAUDE.md`](../packages/salvageunion-reference/CLAUDE.md) — Game data ORM + schemas
-- [`packages/suref-react/CLAUDE.md`](../packages/suref-react/CLAUDE.md) — Shared component library
+- [`packages/component-lib/CLAUDE.md`](../packages/component-lib/CLAUDE.md) — Shared component library
 
 Plus the agent-readable convention digests in [`.claude/rules/`](../.claude/rules/).

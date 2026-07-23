@@ -63,7 +63,8 @@ describe('SalvageUnionReference.getAllBySchemaNames', () => {
     const results = SalvageUnionReference.getAllBySchemaNames(['traits'])
     expect(results.length).toBeGreaterThan(0)
     for (const result of results) {
-      expect(typeof (result.entity as { name: string }).name).toBe('string')
+      const name = 'name' in result.entity ? result.entity.name : undefined
+      expect(typeof name).toBe('string')
     }
   })
 })

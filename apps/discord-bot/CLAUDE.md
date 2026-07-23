@@ -9,7 +9,7 @@ at startup ([ADR-005](../../docs/adrs/ADR-005-reference-data-orm.md)).
 
 - **Runtime:** Bun
 - **Library:** Discord.js v14
-- **Data:** `salvageunion-reference` workspace package (standalone, no suref-react)
+- **Data:** `salvageunion-reference` workspace package (standalone, no component-lib)
 
 ## Structure
 

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { SalvageUnionReference, findEntityBySlug, getDataMaps, nameToSlug } from './index.js'
 import { parseTraitReferences } from './utilities.js'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
@@ -125,5 +126,96 @@ describe('parseTraitReferences', () => {
     expect(defined(refs[2]).traitName).toBe('Vulnerable')
     expect(defined(refs[0]).startIndex).toBeLessThan(defined(refs[1]).startIndex)
     expect(defined(refs[1]).startIndex).toBeLessThan(defined(refs[2]).startIndex)
+  })
+})
+
+/**
+ * The two bracket patterns were rewritten so each character class excludes its
+ * own OPENING delimiter as well as the closing one (`[^\][]` / `[^)(]`). The
+ * old classes (`[^\]]` / `[^)]`) let a scan run to end-of-string from every one
+ * of many `[[` starts, which is quadratic (CodeQL js/redos).
+ *
+ * These tests pin (a) that the rewrite still finds exactly what the real
+ * dataset contains and (b) that pathological input now terminates promptly.
+ */
+describe('parseTraitReferences ReDoS hardening', () => {
+  /** Every string in the shipped dataset that carries a trait reference. */
+  function realTraitStrings(): string[] {
+    const { dataMap } = getDataMaps()
+    const found: string[] = []
+    const walk = (value: unknown): void => {
+      if (typeof value === 'string') {
+        if (value.includes('[[')) found.push(value)
+      } else if (Array.isArray(value)) {
+        for (const item of value) walk(item)
+      } else if (value && typeof value === 'object') {
+        for (const item of Object.values(value)) walk(item)
+      }
+    }
+    walk(dataMap)
+    return found
+  }
+
+  test('every trait reference in the real dataset parses to a resolvable trait', async () => {
+    await SalvageUnionReference.preload('all')
+    const strings = realTraitStrings()
+    // Guard against the corpus silently emptying and the test passing vacuously.
+    expect(strings.length).toBeGreaterThan(50)
+
+    let refCount = 0
+    const unresolved = new Set<string>()
+    for (const text of strings) {
+      const refs = parseTraitReferences(text)
+      expect(refs.length, `no refs parsed from: ${text}`).toBeGreaterThan(0)
+      for (const ref of refs) {
+        refCount++
+        // The parsed span must be exactly the text it claims to cover.
+        expect(text.slice(ref.startIndex, ref.endIndex)).toBe(ref.fullMatch)
+        if (!findEntityBySlug('traits', nameToSlug(ref.traitName))) {
+          unresolved.add(ref.traitName)
+        }
+      }
+    }
+    expect(refCount).toBeGreaterThan(50)
+    // Nearly every reference names a real trait. The two exceptions are
+    // authored placeholders, not parser failures: `[[CHASSIS]]` is a chassis-name
+    // token and "Personality" is prose. Pinning the exact set means a parser
+    // change that starts dropping or mangling real trait names fails here.
+    expect([...unresolved].sort()).toEqual(['CHASSIS', 'Personality'])
+  })
+
+  test('a parameterized reference is not double-reported as a simple one', () => {
+    // The two passes overlap by construction; the dedupe is what keeps
+    // `[[[Hot] (3)]]` from also matching the simple pattern.
+    const refs = parseTraitReferences('[[[Hot] (3)]]')
+    expect(refs).toHaveLength(1)
+    expect(defined(refs[0]).parameter).toBe('3')
+  })
+
+  test('completes on a long run of opening brackets', () => {
+    // 50k `[` with no closer: under the old `[^\]]+` class each `[[` start
+    // scanned to end-of-string before failing — quadratic. Bounded scans now.
+    const pathological = '['.repeat(50_000)
+    const start = performance.now()
+    expect(parseTraitReferences(pathological)).toHaveLength(0)
+    expect(performance.now() - start).toBeLessThan(1000)
+  })
+
+  test('completes on a long unterminated parameterized reference', () => {
+    // Exercises the `[^)(]+` param class: an unclosed `(` used to scan to the
+    // end from every candidate start.
+    const pathological = `${'[[['.repeat(10_000)}Hot] (${'3'.repeat(20_000)}`
+    const start = performance.now()
+    expect(parseTraitReferences(pathological)).toHaveLength(0)
+    expect(performance.now() - start).toBeLessThan(1000)
+  })
+
+  test('completes on a long word-shaped name run', () => {
+    // The old inline word-shape `[A-Z][A-Za-z-]+(?:\s+[A-Z][A-Za-z-]+)*` nested
+    // a quantifier in a quantifier; `isTraitName` replaced it with a linear scan.
+    const pathological = `[[[${'Aa '.repeat(20_000)}`
+    const start = performance.now()
+    expect(parseTraitReferences(pathological)).toHaveLength(0)
+    expect(performance.now() - start).toBeLessThan(1000)
   })
 })

@@ -33,7 +33,7 @@ Requires explicit player action (destructive, irreversible):
 
 - Any condition change on equipment (intact → damaged → destroyed), driven only
   by the player via the `ConditionToggle`
-  (`apps/in-the-union-now/src/components/shared/ConditionToggle.tsx`) — see
+  (`apps/itun/src/components/shared/ConditionToggle.tsx`) — see
   [ADR-009](ADR-009-condition-model-destroyed-color.md).
 - Destroying a Module or System from any source; catastrophic meltdown.
 

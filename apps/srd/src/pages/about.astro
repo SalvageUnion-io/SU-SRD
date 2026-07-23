@@ -1,0 +1,214 @@
+---
+import { Image } from 'astro:assets'
+import { PageHeading } from 'component-lib'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import eldridgeCoastMap from '../assets/eldridge-coast-map.png'
+import { KofiButtonIsland } from '../components/islands/KofiButtonIsland'
+import { SITE_URL } from '../lib/constants'
+
+const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
+
+const pilots = ['STUMPY', 'ROACH BOY', 'NELL', 'PART', 'PARCÈL', 'CALI']
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: 'About the Salvage Union SRD',
+  description: 'About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press.',
+  url: `${SITE_URL}/about/`,
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'Salvage Union System Reference Document',
+    url: `${SITE_URL}/`,
+  },
+}
+---
+
+<BaseLayout
+  title="About - Salvage Union System Reference Document"
+  description="About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press. Community-built reference tool."
+  structuredData={structuredData}
+>
+  <div class="flex w-full flex-1 flex-col justify-center py-12">
+    <div class="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6">
+      <!-- Riveted scrap metal panel -->
+      <div class="pilot-panel-shadow">
+      <div class="pilot-panel relative px-10 py-8">
+        <!-- Top edge rivets — inset from clipped edges -->
+        <div class="rivet rivet-green" style="top: 16px; left: 24px; width: 13px; height: 13px;"></div>
+        <div class="rivet rivet-worn" style="top: 14px; left: 22%; width: 10px; height: 10px;"></div>
+        <div class="rivet" style="top: 15px; left: 48%; width: 11px; height: 11px; transform: rotate(15deg);"></div>
+        <div class="rivet rivet-flush" style="top: 13px; left: 71%; width: 14px; height: 14px;"></div>
+        <div class="rivet rivet-green" style="top: 15px; right: 24px; width: 11px; height: 11px;"></div>
+        <!-- Left edge rivets -->
+        <div class="rivet" style="top: 28%; left: 16px; width: 12px; height: 12px; transform: rotate(-8deg);"></div>
+        <div class="rivet-hole" style="top: 55%; left: 18px;"></div>
+        <!-- Right edge rivets -->
+        <div class="rivet rivet-green" style="top: 32%; right: 18px; width: 10px; height: 10px;"></div>
+        <div class="rivet" style="top: 62%; right: 16px; width: 13px; height: 13px; transform: rotate(5deg);"></div>
+        <!-- Bottom edge rivets — one missing, uneven -->
+        <div class="rivet rivet-worn" style="bottom: 16px; left: 28px; width: 12px; height: 12px;"></div>
+        <div class="rivet rivet-flush" style="bottom: 14px; left: 28%; width: 11px; height: 11px; transform: rotate(-12deg);"></div>
+        <div class="rivet-hole" style="bottom: 15px; left: 53%;"></div>
+        <div class="rivet rivet-green" style="bottom: 14px; left: 73%; width: 13px; height: 13px;"></div>
+        <div class="rivet rivet-worn" style="bottom: 16px; right: 24px; width: 10px; height: 10px; transform: rotate(7deg);"></div>
+
+        <div class="relative z-[1] flex flex-col gap-3">
+          <!-- Inspiration text -->
+          <div class="engraved-text text-center font-cond text-sm font-medium uppercase tracking-caps-snug leading-relaxed">
+            <p>Inspired by the pilots of</p>
+            <p class="font-bold text-lg">#812 Haven</p>
+            <p>of</p>
+            <p class="font-bold text-lg">
+              <a href="#" id="map-link" class="cursor-pointer">The Eldridge Coast</a>
+            </p>
+          </div>
+
+          <hr class="metal-separator" />
+
+          <!-- Pilot names -->
+          <div class="flex flex-wrap items-center justify-center">
+            {pilots.map((name, i) => (
+              <>
+                {i > 0 && <span class="engraved-text text-base">&ensp;&ensp;</span>}
+                <span class="engraved-text font-cond text-xl font-bold uppercase">{name}</span>
+              </>
+            ))}
+          </div>
+
+          <hr class="metal-separator" />
+
+          <p class="engraved-text text-center font-cond text-sm font-medium uppercase tracking-caps-snug">
+            And union crawlers everywhere
+          </p>
+
+          <hr class="metal-separator" />
+
+          <!-- Friends text -->
+          <p class="engraved-text text-center font-cond text-lg font-bold uppercase tracking-caps-snug">
+            "We get by with a little help from our friends"
+          </p>
+        </div>
+      </div>
+      </div>
+
+      <PageHeading className="text-center">About the Salvage Union SRD</PageHeading>
+
+      <!-- What is this? -->
+      <section class="text-sm leading-relaxed text-center">
+        <PageHeading variant="subheading" className="mb-2">What is this?</PageHeading>
+        <p class="mb-2">
+          This is an unofficial, community-built System Reference Document (SRD) for{' '}
+          <a
+            href="https://leyline.press/pages/salvage-union"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-bold text-rust hover:underline"
+          >
+            Salvage Union
+          </a>, a post-apocalyptic mech tabletop RPG published by{' '}
+          <a
+            href="https://leyline.press"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-bold text-rust hover:underline"
+          >
+            Leyline Press
+          </a>. It provides a searchable, browsable reference for all game content released under the Salvage Union OGL.
+        </p>
+        <p class="mb-2">
+          Browse the full catalog:{' '}
+          <a href="/schema/chassis/" class="font-bold text-rust hover:underline">Chassis</a>,{' '}
+          <a href="/schema/systems/" class="font-bold text-rust hover:underline">Systems</a>,{' '}
+          <a href="/schema/modules/" class="font-bold text-rust hover:underline">Modules</a>,{' '}
+          <a href="/schema/abilities/" class="font-bold text-rust hover:underline">Abilities</a>,{' '}
+          <a href="/schema/classes/" class="font-bold text-rust hover:underline">Classes</a>, and more.
+        </p>
+        <p>
+          The site is open source and contributions are welcome.
+        </p>
+      </section>
+
+      <!-- Support -->
+      <section class="text-sm leading-relaxed text-center">
+        <PageHeading variant="subheading" className="mb-2">Support the project</PageHeading>
+        <p class="mb-4">
+          This reference is free and open source. If it's been useful at your table, you can chip in
+          toward hosting and development.
+        </p>
+        <KofiButtonIsland client:visible />
+      </section>
+    </div>
+  </div>
+
+  <!-- SVG filter for peeling paint text effect -->
+  <svg class="hidden" aria-hidden="true">
+    <defs>
+      <!-- Worn paint on engraved text -->
+      <filter id="paint-peel" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="2" seed="7" result="noise" />
+        <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3.75 3.1" result="mask" />
+        <feComposite in="SourceGraphic" in2="mask" operator="in" />
+      </filter>
+      <!-- Subtle grain / texture overlay (no dirt coloring) -->
+      <filter id="plate-damage" x="0%" y="0%" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" seed="19" result="grain" />
+        <feColorMatrix in="grain" type="matrix"
+          values="0 0 0 0 0
+                  0 0 0 0 0
+                  0 0 0 0 0
+                  0 0 0 0.3 0" result="noise" />
+        <feMerge>
+          <feMergeNode in="SourceGraphic" />
+          <feMergeNode in="noise" />
+        </feMerge>
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Image lightbox with native dialog -->
+  <dialog id="image-modal" class="bg-transparent backdrop:bg-ink/70 p-0 max-w-[90vw] m-auto" aria-label="Eldridge Coast Map">
+    <div class="relative">
+      <button
+        class="absolute right-2 top-2 z-10 rounded-panel bg-ink px-3 py-1 text-2xl font-bold text-paper hover:bg-rust"
+        id="close-modal"
+        aria-label="Close"
+      >
+        &times;
+      </button>
+      <div class="flex flex-col items-stretch gap-4">
+        <Image
+          src={eldridgeCoastMap}
+          alt={imageAltText}
+          widths={[1200, 1800]}
+          sizes="90vw"
+          format="webp"
+          loading="lazy"
+          class="h-auto max-h-[85vh] w-full object-contain"
+        />
+        <p class="text-center text-sm text-paper">Created using <a href="https://shmeppy.com" target="_blank" rel="noopener noreferrer" class="font-bold text-pilot-light hover:underline">Shmeppy.com</a></p>
+      </div>
+    </div>
+  </dialog>
+
+  <script is:inline data-astro-rerun>
+    const mapLink = document.getElementById('map-link')
+    const modal = document.getElementById('image-modal')
+    const closeBtn = document.getElementById('close-modal')
+
+    mapLink?.addEventListener('click', (e) => {
+      e.preventDefault()
+      modal?.showModal()
+    })
+    closeBtn?.addEventListener('click', () => {
+      modal?.close()
+      mapLink?.focus()
+    })
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.close()
+        mapLink?.focus()
+      }
+    })
+  </script>
+</BaseLayout>

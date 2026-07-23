@@ -1,0 +1,127 @@
+@import 'tailwindcss';
+@import 'component-lib/styles/theme.css';
+@import './styles/print.css';
+
+@source '../../../packages/component-lib/src';
+
+/*
+ * (Removed: a ShadCN runtime-token :root block — --primary / --card / --ring
+ * and 13 siblings — that existed for generic ShadCN components in
+ * src/components/ui/. That directory no longer exists and nothing consumed
+ * the tokens; --background / --foreground, the only two anything read, are
+ * defined in component-lib's theme.css and still resolve from there. The lib
+ * is the single token source; this app-side layer was a second one.)
+ */
+
+/*
+ * Indeterminate loader bar (branded loading states, e.g. GameDataReady).
+ * Registered through @theme so `animate-loader-slide` is a real utility.
+ */
+@theme {
+  --animate-loader-slide: loader-slide 1.4s ease-in-out infinite;
+
+  @keyframes loader-slide {
+    0% {
+      transform: translateX(-150%);
+    }
+    100% {
+      transform: translateX(400%);
+    }
+  }
+
+  /* The nav-drawer slide (--animate-slide-in-right/-out) now lives in the
+     component-lib theme so the shared NavDrawer animates from one source. */
+
+  /* The semantic type scale (--text-nano … --text-lede), caps tracking steps,
+     and brand eyebrow are now promoted to the component-lib theme (ruleset §4.2)
+     so both apps share one ladder — imported at the top of this file. */
+}
+
+/* Semantic border-width utilities are now promoted to the component-lib theme
+   (canonical primitive language §3) — one border vocabulary for both apps. */
+
+/* === Base layout === */
+html,
+body {
+  min-height: 100dvh;
+}
+
+body {
+  /*
+   * Full-viewport blue-pale background. The SRD's BaseLayout puts blue-pale
+   * on the <main> element, but ITUN's per-route <main> tags are width-
+   * constrained (`mx-auto max-w-Nxl`), which left the rest of the viewport
+   * unstyled. Setting the colour at the <body> level paints the whole
+   * window; the centred content inside each route inherits the colour and
+   * sits over it.
+   */
+  background-color: var(--color-wk-bg);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+ * Base heading rules — use Barlow Semi Condensed (font-cond) for all
+ * headings to match the .sec-label / .h1 pattern in the design system.
+ * Additive only; does not override any component-level typography.
+ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/*
+ * Print / PDF export (#82, #258 — audit item 15). The live sheet doubles as
+ * the print layout: chrome (header, rails, controls, FABs, toasts) hides,
+ * paper goes white with dark ink, and stat pip rows keep their fills via
+ * print-color-adjust so current HP/SP/EP/Heat state survives on paper.
+ * "Save as PDF" in the browser print dialog covers PDF export.
+ */
+@media print {
+  :root {
+    --color-wk-bg: #ffffff;
+    --color-wk-bg-2: #ffffff;
+    --color-paper: #ffffff;
+  }
+  body {
+    /* biome-ignore lint/complexity/noImportantStyles: print override must beat the app's themed background utilities */
+    background: #ffffff !important;
+  }
+  /* App chrome and interactive-only surfaces have no meaning on paper. */
+  header,
+  nav,
+  button,
+  [role='dialog'],
+  [data-sonner-toaster] {
+    /* biome-ignore lint/complexity/noImportantStyles: must beat Tailwind display utilities (flex/grid) on chrome elements */
+    display: none !important;
+  }
+  main {
+    /* biome-ignore lint/complexity/noImportantStyles: must beat Tailwind padding utilities on the main container */
+    padding: 0 !important;
+  }
+  /* Keep pip fills and status colors — the whole point of a sheet printout
+     is the live state (#258). */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  /* Cards should not split across pages when avoidable. */
+  section,
+  article {
+    break-inside: avoid;
+  }
+}

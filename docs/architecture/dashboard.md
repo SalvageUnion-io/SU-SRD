@@ -2,13 +2,16 @@
 
 > **Status:** Planning / design record. This document is the implementation plan
 > for the **Dashboard** — the live actual-play surface for
-> `apps/in-the-union-now` (ITUN), composing a player's **Pilot + Mech + Crawler**
+> `apps/itun` (ITUN), composing a player's **Pilot + Mech + Crawler**
 > into one screen. (Named the "Play Cockpit" / "Pit HUD" in earlier design passes;
 > renamed to **Dashboard** — the former build-list home is now the **Roster**.)
-> **Built and shipped** — realized in `src/components/play/` (16 components + tests)
-> and routed at `/play/$id`. The design was explored turn-by-turn (v18→v62), the
+> **Built and shipped** — the store-wired containers live in
+> `apps/itun/src/components/dashboard/` (with tests in its `__tests__/`), the
+> presentational instruments in `packages/component-lib/src/components/dashboard/`,
+> and the route is `/dashboard/$id` (`apps/itun/src/routes/dashboard/$id.tsx`).
+> The design was explored turn-by-turn (v18→v62), the
 > **layout locked at v52**, prototyped as self-contained HTML, then implemented
-> across Phases 1–7. This document is the design record for that shipped surface.
+> across Phases 1–8. This document is the design record for that shipped surface.
 >
 > Read alongside: [combat-loop.md](combat-loop.md) (the authoritative live-play
 > state model this HUD drives), [display-system.md](display-system.md),
@@ -29,11 +32,11 @@ ITUN has three player-facing surfaces once the Dashboard lands. They are
 [ADR-021](../adrs/ADR-021-itun-surface-taxonomy.md); the Dashboard-is-a-distinct-surface
 decision is [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md).
 
-| Surface         | Route                                          | Job                                                                    | Interaction grammar                             |
-| --------------- | ---------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------- |
-| **Roster**      | `/` (`src/components/dashboard/Dashboard.tsx`) | Pick / manage saved builds                                             | Cards → open                                    |
-| **Live sheets** | `/sheet/$kind/$id` (`src/components/sheet/*`)  | Build & edit a pilot / mech / crawler                                  | Poster layout, inline edit, scrollable          |
-| **Dashboard**   | `/dashboard/$id` (**new**)                     | Run your Pilot + Mech + Crawler at the table, one screen, no scrolling | Instrument panel: every game action is a button |
+| Surface         | Route                                           | Job                                                                    | Interaction grammar                             |
+| --------------- | ----------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------- |
+| **Roster**      | `/` (`src/components/roster/Roster.tsx`)        | Pick / manage saved builds                                             | Cards → open                                    |
+| **Live sheets** | `/sheet/$kind/$id` (`src/components/sheet/*`)   | Build & edit a pilot / mech / crawler                                  | Poster layout, inline edit, scrollable          |
+| **Dashboard**   | `/dashboard/$id` (`src/components/dashboard/*`) | Run your Pilot + Mech + Crawler at the table, one screen, no scrolling | Instrument panel: every game action is a button |
 
 The Dashboard is a **screen-wide, video-game-style HUD** that fits one screen
 with no page scroll and turns every game action (Push, Vent, use a system,
@@ -58,19 +61,26 @@ the pure rules functions, exactly like the sheet.
 
 The mockup source embodies the **v52 locked layout** plus the v53→v60 instrument
 passes. The arrangement of surfaces is **done — do not restructure it.** What
-follows is the spec engineers build against.
+follows is the spec engineers built against.
+
+> **The mockup HTML artifact is not in this repo.** The parenthesised function
+> and `S.*` names throughout §2, §4.1 and the Appendix are historical references
+> to that external prototype — they are **not** greppable symbols. For anything
+> shipped, read the two dashboard source directories named in §3.2/§6.
 
 ### 2.1 The fixed canvas & scale-to-fit
 
 - The Dashboard is a **fixed 1280×800 design canvas**. It never reflows within
   that box and never scrolls the page.
 - It is placed inside a viewport and scaled with a single
-  `transform: scale(min(vw/1280, vh/800))`, letterboxed, **clamped** to roughly
-  `[0.62, 1.3]` (`MINSCALE`/`MAXSCALE` in the mockup).
-- **Below the clamp floor (~0.62×) it hard-reflows** to a native, scrolling
-  phone layout. No-scroll is a **landscape-desktop contract only**; on a phone we
-  drop the fixed-canvas conceit entirely and render a stacked, scrollable variant
-  (see §7 mobile).
+  `transform: scale(min(vw/1280, vh/800))`, letterboxed. As shipped
+  (`DashboardCanvas.tsx`) the upscale cap is `MAX_SCALE = 2.6` — generous enough
+  to fill a 4K display — and `MIN_SCALE = 0.62` is **not** a floor on the scale
+  but the **width-ratio threshold** below which the canvas is abandoned entirely.
+- **Below that width threshold it bails out.** No-scroll is a
+  **landscape-desktop contract only**. What ships today at narrow widths is a
+  "rotate to landscape or use a larger screen" notice (`.pc-reflow`), not a
+  layout — the stacked phone variant in §7 is still planned, not built.
 - Overlays (dial config, storage, table picker) may scroll _internally_; the
   frame itself never scrolls. The single sanctioned internal scroll in the main
   body is a large-entity drill-in.
@@ -191,7 +201,7 @@ treatment (fill / hatch / strike / redline / stamp), never a second hue.
   pulse near cap; damaged = hatched; destroyed = struck-in-place; roll bands use
   `--cascade/--failure/--tough/--success/--nailed`.
 
-These map to the real repo tokens in `packages/suref-react/src/styles/theme.css`
+These map to the real repo tokens in `packages/component-lib/src/styles/theme.css`
 (`--color-sheet-pilot/-mech/-crawler`, `--color-cargo`, `--color-rust`,
 `--color-tl-1..6`, `--color-roll-*`). Fonts are the repo's **Barlow** (body) +
 **Barlow Semi Condensed** (stamps/labels), both already embedded via
@@ -229,93 +239,92 @@ idx 0). The active family drives the whole-screen background tint
 
 ---
 
-## 3. Reuse contract — `suref-react` vs new Dashboard components
+## 3. Reuse contract — `component-lib` vs new Dashboard components
 
 The governing rule (design record v53, user's explicit ask): **the display
 reuses the faithful entity-display system; the instruments are new.** Do not fork
 the display system for the Dashboard.
 
-### 3.1 Reused verbatim from `suref-react`
+### 3.1 Reused verbatim from `component-lib`
 
-| Component (barrel export)                   | Path                                                                      | Role in Dashboard                                                                                              |
-| ------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `ReferenceEntityDisplay`                    | `components/referenceEntity/ReferenceEntityDisplay/index.tsx`             | The display's entity view — full SRD card for the focused mech/pilot/drone/crawler/ally                        |
-| `DisplayCard`                               | `components/shared/DisplayCard.tsx`                                       | The card primitive under it; `footActions`/`footMeta` are the economy injection points (§3.3)                  |
-| `ActionCard`                                | `components/referenceEntity/ActionCard.tsx`                               | Each resolvable action in the grouped actions section                                                          |
-| `NestedActionDisplay`                       | `components/referenceEntity/NestedActionDisplay.tsx`                      | Lighter action variant where an ActionCard is too heavy                                                        |
-| `ReferenceEntityActions`                    | `.../ReferenceEntityDisplay/ReferenceEntityActions.tsx`                   | Renders the grouped `SURefMetaAction[]` list (Chassis / Systems / Modules; Abilities / Equipment)              |
-| `RollTable`                                 | `components/shared/RollTable.tsx`                                         | SRD roll-table rendering (Core Mechanic, Reactor Overload, Critical, Trading, Deterioration, Salvage, Cantina) |
-| `StatBlock`, `VitalGauge`, `MiniStat`       | `components/stat/*`                                                       | HUD-flavored stat primitives — candidates for the bay gauges (see §3.4)                                        |
-| `StatsBar` / `StatDisplay` / `ValueDisplay` | `components/shared/*`                                                     | Stat readouts inside entity cards                                                                              |
-| `ActivationCostBox`                         | `components/shared/ActivationCostBox.tsx` (internal, not barrel-exported) | The AP/EP cost pennant on actions — the Dashboard's `costPennant()` in the mockup                              |
+**The rule, not a roster.** The display area renders game data through the shared
+entity-display system exactly as every other surface does — no Dashboard fork, no
+Dashboard-only entity renderer. Concretely: `ReferenceEntityCard` is THE renderer
+for any SRD entity in the display, and `RollTable` is THE roll-table renderer.
+Both are consumed by `DisplayPanel`
+(`packages/component-lib/src/components/dashboard/DisplayPanel.tsx`) — read that
+file for the live wiring.
+
+Per `.claude/rules/display-system.md`, component/prop inventories are deliberately
+**not** reproduced here: they go stale and an agent following them reaches for
+things that no longer exist. For the current roster, read the barrel
+(`packages/component-lib/src/index.ts`) and the source directories
+(`components/referenceEntity/`, `components/shared/`, `components/stat/`).
 
 The mockup's `srdCard()`, `srdActionCard()`, `actionsSection()`, `srdBox()`,
-`srdPill()`, `costPennant()`, `srdRollTable()` are **hand-rolled facsimiles** of
-these components. In the real build they are **replaced by the actual
-`ReferenceEntityDisplay` + `ActionCard` + `RollTable`**, so the display is
-byte-for-byte the same reference document the rest of the app renders. The
-facsimiles exist only because the mockup is a standalone artifact with no access
-to the package.
+`srdPill()`, `costPennant()`, `srdRollTable()` were **hand-rolled facsimiles** of
+that system, existing only because the mockup was a standalone artifact with no
+access to the package. They are gone from the real build.
 
 ### 3.2 New Dashboard-specific components
 
-Everything that is _instrument_, not _document_, is new and lives under
-`apps/in-the-union-now/src/components/Dashboard/`:
+Everything that is _instrument_, not _document_, is new. It landed **split by
+responsibility**, not all in the app:
 
-- `DashboardCanvas`, `RailBar`, `ActiveItemBand`, `InstrumentBay`, `VitalGauge`
-  (Dashboard variant / or reuse), `InstrumentButtonGrid`, `Dial`, `DialCell`
-  (statful/statless), `DialConfig`, and the overlays (`StorageOverlay`,
-  `TablePickerOverlay`, `DowntimeWizard`). Full tree in §6.
-- The segmented "instrument gauge" (`vbar`/`segGauge`/`gcells` in the mockup) is
-  a Dashboard primitive. **Decision point:** evaluate `suref-react`'s `VitalGauge`
-  first — if it can express the segmented-pip + redline + projection needle
-  (Push +2) look, reuse/extend it rather than adding a parallel gauge. The
-  mockup's gauge and `VitalGauge.tsx` are close cousins; do not ship two.
+- **Presentational instruments** live in `component-lib`
+  (`packages/component-lib/src/components/dashboard/`). Barrel-exported:
+  `DashboardCanvas`, `DashboardGrid`, `RailBar`, `ActiveItemBand`, `Dial`,
+  `DialConfig`, `DisplayPanel`, `ActionsDeck`, `DowntimeWizard`. Internal to that
+  directory (not barrel-exported): `DashboardGauge`, `SrdExplorer`,
+  `TablePickerOverlay`. These are legacy-tier (bespoke dark-world CSS in `DashboardCanvas.css` /
+  `DashboardGrid.css` / `instruments.css`, not yet on the canon tokens).
+- **Store-wired containers** live in `apps/itun/src/components/dashboard/` and
+  fill those shells with entity/rules state. Full tree in §6.
+- The segmented "instrument gauge" (`vbar`/`segGauge`/`gcells` in the mockup)
+  shipped as `DashboardGauge`, a Dashboard-local primitive distinct from
+  `component-lib`'s `VitalGauge`. Two gauges exist; if that is revisited,
+  consolidate rather than adding a third.
 
-### 3.3 The action-economy injection point (the "foot-meta / rail" pattern)
+### 3.3 The action-economy injection point
 
-ITUN already has the exact mechanism the Dashboard extends. There is **no
-render-prop** for action economy; instead:
+> **Superseded.** This section originally described a `footActions` +
+> `Erow` / `Ecflow` / `ActionCardErow` mechanism in `src/components/sheet/`. All
+> of it has since been deleted — `Card` no longer has a `footActions`
+> prop, and the `Erow` family is gone (see the note at the top of
+> `packages/component-lib/src/components/shared/EntityGrid.tsx`, which
+> re-implements what those did).
 
-- `DisplayCard` exposes `footActions?: ReactNode` and
-  `footMeta?: CardFootMeta[]` (`type CardFootMeta = { label: string; value:
-ReactNode }`). `ReferenceEntityDisplay` forwards them. These render the
-  economy row in the card foot.
-- `Erow` (`src/components/sheet/Erow.tsx`, exports `Erow` + `Ecflow`):
-  - `mode='card'` clones the child card to inject `footActions`/`footMeta` into
-    its foot (used by `MechItemCard.tsx`).
-  - `mode='rail'` renders a 152px right-side callout beside a card that _can't_
-    take foot props.
-- `ActionCardErow` (`src/components/sheet/ActionCardErow.tsx`) wraps `ActionCard`
-  in `Erow mode='rail'` **because `ActionCard` does not accept
-  `footActions`/`footMeta`** (it is not an entity card).
+What survives of the vocabulary:
 
-**Dashboard contract:** the display's grouped actions section renders each action
-as `ActionCard` and injects the Dashboard's `Use ▸` / `Repair` buttons + economy
-`footMeta` (`EP Cost`, `Heat`, `Uses`) via the **same `ActionCardErow`
-mechanism** (or a Dashboard sibling of it). Entity-level buttons (Load Into Mech,
-Enter Downtime, Hand re-roll) go through `DisplayCard.footActions` on the entity
-card. We reuse the vocabulary (`CardFootMeta` + `footActions`), never a new
-schema-specific renderer.
+- `Card` still exposes `footMeta?: CardFootMeta[]`
+  (`type CardFootMeta = { label: string; value: ReactNode }`, exported from the
+  barrel). That is the card-foot meta row, and it is meta only.
+- Select/alter interactivity is now expressed as typed **`controls`**
+  (`ReferenceEntityControl`, `referenceEntity/referenceEntityControlTypes.ts`) —
+  the single sanctioned way a consumer layers buttons/steppers/links onto a card.
 
-### 3.4 Render-prop / slot injection points
+**Dashboard contract:** entity-level buttons and drill-in links are pushed as
+`controls` on `ReferenceEntityCard`. `DisplayPanel`
+(`packages/component-lib/src/components/dashboard/DisplayPanel.tsx` and its ITUN
+container `apps/itun/src/components/dashboard/DisplayPanel.tsx`) is the reference
+implementation — read it rather than trusting a description here.
 
-`ReferenceEntityDisplay` uses **generic slot props**, computed by
-`useReferenceEntityDisplayState` and consumer hooks like `useChassisPatternConfig`
-(the task's "`classAbilitiesRenderer`" is actually the `abilitiesSection?:
-ReactNode` slot prop; there is no prop literally so named). Dashboard injection
-points:
+### 3.4 Slot injection points
 
-- `abilitiesSection` — inject the Dashboard's action-economy-wrapped actions list
-  (each action `ActionCardErow`-wrapped with `Use`/`Repair`).
-- `statsOverride` — feed live-play values (`currentHP`, `currentSP`, …) so the
-  card header reflects table state, not base stats.
-- `footerOverride` / `afterExtraContent` — entity-level Dashboard buttons.
-- `EntityHrefProvider` (`entityHrefContext.ts`) — route-agnostic links; the
-  Dashboard provides an href builder that drills `[[links]]` into the in-display
-  entity view rather than navigating away.
-- Display-state context (`displayStateContext.ts`) — set `compact`/spacing so
-  the reference card fits the display area.
+`ReferenceEntityCard` (`referenceEntity/card/ReferenceEntityCard.tsx`) exposes
+generic slot props. The ones relevant to the Dashboard, all verified present on
+that component:
+
+- `abilitiesSection?: ReactNode` — replaces the built abilities/actions section.
+- `statsOverride?: StatItem[]` — feed live-play values (`currentHP`, `currentSP`,
+  …) so the card header reflects table state, not base stats.
+- `footerOverride` / `afterExtraContent` — entity-level content slots.
+- `controls?: ReferenceEntityControl[]` — the interactivity bar (§3.3).
+- `EntityHrefProvider` (`referenceEntity/entityHrefContext.ts`) — route-agnostic
+  links; the Dashboard supplies an href builder that drills `[[links]]` into the
+  in-display entity view rather than navigating away.
+- Card size is the two orthogonal axes in `shared/displayMode.ts` (`size`,
+  `extent`) — use those to fit the card into the display area.
 
 ---
 
@@ -347,8 +356,8 @@ non-persisted or session-scoped), never written to `entityStore`.
 
 ### 4.2 Persistence & prefs
 
-- **Live-play mutations** go through `entityStore.update('mechs'|'pilots'|
-'crawlers', id, patch)` → `crud.ts` (Zod validate-on-write) → IndexedDB → in-
+- **Live-play mutations** go through `useEntityStore`'s `update(type, id, patch)`
+  (`src/stores/entityStore.ts`) → `src/lib/db/crud.ts` (Zod validate-on-write) → IndexedDB → in-
   memory `set()` → broadcast. Exactly the sheet's path (see data-flow.md's HP-edit
   trace). The Dashboard never introduces a second write path.
 - **Reference data** resolves by slug through `SalvageUnionReference` after
@@ -371,17 +380,17 @@ Every Dashboard control must be classified. **Auto-apply non-destructive
 bookkeeping; require explicit player confirmation for destructive/irreversible
 change** ([ADR-007]):
 
-| Control                                                 | Class              | Behavior                                                                                                                                              |
-| ------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Activate action (EP/AP spend, Hot→Heat, Uses decrement) | Auto               | Apply immediately; block if insufficient (`canActivateAction`)                                                                                        |
-| Vent Heat, heat clamp                                   | Auto               | Apply (`clampHeat`)                                                                                                                                   |
-| SP damage from overheat                                 | Auto               | Apply (`applySpDamage`)                                                                                                                               |
-| `shutdown` / `vulnerable` flags                         | Auto               | Set by overload outcome                                                                                                                               |
-| Take SP / HP damage (self-declared)                     | Auto value, but... | Apply the number; the _resulting_ critical table is a roll (below)                                                                                    |
-| Push                                                    | Player-confirm-ish | Reversible resource change (+2 Heat) but arms a Heat Check; single click, clearly labeled                                                             |
-| **Destroy a System/Module** (overload/critical result)  | **Player-confirm** | Never auto-marked; sets `requiresPlayerChoice` (advisory), player toggles condition via `ConditionToggle`; offer Undo toast (`destroyedUndoToast.ts`) |
-| **Eject**                                               | **Player-confirm** | Click-twice confirm (`S.confirmEject`)                                                                                                                |
-| **Meltdown**                                            | **Player-confirm** | Sets mech `destroyed`; the most destructive outcome, always explicit                                                                                  |
+| Control                                                 | Class              | Behavior                                                                                                                                 |
+| ------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Activate action (EP/AP spend, Hot→Heat, Uses decrement) | Auto               | Apply immediately; block if insufficient (`canActivateAction`)                                                                           |
+| Vent Heat, heat clamp                                   | Auto               | Apply (`clampHeat`)                                                                                                                      |
+| SP damage from overheat                                 | Auto               | Apply (`applySpDamage`)                                                                                                                  |
+| `shutdown` / `vulnerable` flags                         | Auto               | Set by overload outcome                                                                                                                  |
+| Take SP / HP damage (self-declared)                     | Auto value, but... | Apply the number; the _resulting_ critical table is a roll (below)                                                                       |
+| Push                                                    | Player-confirm-ish | Reversible resource change (+2 Heat) but arms a Heat Check; single click, clearly labeled                                                |
+| **Destroy a System/Module** (overload/critical result)  | **Player-confirm** | Never auto-marked; the rules result sets `requiresPlayerChoice` (advisory, `heatCheck.ts`) and the player marks the condition themselves |
+| **Eject**                                               | **Player-confirm** | Click-twice confirm (`S.confirmEject`)                                                                                                   |
+| **Meltdown**                                            | **Player-confirm** | Sets mech `destroyed`; the most destructive outcome, always explicit                                                                     |
 
 The rules functions **return** outcomes; the Dashboard decides what crosses into
 durable destructive state. Reversible destructive writes get a visible reversal
@@ -396,9 +405,11 @@ these functions; it never reimplements the math.**
 
 ### 5.1 Heat / Push / Overload (the signature drama)
 
-- **Push** (`performPush({heat, heatCap, currentSP, roll})` in
-  `src/lib/rules/heatCheck.ts`): reroll + 2 Heat, then forces a **Heat Check**.
-  Gate on `canPush(currentHeat, heatCap)` (`combatUtils.ts`). The Reactor bay's
+- **Push** (`performPush` in
+  `packages/salvageunion-reference/lib/rules/heatCheck.ts`, re-exported through
+  ITUN's `src/lib/rules/heatCheck.ts`): reroll + 2 Heat, then forces a **Heat
+  Check**. Gate on `canPush`
+  (`packages/salvageunion-reference/lib/combatUtils.ts`). The Reactor bay's
   Push button shows a **+2 projection** on the Heat gauge on hover
   (`S.pushArmed`).
 - **Heat Check** (`performHeatCheck({heat, currentSP, roll})`): d20 ≤ Heat →
@@ -412,7 +423,14 @@ these functions; it never reimplements the math.**
   re-activates next turn, takes SP = current Heat (auto-applied SP damage).
 - **Vent Heat** / **Shutdown** are Reactor-bay buttons; Vent sets Heat→0 (+
   `vulnerable`), Shutdown toggles the flag.
-- `heatCheckPatch(effect, currentHeat)` produces the `Partial<Mech>` to write.
+- `heatCheckPatch(effect, currentHeat)` (ITUN's `src/lib/rules/heatCheck.ts`)
+  produces the `Partial<Mech>` to write.
+
+The pure rules functions named in this section (`performPush`,
+`performHeatCheck`, `reactorOverloadOutcome`, `clampHeat`, `applySpDamage`,
+`canPush`, `canActivateAction`, the `takeDamage.ts` family, `computeCargoCapacity`)
+all live in `packages/salvageunion-reference/lib/`; ITUN's `src/lib/rules/*`
+modules are thin re-export/patch wrappers over them.
 
 ### 5.2 Action activation
 
@@ -425,9 +443,11 @@ string[]`), resolved by `SalvageUnionReference.resolveActions(entity)` →
 'Variable'` — when it's `'EP or AP'` the Dashboard offers the EP/AP choice
   (mockup `S.costChoice`), matching the pilot-ability-through-mech case.
 - **Hot** and **Uses** are **traits**, not costs: `Hot (X)` → heat gained on
-  activation, `Uses (X)` → `maxUses`. ITUN's `itemEconomy()`
+  activation, `Uses (X)` → `maxUses`. The sheet's `itemEconomy()`
   (`src/components/sheet/mechItemRules.ts`) computes `{ epCost, heat, maxUses }`
-  from the primary action; the Dashboard uses the same helper.
+  item-wide from the primary action. The Dashboard needs economy **per action**,
+  so `apps/itun/src/components/dashboard/dashboardRules.ts` derives it per-action
+  rather than calling `itemEconomy()` directly.
 - Activation flow in the display: **Activate** (pay cost + Hot heat, decrement
   Uses, mark action used) → if the action deals damage / is contested, **Roll**
   (Core Mechanic) → optional **Push** reroll → **Apply**. Pure-effect actions
@@ -448,8 +468,9 @@ string[]`), resolved by `SalvageUnionReference.resolveActions(entity)` →
 
 ### 5.4 Cargo / storage
 
-- Mech cargo tracked as cargo lots; capacity via `cargo.ts`
-  (`computeCargoCapacity`) / `capacity.ts`. The **Storage** button opens the cargo
+- Mech cargo tracked as cargo lots; capacity via `computeCargoCapacity` /
+  `computeMechCapacity` (package `lib/rules/`, re-exported by ITUN's
+  `src/lib/rules/cargo.ts` / `capacity.ts`). The **Storage** button opens the cargo
   hold overlay (manifest + Jettison decrements a slot).
 
 ### 5.5 Downtime loop
@@ -482,40 +503,44 @@ string[]`), resolved by `SalvageUnionReference.resolveActions(entity)` →
 
 ## 6. Component architecture
 
-New tree under `apps/in-the-union-now/src/components/Dashboard/`. Naming follows
-the mockup's function names so the two can be cross-referenced.
+The shipped split is: presentational shells in
+`packages/component-lib/src/components/dashboard/`, store-wired containers in
+`apps/itun/src/components/dashboard/`. **Those two directories are the roster** —
+read them rather than trusting a tree here. The composition below reflects what
+`Dashboard.tsx` actually renders; every name in it is a real module.
 
 ```
-DashboardCanvas                      ← fixed 1280×800 grid; scale-to-fit + reflow decision
-├── RailBar                        ← rail: exit · context stamp · Settings menu
-├── ActiveItemBand                 ← 2/3 viewfinder; per-state (mech/pilot/crawler)
-│   └── InstrumentBay  (× N)       ← responsibility cluster: label + gauges + button grid
-│       ├── VitalGauge  (× 1–2)    ← segmented pip gauge (Heat redline / SP / EP / HP / AP / Cargo)
-│       └── InstrumentButtonGrid   ← dense 2-col grid, uniform 30px keys (Push/Vent/Take Dmg/…)
-├── Dial                           ← 260px right sidebar (rotary selector)
-│   ├── DialCell (active)          ← Active Dial Item: overhangs to ~1/3, elevated, statful/statless
-│   ├── DialCell (track × N)       ← shrunk inactive items
-│   ├── DialControls               ← ▲ ▼ ⚙ (step / config)
-│   └── DialConfig (overlay)       ← show/hide + reorder
-├── Display                        ← the one "forward" surface
-│   ├── AtRest:
-│   │   ├── ActionsDeck            ← default: cross-source action grid (acell / deckInner)
-│   │   ├── EntityView             ← ReferenceEntityDisplay + grouped ReferenceEntityActions
-│   │   │                            + entity-level footActions (Load/Downtime/Hand re-roll)
-│   │   └── TablesRoller           ← RollTable + picker + Roll
-│   ├── ResolveMode:
-│   │   └── ActionResolver         ← Activate → Roll → Push → Apply (metaBody / metaButtons)
-│   └── Overlays:
-│       ├── StorageOverlay         ← cargo hold manifest + Jettison
-│       ├── TablePickerOverlay     ← 5-col grouped picker
-│       └── DowntimeWizard         ← 10-step guided sequence (in downtime state)
-└── (state) playStateStore         ← mount state, range, dial focus (ephemeral)
+DashboardCanvas                    ← fixed 1280×800 canvas; scale + narrow-width bail-out
+└── DashboardGrid                  ← the 4-slot grid: rail / primary / display / wheel
+    ├── rail:    RailBar           ← exit · context stamp · fam tint
+    ├── primary: ActiveItemBand    ← 2/3 viewfinder; bays of gauges + buttons,
+    │                                driven by an `ActiveItemBandView` (BandBay /
+    │                                BandGauge / BandButton / BandOverlay).
+    │                                StorageBay is its cargo-hold overlay.
+    ├── display: DisplayPanel        ← the one "forward" surface. Takes a discriminated
+    │                                `DisplayContent`: 'entity' (ReferenceEntityCard +
+    │                                `controls`) | 'tables' (RollTable + TablePickerOverlay)
+    │                                | 'srd' (SrdExplorer) | 'slot' (app node — the
+    │                                ActionsDeck) | 'note'.
+    │             DowntimeWizard    ← replaces the display in downtime state
+    └── wheel:   Dial              ← 260px rotary selector (DialItem[] + activeIndex);
+                  DialConfig       ← show/hide + reorder overlay, via `renderConfig`
+
+DashboardGauge                     ← the segmented pip gauge, used inside ActiveItemBand and Dial
+playStateStore                     ← mount state / dial focus (ephemeral, apps/itun/src/stores/)
 ```
 
-**Data resolution:** a `useDashboardComposition(id)` hook wraps the existing
-`resolveSheetComposition()` (`src/components/sheet/composition.ts`) → `{ pilot,
-mech, crawler }`, plus SoftLinks (drones/allies). This is the same data spine the
-live sheet uses; the Dashboard does not introduce a new loader.
+The ITUN containers (`ActiveItemBand.tsx`, `DisplayPanel.tsx`, `ActionsDeck.tsx`,
+`DowntimeWizard.tsx`, `DialConfig.tsx`) are same-named wrappers that resolve
+store + rules state into the view objects the `component-lib` shells take.
+Supporting modules: `dialItems.ts`, `dashboardRules.ts`, `dashboardLinks.ts`,
+`dashboardLaunch.ts`, `DashboardChooser.tsx`.
+
+**Data resolution:** `apps/itun/src/components/dashboard/Dashboard.tsx` calls
+`resolveSheetComposition()` (`src/components/sheet/composition.ts`) directly →
+`{ pilot, mech, crawler }`, plus SoftLinks (drones/allies). This is the same data
+spine the live sheet uses; the Dashboard does not introduce a new loader. (The
+planned `useDashboardComposition` wrapper hook was never built.)
 
 **Render strategy / performance:** the mockup rebuilds the entire canvas on every
 interaction (`mountCanvas()`). In React that becomes a single `<DashboardCanvas>`
@@ -524,46 +549,44 @@ sub-trees** per surface so a dial step doesn't re-render the display's SRD card
 and a Heat change doesn't rebuild the dial. Do not port the full-rebuild pattern
 — it is a prototype artifact (see open questions on perf).
 
-**Scale-to-fit:** a `useScaleToFit(1280, 800)` hook measures the viewport,
-computes `scale`, decides `reflow` below the floor. The scaler wraps the fixed
-canvas in `transform: scale()`; below floor it renders `<DashboardPhone>` instead.
+**Scale-to-fit:** implemented inline in `DashboardCanvas.tsx` (a `ResizeObserver`
+
+- local `scale`/`reflow` state), **not** as an extracted hook. It wraps the fixed
+  canvas in `transform: scale()`; below the width threshold it renders the
+  `.pc-reflow` notice.
 
 ---
 
-## 7. Mobile / reflow behavior
+## 7. Mobile / reflow behavior — **planned, not built**
 
-- No-scroll is a **landscape-desktop contract**. Below ~0.62× scale the fixed
-  canvas is abandoned for a **native stacked, scrolling phone layout**
-  (`DashboardPhone`): rail → active item bays (stacked) → dial as a horizontal
-  strip or a bottom sheet → display. Scrolling _is_ allowed there.
-- The phone layout reuses the same instrument components in a single column; the
-  dial degrades to a horizontal chip strip. This keeps one component set, two
-  layouts (mirrors the sheet's "one shell, three variants" `LiveSheet.tsx`).
+- **Shipped today:** below the width threshold `DashboardCanvas` renders a
+  `.pc-reflow` notice ("rotate to landscape or use a larger screen"). There is
+  no phone layout in the codebase.
+- **The plan** (unbuilt): a native stacked, scrolling single-column layout — rail
+  → active item bays (stacked) → dial as a horizontal chip strip or bottom sheet
+  → display — reusing the same instrument components, so one component set serves
+  two layouts (mirroring the sheet's `LiveSheet.tsx` variants). Scrolling _is_
+  allowed there; no-scroll stays a **landscape-desktop contract**.
 
 ---
 
-## 8. The launch flow (deferred — plan only)
+## 8. The launch flow — **built** (Phase 8)
 
-Deferred per the design record ("one new view for the NEXT iteration"), but the
-plan is:
+`DashboardChooser` (`apps/itun/src/components/dashboard/DashboardChooser.tsx`) is
+a three-step pilot → mech → crawler wizard in a `ModalShell`, mounted from
+`Roster.tsx` and `SheetPilot.tsx`. On confirm it ensures the SoftLinks the
+composition needs (`mech-to-pilot`, and `pilot-to-crawler` when a crawler is
+picked) via `entityStore`, then routes to `/dashboard/$id` for the chosen mech.
 
-1. **Workspace "Launch Dashboard" entry** — a button on the Roster / workspace
-   (`workspaceStore`).
-2. **Chooser** (a small wizard):
-   - **Pick a pilot** (from `entityStore` pilots).
-   - **Pick a mech** — either one of that pilot's linked mechs (via SoftLink) or a
-     **stand-in pattern** (`mechPatterns` store) instantiated as an ephemeral mech
-     for the session.
-   - **Pick a crawler** — a saved crawler, or a **default base crawler of a chosen
-     Tech Level** (built from `crawler-tech-levels` reference data).
-3. **Boot** — resolve composition, seed `playStateStore` (default on foot), route
-   to `/dashboard/$id`.
+Entity-creation helpers live in `dashboardLaunch.ts` (split out for the Biome
+Fast-Refresh rule): a **stand-in mech** instantiated from a saved `MechPattern`
+(`usePatternStore`, `apps/itun/src/stores/patternStore.ts`) and a **default base
+crawler** of a chosen Tech Level. Both persist a real record via
+`entityStore.create` — reversible, deletable, and therefore on the right side of
+the [ADR-007] boundary. The crawler step is optional.
 
-The route (`/dashboard/$id`) is modeled on `/encounter` (full-screen, no sheet chrome)
-and reuses the `/sheet/$kind/$id` loader + `resolveSheetComposition()`. The stand-
-in/default-crawler instantiation must **not** silently persist new records — a
-session stand-in is ephemeral unless the player saves it (mirrors "loadout savable
-as a new pattern", memory note _su-mech-name-is-pattern_).
+The route (`/dashboard/$id`, `apps/itun/src/routes/dashboard/$id.tsx`) is modeled
+on `/encounter` (full-screen, no sheet chrome) and reuses `resolveSheetComposition()`.
 
 ---
 
@@ -579,9 +602,9 @@ Each phase is independently shippable and testable.
    Eject transitions + screen tint. Still read-mostly (transitions only).
 3. **Dial.** Rotary selector: `▲▼`, drag, click-to-jump, animation, statful/
    statless cells, focus→display sync.
-4. **Display entity cards.** Swap facsimiles for real `ReferenceEntityDisplay` +
-   `ReferenceEntityActions` + `RollTable`; entity-level `footActions`.
-5. **Actions & rules.** Actions deck, `ActionCardErow`-wrapped resolve flow
+4. **Display entity cards.** Swap facsimiles for the real `ReferenceEntityCard` +
+   `RollTable`; entity-level interactivity as typed `controls` (§3.3).
+5. **Actions & rules.** Actions deck, the resolve flow
    (Activate/Roll/Push/Apply), heat/push/overload, damage→critical, all through
    the pure rules functions with the ADR-007 boundary enforced.
 6. **Downtime.** Downtime state, 10-step wizard driven by `downtime.ts` +
@@ -597,15 +620,14 @@ Each phase is independently shippable and testable.
 ### 10.1 Testing
 
 - Bun test per workspace — **never raw `bun test` at root** (skips workspace
-  bunfig preloads). Use `bun --filter in-the-union-now test`.
+  bunfig preloads). Use `bun --filter itun test`.
 - **Rules functions are already unit-tested** in `salvageunion-reference` and
   `src/lib/rules/__tests__`; the Dashboard adds no rules math to test, only the
   wiring. Test the **classification boundary** (ADR-007): assert destructive
   outcomes surface a confirm/undo and never auto-write a condition.
 - Test the ephemeral/persisted split: mount state changes must **not** write to
   `entityStore` / appear in a snapshot.
-- Test scale-to-fit math + the reflow threshold (pure function
-  `useScaleToFit`).
+- Test the scale + reflow-threshold math in `DashboardCanvas`.
 
 ### 10.2 Accessibility (WCAG 2.1 AA)
 
@@ -653,11 +675,13 @@ desktop? Leaning yes — treat "needs bigger text" as a reflow trigger, not just
 - **Full re-render performance.** The mockup rebuilds everything per interaction;
   React must not. Memoize per-surface; verify a Heat tick doesn't re-render the
   SRD card. Measure before shipping phase 5.
-- **`VitalGauge` reuse vs new gauge.** Decide in phase 2 whether the Dashboard gauge
-  is `suref-react`'s `VitalGauge` extended or a Dashboard primitive — do not ship
-  two gauge systems.
-- **Stand-in mech / default crawler persistence.** Session stand-ins must be
-  ephemeral unless saved; define the boundary in phase 8.
+- **`VitalGauge` reuse vs new gauge — RESOLVED, and the resolution is the risk.**
+  The Dashboard shipped its own `DashboardGauge`, so two gauge systems now exist
+  alongside `component-lib`'s `VitalGauge`. If this is revisited, consolidate;
+  do not add a third.
+- **Stand-in mech / default crawler persistence — RESOLVED in phase 8.**
+  `dashboardLaunch.ts` persists a real, deletable record via `entityStore.create`
+  rather than holding an ephemeral session stand-in.
 - **Targeting.** ITUN has no enemy/GM model (local-first). Ship the lightweight
   "declare a range band" version; defer entity-selection UI.
 - **Downtime data source.** The mockup hard-codes the `DOWNTIME` array; the real
@@ -715,21 +739,21 @@ load-bearing; the ADR files are the authoritative records.
 
 ### ADR-017: Reuse the faithful light SRD display; instruments are bespoke
 
-- **Decision.** The display renders the **actual** `ReferenceEntityDisplay` +
-  `ActionCard` / `NestedActionDisplay` + `ReferenceEntityActions` + `RollTable`
-  from `suref-react` — the same light "workshop paperwork" reference document the
-  rest of the app shows. Action economy is injected through the existing
-  `Erow` / `ActionCardErow` + `DisplayCard.footActions`/`footMeta` pattern, **not**
-  a new schema-specific renderer. Only the _instruments_ (gauges, bays, dial,
-  buttons) are new Dashboard components.
+- **Decision.** The display renders the **actual** shared entity-display
+  components from `component-lib` — today `ReferenceEntityCard` + `RollTable` —
+  the same light "workshop paperwork" reference document the rest of the app
+  shows. Action economy is injected through the card's own generic slots
+  (`controls`, `footMeta`; §3.3/§3.4), **not** a new schema-specific renderer.
+  Only the _instruments_ (gauges, bays, dial, buttons) are new Dashboard
+  components.
 - **Rationale.** One display system, one place to fix reference rendering, and the
   Dashboard's reference view stays byte-for-byte identical to the sheet's. The
   foot-meta vocabulary already carries action economy in the sheet; extending it
   avoids forking the display ([ADR-011]).
 - **Alternatives rejected.** A Dashboard-specific "action chip" display (forking the
   entity display) — rejected per the design record's explicit "reuse the display
-  system" call. A render-prop on `ActionCard` for economy — unnecessary; `Erow`
-  already solves it.
+  system" call. A Dashboard-only render prop for economy — unnecessary; the card's
+  generic slots already solve it.
 
 ### ADR-018: Instrument/viewfinder aesthetic — flat & inset, only the display reads forward
 
@@ -767,11 +791,13 @@ load-bearing; the ADR files are the authoritative records.
 ### ADR-020: Fixed 1280×800 scale-to-fit canvas with a phone-reflow floor
 
 - **Decision.** The Dashboard is a **fixed 1280×800 design canvas** scaled with a
-  single `transform: scale(min(vw/1280, vh/800))`, letterboxed, clamped to
-  ~`[0.62, 1.3]`. No-scroll is a **landscape-desktop contract**; below the clamp
-  floor (and, tentatively, under large accessibility zoom) the canvas is abandoned
-  for a **native stacked, scrolling phone layout** reusing the same instrument
-  components.
+  single `transform: scale(min(vw/1280, vh/800))`, letterboxed, capped at
+  `MAX_SCALE = 2.6`. No-scroll is a **landscape-desktop contract**; below a
+  narrow-width threshold (`MIN_SCALE = 0.62` as a width ratio — and, tentatively,
+  under large accessibility zoom) the canvas is abandoned. The intended
+  replacement is a native stacked, scrolling phone layout reusing the same
+  instrument components; **what ships today is a "use a larger screen" notice**
+  (§7).
 - **Rationale.** A fixed canvas is the only way to guarantee "always one screen,
   never scrolls" across desktop sizes without per-breakpoint layout churn. The
   reflow floor is the escape hatch that keeps phones (and zoom users) usable.
@@ -784,19 +810,19 @@ load-bearing; the ADR files are the authoritative records.
 
 ## Appendix — mockup → real mapping (quick reference)
 
-| Mockup symbol                                          | Real equivalent                                                                          |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| `S` object                                             | `playStateStore` (ephemeral) + `entityStore` records (persisted) + component state       |
-| `MECH_DECK`/`FOOT_DECK`/drone `acts`                   | `SalvageUnionReference.resolveActions(entity)` over composed entities                    |
-| `TABLES`                                               | `SalvageUnionReference.RollTables.all()`                                                 |
-| `DOWNTIME`                                             | `src/lib/rules/downtime.ts` (`allDowntimeSteps` + scope/gating)                          |
-| `srdCard()`/`srdActionCard()`/`actionsSection()`       | `ReferenceEntityDisplay` + `ActionCard`/`NestedActionDisplay` + `ReferenceEntityActions` |
-| `srdRollTable()`/`tablesRollerView()`                  | `RollTable` (`suref-react`)                                                              |
-| `vbar()`/`segGauge()`/`gcells()`                       | Dashboard `VitalGauge` (evaluate reusing `suref-react` `VitalGauge`)                     |
-| `metaButtons()`/`metaAct()` (Activate/Roll/Push/Apply) | `ActionResolver` calling `heatCheck.ts`/`takeDamage.ts`/`itemEconomy()`                  |
-| `performPush`/`Heat Check`/`Reactor Overload`          | `performPush`, `performHeatCheck`, `reactorOverloadOutcome` (`heatCheck.ts`)             |
-| foot-meta economy                                      | `Erow`/`ActionCardErow` + `DisplayCard.footActions`/`footMeta`                           |
-| `resolveSheetComposition` (mockup ref)                 | `resolveSheetComposition()` (`src/components/sheet/composition.ts`)                      |
+| Mockup symbol                                          | Real equivalent                                                                      |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| `S` object                                             | `playStateStore` (ephemeral) + `entityStore` records (persisted) + component state   |
+| `MECH_DECK`/`FOOT_DECK`/drone `acts`                   | `SalvageUnionReference.resolveActions(entity)` over composed entities                |
+| `TABLES`                                               | `SalvageUnionReference.RollTables.all()`                                             |
+| `DOWNTIME`                                             | `src/lib/rules/downtime.ts` (`allDowntimeSteps` + scope/gating)                      |
+| `srdCard()`/`srdActionCard()`/`actionsSection()`       | `ReferenceEntityCard` (`component-lib`)                                              |
+| `srdRollTable()`/`tablesRollerView()`                  | `RollTable` (`component-lib/src/components/shared/RollTable.tsx`)                    |
+| `vbar()`/`segGauge()`/`gcells()`                       | `DashboardGauge` (Dashboard-local; distinct from `component-lib`'s `VitalGauge`)     |
+| `metaButtons()`/`metaAct()` (Activate/Roll/Push/Apply) | `ActionsDeck`'s resolve view, calling `heatCheck.ts`/`takeDamage.ts`/`itemEconomy()` |
+| `performPush`/`Heat Check`/`Reactor Overload`          | `performPush`, `performHeatCheck`, `reactorOverloadOutcome` (`heatCheck.ts`)         |
+| foot-meta economy                                      | `ReferenceEntityCard` `controls` + `Card.footMeta` (§3.3)                            |
+| `resolveSheetComposition` (mockup ref)                 | `resolveSheetComposition()` (`src/components/sheet/composition.ts`)                  |
 
 <!-- Link reference definitions for the [ADR-xxx] shorthands used above. -->
 
@@ -806,5 +832,5 @@ load-bearing; the ADR files are the authoritative records.
 [adr-006]: ../adrs/ADR-006-pure-rules-logic.md
 [adr-007]: ../adrs/ADR-007-automation-boundary.md
 [adr-010]: ../adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md
-[adr-011]: ../adrs/ADR-011-suref-react-source-no-build.md
+[adr-011]: ../adrs/ADR-011-component-lib-source-no-build.md
 [adr-013]: ../adrs/ADR-013-csp-zod-jitless.md

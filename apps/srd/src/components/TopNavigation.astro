@@ -1,0 +1,55 @@
+---
+import { SiteHeader } from './SiteHeader'
+import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from '../lib/gameData'
+import { MobileNavIsland } from './islands/MobileNavIsland'
+import { MobileSearchIsland } from './islands/MobileSearchIsland'
+import { SearchIsland } from './islands/SearchIsland'
+import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
+import { buildCatalogCategories } from '../lib/catalogHelpers'
+import { ITUN_URL } from '../lib/constants'
+
+type BreadcrumbItem = {
+  name: string
+  url: string
+}
+
+type Props = {
+  breadcrumbs?: BreadcrumbItem[]
+  /** Optional descriptive tail rendered after the trail (e.g. a schema description) */
+  breadcrumbDescription?: string
+}
+
+const { breadcrumbs, breadcrumbDescription } = Astro.props
+
+const catalog = getSchemaCatalog()
+const schemas = catalog.schemas.filter((s) => !s.meta)
+const schemaMap = new Map(schemas.map((s) => [s.id, s]))
+const currentPath = Astro.url.pathname
+const catalogCategories = SalvageUnionReference.CatalogCategories.all()
+
+const categories = buildCatalogCategories({
+  catalogCategories,
+  schemaMap,
+  findAllIn: (schemaName, pred) => SalvageUnionReference.findAllIn(schemaName, pred),
+  getReferenceEntityData,
+  getCatalogBg,
+  getCatalogLabel,
+})
+---
+
+<!-- Static brand chrome via the shared React SiteHeader; the interactive search
+     + mobile nav are slotted in as independently-hydrated islands so the shared
+     component ships no client JS of its own. -->
+<SiteHeader
+  currentPath={currentPath}
+  itunUrl={ITUN_URL}
+  breadcrumbs={breadcrumbs}
+  breadcrumbDescription={breadcrumbDescription}
+  viewTransitionName="nav"
+>
+  <SearchIsland client:idle slot="search" />
+  <Fragment slot="mobile">
+    <MobileSearchIsland client:idle />
+    <MobileNavIsland client:idle categories={categories} currentPath={currentPath} />
+  </Fragment>
+</SiteHeader>

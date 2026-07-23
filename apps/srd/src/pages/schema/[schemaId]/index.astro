@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import { getSchemaStaticPaths } from '../../../lib/staticPaths'
+import { SchemaViewerIsland } from '../../../components/islands/SchemaViewerIsland'
+import { getUniqueTechLevels, getUniqueSources, getUniqueTrees } from '../../../lib/gameData'
+import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
+import { SITE_URL } from '../../../lib/constants'
+
+export function getStaticPaths() {
+  return getSchemaStaticPaths()
+}
+
+const { schema, data } = Astro.props
+const { schemaId } = Astro.params
+
+const schemaName = schema.displayName || 'Schema'
+const canonicalUrl = `${SITE_URL}/schema/${schemaId}/`
+
+// Pre-compute filter facets at build time
+const techLevels = getUniqueTechLevels(data)
+const sources = schemaId === 'sources' ? [] : getUniqueSources(data)
+const trees = schemaId === 'abilities' ? getUniqueTrees(data) : []
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: schemaName,
+  description: `Browse all ${schemaName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`,
+  url: canonicalUrl,
+  keywords: ['Salvage Union', 'TTRPG', 'SRD', 'System Reference Document', schemaName],
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'Salvage Union System Reference Document',
+    url: `${SITE_URL}/`,
+  },
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: data.length,
+  },
+  creator: {
+    '@type': 'Organization',
+    name: 'Leyline Press',
+  },
+}
+---
+
+<BaseLayout
+  title={`${schemaName} - Salvage Union System Reference Document`}
+  description={`Browse all ${schemaName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`}
+  canonical={canonicalUrl}
+  structuredData={structuredData}
+  breadcrumbs={[
+    { name: 'SRD', url: `${SITE_URL}/` },
+    { name: schemaName, url: canonicalUrl },
+  ]}
+  breadcrumbDescription={schema.description}
+>
+  <div class="flex min-h-full flex-col">
+    <div class="flex flex-0 flex-col items-center bg-wk-bg px-2 pt-4 pb-8 md:p-8 md:pt-4">
+      {/* Visible heading band + description removed; the description now renders in
+          the breadcrumb bar (SRD / Class — <description>). Keep a screen-reader h1
+          so the listing page retains a heading for SEO/accessibility. */}
+      <h1 class="sr-only">{schema.displayNamePlural || schemaName}</h1>
+      <SchemaViewerIsland
+        client:visible
+        initialData={data}
+        schemaId={schemaId!}
+        techLevels={techLevels}
+        sources={sources}
+        trees={trees}
+        preloadSchemas={getSchemaPreloadList(schemaId!)}
+      />
+    </div>
+  </div>
+</BaseLayout>

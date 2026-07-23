@@ -3,16 +3,15 @@ import {
   type SlashCommandBuilder,
   type SlashCommandOptionsOnlyBuilder,
   type SlashCommandSubcommandsOnlyBuilder,
-  type ChatInputCommandInteraction,
-  type AutocompleteInteraction,
 } from 'discord.js'
 
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { suCommand } from './su.js'
 
 export type Command = {
   data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder
-  execute: (interaction: ChatInputCommandInteraction) => Promise<void>
-  autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>
+  execute: (interaction: CommandExecuteInteraction) => Promise<void>
+  autocomplete?: (interaction: CommandAutocompleteInteraction) => Promise<void>
 }
 
 export const commands = new Collection<string, Command>()
