@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [1.1.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.0.0...srd-v1.1.0) (2026-07-23)
+
+
+### Features
+
+* **srd:** chassis patterns get their own pages, roll tables render again ([#518](https://github.com/SalvageUnion-io/SU-SRD/issues/518)) ([02824e9](https://github.com/SalvageUnion-io/SU-SRD/commit/02824e9767d0865f8371ee856995ad1644089cf0))
+
 ## 2026-07-14 — Support the project on Ko-fi
 
 * The About page now has a Ko-fi support link, so you can chip in toward hosting and development.
