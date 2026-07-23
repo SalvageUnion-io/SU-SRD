@@ -13,7 +13,7 @@
 
 # How this was built
 
-This project started before LLMs could write software. The site and its schema were built by hand, and they are still shaped by hand.
+This was started as a hand-made project, and it predates the LLMs now used to work on it. The site and its schema are still shaped by hand.
 
 Much of the code since then has been written with LLM assistance. Every change is read, run, and merged by a person, and the commit history shows which parts.
 
