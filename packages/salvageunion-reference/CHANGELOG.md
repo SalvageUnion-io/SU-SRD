@@ -7,6 +7,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.1](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.5.0...salvageunion-reference-v2.5.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* **component-lib:** render Upkeep, Upgrade and Population on crawler tech levels ([#527](https://github.com/SalvageUnion-io/SU-SRD/issues/527)) ([f844630](https://github.com/SalvageUnion-io/SU-SRD/commit/f844630a61f08bcb7c9f2f61ff84885458a28008))
+* **reference:** correct three pattern names and add two missing book patterns ([#523](https://github.com/SalvageUnion-io/SU-SRD/issues/523)) ([736b1b8](https://github.com/SalvageUnion-io/SU-SRD/commit/736b1b8a04736215f63e0eca7831214f290d91ca))
+* **reference:** give every mech pattern its own verified source + page ([#529](https://github.com/SalvageUnion-io/SU-SRD/issues/529)) ([578a12f](https://github.com/SalvageUnion-io/SU-SRD/commit/578a12f8a7267bd49559b7dd67448463e7c20d77))
+
 ## [2.5.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.4.0...salvageunion-reference-v2.5.0) (2026-07-23)
 
 
