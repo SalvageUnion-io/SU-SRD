@@ -88,7 +88,7 @@ export function SheetSectionCard({
       <div className="flex flex-1 flex-col bg-[var(--tone)] px-3">
         <div
           className={cn(
-            'flex-1 border-l-[3px] border-[var(--tone-deep)] bg-paper px-3.5 py-3',
+            'flex-1 border-l-entity border-[var(--tone-deep)] bg-paper px-3.5 py-3',
             bodyClassName
           )}
         >

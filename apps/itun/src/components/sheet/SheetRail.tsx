@@ -125,7 +125,7 @@ export function RailChip({
       {/* paper BODY (poster `.rail-body`): an ink left rule + inline numeric
           text stats — never VitalGauges or StatBlocks here. */}
       {stats && (
-        <span className="mx-2.5 mb-2.5 border-l-[3px] border-ink bg-paper px-2.5 py-2 font-cond text-note font-semibold uppercase leading-snug tracking-caps text-ink/70 [&_b]:font-bold [&_b]:text-ink">
+        <span className="mx-2.5 mb-2.5 border-l-entity border-ink bg-paper px-2.5 py-2 font-cond text-note font-semibold uppercase leading-snug tracking-caps text-ink/70 [&_b]:font-bold [&_b]:text-ink">
           {stats}
         </span>
       )}

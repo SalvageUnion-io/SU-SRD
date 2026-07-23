@@ -64,7 +64,7 @@ const NAV_LINK_ACTIVE = 'text-paper'
 const BUY_BUTTON =
   'inline-flex shrink-0 items-center rounded-md border border-rust bg-rust px-4 py-1.5 font-cond text-caption font-medium uppercase tracking-caps-snug text-paper no-underline transition-colors'
 
-const BREADCRUMB_TEXT = 'font-cond text-xs uppercase tracking-[0.14em] text-ink-2'
+const BREADCRUMB_TEXT = 'font-cond text-xs uppercase tracking-caps-wide text-ink-2'
 
 export function AppBar({
   wordmark,
@@ -106,7 +106,7 @@ export function AppBar({
             className="block size-12 shrink-0 rounded-xl sm:size-16"
           />
           <span className="flex min-w-0 flex-col">
-            <span className="font-cond text-display font-bold leading-[0.98] tracking-[0.005em] text-paper sm:text-display-lg">
+            <span className="font-cond text-display font-bold leading-[0.98] tracking-normal text-paper sm:text-display-lg">
               {wordmark}
               {wordmarkAccent && <span className="text-rust">{wordmarkAccent}</span>}
               {badge && (
