@@ -72,7 +72,13 @@ export function EntityCardSubHeader({
   //   - a MEASURED cell reads "Range: Close" / "Damage: 4 SP" (colon after the
   //     label). Damage joins Range here because it is the same shape of
   //     statement — a named quantity — and read "Damage 4SP" without one;
-  //   - a NUMERIC value reads "Heat (4)" / "Blast (3)" (value in parens);
+  //   - a TRAIT always parenthesises its value — "Explosive (1)", "Burn (2)",
+  //     "Uses (3)", "Uses (Destroy)". The book prints every qualified trait this
+  //     way, including the non-numeric ones (its own glossary entry reads
+  //     "Uses (X)"), so the parens follow the CELL KIND, not the value's type.
+  //     Keying off "is it a number" left a trait like Uses/Destroy reading
+  //     "USES DESTROY", the one shape the rulebook never uses;
+  //   - any other numeric value still reads "Label (4)";
   //   - everything else (a label-only keyword) is unchanged.
   const COLON_CELLS = new Set(['range', 'damage'])
   const cellToText = (cell: EntityCardSubHeaderCell) => {
@@ -80,8 +86,9 @@ export function EntityCardSubHeader({
     if (COLON_CELLS.has(cell.key) || cell.label === 'Range' || cell.label === 'Damage') {
       return `${cell.label}: ${cell.value}`
     }
+    const isTrait = cell.key.startsWith('trait-')
     const isNumeric = typeof cell.value === 'number' || /^\d+$/.test(String(cell.value))
-    if (isNumeric) return `${cell.label} (${cell.value})`
+    if (isTrait || isNumeric) return `${cell.label} (${cell.value})`
     return `${cell.label} ${cell.value}`
   }
   const parts = cells.map(cellToText)

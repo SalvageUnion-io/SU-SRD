@@ -60,11 +60,15 @@ describe('buildReferenceEntityStats', () => {
     // box read "Structure" / "Energy" before, which is half a label.
     expect(byLabel(stats, 'SP')?.value).toBe('12')
     expect(byLabel(stats, 'EP')?.value).toBe('4')
-    // Stats whose top word already IS the short form keep it.
-    expect(byLabel(stats, 'System')?.value).toBe('16')
-    // …and the bottom label is dropped in both cases.
+    // Slot counts abbreviate too — SYS / MODS. Bare "System" / "Module" was the
+    // same half-a-label problem as "Structure", just less obvious because the
+    // top word happens to be a whole English word.
+    expect(byLabel(stats, 'SYS')?.value).toBe('16')
+    expect(byLabel(stats, 'MODS')?.value).toBe('2')
+    expect(byLabel(stats, 'System')).toBeUndefined()
+    // …and the bottom label is dropped in every case.
     expect(byLabel(stats, 'SP')?.bottomLabel).toBeUndefined()
-    expect(byLabel(stats, 'System')?.bottomLabel).toBeUndefined()
+    expect(byLabel(stats, 'SYS')?.bottomLabel).toBeUndefined()
   })
 
   test('full mode keeps the two-line long form', () => {
