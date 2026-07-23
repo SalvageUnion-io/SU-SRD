@@ -573,6 +573,17 @@ function ReferenceEntityCardInner({
   // The entity TYPE for the depth-0 footer (patterns read "Pattern"; actions
   // never render a depth-0 footer).
   const footerType = isAction ? undefined : isPattern ? 'Pattern' : resolveEyebrow(schemaName).type
+  // FOOTER PROVENANCE — a pattern carries its OWN source/booklet/page, often a
+  // different book than its chassis (e.g. an Acid Spitter sourced from another
+  // book than the Mule's Workshop Manual). On a pattern card the `entity` IS the
+  // chassis, so use the pattern's provenance. Booklet + page are meaningful only
+  // relative to a source, so provenance falls back as ONE unit: only when the
+  // pattern omits its own `source` do we borrow the chassis's source/booklet/page
+  // — never mix a pattern's source with the chassis's page.
+  const usePatternProvenance = isPattern && !!pattern.source
+  const footerSource = usePatternProvenance ? pattern.source : getSource(entity)
+  const footerBooklet = usePatternProvenance ? pattern.booklet : getBooklet(entity)
+  const footerPage = usePatternProvenance ? pattern.page : getPageReference(entity)
   // A PATTERN names its owning chassis as a horizontal stat stampseal in the
   // seam — `[Chassis | Little Sestra]` — rather than a bare stampseal, so it
   // reads as the same `[label | value]` pill vocabulary as every other axis.
@@ -1864,9 +1875,9 @@ function ReferenceEntityCardInner({
               <EntityCardIdentityFooter
                 bgColor={darkTone}
                 typeLabel={footerType}
-                source={getSource(entity)}
-                booklet={getBooklet(entity)}
-                page={getPageReference(entity)}
+                source={footerSource}
+                booklet={footerBooklet}
+                page={footerPage}
                 footMeta={footMeta}
                 externalLink={extent === 'full' ? externalLinkNode : undefined}
                 compact={compact}

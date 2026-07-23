@@ -107,6 +107,54 @@ describe('full pattern view reading order', () => {
 })
 
 /**
+ * FOOTER PROVENANCE. A pattern carries its OWN source/booklet/page — often a
+ * DIFFERENT book than the chassis it hangs off (the Mule ships from the Workshop
+ * Manual, but its Acid Spitter pattern is from "We Were Here First!"). Because a
+ * pattern card's `data` IS the chassis, the identity footer must read the
+ * pattern's provenance, never the chassis's. Booklet + page fall back as one
+ * unit with the source, so a pattern's source is never paired with the chassis's
+ * page.
+ */
+describe('pattern footer provenance', () => {
+  beforeAll(async () => {
+    await SalvageUnionReference.preload('all')
+  })
+
+  const patternOf = (name: string): SURefObjectPattern => {
+    const found = mule().patterns?.find((p) => p.name === name)
+    if (!found) throw new Error(`${name} pattern fixture missing`)
+    return found
+  }
+
+  test("the footer shows the pattern's own source + page, not the chassis's", () => {
+    const chassis = mule()
+    const acidSpitter = patternOf('Acid Spitter')
+    // Guard the fixture: the pattern must genuinely diverge from its chassis.
+    expect(acidSpitter.source).toBe('We Were Here First!')
+    expect(acidSpitter.source).not.toBe(chassis.source)
+    expect(acidSpitter.page).not.toBe(chassis.page)
+
+    render(<ReferenceEntityCard data={chassis} pattern={acidSpitter} />)
+
+    // The footer joins source · page into one line.
+    expect(screen.getByText(`We Were Here First! · p.${acidSpitter.page}`)).toBeTruthy()
+    // The chassis's own provenance must NOT leak into the pattern footer.
+    expect(screen.queryByText(`${chassis.source} · p.${chassis.page}`)).toBeNull()
+  })
+
+  test('a booklet rides with the pattern source', () => {
+    const survivor = patternOf('Survivor')
+    // Survivor is from the Starter Set, booklet "PC" — booklet must pair with
+    // the pattern's source, not be borrowed from the chassis.
+    expect(survivor.source).toBe('Salvage Union Starter Set')
+    expect(survivor.booklet).toBe('PC')
+
+    render(<ReferenceEntityCard data={mule()} pattern={survivor} />)
+    expect(screen.getByText(`Salvage Union Starter Set (PC) · p.${survivor.page}`)).toBeTruthy()
+  })
+})
+
+/**
  * The "Legal Starting Pattern" seam stamp. It rides the seam RIGHT of the
  * `[Chassis | …]` marker specifically so it survives the LISTING extent — the
  * pattern rows under a chassis are header-only, and that list is where a reader
