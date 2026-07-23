@@ -139,10 +139,12 @@ function headingOf(block: string[]): string | null {
  * `LLM_STATEMENT.md`) into its heading + paragraphs.
  *
  * Deliberately minimal, like `parseChangelog`: these are short documents we
- * control, so they have a fixed shape and need no markdown library. Inline
- * markdown is NOT interpreted — that contract is stated in each source file's
- * own header comment, so a link added to one would render as literal text
- * rather than silently breaking.
+ * control, so they have a fixed shape and need no markdown library.
+ *
+ * This splits blocks only. Inline markdown is `parseInline`'s job, and
+ * `[label](href)` links are the ONE inline form it interprets — the contract
+ * stated in each source file's own header comment. Bold, italics and lists
+ * render as literal punctuation rather than silently breaking.
  */
 export function parseMarkdownSection(markdown: string): MarkdownSectionContent {
   let heading = ''
