@@ -109,29 +109,27 @@ const RULES: Rule[] = [
   {
     id: 'arbitrary-tracking',
     rule: 'ruleset §4.2 — the tracking ladder is tokens only',
-    // NOTE — canon and code disagree here, and the code is what ships.
-    // ruleset §4.2 declares THREE tokens (--tracking-label 0.04em,
-    // --tracking-display 0.01em, --tracking-eyebrow 0.22em) and says the wide
-    // HUD values "conform down to 0.04em". theme.css actually ships FIVE:
-    // caps-tight 0.04 / caps-snug 0.06 / caps 0.08 / caps-wide 0.12 / eyebrow
-    // 0.22 — `--tracking-label` and `--tracking-display` do not exist. This fix
-    // text names the tokens that REALLY resolve, so it can't send anyone to a
-    // non-existent utility. Reconciling the two (collapsing the ladder to 0.04
-    // or amending the ruleset) is a separate, visual-delta decision.
+    // (This note used to say canon and code DISAGREED — that ruleset §4.2
+    // declared a three-token set while theme.css shipped five, leaving a
+    // reconciliation open. That is stale and was actively misleading: §4.2 has
+    // since been rewritten to describe the five rungs theme.css really ships,
+    // and it RATIFIES them — "ratified as-is rather than re-lettering every
+    // label in the app". There is no open decision. Five rungs are canon; the
+    // three-token set never existed as tokens.)
     fix: 'Use the shipped ladder: tracking-caps-tight (0.04em, the canonical label/stamp tracking) / -caps-snug / -caps / -caps-wide / tracking-eyebrow (0.22em, brand caption only).',
     pattern: /tracking-\[[^\]]+\]/g,
   },
   {
     id: 'arbitrary-border-width',
     rule: 'ruleset §4.3 — border weights are tokens, one meaning each',
-    fix: 'Use border-entity (3px) / border-entity-compact (2px) / border-chrome (1.5px) / border (1px hairline).',
+    fix: 'Use border-entity (3px, plus border-b-/border-l- sides) / border-rail (2.5px) / border-2 (2px pill) / border-chrome (1.5px, plus sides) / border (1px hairline).',
     // Only widths — `border-[color:var(--x)]` is a colour, covered by raw-color.
     pattern: /border(?:-[trblxy])?-\[\d*\.?\d+px\]/g,
   },
   {
     id: 'arbitrary-font-size',
     rule: 'ruleset §4.2 — one type scale',
-    fix: 'Use the semantic ladder: text-nano / micro / label / label-lg / badge / note / caption / lede.',
+    fix: 'Use the semantic ladder: text-nano / micro / label / label-lg / badge / note / caption / lede, then the display end — readout (17) / title (22) / display (26) / display-lg (31) / hero (38).',
     pattern: /text-\[\d*\.?\d+(?:px|rem)\]/g,
   },
   {
@@ -213,6 +211,12 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
     rules: ['gradient', 'raw-color'],
     reason:
       'Ruleset §3.5 THE one-off: the .pilot-panel distressed-metal effect on srd /about is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of a rusted plate rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust blooms, the steel plate, the rivet heads and the engraved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. CAVEAT, since a file-level exemption is blunter than the rationale: it also swallows three literals outside the illustration block — the .catalog-item hover box-shadow and .catalog-item__name text-shadow (real shadow debt on an authored surface, still owed a token) and one #fff in the print block. Line-scoping the exemption was considered and rejected as too brittle to survive edits to this file; they are recorded here instead of silently absorbed.',
+  },
+  {
+    file: 'packages/component-lib/src/components/shared/WizShell.tsx',
+    rules: ['arbitrary-border-width'],
+    reason:
+      "Not a border WEIGHT — a shape. The two matches (`border-x-[9px]`, `border-t-[14px]`) sit on an `h-0 w-0` span with `border-x-transparent`: the CSS-triangle idiom, drawing the caret under the wizard step marker. Those numbers are the triangle's half-width and height, so snapping them to the 1.5/2/2.5/3px weight ladder would not tidy a border, it would resize a glyph. The rule is right to look here and wrong about this one.",
   },
   {
     file: 'packages/salvageunion-reference/lib/schemas/entities.ts',
@@ -345,6 +349,22 @@ for (const v of violations) {
  *
  * The rule stands: a stricter rule may rebaseline upward ONCE, in the same
  * commit that tightens it, with the reason written down. Drift may not.
+ *
+ * STATUS: the backlog is GONE. Every rule now sits at 0, so this file has
+ * stopped being a burn-down chart and is purely a regression guard — the next
+ * violation of any rule fails CI outright rather than joining a queue.
+ *
+ * Worth recording WHY it emptied, because "we tidied up" is the wrong lesson.
+ * Almost none of it was carelessness; in every cluster the vocabulary was
+ * missing a word and the call sites had improvised the same one independently:
+ *   - 26 shadow colours -> the ink alpha ladder was missing its -20/-40/-85
+ *     rungs (and the guard could not see the values at all, so nothing ever
+ *     pushed back).
+ *   - 28 font sizes -> the type ladder stopped at 15px and jumped to 26px, so
+ *     ten sizes in between were re-derived by eye, component by component.
+ *   - 2 border widths -> `border-l-entity` did not exist, only `border-b-`.
+ * The lesson that generalises: when a rule shows a CLUSTER rather than a
+ * scatter, suspect the ladder before the authors.
  */
 const BASELINE_PATH = join(import.meta.dir, 'design-tokens-baseline.json')
 

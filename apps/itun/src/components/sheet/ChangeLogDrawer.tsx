@@ -103,7 +103,7 @@ export function ChangeLogDrawer({
                     >
                       {kind.label}
                     </span>
-                    <span className="font-cond text-sm font-bold uppercase tracking-[0.02em] text-ink">
+                    <span className="font-cond text-sm font-bold uppercase tracking-caps-tight text-ink">
                       {entry.field}
                     </span>
                     <time

@@ -33,7 +33,7 @@ export function Changelog({ entries, className }: ChangelogProps) {
         <li key={`${entry.area}-${entry.date}-${entry.version ?? entry.title ?? index}`}>
           <Panel className="p-4">
             <div className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <h3 className="font-cond text-lg font-bold uppercase leading-tight tracking-[0.02em] text-ink">
+              <h3 className="font-cond text-lg font-bold uppercase leading-tight tracking-caps-tight text-ink">
                 {entryHeadline(entry)}
               </h3>
               <Badge surface="outline" className="shrink-0">
