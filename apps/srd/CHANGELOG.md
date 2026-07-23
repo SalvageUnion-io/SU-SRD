@@ -2,6 +2,19 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [1.2.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.1.0...srd-v1.2.0) (2026-07-23)
+
+
+### Features
+
+* shared about-page colophon + slab section heads on the back pages ([#524](https://github.com/SalvageUnion-io/SU-SRD/issues/524)) ([652e5fc](https://github.com/SalvageUnion-io/SU-SRD/commit/652e5fcdbd107d7eb3fa422d21441924114d2b97))
+
+
+### Bug Fixes
+
+* **component-lib:** render roll tables referenced by name ([#530](https://github.com/SalvageUnion-io/SU-SRD/issues/530)) ([2c9e872](https://github.com/SalvageUnion-io/SU-SRD/commit/2c9e872128732bd404551759a9ccb72278a86128))
+* **reference:** give every mech pattern its own verified source + page ([#529](https://github.com/SalvageUnion-io/SU-SRD/issues/529)) ([578a12f](https://github.com/SalvageUnion-io/SU-SRD/commit/578a12f8a7267bd49559b7dd67448463e7c20d77))
+
 ## [1.1.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.0.0...srd-v1.1.0) (2026-07-23)
 
 
