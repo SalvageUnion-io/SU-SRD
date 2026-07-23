@@ -8,12 +8,16 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * (react-refresh).
  *
  * The `surface` axis picks the WORLD the button lives on: `paper` (default —
- * the light app chrome) or `instrument` (the dark dashboard HUD scope, `.pc-root`).
+ * the light app chrome) or `instrument` (the dashboard HUD scope, `.pc-root`).
  * The instrument surface swaps in the condensed-caps HUD typography and the
- * dark recessed treatment formerly hand-rolled as `.pc-btn` / `.pc-deck-btn` /
+ * recessed treatment formerly hand-rolled as `.pc-btn` / `.pc-deck-btn` /
  * `.pc-railbtn` / `.pc-wheel-btn` in instruments.css — one standard Button for
  * both worlds. Colour deltas ride on `compoundVariants` (surface × variant);
  * only `ghost` has an instrument recolour — the sole variant the HUD uses.
+ *
+ * Note the instrument surface is a TYPOGRAPHY choice as much as a colour one:
+ * the cockpit's chassis is cream, not dark, so its buttons are ink like the
+ * rest of the app — what still separates them is condensed caps.
  */
 export const buttonVariants = cva(
   `inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-card border-chrome font-body font-medium tracking-normal transition-colors duration-[120ms] ${FOCUS_RING} ${DISABLED}`,
@@ -28,7 +32,7 @@ export const buttonVariants = cva(
       surface: {
         // Light app chrome — the paper/ink/rust world (the existing default).
         paper: '',
-        // Dark dashboard HUD — condensed-caps typography; the ghost recolour
+        // Dashboard HUD — condensed-caps typography; the ghost recolour
         // (the one variant the HUD uses) rides on the compoundVariant below.
         instrument: 'font-cond font-bold uppercase tracking-caps-tight',
       },
@@ -46,15 +50,19 @@ export const buttonVariants = cva(
       },
     },
     compoundVariants: [
-      // INSTRUMENT recolour (dark HUD): a faint paper-tinted border that
-      // brightens to muted on hover, paper text on a transparent ground —
-      // the former instruments.css `.pc-railbtn` ghost treatment. `ghost` is
-      // the only variant the HUD renders, so it is the only recolour.
+      // INSTRUMENT recolour: an ink hairline on the transparent chassis, going
+      // to a paper fill on hover — the ghost treatment for a button sitting on
+      // a cream instrument card (rail, band, dial).
+      //
+      // This was previously paper text on transparent, for the retired dark
+      // instrument skin. It survived the skin it was built for and only ever
+      // rendered legibly because the base `text-ink` won a class-order race
+      // against its arbitrary-value utility — i.e. white-on-white held off by
+      // luck. Now that the cockpit chassis is cream, ink is simply correct.
       {
         surface: 'instrument',
         variant: 'ghost',
-        class:
-          'border-[color-mix(in_srgb,var(--color-paper)_16%,transparent)] bg-transparent text-[var(--color-paper)] hover:border-[var(--color-ink-50)]',
+        class: 'border-ink-30 bg-transparent text-ink hover:border-ink-50 hover:bg-paper',
       },
     ],
     defaultVariants: {

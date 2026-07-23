@@ -6,6 +6,7 @@
  */
 
 import { Button } from '../chrome/Button'
+import { Toggle } from '../chrome/Toggle'
 
 export type DialConfigRow = {
   /** Stable identifier for the row (the app's dial kind). */
@@ -35,32 +36,30 @@ export function DialConfig({ rows, onToggle, onMove, onClose }: DialConfigProps)
       <ul className="pc-dialcfg-list">
         {rows.map((row, i) => (
           <li key={row.id} className="pc-dialcfg-row">
-            <label className="pc-dialcfg-show">
+            <span className="pc-dialcfg-show">
               {/*
-               * Deliberately a NATIVE checkbox, not the chrome `Checkbox`
-               * primitive. That primitive is a self-framed choice-row card
-               * (`rounded-card border-chrome border-ink bg-paper p-2` around a
-               * `font-body` label) — the Field/Input form vocabulary. Here the
-               * input lives inside the already-bordered `pc-dialcfg-row`, beside
-               * the ▲▼ move buttons, under a condensed-uppercase `pc-dialcfg-lab`
-               * that strikes through when hidden. Dropping the primitive in nests
-               * a bordered card inside a bordered row (card-in-a-card) and swaps
-               * the instrument label for body text. Adopt only once `Checkbox`
-               * grows a bare/instrument rung that yields just the accent-rust
-               * input without the framed row.
+               * `Toggle`, not `Checkbox`: this row is already a bordered
+               * instrument row carrying its own condensed-uppercase label, so
+               * the framed choice-row card would nest a card inside a card —
+               * the reason this had been holding an open-coded native `<input>`
+               * instead. Toggle is the bare rung that was missing, and adopting
+               * it retires the browser's default accent blue, the one colour
+               * with no place in a paper/ink/rust cockpit.
+               *
+               * The wrapper is no longer a `<label>`: Toggle brings its own, and
+               * nesting labels would give the switch two accessible names.
                */}
-              <input
-                type="checkbox"
+              <Toggle
+                label={`Show ${row.label}`}
                 checked={row.locked || !row.hidden}
                 disabled={row.locked}
                 onChange={() => onToggle(row.id)}
-                aria-label={`Show ${row.label}`}
               />
               <span className={row.hidden ? 'pc-dialcfg-lab hidden' : 'pc-dialcfg-lab'}>
                 {row.label}
                 {row.locked ? ' (locked)' : ''}
               </span>
-            </label>
+            </span>
             <span className="pc-dialcfg-move">
               <Button
                 size="compact"

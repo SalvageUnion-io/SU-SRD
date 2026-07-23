@@ -38,11 +38,19 @@
 }
 
 /* ---- Active Item band: responsibility bays (gauge + button grid) ---- */
+/* The Active Item band is an INSTRUMENT surface: cream chassis on the dark
+   canvas ground. Before the ground went dark it could be transparent (paper on
+   paper); now it has to carry its own card or its gauges and bay dividers would
+   float on the workbench. */
 .pc-band {
   display: flex;
   flex-direction: column;
   gap: 6px;
   height: 100%;
+  background: var(--color-band-cream);
+  border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
+  border-radius: var(--radius-panel);
+  padding: 7px 9px;
 }
 .pc-band-id {
   flex: 0 0 auto;
@@ -538,6 +546,11 @@
 .pc-wheel-stage:active {
   cursor: grabbing;
 }
+/* Explicit, so the `hidden` attribute the Dial sets while its config panel is
+   open cannot be defeated by a future `display` declaration on the class. */
+.pc-wheel-stage[hidden] {
+  display: none;
+}
 /* Seats are stacked; JS sets each seat's real top + width + height from the
    scroll position (no scale — labels keep their size and match the mech stamp). */
 .pc-wheel-seat {
@@ -551,7 +564,7 @@
   height: 100%;
   border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
   border-radius: var(--radius-panel);
-  background: var(--color-paper);
+  background: var(--color-band-cream);
   box-shadow: inset 0 1px 2px var(--color-ink-8);
   cursor: pointer;
   padding: 5px 10px;
@@ -562,6 +575,9 @@
   color: var(--color-ink);
   overflow: hidden;
 }
+/* The seat in the viewfinder reads one step forward of the cells queued behind
+   it — paper against their cream, the same "brightest = active" logic the
+   display region uses against the instruments. */
 .pc-cell-active {
   border-color: color-mix(in srgb, var(--color-ink) 55%, transparent);
   background: var(--color-paper);
@@ -678,11 +694,13 @@
   border-radius: var(--radius-card);
   background: var(--color-paper);
 }
+/* Wrapper only — the switch inside is a `Toggle`, which owns its own <label>,
+   cursor and hit target, so this no longer claims `cursor: pointer` for a
+   region that is mostly inert text. */
 .pc-dialcfg-show {
   display: flex;
   align-items: center;
   gap: 8px;
-  cursor: pointer;
   min-width: 0;
 }
 .pc-dialcfg-lab {

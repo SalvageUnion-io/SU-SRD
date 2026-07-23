@@ -3,9 +3,12 @@
  * wheel / display), laid inside DashboardCanvas. Region + placeholder classes
  * only; the instrument internals (rail buttons, the active-item band, the dial,
  * the display view) live in instruments.css. Every rule references the canonical
- * `--color-*` / `--bw-*` / `--radius-*` tokens directly (no `--pc-*` layer). The
- * cockpit ground is warm paper (paper) with ink lines — the rail and display
- * carry the one hard "forward" border, everything else stays flat on paper.
+ * `--color-*` / `--bw-*` / `--radius-*` tokens directly (no `--pc-*` layer).
+ *
+ * Regions sit on the dark canvas ground at two depths (see DashboardCanvas.css):
+ * the rail and the active-item band are INSTRUMENT cream, the display is the
+ * one DOCUMENT surface in paper — the brightest thing on screen, which is what
+ * makes "read this" register before you've parsed a single label.
  */
 
 .pc-grid {
@@ -30,6 +33,7 @@
   border: var(--bw-rail) solid color-mix(in srgb, var(--color-ink) 35%, transparent);
   border-radius: var(--radius-panel);
   padding: 0 12px;
+  background: var(--color-band-cream);
 }
 
 /* Active-entity tint on the rail (extends to the Active Item band in Phase 2). */
@@ -63,8 +67,9 @@
 }
 
 /* The display is the ONE surface that reads "forward": a light SRD "paper"
-   document inset in the dark Dashboard (the reused ReferenceEntityDisplay /
-   RollTable are light-themed). Its own scroll — the canvas never scrolls. */
+   document inset in the dark cockpit (the reused ReferenceEntityDisplay /
+   RollTable are light-themed). It is deliberately a step brighter than the
+   cream instruments around it. Its own scroll — the canvas never scrolls. */
 .pc-display-light {
   background: var(--color-paper);
   color: var(--color-ink);
@@ -72,7 +77,8 @@
   padding: 0;
 }
 
-/* Phase-1 placeholder for a surface not yet built. */
+/* Placeholder for a surface not yet built. Carries the instrument ground: it
+   stands in for a card, so it must not leave a hole in the dark canvas. */
 .pc-placeholder {
   display: flex;
   align-items: center;
@@ -80,6 +86,7 @@
   height: 100%;
   border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 16%, transparent);
   border-radius: var(--radius-panel);
+  background: var(--color-band-cream);
   font-family: var(--font-cond);
   font-weight: 700;
   text-transform: uppercase;

@@ -1,14 +1,25 @@
 /*
  * DashboardCanvas — the Dashboard ("Pit HUD") layout shell.
  *
- * The Dashboard is a self-contained WARM-PAPER cockpit — the same paper/ink book
- * surface as the wizard, SRD, and live sheets, laid out as an instrument panel.
- * There is NO private token layer: every instrument surface references the
- * canonical `--color-*` tokens (component-lib theme.css) directly — the ground is
- * canonical warm paper (paper) with ink lines, not a `--pc-*` alias set.
- * `.pc-root` only marks the cockpit scope and sets the default ink text + font.
- * Colour encodes ONTOLOGY (mech green / pilot orange / crawler pink), never
- * identity (ADR-018).
+ * The cockpit reads as PAPER INSTRUMENTS ON A DARK WORKBENCH — a three-level
+ * depth ladder that does the region hierarchy the flat all-paper revision had to
+ * do with hairlines alone:
+ *
+ *   ground      `--color-ink-deep`   the surround AND the canvas behind the
+ *                                    instruments — recessed, never read
+ *   instrument  `--color-band-cream` rail, active-item band, dial cells and the
+ *                                    overlays that replace them — the chassis
+ *   document    `--color-paper`      the display region only — the brightest
+ *                                    surface, so "read this" is pre-attentive
+ *
+ * The instruments and their type stay the warm paper/ink book vocabulary shared
+ * with the wizard, SRD and live sheets; only the ground behind them is dark, so
+ * this is a framing device, not a return to the retired dark instrument skin.
+ * There is still NO private token layer: every surface references the canonical
+ * `--color-*` tokens (component-lib theme.css) directly, not a `--pc-*` alias
+ * set. `.pc-root` only marks the cockpit scope and sets the default ink text +
+ * font. Colour encodes ONTOLOGY (mech green / pilot orange / crawler pink),
+ * never identity (ADR-018).
  */
 
 .pc-root {
@@ -16,22 +27,29 @@
   font-family: var(--font-body);
 }
 
-/* Fixed design canvas — scaled to fit by DashboardCanvas. Never scrolls. */
+/* Fixed design canvas — scaled to fit by DashboardCanvas. Never scrolls. The
+   canvas carries the same dark ground as the surround, so the instruments read
+   as objects laid on one continuous workbench rather than a lit panel floating
+   on an unlit one. The inset ring is a paper hairline (an ink one is invisible
+   against the ground it now sits on). */
 .pc-canvas {
   width: 1280px;
   height: 800px;
-  background: var(--color-paper);
+  background: var(--color-ink-deep);
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-ink) 16%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-paper) 14%, transparent);
 }
 
-/* Below the scale floor (phones / heavy zoom) the fixed canvas is abandoned. */
+/* Below the scale floor (phones / heavy zoom) the fixed canvas is abandoned.
+   This message sits DIRECTLY on the dark ground — the one piece of cockpit type
+   with no instrument card under it — so it takes paper ink, not the muted
+   on-paper grey it wore when the ground was white. */
 .pc-reflow {
   max-width: 340px;
   padding: 32px;
   text-align: center;
-  color: var(--color-wk-muted);
+  color: color-mix(in srgb, var(--color-paper) 72%, transparent);
   font-family: var(--font-body);
   font-size: var(--text-caption);
   line-height: 1.5;

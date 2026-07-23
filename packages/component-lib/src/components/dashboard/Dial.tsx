@@ -382,8 +382,18 @@ export function Dial({ items, activeIndex, onActiveIndexChange, renderConfig }: 
 
   return (
     <div className="pc-wheel-col" role="listbox" aria-label="Dial">
+      {/*
+       * The stage is hidden outright while the config panel is open. The panel
+       * only covers the wheel COLUMN, but the active seat is wider than the
+       * column and overhangs ~110px to its left — so leaving the stage mounted
+       * left a blank sliver of that card poking out beside the panel, its title
+       * centred underneath and invisible. Hiding the stage (rather than widening
+       * the panel) also stops the dial being drag-rotated behind its own
+       * settings.
+       */}
       <div
         className="pc-wheel-stage"
+        hidden={configOpen}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}

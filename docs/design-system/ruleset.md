@@ -44,13 +44,13 @@ interactivity_ a primitive is rendered with; it never changes the primitive's
 identity. Automation semantics follow [ADR-007](../adrs/ADR-007-automation-boundary.md)
 and the surface/mode taxonomy of [ADR-021](../adrs/ADR-021-itun-surface-taxonomy.md).
 
-| Context        | Metaphor             | Materials                                  | Interactivity                                                                                       |
-| -------------- | -------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| **Reference**  | The book, verbatim   | Cream/paper, read-only                     | None. No play-state — no current values, conditions, controls. The only rust is an inline link.     |
-| **Live Sheet** | The pencil           | Same paper + editability                   | `free` — dashed borders & steppers are the only "write here" cues; rules show but never gate.       |
-| **Dashboard**  | The instrument panel | **Warm-paper cockpit**, geometry identical | The only transactional surface: bookkeeping `auto`+undo; destruction `confirm`+undo; Change Log.    |
-| **Listing**    | One line, one click  | Header-only rows                           | Nothing editable/expandable in place. Identify + click-through; nested entities live in the parent. |
-| **Tooltip**    | The glance           | Dense, lifted plate                        | Terminal — no buttons, links, nested tooltips, or steppers, ever. Reuses the dense variants.        |
+| Context        | Metaphor             | Materials                                                  | Interactivity                                                                                       |
+| -------------- | -------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Reference**  | The book, verbatim   | Cream/paper, read-only                                     | None. No play-state — no current values, conditions, controls. The only rust is an inline link.     |
+| **Live Sheet** | The pencil           | Same paper + editability                                   | `free` — dashed borders & steppers are the only "write here" cues; rules show but never gate.       |
+| **Dashboard**  | The instrument panel | **Paper instruments on a dark ground**, geometry identical | The only transactional surface: bookkeeping `auto`+undo; destruction `confirm`+undo; Change Log.    |
+| **Listing**    | One line, one click  | Header-only rows                                           | Nothing editable/expandable in place. Identify + click-through; nested entities live in the parent. |
+| **Tooltip**    | The glance           | Dense, lifted plate                                        | Terminal — no buttons, links, nested tooltips, or steppers, ever. Reuses the dense variants.        |
 
 **Automation vocabulary** (used in the matrix below):
 
@@ -63,7 +63,7 @@ and the surface/mode taxonomy of [ADR-021](../adrs/ADR-021-itun-surface-taxonomy
 
 - **Reference:** if it can't appear in the printed manual, it can't appear here.
 - **Live Sheet:** overrides are visibly non-canonical (dashed ring) **and logged**; the sheet never auto-applies.
-- **Dashboard:** _every_ mutation writes a Change Log row; geometry is identical to the sheet. **The cockpit is warm paper, not a dark skin** — an earlier revision of this ruleset specified a dark instrument skin (and named it as the one sanctioned pure-white exception in §4.1). The shipped dashboard was deliberately re-skinned to the canonical warm paper with no private token layer and no gradients; the doc had not caught up. Ratified here.
+- **Dashboard:** _every_ mutation writes a Change Log row; geometry is identical to the sheet. **The cockpit is warm-paper instruments on a dark ground** — three depth levels, all canonical tokens, no private layer and no gradients: the ground (`--color-ink-deep`, both the surround and the canvas behind the instruments), the instrument chassis (`--color-band-cream` — rail, active-item band, dial cells), and the one document surface (`--color-paper` — the display region, and the dial's active seat). Brightest always means "read this". This supersedes two earlier revisions: the original dark _instrument skin_ (which also named itself the one sanctioned pure-white exception in §4.1), and the all-paper flip that replaced it. The all-paper revision was correct to put the instruments and their type in the book vocabulary, but it left every region the same white box, so the ground was darkened back to restore the hierarchy the hairlines alone could not carry. The instruments themselves stay paper/ink — the dark is a framing ground, not a skin. Ratified here.
 - **Listing:** the row's whole job is identify + click-through; nested entities live inside the parent's expanded view.
 - **Tooltip:** a glance and a page must never disagree — the tooltip reuses the dense variants, nothing inside acts.
 
