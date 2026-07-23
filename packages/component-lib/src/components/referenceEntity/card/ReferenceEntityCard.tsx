@@ -62,6 +62,7 @@ import { EntityCardHeader } from './EntityCardHeader'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
 import { EntityCardSubHeader } from './EntityCardSubHeader'
 import type { EntityCardSubHeaderCell } from './EntityCardSubHeader'
+import { resolveCardTable } from './resolveCardTable'
 import { resolveFoldedAction } from './resolveFoldedAction'
 import { stripHostParenthetical } from './stripHostParenthetical'
 import {
@@ -1521,7 +1522,17 @@ function ReferenceEntityCardInner({
   // A CATALOG tile and any NESTED card get it `collapsible` (header + Roll
   // button, rows behind a Show toggle) so a 20-row table can't swallow a
   // listing tile; a full card renders the whole table open.
-  const entityTable = 'table' in entity ? entity.table : undefined
+  //
+  // The table may be INLINE (`table`) or BY REFERENCE (`tableName` -> the
+  // `roll-tables` schema), and it may belong to the entity itself or to the
+  // action that FOLDS into it — an ability like "System and Software Hacker"
+  // keeps its d20 outcomes on its self-named action, by name. Reading
+  // `entity.table` alone dropped every one of those tables silently.
+  //
+  // Only the FOLDED action is consulted, never a sibling action: a sibling
+  // renders as its own nested card and resolves its own table there, so
+  // pulling it up here would print it twice.
+  const entityTable = resolveCardTable(entity) ?? resolveCardTable(foldedAction)
   //
   // `showCommand` keeps the header band (and its Roll button) on every rung —
   // the legacy renderer passed it unconditionally, and it is the affordance
