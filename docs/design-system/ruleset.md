@@ -63,7 +63,7 @@ and the surface/mode taxonomy of [ADR-021](../adrs/ADR-021-itun-surface-taxonomy
 
 - **Reference:** if it can't appear in the printed manual, it can't appear here.
 - **Live Sheet:** overrides are visibly non-canonical (dashed ring) **and logged**; the sheet never auto-applies.
-- **Dashboard:** _every_ mutation writes a Change Log row; geometry is identical to the sheet. **The cockpit is warm-paper instruments on a dark ground** — three depth levels, all canonical tokens, no private layer and no gradients: the ground (`--color-ink-deep`, both the surround and the canvas behind the instruments), the instrument chassis (`--color-band-cream` — rail, active-item band, dial cells), and the one document surface (`--color-paper` — the display region, and the dial's active seat). Brightest always means "read this". This supersedes two earlier revisions: the original dark _instrument skin_ (which also named itself the one sanctioned pure-white exception in §4.1), and the all-paper flip that replaced it. The all-paper revision was correct to put the instruments and their type in the book vocabulary, but it left every region the same white box, so the ground was darkened back to restore the hierarchy the hairlines alone could not carry. The instruments themselves stay paper/ink — the dark is a framing ground, not a skin. Ratified here.
+- **Dashboard:** _every_ mutation writes a Change Log row; geometry is identical to the sheet. **The cockpit is warm-paper instruments on a dark ground** — three depth levels, all canonical tokens, no private layer and no gradients: the ground (`--color-ink-deep`, both the surround and the canvas behind the instruments), the instrument chassis (`--color-band-cream` — EVERY cockpit card: rail, active-item band, dial cells active and inactive, and the overlays that replace them), and the one document surface (`--color-paper` — the display region alone, the thing the cockpit is reading). One card background throughout: the active dial seat is not lit differently from the cells queued behind it, because it is already marked by size and by a heavier border — emphasis comes from the frame, not the fill. This supersedes two earlier revisions: the original dark _instrument skin_ (which also named itself the one sanctioned pure-white exception in §4.1), and the all-paper flip that replaced it. The all-paper revision was correct to put the instruments and their type in the book vocabulary, but it left every region the same white box, so the ground was darkened back to restore the hierarchy the hairlines alone could not carry. The instruments themselves stay paper/ink — the dark is a framing ground, not a skin. Ratified here.
 - **Listing:** the row's whole job is identify + click-through; nested entities live inside the parent's expanded view.
 - **Tooltip:** a glance and a page must never disagree — the tooltip reuses the dense variants, nothing inside acts.
 
@@ -192,30 +192,30 @@ rendered on that surface. For the at-a-glance role → primitive summary, see th
 
 ### 4.1 Colour roles
 
-| Role                      | Token                     | Hex       | Use                                                                                 |
-| ------------------------- | ------------------------- | --------- | ----------------------------------------------------------------------------------- |
-| ink                       | `--color-ink`             | `#282019` | every stamp/label/tab, text, borders                                                |
-| ink · secondary           | `--color-ink-2`           | `#463d31` | secondary ink                                                                       |
-| ink · deep                | `--color-ink-deep`        | `#1b1712` | the dark header ground                                                              |
-| ink ramp                  | `--color-ink-75…8`        | —         | hairlines, placeholders, ghosts, disabled fills — warm ink at opacity, never a grey |
-| paper · system white      | `--color-paper`           | `#fbfaf7` | THE light surface: cards, stats, inputs, gauge tracks, value cells, and text on ink |
-| band cream                | `--color-band-cream`      | `#f3ede2` | **RollTable d20 banding only** (§2) — the one sanctioned cream                      |
-| rust · action             | `--color-rust`            | `#a85222` | the one action colour                                                               |
-| pilot                     | `--color-pilot`           | `#ef894f` | pilot ontology                                                                      |
-| mech                      | `--color-mech`            | `#7a978a` | mech ontology                                                                       |
-| crawler                   | `--color-crawler`         | `#ce5898` | crawler ontology                                                                    |
-| adversary                 | `--color-adversary`       | `#8c4b38` | creatures · bio-titans · factions · npcs · meld · squads                            |
-| cargo                     | `--color-cargo`           | `#9c7a3e` | cargo fills                                                                         |
-| tier · core               | `--color-tier-core`       | `#a85947` | Core ability-tree tier (Advanced = pilot, Legendary = crawler)                      |
-| workshop ground           | `--color-wk-bg` / `-2`    | `#e6f0f5` | the step off-paper that makes a card read as a panel                                |
-| workshop rules            | `--color-wk-line/-accent` | —         | advisory rule · game-state accent                                                   |
-| caution                   | `--color-caution`         | `#d7c37d` | attention fill that is neither ontology nor status                                  |
-| inert                     | `--color-inert`           | `#c0c0c0` | inert / non-numeric tier fill                                                       |
-| status-ok                 | `--color-status-ok`       | `#6f8a4a` | ok state overlay                                                                    |
-| status-warn               | `--color-status-warn`     | `#c07a2f` | warn state overlay                                                                  |
-| status-bad · damaged      | `--color-status-bad`      | `#b0432b` | damaged / destroyed / redline / over-cap                                            |
-| roll tiers · **BOT ONLY** | re-toned ramp             | —         | Discord roll outcomes only                                                          |
-| tech-level blues          | TL 1–6 · B · N            | —         | TL badge ramp                                                                       |
+| Role                      | Token                     | Hex       | Use                                                                                  |
+| ------------------------- | ------------------------- | --------- | ------------------------------------------------------------------------------------ |
+| ink                       | `--color-ink`             | `#282019` | every stamp/label/tab, text, borders                                                 |
+| ink · secondary           | `--color-ink-2`           | `#463d31` | secondary ink                                                                        |
+| ink · deep                | `--color-ink-deep`        | `#1b1712` | the dark header ground                                                               |
+| ink ramp                  | `--color-ink-75…8`        | —         | hairlines, placeholders, ghosts, disabled fills — warm ink at opacity, never a grey  |
+| paper · system white      | `--color-paper`           | `#fbfaf7` | THE light surface: cards, stats, inputs, gauge tracks, value cells, and text on ink  |
+| band cream                | `--color-band-cream`      | `#f3ede2` | RollTable d20 banding (§2) **and** the Dashboard's card chassis (§1) — the one cream |
+| rust · action             | `--color-rust`            | `#a85222` | the one action colour                                                                |
+| pilot                     | `--color-pilot`           | `#ef894f` | pilot ontology                                                                       |
+| mech                      | `--color-mech`            | `#7a978a` | mech ontology                                                                        |
+| crawler                   | `--color-crawler`         | `#ce5898` | crawler ontology                                                                     |
+| adversary                 | `--color-adversary`       | `#8c4b38` | creatures · bio-titans · factions · npcs · meld · squads                             |
+| cargo                     | `--color-cargo`           | `#9c7a3e` | cargo fills                                                                          |
+| tier · core               | `--color-tier-core`       | `#a85947` | Core ability-tree tier (Advanced = pilot, Legendary = crawler)                       |
+| workshop ground           | `--color-wk-bg` / `-2`    | `#e6f0f5` | the step off-paper that makes a card read as a panel                                 |
+| workshop rules            | `--color-wk-line/-accent` | —         | advisory rule · game-state accent                                                    |
+| caution                   | `--color-caution`         | `#d7c37d` | attention fill that is neither ontology nor status                                   |
+| inert                     | `--color-inert`           | `#c0c0c0` | inert / non-numeric tier fill                                                        |
+| status-ok                 | `--color-status-ok`       | `#6f8a4a` | ok state overlay                                                                     |
+| status-warn               | `--color-status-warn`     | `#c07a2f` | warn state overlay                                                                   |
+| status-bad · damaged      | `--color-status-bad`      | `#b0432b` | damaged / destroyed / redline / over-cap                                             |
+| roll tiers · **BOT ONLY** | re-toned ramp             | —         | Discord roll outcomes only                                                           |
+| tech-level blues          | TL 1–6 · B · N            | —         | TL badge ramp                                                                        |
 
 **There is no second spelling.** The `su-*` brand family that these tokens were
 once defined as aliases _of_ is deleted (see the note in `theme.css`). It was a

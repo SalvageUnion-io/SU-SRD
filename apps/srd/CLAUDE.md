@@ -50,9 +50,9 @@ islands). Read-only — choices render ephemerally/non-editably
 
 The `/changelog` page (`src/pages/changelog.astro`) is rendered **at build time**. Its
 frontmatter reads two markdown files with `node:fs` and merges them via the shared
-`parseChangelog` / `mergeChangelogs` helpers from `suref-react`, then renders `ChangelogView`:
+`parseChangelog` / `mergeChangelogs` helpers from `component-lib`, then renders `Changelog`:
 
-- `apps/suref-web/CHANGELOG.md` — changes to this site and its companion tools (area badge **Site**)
+- `apps/srd/CHANGELOG.md` — changes to this site and its companion tools (area badge **Site**)
 - `packages/salvageunion-reference/CHANGELOG.md` — changes to the game-data package (area badge **Data**)
 
 Both files are **maintained by release-please** from conventional-commit PR titles (see

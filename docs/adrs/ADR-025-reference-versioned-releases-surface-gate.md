@@ -8,7 +8,7 @@ Accepted. **Partially supersedes [ADR-014](ADR-014-json-api-public-interface-npm
 ## Context
 
 [ADR-014](ADR-014-json-api-public-interface-npm-retired.md) established that the
-dataset's public distribution is the **served JSON API** (`apps/suref-web`
+dataset's public distribution is the **served JSON API** (`apps/srd`
 `/schema/*.json` + `.schema.json` + item endpoints + `api.astro`/`llms.txt`),
 retired npm publishing, kept the package **`private: true`, workspace-internal**
 (consumed only via `workspace:*` TypeScript source, no build step), and
