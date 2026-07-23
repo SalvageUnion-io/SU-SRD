@@ -29,7 +29,7 @@ import {
   resolveDataValueForTechLevel,
   resolveGrantedEntities,
 } from 'salvageunion-reference'
-import { isSchemaOnlyCatalogChoice } from 'salvageunion-reference/rules'
+import { isLegalStartingPattern, isSchemaOnlyCatalogChoice } from 'salvageunion-reference/rules'
 import { cn } from '../../../utils/cn'
 import type { EntityStatus } from '../../shared/entityStatus'
 import { type CardExtent, type CardSize, resolveCardDisplay } from '../../shared/displayMode'
@@ -579,6 +579,10 @@ function ReferenceEntityCardInner({
         ? [{ label: 'Chassis', value: resolvedChassisName }]
         : []
       : resolveAxisMarkers(entity)
+  // "Legal Starting Pattern" is a STORED data tag on the pattern, set only where
+  // the source book calls it out — never derived from an SV budget (that older
+  // computed version wrongly badged every untagged pattern).
+  const isLegalStartingPatternCard = isPattern && isLegalStartingPattern(pattern.legalStarting)
 
   // The lone non-titanic action that FOLDS into this entity's body: its content
   // goes in the body, and its sub-header STATS (type/range/damage/cost) merge
@@ -625,6 +629,17 @@ function ReferenceEntityCardInner({
           size="mini"
         />
       ))}
+      {/* A pattern the book sanctions as a starting loadout wears a stamp on the
+          seam, RIGHT of the `[Chassis | …]` marker. It rides the seam (not the
+          body) precisely so it survives the LISTING extent — the pattern rows
+          under a chassis render header-only, and that is where a reader picking
+          a starting mech is actually looking. Purely the stored `legalStarting`
+          data tag, never computed from tech level or salvage value. */}
+      {isLegalStartingPatternCard && (
+        <Badge shape="stamp" size="mini" className="whitespace-nowrap">
+          Legal Starting Pattern
+        </Badge>
+      )}
     </div>
   )
 

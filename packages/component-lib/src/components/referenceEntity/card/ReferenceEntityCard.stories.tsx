@@ -95,6 +95,15 @@ const surveyorPattern = pick(
   'Little Sestra pattern'
 )
 
+// The Mule's Hauler — one of the five patterns the book tags `legalStarting`,
+// which stamps "Legal Starting Pattern" on the seam beside the chassis marker.
+const muleChassis = pick(SalvageUnionReference.Chassis.all(), (c) => c.name === 'Mule', 'chassis')
+const haulerPattern = pick(
+  muleChassis.patterns ?? [],
+  (pat) => pat.name === 'Hauler',
+  'Mule legal starting pattern'
+)
+
 const nameOf = (e: SURefEntity): string => e.name
 const idOf = (e: SURefEntity): string => e.id
 
@@ -221,6 +230,14 @@ export const PatternCard: Story = () => (
       {chassis.name} · {surveyorPattern.name}
     </code>
     <ReferenceEntityCard data={chassis} pattern={surveyorPattern} />
+    {/* A `legalStarting`-tagged pattern adds the "Legal Starting Pattern" stamp
+        to the seam, right of the chassis marker — full card and listing row
+        alike (the row is what the chassis page's Patterns list renders). */}
+    <code className="font-body text-nano text-ink-2">
+      {muleChassis.name} · {haulerPattern.name} (legal starting — full + listing)
+    </code>
+    <ReferenceEntityCard data={muleChassis} pattern={haulerPattern} />
+    <ReferenceEntityCard data={muleChassis} pattern={haulerPattern} size="medium" extent="head" />
   </div>
 )
 
