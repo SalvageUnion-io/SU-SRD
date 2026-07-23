@@ -1,0 +1,89 @@
+---
+import BaseLayout from '../../../../../../layouts/BaseLayout.astro'
+import EntityView from '../../../../../../components/EntityView.astro'
+import { getPatternStaticPaths } from '../../../../../../lib/staticPaths'
+import { getReferenceEntityData } from '../../../../../../lib/gameData'
+import { patternStaticSummary } from '../../../../../../lib/patternSummary'
+import { SITE_URL } from '../../../../../../lib/constants'
+
+export function getStaticPaths() {
+  return getPatternStaticPaths()
+}
+
+const { chassis, pattern, chassisName, patternName } = Astro.props
+const { schemaId, itemId, patternId } = Astro.params
+
+const canonicalUrl = `${SITE_URL}/schema/${schemaId}/item/${itemId}/pattern/${patternId}/`
+const chassisUrl = `${SITE_URL}/schema/${schemaId}/item/${itemId}/`
+
+const displayData = getReferenceEntityData(chassis)
+const summary = patternStaticSummary(chassis, pattern)
+
+// The PATTERN's own prose (`summary.description`), not the leading chassis
+// prose — otherwise every pattern of a chassis ships the same meta description
+// as the chassis page and as each other.
+const firstParagraph = summary.description
+const metaDescription = firstParagraph
+  ? firstParagraph.length > 155
+    ? firstParagraph.slice(0, 152) + '...'
+    : firstParagraph
+  : `${patternName}: a ${chassisName} Pattern for the Salvage Union tabletop RPG.`
+
+const structuredData: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemPage',
+  name: summary.name,
+  description: metaDescription,
+  url: canonicalUrl,
+  keywords: [
+    'Salvage Union',
+    'TTRPG',
+    'SRD',
+    'System Reference Document',
+    'Pattern',
+    chassisName,
+    patternName,
+  ],
+  isPartOf: {
+    '@type': 'ItemPage',
+    name: `${chassisName} - Salvage Union SRD`,
+    url: chassisUrl,
+  },
+  mainEntity: {
+    '@type': 'Thing',
+    name: summary.name,
+    description: metaDescription,
+    ...(summary.source
+      ? {
+          isPartOf: {
+            '@type': 'Book',
+            name: summary.source,
+            author: { '@type': 'Organization', name: 'Leyline Press' },
+          },
+        }
+      : {}),
+  },
+}
+---
+
+<BaseLayout
+  title={`${patternName} - ${chassisName} Pattern - Salvage Union System Reference Document`}
+  description={metaDescription}
+  canonical={canonicalUrl}
+  ogType="article"
+  structuredData={structuredData}
+  preloadImage={displayData?.assetUrl}
+  breadcrumbs={[
+    { name: 'SRD', url: `${SITE_URL}/` },
+    { name: 'Chassis', url: `${SITE_URL}/schema/${schemaId}/` },
+    { name: chassisName, url: chassisUrl },
+    { name: patternName, url: canonicalUrl },
+  ]}
+>
+  <article class="flex min-h-full flex-1 flex-col items-center justify-center p-4">
+    {/* The pattern renders through the same Entity unit as every other page —
+        the interactive island card (in its pattern view) plus the static
+        SEO / no-JS sub-content. */}
+    <EntityView item={chassis} schemaId={schemaId!} pattern={pattern} />
+  </article>
+</BaseLayout>

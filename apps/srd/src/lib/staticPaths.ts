@@ -5,7 +5,8 @@ import {
   getEntitySchemas,
   getReferenceEntityData,
 } from './gameData'
-import type { SURefEntity } from 'salvageunion-reference'
+import { nameToSlug, normalizePatternName } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { isSchemaName } from './schemaName'
 
 const catalog = getSchemaCatalog()
@@ -64,6 +65,49 @@ export function getItemStaticPaths() {
       }
     } catch {
       // Skip schemas that can't be loaded
+    }
+  }
+
+  return paths
+}
+
+/**
+ * A page per chassis PATTERN, nested under its chassis:
+ * `/schema/chassis/item/<chassis>/pattern/<pattern>/`.
+ *
+ * Patterns are nested objects on a chassis rather than a schema of their own,
+ * so they are generated here instead of falling out of `getItemStaticPaths`.
+ * `schemaId` is always `chassis` — it stays a param only so the route sits in
+ * the existing `/schema/<schema>/item/<item>/` tree and its breadcrumbs
+ * resolve like every other page's.
+ */
+export function getPatternStaticPaths() {
+  const paths: {
+    params: { schemaId: string; itemId: string; patternId: string }
+    props: {
+      chassis: SURefEntity
+      pattern: SURefObjectPattern
+      chassisName: string
+      patternName: string
+    }
+  }[] = []
+
+  for (const chassis of SalvageUnionReference.Chassis.all()) {
+    const displayData = getReferenceEntityData(chassis)
+    for (const pattern of chassis.patterns ?? []) {
+      paths.push({
+        params: {
+          schemaId: 'chassis',
+          itemId: displayData.slug,
+          patternId: nameToSlug(pattern.name),
+        },
+        props: {
+          chassis,
+          pattern,
+          chassisName: displayData.name,
+          patternName: normalizePatternName(pattern.name),
+        },
+      })
     }
   }
 

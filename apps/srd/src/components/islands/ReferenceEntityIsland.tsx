@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useMemo } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import {
   ReferenceEntityCard,
   Skeleton,
@@ -7,15 +7,20 @@ import {
   ClassAbilityTree,
   EntityHrefProvider,
   EntityDetailLinkProvider,
+  PatternExternalLinkProvider,
 } from 'component-lib'
 import { GameDataGate, useGameData, type SchemaList } from '../../lib/useGameData'
 import { srdEntityHref } from '../../lib/entityHref'
+import { srdPatternExternalLink } from './srdPatternExternalLink'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type ReferenceEntityIslandProps = {
   item: SURefEntity
   compact?: boolean
   titleAs?: 'span' | 'h1'
+  /** Render one of `item`'s patterns (chassis only) instead of the chassis
+   *  itself — the pattern page's view. */
+  pattern?: SURefObjectPattern
   /** Which schemas to preload — defaults to `'all'`. Pass the per-route list
    *  from `../../lib/schemaPreloadDeps.ts` to load only what this item needs. */
   preloadSchemas?: SchemaList
@@ -25,6 +30,7 @@ export function ReferenceEntityIsland({
   item,
   compact = false,
   titleAs,
+  pattern,
   preloadSchemas,
 }: ReferenceEntityIslandProps) {
   const classSelections = useMemo(() => getClassSelections(item), [item])
@@ -66,14 +72,21 @@ export function ReferenceEntityIsland({
           <Suspense fallback={<Skeleton mode="card" compact={compact} />}>
             <EntityHrefProvider value={srdEntityHref}>
               <EntityDetailLinkProvider value={true}>
-                <ReferenceEntityCard
-                  data={item}
-                  size={compact ? 'medium' : 'large'}
-                  titleAs={titleAs}
-                  afterExtraContent={
-                    classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
-                  }
-                />
+                {/* The pattern-page link is offered on cards that CONTAIN a
+                    pattern view (a chassis's rows open one in a dialog), not on
+                    the pattern page itself — there it would link to the page
+                    the reader is already on. */}
+                <PatternExternalLinkProvider value={pattern ? undefined : srdPatternExternalLink}>
+                  <ReferenceEntityCard
+                    data={item}
+                    pattern={pattern}
+                    size={compact ? 'medium' : 'large'}
+                    titleAs={titleAs}
+                    afterExtraContent={
+                      classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
+                    }
+                  />
+                </PatternExternalLinkProvider>
               </EntityDetailLinkProvider>
             </EntityHrefProvider>
           </Suspense>

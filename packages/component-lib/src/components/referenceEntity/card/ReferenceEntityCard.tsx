@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 import type {
   SURefEntity,
@@ -22,6 +23,7 @@ import {
   getTechLevel,
   getTraits,
   isAbility,
+  normalizePatternName,
   parseContentBlockString,
   resolveActivationCurrency,
   resolveChoiceView,
@@ -41,6 +43,7 @@ import { ActivationCost } from '../../shared/ActivationCost'
 import { CardImage } from '../../shared/CardImage'
 import { CardControlRail } from '../../shared/CardControlRail'
 import { foldStatusControl } from '../../shared/foldStatusControl'
+import { RollTable } from '../../shared/RollTable'
 import type { CardFootMeta } from '../../shared/Card'
 import { Stat } from '../../shared/Stat'
 import type { StatItem } from '../../shared/statsBarTypes'
@@ -48,7 +51,8 @@ import { Content } from '../Content'
 import { ChoiceGroups } from '../choiceCard/ChoiceGroups'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
-import { useEntityExternalLink } from '../entityHrefContext'
+import { EntityDetailDialog } from '../EntityDetailDialog'
+import { useEntityExternalLink, usePatternExternalLink } from '../entityHrefContext'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { accentDeepColor, accentSurface, borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
@@ -398,6 +402,10 @@ function ReferenceEntityCardInner({
   // unconditionally on every render. The app-facing builder contract stays
   // `SURefEntity` — the same boundary cast as `entity` above.
   const externalLinkNode = useEntityExternalLink(data as SURefEntity)
+  // A PATTERN's own page link — same foot-band slot, but addressed by
+  // (chassis, pattern) because a pattern is not an entity. Read here for the
+  // same unconditional-hook reason as the line above.
+  const patternLinkNode = usePatternExternalLink(data as SURefEntity, pattern)
   const schemaName = (
     'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
   ) as SURefEnumSchemaName | 'actions' | undefined
@@ -1116,10 +1124,15 @@ function ReferenceEntityCardInner({
       : []
   // Artwork is shown on full + nested cards (CardImage handles the compact size).
   const showImage = !!assetUrl
-  // Body prose — the pattern's own flavor in a pattern view, else the entity's —
-  // with duplicated blocks filtered out (damaged-effect paragraph, grant lead).
-  const rawBodyContent =
-    isPattern && pattern ? pattern.content : isTitanicMeta ? titanicBodyContent : content
+  // Body prose — the entity's own, with duplicated blocks filtered out
+  // (damaged-effect paragraph, grant lead).
+  //
+  // A PATTERN VIEW leads with its CHASSIS's prose (on a pattern card the
+  // `entity` IS the chassis), NOT the pattern's: a pattern is a loadout OF a
+  // chassis, so the chassis identity reads first and the pattern's own flavour
+  // follows the chassis ability, just above its loadout. Reading order is
+  // chassis → chassis ability → pattern → systems → modules (`patternProse`).
+  const rawBodyContent = isTitanicMeta ? titanicBodyContent : content
   const bodyContent = rawBodyContent?.filter((block) => {
     if (
       damagedEffect &&
@@ -1489,6 +1502,51 @@ function ReferenceEntityCardInner({
     </div>
   )
 
+  // ROLL TABLE — a roll-tables entity's `table` IS the entity: its prose is a
+  // one-paragraph preamble and the table is everything the reader came for.
+  // The card had been rendering only that preamble, so every roll-table page
+  // showed a description and no table at all.
+  //
+  // A CATALOG tile and any NESTED card get it `collapsible` (header + Roll
+  // button, rows behind a Show toggle) so a 20-row table can't swallow a
+  // listing tile; a full card renders the whole table open.
+  const entityTable = 'table' in entity ? entity.table : undefined
+  //
+  // `showCommand` keeps the header band (and its Roll button) on every rung —
+  // the legacy renderer passed it unconditionally, and it is the affordance
+  // that makes a roll table a table you can USE. No `tableName`: the card it
+  // sits in already carries that name in its header.
+  const rollTableNode = entityTable ? (
+    <RollTable
+      table={entityTable}
+      showCommand
+      size={compact ? 'compact' : 'full'}
+      collapsible={isCatalog || depth > 0}
+      disabled={isDown}
+    />
+  ) : null
+
+  // PATTERN PROSE — the pattern's OWN flavour, name-tabbed like a folded
+  // action's prose so it can't be mistaken for the chassis prose that leads the
+  // body. It renders between the chassis ability and the loadout groups, which
+  // is what makes a pattern view read chassis → chassis ability → pattern →
+  // systems → modules. (A `head` pattern row surfaces this same text as its
+  // header hint and returns before the body, so it never doubles up.)
+  const patternProse =
+    isPattern && pattern.content && pattern.content.length > 0 ? (
+      <div className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
+        <Slab variant="solid" label={normalizePatternName(pattern.name)} />
+        <Content
+          body={pattern.content}
+          compact={compact}
+          chassisName={resolvedChassisName}
+          fontSize={compact ? 'text-xs' : 'text-sm'}
+          headerBg={tone.bg}
+          headerBgColor={tone.bgColor}
+        />
+      </div>
+    ) : null
+
   // LEFT ANCHOR — the artwork image if present, else a prominent nested NPC.
   // Content (flavor + nested groups/actions) flows to the RIGHT of / below the
   // anchor, filling the whitespace. Responsive: stacks full-width on narrow.
@@ -1646,6 +1704,9 @@ function ReferenceEntityCardInner({
             </div>
           )}
 
+          {/* ROLL TABLE — the entity's own table, after its prose preamble. */}
+          {rollTableNode}
+
           {/* SLOT: afterChoicesContent — appended just below the choices. */}
           {afterChoicesContent}
 
@@ -1680,6 +1741,9 @@ function ReferenceEntityCardInner({
               modules as listings, nested inside the drone card's own body. */}
           {droneSystems.length > 0 && renderListingGroup('Systems', droneSystems, flat)}
           {droneModules.length > 0 && renderListingGroup('Modules', droneModules, flat)}
+
+          {/* PATTERN prose — after the chassis ability, ahead of the loadout. */}
+          {patternProse}
 
           {/* PATTERN view → loadout groups. BASIC chassis / entities → nested groups. */}
           {(!isPattern || !hide?.patterns) &&
@@ -1723,12 +1787,11 @@ function ReferenceEntityCardInner({
                   wrapFlat(
                     flat,
                     pat.name,
-                    <ReferenceEntityCardInner
+                    <PatternListRow
                       key={pat.name}
-                      data={data}
+                      chassis={entity}
+                      chassisName={entityName}
                       pattern={pat}
-                      size="medium"
-                      extent="head"
                       depth={depth + 1}
                       hostDown={isDown}
                     />
@@ -1757,12 +1820,64 @@ function ReferenceEntityCardInner({
                 booklet={getBooklet(entity)}
                 page={getPageReference(entity)}
                 footMeta={footMeta}
-                externalLink={extent === 'full' ? externalLinkNode : undefined}
+                externalLink={
+                  extent === 'full' ? (isPattern ? patternLinkNode : externalLinkNode) : undefined
+                }
                 compact={compact}
               />
             )))}
       </div>
     </div>
+  )
+}
+
+/**
+ * `PatternListRow` — one row of a chassis card's Patterns list. A pattern has no
+ * page of its own inside the card (its `data` IS the chassis), so the row opens
+ * the FULL pattern view in a detail dialog rather than navigating: the same
+ * "click the name, read the pattern" move every other nested entity gets.
+ *
+ * It lives here, beside the recursive card, so the dialog's content is the very
+ * same `ReferenceEntityCardInner` the row is a `head` of — no import cycle, and
+ * no second pattern renderer to keep in step.
+ */
+function PatternListRow({
+  chassis,
+  chassisName,
+  pattern,
+  depth,
+  hostDown,
+}: {
+  chassis: ReferenceCardEntity
+  chassisName: string
+  pattern: SURefObjectPattern
+  depth: number
+  hostDown?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const patternName = normalizePatternName(pattern.name)
+  return (
+    <>
+      <ReferenceEntityCardInner
+        data={chassis}
+        pattern={pattern}
+        size="medium"
+        extent="head"
+        depth={depth}
+        hostDown={hostDown}
+        onCardClick={() => setOpen(true)}
+        cardClickLabel={`${patternName} — ${chassisName} pattern`}
+      />
+      <EntityDetailDialog
+        open={open}
+        onOpenChange={setOpen}
+        title={`${patternName} — ${chassisName} pattern`}
+      >
+        {/* depth 0 — the dialog shows the pattern as its own full card,
+            identity footer and all, exactly as its standalone page does. */}
+        <ReferenceEntityCardInner data={chassis} pattern={pattern} size="large" extent="full" />
+      </EntityDetailDialog>
+    </>
   )
 }
 

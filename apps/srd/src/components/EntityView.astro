@@ -1,8 +1,9 @@
 ---
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { ReferenceEntityIsland } from './islands/ReferenceEntityIsland'
 import { StaticEntityContent } from 'component-lib'
 import { extractStaticEntitySummary } from '../lib/gameData'
+import { patternStaticSummary } from '../lib/patternSummary'
 import { getSchemaPreloadList } from '../lib/schemaPreloadDeps'
 import { resolveTraitHref } from '../lib/staticLinks'
 
@@ -19,15 +20,20 @@ import { resolveTraitHref } from '../lib/staticLinks'
 type Props = {
   item: SURefEntity
   schemaId: string
+  /** Render one of `item`'s patterns (chassis only) rather than `item` itself. */
+  pattern?: SURefObjectPattern
 }
 
-const { item, schemaId } = Astro.props
-const staticSummary = extractStaticEntitySummary(item)
+const { item, schemaId, pattern } = Astro.props
+const staticSummary = pattern
+  ? patternStaticSummary(item, pattern)
+  : extractStaticEntitySummary(item)
 ---
 
 <ReferenceEntityIsland
   client:visible
   item={item}
+  pattern={pattern}
   titleAs="h1"
   preloadSchemas={getSchemaPreloadList(schemaId)}
 />

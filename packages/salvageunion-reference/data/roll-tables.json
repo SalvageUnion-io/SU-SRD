@@ -658,6 +658,12 @@
       "type": "standard"
     },
     "page": 219,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When you fail to pay upkeep, roll on this table."
+      }
+    ],
     "indexable": true,
     "additionalSources": [
       {
