@@ -155,6 +155,56 @@
         ]
       },
       {
+        "name": "Survivor",
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 13,
+        "systems": [
+          {
+            "name": ".50 Cal Machine Gun"
+          },
+          {
+            "name": "Armour Plating"
+          },
+          {
+            "name": "Floodlights"
+          },
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "High Pressure Hose"
+          },
+          {
+            "name": "Hydraulic Crusher"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Loudspeakers"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Cooling Unit"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "The only Mech that survived the trade caravan ambush Judge crawled out of, built to withstand everything the wastes can throw at it and haul cargo to wherever the job says it needs to go."
+          },
+          {
+            "type": "paragraph",
+            "value": "This is a pre-made Mech for the Reclamation of the Wastes Campaign, piloted by Judge."
+          }
+        ]
+      },
+      {
         "name": "Shunter",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
@@ -3272,7 +3322,7 @@
         ]
       },
       {
-        "name": "Bio Hunter",
+        "name": "Bio-Hunter",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 25,
@@ -4989,7 +5039,7 @@
         ]
       },
       {
-        "name": "Torpedo-Man",
+        "name": "Torpedoman",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 41,
@@ -5024,7 +5074,7 @@
         ]
       },
       {
-        "name": "Steel-Drivingman",
+        "name": "Steeldrivingman",
         "source": "Salvage Union Starter Set",
         "booklet": "PC",
         "page": 41,
@@ -7055,6 +7105,57 @@
           {
             "type": "paragraph",
             "value": "According to the Quantum Writ, the path of Ascension will free you from the mortal sufferings of flesh."
+          }
+        ]
+      },
+      {
+        "name": "Lighthouse",
+        "source": "False Flag",
+        "page": 52,
+        "systems": [
+          {
+            "name": "120mm Cannon"
+          },
+          {
+            "name": "Automated Weapon Turret",
+            "preselectedChoices": {
+              "c05fd7f4-cd5a-4c0d-8518-3566cece416d": "Automated Machine Gun Turret"
+            }
+          },
+          {
+            "name": "Electro-Magnetic Hardening"
+          },
+          {
+            "name": "Floodlights"
+          },
+          {
+            "name": "High Gain Antenna"
+          },
+          {
+            "name": "Loudspeakers"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Reactor Safety Protocols"
+          },
+          {
+            "name": "Electro-Magnetic Self-Destruct"
+          },
+          {
+            "name": "Firewall"
+          },
+          {
+            "name": "Multi-Optics"
+          },
+          {
+            "name": "Reactor Flare"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Developed by Ascension PLC as a variant of their Neura-Phage mechs, this pattern is designed to act as a static lighthouse emplacement, guiding wayward ships and defending the area if necessary. The lobotomised pilot reduces the interface power consumption to low, making it suitable for indefinite stints on its endless watch."
           }
         ]
       },
