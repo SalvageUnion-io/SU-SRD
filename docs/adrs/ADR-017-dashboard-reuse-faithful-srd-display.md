@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted — the Play Cockpit is **built** (realized in `apps/itun/src/components/play/`, Phases 1–7, routed at `/play/:id`; design in the [Dashboard design doc](../architecture/dashboard.md)). Sub-decision of
+Accepted — the Dashboard is **built** (realized in `apps/itun/src/components/dashboard/`, Phases 1–7, routed at `/dashboard/$id`; design in the [Dashboard design doc](../architecture/dashboard.md)). Sub-decision of
 [ADR-015](ADR-015-dashboard-distinct-play-surface.md).
 
 ## Context

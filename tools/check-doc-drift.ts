@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 /**
- * Doc-drift guard (mechanical, narrow — 2 checks, not a general doc-linter).
+ * Doc-drift guard (mechanical, narrow — 3 checks, not a general doc-linter).
  *
  * A prior campaign PR had to hand-fix docs/architecture/package-contracts.md
  * after its "Entry Points" JSON block silently fell out of sync with
@@ -22,15 +22,20 @@
  *      the registry-codegen docs drifting from the actual generated-file
  *      layout (e.g. a generated file getting renamed/split/removed without
  *      the docs following).
+ *   3. The root CLAUDE.md's "Workspace structure" bullet list must name exactly
+ *      the workspaces the root package.json's `apps/*` + `packages/*` globs
+ *      resolve to — `apps/su-assets` was a real, deployed workspace member that
+ *      no doc mentioned for months.
  */
 
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const pkgDir = join(root, 'packages/salvageunion-reference')
 const contractsDocPath = join(root, 'docs/architecture/package-contracts.md')
+const rootClaudeMdPath = join(root, 'CLAUDE.md')
 
 let failed = false
 
@@ -144,8 +149,77 @@ function checkGeneratedFileReferences(): void {
   )
 }
 
+// ---------------------------------------------------------------------------
+// Check 3: root CLAUDE.md's "Workspace structure" list matches the real
+// apps/* + packages/* workspace glob expansion
+// ---------------------------------------------------------------------------
+
+function checkWorkspaceList(): void {
+  const workspaceGlobs = ['apps', 'packages']
+
+  const actual = new Set<string>()
+  for (const parent of workspaceGlobs) {
+    const parentDir = join(root, parent)
+    if (!existsSync(parentDir)) continue
+    for (const entry of readdirSync(parentDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue
+      if (!existsSync(join(parentDir, entry.name, 'package.json'))) continue
+      actual.add(`${parent}/${entry.name}`)
+    }
+  }
+
+  if (actual.size === 0) {
+    fail(
+      `Found no workspace members under ${workspaceGlobs.join('/, ')}/ — is this ` +
+        'running from the monorepo root? Update this check if the layout changed.'
+    )
+    return
+  }
+
+  const doc = readFileSync(rootClaudeMdPath, 'utf-8')
+  const sectionMatch = doc.match(/\*\*Workspace structure:\*\*\s*\n([\s\S]*?)\n\s*\n\*\*/)
+
+  if (!sectionMatch) {
+    fail(
+      `Could not find the "**Workspace structure:**" bullet list in ` +
+        `${relative(root, rootClaudeMdPath)} — has the section been renamed or removed?`
+    )
+    return
+  }
+
+  const documented = new Set<string>()
+  // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group — a successful match always defines [1]
+  for (const match of sectionMatch[1]!.matchAll(/^-\s+`((?:apps|packages)\/[^/`]+)\/?`/gm)) {
+    // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group — a successful match always defines [1]
+    documented.add(match[1]!)
+  }
+
+  const undocumented = [...actual].filter((w) => !documented.has(w)).sort()
+  const phantom = [...documented].filter((w) => !actual.has(w)).sort()
+
+  if (undocumented.length > 0 || phantom.length > 0) {
+    const bullets = (ws: string[]) => ws.map((w) => `    ${w}/`).join('\n')
+    const lines: string[] = []
+    if (undocumented.length > 0) {
+      lines.push(`  real workspaces missing from the doc:\n${bullets(undocumented)}`)
+    }
+    if (phantom.length > 0) {
+      lines.push(`  documented workspaces that don't exist:\n${bullets(phantom)}`)
+    }
+    fail(
+      `${relative(root, rootClaudeMdPath)}'s "Workspace structure" list has drifted from ` +
+        `the real apps/* + packages/* workspace expansion.\n\n${lines.join('\n\n')}\n\n` +
+        `  → add or remove the bullet(s) so the list names every workspace exactly once.`
+    )
+    return
+  }
+
+  console.log(`✓ CLAUDE.md "Workspace structure" names all ${actual.size} workspaces.`)
+}
+
 checkExportsMap()
 checkGeneratedFileReferences()
+checkWorkspaceList()
 
 if (failed) {
   process.exit(1)

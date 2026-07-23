@@ -62,9 +62,10 @@ generator is in git. Produce the digest locally with `bun run rules:regen`
 
 MADR-style records of architecturally significant decisions. ADR-001–014 are
 **live in the code today**. ADR-015–020 are **Accepted** — the Dashboard play
-surface, **built** as the Play Cockpit (`components/play/`, routed at `/play/$id`).
+surface, **built** at `components/dashboard/`, routed at `/dashboard/$id`.
 ADR-021 is the **governing** surface/mode taxonomy and ADR-022 its Change Log
-companion — a target the code is still moving toward. ADR-023–026 are
+companion — both now **built** (hard-enforced create wizards, the Dashboard, and
+the `entityStore.update` provenance log + cap overrides). ADR-023–026 are
 **Accepted**; ADR-024–025 (derived release changelogs + the ref surface gate)
 are being implemented together, and ADR-026 (entity card design rules) is
 **built**. Each says so in its Status.
@@ -93,16 +94,17 @@ Read the matching ADR before proposing alternatives.
 | [ADR-019](adrs/ADR-019-dashboard-play-state-ephemeral.md)            | Dashboard play-state & prefs ephemeral/local-first, under the ADR-007 boundary (built)                          |
 | [ADR-020](adrs/ADR-020-dashboard-fixed-canvas-scale-to-fit.md)       | Fixed 1280×800 scale-to-fit canvas with a phone-reflow floor (built)                                            |
 | [ADR-021](adrs/ADR-021-itun-surface-taxonomy.md)                     | **Governing** — surface/mode taxonomy; rule enforcement is per-mode (Guided Creation / Free Edit / Guided Play) |
-| [ADR-022](adrs/ADR-022-provenance-log-and-overrides.md)              | Per-entity **Change Log** (provenance, behind a menu) + non-destructive stat overrides (target)                 |
+| [ADR-022](adrs/ADR-022-provenance-log-and-overrides.md)              | Per-entity **Change Log** (provenance, behind a menu) + non-destructive stat overrides (built)                  |
 | [ADR-023](adrs/ADR-023-drone-equipment-installed-loadout.md)         | Granted drone/companion equipment hosts a real installed Systems/Modules loadout (built)                        |
 | [ADR-024](adrs/ADR-024-derived-release-changelogs.md)                | Derived, per-app release changelogs (release-please) + on-site history; supersedes the web hand-changelog       |
 | [ADR-025](adrs/ADR-025-reference-versioned-releases-surface-gate.md) | Versioned internal releases + public-surface (TS + schema) gate for the ref; partially supersedes ADR-014       |
-| [ADR-026](adrs/ADR-026-entity-card-design-rules.md)                  | **Entity card design rules** — one renderer (shim), choice/stat-atom/modified-stats/tech-level rules (built)    |
+| [ADR-026](adrs/ADR-026-entity-card-design-rules.md)                  | **Entity card design rules** — one renderer, choice/stat-atom/modified-stats/tech-level rules (built)           |
 
 > ADR-021 is the governing decision for rules enforcement and takes precedence
 > over prior ADRs where they conflict on _how hard a rule is enforced on which
-> surface_. ADR-021/022 describe a **target** the code only partly reflects today;
-> the Dashboard-design ADRs (015–020) are proposed. See the implementation-status
+> surface_. ADR-021/022 and the Dashboard-design ADRs (015–020) are all realized in
+> the code; the remaining gaps (unwired `salvage` / `crafting` / `scrapMech`
+> primitives, no Change Log replay surface) are listed in the implementation-status
 > note in [rules-engine-boundary.md](architecture/rules-engine-boundary.md).
 
 ### Per-package CLAUDE.md
@@ -115,5 +117,12 @@ conventions:
 - [`apps/discord-bot/CLAUDE.md`](../apps/discord-bot/CLAUDE.md) — Discord.js bot
 - [`packages/salvageunion-reference/CLAUDE.md`](../packages/salvageunion-reference/CLAUDE.md) — Game data ORM + schemas
 - [`packages/component-lib/CLAUDE.md`](../packages/component-lib/CLAUDE.md) — Shared component library
+
+`apps/su-assets/` has no `CLAUDE.md` — it is a single Netlify function
+(`assets.salvageunion.io`) that serves licensed entity artwork out of the
+`lp-assets` Netlify Blobs store, with the bytes deliberately kept out of git.
+`packages/salvageunion-reference` points at it at runtime (`ASSET_BASE_URL` in
+`lib/utilities.ts`), so entity-card artwork in both `srd` and `itun` depends on it.
+See [`apps/su-assets/netlify.toml`](../apps/su-assets/netlify.toml).
 
 Plus the agent-readable convention digests in [`.claude/rules/`](../.claude/rules/).

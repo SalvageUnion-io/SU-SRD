@@ -2,7 +2,11 @@
 
 ## Status
 
-Accepted (decision recorded ahead of implementation). Subordinate to
+Accepted — **built**: the `changeLog` store (`apps/itun/src/lib/db/changeLog.ts`,
+schema in `lib/schemas/changeLog.ts`) is written at the `entityStore.update`
+chokepoint and read through `ChangeLogDrawer` behind the sheet menu; Live-Sheet
+cap overrides ship with the derived-baseline callout and revert. Replay/time-travel
+is still unbuilt. Subordinate to
 [ADR-021](ADR-021-itun-surface-taxonomy.md), which establishes the surface/mode
 model this ADR serves.
 

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Start here for navigation:** [`docs/README.md`](docs/README.md) maps user intent → relevant doc (architecture, ADRs, per-package CLAUDE.md).
 
-- [`docs/adrs/`](docs/adrs/) — architecture decision records (22 ADRs; 001–014 live in the code, 015–020 the proposed Dashboard play surface, 021 the governing surface/mode taxonomy + 022 provenance). Consult the matching ADR before revisiting a prior decision (e.g. [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) — the **governing** surface/mode taxonomy for where a rule is enforced — and [ADR-007](docs/adrs/ADR-007-automation-boundary.md) automation boundary before building rules-driven features).
+- [`docs/adrs/`](docs/adrs/) — architecture decision records (26 ADRs; 001–014 live in the code, 015–020 the Dashboard play surface as built at `apps/itun/src/components/dashboard/`, 021 the governing surface/mode taxonomy + 022 provenance, both built). Consult the matching ADR before revisiting a prior decision (e.g. [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) — the **governing** surface/mode taxonomy for where a rule is enforced — and [ADR-007](docs/adrs/ADR-007-automation-boundary.md) automation boundary before building rules-driven features).
 - [`docs/architecture/`](docs/architecture/) — cross-cutting architecture (display system, data flow, package contracts, rules-engine boundary, combat loop, SEO/a11y).
 - `docs/rules/` — agent-readable digest of the Salvage Union core rules + expansions (turn loop, heat, damage, salvage, creation, GM guidance, Meld/Chimerium subsystems). **Generated, gitignored, not committed** (condensed from the copyright-bearing PDFs in `rules/`, also gitignored) — produce it locally with `bun run rules:regen`, then read it instead of re-parsing the PDFs. Generator/manifest: `tools/rules-digest/`.
 
@@ -38,7 +38,7 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools, located in the `S
 
 The apps deploy to two platforms, each with an official MCP server wired up in the project-scoped [`.mcp.json`](.mcp.json) (committed; Claude Code prompts each contributor to approve it per-project):
 
-- **Netlify** — hosts `apps/srd` (static) and `apps/itun` (static SPA + the snapshot backend Netlify Functions + Blobs; see `apps/*/netlify.toml` and [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md)). MCP server: official `@netlify/mcp` (stdio); authenticates via the Netlify CLI/OAuth — no token in the file.
+- **Netlify** — hosts three sites: `apps/srd` (static), `apps/itun` (static SPA + the snapshot backend Netlify Functions + Blobs; see `apps/*/netlify.toml` and [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md)), and `apps/su-assets` (`assets.salvageunion.io` — one function serving licensed entity artwork out of the `lp-assets` Netlify Blobs store; `salvageunion-reference` resolves artwork URLs against it at runtime). MCP server: official `@netlify/mcp` (stdio); authenticates via the Netlify CLI/OAuth — no token in the file.
 - **Render** — hosts `apps/discord-bot` as a worker (see `render.yaml`). MCP server: official hosted server at `https://mcp.render.com/mcp`; reads `RENDER_API_KEY` from your shell env.
 - **GitHub** — repo host + Actions CI + PR workflow. MCP server: official remote `https://api.githubcopilot.com/mcp/`; reads `GITHUB_PAT` from your shell env.
 
@@ -97,6 +97,7 @@ bun run build:bot        # Build Discord bot
 - `apps/srd/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4, Vite). No auth, no backend.
 - `apps/itun/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Vite). Local-first: IndexedDB persistence, no auth, no backend. Has dashboard, live sheets, snapshot sharing.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
+- `apps/su-assets/` - Dedicated Netlify site (`assets.salvageunion.io`) serving licensed entity artwork from a Netlify Blobs store via one function. Image bytes live in Blobs, never in git. `packages/salvageunion-reference` points at it at runtime (`ASSET_BASE_URL` in `lib/utilities.ts`), so entity-card artwork in both `srd` and `itun` depends on it.
 - `packages/component-lib/` - Shared React component library (ShadCN + Tailwind, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
 
