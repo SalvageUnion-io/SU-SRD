@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.4.0...salvageunion-reference-v2.5.0) (2026-07-23)
+
+
+### Features
+
+* **srd:** chassis patterns get their own pages, roll tables render again ([#518](https://github.com/SalvageUnion-io/SU-SRD/issues/518)) ([02824e9](https://github.com/SalvageUnion-io/SU-SRD/commit/02824e9767d0865f8371ee856995ad1644089cf0))
+
 ## [2.4.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.3.5...salvageunion-reference-v2.4.0) (2026-07-23)
 
 
