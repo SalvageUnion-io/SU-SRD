@@ -215,6 +215,36 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
       'Ruleset §3.5 THE one-off: the .pilot-panel distressed-metal effect on srd /about is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of a rusted plate rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust blooms, the steel plate, the rivet heads and the engraved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. CAVEAT, since a file-level exemption is blunter than the rationale: it also swallows three literals outside the illustration block — the .catalog-item hover box-shadow and .catalog-item__name text-shadow (real shadow debt on an authored surface, still owed a token) and one #fff in the print block. Line-scoping the exemption was considered and rejected as too brittle to survive edits to this file; they are recorded here instead of silently absorbed.',
   },
   {
+    file: 'packages/salvageunion-reference/lib/schemas/entities.ts',
+    rules: ['raw-color'],
+    reason:
+      "A DATA contract, not a styling call site. `guideColor` is an authored per-guide hex whose Zod schema enforces `^#[0-9a-fA-F]{6}$` — `var(--color-ink)` is not a legal value for that field, so its default cannot be a token reference no matter how much we would like it to be. The rule the guard is really enforcing (use OUR palette) is still applied: the default is the canonical ink's own hex, #282019, not the pure black it used to be.",
+  },
+  {
+    file: 'packages/component-lib/src/components/shared/KofiButton.tsx',
+    rules: ['raw-color'],
+    reason:
+      "EXTERNAL BRAND colour, not ours. #72a4f2 is Ko-fi's own blue, the default fill for their button; the widget is recognisable BECAUSE it is that colour, so resolving it to a Salvage Union token would misrepresent someone else's mark. This is the standing rule for third-party marks: a colour we source from an external brand keeps the external value, and anything sourced to OUR design uses the canonical set. Note the prop is caller-overridable, so a consumer that wants a themed button already can.",
+  },
+  {
+    file: 'apps/itun/src/styles/print.css',
+    rules: ['raw-color', 'pure-white'],
+    reason:
+      'PRINT MEDIA. Inside `@media print` the surface is physical paper and the ink is real ink, so #fff / #000 are the correct values rather than the screen palette — warm paper (#fbfaf7) printed as a fill wastes toner and reads grey. theme.css already carves out exactly this exception in its paper note ("the only remaining #ffffff is one scoped exception: the @media print sheet"); this is that exception, in the app that owns the sheet.',
+  },
+  {
+    file: 'apps/itun/src/index.css',
+    rules: ['raw-color', 'pure-white'],
+    reason:
+      'Same print exception as styles/print.css above — the literals here are all inside the print/PDF-export block that forces a true-white ground for the live sheet.',
+  },
+  {
+    file: 'packages/component-lib/src/components/referenceEntity/card/entityCardTone.ts',
+    rules: ['raw-color'],
+    reason:
+      "Self-citation, not a colour: the sole match is a doc comment describing the `hostBase` parameter as accepting a resolvable CSS colour, naming the `rgb()` form it accepts. The rule matches the empty-parens spelling. Rewording the comment to dodge the regex would make the parameter's contract less clear to satisfy a lint — the same trade the raw-color rule already refuses for PR and issue references.",
+  },
+  {
     file: 'apps/srd/src/pages/greembeem.astro',
     rules: ['raw-color'],
     reason:

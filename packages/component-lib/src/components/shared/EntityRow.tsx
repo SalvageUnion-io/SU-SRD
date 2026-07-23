@@ -174,8 +174,8 @@ export function EntityRow(props: EntityRowProps) {
     <div
       className={cn(
         'group relative flex items-stretch overflow-hidden rounded-card border-2 border-ink',
-        'shadow-[0_1px_0_rgba(40,32,25,0.05)] transition-all duration-200',
-        'md:hover:-translate-y-0.5 md:hover:shadow-[0_7px_18px_rgba(40,32,25,0.16)]'
+        'shadow-[0_1px_0_var(--color-ink-8)] transition-all duration-200',
+        'md:hover:-translate-y-0.5 md:hover:shadow-[0_7px_18px_var(--color-ink-20)]'
       )}
       style={frameStyle}
     >

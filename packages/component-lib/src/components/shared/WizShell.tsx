@@ -91,7 +91,7 @@ type WizShellProps = {
  */
 export function WizTracker({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <span className="inline-flex items-baseline gap-2 whitespace-nowrap rounded-badge bg-ink px-3 py-1.5 font-cond text-caption font-bold uppercase leading-none tracking-caps text-paper shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.28)]">
+    <span className="inline-flex items-baseline gap-2 whitespace-nowrap rounded-badge bg-ink px-3 py-1.5 font-cond text-caption font-bold uppercase leading-none tracking-caps text-paper shadow-[inset_0_0_0_1.5px_var(--color-paper-30)]">
       <span>{label}</span>
       <span className="text-lede tracking-caps-tight text-pilot">{value}</span>
     </span>
@@ -221,7 +221,7 @@ export function WizShell({
   // `footerHud` it is MOUNTED at the right of the wide paper footer bar. Its own
   // dark ground keeps the ghost buttons legible in either home.
   const actionPill = (
-    <div className="pointer-events-auto flex w-full flex-col items-stretch gap-2 rounded-2xl bg-ink p-2.5 shadow-[0_16px_28px_-12px_rgba(0,0,0,0.6)] sm:w-auto sm:flex-row sm:items-center sm:gap-3 sm:rounded-full sm:pl-4">
+    <div className="pointer-events-auto flex w-full flex-col items-stretch gap-2 rounded-2xl bg-ink p-2.5 shadow-[0_16px_28px_-12px_var(--color-ink-50)] sm:w-auto sm:flex-row sm:items-center sm:gap-3 sm:rounded-full sm:pl-4">
       {trackers && (
         <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
           {trackers}
@@ -319,7 +319,7 @@ export function WizShell({
         className="border-b-4 border-paper/95 px-5 pb-2.5 pt-5 sm:px-7"
         style={{ background: 'var(--tone)' }}
       >
-        <p className="m-0 font-cond text-[clamp(26px,4vw,40px)] font-bold uppercase leading-[0.98] tracking-normal text-paper [text-shadow:0_2px_0_rgba(0,0,0,0.22)]">
+        <p className="m-0 font-cond text-[clamp(26px,4vw,40px)] font-bold uppercase leading-[0.98] tracking-normal text-paper [text-shadow:0_2px_0_var(--color-ink-20)]">
           {eyebrow}
         </p>
       </header>
@@ -386,7 +386,7 @@ export function WizShell({
                flush ink number tab, white condensed step head. */
             <div className={cn('min-h-0 flex-1 sm:pl-5', contentPad)}>
               <article
-                className="relative rounded-xl px-5 pb-6 pt-5 shadow-[0_14px_26px_-14px_rgba(0,0,0,0.4),inset_0_0_46px_rgba(0,0,0,0.08)] sm:pl-8"
+                className="relative rounded-xl px-5 pb-6 pt-5 shadow-[0_14px_26px_-14px_var(--color-ink-40),inset_0_0_46px_var(--color-ink-8)] sm:pl-8"
                 style={{
                   background: 'var(--tone-card, var(--tone))',
                   // Card ink: rust (mech) needs WHITE body ink for legible
@@ -397,12 +397,12 @@ export function WizShell({
               >
                 <span
                   aria-hidden="true"
-                  className="absolute -left-5 top-6 hidden h-16 w-14 place-items-center rounded-badge bg-ink font-cond text-[38px] font-extrabold leading-none text-paper shadow-[0_8px_14px_-8px_rgba(0,0,0,0.55)] sm:grid"
+                  className="absolute -left-5 top-6 hidden h-16 w-14 place-items-center rounded-badge bg-ink font-cond text-[38px] font-extrabold leading-none text-paper shadow-[0_8px_14px_-8px_var(--color-ink-50)] sm:grid"
                 >
                   {active + 1}
                 </span>
                 <header>
-                  <h1 className="m-0 font-cond text-display font-bold uppercase leading-[1.05] text-paper [text-shadow:0_1px_0_rgba(0,0,0,0.38)]">
+                  <h1 className="m-0 font-cond text-display font-bold uppercase leading-[1.05] text-paper [text-shadow:0_1px_0_var(--color-ink-40)]">
                     <span className="sr-only">
                       Step {active + 1} of {steps.length} ·{' '}
                     </span>
@@ -442,7 +442,7 @@ export function WizShell({
             )}
           >
             {footerHud ? (
-              <div className="pointer-events-auto flex w-full flex-col gap-2.5 rounded-2xl border-chrome border-ink bg-paper p-2.5 shadow-[0_16px_28px_-12px_rgba(0,0,0,0.6)] sm:w-auto sm:max-w-4xl sm:flex-row sm:items-stretch sm:gap-3 sm:pl-3.5">
+              <div className="pointer-events-auto flex w-full flex-col gap-2.5 rounded-2xl border-chrome border-ink bg-paper p-2.5 shadow-[0_16px_28px_-12px_var(--color-ink-50)] sm:w-auto sm:max-w-4xl sm:flex-row sm:items-stretch sm:gap-3 sm:pl-3.5">
                 <div className="flex min-w-0 flex-1 items-center">{footerHud}</div>
                 {actionPill}
               </div>

@@ -33,7 +33,7 @@ import { FOCUS_RING } from './interaction'
 export const CATALOG_TILE_CHROME = cn(
   'rounded-card border-chrome border-ink px-[15px] py-[13px] no-underline',
   'transition-[box-shadow,transform] duration-[120ms]',
-  'hover:-translate-y-0.5 hover:shadow-[0_5px_18px_rgba(34,30,23,0.18)]',
+  'hover:-translate-y-0.5 hover:shadow-[0_5px_18px_var(--color-ink-20)]',
   FOCUS_RING
 )
 

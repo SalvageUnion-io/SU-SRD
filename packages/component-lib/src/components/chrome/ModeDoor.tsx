@@ -21,7 +21,7 @@ type ModeDoorProps = {
 const DOOR_BASE =
   'relative min-h-[170px] cursor-pointer rounded-xl p-[22px] pb-5 pl-[26px] text-left transition-transform duration-[120ms] hover:-translate-y-0.5'
 const TAB =
-  'absolute -left-3.5 top-[18px] grid h-12 w-11 place-items-center rounded-[2px] bg-ink font-cond text-[22px] font-bold text-paper shadow-[0_8px_14px_-8px_rgba(0,0,0,0.55)]'
+  'absolute -left-3.5 top-[18px] grid h-12 w-11 place-items-center rounded-[2px] bg-ink font-cond text-[22px] font-bold text-paper shadow-[0_8px_14px_-8px_var(--color-ink-50)]'
 const HEAD =
   'mb-1.5 ml-[34px] block font-cond text-[27px] font-bold uppercase leading-none tracking-caps-tight'
 const BODY = 'ml-[34px] block font-body text-caption leading-[1.55] text-ink'
@@ -29,7 +29,7 @@ const CITE = 'ml-[34px] mt-2.5 block font-body text-[12.5px] font-bold text-ink'
 
 /** guided emphasis: a ground gap, a 3px ink ring, then a soft drop shadow. */
 const GUIDED_HALO =
-  'shadow-[0_0_0_3px_var(--ground),0_0_0_7px_var(--color-ink),0_18px_30px_-14px_rgba(0,0,0,0.5)]'
+  'shadow-[0_0_0_3px_var(--ground),0_0_0_7px_var(--color-ink),0_18px_30px_-14px_var(--color-ink-50)]'
 
 /**
  * ModeDoor — the onboarding "choose how to create" poster card (mockup `.door`,
@@ -60,7 +60,7 @@ export function ModeDoor({
         FOCUS_RING,
         guided
           ? GUIDED_HALO
-          : 'border-entity border-dashed border-ink/55 bg-paper text-ink shadow-[0_14px_26px_-14px_rgba(0,0,0,0.4)]',
+          : 'border-entity border-dashed border-ink/55 bg-paper text-ink shadow-[0_14px_26px_-14px_var(--color-ink-40)]',
         className
       )}
     >
@@ -70,7 +70,7 @@ export function ModeDoor({
       <span
         className={cn(
           HEAD,
-          guided ? 'text-paper [text-shadow:0_1px_0_rgba(0,0,0,0.38)]' : 'text-ink'
+          guided ? 'text-paper [text-shadow:0_1px_0_var(--color-ink-40)]' : 'text-ink'
         )}
       >
         {headline}

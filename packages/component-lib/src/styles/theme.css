@@ -127,11 +127,25 @@
      the shadow family (su-grey/-light/-medium/-dark, su-muted, su-ink-soft,
      su-sand, su-input-bg), which were true neutrals fighting the warm paper.
      Warm ink at opacity reads as the same material at distance. */
+  --color-ink-85: rgb(40 32 25 / 0.85);
   --color-ink-75: rgb(40 32 25 / 0.75);
   --color-ink-50: rgb(40 32 25 / 0.5);
+  --color-ink-40: rgb(40 32 25 / 0.4);
   --color-ink-30: rgb(40 32 25 / 0.3);
+  --color-ink-20: rgb(40 32 25 / 0.2);
   --color-ink-12: rgb(40 32 25 / 0.12);
   --color-ink-8: rgb(40 32 25 / 0.08);
+  /* The -85 / -40 / -20 rungs were added for SHADOWS, which had been authored
+     as raw `rgba()` inside Tailwind arbitrary values and were invisible to the
+     token guard until its `rgb()` arm stopped using `\b` (a boundary that can
+     never fire next to the `_` separator). Those 26 literals used THREE
+     different bases — pure black, `rgb(40,32,25)` (ink), and `rgb(34,30,23)`
+     (an ink that exists nowhere in this file) — across 16 alpha values, for
+     what is a handful of elevations.
+     They all resolve here, to warm ink at opacity, for the reason the note
+     above already gives: a true-neutral shadow fights warm paper. Each new rung
+     covers a real cluster (0.16-0.22, 0.38-0.45, 0.85-0.90) rather than
+     enshrining one call site's number. */
   /* Paper — the ONE light surface (ruleset §4.1). NOT pure white and NOT cream:
      a near-white warm paper. Pure white is retired from the UI — paper is used
      universally (surfaces, value cells, and text on ink). The only remaining
@@ -139,6 +153,11 @@
      The Dashboard cockpit is warm paper too (ruleset §1), so the dark-skin
      exception this note used to carve out no longer exists. */
   --color-paper: rgb(251, 250, 247); /* #fbfaf7 */
+  /* Paper at opacity — the inset bevel highlight on a dark surface. One rung,
+     because there is exactly one such highlight; it was `rgba(255,255,255,0.28)`,
+     a pure white that the paper law (§4.1) retired everywhere the guard could
+     actually see. */
+  --color-paper-30: rgb(251 250 247 / 0.3);
   --color-rust: rgb(168, 82, 34); /* #a85222 — THE single action color */
   /* The one sanctioned cream. The rendering matrix (ruleset §2) specifies the
      RollTable as "banded d20, peach/cream", so cream survives for exactly that

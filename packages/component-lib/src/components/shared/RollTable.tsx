@@ -531,7 +531,7 @@ function ColumnsRollTable({
                               'relative text-left text-ink transition-all duration-200',
                               compact ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-base',
                               isHighlighted &&
-                                'z-[1] scale-[1.04] cursor-pointer outline-4 outline-ink shadow-[0_14px_40px_rgba(0,0,0,0.85)]'
+                                'z-[1] scale-[1.04] cursor-pointer outline-4 outline-ink shadow-[0_14px_40px_var(--color-ink-85)]'
                             )}
                             onClick={isHighlighted ? handleClear : undefined}
                             onKeyDown={
@@ -724,7 +724,7 @@ function StandardRollTable({
                       'relative flex flex-row flex-wrap border-b border-ink/10 transition-all duration-200',
                       bgColor,
                       isHighlighted &&
-                        'z-[1] scale-[1.04] cursor-pointer shadow-[0_0_0_4px_rgba(0,0,0,0.9),0_14px_40px_rgba(0,0,0,0.85)]',
+                        'z-[1] scale-[1.04] cursor-pointer shadow-[0_0_0_4px_var(--color-ink-85),0_14px_40px_var(--color-ink-85)]',
                       compact ? 'gap-1' : 'gap-2'
                     )}
                     onClick={isHighlighted ? handleClearHighlight : undefined}
