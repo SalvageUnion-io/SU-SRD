@@ -1,10 +1,18 @@
 ---
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { Image } from 'astro:assets'
-import { PageHeading } from 'component-lib'
+import { LlmStatement, PageHeading } from 'component-lib'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import eldridgeCoastMap from '../assets/eldridge-coast-map.png'
 import { KofiButtonIsland } from '../components/islands/KofiButtonIsland'
 import { SITE_URL } from '../lib/constants'
+
+// The shared LLM statement, read at build time from the repo root so both this
+// site and ITUN render the same words. Same constraint as /changelog: Astro's
+// build pipeline rejects Vite `?raw` imports of `.md`, so this reads the file
+// via node:fs from the build working directory (the app root) instead.
+const llmStatementMd = readFileSync(resolve(process.cwd(), '../../LLM_STATEMENT.md'), 'utf8')
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
 
@@ -128,6 +136,9 @@ const structuredData = {
           The site is open source and contributions are welcome.
         </p>
       </section>
+
+      <!-- How this was built (shared LLM statement) -->
+      <LlmStatement markdown={llmStatementMd} className="text-center" />
 
       <!-- Support -->
       <section class="text-sm leading-relaxed text-center">

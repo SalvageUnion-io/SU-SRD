@@ -8,6 +8,7 @@
  * look, so it reads as part of this app.
  */
 
+import { LlmStatement } from '../../llmStatement/LlmStatement'
 import { KofiButton } from './KofiButton'
 
 type AboutScreenProps = {
@@ -15,9 +16,12 @@ type AboutScreenProps = {
    * (it used to import ITUN's package.json directly, which is what kept it
    * pinned to that one app). */
   version: string
+  /** Raw `LLM_STATEMENT.md`, passed in for the same reason: the library reads
+   * no files, so each app inlines the repo-root statement its own way. */
+  llmStatement: string
 }
 
-export function AboutScreen({ version }: AboutScreenProps) {
+export function AboutScreen({ version, llmStatement }: AboutScreenProps) {
   return (
     <main className="min-h-screen bg-wk-bg px-4 py-8 sm:px-8 sm:py-12 lg:px-12">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
@@ -75,6 +79,12 @@ export function AboutScreen({ version }: AboutScreenProps) {
             .
           </p>
         </section>
+
+        <LlmStatement
+          markdown={llmStatement}
+          className="border-t-2 border-ink pt-6 font-body text-ink"
+          headingClassName="tracking-caps-tight text-rust"
+        />
 
         <section className="flex flex-col items-start gap-3 border-t-2 border-ink pt-6">
           <h2 className="font-cond text-lg font-bold uppercase tracking-caps-tight text-rust">
