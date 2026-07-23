@@ -1,5 +1,5 @@
 ---
-import { PageHeading } from 'component-lib'
+import { PageHeading, Slab } from 'component-lib'
 import BaseLayout from '../../layouts/BaseLayout.astro'
 
 const lastUpdated = '6 July 2026'
@@ -21,7 +21,7 @@ const lastUpdated = '6 July 2026'
         </p>
 
         <div>
-          <PageHeading variant="subheading" className="mb-1">The service</PageHeading>
+          <Slab as="h2" variant="solid" label="The service" />
           <p>
             The Bot provides dice-rolling and reference lookups for the Salvage Union tabletop
             roleplaying game via Discord slash commands (<code>/su</code>). It is provided free of
@@ -31,7 +31,7 @@ const lastUpdated = '6 July 2026'
         </div>
 
         <div>
-          <PageHeading variant="subheading" className="mb-1">Acceptable use</PageHeading>
+          <Slab as="h2" variant="solid" label="Acceptable use" />
           <p>
             Don&rsquo;t use the Bot to break Discord&rsquo;s Terms of Service or Community
             Guidelines, to abuse or overload the service, or for any unlawful purpose.
@@ -39,7 +39,7 @@ const lastUpdated = '6 July 2026'
         </div>
 
         <div>
-          <PageHeading variant="subheading" className="mb-1">Intellectual property</PageHeading>
+          <Slab as="h2" variant="solid" label="Intellectual property" />
           <p>
             Salvage Union is copyrighted by{' '}
             <a
@@ -54,7 +54,7 @@ const lastUpdated = '6 July 2026'
         </div>
 
         <div>
-          <PageHeading variant="subheading" className="mb-1">Liability</PageHeading>
+          <Slab as="h2" variant="solid" label="Liability" />
           <p>
             To the maximum extent permitted by law, the operators of the Bot are not liable for any
             damages arising from its use or unavailability.
@@ -62,7 +62,7 @@ const lastUpdated = '6 July 2026'
         </div>
 
         <div>
-          <PageHeading variant="subheading" className="mb-1">Contact</PageHeading>
+          <Slab as="h2" variant="solid" label="Contact" />
           <p>
             Questions about these terms:{' '}
             <a

@@ -1,5 +1,5 @@
 ---
-import { PageHeading } from 'component-lib'
+import { PageHeading, Slab } from 'component-lib'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import { getSchemaCatalog } from '../lib/gameData'
 import { SITE_URL } from '../lib/constants'
@@ -35,7 +35,7 @@ const baseUrl = SITE_URL
 
       <!-- Overview -->
       <section class="flex flex-col gap-3 text-sm leading-relaxed">
-        <PageHeading variant="subheading">Overview</PageHeading>
+        <Slab as="h2" variant="solid" label="Overview" />
         <p>
           All game data on salvageunion.io is available as machine-readable JSON. The API is static — every endpoint is a plain file served directly from the site. No authentication is required.
         </p>
@@ -56,7 +56,7 @@ const baseUrl = SITE_URL
 
       <!-- Endpoints -->
       <section class="flex flex-col gap-6">
-        <PageHeading variant="subheading">Endpoints</PageHeading>
+        <Slab as="h2" variant="solid" label="Endpoints" />
 
         <!-- Schema data array -->
         <div class="rounded-panel border-2 border-wk-faint bg-paper">
@@ -164,7 +164,7 @@ const baseUrl = SITE_URL
 
       <!-- Usage example -->
       <section class="flex flex-col gap-3">
-        <PageHeading variant="subheading">Usage Example</PageHeading>
+        <Slab as="h2" variant="solid" label="Usage Example" />
         <p class="text-sm leading-relaxed">
           Fetch all chassis data in browser JavaScript:
         </p>
@@ -175,7 +175,7 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
 
       <!-- Available schemas -->
       <section class="flex flex-col gap-4">
-        <PageHeading variant="subheading">Available Schemas</PageHeading>
+        <Slab as="h2" variant="solid" label="Available Schemas" />
         <p class="text-sm leading-relaxed">
           The following schema IDs are available. Use them in the endpoint patterns above.
         </p>
@@ -213,7 +213,7 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
 
       <!-- CORS & headers -->
       <section class="flex flex-col gap-3">
-        <PageHeading variant="subheading">CORS Policy</PageHeading>
+        <Slab as="h2" variant="solid" label="CORS Policy" />
         <p class="text-sm leading-relaxed">
           All <code class="rounded-card bg-wk-bg px-1 py-0.5">/schema/</code> endpoints include the following response headers:
         </p>
@@ -227,7 +227,7 @@ Content-Type: application/json</code></pre>
 
       <!-- Licensing note -->
       <section class="flex flex-col gap-3 text-sm leading-relaxed">
-        <PageHeading variant="subheading">Licensing</PageHeading>
+        <Slab as="h2" variant="solid" label="Licensing" />
         <p>
           Data returned by this API is published under the{' '}
           <a

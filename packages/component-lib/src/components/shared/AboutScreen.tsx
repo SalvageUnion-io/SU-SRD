@@ -8,6 +8,7 @@
  * it reads as part of this app.
  */
 
+import { Slab } from '../chrome/Slab'
 import { Colophon } from './Colophon'
 
 type AboutScreenProps = {
@@ -36,9 +37,7 @@ export function AboutScreen({ version, aboutJrvs, llmStatement }: AboutScreenPro
         </header>
 
         <section className="flex flex-col gap-3 font-body text-sm leading-relaxed text-ink">
-          <h2 className="font-cond text-lg font-bold uppercase tracking-caps-tight text-rust">
-            What is this?
-          </h2>
+          <Slab as="h2" variant="solid" label="What is this?" className="mb-0" />
           <p>
             <strong>In the Union Now</strong> is an unofficial, community-built character builder
             and game manager for{' '}
@@ -86,15 +85,7 @@ export function AboutScreen({ version, aboutJrvs, llmStatement }: AboutScreenPro
           llmMarkdown={llmStatement}
           kofiCode="C3Z82382ZC"
           className="border-t-2 border-ink pt-6 font-body text-ink"
-          headingClassName="tracking-caps-tight text-rust"
-          footer={
-            <p className="font-body text-xs text-wk-muted">
-              Version {version} —{' '}
-              <a href="/changelog" className="font-semibold text-rust hover:underline">
-                view changelog
-              </a>
-            </p>
-          }
+          footer={<p className="font-body text-xs text-wk-muted">Version {version}</p>}
         />
       </div>
     </main>

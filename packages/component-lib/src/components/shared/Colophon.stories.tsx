@@ -17,6 +17,5 @@ export const Default: Story = () => (
     llmMarkdown={statementMd}
     kofiCode="C3Z82382ZC"
     className="font-body text-ink"
-    headingClassName="tracking-caps-tight text-rust"
   />
 )

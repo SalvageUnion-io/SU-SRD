@@ -12,6 +12,6 @@
   interpret inline markdown — no links, bold, or lists.
 -->
 
-# About JRVS
+# About the Dev
 
 I like tabletop games, "Weird" Al Yankovic, and the 2010 DreamWorks animated picture film "Megamind".

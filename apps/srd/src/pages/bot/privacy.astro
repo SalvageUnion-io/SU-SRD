@@ -1,5 +1,5 @@
 ---
-import { PageHeading } from 'component-lib'
+import { PageHeading, Slab } from 'component-lib'
 import BaseLayout from '../../layouts/BaseLayout.astro'
 
 const lastUpdated = '6 July 2026'
@@ -20,7 +20,7 @@ const lastUpdated = '6 July 2026'
         </p>
 
         <div>
-          <PageHeading variant="subheading" className="mb-1">What we collect</PageHeading>
+          <Slab as="h2" variant="solid" label="What we collect" />
           <p>
             Nothing persistent. The Bot is stateless. It responds to slash-command and button
             interactions in real time and keeps no record of them afterward.
@@ -44,7 +44,7 @@ const lastUpdated = '6 July 2026'
         </div>
 
         <div>
-          <PageHeading variant="subheading" className="mb-1">Error diagnostics</PageHeading>
+          <Slab as="h2" variant="solid" label="Error diagnostics" />
           <p>
             To keep the Bot reliable, unexpected errors may be sent to our error-monitoring provider
             (Sentry). These reports can include technical details about the error and the interaction
@@ -54,7 +54,7 @@ const lastUpdated = '6 July 2026'
         </div>
 
         <div>
-          <PageHeading variant="subheading" className="mb-1">Third parties</PageHeading>
+          <Slab as="h2" variant="solid" label="Third parties" />
           <ul class="flex list-disc flex-col gap-1 pl-5">
             <li>
               <strong>Discord</strong> — your use of the Bot is also governed by Discord&rsquo;s
@@ -65,7 +65,7 @@ const lastUpdated = '6 July 2026'
         </div>
 
         <div>
-          <PageHeading variant="subheading" className="mb-1">Data requests</PageHeading>
+          <Slab as="h2" variant="solid" label="Data requests" />
           <p>
             Because we store no personal data, there is nothing to export or delete. For any privacy
             questions, contact{' '}

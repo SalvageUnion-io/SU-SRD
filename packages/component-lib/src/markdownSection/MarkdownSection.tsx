@@ -1,19 +1,18 @@
-import { PageHeading } from '../components/chrome/PageHeading'
+import { Slab } from '../components/chrome/Slab'
 import { cn } from '../utils/cn'
 import { parseMarkdownSection } from './parseMarkdownSection'
 
 type MarkdownSectionProps = {
   /** Raw contents of a repo-root prose document. */
   markdown: string
-  /** Section modifiers (each app supplies its own body colour/alignment). */
+  /** Section modifiers (each app supplies its own body colour/spacing). */
   className?: string
-  /** Heading modifiers, so the head matches its sibling sections per app. */
-  headingClassName?: string
 }
 
 /**
  * MarkdownSection — a `#` heading plus its paragraphs, rendered from a raw
- * markdown string.
+ * markdown string. The heading is a solid `Slab`, the canonical section head on
+ * the about/back pages.
  *
  * The prose is NOT held here: it lives in a repo-root document
  * (`ABOUT_JRVS.md`, `LLM_STATEMENT.md`) and is passed in raw, so the two sites
@@ -22,16 +21,12 @@ type MarkdownSectionProps = {
  * the library stays data-source agnostic, and each app reads the file the way
  * its build allows (srd via `node:fs`, ITUN via a Vite `?raw` import).
  */
-export function MarkdownSection({ markdown, className, headingClassName }: MarkdownSectionProps) {
+export function MarkdownSection({ markdown, className }: MarkdownSectionProps) {
   const { heading, paragraphs } = parseMarkdownSection(markdown)
 
   return (
     <section className={cn('flex flex-col gap-3 text-sm leading-relaxed', className)}>
-      {heading && (
-        <PageHeading variant="subheading" className={headingClassName}>
-          {heading}
-        </PageHeading>
-      )}
+      {heading && <Slab as="h2" variant="solid" label={heading} className="mb-0" />}
       {paragraphs.map((paragraph) => (
         <p key={paragraph}>{paragraph}</p>
       ))}

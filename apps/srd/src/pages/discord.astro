@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { buttonVariants, cn, PageHeading } from 'component-lib'
+import { buttonVariants, cn, PageHeading, Slab } from 'component-lib'
 import { SITE_URL, ITUN_URL } from '../lib/constants'
 
 // The install CTA is an <a> styled as THE primary (rust) action — the lib
@@ -75,7 +75,7 @@ const breadcrumbs = [
 
       <!-- Commands -->
       <section class="flex flex-col gap-6">
-        <PageHeading variant="subheading">Commands</PageHeading>
+        <Slab as="h2" variant="solid" label="Commands" />
 
         <div class="rounded-panel border-2 border-wk-faint bg-paper">
           <div class="border-b-2 border-wk-faint px-5 py-3">
@@ -147,7 +147,7 @@ const breadcrumbs = [
 
       <!-- Notes -->
       <section class="flex flex-col gap-3 text-sm leading-relaxed">
-        <PageHeading variant="subheading">Good to know</PageHeading>
+        <Slab as="h2" variant="solid" label="Good to know" />
         <ul class="ml-5 flex list-disc flex-col gap-2">
           <li>
             Typing <code class="rounded-card bg-wk-bg px-1 py-0.5">/su</code> filters

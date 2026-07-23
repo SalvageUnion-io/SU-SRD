@@ -19,12 +19,5 @@ type ColophonIslandProps = {
  * back when the support section stood on its own.)
  */
 export function ColophonIsland({ aboutMarkdown, llmMarkdown }: ColophonIslandProps) {
-  return (
-    <Colophon
-      aboutMarkdown={aboutMarkdown}
-      llmMarkdown={llmMarkdown}
-      kofiCode="C3Z82382ZC"
-      className="text-center"
-    />
-  )
+  return <Colophon aboutMarkdown={aboutMarkdown} llmMarkdown={llmMarkdown} kofiCode="C3Z82382ZC" />
 }

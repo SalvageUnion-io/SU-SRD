@@ -16,7 +16,7 @@ const DOCS = ['ABOUT_JRVS.md', 'LLM_STATEMENT.md'].map((name) => ({
 describe('parseMarkdownSection', () => {
   test('drops the HTML comment header and reads each heading', () => {
     const headings = DOCS.map((doc) => parseMarkdownSection(doc.markdown).heading)
-    expect(headings).toEqual(['About JRVS', 'LLM Statement'])
+    expect(headings).toEqual(['About the Dev', 'LLM Statement'])
   })
 
   test('joins soft-wrapped prose into one paragraph per block', () => {
