@@ -84,6 +84,7 @@ export function ReferenceEntityIsland({
                     afterExtraContent={
                       classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
                     }
+                    asideLead={!!classEntity}
                   />
                 </PatternHrefProvider>
               </EntityDetailLinkProvider>

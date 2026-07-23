@@ -106,6 +106,7 @@ export function ClassDetail({ selectedClass }: ClassDetailProps) {
     <ReferenceEntityCard
       data={selectedClass}
       afterExtraContent={<ClassAbilityTree classEntity={selectedClass} />}
+      asideLead
     />
   )
 }

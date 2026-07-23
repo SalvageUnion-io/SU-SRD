@@ -218,6 +218,19 @@ export type ReferenceEntityCardProps = {
   subtitleExtra?: ReactNode
   abilitiesSection?: ReactNode
   afterExtraContent?: ReactNode
+  /** ASIDE LEAD — opt in when this card's `afterExtraContent` is a SECTION of
+   * its own (the class pages' ability trees) rather than trailing body content.
+   * The artwork and flavour prose become a centred lead row and the trailing
+   * section spans the full width beneath, instead of wrapping the illustration.
+   *
+   * Explicit, NOT inferred from `afterExtraContent`: that slot is generic, and
+   * its other producer is a pattern's Systems/Modules loadout
+   * (`useChassisPatternConfig`). A pattern card renders with the CHASSIS as its
+   * `data`, so it inherits the chassis artwork and would otherwise satisfy an
+   * inferred gate — flipping every ITUN mech-wizard pattern card on an
+   * artwork-bearing chassis to a layout meant only for class pages. Only the
+   * class consumers set this. */
+  asideLead?: boolean
   afterChoicesContent?: ReactNode
   footerOverride?: ReactNode
   /** Write-layer: inline `[label value]` meta pairs (cost / SV) folded into the
@@ -380,6 +393,7 @@ function ReferenceEntityCardInner({
   subtitleExtra,
   abilitiesSection,
   afterExtraContent,
+  asideLead: asideLeadRequested = false,
   afterChoicesContent,
   footerOverride,
   footMeta,
@@ -1613,13 +1627,21 @@ function ReferenceEntityCardInner({
     !showImage && !isPattern ? nestedGroups.find((group) => group.label === 'NPCs') : undefined
   const anchorNpcEntities = npcGroup?.entities ?? []
   const hasAnchor = showImage || anchorNpcEntities.length > 0
-  // ASIDE LEAD — an artwork card that also has a full-width trailing section
-  // (`afterExtraContent`, i.e. the class pages' ability trees). Those trees are
-  // their own grid of cards; letting them flow around the illustration reads as
-  // wrapped text, not as a section. So the artwork and the flavour prose become
-  // a centred two-column LEAD, and everything after it — the trailing section
-  // included — spans the full width beneath both. No float, so nothing wraps.
-  const asideLead = showImage && !!afterExtraContent
+  // ASIDE LEAD — an artwork card whose trailing section is a SECTION of its own
+  // (the class pages' ability trees). Those trees are their own grid of cards;
+  // letting them flow around the illustration reads as wrapped text, not as a
+  // section. So the artwork and the flavour prose become a centred two-column
+  // LEAD, and everything after it — the trailing section included — spans the
+  // full width beneath both. No float, so nothing wraps.
+  //
+  // The consumer OPTS IN via `asideLead`; it is never inferred from
+  // `afterExtraContent` being present. That slot is generic, and a pattern's
+  // Systems/Modules loadout fills it too — and since a pattern card renders
+  // with the CHASSIS as its `data`, it inherits the chassis artwork and would
+  // satisfy an inferred gate, dragging every artwork-chassis pattern card into
+  // a class-page layout. Artwork + a trailing section are still required: with
+  // neither there is no lead row to build.
+  const asideLead = asideLeadRequested && showImage && !!afterExtraContent
   const flat = hasAnchor && !asideLead
   const inFlowGroups = (isPattern ? patternGroups : nestedGroups).filter(
     (group) => group !== npcGroup
