@@ -649,9 +649,11 @@ function ReferenceEntityCardInner({
     !isAction && !isPatternListing && techLevel != null
       ? {
           key: 'tech-level',
-          // Compact (horizontal) renders "Tech"; the full-size vertical value box
-          // renders two-line "Tech" / "Level".
-          label: 'Tech',
+          // Compact (horizontal) renders the SHORT form "TL" — the same
+          // shortLabel treatment SP / EP / SV get, and the abbreviation players
+          // actually use. Bare "Tech" was neither the full name nor the short
+          // one. The full-size vertical value box keeps two-line "Tech" / "Level".
+          label: compact ? 'TL' : 'Tech',
           bottomLabel: compact ? undefined : 'Level',
           value: String(techLevelDisplay),
           // A TL-scalable item shows the EFFECTIVE level; a rust `modified`
