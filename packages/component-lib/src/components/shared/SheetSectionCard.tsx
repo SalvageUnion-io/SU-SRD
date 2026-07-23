@@ -56,9 +56,20 @@ export function SheetSectionCard({
 }: SheetSectionCardProps) {
   return (
     <Card
-      // Accent band on header + footer; `headerBg` must be truthy for
-      // Card to draw the 3px border (borderColor → the accent tone).
+      // Accent band on header + footer.
+      //
+      // `headerBgColor` is load-bearing, not redundant with `headerBg`. Card
+      // derives the DEEP accent for its sub-header and footer bands from the
+      // header, and its derivation is a string rewrite of the utility class:
+      // `bg-mech` → `var(--color-mech)`. Handed the arbitrary-value class
+      // `bg-[var(--tone)]` that rewrite produces `var(--color-[var(--tone)])`,
+      // which is not a variable that exists, so the `color-mix` around it was
+      // invalid and the whole declaration was dropped — the footer band painted
+      // no colour at all and the section's citation line sat on bare paper.
+      // Passing the colour directly gives the derivation something real to work
+      // from; `headerBg` stays for the header's own fill.
       headerBg="bg-[var(--tone)]"
+      headerBgColor="var(--tone)"
       borderColor="var(--tone)"
       // `.sheet-section` keeps the print page-break rule; cardStyle.className
       // REPLACES the default shadow, so sections read flat like the poster.
@@ -77,7 +88,11 @@ export function SheetSectionCard({
       }
       footerContent={
         source ? (
-          <span className="min-w-0 truncate font-cond text-label font-semibold uppercase leading-none tracking-caps text-ink/85">
+          // No colour of its own — it inherits the footer band's `text-paper`.
+          // It used to force `text-ink/85`, which only read because the band
+          // behind it was painting nothing; on the deep accent that band is
+          // supposed to have, dark-on-dark would have been unreadable.
+          <span className="min-w-0 truncate font-cond text-label font-semibold uppercase leading-none tracking-caps">
             {source}
           </span>
         ) : undefined

@@ -635,32 +635,21 @@ function ValueBox({
     </div>
   )
 
-  // The stepper column mirrors the box's [label][cell][label] stack with
-  // invisible label spacers, so the ± buttons align to the VALUE CELL (not the
-  // label-inclusive box, which drifts off-centre when only one label is present).
-  // The spacers reserve the label LINE HEIGHT only — a non-breaking space, not
-  // the real label text (which would duplicate a queryable "HP"/"Level" node).
-  const stepperSpacer = (edge: 'top' | 'bottom') => (
-    // `aria-hidden` reaches the DOM through Badge's HTMLAttributes spread.
-    <Badge
-      shape="stamp"
-      size="mini"
-      aria-hidden
-      className={cn(
-        'invisible block z-[1] origin-center self-center whitespace-nowrap uppercase',
-        edge === 'top' ? '-mb-2' : '-mt-2',
-        size === 'mini' ? 'text-label' : 'text-xs',
-        'leading-none'
-      )}
-    >
-      {' '}
-    </Badge>
-  )
+  // The ± column stretches to the box's full height and centres its buttons in
+  // it, so the pair sits on the box's midline whatever the button count or size.
+  //
+  // This previously mirrored the box's [label][cell][label] stack with a pair of
+  // invisible label-height spacers, on the reasoning that the buttons should
+  // align to the value CELL rather than the label-inclusive box. That
+  // indirection is unnecessary: the bottom label Badge is always rendered
+  // (merely `invisible` when there is no bottom label), so the box is symmetric
+  // about its cell and centring on the box centres on the cell. Rebuilding the
+  // stack by hand also had to be kept in sync with it, and had drifted — the
+  // buttons were riding high.
   const content = canEdit ? (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-stretch gap-0.5">
       {box}
-      <div className="flex flex-col items-center gap-0">
-        {stepperSpacer('top')}
+      <div className="flex flex-col justify-center">
         <div className="flex flex-col justify-center gap-0.5">
           <button
             type="button"
@@ -687,7 +676,6 @@ function ValueBox({
             −
           </button>
         </div>
-        {stepperSpacer('bottom')}
       </div>
     </div>
   ) : (
