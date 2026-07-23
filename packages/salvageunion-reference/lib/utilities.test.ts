@@ -28,8 +28,10 @@ import {
   getUpgradeCost,
   getAssetUrl,
   getPatterns,
+  isHiddenPattern,
   normalizePatternName,
   resolveFormationMember,
+  visiblePatterns,
 } from './utilities.js'
 
 // Import SalvageUnionReference - use lazy getter to avoid initialization issues
@@ -819,5 +821,42 @@ describe('normalizePatternName', () => {
     const start = performance.now()
     expect(normalizePatternName(pathological)).toBe('Iron')
     expect(performance.now() - start).toBeLessThan(1000)
+  })
+})
+
+describe('visiblePatterns (stored data tag — never computed)', () => {
+  it('filters by the stored hidden flag only', () => {
+    const shown = { name: 'A', hidden: undefined }
+    const tagged = { name: 'B', hidden: true }
+    const explicitFalse = { name: 'C', hidden: false }
+    expect(visiblePatterns([shown, tagged, explicitFalse])).toEqual([shown, explicitFalse])
+    expect(isHiddenPattern(tagged.hidden)).toBe(true)
+    expect(isHiddenPattern(shown.hidden)).toBe(false)
+    expect(isHiddenPattern(explicitFalse.hidden)).toBe(false)
+  })
+
+  it('withholds the tagged patterns from the real catalog', () => {
+    const chassis = getReference().Chassis.all()
+    const all = chassis.flatMap((c) => c.patterns)
+    const hidden = all.filter((p) => p.hidden)
+    // The tag is a strict subset — the catalog keeps the records, hides some.
+    expect(hidden.length).toBeGreaterThan(0)
+    expect(visiblePatterns(all)).toHaveLength(all.length - hidden.length)
+    expect(visiblePatterns(all).some((p) => p.hidden)).toBe(false)
+  })
+
+  it('getPatterns never returns a hidden pattern', () => {
+    for (const chassis of getReference().Chassis.all()) {
+      expect((getPatterns(chassis) ?? []).some((p) => p.hidden)).toBe(false)
+    }
+  })
+
+  it('every visible pattern carries its own source and page', () => {
+    for (const chassis of getReference().Chassis.all()) {
+      for (const pattern of visiblePatterns(chassis.patterns ?? [])) {
+        expect(pattern.source).toBeTruthy()
+        expect(typeof pattern.page).toBe('number')
+      }
+    }
   })
 })

@@ -1,5 +1,10 @@
 import { useMemo } from 'react'
-import { SalvageUnionReference, nameToSlug, normalizePatternName } from 'salvageunion-reference'
+import {
+  SalvageUnionReference,
+  nameToSlug,
+  normalizePatternName,
+  visiblePatterns,
+} from 'salvageunion-reference'
 import type { SURefChassis } from 'salvageunion-reference'
 import {
   isLegalCreationChassis,
@@ -100,8 +105,8 @@ export function MechChassisStep({
 
   const patternPool: ChassisPattern[] = selectedChassis
     ? isEdit
-      ? selectedChassis.patterns
-      : legalStartingPatterns(selectedChassis.patterns)
+      ? visiblePatterns(selectedChassis.patterns)
+      : legalStartingPatterns(visiblePatterns(selectedChassis.patterns))
     : []
 
   // Compare NORMALIZED: mechs saved before the data dropped the " Pattern"

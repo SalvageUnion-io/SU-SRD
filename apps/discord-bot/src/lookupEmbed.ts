@@ -30,6 +30,7 @@ import {
   getTechLevel,
   nameToSlug,
   replaceChassisPlaceholder,
+  visiblePatterns,
 } from 'salvageunion-reference'
 import type {
   SURefChassis,
@@ -272,8 +273,9 @@ function chassisSections(entity: SURefChassis): {
   push('Module Slots', entity.moduleSlots)
 
   let patterns = ''
-  if (entity.patterns.length) {
-    const rows = entity.patterns.map((p) => {
+  const shownPatterns = visiblePatterns(entity.patterns)
+  if (shownPatterns.length) {
+    const rows = shownPatterns.map((p) => {
       const name = escapeLabel(p.name)
       const legal = p.legalStarting ? ' ✅' : ''
       return `• **${name}**${legal} — ${p.systems.length} systems, ${p.modules.length} modules`

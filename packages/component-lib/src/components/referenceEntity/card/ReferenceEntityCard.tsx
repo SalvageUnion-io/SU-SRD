@@ -28,6 +28,7 @@ import {
   resolveChoiceView,
   resolveDataValueForTechLevel,
   resolveGrantedEntities,
+  visiblePatterns,
 } from 'salvageunion-reference'
 import { isLegalStartingPattern, isSchemaOnlyCatalogChoice } from 'salvageunion-reference/rules'
 import { cn } from '../../../utils/cn'
@@ -1156,7 +1157,7 @@ function ReferenceEntityCardInner({
       : []
   const patternList: SURefObjectPattern[] =
     !isPattern && !isCatalog && 'patterns' in entity && Array.isArray(entity.patterns)
-      ? entity.patterns
+      ? visiblePatterns(entity.patterns)
       : []
   // Artwork is shown on full + nested cards (CardImage handles the compact size).
   const showImage = !!assetUrl

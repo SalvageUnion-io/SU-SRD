@@ -474,7 +474,29 @@ export function getRequirement(entity: SURefMetaEntity): string[] | undefined {
  * @returns The patterns or undefined
  */
 export function getPatterns(entity: SURefMetaEntity): SURefObjectPattern[] | undefined {
-  return 'patterns' in entity && Array.isArray(entity.patterns) ? entity.patterns : undefined
+  return 'patterns' in entity && Array.isArray(entity.patterns)
+    ? visiblePatterns(entity.patterns)
+    : undefined
+}
+
+/**
+ * A HIDDEN pattern carries the stored `hidden` data flag — an explicit tag,
+ * NEVER computed from source (project data convention; mirrors
+ * `legalStarting`). The record stays in the dataset but is withheld from
+ * every rendered surface. Takes the primitive the rule reads — the record's
+ * `hidden` value (undefined = untagged = visible).
+ */
+export function isHiddenPattern(hidden: boolean | undefined): boolean {
+  return hidden === true
+}
+
+/**
+ * Drops the stored-`hidden` set from a chassis's patterns. This is the single
+ * choke point every render surface goes through, so a pattern tagged `hidden`
+ * cannot leak into a card, a generated page, a wizard picker or a bot embed.
+ */
+export function visiblePatterns<T extends { hidden?: boolean }>(patterns: readonly T[]): T[] {
+  return patterns.filter((pattern) => !isHiddenPattern(pattern.hidden))
 }
 
 /**

@@ -2029,6 +2029,7 @@ export declare function resolveChassisRef(ref: string): ({
         name: string;
         content?: import("zod").infer<typeof import("../index.js").ContentSchema>;
         legalStarting?: boolean;
+        hidden?: boolean;
         source?: import("zod").infer<typeof import("../index.js").SourceSchema>;
         page?: import("zod").infer<typeof import("../index.js").PositiveIntegerSchema>;
         booklet?: string;
@@ -3375,6 +3376,7 @@ export declare const ChassisSchema: z.ZodObject<{
         name: string;
         content?: z.infer<typeof ContentSchema>;
         legalStarting?: boolean;
+        hidden?: boolean;
         source?: z.infer<typeof import("./enums.js").SourceSchema>;
         page?: z.infer<typeof PositiveIntegerSchema>;
         booklet?: string;
@@ -3386,6 +3388,7 @@ export declare const ChassisSchema: z.ZodObject<{
         name: string;
         content?: z.infer<typeof ContentSchema>;
         legalStarting?: boolean;
+        hidden?: boolean;
         source?: z.infer<typeof import("./enums.js").SourceSchema>;
         page?: z.infer<typeof PositiveIntegerSchema>;
         booklet?: string;
@@ -8394,6 +8397,7 @@ export declare const PatternSchema: z.ZodType<{
     name: string;
     content?: z.infer<typeof ContentSchema>;
     legalStarting?: boolean;
+    hidden?: boolean;
     source?: z.infer<typeof SourceSchema>;
     page?: z.infer<typeof PositiveIntegerSchema>;
     booklet?: string;
@@ -9210,6 +9214,22 @@ export declare function getRequirement(entity: SURefMetaEntity): string[] | unde
  * @returns The patterns or undefined
  */
 export declare function getPatterns(entity: SURefMetaEntity): SURefObjectPattern[] | undefined;
+/**
+ * A HIDDEN pattern carries the stored `hidden` data flag — an explicit tag,
+ * NEVER computed from source (project data convention; mirrors
+ * `legalStarting`). The record stays in the dataset but is withheld from
+ * every rendered surface. Takes the primitive the rule reads — the record's
+ * `hidden` value (undefined = untagged = visible).
+ */
+export declare function isHiddenPattern(hidden: boolean | undefined): boolean;
+/**
+ * Drops the stored-`hidden` set from a chassis's patterns. This is the single
+ * choke point every render surface goes through, so a pattern tagged `hidden`
+ * cannot leak into a card, a generated page, a wizard picker or a bot embed.
+ */
+export declare function visiblePatterns<T extends {
+    hidden?: boolean;
+}>(patterns: readonly T[]): T[];
 /**
  * Extract goals from an entity
  * @param entity - The entity to extract from
