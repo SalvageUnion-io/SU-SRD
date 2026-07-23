@@ -42,6 +42,24 @@ describe('Changelog', () => {
     expect(frame?.getAttribute('style')).toContain('var(--bw-chrome)')
   })
 
+  test('renders inline markdown links in a bullet item as anchors', () => {
+    // release-please items carry issue/commit refs as `[label](href)` links;
+    // they must render as clickable anchors, not literal markdown punctuation.
+    const entries: ChangelogEntry[] = [
+      {
+        date: '2026-07-23',
+        version: '2.5.0',
+        area: 'Data',
+        items: ['chassis patterns get their own pages ([#518](https://example.com/issues/518))'],
+      },
+    ]
+    render(<Changelog entries={entries} />)
+    const link = screen.getByRole('link', { name: '#518' })
+    expect(link.getAttribute('href')).toBe('https://example.com/issues/518')
+    // The non-link prose around it is still present.
+    expect(screen.getByText(/chassis patterns get their own pages/)).toBeTruthy()
+  })
+
   test('uses the title as the headline for historical (unversioned) entries', () => {
     const entries: ChangelogEntry[] = [
       { date: '2026-07-14', title: 'Support on Ko-fi', area: 'Site', items: ['Added a link'] },
