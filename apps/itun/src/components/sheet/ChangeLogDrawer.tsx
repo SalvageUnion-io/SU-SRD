@@ -99,7 +99,7 @@ export function ChangeLogDrawer({
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className={`rounded-[3px] px-1.5 py-0.5 font-cond text-[11px] font-bold uppercase tracking-caps-tight ${kind.className}`}
+                      className={`rounded-[3px] px-1.5 py-0.5 font-cond text-badge font-bold uppercase tracking-caps-tight ${kind.className}`}
                     >
                       {kind.label}
                     </span>

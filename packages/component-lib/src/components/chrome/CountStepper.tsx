@@ -78,7 +78,7 @@ export function CountStepper({
         </Button>
         <span
           aria-hidden="true"
-          className="min-w-[44px] text-center font-cond text-[24px] font-bold tabular-nums text-ink"
+          className="min-w-[44px] text-center font-cond text-title font-bold tabular-nums text-ink"
         >
           {readout}
         </span>
@@ -112,7 +112,7 @@ export function CountStepper({
       <span
         aria-hidden="true"
         className={cn(
-          'grid place-items-center bg-paper font-cond text-[13px] font-bold uppercase leading-none text-ink',
+          'grid place-items-center bg-paper font-cond text-caption font-bold uppercase leading-none text-ink',
           label !== undefined ? 'min-w-[4.5rem] px-1.5 tabular-nums' : 'w-8',
           count === 0 && 'opacity-55'
         )}

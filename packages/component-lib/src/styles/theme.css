@@ -61,6 +61,28 @@
      commission. It caught this doc block on first run.) */
   --text-display: 26px;
 
+  /* …and the note above was right about the CAUSE but only half-fixed it. One
+     display step left a 15px -> 26px canyon, so 28 call sites still had to
+     bracket their own size: 16, 17, 22, 24, 27, 28, 30, 31, 34, 38.
+     Read as a set, those values are already a ~1.2 ratio scale — the drift was
+     people re-deriving the same scale by eye, one component at a time. So the
+     ladder is completed at that ratio rather than invented:
+
+       lede 15 -> readout 17 -> title 22 -> display 26 -> display-lg 31 -> hero 38
+
+     Each rung absorbs a real cluster, so most sites move 0-2px. Two notes on
+     the sites that move furthest, because they are judgement calls, not
+     rounding: the AppBar wordmark's `sm:` step drops 34 -> 31, and VitalGauge's
+     dense/normal numeral pair (28/30) becomes 26/31, which WIDENS the density
+     gap from 2px to 5px — a dense mode should read as denser than a 2px hint.
+     Its supporting `/max` text collapses from a 16/17 pair to one rung: a 1px
+     step is below the resolution any ladder should encode, and density is
+     carried by the numeral beside it. */
+  --text-readout: 17px;
+  --text-title: 22px;
+  --text-display-lg: 31px;
+  --text-hero: 38px;
+
   /* The `su-*` brand family that used to live here is DELETED. It was a shadow
      tokenset: the canonical semantic tokens below were defined as aliases *of*
      it, so the brand names were the real substrate and the semantic layer was a

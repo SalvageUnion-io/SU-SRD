@@ -134,10 +134,10 @@ function RailStep({
           active
             ? 'h-11 w-11 bg-ink text-2xl leading-none text-paper shadow-[0_0_0_4px_var(--tone)] lg:-ml-[5px]'
             : 'h-[34px] w-[34px]',
-          !active && done && 'bg-ink text-[17px] text-pilot',
+          !active && done && 'bg-ink text-readout text-pilot',
           !active &&
             !done &&
-            'bg-paper text-[17px] text-ink shadow-[inset_0_0_0_2.5px_var(--color-ink)]'
+            'bg-paper text-readout text-ink shadow-[inset_0_0_0_2.5px_var(--color-ink)]'
         )}
       >
         {done ? '✓' : index + 1}
@@ -204,7 +204,7 @@ export function WizShell({
     <header>
       <h1 className="m-0">
         {/* Ink-stamp step heading (SheetHero name-chip treatment). */}
-        <span className="inline bg-ink box-decoration-clone px-2 pb-[3px] pt-[2px] font-cond text-[22px] font-bold uppercase leading-[1.35] tracking-normal text-paper">
+        <span className="inline bg-ink box-decoration-clone px-2 pb-[3px] pt-[2px] font-cond text-title font-bold uppercase leading-[1.35] tracking-normal text-paper">
           <span className="text-pilot">
             Step {active + 1} of {steps.length}
           </span>
@@ -397,7 +397,7 @@ export function WizShell({
               >
                 <span
                   aria-hidden="true"
-                  className="absolute -left-5 top-6 hidden h-16 w-14 place-items-center rounded-badge bg-ink font-cond text-[38px] font-extrabold leading-none text-paper shadow-[0_8px_14px_-8px_var(--color-ink-50)] sm:grid"
+                  className="absolute -left-5 top-6 hidden h-16 w-14 place-items-center rounded-badge bg-ink font-cond text-hero font-extrabold leading-none text-paper shadow-[0_8px_14px_-8px_var(--color-ink-50)] sm:grid"
                 >
                   {active + 1}
                 </span>

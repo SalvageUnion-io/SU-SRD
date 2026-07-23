@@ -21,7 +21,7 @@ function entryHeadline(entry: ChangelogEntry): string {
 export function Changelog({ entries, className }: ChangelogProps) {
   if (entries.length === 0) {
     return (
-      <p className={cn('font-body text-[13px] text-wk-muted', className)}>
+      <p className={cn('font-body text-caption text-wk-muted', className)}>
         No changelog entries yet.
       </p>
     )

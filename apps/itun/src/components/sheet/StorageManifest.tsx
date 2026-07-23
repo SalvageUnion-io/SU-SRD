@@ -206,7 +206,7 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly }: CargoLotItemProps)
             title={disabledReason ?? undefined}
             aria-label={`Load ${lot.name}`}
             onClick={handleMove}
-            className="mt-auto self-end rounded-[2px] border-0 px-2 py-0.5 font-cond text-[10px] font-bold uppercase tracking-caps-tight hover:bg-[var(--color-cargo-pale)]"
+            className="mt-auto self-end rounded-[2px] border-0 px-2 py-0.5 font-cond text-label font-bold uppercase tracking-caps-tight hover:bg-[var(--color-cargo-pale)]"
           >
             {label}
           </Button>

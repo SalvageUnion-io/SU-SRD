@@ -21,11 +21,11 @@ type ModeDoorProps = {
 const DOOR_BASE =
   'relative min-h-[170px] cursor-pointer rounded-xl p-[22px] pb-5 pl-[26px] text-left transition-transform duration-[120ms] hover:-translate-y-0.5'
 const TAB =
-  'absolute -left-3.5 top-[18px] grid h-12 w-11 place-items-center rounded-[2px] bg-ink font-cond text-[22px] font-bold text-paper shadow-[0_8px_14px_-8px_var(--color-ink-50)]'
+  'absolute -left-3.5 top-[18px] grid h-12 w-11 place-items-center rounded-[2px] bg-ink font-cond text-title font-bold text-paper shadow-[0_8px_14px_-8px_var(--color-ink-50)]'
 const HEAD =
-  'mb-1.5 ml-[34px] block font-cond text-[27px] font-bold uppercase leading-none tracking-caps-tight'
+  'mb-1.5 ml-[34px] block font-cond text-display font-bold uppercase leading-none tracking-caps-tight'
 const BODY = 'ml-[34px] block font-body text-caption leading-[1.55] text-ink'
-const CITE = 'ml-[34px] mt-2.5 block font-body text-[12.5px] font-bold text-ink'
+const CITE = 'ml-[34px] mt-2.5 block font-body text-caption font-bold text-ink'
 
 /** guided emphasis: a ground gap, a 3px ink ring, then a soft drop shadow. */
 const GUIDED_HALO =
