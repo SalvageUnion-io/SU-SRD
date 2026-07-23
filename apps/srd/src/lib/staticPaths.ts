@@ -5,7 +5,7 @@ import {
   getEntitySchemas,
   getReferenceEntityData,
 } from './gameData'
-import { nameToSlug, normalizePatternName } from 'salvageunion-reference'
+import { nameToSlug, normalizePatternName, visiblePatterns } from 'salvageunion-reference'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { isSchemaName } from './schemaName'
 
@@ -94,7 +94,7 @@ export function getPatternStaticPaths() {
 
   for (const chassis of SalvageUnionReference.Chassis.all()) {
     const displayData = getReferenceEntityData(chassis)
-    for (const pattern of chassis.patterns ?? []) {
+    for (const pattern of visiblePatterns(chassis.patterns ?? [])) {
       paths.push({
         params: {
           schemaId: 'chassis',

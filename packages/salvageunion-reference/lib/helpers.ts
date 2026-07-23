@@ -41,6 +41,7 @@ import {
   getActionType,
   getRange,
   getDamage,
+  visiblePatterns,
 } from './utilities.js'
 import { getEntitySlug } from './slug.js'
 import { ActionTypeSchema } from './schemas/enums.js'
@@ -261,7 +262,10 @@ export function findClass(className: string): SURefClass | undefined {
  * @returns Array of chassis with patterns
  */
 export function getChassisWithPatterns(): SURefChassis[] {
-  return SalvageUnionReference.findAllIn('chassis', (c) => c.patterns && c.patterns.length > 0)
+  return SalvageUnionReference.findAllIn(
+    'chassis',
+    (c) => c.patterns && visiblePatterns(c.patterns).length > 0
+  )
 }
 
 /**

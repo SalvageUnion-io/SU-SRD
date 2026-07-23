@@ -430,6 +430,10 @@
               "type": "boolean",
               "description": "Whether this is a valid starting pattern"
             },
+            "hidden": {
+              "type": "boolean",
+              "description": "Withhold this pattern from every rendered surface while keeping the record in the dataset. A stored data tag (mirrors the legalStarting convention) — never computed from source. Set on the community-designed \"Mech Monday\" patterns, which are not rulebook-PDF-sourced."
+            },
             "source": {
               "type": "string",
               "enum": [

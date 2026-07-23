@@ -12,7 +12,7 @@
  */
 import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
+import { SalvageUnionReference, nameToSlug, visiblePatterns } from 'salvageunion-reference'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { PatternHrefProvider } from '../../entityHrefContext'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
@@ -44,11 +44,27 @@ describe('chassis pattern rows', () => {
     )
 
     const links = screen.getAllByRole('link', { name: /— Mule pattern$/ })
-    expect(links.length).toBe(chassis.patterns?.length ?? 0)
+    expect(links.length).toBe(visiblePatterns(chassis.patterns ?? []).length)
     expect(links.length).toBeGreaterThan(0)
 
     const hauler = screen.getByRole('link', { name: 'Hauler — Mule pattern' })
     expect(hauler.getAttribute('href')).toBe('/chassis/mule/pattern/hauler')
+  })
+
+  test('a hidden pattern gets no row', () => {
+    const chassis = mule()
+    const hidden = (chassis.patterns ?? []).filter((p) => p.hidden)
+    expect(hidden.length).toBeGreaterThan(0)
+
+    render(
+      <PatternHrefProvider value={testPatternHref}>
+        <ReferenceEntityCard data={chassis} />
+      </PatternHrefProvider>
+    )
+
+    for (const pattern of hidden) {
+      expect(screen.queryByRole('link', { name: `${pattern.name} — Mule pattern` })).toBeNull()
+    }
   })
 
   test('without a href builder the row is not a link', () => {

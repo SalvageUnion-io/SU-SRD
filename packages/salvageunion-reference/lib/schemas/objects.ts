@@ -699,6 +699,7 @@ export const PatternSchema: z.ZodType<{
   name: string
   content?: z.infer<typeof ContentSchema>
   legalStarting?: boolean
+  hidden?: boolean
   source?: z.infer<typeof SourceSchema>
   page?: z.infer<typeof PositiveIntegerSchema>
   booklet?: string
@@ -713,6 +714,12 @@ export const PatternSchema: z.ZodType<{
         name: NameSchema.describe('Name of this mech pattern'),
         content: ContentSchema.describe('Descriptive content for this pattern').optional(),
         legalStarting: z.boolean().describe('Whether this is a valid starting pattern').optional(),
+        hidden: z
+          .boolean()
+          .describe(
+            'Withhold this pattern from every rendered surface while keeping the record in the dataset. A stored data tag (mirrors the legalStarting convention) — never computed from source. Set on the community-designed "Mech Monday" patterns, which are not rulebook-PDF-sourced.'
+          )
+          .optional(),
         source: SourceSchema.describe('Source book for this pattern').optional(),
         page: PositiveIntegerSchema.describe('Page number in the source book').optional(),
         booklet: z

@@ -10,8 +10,13 @@
  *   disambiguation the nested route gives it;
  * - the summary describes the PATTERN, and carries the loadout, which is the
  *   only part of a pattern a crawler cannot read off the rendered island.
+ *
+ * Throughout, the unit is the VISIBLE pattern. A pattern tagged `hidden` stays
+ * in the dataset but is withheld from every rendered surface, so it must get no
+ * generated page — and nothing may link to one.
  */
 import { describe, expect, it } from 'bun:test'
+import { visiblePatterns } from 'salvageunion-reference'
 
 import { SalvageUnionReference } from '../gameData'
 import { srdPatternHref } from '../patternHref'
@@ -19,7 +24,7 @@ import { patternStaticSummary } from '../patternSummary'
 import { getPatternStaticPaths } from '../staticPaths'
 
 const chassisWithPatterns = () =>
-  SalvageUnionReference.Chassis.all().filter((c) => (c.patterns?.length ?? 0) > 0)
+  SalvageUnionReference.Chassis.all().filter((c) => visiblePatterns(c.patterns ?? []).length > 0)
 
 const mule = () => {
   const found = SalvageUnionReference.Chassis.all().find((c) => c.name === 'Mule')
@@ -30,10 +35,26 @@ const mule = () => {
 describe('getPatternStaticPaths', () => {
   const paths = getPatternStaticPaths()
 
-  it('emits one page per pattern of every chassis', () => {
-    const expected = chassisWithPatterns().reduce((n, c) => n + (c.patterns?.length ?? 0), 0)
+  it('emits one page per visible pattern of every chassis', () => {
+    const expected = chassisWithPatterns().reduce(
+      (n, c) => n + visiblePatterns(c.patterns ?? []).length,
+      0
+    )
     expect(expected).toBeGreaterThan(0)
     expect(paths).toHaveLength(expected)
+  })
+
+  it('emits no page for a hidden pattern', () => {
+    const hidden = SalvageUnionReference.Chassis.all().flatMap((c) =>
+      (c.patterns ?? []).filter((p) => p.hidden).map((p) => srdPatternHref(c, p))
+    )
+    expect(hidden.length).toBeGreaterThan(0)
+    const generated = new Set(
+      paths.map(
+        (p) => `/schema/${p.params.schemaId}/item/${p.params.itemId}/pattern/${p.params.patternId}/`
+      )
+    )
+    expect(hidden.filter((href) => generated.has(href))).toEqual([])
   })
 
   it('nests every page under the chassis schema', () => {
@@ -59,7 +80,7 @@ describe('srdPatternHref', () => {
       )
     )
     const dangling = chassisWithPatterns().flatMap((chassis) =>
-      (chassis.patterns ?? [])
+      visiblePatterns(chassis.patterns ?? [])
         .map((pattern) => srdPatternHref(chassis, pattern))
         .filter((href) => !generated.has(href))
     )
