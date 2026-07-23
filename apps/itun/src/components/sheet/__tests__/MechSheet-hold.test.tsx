@@ -177,3 +177,44 @@ describe('MechSheet — The Hold (Stow →)', () => {
     expect(screen.getByText(/2 lots · 3\/6 slots/i)).toBeTruthy()
   })
 })
+
+describe('MechSheet — The Hold (standalone Load / Unload, no crawler)', () => {
+  test('Load adds a new lot to a standalone mech hold (no crawler linked)', async () => {
+    const captured: CapturedUpdate[] = []
+    const mech = makeMech({ cargoLots: [] })
+    render(<MechSheet mech={mech} store={makeStore(mech, captured)} />)
+
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/new cargo name/i), {
+        target: { value: 'Water Barrel' },
+      })
+      fireEvent.change(screen.getByLabelText(/new cargo slot cost/i), {
+        target: { value: '3' },
+      })
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /load cargo into the mech hold/i }))
+    })
+
+    expect(captured).toHaveLength(1)
+    expect(must(captured[0]).type).toBe('mech')
+    const lots = must(captured[0]).patch.cargoLots as Array<Record<string, unknown>>
+    expect(lots).toHaveLength(1)
+    expect(lots[0]).toMatchObject({ name: 'Water Barrel', units: 3, kind: 'unit' })
+  })
+
+  test('Unload removes a lot from a standalone mech hold (no crawler linked)', async () => {
+    const captured: CapturedUpdate[] = []
+    const lot = makeUnitLot('Old Junk', { units: 2 })
+    const mech = makeMech({ cargoLots: [lot] })
+    render(<MechSheet mech={mech} store={makeStore(mech, captured)} />)
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /unload old junk/i }))
+    })
+
+    expect(captured).toHaveLength(1)
+    expect(must(captured[0]).type).toBe('mech')
+    expect(must(captured[0]).patch.cargoLots).toEqual([])
+  })
+})

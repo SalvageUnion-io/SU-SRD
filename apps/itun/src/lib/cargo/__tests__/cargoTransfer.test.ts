@@ -420,3 +420,59 @@ describe('SCRAP TL bucket round-trip', () => {
     })
   })
 })
+
+// ---------------------------------------------------------------------------
+// Mech-hold-local edits (add / remove) — NO crawler required
+// ---------------------------------------------------------------------------
+
+describe('add-mech-lot', () => {
+  test('prepends a lot to the mech hold; only the mech side changes', () => {
+    const existing = unitLot({ id: 'lot-existing' })
+    const added = unitLot({ id: 'lot-added', name: 'Water Barrel', units: 3 })
+    const result = cargoTransfer(state({ mechLots: [existing] }), {
+      type: 'add-mech-lot',
+      lot: added,
+    })
+    if (!result.ok) throw new Error(result.reason)
+
+    expect(result.state.mechLots).toEqual([added, existing])
+    expect(result.changed).toEqual({ mech: true, crawler: false })
+  })
+
+  test('adding over capacity is allowed (honest overflow, never clamped)', () => {
+    // Cap 6, add an 8-unit lot → over capacity, still accepted.
+    const result = cargoTransfer(state({ mechCargoCap: 6 }), {
+      type: 'add-mech-lot',
+      lot: unitLot({ id: 'lot-big', units: 8 }),
+    })
+    if (!result.ok) throw new Error(result.reason)
+
+    const usage = mechCargoUsage(result.state.mechLots, result.state.mechCargoCap)
+    expect(usage.over).toBe(true)
+    expect(usage.used).toBe(8)
+  })
+})
+
+describe('remove-mech-lot', () => {
+  test('drops the named lot from the mech hold; only the mech side changes', () => {
+    const keep = unitLot({ id: 'lot-keep' })
+    const drop = unitLot({ id: 'lot-drop', name: 'Scrap Heap' })
+    const result = cargoTransfer(state({ mechLots: [keep, drop] }), {
+      type: 'remove-mech-lot',
+      lotId: 'lot-drop',
+    })
+    if (!result.ok) throw new Error(result.reason)
+
+    expect(result.state.mechLots).toEqual([keep])
+    expect(result.changed).toEqual({ mech: true, crawler: false })
+  })
+
+  test('refuses a lot that is not in the hold', () => {
+    const result = cargoTransfer(state({ mechLots: [unitLot()] }), {
+      type: 'remove-mech-lot',
+      lotId: 'lot-missing',
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.reason).toMatch(/not in the mech hold/i)
+  })
+})

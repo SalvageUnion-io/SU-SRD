@@ -12,6 +12,7 @@
 
 import { useEntityStore } from '../../stores/entityStore'
 import { mechMaxCargo } from '../rules/derivedStats'
+import type { CargoLot } from '../schemas/cargoLot'
 import type { Crawler } from '../schemas/crawler'
 import type { Mech } from '../schemas/mech'
 import {
@@ -47,6 +48,10 @@ export type UseCargoResult = {
   load: (lotId: string, qty?: number) => Promise<CargoTransferResult>
   /** Pool → mech as a bulk SCRAP lot (merges into a same-TL lot). */
   withdrawScrap: (tl: number, qty: number) => Promise<CargoTransferResult>
+  /** Add a lot directly to the mech hold. Needs a mech, NOT a crawler. */
+  addMechLot: (lot: CargoLot) => Promise<CargoTransferResult>
+  /** Discard a lot from the mech hold. Needs a mech, NOT a crawler. */
+  removeMechLot: (lotId: string) => Promise<CargoTransferResult>
 }
 
 export function useCargo({
@@ -99,6 +104,26 @@ export function useCargo({
     return result
   }
 
+  // Mech-hold-local edits: the mech's own cargo hold is its own container, so
+  // add/discard require only a docked mech — no crawler boundary. Persists the
+  // mech side alone.
+  async function dispatchMechLocal(action: CargoTransferAction): Promise<CargoTransferResult> {
+    if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
+    if (!mech) {
+      return { ok: false, reason: 'No mech is docked — nothing to store cargo in.' }
+    }
+
+    const result = cargoTransfer(state, action)
+    if (!result.ok) return result
+
+    if (result.changed.mech) {
+      await storeState.transfer({
+        updates: [{ type: 'mech', id: mech.id, patch: { cargoLots: result.state.mechLots } }],
+      })
+    }
+    return result
+  }
+
   return {
     state,
     usage: mechCargoUsage(state.mechLots, state.mechCargoCap),
@@ -106,5 +131,7 @@ export function useCargo({
     stow: (lotId) => dispatch({ type: 'stow', lotId }),
     load: (lotId, qty) => dispatch({ type: 'load', lotId, qty }),
     withdrawScrap: (tl, qty) => dispatch({ type: 'withdraw-scrap', tl, qty }),
+    addMechLot: (lot) => dispatchMechLocal({ type: 'add-mech-lot', lot }),
+    removeMechLot: (lotId) => dispatchMechLocal({ type: 'remove-mech-lot', lotId }),
   }
 }
