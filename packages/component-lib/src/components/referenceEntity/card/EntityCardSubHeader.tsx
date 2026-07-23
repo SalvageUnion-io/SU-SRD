@@ -58,12 +58,17 @@ export function EntityCardSubHeader({
   // (paper-tone) text, separated by " // ", matching the rulebook's trait line
   // rather than a row of stamps. Each cell's `label value` pairing is punctuated
   // by kind:
-  //   - a RANGE cell reads "Range: Close" (colon after the label);
+  //   - a MEASURED cell reads "Range: Close" / "Damage: 4 SP" (colon after the
+  //     label). Damage joins Range here because it is the same shape of
+  //     statement — a named quantity — and read "Damage 4SP" without one;
   //   - a NUMERIC value reads "Heat (4)" / "Blast (3)" (value in parens);
-  //   - everything else (e.g. "Damage 5SP", a label-only keyword) is unchanged.
+  //   - everything else (a label-only keyword) is unchanged.
+  const COLON_CELLS = new Set(['range', 'damage'])
   const cellToText = (cell: EntityCardSubHeaderCell) => {
     if (cell.value == null || cell.value === '') return cell.label
-    if (cell.key === 'range' || cell.label === 'Range') return `${cell.label}: ${cell.value}`
+    if (COLON_CELLS.has(cell.key) || cell.label === 'Range' || cell.label === 'Damage') {
+      return `${cell.label}: ${cell.value}`
+    }
     const isNumeric = typeof cell.value === 'number' || /^\d+$/.test(String(cell.value))
     if (isNumeric) return `${cell.label} (${cell.value})`
     return `${cell.label} ${cell.value}`
@@ -83,7 +88,10 @@ export function EntityCardSubHeader({
       {parts.length > 0 && (
         <span
           className={cn(
-            'font-cond uppercase leading-snug tracking-caps-tight',
+            // Italic: the stat line is an aside about the entity, not part of
+            // its name, and the slant separates it from the upright title band
+            // directly above at a glance.
+            'font-cond italic uppercase leading-snug tracking-caps-tight',
             onBandText,
             compact ? 'text-xs' : 'text-sm'
           )}

@@ -286,7 +286,9 @@ function actionCells(action: ActionFields): EntityCardSubHeaderCell[] {
     cells.push({
       key: 'damage',
       label: 'Damage',
-      value: `${action.damage.amount}${action.damage.damageType ?? ''}`,
+      // "4 SP", not "4SP" — the amount and the pool it comes off are two facts,
+      // and the sub-header renders this as "Damage: 4 SP".
+      value: [action.damage.amount, action.damage.damageType].filter(Boolean).join(' '),
     })
   }
   if (action.traits) cells.push(...traitCells(action.traits))

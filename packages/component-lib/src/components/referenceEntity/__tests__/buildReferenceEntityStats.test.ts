@@ -54,14 +54,23 @@ describe('buildReferenceEntityStats', () => {
     expect(byLabel(stats, 'System')).toBeUndefined()
   })
 
-  test('compact mode uses the top label only (drops the bottom label)', () => {
+  test('compact mode uses ONE label — the short form where the stat has one', () => {
     const stats = buildReferenceEntityStats(mule, { compact: true })
-    // Compact keeps the whole top label (Structure Points → Structure, …).
-    expect(byLabel(stats, 'Structure')?.value).toBe('12')
-    expect(byLabel(stats, 'Energy')?.value).toBe('4')
+    // The game's own abbreviations, not the first word of the name: a compact
+    // box read "Structure" / "Energy" before, which is half a label.
+    expect(byLabel(stats, 'SP')?.value).toBe('12')
+    expect(byLabel(stats, 'EP')?.value).toBe('4')
+    // Stats whose top word already IS the short form keep it.
     expect(byLabel(stats, 'System')?.value).toBe('16')
-    // …and drops the bottom label.
-    expect(byLabel(stats, 'Structure')?.bottomLabel).toBeUndefined()
+    // …and the bottom label is dropped in both cases.
+    expect(byLabel(stats, 'SP')?.bottomLabel).toBeUndefined()
+    expect(byLabel(stats, 'System')?.bottomLabel).toBeUndefined()
+  })
+
+  test('full mode keeps the two-line long form', () => {
+    const stats = buildReferenceEntityStats(mule, { compact: false })
+    expect(byLabel(stats, 'Structure')?.bottomLabel).toBe('Points')
+    expect(byLabel(stats, 'SP')).toBeUndefined()
   })
 
   test('tooltips ride every stat in both modes', () => {
@@ -69,6 +78,6 @@ describe('buildReferenceEntityStats', () => {
     expect(typeof byLabel(full, 'Structure')?.hoverText).toBe('string')
 
     const compact = buildReferenceEntityStats(mule, { compact: true })
-    expect(typeof byLabel(compact, 'Structure')?.hoverText).toBe('string')
+    expect(typeof byLabel(compact, 'SP')?.hoverText).toBe('string')
   })
 })

@@ -1,23 +1,22 @@
 /**
  * Which action (if any) folds into the entity card's own body/sub-header.
  *
- * The rule (choice-plan Stage 6, data-proven): the SELF-action — an action
- * named like its entity — folds regardless of how many actions the entity has;
- * its siblings render as their own cards. If there is no self-action, a lone
- * action still folds its facets (the single differently-named case, e.g. a
- * creature whose one action is "Bite"). Two-or-more differently-named actions
- * with no self-action → nothing folds.
+ * The rule: ONLY the SELF-action — an action named like its entity — folds. It
+ * folds regardless of how many actions the entity has; its siblings render as
+ * their own cards. An entity with no self-action folds nothing.
  *
- * This replaced a `foldableActions.length === 1` gate that refused to fold a
- * self-action whenever the entity had other actions too — which dropped the
- * self-action's choices/content on multi-action entities (Holo Companion,
- * Bionic Arms) and disagreed with `getChoices`.
+ * The name match is the whole rule because folding is a claim about identity:
+ * the facets it bubbles into the sub-header (Turn Action, Range, Damage) read
+ * as the ENTITY's own stats, so they are only true of an action that IS the
+ * entity. A lone action used to fold too, on the reasoning that a single
+ * action's facets may as well be shown up front — but that put "Iron Claw"'s
+ * stats in the Molebear's sub-header as though the creature itself were a Turn
+ * Action, and the same for every creature with one differently-named attack.
+ * A sole action is still just an action; it renders as its own card.
  */
 export function resolveFoldedAction<T extends { name?: string }>(
   foldableActions: T[],
   entityName: string
 ): T | undefined {
-  const selfAction = foldableActions.find((a) => a.name === entityName)
-  const loneAction = foldableActions.length === 1 ? foldableActions[0] : undefined
-  return selfAction ?? loneAction
+  return foldableActions.find((a) => a.name === entityName)
 }

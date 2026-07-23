@@ -24,6 +24,15 @@ type StatConfig = {
   normalLabel: string
   /** Bottom label for normal mode */
   normalBottomLabel: string
+  /**
+   * The stat's SHORT form, for compact cards — which show one label, not two.
+   * Without it the compact box fell back to the top word alone and announced
+   * Structure Points as "Structure", Hit Points as "Hit" and Salvage Value as
+   * "Salvage" — the first half of a name rather than the game's own
+   * abbreviation. Omit where the top word already IS the short form (Slots,
+   * Heat, Cargo).
+   */
+  shortLabel?: string
   /** Tooltip text explaining what this stat represents */
   tooltip?: string
   /** When true, this stat is shown even when primaryOnly filtering is active */
@@ -45,6 +54,7 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
     getter: getStructurePoints,
     normalLabel: 'Structure',
     normalBottomLabel: 'Points',
+    shortLabel: 'SP',
     tooltip:
       'Structure Points represent how tough and sturdy your Mech is, and how much damage it can take. This is an abstract measure representing a broad range of factors ranging from sheer bulk and armour to wider defensive capabilities.',
     primary: true,
@@ -53,6 +63,7 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
     getter: getHitPoints,
     normalLabel: 'Hit',
     normalBottomLabel: 'Points',
+    shortLabel: 'HP',
     tooltip:
       'Hit Points are an abstract measure of how resilient your Pilot and NPCs are. This can represent a wide variety of different factors, including their ability to mitigate harm and defend themselves, their general toughness, as well as good fortune.',
   },
@@ -60,6 +71,7 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
     getter: getEnergyPoints,
     normalLabel: 'Energy',
     normalBottomLabel: 'Points',
+    shortLabel: 'EP',
     tooltip:
       'Energy Points abstractly represents the energy output and efficiency of your Mechs reactor as well as its stored power. You can spend these points to activate your Systems, Modules, and Chassis Abilities.',
     primary: true,
@@ -68,6 +80,7 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
     getter: getSalvageValue,
     normalLabel: 'Salvage',
     normalBottomLabel: 'Value',
+    shortLabel: 'SV',
     tooltip:
       "Salvage Value represents the sum of a Mech, System, or Module's material components. As such it's the amount of Scrap you receive when breaking down a Chassis, System, or Module, as well as the amount of Scrap required to craft a Mech, System, or Module.",
     primary: true,
@@ -176,8 +189,9 @@ export function buildReferenceEntityStats(
 
     items.push({
       key: `ref-stat-${i}`,
-      // Compact shows only the TOP label (the whole first word), no bottom label.
-      label: config.normalLabel,
+      // Compact shows ONE label: the stat's short form where it has one (SP / HP
+      // / EP / SV), else the top word.
+      label: compact ? (config.shortLabel ?? config.normalLabel) : config.normalLabel,
       bottomLabel: compact ? undefined : config.normalBottomLabel,
       value: displayValue,
       hoverText: config.tooltip,
