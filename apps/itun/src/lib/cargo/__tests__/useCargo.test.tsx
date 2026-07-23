@@ -230,3 +230,164 @@ describe('useCargo — persistence', () => {
     expect(result.current.poolBucket(1)).toBe(0)
   })
 })
+
+// ---------------------------------------------------------------------------
+// Container-local edits — each container is usable WITHOUT its counterpart.
+// ---------------------------------------------------------------------------
+
+describe('useCargo — mech hold works with no crawler', () => {
+  test('addMechLot writes mech cargoLots only', async () => {
+    const captured: CapturedUpdate[] = []
+    const { result } = renderHook(() =>
+      useCargo({ mech: makeMech([]), crawler: null, store: makeStore(captured) })
+    )
+
+    const added: CargoLot = { ...unitLot, id: 'lot-new', name: 'Water Barrel', units: 3 }
+    const outcome = await result.current.addMechLot(added)
+    expect(outcome.ok).toBe(true)
+
+    expect(captured).toHaveLength(1)
+    expect(captured[0]).toMatchObject({ type: 'mech', id: 'mech-1' })
+    expect(captured[0]?.patch.cargoLots).toEqual([added])
+  })
+
+  test('removeMechLot writes mech cargoLots only', async () => {
+    const captured: CapturedUpdate[] = []
+    const { result } = renderHook(() =>
+      useCargo({ mech: makeMech([unitLot]), crawler: null, store: makeStore(captured) })
+    )
+
+    const outcome = await result.current.removeMechLot('lot-1')
+    expect(outcome.ok).toBe(true)
+
+    expect(captured).toHaveLength(1)
+    expect(captured[0]).toMatchObject({ type: 'mech', id: 'mech-1' })
+    expect(captured[0]?.patch.cargoLots).toEqual([])
+  })
+})
+
+describe('useCargo — Storage Bay works with no docked mech', () => {
+  test('addCrawlerLot writes crawler cargoLots only', async () => {
+    const captured: CapturedUpdate[] = []
+    const { result } = renderHook(() =>
+      useCargo({ mech: null, crawler: makeCrawler([], { tl3: 5 }), store: makeStore(captured) })
+    )
+
+    const added: CargoLot = { ...unitLot, id: 'lot-bay', name: 'Spare Track Link', units: 4 }
+    const outcome = await result.current.addCrawlerLot(added)
+    expect(outcome.ok).toBe(true)
+
+    expect(captured).toHaveLength(1)
+    expect(captured[0]).toMatchObject({ type: 'crawler', id: 'crawler-1' })
+    expect(captured[0]?.patch.cargoLots).toEqual([added])
+    // Scrap pool is not part of a Bay-local write.
+    expect(captured[0]?.patch.scrapPool).toBeUndefined()
+  })
+
+  test('removeCrawlerLot writes crawler cargoLots only', async () => {
+    const captured: CapturedUpdate[] = []
+    const { result } = renderHook(() =>
+      useCargo({ mech: null, crawler: makeCrawler([unitLot], {}), store: makeStore(captured) })
+    )
+
+    const outcome = await result.current.removeCrawlerLot('lot-1')
+    expect(outcome.ok).toBe(true)
+
+    expect(captured).toHaveLength(1)
+    expect(captured[0]).toMatchObject({ type: 'crawler', id: 'crawler-1' })
+    expect(captured[0]?.patch.cargoLots).toEqual([])
+  })
+
+  test('a Bay edit is refused when there is no crawler at all', async () => {
+    const captured: CapturedUpdate[] = []
+    const { result } = renderHook(() =>
+      useCargo({ mech: makeMech([]), crawler: null, store: makeStore(captured) })
+    )
+
+    const outcome = await result.current.addCrawlerLot(unitLot)
+    expect(outcome.ok).toBe(false)
+    expect(captured).toHaveLength(0)
+  })
+})
+
+/**
+ * The hook derives `state` from its props at render time. Per-lot Unload /
+ * Unstow are buttons on a LIST, so two can fire before the store round-trip
+ * re-renders — and if both reduce from that one snapshot, the second write
+ * resurrects what the first removed. The local dispatchers re-read the entity
+ * from the store before reducing, the same way the sheet controls do.
+ */
+describe('useCargo — dispatches reduce against a fresh read', () => {
+  const lotA: CargoLot = {
+    id: 'lot-a',
+    kind: 'unit',
+    name: 'Crate A',
+    cat: 'SEALED',
+    units: 1,
+    code: 'CRA',
+  }
+  const lotB: CargoLot = {
+    id: 'lot-b',
+    kind: 'unit',
+    name: 'Crate B',
+    cat: 'SEALED',
+    units: 1,
+    code: 'CRB',
+  }
+
+  test('two Unloads before a re-render remove BOTH lots', async () => {
+    const captured: CapturedUpdate[] = []
+    // A store whose `get` reflects the most recent write, standing in for the
+    // real store's write-through — while the hook's props stay at the stale
+    // render-time value.
+    const mech = makeMech([lotA, lotB])
+    let live: Mech = mech
+    const update = mock(async (type: string, id: string, patch: Record<string, unknown>) => {
+      captured.push({ type, id, patch })
+      live = { ...live, ...(patch as Partial<Mech>) }
+      return live
+    })
+    const store = makeEntityStoreMock({
+      get: (type: string, id: string) => (type === 'mech' && id === mech.id ? live : null),
+      update,
+      transfer: mock(
+        async (ops: {
+          updates?: { type: string; id: string; patch: Record<string, unknown> }[]
+        }) => {
+          for (const u of ops.updates ?? []) await update(u.type, u.id, u.patch)
+        }
+      ),
+    }) as typeof useEntityStore
+
+    const { result } = renderHook(() => useCargo({ mech, crawler: null, store }))
+
+    await result.current.removeMechLot('lot-a')
+    await result.current.removeMechLot('lot-b')
+
+    expect(captured).toHaveLength(2)
+    // The second write must be [] — NOT [lotA] recomputed from the stale snapshot.
+    expect(captured[1]?.patch.cargoLots).toEqual([])
+  })
+
+  test('a rejected store write becomes a refusal, not an unhandled rejection', async () => {
+    // `storeState.transfer` rejects when a patch fails its Zod parse. That must
+    // reach the caller through the ordinary `{ ok: false, reason }` channel so
+    // the UI can report it, rather than escaping as an unhandled rejection.
+    const mech = makeMech([lotA])
+    const store = makeEntityStoreMock({
+      get: () => mech,
+      update: mock(async () => {
+        throw new Error('schema parse failed')
+      }),
+      transfer: mock(async () => {
+        throw new Error('schema parse failed')
+      }),
+    }) as typeof useEntityStore
+
+    const { result } = renderHook(() => useCargo({ mech, crawler: null, store }))
+
+    const outcome = await result.current.removeMechLot('lot-a')
+    expect(outcome.ok).toBe(false)
+    if (!outcome.ok) expect(outcome.reason).toContain('schema parse failed')
+  })
+})

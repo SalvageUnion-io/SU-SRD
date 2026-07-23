@@ -45,6 +45,16 @@ export type CargoTransferAction =
   | { type: 'stow'; lotId: string }
   | { type: 'load'; lotId: string; qty?: number }
   | { type: 'withdraw-scrap'; tl: number; qty: number }
+  // Mech-hold-local edits — NO crawler required. A mech's cargo hold is its own
+  // container (distinct from the crawler's Storage Bay), so cargo can be added
+  // to / discarded from it whether or not a crawler is linked.
+  | { type: 'add-mech-lot'; lot: CargoLot }
+  | { type: 'remove-mech-lot'; lotId: string }
+  // Crawler-bay-local edits — NO docked mech required. The Storage Bay is its
+  // own container too, so cargo can be added to / discarded from it whether or
+  // not a mech is docked.
+  | { type: 'add-crawler-lot'; lot: CargoLot }
+  | { type: 'remove-crawler-lot'; lotId: string }
 
 export type CargoTransferOk = {
   ok: true
@@ -125,6 +135,64 @@ export function cargoTransfer(
       return load(state, action.lotId, action.qty)
     case 'withdraw-scrap':
       return withdrawScrap(state, action.tl, action.qty)
+    case 'add-mech-lot':
+      return addMechLot(state, action.lot)
+    case 'remove-mech-lot':
+      return removeMechLot(state, action.lotId)
+    case 'add-crawler-lot':
+      return addCrawlerLot(state, action.lot)
+    case 'remove-crawler-lot':
+      return removeCrawlerLot(state, action.lotId)
+  }
+}
+
+/**
+ * Add a lot directly to the mech hold (no crawler boundary). Over-capacity is
+ * NOT enforced here — the hold displays overflow honestly (red pips); manual
+ * hold entries are record-keeping, matching how wizard/pattern cargo can seed a
+ * hold above cap. Prepended so the newest lot reads first, mirroring load/stow.
+ */
+function addMechLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferResult {
+  return {
+    ok: true,
+    state: { ...state, mechLots: [lot, ...state.mechLots] },
+    changed: { mech: true, crawler: false },
+  }
+}
+
+/** Remove (discard) a lot from the mech hold entirely — no crawler required. */
+function removeMechLot(state: CargoBoundaryState, lotId: string): CargoTransferResult {
+  if (!state.mechLots.some((l) => l.id === lotId)) {
+    return { ok: false, reason: `Cargo lot "${lotId}" is not in the mech hold.` }
+  }
+  return {
+    ok: true,
+    state: { ...state, mechLots: state.mechLots.filter((l) => l.id !== lotId) },
+    changed: { mech: true, crawler: false },
+  }
+}
+
+/**
+ * Add a lot directly to the crawler's Storage Bay (no mech boundary). The bay is
+ * unlimited, so there is no cap check. Prepended, mirroring stow/load ordering.
+ */
+function addCrawlerLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferResult {
+  return {
+    ok: true,
+    state: { ...state, crawlerLots: [lot, ...state.crawlerLots] },
+    changed: { mech: false, crawler: true },
+  }
+}
+
+/** Remove (discard) a lot from the crawler's Storage Bay — no mech required. */
+function removeCrawlerLot(state: CargoBoundaryState, lotId: string): CargoTransferResult {
+  if (!state.crawlerLots.some((l) => l.id === lotId)) {
+    return { ok: false, reason: `Cargo lot "${lotId}" is not in the crawler Storage Bay.` }
+  }
+  return {
+    ok: true,
+    state: { ...state, crawlerLots: state.crawlerLots.filter((l) => l.id !== lotId) },
+    changed: { mech: false, crawler: true },
   }
 }
 

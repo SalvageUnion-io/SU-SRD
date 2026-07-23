@@ -12,6 +12,7 @@
 
 import { useEntityStore } from '../../stores/entityStore'
 import { mechMaxCargo } from '../rules/derivedStats'
+import type { CargoLot } from '../schemas/cargoLot'
 import type { Crawler } from '../schemas/crawler'
 import type { Mech } from '../schemas/mech'
 import {
@@ -47,6 +48,34 @@ export type UseCargoResult = {
   load: (lotId: string, qty?: number) => Promise<CargoTransferResult>
   /** Pool → mech as a bulk SCRAP lot (merges into a same-TL lot). */
   withdrawScrap: (tl: number, qty: number) => Promise<CargoTransferResult>
+  /** Add a lot directly to the mech hold. Needs a mech, NOT a crawler. */
+  addMechLot: (lot: CargoLot) => Promise<CargoTransferResult>
+  /** Discard a lot from the mech hold. Needs a mech, NOT a crawler. */
+  removeMechLot: (lotId: string) => Promise<CargoTransferResult>
+  /** Add a lot directly to the crawler Storage Bay. Needs a crawler, NOT a mech. */
+  addCrawlerLot: (lot: CargoLot) => Promise<CargoTransferResult>
+  /** Discard a lot from the crawler Storage Bay. Needs a crawler, NOT a mech. */
+  removeCrawlerLot: (lotId: string) => Promise<CargoTransferResult>
+}
+
+/**
+ * `storeState.transfer` REJECTS when a patch fails its Zod parse, so an awaited
+ * call that is not guarded escapes as an unhandled rejection and the caller sees
+ * nothing happen. Fold that into the ordinary refusal channel instead, so every
+ * failure reaches the UI as an `{ ok: false, reason }` it already knows how to
+ * report.
+ */
+async function commitUpdates(
+  run: () => Promise<unknown>,
+  result: CargoTransferResult
+): Promise<CargoTransferResult> {
+  try {
+    await run()
+    return result
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    return { ok: false, reason: `Could not save that change: ${message}` }
+  }
 }
 
 export function useCargo({
@@ -95,8 +124,73 @@ export function useCargo({
         patch: { cargoLots: result.state.crawlerLots, scrapPool: result.state.scrapPool },
       })
     }
-    if (updates.length > 0) await storeState.transfer({ updates })
-    return result
+    if (updates.length === 0) return result
+    return commitUpdates(() => storeState.transfer({ updates }), result)
+  }
+
+  // Mech-hold-local edits: the mech's own cargo hold is its own container, so
+  // add/discard require only a docked mech — no crawler boundary. Persists the
+  // mech side alone.
+  async function dispatchMechLocal(action: CargoTransferAction): Promise<CargoTransferResult> {
+    if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
+    if (!mech) {
+      return { ok: false, reason: 'No mech is docked — nothing to store cargo in.' }
+    }
+
+    // Reduce against a FRESH read, not the render-time `state` snapshot. These
+    // are per-lot buttons on a list, so two clicks can land before the store
+    // round-trip re-renders; both would otherwise compute from the same base
+    // array and the second write would resurrect the lot the first removed.
+    // Same fix the sheet controls already use (`freshEntity`).
+    const freshMech = storeState.get('mech', mech.id) ?? mech
+    const result = cargoTransfer(
+      { ...state, mechLots: freshMech.cargoLots ?? [], mechCargoCap: mechMaxCargo(freshMech) },
+      action
+    )
+    if (!result.ok) return result
+
+    if (!result.changed.mech) return result
+    return commitUpdates(
+      () =>
+        storeState.transfer({
+          updates: [{ type: 'mech', id: mech.id, patch: { cargoLots: result.state.mechLots } }],
+        }),
+      result
+    )
+  }
+
+  // Crawler-bay-local edits: the Storage Bay is its own container, so add/discard
+  // require only a linked crawler — no docked mech. Persists the crawler side
+  // alone, and only `cargoLots` (these actions never touch the scrap pool).
+  async function dispatchCrawlerLocal(action: CargoTransferAction): Promise<CargoTransferResult> {
+    if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
+    if (!crawler) {
+      return { ok: false, reason: 'No crawler is linked — nothing to store cargo in.' }
+    }
+
+    // Fresh read before reducing — see `dispatchMechLocal`. The Storage Bay's
+    // per-lot Unstow has the same double-click hazard.
+    const freshCrawler = storeState.get('crawler', crawler.id) ?? crawler
+    const result = cargoTransfer(
+      {
+        ...state,
+        crawlerLots: freshCrawler.cargoLots ?? [],
+        scrapPool: freshCrawler.scrapPool ?? {},
+      },
+      action
+    )
+    if (!result.ok) return result
+
+    if (!result.changed.crawler) return result
+    return commitUpdates(
+      () =>
+        storeState.transfer({
+          updates: [
+            { type: 'crawler', id: crawler.id, patch: { cargoLots: result.state.crawlerLots } },
+          ],
+        }),
+      result
+    )
   }
 
   return {
@@ -106,5 +200,9 @@ export function useCargo({
     stow: (lotId) => dispatch({ type: 'stow', lotId }),
     load: (lotId, qty) => dispatch({ type: 'load', lotId, qty }),
     withdrawScrap: (tl, qty) => dispatch({ type: 'withdraw-scrap', tl, qty }),
+    addMechLot: (lot) => dispatchMechLocal({ type: 'add-mech-lot', lot }),
+    removeMechLot: (lotId) => dispatchMechLocal({ type: 'remove-mech-lot', lotId }),
+    addCrawlerLot: (lot) => dispatchCrawlerLocal({ type: 'add-crawler-lot', lot }),
+    removeCrawlerLot: (lotId) => dispatchCrawlerLocal({ type: 'remove-crawler-lot', lotId }),
   }
 }
