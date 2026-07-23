@@ -17,6 +17,8 @@ This was started as a hand-made project, and it predates the LLMs now used to wo
 
 Much of the code since then has been written with LLM assistance. Every change is directed, read, run, and merged by a person, and the commit history shows which parts.
 
+My job requires proficiency in these tools, and I best gain proficiency through passion projects like this. It has been my intention to use LLMs as a force multiplier, not as a replacement for my own judgment: to more consistently and efficiently implement my changes, not to decide on the changes themselves. Bugs or issues in this project are solely mine.
+
 We support open-weight models. We are against consolidated ownership of LLM infrastructure, and against the obtrusive, environmentally unsound data centers built to serve it.
 
 Software is, and will always be, a human endeavor.
