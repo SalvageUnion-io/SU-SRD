@@ -14,6 +14,8 @@ import {
   getModuleSlots,
   getCargoCapacity,
   getHitPoints,
+  getUpkeepCost,
+  getUpgradeCost,
 } from 'salvageunion-reference'
 import type { StatItem } from '../shared/statsBarTypes'
 
@@ -123,6 +125,26 @@ const ENTITY_STATS_CONFIG: StatConfig[] = [
     tooltip:
       'Your Mech generates Heat when you activate some Systems and Modules or when you Push your reactor, its Heat Capacity represents its ability to operate under these conditions. If you reach your Heat Capacity your reactor will be at risk of overloading, with potentially catastrophic results.',
     primary: true,
+  },
+  // UNION CRAWLER economy. The book (p.218) states these two alongside Structure
+  // Points as the statistics a Crawler derives from its Tech Level — "Your
+  // Crawler has a set of statistics based on its Tech Level. This includes its
+  // Structure Points, Upkeep, and Upgrade cost." Only `crawler-tech-levels`
+  // carries these fields, so no other card gains a stat; without them a crawler
+  // tech level rendered with nothing but its name, TL and SP.
+  {
+    getter: getUpkeepCost,
+    normalLabel: 'Upkeep',
+    normalBottomLabel: 'Cost',
+    tooltip:
+      "Upkeep Cost is the Scrap of the Union Crawler's own Tech Level you must pay each Downtime to keep it running. Pay it in full and the same amount goes into your Upgrade Pool; fail to pay and the Crawler deteriorates.",
+  },
+  {
+    getter: getUpgradeCost,
+    normalLabel: 'Upgrade',
+    normalBottomLabel: 'Cost',
+    tooltip:
+      'Upgrade Cost is the Upgrade Pool total that unlocks the next Tech Level. The pool fills from the Upkeep you pay (and any extra Scrap you add during Downtime); the upgrade itself then takes one week. The maximum tech level has no upgrade cost, so it shows none.',
   },
 ]
 

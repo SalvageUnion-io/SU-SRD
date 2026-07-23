@@ -323,6 +323,32 @@ export function getCargoCapacity(entity: SURefMetaEntity): number | undefined {
 }
 
 /**
+ * Extract a Union Crawler tech level's Upkeep Cost — the Scrap (of the Crawler's
+ * own Tech Level) it costs to keep running through a Downtime.
+ * @param entity - The entity to extract from
+ * @returns The upkeep cost or undefined
+ */
+export function getUpkeepCost(entity: SURefMetaEntity): number | undefined {
+  return 'upkeepCost' in entity && typeof entity.upkeepCost === 'number'
+    ? entity.upkeepCost
+    : undefined
+}
+
+/**
+ * Extract a Union Crawler tech level's Upgrade Cost — the Upgrade Pool total
+ * that unlocks the next Tech Level. `null` in the data at the MAXIMUM tier
+ * (there is nothing to upgrade to), which reads back as `undefined` here so the
+ * stat simply does not render.
+ * @param entity - The entity to extract from
+ * @returns The upgrade cost, or undefined at the maximum tech level
+ */
+export function getUpgradeCost(entity: SURefMetaEntity): number | undefined {
+  return 'upgradeCost' in entity && typeof entity.upgradeCost === 'number'
+    ? entity.upgradeCost
+    : undefined
+}
+
+/**
  * Extract hit points from an entity
  * Used for NPCs, Creatures, Squads, and Meld
  * @param entity - The entity to extract from

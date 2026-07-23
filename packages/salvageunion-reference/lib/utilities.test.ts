@@ -24,6 +24,8 @@ import {
   getModuleSlots,
   getCargoCapacity,
   getHitPoints,
+  getUpkeepCost,
+  getUpgradeCost,
   getAssetUrl,
   getPatterns,
   normalizePatternName,
@@ -621,6 +623,33 @@ describe('Property Extractors', () => {
       const chassis = defined(getReference().Chassis.all()[0])
       const hitPoints = getHitPoints(chassis)
       expect(hitPoints).toBeUndefined()
+    })
+  })
+
+  describe('getUpkeepCost / getUpgradeCost', () => {
+    const tier = (techLevel: number) =>
+      defined(getReference().CrawlerTechLevels.find((t) => t.techLevel === techLevel))
+
+    it('should extract both costs from a crawler tech level', () => {
+      const hamlet = tier(1)
+      expect(getUpkeepCost(hamlet)).toBe(hamlet.upkeepCost)
+      expect(getUpgradeCost(hamlet)).toBe(hamlet.upgradeCost as number)
+    })
+
+    it('should return undefined for the null upgrade cost at the maximum tier', () => {
+      // TL6 (Megacity) is the top of the table — `upgradeCost` is null in the
+      // data because there is no next tier, and the stat must simply not render.
+      const megacity = tier(6)
+      expect(megacity.upgradeCost).toBeNull()
+      expect(getUpgradeCost(megacity)).toBeUndefined()
+      // Upkeep is still owed at the top tier.
+      expect(getUpkeepCost(megacity)).toBe(megacity.upkeepCost)
+    })
+
+    it('should return undefined for entities that carry neither cost', () => {
+      const chassis = defined(getReference().Chassis.all()[0])
+      expect(getUpkeepCost(chassis)).toBeUndefined()
+      expect(getUpgradeCost(chassis)).toBeUndefined()
     })
   })
 

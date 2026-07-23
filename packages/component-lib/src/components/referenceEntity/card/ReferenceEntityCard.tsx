@@ -57,6 +57,7 @@ import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
 import { CatalogChoiceListing } from './CatalogChoiceListing'
 import { anchorBonusMarker, anchorChoiceMarkers } from './choiceAnchoring'
 import type { AnchoredContentBlock } from './choiceAnchoring'
+import { crawlerPopulationRange } from './crawlerPopulationRange'
 import { firstParagraphText } from './firstParagraphText'
 import { EntityCardHeader } from './EntityCardHeader'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
@@ -1007,10 +1008,21 @@ function ReferenceEntityCardInner({
   const classRequirementCells: EntityCardSubHeaderCell[] = classRequirement
     ? [{ key: 'class-requires', label: 'Requires', value: classRequirement }]
     : []
+  // A Union Crawler TECH LEVEL is a table row in the book (p.218), and the
+  // population band is the one fact on that row which is not a number the header
+  // can hold: it is a RANGE, so it rides the facet line while Structure Points /
+  // Upkeep / Upgrade sit in the header's stat cluster. `populationMax: 0` is the
+  // dataset's "unbounded" marker for the top tier, which the book prints open-
+  // ended ("25,000+"). Without this the entire crawler-tech-levels catalog
+  // rendered as bare name + TL cards.
+  const populationRange = crawlerPopulationRange(entity)
+  const populationCells: EntityCardSubHeaderCell[] = populationRange
+    ? [{ key: 'population', label: 'Population', value: populationRange }]
+    : []
   const baseCells: EntityCardSubHeaderCell[] =
     isAction && action
       ? actionCells(action)
-      : [...classRequirementCells, ...foldedActionCells, ...dedupedEntityCells]
+      : [...populationCells, ...classRequirementCells, ...foldedActionCells, ...dedupedEntityCells]
   // dvSourceContent — the content whose `datavalues` block (Damage/Range) feeds
   // the resolver's base stats (a self-action's content for a self-action entity).
   const entityContentForDv = 'content' in entity ? entity.content : undefined
