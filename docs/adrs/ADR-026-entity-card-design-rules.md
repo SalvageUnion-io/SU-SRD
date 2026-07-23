@@ -23,14 +23,14 @@ taxonomy — which surface may enforce vs. free-edit), [ADR-023](ADR-023-drone-e
 
 ## Decision
 
-### 1. One renderer; `ReferenceEntityDisplay` is a compat shim
+### 1. One renderer — `ReferenceEntityCard`, and nothing else
 
 `ReferenceEntityCard` (`components/referenceEntity/card/`) is the **only**
-reference-entity renderer. The barrel still exports `ReferenceEntityDisplay`, but
-it is a thin **compat shim** that maps the legacy sugar (`mode` / `compact` /
-`listing` → `size`; `status` → `damaged`; the old single-SV `statsOverride`
-`{value, bottomLabel}` → `StatItem[]`) and forwards to the card. New code may call
-either; there is no second card. The legacy RED core is deleted.
+reference-entity renderer. The legacy RED core is deleted, and so is the
+`ReferenceEntityDisplay` compat shim that briefly carried the legacy sugar
+(`mode` / `compact` / `listing` → `size`; `status` → `damaged`; the old
+single-SV `statsOverride` `{value, bottomLabel}` → `StatItem[]`) across the
+migration: the barrel no longer exports that name. Call the card.
 
 ### 2. Entities always render as the card — layer UI on top
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted — the Play Cockpit is **built** (realized in `apps/itun/src/components/play/`, Phases 1–7, routed at `/play/:id`; design in the [Dashboard design doc](../architecture/dashboard.md)). This is the specific
+Accepted — the Dashboard is **built** (realized in `apps/itun/src/components/dashboard/`, Phases 1–7, routed at `/dashboard/$id`; design in the [Dashboard design doc](../architecture/dashboard.md)). This is the specific
 play-surface instance of the governing surface taxonomy in
 [ADR-021](ADR-021-itun-surface-taxonomy.md) — the **Guided Play** surface.
 

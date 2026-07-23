@@ -6,9 +6,10 @@
 game rules. **Where it conflicts with any prior ADR, this ADR wins** (scope and
 the specific overrides are listed under [Supersession](#supersession--precedence)).
 
-"Accepted" records the **decision**; the code is mid-transition and closing the
-gap is the **next work** (the Wizard still soft-warns; the Dashboard play surface
-doesn't exist yet). The living, authoritative placement table is the matrix in
+"Accepted" records the **decision**; the code has since largely caught up (the
+Wizard enforces Guided Creation hard on the create path, the Dashboard ships at
+`/dashboard/$id`, and ADR-022's Change Log is live). The living, authoritative
+placement table is the matrix in
 [`rules-engine-boundary.md`](../architecture/rules-engine-boundary.md) — keep
 placements in sync **there**, not by re-editing the summary below. This ADR
 records _why_ the taxonomy exists; the arch doc records _what goes where_.
@@ -86,10 +87,10 @@ the behavior.
 
 **The Dashboard is a separate, multi-entity surface — built.** It composes a
 player's Pilot + Mech + Crawler into one live play surface (distinct from the
-single-entity Live Sheet), shipped as the Play Cockpit at `/play/$id`
-(`src/components/play/`). "Dashboard" is its surface name; the code rename and the
-final removal of the Live Sheet's leftover play control (`QuickRollFab`) are the
-remaining work. Detail in the architecture doc.
+single-entity Live Sheet), shipped at `/dashboard/$id`
+(`src/components/dashboard/`). The code rename from the working title "Play
+Cockpit" has landed, and the Live Sheet's leftover play control (`QuickRollFab`)
+is gone. Detail in the architecture doc.
 
 ## Supersession / precedence
 
@@ -101,8 +102,8 @@ Concretely it overrides:
   this model.
 - Any assumption that ITUN has a single, app-wide enforcement stance. Enforcement
   is per-mode.
-- The **Wizard's** current soft-warn-never-block behavior: the target is enforced
-  Guided Creation (soft → hard).
+- The **Wizard's** former soft-warn-never-block behavior: the create path is now
+  enforced Guided Creation (soft → hard; edit mode keeps the soft regime).
 - The **Live Sheet** hosting enforced play controls: Push, Heat Check, and using a
   system ([ADR-008](ADR-008-sequential-mutations.md)'s `activateItem`) relocate to
   the Dashboard; the Live Sheet becomes pure Free Edit plus overrides.

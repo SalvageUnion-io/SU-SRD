@@ -231,29 +231,36 @@ snapshot remains a frozen point-in-time entity with no history. Full decision in
 
 ## Implementation status — target vs. current
 
-This doc is the target. Where the code differs today:
+This doc is the target. Where the code stands today:
 
-- **Wizard** currently _soft-guides_ (advisory `SoftWarningBanner`, never blocks —
-  `PilotWizard.tsx:96–97`). The target is enforced Guided Creation. This is a
-  planned move from soft → hard.
-- **Dashboard** is **built** — the Play Cockpit ships at `/play/$id`
-  (`src/components/play/`, Phases 1–7; design: [dashboard.md](dashboard.md),
-  decision: [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md)),
-  composing Pilot + Mech + Crawler with its lifecycle-transaction layers (use a
-  system, Push, Downtime, take damage). Remaining: adopt the **Dashboard** surface
-  name (the code is still `play/`), and confirm the Live Sheet's leftover play
-  control (`QuickRollFab` via `SheetMech.tsx` / `activateItem`,
-  [ADR-008](../adrs/ADR-008-sequential-mutations.md)) is fully superseded so the
-  sheet becomes pure Free Edit.
-- **Live Sheet** today mixes free editing with those leftover enforced controls.
-  The target strips the transactions out and adds cap **overrides** (with the
-  derived-baseline callout), which are not yet built.
-- **Provenance log** is not yet implemented; ADR-022 records the decision ahead of
-  the build. Several rules primitives (`salvage`, `crafting`, `downtime`,
-  `scrapMech`, `takeDamage`) are built and tested in `lib/rules` but unwired —
-  they are the raw material for the Dashboard's layers.
+- **Wizard** enforces Guided Creation **hard** on the create path
+  (`PilotWizard.tsx`, `MechWizard.tsx`, `CrawlerBuilder.tsx`): illegal options are
+  filtered out rather than rendered, `Next` is gated by the step gates in
+  `lib/rules/creation.ts` with the unmet requirement in the footer note,
+  cross-step invalidation and draft-restore clamping are announced by toast, and
+  the advisory `Banner` is removed from the create flow — nothing can be in
+  violation. The deliberate exit is `OffRulesEscape` (leave the wizard for the
+  blank Free-Edit path). **Edit** mode keeps the soft regime: presence-only gates,
+  lifted filters/budgets, advisory warnings on Review.
+- **Dashboard** is **built** at `/dashboard/$id` (`src/components/dashboard/`,
+  Phases 1–7; design: [dashboard.md](dashboard.md), decision:
+  [ADR-015](../adrs/ADR-015-dashboard-distinct-play-surface.md)), composing
+  Pilot + Mech + Crawler with its lifecycle-transaction layers (use a system,
+  Push, Downtime, take damage). The working title "Play Cockpit" and the
+  `components/play/` directory are gone.
+- **Live Sheet** is pure Free Edit — Push / Heat Check / `activateItem` no longer
+  live there (`SheetMech.tsx`), and cap **overrides** with the derived-baseline
+  callout and one-click revert are built.
+- **Provenance log** is **built** (ADR-022): the `changeLog` store
+  (`lib/db/changeLog.ts`, schema in `lib/schemas/changeLog.ts`) is written at the
+  `entityStore.update` chokepoint, tagged `transaction` / `override` / `manual`,
+  and read through `ChangeLogDrawer` behind the sheet menu. Replay/time-travel is
+  still unbuilt. Of the rules primitives in `lib/rules`, `downtime` and
+  `takeDamage` are wired into the Dashboard; `salvage`, `crafting`, and
+  `scrapMech` are built and tested but still unwired — raw material for further
+  Dashboard layers.
 
-When any of these lands, update the corresponding bullet (and, if a border moves,
+When any of these moves, update the corresponding bullet (and, if a border moves,
 the matrix above) rather than leaving the gap undocumented.
 
 ---

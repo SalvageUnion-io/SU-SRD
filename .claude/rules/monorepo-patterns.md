@@ -7,6 +7,7 @@ Bun workspace monorepo with multiple apps and shared packages.
 - `apps/srd/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4)
 - `apps/itun/` - Character builder & game manager (React, TanStack Router/Query, ShadCN + Tailwind v4, local-first IndexedDB — no auth, no backend)
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
+- `apps/su-assets/` - Netlify site (`assets.salvageunion.io`) serving licensed entity artwork from Netlify Blobs; `salvageunion-reference` resolves artwork URLs against it at runtime
 - `packages/component-lib/` - Shared React component library (no build step, exports TypeScript source)
 - `packages/salvageunion-reference/` - TypeScript ORM + schema-validated JSON dataset for game data
 
