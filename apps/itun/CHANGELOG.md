@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [0.3.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.2.0...itun-v0.3.0) (2026-07-23)
+
+
+### Features
+
+* **itun:** make the mech hold and crawler Storage Bay independently usable ([#536](https://github.com/SalvageUnion-io/SU-SRD/issues/536)) ([ba911f3](https://github.com/SalvageUnion-io/SU-SRD/commit/ba911f3ad084ea411d42c46cc0f85d5a0c7f6043))
+
 ## [0.2.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.1.0...itun-v0.2.0) (2026-07-23)
 
 
