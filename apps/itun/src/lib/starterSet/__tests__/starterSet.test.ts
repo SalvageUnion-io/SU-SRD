@@ -26,7 +26,7 @@ import {
   pilotMaxAP,
   pilotMaxHP,
 } from '../../rules/derivedStats'
-import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from '../../rules/resolveRefs'
+import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
 import { CrawlerSchema } from '../../schemas/crawler'
 import { MechSchema } from '../../schemas/mech'

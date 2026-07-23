@@ -16,7 +16,7 @@ import { ModalShell } from 'component-lib'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
-import { isWeaponSystem } from '../../lib/rules/crawlerSystems'
+import { isWeaponSystem } from 'salvageunion-reference/rules'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { EntitySearcher } from 'component-lib'
 

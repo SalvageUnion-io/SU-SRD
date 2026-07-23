@@ -11,7 +11,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefMetaAction, SURefModule, SURefSystem } from 'salvageunion-reference'
 
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
-import { resolveModuleRef, resolveSystemRef } from '../../lib/rules/resolveRefs'
+import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import type { ScrapPool } from '../../lib/schemas/crawler'
 import type { ItemCondition, Mech } from '../../lib/schemas/mech'
 

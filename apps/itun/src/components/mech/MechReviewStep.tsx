@@ -2,7 +2,7 @@ import { KvRow, Panel, ReferenceEntityCard, FieldError } from 'component-lib'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import { SavePatternButton } from './Pattern/SavePatternButton'
-import { resolveModuleRef, resolveSystemRef } from '../../lib/rules/resolveRefs'
+import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 
 type MechReviewStepProps = {
   form: MechWizardFormState

@@ -7,7 +7,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility } from 'salvageunion-reference'
 
-import { matchesRef } from '../../lib/rules/resolveRefs'
+import { matchesRef } from 'salvageunion-reference/rules'
 
 /** Resolve a stored ability ref (slug, id, or name) to its SRD entity. */
 export function resolveAbility(slug: string): SURefAbility | null {

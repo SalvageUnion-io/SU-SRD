@@ -469,8 +469,8 @@ string[]`), resolved by `SalvageUnionReference.resolveActions(entity)` →
 ### 5.4 Cargo / storage
 
 - Mech cargo tracked as cargo lots; capacity via `computeCargoCapacity` /
-  `computeMechCapacity` (package `lib/rules/`, re-exported by ITUN's
-  `src/lib/rules/cargo.ts` / `capacity.ts`). The **Storage** button opens the cargo
+  `computeMechCapacity` (imported directly from `salvageunion-reference/rules`).
+  The **Storage** button opens the cargo
   hold overlay (manifest + Jettison decrements a slot).
 
 ### 5.5 Downtime loop

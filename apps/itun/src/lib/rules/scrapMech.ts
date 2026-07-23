@@ -27,7 +27,7 @@ import type { CargoLot } from '../schemas/cargoLot'
 import type { ScrapPool } from '../schemas/crawler'
 import type { ItemCondition, Mech } from '../schemas/mech'
 import type { PoolDraw } from './crawlerEconomy'
-import { matchesRef } from './resolveRefs'
+import { matchesRef } from 'salvageunion-reference/rules'
 
 export type ScrapMechComponentKind = 'chassis' | 'system' | 'module'
 

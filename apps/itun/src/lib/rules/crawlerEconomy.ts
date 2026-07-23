@@ -38,7 +38,7 @@ import type { Crawler, ScrapPool } from '../schemas/crawler'
 import { resolveCrawlerBay } from '../crawlerRefs'
 import { DOWNTIME_UPKEEP_SCRAP } from './downtime'
 import type { Roll } from './heatCheck'
-import { tierUpgradeCost } from './scrap'
+import { tierUpgradeCost } from 'salvageunion-reference/rules'
 import type { TechLevel } from './types'
 
 /** The numeric scrap tech levels (pool bucket keys are tl1..tl6). */

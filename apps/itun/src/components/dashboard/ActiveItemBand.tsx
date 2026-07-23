@@ -25,7 +25,7 @@ import {
 } from '../../lib/rules/derivedStats'
 import { defaultRoll } from '../../lib/rules/heatCheck'
 import { describePushOutcome } from '../../lib/rules/coreMechanic'
-import { resolveChassisRef } from '../../lib/rules/resolveRefs'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { CriticalDamageEffect, CriticalInjuryEffect } from '../../lib/rules/takeDamage'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'

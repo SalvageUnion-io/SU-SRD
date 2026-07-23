@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { FOCUS_RING, Glyph, VitalGauge } from 'component-lib'
 import { cn } from '../../lib/utils'
-import { matchesRef } from '../../lib/rules/resolveRefs'
+import { matchesRef } from 'salvageunion-reference/rules'
 
 type LoadoutPanelProps = {
   /** Mech (or chassis) name shown in the 'Loadout · {name}' header. */

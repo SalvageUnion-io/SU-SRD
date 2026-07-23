@@ -1,8 +1,11 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
+import {
+  isLegalCreationModule,
+  isLegalCreationSystem,
+  matchesRef,
+} from 'salvageunion-reference/rules'
 import { MasonryColumns, ReferenceEntityCard, Slab } from 'component-lib'
-import { matchesRef } from '../../lib/rules/resolveRefs'
 
 type CraftItemsStepProps = {
   /** Which dataset this step crafts from (against its own slot budget). */

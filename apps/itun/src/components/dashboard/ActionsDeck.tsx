@@ -23,7 +23,7 @@ import { CORE_ROLL_BANDS, describePushOutcome, performCoreRoll } from '../../lib
 import type { CoreRollResult } from '../../lib/rules/coreMechanic'
 import { defaultRoll } from '../../lib/rules/heatCheck'
 import { mechMaxHeat } from '../../lib/rules/derivedStats'
-import { resolveChassisRef } from '../../lib/rules/resolveRefs'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'

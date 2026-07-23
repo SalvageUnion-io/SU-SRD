@@ -27,7 +27,7 @@ import type {
   SoftWarning,
   SoftWarningContext,
 } from '../../lib/rules/types'
-import { evaluateSoftWarnings as defaultEvaluate } from '../../lib/rules/softWarnings'
+import { evaluateSoftWarnings as defaultEvaluate } from 'salvageunion-reference/rules'
 import type { ChangeMeta } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import type { AssignableType, EntityForType } from '../../stores/types'

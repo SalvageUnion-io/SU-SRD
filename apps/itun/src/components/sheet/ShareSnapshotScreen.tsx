@@ -44,7 +44,7 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { EntityRef } from '../../lib/schemas/entity'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
-import { computeMechCapacity } from '../../lib/rules/capacity'
+import { computeMechCapacity, resolveChassisRef } from 'salvageunion-reference/rules'
 import {
   crawlerMaxSP,
   mechMaxCargo,
@@ -71,7 +71,6 @@ import type { EntityLookup } from './composition'
 import { SheetHero, ChassisStats } from 'component-lib'
 import { SnapshotQr } from 'component-lib'
 import type { ChassisStatItem } from 'component-lib'
-import { resolveChassisRef } from '../../lib/rules/resolveRefs'
 
 type ShareSnapshotScreenProps = {
   kind: EntityRef['type']

@@ -1,8 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import { MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
+import {
+  computeMechCapacity,
+  evaluateMechWarnings,
+  matchesRef,
+  MECH_CREATION_SCRAP_CAP,
+  resolveChassisRef,
+  resolveModuleRef,
+  resolveSystemRef,
+} from 'salvageunion-reference/rules'
 import { toast } from 'component-lib'
-import { computeMechCapacity } from '../../lib/rules/capacity'
 import {
   clampMechCreationDraft,
   mechCreationBudgetFor,
@@ -10,13 +17,6 @@ import {
 } from '../../lib/rules/creation'
 import type { MechWizardStepId, StepGateResult } from '../../lib/rules/creation'
 import { mechMaxEP } from '../../lib/rules/derivedStats'
-import {
-  matchesRef,
-  resolveChassisRef,
-  resolveModuleRef,
-  resolveSystemRef,
-} from '../../lib/rules/resolveRefs'
-import { evaluateMechWarnings } from '../../lib/rules/softWarnings'
 import type { SoftWarning } from '../../lib/rules/types'
 import { MechSchema } from '../../lib/schemas/mech'
 import {

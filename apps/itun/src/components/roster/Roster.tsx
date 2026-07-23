@@ -20,7 +20,7 @@
 import { Fragment, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
-import { resolveChassisRef } from '../../lib/rules/resolveRefs'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { Button, buttonVariants, EmptyState, EntityRow } from 'component-lib'
 
 import {

@@ -12,7 +12,7 @@ import type { DisplayContent, ReferenceEntityControl } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
-import { resolveChassisRef } from '../../lib/rules/resolveRefs'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'

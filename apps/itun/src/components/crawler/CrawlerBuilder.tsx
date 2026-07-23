@@ -7,7 +7,7 @@ import type {
   SURefMetaCrawlerTechLevel,
   SURefSystem,
 } from 'salvageunion-reference'
-import { isLegalCreationCrawlerWeapon } from 'salvageunion-reference/rules'
+import { isLegalCreationCrawlerWeapon, isWeaponSystem } from 'salvageunion-reference/rules'
 import { toast } from 'component-lib'
 
 import { useMechs, usePilots } from '../../hooks/queries'
@@ -18,7 +18,6 @@ import {
   crawlerWeaponSlotsFor,
 } from '../../lib/rules/creation'
 import type { CrawlerWizardStepId, StepGateResult } from '../../lib/rules/creation'
-import { isWeaponSystem } from '../../lib/rules/crawlerSystems'
 import { crawlerMaxSP } from '../../lib/rules/derivedStats'
 import type { SoftWarning } from '../../lib/rules/types'
 import { CrawlerSchema } from '../../lib/schemas/crawler'
