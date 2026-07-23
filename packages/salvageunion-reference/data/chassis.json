@@ -8,6 +8,8 @@
     "patterns": [
       {
         "name": "Hauler",
+        "source": "Salvage Union Workshop Manual",
+        "page": 101,
         "legalStarting": true,
         "systems": [
           {
@@ -49,6 +51,8 @@
       },
       {
         "name": "Crusher",
+        "source": "Salvage Union Workshop Manual",
+        "page": 101,
         "systems": [
           {
             "name": "Red Laser"
@@ -89,6 +93,8 @@
       },
       {
         "name": "Evantis",
+        "source": "Salvage Union Workshop Manual",
+        "page": 101,
         "systems": [
           {
             "name": "Missile Pod"
@@ -249,416 +255,6 @@
             "value": "Used extensively by the TDA during the construction of their new settlements within the Central Wastes, designed to be free of corpo rule. The Mech is designed to track and move heavy cargo and machinery."
           }
         ]
-      },
-      {
-        "name": "Appleseed",
-        "source": "Mech Monday",
-        "page": 1,
-        "systems": [
-          {
-            "name": ".50 Cal Machine Gun"
-          },
-          {
-            "name": "High Pressure Hose"
-          },
-          {
-            "name": "Dozer Blades"
-          },
-          {
-            "name": "Smuggling Hold"
-          },
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Rigging Arm"
-          },
-          {
-            "name": "Escape Hatch"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Navigation Module"
-          },
-          {
-            "name": "Goflow Plant Growing System"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Popularized by the Green/Thumb smuggler sect, these humble Mules pose as simple traders while secretly growing, planting, and distributing stolen corpo plants throughout the wasteland."
-          }
-        ]
-      },
-      {
-        "name": "Bola Spider",
-        "source": "Mech Monday",
-        "page": 2,
-        "systems": [
-          {
-            "name": "Railgun"
-          },
-          {
-            "name": "Spider Locomotion System"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Rigging Arm"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Coolant Flow Manifold"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "When life hands you lemons, you make lemonade. And when life hands you a working railgun, you make a horrible thing that lurks in the most inaccessible spaces, spitting death until the chassis nearly tears itself apart under the strain."
-          }
-        ]
-      },
-      {
-        "name": "Glorified Truck",
-        "source": "Mech Monday",
-        "page": 3,
-        "systems": [
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Transport Hold",
-            "count": 4
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Personal Recreation Device"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "This Mule Pattern brings all the scrap to the yard, and that's mostly all that it can do. Who needs the flashy Atlas when this humble Mule can do the same job bearing tons of scrap on its back?"
-          }
-        ]
-      },
-      {
-        "name": "Guardian Angel",
-        "source": "Mech Monday",
-        "page": 4,
-        "systems": [
-          {
-            "name": "Floodlights"
-          },
-          {
-            "name": "High Pressure Hose"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Riveting Gun"
-          },
-          {
-            "name": "Armour Plating"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Personal Recreation Device"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Focused on assisting others, this Mule pattern keeps away from the fight and aims to fix and help those around it. It has no way to cause direct harm, but compensates with simple tools."
-          }
-        ]
-      },
-      {
-        "name": "Honey Bee",
-        "source": "Mech Monday",
-        "page": 5,
-        "systems": [
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Torpedo Tubes"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Prawn Sifter"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "DDR Module"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Developed to reduce attacks on lone salvagers, the Honey Bee would, if threatened, deploy a number of heavy munitions at very close range, taking out any attackers and cargo, as well as itself."
-          }
-        ]
-      },
-      {
-        "name": "Party Bus",
-        "source": "Mech Monday",
-        "page": 6,
-        "systems": [
-          {
-            "name": "Floodlights"
-          },
-          {
-            "name": "FM-3 Flamethrower"
-          },
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Loudspeakers",
-            "count": 3
-          },
-          {
-            "name": "Personnel Transport Pod"
-          },
-          {
-            "name": "Smoke Machine"
-          },
-          {
-            "name": "AFF Coolant Foam",
-            "count": 2
-          }
-        ],
-        "modules": [
-          {
-            "name": "Holo Projector"
-          },
-          {
-            "name": "DDR Module"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Party Bus is the perfect roaming night club. Featuring Disco Lights, Pyrotechnics, Smoke, Foam, and more speakers than you'll ever need, take this Mule an 11 of your pals out for night on the wastlands."
-          }
-        ]
-      },
-      {
-        "name": "Steambender",
-        "source": "Mech Monday",
-        "page": 8,
-        "systems": [
-          {
-            "name": "Armoured Shield"
-          },
-          {
-            "name": "Articulated Rigging Arm"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "FM-3 Flamethrower"
-          },
-          {
-            "name": "High Pressure Hose"
-          },
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Radiation Sealing"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Zoom Optics"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "With massive hoses and tanks for water and napalm, this Opus Institute pattern is used regularly for cleanup operations of Meld contaminated areas. While no dedicated fighter or hauler, this mech can do either in a pinch."
-          }
-        ]
-      },
-      {
-        "name": "Surprise",
-        "source": "Mech Monday",
-        "page": 9,
-        "systems": [
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Radomes"
-          },
-          {
-            "name": "N15 Fat Boy"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Encrypted Comms"
-          },
-          {
-            "name": "ECM Transmitter"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "The mech version of a dye pack, this Mule is typically deployed at a vulnerable part of the convoy, ready to destroy the attackers if all seems lost. The mech movement and weapon activation are both controlled remotely."
-          }
-        ]
-      },
-      {
-        "name": "Swayback Wideloader",
-        "source": "Mech Monday",
-        "page": 10,
-        "systems": [
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Loudspeakers"
-          },
-          {
-            "name": "Floodlights"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Transport Hold"
-          },
-          {
-            "name": "Armour Plating",
-            "count": 2
-          },
-          {
-            "name": "Sandblaster"
-          },
-          {
-            "name": "Rigging Arm"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Personal Recreation Device"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Scrapped from vintage vehicles, more classic than innovative. Does what Mules do. Thick hide and cavernous hold."
-          }
-        ]
-      },
-      {
-        "name": "Wagon",
-        "source": "Mech Monday",
-        "page": 11,
-        "systems": [
-          {
-            "name": ".50 Cal Machine Gun"
-          },
-          {
-            "name": "Personnel Transport Pod",
-            "count": 4
-          },
-          {
-            "name": "Locomotion System"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Barometric Sensor"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Designed by Wastelanders looking to pick up their entire settlement and move. This Pattern is capable of hauling almost a dozen families and their belongings across the wastleland with a Weather Sensor to ensure your Wagon isn't blown away."
-          }
-        ]
-      },
-      {
-        "name": "Weatherboy",
-        "source": "Mech Monday",
-        "page": 12,
-        "systems": [
-          {
-            "name": "Frost Protection"
-          },
-          {
-            "name": "Hydrologic Locomotion System"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Stabilising Locomotion System"
-          },
-          {
-            "name": "Radiation Sealing"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Barometric Sensor"
-          },
-          {
-            "name": "Navigation Module"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Built to handle the worst weather the world has to offer, the Weatherboy is used by Union Crawlers as a scouting system to gather information on the weather patterns of an area. Typically, a Weatherboy spends extended time in an area to register full cycles."
-          }
-        ]
       }
     ],
     "structurePoints": 12,
@@ -693,6 +289,8 @@
     "patterns": [
       {
         "name": "Buzzard",
+        "source": "Salvage Union Workshop Manual",
+        "page": 103,
         "legalStarting": true,
         "systems": [
           {
@@ -723,6 +321,8 @@
       },
       {
         "name": "Scrap Flinger",
+        "source": "Salvage Union Workshop Manual",
+        "page": 103,
         "systems": [
           {
             "name": "Mechapult"
@@ -754,6 +354,8 @@
       },
       {
         "name": "Stefanus",
+        "source": "Salvage Union Workshop Manual",
+        "page": 103,
         "systems": [
           {
             "name": "Rigging Arm"
@@ -983,318 +585,6 @@
             "value": "Painted a garish neon purple, this is a gift Katsuro's father Onishi gave him on his 18th birthday. He didn't have the DebtCredit to afford a real Shaitan, so used his engineering skills to do the best he could. Katsuro remains unaware of this."
           }
         ]
-      },
-      {
-        "name": "3CH-0",
-        "source": "Mech Monday",
-        "page": 1,
-        "systems": [
-          {
-            "name": "Loudspeakers",
-            "count": 2
-          },
-          {
-            "name": "Radomes"
-          },
-          {
-            "name": "Tracking Node"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Voice Modulator"
-          },
-          {
-            "name": "Survey Scanner"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Generally piloted by low level corpo assistants this pattern is well suited to for gathering intel and responding to most questions asked of it. Unfortunately poorly tuned internal speakers often lead to misheard questions that must be repeated."
-          }
-        ]
-      },
-      {
-        "name": "Antagonistic Wasp",
-        "source": "Mech Monday",
-        "page": 2,
-        "systems": [
-          {
-            "name": "Monomolecular Blade"
-          },
-          {
-            "name": "Tracking Node"
-          },
-          {
-            "name": "Ejection System"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Evasion Protocols"
-          },
-          {
-            "name": "M315 Motion Scanner"
-          },
-          {
-            "name": "Comms Module"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Housing a custom, annoyed AI, the Wasp is designed to harass larger mechs during patrols. Hovering close to foes, it stabs with its Monomolecular blade while avoiding flailing limbs using advanced evasion protocols."
-          }
-        ]
-      },
-      {
-        "name": "Firefighter",
-        "source": "Mech Monday",
-        "page": 3,
-        "systems": [
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Floodlights"
-          },
-          {
-            "name": "High Pressure Hose"
-          },
-          {
-            "name": "Loudspeakers"
-          },
-          {
-            "name": "Shotgun Pit"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Equipment Locker"
-          },
-          {
-            "name": "Coolant Flow Manifold"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "When you need a cheap first responder for a fire, few do better than the Firefighter pattern."
-          }
-        ]
-      },
-      {
-        "name": "Honeybee",
-        "source": "Mech Monday",
-        "page": 4,
-        "systems": [
-          {
-            "name": "Cryopod System"
-          },
-          {
-            "name": "Nanite Sifter"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Omega Push Module"
-          },
-          {
-            "name": "He₂ Coolant Flush"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Designed to withstand and transport Meld quickly and efficiently. These buzzing Mechs are often used in squads accompanied by more combat oriented Mechs, as the Honeybees are efficiently designed to collect Meld and get the heck out of dodge."
-          }
-        ]
-      },
-      {
-        "name": "Incident Commander",
-        "source": "Mech Monday",
-        "page": 5,
-        "systems": [
-          {
-            "name": "Floodlights"
-          },
-          {
-            "name": "High Pressure Hose"
-          },
-          {
-            "name": "Loudspeakers"
-          },
-          {
-            "name": "High Gain Antenna"
-          },
-          {
-            "name": "Ejection System"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Equipment Locker"
-          },
-          {
-            "name": "Reactor Flare"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "This customized Mazona, the Incident Commander, has been adopted by many Union Crawlers as a cheap way to help maintain order. Its equipment loadout allows it to put out fires, direct personnel, signal for help, and maintain comms."
-          }
-        ]
-      },
-      {
-        "name": "SFX",
-        "source": "Mech Monday",
-        "page": 6,
-        "systems": [
-          {
-            "name": "Floodlights",
-            "count": 2
-          },
-          {
-            "name": "Loudspeakers",
-            "count": 2
-          },
-          {
-            "name": "FM-3 Flamethrower"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Reactor Flare"
-          },
-          {
-            "name": "Video Projection Array"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "When the Union Crawler needs to unwind with a little flare, the SFX Pattern Mazona is a quick and simple build. From music festivals, to maker fairs, to hosting a VIP, let this special effects mech go to work."
-          }
-        ]
-      },
-      {
-        "name": "Martinet",
-        "source": "Mech Monday",
-        "page": 7,
-        "systems": [
-          {
-            "name": "High Pressure Hose"
-          },
-          {
-            "name": "Loudspeakers"
-          },
-          {
-            "name": "Armour Plating"
-          },
-          {
-            "name": "Shotgun Pit"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Video Projection Array"
-          },
-          {
-            "name": "Comms Tapper"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "During times of unrest, some Corpos will release this \"peace keeping\" version of the Mazona to play propaganda vids, warnings about curfew, and to manage crowds that need to \"cool off,\" while giving personnel a vantage for other forms of crowd control."
-          }
-        ]
-      },
-      {
-        "name": "Valet",
-        "source": "Mech Monday",
-        "page": 8,
-        "systems": [
-          {
-            "name": "Armour Plating"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Loudspeakers"
-          },
-          {
-            "name": "Personnel Transport Pod"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Evasion Protocols"
-          },
-          {
-            "name": "Sleeping Beauty"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Designed to ferry two squads of infantry in or out of combat; this pattern forgoes weapons to ensure it gets the job done. Cheap and Low-Tech, a Lance of 5 mechs can very affordably disgorge a platoon in short order. Sleeping Beauty is used to approach stealthily, while Loudspeakers are used for psychological warfare."
-          }
-        ]
-      },
-      {
-        "name": "Valkyrie",
-        "source": "Mech Monday",
-        "page": 9,
-        "systems": [
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Riveting Gun"
-          },
-          {
-            "name": "Red Laser"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Equipment Locker"
-          },
-          {
-            "name": "Reactor Flare"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "In the myths of the old world, the Valkyrie were the ones who choose who lives and who dies in the battlefield. This pattern seeks to fulfill the same, being equipped with ways to both deal and repair damage."
-          }
-        ]
       }
     ],
     "structurePoints": 5,
@@ -1329,6 +619,8 @@
     "patterns": [
       {
         "name": "Leaky",
+        "source": "Salvage Union Workshop Manual",
+        "page": 105,
         "legalStarting": true,
         "systems": [
           {
@@ -1364,6 +656,8 @@
       },
       {
         "name": "Rigger",
+        "source": "Salvage Union Workshop Manual",
+        "page": 105,
         "systems": [
           {
             "name": "Hydraulic Crusher"
@@ -1398,6 +692,8 @@
       },
       {
         "name": "Sakura",
+        "source": "Salvage Union Workshop Manual",
+        "page": 105,
         "systems": [
           {
             "name": "Articulated Rigging Arm"
@@ -1509,169 +805,6 @@
             "value": "This is a pre-made Mech for the Reclamation of the Wastes Campaign, piloted by Bone-Saw."
           }
         ]
-      },
-      {
-        "name": "The Cleaner",
-        "source": "Mech Monday",
-        "page": 1,
-        "systems": [
-          {
-            "name": "Prawn Sifter"
-          },
-          {
-            "name": "Rotary Minigun"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Hull Magnetiser"
-          },
-          {
-            "name": "Dash Protocols"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "When you plan to salvage in a hostile environment, The Cleaner pattern's got you covered. The Cleaner is designed to get you in, salvage, and get out of the danger zone with as much scrap as possible."
-          }
-        ]
-      },
-      {
-        "name": "Dumpster Fire",
-        "source": "Mech Monday",
-        "page": 2,
-        "systems": [
-          {
-            "name": "High Pressure Hose"
-          },
-          {
-            "name": "FM-3 Flamethrower"
-          },
-          {
-            "name": "Hydraulic Crusher"
-          },
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Floodlights"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Equipment Locker"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "\"Gluttonous, Incontinent and Flatulent\", Corpo Prison Arcology sewage & medical waste disposal Mechs par excellence. Its high pressure hose can slurp up toxic sludge and let loose on the wastes and its flamethrower can incinerate. \"...of course there is no escape hatch... escape to where?\""
-          }
-        ]
-      },
-      {
-        "name": "The Dungster",
-        "source": "Mech Monday",
-        "page": 3,
-        "systems": [
-          {
-            "name": "Rigging Arm",
-            "count": 2
-          },
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Dozer Blades"
-          },
-          {
-            "name": "Nanofibre Net Launcher"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Metal Detector"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Born from the mind of a raider named Jebb, designed after a rare creature (insect) he saw as a child, the dungster fires its nanofibre net at piles of scrap, using its dozer and arms to roll it up into a ball and roll it across the wastes. The towering ball can be seen from miles away."
-          }
-        ]
-      },
-      {
-        "name": "Killdozer",
-        "source": "Mech Monday",
-        "page": 4,
-        "systems": [
-          {
-            "name": ".50 Cal Machine Gun"
-          },
-          {
-            "name": "Dozer Blades"
-          },
-          {
-            "name": "Armour Plating"
-          },
-          {
-            "name": "Smoke Machine"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Locomotion System"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Self-Destruct"
-          },
-          {
-            "name": "Evasion Protocols"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Named after a particularly disgruntled Evantis nuclear waste disposal worker who modified his Scrapper in an attempt to extract revenge - for what, no one knows, since Evantis managed to take him out. But not before he flattened 13 company outpost buildings."
-          }
-        ]
-      },
-      {
-        "name": "Knock-Down Drag-Out",
-        "source": "Mech Monday",
-        "page": 5,
-        "systems": [
-          {
-            "name": "Bio-Maw"
-          },
-          {
-            "name": "Bio-Talon"
-          },
-          {
-            "name": "Locomotion System"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Pop Goes The Weasel"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "These Scrapper mechs are cobbled together in Gehenna for the sole purpose of scrapping... no, not gathering scrap! Fighting! These mechs are built with bio-systems and overload protocols and usually used for pit fights that bored salvagers can bet on."
-          }
-        ]
       }
     ],
     "structurePoints": 9,
@@ -1706,6 +839,8 @@
     "patterns": [
       {
         "name": "Settler",
+        "source": "Salvage Union Workshop Manual",
+        "page": 107,
         "legalStarting": true,
         "systems": [
           {
@@ -1741,6 +876,8 @@
       },
       {
         "name": "Operator",
+        "source": "Salvage Union Workshop Manual",
+        "page": 107,
         "additionalSources": [
           {
             "source": "Thatcher's Mech Base",
@@ -1784,6 +921,8 @@
       },
       {
         "name": "AMS",
+        "source": "Salvage Union Workshop Manual",
+        "page": 107,
         "systems": [
           {
             "name": "Needle Missile Pod"
@@ -1902,225 +1041,6 @@
             "value": "Utilising a Mech intended for schoolwork, a group of students calibrated this Mech's values to 300% energy, 200% chaos, and 0% sleep."
           }
         ]
-      },
-      {
-        "name": "Forty-Niner",
-        "source": "Mech Monday",
-        "page": 1,
-        "systems": [
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": ".50 Cal Machine Gun"
-          },
-          {
-            "name": "Personnel Transport Pod"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Personal Recreation Device"
-          },
-          {
-            "name": "Survey Scanner"
-          },
-          {
-            "name": "Navigation Module"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "A pattern used by freelance prospectors and surveyors, finding and analyzing POIs to sell the data in exchange for supplies. Usually, these machines are operated as a family business, with the mech serving as mobile home for the family."
-          }
-        ]
-      },
-      {
-        "name": "Gossipmonger",
-        "source": "Mech Monday",
-        "page": 2,
-        "systems": [
-          {
-            "name": "High Gain Antenna"
-          },
-          {
-            "name": "Loudspeakers"
-          },
-          {
-            "name": "Floodlights"
-          },
-          {
-            "name": "Tracking Node"
-          },
-          {
-            "name": "Smoke Machine"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Tapper"
-          },
-          {
-            "name": "Zoom Optics"
-          },
-          {
-            "name": "Eggs Mayhem"
-          },
-          {
-            "name": "Voice Modulator"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "This mech thrives on collecting and sharing secrets across the wastelands. It fuels rivalries and chaos by broadcasting juicy tidbits. The ultimate gossip hub, ensuring no secret stays hidden for long."
-          }
-        ]
-      },
-      {
-        "name": "Hedgehog Dilemma",
-        "source": "Mech Monday",
-        "page": 3,
-        "systems": [
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Executive Body Kit"
-          },
-          {
-            "name": "Teleportation Pod"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Tapper"
-          },
-          {
-            "name": "Mech Scrambler"
-          },
-          {
-            "name": "Sonic Screecher"
-          },
-          {
-            "name": "Reactor Overload"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "This mech has a hard time communicating with people. When it does it all comes out wrong. If people get too close, it goes home."
-          }
-        ]
-      },
-      {
-        "name": "Interdictor",
-        "source": "Mech Monday",
-        "page": 4,
-        "systems": [
-          {
-            "name": "Ejection System"
-          },
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Electro-Magnetic Hardening"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Video Recording Array"
-          },
-          {
-            "name": "Comms Tapper"
-          },
-          {
-            "name": "ECM Transmitter"
-          },
-          {
-            "name": "Aardvarks Tongue"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Looking to boost your EWAR (Electronic Warfare) capabilities, the Spectrum Interdictor Pattern can perform intelligence gathering, electronically blackout whole areas, and immobilize mechs that get too close."
-          }
-        ]
-      },
-      {
-        "name": "Pharmacy",
-        "source": "Mech Monday",
-        "page": 5,
-        "systems": [
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Personnel Transport Pod"
-          },
-          {
-            "name": "Transport Hold"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Auto-Doctor"
-          },
-          {
-            "name": "Equipment Locker"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "An unarmed medical aid and contagion reponse pattern, the Pharmacy deploys full of supplies to treat the sick and wounded. It's modules are able to diagnose and treat most maladies. Acts as a T3 medbay for up to 12 patients."
-          }
-        ]
-      },
-      {
-        "name": "Photo Finale",
-        "source": "Mech Monday",
-        "page": 6,
-        "systems": [
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Matter Phase Shield"
-          },
-          {
-            "name": "Floodlights"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Hull Magnetiser"
-          },
-          {
-            "name": "Sleeping Beauty"
-          },
-          {
-            "name": "Energy Cell"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Close range Ambush - Sleeping Beauty. Blueprint Capture. Hull Magnetiser to pick up enemy scraps. Energy cell to replenish EP. Perfect for the Engineer class."
-          }
-        ]
       }
     ],
     "structurePoints": 17,
@@ -2148,6 +1068,8 @@
     "patterns": [
       {
         "name": "Shepherd",
+        "source": "Salvage Union Workshop Manual",
+        "page": 109,
         "legalStarting": true,
         "systems": [
           {
@@ -2183,6 +1105,8 @@
       },
       {
         "name": "Butcher",
+        "source": "Salvage Union Workshop Manual",
+        "page": 109,
         "systems": [
           {
             "name": "Chainsaw Arm"
@@ -2214,6 +1138,8 @@
       },
       {
         "name": "H&V",
+        "source": "Salvage Union Workshop Manual",
+        "page": 109,
         "systems": [
           {
             "name": "Chainsaw Arm",
@@ -2336,111 +1262,6 @@
             "value": "This is a pre-made Mech for the Reclamation of the Wastes Campaign, piloted by Razor."
           }
         ]
-      },
-      {
-        "name": "Newshound",
-        "source": "Mech Monday",
-        "page": 2,
-        "systems": [
-          {
-            "name": "Floodlights"
-          },
-          {
-            "name": "Chaff Launcher"
-          },
-          {
-            "name": "Armour Plating"
-          },
-          {
-            "name": "Rigging Arm"
-          },
-          {
-            "name": "Locomotion System"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Video Recording Array"
-          },
-          {
-            "name": "Zoom Optics"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Commissioned by the Terran News Network for news crews embedded with combat units during the First Corpo War, but since reporposed and improved by Union \"citizen journalists\" to document corpo crimes."
-          }
-        ]
-      },
-      {
-        "name": "Ripley",
-        "source": "Mech Monday",
-        "page": 3,
-        "systems": [
-          {
-            "name": "Napalm Shotgun"
-          },
-          {
-            "name": "Articulated Rigging Arm"
-          },
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Floodlights"
-          }
-        ],
-        "modules": [
-          {
-            "name": "M315 Motion Scanner"
-          },
-          {
-            "name": "Comms Module"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "A modified cargo handling chassis, the Ripley was modified to transform a humble Thresher into an area-denial weapon against invisible foes with it's Motion Tracking system while being able to grapple larger foes. \"They are coming out of the walls! Game over, game over!\""
-          }
-        ]
-      },
-      {
-        "name": "Suppressor",
-        "source": "Mech Monday",
-        "page": 4,
-        "systems": [
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Chainsaw Arm"
-          },
-          {
-            "name": "High Pressure Hose"
-          },
-          {
-            "name": "Loudspeakers"
-          },
-          {
-            "name": "Floodlights"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Sonic Screecher"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "This pattern is a conversion of surplus Thresher agri-mechs and can be used for firefighting, rescue operations in collapsed buildings and removing debris. Or for riot control, as some anti-corp protesters painfully discovered."
-          }
-        ]
       }
     ],
     "structurePoints": 15,
@@ -2475,6 +1296,8 @@
     "patterns": [
       {
         "name": "Beam",
+        "source": "Salvage Union Workshop Manual",
+        "page": 111,
         "systems": [
           {
             "name": "Blue Mining Laser"
@@ -2515,6 +1338,8 @@
       },
       {
         "name": "Steamroller",
+        "source": "Salvage Union Workshop Manual",
+        "page": 111,
         "systems": [
           {
             "name": "Green Laser"
@@ -2558,6 +1383,8 @@
       },
       {
         "name": "Osiris",
+        "source": "Salvage Union Workshop Manual",
+        "page": 111,
         "systems": [
           {
             "name": "30mm Autocannon"
@@ -2681,6 +1508,8 @@
     "patterns": [
       {
         "name": "Legion",
+        "source": "Salvage Union Workshop Manual",
+        "page": 113,
         "systems": [
           {
             "name": "Green Laser"
@@ -2718,6 +1547,8 @@
       },
       {
         "name": "Longsaddle",
+        "source": "Salvage Union Workshop Manual",
+        "page": 113,
         "systems": [
           {
             "name": "Long Barrelled Green Laser"
@@ -2755,6 +1586,8 @@
       },
       {
         "name": "Opus",
+        "source": "Salvage Union Workshop Manual",
+        "page": 113,
         "systems": [
           {
             "name": "Red Pulse Laser"
@@ -2907,6 +1740,8 @@
     "patterns": [
       {
         "name": "Mauler",
+        "source": "Salvage Union Workshop Manual",
+        "page": 115,
         "systems": [
           {
             "name": "M2-X Mauler"
@@ -2950,6 +1785,8 @@
       },
       {
         "name": "Piggyback",
+        "source": "Salvage Union Workshop Manual",
+        "page": 115,
         "systems": [
           {
             "name": "30mm Autocannon"
@@ -2987,6 +1824,8 @@
       },
       {
         "name": "Contour",
+        "source": "Salvage Union Workshop Manual",
+        "page": 115,
         "systems": [
           {
             "name": "Red Pulse Laser"
@@ -3085,6 +1924,8 @@
     "patterns": [
       {
         "name": "Cackler",
+        "source": "Salvage Union Workshop Manual",
+        "page": 117,
         "systems": [
           {
             "name": "Mining Rig"
@@ -3125,6 +1966,8 @@
       },
       {
         "name": "Auger",
+        "source": "Salvage Union Workshop Manual",
+        "page": 117,
         "systems": [
           {
             "name": "Blue Mining Laser"
@@ -3157,6 +2000,8 @@
       },
       {
         "name": "Thatcher",
+        "source": "Salvage Union Workshop Manual",
+        "page": 117,
         "additionalSources": [
           {
             "source": "Thatcher's Mech Base",
@@ -3376,592 +2221,6 @@
             "value": "A cost-effective build designed to hunt Bio-Titans, using the armoured core of the Goliath to go toe-to-toe with the behemoths, and additional cargo space to haul back their carcasses for bio-salvage."
           }
         ]
-      },
-      {
-        "name": "Ant",
-        "source": "Mech Monday",
-        "page": 1,
-        "systems": [
-          {
-            "name": "Mining Rig",
-            "count": 2
-          },
-          {
-            "name": "M2-X Mauler"
-          },
-          {
-            "name": "Rigging Arm"
-          },
-          {
-            "name": "Armoured Shield"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Locomotion System"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Weapon Link"
-          },
-          {
-            "name": "Hull Magnetiser"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "With its devastating close range attacks this mech is designed to breach fortifications or engage hard targets, cutting it into neat little peaces and then carry them home on its back, hence the name."
-          }
-        ]
-      },
-      {
-        "name": "Atomiser",
-        "source": "Mech Monday",
-        "page": 2,
-        "systems": [
-          {
-            "name": "CACB Laser"
-          },
-          {
-            "name": "Smoke Machine"
-          },
-          {
-            "name": "Chaff Launcher"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Stabilising Locomotion System"
-          },
-          {
-            "name": "Heat Sink",
-            "count": 2
-          }
-        ],
-        "modules": [
-          {
-            "name": "Adv. Reactor Safety Protocols"
-          },
-          {
-            "name": "Comms Module"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Designed as an alternative to ballistic artillery, several Atomisers would provide long-range supporting fire for ground forces."
-          }
-        ]
-      },
-      {
-        "name": "Autogenous",
-        "source": "Mech Monday",
-        "page": 3,
-        "systems": [
-          {
-            "name": "Bio-Maw"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Module Switch"
-          },
-          {
-            "name": "Nanite Repair Arm"
-          },
-          {
-            "name": "Shield Dome"
-          },
-          {
-            "name": "Locomotion System"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Meld Regenerator"
-          },
-          {
-            "name": "Comms Module"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Do not defeat your enemies. Consume them. Grow stronger from their strength, burn their weakness in the acid of your will."
-          }
-        ]
-      },
-      {
-        "name": "Doss",
-        "source": "Mech Monday",
-        "page": 4,
-        "systems": [
-          {
-            "name": "Personnel Transport Pod",
-            "count": 2
-          },
-          {
-            "name": "Radiation Sealing"
-          },
-          {
-            "name": "Spider Locomotion System"
-          },
-          {
-            "name": "Articulated Rigging Arm"
-          },
-          {
-            "name": "Module Switch"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Auto-Doctor"
-          },
-          {
-            "name": "Dash Protocols"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Crawler 347 \"Okinawa\" considers the survival of their infantrymen and -women to be a top priority. This mech serves as a medevac, darting into battle to retrieve casualties with near-impunity."
-          }
-        ]
-      },
-      {
-        "name": "Firefly",
-        "source": "Mech Monday",
-        "page": 5,
-        "systems": [
-          {
-            "name": "Napalm Shotgun"
-          },
-          {
-            "name": "Hover Locomotion System"
-          },
-          {
-            "name": "Plasma Cannon"
-          },
-          {
-            "name": "Chaff Launcher"
-          },
-          {
-            "name": "High Pressure Hose"
-          },
-          {
-            "name": "Radiation Sealing"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Firewall"
-          },
-          {
-            "name": "Coolant Flow Manifold"
-          },
-          {
-            "name": "Thermal Optics"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Sent in squads to quickly counter corpo salvage teams. Hover propulsion means nowhere is safe. Plasma cannon hits wide areas (catching even stealthed mechs) and napalm shotgun for infantry. Hose to minimise collateral."
-          }
-        ]
-      },
-      {
-        "name": "Gridiron Webslinger",
-        "source": "Mech Monday",
-        "page": 6,
-        "systems": [
-          {
-            "name": "Locomotion System",
-            "count": 2
-          },
-          {
-            "name": "Dozer Blades"
-          },
-          {
-            "name": "Grappling Harpoon",
-            "count": 2
-          },
-          {
-            "name": "Cargo Bay"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": ".50 Cal Machine Gun"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Metal Detector"
-          },
-          {
-            "name": "Deep Survey Scanner"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "For when your important scrap must be delivered. Built off a popular minefield clearing pattern, this mech has been upgraded to go through or swing over whatever is in your way."
-          }
-        ]
-      },
-      {
-        "name": "Hellion",
-        "source": "Mech Monday",
-        "page": 7,
-        "systems": [
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Dozer Blades"
-          },
-          {
-            "name": "M2-X Mauler"
-          },
-          {
-            "name": "FM-3 Flamethrower",
-            "count": 2
-          },
-          {
-            "name": "Hydraulic Crusher"
-          },
-          {
-            "name": "Loudspeakers"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Weapon Link"
-          },
-          {
-            "name": "M315 Motion Scanner"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "A Goliath developed following the destruction of Crawler 589 'Oasis', this pattern has been used to terrifying effect as a battering ram against Corpo mech lances, with groups of these patterns being seen crushing entire outposts."
-          }
-        ]
-      },
-      {
-        "name": "King Crab",
-        "source": "Mech Monday",
-        "page": 8,
-        "systems": [
-          {
-            "name": "Prawn Sifter"
-          },
-          {
-            "name": "Sandblaster"
-          },
-          {
-            "name": "Spider Locomotion System"
-          },
-          {
-            "name": "Hydraulic Crusher"
-          },
-          {
-            "name": "Articulated Rigging Arm"
-          },
-          {
-            "name": "Escape Hatch"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Evasion Protocols"
-          },
-          {
-            "name": "Survey Scanner"
-          },
-          {
-            "name": "Comms Module"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "When engineer \"Long\" John Silver designed his mech, it started to develop many odd properties. A large and small claw, scrap salvage attached to its back similar to the Coral Crab's camouflage, and even a tendency to skitter away sideways when the Evasion Module was engaged."
-          }
-        ]
-      },
-      {
-        "name": "Limpet Mine",
-        "source": "Mech Monday",
-        "page": 9,
-        "systems": [
-          {
-            "name": "Mole Torpedo"
-          },
-          {
-            "name": "Prawn Sifter"
-          },
-          {
-            "name": "Chaff Launcher"
-          },
-          {
-            "name": "Smoke Machine"
-          },
-          {
-            "name": "Stabilising Locomotion System"
-          },
-          {
-            "name": "High Gain Antenna"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Deep Survey Scanner"
-          },
-          {
-            "name": "Metal Detector"
-          },
-          {
-            "name": "Comms Module"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "A Goliath mech repurposed into a sedentary mining station and a lucky salvagers home-away-from home, the limpet mine is designed to hunker down in one spot while sifting through the surrounding area's salvage."
-          }
-        ]
-      },
-      {
-        "name": "Orthrus",
-        "source": "Mech Monday",
-        "page": 10,
-        "systems": [
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Cargo Bay"
-          },
-          {
-            "name": "Mechapult",
-            "count": 2
-          },
-          {
-            "name": "Prawn Sifter"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Hull Magnetiser"
-          },
-          {
-            "name": "Multi-Targeter"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "The reclamation of the Geryon space port was a doomed endeavour. Resupply was scarce, raider assaults frequent. \"Then let them eat scrap!\", the salvagers thought, and built a junkyard dog from the abundant salvage."
-          }
-        ]
-      },
-      {
-        "name": "Picket",
-        "source": "Mech Monday",
-        "page": 11,
-        "systems": [
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Hydraulic Crusher"
-          },
-          {
-            "name": "Mechapult"
-          },
-          {
-            "name": "Welding Laser"
-          },
-          {
-            "name": "Cargo Bay"
-          },
-          {
-            "name": "Loudspeakers"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Metal Detector"
-          },
-          {
-            "name": "Firewall"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Designed by salvagers, for salvagers, the Picket Pattern is cheap, tough, mass-producible and symbolic of the grit, versatility and the no-nonsense attitude of its users."
-          }
-        ]
-      },
-      {
-        "name": "Riptide",
-        "source": "Mech Monday",
-        "page": 12,
-        "systems": [
-          {
-            "name": "Torpedo Tubes",
-            "count": 2
-          },
-          {
-            "name": "Welding Laser"
-          },
-          {
-            "name": "Smoke Machine"
-          },
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Escape Hatch"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Weapon Link"
-          },
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Dash Protocols"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "After a surplus of cheap nautical weapons flooded the market following the raid of a Kombu storage facility this pattern emerged as a way for scrappy Salvagers to get the most bang for their buck with minimal risk."
-          }
-        ]
-      },
-      {
-        "name": "Tanks-A-Lot",
-        "source": "Mech Monday",
-        "page": 13,
-        "systems": [
-          {
-            "name": "Industrial Body Kit"
-          },
-          {
-            "name": "Refractive Shield Projector"
-          },
-          {
-            "name": "Chaff Launcher",
-            "count": 2
-          },
-          {
-            "name": "Welding Laser"
-          },
-          {
-            "name": "Dozer Blades"
-          },
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "30mm Autocannon"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Firewall"
-          },
-          {
-            "name": "Energy Cell"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Say yes to less DPS. Your friends will be impressed! Repair bills? Couldn't care less! Designed to look like a Piggyback Hussar, this all tier-2 mech wants to draw fire away from squishy allies and bring its buddies home. Your team will say: \"thanks a lot, Tanks-a-Lot.\""
-          }
-        ]
-      },
-      {
-        "name": "Tollmaster",
-        "source": "Mech Monday",
-        "page": 14,
-        "systems": [
-          {
-            "name": "Rotary Minigun",
-            "count": 2
-          },
-          {
-            "name": "Laser Anti-Missile System"
-          },
-          {
-            "name": "Loudspeakers"
-          },
-          {
-            "name": "Target Painter"
-          }
-        ],
-        "modules": [
-          {
-            "name": "IR Night Vision Optics"
-          },
-          {
-            "name": "Sleeping Beauty"
-          },
-          {
-            "name": "Weapon Link"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "House Cosroe's own iron-bound defender, the Tollmaster is crewed by one of their gene-wrought pilots and equipped with enough firepower to lay waste to anyone approaching Battan's Gap with the wrong intentions."
-          }
-        ]
       }
     ],
     "page": 4,
@@ -3990,6 +2249,8 @@
     "patterns": [
       {
         "name": "Blackbeard",
+        "source": "Salvage Union Workshop Manual",
+        "page": 119,
         "systems": [
           {
             "name": "Mini Mortar"
@@ -4039,6 +2300,8 @@
       },
       {
         "name": "Saboteur",
+        "source": "Salvage Union Workshop Manual",
+        "page": 119,
         "systems": [
           {
             "name": "Torpedo Tubes"
@@ -4085,6 +2348,8 @@
       },
       {
         "name": "Aegean",
+        "source": "Salvage Union Workshop Manual",
+        "page": 119,
         "systems": [
           {
             "name": "Torpedo Tubes"
@@ -4232,6 +2497,8 @@
     "patterns": [
       {
         "name": "Ironmonger",
+        "source": "Salvage Union Workshop Manual",
+        "page": 121,
         "systems": [
           {
             "name": "Mini Mortar"
@@ -4275,6 +2542,8 @@
       },
       {
         "name": "Maggie",
+        "source": "Salvage Union Workshop Manual",
+        "page": 121,
         "additionalSources": [
           {
             "source": "Thatcher's Mech Base",
@@ -4321,6 +2590,8 @@
       },
       {
         "name": "Stefanus",
+        "source": "Salvage Union Workshop Manual",
+        "page": 121,
         "systems": [
           {
             "name": "Chainsaw Arm"
@@ -4436,6 +2707,8 @@
     "patterns": [
       {
         "name": "Junker",
+        "source": "Salvage Union Workshop Manual",
+        "page": 123,
         "systems": [
           {
             "name": "Red Laser"
@@ -4476,6 +2749,8 @@
       },
       {
         "name": "Reclaimer",
+        "source": "Salvage Union Workshop Manual",
+        "page": 123,
         "systems": [
           {
             "name": "Hydraulic Crusher"
@@ -4513,6 +2788,8 @@
       },
       {
         "name": "Sentinel",
+        "source": "Salvage Union Workshop Manual",
+        "page": 123,
         "systems": [
           {
             "name": "Missile Pod"
@@ -4618,6 +2895,8 @@
     "patterns": [
       {
         "name": "Thunder Storm",
+        "source": "Salvage Union Workshop Manual",
+        "page": 125,
         "systems": [
           {
             "name": ".50 Cal Machine Gun",
@@ -4656,6 +2935,8 @@
       },
       {
         "name": "Bastion",
+        "source": "Salvage Union Workshop Manual",
+        "page": 125,
         "systems": [
           {
             "name": "30mm Autocannon"
@@ -4690,6 +2971,8 @@
       },
       {
         "name": "Evantis",
+        "source": "Salvage Union Workshop Manual",
+        "page": 125,
         "systems": [
           {
             "name": "Railgun"
@@ -4924,6 +3207,8 @@
     "patterns": [
       {
         "name": "Rifleman",
+        "source": "Salvage Union Workshop Manual",
+        "page": 127,
         "systems": [
           {
             "name": "30mm Autocannon",
@@ -4959,6 +3244,8 @@
       },
       {
         "name": "Ironmask",
+        "source": "Salvage Union Workshop Manual",
+        "page": 127,
         "systems": [
           {
             "name": "Mech Melee Armament",
@@ -5000,6 +3287,8 @@
       },
       {
         "name": "Gladiator",
+        "source": "Salvage Union Workshop Manual",
+        "page": 127,
         "systems": [
           {
             "name": "Missile Pod"
@@ -5152,6 +3441,8 @@
     "patterns": [
       {
         "name": "Surveyor",
+        "source": "Salvage Union Workshop Manual",
+        "page": 129,
         "systems": [
           {
             "name": "Green Laser"
@@ -5190,6 +3481,8 @@
       },
       {
         "name": "Scrounger",
+        "source": "Salvage Union Workshop Manual",
+        "page": 129,
         "systems": [
           {
             "name": "Articulated Rigging Arm"
@@ -5228,6 +3521,8 @@
       },
       {
         "name": "DronTek",
+        "source": "Salvage Union Workshop Manual",
+        "page": 129,
         "systems": [
           {
             "name": "Green Laser"
@@ -5290,6 +3585,8 @@
     "patterns": [
       {
         "name": "Painter",
+        "source": "Salvage Union Workshop Manual",
+        "page": 131,
         "systems": [
           {
             "name": ".50 Cal Machine Gun"
@@ -5336,6 +3633,8 @@
       },
       {
         "name": "Battery",
+        "source": "Salvage Union Workshop Manual",
+        "page": 131,
         "systems": [
           {
             "name": "Locomotion System"
@@ -5374,6 +3673,8 @@
       },
       {
         "name": "Stefanus",
+        "source": "Salvage Union Workshop Manual",
+        "page": 131,
         "systems": [
           {
             "name": "Needle Missile Pod"
@@ -5441,6 +3742,8 @@
     "patterns": [
       {
         "name": "Stitcher",
+        "source": "Salvage Union Workshop Manual",
+        "page": 133,
         "systems": [
           {
             "name": "Green Laser"
@@ -5478,6 +3781,8 @@
       },
       {
         "name": "Needler",
+        "source": "Salvage Union Workshop Manual",
+        "page": 133,
         "systems": [
           {
             "name": "Needle Missile Pod",
@@ -5513,6 +3818,8 @@
       },
       {
         "name": "Sküm",
+        "source": "Salvage Union Workshop Manual",
+        "page": 133,
         "systems": [
           {
             "name": "Red Laser"
@@ -5575,6 +3882,8 @@
     "patterns": [
       {
         "name": "Smuggler",
+        "source": "Salvage Union Workshop Manual",
+        "page": 135,
         "systems": [
           {
             "name": ".50 Cal Machine Gun"
@@ -5618,6 +3927,8 @@
       },
       {
         "name": "Infiltrator",
+        "source": "Salvage Union Workshop Manual",
+        "page": 135,
         "systems": [
           {
             "name": "Ejection System"
@@ -5664,6 +3975,8 @@
       },
       {
         "name": "Sakura",
+        "source": "Salvage Union Workshop Manual",
+        "page": 135,
         "systems": [
           {
             "name": "Rail Rifle"
@@ -5856,6 +4169,8 @@
     "patterns": [
       {
         "name": "Sifter",
+        "source": "Salvage Union Workshop Manual",
+        "page": 137,
         "systems": [
           {
             "name": "Rotary Minigun"
@@ -5893,6 +4208,8 @@
       },
       {
         "name": "Deployer",
+        "source": "Salvage Union Workshop Manual",
+        "page": 137,
         "systems": [
           {
             "name": "Blue Mining Laser"
@@ -5930,6 +4247,8 @@
       },
       {
         "name": "Kombu",
+        "source": "Salvage Union Workshop Manual",
+        "page": 137,
         "systems": [
           {
             "name": "Heavy Duty Mining Rig"
@@ -5994,6 +4313,8 @@
     "patterns": [
       {
         "name": "Giant Dad",
+        "source": "Salvage Union Workshop Manual",
+        "page": 139,
         "systems": [
           {
             "name": "120mm Cannon"
@@ -6037,6 +4358,8 @@
       },
       {
         "name": "Escort",
+        "source": "Salvage Union Workshop Manual",
+        "page": 139,
         "systems": [
           {
             "name": "CACB Laser"
@@ -6080,6 +4403,8 @@
       },
       {
         "name": "Aeon",
+        "source": "Salvage Union Workshop Manual",
+        "page": 139,
         "systems": [
           {
             "name": "Railgun"
@@ -6141,6 +4466,8 @@
     "patterns": [
       {
         "name": "Sellsword",
+        "source": "Salvage Union Workshop Manual",
+        "page": 141,
         "systems": [
           {
             "name": "Rotary Minigun",
@@ -6176,6 +4503,8 @@
       },
       {
         "name": "Alien Hunter",
+        "source": "Salvage Union Workshop Manual",
+        "page": 141,
         "systems": [
           {
             "name": "Blue Beam Laser"
@@ -6222,6 +4551,8 @@
       },
       {
         "name": "Evantis",
+        "source": "Salvage Union Workshop Manual",
+        "page": 141,
         "systems": [
           {
             "name": "Railgun",
@@ -6281,6 +4612,8 @@
     "patterns": [
       {
         "name": "Primus",
+        "source": "Salvage Union Workshop Manual",
+        "page": 143,
         "systems": [
           {
             "name": "Articulated Rigging Arm",
@@ -6319,6 +4652,8 @@
       },
       {
         "name": "VIP",
+        "source": "Salvage Union Workshop Manual",
+        "page": 143,
         "systems": [
           {
             "name": "Green Laser"
@@ -6353,6 +4688,8 @@
       },
       {
         "name": "Terminator",
+        "source": "Salvage Union Workshop Manual",
+        "page": 143,
         "systems": [
           {
             "name": "Articulated Rigging Arm",
@@ -6418,6 +4755,8 @@
     "patterns": [
       {
         "name": "Scavenger",
+        "source": "Salvage Union Workshop Manual",
+        "page": 145,
         "systems": [
           {
             "name": "Needle Missile Pod"
@@ -6461,6 +4800,8 @@
       },
       {
         "name": "Chumba",
+        "source": "Salvage Union Workshop Manual",
+        "page": 145,
         "systems": [
           {
             "name": "FM-3 Flamethrower"
@@ -6501,6 +4842,8 @@
       },
       {
         "name": "Contour",
+        "source": "Salvage Union Workshop Manual",
+        "page": 145,
         "systems": [
           {
             "name": "Missile Pod"
@@ -6569,6 +4912,8 @@
     "patterns": [
       {
         "name": "Fissure",
+        "source": "Salvage Union Workshop Manual",
+        "page": 147,
         "systems": [
           {
             "name": "Blue Mining Laser"
@@ -6609,6 +4954,8 @@
       },
       {
         "name": "Zap",
+        "source": "Salvage Union Workshop Manual",
+        "page": 147,
         "systems": [
           {
             "name": "Blue Beam Laser"
@@ -6643,6 +4990,8 @@
       },
       {
         "name": "Laser Boat",
+        "source": "Salvage Union Workshop Manual",
+        "page": 147,
         "systems": [
           {
             "name": "Red Laser",
@@ -6699,6 +5048,8 @@
     "patterns": [
       {
         "name": "Crawler",
+        "source": "Salvage Union Workshop Manual",
+        "page": 149,
         "systems": [
           {
             "name": "Plasma Cannon"
@@ -6739,6 +5090,8 @@
       },
       {
         "name": "Scuttler",
+        "source": "Salvage Union Workshop Manual",
+        "page": 149,
         "systems": [
           {
             "name": "120mm Cannon"
@@ -6782,6 +5135,8 @@
       },
       {
         "name": "Rallier",
+        "source": "Salvage Union Workshop Manual",
+        "page": 149,
         "systems": [
           {
             "name": "Plasma Cannon"
@@ -6843,6 +5198,8 @@
     "patterns": [
       {
         "name": "Commando",
+        "source": "Salvage Union Workshop Manual",
+        "page": 151,
         "systems": [
           {
             "name": "FM-3 Flamethrower"
@@ -6892,6 +5249,8 @@
       },
       {
         "name": "Iron Lung",
+        "source": "Salvage Union Workshop Manual",
+        "page": 151,
         "systems": [
           {
             "name": "Amphibious Locomotion System"
@@ -6938,6 +5297,8 @@
       },
       {
         "name": "Sakura",
+        "source": "Salvage Union Workshop Manual",
+        "page": 151,
         "systems": [
           {
             "name": "Monomolecular Blade"
@@ -7005,6 +5366,8 @@
     "patterns": [
       {
         "name": "Screamer",
+        "source": "Salvage Union Workshop Manual",
+        "page": 153,
         "systems": [
           {
             "name": "Monomolecular Blade"
@@ -7042,6 +5405,8 @@
       },
       {
         "name": "Breacher",
+        "source": "Salvage Union Workshop Manual",
+        "page": 153,
         "systems": [
           {
             "name": "120mm Heavy Autocannon"
@@ -7073,6 +5438,8 @@
       },
       {
         "name": "Ascension",
+        "source": "Salvage Union Workshop Manual",
+        "page": 153,
         "systems": [
           {
             "name": "Railgun"
@@ -7232,6 +5599,8 @@
     "patterns": [
       {
         "name": "Churner",
+        "source": "Salvage Union Workshop Manual",
+        "page": 155,
         "systems": [
           {
             "name": "Heavy Duty Mining Rig"
@@ -7278,6 +5647,8 @@
       },
       {
         "name": "Sapper",
+        "source": "Salvage Union Workshop Manual",
+        "page": 155,
         "systems": [
           {
             "name": "Mole Torpedo"
@@ -7313,6 +5684,8 @@
       },
       {
         "name": "M.A.D.",
+        "source": "Salvage Union Workshop Manual",
+        "page": 155,
         "systems": [
           {
             "name": "N15 Fat Boy"
@@ -7377,6 +5750,8 @@
     "patterns": [
       {
         "name": "Destroyer",
+        "source": "Salvage Union Workshop Manual",
+        "page": 157,
         "systems": [
           {
             "name": ".50 Cal Machine Gun",
@@ -7423,6 +5798,8 @@
       },
       {
         "name": "Annihilator",
+        "source": "Salvage Union Workshop Manual",
+        "page": 157,
         "systems": [
           {
             "name": "Experimental Particle Beam Cannon",
@@ -7464,6 +5841,8 @@
       },
       {
         "name": "Evantis",
+        "source": "Salvage Union Workshop Manual",
+        "page": 157,
         "systems": [
           {
             "name": "120mm Heavy Autocannon",
@@ -7526,6 +5905,8 @@
     "patterns": [
       {
         "name": "Skimmer",
+        "source": "Salvage Union Workshop Manual",
+        "page": 159,
         "systems": [
           {
             "name": "Rail Rifle"
@@ -7584,6 +5965,8 @@
       },
       {
         "name": "X-Zero",
+        "source": "Salvage Union Workshop Manual",
+        "page": 159,
         "systems": [
           {
             "name": "Ejection System"
@@ -7630,6 +6013,8 @@
       },
       {
         "name": "Diplomat",
+        "source": "Salvage Union Workshop Manual",
+        "page": 159,
         "systems": [
           {
             "name": "Articulated Rigging Arm",
@@ -7706,6 +6091,8 @@
     "patterns": [
       {
         "name": "Alpha",
+        "source": "We Were Here First!",
+        "page": 76,
         "systems": [
           {
             "name": "Railgun"
@@ -7740,6 +6127,8 @@
       },
       {
         "name": "Delta",
+        "source": "We Were Here First!",
+        "page": 76,
         "systems": [
           {
             "name": "30mm Autocannon",
@@ -7775,6 +6164,8 @@
       },
       {
         "name": "Experimental Bio",
+        "source": "We Were Here First!",
+        "page": 76,
         "systems": [
           {
             "name": "Acid Cannon"
@@ -7826,6 +6217,8 @@
     "patterns": [
       {
         "name": "Maw",
+        "source": "We Were Here First!",
+        "page": 77,
         "systems": [
           {
             "name": "Acid Cannon"
@@ -7890,6 +6283,8 @@
     "patterns": [
       {
         "name": "Screecher",
+        "source": "We Were Here First!",
+        "page": 77,
         "systems": [
           {
             "name": "Super-Sonic Screecher"
@@ -7948,6 +6343,8 @@
     "patterns": [
       {
         "name": "Probe",
+        "source": "We Were Here First!",
+        "page": 77,
         "systems": [
           {
             "name": "Bio-Talon"
@@ -8011,6 +6408,8 @@
     "patterns": [
       {
         "name": "Harvester",
+        "source": "We Were Here First!",
+        "page": 77,
         "systems": [
           {
             "name": "Bio-Maw"
@@ -8074,6 +6473,8 @@
     "patterns": [
       {
         "name": "10 Finger",
+        "source": "False Flag",
+        "page": 54,
         "systems": [
           {
             "name": "Rigging Arm"
@@ -8108,6 +6509,8 @@
       },
       {
         "name": "Sifter",
+        "source": "False Flag",
+        "page": 55,
         "systems": [
           {
             "name": "Nanite Sifter"
@@ -8166,6 +6569,8 @@
     "patterns": [
       {
         "name": "DronTek",
+        "source": "False Flag",
+        "page": 57,
         "systems": [
           {
             "name": "K4 Rifle"
@@ -8242,6 +6647,8 @@
     "patterns": [
       {
         "name": "Deerstalker",
+        "source": "False Flag",
+        "page": 59,
         "systems": [
           {
             "name": "Mech Melee Armament"
@@ -8313,6 +6720,8 @@
     "patterns": [
       {
         "name": "Stefanus",
+        "source": "False Flag",
+        "page": 61,
         "systems": [
           {
             "name": "Needle Missile Pod",
@@ -8392,6 +6801,8 @@
     "patterns": [
       {
         "name": "DronTek",
+        "source": "False Flag",
+        "page": 63,
         "systems": [
           {
             "name": "Stabilising Locomotion System"
@@ -8502,6 +6913,8 @@
     "patterns": [
       {
         "name": "Weaver",
+        "source": "Rainmaker",
+        "page": 60,
         "systems": [
           {
             "name": ".50 Cal Machine Gun"
@@ -8560,6 +6973,8 @@
     "patterns": [
       {
         "name": "B",
+        "source": "Rainmaker",
+        "page": 63,
         "systems": [
           {
             "name": ".50 Cal Machine Gun",
@@ -8615,6 +7030,8 @@
     "patterns": [
       {
         "name": "Lot",
+        "source": "Rainmaker",
+        "page": 71,
         "systems": [
           {
             "name": "Articulated Rigging Arm"
@@ -8694,6 +7111,8 @@
     "patterns": [
       {
         "name": "Hunchback",
+        "source": "Rainmaker",
+        "page": 64,
         "systems": [
           {
             "name": "Long Barrelled Green Laser"
@@ -8748,6 +7167,8 @@
     "patterns": [
       {
         "name": "A",
+        "source": "Rainmaker",
+        "page": 67,
         "systems": [
           {
             "name": "Missile Pod"
@@ -8810,6 +7231,8 @@
     "patterns": [
       {
         "name": "Cerys",
+        "source": "Rainmaker",
+        "page": 68,
         "systems": [
           {
             "name": "FM-3 Flamethrower",
@@ -8874,7 +7297,9 @@
     "chassisAbilities": ["Automech", "Cerberus Control System"],
     "patterns": [
       {
-        "name": "TAC-OS PATTERN CERBERUS",
+        "name": "TAC-OS",
+        "source": "Rainmaker",
+        "page": 75,
         "systems": [
           {
             "name": "Railgun"
@@ -8985,6 +7410,9 @@
     "patterns": [
       {
         "name": "Mr Miner",
+        "source": "Salvage Union Starter Set",
+        "page": 11,
+        "booklet": "PC",
         "systems": [
           {
             "name": "Locomotion System"
@@ -9023,6 +7451,9 @@
       },
       {
         "name": "Warrior",
+        "source": "Salvage Union Starter Set",
+        "page": 11,
+        "booklet": "PC",
         "systems": [
           {
             "name": "Armoured Shield"
@@ -9067,6 +7498,9 @@
       },
       {
         "name": "Manic Miner",
+        "source": "Salvage Union Starter Set",
+        "page": 11,
+        "booklet": "PC",
         "systems": [
           {
             "name": "Locomotion System"
@@ -9098,265 +7532,6 @@
             "value": "Developed as a mining and excavation Mech by Thatcher Steel, each worker was expected to complete their tasks in a strict time limit that was constantly monitored by the corpo. The Mechs would maniacally dart from point to point on excavation sites with little care for their or others' safety as long as it meant quotas were filled."
           }
         ]
-      },
-      {
-        "name": "Bill E",
-        "source": "Mech Monday",
-        "page": 1,
-        "systems": [
-          {
-            "name": "Chainsaw Arm"
-          },
-          {
-            "name": "FM-3 Flamethrower"
-          },
-          {
-            "name": "Loudspeakers"
-          },
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Hydraulic Crusher"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Self-Destruct"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "In the Arena of Solaris 4 the inter match field needs to be cleared this chasis is the beast for the job."
-          }
-        ]
-      },
-      {
-        "name": "Court Cat",
-        "source": "Mech Monday",
-        "page": 2,
-        "systems": [
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Radiation Sealing"
-          },
-          {
-            "name": "Aerosolised Nerve Gas Sprayer"
-          },
-          {
-            "name": "FM-3 Flamethrower"
-          },
-          {
-            "name": "Floodlights"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "M315 Motion Scanner"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "An Aeon design for purging wildlife colonies that threaten their farms, and carrying the carcasses back for composting. The local workers call them 'fireflies' for the lightshow they put on at night."
-          }
-        ]
-      },
-      {
-        "name": "Guano",
-        "source": "Mech Monday",
-        "page": 3,
-        "systems": [
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Anti-Mech Mine Layer"
-          },
-          {
-            "name": "Vectored Thrust Unit"
-          },
-          {
-            "name": "Ejection System"
-          },
-          {
-            "name": "Chaff Launcher"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Dash Protocols"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "A pattern developed by Drontek, used for minelaying and as a cheap quick response platform against Evantis Colossi. It was named after its tendency to drop large quantities of explosive s__t on people."
-          }
-        ]
-      },
-      {
-        "name": "Mag-Train",
-        "source": "Mech Monday",
-        "page": 4,
-        "systems": [
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Hover Locomotion System"
-          },
-          {
-            "name": "Floodlights"
-          },
-          {
-            "name": "Electro-Magnetic Hardening"
-          },
-          {
-            "name": "Green Laser"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Navigation Module"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Originally intended to haul large loads of scrap, Unions have since employed the Mag Train Pattern to haul other Mag Trains in long convoys from one point to another. Using their internal magnets to link each other, large chains of this pattern roam."
-          }
-        ]
-      },
-      {
-        "name": "Magic Bus",
-        "source": "Mech Monday",
-        "page": 5,
-        "systems": [
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Shotgun Pit"
-          },
-          {
-            "name": ".50 Cal Machine Gun",
-            "count": 2
-          },
-          {
-            "name": "Personnel Transport Pod"
-          },
-          {
-            "name": "Welding Laser"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Navigation Module"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "A union-designed Bobcat variant for ferrying around personnel or evacuating people, the Magic Bus pattern is nonetheless capable of lending a helping hand in repairs, hauling salvage or even a bit of additional firepower."
-          }
-        ]
-      },
-      {
-        "name": "Nyaa~",
-        "source": "Mech Monday",
-        "page": 6,
-        "systems": [
-          {
-            "name": "Bio-Talon"
-          },
-          {
-            "name": "Mutated Locomotion System"
-          },
-          {
-            "name": "Tracking Node"
-          },
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Loudspeakers"
-          },
-          {
-            "name": "Red Laser"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Heating Unit"
-          },
-          {
-            "name": "IR Night Vision Optics"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "The Nyaa~ pattern is a strange little mech, created by a Chimerium Wastelander who was a fan of an ancient thing called.... \"Nyancat?\" This mech boasts inspiration from the organic creature \"cat\" and allows for retrieval of their \"prey.\""
-          }
-        ]
-      },
-      {
-        "name": "Osiris",
-        "source": "Mech Monday",
-        "page": 7,
-        "systems": [
-          {
-            "name": "Escape Hatch"
-          },
-          {
-            "name": "Fabrication Arm"
-          },
-          {
-            "name": "Locomotion System"
-          },
-          {
-            "name": "Prawn Sifter"
-          },
-          {
-            "name": "Sandblaster"
-          }
-        ],
-        "modules": [
-          {
-            "name": "Comms Module"
-          },
-          {
-            "name": "Metal Detector"
-          }
-        ],
-        "content": [
-          {
-            "type": "paragraph",
-            "value": "Developed by Osiris Construction, this Mech creates magnetic filament and manipulates it in fine detail. Works in tandem with the Forge for rapid building. Can defend itself with an integrated sandblaster."
-          }
-        ]
       }
     ],
     "structurePoints": 11,
@@ -9384,6 +7559,9 @@
     "patterns": [
       {
         "name": "Moth",
+        "source": "Salvage Union Starter Set",
+        "page": 43,
+        "booklet": "PC",
         "systems": [
           {
             "name": ".50 Cal Machine Gun"
@@ -9430,6 +7608,9 @@
       },
       {
         "name": "Grond",
+        "source": "Salvage Union Starter Set",
+        "page": 43,
+        "booklet": "PC",
         "systems": [
           {
             "name": "FM-3 Flamethrower",
@@ -9465,6 +7646,9 @@
       },
       {
         "name": "APC",
+        "source": "Salvage Union Starter Set",
+        "page": 43,
+        "booklet": "PC",
         "systems": [
           {
             "name": "30mm Autocannon"

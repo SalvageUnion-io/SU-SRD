@@ -447,6 +447,21 @@ export const INTENTIONAL_ORPHANS: AllowlistEntry[] = [
   { file: 'systems.json', name: 'Power Transference Cable' },
   { file: 'systems.json', name: 'Water Purification System' },
 
+  // Same rationale, but these became orphans when the community-designed
+  // "Mech Monday" blog patterns were dropped from chassis.json (the dataset
+  // carries rulebook-PDF patterns only). Each is still a genuine rulebook
+  // entry — it simply isn't installed by any *pre-built* pattern:
+  //   Sandblaster                  Salvage Union Workshop Manual p167
+  //   Aerosolised Nerve Gas Sprayer Salvage Union Workshop Manual p178
+  //   Executive Body Kit           Salvage Union Workshop Manual p185
+  //   Teleportation Pod            Salvage Union Workshop Manual p187
+  //   Hydrologic Locomotion System False Flag p67
+  { file: 'systems.json', name: 'Sandblaster' },
+  { file: 'systems.json', name: 'Aerosolised Nerve Gas Sprayer' },
+  { file: 'systems.json', name: 'Executive Body Kit' },
+  { file: 'systems.json', name: 'Teleportation Pod' },
+  { file: 'systems.json', name: 'Hydrologic Locomotion System' },
+
   // Freely-installable catalog MODULES. Same rationale as systems above:
   // modules are installed into mech slots and need not appear in any pre-built
   // pattern. Verified: none appear in a `modules` array on any entity file.
@@ -464,6 +479,15 @@ export const INTENTIONAL_ORPHANS: AllowlistEntry[] = [
   { file: 'modules.json', name: 'EM Counterpulse' },
   { file: 'modules.json', name: 'Adaptive Chassis Linkage' },
   { file: 'modules.json', name: "Mozart's Ghost" },
+
+  // Orphaned by the same "Mech Monday" pattern removal as the systems above;
+  // all three remain genuine rulebook entries:
+  //   Goflow Plant Growing System  Salvage Union Workshop Manual p71
+  //   Pop Goes The Weasel          False Flag p69
+  //   Meld Regenerator             False Flag p70
+  { file: 'modules.json', name: 'Goflow Plant Growing System' },
+  { file: 'modules.json', name: 'Pop Goes The Weasel' },
+  { file: 'modules.json', name: 'Meld Regenerator' },
 ]
 
 export type OrphanCheckResult = {
