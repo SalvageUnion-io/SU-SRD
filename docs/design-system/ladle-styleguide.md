@@ -81,9 +81,10 @@ component it demonstrates, and the guard (§7) fails CI on either violation.
 | `bun --filter component-lib ladle:build`        | static build into `build-ladle/`                            |
 | `bun --filter component-lib exec ladle preview` | serve a built catalog (used for the VR harness)             |
 
-> Note: root `package.json` also defines `ladle:web` and `ladle:itun`, but those apps define no
-> `ladle` script, so those two aliases are inert. Only `bun run ladle` (→ component-lib) works. This
-> is intentional — the catalog is centralized, not per-app.
+> Note: `bun run ladle` (→ component-lib) is the only catalog entry point. There are no per-app
+> Ladle scripts, and there should not be — the catalog is centralized, not per-app. Root
+> `package.json` used to carry inert `ladle:web` / `ladle:itun` aliases pointing at `ladle` scripts
+> those apps never defined; they have been removed.
 
 ---
 

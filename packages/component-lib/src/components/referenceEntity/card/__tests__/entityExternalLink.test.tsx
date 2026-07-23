@@ -4,12 +4,13 @@
  * `EntityExternalLinkProvider` and is read by `useEntityExternalLink`.
  *
  * WHY THIS EXISTS. This link silently disappeared once already, and nothing
- * caught it. The legacy render core (`ReferenceEntityDisplayContent`) held the
- * only `useEntityExternalLink` call; when that file was deleted in favour of
+ * caught it. The since-deleted legacy render core held the only
+ * `useEntityExternalLink` call; when that file was removed in favour of
  * `ReferenceEntityCard`, the call went with it and was never reinstated. ITUN
  * still wired the provider in `GameDataReady` and still shipped a tested
  * builder, so both ends of the feature looked healthy — only the middle was
- * gone.
+ * gone. The call now lives in `ReferenceEntityCard` itself, which is what this
+ * file renders.
  *
  * The failure was invisible to every gate we had: deleting the sole *reader*
  * of a context removes no export, breaks no type, and fails no test. Typecheck,

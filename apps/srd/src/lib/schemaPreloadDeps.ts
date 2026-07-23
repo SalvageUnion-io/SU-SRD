@@ -60,7 +60,7 @@
  *   (themselves CONTENT_BUNDLE members, so also need `actions`). A chassis
  *   ability can also carry a `.drone` reference, resolved via
  *   `SalvageUnionReference.findIn('drones', ...)`
- *   (ReferenceEntityDisplayContent.tsx). `factions` formation entries
+ *   (referenceEntity/card/resolveNestedEntities.ts). `factions` formation entries
  *   resolve to a full entity via `resolveFormationMember`
  *   (utilities.ts) — `member.schema` is one of a fixed, documented set
  *   (`chassis` default, or `vehicles`/`drones`/`squads`/`npcs`), each then
