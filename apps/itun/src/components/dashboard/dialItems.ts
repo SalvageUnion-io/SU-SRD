@@ -25,10 +25,6 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import type { MountState } from '../../stores/playStateStore'
 import type { DialItem as DialCellItem } from 'component-lib'
 
-// The presentational item shape (key/label/gauges/…) lives in component-lib's
-// Dial; the app adds the domain `kind` used by the config overlay + prefs.
-export type { DialGauge } from 'component-lib'
-
 export type DialItem = DialCellItem & { kind: DialKind }
 
 /** Human-facing label for each dial kind — used by the dial-config overlay. */
