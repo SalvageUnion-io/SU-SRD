@@ -20,17 +20,26 @@
  * buttons with a title reason (design pattern 8). readOnly removes the move
  * buttons entirely.
  *
- * Player-facing vocabulary (the mech-cargo verbs are the player's; note they do
- * NOT line up 1:1 with the internal reducer verbs):
+ * Player-facing vocabulary — one verb pair per container, so membership of the
+ * mech hold and membership of the Storage Bay each read the same whether the lot
+ * arrived across the boundary or was entered by hand. (These do NOT line up 1:1
+ * with the internal reducer verbs.)
+ *
+ *   Mech cargo hold:      "Load"  in  /  "Unload" out
+ *   Crawler Storage Bay:  "Stow"  in  /  "Unstow" out
+ *
  *   - "Load"   = add a lot INTO the mech's cargo hold — the crawler side's
  *                crawler→mech button (internal `load`) and the mech Hold's own
- *                add-a-lot form (internal `add-mech-lot`). The mech hold is
- *                always usable, crawler or not.
- *   - "Unload" = remove a lot from the mech's cargo hold entirely (internal
- *                `remove-mech-lot`); always available, no crawler required.
- *   - "Stow"   = move a lot from the mech hold INTO the crawler's Storage Bay —
- *                the mech side's mech→crawler button (internal `stow`); disabled
- *                with a reason when no crawler is linked (nowhere to stow to).
+ *                add form (internal `add-mech-lot`).
+ *   - "Unload" = drop a lot from the mech hold (internal `remove-mech-lot`).
+ *   - "Stow"   = add a lot INTO the crawler's Storage Bay — the mech side's
+ *                mech→crawler button (internal `stow`, disabled with a reason
+ *                when no crawler is linked) and the Bay's own add form
+ *                (internal `add-crawler-lot`).
+ *   - "Unstow" = drop a lot from the Storage Bay (internal `remove-crawler-lot`).
+ *
+ * Both containers are independently usable: the mech hold needs no crawler, and
+ * the Storage Bay needs no docked mech. Only the two BOUNDARY moves are gated.
  */
 
 import { useId, useState } from 'react'
@@ -162,7 +171,10 @@ type CargoLotItemProps = {
   /** Whether the receiving side of the boundary is linked. */
   linked: boolean
   readOnly: boolean
-  /** Discard the lot out of the hold entirely. Omitted → no Discard button. */
+  /**
+   * Drop the lot out of its container entirely — rendered as 'Unload' on the
+   * mech chit, 'Unstow' on the Storage Bay tile. Omitted → no remove button.
+   */
   onRemove?: () => void
 }
 
@@ -214,16 +226,29 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
           <Stat orientation="horizontal" label={tag.label} value={tag.value} className="shrink-0" />
         </div>
         {!readOnly && (
-          <Button
-            variant="default"
-            disabled={moveDisabled}
-            title={disabledReason ?? undefined}
-            aria-label={`Load ${lot.name}`}
-            onClick={handleMove}
-            className="mt-auto self-end rounded-[2px] border-0 px-2 py-0.5 font-cond text-label font-bold uppercase tracking-caps-tight hover:bg-[var(--color-cargo-pale)]"
-          >
-            {label}
-          </Button>
+          <div className="mt-auto flex flex-wrap items-center justify-end gap-1">
+            <Button
+              variant="default"
+              disabled={moveDisabled}
+              title={disabledReason ?? undefined}
+              aria-label={`Load ${lot.name}`}
+              onClick={handleMove}
+              className="rounded-[2px] border-0 px-2 py-0.5 font-cond text-label font-bold uppercase tracking-caps-tight hover:bg-[var(--color-cargo-pale)]"
+            >
+              {label}
+            </Button>
+            {onRemove && (
+              <Button
+                variant="default"
+                aria-label={`Unstow ${lot.name}`}
+                title={`Unstow "${lot.name}" from the Storage Bay`}
+                onClick={onRemove}
+                className="rounded-[2px] border-0 px-2 py-0.5 font-cond text-label font-bold uppercase tracking-caps-tight text-status-bad hover:bg-status-bad hover:text-paper"
+              >
+                Unstow
+              </Button>
+            )}
+          </div>
         )}
       </li>
     )
@@ -307,12 +332,24 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
 }
 
 /**
- * MechHoldAdder — the mech Hold's own intake form ("Load"): a free-text lot the
- * player carries in their cargo, with an explicit slot cost. Needs no crawler —
- * the mech hold is always usable. Mirrors the pilot inventory's GenericEntryAdder
- * shape (name + slots). New lots default to a SEALED unit lot via `makeUnitLot`.
+ * HoldAdder — a container's own intake form: a free-text lot with an explicit
+ * slot cost, added straight into that container. Needs NO counterpart on the
+ * other side of the boundary (the mech hold works with no crawler; the Storage
+ * Bay works with no docked mech). Mirrors the pilot inventory's
+ * GenericEntryAdder shape (name + slots); new lots are SEALED unit lots via
+ * `makeUnitLot`. The verb is the side's intake word — 'Load' into the mech
+ * hold, 'Stow' into the crawler Storage Bay.
  */
-function MechHoldAdder({ onAdd }: { onAdd: (lot: CargoLot) => void }) {
+function HoldAdder({
+  onAdd,
+  verb,
+  containerLabel,
+}: {
+  onAdd: (lot: CargoLot) => void
+  verb: string
+  containerLabel: string
+}) {
+  const slotsId = useId()
   const [name, setName] = useState('')
   const [slots, setSlots] = useState(1)
 
@@ -340,12 +377,12 @@ function MechHoldAdder({ onAdd }: { onAdd: (lot: CargoLot) => void }) {
         className={`${compactInput} w-36 flex-1`}
       />
       <label
-        htmlFor="new-cargo-slots"
+        htmlFor={slotsId}
         className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted"
       >
         Slots
         <Input
-          id="new-cargo-slots"
+          id={slotsId}
           type="number"
           min={0}
           value={slots}
@@ -357,10 +394,10 @@ function MechHoldAdder({ onAdd }: { onAdd: (lot: CargoLot) => void }) {
       <Button
         size="compact"
         disabled={!name.trim()}
-        aria-label="Load cargo into the mech hold"
+        aria-label={`${verb} cargo into the ${containerLabel}`}
         onClick={commit}
       >
-        Load
+        {verb}
       </Button>
     </div>
   )
@@ -468,6 +505,7 @@ export function StorageManifest({
                   cargo={cargo}
                   linked={linkedCounterpart !== null}
                   readOnly={readOnly}
+                  onRemove={() => void cargo.removeCrawlerLot(lot.id)}
                 />
               ))}
             </ul>
@@ -488,11 +526,18 @@ export function StorageManifest({
           </ul>
         )}
 
-        {/* The mech Hold's own intake — always available (no crawler needed). The
-            crawler Storage Bay has no adder: cargo reaches it only by stowing. */}
-        {side === 'mech' && !readOnly && (
+        {/* Each container's own intake — always available, never gated on the
+            other side of the boundary: 'Load' into the mech hold (no crawler
+            needed), 'Stow' into the crawler Storage Bay (no docked mech needed). */}
+        {!readOnly && (
           <div className="px-3 pb-3">
-            <MechHoldAdder onAdd={(lot) => void cargo.addMechLot(lot)} />
+            <HoldAdder
+              verb={side === 'mech' ? 'Load' : 'Stow'}
+              containerLabel={side === 'mech' ? 'mech hold' : 'Storage Bay'}
+              onAdd={(lot) =>
+                side === 'mech' ? void cargo.addMechLot(lot) : void cargo.addCrawlerLot(lot)
+              }
+            />
           </div>
         )}
       </Card>

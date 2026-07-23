@@ -52,6 +52,10 @@ export type UseCargoResult = {
   addMechLot: (lot: CargoLot) => Promise<CargoTransferResult>
   /** Discard a lot from the mech hold. Needs a mech, NOT a crawler. */
   removeMechLot: (lotId: string) => Promise<CargoTransferResult>
+  /** Add a lot directly to the crawler Storage Bay. Needs a crawler, NOT a mech. */
+  addCrawlerLot: (lot: CargoLot) => Promise<CargoTransferResult>
+  /** Discard a lot from the crawler Storage Bay. Needs a crawler, NOT a mech. */
+  removeCrawlerLot: (lotId: string) => Promise<CargoTransferResult>
 }
 
 export function useCargo({
@@ -124,6 +128,28 @@ export function useCargo({
     return result
   }
 
+  // Crawler-bay-local edits: the Storage Bay is its own container, so add/discard
+  // require only a linked crawler — no docked mech. Persists the crawler side
+  // alone, and only `cargoLots` (these actions never touch the scrap pool).
+  async function dispatchCrawlerLocal(action: CargoTransferAction): Promise<CargoTransferResult> {
+    if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
+    if (!crawler) {
+      return { ok: false, reason: 'No crawler is linked — nothing to store cargo in.' }
+    }
+
+    const result = cargoTransfer(state, action)
+    if (!result.ok) return result
+
+    if (result.changed.crawler) {
+      await storeState.transfer({
+        updates: [
+          { type: 'crawler', id: crawler.id, patch: { cargoLots: result.state.crawlerLots } },
+        ],
+      })
+    }
+    return result
+  }
+
   return {
     state,
     usage: mechCargoUsage(state.mechLots, state.mechCargoCap),
@@ -133,5 +159,7 @@ export function useCargo({
     withdrawScrap: (tl, qty) => dispatch({ type: 'withdraw-scrap', tl, qty }),
     addMechLot: (lot) => dispatchMechLocal({ type: 'add-mech-lot', lot }),
     removeMechLot: (lotId) => dispatchMechLocal({ type: 'remove-mech-lot', lotId }),
+    addCrawlerLot: (lot) => dispatchCrawlerLocal({ type: 'add-crawler-lot', lot }),
+    removeCrawlerLot: (lotId) => dispatchCrawlerLocal({ type: 'remove-crawler-lot', lotId }),
   }
 }

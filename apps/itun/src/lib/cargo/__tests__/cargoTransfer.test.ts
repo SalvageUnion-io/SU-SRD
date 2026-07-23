@@ -476,3 +476,67 @@ describe('remove-mech-lot', () => {
     if (!result.ok) expect(result.reason).toMatch(/not in the mech hold/i)
   })
 })
+
+describe('add-crawler-lot', () => {
+  test('prepends a lot to the Storage Bay; only the crawler side changes', () => {
+    const existing = unitLot({ id: 'lot-existing' })
+    const added = unitLot({ id: 'lot-added', name: 'Spare Track Link', units: 4 })
+    const result = cargoTransfer(state({ crawlerLots: [existing] }), {
+      type: 'add-crawler-lot',
+      lot: added,
+    })
+    if (!result.ok) throw new Error(result.reason)
+
+    expect(result.state.crawlerLots).toEqual([added, existing])
+    expect(result.changed).toEqual({ mech: false, crawler: true })
+  })
+
+  test('the Storage Bay is unlimited — a huge lot is still accepted', () => {
+    const result = cargoTransfer(state(), {
+      type: 'add-crawler-lot',
+      lot: unitLot({ id: 'lot-huge', units: 999 }),
+    })
+    if (!result.ok) throw new Error(result.reason)
+
+    expect(result.state.crawlerLots).toHaveLength(1)
+    // The mech hold's cap is untouched by a Storage Bay add.
+    expect(result.state.mechLots).toEqual([])
+  })
+})
+
+describe('remove-crawler-lot', () => {
+  test('drops the named lot from the Storage Bay; only the crawler side changes', () => {
+    const keep = unitLot({ id: 'lot-keep' })
+    const drop = unitLot({ id: 'lot-drop', name: 'Rusted Plating' })
+    const result = cargoTransfer(state({ crawlerLots: [keep, drop] }), {
+      type: 'remove-crawler-lot',
+      lotId: 'lot-drop',
+    })
+    if (!result.ok) throw new Error(result.reason)
+
+    expect(result.state.crawlerLots).toEqual([keep])
+    expect(result.changed).toEqual({ mech: false, crawler: true })
+  })
+
+  test('refuses a lot that is not in the Storage Bay', () => {
+    const result = cargoTransfer(state({ crawlerLots: [unitLot()] }), {
+      type: 'remove-crawler-lot',
+      lotId: 'lot-missing',
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.reason).toMatch(/not in the crawler storage bay/i)
+  })
+
+  test('the crawler scrap pool is untouched by Storage Bay add/remove', () => {
+    const added = cargoTransfer(state({ scrapPool: { tl3: 5 } }), {
+      type: 'add-crawler-lot',
+      lot: unitLot({ id: 'lot-x' }),
+    })
+    if (!added.ok) throw new Error(added.reason)
+    expect(added.state.scrapPool).toEqual({ tl3: 5 })
+
+    const removed = cargoTransfer(added.state, { type: 'remove-crawler-lot', lotId: 'lot-x' })
+    if (!removed.ok) throw new Error(removed.reason)
+    expect(removed.state.scrapPool).toEqual({ tl3: 5 })
+  })
+})

@@ -230,3 +230,82 @@ describe('useCargo — persistence', () => {
     expect(result.current.poolBucket(1)).toBe(0)
   })
 })
+
+// ---------------------------------------------------------------------------
+// Container-local edits — each container is usable WITHOUT its counterpart.
+// ---------------------------------------------------------------------------
+
+describe('useCargo — mech hold works with no crawler', () => {
+  test('addMechLot writes mech cargoLots only', async () => {
+    const captured: CapturedUpdate[] = []
+    const { result } = renderHook(() =>
+      useCargo({ mech: makeMech([]), crawler: null, store: makeStore(captured) })
+    )
+
+    const added: CargoLot = { ...unitLot, id: 'lot-new', name: 'Water Barrel', units: 3 }
+    const outcome = await result.current.addMechLot(added)
+    expect(outcome.ok).toBe(true)
+
+    expect(captured).toHaveLength(1)
+    expect(captured[0]).toMatchObject({ type: 'mech', id: 'mech-1' })
+    expect(captured[0]?.patch.cargoLots).toEqual([added])
+  })
+
+  test('removeMechLot writes mech cargoLots only', async () => {
+    const captured: CapturedUpdate[] = []
+    const { result } = renderHook(() =>
+      useCargo({ mech: makeMech([unitLot]), crawler: null, store: makeStore(captured) })
+    )
+
+    const outcome = await result.current.removeMechLot('lot-1')
+    expect(outcome.ok).toBe(true)
+
+    expect(captured).toHaveLength(1)
+    expect(captured[0]).toMatchObject({ type: 'mech', id: 'mech-1' })
+    expect(captured[0]?.patch.cargoLots).toEqual([])
+  })
+})
+
+describe('useCargo — Storage Bay works with no docked mech', () => {
+  test('addCrawlerLot writes crawler cargoLots only', async () => {
+    const captured: CapturedUpdate[] = []
+    const { result } = renderHook(() =>
+      useCargo({ mech: null, crawler: makeCrawler([], { tl3: 5 }), store: makeStore(captured) })
+    )
+
+    const added: CargoLot = { ...unitLot, id: 'lot-bay', name: 'Spare Track Link', units: 4 }
+    const outcome = await result.current.addCrawlerLot(added)
+    expect(outcome.ok).toBe(true)
+
+    expect(captured).toHaveLength(1)
+    expect(captured[0]).toMatchObject({ type: 'crawler', id: 'crawler-1' })
+    expect(captured[0]?.patch.cargoLots).toEqual([added])
+    // Scrap pool is not part of a Bay-local write.
+    expect(captured[0]?.patch.scrapPool).toBeUndefined()
+  })
+
+  test('removeCrawlerLot writes crawler cargoLots only', async () => {
+    const captured: CapturedUpdate[] = []
+    const { result } = renderHook(() =>
+      useCargo({ mech: null, crawler: makeCrawler([unitLot], {}), store: makeStore(captured) })
+    )
+
+    const outcome = await result.current.removeCrawlerLot('lot-1')
+    expect(outcome.ok).toBe(true)
+
+    expect(captured).toHaveLength(1)
+    expect(captured[0]).toMatchObject({ type: 'crawler', id: 'crawler-1' })
+    expect(captured[0]?.patch.cargoLots).toEqual([])
+  })
+
+  test('a Bay edit is refused when there is no crawler at all', async () => {
+    const captured: CapturedUpdate[] = []
+    const { result } = renderHook(() =>
+      useCargo({ mech: makeMech([]), crawler: null, store: makeStore(captured) })
+    )
+
+    const outcome = await result.current.addCrawlerLot(unitLot)
+    expect(outcome.ok).toBe(false)
+    expect(captured).toHaveLength(0)
+  })
+})
