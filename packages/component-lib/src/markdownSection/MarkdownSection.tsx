@@ -2,7 +2,17 @@ import { Fragment } from 'react'
 
 import { Slab } from '../components/chrome/Slab'
 import { cn } from '../utils/cn'
-import { parseInline, parseMarkdownSection } from './parseMarkdownSection'
+import { type InlineNode, parseInline, parseMarkdownSection } from './parseMarkdownSection'
+
+/** Pair each run with its start offset in the paragraph — a stable React key. */
+function withOffsets(nodes: InlineNode[]): Array<{ node: InlineNode; offset: number }> {
+  let offset = 0
+  return nodes.map((node) => {
+    const at = offset
+    offset += node.text.length
+    return { node, offset: at }
+  })
+}
 
 type MarkdownSectionProps = {
   /** Raw contents of a repo-root prose document. */
@@ -32,10 +42,12 @@ export function MarkdownSection({ markdown, className }: MarkdownSectionProps) {
       {heading && <Slab as="h2" variant="solid" label={heading} className="mb-0" />}
       {paragraphs.map((paragraph) => (
         <p key={paragraph}>
-          {parseInline(paragraph).map((node) =>
+          {/* Keyed by running offset: two runs in one paragraph can hold the
+              same text, and `key={node.text}` would collide on those. */}
+          {withOffsets(parseInline(paragraph)).map(({ node, offset }) =>
             node.href ? (
               <a
-                key={`${node.href}-${node.text}`}
+                key={`${offset}-${node.text}`}
                 href={node.href}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -44,7 +56,7 @@ export function MarkdownSection({ markdown, className }: MarkdownSectionProps) {
                 {node.text}
               </a>
             ) : (
-              <Fragment key={node.text}>{node.text}</Fragment>
+              <Fragment key={`${offset}-${node.text}`}>{node.text}</Fragment>
             )
           )}
         </p>
