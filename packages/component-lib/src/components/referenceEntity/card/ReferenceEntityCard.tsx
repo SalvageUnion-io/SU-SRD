@@ -1559,7 +1559,16 @@ function ReferenceEntityCardInner({
             // short body (e.g. an action's one-line description) sits centered in
             // the band instead of top-aligned with a gap below; taller content
             // grows normally. (Flat/anchor bodies use flow-root for the float.)
-            flat ? 'flow-root' : 'flex min-h-[2.5rem] flex-1 flex-col justify-center gap-1.5',
+            //
+            // BOTH branches take `flex-1`. The body is what absorbs any height
+            // the card is given beyond its content — in a grid of stretched
+            // cards, a short one is taller than what it holds. Only the non-flat
+            // branch grew, so a flat card (a floated artwork body — every class
+            // and creature page) left its slack BELOW the footer: the footer
+            // band sat across the middle of the card with bare paper under it.
+            flat
+              ? 'flow-root flex-1'
+              : 'flex min-h-[2.5rem] flex-1 flex-col justify-center gap-1.5',
             compact ? 'p-2' : 'p-3',
             // A damaged/destroyed entity dims its body content too (not just the
             // greyed header), so the whole card reads as de-emphasised.

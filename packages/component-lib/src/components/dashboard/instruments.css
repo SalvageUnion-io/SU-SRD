@@ -115,7 +115,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 8px 12px 10px;
-  background: var(--color-paper);
+  background: var(--color-band-cream);
   border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 40%, transparent);
   border-radius: var(--radius-panel);
   z-index: 2;
@@ -596,12 +596,14 @@
   color: var(--color-ink);
   overflow: hidden;
 }
-/* The seat in the viewfinder reads one step forward of the cells queued behind
-   it — paper against their cream, the same "brightest = active" logic the
-   display region uses against the instruments. */
+/* The seat in the viewfinder is the SAME cream as the cells queued behind it.
+   It used to be paper, on a "brightest = active" reading — but that made the
+   active card the one odd surface in a column of matching ones, and the dial
+   already marks it by size and by its heavier border. One card background
+   across the whole cockpit; emphasis comes from the frame, not the fill. */
 .pc-cell-active {
   border-color: color-mix(in srgb, var(--color-ink) 55%, transparent);
-  background: var(--color-paper);
+  background: var(--color-band-cream);
   box-shadow: inset 0 1px 3px var(--color-ink-8);
   cursor: default;
 }
@@ -703,7 +705,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 8px 12px 10px;
-  background: var(--color-paper);
+  background: var(--color-band-cream);
   border: var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 40%, transparent);
   border-radius: var(--radius-panel);
   z-index: 3;
@@ -909,7 +911,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 10px 12px 12px;
-  background: var(--color-paper);
+  background: var(--color-band-cream);
   border: var(--bw-chrome) solid var(--color-ink);
   border-radius: var(--radius-panel);
   z-index: 4;
