@@ -38,6 +38,15 @@ function Harness({ data, forceModal }: { data: SURefEntity | undefined; forceMod
 
 afterEach(cleanup)
 
+/** Captured before any test can swap it. Link-mode tests stub `window.open` to
+ *  observe the navigation; restoring in an `afterEach` rather than at the end of
+ *  each test body means a failing assertion cannot leak the stub into every
+ *  later test in the process. */
+const REAL_WINDOW_OPEN = window.open
+afterEach(() => {
+  window.open = REAL_WINDOW_OPEN
+})
+
 describe('useDetailModal — modal mode (no link provider)', () => {
   beforeAll(async () => {
     await SalvageUnionReference.preload('all')
@@ -86,7 +95,6 @@ describe('useDetailModal — link mode (srd)', () => {
 
   const renderLinked = (opts: { forceModal?: boolean; noHref?: boolean } = {}) => {
     const opened: Array<[string?, string?, string?]> = []
-    const original = window.open
     // biome-ignore lint/suspicious/noExplicitAny: test double for window.open
     ;(window as any).open = (...args: [string?, string?, string?]) => {
       opened.push(args)
@@ -101,37 +109,28 @@ describe('useDetailModal — link mode (srd)', () => {
         </EntityDetailLinkProvider>
       </EntityHrefProvider>
     )
-    return {
-      opened,
-      restore: () => {
-        window.open = original
-      },
-      ...result,
-    }
+    return { opened, ...result }
   }
 
   test('clicking navigates to the show page in a new tab instead of opening a dialog', () => {
-    const { opened, restore } = renderLinked()
+    const { opened } = renderLinked()
     fireEvent.click(screen.getByLabelText('View details'))
     expect(opened).toEqual([['/schema/systems/item/red-laser', '_blank', 'noopener,noreferrer']])
     expect(screen.queryByRole('dialog')).toBeNull()
-    restore()
   })
 
   test('forceModal beats link mode — pattern views have no URL to link to', () => {
-    const { opened, restore } = renderLinked({ forceModal: true })
+    const { opened } = renderLinked({ forceModal: true })
     fireEvent.click(screen.getByLabelText('View details'))
     expect(opened).toEqual([])
     expect(screen.getByRole('dialog')).toBeTruthy()
-    restore()
   })
 
   test('link mode with no resolvable href falls back to the modal', () => {
-    const { opened, restore } = renderLinked({ noHref: true })
+    const { opened } = renderLinked({ noHref: true })
     fireEvent.click(screen.getByLabelText('View details'))
     expect(opened).toEqual([])
     expect(screen.getByRole('dialog')).toBeTruthy()
-    restore()
   })
 })
 
