@@ -2,16 +2,17 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { Image } from 'astro:assets'
-import { LlmStatement, PageHeading } from 'component-lib'
+import { PageHeading } from 'component-lib'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import eldridgeCoastMap from '../assets/eldridge-coast-map.png'
-import { KofiButtonIsland } from '../components/islands/KofiButtonIsland'
+import { ColophonIsland } from '../components/islands/ColophonIsland'
 import { SITE_URL } from '../lib/constants'
 
-// The shared LLM statement, read at build time from the repo root so both this
+// The shared colophon prose, read at build time from the repo root so both this
 // site and ITUN render the same words. Same constraint as /changelog: Astro's
-// build pipeline rejects Vite `?raw` imports of `.md`, so this reads the file
+// build pipeline rejects Vite `?raw` imports of `.md`, so this reads the files
 // via node:fs from the build working directory (the app root) instead.
+const aboutJrvsMd = readFileSync(resolve(process.cwd(), '../../ABOUT_JRVS.md'), 'utf8')
 const llmStatementMd = readFileSync(resolve(process.cwd(), '../../LLM_STATEMENT.md'), 'utf8')
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
@@ -137,18 +138,8 @@ const structuredData = {
         </p>
       </section>
 
-      <!-- How this was built (shared LLM statement) -->
-      <LlmStatement markdown={llmStatementMd} className="text-center" />
-
-      <!-- Support -->
-      <section class="text-sm leading-relaxed text-center">
-        <PageHeading variant="subheading" className="mb-2">Support the project</PageHeading>
-        <p class="mb-4">
-          This reference is free and open source. If it's been useful at your table, you can chip in
-          toward hosting and development.
-        </p>
-        <KofiButtonIsland client:visible />
-      </section>
+      <!-- Colophon: About JRVS | LLM Statement, Ko-fi below (shared with ITUN) -->
+      <ColophonIsland aboutMarkdown={aboutJrvsMd} llmMarkdown={llmStatementMd} client:visible />
     </div>
   </div>
 

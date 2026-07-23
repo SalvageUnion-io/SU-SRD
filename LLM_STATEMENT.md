@@ -1,17 +1,18 @@
 <!--
   The canonical LLM statement for this project.
 
-  Both about pages render this file verbatim — srd's `/about`
-  (`apps/srd/src/pages/about.astro`, read at build time with node:fs) and ITUN's
-  `/about` (`apps/itun/src/routes/about.tsx`, inlined via a Vite `?raw` import).
-  Edit the wording here and both sites change together; there is no second copy.
+  Rendered verbatim in the colophon on both about pages, alongside
+  `ABOUT_JRVS.md` — srd's `/about` (`apps/srd/src/pages/about.astro`, read at
+  build time with node:fs) and ITUN's `/about` (`apps/itun/src/routes/about.tsx`,
+  inlined via a Vite `?raw` import). Edit the wording here and both sites change
+  together; there is no second copy.
 
-  Format contract (see `packages/component-lib/src/llmStatement/`): one `#`
+  Format contract (see `packages/component-lib/src/markdownSection/`): one `#`
   heading, then blank-line-separated plain paragraphs. The renderer does NOT
   interpret inline markdown — no links, bold, or lists.
 -->
 
-# How this was built
+# LLM Statement
 
 This was started as a hand-made project, and it predates the LLMs now used to work on it. The site and its schema are still shaped by hand.
 
