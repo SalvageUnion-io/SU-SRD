@@ -11,6 +11,10 @@ name: E2E (nightly)
 # failure and closed on the next green run — GitHub-native, no external
 # notification service or webhook secret.
 #
+# The `a11y-srd` job also lives here (rather than in ci.yml) because this
+# workflow already builds and serves hermetic static bundles for Playwright, so
+# the scan gets its server for free. It is ADVISORY — see the job's own notes.
+#
 # Trigger manually any time via the "Run workflow" button (workflow_dispatch).
 
 on:
@@ -98,12 +102,131 @@ jobs:
           path: apps/srd/playwright-report/
           retention-days: 7
 
+  a11y-srd:
+    # WCAG 2.1 AA scan (axe-core via puppeteer-core, `tools/a11y-scan.ts`) over
+    # a representative slice of the srd static build. `docs/architecture/
+    # seo-accessibility.md` asserts AA compliance; until this job existed that
+    # claim was verified by nothing on a schedule.
+    #
+    # ADVISORY, deliberately: `continue-on-error: true` and NOT listed in the
+    # notify-* `needs:` below, so a violation can neither redden the nightly run
+    # nor open/keep-open the `nightly-e2e-failure` tracking issue. The signal is
+    # the job's step summary (a per-page violation table) plus the uploaded
+    # `a11y-report.json`. Turning it into a gate on day one would strand work on
+    # a backlog nobody has triaged yet.
+    #
+    # PROMOTING TO BLOCKING, once the report is clean (or its violations are
+    # accepted), in order:
+    #   1. Commit a baseline: `a11y-baseline.json` next to the scanner, mapping
+    #      each page to its accepted violation ids (e.g.
+    #      `{"/": ["color-contrast"], "/schema/chassis/": []}`) with a comment
+    #      per entry saying why it is tolerated.
+    #   2. Teach `tools/a11y-scan.ts` a `--baseline <file>` flag that diffs the
+    #      run against it and exits non-zero only on ids NOT in the baseline
+    #      (new regressions), so accepted debt does not block.
+    #   3. Drop `continue-on-error` here — the job then fails the nightly run.
+    #   4. Only after it has been stable for a while, add `a11y-srd` to the
+    #      notify-failure/notify-recovery `needs:` so regressions open the
+    #      tracking issue, and/or move it into ci.yml as a PR gate behind the
+    #      `web` path filter.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      # The scanner drives Chrome over CDP with puppeteer-core, which ships no
+      # browser of its own. Reuse the Chromium the e2e jobs already install and
+      # cache instead of pulling a second one.
+      - name: Install Playwright browsers (Chromium)
+        working-directory: apps/srd
+        run: bunx playwright install --with-deps chromium
+
+      - name: Resolve the Chromium binary
+        working-directory: apps/srd
+        run: |
+          set -euo pipefail
+          CHROME_PATH="$(bun -e 'const { chromium } = await import("playwright"); console.log(chromium.executablePath())')"
+          echo "Chromium: $CHROME_PATH"
+          echo "CHROME_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
+
+      # Same static-preview approach as e2e-srd's Playwright webServer: plain
+      # `astro build` (not the `build` package script, which chains the slow
+      # OG-screenshot pass) served by `astro preview` on 4321.
+      - name: Build srd static bundle
+        working-directory: apps/srd
+        run: bunx --bun astro build
+
+      - name: Serve the build and run the a11y scan
+        run: |
+          set -euo pipefail
+          (cd apps/srd && bunx --bun astro preview --port 4321) &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for _ in $(seq 1 60); do
+            if curl -sfo /dev/null http://localhost:4321/; then break; fi
+            sleep 2
+          done
+          curl -sfo /dev/null http://localhost:4321/
+          bun tools/a11y-scan.ts http://localhost:4321 \
+            / \
+            /about/ \
+            /schema/chassis/ \
+            /schema/chassis/item/mule/ \
+            > a11y-report.json
+
+      - name: Summarise violations
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ ! -s a11y-report.json ]; then
+            echo "### Accessibility scan (advisory) — srd" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "The scanner produced no report; see the step log above." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          {
+            echo "### Accessibility scan (advisory) — srd"
+            echo ""
+            echo "| Page | Violations | Passes | Incomplete |"
+            echo "| --- | ---: | ---: | ---: |"
+            jq -r '.[] | "| `\(.page)` | \(.violations) | \(.passes) | \(.incomplete) |"' a11y-report.json
+            echo ""
+            echo "Total violations: **$(jq '[.[].violations | select(. > 0)] | add // 0' a11y-report.json)**"
+            echo "(a \`-1\` in the table means that page failed to scan, not that it is clean.)"
+            echo ""
+            echo "Rule ids per page — full node-level detail is in the \`a11y-report-srd\` artifact:"
+            echo ""
+            echo '```json'
+            jq -c '[.[] | {page, rules: [.details[].id]}]' a11y-report.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload a11y report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: a11y-report-srd
+          path: a11y-report.json
+          retention-days: 7
+
   # ---------------------------------------------------------------------------
   # Notification — GitHub-native, no external service or webhook secret. On
   # any suite failure, open (or comment on) a single tracking issue labeled
   # `nightly-e2e-failure`; on the next all-green run, comment + close it. Uses
   # the default GITHUB_TOKEN (issues: write, scoped to just these two jobs) —
-  # nothing to provision.
+  # nothing to provision. `a11y-srd` is intentionally absent from `needs:`: it
+  # is advisory and must not open or hold open the tracking issue.
   # ---------------------------------------------------------------------------
   notify-failure:
     needs: [e2e-itun, e2e-srd]

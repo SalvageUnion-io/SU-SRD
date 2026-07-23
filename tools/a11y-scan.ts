@@ -36,6 +36,14 @@ const CHROME_TMP = join(homedir(), '.cache', 'chrome-a11y')
 mkdirSync(CHROME_TMP, { recursive: true })
 process.env.MAC_CHROMIUM_TMPDIR = CHROME_TMP
 
+// Chrome binary. Defaults to the macOS Google Chrome install this script was
+// written against; any other environment overrides it. CI (the nightly a11y
+// job) points this at the Chromium that Playwright already installs for the
+// e2e suites, so no second browser download is needed.
+const MACOS_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+const CHROME_EXECUTABLE =
+  process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROME_PATH || MACOS_CHROME
+
 type AxeNode = {
   html: string
   target: string[]
@@ -117,7 +125,7 @@ async function main() {
   }
 
   const browser = await puppeteer.launch({
-    executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    executablePath: CHROME_EXECUTABLE,
     headless: true,
     userDataDir: join(CHROME_TMP, 'profile'),
     args: [
