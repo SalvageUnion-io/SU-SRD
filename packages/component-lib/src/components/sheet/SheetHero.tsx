@@ -85,7 +85,7 @@ export function SheetHero({
             size="full"
             as="h1"
             leading="leading-[1.28]"
-            className="m-0 inline box-decoration-clone py-0 text-[26px] sm:text-[31px]"
+            className="m-0 inline box-decoration-clone py-0 text-display sm:text-display-lg"
           >
             {name}
           </Badge>

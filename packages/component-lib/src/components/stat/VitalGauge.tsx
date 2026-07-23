@@ -277,16 +277,12 @@ export function VitalGauge({
             className={cn(
               'font-bold',
               isOver ? 'text-status-bad' : 'text-ink',
-              isDense ? 'text-[28px]' : 'text-[30px]'
+              isDense ? 'text-display' : 'text-display-lg'
             )}
           >
             {shown}
           </b>
-          <i
-            className={cn('px-0.5 not-italic text-ink/55', isDense ? 'text-[16px]' : 'text-[17px]')}
-          >
-            /
-          </i>
+          <i className={cn('px-0.5 not-italic text-readout text-ink/55')}>/</i>
           {editingMax ? (
             <input
               ref={maxInputRef}
@@ -297,8 +293,7 @@ export function VitalGauge({
               onBlur={commitMax}
               aria-label={`Set ${label} max`}
               className={cn(
-                'w-14 rounded-card border border-ink/40 bg-paper px-1 text-center tabular-nums text-ink',
-                isDense ? 'text-[16px]' : 'text-[17px]'
+                'w-14 rounded-card border border-ink/40 bg-paper px-1 text-center text-readout tabular-nums text-ink'
               )}
             />
           ) : editableMax ? (
@@ -307,17 +302,14 @@ export function VitalGauge({
               onClick={beginEditMax}
               aria-label={`Override ${label} max (currently ${max})`}
               className={cn(
-                'cursor-pointer rounded-badge px-0.5 underline decoration-dotted underline-offset-2',
-                isOverridden ? 'text-[var(--tone-deep)]' : 'text-ink/70',
-                isDense ? 'text-[16px]' : 'text-[17px]'
+                'cursor-pointer rounded-badge px-0.5 text-readout underline decoration-dotted underline-offset-2',
+                isOverridden ? 'text-[var(--tone-deep)]' : 'text-ink/70'
               )}
             >
               {max}
             </button>
           ) : (
-            <span className={cn('text-ink/70', isDense ? 'text-[16px]' : 'text-[17px]')}>
-              {max}
-            </span>
+            <span className={cn('text-readout text-ink/70')}>{max}</span>
           )}
           {isOverridden && (
             <sup

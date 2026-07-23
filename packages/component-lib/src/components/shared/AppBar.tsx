@@ -106,7 +106,7 @@ export function AppBar({
             className="block size-12 shrink-0 rounded-xl sm:size-16"
           />
           <span className="flex min-w-0 flex-col">
-            <span className="font-cond text-display font-bold leading-[0.98] tracking-[0.005em] text-paper sm:text-[34px]">
+            <span className="font-cond text-display font-bold leading-[0.98] tracking-[0.005em] text-paper sm:text-display-lg">
               {wordmark}
               {wordmarkAccent && <span className="text-rust">{wordmarkAccent}</span>}
               {badge && (

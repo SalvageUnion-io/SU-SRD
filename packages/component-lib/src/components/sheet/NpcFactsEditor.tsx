@@ -94,7 +94,7 @@ export function NpcFactsEditor({
               }}
               className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-pip leading-none hover:bg-ink/10"
             >
-              <span aria-hidden className="text-[12px]">
+              <span aria-hidden className="text-note">
                 ×
               </span>
             </button>
