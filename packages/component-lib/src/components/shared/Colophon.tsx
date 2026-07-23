@@ -23,9 +23,11 @@ type ColophonProps = {
  * pages.
  *
  * Two columns that stack on narrow screens: the author bio and the support
- * button on the left, the LLM statement on the right. Neither piece of prose
- * lives here — both are repo-root markdown documents passed in raw (see
- * `MarkdownSection`), so the two sites always show the same words.
+ * section on the left, the LLM statement on the right. The Ko-fi button rides
+ * in the support slab's `actions` slot, so it sits on the heading line opposite
+ * the label rather than below it. Neither piece of prose lives here — both are
+ * repo-root markdown documents passed in raw (see `MarkdownSection`), so the
+ * two sites always show the same words.
  *
  * The Ko-fi button needs client JS to swap in the widget, so an Astro consumer
  * must hydrate this block rather than render it statically — srd does that via
@@ -44,8 +46,13 @@ export function Colophon({
         <MarkdownSection markdown={aboutMarkdown} />
 
         <section className="flex flex-col items-start gap-3 text-sm leading-relaxed">
-          <Slab as="h2" variant="solid" label="Support the Project" className="mb-0 self-stretch" />
-          <KofiButton code={kofiCode} />
+          <Slab
+            as="h2"
+            variant="solid"
+            label="Support the Project"
+            className="mb-0 w-full"
+            actions={<KofiButton code={kofiCode} />}
+          />
           {footer}
         </section>
       </div>

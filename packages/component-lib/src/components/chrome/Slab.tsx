@@ -73,7 +73,10 @@ export function Slab({ label, as, count, actions, className, variant = 'dashed' 
           }}
         />
       )}
-      {actions && <span className="flex shrink-0 items-center gap-1.5">{actions}</span>}
+      {/* A div, not a span: actions carry block-level content (the Ko-fi widget
+          renders a div), and a div inside a span is invalid HTML. Both are flex
+          items of the same row, so nothing moves. */}
+      {actions && <div className="flex shrink-0 items-center gap-1.5">{actions}</div>}
     </div>
   )
 }
