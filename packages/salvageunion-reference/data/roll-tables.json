@@ -658,6 +658,12 @@
       "type": "standard"
     },
     "page": 219,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "When you fail to pay upkeep, roll on this table."
+      }
+    ],
     "indexable": true,
     "additionalSources": [
       {
@@ -690,6 +696,12 @@
       "type": "standard"
     },
     "page": 219,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Your Union Crawler can suffer damage from being attacked as well as through deterioration when you fail to pay its upkeep. When your Crawler reaches 0 Structure Points roll on this table."
+      }
+    ],
     "indexable": true,
     "additionalSources": [
       {
@@ -722,6 +734,12 @@
       "type": "standard"
     },
     "page": 220,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "If your Union Crawler is destroyed, roll on this table to find out what happens."
+      }
+    ],
     "indexable": true,
     "additionalSources": [
       {

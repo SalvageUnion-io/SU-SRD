@@ -14,10 +14,12 @@ export {
   EntityHrefProvider,
   EntityDetailLinkProvider,
   EntityExternalLinkProvider,
+  PatternHrefProvider,
 } from './components/referenceEntity/entityHrefContext'
 export type {
   EntityHrefBuilder,
   EntityExternalLinkBuilder,
+  PatternHrefBuilder,
 } from './components/referenceEntity/entityHrefContext'
 export { ClassAbilityTree } from './components/referenceEntity/ClassAbilityTree'
 export {

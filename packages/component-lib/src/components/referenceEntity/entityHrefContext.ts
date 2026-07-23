@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { ReactNode } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 
 /**
  * Builds a navigable href (show-page link) for an entity. The shape is the
@@ -54,4 +54,33 @@ export const EntityExternalLinkProvider = EntityExternalLinkContext.Provider
 export function useEntityExternalLink(entity: SURefEntity | undefined): ReactNode | undefined {
   const builder = useContext(EntityExternalLinkContext)
   return builder && entity ? builder(entity) : undefined
+}
+
+/**
+ * Builds the href of a chassis PATTERN's own page. Patterns are nested objects
+ * on a chassis, not entities — they have no id and no `schemaName`, so
+ * `EntityHrefBuilder` (which sees only the entity, i.e. the chassis) cannot
+ * address one. This builder takes both halves of a pattern's identity.
+ *
+ * A chassis card's pattern rows become real links when it is provided. Apps
+ * whose patterns have no page (ITUN) provide nothing, and the rows stay inert
+ * rather than navigating somewhere that doesn't exist.
+ */
+export type PatternHrefBuilder = (
+  chassis: SURefEntity,
+  pattern: SURefObjectPattern
+) => string | undefined
+
+const PatternHrefContext = createContext<PatternHrefBuilder | undefined>(undefined)
+
+/** Provide an app-specific pattern-page href builder to nested entity displays. */
+export const PatternHrefProvider = PatternHrefContext.Provider
+
+/** Resolve a pattern's page href via the provided builder (undefined when none). */
+export function usePatternHref(
+  chassis: SURefEntity | undefined,
+  pattern: SURefObjectPattern | undefined
+): string | undefined {
+  const builder = useContext(PatternHrefContext)
+  return builder && chassis && pattern ? builder(chassis, pattern) : undefined
 }
