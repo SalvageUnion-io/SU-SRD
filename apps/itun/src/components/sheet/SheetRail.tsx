@@ -82,7 +82,7 @@ export function RailChip({
       href={href}
       aria-label={`${roleLabel}: ${name} — open sheet`}
       className={cn(
-        'relative flex min-w-0 flex-[1_1_0%] flex-col overflow-hidden rounded-[3px] border-rail no-underline transition-transform duration-[120ms] hover:-translate-y-px hover:shadow-[0_12px_26px_-14px_rgba(40,32,25,0.55)]',
+        'relative flex min-w-0 flex-[1_1_0%] flex-col overflow-hidden rounded-[3px] border-rail no-underline transition-transform duration-[120ms] hover:-translate-y-px hover:shadow-[0_12px_26px_-14px_var(--color-ink-50)]',
         className
       )}
       style={{ background: RAIL_BG[tone], borderColor: RAIL_BG[tone] }}

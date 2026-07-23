@@ -476,7 +476,7 @@ export function EntitySearcher({
             mode={mode}
             onToggle={onToggle}
             onRemove={onRemove}
-            className="max-h-[45vh] overflow-y-auto shadow-[0_6px_24px_rgba(40,32,25,0.28)]"
+            className="max-h-[45vh] overflow-y-auto shadow-[0_6px_24px_var(--color-ink-30)]"
           />
         </div>
       </div>

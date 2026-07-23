@@ -64,7 +64,7 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
         className="border-b-4 border-paper/95 px-5 pb-3.5 pt-7 sm:px-7"
         style={{ background: 'var(--tone)' }}
       >
-        <h1 className="m-0 font-cond text-[clamp(34px,5.2vw,54px)] font-bold uppercase leading-[0.98] tracking-[0.5px] text-paper [text-shadow:0_2px_0_rgba(0,0,0,0.22)]">
+        <h1 className="m-0 font-cond text-[clamp(34px,5.2vw,54px)] font-bold uppercase leading-[0.98] tracking-[0.5px] text-paper [text-shadow:0_2px_0_var(--color-ink-20)]">
           New {label}
         </h1>
       </header>

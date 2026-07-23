@@ -160,7 +160,7 @@ export function LiveSheet({
       <header
         className={cn(
           'sticky top-0 z-20 flex min-h-[58px] flex-wrap items-center gap-x-4 gap-y-1 border-b-2 border-ink px-4 py-2 sm:px-[30px]',
-          condensed && 'shadow-[0_2px_0_var(--color-ink),0_14px_20px_-18px_rgba(40,32,25,0.55)]'
+          condensed && 'shadow-[0_2px_0_var(--color-ink),0_14px_20px_-18px_var(--color-ink-50)]'
         )}
         style={{ background: 'var(--ground-2)' }}
       >

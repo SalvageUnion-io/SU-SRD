@@ -442,7 +442,12 @@ export const GuideSchema = BaseEntitySchema.extend({
   guideColor: z
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/)
-    .default('#000000')
+    // #282019 IS `--color-ink`, spelled as a literal because this validates
+    // DATA, not styling: the field's contract is a 6-digit hex (see the regex
+    // above), so `var(--color-ink)` is not a legal value here. The default was
+    // pure black, which the warm palette retired — and it is load-bearing, not
+    // decorative: 64 of the 79 guides omit `guideColor` and render on it.
+    .default('#282019')
     .describe('Hex color for entity display header/footer'),
   steps: z.array(GuideStepSchema).describe('Ordered sequence of steps'),
   repeatable: z.boolean().optional().describe('Whether this guide can be executed multiple times'),

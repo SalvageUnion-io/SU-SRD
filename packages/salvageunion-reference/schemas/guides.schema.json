@@ -238,7 +238,7 @@
         "description": "Category of this guide"
       },
       "guideColor": {
-        "default": "#000000",
+        "default": "#282019",
         "description": "Hex color for entity display header/footer",
         "type": "string",
         "pattern": "^#[0-9a-fA-F]{6}$"

@@ -44,7 +44,7 @@ const TILE_GHOST = 'bg-paper text-ink'
 // their utility form on purpose: the guard reads comments, and a citation of
 // the thing you removed counts as the thing itself.)
 const NAME =
-  'font-cond text-lede font-semibold uppercase leading-[1.2] tracking-caps-tight text-paper [text-shadow:0_1px_2px_rgba(0,0,0,0.75)]'
+  'font-cond text-lede font-semibold uppercase leading-[1.2] tracking-caps-tight text-paper [text-shadow:0_1px_2px_var(--color-ink-75)]'
 
 // Ghost name — cond/bold/uppercase at text-lg with no text-shadow (ink on paper
 // needs none), matching the former `.catalog-item--ghost`.
