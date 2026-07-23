@@ -13,8 +13,8 @@
 
 # How this was built
 
-Much of this project was written with LLM assistance. Every change was reviewed, run, and merged by a human, and the commit history is public if you want to see which parts.
+This project started before LLMs could write software. The site and its schema were built by hand, and they are still shaped by hand.
 
-The site, schema, and project were started before LLMs, and have been deliberately designed and refined.
+Much of the code since then has been written with LLM assistance. Every change is read, run, and merged by a person, and the commit history shows which parts.
 
-This project supports open-weight models and stands against consolidated corporate ownership of LLM infrastructure. The tools that build things should belong to the people building with them.
+We support open-weight models. We are against consolidated ownership of LLM infrastructure, and against the obtrusive, environmentally unsound data centers built to serve it.
