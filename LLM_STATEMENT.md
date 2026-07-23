@@ -8,8 +8,9 @@
   together; there is no second copy.
 
   Format contract (see `packages/component-lib/src/markdownSection/`): one `#`
-  heading, then blank-line-separated plain paragraphs. The renderer does NOT
-  interpret inline markdown — no links, bold, or lists.
+  heading, then blank-line-separated paragraphs. `[label](href)` links are the
+  only inline markdown the renderer interprets — bold, italics and lists would
+  ship as literal punctuation.
 -->
 
 # LLM Statement

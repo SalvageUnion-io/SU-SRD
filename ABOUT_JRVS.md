@@ -8,10 +8,11 @@
   together; there is no second copy.
 
   Format contract (see `packages/component-lib/src/markdownSection/`): one `#`
-  heading, then blank-line-separated plain paragraphs. The renderer does NOT
-  interpret inline markdown — no links, bold, or lists.
+  heading, then blank-line-separated paragraphs. `[label](href)` links are the
+  only inline markdown the renderer interprets — bold, italics and lists would
+  ship as literal punctuation.
 -->
 
 # About the Dev
 
-I like tabletop games, "Weird" Al Yankovic, and the 2010 DreamWorks animated picture film "Megamind".
+[Jrvs](https://alxjrvs.com) is a third-generation Norman Rockwell painting. He enjoys TTRPGs, "Weird Al" Yankovic originals, and the 2010 DreamWorks Motion Picture Film "Megamind", among other things.

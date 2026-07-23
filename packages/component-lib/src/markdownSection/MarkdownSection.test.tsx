@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { cleanup, render, screen } from '@testing-library/react'
 import { MarkdownSection } from './MarkdownSection'
-import { parseMarkdownSection } from './parseMarkdownSection'
+import { parseInline, parseMarkdownSection } from './parseMarkdownSection'
 
 afterEach(cleanup)
 
@@ -46,14 +46,50 @@ describe('parseMarkdownSection', () => {
   })
 })
 
+describe('parseInline', () => {
+  test('splits a paragraph into text runs and links', () => {
+    expect(parseInline('see [the site](https://alxjrvs.com) for more')).toEqual([
+      { text: 'see ' },
+      { text: 'the site', href: 'https://alxjrvs.com' },
+      { text: ' for more' },
+    ])
+  })
+
+  test('leaves a paragraph with no link as one run', () => {
+    expect(parseInline('plain prose')).toEqual([{ text: 'plain prose' }])
+  })
+
+  test('keeps a non-http target as literal text', () => {
+    // A `javascript:` href must never become a live link.
+    expect(parseInline('[x](javascript:alert(1))')).toEqual([
+      { text: '[' },
+      { text: 'x](javascript:alert(1))' },
+    ])
+  })
+
+  test('keeps an unclosed bracket as literal text', () => {
+    expect(parseInline('a [ b')).toEqual([{ text: 'a [ b' }])
+  })
+})
+
 describe('the repo-root prose documents', () => {
-  // The renderer does not interpret inline markdown (see each file's own header
-  // comment), so syntax added there would ship as literal punctuation.
-  test.each(DOCS)('$name is plain paragraphs — no links, bold, or bullets', ({ markdown }) => {
+  // Links are the only inline markdown the renderer interprets (see each file's
+  // own header comment); anything else would ship as literal punctuation.
+  test.each(DOCS)('$name uses no bold, italics, or bullets', ({ markdown }) => {
     const { paragraphs } = parseMarkdownSection(markdown)
     expect(paragraphs.length).toBeGreaterThan(0)
     for (const paragraph of paragraphs) {
-      expect(paragraph).not.toMatch(/\[[^\]]*]\(|\*\*|^[-*]\s|^#/)
+      expect(paragraph).not.toMatch(/\*\*|^[-*]\s|^#/)
+    }
+  })
+
+  test.each(DOCS)('$name links, if any, resolve to a real target', ({ markdown }) => {
+    const links = parseMarkdownSection(markdown)
+      .paragraphs.flatMap(parseInline)
+      .filter((node) => node.href)
+    for (const link of links) {
+      expect(link.href).toMatch(/^https?:\/\/|^\//)
+      expect(link.text.length).toBeGreaterThan(0)
     }
   })
 })
@@ -64,9 +100,24 @@ describe('MarkdownSection', () => {
     render(<MarkdownSection markdown={markdown} />)
 
     expect(screen.getByRole('heading', { name: heading })).toBeTruthy()
+
+    // Compared against the rendered text, not the raw source: link syntax is
+    // replaced by its label, so `[Jrvs](https://…)` reads as "Jrvs".
+    const rendered = [...document.querySelectorAll('p')].map((p) => p.textContent)
     for (const paragraph of paragraphs) {
-      expect(screen.getByText(paragraph)).toBeTruthy()
+      const expected = parseInline(paragraph)
+        .map((node) => node.text)
+        .join('')
+      expect(rendered).toContain(expected)
     }
+  })
+
+  test('renders a link as an anchor to its target', () => {
+    render(<MarkdownSection markdown="visit [the site](https://alxjrvs.com) today" />)
+
+    const link = screen.getByRole('link', { name: 'the site' }) as HTMLAnchorElement
+    expect(link.getAttribute('href')).toBe('https://alxjrvs.com')
+    expect(link.getAttribute('rel')).toBe('noopener noreferrer')
   })
 
   test('omits the heading element when the markdown has none', () => {

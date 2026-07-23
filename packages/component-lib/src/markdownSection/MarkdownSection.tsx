@@ -1,6 +1,8 @@
+import { Fragment } from 'react'
+
 import { Slab } from '../components/chrome/Slab'
 import { cn } from '../utils/cn'
-import { parseMarkdownSection } from './parseMarkdownSection'
+import { parseInline, parseMarkdownSection } from './parseMarkdownSection'
 
 type MarkdownSectionProps = {
   /** Raw contents of a repo-root prose document. */
@@ -12,7 +14,8 @@ type MarkdownSectionProps = {
 /**
  * MarkdownSection — a `#` heading plus its paragraphs, rendered from a raw
  * markdown string. The heading is a solid `Slab`, the canonical section head on
- * the about/back pages.
+ * the about/back pages. `[label](href)` links are interpreted; no other inline
+ * markdown is.
  *
  * The prose is NOT held here: it lives in a repo-root document
  * (`ABOUT_JRVS.md`, `LLM_STATEMENT.md`) and is passed in raw, so the two sites
@@ -28,7 +31,23 @@ export function MarkdownSection({ markdown, className }: MarkdownSectionProps) {
     <section className={cn('flex flex-col gap-3 text-sm leading-relaxed', className)}>
       {heading && <Slab as="h2" variant="solid" label={heading} className="mb-0" />}
       {paragraphs.map((paragraph) => (
-        <p key={paragraph}>{paragraph}</p>
+        <p key={paragraph}>
+          {parseInline(paragraph).map((node) =>
+            node.href ? (
+              <a
+                key={`${node.href}-${node.text}`}
+                href={node.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-rust hover:underline"
+              >
+                {node.text}
+              </a>
+            ) : (
+              <Fragment key={node.text}>{node.text}</Fragment>
+            )
+          )}
+        </p>
       ))}
     </section>
   )
