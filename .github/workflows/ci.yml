@@ -424,6 +424,48 @@ jobs:
           path: apps/itun/playwright-report/
           retention-days: 7
 
+  bundle-budget-itun:
+    # PR-blocking bundle-size regression guard for ITUN, the counterpart to
+    # bundle-budget-web. Runs ONLY apps/itun/e2e/bundle-budget.e2e.ts against
+    # the same hermetic `vite build` + `vite preview` target smoke-itun uses,
+    # asserting per-route total JS stays under a byte budget and that no
+    # single chunk balloons back to a monolithic entry bundle (the guard for
+    # `autoCodeSplitting` in apps/itun/vite.config.ts). Kept as its own job so
+    # a budget regression reads as its own clearly-named failure rather than
+    # an ambiguous smoke failure.
+    needs: [changes, build-package, build-itun]
+    if: needs.changes.outputs.itun == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers (Chromium)
+        working-directory: apps/itun
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run bundle-budget test
+        working-directory: apps/itun
+        run: bunx playwright test bundle-budget.e2e.ts
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-bundle-budget-itun
+          path: apps/itun/playwright-report/
+          retention-days: 7
+
   # ---------------------------------------------------------------------------
   # Single aggregate gate. Always runs; fails if any job actually failed (a
   # path-filtered "skipped" job is fine). Branch protection should require just
@@ -448,6 +490,7 @@ jobs:
       - smoke-web
       - bundle-budget-web
       - smoke-itun
+      - bundle-budget-itun
       # NOTE: the FULL browser e2e suites (ITUN + srd) still only run
       # nightly, not per-PR — see .github/workflows/e2e-nightly.yml.
       # smoke-web/smoke-itun above cover only the PR-blocking smoke tier, so

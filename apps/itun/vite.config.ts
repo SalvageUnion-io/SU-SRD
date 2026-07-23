@@ -18,6 +18,15 @@ export default defineConfig({
     TanStackRouterVite({
       routesDirectory: './src/routes',
       generatedRouteTree: './src/routeTree.gen.ts',
+      // Split each route's component out of the entry bundle so a visitor
+      // pays only for the route they land on. Without this every route
+      // (roster, the three wizards, both sheets, dashboard, encounter,
+      // snapshot viewer) is linked into one ~1.2 MB entry chunk, and the
+      // per-route JS budget in e2e/bundle-budget.e2e.ts is what keeps it
+      // that way. Route *definitions* (path, loader, params) stay eager so
+      // matching still happens synchronously; only the component/pending/
+      // error boundaries move behind a dynamic import.
+      autoCodeSplitting: true,
     }),
     tailwindcss(),
     react({
