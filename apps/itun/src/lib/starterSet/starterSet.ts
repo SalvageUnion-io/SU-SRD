@@ -176,6 +176,12 @@ const CREW: readonly CrewMember[] = [
       name: 'Mule',
       chassisRef: 'mule',
       patternName: 'Survivor Pattern',
+      // Seven Systems, per Judge's Reclamation-of-the-Wastes pre-gen sheet. The
+      // Starter Set Parts Catalogue's Survivor Pattern (p.13) prints an eighth,
+      // High Pressure Hose, which the pre-gen sheet omits. The sheets are the
+      // source of truth for these pre-gens, so this list intentionally differs
+      // from the reference dataset's Survivor pattern (which follows the
+      // catalogue) — it is not a missing entry.
       systems: [
         '50-cal-machine-gun',
         'armour-plating',
