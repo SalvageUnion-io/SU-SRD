@@ -26,7 +26,7 @@ import {
   seedDefaultCrawlerBays,
 } from '../../../lib/wizard/crawlerFormState'
 import { CrawlerBuilder } from '../CrawlerBuilder'
-import { isWeaponSystem } from '../../../lib/rules/crawlerSystems'
+import { isWeaponSystem } from 'salvageunion-reference/rules'
 import { must } from '../../__tests__/must'
 
 // ---------------------------------------------------------------------------

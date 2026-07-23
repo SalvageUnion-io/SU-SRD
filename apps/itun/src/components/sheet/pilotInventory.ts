@@ -20,7 +20,7 @@ import type { SURefEquipment } from 'salvageunion-reference'
 
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 import { PILOT_BASE_INVENTORY_SLOTS } from '../../lib/rules/derivedStats'
-import { matchesRef } from '../../lib/rules/resolveRefs'
+import { matchesRef } from 'salvageunion-reference/rules'
 
 /**
  * Resolve an equipment ref (slug, name, or id) against the reference data.

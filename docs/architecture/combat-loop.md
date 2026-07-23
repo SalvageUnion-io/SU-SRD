@@ -55,7 +55,7 @@ performPush({ heat, heatCap, currentSP, roll, now? }): PushResult   // { nextHea
 
 ### `apps/itun/src/lib/rules/heatCheck.ts`
 
-A thin app-local layer (exported via `src/lib/rules/index.ts`). It re-exports
+A thin app-local layer, imported by submodule path. It re-exports
 all four functions above and adds the two pieces that can't be pure:
 
 ```typescript
@@ -176,7 +176,7 @@ modifiers (`maxSpModifier`, `maxEpModifier`, `maxHeatModifier`,
 ## The rules controls — where they live today
 
 The rules **math** all still exists under `apps/itun/src/lib/rules/*`
-(injectable rollers, unit-tested) and is exported from `src/lib/rules/index.ts`.
+(injectable rollers, unit-tested) and is imported by submodule path.
 The **surfaces** on top of it were reorganized by the poster redesign and the
 ADR-021 surface split: most play controls moved off the Live Sheet onto the
 Dashboard, and several were deleted outright. Every surviving surface follows

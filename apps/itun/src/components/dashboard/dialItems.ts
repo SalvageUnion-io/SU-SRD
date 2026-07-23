@@ -17,7 +17,7 @@ import {
   pilotMaxAP,
   pilotMaxHP,
 } from '../../lib/rules/derivedStats'
-import { resolveChassisRef } from '../../lib/rules/resolveRefs'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { CockpitPrefs, DialKind } from '../../lib/schemas/cockpitPrefs'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'

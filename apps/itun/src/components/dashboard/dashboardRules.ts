@@ -24,7 +24,7 @@ import type {
   SURefMetaEntity,
 } from 'salvageunion-reference'
 
-import { resolveChassisRef } from '../../lib/rules/resolveRefs'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { CoreRollBand } from '../../lib/rules/coreMechanic'
 import { clampHeat, heatCheckPatch, performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'

@@ -9,6 +9,7 @@ import type { SURefChassis } from 'salvageunion-reference'
 import {
   isLegalCreationChassis,
   legalStartingPatterns,
+  matchesRef,
   MECH_CREATION_SCRAP_CAP,
 } from 'salvageunion-reference/rules'
 import {
@@ -18,7 +19,6 @@ import {
   Slab,
   useChassisPatternConfig,
 } from 'component-lib'
-import { matchesRef } from '../../lib/rules/resolveRefs'
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
 export type ChassisPattern = SURefChassis['patterns'][number]

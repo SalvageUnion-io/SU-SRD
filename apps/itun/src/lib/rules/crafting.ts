@@ -21,7 +21,7 @@ import { makeUnitLot } from '../schemas/cargoLot'
 import type { ScrapPool } from '../schemas/crawler'
 import { drawFromPool, poolAvailableAtOrAbove } from './crawlerEconomy'
 import type { PoolDraw } from './crawlerEconomy'
-import { scrapCostFor } from './scrap'
+import { scrapCostFor } from 'salvageunion-reference/rules'
 import type { TechLevel } from './types'
 
 /** The bay whose presence + Intact condition gates crafting (p.222). */

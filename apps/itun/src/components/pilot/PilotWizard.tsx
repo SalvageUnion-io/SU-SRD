@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
-import { isLegalCreationAbility } from 'salvageunion-reference/rules'
+import {
+  enrichPilotSnapshot,
+  evaluatePilotWarnings,
+  isLegalCreationAbility,
+} from 'salvageunion-reference/rules'
 import { toast } from 'component-lib'
 import { usePilot } from '../../hooks/queries'
 import { PilotSchema } from '../../lib/schemas/pilot'
@@ -20,8 +24,6 @@ import {
   PILOT_BASE_HP,
   PILOT_BASE_INVENTORY_SLOTS,
 } from '../../lib/rules/derivedStats'
-import { enrichPilotSnapshot } from '../../lib/rules/pilotSnapshot'
-import { evaluatePilotWarnings } from '../../lib/rules/softWarnings'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../sheet/pilotInventory'
 import { Banner } from 'component-lib'
 import { OffRulesEscape } from 'component-lib'

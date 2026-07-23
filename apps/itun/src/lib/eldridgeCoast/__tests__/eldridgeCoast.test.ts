@@ -20,7 +20,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:te
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 
 import { crawlerMaxSP, pilotMaxAP, pilotMaxHP } from '../../rules/derivedStats'
-import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from '../../rules/resolveRefs'
+import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import { resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
 import { CrawlerSchema } from '../../schemas/crawler'
 import { MechSchema } from '../../schemas/mech'

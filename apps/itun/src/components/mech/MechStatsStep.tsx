@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EmptyState, ReferenceEntityCard, Slab, Stat, entityHostTone } from 'component-lib'
-import { resolveChassisRef } from '../../lib/rules/resolveRefs'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 
 type MechStatsStepProps = {
   /** Chassis slug ref from the wizard form ('' while unchosen). */

@@ -97,3 +97,16 @@ into the package.
 The Discord bot was intentionally left untouched by this migration — wiring
 the newly-portable rules into the bot is a follow-up consequence of this ADR,
 not part of the migration itself.
+
+**Follow-up (2026-07): the pure pass-through shims were removed.** Eight of
+the Tier 1/2 shims (`capacity`, `cargo`, `crawlerSystems`, `pilotSnapshot`,
+`scrap`, `detailWarnings`, `resolveRefs`, `softWarnings`) contained nothing but
+re-export lines, so their call sites now import from
+`salvageunion-reference/rules` directly. The barrel
+`apps/itun/src/lib/rules/index.ts` was deleted with them — it had no importers.
+The remaining `apps/itun/src/lib/rules/*` modules are **not** shims: they either
+re-export the pure math _and_ add app-layer code this ADR's split with
+[ADR-007](ADR-007-automation-boundary.md) keeps out of the package (RNG bindings
+such as `defaultRoll`, write-through patch builders typed against ITUN's Zod
+`Mech`), or are full app-local Tier 3 implementations. Collapsing any of those
+would violate the boundary.

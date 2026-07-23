@@ -42,7 +42,7 @@ import type { ItemConditionMap, Mech } from '../schemas/mech'
 import type { Pilot } from '../schemas/pilot'
 import type { SoftLink } from '../schemas/softLink'
 import { mechMaxEP, mechMaxSP, pilotMaxAP, pilotMaxHP } from './derivedStats'
-import { matchesRef, resolveChassisRef, resolveInstalledRef } from './resolveRefs'
+import { matchesRef, resolveChassisRef, resolveInstalledRef } from 'salvageunion-reference/rules'
 
 // ---------------------------------------------------------------------------
 // Steps

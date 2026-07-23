@@ -15,7 +15,7 @@
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { mechMaxCargo, mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
-import { resolveChassisRef } from '../../lib/rules/resolveRefs'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Mech } from '../../lib/schemas/mech'
 import { AssignPilotToMech } from '../wiring/AssignPilotToMech'
