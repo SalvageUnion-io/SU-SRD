@@ -78,6 +78,22 @@ export function AboutScreen({ version, aboutJrvs, llmStatement }: AboutScreenPro
             </a>
             .
           </p>
+          <p>
+            I am not the owner or publisher of this content. Salvage Union and all associated names,
+            marks, characters, and artwork are the property of Leyline Press. Game text and
+            mechanics are used under the{' '}
+            <a
+              href="https://leyline.press/pages/salvage-union-open-game-licence-1-0b"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-rust hover:underline"
+            >
+              Salvage Union Open Game Licence 1.0b
+            </a>
+            . Artwork is not covered by that licence and is reproduced with the special permission
+            of Leyline Press. This is an unofficial fan project, and is not affiliated with Leyline
+            Press.
+          </p>
         </section>
 
         <Colophon
