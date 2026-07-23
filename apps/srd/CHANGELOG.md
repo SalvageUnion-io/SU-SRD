@@ -8,6 +8,7 @@ Maintained by release-please. Older entries below predate automation.
 ### Bug Fixes
 
 * **component-lib:** class abilities sit beneath the artwork, not around it ([#537](https://github.com/SalvageUnion-io/SU-SRD/issues/537)) ([e49023c](https://github.com/SalvageUnion-io/SU-SRD/commit/e49023c07d84905a0054ee0948e1519ea66be62e))
+* **component-lib:** pattern cards render their own source/page, not the chassis's ([#535](https://github.com/SalvageUnion-io/SU-SRD/issues/535)) ([fd7cb19](https://github.com/SalvageUnion-io/SU-SRD/commit/fd7cb19d996904d235f7abb3288c082c0d1722e5))
 
 ## [1.2.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.1.0...srd-v1.2.0) (2026-07-23)
 
