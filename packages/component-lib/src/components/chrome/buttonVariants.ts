@@ -2,6 +2,19 @@ import { cva } from 'class-variance-authority'
 import { DISABLED, FOCUS_RING } from './interaction'
 
 /**
+ * The disabled treatment for FILLED variants (`primary`, `danger`).
+ *
+ * The shared `DISABLED` fades whatever is there to 40% opacity, which is right
+ * for an outline button but wrong for a solid fill: rust at 40% is a pastel
+ * salmon and red at 40% is pink, and both read as an enabled variant nobody
+ * recognises rather than as an off control. A disabled control should look
+ * *drained*, not *tinted*, so the fill is emptied to a flat ink wash instead.
+ * `opacity-100` cancels the base fade (variant classes are emitted after the
+ * base, so this wins the merge).
+ */
+const DRAINED = 'disabled:opacity-100 disabled:border-ink-30 disabled:bg-ink-8 disabled:text-ink-50'
+
+/**
  * The `.btn` cva recipe (design-spec §2.4), exported for non-button elements
  * (e.g. links styled as buttons) so consumers don't re-inline the class
  * string. Lives in its own file so Button.tsx only exports components
@@ -24,10 +37,10 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'border-ink bg-paper text-ink hover:bg-wk-bg-2',
-        primary: 'border-rust bg-rust text-paper hover:border-rust-hi hover:bg-rust-hi',
-        ghost: 'border-ink bg-transparent text-ink hover:bg-wk-bg-2',
-        danger: 'border-status-bad bg-status-bad text-paper hover:opacity-90',
+        default: 'border-ink bg-paper text-ink hover:bg-ink-8',
+        primary: `border-rust bg-rust text-paper hover:border-rust-hi hover:bg-rust-hi ${DRAINED}`,
+        ghost: 'border-ink bg-transparent text-ink hover:bg-ink-8',
+        danger: `border-status-bad bg-status-bad text-paper hover:opacity-90 ${DRAINED}`,
       },
       surface: {
         // Light app chrome — the paper/ink/rust world (the existing default).

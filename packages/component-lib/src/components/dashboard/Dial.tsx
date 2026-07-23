@@ -20,6 +20,7 @@
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 
+import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { Button } from '../chrome/Button'
 import { DashboardGauge, type GaugeTone } from './DashboardGauge'
 
@@ -153,6 +154,10 @@ export type DialProps = {
 export function Dial({ items, activeIndex, onActiveIndexChange, renderConfig }: DialProps) {
   const wheel = activeIndex
   const [configOpen, setConfigOpen] = useState(false)
+  // Escape closes the config panel — see useEscapeKey for why each cockpit
+  // overlay needs this rather than inheriting a dialog's behaviour.
+  const closeConfig = useCallback(() => setConfigOpen(false), [])
+  useEscapeKey(configOpen, closeConfig)
 
   const n = items.length
   const active = n > 0 ? ((wheel % n) + n) % n : 0
@@ -450,7 +455,7 @@ export function Dial({ items, activeIndex, onActiveIndexChange, renderConfig }: 
           </Button>
         )}
       </div>
-      {canConfigure && configOpen && renderConfig(() => setConfigOpen(false))}
+      {canConfigure && configOpen && renderConfig(closeConfig)}
     </div>
   )
 }

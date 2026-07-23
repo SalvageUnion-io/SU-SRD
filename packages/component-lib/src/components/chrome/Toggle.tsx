@@ -20,10 +20,17 @@ import { cn } from '../../utils/cn'
  * element — and with it the browser's default accent blue, the one colour with
  * no place in a paper/ink/rust palette.
  *
- * A real `<input type="checkbox" role="switch">` carries the semantics: the
- * whole thing is a `<label>`, so pointer targets and screen-reader naming come
- * from the platform, and `role="switch"` makes assistive tech announce on/off
- * rather than checked/unchecked.
+ * A real `<input type="checkbox">` carries the semantics: the whole thing is a
+ * `<label>`, so the pointer target, keyboard activation and screen-reader
+ * naming all come from the platform.
+ *
+ * Deliberately NOT `role="switch"`. That role obliges the author to publish
+ * `aria-checked`, and this control supports the uncontrolled (`defaultChecked`)
+ * case where React does not tell us the current state — so the attribute would
+ * either be absent or, worse, stale and contradicting the real checkbox. A
+ * native checkbox is already a correct, complete boolean; `switch` would only
+ * change the announcement from "checked" to "on", which is not worth shipping
+ * an ARIA state we cannot guarantee. The switch is a visual treatment here.
  */
 
 type ToggleProps = Omit<ComponentPropsWithoutRef<'input'>, 'type' | 'role' | 'children'> & {
@@ -89,7 +96,6 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(function Toggle(
       <input
         ref={ref}
         type="checkbox"
-        role="switch"
         disabled={disabled}
         aria-label={showLabel ? undefined : label}
         className="peer sr-only"

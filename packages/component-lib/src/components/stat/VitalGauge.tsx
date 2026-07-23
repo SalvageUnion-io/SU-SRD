@@ -200,7 +200,14 @@ export function VitalGauge({
         >
           {label}
         </span>
-        <div className="flex min-w-0 flex-1 gap-[3px]">
+        {/*
+         * The 3px inter-segment gap is a constant, so a long track spends more
+         * of its width on gaps than on segments: a crawler at SP 20/20 divided
+         * the compact bar into 20 slivers and read as a dotted perforation
+         * strip rather than a bar. Past a dozen segments the gap tightens to
+         * 1px, which keeps the segments legible as segments at any max.
+         */}
+        <div className={cn('flex min-w-0 flex-1', segCount > 12 ? 'gap-px' : 'gap-[3px]')}>
           {Array.from({ length: segCount }, (_, i) => ({
             i,
             state: trackSegmentState(i, shown, max, dangerFrom),

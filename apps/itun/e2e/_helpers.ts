@@ -149,52 +149,138 @@ export async function clickNavLink(page: Page, name: RegExp | string): Promise<v
 // complete), so subsequent steps can rely on the entity existing.
 // ---------------------------------------------------------------------------
 
-/** Build a pilot (Class → Abilities → Equipment → Identity → Background → Review). */
+/**
+ * Fill a wizard identity field by its visible `Field` label.
+ *
+ * These are not plain inputs. `Field` with `value` + `onSave` renders an
+ * `InlineEditField`: a `role="button"` readout that swaps to an input only once
+ * activated, and it labels both halves `Edit <label lowercased>`. So filling one
+ * is click-then-type, and `getByLabel(/^Name$/)` — what these helpers used to
+ * do — matches nothing at all.
+ *
+ * Falls back to a direct fill for the steps that do render a real input.
+ */
+export async function fillIdentity(page: Page, label: string, value: string): Promise<boolean> {
+  // Click-to-edit (`Field` with `value` + `onSave`): a role="button" readout
+  // that swaps to an input once activated, both named `Edit <label>`.
+  const editLabel = new RegExp(`^Edit ${label}$`, 'i')
+  const editor = page.getByLabel(editLabel).first()
+  if (await editor.isVisible().catch(() => false)) {
+    await editor.click().catch(() => {})
+    await page.getByLabel(editLabel).first().fill(value)
+    // InlineEditField commits on blur.
+    await page.keyboard.press('Tab')
+    return true
+  }
+  // Plain labelled input (`Field` with `htmlFor`) — the callsign step's shape.
+  const plain = page.getByLabel(new RegExp(`^${label}`, 'i')).first()
+  if (await plain.isVisible().catch(() => false)) {
+    await plain.fill(value)
+    return true
+  }
+  return false
+}
+
+/**
+ * Drive a `/new` wizard to completion and return once the redirect to `/` lands.
+ *
+ * Deliberately step-AGNOSTIC. These wizards have been restructured repeatedly —
+ * the pilot went from 6 steps to 9, the mech to 9, the crawler to 6, and a
+ * `CreateModeChooser` ("Guided vs Blank") gate was added in front of all three —
+ * and the previous hard-coded builders broke silently at the first pick every
+ * time. The builders' only contract is "produce a valid entity for the specs
+ * that follow", so this walks whatever steps exist: advance while Next is
+ * enabled, and when it is gated, satisfy the gate (fill identity fields, else
+ * take the first offered option) and try again.
+ *
+ * `?mode=guided` skips the chooser gate directly rather than clicking through it.
+ */
+async function runWizard(
+  page: Page,
+  kind: 'pilots' | 'mechs' | 'crawlers',
+  identity: Record<string, string>,
+  createLabel: RegExp
+): Promise<void> {
+  await gotoStable(page, `/${kind}/new?mode=guided`)
+  await waitForReady(page)
+
+  const MAX_STEPS = 16
+  for (let step = 0; step < MAX_STEPS; step++) {
+    const create = page.getByRole('button', { name: createLabel }).first()
+    if (await create.isVisible().catch(() => false)) {
+      await create.click()
+      await page.waitForURL((url) => url.pathname === '/', { timeout: 30_000 })
+      return
+    }
+
+    const next = page.getByRole('button', { name: /^Next( ·|$)/ }).first()
+    await expect(next, `wizard ${kind} should offer Next or Create at step ${step}`).toBeVisible({
+      timeout: 15_000,
+    })
+
+    if (await next.isDisabled()) {
+      // Identity first — a name step is gated on text, not on a pick.
+      // `fillIdentity` reports whether the field was on this step at all, and
+      // handles both shapes the wizards use (click-to-edit and plain input).
+      for (const [label, value] of Object.entries(identity)) {
+        await fillIdentity(page, label, value)
+      }
+      // Then options. A step can require a pick from more than one GROUP, and
+      // later groups may not exist until an earlier one is answered — the pilot
+      // step reveals its "first ability" trees only once a class is chosen. So
+      // satisfy one group at a time, re-reading the page after each pick: take
+      // the first not-yet-selected option in the first group that has none.
+      // (Walking a flat option list instead just re-picks within the same
+      // group — click every class in turn and you end on the last one, with
+      // the ability requirement still unmet.)
+      // Pick the LAST unselected option each round, re-reading the page in
+      // between. Sections that appear in response to a pick are appended below
+      // the one that triggered them, so "last" always lands in the newest
+      // unanswered section — pick a class and the next round lands in the
+      // ability trees that class just revealed. Walking forwards from the top
+      // instead just re-picks within the first section (click every class in
+      // turn and you end on the last one, ability still unchosen).
+      for (let round = 0; round < 6 && (await next.isDisabled()); round++) {
+        const unselected = optionCells(page).filter({
+          hasNot: page.locator('[aria-checked="true"], [aria-pressed="true"]'),
+        })
+        const count = await unselected.count()
+        if (count === 0) break
+        await unselected
+          .nth(count - 1)
+          .click()
+          .catch(() => {})
+        await page.waitForTimeout(350)
+      }
+      await expect(next, `wizard ${kind} step ${step} should unlock after picking`).toBeEnabled({
+        timeout: 10_000,
+      })
+    }
+    await next.click()
+    await page.waitForTimeout(400)
+  }
+  throw new Error(`wizard ${kind} did not reach its Create step within ${MAX_STEPS} steps`)
+}
+
+/** Build a pilot. Steps: Stats → Class & Ability → Equipment → Callsign → Background → Motto → Keepsake → Appearance → Review. */
 export async function buildPilot(page: Page, name: string, callsign: string): Promise<void> {
-  await gotoStable(page, '/pilots/new')
-  await waitForReady(page)
-  await pickByName(page, 'Engineer')
-  await clickNext(page) // -> Abilities
-  await pickByName(page, 'Engineering Expertise')
-  await clickNext(page) // -> Equipment
-  await page.locator('div[role="button"]').first().click()
-  await clickNext(page) // -> Identity
-  await page.getByLabel(/^Name/).fill(name)
-  await page.getByLabel(/Callsign/).fill(callsign)
-  await clickNext(page) // -> Background
-  await clickNext(page) // -> Review
-  await page.getByRole('button', { name: /Create Pilot/i }).click()
-  await page.waitForURL((url) => url.pathname === '/', { timeout: 30_000 })
+  await runWizard(page, 'pilots', { name, callsign }, /Create Pilot/i)
 }
 
-/** Build a mech (Chassis → Pattern → Loadout → Identity → Review). */
+/**
+ * Build a mech. Steps: Gain Scrap → Chassis → Statistics → Systems → Modules →
+ * Quirk → Appearance → Pattern Name → Review.
+ *
+ * The name field is labelled "Name / Pattern" — a mech's name IS its pattern —
+ * so both spellings are offered; whichever is absent is a no-op.
+ */
 export async function buildMech(page: Page, name: string): Promise<void> {
-  await gotoStable(page, '/mechs/new')
-  await waitForReady(page)
-  await pickByName(page, 'Mule')
-  await clickNext(page) // -> Pattern
-  await pickByName(page, 'Custom Pattern')
-  await page.getByLabel(/Pattern name/i).fill('Custom')
-  await clickNext(page) // -> Loadout
-  await clickNext(page) // -> Identity (loadout optional)
-  await page.getByLabel(/Mech name/i).fill(name)
-  await clickNext(page) // -> Review
-  await page.getByRole('button', { name: /Create Mech/i }).click()
-  await page.waitForURL((url) => url.pathname === '/', { timeout: 30_000 })
+  await runWizard(page, 'mechs', { 'name / pattern': name, 'mech name': name }, /Create Mech/i)
 }
 
-/** Build a crawler (Crawler type → Systems → Crew → Identity → Review). */
+/** Build a crawler. Steps: Type → Statistics → Armament Bay → Crew → Name → Review. */
 export async function buildCrawler(page: Page, name: string): Promise<void> {
-  await gotoStable(page, '/crawlers/new')
-  await waitForReady(page)
-  await pickByName(page, 'Battle')
-  await clickNext(page) // -> Systems
-  await clickNext(page) // -> Crew
-  await clickNext(page) // -> Identity
-  await page.getByLabel(/Crawler Name/i).fill(name)
-  await clickNext(page) // -> Review
-  await page.getByRole('button', { name: /Create Crawler/i }).click()
-  await page.waitForURL((url) => url.pathname === '/', { timeout: 30_000 })
+  await runWizard(page, 'crawlers', { 'crawler name': name }, /Create Crawler/i)
 }
 
 /**

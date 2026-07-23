@@ -123,7 +123,6 @@ export function Dashboard({ id }: { id: string }) {
           />
         }
         primary={<ActiveItemBand mech={mech} pilot={pilot} crawler={crawler} store={storeState} />}
-        displayLight
         display={
           isDowntime ? (
             <DowntimeWizard crawler={crawler} />

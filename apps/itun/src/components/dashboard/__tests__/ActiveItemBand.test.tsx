@@ -26,9 +26,12 @@ describe('ActiveItemBand', () => {
     usePlayStateStore.setState({ mount: 'mech', wheel: 0 })
   })
 
+  // The band's stamp carries the MOUNT STATE, not the entity name: the rail
+  // above it already stamps the identity, and the two used to render the same
+  // string twice, ~40px apart. See ActiveItemBandView.stampLabel.
   test('boarded → shows the mech band and its bays', () => {
     render(<ActiveItemBand mech={mech} pilot={null} />)
-    expect(screen.getByText('Mech · Iron Mongrel')).toBeTruthy()
+    expect(screen.getByText('Boarded')).toBeTruthy()
     expect(screen.getByText('Reactor')).toBeTruthy()
     expect(screen.getByText('Chassis')).toBeTruthy()
   })
@@ -41,8 +44,8 @@ describe('ActiveItemBand', () => {
   test('Dismount → pilot band, Board → back to the mech band', () => {
     render(<ActiveItemBand mech={mech} pilot={pilot} />)
     fireEvent.click(screen.getByText('Dismount'))
-    expect(screen.getByText('Pilot · Vesh')).toBeTruthy()
+    expect(screen.getByText('On Foot')).toBeTruthy()
     fireEvent.click(screen.getByText('▶ Board Mech'))
-    expect(screen.getByText('Mech · Iron Mongrel')).toBeTruthy()
+    expect(screen.getByText('Boarded')).toBeTruthy()
   })
 })

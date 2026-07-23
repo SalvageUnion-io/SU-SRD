@@ -134,7 +134,7 @@ export function Field(props: FieldProps) {
             type="button"
             aria-label={`Change ${labelText.toLowerCase()}`}
             onClick={onEditClick}
-            className={cn(FIELD_BOX, 'cursor-pointer text-left hover:bg-wk-bg-2', EDIT_CUE_CLASS)}
+            className={cn(FIELD_BOX, 'cursor-pointer text-left hover:bg-ink-8', EDIT_CUE_CLASS)}
           >
             {valueSpan}
           </button>

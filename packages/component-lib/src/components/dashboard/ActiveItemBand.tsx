@@ -14,7 +14,11 @@ import type { ReactNode } from 'react'
 import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
 import { cn } from '../../utils/cn'
+import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { DashboardGauge, type GaugeTone } from './DashboardGauge'
+
+/** Stable no-op, so the Escape effect doesn't re-bind when no overlay is open. */
+const NOOP = () => {}
 
 export type BandGauge = {
   label: string
@@ -45,12 +49,29 @@ export type BandBay = {
 export type BandOverlay = {
   title: string
   onClose: () => void
+  /**
+   * Gauges to keep on screen while the overlay is up.
+   *
+   * The overlay covers the whole band, so opening "Take Damage" used to hide
+   * SP, EP and Heat at exactly the moment you were deciding how much damage to
+   * apply — the number you are choosing and the number it changes were never
+   * visible together. Pass the gauge the overlay acts on and it stays readable.
+   */
+  gauges?: BandGauge[]
   body?: ReactNode
   actions?: BandButton[]
 }
 
 export type ActiveItemBandView = {
   fam: 'mech' | 'pilot' | 'crawler'
+  /**
+   * The band's MOUNT STATE — "Boarded", "On Foot", "Downtime" — not the entity
+   * name. The rail directly above already stamps the identity ("Mech · Mule"),
+   * and this stamp used to repeat it verbatim, in the same tone, ~40px below:
+   * two identical plates stacked, which read as a rendering fault. Identity
+   * belongs to the rail; this plate answers the different question of what
+   * you are currently driving.
+   */
   stampLabel: string
   bays: BandBay[]
   overlay?: BandOverlay | null
@@ -141,6 +162,9 @@ export function StorageBay({
 
 export function ActiveItemBand({ view }: ActiveItemBandProps) {
   const { overlay } = view
+  // Escape dismisses the resolve/damage/storage prompt, like every other
+  // dismissible surface in the app.
+  useEscapeKey(overlay != null, overlay?.onClose ?? NOOP)
   return (
     <div className="pc-band" data-fam={view.fam}>
       <div className="pc-band-id">
@@ -154,7 +178,12 @@ export function ActiveItemBand({ view }: ActiveItemBandProps) {
       </div>
       <div className="pc-bays">
         {view.bays.map((bay) => (
-          <div key={bay.label} className="pc-bay">
+          // A bay with no gauges (Mount, Egress) has nothing to fill its middle,
+          // and the button grid is floor-pinned — so it used to render as a
+          // label at the top, a button at the bottom, and a stripe of nothing
+          // between, which at 1920 was a third of the band. Flagged so the
+          // stylesheet can centre those bays instead.
+          <div key={bay.label} className="pc-bay" data-nogauge={!bay.gauges?.length || undefined}>
             <span className="pc-bay-lab">{bay.label}</span>
             {bay.gauges && bay.gauges.length > 0 && (
               <div className="pc-bay-gauges">
@@ -185,6 +214,20 @@ export function ActiveItemBand({ view }: ActiveItemBandProps) {
         <div className="pc-resolve" role="dialog" aria-label={overlay.title}>
           <div className="pc-resolve-head">
             <span className="pc-resolve-title">{overlay.title}</span>
+            {overlay.gauges && overlay.gauges.length > 0 && (
+              <div className="pc-resolve-gauges">
+                {overlay.gauges.map((g) => (
+                  <DashboardGauge
+                    key={g.label}
+                    label={g.label}
+                    value={g.value}
+                    max={g.max}
+                    tone={g.tone}
+                    danger={g.danger}
+                  />
+                ))}
+              </div>
+            )}
             <Button variant="ghost" size="compact" onClick={overlay.onClose}>
               Close
             </Button>

@@ -25,7 +25,27 @@
 .pc-root {
   color: var(--color-ink);
   font-family: var(--font-body);
+  position: relative;
 }
+
+/*
+ * KNOWN GAP — the letterbox fill.
+ *
+ * The ground is painted as the host's own background (DashboardCanvas.tsx),
+ * and the host's height is measured in JS as viewport-height-minus-top-offset.
+ * At viewport sizes where the canvas is scaled down, that box does not always
+ * reach the bottom of the screen, so a band of the page's own background shows
+ * below the HUD. This was invisible while the ground was near-white paper — it
+ * matched the page behind it — and only became visible when the ground went
+ * dark.
+ *
+ * A viewport-anchored `position: fixed` fill was tried and reverted: at a
+ * negative z-index the page background paints over it, and at a positive one it
+ * covers the app header. The correct fix is to make the host's height honest
+ * rather than to paint around it, which is a change to the scale/measure effect
+ * and did not belong in this pass. Desktop sizes (1440, 1920, and short
+ * viewports) are unaffected — the canvas fills the host there.
+ */
 
 /* Fixed design canvas — scaled to fit by DashboardCanvas. Never scrolls. The
    canvas carries the same dark ground as the surround, so the instruments read

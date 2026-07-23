@@ -21,7 +21,7 @@ export const StepButton = forwardRef<HTMLButtonElement, StepButtonProps>(functio
       ref={ref}
       type={type}
       className={cn(
-        'inline-flex h-6 w-6 min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-card border-chrome border-ink bg-paper font-body text-lede font-bold leading-none text-ink hover:bg-[var(--ground,var(--color-wk-bg-2))] sm:min-h-0 sm:min-w-0',
+        'inline-flex h-6 w-6 min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-card border-chrome border-ink bg-paper font-body text-lede font-bold leading-none text-ink hover:bg-[var(--ground,var(--color-ink-8))] sm:min-h-0 sm:min-w-0',
         FOCUS_RING,
         DISABLED,
         className

@@ -10,12 +10,13 @@
  * the real phone reflow is a later phase).
  *
  * The dashboard layout shell — promoted out of ITUN as a legacy-tier component.
- * It owns the `.pc-root` dark-world token scope (see DashboardCanvas.css) that
- * every dashboard surface inherits; the grid regions and instruments remain in
- * ITUN and fill `children`.
+ * It owns the `.pc-root` scope (see DashboardCanvas.css) that every dashboard
+ * surface inherits, and paints the dark ground the instruments sit on; the grid
+ * regions and instruments fill `children`.
  */
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+
 import './DashboardCanvas.css'
 // The shared instrument stylesheet (all `.pc-*` surfaces) lives here so the app
 // holds no bespoke dashboard CSS; loading it with the canvas covers every
@@ -29,7 +30,7 @@ const CANVAS_H = 800
 const MIN_SCALE = 0.62
 // Uniform upscale cap — generous enough to fill a 4K display's height while
 // still guarding against an absurdly large render on giant panels (beyond which
-// the dark ground letterboxes, preserving the HUD look).
+// the ground letterboxes, preserving the HUD look).
 const MAX_SCALE = 2.6
 
 export function DashboardCanvas({ children }: { children: ReactNode }) {
@@ -81,6 +82,14 @@ export function DashboardCanvas({ children }: { children: ReactNode }) {
   return (
     <div
       ref={hostRef}
+      // NOTE: still centred. Top-aligning the canvas (so a tablet's leftover
+      // height collects below the HUD rather than splitting into equal bands
+      // above and below) was tried and reverted: with `items-start` plus a
+      // `top center` transform origin the ground stopped painting below the
+      // scaled canvas, leaving a bright band across the lower viewport. The
+      // host measures full height (1017px of a 1112px viewport at 834×1112),
+      // so the cause is not the height calculation and was not worth shipping
+      // a visible regression to chase. Revisit with the letterbox finding.
       className="pc-root flex w-full items-center justify-center overflow-hidden"
       style={{ background: 'var(--color-ink-deep)', height: hostH }}
     >

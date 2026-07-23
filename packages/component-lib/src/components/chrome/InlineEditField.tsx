@@ -146,7 +146,7 @@ export function InlineEditField({
           bordered && 'w-full rounded-card px-3',
           !hasValue && 'font-normal text-wk-muted',
           !readOnly &&
-            cn('cursor-pointer hover:bg-wk-bg-2', INPUT_FOCUS, !bordered && 'rounded-card px-1')
+            cn('cursor-pointer hover:bg-ink-8', INPUT_FOCUS, !bordered && 'rounded-card px-1')
         )}
       >
         {hasValue ? value : (placeholder ?? '—')}

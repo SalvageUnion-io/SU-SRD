@@ -444,7 +444,7 @@ export function EntitySearcher({
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-badge border-chrome border-ink bg-paper font-cond text-base font-bold leading-none text-ink transition-colors hover:bg-wk-bg-2"
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-badge border-chrome border-ink bg-paper font-cond text-base font-bold leading-none text-ink transition-colors hover:bg-ink-8"
               >
                 ✕
               </button>

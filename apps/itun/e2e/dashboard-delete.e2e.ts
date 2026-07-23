@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { pickByName, waitForReady, clickNext } from './_helpers'
+import { buildPilot, waitForReady } from './_helpers'
 
 /**
  * Dashboard delete flow: create a pilot, confirm the delete dialog, verify
@@ -30,34 +30,9 @@ import { pickByName, waitForReady, clickNext } from './_helpers'
 
 test('create then delete a pilot from the dashboard', async ({ page }) => {
   // ── Step 1: Build a minimal pilot ──────────────────────────────────────────
-  await page.goto('/pilots/new')
-  await waitForReady(page)
-
-  // Class step — each class is an EntityChoiceCard (div[role="button"]).
-  await pickByName(page, 'Engineer')
-  await clickNext(page)
-
-  // Abilities step — skip (abilities are optional).
-  await clickNext(page)
-
-  // Equipment step — skip (equipment is optional).
-  await clickNext(page)
-
-  // Identity step — Name is rendered by PilotWizard above IdentityStep.
-  await page.getByLabel(/^Name/).fill('Delete Me')
-  await page.getByLabel(/Callsign/).fill('TBD')
-  await clickNext(page)
-
-  // Background step — skip.
-  await clickNext(page)
-
-  // Review step — submit.
-  await page.getByRole('button', { name: /Create Pilot/i }).click()
-
-  // Wait for the wizard to navigate to "/" after successful creation.
-  // Use the exact path "/" to avoid matching "/pilots/new" which also
-  // contains "/pilots/" and would resolve the old waitForURL too early.
-  await page.waitForURL('/', { timeout: 20_000 })
+  // The shared builder walks whatever steps the wizard currently has and
+  // returns once the redirect to "/" has landed.
+  await buildPilot(page, 'Delete Me', 'TBD')
   await waitForReady(page)
 
   // ── Step 2: Verify pilot appears and trigger delete ─────────────────────────
@@ -94,32 +69,7 @@ test('create then delete a pilot from the dashboard', async ({ page }) => {
 
 test('cancel delete keeps the pilot visible', async ({ page }) => {
   // ── Step 1: Build a minimal pilot ──────────────────────────────────────────
-  await page.goto('/pilots/new')
-  await waitForReady(page)
-
-  // Class step.
-  await pickByName(page, 'Engineer')
-  await clickNext(page)
-
-  // Abilities step — skip.
-  await clickNext(page)
-
-  // Equipment step — skip.
-  await clickNext(page)
-
-  // Identity step.
-  await page.getByLabel(/^Name/).fill('Keep Me')
-  await page.getByLabel(/Callsign/).fill('OK')
-  await clickNext(page)
-
-  // Background step — skip.
-  await clickNext(page)
-
-  // Review step — submit.
-  await page.getByRole('button', { name: /Create Pilot/i }).click()
-
-  // Wait for navigation to "/" after creation.
-  await page.waitForURL('/', { timeout: 20_000 })
+  await buildPilot(page, 'Keep Me', 'OK')
   await waitForReady(page)
 
   // ── Step 2: Verify pilot appears and open delete dialog ─────────────────────

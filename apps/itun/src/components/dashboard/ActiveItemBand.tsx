@@ -95,7 +95,7 @@ function CrawlerBand({ crawler, onLeave }: { crawler: Crawler; onLeave: () => vo
   const sp = Math.min(crawler.currentSP ?? maxSP, maxSP)
   const view: ActiveItemBandViewModel = {
     fam: 'crawler',
-    stampLabel: `Downtime · ${crawler.name}`,
+    stampLabel: 'Downtime',
     bays: [
       {
         label: 'Crawler',
@@ -267,6 +267,8 @@ function MechBand({
       return {
         title: 'Take Structure Damage',
         onClose,
+        // Keep the gauge being edited on screen (see BandOverlay.gauges).
+        gauges: [{ label: 'SP', value: sp, max: maxSP, tone: 'mech' }],
         body: (
           <CountStepper
             count={dmg}
@@ -276,7 +278,7 @@ function MechBand({
             surface="instrument"
           />
         ),
-        actions: [{ label: `Apply −${dmg} SP`, onClick: applyDamage, variant: 'danger' }],
+        actions: [{ label: `Apply −${dmg} SP`, onClick: applyDamage, variant: 'go' }],
       }
     }
     if (prompt.kind === 'crit') {
@@ -331,7 +333,7 @@ function MechBand({
 
   const view: ActiveItemBandViewModel = {
     fam: 'mech',
-    stampLabel: `Mech · ${mech.name}`,
+    stampLabel: 'Boarded',
     bays: [
       {
         label: 'Reactor',
@@ -350,7 +352,7 @@ function MechBand({
             label: 'Push',
             onClick: doPush,
             disabled: pushLocked,
-            variant: 'danger',
+            variant: 'go',
             title: pushLocked
               ? `Can't Push at Heat ${heat}/${maxHeat} — +2 would exceed the Heat Cap (p.233).`
               : '+2 Heat, then a Heat Check',
@@ -358,10 +360,10 @@ function MechBand({
           {
             label: 'Heat Chk',
             onClick: doHeatCheck,
-            variant: 'danger',
+            variant: 'go',
             title: 'Roll a Heat Check at current Heat',
           },
-          { label: 'Vent', onClick: doVent, title: 'Vent Heat to 0' },
+          { label: 'Vent', onClick: doVent, variant: 'go', title: 'Vent Heat to 0' },
           { label: 'Shutdn', onClick: doShutdown, title: 'Toggle reactor shutdown' },
         ],
       },
@@ -394,6 +396,7 @@ function MechBand({
             label: 'Dismount',
             onClick: onDismount,
             disabled: !hasPilot,
+            variant: 'go',
             title: hasPilot ? 'Exit the mech (calm)' : 'No pilot assigned to this mech',
           },
           {
@@ -482,6 +485,8 @@ function PilotBand({
       return {
         title: 'Take Damage',
         onClose,
+        // Keep the gauge being edited on screen (see BandOverlay.gauges).
+        gauges: [{ label: 'HP', value: hp, max: maxHP, tone: 'pilot' }],
         body: (
           <CountStepper
             count={dmg}
@@ -491,7 +496,7 @@ function PilotBand({
             surface="instrument"
           />
         ),
-        actions: [{ label: `Apply −${dmg} HP`, onClick: applyDamage, variant: 'danger' }],
+        actions: [{ label: `Apply −${dmg} HP`, onClick: applyDamage, variant: 'go' }],
       }
     }
     // crit
@@ -508,7 +513,7 @@ function PilotBand({
 
   const view: ActiveItemBandViewModel = {
     fam: 'pilot',
-    stampLabel: `Pilot · ${pilot.name}`,
+    stampLabel: 'On Foot',
     bays: [
       {
         label: 'Vitals',

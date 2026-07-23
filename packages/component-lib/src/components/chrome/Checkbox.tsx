@@ -19,7 +19,7 @@ type ChoiceProps = Omit<ComponentPropsWithoutRef<'input'>, 'type'> & {
  * right role and radio groups arrow-key between options for free.
  */
 const CHOICE_ROW =
-  'flex cursor-pointer items-center gap-2 rounded-card border-chrome border-ink bg-paper p-2 hover:bg-wk-bg-2'
+  'flex cursor-pointer items-center gap-2 rounded-card border-chrome border-ink bg-paper p-2 hover:bg-ink-8'
 
 /** The native input in the form vocabulary: rust check/fill + the shared rust focus ring. */
 const CHOICE_INPUT = cn('accent-rust', INPUT_FOCUS)

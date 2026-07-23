@@ -92,7 +92,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-caption);
-  color: var(--color-wk-muted);
+  color: var(--color-ink-50);
 }
 
 /* Centered muted label used inside an already-bordered surface (e.g. the display). */
@@ -108,5 +108,5 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-caption);
-  color: var(--color-wk-muted);
+  color: var(--color-ink-50);
 }
