@@ -15,4 +15,4 @@
 
 # About the Dev
 
-[Jrvs](https://alxjrvs.com) is a third-generation Norman Rockwell painting. He enjoys TTRPGs, "Weird Al" Yankovic originals, and the 2010 DreamWorks Motion Picture Film "Megamind", among other things.
+[Jrvs](https://alxjrvs.github.io/) is a third-generation Norman Rockwell painting. He enjoys TTRPGs, "Weird Al" Yankovic originals, and the 2010 DreamWorks Motion Picture Film "Megamind", among other things.
