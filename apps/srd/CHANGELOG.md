@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [1.2.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.2.0...srd-v1.2.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* **component-lib:** class abilities sit beneath the artwork, not around it ([#537](https://github.com/SalvageUnion-io/SU-SRD/issues/537)) ([e49023c](https://github.com/SalvageUnion-io/SU-SRD/commit/e49023c07d84905a0054ee0948e1519ea66be62e))
+
 ## [1.2.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.1.0...srd-v1.2.0) (2026-07-23)
 
 

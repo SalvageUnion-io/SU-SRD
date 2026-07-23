@@ -1,7 +1,7 @@
 {
   "name": "srd",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
