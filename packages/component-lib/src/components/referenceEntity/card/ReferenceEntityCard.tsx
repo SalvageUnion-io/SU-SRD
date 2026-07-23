@@ -1550,6 +1550,7 @@ function ReferenceEntityCardInner({
           cells={cells}
           leading={subHeaderLeading}
           compact={compact}
+          nested={depth > 0}
           onBandText={onBandText}
         />
         <div

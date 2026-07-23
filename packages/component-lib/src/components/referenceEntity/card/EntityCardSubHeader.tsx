@@ -24,6 +24,16 @@ type EntityCardSubHeaderProps = {
    * `ActivationCost`, which must lead before Range/Damage/Traits. */
   leading?: ReactNode
   compact?: boolean
+  /**
+   * This card is NESTED inside another (`depth > 0`) — an action or ability
+   * hanging off its entity, rather than the entity the page is about.
+   *
+   * Deliberately not `compact`, which is the SIZE flag (`depth > 0 || size !==
+   * 'large'`) and so is also true of a small top-level card. The two answer
+   * different questions: `compact` asks how much room there is, this asks
+   * whose stats these are.
+   */
+  nested?: boolean
   /** Foreground for this band — the SAME value the card gives its header title
    * (`onBandText`). The sub-header rides a darker shade of the same tone, so it
    * flips to ink exactly when the title does (damaged/destroyed greys, ghosted
@@ -45,6 +55,7 @@ export function EntityCardSubHeader({
   cells,
   leading,
   compact = false,
+  nested = false,
   onBandText = 'text-paper',
 }: EntityCardSubHeaderProps) {
   if (!leading && cells.length === 0) return null
@@ -88,10 +99,12 @@ export function EntityCardSubHeader({
       {parts.length > 0 && (
         <span
           className={cn(
-            // Italic: the stat line is an aside about the entity, not part of
-            // its name, and the slant separates it from the upright title band
-            // directly above at a glance.
-            'font-cond italic uppercase leading-snug tracking-caps-tight',
+            'font-cond uppercase leading-snug tracking-caps-tight',
+            // Weight says WHOSE stats these are. The entity the card is about
+            // states its own in BOLD; a nested action or ability hanging off it
+            // states its in ITALIC, as an aside. Two cards stacked on a page
+            // then read as statement and annotation rather than as peers.
+            nested ? 'italic' : 'font-bold',
             onBandText,
             compact ? 'text-xs' : 'text-sm'
           )}
