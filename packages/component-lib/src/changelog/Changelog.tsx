@@ -1,4 +1,5 @@
 import { Card } from '../components/shared/Card'
+import { InlineMarkdown } from '../markdownSection/InlineMarkdown'
 import { cn } from '../utils/cn'
 import type { ChangelogEntry } from './parseChangelog'
 
@@ -67,7 +68,9 @@ export function Changelog({ entries, className }: ChangelogProps) {
             {entry.items.length > 0 && (
               <ul className="ml-4 list-disc space-y-1 font-body text-sm text-ink-2 marker:text-wk-muted">
                 {entry.items.map((item) => (
-                  <li key={item}>{item}</li>
+                  <li key={item}>
+                    <InlineMarkdown text={item} />
+                  </li>
                 ))}
               </ul>
             )}
