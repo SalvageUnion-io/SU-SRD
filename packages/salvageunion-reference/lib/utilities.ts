@@ -23,7 +23,6 @@ import type {
   SURefSystem,
   SURefObjectAdvancedClass,
   SURefObjectFormationMech,
-  SURefObjectNpc,
   SURefObjectPattern,
 } from './types/index.js'
 import { getDataMaps } from './ModelFactory.js'
@@ -36,6 +35,7 @@ import { getEntitySlug } from './slug.js'
  * Netlify Blobs store). Asset URLs are derived from this base plus the entity's
  * schema name and slug — see getAssetUrl().
  */
+
 export const ASSET_BASE_URL = 'https://assets.salvageunion.io'
 
 // Cached action map - built once since action data is static
@@ -50,6 +50,7 @@ function getActionMap(): Map<string, SURefMetaAction> {
 }
 
 /** Clear the cached action map so the next lookup reads fresh data. Called by `preload()`. */
+
 export function invalidateActionMap(): void {
   _actionMap = null
 }
@@ -59,7 +60,6 @@ export function invalidateActionMap(): void {
 // ============================================================================
 
 export type ItemCondition = 'intact' | 'damaged' | 'destroyed'
-export type ParentType = 'pilot' | 'mech' | 'crawler'
 
 // ============================================================================
 // PROPERTY EXTRACTORS
@@ -70,6 +70,7 @@ export type ParentType = 'pilot' | 'mech' | 'crawler'
  * @param entity - The entity to extract from
  * @returns The tech level (number, 'B', 'N') or undefined
  */
+
 export function getTechLevel(entity: SURefMetaEntity): number | 'B' | 'N' | undefined {
   if ('techLevel' in entity) {
     const techLevel = entity.techLevel
@@ -86,6 +87,7 @@ export function getTechLevel(entity: SURefMetaEntity): number | 'B' | 'N' | unde
  * @param entity - The entity to extract from
  * @returns The tech level as a number or undefined
  */
+
 export function getTechLevelNumber(entity: SURefMetaEntity): number | undefined {
   if ('techLevel' in entity) {
     const techLevel = entity.techLevel
@@ -104,6 +106,7 @@ export function getTechLevelNumber(entity: SURefMetaEntity): number | undefined 
  * @param entity - The entity to extract from
  * @returns The salvage value or undefined
  */
+
 export function getSalvageValue(entity: SURefMetaEntity): number | undefined {
   return 'salvageValue' in entity && typeof entity.salvageValue === 'number'
     ? entity.salvageValue
@@ -115,6 +118,7 @@ export function getSalvageValue(entity: SURefMetaEntity): number | undefined {
  * @param entity - The entity to extract from
  * @returns The slots required or undefined
  */
+
 export function getSlotsRequired(entity: SURefMetaEntity): number | undefined {
   return 'slotsRequired' in entity && typeof entity.slotsRequired === 'number'
     ? entity.slotsRequired
@@ -126,6 +130,7 @@ export function getSlotsRequired(entity: SURefMetaEntity): number | undefined {
  * @param entity - The entity to extract from
  * @returns The page number or undefined
  */
+
 export function getPageReference(entity: SURefMetaEntity): number | undefined {
   return 'page' in entity && typeof entity.page === 'number' ? entity.page : undefined
 }
@@ -136,6 +141,7 @@ export function getPageReference(entity: SURefMetaEntity): number | undefined {
  * @param entity - The entity to extract from
  * @returns The actions array or undefined
  */
+
 export function extractActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
   return extractActionsFromCarrier(entity)
 }
@@ -204,6 +210,7 @@ function findMatchingAction(entity: SURefMetaEntity): SURefMetaAction | undefine
  * @param entity - The entity to extract from
  * @returns The visible actions array or undefined
  */
+
 export function extractVisibleActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
   const actions = extractActions(entity)
   if (!actions) return undefined
@@ -216,6 +223,7 @@ export function extractVisibleActions(entity: SURefMetaEntity): SURefMetaAction[
  * @param entity - The entity to extract from
  * @returns The chassis abilities array or undefined
  */
+
 export function getChassisAbilities(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
   if (!('chassisAbilities' in entity) || !Array.isArray(entity.chassisAbilities)) {
     return undefined
@@ -261,6 +269,7 @@ export function getChassisAbilities(entity: SURefMetaEntity): SURefMetaAction[] 
  * @param entity - The entity to extract from
  * @returns The structure points or undefined
  */
+
 export function getStructurePoints(entity: SURefMetaEntity): number | undefined {
   return 'structurePoints' in entity && typeof entity.structurePoints === 'number'
     ? entity.structurePoints
@@ -272,6 +281,7 @@ export function getStructurePoints(entity: SURefMetaEntity): number | undefined 
  * @param entity - The entity to extract from
  * @returns The energy points or undefined
  */
+
 export function getEnergyPoints(entity: SURefMetaEntity): number | undefined {
   return 'energyPoints' in entity && typeof entity.energyPoints === 'number'
     ? entity.energyPoints
@@ -283,6 +293,7 @@ export function getEnergyPoints(entity: SURefMetaEntity): number | undefined {
  * @param entity - The entity to extract from
  * @returns The heat capacity or undefined
  */
+
 export function getHeatCapacity(entity: SURefMetaEntity): number | undefined {
   return 'heatCapacity' in entity && typeof entity.heatCapacity === 'number'
     ? entity.heatCapacity
@@ -294,6 +305,7 @@ export function getHeatCapacity(entity: SURefMetaEntity): number | undefined {
  * @param entity - The entity to extract from
  * @returns The number of system slots or undefined
  */
+
 export function getSystemSlots(entity: SURefMetaEntity): number | undefined {
   return 'systemSlots' in entity && typeof entity.systemSlots === 'number'
     ? entity.systemSlots
@@ -305,6 +317,7 @@ export function getSystemSlots(entity: SURefMetaEntity): number | undefined {
  * @param entity - The entity to extract from
  * @returns The number of module slots or undefined
  */
+
 export function getModuleSlots(entity: SURefMetaEntity): number | undefined {
   return 'moduleSlots' in entity && typeof entity.moduleSlots === 'number'
     ? entity.moduleSlots
@@ -316,6 +329,7 @@ export function getModuleSlots(entity: SURefMetaEntity): number | undefined {
  * @param entity - The entity to extract from
  * @returns The cargo capacity or undefined
  */
+
 export function getCargoCapacity(entity: SURefMetaEntity): number | undefined {
   return 'cargoCapacity' in entity && typeof entity.cargoCapacity === 'number'
     ? entity.cargoCapacity
@@ -328,6 +342,7 @@ export function getCargoCapacity(entity: SURefMetaEntity): number | undefined {
  * @param entity - The entity to extract from
  * @returns The upkeep cost or undefined
  */
+
 export function getUpkeepCost(entity: SURefMetaEntity): number | undefined {
   return 'upkeepCost' in entity && typeof entity.upkeepCost === 'number'
     ? entity.upkeepCost
@@ -342,6 +357,7 @@ export function getUpkeepCost(entity: SURefMetaEntity): number | undefined {
  * @param entity - The entity to extract from
  * @returns The upgrade cost, or undefined at the maximum tech level
  */
+
 export function getUpgradeCost(entity: SURefMetaEntity): number | undefined {
   return 'upgradeCost' in entity && typeof entity.upgradeCost === 'number'
     ? entity.upgradeCost
@@ -354,6 +370,7 @@ export function getUpgradeCost(entity: SURefMetaEntity): number | undefined {
  * @param entity - The entity to extract from
  * @returns The hit points or undefined
  */
+
 export function getHitPoints(entity: SURefMetaEntity): number | undefined {
   return 'hitPoints' in entity && typeof entity.hitPoints === 'number'
     ? entity.hitPoints
@@ -371,6 +388,7 @@ export function getHitPoints(entity: SURefMetaEntity): number | undefined {
  * @param entity - The entity to derive from (must carry a stamped `schemaName`)
  * @returns The asset URL, or undefined if the entity has no artwork
  */
+
 export function getAssetUrl(entity: SURefMetaEntity): string | undefined {
   if (!('hasArtwork' in entity) || entity.hasArtwork !== true) {
     return undefined
@@ -387,6 +405,7 @@ export function getAssetUrl(entity: SURefMetaEntity): string | undefined {
  * @param entity - The entity to extract from
  * @returns True if the entity is from the Black Market, false if not, undefined if not present
  */
+
 export function getBlackMarket(entity: SURefMetaEntity): boolean | undefined {
   return 'blackMarket' in entity && typeof entity.blackMarket === 'boolean'
     ? entity.blackMarket
@@ -402,6 +421,7 @@ export function getBlackMarket(entity: SURefMetaEntity): boolean | undefined {
  * @param entity - The entity to extract from
  * @returns The content or undefined
  */
+
 export function getContent(entity: SURefMetaEntity): unknown | undefined {
   return 'content' in entity ? entity.content : undefined
 }
@@ -411,6 +431,7 @@ export function getContent(entity: SURefMetaEntity): unknown | undefined {
  * @param entity - The entity to extract from
  * @returns The name or undefined
  */
+
 export function getName(entity: SURefMetaEntity): string | undefined {
   return 'name' in entity && typeof entity.name === 'string' ? entity.name : undefined
 }
@@ -420,6 +441,7 @@ export function getName(entity: SURefMetaEntity): string | undefined {
  * @param entity - The entity to extract from
  * @returns The source or undefined
  */
+
 export function getSource(entity: SURefMetaEntity): string | undefined {
   return 'source' in entity && typeof entity.source === 'string' ? entity.source : undefined
 }
@@ -430,22 +452,9 @@ export function getSource(entity: SURefMetaEntity): string | undefined {
  * @param entity - The entity to extract from
  * @returns The booklet code or undefined
  */
+
 export function getBooklet(entity: SURefMetaEntity): string | undefined {
   return 'booklet' in entity && typeof entity.booklet === 'string' ? entity.booklet : undefined
-}
-
-/**
- * Extract npc from an entity
- * @param entity - The entity to extract from
- * @returns The npc or undefined
- */
-export function getNpc(entity: SURefMetaEntity): SURefObjectNpc | undefined {
-  return 'npc' in entity &&
-    entity.npc !== null &&
-    typeof entity.npc === 'object' &&
-    !Array.isArray(entity.npc)
-    ? entity.npc
-    : undefined
 }
 
 /**
@@ -453,19 +462,9 @@ export function getNpc(entity: SURefMetaEntity): SURefObjectNpc | undefined {
  * @param entity - The entity to extract from
  * @returns The tree or undefined
  */
+
 export function getTree(entity: SURefMetaEntity): unknown | undefined {
   return 'tree' in entity ? entity.tree : undefined
-}
-
-/**
- * Extract requirement from an entity
- * @param entity - The entity to extract from
- * @returns The requirement or undefined
- */
-export function getRequirement(entity: SURefMetaEntity): string[] | undefined {
-  return 'requirement' in entity && Array.isArray(entity.requirement)
-    ? entity.requirement
-    : undefined
 }
 
 /**
@@ -473,6 +472,7 @@ export function getRequirement(entity: SURefMetaEntity): string[] | undefined {
  * @param entity - The entity to extract from
  * @returns The patterns or undefined
  */
+
 export function getPatterns(entity: SURefMetaEntity): SURefObjectPattern[] | undefined {
   return 'patterns' in entity && Array.isArray(entity.patterns)
     ? visiblePatterns(entity.patterns)
@@ -486,6 +486,7 @@ export function getPatterns(entity: SURefMetaEntity): SURefObjectPattern[] | und
  * every rendered surface. Takes the primitive the rule reads — the record's
  * `hidden` value (undefined = untagged = visible).
  */
+
 export function isHiddenPattern(hidden: boolean | undefined): boolean {
   return hidden === true
 }
@@ -495,46 +496,9 @@ export function isHiddenPattern(hidden: boolean | undefined): boolean {
  * choke point every render surface goes through, so a pattern tagged `hidden`
  * cannot leak into a card, a generated page, a wizard picker or a bot embed.
  */
+
 export function visiblePatterns<T extends { hidden?: boolean }>(patterns: readonly T[]): T[] {
   return patterns.filter((pattern) => !isHiddenPattern(pattern.hidden))
-}
-
-/**
- * Extract goals from an entity
- * @param entity - The entity to extract from
- * @returns The goals or undefined
- */
-export function getGoals(entity: SURefMetaEntity): string | undefined {
-  return 'goals' in entity && typeof entity.goals === 'string' ? entity.goals : undefined
-}
-
-/**
- * Extract assets from an entity
- * @param entity - The entity to extract from
- * @returns The assets or undefined
- */
-export function getAssets(entity: SURefMetaEntity): string | undefined {
-  return 'assets' in entity && typeof entity.assets === 'string' ? entity.assets : undefined
-}
-
-/**
- * Extract weaknesses from an entity
- * @param entity - The entity to extract from
- * @returns The weaknesses or undefined
- */
-export function getWeaknesses(entity: SURefMetaEntity): string | undefined {
-  return 'weaknesses' in entity && typeof entity.weaknesses === 'string'
-    ? entity.weaknesses
-    : undefined
-}
-
-/**
- * Extract formation from an entity
- * @param entity - The entity to extract from
- * @returns The formation or undefined
- */
-export function getFormation(entity: SURefMetaEntity): SURefObjectFormationMech[] | undefined {
-  return 'formation' in entity && Array.isArray(entity.formation) ? entity.formation : undefined
 }
 
 /**
@@ -542,20 +506,10 @@ export function getFormation(entity: SURefMetaEntity): SURefObjectFormationMech[
  * @param entity - The entity to extract from
  * @returns The bioSalvageValue or undefined
  */
+
 export function getBioSalvageValue(entity: SURefMetaEntity): number | undefined {
   return 'bioSalvageValue' in entity && typeof entity.bioSalvageValue === 'number'
     ? entity.bioSalvageValue
-    : undefined
-}
-
-/**
- * Extract recommended flag from an entity
- * @param entity - The entity to extract from
- * @returns True if the entity is recommended, false if not, undefined if not present
- */
-export function getRecommended(entity: SURefMetaEntity): boolean | undefined {
-  return 'recommended' in entity && typeof entity.recommended === 'boolean'
-    ? entity.recommended
     : undefined
 }
 
@@ -566,6 +520,7 @@ export function getRecommended(entity: SURefMetaEntity): boolean | undefined {
  * @param member - The formation member from faction data
  * @returns The resolved entity (with optional pattern for chassis), or undefined
  */
+
 export function resolveFormationMember(
   member: SURefObjectFormationMech
 ): { entity: SURefEntity; pattern?: SURefObjectPattern } | undefined {
@@ -583,6 +538,7 @@ export function resolveFormationMember(
         if (pattern) return { entity: chassis, pattern }
       }
     }
+
     // Chassis found but pattern missing or not matched — still return the chassis
     return { entity: chassis }
   }
@@ -605,6 +561,7 @@ export function resolveFormationMember(
  * @param data - Entity, action, or other object to check
  * @returns True if the data has id, name, source, and page fields
  */
+
 export function isEntityData<T extends object>(
   data: T
 ): data is T & SURefEntity & { id: string; name: string; source: string; page: number } {
@@ -620,6 +577,7 @@ export function isEntityData<T extends object>(
  * @param entity - The entity to check
  * @returns True if the entity has a techLevel property
  */
+
 export function hasTechLevel(
   entity: SURefMetaEntity
 ): entity is SURefMetaEntity & { techLevel: number | 'B' | 'N' } {
@@ -634,6 +592,7 @@ export function hasTechLevel(
  * @param entity - The entity to check
  * @returns True if the entity has a traits property (either at base level or in action property)
  */
+
 export function hasTraits(
   entity: SURefMetaEntity
 ): entity is SURefMetaEntity & { traits?: unknown[] } {
@@ -665,6 +624,7 @@ export function hasTraits(
  * @param entity - The entity to check (null/undefined accepted; both return false)
  * @returns True if the entity is an Ability
  */
+
 export function isAbility(entity: SURefMetaEntity | null | undefined): entity is SURefAbility {
   return entity !== null && typeof entity === 'object' && 'tree' in entity && 'level' in entity
 }
@@ -676,6 +636,7 @@ export function isAbility(entity: SURefMetaEntity | null | undefined): entity is
  * @param entity - The entity to check
  * @returns True if the entity is a System
  */
+
 export function isSystem(entity: SURefMetaEntity): entity is SURefSystem {
   return (
     entity !== null &&
@@ -694,6 +655,7 @@ export function isSystem(entity: SURefMetaEntity): entity is SURefSystem {
  * @param entity - The entity to check
  * @returns True if the entity is a Module
  */
+
 export function isModule(entity: SURefMetaEntity): entity is SURefModule {
   return (
     entity !== null &&
@@ -710,6 +672,7 @@ export function isModule(entity: SURefMetaEntity): entity is SURefModule {
  * @param entity - The entity to check
  * @returns True if the entity is a Chassis
  */
+
 export function isChassis(entity: SURefMetaEntity): entity is SURefChassis {
   return (
     entity !== null &&
@@ -726,6 +689,7 @@ export function isChassis(entity: SURefMetaEntity): entity is SURefChassis {
  * @param entity - The entity to check
  * @returns True if the entity is a Keyword
  */
+
 export function isKeyword(entity: SURefMetaEntity): entity is SURefKeyword {
   return 'id' in entity && 'name' in entity && 'source' in entity && 'page' in entity
 }
@@ -735,6 +699,7 @@ export function isKeyword(entity: SURefMetaEntity): entity is SURefKeyword {
  * @param entity - The entity to check
  * @returns True if the entity is a Core Class
  */
+
 export function isCoreClass(
   entity: SURefMetaEntity
 ): entity is SURefClass & { coreTrees: string[] } {
@@ -752,6 +717,7 @@ export function isCoreClass(
  * @param entity - The entity to check
  * @returns True if the entity is an Advanced Class
  */
+
 export function isBaseAdvancedClass(entity: SURefMetaEntity): entity is SURefObjectAdvancedClass {
   return (
     entity !== null &&
@@ -762,20 +728,11 @@ export function isBaseAdvancedClass(entity: SURefMetaEntity): entity is SURefObj
 }
 
 /**
- * Type guard to check if an entity is a Hybrid Class
- * Note: This is also exported from helpers.ts, but we keep it here for backwards compatibility
- * @param entity - The entity to check
- * @returns True if the entity is a Hybrid Class
- */
-export function isHybridClass(entity: SURefMetaEntity): entity is SURefObjectAdvancedClass {
-  return isBaseAdvancedClass(entity) && 'hybrid' in entity && entity.hybrid === true
-}
-
-/**
  * Type guard to check if an entity is a class (any type)
  * @param entity - The entity to check
  * @returns True if the entity is a Core, Advanced, or Hybrid class
  */
+
 export function isClass(entity: SURefMetaEntity): entity is SURefClass {
   return isCoreClass(entity) || isBaseAdvancedClass(entity)
 }
@@ -785,6 +742,7 @@ export function isClass(entity: SURefMetaEntity): entity is SURefClass {
  * @param entity - The entity to check
  * @returns True if the entity is a System or Module
  */
+
 export function isSystemOrModule(entity: SURefMetaEntity): entity is SURefSystem | SURefModule {
   return isSystem(entity) || isModule(entity)
 }
@@ -799,6 +757,7 @@ export function isSystemOrModule(entity: SURefMetaEntity): entity is SURefSystem
  * @param entity - The entity to extract display name from
  * @returns The display name or name, or undefined if neither is present
  */
+
 export function getReferenceEntityName(entity: SURefMetaEntity): string | undefined {
   // Check for displayName first (for actions)
   if ('displayName' in entity && typeof entity.displayName === 'string') {
@@ -818,6 +777,7 @@ export function getReferenceEntityName(entity: SURefMetaEntity): string | undefi
  * @param entity - The entity to extract description from
  * @returns The description or undefined if not an ability
  */
+
 export function getDescription(entity: SURefMetaEntity): string | undefined {
   // Only return description for abilities
   if ('description' in entity && typeof entity.description === 'string') {
@@ -828,31 +788,11 @@ export function getDescription(entity: SURefMetaEntity): string | undefined {
 }
 
 /**
- * Check if an entity is a system module (has actions but no id)
- * System modules are used in custom system options and pattern system modules
- * @param entity - The entity to check
- * @returns True if the entity is a system module
- */
-export function isSystemModule(entity: SURefMetaEntity): boolean {
-  return 'actions' in entity && !('id' in entity)
-}
-
-/**
- * Get entity name from a system module
- * Extracts the name from the first visible action in the system module
- * @param entity - The system module entity
- * @returns The entity name or undefined if not found
- */
-export function getEntityNameFromSystemModule(entity: SURefObjectSystemModule): string | undefined {
-  const resolvedActions = extractActionsFromCarrier(entity)
-  return resolvedActions?.find((a) => !a.hidden)?.name
-}
-
-/**
  * Normalize pattern name by removing " Pattern" suffix
  * @param patternName - The pattern name to normalize
  * @returns The normalized pattern name
  */
+
 export function normalizePatternName(patternName: string): string {
   // Equivalent to `patternName.replace(/\s+Pattern$/i, '')` without that
   // regex's quadratic backtracking on a long whitespace run (the engine
@@ -874,24 +814,9 @@ export function normalizePatternName(patternName: string): string {
   while (cut > 0 && /\s/.test(patternName.charAt(cut - 1))) {
     cut--
   }
+
   // No whitespace before the literal (e.g. "IronPattern") -> no match.
   return cut === suffixStart ? patternName : patternName.slice(0, cut)
-}
-
-/**
- * Filter actions excluding a specific name
- * Used to filter out actions where the action name matches the entity name
- * @param actions - The actions array to filter
- * @param excludeName - The name to exclude
- * @returns Filtered actions array
- */
-export function filterActionsExcludingName(
-  actions: SURefMetaAction[],
-  excludeName: string
-): SURefMetaAction[] {
-  return actions.filter(
-    (action) => action.displayName !== excludeName && action.name !== excludeName
-  )
 }
 
 /**
@@ -900,6 +825,7 @@ export function filterActionsExcludingName(
  * @param entity - The entity to extract activation cost from
  * @returns The activation cost or undefined if not present
  */
+
 /**
  * Resolve a facet field from an entity, falling back to its self-action.
  * The combat facets (activationCost/actionType/range/damage) live only on
@@ -940,6 +866,7 @@ export function getActivationCost(entity: SURefMetaEntity): number | string | un
 /**
  * Get action type from an entity (self-action fallback).
  */
+
 export function getActionType(entity: SURefMetaEntity): string | undefined {
   return selfActionField(entity, 'actionType', isString)
 }
@@ -947,6 +874,7 @@ export function getActionType(entity: SURefMetaEntity): string | undefined {
 /**
  * Get range from an entity (self-action fallback).
  */
+
 export function getRange(entity: SURefMetaEntity): string[] | undefined {
   return selfActionField(entity, 'range', isStringArray)
 }
@@ -954,6 +882,7 @@ export function getRange(entity: SURefMetaEntity): string[] | undefined {
 /**
  * Get damage from an entity (self-action fallback).
  */
+
 export function getDamage(entity: SURefMetaEntity): DamageValue | undefined {
   return selfActionField(entity, 'damage', isDamage)
 }
@@ -964,6 +893,7 @@ export function getDamage(entity: SURefMetaEntity): DamageValue | undefined {
  * @param entity - The entity to extract traits from
  * @returns The traits array or undefined if not present
  */
+
 export function getTraits(entity: SURefMetaEntity): SURefObjectTrait[] | undefined {
   // Check base level first
   if ('traits' in entity && Array.isArray(entity.traits)) {
@@ -989,6 +919,7 @@ export function getTraits(entity: SURefMetaEntity): SURefObjectTrait[] | undefin
  * Get the number of inventory slots an equipment entity occupies.
  * Default is 1. Heavy or Portable traits make it 2.
  */
+
 export function getInventorySlots(entity: SURefMetaEntity): number {
   const traits = getTraits(entity)
   if (traits) {
@@ -1005,6 +936,7 @@ export function getInventorySlots(entity: SURefMetaEntity): number {
  * @param entity - The entity to extract effects from
  * @returns The effects array or undefined if not present
  */
+
 export function getEffects(entity: SURefMetaEntity):
   | Array<{
       label?: string
@@ -1025,6 +957,7 @@ export function getEffects(entity: SURefMetaEntity):
  * @param entity - The entity to extract table from
  * @returns The table object or undefined if not present
  */
+
 export function getTable(entity: SURefMetaEntity): SURefObjectTable | undefined {
   // Check base level first
   if ('table' in entity && entity.table !== null && typeof entity.table === 'object') {
@@ -1079,6 +1012,7 @@ export function getTable(entity: SURefMetaEntity): SURefObjectTable | undefined 
  * @param entity - The entity to extract options from
  * @returns The options array or undefined if not present
  */
+
 export function getOptions(entity: SURefMetaEntity): SURefObjectActionOptions | undefined {
   // Check base level first
   if ('options' in entity && Array.isArray(entity.options)) {
@@ -1108,6 +1042,7 @@ export function getOptions(entity: SURefMetaEntity): SURefObjectActionOptions | 
  * @param entity - The entity to extract choices from
  * @returns The choices array or undefined if not present
  */
+
 export function getChoices(entity: SURefMetaEntity): SURefObjectChoice[] | undefined {
   // Check if entity has an action with matching name that has choices - use those first
   const matchingAction = findMatchingAction(entity)
@@ -1178,6 +1113,7 @@ export function getChoices(entity: SURefMetaEntity): SURefObjectChoice[] | undef
  * @param entity - The entity to extract grants from
  * @returns The grants array or undefined if not present
  */
+
 export function getGrants(entity: SURefMetaEntity): SURefObjectGrant[] | undefined {
   if ('grants' in entity && Array.isArray(entity.grants)) {
     return entity.grants
@@ -1187,29 +1123,22 @@ export function getGrants(entity: SURefMetaEntity): SURefObjectGrant[] | undefin
 }
 
 /**
- * Get required traits from an action
- * @param action - The action to extract required traits from
- * @returns Array of required trait type strings, or empty array if none
- */
-export function getRequiredTraits(action: SURefMetaAction): string[] {
-  if ('requiredTraits' in action && Array.isArray(action.requiredTraits)) {
-    return action.requiredTraits
-  }
-  return []
-}
-
-/**
  * Represents a parsed trait reference from text
  */
+
 export type ParsedTraitReference = {
   /** The full matched text including brackets */
   fullMatch: string
+
   /** The trait name (e.g., "Hot", "Burn", "Explosive") */
   traitName: string
+
   /** The parameter if present (e.g., "3", "X", "2") */
   parameter?: string
+
   /** The start index of the match in the original text */
   startIndex: number
+
   /** The end index of the match in the original text */
   endIndex: number
 }
@@ -1228,6 +1157,7 @@ export type ParsedTraitReference = {
  * //   { fullMatch: "[[[Hot] (3)]]", traitName: "Hot", parameter: "3", startIndex: 35, endIndex: 48 }
  * // ]
  */
+
 export function parseTraitReferences(text: string): ParsedTraitReference[] {
   const references: ParsedTraitReference[] = []
 
@@ -1268,6 +1198,7 @@ export function parseTraitReferences(text: string): ParsedTraitReference[] {
   match = simplePattern.exec(text)
   while (match !== null) {
     const current = match
+
     // Skip if this position is already covered by a parameterized match
     const isAlreadyMatched = references.some(
       (ref) => current.index >= ref.startIndex && current.index < ref.endIndex

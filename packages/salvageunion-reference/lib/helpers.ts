@@ -3,12 +3,10 @@
  * These functions provide convenient access patterns used by consuming applications
  */
 
-import { SalvageUnionReference, SchemaToDisplayName, SchemaToModelMap } from './index.js'
+import { SalvageUnionReference, SchemaToDisplayName } from './index.js'
 import { lazyModelMap } from './generated/schemaRegistry.generated.js'
 import type {
-  SURefAbility,
   SURefChassis,
-  SURefClass,
   SURefCrawler,
   SURefMetaCrawlerTechLevel,
   SURefEntity,
@@ -16,7 +14,6 @@ import type {
   SURefObjectAdvancedClass,
   SURefObjectCrawlerMutation,
 } from './types/index.js'
-import type { EntitySchemaName } from './index.js'
 import type { ModelWithMetadata } from './BaseModel.js'
 import { getSchemaCatalog, type EnhancedSchemaMetadata } from './ModelFactory.js'
 import {
@@ -41,16 +38,15 @@ import {
   getActionType,
   getRange,
   getDamage,
-  visiblePatterns,
 } from './utilities.js'
 import { getEntitySlug } from './slug.js'
-import { ActionTypeSchema } from './schemas/enums.js'
 
 /**
  * Get the display name for a schema
  * @param schemaName - The schema name
  * @returns The display name or the schema name if not found
  */
+
 export function getDisplayName(schemaName: SURefEnumSchemaName): string {
   return SchemaToDisplayName[schemaName] || schemaName
 }
@@ -61,6 +57,7 @@ export function getDisplayName(schemaName: SURefEnumSchemaName): string {
  * @param schemaName - The schema name (may be an alias)
  * @returns The normalized schema name
  */
+
 export function normalizeSchemaName(schemaName: string): SURefEnumSchemaName {
   // Handle class schema aliases - all map to unified 'classes' schema
   if (
@@ -84,10 +81,12 @@ export function normalizeSchemaName(schemaName: string): SURefEnumSchemaName {
  * @param schemaName - The schema name (may be an alias)
  * @returns The model instance or undefined if not found
  */
+
 export function getModel(
   schemaName: string | SURefEnumSchemaName
 ): ModelWithMetadata<SURefEntity> | undefined {
   const normalized = normalizeSchemaName(schemaName)
+
   // Sole assertion: lazyModelMap's per-schema union includes meta-entity models
   // (ability-tree-requirements, crawler-tech-levels) whose element types are not
   // in SURefEntity, so the union cannot be assigned to the declared
@@ -101,6 +100,7 @@ export function getModel(
  * grants (handled separately). Single source of truth for the grant-resolution
  * walk — used by the display layer (Grants block) and any tooling.
  */
+
 export function resolveGrantedEntities(entity: SURefEntity): SURefEntity[] {
   const grants = 'grants' in entity && Array.isArray(entity.grants) ? entity.grants : []
   return grants
@@ -114,81 +114,15 @@ export function resolveGrantedEntities(entity: SURefEntity): SURefEntity[] {
     .filter((e): e is SURefEntity => e !== null)
 }
 
-/**
- * Get a map of all schema names to their models
- * Useful for dynamic model access
- */
-export function getModelMap(): Record<SURefEnumSchemaName, ModelWithMetadata<SURefEntity>> {
-  const map: Record<string, ModelWithMetadata<SURefEntity>> = {}
-  for (const schemaName in SchemaToModelMap) {
-    const model = getModel(schemaName)
-    if (model) {
-      map[schemaName] = model
-    }
-  }
-  // Sole assertion (the incremental-builder edge): TS cannot prove the loop
-  // populated every enum key. The registry key set it iterates is in fact a
-  // superset of SURefEnumSchemaName, preserved as-is so the returned map keeps
-  // its historical 'actions'/'catalog-categories' entries.
-  return map as Record<SURefEnumSchemaName, ModelWithMetadata<SURefEntity>>
-}
-
-/**
- * Find an entity by ID in any schema (only works with entity schemas, not meta schemas)
- * @param schemaName - The schema to search in (must be an entity schema)
- * @param id - The entity ID
- * @returns The entity or undefined if not found
- */
-export function findById<T extends SURefEntity>(
-  schemaName: EntitySchemaName,
-  id: string
-): T | undefined {
-  return SalvageUnionReference.get(schemaName, id) as T | undefined
-}
-
-/**
- * Get the name of an entity by ID with fallback (only works with entity schemas, not meta schemas)
- * @param schemaName - The schema to search in (must be an entity schema)
- * @param id - The entity ID
- * @param fallback - Fallback string if entity not found (default: 'Unknown')
- * @returns The entity name or fallback
- */
-export function getNameById(
-  schemaName: EntitySchemaName,
-  id: string | null,
-  fallback = 'Unknown'
-): string {
-  if (!id) return fallback
-  const entity = SalvageUnionReference.get(schemaName, id)
-  return entity && 'name' in entity && typeof entity.name === 'string' ? entity.name : fallback
-}
-
 // ============================================================================
 // CLASS HELPERS
 // ============================================================================
 
 /**
- * Type guard to check if a class is a base class (has coreTrees)
- */
-export function isBaseClass(cls: SURefClass): cls is SURefClass & { coreTrees: string[] } {
-  return 'coreTrees' in cls && Array.isArray(cls.coreTrees)
-}
-
-/**
- * Get all base classes (classes with coreTrees)
- * @returns Array of base classes
- */
-export function getCoreClasses(): (SURefClass & { schemaName: string })[] {
-  return SalvageUnionReference.findAllIn(
-    'classes',
-    (c) => 'coreTrees' in c && Array.isArray(c.coreTrees)
-  )
-}
-
-/**
  * Get all hybrid classes (classes with hybrid=true)
  * @returns Array of hybrid classes
  */
+
 export function getHybridClasses(): (SURefObjectAdvancedClass & {
   schemaName: string
 })[] {
@@ -198,94 +132,18 @@ export function getHybridClasses(): (SURefObjectAdvancedClass & {
   )
 }
 
-/**
- * Get all base classes with advanced/legendary trees (advanceable base classes)
- * @returns Array of advanceable base classes
- */
-export function getAdvanceableClasses(): SURefClass[] {
-  return SalvageUnionReference.findAllIn(
-    'classes',
-    (c) => 'coreTrees' in c && 'advanceable' in c && c.advanceable === true
-  )
-}
-
-/**
- * Find a base class by name
- * @param className - Name of the class to find
- * @returns The base class or undefined if not found
- */
-export function findCoreClass(className: string): SURefClass | undefined {
-  return SalvageUnionReference.findIn('classes', (c) => c.name === className && 'coreTrees' in c)
-}
-
-/**
- * Find a hybrid class by name
- * @param className - Name of the class to find
- * @returns The hybrid class or undefined if not found
- */
-export function findHybridClass(className: string): SURefObjectAdvancedClass | undefined {
-  const cls = SalvageUnionReference.findIn('classes', (c) => c.name === className)
-  if (cls && 'hybrid' in cls && cls.hybrid === true) {
-    return cls
-  }
-  return undefined
-}
-
-/**
- * Find an advanced class by name (base class that has advancedTree)
- * @param className - Name of the base class to find
- * @returns The base class with advanced tree or undefined if not found
- */
-export function findAdvancedClass(className: string): SURefClass | undefined {
-  const cls = SalvageUnionReference.findIn('classes', (c) => c.name === className)
-  if (cls && 'coreTrees' in cls && 'advancedTree' in cls && cls.advancedTree) {
-    return cls
-  }
-  return undefined
-}
-
-/**
- * Find a class by name across all class types (base, hybrid)
- * @param className - Name of the class to find
- * @returns The class or undefined if not found
- */
-export function findClass(className: string): SURefClass | undefined {
-  return SalvageUnionReference.findIn('classes', (c) => c.name === className)
-}
-
 // ============================================================================
 // CHASSIS HELPERS
 // ============================================================================
-
-/**
- * Get chassis that have patterns
- * @returns Array of chassis with patterns
- */
-export function getChassisWithPatterns(): SURefChassis[] {
-  return SalvageUnionReference.findAllIn(
-    'chassis',
-    (c) => c.patterns && visiblePatterns(c.patterns).length > 0
-  )
-}
 
 /**
  * Find a chassis by ID
  * @param chassisId - The ID of the chassis to find
  * @returns The chassis or undefined if not found
  */
+
 export function findChassisById(chassisId: string): SURefChassis | undefined {
   return SalvageUnionReference.findIn('chassis', (c) => c.id === chassisId)
-}
-
-/**
- * Get chassis name by ID with fallback
- * @param chassisId - The ID of the chassis to find
- * @param fallback - Fallback string if chassis not found (default: 'Unknown')
- * @returns The chassis name or fallback
- */
-export function getChassisNameById(chassisId: string | null, fallback = 'Unknown'): string {
-  if (!chassisId) return fallback
-  return findChassisById(chassisId)?.name ?? fallback
 }
 
 // ============================================================================
@@ -297,6 +155,7 @@ export function getChassisNameById(chassisId: string | null, fallback = 'Unknown
  * @param crawlerId - The ID of the crawler to find
  * @returns The crawler or undefined if not found
  */
+
 export function findCrawlerById(
   crawlerId: string
 ): (SURefCrawler & { schemaName: string }) | undefined {
@@ -304,21 +163,11 @@ export function findCrawlerById(
 }
 
 /**
- * Get crawler name by ID with fallback
- * @param crawlerId - The ID of the crawler to find
- * @param fallback - Fallback string if crawler not found (default: 'Unknown')
- * @returns The crawler name or fallback
- */
-export function getCrawlerNameById(crawlerId: string | null, fallback = 'Unknown'): string {
-  if (!crawlerId) return fallback
-  return findCrawlerById(crawlerId)?.name ?? fallback
-}
-
-/**
  * Get all mutations for a crawler type by ID
  * @param crawlerId - The crawler type ID
  * @returns Array of mutations, or empty array if none
  */
+
 export function getCrawlerMutations(crawlerId: string): SURefObjectCrawlerMutation[] {
   const crawler = findCrawlerById(crawlerId)
   return crawler?.mutations ?? []
@@ -330,6 +179,7 @@ export function getCrawlerMutations(crawlerId: string): SURefObjectCrawlerMutati
  * @param crawlerId - The crawler type ID
  * @returns Total weapon slots available
  */
+
 export function getWeaponSlotCount(crawlerId: string): number {
   const mutations = getCrawlerMutations(crawlerId)
   const bonus = mutations
@@ -343,6 +193,7 @@ export function getWeaponSlotCount(crawlerId: string): number {
  * @param crawlerId - The crawler type ID
  * @returns Sum of max_sp_bonus mutation values
  */
+
 export function getMaxSpBonus(crawlerId: string): number {
   const mutations = getCrawlerMutations(crawlerId)
   return mutations.filter((m) => m.type === 'max_sp_bonus').reduce((sum, m) => sum + m.value, 0)
@@ -354,6 +205,7 @@ export function getMaxSpBonus(crawlerId: string): number {
  * @param techLevel - The tech level (number, 'B', or 'N')
  * @returns The numeric tech level
  */
+
 export function normalizeTechLevel(techLevel: number | 'B' | 'N' | null | undefined): number {
   if (techLevel === null || techLevel === undefined) return 0
   if (techLevel === 'B' || techLevel === 'N') return 1
@@ -365,39 +217,16 @@ export function normalizeTechLevel(techLevel: number | 'B' | 'N' | null | undefi
  * @param techLevel - The tech level number to find
  * @returns The tech level or undefined if not found
  */
+
 export function findCrawlerTechLevel(
   techLevel: number
 ): (SURefMetaCrawlerTechLevel & { schemaName: string }) | undefined {
   return SalvageUnionReference.CrawlerTechLevels.find((tl) => tl.techLevel === techLevel)
 }
 
-/**
- * Get structure points for a tech level with fallback
- * @param techLevel - The tech level number (or 'B'/'N' which are treated as 1)
- * @param fallback - Fallback number if tech level not found (default: 20)
- * @returns The structure points or fallback
- */
-export function getStructurePointsForTechLevel(
-  techLevel: number | 'B' | 'N' | null,
-  fallback = 20
-): number {
-  if (techLevel === null) return fallback
-  const normalized = normalizeTechLevel(techLevel)
-  return findCrawlerTechLevel(normalized)?.structurePoints ?? fallback
-}
-
 // ============================================================================
 // ABILITY HELPERS
 // ============================================================================
-
-/**
- * Get abilities by level
- * @param level - The ability level
- * @returns Array of abilities at that level
- */
-export function getAbilitiesByLevel(level: number): (SURefAbility & { schemaName: string })[] {
-  return SalvageUnionReference.Abilities.all().filter((a) => a.level === level)
-}
 
 // ============================================================================
 // EQUIPMENT HELPERS
@@ -412,25 +241,12 @@ export function getAbilitiesByLevel(level: number): (SURefAbility & { schemaName
  * Derived from crawler-tech-levels data
  * @returns Array of tech level numbers (1-6)
  */
+
 export function getTechLevels(): readonly number[] {
   const techLevels = SalvageUnionReference.CrawlerTechLevels.all()
     .map((tl) => tl.techLevel)
     .sort((a, b) => a - b)
   return techLevels
-}
-
-/**
- * Minimum tech level (always 1)
- */
-export const MIN_TECH_LEVEL = 1
-
-/**
- * Maximum tech level
- * Derived from crawler-tech-levels data
- */
-export function getMaxTechLevel(): number {
-  const techLevels = getTechLevels()
-  return techLevels[techLevels.length - 1] || 6
 }
 
 /**
@@ -440,21 +256,9 @@ export function getMaxTechLevel(): number {
  * @param techLevel - The tech level (1-6, 'B', or 'N')
  * @returns The conversion rate (tech level value)
  */
+
 export function getScrapConversionRate(techLevel: number | 'B' | 'N'): number {
   return normalizeTechLevel(techLevel)
-}
-
-/**
- * Get all scrap conversion rates as a record
- * @returns Record mapping tech level to conversion rate
- */
-export function getScrapConversionRates(): Record<number, number> {
-  const techLevels = getTechLevels()
-  const rates: Record<number, number> = {}
-  for (const tl of techLevels) {
-    rates[tl] = getScrapConversionRate(tl)
-  }
-  return rates
 }
 
 // ============================================================================
@@ -462,49 +266,11 @@ export function getScrapConversionRates(): Record<number, number> {
 // ============================================================================
 
 /**
- * Pilot default values
- * These are standard starting values for pilots
- */
-export const PILOT_DEFAULTS = {
-  maxHP: 10,
-  maxAP: 5,
-  startingTP: 0,
-  inventorySlots: 6,
-} as const
-
-/**
- * Crawler default values
- * Derived from crawler-tech-levels data (TL1 defaults)
- */
-export const CRAWLER_DEFAULTS = {
-  initialTechLevel: 1,
-  baseStructurePoints: 20, // TL1 structure points
-  baseUpgrade: 0,
-} as const
-
-/**
- * Mech default values
- * Standard starting values for mechs
- */
-export const MECH_DEFAULTS = {
-  startingDamage: 0,
-  startingHeat: 0,
-} as const
-
-/**
- * Crawler upkeep and upgrade rules
- * Upkeep cost increases by `step` scrap per tech level; max upgrade cap.
- */
-export const UPKEEP_RULES = {
-  step: 5,
-  maxUpgrade: 25,
-} as const
-
-/**
  * Resolve the activation currency for a given schema/entity category.
  * Mech-level sources (chassis, systems, modules) cost EP; variable-cost abilities
  * cost XP; everything else costs AP.
  */
+
 export function resolveActivationCurrency(
   schemaName: SURefEnumSchemaName | 'actions' | undefined,
   variable: boolean = false
@@ -512,14 +278,6 @@ export function resolveActivationCurrency(
   if (variable) return 'XP'
   if (schemaName === 'chassis' || schemaName === 'systems' || schemaName === 'modules') return 'EP'
   return 'AP'
-}
-
-/**
- * Get the list of action types from the ActionType enum schema.
- * Returns the canonical values: Passive, Free, Reaction, Turn, Short, Long, DownTime.
- */
-export function getActionTypes(): string[] {
-  return ActionTypeSchema.options
 }
 
 // ============================================================================
@@ -531,6 +289,7 @@ export function getActionTypes(): string[] {
  * Filters out meta schemas like actions, ability-tree-requirements, etc.
  * @returns Array of entity schema metadata
  */
+
 export function getEntitySchemas(): EnhancedSchemaMetadata[] {
   return getSchemaCatalog().schemas.filter((s) => !s.meta)
 }
@@ -545,6 +304,7 @@ export function getEntitySchemas(): EnhancedSchemaMetadata[] {
  * @param entities - Array of entities to extract tech levels from
  * @returns Sorted array of unique tech levels
  */
+
 export function getUniqueTechLevels(entities: SURefEntity[]): (number | 'B' | 'N')[] {
   const levels = new Set<number | 'B' | 'N'>()
   for (const entity of entities) {
@@ -567,6 +327,7 @@ export function getUniqueTechLevels(entities: SURefEntity[]): (number | 'B' | 'N
  * @param entities - Array of entities to extract sources from
  * @returns Sorted array of unique source strings
  */
+
 export function getUniqueSources(entities: SURefEntity[]): string[] {
   const sourceSet = new Set<string>()
   for (const entity of entities) {
@@ -587,6 +348,7 @@ export function getUniqueSources(entities: SURefEntity[]): string[] {
  * @param entities - Array of entities to extract trees from
  * @returns Sorted array of unique tree strings
  */
+
 export function getUniqueTrees(entities: SURefEntity[]): string[] {
   const treeSet = new Set<string>()
   for (const entity of entities) {
@@ -603,6 +365,7 @@ export function getUniqueTrees(entities: SURefEntity[]): string[] {
 /**
  * Aggregate display data extracted from an entity
  */
+
 export type ReferenceEntityData = {
   id: string
   name: string
@@ -620,6 +383,7 @@ export type ReferenceEntityData = {
  * @param entity - The entity to extract display data from
  * @returns Aggregated display data
  */
+
 export function getReferenceEntityData(entity: SURefEntity): ReferenceEntityData {
   return {
     id: entity.id,
@@ -640,6 +404,7 @@ export function getReferenceEntityData(entity: SURefEntity): ReferenceEntityData
 /**
  * Static summary data extracted from an entity for SEO/static HTML rendering
  */
+
 export type StaticEntitySummary = {
   name: string
   description: string | undefined
@@ -658,6 +423,7 @@ export type StaticEntitySummary = {
  * @param entity - The entity to extract a summary from
  * @returns Static summary data
  */
+
 export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySummary {
   const name = getName(entity) ?? entity.id
   const description = getDescription(entity)

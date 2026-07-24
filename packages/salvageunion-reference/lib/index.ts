@@ -54,7 +54,6 @@ export { nameToSlug, getEntitySlug, findEntityBySlug } from './slug.js'
 
 // Export content block helpers
 export {
-  getParagraphString,
   replaceChassisPlaceholder,
   parseContentBlockString,
   resolveDataValueForTechLevel,
