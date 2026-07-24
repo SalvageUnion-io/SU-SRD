@@ -83,10 +83,9 @@ import {
   REMOVABLE_CARD_STYLE,
   SectionAddButton,
   SectionEditButton,
-  Slab,
   cardRemoveControls,
 } from 'component-lib'
-import { SheetSectionCard } from 'component-lib'
+import { SheetSectionCard, SheetSectionSlab } from 'component-lib'
 import { StorageManifest } from './StorageManifest'
 
 import { CrawlerBayCard } from './CrawlerSheetItems'
@@ -270,7 +269,7 @@ export function CrawlerSheet({
               separate "Custom Bays" group underneath once the data
               distinguishes them (#403). */}
           {bays.length > 0 && (
-            <SheetSectionCard
+            <SheetSectionSlab
               title="Bays"
               count={
                 <span className="tabular-nums">
@@ -302,7 +301,7 @@ export function CrawlerSheet({
                   )
                 })}
               </EntityGrid>
-            </SheetSectionCard>
+            </SheetSectionSlab>
           )}
 
           {/* Armament Bay weapons — crawler weapon systems mount here (Core
@@ -310,7 +309,7 @@ export function CrawlerSheet({
               and opens the existing weapons picker; each card carries a
               remove (✕). */}
           {(crawler.systems.length > 0 || !readOnly) && (
-            <SheetSectionCard
+            <SheetSectionSlab
               title="Armament Bay Weapons"
               count={<span className="tabular-nums">{crawler.systems.length}</span>}
               controls={
@@ -357,16 +356,15 @@ export function CrawlerSheet({
                   })}
                 </EntityGrid>
               )}
-            </SheetSectionCard>
+            </SheetSectionSlab>
           )}
         </div>
 
         {/* Linked Units — poster renders this as a bare section header +
             rail stack (no `.dcard` frame), matching PilotSheet/MechSheet. */}
-        <div>
-          <Slab variant="solid" label="Linked Units" />
-          <div className="flex flex-col gap-4">{linkedUnits}</div>
-        </div>
+        <SheetSectionSlab title="Linked Units" bodyClassName="flex flex-col gap-4">
+          {linkedUnits}
+        </SheetSectionSlab>
 
         {/* ----- Storage Bay — the FULL-WIDTH bottom band (printed crawler
             sheet p.2: Storage Bay spans the whole width beneath the bays), not

@@ -14,9 +14,11 @@
  *   - Inventory (full-width band) — equipment cards + generic entries.
  *   - Linked Units — the assigned-mech / home-crawler rail.
  *
- * Every collection section is framed by `SheetSectionCard` (the poster
- * `.dcard`), except Linked Units which the poster renders as a bare `.sect`
- * header + rail stack (no card frame).
+ * Section containers follow the card-vs-slab rule (see `SheetSectionSlab`):
+ * a section of inputs/gauges is a CARD (here, the identity band), a section of
+ * entity cards is a SLAB (Abilities, Inventory, Linked Units) — cards already
+ * carry their own frame, so a second frame around them reads as one opaque
+ * block.
  *
  * Dropped (redesign D6 — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
@@ -57,8 +59,8 @@ import { destroyedUndoToast } from './destroyedUndoToast'
 import { EntityGrid, EntityGridRow } from 'component-lib'
 import { PilotIdentityPanel } from './PilotIdentity'
 import type { UsedToggleKey } from './PilotIdentity'
-import { SectionAddButton, SectionEditButton, SheetPickerModal, Slab } from 'component-lib'
-import { SheetSectionCard } from 'component-lib'
+import { SectionAddButton, SectionEditButton, SheetPickerModal } from 'component-lib'
+import { SheetSectionSlab } from 'component-lib'
 import { pilotInventoryCapacity, pilotInventoryUsed, resolveEquipment } from './pilotInventory'
 import type { SheetPatch } from './sheetViewProps'
 import {
@@ -464,17 +466,12 @@ export function PilotSheet({
         }
       />
 
-      {/* ===== Abilities (full width, 3-column card grid — printed pilot sheet) ===== */}
-      <SheetSectionCard
+      {/* ===== Abilities (full width, 3-column card grid — printed pilot sheet) =====
+          A SLAB, not a card: the grid is entity cards, which carry their own
+          frame — see SheetSectionSlab's header for the card-vs-slab rule. */}
+      <SheetSectionSlab
         title="Abilities"
-        count={
-          <Stat
-            orientation="horizontal"
-            size="compact"
-            label="Known"
-            value={pilot.abilities.length}
-          />
-        }
+        count={`${pilot.abilities.length} known`}
         controls={
           readOnly ? undefined : (
             <SectionAddButton label="ability" onClick={() => setPicker('abilities')} />
@@ -520,10 +517,10 @@ export function PilotSheet({
             })}
           </EntityGrid>
         )}
-      </SheetSectionCard>
+      </SheetSectionSlab>
 
       {/* ===== Inventory (full-width band, printed pilot sheet bottom) ===== */}
-      <SheetSectionCard
+      <SheetSectionSlab
         title="Inventory"
         count={
           <span className={overCapacity ? 'text-status-bad' : undefined}>
@@ -595,15 +592,14 @@ export function PilotSheet({
             />
           </div>
         )}
-      </SheetSectionCard>
+      </SheetSectionSlab>
 
-      {/* ===== R4: Linked Units (full width, stacked beneath all other sections) ===== */}
-      <div>
-        {/* Linked Units — poster renders this as a bare section header + rail
-            stack (no `.dcard` frame), unlike Identity/Vitals/Abilities/Inventory. */}
-        <Slab variant="solid" label="Linked Units" />
-        <div className="flex flex-col gap-4">{linkedUnits}</div>
-      </div>
+      {/* ===== R4: Linked Units (full width, stacked beneath all other sections) =====
+          Already a bare slab leader + rail stack in the poster; now expressed
+          through the shared slab container like every other card section. */}
+      <SheetSectionSlab title="Linked Units" bodyClassName="flex flex-col gap-4">
+        {linkedUnits}
+      </SheetSectionSlab>
 
       {/* The ONE shared picker modal — abilities & equipment '+ Add' both open
           it (multi-select grids write through on toggle; no Save button). */}

@@ -166,6 +166,7 @@ export { SlotGrid } from './components/shared/SlotGrid'
 
 // Promoted app compositions (legacy-tier — poster/sheet chrome lifted from ITUN)
 export { SheetSectionCard } from './components/shared/SheetSectionCard'
+export { SheetSectionSlab } from './components/shared/SheetSectionSlab'
 
 // Live-sheet presentation lifted out of ITUN (pure presentation — the app keeps
 // only the store-wired containers that feed these).

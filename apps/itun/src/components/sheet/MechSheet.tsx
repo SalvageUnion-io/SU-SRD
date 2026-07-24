@@ -13,15 +13,18 @@
  *   Chassis Ability ∥ Quirk & Appearance — the chassis's ability actions as
  *       EntityGridRow'd cards (Use spends EP; blocked while shut down) and one
  *       combined Quirk/Appearance field section.
- *   Systems & Modules — KEPT as two sections (each its own `SheetSectionCard`,
+ *   Systems & Modules — KEPT as two sections (each its own `SheetSectionSlab`,
  *       3-column card grids): different collections with different '+ Add'
  *       pickers/slot budgets, so folding them into one grid is not trivial.
  *   Linked Units (bare `.sect` header + rail stack) then The Hold — the full-
  *       width Cargo band at the BOTTOM (`StorageManifest side='mech'`),
  *       matching the printed sheet.
  *
- * Every collection/field section is framed by `SheetSectionCard` (the poster
- * `.dcard`) except Linked Units.
+ * Section containers follow the card-vs-slab rule (see `SheetSectionSlab`):
+ * inputs/gauges get a CARD (the identity band, Quirk & Appearance, The Hold),
+ * entity-card collections get a SLAB (Chassis Ability, Systems, Modules,
+ * Linked Units) — cards already carry their own frame, so a second frame
+ * around them reads as one opaque block.
  *
  * Dropped (redesign D6 — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
@@ -43,7 +46,6 @@ import { useState } from 'react'
 import type { ReactNode, Ref } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 import {
-  Stat,
   VitalGauge,
   heatDangerFrom,
   FieldError,
@@ -68,8 +70,8 @@ import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { useSoftWarnings } from '../shared/useSoftWarnings'
-import { SectionAddButton, SectionEditButton, SheetPickerModal, Slab } from 'component-lib'
-import { SheetSectionCard } from 'component-lib'
+import { SectionAddButton, SectionEditButton, SheetPickerModal } from 'component-lib'
+import { SheetSectionCard, SheetSectionSlab } from 'component-lib'
 import type { ChassisStatItem } from 'component-lib'
 import { ChassisStats } from 'component-lib'
 import { StorageManifest } from './StorageManifest'
@@ -539,16 +541,9 @@ export function MechSheet({
       <div className="grid grid-cols-1 gap-[22px] @5xl:grid-cols-12 @5xl:gap-6">
         {chassisAbilities.length > 0 && (
           <div className="@5xl:col-span-7">
-            <SheetSectionCard
+            <SheetSectionSlab
               title="Chassis Ability"
-              count={
-                <Stat
-                  orientation="horizontal"
-                  size="compact"
-                  label="Actions"
-                  value={chassisAbilities.length}
-                />
-              }
+              count={`${chassisAbilities.length} ${chassisAbilities.length === 1 ? 'action' : 'actions'}`}
             >
               <EntityGrid>
                 {chassisAbilities.map((ability) => {
@@ -572,7 +567,7 @@ export function MechSheet({
                   )
                 })}
               </EntityGrid>
-            </SheetSectionCard>
+            </SheetSectionSlab>
           </div>
         )}
 
@@ -598,9 +593,9 @@ export function MechSheet({
       </div>
 
       {/* ===== R3: Systems & Modules — kept as two sections (different
-          collections/pickers; not a trivial unify), each framed in its own
-          SheetSectionCard. ===== */}
-      <SheetSectionCard
+          collections/pickers; not a trivial unify), each led by its own
+          SheetSectionSlab. ===== */}
+      <SheetSectionSlab
         title="Systems"
         count={
           <span className="tabular-nums">
@@ -614,9 +609,9 @@ export function MechSheet({
         }
       >
         {renderItems('system', mech.systems)}
-      </SheetSectionCard>
+      </SheetSectionSlab>
 
-      <SheetSectionCard
+      <SheetSectionSlab
         title="Modules"
         count={
           <span className="tabular-nums">
@@ -630,16 +625,15 @@ export function MechSheet({
         }
       >
         {renderItems('module', mech.modules)}
-      </SheetSectionCard>
+      </SheetSectionSlab>
 
       {/* ===== Linked Units, then The Hold (full-width bottom band) =====
           The printed mech sheet puts Cargo as a full-width band at the bottom
           (p.2), so Linked Units reads first (bare `.sect` header + rail stack,
           matching PilotSheet) and The Hold is the full-width band below it. */}
-      <div>
-        <Slab variant="solid" label="Linked Units" />
-        <div className="flex flex-col gap-4">{linkedUnits}</div>
-      </div>
+      <SheetSectionSlab title="Linked Units" bodyClassName="flex flex-col gap-4">
+        {linkedUnits}
+      </SheetSectionSlab>
 
       <SheetSectionCard
         title="The Hold"
