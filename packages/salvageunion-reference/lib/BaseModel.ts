@@ -16,12 +16,10 @@ export type ModelWithMetadata<T> = BaseModel<T> & {
 export class BaseModel<T> {
   protected data: (T & { schemaName: string })[]
   protected idMap: Map<string, T & { schemaName: string }>
-  schema: Record<string, unknown>
   protected _schemaName: string
   protected _displayName: string
 
-  constructor(data: T[], schema: Record<string, unknown>, schemaName: string, displayName: string) {
-    this.schema = schema
+  constructor(data: T[], schemaName: string, displayName: string) {
     this._schemaName = schemaName
     this._displayName = displayName
 

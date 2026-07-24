@@ -134,9 +134,12 @@ import chassisSchema from 'salvageunion-reference/schemas/chassis.schema.json'
 // Or use the data maps
 import { getDataMaps, getSchemaCatalog, toPascalCase } from 'salvageunion-reference'
 
-const { dataMap, schemaMap } = getDataMaps()
+const { dataMap } = getDataMaps()
 const chassisData = dataMap['chassis']
-const chassisSchema = schemaMap['chassis']
+
+// JSON Schema definitions come from their own accessor, not getDataMaps()
+import { getJsonSchemaDefinition } from 'salvageunion-reference'
+const chassisSchema = getJsonSchemaDefinition('chassis')
 
 // Get schema catalog metadata
 const catalog = getSchemaCatalog()

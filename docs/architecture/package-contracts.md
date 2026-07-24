@@ -381,7 +381,7 @@ When modifying shared packages, follow this checklist:
 - [ ] Run typecheck: `bun run typecheck`
 - [ ] Run validation: `bun run validate:all`
 - [ ] Run tests: `bun test`
-- [ ] If adding a new schema, ALL of these registries must gain an entry together (they are hand-maintained in parallel today): `ModelFactory.ts` `dataLoaders` + `jsonSchemaLoaders` + `zodSchemaMap` + `schemaDisplayNames`; `index.ts` `LazyModel` instance + `lazyModelMap` + `SchemaToEntityMap` + `SCHEMA_REGISTRY` + static accessor; `tools/generateJsonSchemas.ts` map. Then verify `preload(['new-schema-id'])` resolves without error
+- [ ] If adding a new schema, ALL of these registries must gain an entry together (they are hand-maintained in parallel today): `ModelFactory.ts` `dataLoaders` + `zodSchemaMap` + `schemaDisplayNames`; `index.ts` `LazyModel` instance + `lazyModelMap` + `SchemaToEntityMap` + `SCHEMA_REGISTRY` + static accessor; `tools/generateJsonSchemas.ts` map. Then verify `preload(['new-schema-id'])` resolves without error
 - [ ] Data integrity: `bun run validate:all` (includes `validate:slugs` — same-named entities in one file shadow each other's slug URLs and will fail the gate)
 
 ### 2. After changing `component-lib`

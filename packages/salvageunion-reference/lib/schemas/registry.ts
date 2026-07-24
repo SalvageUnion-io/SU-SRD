@@ -13,7 +13,7 @@
  *   3. Adding ONE entry to the array below.
  *   4. Running `bun run build:package`.
  *
- * Everything else — ModelFactory's dataLoaders / jsonSchemaLoaders /
+ * Everything else — ModelFactory's dataLoaders /
  * zodSchemaMap / schemaDisplayNames, index.ts's LazyModel instances /
  * lazyModelMap / SchemaToEntityMap / SCHEMA_REGISTRY / static accessors — is
  * generated from this manifest by tools/generateRegistry.ts into

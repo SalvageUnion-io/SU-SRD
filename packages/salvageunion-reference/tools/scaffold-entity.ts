@@ -3,7 +3,7 @@
  * scaffold-entity — checklist generator for adding a new entity/schema type.
  *
  * Registering a schema is now ONE manifest entry (lib/schemas/registry.ts) —
- * tools/generateRegistry.ts generates dataLoaders / jsonSchemaLoaders /
+ * tools/generateRegistry.ts generates dataLoaders /
  * zodSchemaMap / schemaDisplayNames / LazyModel instances / lazyModelMap /
  * SchemaToEntityMap / SCHEMA_REGISTRY / the static accessors from it. What's
  * left genuinely needs human authorship — the Zod schema itself, deciding
@@ -112,7 +112,7 @@ line()
 line(`Registry currently holds ${existingIds.size} schemas; this makes ${existingIds.size + 1}.`)
 line()
 line('Only 3 hand-authored steps now — everything else (dataLoaders,')
-line('jsonSchemaLoaders, zodSchemaMap, schemaDisplayNames, LazyModel instances,')
+line('zodSchemaMap, schemaDisplayNames, LazyModel instances,')
 line('lazyModelMap, SchemaToEntityMap, SCHEMA_REGISTRY, and the')
 line('SalvageUnionReference static accessor) is generated from the manifest entry')
 line('in step 3 by tools/generateRegistry.ts. lib/registryConsistency.test.ts')

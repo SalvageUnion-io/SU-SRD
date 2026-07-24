@@ -20,10 +20,9 @@ export declare class BaseModel<T> {
     protected idMap: Map<string, T & {
         schemaName: string;
     }>;
-    schema: Record<string, unknown>;
     protected _schemaName: string;
     protected _displayName: string;
-    constructor(data: T[], schema: Record<string, unknown>, schemaName: string, displayName: string);
+    constructor(data: T[], schemaName: string, displayName: string);
     /**
      * Get all items (schemaName already stamped)
      */
@@ -78,8 +77,8 @@ export declare class LazyModel<T> extends BaseModel<T> {
      */
     _install(backing: BaseModel<T>): void;
     /**
-     * Reset to the pre-load state (testing only). Clears the backing model and
-     * schema so subsequent data access throws again. Owning the private
+     * Reset to the pre-load state (testing only). Clears the backing model so
+     * subsequent data access throws again. Owning the private
      * `_backing` field here lets resetAllForTesting() avoid an `as unknown as`
      * reach-in to poke the private field from outside the class.
      */
@@ -105,8 +104,8 @@ export declare class LazyModel<T> extends BaseModel<T> {
  * Uses lazy (dynamic) imports for JSON data files so consumers
  * can code-split the ~1.1 MB data corpus via SalvageUnionReference.preload().
  *
- * The four registries below (dataLoaders, jsonSchemaLoaders, zodSchemaMap,
- * schemaDisplayNames) are generated from lib/schemas/registry.ts by
+ * The three registries below (dataLoaders, zodSchemaMap, schemaDisplayNames)
+ * are generated from lib/schemas/registry.ts by
  * tools/generateRegistry.ts into lib/generated/modelFactoryRegistry.generated.ts
  * — run `bun run build:package` to regenerate after editing the manifest.
  */
@@ -136,13 +135,12 @@ export declare function getLoadedModel(schemaId: string, propertyName: string): 
  */
 export declare function resetLoadStateForTesting(): void;
 /**
- * Get the loaded data and schema maps (synchronous).
+ * Get the loaded data map (synchronous).
  * Only returns data for schemas that have been preloaded.
  * Exposed for client use (e.g. resolveActions in index.ts).
  */
 export declare function getDataMaps(): {
     dataMap: Record<string, unknown[]>;
-    schemaMap: Record<string, Record<string, unknown>>;
 };
 /**
  * Registry key sets, exported for the consistency test ONLY — the loader
@@ -152,7 +150,6 @@ export declare function getDataMaps(): {
  */
 export declare const _registryKeySets: {
     dataLoaders: string[];
-    jsonSchemaLoaders: string[];
     zodSchemaMap: string[];
 };
 /**
@@ -303,7 +300,6 @@ export declare function resolveDataValueForTechLevel(dv: SURefObjectDataValue, e
  */
 import { z } from '../zod.js';
 export declare const dataLoaders: Record<string, () => Promise<unknown[]>>;
-export declare const jsonSchemaLoaders: Record<string, () => Promise<Record<string, unknown>>>;
 /**
  * Zod schema map — statically available, these are code not data.
  * Exported so the `validate:schemas` tool validates data against the exact
@@ -8692,7 +8688,7 @@ export {};
  *   3. Adding ONE entry to the array below.
  *   4. Running `bun run build:package`.
  *
- * Everything else — ModelFactory's dataLoaders / jsonSchemaLoaders /
+ * Everything else — ModelFactory's dataLoaders /
  * zodSchemaMap / schemaDisplayNames, index.ts's LazyModel instances /
  * lazyModelMap / SchemaToEntityMap / SCHEMA_REGISTRY / static accessors — is
  * generated from this manifest by tools/generateRegistry.ts into
