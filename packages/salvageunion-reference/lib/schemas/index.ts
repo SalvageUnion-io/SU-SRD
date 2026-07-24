@@ -63,12 +63,10 @@ import type {
   CatalogCategorySchema,
 } from './entities.js'
 
-// Export inferred types with SURef prefix for backward compatibility
+// Inferred types, exported under the SURef* prefix used across the monorepo.
 
 // Enum types
 export type SURefEnumSchemaName = z.infer<typeof SchemaNameSchema>
-
-// Common types
 
 // Object types
 export type SURefObjectTrait = z.infer<typeof TraitSchema>
