@@ -2,27 +2,23 @@
  * MechSheet — the mech variant BODY for the LiveSheet shell (design §4.3,
  * plan 4.5; redesigned to the poster layout, Phase 2).
  *
- * Identity/Vitals moved OUT of the hero (SheetMech.tsx now carries only the
- * name row + meta) and into this body's poster region grid — a 12-col
- * `@container` grid mirroring PilotSheet's Phase 2 shape:
+ * The body OWNS the identity band now (Workshop-Manual mech sheet): SheetMech
+ * passes NO `renderHero`, and this body renders `SheetHero` in band mode as
+ * its first region (wrapped with the shell's `heroRef`). Region order mirrors
+ * the printed mech sheet:
  *
- *   R1: Identity (span 7, the pattern-name/chassis fields + the 8-lozenge
- *       chassis-stats strip) ∥ Vitals (span 5, SP/EP/Heat `VitalGauge`s +
- *       Conditions).
- *   R2: Chassis Ability (span 7, the chassis's ability actions as
- *       EntityGridRow'd cards with a Use action that spends EP; blocked while
- *       shut down) ∥
- *       Quirk & Appearance (span 5, ONE combined field section as a 2-row
- *       dt/dd list — the poster has no separate Quirk/Appearance cards).
- *   R3: Systems & Modules — KEPT as the existing two-section split (each its
- *       own `SheetSectionCard`) rather than unified into one grid: Systems
- *       and Modules are different collections with different '+ Add'
- *       pickers/slot budgets, so folding them into one card/grid is not a
- *       trivial change (see plan Phase 2 item 2's "unify-vs-split" note).
- *   R4: Linked Units (span 5, a bare `.sect` header + rail stack — no card
- *       frame, matching PilotSheet's Linked Units) ∥ The Hold (span 7,
- *       `StorageManifest side='mech'` unchanged, now framed in a
- *       `SheetSectionCard`).
+ *   Identity Band: edge wordmark ∥ the pattern-name/chassis fields + the
+ *       8-lozenge chassis-stats strip ∥ SP/EP/Heat `VitalGauge`s + Conditions
+ *       vitals rail — one toned frame (the printed top band).
+ *   Chassis Ability ∥ Quirk & Appearance — the chassis's ability actions as
+ *       EntityGridRow'd cards (Use spends EP; blocked while shut down) and one
+ *       combined Quirk/Appearance field section.
+ *   Systems & Modules — KEPT as two sections (each its own `SheetSectionCard`,
+ *       3-column card grids): different collections with different '+ Add'
+ *       pickers/slot budgets, so folding them into one grid is not trivial.
+ *   Linked Units (bare `.sect` header + rail stack) then The Hold — the full-
+ *       width Cargo band at the BOTTOM (`StorageManifest side='mech'`),
+ *       matching the printed sheet.
  *
  * Every collection/field section is framed by `SheetSectionCard` (the poster
  * `.dcard`) except Linked Units.
@@ -44,9 +40,16 @@
  */
 
 import { useState } from 'react'
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { Stat, VitalGauge, heatDangerFrom, FieldError, ReferenceEntityCard } from 'component-lib'
+import {
+  Stat,
+  VitalGauge,
+  heatDangerFrom,
+  FieldError,
+  ReferenceEntityCard,
+  SheetHero,
+} from 'component-lib'
 
 import { useCargo } from '../../lib/cargo/useCargo'
 import { computeMechCapacity, resolveChassisRef } from 'salvageunion-reference/rules'
@@ -99,6 +102,12 @@ type MechSheetProps = {
   /** Suppresses every edit affordance (published snapshots). */
   readOnly?: boolean
   /**
+   * Condense sentinel from the LiveSheet shell — wraps the identity band (the
+   * body's first region) so the sticky bar still condenses when it scrolls
+   * away. Undefined in bare test renders (no shell).
+   */
+  heroRef?: Ref<HTMLElement>
+  /**
    * The linked home crawler (composition resolver) — powers The Hold's stow
    * target and the optional repair scrap-pool deduction. Null = unlinked.
    */
@@ -123,6 +132,7 @@ export function MechSheet({
   chassis: chassisOverride,
   store = useEntityStore,
   readOnly = false,
+  heroRef,
   crawler = null,
   linkedUnits,
 }: MechSheetProps) {
@@ -377,7 +387,7 @@ export function MechSheet({
       )
     }
     return (
-      <EntityGrid>
+      <EntityGrid columns={3}>
         {slugs.map((slug, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: the same system/module slug may be installed more than once, so the slug alone is not unique; install order is stable
           <EntityGridRow key={`${slug}-${index}`}>
@@ -430,91 +440,89 @@ export function MechSheet({
         </FieldError>
       )}
 
-      {/* ===== R1: Identity ∥ Vitals (poster top band) ===== */}
-      <div className="grid grid-cols-1 gap-[22px] @5xl:grid-cols-12 @5xl:gap-6">
-        <div className="@5xl:col-span-7">
-          <SheetSectionCard
-            title="Identity"
-            controls={
-              !readOnly ? (
-                <SectionEditButton
-                  section="Identity"
-                  editing={identityEditing}
-                  onToggle={() => setIdentityEditing((v) => !v)}
-                />
-              ) : undefined
-            }
-          >
-            <div className="flex min-w-0 flex-col gap-3">
-              <MechIdentityPanel
-                mech={mech}
-                chassisName={chassisName}
-                techLevel={techLevel}
-                editing={identityEditing}
-                patch={readOnly ? undefined : patchMech}
-              />
-              <ChassisStats items={specs} className="grid grid-cols-2 gap-2 @sm:grid-cols-4" />
-            </div>
-          </SheetSectionCard>
-        </div>
-
-        <div className="@5xl:col-span-5">
-          <SheetSectionCard title="Vitals">
-            <div className="flex w-full flex-col [&>*+*]:mt-[14px] [&>*+*]:border-t [&>*+*]:border-dashed [&>*+*]:border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] [&>*+*]:pt-[14px]">
-              <VitalGauge
-                label="SP"
-                subLabel="Structure"
-                value={currentSP}
-                max={maxSP}
-                onChange={readOnly ? undefined : (v) => patchMech({ currentSP: v })}
-                onMaxChange={
-                  readOnly
-                    ? undefined
-                    : (next) => overrideMechMax({ maxSpModifier: modOrUndef(next, derivedMaxSP) })
-                }
-                overriddenFrom={readOnly ? undefined : derivedMaxSP}
-                onRevertOverride={
-                  readOnly ? undefined : () => overrideMechMax({ maxSpModifier: undefined })
-                }
-                readOnly={readOnly}
-              />
-              <VitalGauge
-                label="EP"
-                subLabel="Energy"
-                value={currentEP}
-                max={maxEP}
-                onChange={readOnly ? undefined : (v) => patchMech({ currentEP: v })}
-                onMaxChange={
-                  readOnly
-                    ? undefined
-                    : (next) => overrideMechMax({ maxEpModifier: modOrUndef(next, derivedMaxEP) })
-                }
-                overriddenFrom={readOnly ? undefined : derivedMaxEP}
-                onRevertOverride={
-                  readOnly ? undefined : () => overrideMechMax({ maxEpModifier: undefined })
-                }
-                readOnly={readOnly}
-              />
-              <VitalGauge
-                label="Heat"
-                value={currentHeat}
-                max={heatCap}
-                danger={heatCap > 0 ? heatDangerFrom(heatCap) : undefined}
-                onChange={readOnly ? undefined : (v) => patchMech({ currentHeat: v })}
-                onMaxChange={
-                  readOnly
-                    ? undefined
-                    : (next) =>
-                        overrideMechMax({ maxHeatModifier: modOrUndef(next, derivedHeatCap) })
-                }
-                overriddenFrom={readOnly ? undefined : derivedHeatCap}
-                onRevertOverride={
-                  readOnly ? undefined : () => overrideMechMax({ maxHeatModifier: undefined })
-                }
-                readOnly={readOnly}
-              />
-            </div>
-            <div className="mt-4 flex w-full flex-col gap-2 border-t border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pt-[14px]">
+      {/* ===== Identity Band (Workshop-Manual mech sheet top region) =====
+          Edge wordmark ∥ Chassis/Pattern fields + Chassis-Stats strip ∥
+          SP/EP/Heat + Conditions vitals rail, in one toned frame. Carries the
+          shell's condense sentinel (heroRef). */}
+      <SheetHero
+        heroRef={heroRef}
+        cat="Mech"
+        name={mech.name}
+        controls={
+          !readOnly ? (
+            <SectionEditButton
+              section="Identity"
+              editing={identityEditing}
+              onToggle={() => setIdentityEditing((v) => !v)}
+            />
+          ) : undefined
+        }
+        fields={
+          <div className="flex min-w-0 flex-col gap-3">
+            <MechIdentityPanel
+              mech={mech}
+              chassisName={chassisName}
+              techLevel={techLevel}
+              editing={identityEditing}
+              patch={readOnly ? undefined : patchMech}
+            />
+            <ChassisStats items={specs} className="grid grid-cols-2 gap-2 @sm:grid-cols-4" />
+          </div>
+        }
+        vitals={
+          <div className="flex w-full flex-col [&>*+*]:mt-[14px] [&>*+*]:border-t [&>*+*]:border-dashed [&>*+*]:border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] [&>*+*]:pt-[14px]">
+            <VitalGauge
+              label="SP"
+              subLabel="Structure"
+              value={currentSP}
+              max={maxSP}
+              onChange={readOnly ? undefined : (v) => patchMech({ currentSP: v })}
+              onMaxChange={
+                readOnly
+                  ? undefined
+                  : (next) => overrideMechMax({ maxSpModifier: modOrUndef(next, derivedMaxSP) })
+              }
+              overriddenFrom={readOnly ? undefined : derivedMaxSP}
+              onRevertOverride={
+                readOnly ? undefined : () => overrideMechMax({ maxSpModifier: undefined })
+              }
+              readOnly={readOnly}
+            />
+            <VitalGauge
+              label="EP"
+              subLabel="Energy"
+              value={currentEP}
+              max={maxEP}
+              onChange={readOnly ? undefined : (v) => patchMech({ currentEP: v })}
+              onMaxChange={
+                readOnly
+                  ? undefined
+                  : (next) => overrideMechMax({ maxEpModifier: modOrUndef(next, derivedMaxEP) })
+              }
+              overriddenFrom={readOnly ? undefined : derivedMaxEP}
+              onRevertOverride={
+                readOnly ? undefined : () => overrideMechMax({ maxEpModifier: undefined })
+              }
+              readOnly={readOnly}
+            />
+            <VitalGauge
+              label="Heat"
+              value={currentHeat}
+              max={heatCap}
+              danger={heatCap > 0 ? heatDangerFrom(heatCap) : undefined}
+              onChange={readOnly ? undefined : (v) => patchMech({ currentHeat: v })}
+              onMaxChange={
+                readOnly
+                  ? undefined
+                  : (next) => overrideMechMax({ maxHeatModifier: modOrUndef(next, derivedHeatCap) })
+              }
+              overriddenFrom={readOnly ? undefined : derivedHeatCap}
+              onRevertOverride={
+                readOnly ? undefined : () => overrideMechMax({ maxHeatModifier: undefined })
+              }
+              readOnly={readOnly}
+            />
+            <div className="flex w-full flex-col gap-2">
               <span
                 className="font-cond text-label font-bold uppercase tracking-caps"
                 style={{ color: 'var(--tone-deep, var(--color-ink))' }}
@@ -523,9 +531,9 @@ export function MechSheet({
               </span>
               <MechConditionsEditor mech={mech} store={store} readOnly={readOnly} />
             </div>
-          </SheetSectionCard>
-        </div>
-      </div>
+          </div>
+        }
+      />
 
       {/* ===== R2: Chassis Ability ∥ Quirk & Appearance ===== */}
       <div className="grid grid-cols-1 gap-[22px] @5xl:grid-cols-12 @5xl:gap-6">
@@ -624,42 +632,32 @@ export function MechSheet({
         {renderItems('module', mech.modules)}
       </SheetSectionCard>
 
-      {/* ===== R4: Linked Units ∥ The Hold =====
-          DOM order is Hold THEN Linked Units — the poster's own mobile stack
-          puts `.bcargo` (Hold) before `.blinks` (Linked Units) even though
-          both share `grid-row:1` at the desktop breakpoint (`.bcargo{grid-
-          column:6/13}` / `.blinks{grid-column:1/6}`, clean-mech.html:547-548)
-          — Linked Units reads LAST on mobile. `@5xl:order-*` restores the
-          desktop visual (Linked Units left/span5, Hold right/span7) without
-          reordering the DOM. */}
-      <div className="grid grid-cols-1 gap-[22px] @5xl:grid-cols-12 @5xl:gap-6">
-        <div className="@5xl:order-2 @5xl:col-span-7">
-          <SheetSectionCard
-            title="The Hold"
-            count={
-              <span className="tabular-nums">
-                {cargo.state.mechLots.length} {cargo.state.mechLots.length === 1 ? 'lot' : 'lots'} ·{' '}
-                {cargo.usage.used}/{cargo.usage.cap} slots
-              </span>
-            }
-          >
-            <StorageManifest
-              side="mech"
-              cargo={cargo}
-              mechName={mech.name}
-              crawlerName={crawler?.name ?? null}
-              readOnly={readOnly}
-            />
-          </SheetSectionCard>
-        </div>
-
-        <div className="@5xl:order-1 @5xl:col-span-5">
-          {/* Linked Units — poster renders this as a bare section header + rail
-              stack (no `.dcard` frame), matching PilotSheet. */}
-          <Slab variant="solid" label="Linked Units" />
-          <div className="flex flex-col gap-4">{linkedUnits}</div>
-        </div>
+      {/* ===== Linked Units, then The Hold (full-width bottom band) =====
+          The printed mech sheet puts Cargo as a full-width band at the bottom
+          (p.2), so Linked Units reads first (bare `.sect` header + rail stack,
+          matching PilotSheet) and The Hold is the full-width band below it. */}
+      <div>
+        <Slab variant="solid" label="Linked Units" />
+        <div className="flex flex-col gap-4">{linkedUnits}</div>
       </div>
+
+      <SheetSectionCard
+        title="The Hold"
+        count={
+          <span className="tabular-nums">
+            {cargo.state.mechLots.length} {cargo.state.mechLots.length === 1 ? 'lot' : 'lots'} ·{' '}
+            {cargo.usage.used}/{cargo.usage.cap} slots
+          </span>
+        }
+      >
+        <StorageManifest
+          side="mech"
+          cargo={cargo}
+          mechName={mech.name}
+          crawlerName={crawler?.name ?? null}
+          readOnly={readOnly}
+        />
+      </SheetSectionCard>
 
       {/* The ONE shared picker modal — Systems & Modules '+ Add' both open it
           (the wizard's install grid writes through on click; no Save button). */}

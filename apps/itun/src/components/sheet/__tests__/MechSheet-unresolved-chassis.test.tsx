@@ -65,9 +65,10 @@ describe('MechSheet — unresolved chassis (chassis=null)', () => {
   test('the body still renders: Identity/Vitals regions, item fallback, hold', () => {
     render(<MechSheet mech={fakeMech} chassis={null} store={makeStubStore(fakeMech)} />)
 
-    // Identity/Vitals poster regions stay available (maxima derive to 0, never crash).
-    expect(screen.getByText('Identity')).toBeTruthy()
-    expect(screen.getByText('Vitals')).toBeTruthy()
+    // The identity band stays available (maxima derive to 0, never crash): its
+    // fields and the SP vitals gauge render even with no chassis resolved.
+    expect(screen.getByText(/pattern name/i)).toBeTruthy()
+    expect(screen.getByText('Structure')).toBeTruthy()
     // The unresolvable system slug falls back to plain text.
     expect(screen.getByText('mystery-system')).toBeTruthy()
     // The Hold renders against a zero cargo cap.

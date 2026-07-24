@@ -2,11 +2,9 @@
  * SheetMech — the mech branch of the live sheet (extracted from
  * Sheet.tsx, audit item 19; redesigned to the poster layout, Phase 2).
  *
- * The hero now carries ONLY the name row + meta (poster region grid, D7):
- * Identity, Vitals and the linked-unit rail all moved into the body's R1/R4
- * poster regions (see `MechSheet`) — SheetHero no longer receives
- * `identityBlock`/`inset`/`rail`, which have since been deleted from it
- * outright, mirroring SheetPilot. This
+ * The body owns the identity band now (Workshop-Manual layout): SheetMech
+ * passes NO `renderHero`, and `MechSheet` renders the `SheetHero` band as its
+ * first region, wrapping it with the `heroRef` from `renderBody`. This
  * component's remaining job is the condensed top-bar strip and composing the
  * assigned-pilot/home-crawler rail content handed to `MechSheet` as
  * `linkedUnits`. Push / Heat Check are Guided-Play transactions that live on
@@ -23,7 +21,6 @@ import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { MechSheet } from './MechSheet'
-import { SheetHero } from 'component-lib'
 import { EntityRow } from 'component-lib'
 import { RailChip } from './SheetRail'
 import { RailCta, RailStatLine } from './SheetRailParts'
@@ -151,12 +148,12 @@ export function SheetMech({
           actions
         )
       }
-      renderHero={({ heroRef }) => <SheetHero heroRef={heroRef} cat="Mech" name={mech.name} />}
-      renderBody={() => (
+      renderBody={({ heroRef }) => (
         <MechSheet
           mech={mech}
           store={store}
           readOnly={readOnly}
+          heroRef={heroRef}
           crawler={composition.crawler}
           linkedUnits={rail}
         />
