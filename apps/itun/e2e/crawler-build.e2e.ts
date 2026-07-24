@@ -1,83 +1,93 @@
-import { test, expect } from '@playwright/test'
-import { clickNext, pickByName, waitForReady } from './_helpers'
+import { test, expect, type Page } from '@playwright/test'
+import { advanceUntilVisible, fillIdentity, pickByName, waitForReady } from './_helpers'
 
 /**
- * Crawler build + edit on the WizShell skeleton (plan 3.2/3.6):
- * Crawler (crawler-type entity cards, radio) -> Systems (Sel grid) ->
- * Crew (bay-NPC details) -> Identity -> Review -> 'Create Crawler ✦'.
+ * Drive the wizard to a created 'Iron Wagon'. Three steps gate — Crawler Type,
+ * Armament Bay (at least one weapon) and Name — and everything between them is
+ * informational, so each is reached by its own content rather than by counting
+ * Next clicks.
+ */
+async function buildIronWagon(page: Page): Promise<void> {
+  await page.goto('/crawlers/new?mode=guided')
+  await waitForReady(page)
+
+  // Crawler Type — one entity card per type.
+  await pickByName(page, 'Battle')
+
+  // Armament Bay — gated until the bay holds a weapon. The offered weapons
+  // depend on the crawler's tech level, so take the first on offer instead of
+  // naming one.
+  await advanceUntilVisible(page, page.getByRole('heading', { name: /Arm the Armament Bay/i }))
+  const weapon = page.locator('[aria-pressed="false"], [aria-checked="false"]').first()
+  await expect(weapon).toBeVisible()
+  await weapon.click()
+
+  // Name — a click-to-edit control, not the labelled input this spec once used.
+  const nameEditor = page.getByLabel(/^Edit crawler name$/i)
+  await advanceUntilVisible(page, nameEditor)
+  await fillIdentity(page, 'crawler name', 'Iron Wagon')
+
+  const createCrawler = page.getByRole('button', { name: /Create Crawler/i })
+  await advanceUntilVisible(page, createCrawler)
+  await createCrawler.click()
+  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
+  await waitForReady(page)
+}
+
+/**
+ * Crawler build — steps through the crawler wizard and submits, then arms the
+ * created crawler from its live sheet.
+ *
+ * The wizard is Crawler Type → Statistics → Armament Bay → Crew → Name →
+ * Review. Only the Name step gates, and its field is a click-to-edit control
+ * ("Edit crawler name"), not the labelled `Crawler Name` input this spec used
+ * to fill. Walk to the steps by content rather than counting Next clicks, so
+ * the next reshuffle does not silently strand this spec on the wrong step.
+ *
  * Tech level is fixed at TL1 on create; bays are not chosen — every crawler
  * seeds the full SRD bay set on creation.
  */
 test('build a crawler from scratch', async ({ page }) => {
-  await page.goto('/crawlers/new?mode=guided')
-  await waitForReady(page)
-
-  // Step 1 — Crawler. One entity card per crawler type; pick Battle.
-  await pickByName(page, 'Battle')
-  await clickNext(page) // -> Systems
-
-  // Step 2 — Systems (optional; capacity is soft)
-  await clickNext(page) // -> Crew
-
-  // Step 3 — Crew (bay-NPC details all optional)
-  await clickNext(page) // -> Identity
-
-  // Step 4 — Identity
-  await page.getByLabel(/Crawler Name/i).fill('Iron Wagon')
-  await clickNext(page) // -> Review
-
-  // Step 5 — Review -> create
-  await page.getByRole('button', { name: /Create Crawler/i }).click()
-
-  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
+  await buildIronWagon(page)
   await expect(page.getByText('Iron Wagon').first()).toBeVisible({
     timeout: 15_000,
   })
 })
 
 /**
- * Crawler edit round-trip (plan 3.6): open the created crawler's edit route
- * from the detail page, install a system, save, and confirm the upsert branch
- * saved in place (back on the detail page, no duplicate).
+ * Crawler edit round-trip. /crawlers/$id is now a bare redirect and there is no
+ * /crawlers/$id/edit route — the detail page was collapsed into the live sheet,
+ * the Free Edit surface under ADR-021. Intent is unchanged: change the crawler
+ * after creation and have the change persist.
  */
-test('edit a crawler via /crawlers/$id/edit', async ({ page }) => {
-  // Build first.
-  await page.goto('/crawlers/new?mode=guided')
-  await waitForReady(page)
-  await pickByName(page, 'Battle')
-  await clickNext(page) // -> Systems
-  await clickNext(page) // -> Crew
-  await clickNext(page) // -> Identity
-  await page.getByLabel(/Crawler Name/i).fill('Iron Wagon')
-  await clickNext(page) // -> Review
-  await page.getByRole('button', { name: /Create Crawler/i }).click()
-  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
+test('arm a crawler further from its live sheet', async ({ page }) => {
+  await buildIronWagon(page)
 
-  // Open the crawler detail page from the dashboard, then Edit.
+  // Open the crawler's live sheet from its roster row.
   await page
     .locator('li', { hasText: 'Iron Wagon' })
     .getByRole('link', { name: /^View$/ })
     .click()
-  await page.waitForURL(/\/crawlers\//, { timeout: 15_000 })
-  await page.getByRole('link', { name: /^Edit$/ }).click()
-  await page.waitForURL(/\/crawlers\/.+\/edit/, { timeout: 15_000 })
+  await page.waitForURL(/\/sheet\/crawler\//, { timeout: 15_000 })
   await waitForReady(page)
 
-  // Wizard is prefilled (type chosen), eyebrow flips to edit mode.
-  await expect(page.getByText('Edit Crawler')).toBeVisible()
-  await clickNext(page) // -> Systems
-  // Install a system in edit mode — pick the first Sel card in the grid.
-  await page.locator('div[role="button"]').first().click()
-  await clickNext(page) // -> Crew
-  await clickNext(page) // -> Identity (prefilled)
-  await clickNext(page) // -> Review
-  await page.getByRole('button', { name: /Save Crawler/i }).click()
+  // '+ Add weapons system' opens CrawlerSystemsEditModal, whose searcher runs
+  // in toggle mode — click the selectable cell itself, not its prose.
+  await page.getByRole('button', { name: /^Add weapons system$/i }).click()
+  const picker = page.getByRole('dialog')
+  await expect(picker).toBeVisible()
+  const weapon = picker.locator('[aria-pressed="false"], [aria-checked="false"]').first()
+  await expect(weapon).toBeVisible()
+  await weapon.click()
+  await page.keyboard.press('Escape')
+  await expect(picker).toBeHidden()
 
-  // Save navigates back to the detail page — the same record, edited.
-  await page.waitForURL((url) => /\/crawlers\/[^/]+$/.test(url.pathname), {
-    timeout: 15_000,
-  })
-  await expect(page.getByText('Iron Wagon').first()).toBeVisible({
-    timeout: 15_000,
-  })
+  // The bay's installed count is the write-through's visible effect, and it
+  // survives a reload (IndexedDB, same record — no duplicate crawler).
+  await expect(page.getByText('No weapons installed.')).toHaveCount(0)
+
+  await page.reload()
+  await waitForReady(page)
+  await expect(page.getByText('No weapons installed.')).toHaveCount(0)
+  await expect(page.getByText('Iron Wagon').first()).toBeVisible({ timeout: 15_000 })
 })

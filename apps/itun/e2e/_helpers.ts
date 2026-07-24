@@ -134,7 +134,18 @@ export async function advanceUntilVisible(
     const next = page.getByRole('button', { name: /^Next( ·|$)/ }).first()
     await next.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => {})
     if (!(await next.isVisible().catch(() => false))) break
-    if (await next.isDisabled().catch(() => false)) break
+
+    // Next goes briefly disabled while a step swaps in, so a bare
+    // `isDisabled()` here reads a transition as "this step is gated" and ends
+    // the walk early. Give it a bounded chance to settle and only stop when it
+    // stays disabled — that is a genuine gate the caller must satisfy itself.
+    if (await next.isDisabled().catch(() => false)) {
+      const settled = await expect(next)
+        .toBeEnabled({ timeout: 3_000 })
+        .then(() => true)
+        .catch(() => false)
+      if (!settled) break
+    }
     await next.click()
   }
   await expect(target, 'target step should be reachable by advancing the wizard').toBeVisible({
@@ -170,8 +181,13 @@ export async function pickByName(page: Page, name: string): Promise<void> {
  * target that button rather than clicking the card.
  */
 export async function installLoadoutItem(page: Page, name: string): Promise<void> {
-  const add = page.getByRole('button', { name: `Add ${name}` })
-  await expect(add, `"Add ${name}" install button should render`).toBeVisible({
+  // The button reads "Add one <name>" on the craft steps ("one" because
+  // installing the same System/Module twice is rules-legal, so each press
+  // appends a single copy). Accept the bare "Add <name>" too rather than
+  // pinning whichever wording is current.
+  const label = new RegExp(`^Add (one )?${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
+  const add = page.getByRole('button', { name: label })
+  await expect(add, `"Add one ${name}" install button should render`).toBeVisible({
     timeout: 15_000,
   })
   await add.click()

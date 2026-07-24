@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { pickByName, waitForReady, clickNext } from './_helpers'
+import { advanceUntilVisible, buildPilot, openSheetFor, pickByName, waitForReady } from './_helpers'
 
 /**
  * Display verification — confirms that the right *information* renders on
@@ -37,8 +37,10 @@ test.describe('ability cards show their descriptions', () => {
   test('Engineering Expertise card includes its rules text', async ({ page }) => {
     await page.goto('/pilots/new?mode=guided')
     await waitForReady(page)
+    // The first-Ability pool now lives on the SAME step as the class, so the
+    // ability's rules text is on screen as soon as a class is picked — the
+    // clickNext that used to be here advanced past it to Equipment.
     await pickByName(page, 'Engineer')
-    await clickNext(page)
 
     // The description (per SU SRD) mentions "questions" about
     // mechanical/engineering topics. Match a phrase fragment to stay
@@ -54,6 +56,10 @@ test.describe('chassis cards show stats from the SRD', () => {
     await page.goto('/mechs/new?mode=guided')
     await waitForReady(page)
 
+    // The mech wizard opens on the informational "Gain Scrap" step, so the
+    // chassis list is one step in.
+    await advanceUntilVisible(page, page.getByRole('heading', { name: /Craft your Mech Chassis/i }))
+
     // Mule should be present in the chassis row list.
     await expect(page.getByText(/^Mule$/).first()).toBeVisible()
 
@@ -67,59 +73,28 @@ test.describe('chassis cards show stats from the SRD', () => {
 })
 
 test.describe('dashboard surfaces created entities with their identity', () => {
-  test('newly built pilot shows up in the dashboard list with their name', async ({ page }) => {
-    await page.goto('/pilots/new?mode=guided')
-    await waitForReady(page)
-    await pickByName(page, 'Engineer')
-    await clickNext(page)
-    await clickNext(page)
-    await clickNext(page)
-    await page.getByLabel(/^Name/).fill('Display Test Pilot')
-    await page.getByLabel(/Callsign/).fill('DTP')
-    await clickNext(page)
-    await clickNext(page)
-    await page.getByRole('button', { name: /Create Pilot/i }).click()
-
-    // onComplete navigates to '/'; wait for that navigation then assert
-    // immediately — the Zustand in-memory store already holds the created
-    // pilot, so no extra page.goto('/') reload is needed (and adding one
-    // can race with the IndexedDB re-hydration that happens on mount).
-    await page.waitForURL(/\/(pilots\/|$)/, { timeout: 15_000 })
+  test('newly built pilot shows up in the roster with their name', async ({ page }) => {
+    // Drive the wizard through the shared builder rather than a fixed number
+    // of Next clicks — that count was wrong the moment a step was inserted.
+    // buildPilot lands back on the roster.
+    await buildPilot(page, 'Display Test Pilot', 'DTP')
 
     // Name is displayed.
     await expect(page.getByText('Display Test Pilot').first()).toBeVisible({ timeout: 15_000 })
-    // EntityListItem renders a "View" and "Sheet" link for each entity.
+    // EntityRow renders one link per entity, to its live sheet. It is labelled
+    // "View"; the second "Sheet" link this used to expect no longer exists.
     await expect(page.getByRole('link', { name: /^View$/ }).first()).toBeVisible()
-    await expect(page.getByRole('link', { name: /^Sheet$/ }).first()).toBeVisible()
   })
 })
 
 test.describe('sheet renders the right pilot identity', () => {
   test('opening a pilot sheet shows their name and class context', async ({ page }) => {
-    await page.goto('/pilots/new?mode=guided')
-    await waitForReady(page)
-    await pickByName(page, 'Engineer')
-    await clickNext(page)
-    await pickByName(page, 'Engineering Expertise')
-    await clickNext(page)
-    await page.locator('div[role="button"]').first().click()
-    await clickNext(page)
-    await page.getByLabel(/^Name/).fill('Sheet Name')
-    await page.getByLabel(/Callsign/).fill('SN')
-    await clickNext(page)
-    await clickNext(page)
-    await page.getByRole('button', { name: /Create Pilot/i }).click()
-
-    // onComplete navigates to '/'; wait then interact from there — no extra
-    // page.goto('/') needed (avoids IndexedDB re-hydration race on reload).
-    await page.waitForURL(/\/(pilots\/|$)/, { timeout: 15_000 })
+    // buildPilot deterministically picks Engineer, which is what the ability
+    // assertions below depend on.
+    await buildPilot(page, 'Sheet Name', 'SN')
     await expect(page.getByText('Sheet Name').first()).toBeVisible({ timeout: 15_000 })
-    await page
-      .getByRole('link', { name: /^Sheet$/ })
-      .first()
-      .click()
-    await page.waitForURL(/\/sheet\//)
-    await waitForReady(page)
+
+    await openSheetFor(page, 'Sheet Name')
 
     await expect(page.getByText('Sheet Name').first()).toBeVisible()
     // "Engineering Expertise" contains "Engineer" — the ability is resolved
