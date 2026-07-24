@@ -1429,6 +1429,18 @@ function ReferenceEntityCardInner({
   // CRAWLER BAY damaged effect → a red-ghosted, action-card-style callout (the
   // string is filtered out of the body prose above). RED token: `--color-status-bad`.
   const damagedBands = damagedEffect ? ghostActionTone('var(--color-status-bad)') : undefined
+  // WHERE that callout goes depends on whether this card is DOCUMENTING the
+  // effect or SUFFERING it, and `status` is exactly that distinction: a
+  // reference card (SRD bay page) has no condition and reads the effect as part
+  // of the entity's rules, so it stays inline in the body. A condition-tracked
+  // card (the crawler live sheet) has one, so the effect is a STATE: silent
+  // while intact — where an always-on "When Damaged" panel was both the only
+  // thing in the body and a standing false alarm — and a centred overlay
+  // stamped across the card once it actually breaks.
+  const showDamagedEffect = !hide?.damagedEffect && !!damagedEffect && !!damagedBands
+  const damagedIsLive = status !== undefined
+  const inlineDamagedEffect = showDamagedEffect && !damagedIsLive
+  const overlayDamagedEffect = showDamagedEffect && damagedIsLive && status === 'damaged'
 
   // DRONE — a chassis controls a drone (named by a chassis ability); a pattern
   // specifies one. Rendered as a compact drone card + its systems/modules listings,
@@ -1687,6 +1699,32 @@ function ReferenceEntityCardInner({
     <div className={outerClassName} {...outerInteraction}>
       {seam}
       {topRightRail}
+      {/* DAMAGED OVERLAY — the "When Damaged" text stamped across the middle of
+          a live card that is currently broken. `pointer-events-none` is
+          load-bearing: the card underneath keeps every affordance (the status
+          badge that flips it back, the Repair button), and the rail sits at
+          z-30 so it stays above this. z-20 puts the panel over the body without
+          reaching the rail. */}
+      {overlayDamagedEffect && damagedBands && (
+        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center p-3">
+          <div
+            className="max-w-full overflow-hidden rounded-card"
+            style={{ border: `3px solid ${damagedBands.frame}` }}
+          >
+            <div
+              className="flex items-center justify-center px-3 py-1.5"
+              style={{ backgroundColor: damagedBands.header }}
+            >
+              <Badge shape="stamp" size="mini">
+                When Damaged
+              </Badge>
+            </div>
+            <p className="m-0 bg-paper p-2 text-center text-xs leading-snug text-ink">
+              {damagedEffect}
+            </p>
+          </div>
+        </div>
+      )}
       <div
         className="flex flex-1 flex-col overflow-hidden rounded-card bg-paper"
         style={frameStyle}
@@ -1790,7 +1828,7 @@ function ReferenceEntityCardInner({
           {/* CRAWLER BAY "WHEN DAMAGED" callout — action-card style (ghosted
               bands + black name-tab + paper body), tinted from the RED danger
               token so it clearly signals the damaged effect. */}
-          {!hide?.damagedEffect && damagedEffect && damagedBands && (
+          {inlineDamagedEffect && damagedBands && (
             <div
               className="overflow-hidden rounded-card"
               style={{ border: `3px solid ${damagedBands.frame}` }}

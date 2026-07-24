@@ -11,12 +11,16 @@
  *
  *   Identity Band: edge wordmark ∥ Name/Type/Ability/Description fields ∥ the
  *     Economy rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts, built
- *     by SheetCrawler and passed as `economy`) → Bays (3-column `EntityGrid`)
- *     → Armament Bay Weapons (3-column) → Linked Units (bare section, no card
- *     frame) → Storage Bay.
- *   Storage Bay is the FULL-WIDTH band at the very BOTTOM (printed sheet p.2 —
- *     Storage Bay spans the whole width beneath the bays), NOT a full-height
- *     right column.
+ *     by SheetCrawler and passed as `economy`) → Bays (3-column MASONRY
+ *     `EntityGrid`) → Storage Bay (the full-width bay band) → the mounted
+ *     Armament Bay weapons (standalone sealed cards) → Linked Units (bare
+ *     section, no card frame).
+ *   Storage Bay is the FULL-WIDTH band, and it sits WITH the rest of the bays
+ *     rather than at the very bottom of the sheet. It is an installed bay like
+ *     any other, so it used to render twice — once as a grid cell and once as
+ *     this band, in two different regions. The band is the richer rendering
+ *     (Scrap Pool + the unlimited manifest), so it is the only one, and it sits
+ *     where the thing it renders belongs.
  *
  * Economy (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade lozenges) is built by
  * `SheetCrawler` (it owns the economy-dialog state + `patch`) and handed
@@ -27,23 +31,24 @@
  *
  * Bays stay ONE unified grid (no crew/functional split — redesign
  * refinement; the poster's homebrew/custom-bay split is blocked on a
- * data-model flag, #403 — leave unified) as compact entity cards (max 2
- * columns), each with Intact/Damaged status (rules C8), its crew lead as an
- * NpcInset, a "Docks <mech>" one-liner on the Mech Bay, and a
- * function/Repair action pair. Repair decrements 5 Scrap from the
- * crawler-TL pool bucket, spilling into higher buckets — a short pool is
- * advisory, never a block (S12).
+ * data-model flag, #403 — leave unified), each with Intact/Damaged status
+ * (rules C8), its crew lead as an NpcInset, a "Docks <mech>" one-liner on the
+ * Mech Bay, and a function/Repair action pair. Repair decrements 5 Scrap from
+ * the crawler-TL pool bucket, spilling into higher buckets — a short pool is
+ * advisory, never a block (S12). The grid is MASONRY: bays range from a couple
+ * of lines to a full crew inset, and row alignment padded every short bay out
+ * to its tallest neighbour.
  *
- * Armament Bay Weapons — collection section (unified edit language
- * archetype B): always-available '+ Add' opening the existing weapons
- * picker (CrawlerSystemsEditModal), per-card remove (✕). The poster has no
- * region for this (it's live mounted loadout, not a play-control panel, so
- * it's not part of the D6 drop list below) — it gets its own content-column
- * card.
+ * Armament Bay Weapons — NOT a section. Each mounted weapon is a standalone
+ * reference card wearing an "Armament Bay" seam stampseal (top-left) and a
+ * "Change" control on its top-right rail that opens the weapons picker
+ * (CrawlerSystemsEditModal); the per-card remove (✕) rides the same rail. The
+ * section frame that used to hold them restated, in chrome, exactly what the
+ * seal and the Change control say on the card itself.
  *
- * Storage Bay (The Hold) — the unlimited StorageManifest (side='crawler'),
- * in the full-height right rail; ← Load is cap-checked against the docked
- * mech. Keeps the Stow/Load transfer feature.
+ * Storage Bay (The Hold) — the unlimited StorageManifest (side='crawler') over
+ * the Scrap Pool, as the full-width band beneath the bay grid; ← Load is
+ * cap-checked against the docked mech. Keeps the Stow/Load transfer feature.
  *
  * Dropped (redesign D6 — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
@@ -66,7 +71,8 @@
 
 import { useState } from 'react'
 import type { ReactNode, Ref } from 'react'
-import { ReferenceEntityCard, SheetHero, Stat } from 'component-lib'
+import { Badge, ReferenceEntityCard, SheetHero, Stat } from 'component-lib'
+import type { ReferenceEntityControl } from 'component-lib'
 
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
@@ -92,6 +98,13 @@ import { StorageManifest } from './StorageManifest'
 import { CrawlerBayCard } from './CrawlerSheetItems'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { BAY_REPAIR_COST, SCRAP_TLS, resolveCrawlerSystem } from './crawlerSheetItemRules'
+
+/**
+ * The seam stampseal branding every mounted weapon as Armament Bay kit — the
+ * card's own top-left seal slot, which is what replaces the section frame these
+ * cards used to sit inside. Crawler tone, matching the sheet.
+ */
+const ARMAMENT_SEAL = { label: 'Armament Bay', tone: 'var(--color-crawler)' } as const
 
 type CrawlerSheetProps = {
   crawler: Crawler
@@ -163,8 +176,24 @@ export function CrawlerSheet({
   }
 
   const tl = parseCrawlerTechLevel(crawler.techLevel) ?? 1
-  const bays = crawler.crawlerBays ?? []
-  const intactBays = bays.filter((b) => (b.condition ?? 'intact') === 'intact').length
+  const allBays = crawler.crawlerBays ?? []
+  // The Storage Bay is rendered ONCE, as the full-width band below the grid —
+  // it was appearing twice, because it is an installed bay like any other AND
+  // the sheet gives it its own band for the manifest. The band is the richer of
+  // the two (Scrap Pool + cargo lots), so the grid cell is what goes.
+  const isStorageBay = (entry: CrawlerBayEntry) =>
+    entry.bayRef === 'storage-bay' || resolveCrawlerBay(entry.bayRef)?.name === 'Storage Bay'
+  // Carry each entry's ORIGINAL index through the filter. Bays are addressed
+  // POSITIONALLY for writes (`updateCrawlerBay(..., index)`, because a crawler
+  // may install the same bayRef twice), so re-deriving the index from the
+  // filtered array would silently patch the wrong bay for every bay after
+  // Storage — the exact bug a filter over a positionally-addressed list invites.
+  const gridBays = allBays
+    .map((entry, index) => ({ entry, index }))
+    .filter(({ entry }) => !isStorageBay(entry))
+  // The count still reads over ALL installed bays, Storage included — it is a
+  // statement about the crawler, not about how many cells the grid drew.
+  const intactBays = allBays.filter((b) => (b.condition ?? 'intact') === 'intact').length
   const pool = crawler.scrapPool ?? {}
   const lots = crawler.cargoLots ?? []
 
@@ -200,6 +229,28 @@ export function CrawlerSheet({
   /** Remove one mounted weapon (per-card ✕ — archetype B). */
   function removeWeapon(slug: string) {
     patchCrawler((current) => ({ systems: current.systems.filter((s) => s !== slug) }))
+  }
+
+  /**
+   * A mounted weapon's top-right rail: "Change" opens the picker (the whole
+   * armament loadout is edited there), and the remove ✕ stays as the direct
+   * per-card action it already was.
+   */
+  function armamentControls(slug: string): ReferenceEntityControl[] {
+    const system = resolveCrawlerSystem(slug)
+    return [
+      {
+        key: 'change',
+        label: 'Change',
+        ariaLabel: `Change ${system?.name ?? slug}`,
+        title: 'Open the crawler weapons picker',
+        onClick: () => setSystemsModalOpen(true),
+      },
+      ...cardRemoveControls({
+        name: system?.name ?? slug,
+        onRemove: () => removeWeapon(slug),
+      }),
+    ]
   }
 
   /**
@@ -269,27 +320,30 @@ export function CrawlerSheet({
               split). // TODO(redesign): render homebrew/custom bays in a
               separate "Custom Bays" group underneath once the data
               distinguishes them (#403). */}
-          {bays.length > 0 && (
+          {gridBays.length > 0 && (
             <SheetSectionCard
               title="Bays"
               count={
                 <span className="tabular-nums">
-                  {intactBays}/{bays.length} intact
+                  {intactBays}/{allBays.length} intact
                 </span>
               }
             >
-              <EntityGrid columns={3}>
-                {bays.map((entry, i) => {
+              {/* MASONRY — bays vary wildly in height (a Mech Bay carries a crew
+                  inset and a docked-mech line; a Cantina is a couple of lines),
+                  and row alignment padded every short bay out to its tallest
+                  neighbour. */}
+              <EntityGrid columns={3} masonry>
+                {gridBays.map(({ entry, index }) => {
                   const isMechBay =
                     entry.bayRef === 'mech-bay' ||
                     resolveCrawlerBay(entry.bayRef)?.name === 'Mech Bay'
                   return (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: a crawler may install the same bay type more than once, so bayRef alone is not unique; bays are addressed positionally throughout the sheet
-                    <EntityGridRow key={`${entry.bayRef}-${i}`}>
+                    <EntityGridRow key={`${entry.bayRef}-${index}`}>
                       <CrawlerBayCard
                         crawlerId={crawler.id}
                         entry={entry}
-                        index={i}
+                        index={index}
                         crawlerTl={tl}
                         repairShortfall={repairShortfall}
                         onRepair={repairBay}
@@ -305,59 +359,97 @@ export function CrawlerSheet({
             </SheetSectionCard>
           )}
 
-          {/* Armament Bay weapons — crawler weapon systems mount here (Core
-              Book p.213). Collection section: '+ Add' is always available
-              and opens the existing weapons picker; each card carries a
-              remove (✕). */}
-          {(crawler.systems.length > 0 || !readOnly) && (
-            <SheetSectionCard
-              title="Armament Bay Weapons"
-              count={<span className="tabular-nums">{crawler.systems.length}</span>}
-              controls={
-                readOnly ? undefined : (
-                  <SectionAddButton
-                    label="weapons system"
-                    onClick={() => setSystemsModalOpen(true)}
+          {/* ----- Storage Bay — the crawler's OTHER bay, rendered as the
+              full-width band (Scrap Pool + the unlimited manifest) rather than
+              a grid cell, and sitting directly beneath the rest of the bays. It
+              used to render BOTH ways, in two different places on the sheet. ----- */}
+          <SheetSectionCard
+            title="Storage Bay"
+            count={
+              <span className="tabular-nums">
+                {lots.length} {lots.length === 1 ? 'lot' : 'lots'} · unlimited
+              </span>
+            }
+            className="min-w-0"
+          >
+            {/* Scrap Pool — the crawler's abstract TL-bucketed scrap store (rules
+                S12; the bucket bay-repair spends). Per-tech-level `Stat` steppers
+                let a crawler stow arbitrary scrap by hand (Free Edit). The
+                physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
+            <div className="mb-4 border-b border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pb-4">
+              <span
+                className="mb-2 block font-cond text-label font-bold uppercase leading-none tracking-caps"
+                style={{ color: 'var(--tone-deep, var(--color-ink))' }}
+              >
+                Scrap Pool
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {SCRAP_TLS.map((t) => (
+                  <Stat
+                    key={t}
+                    label={`T${t}`}
+                    value={scrapPoolBucket(pool, t)}
+                    min={0}
+                    size="mini"
+                    mode={readOnly ? 'read' : 'edit'}
+                    ariaLabel={`Tech ${t} scrap`}
+                    onChange={readOnly ? undefined : (next) => setScrapBucket(t, next)}
                   />
+                ))}
+              </div>
+            </div>
+            <StorageManifest
+              side="crawler"
+              cargo={cargo}
+              mechName={mech?.name ?? null}
+              crawlerName={crawler.name}
+              readOnly={readOnly}
+            />
+          </SheetSectionCard>
+
+          {/* Armament Bay weapons — crawler weapon systems mount here (Core
+              Book p.213). NOT its own section row: each mounted weapon is a
+              STANDALONE reference card branded with an "Armament Bay" seam
+              stampseal (top-left) and a "Change" control on the top-right rail
+              that opens the weapons picker. The section frame, its title, its
+              count and the separate '+ Add' button were all chrome restating
+              what the seal and the Change control already say. */}
+          {crawler.systems.length > 0 && (
+            <div className="flex min-w-0 flex-col gap-6">
+              {crawler.systems.map((slug) => {
+                const system = resolveCrawlerSystem(slug)
+                return system ? (
+                  <ReferenceEntityCard
+                    key={slug}
+                    data={system}
+                    size="medium"
+                    parentSeal={ARMAMENT_SEAL}
+                    controls={readOnly ? undefined : armamentControls(slug)}
+                    cardStyle={readOnly ? undefined : REMOVABLE_CARD_STYLE}
+                  />
+                ) : (
+                  <div
+                    key={slug}
+                    className="flex items-center justify-between gap-2 rounded border border-ink px-2 py-1 text-sm text-wk-muted"
+                  >
+                    <span className="min-w-0 truncate">{slug}</span>
+                    {!readOnly && (
+                      <CardRemoveButton name={slug} onRemove={() => removeWeapon(slug)} />
+                    )}
+                  </div>
                 )
-              }
-            >
-              {crawler.systems.length === 0 ? (
-                <p className="font-body text-caption text-wk-muted">No weapons mounted.</p>
-              ) : (
-                <EntityGrid columns={3}>
-                  {crawler.systems.map((slug) => {
-                    const system = resolveCrawlerSystem(slug)
-                    return (
-                      <EntityGridRow key={slug}>
-                        {system ? (
-                          <ReferenceEntityCard
-                            data={system}
-                            size="medium"
-                            controls={
-                              readOnly
-                                ? undefined
-                                : cardRemoveControls({
-                                    name: system.name,
-                                    onRemove: () => removeWeapon(slug),
-                                  })
-                            }
-                            cardStyle={readOnly ? undefined : REMOVABLE_CARD_STYLE}
-                          />
-                        ) : (
-                          <div className="flex items-center justify-between gap-2 rounded border border-ink px-2 py-1 text-sm text-wk-muted">
-                            <span className="min-w-0 truncate">{slug}</span>
-                            {!readOnly && (
-                              <CardRemoveButton name={slug} onRemove={() => removeWeapon(slug)} />
-                            )}
-                          </div>
-                        )}
-                      </EntityGridRow>
-                    )
-                  })}
-                </EntityGrid>
-              )}
-            </SheetSectionCard>
+              })}
+            </div>
+          )}
+          {/* Nothing mounted — the Change affordance still has to exist, so the
+              empty state IS the seal + Change, with no card under it. */}
+          {crawler.systems.length === 0 && !readOnly && (
+            <div className="flex items-center justify-between gap-3">
+              <Badge shape="stamp" size="mini">
+                Armament Bay
+              </Badge>
+              <SectionAddButton label="weapons system" onClick={() => setSystemsModalOpen(true)} />
+            </div>
           )}
         </div>
 
@@ -367,53 +459,6 @@ export function CrawlerSheet({
           <Slab variant="solid" label="Linked Units" />
           <div className="flex flex-col gap-4">{linkedUnits}</div>
         </div>
-
-        {/* ----- Storage Bay — the FULL-WIDTH bottom band (printed crawler
-            sheet p.2: Storage Bay spans the whole width beneath the bays), not
-            a full-height right column. ----- */}
-        <SheetSectionCard
-          title="Storage Bay"
-          count={
-            <span className="tabular-nums">
-              {lots.length} {lots.length === 1 ? 'lot' : 'lots'} · unlimited
-            </span>
-          }
-          className="min-w-0"
-        >
-          {/* Scrap Pool — the crawler's abstract TL-bucketed scrap store (rules
-              S12; the bucket bay-repair spends). Per-tech-level `Stat` steppers
-              let a crawler stow arbitrary scrap by hand (Free Edit). The
-              physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
-          <div className="mb-4 border-b border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pb-4">
-            <span
-              className="mb-2 block font-cond text-label font-bold uppercase leading-none tracking-caps"
-              style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-            >
-              Scrap Pool
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {SCRAP_TLS.map((t) => (
-                <Stat
-                  key={t}
-                  label={`T${t}`}
-                  value={scrapPoolBucket(pool, t)}
-                  min={0}
-                  size="mini"
-                  mode={readOnly ? 'read' : 'edit'}
-                  ariaLabel={`Tech ${t} scrap`}
-                  onChange={readOnly ? undefined : (next) => setScrapBucket(t, next)}
-                />
-              ))}
-            </div>
-          </div>
-          <StorageManifest
-            side="crawler"
-            cargo={cargo}
-            mechName={mech?.name ?? null}
-            crawlerName={crawler.name}
-            readOnly={readOnly}
-          />
-        </SheetSectionCard>
       </div>
 
       {/* The weapons picker — the existing master-detail modal, mounted

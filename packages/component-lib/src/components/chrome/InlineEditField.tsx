@@ -31,11 +31,30 @@ type InlineEditFieldProps = {
   placeholder?: string
   /** Strip the edit affordance — renders as plain text only. */
   readOnly?: boolean
+  /**
+   * The GROUND the resting readout sits on. `ink` (default) is the normal
+   * paper-ground field: ink text, muted placeholder, ink hover wash. `paper`
+   * inverts it for a field sitting ON an ink surface (the `Inset` head bar).
+   *
+   * This is a prop rather than a `className` override because the readout's
+   * colour is set on the INNER display span, not the wrapper `className` lands
+   * on — so passing `text-paper` from outside left the hardcoded `text-ink`
+   * standing and rendered the crawler bay's crew-lead name black on the black
+   * head bar. The three colours (text, placeholder, hover wash) also have to
+   * move together; a single class override could only ever fix one of them.
+   */
+  tone?: 'ink' | 'paper'
   ariaLabel?: string
   className?: string
 }
 
 const ERROR_SKIN = 'border-status-bad focus:ring-status-bad/25'
+
+/** Resting-readout colours per ground: text, empty-placeholder, hover wash. */
+const READOUT_TONE = {
+  ink: { text: 'text-ink', empty: 'text-wk-muted', hover: 'hover:bg-ink-8' },
+  paper: { text: 'text-paper', empty: 'text-paper/60', hover: 'hover:bg-paper/15' },
+} as const
 
 // ---------------------------------------------------------------------------
 // Component — the pure edit-in-place engine. Labelling + the straddling stamp
@@ -53,9 +72,11 @@ export function InlineEditField({
   bordered = false,
   placeholder,
   readOnly = false,
+  tone = 'ink',
   ariaLabel,
   className,
 }: InlineEditFieldProps) {
+  const readout = READOUT_TONE[tone]
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -141,12 +162,13 @@ export function InlineEditField({
           // The display state is the tap target that opens the editor, so it
           // keeps a 44px minimum in BOTH layouts — dropping to min-h-9 would
           // have silently shrunk it below the touch target.
-          'inline-flex min-h-11 items-center font-body font-bold text-ink',
+          'inline-flex min-h-11 items-center font-body font-bold',
+          readout.text,
           // Bordered mode fills its value box; plain mode stays inline.
           bordered && 'w-full rounded-card px-3',
-          !hasValue && 'font-normal text-wk-muted',
+          !hasValue && cn('font-normal', readout.empty),
           !readOnly &&
-            cn('cursor-pointer hover:bg-ink-8', INPUT_FOCUS, !bordered && 'rounded-card px-1')
+            cn('cursor-pointer', readout.hover, INPUT_FOCUS, !bordered && 'rounded-card px-1')
         )}
       >
         {hasValue ? value : (placeholder ?? '—')}

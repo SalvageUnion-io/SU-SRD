@@ -4,10 +4,15 @@
  * lead (rules C11: name, keepsake, detail, 4 HP).
  *
  * Composes the shared `Inset` (style-unification pass §3 — the boxed
- * sub-panel: 1.5px ink frame on paper, ink head bar): a pink 'CREW' tag +
- * the lead's (editable) name on the head bar, their SRD role title riding
- * the right edge; body = sm HP Stat beside quiet Keepsake/Detail/Facts id
- * lines.
+ * sub-panel: 1.5px ink frame on paper, ink head bar). Head bar, left to right:
+ * a pink tag carrying the lead's SRD role as a definite-article title ("THE
+ * DOC"), the lead's (editable) name, then the HP `Stat` riding the right edge.
+ * Body = the quiet Keepsake/Motto/Detail/Facts id lines.
+ *
+ * The head bar previously read `[CREW] Name … greaser`: a generic tag, and the
+ * role as muted right-edge text. The role is the informative half of that pair
+ * and the literal "Crew" was restating the inset's own position inside a bay
+ * card, so the role took the tag and HP took the freed right edge.
  *
  * Persistence stays with the caller: name/HP/detail/facts patch the crawler's
  * bay entry; keepsake persists through the bay's SRD freeform 'Keepsake'
@@ -102,7 +107,11 @@ export function NpcInset({
     <div role="group" aria-label={`${bayName} crew lead`}>
       <Inset
         tone="crawler"
-        tag="Crew"
+        // The head-bar tag is the lead's SRD ROLE, definite-article'd — "THE
+        // DOC", not a generic "CREW" keyword. The tag slot already reads as
+        // "what this person is", so the role belongs there and the literal
+        // "Crew" said nothing the inset's position inside a bay card didn't.
+        tag={title ? `The ${title}` : undefined}
         label={
           onNameChange ? (
             <InlineEditField
@@ -110,32 +119,32 @@ export function NpcInset({
               onSave={(next) => onNameChange(String(next))}
               type="text"
               ariaLabel={`Edit ${bayName} crew name`}
-              className="text-paper"
+              // The head bar is ink — the readout has to invert with it. A
+              // `text-paper` className could not do this: it lands on the
+              // wrapper, leaving the readout's own `text-ink` standing (which
+              // is exactly how this rendered black on black).
+              tone="paper"
             />
           ) : (
             name || '—'
           )
         }
+        // HP rides the head bar's right edge — the vital is the thing you read
+        // and poke most, so it sits on the bar rather than leading the body.
         headRight={
-          title ? (
-            <span className="font-cond text-micro uppercase leading-none tracking-caps text-paper/60">
-              {title}
-            </span>
+          maxHp > 0 ? (
+            <Stat
+              label="HP"
+              value={hp}
+              max={maxHp}
+              size="mini"
+              mode={onHpChange ? 'edit' : 'read'}
+              onChange={onHpChange}
+            />
           ) : undefined
         }
         bodyClassName="flex flex-wrap items-start gap-3"
       >
-        {maxHp > 0 && (
-          <Stat
-            label="HP"
-            value={hp}
-            max={maxHp}
-            size="mini"
-            mode={onHpChange ? 'edit' : 'read'}
-            onChange={onHpChange}
-          />
-        )}
-
         <dl className="m-0 min-w-0 flex-1 space-y-1.5">
           <NpcRow label="Keepsake">
             {onKeepsakeChange ? (

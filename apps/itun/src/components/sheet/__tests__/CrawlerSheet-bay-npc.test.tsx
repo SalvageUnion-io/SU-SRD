@@ -140,7 +140,9 @@ describe('CrawlerSheet — crew lead identity (NpcInset)', () => {
 
     const inset = screen.getByLabelText('Command Bay crew lead')
     expect(within(inset).getByText('Dax Orsund')).toBeTruthy()
-    expect(within(inset).getByText('Princeps')).toBeTruthy()
+    // The SRD role is the head-bar tag now, definite-article'd ("THE PRINCEPS"),
+    // replacing the generic "Crew" tag it used to sit beside.
+    expect(within(inset).getByText('The Princeps')).toBeTruthy()
     expect(within(inset).getByText('A stern veteran.')).toBeTruthy()
   })
 

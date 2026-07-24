@@ -66,6 +66,43 @@ describe('EntityGridRow — mode card (default)', () => {
   })
 })
 
+describe('EntityGrid — masonry', () => {
+  afterEach(cleanup)
+
+  test('packs by column, and keeps the break/rhythm rules that make it work', () => {
+    const { container } = render(
+      <EntityGrid columns={3} masonry>
+        <EntityGridRow>
+          <StubCard />
+        </EntityGridRow>
+      </EntityGrid>
+    )
+    const grid = rootEl(container)
+    expect(grid.className).toContain('columns-1')
+    expect(grid.className).toContain('md:columns-2')
+    expect(grid.className).toContain('xl:columns-3')
+    // Without these two a multi-column box slices cards across column
+    // boundaries and loses the row rhythm entirely — they are not decoration.
+    expect(grid.className).toContain('[&>*]:break-inside-avoid')
+    expect(grid.className).toContain('[&>*]:mb-6')
+    // The row grid's equal-height stretch is the thing masonry exists to drop.
+    expect(grid.className).not.toContain('items-stretch')
+  })
+
+  test('is opt-in — the default stays the equal-height row grid', () => {
+    const { container } = render(
+      <EntityGrid columns={3}>
+        <EntityGridRow>
+          <StubCard />
+        </EntityGridRow>
+      </EntityGrid>
+    )
+    const grid = rootEl(container)
+    expect(grid.className).toContain('items-stretch')
+    expect(grid.className).not.toContain('columns-1')
+  })
+})
+
 describe('EntityGridRow — mode rail', () => {
   afterEach(cleanup)
 

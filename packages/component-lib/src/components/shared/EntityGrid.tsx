@@ -33,14 +33,50 @@ type EntityGridProps = {
    * still steps down to 2 at tablet and 1 on mobile so a card never crushes.
    */
   columns?: 2 | 3
+  /**
+   * MASONRY: pack cards by column instead of by row, so each card is only as
+   * tall as its own content and the next one starts immediately beneath it.
+   *
+   * The default row grid stretches every card in a row to the tallest of them
+   * (`items-stretch`), which is right when the cards are peers of similar
+   * weight and wrong when they are not — a crawler's bays range from a one-line
+   * Storage Bay to a Mech Bay carrying a crew inset and a docked-mech line, and
+   * row alignment gave every short bay a slab of dead paper to match its
+   * tallest neighbour.
+   *
+   * Implemented with CSS multi-column, not `grid-template-rows: masonry`, which
+   * is still not in a stable browser. That choice has one visible consequence
+   * worth knowing: multi-column fills columns top-to-bottom, so reading order
+   * runs DOWN each column rather than across each row.
+   */
+  masonry?: boolean
   className?: string
 }
 
 /**
  * Entity-card grid — 1 column on mobile, up to `columns` on desktop (default
- * 2), equal-height rows. Gap rhythm: 26px between rows, 18px between columns.
+ * 2). Rows are equal-height by default; `masonry` packs by column instead.
+ * Gap rhythm: 26px between rows, 18px between columns.
  */
-export function EntityGrid({ children, columns = 2, className }: EntityGridProps) {
+export function EntityGrid({ children, columns = 2, masonry = false, className }: EntityGridProps) {
+  if (masonry) {
+    return (
+      <div
+        className={cn(
+          // `gap` is column-gap in a multi-column box; the row rhythm is the
+          // children's own bottom margin, and `break-inside-avoid` is what stops
+          // a card being sliced across a column boundary. Both are applied from
+          // here rather than in EntityGridRow so the row primitive stays
+          // layout-agnostic and every child (row-wrapped or bare) is covered.
+          'columns-1 gap-4 md:columns-2 [&>*]:mb-6 [&>*]:break-inside-avoid',
+          columns === 3 && 'xl:columns-3',
+          className
+        )}
+      >
+        {children}
+      </div>
+    )
+  }
   return (
     <div
       className={cn(

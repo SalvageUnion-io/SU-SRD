@@ -155,7 +155,10 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
 
     const inset = screen.getByLabelText('Battle crew lead')
     expect(within(inset).getByText('Vex')).toBeTruthy()
-    expect(within(inset).getByText('Grizzled Veteran')).toBeTruthy()
+    // The SRD role is the inset's head-bar tag, definite-article'd — the tag
+    // slot used to carry a generic "Crew" and the role sat as muted right-edge
+    // text; they swapped, and HP took the freed right edge.
+    expect(within(inset).getByText('The Grizzled Veteran')).toBeTruthy()
   })
 
   test('renders the type NPC Keepsake/Motto from bayChoices keyed by the type ref', async () => {

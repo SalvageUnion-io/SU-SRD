@@ -32,8 +32,13 @@ const BAY_FUNCTIONS: Record<string, string> = {
   Cantina: 'Rumour',
 }
 
-/** Stable hide literal — the bay's long rules text lives in the detail modal. */
-const HIDE_BAY_CONTENT = { content: true } as const
+// Nothing is hidden on a bay card any more. It used to hide `content` — which,
+// combined with the card's then-unconditional "When Damaged" callout, left an
+// intact bay rendering as nothing but a standing damage warning. The card now
+// shows its actual content, and (because this card passes `status`) routes the
+// damaged effect into a centred overlay that appears only while the bay is
+// broken. Both halves live in ReferenceEntityCard; there is no hide config to
+// state here.
 
 type CrawlerBayCardProps = {
   crawlerId: string
@@ -172,11 +177,10 @@ export function CrawlerBayCard({
   )
 
   const functionLabel = BAY_FUNCTIONS[bay.name] ?? 'Use'
-  const leadName = entry.npcName?.trim() ? entry.npcName : (npc?.position ?? '—')
-  const footMeta: CardFootMeta[] = [
-    { label: 'Lead', value: leadName },
-    ...(damaged ? [{ label: 'Repair', value: `5·T${crawlerTl}` }] : []),
-  ]
+  // The crew lead is NOT footer meta — the NpcInset directly above states the
+  // name (and now the role) in full, so a "Lead · <name>" pair in the foot was
+  // repeating the inset's own head bar one row below it.
+  const footMeta: CardFootMeta[] = damaged ? [{ label: 'Repair', value: `5·T${crawlerTl}` }] : []
 
   // Damaged disables the function action and promotes Repair (design §4.4 /
   // interaction pattern 8). Both ride the standard controls overlay — no footer.
@@ -216,7 +220,6 @@ export function CrawlerBayCard({
       <ReferenceEntityCard
         data={cardData}
         size="medium"
-        hide={HIDE_BAY_CONTENT}
         status={condition}
         onStatusClick={readOnly ? undefined : toggleCondition}
         selections={selections}
