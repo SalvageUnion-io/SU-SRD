@@ -29,6 +29,18 @@ type EntityCardHeaderProps = {
   compact?: boolean
 }
 
+/** Title column beside flavour PROSE. Base = its own content width, so a name
+ * that fits beside the description's ask keeps its single line; `shrink-[20]`
+ * makes it absorb the overflow past that. No `min-w-0` (min-content floor — it
+ * wraps at spaces, never mid-word) and a loose ceiling that won't clamp that
+ * floor. The full rationale + measurements live in the width-allocation comment
+ * below; this is shared so the compact and full rows can't drift apart. */
+const TITLE_VS_PROSE = 'max-w-[75%] shrink-[20]'
+/** Description column: asks for 55% of the band, grows past it when the title
+ * doesn't need its share, and yields below it when the title's longest word
+ * demands the room. */
+const PROSE_COLUMN = 'flex-[1_1_55%]'
+
 /**
  * EntityCardHeader — the unified card's HEADER band (the tone).
  *
@@ -83,33 +95,47 @@ export function EntityCardHeader({
   // - STAT CLUSTER only → stats are bounded, so they RESERVE their content
   //   width and the title yields into the remainder (the original
   //   title-overlapping-the-stats fix — kept).
-  // - FLAVOUR PROSE → two arbitrary-length texts share one row, so neither
-  //   side may reserve a FIXED share: both are `flex-auto`, whose flex base is
-  //   each side's own max-content width, so the overflow is absorbed in
-  //   PROPORTION to how much text each actually has (both shrink by the same
-  //   factor, leaving each side's width proportional to its own text). A fixed
-  //   60/40 handed the title 60% whether it needed it or not — "Mass Field
-  //   Maintenance" wrapped to two lines in a 60% box beside a description
-  //   crushed into four, which is the whitespace this replaces.
+  // - FLAVOUR PROSE → the description ASKS for 55% (`flex-[1_1_55%]`) and the
+  //   title yields into what's left, but only once it has to. The title's flex
+  //   base is its own content width, so while it fits in the remaining ~45% it
+  //   is untouched and keeps its single line; past that the shrink factor (20×
+  //   the description's) makes it absorb essentially all the overflow, wrapping
+  //   down toward its longest word instead of holding a share it isn't filling.
   //
-  //   This is ALSO what keeps the one-letter-per-line regression fixed, and by
-  //   a stronger guarantee than the fixed cap it replaces: the title can never
-  //   fall below its proportional share (a description three times its length
-  //   still leaves it a quarter of the row), where the old rule let the title
-  //   take ALL of the shrink because the prose reserved content width against
-  //   the title's zero basis. The 60% ceiling stays; `min-w-0` stays too, so a
-  //   title too long for a narrow card still breaks (`break-words`) instead of
-  //   forcing the row wider than the card.
+  //   That last part is the fix. A name too long for one line used to sit at
+  //   the flat 60% cap and wrap INSIDE it, so "Mass Field Maintenance" showed
+  //   two lines of title, four of description, and a ~110px dead channel down
+  //   the middle. Measured in-browser over the Engineer + Fabricator trees at
+  //   1440/768/390: the two worst cards drop from 4 description lines to 2–3,
+  //   total header height falls 680px→648px, and every title that already fit
+  //   on one line still does.
+  //
+  //   55% is a safe ask because a description is never short — across the 100
+  //   abilities that carry one the minimum is 34 characters (median 67), which
+  //   wants more than half the band at every card width.
+  //
+  //   Two details are load-bearing, both learned by measuring:
+  //   · The title has NO `min-w-0`, so its automatic minimum is min-content and
+  //     it can be squeezed to one word per line but never INTO one. Without it
+  //     `break-words` splits names mid-word ("ENGINEERIN / G EXPERTISE").
+  //   · The 75% ceiling is deliberately loose. `max-width` also clamps that
+  //     min-content floor, so the old 60% cap re-introduced mid-word breaks on
+  //     narrow cards — at 768px it split "Engineerin|g" and "Maintenan|ce"
+  //     before this change too. The description's ask, not the ceiling, is what
+  //     bounds the title in practice.
+  //   · The ask is a BASIS, not a `min-width`: a hard floor cannot yield to
+  //     that min-content floor, and the two together overflow the card on
+  //     narrow screens.
   const hasProse = !!rightContent
   const hasRight = !!(rightContent || statsNode)
 
   // COMPACT: the title + flavor/stat cluster share ONE row and split the width
   // dynamically — the cluster never wraps beneath the title, each side wraps
-  // WITHIN its own space. Against PROSE both sides are `flex-auto` and split in
-  // proportion to their own text (see the rule above); against a bounded STAT
-  // cluster the title takes up to 60% and the cluster (flex-1, basis 0 — so it
-  // can never starve the title) takes the rest; with nothing beside it the
-  // title takes the full row.
+  // WITHIN its own space. Against a bounded STAT cluster the title takes up to
+  // 60% and the cluster (flex-1, basis 0 — so it can never starve the title)
+  // takes the rest; against PROSE the description asks for 55% and the title
+  // yields (see the rule above); with nothing beside it the title takes the
+  // full row.
   if (compact) {
     return (
       <div
@@ -123,8 +149,7 @@ export function EntityCardHeader({
       >
         <div
           className={cn(
-            'min-w-0',
-            hasProse ? 'max-w-[60%] flex-auto' : hasRight ? 'max-w-[60%]' : 'flex-1'
+            hasProse ? TITLE_VS_PROSE : hasRight ? 'min-w-0 max-w-[60%]' : 'min-w-0 flex-1'
           )}
         >
           {titleNode}
@@ -133,7 +158,7 @@ export function EntityCardHeader({
           <div
             className={cn(
               'flex min-w-0 flex-wrap items-center justify-end gap-2',
-              hasProse ? 'flex-auto' : 'flex-1'
+              hasProse ? PROSE_COLUMN : 'flex-1'
             )}
           >
             {rightContent}
@@ -154,23 +179,20 @@ export function EntityCardHeader({
     >
       {/* Stats-only (or empty) right side: the title is the FLEXIBLE side — it
           grows into the free space and wraps within it, yielding first so it can
-          never run under the stats. With PROSE on the right neither side is
-          fixed: both are `flex-auto`, so each is sized from its own max-content
-          and they absorb the overflow proportionally, the title still capped at
-          60%. */}
-      <div className={cn('min-w-0', hasProse ? 'max-w-[60%] flex-auto' : 'flex-1')}>
-        {titleNode}
-      </div>
+          never run under the stats. With PROSE on the right the title keeps its
+          content width while it fits beside the description's 55% ask, and
+          yields past that — see the rule above. */}
+      <div className={cn(hasProse ? TITLE_VS_PROSE : 'min-w-0 flex-1')}>{titleNode}</div>
       {hasRight && (
         // Stats-only: the cluster reserves its own width (it doesn't grow, and
         // holds content size until the title is fully collapsed) and wraps
         // internally, so it is never overlapped and never clipped off the card
-        // edge. With prose the cluster is flex-auto: its base is the prose's own
-        // max-content, so it gives up width in proportion to the title's.
+        // edge. With prose it asks for 55% and grows past it when the title
+        // doesn't need its share.
         <div
           className={cn(
             'flex min-w-0 flex-wrap items-center justify-end gap-2',
-            hasProse && 'flex-auto'
+            hasProse && PROSE_COLUMN
           )}
         >
           {rightContent}
