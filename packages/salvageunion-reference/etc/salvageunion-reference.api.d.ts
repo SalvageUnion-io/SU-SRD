@@ -263,12 +263,6 @@ export {};
  */
 import type { SURefObjectContentBlock, SURefObjectDataValue } from './types/index.js';
 /**
- * Extract the string value from a paragraph content block
- * @param content - Array of content blocks
- * @returns The string value from the first paragraph block, or undefined if not found
- */
-export declare function getParagraphString(content: SURefObjectContentBlock[] | undefined): string | undefined;
-/**
  * Replace [(CHASSIS)] placeholder with actual chassis name, prefixed with "The"
  *
  * @param text - Text that may contain [(CHASSIS)] placeholders
@@ -490,8 +484,7 @@ export declare const SCHEMA_REGISTRY: {
  * Helper functions for common operations on Salvage Union reference data
  * These functions provide convenient access patterns used by consuming applications
  */
-import type { SURefAbility, SURefChassis, SURefClass, SURefCrawler, SURefMetaCrawlerTechLevel, SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass, SURefObjectCrawlerMutation } from './types/index.js';
-import type { EntitySchemaName } from './index.js';
+import type { SURefChassis, SURefCrawler, SURefMetaCrawlerTechLevel, SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass, SURefObjectCrawlerMutation } from './types/index.js';
 import type { ModelWithMetadata } from './BaseModel.js';
 import { type EnhancedSchemaMetadata } from './ModelFactory.js';
 /**
@@ -521,39 +514,6 @@ export declare function getModel(schemaName: string | SURefEnumSchemaName): Mode
  */
 export declare function resolveGrantedEntities(entity: SURefEntity): SURefEntity[];
 /**
- * Get a map of all schema names to their models
- * Useful for dynamic model access
- */
-export declare function getModelMap(): Record<SURefEnumSchemaName, ModelWithMetadata<SURefEntity>>;
-/**
- * Find an entity by ID in any schema (only works with entity schemas, not meta schemas)
- * @param schemaName - The schema to search in (must be an entity schema)
- * @param id - The entity ID
- * @returns The entity or undefined if not found
- */
-export declare function findById<T extends SURefEntity>(schemaName: EntitySchemaName, id: string): T | undefined;
-/**
- * Get the name of an entity by ID with fallback (only works with entity schemas, not meta schemas)
- * @param schemaName - The schema to search in (must be an entity schema)
- * @param id - The entity ID
- * @param fallback - Fallback string if entity not found (default: 'Unknown')
- * @returns The entity name or fallback
- */
-export declare function getNameById(schemaName: EntitySchemaName, id: string | null, fallback?: string): string;
-/**
- * Type guard to check if a class is a base class (has coreTrees)
- */
-export declare function isBaseClass(cls: SURefClass): cls is SURefClass & {
-    coreTrees: string[];
-};
-/**
- * Get all base classes (classes with coreTrees)
- * @returns Array of base classes
- */
-export declare function getCoreClasses(): (SURefClass & {
-    schemaName: string;
-})[];
-/**
  * Get all hybrid classes (classes with hybrid=true)
  * @returns Array of hybrid classes
  */
@@ -561,52 +521,11 @@ export declare function getHybridClasses(): (SURefObjectAdvancedClass & {
     schemaName: string;
 })[];
 /**
- * Get all base classes with advanced/legendary trees (advanceable base classes)
- * @returns Array of advanceable base classes
- */
-export declare function getAdvanceableClasses(): SURefClass[];
-/**
- * Find a base class by name
- * @param className - Name of the class to find
- * @returns The base class or undefined if not found
- */
-export declare function findCoreClass(className: string): SURefClass | undefined;
-/**
- * Find a hybrid class by name
- * @param className - Name of the class to find
- * @returns The hybrid class or undefined if not found
- */
-export declare function findHybridClass(className: string): SURefObjectAdvancedClass | undefined;
-/**
- * Find an advanced class by name (base class that has advancedTree)
- * @param className - Name of the base class to find
- * @returns The base class with advanced tree or undefined if not found
- */
-export declare function findAdvancedClass(className: string): SURefClass | undefined;
-/**
- * Find a class by name across all class types (base, hybrid)
- * @param className - Name of the class to find
- * @returns The class or undefined if not found
- */
-export declare function findClass(className: string): SURefClass | undefined;
-/**
- * Get chassis that have patterns
- * @returns Array of chassis with patterns
- */
-export declare function getChassisWithPatterns(): SURefChassis[];
-/**
  * Find a chassis by ID
  * @param chassisId - The ID of the chassis to find
  * @returns The chassis or undefined if not found
  */
 export declare function findChassisById(chassisId: string): SURefChassis | undefined;
-/**
- * Get chassis name by ID with fallback
- * @param chassisId - The ID of the chassis to find
- * @param fallback - Fallback string if chassis not found (default: 'Unknown')
- * @returns The chassis name or fallback
- */
-export declare function getChassisNameById(chassisId: string | null, fallback?: string): string;
 /**
  * Find a crawler by ID
  * @param crawlerId - The ID of the crawler to find
@@ -615,13 +534,6 @@ export declare function getChassisNameById(chassisId: string | null, fallback?: 
 export declare function findCrawlerById(crawlerId: string): (SURefCrawler & {
     schemaName: string;
 }) | undefined;
-/**
- * Get crawler name by ID with fallback
- * @param crawlerId - The ID of the crawler to find
- * @param fallback - Fallback string if crawler not found (default: 'Unknown')
- * @returns The crawler name or fallback
- */
-export declare function getCrawlerNameById(crawlerId: string | null, fallback?: string): string;
 /**
  * Get all mutations for a crawler type by ID
  * @param crawlerId - The crawler type ID
@@ -657,35 +569,11 @@ export declare function findCrawlerTechLevel(techLevel: number): (SURefMetaCrawl
     schemaName: string;
 }) | undefined;
 /**
- * Get structure points for a tech level with fallback
- * @param techLevel - The tech level number (or 'B'/'N' which are treated as 1)
- * @param fallback - Fallback number if tech level not found (default: 20)
- * @returns The structure points or fallback
- */
-export declare function getStructurePointsForTechLevel(techLevel: number | 'B' | 'N' | null, fallback?: number): number;
-/**
- * Get abilities by level
- * @param level - The ability level
- * @returns Array of abilities at that level
- */
-export declare function getAbilitiesByLevel(level: number): (SURefAbility & {
-    schemaName: string;
-})[];
-/**
  * Get all tech levels as an array of numbers
  * Derived from crawler-tech-levels data
  * @returns Array of tech level numbers (1-6)
  */
 export declare function getTechLevels(): readonly number[];
-/**
- * Minimum tech level (always 1)
- */
-export declare const MIN_TECH_LEVEL = 1;
-/**
- * Maximum tech level
- * Derived from crawler-tech-levels data
- */
-export declare function getMaxTechLevel(): number;
 /**
  * Get scrap conversion rate for a tech level
  * Each tech level is worth its numeric value in TL1 scrap
@@ -695,56 +583,11 @@ export declare function getMaxTechLevel(): number;
  */
 export declare function getScrapConversionRate(techLevel: number | 'B' | 'N'): number;
 /**
- * Get all scrap conversion rates as a record
- * @returns Record mapping tech level to conversion rate
- */
-export declare function getScrapConversionRates(): Record<number, number>;
-/**
- * Pilot default values
- * These are standard starting values for pilots
- */
-export declare const PILOT_DEFAULTS: {
-    readonly maxHP: 10;
-    readonly maxAP: 5;
-    readonly startingTP: 0;
-    readonly inventorySlots: 6;
-};
-/**
- * Crawler default values
- * Derived from crawler-tech-levels data (TL1 defaults)
- */
-export declare const CRAWLER_DEFAULTS: {
-    readonly initialTechLevel: 1;
-    readonly baseStructurePoints: 20;
-    readonly baseUpgrade: 0;
-};
-/**
- * Mech default values
- * Standard starting values for mechs
- */
-export declare const MECH_DEFAULTS: {
-    readonly startingDamage: 0;
-    readonly startingHeat: 0;
-};
-/**
- * Crawler upkeep and upgrade rules
- * Upkeep cost increases by `step` scrap per tech level; max upgrade cap.
- */
-export declare const UPKEEP_RULES: {
-    readonly step: 5;
-    readonly maxUpgrade: 25;
-};
-/**
  * Resolve the activation currency for a given schema/entity category.
  * Mech-level sources (chassis, systems, modules) cost EP; variable-cost abilities
  * cost XP; everything else costs AP.
  */
 export declare function resolveActivationCurrency(schemaName: SURefEnumSchemaName | 'actions' | undefined, variable?: boolean): 'AP' | 'EP' | 'XP';
-/**
- * Get the list of action types from the ActionType enum schema.
- * Returns the canonical values: Passive, Free, Reaction, Turn, Short, Long, DownTime.
- */
-export declare function getActionTypes(): string[];
 /**
  * Get all entity schemas (non-meta schemas)
  * Filters out meta schemas like actions, ability-tree-requirements, etc.
@@ -834,7 +677,7 @@ export { rollOnTable, type RollOnTableOutcome, type D20Roller } from './rollOnTa
 export * from './utilities.js';
 export * from './helpers.js';
 export { nameToSlug, getEntitySlug, findEntityBySlug } from './slug.js';
-export { getParagraphString, replaceChassisPlaceholder, parseContentBlockString, resolveDataValueForTechLevel, } from './contentBlockHelpers.js';
+export { replaceChassisPlaceholder, parseContentBlockString, resolveDataValueForTechLevel, } from './contentBlockHelpers.js';
 export { search, searchIn, getSuggestions, invalidateSearchIndex, type SearchOptions, type SearchResult, } from './search.js';
 export { resolveChoiceView, type ChoiceSelections, type ChoicePrompt, type ResolvedChoiceView, } from './resolveChoiceView.js';
 export { getHeatGenerated, applyHeat, canActivateAction, shouldTriggerHeatCheck, canPush, nextCondition, applySpDamage, } from './combatUtils.js';
@@ -7156,60 +6999,27 @@ export * from './enums.js';
 export * from './common.js';
 export * from './objects.js';
 export * from './entities.js';
-import type { SourceSchema, ContentTypeSchema, RangeItemSchema, RangeSchema, ActionTypeSchema, DamageTypeSchema, ClassTypeSchema, TreeSchema, SchemaNameSchema } from './enums.js';
-import type { IdSchema, NameSchema, NonNegativeIntegerSchema, PositiveIntegerSchema, ActivationCostSchema, TechLevelSchema } from './common.js';
-import type { TraitSchema, StatsSchema, ChassisStatsSchema, EquipmentStatsSchema, CombatEntitySchema, MechanicalEntitySchema, DataValueSchema, ContentBlockSchema, ContentSchema, TableContentSchema, TableSchema, PatternSystemModuleSchema, MechStatBonusSchema, SystemModuleSchema, ChoiceSchema, ChoicesSchema, NpcSchema, PatternSchema, DamageSchema, ActionSchema, AdditionalSourceSchema, BaseEntitySchema, AdvancedClassSchema, FormationMechSchema, GrantSchema, CrawlerMutationSchema, SchemaNameWithActionsSchema, GuideStepSchema } from './objects.js';
+import type { SchemaNameSchema } from './enums.js';
+import type { TraitSchema, StatsSchema, DataValueSchema, ContentBlockSchema, ContentSchema, TableContentSchema, TableSchema, PatternSystemModuleSchema, SystemModuleSchema, ChoiceSchema, PatternSchema, DamageSchema, AdvancedClassSchema, FormationMechSchema, GrantSchema, CrawlerMutationSchema, GuideStepSchema } from './objects.js';
 import type { AbilitySchema, AbilityTreeRequirementSchema, MetaActionSchema, BioTitanSchema, ChassisSchema, ClassSchema, CrawlerBaySchema, CrawlerTechLevelSchema, CrawlerSchema, CreatureSchema, DistanceSchema, DroneSchema, EquipmentSchema, FactionSchema, KeywordSchema, MeldSchema, ModuleSchema, NPCSchema, RollTableSchema, SquadSchema, SystemSchema, TraitEntitySchema, VehicleSchema, GuideSchema, SourceEntitySchema, TechLevelEntitySchema, CatalogCategorySchema } from './entities.js';
-export type SURefEnumSource = z.infer<typeof SourceSchema>;
-export type SURefEnumContentType = z.infer<typeof ContentTypeSchema>;
-export type SURefEnumRangeItem = z.infer<typeof RangeItemSchema>;
-export type SURefEnumRange = z.infer<typeof RangeSchema>;
-export type SURefEnumActionType = z.infer<typeof ActionTypeSchema>;
-export type SURefEnumDamageType = z.infer<typeof DamageTypeSchema>;
-export type SURefEnumClassType = z.infer<typeof ClassTypeSchema>;
-export type SURefEnumTree = z.infer<typeof TreeSchema>;
 export type SURefEnumSchemaName = z.infer<typeof SchemaNameSchema>;
-export type SURefCommonId = z.infer<typeof IdSchema>;
-export type SURefCommonName = z.infer<typeof NameSchema>;
-export type SURefCommonNonNegativeInteger = z.infer<typeof NonNegativeIntegerSchema>;
-export type SURefCommonPositiveInteger = z.infer<typeof PositiveIntegerSchema>;
-export type SURefCommonActivationCost = z.infer<typeof ActivationCostSchema>;
-export type SURefCommonTechLevel = z.infer<typeof TechLevelSchema>;
-export type SURefCommonSalvageValue = z.infer<typeof NonNegativeIntegerSchema>;
-export type SURefCommonHitPoints = z.infer<typeof NonNegativeIntegerSchema>;
-export type SURefCommonStructurePoints = z.infer<typeof PositiveIntegerSchema>;
 export type SURefObjectTrait = z.infer<typeof TraitSchema>;
-export type SURefObjectStats = z.infer<typeof StatsSchema>;
-export type SURefObjectChassisStats = z.infer<typeof ChassisStatsSchema>;
-export type SURefObjectEquipmentStats = z.infer<typeof EquipmentStatsSchema>;
-export type SURefObjectCombatEntity = z.infer<typeof CombatEntitySchema>;
-export type SURefObjectMechanicalEntity = z.infer<typeof MechanicalEntitySchema>;
 export type SURefObjectDataValue = z.infer<typeof DataValueSchema>;
 export type SURefObjectContentBlock = z.infer<typeof ContentBlockSchema>;
 export type SURefObjectContent = z.infer<typeof ContentSchema>;
 export type SURefObjectTableContent = z.infer<typeof TableContentSchema>;
 export type SURefObjectTable = z.infer<typeof TableSchema>;
 export type SURefObjectPatternSystemModule = z.infer<typeof PatternSystemModuleSchema>;
-export type SURefObjectMechStatBonus = z.infer<typeof MechStatBonusSchema>;
 export type SURefObjectSystemModule = z.infer<typeof SystemModuleSchema>;
 export type SURefObjectChoice = z.infer<typeof ChoiceSchema>;
-export type SURefObjectChoices = z.infer<typeof ChoicesSchema>;
-export type SURefObjectNpc = z.infer<typeof NpcSchema>;
 export type SURefObjectPattern = z.infer<typeof PatternSchema>;
 export type SURefObjectDamage = z.infer<typeof DamageSchema>;
-export type SURefObjectAction = z.infer<typeof ActionSchema>;
-export type SURefObjectAdditionalSource = z.infer<typeof AdditionalSourceSchema>;
-export type SURefObjectBaseEntity = z.infer<typeof BaseEntitySchema>;
 export type SURefObjectBonusPerTechLevel = z.infer<typeof StatsSchema>;
 export type SURefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>;
 export type SURefObjectFormationMech = z.infer<typeof FormationMechSchema>;
 export type SURefObjectGrant = z.infer<typeof GrantSchema>;
 export type SURefObjectCrawlerMutation = z.infer<typeof CrawlerMutationSchema>;
-export type SURefObjectSchemaName = z.infer<typeof SchemaNameWithActionsSchema>;
 export type SURefObjectGuideStep = z.infer<typeof GuideStepSchema>;
-export type SURefObjectTraits = SURefObjectTrait[];
-export type SURefObjectSystems = string[];
-export type SURefObjectModules = string[];
 export type SURefObjectActionOptions = Array<{
     label: string;
     value: string;
@@ -9025,8 +8835,8 @@ export type SURefMetaEntity = SURefAbility | SURefChassis | SURefClass | SURefCr
  * Utility functions for Salvage Union entities
  * Type guards and property extractors
  */
-import type { SURefMetaEntity, SURefMetaAction, SURefObjectGrant, SURefEntity, SURefObjectSystemModule, SURefObjectTable, SURefObjectTrait, SURefObjectChoice, SURefObjectActionOptions } from './types/index.js';
-import type { SURefAbility, SURefChassis, SURefClass, SURefKeyword, SURefModule, SURefSystem, SURefObjectAdvancedClass, SURefObjectFormationMech, SURefObjectNpc, SURefObjectPattern } from './types/index.js';
+import type { SURefMetaEntity, SURefMetaAction, SURefObjectGrant, SURefEntity, SURefObjectTable, SURefObjectTrait, SURefObjectChoice, SURefObjectActionOptions } from './types/index.js';
+import type { SURefAbility, SURefChassis, SURefClass, SURefKeyword, SURefModule, SURefSystem, SURefObjectAdvancedClass, SURefObjectFormationMech, SURefObjectPattern } from './types/index.js';
 /**
  * Base URL of the Netlify-hosted artwork CDN (the su-assets site, backed by a
  * Netlify Blobs store). Asset URLs are derived from this base plus the entity's
@@ -9036,7 +8846,6 @@ export declare const ASSET_BASE_URL = "https://assets.salvageunion.io";
 /** Clear the cached action map so the next lookup reads fresh data. Called by `preload()`. */
 export declare function invalidateActionMap(): void;
 export type ItemCondition = 'intact' | 'damaged' | 'destroyed';
-export type ParentType = 'pilot' | 'mech' | 'crawler';
 /**
  * Extract tech level from an entity
  * @param entity - The entity to extract from
@@ -9191,23 +9000,11 @@ export declare function getSource(entity: SURefMetaEntity): string | undefined;
  */
 export declare function getBooklet(entity: SURefMetaEntity): string | undefined;
 /**
- * Extract npc from an entity
- * @param entity - The entity to extract from
- * @returns The npc or undefined
- */
-export declare function getNpc(entity: SURefMetaEntity): SURefObjectNpc | undefined;
-/**
  * Extract tree from an entity
  * @param entity - The entity to extract from
  * @returns The tree or undefined
  */
 export declare function getTree(entity: SURefMetaEntity): unknown | undefined;
-/**
- * Extract requirement from an entity
- * @param entity - The entity to extract from
- * @returns The requirement or undefined
- */
-export declare function getRequirement(entity: SURefMetaEntity): string[] | undefined;
 /**
  * Extract patterns from an entity
  * @param entity - The entity to extract from
@@ -9231,41 +9028,11 @@ export declare function visiblePatterns<T extends {
     hidden?: boolean;
 }>(patterns: readonly T[]): T[];
 /**
- * Extract goals from an entity
- * @param entity - The entity to extract from
- * @returns The goals or undefined
- */
-export declare function getGoals(entity: SURefMetaEntity): string | undefined;
-/**
- * Extract assets from an entity
- * @param entity - The entity to extract from
- * @returns The assets or undefined
- */
-export declare function getAssets(entity: SURefMetaEntity): string | undefined;
-/**
- * Extract weaknesses from an entity
- * @param entity - The entity to extract from
- * @returns The weaknesses or undefined
- */
-export declare function getWeaknesses(entity: SURefMetaEntity): string | undefined;
-/**
- * Extract formation from an entity
- * @param entity - The entity to extract from
- * @returns The formation or undefined
- */
-export declare function getFormation(entity: SURefMetaEntity): SURefObjectFormationMech[] | undefined;
-/**
  * Extract bioSalvageValue from an entity
  * @param entity - The entity to extract from
  * @returns The bioSalvageValue or undefined
  */
 export declare function getBioSalvageValue(entity: SURefMetaEntity): number | undefined;
-/**
- * Extract recommended flag from an entity
- * @param entity - The entity to extract from
- * @returns True if the entity is recommended, false if not, undefined if not present
- */
-export declare function getRecommended(entity: SURefMetaEntity): boolean | undefined;
 /**
  * Resolve a formation member to its entity, supporting chassis+pattern and standalone entity types.
  * For chassis: resolves chassis and optionally its pattern.
@@ -9354,13 +9121,6 @@ export declare function isCoreClass(entity: SURefMetaEntity): entity is SURefCla
  */
 export declare function isBaseAdvancedClass(entity: SURefMetaEntity): entity is SURefObjectAdvancedClass;
 /**
- * Type guard to check if an entity is a Hybrid Class
- * Note: This is also exported from helpers.ts, but we keep it here for backwards compatibility
- * @param entity - The entity to check
- * @returns True if the entity is a Hybrid Class
- */
-export declare function isHybridClass(entity: SURefMetaEntity): entity is SURefObjectAdvancedClass;
-/**
  * Type guard to check if an entity is a class (any type)
  * @param entity - The entity to check
  * @returns True if the entity is a Core, Advanced, or Hybrid class
@@ -9386,33 +9146,11 @@ export declare function getReferenceEntityName(entity: SURefMetaEntity): string 
  */
 export declare function getDescription(entity: SURefMetaEntity): string | undefined;
 /**
- * Check if an entity is a system module (has actions but no id)
- * System modules are used in custom system options and pattern system modules
- * @param entity - The entity to check
- * @returns True if the entity is a system module
- */
-export declare function isSystemModule(entity: SURefMetaEntity): boolean;
-/**
- * Get entity name from a system module
- * Extracts the name from the first visible action in the system module
- * @param entity - The system module entity
- * @returns The entity name or undefined if not found
- */
-export declare function getEntityNameFromSystemModule(entity: SURefObjectSystemModule): string | undefined;
-/**
  * Normalize pattern name by removing " Pattern" suffix
  * @param patternName - The pattern name to normalize
  * @returns The normalized pattern name
  */
 export declare function normalizePatternName(patternName: string): string;
-/**
- * Filter actions excluding a specific name
- * Used to filter out actions where the action name matches the entity name
- * @param actions - The actions array to filter
- * @param excludeName - The name to exclude
- * @returns Filtered actions array
- */
-export declare function filterActionsExcludingName(actions: SURefMetaAction[], excludeName: string): SURefMetaAction[];
 type DamageValue = {
     damageType: string;
     amount: number | string;
@@ -9481,12 +9219,6 @@ export declare function getChoices(entity: SURefMetaEntity): SURefObjectChoice[]
  * @returns The grants array or undefined if not present
  */
 export declare function getGrants(entity: SURefMetaEntity): SURefObjectGrant[] | undefined;
-/**
- * Get required traits from an action
- * @param action - The action to extract required traits from
- * @returns Array of required trait type strings, or empty array if none
- */
-export declare function getRequiredTraits(action: SURefMetaAction): string[];
 /**
  * Represents a parsed trait reference from text
  */

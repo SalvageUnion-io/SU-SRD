@@ -11,7 +11,7 @@ export {
   GenericInventoryEntrySchema,
   CriticalInjuryResultSchema,
 } from './pilot'
-export type { Pilot, Injury, GenericInventoryEntry, CriticalInjuryResult } from './pilot'
+export type { Pilot, GenericInventoryEntry } from './pilot'
 
 export {
   MechSchema,
@@ -19,7 +19,7 @@ export {
   ItemConditionMapSchema,
   CriticalDamageResultSchema,
 } from './mech'
-export type { Mech, ItemCondition, ItemConditionMap, CriticalDamageResult } from './mech'
+export type { Mech, ItemCondition, ItemConditionMap } from './mech'
 
 export {
   CargoLotSchema,

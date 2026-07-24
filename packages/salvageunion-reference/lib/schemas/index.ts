@@ -11,55 +11,25 @@ export * from './objects.js'
 export * from './entities.js'
 
 // Import schemas for type inference
-import type {
-  SourceSchema,
-  ContentTypeSchema,
-  RangeItemSchema,
-  RangeSchema,
-  ActionTypeSchema,
-  DamageTypeSchema,
-  ClassTypeSchema,
-  TreeSchema,
-  SchemaNameSchema,
-} from './enums.js'
-
-import type {
-  IdSchema,
-  NameSchema,
-  NonNegativeIntegerSchema,
-  PositiveIntegerSchema,
-  ActivationCostSchema,
-  TechLevelSchema,
-} from './common.js'
+import type { SchemaNameSchema } from './enums.js'
 
 import type {
   TraitSchema,
   StatsSchema,
-  ChassisStatsSchema,
-  EquipmentStatsSchema,
-  CombatEntitySchema,
-  MechanicalEntitySchema,
   DataValueSchema,
   ContentBlockSchema,
   ContentSchema,
   TableContentSchema,
   TableSchema,
   PatternSystemModuleSchema,
-  MechStatBonusSchema,
   SystemModuleSchema,
   ChoiceSchema,
-  ChoicesSchema,
-  NpcSchema,
   PatternSchema,
   DamageSchema,
-  ActionSchema,
-  AdditionalSourceSchema,
-  BaseEntitySchema,
   AdvancedClassSchema,
   FormationMechSchema,
   GrantSchema,
   CrawlerMutationSchema,
-  SchemaNameWithActionsSchema,
   GuideStepSchema,
 } from './objects.js'
 
@@ -93,63 +63,29 @@ import type {
   CatalogCategorySchema,
 } from './entities.js'
 
-// Export inferred types with SURef prefix for backward compatibility
+// Inferred types, exported under the SURef* prefix used across the monorepo.
 
 // Enum types
-export type SURefEnumSource = z.infer<typeof SourceSchema>
-export type SURefEnumContentType = z.infer<typeof ContentTypeSchema>
-export type SURefEnumRangeItem = z.infer<typeof RangeItemSchema>
-export type SURefEnumRange = z.infer<typeof RangeSchema>
-export type SURefEnumActionType = z.infer<typeof ActionTypeSchema>
-export type SURefEnumDamageType = z.infer<typeof DamageTypeSchema>
-export type SURefEnumClassType = z.infer<typeof ClassTypeSchema>
-export type SURefEnumTree = z.infer<typeof TreeSchema>
 export type SURefEnumSchemaName = z.infer<typeof SchemaNameSchema>
-
-// Common types
-export type SURefCommonId = z.infer<typeof IdSchema>
-export type SURefCommonName = z.infer<typeof NameSchema>
-export type SURefCommonNonNegativeInteger = z.infer<typeof NonNegativeIntegerSchema>
-export type SURefCommonPositiveInteger = z.infer<typeof PositiveIntegerSchema>
-export type SURefCommonActivationCost = z.infer<typeof ActivationCostSchema>
-export type SURefCommonTechLevel = z.infer<typeof TechLevelSchema>
-export type SURefCommonSalvageValue = z.infer<typeof NonNegativeIntegerSchema>
-export type SURefCommonHitPoints = z.infer<typeof NonNegativeIntegerSchema>
-export type SURefCommonStructurePoints = z.infer<typeof PositiveIntegerSchema>
 
 // Object types
 export type SURefObjectTrait = z.infer<typeof TraitSchema>
-export type SURefObjectStats = z.infer<typeof StatsSchema>
-export type SURefObjectChassisStats = z.infer<typeof ChassisStatsSchema>
-export type SURefObjectEquipmentStats = z.infer<typeof EquipmentStatsSchema>
-export type SURefObjectCombatEntity = z.infer<typeof CombatEntitySchema>
-export type SURefObjectMechanicalEntity = z.infer<typeof MechanicalEntitySchema>
 export type SURefObjectDataValue = z.infer<typeof DataValueSchema>
 export type SURefObjectContentBlock = z.infer<typeof ContentBlockSchema>
 export type SURefObjectContent = z.infer<typeof ContentSchema>
 export type SURefObjectTableContent = z.infer<typeof TableContentSchema>
 export type SURefObjectTable = z.infer<typeof TableSchema>
 export type SURefObjectPatternSystemModule = z.infer<typeof PatternSystemModuleSchema>
-export type SURefObjectMechStatBonus = z.infer<typeof MechStatBonusSchema>
 export type SURefObjectSystemModule = z.infer<typeof SystemModuleSchema>
 export type SURefObjectChoice = z.infer<typeof ChoiceSchema>
-export type SURefObjectChoices = z.infer<typeof ChoicesSchema>
-export type SURefObjectNpc = z.infer<typeof NpcSchema>
 export type SURefObjectPattern = z.infer<typeof PatternSchema>
 export type SURefObjectDamage = z.infer<typeof DamageSchema>
-export type SURefObjectAction = z.infer<typeof ActionSchema>
-export type SURefObjectAdditionalSource = z.infer<typeof AdditionalSourceSchema>
-export type SURefObjectBaseEntity = z.infer<typeof BaseEntitySchema>
 export type SURefObjectBonusPerTechLevel = z.infer<typeof StatsSchema>
 export type SURefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>
 export type SURefObjectFormationMech = z.infer<typeof FormationMechSchema>
 export type SURefObjectGrant = z.infer<typeof GrantSchema>
 export type SURefObjectCrawlerMutation = z.infer<typeof CrawlerMutationSchema>
-export type SURefObjectSchemaName = z.infer<typeof SchemaNameWithActionsSchema>
 export type SURefObjectGuideStep = z.infer<typeof GuideStepSchema>
-export type SURefObjectTraits = SURefObjectTrait[]
-export type SURefObjectSystems = string[]
-export type SURefObjectModules = string[]
 export type SURefObjectActionOptions = Array<{ label: string; value: string }>
 
 // Entity types

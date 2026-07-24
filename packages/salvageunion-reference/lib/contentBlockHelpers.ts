@@ -5,26 +5,13 @@
 import type { SURefObjectContentBlock, SURefObjectDataValue } from './types/index.js'
 
 /**
- * Extract the string value from a paragraph content block
- * @param content - Array of content blocks
- * @returns The string value from the first paragraph block, or undefined if not found
- */
-export function getParagraphString(
-  content: SURefObjectContentBlock[] | undefined
-): string | undefined {
-  if (!content) return undefined
-  const block = content.find((b) => !b.type || b.type === 'paragraph')
-  if (!block) return undefined
-  return typeof block.value === 'string' ? block.value : undefined
-}
-
-/**
  * Replace [(CHASSIS)] placeholder with actual chassis name, prefixed with "The"
  *
  * @param text - Text that may contain [(CHASSIS)] placeholders
  * @param chassisName - Optional chassis name to replace placeholders with
  * @returns Text with placeholders replaced, or original text if no chassis name provided
  */
+
 export function replaceChassisPlaceholder(text: string | undefined, chassisName?: string): string {
   if (!text) return ''
   if (!chassisName) return text
@@ -38,6 +25,7 @@ export function replaceChassisPlaceholder(text: string | undefined, chassisName?
  * @param chassisName - Optional chassis name to replace [(CHASSIS)] placeholders
  * @returns Parsed string value with placeholders replaced
  */
+
 export function parseContentBlockString(
   block: SURefObjectContentBlock,
   chassisName?: string
@@ -59,6 +47,7 @@ export function parseContentBlockString(
  * @returns `{ value, scaled }` — the resolved numeric value and whether scaling
  * actually changed it (drives the "modified" highlight in the UI).
  */
+
 export function resolveDataValueForTechLevel(
   dv: SURefObjectDataValue,
   effectiveTechLevel: number | undefined
