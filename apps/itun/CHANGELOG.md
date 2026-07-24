@@ -2,6 +2,19 @@
 
 Maintained by release-please (see ADR-024).
 
+## [0.4.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.3.1...itun-v0.4.0) (2026-07-24)
+
+
+### Features
+
+* **dashboard:** lay the Actions deck out as a masonry grid ([#549](https://github.com/SalvageUnion-io/SU-SRD/issues/549)) ([49fc203](https://github.com/SalvageUnion-io/SU-SRD/commit/49fc203e54bf35c0e90423544d4184981bd06a68))
+
+
+### Bug Fixes
+
+* **ci:** unbreak the nightly e2e suite, its alerting, and the routeTree drift ([#548](https://github.com/SalvageUnion-io/SU-SRD/issues/548)) ([5fd242a](https://github.com/SalvageUnion-io/SU-SRD/commit/5fd242a0aafd427ab80000f4235b6e1ee62c7712))
+* **live-sheets:** black-on-black titles + Workshop Manual redesign (mockup for sign-off) ([#554](https://github.com/SalvageUnion-io/SU-SRD/issues/554)) ([cf5f3ed](https://github.com/SalvageUnion-io/SU-SRD/commit/cf5f3ed45a0127ac6b5f82966dfd6eed539e203f))
+
 ## [0.3.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.3.0...itun-v0.3.1) (2026-07-23)
 
 
