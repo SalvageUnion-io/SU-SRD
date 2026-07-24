@@ -17,7 +17,7 @@
 
 import type { CargoLot } from '../schemas/cargoLot'
 import type { Mech } from '../schemas/mech'
-import { findChassisByRef } from '../rules/derivedStats'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 
 /** Shape of form state carried through the mech wizard. */
 export type MechWizardFormState = {
@@ -102,7 +102,7 @@ export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatc
  * chassis and Heat 0 (plan 2.3, gap 7) — never Heat-at-capacity.
  */
 export function mechFormToCreateInput(form: MechWizardFormState) {
-  const chassis = findChassisByRef(form.chassisName)
+  const chassis = resolveChassisRef(form.chassisName)
   return {
     schemaVersion: 1 as const,
     ...mechFormToUpdatePatch(form),

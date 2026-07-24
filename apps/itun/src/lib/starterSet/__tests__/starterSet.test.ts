@@ -19,7 +19,6 @@ import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 
 import {
   crawlerMaxSP,
-  findChassisByRef,
   mechMaxEP,
   mechMaxHeat,
   mechMaxSP,
@@ -190,7 +189,7 @@ describe('Starter Set seed — derived stats match the canonical chassis', () =>
     for (const m of STARTER_MECHS) {
       const expected = SHEET_MECH_STATS[m.id]
       if (!expected) throw new Error(`no sheet stats declared for ${m.id}`)
-      const chassis = findChassisByRef(m.chassisRef)
+      const chassis = resolveChassisRef(m.chassisRef)
       expect(mechMaxSP(m, chassis)).toBe(expected.sp)
       expect(mechMaxEP(m, chassis)).toBe(expected.ep)
       expect(mechMaxHeat(m, chassis)).toBe(expected.heat)

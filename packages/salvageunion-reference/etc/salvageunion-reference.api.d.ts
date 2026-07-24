@@ -1451,11 +1451,6 @@ type MechDerivationInput = {
  */
 type StatBonusKey = 'structurePoints' | 'energyPoints' | 'heatCapacity' | 'cargoCapacity';
 /**
- * Resolve a mech's chassis from the reference ORM. `chassisRef` stores the
- * chassis SLUG (v6 migration); legacy names/ids are tolerated at resolution.
- */
-export declare function findChassisByRef(chassisRef: string): ChassisStats | null;
-/**
  * Σ(declared statBonus × installed count) for one stat across every installed
  * system and module (rules B2/B4/B6/B14 — Heat Sink +1 Max Heat each,
  * Capacitance Bank +2 EP each, Cargo Pod/Holds/Bays +N Cargo, etc.). Each ref
@@ -1722,7 +1717,7 @@ export { CORE_ROLL_BANDS, coreRollBand, performCoreRoll, describePushOutcome, } 
 export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from './coreMechanic.js';
 export { mechEffectiveDamage, applyMechDamage, criticalDamageOutcome, performCriticalDamage, pilotEffectiveDamage, applyPilotDamage, criticalInjuryOutcome, performCriticalInjury, } from './takeDamage.js';
 export type { DamageKind, MechDamageInput, MechDamageEffect, PilotDamageInput, PilotDamageEffect, CriticalDamageEffect, CriticalInjuryEffect, } from './takeDamage.js';
-export { PILOT_BASE_HP, PILOT_BASE_AP, PILOT_BASE_INVENTORY_SLOTS, injuryMaxHpPenalty, pilotMaxHP, pilotMaxAP, isPilotDead, clampPilotCurrentStats, findChassisByRef, installedStatBonus, mechMaxSP, mechMaxEP, mechMaxHeat, mechMaxCargo, clampMechCurrentStats, unifiedMechConditions, crawlerMaxSP, crawlerMaxSPParts, clampCrawlerCurrentStats, } from './derivedStats.js';
+export { PILOT_BASE_HP, PILOT_BASE_AP, PILOT_BASE_INVENTORY_SLOTS, injuryMaxHpPenalty, pilotMaxHP, pilotMaxAP, isPilotDead, clampPilotCurrentStats, installedStatBonus, mechMaxSP, mechMaxEP, mechMaxHeat, mechMaxCargo, clampMechCurrentStats, unifiedMechConditions, crawlerMaxSP, crawlerMaxSPParts, clampCrawlerCurrentStats, } from './derivedStats.js';
 export type { ChassisStats, CrawlerMaxSPParts } from './derivedStats.js';
 export { MEDIATOR_TABLE_NAMES, MEDIATOR_TABLE_LABEL, performMediatorRoll, describeMediatorRoll, } from './mediatorTables.js';
 export type { FindRollTable } from './mediatorTables.js';
