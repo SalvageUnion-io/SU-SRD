@@ -75,6 +75,7 @@ export function makeDeleteHandler(storage: SnapshotStorage) {
 // Default Netlify Function export — uses the production Blobs storage
 // ---------------------------------------------------------------------------
 
+/** @public Netlify Functions handler — invoked by the platform, not imported. */
 export default async function (req: Request): Promise<Response> {
   initObservability()
   try {

@@ -30,6 +30,29 @@ This is a TypeScript monorepo with shared packages (component-lib, etc.). After 
 - **`puppeteer-core`** — Used by `tools/a11y-scan.ts` for WCAG accessibility audits. Not dead code.
 - **`sharp`** — Used by `tools/convert-lp-assets-to-webp.ts` to transcode the `lp-assets` Netlify Blobs artwork to WebP (`bun run assets:webp`). Not dead code.
 
+### Dead-code gate (knip)
+
+`bun run knip` runs with **`includeEntryExports: true`**, so it also reports unused
+exports of _entry_ files — which is where a workspace-internal package's whole
+public API lives. Without it knip stays green while an entire export surface rots
+(this is how 72 dead exports accumulated in `salvageunion-reference`).
+
+Two escape hatches, both configured via `tags` in `knip.json`:
+
+- **`@public`** — the export is deliberately public or is a framework contract
+  invoked rather than imported (e.g. a Netlify Functions handler). Tag the export.
+- **`@knipignore`** — a genuine knip false positive. Only use this when you can
+  show the export _is_ consumed (e.g. deleting it fails typecheck), and say so in
+  the tag comment.
+
+Whole workspaces whose entry file legitimately _is_ the public surface set
+`includeEntryExports: false` per-workspace: `component-lib` (barrel is the library
+API), `srd` (Astro route/endpoint exports), `su-assets` (platform handlers).
+
+When knip flags something, the default is to **delete it** — reach for a tag only
+in the two cases above. Deleting dead code often cascades (its callees become dead
+in turn), so re-run knip after each removal.
+
 ## Repository Overview
 
 Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools, located in the `SU-SRD/` subdirectory. Contains a static reference site, a character builder app, a Discord bot, and shared packages.

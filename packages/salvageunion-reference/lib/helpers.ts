@@ -6,9 +6,7 @@
 import { SalvageUnionReference, SchemaToDisplayName } from './index.js'
 import { lazyModelMap } from './generated/schemaRegistry.generated.js'
 import type {
-  SURefChassis,
   SURefCrawler,
-  SURefMetaCrawlerTechLevel,
   SURefEntity,
   SURefEnumSchemaName,
   SURefObjectAdvancedClass,
@@ -142,10 +140,6 @@ export function getHybridClasses(): (SURefObjectAdvancedClass & {
  * @returns The chassis or undefined if not found
  */
 
-export function findChassisById(chassisId: string): SURefChassis | undefined {
-  return SalvageUnionReference.findIn('chassis', (c) => c.id === chassisId)
-}
-
 // ============================================================================
 // CRAWLER HELPERS
 // ============================================================================
@@ -206,23 +200,11 @@ export function getMaxSpBonus(crawlerId: string): number {
  * @returns The numeric tech level
  */
 
-export function normalizeTechLevel(techLevel: number | 'B' | 'N' | null | undefined): number {
-  if (techLevel === null || techLevel === undefined) return 0
-  if (techLevel === 'B' || techLevel === 'N') return 1
-  return techLevel
-}
-
 /**
  * Find a crawler tech level by level number
  * @param techLevel - The tech level number to find
  * @returns The tech level or undefined if not found
  */
-
-export function findCrawlerTechLevel(
-  techLevel: number
-): (SURefMetaCrawlerTechLevel & { schemaName: string }) | undefined {
-  return SalvageUnionReference.CrawlerTechLevels.find((tl) => tl.techLevel === techLevel)
-}
 
 // ============================================================================
 // ABILITY HELPERS
@@ -242,13 +224,6 @@ export function findCrawlerTechLevel(
  * @returns Array of tech level numbers (1-6)
  */
 
-export function getTechLevels(): readonly number[] {
-  const techLevels = SalvageUnionReference.CrawlerTechLevels.all()
-    .map((tl) => tl.techLevel)
-    .sort((a, b) => a - b)
-  return techLevels
-}
-
 /**
  * Get scrap conversion rate for a tech level
  * Each tech level is worth its numeric value in TL1 scrap
@@ -256,10 +231,6 @@ export function getTechLevels(): readonly number[] {
  * @param techLevel - The tech level (1-6, 'B', or 'N')
  * @returns The conversion rate (tech level value)
  */
-
-export function getScrapConversionRate(techLevel: number | 'B' | 'N'): number {
-  return normalizeTechLevel(techLevel)
-}
 
 // ============================================================================
 // GAME RULE CONSTANTS
