@@ -33,7 +33,6 @@
   },
   {
     "name": ".50 Cal Machine Gun (Machine Gun Squad)",
-    "displayName": ".50 Cal Machine Gun",
     "range": ["Close"],
     "damage": {
       "amount": 3,
@@ -236,7 +235,6 @@
         "value": "Restore up to 8 SP to a Mech, Vehicle, or Crawler."
       }
     ],
-    "displayName": "Patch",
     "actionSource": "systems"
   },
   {
@@ -251,7 +249,6 @@
         "value": "Repair a damaged TL 1-5 System or Module."
       }
     ],
-    "displayName": "System Repair",
     "actionSource": "systems"
   },
   {
@@ -266,7 +263,6 @@
         "value": "Repair a damaged TL 1-5 Chassis or Vehicle."
       }
     ],
-    "displayName": "Chassis Repair",
     "actionSource": "systems"
   },
   {
@@ -482,7 +478,6 @@
   },
   {
     "name": "Area Salvage (Expert Salvager)",
-    "displayName": "Area Salvage",
     "actionType": "Passive",
     "content": [
       {
@@ -517,7 +512,6 @@
   },
   {
     "name": "Armour Plating (Scylla)",
-    "displayName": "Armour Plating",
     "actionType": "Passive",
     "traits": [
       {
@@ -536,7 +530,6 @@
   },
   {
     "name": "Armour Plating (Typhon)",
-    "displayName": "Armour Plating",
     "actionType": "Passive",
     "traits": [
       {
@@ -1036,7 +1029,6 @@
   },
   {
     "name": "Beta Fission Gun (Elite Beam Squad)",
-    "displayName": "Beta Fission Gun",
     "range": ["Long"],
     "damage": {
       "amount": 9,
@@ -1113,7 +1105,6 @@
   {
     "id": "ab8b327f-3f29-406a-af7e-5719bfffaccd",
     "name": "Bio-Rifle (Chimerium Chosen)",
-    "displayName": "Bio-Rifle",
     "range": ["Medium"],
     "damage": {
       "damageType": "HP",
@@ -1500,7 +1491,6 @@
   {
     "id": "512bbb19-ffe2-4c97-8591-04ad83e1422e",
     "name": "Burrower (Iron Wyrm)",
-    "displayName": "Burrower",
     "activationCost": 2,
     "actionType": "Turn",
     "content": [
@@ -1779,7 +1769,6 @@
         "value": "You repair a damaged Tech 1, 2, 3, or 4 Mech Chassis or Vehicle in Range to Intact Condition. It is now usable with 1 SP."
       }
     ],
-    "displayName": "Chassis Repair",
     "actionSource": "systems"
   },
   {
@@ -1794,7 +1783,6 @@
         "value": "You repair a damaged Tech 1, 2, or 3 Mech Chassis or Vehicle in Range to Intact Condition. It is now usable with 1 SP."
       }
     ],
-    "displayName": "Chassis Repair",
     "actionSource": "systems"
   },
   {
@@ -1809,7 +1797,6 @@
         "value": "You repair a damaged Tech 1, 2, 3, 4, or 5 Mech Chassis or Vehicle in Range to Intact Condition. It is now usable with 1 SP."
       }
     ],
-    "displayName": "Chassis Repair",
     "actionSource": "equipment"
   },
   {
@@ -1824,7 +1811,6 @@
         "value": "You repair any damaged Mech Chassis or Vehicle in Range to Intact Condition. It is now usable with 1 SP."
       }
     ],
-    "displayName": "Chassis Repair",
     "actionSource": "systems"
   },
   {
@@ -1839,7 +1825,6 @@
         "value": "You repair any damaged Mech Chassis in Range to Intact Condition. It is now usable with 1 SP."
       }
     ],
-    "displayName": "Chassis Repair",
     "actionSource": "equipment"
   },
   {
@@ -1854,12 +1839,10 @@
         "value": "You repair a damaged Tech 1 or 2 Mech Chassis or Vehicle in Range to Intact Condition. It is now usable with 1 SP."
       }
     ],
-    "displayName": "Chassis Repair",
     "actionSource": "equipment"
   },
   {
     "name": "Chassis Repair (Welding Laser)",
-    "displayName": "Chassis Repair",
     "activationCost": 4,
     "range": ["Close"],
     "actionType": "Long",
@@ -2159,12 +2142,10 @@
         "value": "You reduce the Heat of your Mech by 2."
       }
     ],
-    "displayName": "Coolant Flush",
     "actionSource": "modules"
   },
   {
     "name": "Coolant Flush (Coolant Flow Manifold)",
-    "displayName": "Coolant Flush",
     "activationCost": 1,
     "actionType": "Short",
     "id": "d9978c57-c028-4a80-adf8-8bc2c6817e49",
@@ -2855,7 +2836,6 @@
   },
   {
     "name": "Electro Grappling Hook (Elite Blade Squad)",
-    "displayName": "Electro Grappling Hook",
     "id": "6229ca55-4a76-4c88-8207-640265d6bbe4",
     "actionSource": "squads"
   },
@@ -3658,7 +3638,6 @@
   },
   {
     "name": "Green Laser Rifle (Veteran)",
-    "displayName": "Green Laser Rifle",
     "range": ["Medium"],
     "damage": {
       "amount": 5,
@@ -4098,7 +4077,6 @@
   },
   {
     "name": "High Tensile Wire (Raider Band)",
-    "displayName": "High Tensile Wire",
     "id": "2f091973-50eb-4ceb-826c-5e2c202f87e6",
     "actionSource": "squads"
   },
@@ -4251,7 +4229,6 @@
   },
   {
     "name": "Hover Locomotion System (Drone Squadron)",
-    "displayName": "Hover Locomotion System",
     "id": "3968e047-1219-4a02-9e4f-2f4a58fa326d",
     "actionSource": "squads"
   },
@@ -4458,7 +4435,6 @@
   },
   {
     "name": "Improvised Firearm (Raider)",
-    "displayName": "Improvised Firearm",
     "range": ["Close"],
     "damage": {
       "amount": 3,
@@ -4523,7 +4499,6 @@
   },
   {
     "name": "Improvised Melee Weapon (Wastelander)",
-    "displayName": "Improvised Melee Weapon",
     "range": ["Close"],
     "damage": {
       "amount": 2,
@@ -5196,7 +5171,6 @@
   },
   {
     "name": "Laser Guidance (Adv. Targeting Array)",
-    "displayName": "Laser Guidance",
     "activationCost": 3,
     "actionType": "Free",
     "traits": [
@@ -5598,7 +5572,6 @@
   },
   {
     "name": "Mech Salvage (Expert Salvager)",
-    "displayName": "Mech Salvage",
     "activationCost": 1,
     "actionType": "Free",
     "content": [
@@ -6156,7 +6129,6 @@
   },
   {
     "name": "Monomolecular Sword (Elite Blade Squad)",
-    "displayName": "Monomolecular Sword",
     "range": ["Close"],
     "damage": {
       "amount": 6,
@@ -6315,7 +6287,6 @@
   },
   {
     "name": "Multi-Targeter (Adv. Targeting Array)",
-    "displayName": "Multi-Targeter",
     "activationCost": "X",
     "actionType": "Turn",
     "traits": [
@@ -6335,7 +6306,6 @@
   {
     "id": "257a94d9-9a8f-4975-b3dc-1ee0f334a6c8",
     "name": "Mutant Fanatics (Cortex Bio-Titan)",
-    "displayName": "Mutant Fanatics",
     "actionType": "Reaction",
     "content": [
       {
@@ -6348,7 +6318,6 @@
   {
     "id": "35dec542-51ff-4377-8e39-bab20debb96a",
     "name": "Mutated Weapon (Chimerium Chosen)",
-    "displayName": "Mutated Weapon",
     "range": ["Close"],
     "damage": {
       "damageType": "HP",
@@ -6371,7 +6340,6 @@
   {
     "id": "4e9ceec8-c298-45c2-9a3f-7a3e0e77368a",
     "name": "Mutated Weapon (Chimerium Mutant)",
-    "displayName": "Mutated Weapon",
     "range": ["Close"],
     "damage": {
       "damageType": "HP",
@@ -6394,7 +6362,6 @@
   {
     "id": "b8ac3c5b-666b-4b3d-a9f2-e15d185ad56a",
     "name": "Mutated Weapons (Chimerium Mutant Squad)",
-    "displayName": "Mutated Weapons",
     "range": ["Close"],
     "damage": {
       "damageType": "HP",
@@ -6818,7 +6785,6 @@
   {
     "id": "640cd3e4-643f-4514-b1b5-f1bb7ab480f7",
     "name": "One Step Ahead (Cortex Bio-Titan)",
-    "displayName": "One Step Ahead",
     "content": [
       {
         "type": "paragraph",
@@ -6961,7 +6927,6 @@
         "value": "You restore up to 5 SP to a target Mech in Range with at least 1 SP."
       }
     ],
-    "displayName": "Patch",
     "actionSource": "equipment"
   },
   {
@@ -6976,7 +6941,6 @@
         "value": "You restore up to 7 Structure Points to any Mech in Range that has at least 1 SP."
       }
     ],
-    "displayName": "Patch",
     "actionSource": "systems"
   },
   {
@@ -6991,7 +6955,6 @@
         "value": "You restore up to 6 Structure Points to any Mech in Range that has at least 1 SP."
       }
     ],
-    "displayName": "Patch",
     "actionSource": "systems"
   },
   {
@@ -7006,7 +6969,6 @@
         "value": "You restore up to 4 SP to a target Mech in Range with at least 1 SP."
       }
     ],
-    "displayName": "Patch",
     "actionSource": "equipment"
   },
   {
@@ -7021,7 +6983,6 @@
         "value": "When activated, a target Mech or Vehicle of your choice in Range with at least 1 SP regains 2 SP."
       }
     ],
-    "displayName": "Patch",
     "actionSource": "equipment"
   },
   {
@@ -7036,7 +6997,6 @@
         "value": "You restore up to 6 SP to a target Mech in Range with at least 1 SP."
       }
     ],
-    "displayName": "Patch",
     "actionSource": "equipment"
   },
   {
@@ -7051,7 +7011,6 @@
         "value": "You restore up to 10 Structure Points to any Mech in Range that has at least 1 SP."
       }
     ],
-    "displayName": "Patch",
     "actionSource": "systems"
   },
   {
@@ -7066,7 +7025,6 @@
         "value": "You restore up to 8 SP to a target Mech in Range with at least 1 SP."
       }
     ],
-    "displayName": "Patch",
     "actionSource": "equipment"
   },
   {
@@ -7081,12 +7039,10 @@
         "value": "When activated, a target Mech or Vehicle of your choice in Range with at least 1 SP regains 3 SP."
       }
     ],
-    "displayName": "Patch",
     "actionSource": "equipment"
   },
   {
     "name": "Patch (Welding Laser)",
-    "displayName": "Patch",
     "activationCost": 2,
     "range": ["Close"],
     "actionType": "Turn",
@@ -7261,7 +7217,6 @@
   },
   {
     "name": "Pinpoint Targeter (Adv. Targeting Array)",
-    "displayName": "Pinpoint Targeter",
     "activationCost": 3,
     "actionType": "Turn",
     "traits": [
@@ -7302,7 +7257,6 @@
   },
   {
     "name": "Pistol (Combat Pilot)",
-    "displayName": "Pistol",
     "range": ["Close"],
     "damage": {
       "amount": 3,
@@ -7541,7 +7495,6 @@
   {
     "id": "4b85973b-b0e9-4e83-a315-756f7424e377",
     "name": "Probing Telepathy (Cortex Bio-Titan)",
-    "displayName": "Probing Telepathy",
     "content": [
       {
         "type": "paragraph",
@@ -7553,7 +7506,6 @@
   {
     "id": "4a4b4f90-1abe-4738-add9-6e554dd3cc99",
     "name": "Proboscis (Cortex Bio-Titan)",
-    "displayName": "Proboscis",
     "range": ["Close"],
     "traits": [
       {
@@ -7722,7 +7674,6 @@
   {
     "id": "fd4c8b2f-eff5-45ba-8f11-ce5d18868304",
     "name": "Random Mutation (Chimerium Chosen)",
-    "displayName": "Random Mutation",
     "content": [
       {
         "type": "paragraph",
@@ -7734,7 +7685,6 @@
   {
     "id": "a571cbb6-13a8-4d67-a22b-3b7e71203ca2",
     "name": "Random Mutation (Chimerium Mutant Squad)",
-    "displayName": "Random Mutation",
     "content": [
       {
         "type": "paragraph",
@@ -7746,7 +7696,6 @@
   {
     "id": "9ff18124-0639-493e-bb10-e4ab23839fbf",
     "name": "Random Mutation (Chimerium Mutant)",
-    "displayName": "Random Mutation",
     "content": [
       {
         "type": "paragraph",
@@ -7972,7 +7921,6 @@
   },
   {
     "name": "Red Laser (Drone Squadron)",
-    "displayName": "Red Laser",
     "range": ["Close"],
     "damage": {
       "amount": 4,
@@ -8225,7 +8173,6 @@
         "value": "You restore 6 SP to your Mech as long as it has at least 1 SP."
       }
     ],
-    "displayName": "Repair",
     "actionSource": "modules"
   },
   {
@@ -8281,7 +8228,6 @@
   },
   {
     "name": "Rifle (Trooper)",
-    "displayName": "Rifle",
     "range": ["Medium"],
     "damage": {
       "amount": 5,
@@ -8433,7 +8379,6 @@
   },
   {
     "name": "Rocket Launcher (Missile Squad)",
-    "displayName": "Rocket Launcher",
     "range": ["Long"],
     "damage": {
       "amount": 6,
@@ -8893,7 +8838,6 @@
   },
   {
     "name": "Sniper Rifle (Ace)",
-    "displayName": "Sniper Rifle",
     "range": ["Long"],
     "damage": {
       "amount": 6,
@@ -9391,7 +9335,6 @@
         "value": "You repair a damaged Tech 1, 2, 3, or 4 System or Module in Range to Intact Condition. It is now usable."
       }
     ],
-    "displayName": "System Repair",
     "actionSource": "systems"
   },
   {
@@ -9405,7 +9348,6 @@
         "value": "You repair a single, Tech 4 or lower, damaged System or Module mounted on your Mech to Intact Condition."
       }
     ],
-    "displayName": "System Repair",
     "actionSource": "modules"
   },
   {
@@ -9420,7 +9362,6 @@
         "value": "You repair a damaged Tech 1, 2, or 3 System or Module in Range to Intact Condition. It is now usable."
       }
     ],
-    "displayName": "System Repair",
     "actionSource": "systems"
   },
   {
@@ -9435,7 +9376,6 @@
         "value": "You repair a damaged Tech 1, 2, or 3 System or Module in Range to Intact Condition."
       }
     ],
-    "displayName": "System Repair",
     "actionSource": "equipment"
   },
   {
@@ -9450,7 +9390,6 @@
         "value": "You repair a damaged Tech 1, 2, 3, 4, or 5 System or Module in Range to Intact Condition. It is now usable."
       }
     ],
-    "displayName": "System Repair",
     "actionSource": "equipment"
   },
   {
@@ -9465,7 +9404,6 @@
         "value": "You repair any damaged System or Module in Range to Intact Condition. It is now usable."
       }
     ],
-    "displayName": "System Repair",
     "actionSource": "systems"
   },
   {
@@ -9480,12 +9418,10 @@
         "value": "You repair a damaged Tech 1 or 2 System or Module in Range to Intact Condition. It is now usable."
       }
     ],
-    "displayName": "System Repair",
     "actionSource": "equipment"
   },
   {
     "name": "System Repair (Welding Laser)",
-    "displayName": "System Repair",
     "activationCost": 2,
     "range": ["Close"],
     "actionType": "Short",
@@ -9871,7 +9807,6 @@
   },
   {
     "name": "Titanic Actions (Chrysalis)",
-    "displayName": "Titanic Actions",
     "id": "56c0dd0a-d86b-4ee2-b39e-0f285a7a2ca9",
     "content": [
       {
@@ -9900,7 +9835,6 @@
   {
     "id": "4c103043-2ef5-4812-9aaa-f81dca9bd9e8",
     "name": "Titanic Actions (Cortex Bio-Titan)",
-    "displayName": "Titanic Actions",
     "content": [
       {
         "type": "paragraph",
@@ -9923,7 +9857,6 @@
   },
   {
     "name": "Titanic Actions (Electrophorus)",
-    "displayName": "Titanic Actions",
     "id": "96c71613-c4a7-40ed-9531-8a1be3ccf830",
     "content": [
       {
@@ -9947,7 +9880,6 @@
   },
   {
     "name": "Titanic Actions (Meld Behemoth)",
-    "displayName": "Titanic Actions",
     "id": "e73ec1f7-42d4-4ebd-8c5e-89feaa8aa783",
     "content": [
       {
@@ -9971,7 +9903,6 @@
   },
   {
     "name": "Titanic Actions (Phantom)",
-    "displayName": "Titanic Actions",
     "id": "ad40bee3-9b0f-4fb4-9582-cc3964c569f1",
     "content": [
       {
@@ -9995,7 +9926,6 @@
   },
   {
     "name": "Titanic Actions (Scylla)",
-    "displayName": "Titanic Actions",
     "id": "8f24fa54-bbfa-4330-be66-f383342068b7",
     "content": [
       {
@@ -10019,7 +9949,6 @@
   },
   {
     "name": "Titanic Actions (Typhon)",
-    "displayName": "Titanic Actions",
     "id": "303c8cea-5025-452b-a765-2ffa7537a382",
     "content": [
       {
@@ -10043,7 +9972,6 @@
   },
   {
     "name": "Titanic Actions (Tyrant)",
-    "displayName": "Titanic Actions",
     "id": "575f96ee-f864-4db5-9db4-ebf7ce09d3de",
     "content": [
       {
@@ -10708,7 +10636,6 @@
   {
     "id": "2d55bd6c-1e38-48b5-8d4e-0e1699420537",
     "name": "Bite (Bio-Maw)",
-    "displayName": "Bite",
     "actionType": "Turn",
     "range": ["Close"],
     "damage": {
@@ -11186,7 +11113,6 @@
   {
     "id": "e98fa567-c485-47f5-803b-b2f08e1cb8bd",
     "name": "Nanite Reconstruction (Meld Regenerator)",
-    "displayName": "Nanite Reconstruction",
     "actionType": "Passive",
     "content": [
       {
@@ -11200,7 +11126,6 @@
   {
     "id": "34b68549-6a95-4fd1-8fd4-09301c7ac3cf",
     "name": "Nanite Repair (Meld Regenerator)",
-    "displayName": "Nanite Repair",
     "actionType": "Reaction",
     "activationCost": 3,
     "content": [
@@ -11588,7 +11513,6 @@
   {
     "id": "355d08a3-c640-49f9-9eca-7ad9c02055bc",
     "name": "Improvised Explosive Device (Flint Children Squad)",
-    "displayName": "Improvised Explosive Device",
     "range": ["Close"],
     "damage": {
       "damageType": "SP",
@@ -11766,13 +11690,11 @@
         "value": "T3 Pilot Equipment, acts as Thermal Optics."
       }
     ],
-    "actionSource": "squads",
-    "displayName": "Thermal Optics"
+    "actionSource": "squads"
   },
   {
     "id": "0e13d663-dc07-4a5d-88eb-b20b93d806fb",
     "name": "Camouflaged Scales (Apophis)",
-    "displayName": "Camouflaged Scales",
     "actionType": "Passive",
     "content": [
       {
@@ -11785,7 +11707,6 @@
   {
     "id": "5cf942e4-d588-402a-bea2-135dda076c89",
     "name": "Venomous Bite (Apophis)",
-    "displayName": "Venomous Bite",
     "range": ["Close"],
     "damage": {
       "amount": 5,
@@ -11818,7 +11739,6 @@
   {
     "id": "44a1e91e-4a29-40e7-a426-5c9f661b1466",
     "name": "Constricting Coils (Apophis)",
-    "displayName": "Constricting Coils",
     "range": ["Close"],
     "traits": [
       {
@@ -11837,7 +11757,6 @@
   {
     "id": "bd3e75cb-aa4d-4f1e-aed9-e2c948b3b820",
     "name": "Crush (Apophis)",
-    "displayName": "Crush",
     "actionType": "Turn",
     "content": [
       {
@@ -11850,7 +11769,6 @@
   {
     "id": "b239d9c5-ea33-4f5e-b7bf-5b0805efa3d4",
     "name": "Titanic Actions (Apophis)",
-    "displayName": "Titanic Actions",
     "content": [
       {
         "type": "paragraph",
@@ -11967,7 +11885,6 @@
   {
     "id": "a4733b36-8ef0-48e9-9c41-a76b14cc6868",
     "name": "Titanic Actions (Physalis)",
-    "displayName": "Titanic Actions",
     "content": [
       {
         "type": "paragraph",
@@ -11995,7 +11912,6 @@
   {
     "id": "e0b63ff6-7541-49d7-bc8f-94308c415cec",
     "name": "Aquatic Ambusher (Genbu)",
-    "displayName": "Aquatic Ambusher",
     "actionType": "Passive",
     "content": [
       {
@@ -12008,7 +11924,6 @@
   {
     "id": "8e6b4dc1-863d-4581-94a5-9c0742e9435e",
     "name": "Grasping Tentacles (Genbu)",
-    "displayName": "Grasping Tentacles",
     "range": ["Medium"],
     "damage": {
       "damageType": "SP",
@@ -12030,7 +11945,6 @@
   {
     "id": "676f4cf0-9bbc-486c-96c8-c4c113347404",
     "name": "Mace-Tentacles (Genbu)",
-    "displayName": "Mace-Tentacles",
     "range": ["Medium"],
     "damage": {
       "damageType": "SP",
@@ -12061,7 +11975,6 @@
   {
     "id": "34091167-a996-4455-8665-6b904b14961d",
     "name": "Shell Regeneration (Genbu)",
-    "displayName": "Shell Regeneration",
     "actionType": "Turn",
     "content": [
       {
@@ -12074,7 +11987,6 @@
   {
     "id": "c33a9caf-aac3-423d-b6dc-4685472bd049",
     "name": "Armour Plating (Genbu)",
-    "displayName": "Armour Plating",
     "actionType": "Passive",
     "traits": [
       {
@@ -12093,7 +12005,6 @@
   {
     "id": "055bf8d4-9a9f-43bb-a82b-9a791f90ea10",
     "name": "Cephalopod (Genbu)",
-    "displayName": "Cephalopod",
     "actionType": "Passive",
     "content": [
       {
@@ -12106,7 +12017,6 @@
   {
     "id": "bf9470f6-5df0-405b-b550-b9f1feb0d228",
     "name": "Titanic Actions (Genbu)",
-    "displayName": "Titanic Actions",
     "content": [
       {
         "type": "paragraph",
@@ -12174,7 +12084,6 @@
   {
     "id": "2b67d7d6-3434-40c0-9cfe-5591b5092d41",
     "name": "Metal Bars and Ripping Hands (Ghost)",
-    "displayName": "Metal Bars and Ripping Hands",
     "range": ["Close"],
     "damage": {
       "damageType": "SP",
@@ -12196,7 +12105,6 @@
   {
     "id": "d13aa01b-3b60-44b7-8a42-a36d0b798097",
     "name": "Metal Bars and Ripping Hands (Ghost Haunt)",
-    "displayName": "Metal Bars and Ripping Hands",
     "range": ["Close"],
     "damage": {
       "damageType": "SP",
@@ -13057,7 +12965,6 @@
   {
     "id": "970a3251-6bb9-4cd4-b0a6-4869b43de50a",
     "name": "Mining Tools (Thatcher Pit Android)",
-    "displayName": "Mining Tools",
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "damageType": "SP", "amount": 2 },
@@ -13067,7 +12974,6 @@
   {
     "id": "112b1a32-207f-40dd-ba80-601acb497852",
     "name": "Broad Koch Submachine Gun (Super Android Soldier)",
-    "displayName": "Broad Koch Submachine Gun",
     "actionType": "Turn",
     "range": ["Medium"],
     "damage": { "damageType": "HP", "amount": 5 },
@@ -13077,7 +12983,6 @@
   {
     "id": "dccece4e-81be-4388-8fbf-736f42c54c22",
     "name": "T2S2 Grenade (Super Android Soldier)",
-    "displayName": "T2S2 Grenade",
     "actionType": "Turn",
     "range": ["Medium"],
     "damage": { "damageType": "SP", "amount": 4 },
@@ -13090,7 +12995,6 @@
   {
     "id": "a12444db-a754-43ce-b859-b5d0f40d388a",
     "name": "Hooves and Clubs (Super Android Strikebreaker)",
-    "displayName": "Hooves and Clubs",
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "damageType": "SP", "amount": 4 },
@@ -13100,7 +13004,6 @@
   {
     "id": "6e576a98-8e60-4067-a8bb-1b2041dc6d2f",
     "name": "Barbed Bite (Churchill)",
-    "displayName": "Barbed Bite",
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "damageType": "SP", "amount": 5 },
@@ -13116,7 +13019,6 @@
   {
     "id": "48b1bda8-f95b-4d5e-ab9c-1c801e3a30bb",
     "name": "Puff Smoke (Churchill)",
-    "displayName": "Puff Smoke",
     "actionType": "Passive",
     "content": [
       {
@@ -13129,7 +13031,6 @@
   {
     "id": "1d34c0e4-0732-417a-9868-458f92cec194",
     "name": "Omega Strike (Dennis)",
-    "displayName": "Omega Strike",
     "actionType": "Turn",
     "content": [{ "type": "paragraph", "value": "May fire all weapons in a single turn." }],
     "actionSource": "npcs"
@@ -13147,7 +13048,6 @@
   {
     "id": "fb411ad1-18e3-4c5c-8afc-ec586a4a05f1",
     "name": "Iron Claws (The Iron Lady)",
-    "displayName": "Iron Claws",
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "damageType": "SP", "amount": 6 },
@@ -13158,7 +13058,6 @@
   {
     "id": "159a2729-48b1-43c3-b358-6f6776456ab3",
     "name": "Corrosive M.I.L.K. Spray (The Iron Lady)",
-    "displayName": "Corrosive M.I.L.K. Spray",
     "actionType": "Turn",
     "range": ["Medium"],
     "damage": { "damageType": "SP", "amount": 3 },
@@ -13169,7 +13068,6 @@
   {
     "id": "deb2486f-443f-4b8b-99de-e068fc037ae6",
     "name": "TRIDENT Missile Pod (The Iron Lady)",
-    "displayName": "TRIDENT Missile Pod",
     "actionType": "Turn",
     "range": ["Long"],
     "damage": { "damageType": "SP", "amount": 9 },
@@ -13186,7 +13084,6 @@
   {
     "id": "74e3153d-a3bb-476d-a814-19e4c43e4ae7",
     "name": "TRIDENT Defence System (The Iron Lady)",
-    "displayName": "TRIDENT Defence System",
     "actionType": "Reaction",
     "content": [
       {
@@ -13199,7 +13096,6 @@
   {
     "id": "5d9d5d89-496e-42d7-a30f-34ac468a6a84",
     "name": "M.I.L.K. Injector (The Iron Lady)",
-    "displayName": "M.I.L.K. Injector",
     "actionType": "Free",
     "content": [
       {
@@ -13212,7 +13108,6 @@
   {
     "id": "28ce4d04-73a8-4edd-8c22-0dbfb7af9319",
     "name": "Control Signal (The Iron Lady)",
-    "displayName": "Control Signal",
     "actionType": "Turn",
     "range": ["Medium"],
     "traits": [{ "type": "hacking" }],
@@ -13231,7 +13126,6 @@
   {
     "id": "e6b0a773-736c-4b81-a07a-6762e68225ff",
     "name": "Titanic Actions (The Iron Lady)",
-    "displayName": "Titanic Actions",
     "content": [
       {
         "type": "paragraph",
@@ -13360,7 +13254,6 @@
   {
     "id": "36d23a7f-e9ab-40cd-bef0-bed9a6ae4769",
     "name": "Improvised Explosive Device (Saboteur)",
-    "displayName": "Improvised Explosive Device",
     "actionType": "Turn",
     "range": ["Close"],
     "damage": {
@@ -13382,7 +13275,6 @@
   {
     "id": "974cc5b2-b1d6-42ca-b045-3dd79725c706",
     "name": "Oil Bomb (Saboteur)",
-    "displayName": "Oil Bomb",
     "actionType": "Turn",
     "range": ["Close"],
     "damage": {
@@ -13410,7 +13302,6 @@
   {
     "id": "105dc4b7-7be7-4cef-91cd-dfb5fa9f2c2f",
     "name": "Electrostatic Mine (Saboteur)",
-    "displayName": "Electrostatic Mine",
     "actionType": "Turn",
     "range": ["Close"],
     "damage": {
@@ -13438,7 +13329,6 @@
   {
     "id": "25818e13-572d-4f59-a52c-cf09e5f11804",
     "name": "Hobbler Mine (Saboteur)",
-    "displayName": "Hobbler Mine",
     "actionType": "Turn",
     "range": ["Close"],
     "damage": {
@@ -13520,7 +13410,6 @@
   {
     "id": "5dd47cfb-9164-4acd-88da-87c194cee0ec",
     "name": "Attach (Iron Leech)",
-    "displayName": "Attach",
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "amount": 2, "damageType": "SP" },
@@ -13536,7 +13425,6 @@
   {
     "id": "15bcabe3-b12b-4c51-96ab-6605312b8b82",
     "name": "Bite (Scrap Termite)",
-    "displayName": "Bite",
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "amount": 2, "damageType": "SP" },
@@ -13640,7 +13528,6 @@
   {
     "id": "4fd026d6-97bd-486e-8359-a83f542b29f5",
     "name": "Ambush (Hunter)",
-    "displayName": "Ambush",
     "actionType": "Passive",
     "content": [
       {
@@ -13677,7 +13564,6 @@
   {
     "id": "b3f677df-36d7-48c9-9903-67416e7059e3",
     "name": "Titanic Actions (Ygdriss)",
-    "displayName": "Titanic Actions",
     "content": [
       {
         "type": "paragraph",
@@ -13701,7 +13587,6 @@
   {
     "id": "294733bf-e788-4ccb-805c-558d405a9617",
     "name": "Immobile (Ygdriss)",
-    "displayName": "Immobile",
     "actionType": "Passive",
     "content": [
       {

@@ -1773,7 +1773,10 @@ function ReferenceEntityCardInner({
                 {foldedAction?.name && foldedAction.name !== entityName && (
                   <Slab
                     variant="solid"
-                    label={stripHostParenthetical(foldedAction.name, entityName)}
+                    label={stripHostParenthetical(
+                      foldedAction.displayName ?? foldedAction.name,
+                      entityName
+                    )}
                   />
                 )}
                 <Content
