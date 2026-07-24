@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.2](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.5.1...salvageunion-reference-v2.5.2) (2026-07-24)
+
+
+### Bug Fixes
+
+* **reference:** resolve data-inspection findings — dead flags, enum, null-marker, redundant fields ([#555](https://github.com/SalvageUnion-io/SU-SRD/issues/555)) ([2658095](https://github.com/SalvageUnion-io/SU-SRD/commit/2658095793f18341538cd977d328aca98a7861cb))
+
 ## [2.5.1](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.5.0...salvageunion-reference-v2.5.1) (2026-07-23)
 
 
