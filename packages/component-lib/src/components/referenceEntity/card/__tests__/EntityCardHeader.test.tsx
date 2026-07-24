@@ -10,7 +10,21 @@
  * the rule rather than pixel widths:
  * - empty right side  → title `flex-1`, no 60% cap;
  * - stat cluster only → stats reserve (no `flex-1` column in full), title yields;
- * - flavour prose     → title reserves (`max-w-[60%]`), the column yields (`flex-1`).
+ * - flavour prose     → the description ASKS for 55% (`flex-[1_1_55%]`) and the
+ *   title yields only once it must (`shrink-[20]`), so a name that fits beside
+ *   that ask keeps its single line and a longer one wraps toward its longest
+ *   word instead of holding a 60% share it isn't filling.
+ *
+ * Two clauses of the prose rule were each learned by breaking them, and are
+ * asserted here because happy-dom performs no layout and so cannot catch them:
+ * the title carries NO `min-w-0` (min-width:auto floors it at min-content —
+ * with `min-w-0` the description's share squeezes it until `break-words` splits
+ * a name mid-word, "ENGINEERIN / G EXPERTISE"), and the description's share is
+ * a flex BASIS, not a `min-width` (a hard floor cannot yield to that
+ * min-content floor, and the two together overflow the card on narrow screens).
+ *
+ * These pin CLASSES rather than pixels. The layout itself is verified by
+ * measuring real pages in a browser — see the PR for the numbers.
  */
 import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
@@ -65,7 +79,7 @@ describe.each([false, true])('EntityCardHeader width allocation (compact=%p)', (
     expect(rightColumn()).toBeNull()
   })
 
-  test('with flavour prose the title reserves and the prose column yields', () => {
+  test('with flavour prose the description asks for 55% and the title yields', () => {
     render(
       <EntityCardHeader
         {...base}
@@ -74,11 +88,22 @@ describe.each([false, true])('EntityCardHeader width allocation (compact=%p)', (
       />
     )
 
-    // The title must never be starved below a legible width by prose: it is
-    // capped, not collapsed — and the prose column is the flexible side.
-    expect(titleWrapper().className).toContain('max-w-[60%]')
+    // The description's share is a flex BASIS. `flex-1` (basis 0) here would
+    // restore the fixed 60/40 split, where a wrapping title held 60% of the
+    // band and crushed the description into twice the lines.
+    expect(rightColumn()?.className).toContain('flex-[1_1_55%]')
+    // The title is the yielding side, but only past the point where it fits:
+    // its base is its own content width, and `shrink-[20]` makes it absorb
+    // essentially all of the overflow instead of sharing it.
+    expect(titleWrapper().className).toContain('shrink-[20]')
     expect(titleWrapper().className).not.toContain('flex-1')
-    expect(rightColumn()?.className).toContain('flex-1')
+    // FLOOR: no `min-w-0`, so min-width:auto holds the title at min-content —
+    // its longest word. Drop this and `break-words` splits names mid-word
+    // ("ENGINEERIN / G EXPERTISE"), which is what the first cut shipped.
+    expect(titleWrapper().className).not.toContain('min-w-0')
+    // CEILING: deliberately loose. `max-width` also clamps that min-content
+    // floor, so the old 60% cap re-introduced mid-word breaks on narrow cards.
+    expect(titleWrapper().className).toContain('max-w-[75%]')
   })
 })
 
@@ -116,7 +141,7 @@ describe('EntityCardHeader with a stat cluster (the overlap fix, kept)', () => {
     expect(rightColumn()?.className).toContain('flex-1')
   })
 
-  test('full, stats AND prose: the prose flips the column to the yielding side', () => {
+  test('full, stats AND prose: the prose rule wins over the stat rule', () => {
     render(
       <EntityCardHeader
         title={TITLE}
@@ -128,7 +153,8 @@ describe('EntityCardHeader with a stat cluster (the overlap fix, kept)', () => {
       />
     )
 
-    expect(titleWrapper().className).toContain('max-w-[60%]')
-    expect(rightColumn()?.className).toContain('flex-1')
+    expect(titleWrapper().className).toContain('shrink-[20]')
+    expect(titleWrapper().className).toContain('max-w-[75%]')
+    expect(rightColumn()?.className).toContain('flex-[1_1_55%]')
   })
 })
