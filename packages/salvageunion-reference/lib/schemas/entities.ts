@@ -212,7 +212,7 @@ export const CrawlerTechLevelSchema = BaseEntitySchema.extend({
     .int()
     .nonnegative()
     .nullable()
-    .describe('Maximum approximate population (0 means unlimited/25,000+)'),
+    .describe('Maximum approximate population (null means unbounded — 25,000+)'),
 })
   .strict()
   .describe('Tech level progression for Union Crawlers')

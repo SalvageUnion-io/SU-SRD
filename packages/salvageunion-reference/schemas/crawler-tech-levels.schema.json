@@ -258,7 +258,7 @@
           { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
           { "type": "null" }
         ],
-        "description": "Maximum approximate population (0 means unlimited/25,000+)"
+        "description": "Maximum approximate population (null means unbounded — 25,000+)"
       }
     },
     "required": [

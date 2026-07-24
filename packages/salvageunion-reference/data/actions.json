@@ -2079,7 +2079,6 @@
   {
     "id": "8ec910ec-a87a-4d06-a8c6-f07ddb240cf9",
     "name": "Consume (Bio-Maw)",
-    "displayName": "Consume",
     "actionType": "Short",
     "range": ["Close"],
     "content": [
@@ -10828,7 +10827,6 @@
   {
     "id": "bdd4fa4d-60de-4e1a-b43a-8106322eebb9",
     "name": "Burst (Adrenal Glands)",
-    "displayName": "Burst",
     "actionType": "Free",
     "activationCost": 2,
     "activationCurrency": "SP or HP",
@@ -10843,7 +10841,6 @@
   {
     "id": "6abaafc6-7753-4d8f-b7f5-7bb9d1a22ec3",
     "name": "Power (Adrenal Glands)",
-    "displayName": "Power",
     "actionType": "Free",
     "activationCost": 4,
     "activationCurrency": "SP or HP",
@@ -10882,7 +10879,6 @@
   {
     "id": "9b6690a9-f70c-4034-a802-972c66af44aa",
     "name": "Regrowth (Regeneration Glands)",
-    "displayName": "Regrowth",
     "actionType": "Turn",
     "activationCost": 4,
     "content": [
@@ -10908,7 +10904,6 @@
   {
     "id": "25236bd4-d903-4f5f-a2f7-6a4d8e416b98",
     "name": "Olfactory Scan (Olfactory Glands)",
-    "displayName": "Olfactory Scan",
     "actionType": "Turn",
     "activationCost": 1,
     "activationCurrency": "EP or AP",
@@ -11026,7 +11021,6 @@
   {
     "id": "15eb9549-bc4e-4e78-816d-1e12ff70a2f1",
     "name": "Refine (Nanite Sifter)",
-    "displayName": "Refine",
     "actionType": "Long",
     "activationCost": 1,
     "content": [
@@ -11077,7 +11071,6 @@
   {
     "id": "ddb136e9-f203-427d-a41a-94e01584b00b",
     "name": "Replicate (Meld System Replicator)",
-    "displayName": "Replicate",
     "actionType": "Turn",
     "range": ["Close"],
     "activationCost": 4,
@@ -11558,7 +11551,6 @@
   {
     "id": "cb744f12-f69f-427b-949e-6cecc6b1d173",
     "name": "Machine-Pistols (Gully Crusher Squad)",
-    "displayName": "Machine-Pistols",
     "range": ["Close"],
     "damage": {
       "damageType": "HP",
@@ -11646,7 +11638,6 @@
   {
     "id": "bf5fee40-2333-40bf-bbda-94e1ccdecaab",
     "name": "Epoxy Guns (Cuspers Squad)",
-    "displayName": "Epoxy Guns",
     "range": ["Close"],
     "damage": {
       "damageType": "SP",
@@ -11685,7 +11676,6 @@
   {
     "id": "0ca7b931-beec-490a-b75d-38f1feb1a90b",
     "name": "Fell Rifles (Fell Stalkers Squad)",
-    "displayName": "Fell Rifles",
     "range": ["Long"],
     "damage": {
       "damageType": "SP",
@@ -11727,7 +11717,6 @@
   {
     "id": "d70135ab-0cd4-4706-ad7f-01716b6ddf0c",
     "name": "Rebar Lances (Free Hill Coalition Squad)",
-    "displayName": "Rebar Lances",
     "range": ["Close"],
     "damage": {
       "damageType": "SP",
@@ -11754,7 +11743,6 @@
   {
     "id": "7b1efaf3-5ae6-45bb-b7c9-81ba066a041a",
     "name": "Servo-Lasso (Free Hill Coalition Squad)",
-    "displayName": "Servo-Lasso",
     "range": ["Medium"],
     "content": [
       {
