@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test'
-import { pickByName, selectedOption, waitForReady } from './_helpers'
+import {
+  advanceUntilVisible,
+  choiceCardByName,
+  pickByName,
+  selectedOption,
+  waitForReady,
+} from './_helpers'
 
 /**
  * Visual / interactive contract for the WizShell Class step master-detail:
@@ -20,8 +26,10 @@ import { pickByName, selectedOption, waitForReady } from './_helpers'
  * the detail pane fails to mount, ability listing fails to render.
  */
 test('selecting a class marks it selected and reveals its trees', async ({ page }) => {
-  await page.goto('/pilots/new')
+  await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
+  // The Class step is no longer the landing step — "Your Stats" precedes it.
+  await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
 
   // Pre-selection: nothing is chosen.
   await expect(selectedOption(page)).toHaveCount(0)
@@ -38,8 +46,10 @@ test('selecting a class marks it selected and reveals its trees', async ({ page 
 })
 
 test('switching class moves the selection', async ({ page }) => {
-  await page.goto('/pilots/new')
+  await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
+  // The Class step is no longer the landing step — "Your Stats" precedes it.
+  await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
 
   await pickByName(page, 'Engineer')
   await expect(selectedOption(page)).toContainText('Engineer')

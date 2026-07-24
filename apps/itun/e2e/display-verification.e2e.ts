@@ -9,7 +9,7 @@ import { pickByName, waitForReady, clickNext } from './_helpers'
 
 test.describe('class step displays meaningful class info', () => {
   test('class card surfaces ability tree names', async ({ page }) => {
-    await page.goto('/pilots/new')
+    await page.goto('/pilots/new?mode=guided')
     await waitForReady(page)
 
     // Master-detail: selecting a class row renders its full card + ability
@@ -22,7 +22,7 @@ test.describe('class step displays meaningful class info', () => {
   })
 
   test('selected class reveals trees + abilities listing', async ({ page }) => {
-    await page.goto('/pilots/new')
+    await page.goto('/pilots/new?mode=guided')
     await waitForReady(page)
     await pickByName(page, 'Engineer')
 
@@ -35,7 +35,7 @@ test.describe('class step displays meaningful class info', () => {
 
 test.describe('ability cards show their descriptions', () => {
   test('Engineering Expertise card includes its rules text', async ({ page }) => {
-    await page.goto('/pilots/new')
+    await page.goto('/pilots/new?mode=guided')
     await waitForReady(page)
     await pickByName(page, 'Engineer')
     await clickNext(page)
@@ -51,7 +51,7 @@ test.describe('ability cards show their descriptions', () => {
 
 test.describe('chassis cards show stats from the SRD', () => {
   test('Mule chassis card renders its name and at least one stat', async ({ page }) => {
-    await page.goto('/mechs/new')
+    await page.goto('/mechs/new?mode=guided')
     await waitForReady(page)
 
     // Mule should be present in the chassis row list.
@@ -68,7 +68,7 @@ test.describe('chassis cards show stats from the SRD', () => {
 
 test.describe('dashboard surfaces created entities with their identity', () => {
   test('newly built pilot shows up in the dashboard list with their name', async ({ page }) => {
-    await page.goto('/pilots/new')
+    await page.goto('/pilots/new?mode=guided')
     await waitForReady(page)
     await pickByName(page, 'Engineer')
     await clickNext(page)
@@ -96,7 +96,7 @@ test.describe('dashboard surfaces created entities with their identity', () => {
 
 test.describe('sheet renders the right pilot identity', () => {
   test('opening a pilot sheet shows their name and class context', async ({ page }) => {
-    await page.goto('/pilots/new')
+    await page.goto('/pilots/new?mode=guided')
     await waitForReady(page)
     await pickByName(page, 'Engineer')
     await clickNext(page)

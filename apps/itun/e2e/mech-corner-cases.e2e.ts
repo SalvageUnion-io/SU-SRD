@@ -15,7 +15,7 @@ import { clickNext, pickByName, waitForReady } from './_helpers'
  */
 
 test('wizard gates progress until chassis + pattern + name are set', async ({ page }) => {
-  await page.goto('/mechs/new')
+  await page.goto('/mechs/new?mode=guided')
   await waitForReady(page)
 
   const next = page.getByRole('button', { name: /^Next ·/ })
@@ -46,7 +46,7 @@ test('wizard gates progress until chassis + pattern + name are set', async ({ pa
 })
 
 test('loadout step shows TL filter chips and the Loadout budget panel', async ({ page }) => {
-  await page.goto('/mechs/new')
+  await page.goto('/mechs/new?mode=guided')
   await waitForReady(page)
 
   // Chassis -> Pattern (custom) -> Loadout.

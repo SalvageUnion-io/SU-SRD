@@ -20,7 +20,7 @@ test('cancel mid-wizard leaves the dashboard with no new pilot', async ({ page }
   // carries between tests in the same browser context).
   const initialCount = await page.getByRole('link', { name: /Sheet$/i }).count()
 
-  await page.goto('/pilots/new')
+  await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
   await pickByName(page, 'Engineer')
   // The form is now dirty (a class was picked), so #334's `confirmCancel`
@@ -39,7 +39,7 @@ test('cancel mid-wizard leaves the dashboard with no new pilot', async ({ page }
 })
 
 test('switching class after picking abilities resets the ability list', async ({ page }) => {
-  await page.goto('/pilots/new')
+  await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
 
   // Pick Engineer → advance to Abilities → pick one
@@ -60,7 +60,7 @@ test('switching class after picking abilities resets the ability list', async ({
 })
 
 test('Identity step gates Next until name + callsign are present', async ({ page }) => {
-  await page.goto('/pilots/new')
+  await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
   await pickByName(page, 'Engineer')
   await clickNext(page)
@@ -81,7 +81,7 @@ test('Identity step gates Next until name + callsign are present', async ({ page
 })
 
 test('4th ability pick is blocked once the budget is reached', async ({ page }) => {
-  await page.goto('/pilots/new')
+  await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
   await pickByName(page, 'Engineer')
   await clickNext(page)
@@ -97,7 +97,7 @@ test('4th ability pick is blocked once the budget is reached', async ({ page }) 
 })
 
 test('4th equipment pick is blocked once the budget is reached', async ({ page }) => {
-  await page.goto('/pilots/new')
+  await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
   await pickByName(page, 'Engineer')
   await clickNext(page)

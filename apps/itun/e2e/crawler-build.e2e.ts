@@ -9,7 +9,7 @@ import { clickNext, pickByName, waitForReady } from './_helpers'
  * seeds the full SRD bay set on creation.
  */
 test('build a crawler from scratch', async ({ page }) => {
-  await page.goto('/crawlers/new')
+  await page.goto('/crawlers/new?mode=guided')
   await waitForReady(page)
 
   // Step 1 — Crawler. One entity card per crawler type; pick Battle.
@@ -42,7 +42,7 @@ test('build a crawler from scratch', async ({ page }) => {
  */
 test('edit a crawler via /crawlers/$id/edit', async ({ page }) => {
   // Build first.
-  await page.goto('/crawlers/new')
+  await page.goto('/crawlers/new?mode=guided')
   await waitForReady(page)
   await pickByName(page, 'Battle')
   await clickNext(page) // -> Systems

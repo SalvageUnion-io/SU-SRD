@@ -20,7 +20,7 @@ import { clickNext, pickByName, waitForReady } from './_helpers'
  */
 
 test('wizard gates progress until type + name are set', async ({ page }) => {
-  await page.goto('/crawlers/new')
+  await page.goto('/crawlers/new?mode=guided')
   await waitForReady(page)
 
   const next = page.getByRole('button', { name: /^Next ·/ })
@@ -46,7 +46,7 @@ test('wizard gates progress until type + name are set', async ({ page }) => {
 })
 
 test('Systems step reveals the Sel grid for a new (TL1) crawler', async ({ page }) => {
-  await page.goto('/crawlers/new')
+  await page.goto('/crawlers/new?mode=guided')
   await waitForReady(page)
 
   // Crawler step -> pick a type -> advance to Systems.

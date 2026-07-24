@@ -9,7 +9,7 @@ import { clickNext, installLoadoutItem, pickByName, waitForReady } from './_help
  * with the mech visible.
  */
 test('build a mech from scratch', async ({ page }) => {
-  await page.goto('/mechs/new')
+  await page.goto('/mechs/new?mode=guided')
   await waitForReady(page)
 
   // Step 1 — Chassis. Mule is a guaranteed SU starter chassis.
@@ -45,7 +45,7 @@ test('build a mech from scratch', async ({ page }) => {
  */
 test('edit a mech loadout via /mechs/$id/edit', async ({ page }) => {
   // Build first.
-  await page.goto('/mechs/new')
+  await page.goto('/mechs/new?mode=guided')
   await waitForReady(page)
   await pickByName(page, 'Mule')
   await clickNext(page) // -> Pattern
