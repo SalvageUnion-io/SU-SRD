@@ -3,6 +3,8 @@
   "ignoreBinaries": ["netlify"],
   "ignoreDependencies": ["tailwindcss"],
   "ignoreExportsUsedInFile": true,
+  "includeEntryExports": true,
+  "tags": ["-public", "-knipignore"],
   "workspaces": {
     ".": {
       "entry": ["tools/**/*.ts"],
@@ -14,24 +16,24 @@
       "ignore": ["etc/**"]
     },
     "packages/component-lib": {
-      "project": ["src/**/*.{ts,tsx}"]
+      "project": ["src/**/*.{ts,tsx}"],
+      "includeEntryExports": false
     },
     "apps/srd": {
       "entry": ["src/pages/**/*.{astro,ts,tsx}"],
-      "project": ["src/**/*.{ts,tsx,astro}"]
+      "project": ["src/**/*.{ts,tsx,astro}"],
+      "includeEntryExports": false
     },
     "apps/itun": {
       "entry": [
         "src/routes/**/*.tsx",
         "netlify/functions/**/*.ts",
-        "src/lib/schemas/index.ts",
         "src/lib/db/index.ts",
         "src/lib/db/stores.ts",
         "src/lib/db/crud.ts",
         "src/lib/snapshot/storage.ts",
         "src/lib/snapshot/id.ts",
         "src/lib/snapshot/rateLimit.ts",
-        "src/stores/index.ts",
         "src/stores/entityStore.ts",
         "src/stores/workspaceStore.ts",
         "src/stores/types.ts"
@@ -40,7 +42,8 @@
     },
     "apps/su-assets": {
       "entry": ["netlify/functions/**/*.ts"],
-      "project": ["netlify/**/*.ts"]
+      "project": ["netlify/**/*.ts"],
+      "includeEntryExports": false
     },
     "apps/discord-bot": {
       "project": ["src/**/*.ts"]

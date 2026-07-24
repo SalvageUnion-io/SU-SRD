@@ -40,7 +40,7 @@ import type { Pilot } from '../lib/schemas/pilot'
 import type { SoftLink } from '../lib/schemas/softLink'
 import type { CreateInput, EntityForType, EntityType } from './types'
 
-// Re-export for consumers that only import from the stores barrel.
+// Re-exported so consumers can import the type alongside the store itself.
 export type { EntityType }
 
 type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]

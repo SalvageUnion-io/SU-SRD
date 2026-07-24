@@ -15,6 +15,10 @@ export type ItemCondition = z.infer<typeof ItemConditionSchema>
 
 export const ItemConditionMapSchema = z.record(z.string(), ItemConditionSchema)
 
+/**
+ * @knipignore Knip false positive: `lib/rules/downtime.ts` imports this type and
+ * deleting it fails typecheck (TS2724), but knip does not credit that import.
+ */
 export type ItemConditionMap = z.infer<typeof ItemConditionMapSchema>
 
 /**

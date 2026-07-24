@@ -484,7 +484,7 @@ export declare const SCHEMA_REGISTRY: {
  * Helper functions for common operations on Salvage Union reference data
  * These functions provide convenient access patterns used by consuming applications
  */
-import type { SURefChassis, SURefCrawler, SURefMetaCrawlerTechLevel, SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass, SURefObjectCrawlerMutation } from './types/index.js';
+import type { SURefCrawler, SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass, SURefObjectCrawlerMutation } from './types/index.js';
 import type { ModelWithMetadata } from './BaseModel.js';
 import { type EnhancedSchemaMetadata } from './ModelFactory.js';
 /**
@@ -525,7 +525,6 @@ export declare function getHybridClasses(): (SURefObjectAdvancedClass & {
  * @param chassisId - The ID of the chassis to find
  * @returns The chassis or undefined if not found
  */
-export declare function findChassisById(chassisId: string): SURefChassis | undefined;
 /**
  * Find a crawler by ID
  * @param crawlerId - The ID of the crawler to find
@@ -559,21 +558,16 @@ export declare function getMaxSpBonus(crawlerId: string): number;
  * @param techLevel - The tech level (number, 'B', or 'N')
  * @returns The numeric tech level
  */
-export declare function normalizeTechLevel(techLevel: number | 'B' | 'N' | null | undefined): number;
 /**
  * Find a crawler tech level by level number
  * @param techLevel - The tech level number to find
  * @returns The tech level or undefined if not found
  */
-export declare function findCrawlerTechLevel(techLevel: number): (SURefMetaCrawlerTechLevel & {
-    schemaName: string;
-}) | undefined;
 /**
  * Get all tech levels as an array of numbers
  * Derived from crawler-tech-levels data
  * @returns Array of tech level numbers (1-6)
  */
-export declare function getTechLevels(): readonly number[];
 /**
  * Get scrap conversion rate for a tech level
  * Each tech level is worth its numeric value in TL1 scrap
@@ -581,7 +575,6 @@ export declare function getTechLevels(): readonly number[];
  * @param techLevel - The tech level (1-6, 'B', or 'N')
  * @returns The conversion rate (tech level value)
  */
-export declare function getScrapConversionRate(techLevel: number | 'B' | 'N'): number;
 /**
  * Resolve the activation currency for a given schema/entity category.
  * Mech-level sources (chassis, systems, modules) cost EP; variable-cost abilities
