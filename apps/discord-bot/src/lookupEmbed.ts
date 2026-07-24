@@ -213,10 +213,27 @@ function actionStatLine(action: SURefMetaAction): string {
   return parts.join(' • ')
 }
 
+/** Strip a trailing ` (Owner)` disambiguation suffix when it names the entity
+ *  we are already rendering inside — the bot's equivalent of the web's
+ *  stripHostParenthetical. Action names carry an owner suffix in the data for
+ *  uniqueness (e.g. "Chassis Repair (Fabrication Arm)"); inside the owner's own
+ *  lookup the parent is already established, so the echo is redundant. A suffix
+ *  that does NOT match the owner (a generic "(NPC)"/"(Vehicle)" label, or a
+ *  different entity) is left alone here — those are stripped/overridden via the
+ *  action's own displayName instead. */
+function stripOwnerSuffix(name: string, ownName: string): string {
+  const match = name.match(/^(.*\S)\s*\(([^()]+)\)\s*$/)
+  if (!match) return name
+  const [, base, paren] = match
+  if (!base || !paren) return name
+  return paren.trim().toLowerCase() === ownName.trim().toLowerCase() ? base : name
+}
+
 /** Render one resolved action to a markdown chunk. `ownName` suppresses a
- *  redundant title when the action shares the entity's name. */
+ *  redundant title when the action shares the entity's name, and strips a
+ *  ` (ownName)` disambiguation suffix that is redundant in this context. */
 function renderAction(action: SURefMetaAction, ownName: string, chassisName?: string): string {
-  const title = action.displayName || action.name
+  const title = stripOwnerSuffix(action.displayName || action.name, ownName)
   const lines: string[] = []
   if (title && title !== ownName) lines.push(`__${escapeLabel(title)}__`)
 

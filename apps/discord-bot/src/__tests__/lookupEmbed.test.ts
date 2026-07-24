@@ -93,6 +93,21 @@ describe('buildLookupEmbed — content depth', () => {
     expect(e.description?.toLowerCase()).toContain('ballistic')
   })
 
+  test('an owner strips the redundant " (Owner)" suffix from its own actions', () => {
+    // "Multi-Function Repair Arm" owns "Chassis Repair (Multi-Function Repair
+    // Arm)" et al. Inside its own lookup the parent is already established, so
+    // the suffix is a redundant echo and must be stripped — mirroring the web's
+    // stripHostParenthetical. The suffix stays in the DATA (uniqueness), only
+    // the rendered title drops it.
+    const arm = SalvageUnionReference.Systems.find((s) => s.name === 'Multi-Function Repair Arm')
+    expect(arm).toBeDefined()
+    if (!arm) throw new Error('expected the Multi-Function Repair Arm system')
+    const e = buildLookupEmbed({ ...arm, schemaName: 'systems' }, 'systems')
+    expect(e.description).toContain('Chassis Repair')
+    expect(e.description).not.toContain('Chassis Repair (Multi-Function Repair Arm)')
+    expect(e.description).not.toContain('(Multi-Function Repair Arm)')
+  })
+
   test('a keyword renders its glossary definition', () => {
     const [hit] = search({ query: 'cover', schemas: ['keywords'], limit: 1 })
     expect(hit).toBeDefined()
