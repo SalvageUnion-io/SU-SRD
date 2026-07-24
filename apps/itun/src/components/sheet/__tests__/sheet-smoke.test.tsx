@@ -228,7 +228,7 @@ describe('Smoke — crawler-only sheet', () => {
     expect(screen.getAllByText(/Rust Colossus/).length).toBeGreaterThan(0)
   })
 
-  test('crawler tech level appears in the sheet (hero Tech LV mchip)', () => {
+  test('crawler tech level appears in the sheet (economy rail Tech LVL readout)', () => {
     render(
       <Sheet
         kind="crawler"
@@ -237,7 +237,7 @@ describe('Smoke — crawler-only sheet', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByText('Tech LV')).toBeTruthy()
+    expect(screen.getByText('Tech LVL')).toBeTruthy()
   })
 })
 

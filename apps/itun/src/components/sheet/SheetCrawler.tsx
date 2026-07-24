@@ -2,21 +2,20 @@
  * SheetCrawler — the crawler branch of the live sheet (extracted from
  * Sheet.tsx, audit item 19; redesigned to the poster layout, Phase 2).
  *
- * The hero now carries ONLY the name row + meta (poster region grid, D7):
- * Identity, the economy readouts and the linked-unit rail all moved into the
- * body's poster regions (see `CrawlerSheet`) — SheetHero no longer receives
- * `identityBlock`/`vitals`/`rail`, which have since been deleted from it
- * outright, mirroring SheetPilot/SheetMech.
+ * The body owns the identity band now (Workshop-Manual layout): SheetCrawler
+ * passes NO `renderHero`, and `CrawlerSheet` renders the `SheetHero` band as
+ * its first region (wrapping it with the `heroRef` from `renderBody`).
  * This component's remaining job is composing the economy band (the poster
  * `.econ` frame — `CrawlerEconFrame` — wrapping the SP `VitalGauge` + the
- * Tech-LVL/Upkeep/Upgrade/Trade/Crew lozenges, the R-4 action entry points)
- * and the docked-mech/lead-pilot rail content, and handing both to
- * `CrawlerSheet` as `economy` / `linkedUnits`. Owns the economy-dialog state
- * (it was hoisted to Sheet only because the branch wasn't a component).
+ * Tech-LVL/Upkeep/Upgrade/Trade/Crew lozenges, the R-4 action entry points),
+ * which is handed to `CrawlerSheet` as `economy` and rendered as the identity
+ * band's vitals rail, plus the docked-mech/lead-pilot rail content handed down
+ * as `linkedUnits`. Owns the economy-dialog state (it was hoisted to Sheet
+ * only because the branch wasn't a component).
  */
 
 import { useState } from 'react'
-import { EntityRow, Stat, VitalGauge } from 'component-lib'
+import { EntityRow, VitalGauge } from 'component-lib'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
@@ -29,7 +28,6 @@ import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
-import { SheetHero } from 'component-lib'
 import { RailChip } from './SheetRail'
 import { RailCta, RailStatLine } from './SheetRailParts'
 import { bayStates, mechRailItems, mechStatusPill, pilotRailItems } from './railStats'
@@ -237,24 +235,13 @@ export function SheetCrawler({
         pill={{ label: 'Crawler', tone: 'crawler' }}
         segments={segments}
         actions={actions}
-        renderHero={({ heroRef }) => (
-          <SheetHero
-            heroRef={heroRef}
-            cat="Crawler"
-            name={crawler.name}
-            meta={
-              tl !== undefined ? (
-                <Stat orientation="horizontal" label="Tech LV" value={tl} />
-              ) : undefined
-            }
-          />
-        )}
-        renderBody={() => (
+        renderBody={({ heroRef }) => (
           <CrawlerSheet
             crawler={crawler}
             mech={composition.mech}
             store={store}
             readOnly={readOnly}
+            heroRef={heroRef}
             economy={economy}
             linkedUnits={rail}
           />

@@ -2,15 +2,18 @@
  * CrawlerSheet — the crawler variant BODY for the LiveSheet shell (design
  * §4.4, plan 4.6; redesigned to the poster layout, Phase 2).
  *
- * Identity/Economy moved OUT of the hero (SheetCrawler.tsx now carries only
- * the name row + meta) and into this body's region flow. Following the printed
- * Workshop-Manual crawler sheet (`Editable_..._Crawler_Sheets.pdf`), the sheet
- * is a single-column region stack, inside the same `@container` shape
+ * The body OWNS the identity band now (Workshop-Manual crawler sheet):
+ * SheetCrawler passes NO `renderHero`, and this body renders `SheetHero` in
+ * band mode as its first region (wrapped with the shell's `heroRef`).
+ * Following the printed sheet (`Editable_..._Crawler_Sheets.pdf`), the sheet is
+ * a single-column region stack, inside the same `@container` shape
  * PilotSheet/MechSheet use:
  *
- *   Identity + Economy (one card) → Bays (3-column `EntityGrid`) → Armament
- *     Bay Weapons (3-column) → Linked Units (bare section, no card frame,
- *     matching PilotSheet/MechSheet) → Storage Bay.
+ *   Identity Band: edge wordmark ∥ Name/Type/Ability/Description fields ∥ the
+ *     Economy rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts, built
+ *     by SheetCrawler and passed as `economy`) → Bays (3-column `EntityGrid`)
+ *     → Armament Bay Weapons (3-column) → Linked Units (bare section, no card
+ *     frame) → Storage Bay.
  *   Storage Bay is the FULL-WIDTH band at the very BOTTOM (printed sheet p.2 —
  *     Storage Bay spans the whole width beneath the bays), NOT a full-height
  *     right column.
@@ -62,8 +65,8 @@
  */
 
 import { useState } from 'react'
-import type { ReactNode } from 'react'
-import { ReferenceEntityCard, Stat } from 'component-lib'
+import type { ReactNode, Ref } from 'react'
+import { ReferenceEntityCard, SheetHero, Stat } from 'component-lib'
 
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
@@ -105,10 +108,16 @@ type CrawlerSheetProps = {
   /** Suppresses every edit affordance (published snapshots). */
   readOnly?: boolean
   /**
+   * Condense sentinel from the LiveSheet shell — wraps the identity band (the
+   * body's first region) so the sticky bar still condenses when it scrolls
+   * away. Undefined in bare test renders (no shell).
+   */
+  heroRef?: Ref<HTMLElement>
+  /**
    * The economy band content (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade
    * lozenges) — built by `SheetCrawler` (it owns the economy-dialog state
-   * and `patch`), rendered inside the Identity card. Undefined renders
-   * nothing extra (e.g. a bare test render with no economy slot wired).
+   * and `patch`), rendered as the identity band's vitals rail. Undefined
+   * renders nothing extra (e.g. a bare test render with no economy slot wired).
    */
   economy?: ReactNode
   /**
@@ -125,6 +134,7 @@ export function CrawlerSheet({
   mech = null,
   store = useEntityStore,
   readOnly = false,
+  heroRef,
   economy,
   linkedUnits,
 }: CrawlerSheetProps) {
@@ -222,38 +232,39 @@ export function CrawlerSheet({
           `Editable_..._Crawler_Sheets.pdf` p.2), not a full-height right
           column. ===== */}
       <div className="flex min-w-0 flex-col gap-6">
-        {/* ----- Content region (Identity/Economy, Bays, Weapons) ----- */}
-        <div className="flex min-w-0 flex-col gap-6">
-          {/* Identity + Economy */}
-          <SheetSectionCard
-            title="Identity"
-            controls={
-              !readOnly ? (
-                <SectionEditButton
-                  section="Identity"
-                  editing={identityEditing}
-                  onToggle={() => setIdentityEditing((v) => !v)}
-                />
-              ) : undefined
-            }
-          >
-            <div className="flex min-w-0 flex-col gap-4">
-              <CrawlerIdentityPanel
-                crawler={crawler}
-                store={store}
-                storeState={storeState}
-                patch={readOnly ? undefined : patchCrawler}
+        {/* ===== Identity Band (Workshop-Manual crawler sheet top region) =====
+            Edge wordmark ∥ Name/Type/Ability/Description fields ∥ the Economy
+            rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts), in one
+            toned frame — no name pseudoheader stamp. Carries the shell's
+            condense sentinel (heroRef). */}
+        <SheetHero
+          heroRef={heroRef}
+          cat="Crawler"
+          name={crawler.name}
+          controls={
+            !readOnly ? (
+              <SectionEditButton
+                section="Identity"
                 editing={identityEditing}
-                readOnly={readOnly}
+                onToggle={() => setIdentityEditing((v) => !v)}
               />
-              {economy && (
-                <div className="border-t border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pt-4">
-                  {economy}
-                </div>
-              )}
-            </div>
-          </SheetSectionCard>
+            ) : undefined
+          }
+          fields={
+            <CrawlerIdentityPanel
+              crawler={crawler}
+              store={store}
+              storeState={storeState}
+              patch={readOnly ? undefined : patchCrawler}
+              editing={identityEditing}
+              readOnly={readOnly}
+            />
+          }
+          vitals={economy}
+        />
 
+        {/* ----- Content region (Bays, Weapons) ----- */}
+        <div className="flex min-w-0 flex-col gap-6">
           {/* Bays — ONE unified grid, all bays together (no crew/functional
               split). // TODO(redesign): render homebrew/custom bays in a
               separate "Custom Bays" group underneath once the data
