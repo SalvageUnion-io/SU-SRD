@@ -11,9 +11,9 @@ const TABS = ['All', 'Turn', 'Short', 'Long', 'Free', 'React'] as const
 const RANGES = ['Close', 'Medium', 'Long', 'Far'] as const
 
 /**
- * Real SRD actions as the deck's rows — each drives a shortform
+ * Real SRD actions as the deck's cards — each drives a shortform
  * `ReferenceEntityCard` badge, exactly as the ITUN wrapper feeds it. The last
- * row is locked (dimmed in place) to exercise the reach/overheat overlay.
+ * card is locked (dimmed in place) to exercise the reach/overheat overlay.
  */
 function realGroups(): DeckGroup[] {
   const actions = SalvageUnionReference.Actions.all()
@@ -48,8 +48,9 @@ function realGroups(): DeckGroup[] {
 
 /**
  * The Actions deck list view: timing tabs, group/range tools, source tags, and
- * grouped action rows (out-of-range rows dim in place). Real SRD systems drive
- * the rows; the resolve panel (not shown) reuses ReferenceEntityCard.
+ * a masonry grid of shortform action cards (out-of-range cards dim in place).
+ * Real SRD systems drive them; the resolve panel (not shown) reuses
+ * ReferenceEntityCard.
  */
 export const Default: Story = () => {
   const [tab, setTab] = useState<string>('All')
@@ -57,7 +58,7 @@ export const Default: Story = () => {
   const groups = realGroups()
   return (
     <div className="flex flex-col gap-4">
-      <Caption>Actions deck (list view) — filter tabs, range/reach, grouped rows.</Caption>
+      <Caption>Actions deck (list view) — filter tabs, range/reach, masonry card grid.</Caption>
       <InstrumentStage width={560}>
         <div
           className="pc-display-light"

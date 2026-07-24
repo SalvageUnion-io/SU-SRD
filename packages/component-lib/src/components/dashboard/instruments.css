@@ -204,13 +204,25 @@
   font-size: var(--text-badge);
   color: var(--color-ink-50);
 }
-.pc-deck-list {
+/*
+ * Masonry via CSS multi-column — deliberately the plain, well-understood
+ * mechanism rather than `grid-template-rows: masonry` (not shipping broadly)
+ * or a JS-measured layout. Card heights differ once a long action name wraps;
+ * columns pack them tightly and `break-inside: avoid` keeps a card whole. Column
+ * COUNT is implicit: `column-width` is a minimum, so the deck widens from one
+ * to three columns with the display panel and needs no breakpoints.
+ */
+.pc-deck-grid {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+  column-width: 260px;
+  column-gap: 8px;
+}
+.pc-deck-grid > li {
+  break-inside: avoid;
+  /* Multi-column has no row gap; the item's own bottom margin is the gutter. */
+  margin: 0 0 8px;
 }
 .pc-deck-panel {
   display: flex;

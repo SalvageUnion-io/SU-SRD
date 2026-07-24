@@ -13,10 +13,11 @@ import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard
 import type { ReferenceCardEntity } from '../referenceEntity/card/ReferenceEntityCard'
 
 /**
- * A render-ready action row. The action ENTITY drives a shortform
+ * A render-ready action card. The action ENTITY drives a shortform
  * `ReferenceEntityCard` badge (name · Cost · type · Damage · range) — the same
  * card the SRD renders — so the deck reuses the canonical action rendering
- * instead of a hand-rolled row. Reach/lock is resolved by the caller and
+ * instead of a hand-rolled row. The card states its own name, so the deck adds
+ * no describing label above it. Reach/lock is resolved by the caller and
  * layered on top (dim + tooltip), never baked into the card.
  */
 export type DeckRow = {
@@ -335,10 +336,21 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
           {view.groups.map((group) => (
             <section key={group.label}>
               <h3 className="pc-deck-group-lab">{group.label}</h3>
-              <ul className="pc-deck-list">
+              {/*
+               * A masonry grid, not a column of rows. The cards stay the compact
+               * shortform (`small` + `head`) — deliberately NOT the full extent,
+               * which embeds its own buttons (nested sub-entity cards, the
+               * description expander, roll controls). Those are invalid inside
+               * this card's own `role="button"` wrapper, and their clicks would
+               * bubble into `onOpen` and open the resolve panel. Shortform cards
+               * still differ in height when a long action name wraps, which is
+               * what the masonry packing is for. `<ul>/<li>` stays — a set of
+               * actions IS a list semantically; "grid" is purely the layout.
+               */}
+              <ul className="pc-deck-grid">
                 {group.rows.map((row) => (
                   // Lock (out of range / overheat) is a caller-resolved overlay,
-                  // layered on the canonical badge — dim + tooltip — never a
+                  // layered on the canonical card — dim + tooltip — never a
                   // property of the action card itself.
                   <li
                     key={row.key}
