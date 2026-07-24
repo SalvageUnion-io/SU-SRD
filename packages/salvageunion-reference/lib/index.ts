@@ -76,17 +76,6 @@ export {
   type ResolvedChoiceView,
 } from './resolveChoiceView.js'
 
-// Export combat utility functions (pure game logic)
-export {
-  getHeatGenerated,
-  applyHeat,
-  canActivateAction,
-  shouldTriggerHeatCheck,
-  canPush,
-  nextCondition,
-  applySpDamage,
-} from './combatUtils.js'
-
 // Import search functions for use in class methods
 import {
   search as searchFn,
@@ -114,8 +103,6 @@ import {
 const lazyModelsById: Record<string, LazyModel<unknown> | undefined> = lazyModelMap
 
 export type * from './types/index.js'
-
-export { getJsonSchemaDefinition, getAllJsonSchemaDefinitions } from './schemaDefinitions.js'
 
 export type { SchemaToEntityMap, EntitySchemaName }
 

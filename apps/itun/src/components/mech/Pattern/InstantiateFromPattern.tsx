@@ -17,7 +17,7 @@
  */
 
 import { useState } from 'react'
-import { findChassisByRef } from '../../../lib/rules/derivedStats'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { useEntityStore } from '../../../stores/entityStore'
 import type { MechPattern } from '../../../lib/schemas/pattern'
 import { Button, ModalShell, FieldError } from 'component-lib'
@@ -38,7 +38,7 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
     setError(null)
 
     try {
-      const chassis = findChassisByRef(pattern.chassisRef)
+      const chassis = resolveChassisRef(pattern.chassisRef)
       const mech = await useEntityStore.getState().create('mech', {
         schemaVersion: 1,
         name: `${pattern.name} (from pattern)`,

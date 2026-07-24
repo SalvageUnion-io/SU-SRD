@@ -24,8 +24,8 @@ export class LazyModel<T> extends BaseModel<T> {
   readonly displayName: string
 
   constructor(schemaId: string, _propName: string, displayNameValue: string) {
-    // Pass empty arrays / empty schema; data is never used until _backing is set
-    super([], {}, schemaId, displayNameValue)
+    // Pass an empty array; data is never used until _backing is set
+    super([], schemaId, displayNameValue)
     this._schemaIdForLazy = schemaId
     this.schemaName = schemaId
     this.displayName = displayNameValue
@@ -37,19 +37,16 @@ export class LazyModel<T> extends BaseModel<T> {
    */
   _install(backing: BaseModel<T>): void {
     this._backing = backing
-    // Copy the schema reference so getDataMaps() can read it
-    this.schema = backing.schema
   }
 
   /**
-   * Reset to the pre-load state (testing only). Clears the backing model and
-   * schema so subsequent data access throws again. Owning the private
+   * Reset to the pre-load state (testing only). Clears the backing model so
+   * subsequent data access throws again. Owning the private
    * `_backing` field here lets resetAllForTesting() avoid an `as unknown as`
    * reach-in to poke the private field from outside the class.
    */
   _reset(): void {
     this._backing = null
-    this.schema = {}
   }
 
   private _loadedBacking(): BaseModel<T> {

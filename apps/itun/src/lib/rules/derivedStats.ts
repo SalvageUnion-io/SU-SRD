@@ -14,7 +14,6 @@ export {
   pilotMaxAP,
   isPilotDead,
   clampPilotCurrentStats,
-  findChassisByRef,
   installedStatBonus,
   mechMaxSP,
   mechMaxEP,

@@ -54,6 +54,10 @@ full rationale.
     "types": "./lib/zod.ts",
     "default": "./lib/zod.ts"
   },
+  "./schema-definitions": {
+    "types": "./lib/schemaDefinitions.ts",
+    "default": "./lib/schemaDefinitions.ts"
+  },
   "./data/*": {
     "import": "./data/*.json",
     "default": "./data/*.json"
@@ -70,7 +74,11 @@ Consuming apps resolve `lib/index.ts` directly — there is no `dist/` build and
 no `development`/`import` condition split. `./rules` is the pure-math rules
 entry point ([ADR-006](../adrs/ADR-006-pure-rules-logic.md)). `./zod` is the
 canonical Zod re-export ([ADR-013](../adrs/ADR-013-csp-zod-jitless.md)) — every
-other package/app must import `z` from here, never from `zod` directly
+other package/app must import `z` from here, never from `zod` directly.
+`./schema-definitions` exposes the generated JSON Schema documents
+(`getJsonSchemaDefinition` / `getAllJsonSchemaDefinitions`) behind their own
+subpath so the ~783 KB schema corpus is never pulled into an app bundle through
+the main barrel — only the srd `/schema/[id].schema.json` build route imports it
 (enforced by `noRestrictedImports` in the root `biome.jsonc`).
 
 `tools/check-doc-drift.ts` (`bun run validate:all`) fails CI if this block
@@ -381,7 +389,7 @@ When modifying shared packages, follow this checklist:
 - [ ] Run typecheck: `bun run typecheck`
 - [ ] Run validation: `bun run validate:all`
 - [ ] Run tests: `bun test`
-- [ ] If adding a new schema, ALL of these registries must gain an entry together (they are hand-maintained in parallel today): `ModelFactory.ts` `dataLoaders` + `jsonSchemaLoaders` + `zodSchemaMap` + `schemaDisplayNames`; `index.ts` `LazyModel` instance + `lazyModelMap` + `SchemaToEntityMap` + `SCHEMA_REGISTRY` + static accessor; `tools/generateJsonSchemas.ts` map. Then verify `preload(['new-schema-id'])` resolves without error
+- [ ] If adding a new schema, ALL of these registries must gain an entry together (they are hand-maintained in parallel today): `ModelFactory.ts` `dataLoaders` + `zodSchemaMap` + `schemaDisplayNames`; `index.ts` `LazyModel` instance + `lazyModelMap` + `SchemaToEntityMap` + `SCHEMA_REGISTRY` + static accessor; `tools/generateJsonSchemas.ts` map. Then verify `preload(['new-schema-id'])` resolves without error
 - [ ] Data integrity: `bun run validate:all` (includes `validate:slugs` — same-named entities in one file shadow each other's slug URLs and will fail the gate)
 
 ### 2. After changing `component-lib`

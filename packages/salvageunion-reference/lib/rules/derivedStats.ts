@@ -120,16 +120,8 @@ type MechDerivationInput = {
  */
 type StatBonusKey = 'structurePoints' | 'energyPoints' | 'heatCapacity' | 'cargoCapacity'
 
-/**
- * Resolve a mech's chassis from the reference ORM. `chassisRef` stores the
- * chassis SLUG (v6 migration); legacy names/ids are tolerated at resolution.
- */
-export function findChassisByRef(chassisRef: string): ChassisStats | null {
-  return resolveChassisRef(chassisRef)
-}
-
 function resolveChassis(mech: MechDerivationInput, chassis?: ChassisStats | null): ChassisStats {
-  return chassis ?? findChassisByRef(mech.chassisRef) ?? {}
+  return chassis ?? resolveChassisRef(mech.chassisRef) ?? {}
 }
 
 /**

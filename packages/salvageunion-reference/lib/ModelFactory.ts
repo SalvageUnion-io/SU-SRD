@@ -3,8 +3,8 @@
  * Uses lazy (dynamic) imports for JSON data files so consumers
  * can code-split the ~1.1 MB data corpus via SalvageUnionReference.preload().
  *
- * The four registries below (dataLoaders, jsonSchemaLoaders, zodSchemaMap,
- * schemaDisplayNames) are generated from lib/schemas/registry.ts by
+ * The three registries below (dataLoaders, zodSchemaMap, schemaDisplayNames)
+ * are generated from lib/schemas/registry.ts by
  * tools/generateRegistry.ts into lib/generated/modelFactoryRegistry.generated.ts
  * — run `bun run build:package` to regenerate after editing the manifest.
  */
@@ -14,7 +14,6 @@ import { z } from './zod.js'
 import { toPascalCase } from './naming.js'
 import {
   dataLoaders,
-  jsonSchemaLoaders,
   zodSchemaMap,
   schemaDisplayNames,
 } from './generated/modelFactoryRegistry.generated.js'
@@ -60,18 +59,17 @@ export async function loadSchemas(schemas: string[] | 'all'): Promise<void> {
 
 async function loadSingleSchema(schemaId: string): Promise<void> {
   const dataLoader = dataLoaders[schemaId]
-  const jsonSchemaLoader = jsonSchemaLoaders[schemaId]
   const zodSchema = zodSchemaMap[schemaId]
 
-  if (!dataLoader || !jsonSchemaLoader || !zodSchema) {
+  if (!dataLoader || !zodSchema) {
     throw new Error(`No loader found for schema ID: ${schemaId}`)
   }
 
-  const [rawData, jsonSchema] = await Promise.all([dataLoader(), jsonSchemaLoader()])
+  const rawData = await dataLoader()
 
   const validatedData = validateAndParseData(schemaId, rawData, zodSchema)
   const displayNameValue = schemaDisplayNames[schemaId]?.singular ?? schemaId
-  const model = new BaseModel(validatedData, jsonSchema, schemaId, displayNameValue)
+  const model = new BaseModel(validatedData, schemaId, displayNameValue)
 
   Object.defineProperties(model, {
     schemaName: {
@@ -126,27 +124,24 @@ export function resetLoadStateForTesting(): void {
 // ---------------------------------------------------------------------------
 
 /**
- * Get the loaded data and schema maps (synchronous).
+ * Get the loaded data map (synchronous).
  * Only returns data for schemas that have been preloaded.
  * Exposed for client use (e.g. resolveActions in index.ts).
  */
 export function getDataMaps(): {
   dataMap: Record<string, unknown[]>
-  schemaMap: Record<string, Record<string, unknown>>
 } {
   const dataMap: Record<string, unknown[]> = {}
-  const schemaMap: Record<string, Record<string, unknown>> = {}
 
   for (const schemaId of loadedSchemas) {
     const propName = toPascalCase(schemaId)
     const model = modelRegistry[propName]
     if (model) {
       dataMap[schemaId] = model.all()
-      schemaMap[schemaId] = model.schema
     }
   }
 
-  return { dataMap, schemaMap }
+  return { dataMap }
 }
 
 // ---------------------------------------------------------------------------
@@ -161,7 +156,6 @@ export function getDataMaps(): {
  */
 export const _registryKeySets = {
   dataLoaders: Object.keys(dataLoaders),
-  jsonSchemaLoaders: Object.keys(jsonSchemaLoaders),
   zodSchemaMap: Object.keys(zodSchemaMap),
 }
 

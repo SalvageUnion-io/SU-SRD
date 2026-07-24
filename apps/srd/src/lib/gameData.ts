@@ -23,7 +23,6 @@ export {
   getReferenceEntityData,
   getModel,
   getEntitySchemas,
-  getJsonSchemaDefinition,
   getUniqueTechLevels,
   getUniqueSources,
   getUniqueTrees,

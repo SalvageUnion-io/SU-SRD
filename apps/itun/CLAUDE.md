@@ -49,8 +49,9 @@ Functions ([ADR-001](../../docs/adrs/ADR-001-local-first-no-backend.md),
 
 ## Combat / rules
 
-- Pure math lives in `salvageunion-reference` — `lib/combatUtils.ts` plus
-  `lib/rules/` (heat check, take damage, core mechanic, …). `src/lib/rules/` is
+- Pure math lives in `salvageunion-reference` — `lib/rules/` (heat check, take
+  damage, core mechanic, …), imported via the `salvageunion-reference/rules`
+  subpath export, never the main barrel. `src/lib/rules/` is
   ITUN's re-export + app-local layer: `heatCheck.ts` re-exports the package's
   `performHeatCheck` / `performPush` / `clampHeat` and adds `defaultRoll` (the
   `@randsum/roller` binding) and `heatCheckPatch` (effect → `Partial<Mech>`);

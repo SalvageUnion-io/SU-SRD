@@ -66,7 +66,7 @@ Adding a whole new schema (not just rows in an existing file) needs three
 hand-authored pieces — the Zod schema itself, the SURefEntity/SURefMetaEntity
 type-union edits, and the `schemas/index.json` catalog entry — plus **one**
 manifest entry in `lib/schemas/registry.ts`. Everything else (ModelFactory's
-`dataLoaders` / `jsonSchemaLoaders` / `zodSchemaMap` / `schemaDisplayNames`,
+`dataLoaders` / `zodSchemaMap` / `schemaDisplayNames`,
 `index.ts`'s `LazyModel` instances / `lazyModelMap` / `SchemaToEntityMap` /
 `SCHEMA_REGISTRY`, and the `SalvageUnionReference` static accessors) is
 generated from that manifest by `tools/generateRegistry.ts` — run via

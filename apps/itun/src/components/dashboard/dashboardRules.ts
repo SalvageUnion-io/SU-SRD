@@ -16,7 +16,7 @@
  * into the returned patch — they stay explicit player calls at the UI layer.
  */
 
-import { SalvageUnionReference, canActivateAction } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type {
   SURefAbility,
   SURefEquipment,
@@ -24,7 +24,7 @@ import type {
   SURefMetaEntity,
 } from 'salvageunion-reference'
 
-import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { canActivateAction, resolveChassisRef } from 'salvageunion-reference/rules'
 import type { CoreRollBand } from '../../lib/rules/coreMechanic'
 import { clampHeat, heatCheckPatch, performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'

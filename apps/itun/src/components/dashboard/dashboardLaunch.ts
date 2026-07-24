@@ -15,7 +15,7 @@
  * on the right side of the ADR-007 boundary.
  */
 
-import { findChassisByRef } from '../../lib/rules/derivedStats'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { crawlerMaxSP } from '../../lib/rules/derivedStats'
 import type { MechPattern } from '../../lib/schemas/pattern'
 import type { CreateInput, EntityForType } from '../../stores/types'
@@ -54,7 +54,7 @@ export async function instantiateMechFromPattern(
   store: LaunchStore,
   pattern: MechPattern
 ): Promise<string> {
-  const chassis = findChassisByRef(pattern.chassisRef)
+  const chassis = resolveChassisRef(pattern.chassisRef)
   const mech = await store.create('mech', {
     schemaVersion: 1,
     name: `${pattern.name} (stand-in)`,

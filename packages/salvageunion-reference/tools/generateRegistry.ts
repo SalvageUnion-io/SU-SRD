@@ -6,9 +6,9 @@
  * committed, human-reviewable generated files:
  *
  *   - lib/generated/modelFactoryRegistry.generated.ts
- *       dataLoaders / jsonSchemaLoaders (literal per-id `import()` calls —
- *       required for bundler code-splitting to statically analyze them) plus
- *       zodSchemaMap / schemaDisplayNames.
+ *       dataLoaders (literal per-id `import()` calls — required for bundler
+ *       code-splitting to statically analyze them) plus zodSchemaMap /
+ *       schemaDisplayNames.
  *
  *   - lib/generated/schemaRegistry.generated.ts
  *       the SchemaToEntityMap type, the LazyModel instances (inlined
@@ -81,16 +81,6 @@ function generateModelFactoryRegistry(entries: RegistryEntry[]): string {
     )
     .join('\n')
 
-  const jsonSchemaLoaders = entries
-    .map(
-      (e) =>
-        `  '${e.id}': () =>\n` +
-        `    import('../../schemas/${e.id}.schema.json').then(\n` +
-        `      (m) => m.default as Record<string, unknown>\n` +
-        `    ),`
-    )
-    .join('\n')
-
   const zodSchemaMap = entries.map((e) => `  '${e.id}': ${e.zodExportName},`).join('\n')
 
   const schemaDisplayNames = entries
@@ -115,10 +105,6 @@ ${zodImports}
 
 export const dataLoaders: Record<string, () => Promise<unknown[]>> = {
 ${dataLoaders}
-}
-
-export const jsonSchemaLoaders: Record<string, () => Promise<Record<string, unknown>>> = {
-${jsonSchemaLoaders}
 }
 
 /**
