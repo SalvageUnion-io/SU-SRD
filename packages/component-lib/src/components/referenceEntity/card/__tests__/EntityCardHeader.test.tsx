@@ -10,7 +10,15 @@
  * the rule rather than pixel widths:
  * - empty right side  → title `flex-1`, no 60% cap;
  * - stat cluster only → stats reserve (no `flex-1` column in full), title yields;
- * - flavour prose     → title reserves (`max-w-[60%]`), the column yields (`flex-1`).
+ * - flavour prose     → BOTH sides `flex-auto`, so each is sized from its own
+ *   max-content and the overflow is split in proportion to how much text each
+ *   side has (title keeps the 60% ceiling). Neither side may reserve a FIXED
+ *   share: a fixed 60/40 gave the title 60% whether it needed it or not,
+ *   leaving a short title beside a description crushed into twice the lines.
+ *   Proportional sizing is also what now prevents the one-letter-per-line
+ *   starvation — the title can't drop below its share of the row — where the
+ *   old rule needed the cap to do it, because prose reserved content width
+ *   against the title's zero basis and so took none of the shrink.
  */
 import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
@@ -65,7 +73,7 @@ describe.each([false, true])('EntityCardHeader width allocation (compact=%p)', (
     expect(rightColumn()).toBeNull()
   })
 
-  test('with flavour prose the title reserves and the prose column yields', () => {
+  test('with flavour prose both sides flex from their own content width', () => {
     render(
       <EntityCardHeader
         {...base}
@@ -74,11 +82,17 @@ describe.each([false, true])('EntityCardHeader width allocation (compact=%p)', (
       />
     )
 
-    // The title must never be starved below a legible width by prose: it is
-    // capped, not collapsed — and the prose column is the flexible side.
-    expect(titleWrapper().className).toContain('max-w-[60%]')
+    // Neither side reserves a fixed share: `flex-auto` on both makes the flex
+    // base each side's max-content, so the overflow is absorbed in proportion
+    // to the amount of text. `flex-1` (basis 0) on either side would restore
+    // the fixed 60/40 split this replaced.
+    expect(titleWrapper().className).toContain('flex-auto')
+    expect(rightColumn()?.className).toContain('flex-auto')
     expect(titleWrapper().className).not.toContain('flex-1')
-    expect(rightColumn()?.className).toContain('flex-1')
+    expect(rightColumn()?.className).not.toContain('flex-1')
+    // The ceiling stays, so a long title beside a one-word description can
+    // still claim no more than 60% of the row.
+    expect(titleWrapper().className).toContain('max-w-[60%]')
   })
 })
 
@@ -116,7 +130,7 @@ describe('EntityCardHeader with a stat cluster (the overlap fix, kept)', () => {
     expect(rightColumn()?.className).toContain('flex-1')
   })
 
-  test('full, stats AND prose: the prose flips the column to the yielding side', () => {
+  test('full, stats AND prose: the prose flips both sides to proportional', () => {
     render(
       <EntityCardHeader
         title={TITLE}
@@ -129,6 +143,7 @@ describe('EntityCardHeader with a stat cluster (the overlap fix, kept)', () => {
     )
 
     expect(titleWrapper().className).toContain('max-w-[60%]')
-    expect(rightColumn()?.className).toContain('flex-1')
+    expect(titleWrapper().className).toContain('flex-auto')
+    expect(rightColumn()?.className).toContain('flex-auto')
   })
 })

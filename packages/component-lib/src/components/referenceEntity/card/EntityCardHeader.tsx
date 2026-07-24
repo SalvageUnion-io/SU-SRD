@@ -83,18 +83,33 @@ export function EntityCardHeader({
   // - STAT CLUSTER only → stats are bounded, so they RESERVE their content
   //   width and the title yields into the remainder (the original
   //   title-overlapping-the-stats fix — kept).
-  // - FLAVOUR PROSE → prose is arbitrary-length, so IT yields: letting it
-  //   reserve content width drove the title to min-w-0 and stacked it one
-  //   character per line. The title reserves (capped at 60%), the prose wraps
-  //   into the rest.
+  // - FLAVOUR PROSE → two arbitrary-length texts share one row, so neither
+  //   side may reserve a FIXED share: both are `flex-auto`, whose flex base is
+  //   each side's own max-content width, so the overflow is absorbed in
+  //   PROPORTION to how much text each actually has (both shrink by the same
+  //   factor, leaving each side's width proportional to its own text). A fixed
+  //   60/40 handed the title 60% whether it needed it or not — "Mass Field
+  //   Maintenance" wrapped to two lines in a 60% box beside a description
+  //   crushed into four, which is the whitespace this replaces.
+  //
+  //   This is ALSO what keeps the one-letter-per-line regression fixed, and by
+  //   a stronger guarantee than the fixed cap it replaces: the title can never
+  //   fall below its proportional share (a description three times its length
+  //   still leaves it a quarter of the row), where the old rule let the title
+  //   take ALL of the shrink because the prose reserved content width against
+  //   the title's zero basis. The 60% ceiling stays; `min-w-0` stays too, so a
+  //   title too long for a narrow card still breaks (`break-words`) instead of
+  //   forcing the row wider than the card.
   const hasProse = !!rightContent
   const hasRight = !!(rightContent || statsNode)
 
   // COMPACT: the title + flavor/stat cluster share ONE row and split the width
   // dynamically — the cluster never wraps beneath the title, each side wraps
-  // WITHIN its own space. With right-side content the title takes up to 60%
-  // and the cluster (flex-1, basis 0 — so it can never starve the title) takes
-  // the rest; with nothing beside it the title takes the full row.
+  // WITHIN its own space. Against PROSE both sides are `flex-auto` and split in
+  // proportion to their own text (see the rule above); against a bounded STAT
+  // cluster the title takes up to 60% and the cluster (flex-1, basis 0 — so it
+  // can never starve the title) takes the rest; with nothing beside it the
+  // title takes the full row.
   if (compact) {
     return (
       <div
@@ -106,9 +121,21 @@ export function EntityCardHeader({
         )}
         style={accent.style}
       >
-        <div className={cn('min-w-0', hasRight ? 'max-w-[60%]' : 'flex-1')}>{titleNode}</div>
+        <div
+          className={cn(
+            'min-w-0',
+            hasProse ? 'max-w-[60%] flex-auto' : hasRight ? 'max-w-[60%]' : 'flex-1'
+          )}
+        >
+          {titleNode}
+        </div>
         {hasRight && (
-          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
+          <div
+            className={cn(
+              'flex min-w-0 flex-wrap items-center justify-end gap-2',
+              hasProse ? 'flex-auto' : 'flex-1'
+            )}
+          >
             {rightContent}
             {statsNode}
           </div>
@@ -127,20 +154,23 @@ export function EntityCardHeader({
     >
       {/* Stats-only (or empty) right side: the title is the FLEXIBLE side — it
           grows into the free space and wraps within it, yielding first so it can
-          never run under the stats. With PROSE on the right the roles flip: the
-          title reserves its content width (capped at 60%, shrink-0 so no
-          pathological cluster can squeeze it) and the prose yields. */}
-      <div className={cn('min-w-0', hasProse ? 'max-w-[60%] shrink-0' : 'flex-1')}>{titleNode}</div>
+          never run under the stats. With PROSE on the right neither side is
+          fixed: both are `flex-auto`, so each is sized from its own max-content
+          and they absorb the overflow proportionally, the title still capped at
+          60%. */}
+      <div className={cn('min-w-0', hasProse ? 'max-w-[60%] flex-auto' : 'flex-1')}>
+        {titleNode}
+      </div>
       {hasRight && (
         // Stats-only: the cluster reserves its own width (it doesn't grow, and
         // holds content size until the title is fully collapsed) and wraps
         // internally, so it is never overlapped and never clipped off the card
-        // edge. With prose the cluster is flex-1 (basis 0): it fills whatever
-        // the title leaves and the prose wraps inside it.
+        // edge. With prose the cluster is flex-auto: its base is the prose's own
+        // max-content, so it gives up width in proportion to the title's.
         <div
           className={cn(
             'flex min-w-0 flex-wrap items-center justify-end gap-2',
-            hasProse && 'flex-1'
+            hasProse && 'flex-auto'
           )}
         >
           {rightContent}
