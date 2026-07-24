@@ -288,6 +288,22 @@ jobs:
       - name: Build itun
         run: bun --filter itun build
 
+      # The TanStack Router plugin regenerates src/routeTree.gen.ts as part of
+      # the build. It is a COMMITTED artifact, so if the build emits something
+      # different from what is checked in, every contributor gets a spuriously
+      # dirty working tree and the committed file slowly stops describing the
+      # real route graph. That had already happened — the checked-in file was
+      # stale by an entire plugin version (import ordering) and nothing caught
+      # it, because the only generated-file drift gate covers the reference
+      # package. The build ran here anyway, so this check is ~free.
+      - name: Check routeTree.gen.ts is not stale
+        run: |
+          if ! git diff --exit-code -- apps/itun/src/routeTree.gen.ts; then
+            echo "::error::apps/itun/src/routeTree.gen.ts is stale — the itun build regenerated it." \
+              "Run 'bun --filter itun build' and commit the result."
+            exit 1
+          fi
+
   build-discord-bot:
     needs: [changes, build-package, lint, typecheck, test, validate, knip, audit]
     if: needs.changes.outputs.bot == 'true'
