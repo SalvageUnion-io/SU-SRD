@@ -115,8 +115,6 @@ const lazyModelsById: Record<string, LazyModel<unknown> | undefined> = lazyModel
 
 export type * from './types/index.js'
 
-export { getJsonSchemaDefinition, getAllJsonSchemaDefinitions } from './schemaDefinitions.js'
-
 export type { SchemaToEntityMap, EntitySchemaName }
 
 // Runtime set of entity schema names (derived from registry, excludes non-entity metadata schemas)

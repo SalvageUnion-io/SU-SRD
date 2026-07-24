@@ -672,7 +672,6 @@ export { resolveChoiceView, type ChoiceSelections, type ChoicePrompt, type Resol
 export { getHeatGenerated, applyHeat, canActivateAction, shouldTriggerHeatCheck, canPush, nextCondition, applySpDamage, } from './combatUtils.js';
 import { type SearchOptions, type SearchResult } from './search.js';
 export type * from './types/index.js';
-export { getJsonSchemaDefinition, getAllJsonSchemaDefinitions } from './schemaDefinitions.js';
 export type { SchemaToEntityMap, EntitySchemaName };
 export declare const EntitySchemaNames: Set<keyof SchemaToEntityMap>;
 export declare const SchemaToModelMap: { readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]["model"]; };

@@ -19,6 +19,10 @@
       "types": "./lib/zod.ts",
       "default": "./lib/zod.ts"
     },
+    "./schema-definitions": {
+      "types": "./lib/schemaDefinitions.ts",
+      "default": "./lib/schemaDefinitions.ts"
+    },
     "./data/*": {
       "import": "./data/*.json",
       "default": "./data/*.json"
