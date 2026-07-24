@@ -1135,7 +1135,6 @@
     "id": "4f715070-4a94-4211-829f-4479364ff159",
     "name": "Bio-Rifle (Equipment)",
     "displayName": "Bio-Rifle",
-    "techLevel": 3,
     "range": ["Medium"],
     "damage": {
       "damageType": "HP",
@@ -1170,7 +1169,6 @@
   {
     "id": "9c017d05-8ba7-4225-a203-b2bf9d240bcb",
     "name": "Bio-Scanner",
-    "techLevel": 1,
     "actionType": "Turn",
     "activationCost": 1,
     "range": ["Medium"],
@@ -1365,7 +1363,6 @@
         "name": "Black Market Modules",
         "choiceType": "session",
         "schema": ["modules"],
-        "setIndexable": true,
         "schemaEntities": ["Goflow Plant Growing System", "Corrupted Neuralink Module"]
       },
       {
@@ -1391,7 +1388,6 @@
         "name": "Black Market Systems",
         "choiceType": "session",
         "schema": ["systems"],
-        "setIndexable": true,
         "schemaEntities": ["Napalm Launcher", "Rad Wave Generator"]
       },
       {
@@ -1416,7 +1412,6 @@
         "name": "Black Market Pilot Equipment",
         "choiceType": "session",
         "schema": ["equipment"],
-        "setIndexable": true,
         "schemaEntities": ["Blinding Blue Laser Rifle"]
       }
     ],
@@ -1880,7 +1875,6 @@
   {
     "id": "889d913f-549d-40d2-8a4e-51b3ae7877e9",
     "name": "Chimerium Beast Companion",
-    "techLevel": 4,
     "actionType": "DownTime",
     "content": [
       {
@@ -1909,7 +1903,6 @@
   {
     "id": "a9dd2333-2e2c-4866-93a7-a7861e20ae05",
     "name": "Chimerium Salvaging Tools",
-    "techLevel": 1,
     "content": [
       {
         "type": "paragraph",
@@ -8367,8 +8360,6 @@
     "id": "ddff4e0a-542d-4187-a22f-721502ceddb1",
     "actionSource": "vehicles",
     "actionType": "Turn",
-    "source": "Salvage Union Workshop Manual",
-    "page": 292,
     "content": [
       {
         "type": "paragraph",

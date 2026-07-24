@@ -114,7 +114,10 @@ export const DataValueSchema = z
   .object({
     label: z.union([z.string(), z.number()]).describe('Display label for this data value'),
     value: z.union([z.string(), z.number()]).describe('The data value').optional(),
-    type: z.string().describe('Type classification for this data value').optional(),
+    type: z
+      .enum(['keyword', 'trait', 'cost'])
+      .describe('Type classification for this data value')
+      .optional(),
     unit: z
       .string()
       .describe('Optional unit shown after the value (e.g. damage type "SP")')
@@ -551,7 +554,7 @@ const CardinalitySchema = z
  *                     optionally a named shortlist and/or a filter (a numeric
  *                     `field` range, or `damageType` — keep only systems whose
  *                     actions deal that damage type, i.e. Weapons Systems);
- *                     `reveals` flips index visibility (was: setIndexable).
+ *                     `reveals` flips index visibility.
  *                     Schema-only (no shortlist) → resolved to an entity listing.
  * - `systemVariant` — pick from inline custom System/Module variants.
  */
@@ -597,7 +600,6 @@ export const ChoiceSchema: z.ZodType<{
   schemaEntities?: string[]
   schema?: z.infer<typeof SchemaNameSchema>[]
   customSystemOptions?: z.infer<typeof SystemModuleSchema>[]
-  setIndexable?: boolean
   multiSelect?: boolean
   choiceOptions?: z.infer<typeof ChoiceOptionSchema>[]
   constraints?: z.infer<typeof ChoiceConstraintsSchema>
@@ -623,10 +625,6 @@ export const ChoiceSchema: z.ZodType<{
         customSystemOptions: z
           .array(SystemModuleSchema)
           .describe('Custom system/module options for this choice')
-          .optional(),
-        setIndexable: z
-          .boolean()
-          .describe('Whether to update indexable flag based on this choice')
           .optional(),
         multiSelect: z
           .boolean()
@@ -873,7 +871,6 @@ export const BaseEntitySchema = z
       .optional(),
     content: ContentSchema.describe('Descriptive content blocks for this entity').optional(),
     id: IdSchema.describe('Unique identifier for this entity'),
-    indexable: z.boolean().default(true).describe('Whether this entity appears in search results'),
     blackMarket: z
       .boolean()
       .default(false)

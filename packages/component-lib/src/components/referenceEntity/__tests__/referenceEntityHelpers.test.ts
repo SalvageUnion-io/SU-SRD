@@ -22,7 +22,6 @@ describe('calculateBackgroundColor', () => {
         name: 'Test',
         source: 'Salvage Union Workshop Manual',
         page: 1,
-        indexable: true,
         blackMarket: false,
       },
       techLevelColors
@@ -40,7 +39,6 @@ describe('calculateBackgroundColor', () => {
         name: 'Test',
         source: 'Salvage Union Workshop Manual',
         page: 1,
-        indexable: true,
         blackMarket: false,
       },
       techLevelColors
@@ -58,7 +56,6 @@ describe('calculateBackgroundColor', () => {
         name: 'Test',
         source: 'Salvage Union Workshop Manual',
         page: 1,
-        indexable: true,
         blackMarket: true,
       },
       techLevelColors
@@ -76,7 +73,6 @@ describe('calculateBackgroundColor', () => {
         name: 'Test',
         source: 'Salvage Union Workshop Manual',
         page: 1,
-        indexable: true,
         blackMarket: false,
       },
       techLevelColors

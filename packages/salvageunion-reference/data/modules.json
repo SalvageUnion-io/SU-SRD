@@ -828,7 +828,6 @@
     "techLevel": 4,
     "slotsRequired": 1,
     "salvageValue": 2,
-    "indexable": false,
     "blackMarket": true,
     "page": 71,
     "actions": ["Goflow Plant Growing System"]
@@ -840,7 +839,6 @@
     "techLevel": 5,
     "slotsRequired": 1,
     "salvageValue": 2,
-    "indexable": false,
     "blackMarket": true,
     "page": 71,
     "actions": ["Corrupted Neuralink"]

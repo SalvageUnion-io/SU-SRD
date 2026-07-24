@@ -51,6 +51,7 @@
                       },
                       "type": {
                         "type": "string",
+                        "enum": ["keyword", "trait", "cost"],
                         "description": "Type classification for this data value"
                       },
                       "unit": {
@@ -115,6 +116,7 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": ["keyword", "trait", "cost"],
                               "description": "Type classification for this data value"
                             },
                             "unit": {
@@ -148,11 +150,6 @@
         "description": "Descriptive content for this tech level"
       },
       "id": { "type": "string", "description": "Unique identifier for this entity" },
-      "indexable": {
-        "default": true,
-        "description": "Whether this entity appears in search results",
-        "type": "boolean"
-      },
       "blackMarket": {
         "default": false,
         "description": "Whether this entity is only available on the black market",
@@ -232,7 +229,7 @@
         "description": "Numeric tech level value"
       }
     },
-    "required": ["id", "indexable", "blackMarket", "name", "source", "page", "techLevel"],
+    "required": ["id", "blackMarket", "name", "source", "page", "techLevel"],
     "additionalProperties": false,
     "description": "Tech level descriptions"
   }

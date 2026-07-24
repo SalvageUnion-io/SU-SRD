@@ -1298,7 +1298,6 @@
     "techLevel": 3,
     "slotsRequired": 6,
     "salvageValue": 3,
-    "indexable": false,
     "blackMarket": true,
     "page": 72,
     "actions": ["Napalm Launcher"]
@@ -1310,7 +1309,6 @@
     "techLevel": 3,
     "slotsRequired": 5,
     "salvageValue": 4,
-    "indexable": false,
     "blackMarket": true,
     "page": 72,
     "actions": ["Rad Wave Generator"]

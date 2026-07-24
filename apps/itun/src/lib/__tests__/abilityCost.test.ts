@@ -47,7 +47,6 @@ describe('resolveAbilityApCost', () => {
       name: 'Nonexistent Ability',
       source: 'Salvage Union Workshop Manual',
       page: 1,
-      indexable: true,
       blackMarket: false,
       tree: 'Mechanical Knowledge',
       level: 1,

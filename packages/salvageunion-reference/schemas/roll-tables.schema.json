@@ -51,6 +51,7 @@
                       },
                       "type": {
                         "type": "string",
+                        "enum": ["keyword", "trait", "cost"],
                         "description": "Type classification for this data value"
                       },
                       "unit": {
@@ -115,6 +116,7 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": ["keyword", "trait", "cost"],
                               "description": "Type classification for this data value"
                             },
                             "unit": {
@@ -148,11 +150,6 @@
         "description": "Descriptive content for this roll table"
       },
       "id": { "type": "string", "description": "Unique identifier for this entity" },
-      "indexable": {
-        "default": true,
-        "description": "Whether this entity appears in search results",
-        "type": "boolean"
-      },
       "blackMarket": {
         "default": false,
         "description": "Whether this entity is only available on the black market",
@@ -2961,7 +2958,7 @@
         "description": "The roll table data with outcomes keyed by roll ranges"
       }
     },
-    "required": ["id", "indexable", "blackMarket", "name", "source", "page", "table"],
+    "required": ["id", "blackMarket", "name", "source", "page", "table"],
     "additionalProperties": false,
     "description": "Random tables and roll tables"
   }

@@ -39,7 +39,6 @@ describe('srdEntityExternalLink', () => {
       name: 'No Schema',
       source: 'Salvage Union Workshop Manual',
       page: 1,
-      indexable: true,
       blackMarket: false,
     }
     expect(srdEntityExternalLink(entity)).toBeUndefined()
@@ -51,7 +50,6 @@ describe('srdEntityExternalLink', () => {
       name: 'Ghost',
       source: 'Salvage Union Workshop Manual',
       page: 1,
-      indexable: true,
       blackMarket: false,
       schemaName: 'not-a-schema',
     }

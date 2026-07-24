@@ -50,7 +50,6 @@ const MOCK_BAYS: Array<SURefCrawlerBay & { schemaName: string }> = [
     schemaName: 'crawler-bays',
     source: 'Salvage Union Workshop Manual',
     page: 1,
-    indexable: true,
     blackMarket: false,
     npc: { position: 'Gunny', hitPoints: 4 },
     choices: [

@@ -67,7 +67,7 @@
     "upkeepCost": 5,
     "upgradeCost": null,
     "populationMin": 25000,
-    "populationMax": 0,
+    "populationMax": null,
     "source": "Salvage Union Workshop Manual",
     "page": 218
   }

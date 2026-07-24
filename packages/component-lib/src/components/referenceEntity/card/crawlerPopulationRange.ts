@@ -12,9 +12,9 @@ const GROUPED = new Intl.NumberFormat('en-US')
  * The population band a Union Crawler tech level covers, formatted the way the
  * book's tech-level table prints it (Workshop Manual p.218).
  *
- * `populationMax: 0` is the dataset's "unbounded" marker — only the Megacity
+ * `populationMax: null` is the dataset's "unbounded" marker — only the Megacity
  * Crawler carries it, and the book states that tier open-ended, so it formats as
- * `25,000+` rather than as a range ending at zero.
+ * `25,000+` rather than as a bounded range. A legacy `0` is treated the same way.
  *
  * Returns `undefined` for every entity that is not a crawler tech level, so the
  * caller can spread the result into a cell list unconditionally. The check is on

@@ -203,7 +203,6 @@
     "name": "Holo Companion",
     "source": "Salvage Union Workshop Manual",
     "page": 35,
-    "indexable": false,
     "techLevel": 1,
     "actions": ["Holo Companion", "Project", "Un-Project"],
     "id": "dd96f7c0-3760-4b71-9451-77ced25a3b09",
@@ -892,7 +891,6 @@
   {
     "source": "Salvage Union Workshop Manual",
     "name": "Auto-Turret",
-    "indexable": false,
     "techLevel": 1,
     "moduleSlots": 4,
     "systemSlots": 15,
@@ -965,7 +963,6 @@
   },
   {
     "name": "Camo Suit",
-    "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "actions": ["Camo Suit"],
@@ -998,7 +995,6 @@
   },
   {
     "name": "Wingsuit",
-    "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "actions": ["Wingsuit"],
@@ -1027,7 +1023,6 @@
   },
   {
     "name": "Hacking Kit",
-    "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "actions": ["Hacking Kit"],
@@ -1059,7 +1054,6 @@
   },
   {
     "name": "Teleport Beacon",
-    "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "actions": ["Teleport Beacon"],
@@ -1096,7 +1090,6 @@
   },
   {
     "name": "Stealth Field Generator",
-    "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "actions": ["Stealth Field Generator"],
@@ -1133,7 +1126,6 @@
   },
   {
     "name": "Knife Missile",
-    "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "actions": ["Knife Missile"],
@@ -1166,7 +1158,6 @@
   },
   {
     "name": "Miniaturised EMP",
-    "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "actions": ["Miniaturised EMP"],
@@ -1207,7 +1198,6 @@
   },
   {
     "name": "Custom Missile Launcher",
-    "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "actions": ["Custom Missile Launcher"],
@@ -1412,7 +1402,6 @@
   {
     "name": "Survey Drone",
     "traits": [{ "type": "hover" }],
-    "indexable": false,
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "moduleSlots": 1,
@@ -1466,7 +1455,6 @@
   },
   {
     "name": "Mecha Companion",
-    "indexable": false,
     "techLevel": 1,
     "moduleSlots": 2,
     "systemSlots": 12,
@@ -1533,7 +1521,6 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Blinding Blue Laser Rifle",
     "techLevel": 3,
-    "indexable": false,
     "blackMarket": true,
     "page": 71,
     "actions": ["Blinding Blue Laser Rifle"]
