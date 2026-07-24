@@ -211,6 +211,7 @@ export const CrawlerTechLevelSchema = BaseEntitySchema.extend({
     .number()
     .int()
     .nonnegative()
+    .nullable()
     .describe('Maximum approximate population (0 means unlimited/25,000+)'),
 })
   .strict()

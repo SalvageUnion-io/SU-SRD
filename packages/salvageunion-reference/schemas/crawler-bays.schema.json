@@ -51,6 +51,7 @@
                       },
                       "type": {
                         "type": "string",
+                        "enum": ["keyword", "trait", "cost"],
                         "description": "Type classification for this data value"
                       },
                       "unit": {
@@ -115,6 +116,7 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": ["keyword", "trait", "cost"],
                               "description": "Type classification for this data value"
                             },
                             "unit": {
@@ -148,11 +150,6 @@
         "description": "Descriptive content blocks for this entity"
       },
       "id": { "type": "string", "description": "Unique identifier for this entity" },
-      "indexable": {
-        "default": true,
-        "description": "Whether this entity appears in search results",
-        "type": "boolean"
-      },
       "blackMarket": {
         "default": false,
         "description": "Whether this entity is only available on the black market",
@@ -278,6 +275,7 @@
                           },
                           "type": {
                             "type": "string",
+                            "enum": ["keyword", "trait", "cost"],
                             "description": "Type classification for this data value"
                           },
                           "unit": {
@@ -342,6 +340,7 @@
                                 },
                                 "type": {
                                   "type": "string",
+                                  "enum": ["keyword", "trait", "cost"],
                                   "description": "Type classification for this data value"
                                 },
                                 "unit": {
@@ -436,6 +435,7 @@
                                 },
                                 "type": {
                                   "type": "string",
+                                  "enum": ["keyword", "trait", "cost"],
                                   "description": "Type classification for this data value"
                                 },
                                 "unit": {
@@ -500,6 +500,7 @@
                                       },
                                       "type": {
                                         "type": "string",
+                                        "enum": ["keyword", "trait", "cost"],
                                         "description": "Type classification for this data value"
                                       },
                                       "unit": {
@@ -694,10 +695,6 @@
                     "description": "A system or module that can be installed on a mech"
                   },
                   "description": "Custom system/module options for this choice"
-                },
-                "setIndexable": {
-                  "type": "boolean",
-                  "description": "Whether to update indexable flag based on this choice"
                 },
                 "multiSelect": {
                   "type": "boolean",
@@ -1218,6 +1215,7 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": ["keyword", "trait", "cost"],
                               "description": "Type classification for this data value"
                             },
                             "unit": {
@@ -1282,6 +1280,7 @@
                                   },
                                   "type": {
                                     "type": "string",
+                                    "enum": ["keyword", "trait", "cost"],
                                     "description": "Type classification for this data value"
                                   },
                                   "unit": {
@@ -1476,10 +1475,6 @@
                 "description": "A system or module that can be installed on a mech"
               },
               "description": "Custom system/module options for this choice"
-            },
-            "setIndexable": {
-              "type": "boolean",
-              "description": "Whether to update indexable flag based on this choice"
             },
             "multiSelect": {
               "type": "boolean",
@@ -1901,7 +1896,7 @@
       },
       "tableName": { "type": "string", "description": "Reference to a roll table name" }
     },
-    "required": ["id", "indexable", "blackMarket", "name", "source", "page"],
+    "required": ["id", "blackMarket", "name", "source", "page"],
     "additionalProperties": false,
     "description": "Bays and facilities on Union Crawlers"
   }

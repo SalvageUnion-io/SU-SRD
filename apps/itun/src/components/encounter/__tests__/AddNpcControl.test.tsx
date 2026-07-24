@@ -22,7 +22,6 @@ afterEach(() => {
 const NPC_BASE = {
   source: 'Salvage Union Workshop Manual',
   page: 1,
-  indexable: true,
   blackMarket: false,
 } as const
 const MOCK_NPCS: Array<SURefNPC & { schemaName: string }> = [

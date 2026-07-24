@@ -1768,7 +1768,6 @@ export declare function matchesRef(entity: RefEntity, ref: string): boolean;
 /** Resolve a mech `chassisRef` (slug; legacy name/id tolerated). */
 export declare function resolveChassisRef(ref: string): ({
     id: string;
-    indexable: boolean;
     blackMarket: boolean;
     name: string;
     source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
@@ -1822,7 +1821,6 @@ export declare function resolveChassisRef(ref: string): ({
 /** Resolve an installed system ref (slug; legacy name/id tolerated). */
 export declare function resolveSystemRef(ref: string): ({
     id: string;
-    indexable: boolean;
     blackMarket: boolean;
     source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
     page: number;
@@ -1876,7 +1874,6 @@ export declare function resolveSystemRef(ref: string): ({
 /** Resolve an installed module ref (slug; legacy name/id tolerated). */
 export declare function resolveModuleRef(ref: string): ({
     id: string;
-    indexable: boolean;
     blackMarket: boolean;
     source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
     page: number;
@@ -1929,7 +1926,6 @@ export declare function resolveModuleRef(ref: string): ({
  */
 export declare function resolveInstalledRef(ref: string): ({
     id: string;
-    indexable: boolean;
     blackMarket: boolean;
     source: "Salvage Union Workshop Manual" | "Salvage Union Starter Set" | "Reclamation of the Wastes" | "The Hive" | "Thatcher's Mech Base" | "Relics of a Time Gone By" | "Mech Monday" | "We Were Here First!" | "Rainmaker" | "False Flag";
     page: number;
@@ -2697,7 +2693,6 @@ export declare const AbilitySchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -2849,7 +2844,6 @@ export declare const AbilityTreeRequirementSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -3027,7 +3021,6 @@ export declare const BioTitanSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -3100,7 +3093,6 @@ export declare const ChassisSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -3201,7 +3193,6 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -3380,7 +3371,6 @@ export declare const ClassSchema: z.ZodUnion<readonly [z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -3541,7 +3531,6 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -3603,7 +3592,6 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         schemaEntities?: string[];
         schema?: z.infer<typeof SchemaNameSchema>[];
         customSystemOptions?: z.infer<typeof SystemModuleSchema>[];
-        setIndexable?: boolean;
         multiSelect?: boolean;
         choiceOptions?: z.infer<z.ZodObject<{
             label: z.ZodString;
@@ -3740,7 +3728,6 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         schemaEntities?: string[];
         schema?: z.infer<typeof SchemaNameSchema>[];
         customSystemOptions?: z.infer<typeof SystemModuleSchema>[];
-        setIndexable?: boolean;
         multiSelect?: boolean;
         choiceOptions?: z.infer<z.ZodObject<{
             label: z.ZodString;
@@ -3904,7 +3891,6 @@ export declare const CrawlerTechLevelSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -3942,7 +3928,7 @@ export declare const CrawlerTechLevelSchema: z.ZodObject<{
     upkeepCost: z.ZodNumber;
     upgradeCost: z.ZodNullable<z.ZodNumber>;
     populationMin: z.ZodNumber;
-    populationMax: z.ZodNumber;
+    populationMax: z.ZodNullable<z.ZodNumber>;
 }, z.core.$strict>;
 /**
  * Crawler vehicles
@@ -3977,7 +3963,6 @@ export declare const CrawlerSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -4063,7 +4048,6 @@ export declare const CreatureSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -4109,7 +4093,6 @@ export declare const CreatureSchema: z.ZodObject<{
 export declare const DistanceSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -4176,7 +4159,6 @@ export declare const DistanceSchema: z.ZodObject<{
 export declare const TechLevelEntitySchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -4275,7 +4257,6 @@ export declare const DroneSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -4332,7 +4313,6 @@ export declare const DroneSchema: z.ZodObject<{
         schemaEntities?: string[];
         schema?: z.infer<typeof SchemaNameSchema>[];
         customSystemOptions?: z.infer<typeof SystemModuleSchema>[];
-        setIndexable?: boolean;
         multiSelect?: boolean;
         choiceOptions?: z.infer<z.ZodObject<{
             label: z.ZodString;
@@ -4469,7 +4449,6 @@ export declare const DroneSchema: z.ZodObject<{
         schemaEntities?: string[];
         schema?: z.infer<typeof SchemaNameSchema>[];
         customSystemOptions?: z.infer<typeof SystemModuleSchema>[];
-        setIndexable?: boolean;
         multiSelect?: boolean;
         choiceOptions?: z.infer<z.ZodObject<{
             label: z.ZodString;
@@ -4632,7 +4611,6 @@ export declare const EquipmentSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -4697,7 +4675,6 @@ export declare const EquipmentSchema: z.ZodObject<{
         schemaEntities?: string[];
         schema?: z.infer<typeof SchemaNameSchema>[];
         customSystemOptions?: z.infer<typeof SystemModuleSchema>[];
-        setIndexable?: boolean;
         multiSelect?: boolean;
         choiceOptions?: z.infer<z.ZodObject<{
             label: z.ZodString;
@@ -4834,7 +4811,6 @@ export declare const EquipmentSchema: z.ZodObject<{
         schemaEntities?: string[];
         schema?: z.infer<typeof SchemaNameSchema>[];
         customSystemOptions?: z.infer<typeof SystemModuleSchema>[];
-        setIndexable?: boolean;
         multiSelect?: boolean;
         choiceOptions?: z.infer<z.ZodObject<{
             label: z.ZodString;
@@ -4970,7 +4946,6 @@ export declare const EquipmentSchema: z.ZodObject<{
 export declare const FactionSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -5085,7 +5060,6 @@ export declare const FactionSchema: z.ZodObject<{
 export declare const KeywordSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -5179,7 +5153,6 @@ export declare const MeldSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -5254,7 +5227,6 @@ export declare const ModuleSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -5339,7 +5311,6 @@ export declare const NPCSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -5390,7 +5361,6 @@ export declare const NPCSchema: z.ZodObject<{
 export declare const RollTableSchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -6181,7 +6151,6 @@ export declare const SquadSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -6258,7 +6227,6 @@ export declare const SystemSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     source: z.ZodEnum<{
         "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -6320,7 +6288,6 @@ export declare const SystemSchema: z.ZodObject<{
 export declare const TraitEntitySchema: z.ZodObject<{
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -6462,7 +6429,6 @@ export declare const VehicleSchema: z.ZodObject<{
         page: z.ZodNumber;
     }, z.core.$strict>>>;
     hasArtwork: z.ZodOptional<z.ZodBoolean>;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     actions: z.ZodOptional<z.ZodArray<z.ZodString>>;
 }, z.core.$strict>;
@@ -6499,7 +6465,6 @@ export declare const GuideSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -6695,7 +6660,6 @@ export declare const SourceEntitySchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -7062,7 +7026,11 @@ export declare const MechanicalEntitySchema: z.ZodObject<{
 export declare const DataValueSchema: z.ZodObject<{
     label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
     value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-    type: z.ZodOptional<z.ZodString>;
+    type: z.ZodOptional<z.ZodEnum<{
+        keyword: "keyword";
+        trait: "trait";
+        cost: "cost";
+    }>>;
     unit: z.ZodOptional<z.ZodString>;
     perTechLevel: z.ZodOptional<z.ZodNumber>;
 }, z.core.$strict>;
@@ -7957,7 +7925,7 @@ declare const CardinalitySchema: z.ZodObject<{
  *                     optionally a named shortlist and/or a filter (a numeric
  *                     `field` range, or `damageType` — keep only systems whose
  *                     actions deal that damage type, i.e. Weapons Systems);
- *                     `reveals` flips index visibility (was: setIndexable).
+ *                     `reveals` flips index visibility.
  *                     Schema-only (no shortlist) → resolved to an entity listing.
  * - `systemVariant` — pick from inline custom System/Module variants.
  */
@@ -8066,7 +8034,6 @@ export declare const ChoiceSchema: z.ZodType<{
     schemaEntities?: string[];
     schema?: z.infer<typeof SchemaNameSchema>[];
     customSystemOptions?: z.infer<typeof SystemModuleSchema>[];
-    setIndexable?: boolean;
     multiSelect?: boolean;
     choiceOptions?: z.infer<typeof ChoiceOptionSchema>[];
     constraints?: z.infer<typeof ChoiceConstraintsSchema>;
@@ -8086,7 +8053,6 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodType<{
     schemaEntities?: string[];
     schema?: z.infer<typeof SchemaNameSchema>[];
     customSystemOptions?: z.infer<typeof SystemModuleSchema>[];
-    setIndexable?: boolean;
     multiSelect?: boolean;
     choiceOptions?: z.infer<typeof ChoiceOptionSchema>[];
     constraints?: z.infer<typeof ChoiceConstraintsSchema>;
@@ -8102,7 +8068,6 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodType<{
     schemaEntities?: string[];
     schema?: z.infer<typeof SchemaNameSchema>[];
     customSystemOptions?: z.infer<typeof SystemModuleSchema>[];
-    setIndexable?: boolean;
     multiSelect?: boolean;
     choiceOptions?: z.infer<typeof ChoiceOptionSchema>[];
     constraints?: z.infer<typeof ChoiceConstraintsSchema>;
@@ -8250,7 +8215,6 @@ export declare const BaseEntitySchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
@@ -8317,7 +8281,6 @@ export declare const AdvancedClassSchema: z.ZodObject<{
         }>;
     }, unknown>>>>;
     id: z.ZodString;
-    indexable: z.ZodDefault<z.ZodBoolean>;
     blackMarket: z.ZodDefault<z.ZodBoolean>;
     name: z.ZodString;
     source: z.ZodEnum<{
