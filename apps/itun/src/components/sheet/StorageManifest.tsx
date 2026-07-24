@@ -48,7 +48,7 @@ import { Badge, Button, Card, Input, SlotGrid, Stat, toast } from 'component-lib
 import type { CargoTransferResult } from '../../lib/cargo/cargoTransfer'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
-import { makeUnitLot, totalLotUnits } from '../../lib/schemas/cargoLot'
+import { makeScrapLot, makeUnitLot, totalLotUnits } from '../../lib/schemas/cargoLot'
 import { cn } from '../../lib/utils'
 
 /**
@@ -350,14 +350,26 @@ function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLot
   )
 }
 
+/** Clamp a typed tech level to the 1–6 scrap range. */
+function coerceTl(raw: string): number {
+  const n = Math.trunc(Number(raw))
+  if (!Number.isFinite(n)) return 1
+  return Math.min(6, Math.max(1, n))
+}
+
 /**
- * HoldAdder — a container's own intake form: a free-text lot with an explicit
- * slot cost, added straight into that container. Needs NO counterpart on the
- * other side of the boundary (the mech hold works with no crawler; the Storage
- * Bay works with no docked mech). Mirrors the pilot inventory's
- * GenericEntryAdder shape (name + slots); new lots are SEALED unit lots via
- * `makeUnitLot`. The verb is the side's intake word — 'Load' into the mech
- * hold, 'Stow' into the crawler Storage Bay.
+ * HoldAdder — a container's own intake form, added straight into that
+ * container. Needs NO counterpart on the other side of the boundary (the mech
+ * hold works with no crawler; the Storage Bay works with no docked mech). A
+ * Kind toggle picks what is entered:
+ *   - `Cargo` (default) — a free-text SEALED unit lot (name + slot cost) via
+ *     `makeUnitLot`, the original behaviour.
+ *   - `Scrap` — an arbitrary bulk SCRAP lot at a chosen tech level (1–6) via
+ *     `makeScrapLot`, so a crawler (or mech) can stow scrap by hand. This is
+ *     the physical-cargo path; the crawler's abstract scrap POOL is edited
+ *     separately by `ScrapPoolAdder`.
+ * The verb is the side's intake word — 'Load' into the mech hold, 'Stow' into
+ * the crawler Storage Bay.
  */
 function HoldAdder({
   onAdd,
@@ -369,56 +381,101 @@ function HoldAdder({
   containerLabel: string
 }) {
   const slotsId = useId()
+  const tlId = useId()
+  const [kind, setKind] = useState<'cargo' | 'scrap'>('cargo')
   const [name, setName] = useState('')
-  const [slots, setSlots] = useState(1)
+  const [amount, setAmount] = useState(1)
+  const [tl, setTl] = useState(1)
+
+  const canCommit = kind === 'scrap' ? amount > 0 : name.trim().length > 0
 
   function commit() {
-    const trimmed = name.trim()
-    if (!trimmed) return
-    onAdd(makeUnitLot(trimmed, { units: coerceSlots(String(slots)) }))
+    if (!canCommit) return
+    if (kind === 'scrap') {
+      onAdd(makeScrapLot(tl, amount))
+    } else {
+      onAdd(makeUnitLot(name.trim(), { units: coerceSlots(String(amount)) }))
+    }
     setName('')
-    setSlots(1)
+    setAmount(1)
   }
 
   const compactInput = 'px-2 py-1.5 text-xs'
 
   return (
     <div className="mt-3 flex flex-wrap items-center gap-2 rounded-[3px] border-chrome border-dashed border-wk-faint p-2.5">
-      <Input
-        type="text"
-        value={name}
-        aria-label="New cargo name"
-        placeholder="Cargo name"
-        onChange={(e) => setName(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') commit()
-        }}
-        className={`${compactInput} w-36 flex-1`}
-      />
+      {/* Kind toggle — Cargo (named lot) vs Scrap (TL bulk lot). */}
+      {/* biome-ignore lint/a11y/useSemanticElements: a fieldset+legend carries min-content sizing quirks in this inline add-row; role="group" + aria-label conveys the same semantics (matches FilterRow/Stat) */}
+      <div className="flex items-center gap-1" role="group" aria-label="Cargo kind">
+        {(['cargo', 'scrap'] as const).map((k) => (
+          <Badge
+            key={k}
+            as="button"
+            surface={kind === k ? 'solid' : 'ghost'}
+            aria-pressed={kind === k}
+            onClick={() => setKind(k)}
+          >
+            {k === 'cargo' ? 'Cargo' : 'Scrap'}
+          </Badge>
+        ))}
+      </div>
+
+      {kind === 'cargo' ? (
+        <Input
+          type="text"
+          value={name}
+          aria-label="New cargo name"
+          placeholder="Cargo name"
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') commit()
+          }}
+          className={`${compactInput} w-36 flex-1`}
+        />
+      ) : (
+        <label
+          htmlFor={tlId}
+          className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted"
+        >
+          Tech
+          <Input
+            id={tlId}
+            type="number"
+            min={1}
+            max={6}
+            step={1}
+            value={tl}
+            aria-label="Scrap tech level"
+            onChange={(e) => setTl(coerceTl(e.target.value))}
+            className={`${compactInput} w-14`}
+          />
+        </label>
+      )}
+
       <label
         htmlFor={slotsId}
         className="flex items-center gap-1 font-cond text-label font-bold uppercase tracking-wide text-wk-muted"
       >
-        Slots
+        {kind === 'scrap' ? 'Qty' : 'Slots'}
         <Input
           id={slotsId}
           type="number"
           min={0}
           step={1}
-          value={slots}
-          aria-label="New cargo slot cost"
+          value={amount}
+          aria-label={kind === 'scrap' ? 'Scrap quantity' : 'New cargo slot cost'}
           // `CargoLotSchema.units` is `.int()`, and a `type="number"` field still
           // accepts a typed "1.5". Without truncating here the lot fails its Zod
           // parse on commit — and since the form clears itself immediately, the
           // cargo would just vanish. Coerce at the edge instead.
-          onChange={(e) => setSlots(coerceSlots(e.target.value))}
+          onChange={(e) => setAmount(coerceSlots(e.target.value))}
           className={`${compactInput} w-14`}
         />
       </label>
       <Button
         size="compact"
-        disabled={!name.trim()}
-        aria-label={`${verb} cargo into the ${containerLabel}`}
+        disabled={!canCommit}
+        aria-label={`${verb} ${kind} into the ${containerLabel}`}
         onClick={commit}
       >
         {verb}

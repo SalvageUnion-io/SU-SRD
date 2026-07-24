@@ -70,6 +70,15 @@ type LiveSheetHeroContext = {
   rail: ReactNode
 }
 
+type LiveSheetBodyContext = {
+  /**
+   * The condense sentinel ref. Sheets that own their identity band inside the
+   * BODY (no `renderHero`) wrap that band's frame with this so the sticky bar
+   * still condenses when the band scrolls away (Workshop-Manual layout).
+   */
+  heroRef: RefObject<HTMLElement | null>
+}
+
 type LiveSheetProps = {
   variant: SheetVariant
   name: string
@@ -89,8 +98,14 @@ type LiveSheetProps = {
   segments?: LiveSheetSegment[]
   /** Sticky condense bar on scroll (default true — shipped tweak default). */
   condense?: boolean
-  renderHero: (ctx: LiveSheetHeroContext) => ReactNode
-  renderBody: () => ReactNode
+  /**
+   * The hero band. Optional: Workshop-Manual sheets fold their identity band
+   * into the BODY's first region (so identity + vitals stay in one component
+   * with their handlers), pass no `renderHero`, and wrap that band with the
+   * `heroRef` handed to `renderBody` instead.
+   */
+  renderHero?: (ctx: LiveSheetHeroContext) => ReactNode
+  renderBody: (ctx: LiveSheetBodyContext) => ReactNode
   /** Derived stat overlays merged onto strip items by key (e.g. {cargo: used}). */
   syncStats?: Record<string, number>
   /** Trailing top-bar actions (Share/Publish). */
@@ -266,15 +281,24 @@ export function LiveSheet({
 
       {/* Hero band — the rail is passed through so the hero slots it inside
           its own frame (design: hero rail strip sits under the band, inside
-          the 3px entity border). */}
-      <div className="px-4 pb-1.5 pt-4 sm:px-[30px] sm:pt-[22px]">
-        {renderHero({ heroRef, rail })}
-      </div>
+          the 3px entity border). Optional: Workshop-Manual sheets own their
+          identity band in the body and pass no renderHero. */}
+      {renderHero && (
+        <div className="px-4 pb-1.5 pt-4 sm:px-[30px] sm:pt-[22px]">
+          {renderHero({ heroRef, rail })}
+        </div>
+      )}
 
       {/* Body slabs — extra phone bottom padding when the FAB floats so the
-          last card's controls stay reachable behind the thumb zone. */}
-      <div className={cn('px-4 pb-[34px] pt-[18px] sm:px-[30px] sm:pb-[60px] sm:pt-6')}>
-        {renderBody()}
+          last card's controls stay reachable behind the thumb zone. When the
+          body owns the hero (no renderHero), it takes the hero's top padding. */}
+      <div
+        className={cn(
+          'px-4 pb-[34px] sm:px-[30px] sm:pb-[60px]',
+          renderHero ? 'pt-[18px] sm:pt-6' : 'pt-4 sm:pt-[22px]'
+        )}
+      >
+        {renderBody({ heroRef })}
       </div>
     </div>
   )

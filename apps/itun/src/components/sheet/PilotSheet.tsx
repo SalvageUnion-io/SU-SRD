@@ -1,17 +1,20 @@
 /**
- * PilotSheet — the pilot body for the LiveSheet shell (redesign Phase 2:
- * poster containers & section structure, pilot slice).
+ * PilotSheet — the pilot body for the LiveSheet shell (Workshop-Manual pilot
+ * sheet, region-for-region).
  *
- * The poster region grid (`clean-pilot.html`) — a single-column stack on
- * mobile, a 12-col `@container` grid at the wide breakpoint:
- *   - R1: Identity (span 7) ∥ Vitals (span 5) — MOVED here from the hero
- *     (SheetHero now carries only the name row + meta for pilot).
- *   - R2: Abilities (full width) — entity cards with Spend AP (fixed costs
- *     only) and a used/recharge toggle in the card foot.
- *   - R3: Inventory (span 7) ∥ Linked Units (span 5) — the linked-unit rail
- *     MOVED here from the hero's bottom strip.
+ * The body OWNS the identity band (no LiveSheet `renderHero`): it renders
+ * `SheetHero` in band mode as its first region, wrapped with the shell's
+ * `heroRef` so the sticky bar still condenses when the band scrolls away. This
+ * keeps the identity + vitals rendering (and all their handlers) in one
+ * component. Region order mirrors the printed pilot sheet:
+ *   - Identity Band: edge wordmark ∥ identity fields ∥ HP/AP/TP + Conditions
+ *     vitals rail (one toned frame — the printed top band).
+ *   - Abilities (full width, 3-column card grid) — entity cards with Spend AP
+ *     (fixed costs only) and a used/recharge toggle in the card foot.
+ *   - Inventory (full-width band) — equipment cards + generic entries.
+ *   - Linked Units — the assigned-mech / home-crawler rail.
  *
- * Every collection/field section is framed by `SheetSectionCard` (the poster
+ * Every collection section is framed by `SheetSectionCard` (the poster
  * `.dcard`), except Linked Units which the poster renders as a bare `.sect`
  * header + rail stack (no card frame).
  *
@@ -33,10 +36,10 @@
  */
 
 import { useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility } from 'salvageunion-reference'
-import { Panel, Stat, VitalGauge } from 'component-lib'
+import { Badge, Panel, SheetHero, Stat, VitalGauge } from 'component-lib'
 
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
@@ -115,6 +118,12 @@ type PilotSheetProps = {
   /** When true, every edit affordance is suppressed (published snapshots). */
   readOnly?: boolean
   /**
+   * Condense sentinel from the LiveSheet shell — wraps the identity band (the
+   * body's first region) so the sticky bar still condenses when it scrolls
+   * away. Undefined in bare test renders (no shell).
+   */
+  heroRef?: Ref<HTMLElement>
+  /**
    * The Linked Units rail content (mech + crawler RailChip/RailEmpty), built
    * by SheetPilot from `composition` — PilotSheet has no composition access
    * of its own, so this is passed straight through into the R3 section.
@@ -126,6 +135,7 @@ export function PilotSheet({
   pilot,
   store = useEntityStore,
   readOnly = false,
+  heroRef,
   linkedUnits,
 }: PilotSheetProps) {
   const storeState = store()
@@ -366,91 +376,95 @@ export function PilotSheet({
         </div>
       )}
 
-      {/* ===== R1: Identity ∥ Vitals (poster top band) ===== */}
-      <div className="grid grid-cols-1 gap-[22px] @5xl:grid-cols-12 @5xl:gap-6">
-        <div className="@5xl:col-span-7">
-          <SheetSectionCard
-            title="Identity"
-            controls={
-              !readOnly ? (
-                <SectionEditButton
-                  section="Identity"
-                  editing={identityEditing}
-                  onToggle={() => setIdentityEditing((v) => !v)}
-                />
-              ) : undefined
-            }
-          >
-            <PilotIdentityPanel
-              pilot={pilot}
+      {/* ===== Identity Band (Workshop-Manual pilot sheet top region) =====
+          Edge wordmark ∥ identity fields ∥ HP/AP/TP + Conditions vitals rail,
+          in one toned frame — the printed pilot sheet's top band. Carries the
+          shell's condense sentinel (heroRef). */}
+      <SheetHero
+        heroRef={heroRef}
+        cat="Pilot"
+        name={pilot.name}
+        meta={
+          dead ? (
+            <Badge surface="tone" tone="bad">
+              Dead
+            </Badge>
+          ) : undefined
+        }
+        controls={
+          !readOnly ? (
+            <SectionEditButton
+              section="Identity"
               editing={identityEditing}
-              onToggleUsed={readOnly ? undefined : toggleUsed}
-              patch={readOnly ? undefined : patchPilot}
+              onToggle={() => setIdentityEditing((v) => !v)}
             />
-          </SheetSectionCard>
-        </div>
-
-        <div className="@5xl:col-span-5">
-          <SheetSectionCard title="Vitals">
-            <div className="flex w-full flex-col [&>*+*]:mt-[14px] [&>*+*]:border-t [&>*+*]:border-dashed [&>*+*]:border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] [&>*+*]:pt-[14px]">
-              <VitalGauge
-                label="HP"
-                value={hp}
-                max={maxHP}
-                onChange={readOnly ? undefined : (v) => patchPilot({ currentHP: v })}
-                onMaxChange={
-                  readOnly
-                    ? undefined
-                    : (next) => overridePilotMax({ maxHpModifier: modOrUndef(next, derivedMaxHP) })
-                }
-                overriddenFrom={readOnly ? undefined : derivedMaxHP}
-                onRevertOverride={
-                  readOnly ? undefined : () => overridePilotMax({ maxHpModifier: undefined })
-                }
-                readOnly={readOnly}
-              />
-              <VitalGauge
-                label="AP"
-                value={ap}
-                max={maxAP}
-                onChange={readOnly ? undefined : (v) => patchPilot({ currentAP: v })}
-                onMaxChange={
-                  readOnly
-                    ? undefined
-                    : (next) => overridePilotMax({ maxApModifier: modOrUndef(next, derivedMaxAP) })
-                }
-                overriddenFrom={readOnly ? undefined : derivedMaxAP}
-                onRevertOverride={
-                  readOnly ? undefined : () => overridePilotMax({ maxApModifier: undefined })
-                }
+          ) : undefined
+        }
+        fields={
+          <PilotIdentityPanel
+            pilot={pilot}
+            editing={identityEditing}
+            onToggleUsed={readOnly ? undefined : toggleUsed}
+            patch={readOnly ? undefined : patchPilot}
+          />
+        }
+        vitals={
+          <div className="flex w-full flex-col [&>*+*]:mt-[14px] [&>*+*]:border-t [&>*+*]:border-dashed [&>*+*]:border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] [&>*+*]:pt-[14px]">
+            <VitalGauge
+              label="HP"
+              value={hp}
+              max={maxHP}
+              onChange={readOnly ? undefined : (v) => patchPilot({ currentHP: v })}
+              onMaxChange={
+                readOnly
+                  ? undefined
+                  : (next) => overridePilotMax({ maxHpModifier: modOrUndef(next, derivedMaxHP) })
+              }
+              overriddenFrom={readOnly ? undefined : derivedMaxHP}
+              onRevertOverride={
+                readOnly ? undefined : () => overridePilotMax({ maxHpModifier: undefined })
+              }
+              readOnly={readOnly}
+            />
+            <VitalGauge
+              label="AP"
+              value={ap}
+              max={maxAP}
+              onChange={readOnly ? undefined : (v) => patchPilot({ currentAP: v })}
+              onMaxChange={
+                readOnly
+                  ? undefined
+                  : (next) => overridePilotMax({ maxApModifier: modOrUndef(next, derivedMaxAP) })
+              }
+              overriddenFrom={readOnly ? undefined : derivedMaxAP}
+              onRevertOverride={
+                readOnly ? undefined : () => overridePilotMax({ maxApModifier: undefined })
+              }
+              readOnly={readOnly}
+            />
+            <TpBlock
+              value={tp}
+              onChange={readOnly ? undefined : (v) => patchPilot({ trainingPoints: v })}
+              editable={!readOnly}
+            />
+            <div className="w-full min-w-0">
+              <span
+                className="mb-2 block font-cond text-label font-bold uppercase leading-none tracking-caps"
+                style={{ color: 'var(--tone-deep, var(--color-ink))' }}
+              >
+                Conditions
+              </span>
+              <ConditionsEditor
+                conditions={pilot.conditions}
+                onChange={handleConditionsChange}
                 readOnly={readOnly}
               />
             </div>
-            <div className="mt-4 flex flex-wrap gap-4 border-t border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pt-[14px]">
-              <TpBlock
-                value={tp}
-                onChange={readOnly ? undefined : (v) => patchPilot({ trainingPoints: v })}
-                editable={!readOnly}
-              />
-              <div className="w-full min-w-0 flex-1">
-                <span
-                  className="mb-2 block font-cond text-label font-bold uppercase leading-none tracking-caps"
-                  style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-                >
-                  Conditions
-                </span>
-                <ConditionsEditor
-                  conditions={pilot.conditions}
-                  onChange={handleConditionsChange}
-                  readOnly={readOnly}
-                />
-              </div>
-            </div>
-          </SheetSectionCard>
-        </div>
-      </div>
+          </div>
+        }
+      />
 
-      {/* ===== R2: Abilities (full width) ===== */}
+      {/* ===== Abilities (full width, 3-column card grid — printed pilot sheet) ===== */}
       <SheetSectionCard
         title="Abilities"
         count={
@@ -470,7 +484,7 @@ export function PilotSheet({
         {pilot.abilities.length === 0 ? (
           <p className="font-body text-caption text-wk-muted">No abilities learned yet.</p>
         ) : (
-          <EntityGrid>
+          <EntityGrid columns={3}>
             {pilot.abilities.map((slug) => {
               const ability = resolveAbility(slug)
               if (!ability) {
@@ -508,7 +522,7 @@ export function PilotSheet({
         )}
       </SheetSectionCard>
 
-      {/* ===== R3: Inventory (full width) ===== */}
+      {/* ===== Inventory (full-width band, printed pilot sheet bottom) ===== */}
       <SheetSectionCard
         title="Inventory"
         count={

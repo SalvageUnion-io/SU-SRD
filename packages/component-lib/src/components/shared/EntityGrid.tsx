@@ -26,16 +26,29 @@ import type { CardFootMeta } from './Card'
 
 type EntityGridProps = {
   children: ReactNode
+  /**
+   * Max desktop column count. `2` (default) keeps the original two-column cap.
+   * `3` opts into the three-across ladder the Workshop-Manual live sheets use
+   * (abilities / systems & modules / bays), matching the printed sheets; it
+   * still steps down to 2 at tablet and 1 on mobile so a card never crushes.
+   */
+  columns?: 2 | 3
   className?: string
 }
 
 /**
- * Entity-card grid — 1 column on mobile, max 2 on desktop, equal-height rows.
- * Gap rhythm: 26px between rows, 18px between columns.
+ * Entity-card grid — 1 column on mobile, up to `columns` on desktop (default
+ * 2), equal-height rows. Gap rhythm: 26px between rows, 18px between columns.
  */
-export function EntityGrid({ children, className }: EntityGridProps) {
+export function EntityGrid({ children, columns = 2, className }: EntityGridProps) {
   return (
-    <div className={cn('grid grid-cols-1 items-stretch gap-x-4 gap-y-6 md:grid-cols-2', className)}>
+    <div
+      className={cn(
+        'grid grid-cols-1 items-stretch gap-x-4 gap-y-6 md:grid-cols-2',
+        columns === 3 && 'xl:grid-cols-3',
+        className
+      )}
+    >
       {children}
     </div>
   )

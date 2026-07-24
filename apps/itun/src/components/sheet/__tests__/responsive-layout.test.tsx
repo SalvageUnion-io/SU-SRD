@@ -133,11 +133,12 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
     expect(container.querySelector('[data-variant="mech"]')).toBeTruthy()
   })
 
-  test('Sheet crawler body macro-grid stacks on mobile and splits content ∥ Storage rail at its container breakpoint', () => {
-    // Pilot, Mech and (Phase 2) Crawler all moved identity/vitals/rail
-    // content OUT of the hero into the body's poster regions — the crawler
-    // body additionally carries a 2-col macro grid (content column ∥
-    // full-height Storage rail) that stacks to one column on mobile.
+  test('Sheet crawler body is a single-column region flow with Storage as a full-width bottom band', () => {
+    // Workshop-Manual crawler sheet: a single-column region stack (Identity →
+    // Bays → Weapons → Linked Units → Storage Bay), NOT the old 2-col macro
+    // grid that stood Storage up as a full-height right column. The old
+    // `54fr`-split grid is gone; the crawler section flows in one column and
+    // the Storage Bay renders as its own section at the bottom.
     const { container } = render(
       <Sheet
         kind="crawler"
@@ -146,9 +147,14 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    const macroGrid = container.querySelector('[class*="54fr"]')
-    expect(macroGrid).toBeTruthy()
-    expect((macroGrid as HTMLElement).className).toContain('grid-cols-1')
+    // The old right-column macro grid is removed.
+    expect(container.querySelector('[class*="54fr"]')).toBeNull()
+    // The crawler body's region flow is a single column.
+    const flow = container.querySelector('section[aria-label$="crawler sheet"] > div')
+    expect(flow).toBeTruthy()
+    expect((flow as HTMLElement).className).toContain('flex-col')
+    // The Storage Bay band is present.
+    expect(container.textContent).toContain('Storage Bay')
   })
 })
 

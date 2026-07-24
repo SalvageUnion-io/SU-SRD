@@ -33,7 +33,7 @@ type HeroIdentityLine = {
 }
 
 type SheetHeroProps = {
-  /** Black category tab, e.g. 'PILOT'. */
+  /** Category, e.g. 'PILOT' — the edge wordmark in band mode, the black tab in legacy mode. */
   cat: string
   name: string
   /** mchip / pill row under the name. */
@@ -44,6 +44,21 @@ type SheetHeroProps = {
   specs?: ReactNode
   /** lg StatBlock tracker cluster (rendered inside the VITALS region). */
   trackers?: ReactNode
+  /**
+   * BAND MODE (Workshop-Manual identity band). When provided, the hero renders
+   * the printed-sheet identity band — a left **edge wordmark** (`cat`, paper on
+   * the sheet tone, NOT a black stamp), the `fields` identity block in the
+   * middle, and the `vitals` current/max rail on the right — and DROPS the big
+   * name stamp (the name lives in its own field). `name` still becomes the
+   * accessible `<h1>`. Legacy mode (name stamp + `identity`/`specs`/`trackers`)
+   * is unchanged when `fields` is absent, so snapshots and un-migrated sheets
+   * keep working.
+   */
+  fields?: ReactNode
+  /** Band mode: the current/max gauge rail (right column). */
+  vitals?: ReactNode
+  /** Band mode: header-right controls (e.g. the identity Edit/Done toggle). */
+  controls?: ReactNode
   /** Forwarded to the hero root for the shell's condense observer. */
   heroRef?: Ref<HTMLElement>
   className?: string
@@ -56,9 +71,48 @@ export function SheetHero({
   identity = [],
   specs,
   trackers,
+  fields,
+  vitals,
+  controls,
   heroRef,
   className,
 }: SheetHeroProps) {
+  // BAND MODE — the printed-sheet identity band: edge wordmark ∥ fields ∥
+  // vitals rail. Drops the name stamp; the name is the accessible <h1>.
+  if (fields) {
+    return (
+      <section
+        ref={heroRef}
+        aria-label={`${name} sheet header`}
+        className={cn('relative overflow-hidden rounded-card border-entity border-ink', className)}
+        style={{ background: 'var(--tone)' }}
+      >
+        <h1 className="sr-only">{name}</h1>
+        <div className="grid grid-cols-1 gap-3 p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-4 sm:p-4">
+          {/* Edge wordmark — paper on the sheet tone (NOT an ink stamp): a
+              horizontal eyebrow on mobile, a vertical left-edge wordmark that
+              reads bottom-to-top on sm+, mirroring the printed sheets. */}
+          <span
+            aria-hidden="true"
+            className="font-cond text-display font-extrabold uppercase leading-none tracking-caps-tight text-paper sm:self-stretch sm:rotate-180 sm:place-self-center sm:text-display-lg sm:[writing-mode:vertical-rl]"
+          >
+            {cat}
+          </span>
+
+          {/* Identity fields (middle) + optional edit control. */}
+          <div className="flex min-w-0 flex-col gap-2">
+            {controls && <div className="flex justify-end">{controls}</div>}
+            {fields}
+            {meta && <div className="flex flex-wrap items-center gap-1.5">{meta}</div>}
+          </div>
+
+          {/* Current/max gauge rail (right). */}
+          {vitals && <div className="min-w-0 sm:w-[220px]">{vitals}</div>}
+        </div>
+      </section>
+    )
+  }
+
   const identityLines = identity.filter((line) => line.value.trim().length > 0)
   const hasIdentityRegion = Boolean(specs || identityLines.length > 0)
   const hasVitalsRegion = Boolean(trackers)

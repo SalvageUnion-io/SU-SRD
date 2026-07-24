@@ -49,6 +49,19 @@ describe('cn', () => {
       expect(cn('text-label-lg text-paper')).toBe('text-label-lg text-paper')
     })
 
+    // Regression: the display/heading rungs (readout/title/display/display-lg/
+    // hero) were missing from the registered scale, so tailwind-merge treated
+    // them as COLORS and dropped a real color that shared the list. The sheet
+    // hero name-stamp is `cn('… bg-ink text-paper …', 'text-display …')`, which
+    // lost `text-paper` and rendered ink-on-ink — an invisible title.
+    test('keeps the display/heading font sizes alongside text colors', () => {
+      expect(cn('bg-ink text-paper', 'text-display')).toBe('bg-ink text-paper text-display')
+      expect(cn('text-paper text-display-lg')).toBe('text-paper text-display-lg')
+      expect(cn('text-readout text-ink')).toBe('text-readout text-ink')
+      expect(cn('text-title text-paper')).toBe('text-title text-paper')
+      expect(cn('text-hero text-ink')).toBe('text-hero text-ink')
+    })
+
     test('resolves semantic font-size conflicts (last wins)', () => {
       expect(cn('text-nano', 'text-micro')).toBe('text-micro')
       expect(cn('text-sm', 'text-caption')).toBe('text-caption')
