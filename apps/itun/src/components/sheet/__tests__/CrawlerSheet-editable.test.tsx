@@ -296,7 +296,7 @@ describe('CrawlerSheet — Scrap Pool steppers', () => {
       fireEvent.click(screen.getByRole('button', { name: /increase t2/i }))
     })
 
-    const call = update.mock.calls.at(-1)
+    const call = update.mock.calls.at(-1) as [string, string, Record<string, unknown>] | undefined
     expect(call?.[0]).toBe('crawler')
     expect(call?.[2]).toMatchObject({ scrapPool: { tl2: 4, tl3: 4 } })
   })

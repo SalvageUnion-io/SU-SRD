@@ -2,17 +2,14 @@
  * SheetPilot — the pilot branch of the live sheet (extracted from
  * Sheet.tsx, audit item 19; redesigned to the poster layout, Phase 2).
  *
- * The hero now carries ONLY the name row + meta (poster region grid, D7):
- * Identity, Vitals and the linked-unit rail all moved into the body's R1/R3
- * poster regions (see `PilotSheet`) — SheetHero no longer receives
- * `identityBlock`/`inset`/`rail`, which have since been deleted from it
- * outright (nothing had passed them since this migration). This component's
- * remaining job
- * is composing the assigned-mech/home-crawler rail content and handing it to
- * `PilotSheet` as `linkedUnits`.
+ * The body owns the identity band now (Workshop-Manual layout): SheetPilot
+ * passes NO `renderHero`, and `PilotSheet` renders the `SheetHero` band as its
+ * first region, wrapping it with the `heroRef` from `renderBody`. This
+ * component's remaining job is composing the assigned-mech/home-crawler rail
+ * content and handing it to `PilotSheet` as `linkedUnits`.
  */
 
-import { Badge, EntityRow, Stat } from 'component-lib'
+import { EntityRow, Stat } from 'component-lib'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
@@ -22,7 +19,6 @@ import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { PilotSheet } from './PilotSheet'
-import { SheetHero } from 'component-lib'
 import { RailChip } from './SheetRail'
 import { RailCta, RailStatLine } from './SheetRailParts'
 import { crawlerRailItems, mechRailItems, mechStatusPill } from './railStats'
@@ -153,22 +149,14 @@ export function SheetPilot({
           actions
         )
       }
-      renderHero={({ heroRef }) => (
-        <SheetHero
+      renderBody={({ heroRef }) => (
+        <PilotSheet
+          pilot={pilot}
+          store={store}
+          readOnly={readOnly}
           heroRef={heroRef}
-          cat="Pilot"
-          name={pilot.name}
-          meta={
-            dead ? (
-              <Badge surface="tone" tone="bad">
-                Dead
-              </Badge>
-            ) : undefined
-          }
+          linkedUnits={rail}
         />
-      )}
-      renderBody={() => (
-        <PilotSheet pilot={pilot} store={store} readOnly={readOnly} linkedUnits={rail} />
       )}
     />
   )
