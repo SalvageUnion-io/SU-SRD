@@ -8,7 +8,7 @@ type CardControlRailProps = {
   /** Every card affordance — action buttons and the typed item variants
    * (stepper / badge / status / link). */
   controls?: ReferenceEntityControl[]
-  /** Compact geometry: the rail rides centred on the frame edge rather than
+  /** Compact geometry: the rail rides straddling the frame edge rather than
    * hanging above it. */
   compact?: boolean
   /** Extra nodes rendered between the status cell and the action cluster —
@@ -32,19 +32,23 @@ type CardControlRailProps = {
  * entity card's version here gives both layers the working geometry, and gives
  * `status` exactly one rendering path — a `controls` entry — instead of two.
  *
- * The rail is CENTRED on the card's top edge (`left-1/2 -translate-x-1/2` +
- * `justify-center`), not pinned to the right corner. Centring does NOT relax the
- * overflow containment: the containment comes from `flex-wrap` +
- * `max-w-[calc(100%-1rem)]`, which cap the row at the card width minus a 0.5rem
- * gutter each side and wrap a crowded rail (status seal + selection seal + count
- * seal + three controls) onto stacked, equal-height lines rather than letting it
- * escape the frame. `justify` only sets how those wrapped lines align INSIDE
- * that capped box — it has no bearing on whether the box overflows — so moving
- * from `justify-end` to `justify-center` keeps the exact same bound. Because the
- * box is centred, the max-width leaves the gutter symmetric (0.5rem each side)
- * instead of only on the left. Centring must not reorder the cells: `status`
- * stays the first child so a card carrying both a condition and a selection seal
- * keeps the condition leftmost within the (now centred) row.
+ * The rail is pinned to the card's TOP-RIGHT corner (`right-2` +
+ * `justify-end`). It briefly rode centred (`left-1/2 -translate-x-1/2` +
+ * `justify-center`); that put the action cluster over the middle of the header
+ * band, where it read as content rather than as chrome and crowded the title.
+ * The corner is also the only free edge — the seam stamp owns the top-LEFT on
+ * both shells (`Card`'s callout at `ml-3`, the entity card's at `left-[15px]`),
+ * so a centred rail was drifting toward an occupied corner as it grew.
+ *
+ * Alignment is NOT what contains the rail: the containment comes from
+ * `flex-wrap` + `max-w-[calc(100%-1rem)]`, which cap the row at the card width
+ * minus a 0.5rem gutter and wrap a crowded rail (status seal + selection seal +
+ * count seal + three controls) onto stacked, equal-height lines rather than
+ * letting it escape the frame. `justify` only sets how those wrapped lines align
+ * INSIDE that capped box, so the switch back to `justify-end` keeps the exact
+ * same bound. Cell order is unchanged either way: `status` stays the first child
+ * so a card carrying both a condition and a selection seal keeps the condition
+ * leftmost within the row.
  */
 export function CardControlRail({ controls, compact = false, seals }: CardControlRailProps) {
   const visible = (controls ?? []).filter((c) => !c.hidden)
@@ -62,7 +66,7 @@ export function CardControlRail({ controls, compact = false, seals }: CardContro
   return (
     <div
       className={cn(
-        'absolute left-1/2 z-30 flex max-w-[calc(100%-1rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-1.5',
+        'absolute right-2 z-30 flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-end gap-1.5',
         compact ? 'top-0 -translate-y-1/2' : '-mt-2'
       )}
     >
