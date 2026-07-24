@@ -50,7 +50,7 @@ function pageMap(pdf: string): Map<number, string> {
 
 function renderLink(l: string): string {
   if (l.startsWith('data/')) return `\`packages/salvageunion-reference/${l}\``
-  if (l === 'combatUtils.ts') return '`packages/salvageunion-reference/lib/combatUtils.ts`'
+  if (l.startsWith('rules/')) return `\`packages/salvageunion-reference/lib/${l}\``
   return `\`${l}\`` // sibling docs, incl. ../ relative paths
 }
 
@@ -129,7 +129,7 @@ content is source-tagged (filter by \`source\`).
 | Bestiary (titans, meld, creatures, drones, vehicles) | \`bio-titans.json\`, \`meld.json\`, \`creatures.json\`, \`drones.json\`, \`vehicles.json\` |
 | NPCs, squads, factions | \`npcs.json\`, \`squads.json\`, \`factions.json\` |
 | Safety tools & guides | \`guides.json\` |
-| Combat math (heat/damage/condition functions) | \`packages/salvageunion-reference/lib/combatUtils.ts\` |
+| Combat math (heat/damage/condition functions) | \`packages/salvageunion-reference/lib/rules/\` |
 
 ## Regenerating this digest
 

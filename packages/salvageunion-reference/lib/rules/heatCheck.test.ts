@@ -8,7 +8,13 @@
 
 import { describe, expect, test } from 'bun:test'
 
-import { clampHeat, performHeatCheck, performPush, reactorOverloadOutcome } from './heatCheck.js'
+import {
+  canActivateAction,
+  clampHeat,
+  performHeatCheck,
+  performPush,
+  reactorOverloadOutcome,
+} from './heatCheck.js'
 import type { Roll } from './types.js'
 
 /** Returns a Roll that yields the given values in order, ignoring `sides`. */
@@ -183,5 +189,31 @@ describe('performPush', () => {
     expect(effect.result.heatAtCheck).toBe(8)
     expect(effect.result.overloaded).toBe(true)
     expect(effect.result.outcome).toBe('overheat')
+  })
+})
+
+// -------------------------------------------------------------------------
+// canActivateAction — the pre-flight heat-cap gate
+// -------------------------------------------------------------------------
+
+describe('canActivateAction', () => {
+  test('returns true when there is sufficient headroom', () => {
+    expect(canActivateAction(3, 2, 10)).toBe(true)
+  })
+
+  test('returns false when action would exceed cap', () => {
+    expect(canActivateAction(9, 2, 10)).toBe(false)
+  })
+
+  test('returns true when result exactly equals cap', () => {
+    expect(canActivateAction(8, 2, 10)).toBe(true)
+  })
+
+  test('returns true for zero cost action', () => {
+    expect(canActivateAction(10, 0, 10)).toBe(true)
+  })
+
+  test('returns false when already at cap with any cost', () => {
+    expect(canActivateAction(10, 1, 10)).toBe(false)
   })
 })

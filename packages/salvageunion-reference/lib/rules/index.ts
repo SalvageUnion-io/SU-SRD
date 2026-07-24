@@ -75,7 +75,13 @@ export {
   refDisplayName,
 } from './resolveRefs.js'
 export { pilotDetailWarnings, mechDetailWarnings, crawlerDetailWarnings } from './detailWarnings.js'
-export { clampHeat, reactorOverloadOutcome, performHeatCheck, performPush } from './heatCheck.js'
+export {
+  clampHeat,
+  canActivateAction,
+  reactorOverloadOutcome,
+  performHeatCheck,
+  performPush,
+} from './heatCheck.js'
 export {
   CORE_ROLL_BANDS,
   coreRollBand,
@@ -84,6 +90,7 @@ export {
 } from './coreMechanic.js'
 export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from './coreMechanic.js'
 export {
+  applySpDamage,
   mechEffectiveDamage,
   applyMechDamage,
   criticalDamageOutcome,

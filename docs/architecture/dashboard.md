@@ -408,8 +408,12 @@ these functions; it never reimplements the math.**
 - **Push** (`performPush` in
   `packages/salvageunion-reference/lib/rules/heatCheck.ts`, re-exported through
   ITUN's `src/lib/rules/heatCheck.ts`): reroll + 2 Heat, then forces a **Heat
-  Check**. Gate on `canPush`
-  (`packages/salvageunion-reference/lib/combatUtils.ts`). The Reactor bay's
+  Check**. Gate on `canActivateAction(currentHeat, 2, heatCap)` — Push costs 2
+  Heat, so the general cap gate in
+  `packages/salvageunion-reference/lib/rules/heatCheck.ts` is the can't-push-past-cap
+  rule; there is no separate `canPush`. Note `performPush` itself clamps to cap
+  and always forces the Heat Check, so this gate is a UI affordance (grey out
+  the button), not a safety net. The Reactor bay's
   Push button shows a **+2 projection** on the Heat gauge on hover
   (`S.pushArmed`).
 - **Heat Check** (`performHeatCheck({heat, currentSP, roll})`): d20 ≤ Heat →
@@ -428,8 +432,9 @@ these functions; it never reimplements the math.**
 
 The pure rules functions named in this section (`performPush`,
 `performHeatCheck`, `reactorOverloadOutcome`, `clampHeat`, `applySpDamage`,
-`canPush`, `canActivateAction`, the `takeDamage.ts` family, `computeCargoCapacity`)
-all live in `packages/salvageunion-reference/lib/`; ITUN's `src/lib/rules/*`
+`canActivateAction`, the `takeDamage.ts` family, `computeCargoCapacity`)
+all live in `packages/salvageunion-reference/lib/rules/` and are imported via the
+`salvageunion-reference/rules` subpath; ITUN's `src/lib/rules/*`
 modules are thin re-export/patch wrappers over them.
 
 ### 5.2 Action activation

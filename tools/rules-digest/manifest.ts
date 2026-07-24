@@ -81,7 +81,7 @@ export const manifest: DocSpec[] = [
     extractPages: [2, 233, 234],
     brief:
       'Heat and Heat Cap, the full Push sequence (roll → optional re-roll → resolve → +2 Heat → Heat Check → Reactor Overload on fail), the can’t-push-past-cap rule, the Heat Check triggers, and the roll-equal-or-under check (20 always succeeds).',
-    crossLinks: ['01-core-mechanic.md', 'combatUtils.ts', 'data/roll-tables.json'],
+    crossLinks: ['01-core-mechanic.md', 'rules/heatCheck.ts', 'data/roll-tables.json'],
   },
   {
     slug: '04-attacks-and-damage',
@@ -94,7 +94,7 @@ export const manifest: DocSpec[] = [
     crossLinks: [
       '01-core-mechanic.md',
       '05-salvaging.md',
-      'combatUtils.ts',
+      'rules/takeDamage.ts',
       'data/roll-tables.json',
     ],
   },

@@ -32,8 +32,8 @@
  * The band data mirrors the "Critical Damage" / "Critical Injury" tables in
  * salvageunion-reference data/roll-tables.json, encoded here as pure band
  * functions the same way heatCheck.ts encodes the Reactor Overload bands.
- * The SP subtraction itself is the shared `applySpDamage` from
- * salvageunion-reference/lib/combatUtils.ts (ADR-006 — never reimplemented).
+ * The SP subtraction itself is the shared `applySpDamage` defined below — the
+ * one doorway for SP subtraction (ADR-006 — never reimplemented).
  *
  * This module is PURE: no React, no store, no real randomness — the d20 is
  * injected via `Roll`. Per ADR-007 the functions return deterministic
@@ -41,8 +41,6 @@
  * choices (which System/Module dies, whether an injury is accepted, pilot
  * death) for the player — never auto-picked.
  */
-
-import { applySpDamage } from '../combatUtils.js'
 
 import type {
   CriticalDamageOutcome,
@@ -58,6 +56,24 @@ export type DamageKind = 'sp' | 'hp'
 // ---------------------------------------------------------------------------
 // Mech damage (p.239-240)
 // ---------------------------------------------------------------------------
+
+/**
+ * Apply SP damage to a mech.
+ *
+ * Per Salvage Union rules:
+ * - newSp = max(0, currentSp - damage)
+ * - hpDamage = floor(damage / 2)
+ *
+ * Returns the new SP value and the HP damage that flows through to the pilot.
+ */
+export function applySpDamage(
+  currentSp: number,
+  damage: number
+): { newSp: number; hpDamage: number } {
+  const newSp = Math.max(0, currentSp - damage)
+  const hpDamage = Math.floor(damage / 2)
+  return { newSp, hpDamage }
+}
 
 /**
  * The SP damage a mech actually takes: HP-listed weapons deal half damage to

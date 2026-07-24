@@ -16,12 +16,12 @@ would violate [ADR-001](ADR-001-local-first-no-backend.md).
 ## Decision
 
 Game rules logic lives as **pure, side-effect-free functions** in the data
-package (`packages/salvageunion-reference/lib/combatUtils.ts` and siblings):
+package (`packages/salvageunion-reference/lib/rules/`, reached via the
+`salvageunion-reference/rules` subpath export):
 
 - Functions take state in and return results out — no I/O, no mutation of inputs,
-  no backend or storage dependency (`getHeatGenerated`, `applyHeat`,
-  `canActivateAction`, `shouldTriggerHeatCheck`, `canPush`, damage resolution,
-  etc.).
+  no backend or storage dependency (`clampHeat`, `canActivateAction`,
+  `performHeatCheck`, `performPush`, `applySpDamage`, `applyMechDamage`, etc.).
 - Applying a result to durable state is the **consumer's** job: ITUN persists via
   its stores ([ADR-003](ADR-003-zustand-hydration.md)) using sequential
   client-side mutations ([ADR-008](ADR-008-sequential-mutations.md)); the bot
@@ -40,7 +40,10 @@ package (`packages/salvageunion-reference/lib/combatUtils.ts` and siblings):
 ## Status update (2026-07): ITUN rules-module migration
 
 For a long stretch after this ADR was accepted, only `combatUtils.ts` and
-`rollOnTable.ts` actually lived in the package — the bulk of the rules engine
+`rollOnTable.ts` actually lived in the package (`combatUtils.ts` no longer
+exists — it was later folded into `lib/rules/`, its two live functions landing
+in `rules/heatCheck.ts` and `rules/takeDamage.ts` and its five unused ones
+deleted, so that path is history, not a live location) — the bulk of the rules engine
 (21 modules) had grown up locally in
 `apps/itun/src/lib/rules/` instead, so the "shared by ITUN and the
 Discord bot" promise wasn't yet true beyond those two files. A migration

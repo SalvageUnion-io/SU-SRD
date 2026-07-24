@@ -46,6 +46,14 @@ export function clampHeat(heat: number, cap: number): number {
 }
 
 /**
+ * Check whether an action can be activated given current heat and cost.
+ * An action is blocked if using it would push heat above the heat cap.
+ */
+export function canActivateAction(currentHeat: number, heatCost: number, heatCap: number): boolean {
+  return currentHeat + heatCost <= heatCap
+}
+
+/**
  * Maps a Reactor Overload Table d20 roll to its outcome band (p.234-235).
  *   1     → meltdown
  *   2-5   → system-destroyed

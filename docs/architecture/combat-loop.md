@@ -27,36 +27,39 @@ it records what happened; it is not an undo/redo system.
 
 ## Pure rules functions
 
-### `salvageunion-reference/lib/combatUtils.ts`
-
-Side-effect-free, no app or backend dependency:
-
-```typescript
-getHeatGenerated(entity): number | 'variable'            // reads the `hot` trait amount; 0 if none
-applyHeat(currentHeat, heatGenerated, heatCap): number     // sum, clamped to cap
-canActivateAction(currentHeat, heatCost, heatCap): boolean // currentHeat + heatCost <= heatCap
-shouldTriggerHeatCheck(currentHeat, heatGained, heatCap): boolean // gained > 0 && would reach/exceed cap
-canPush(currentHeat, heatCap): boolean                     // currentHeat + 2 <= heatCap
-nextCondition(current): ItemCondition                      // intact → damaged → destroyed
-applySpDamage(currentSp, damage): { newSp, hpDamage }      // hpDamage = floor(damage / 2)
-```
+All of it is side-effect-free, with no app or backend dependency. Every rules
+module is reached through the `salvageunion-reference/rules` subpath export —
+never the main package barrel (see the note at the foot of `lib/index.ts`).
 
 ### `salvageunion-reference/lib/rules/heatCheck.ts`
 
-The heat-check math is pure and lives in the package (ADR-006), with an
-injectable die roller:
+The heat math is pure and lives in the package (ADR-006), with an injectable
+die roller. This module owns the whole heat doorway — the pre-flight cap gate
+as well as the check itself:
 
 ```typescript
 clampHeat(heat, cap): number
+canActivateAction(currentHeat, heatCost, heatCap): boolean // currentHeat + heatCost <= heatCap
 reactorOverloadOutcome(roll): 'meltdown' | 'system-destroyed' | 'module-destroyed' | 'overheat' | 'safe'
 performHeatCheck({ heat, currentSP, roll, now? }): HeatCheckEffect
 performPush({ heat, heatCap, currentSP, roll, now? }): PushResult   // { nextHeat, effect }
 ```
 
+### `salvageunion-reference/lib/rules/takeDamage.ts`
+
+Damage resolution, including the one shared SP subtraction (ADR-006 — never
+reimplemented downstream):
+
+```typescript
+applySpDamage(currentSp, damage): { newSp, hpDamage }    // hpDamage = floor(damage / 2)
+mechEffectiveDamage(amount, kind, vulnerable): number
+applyMechDamage({ currentSP, amount, kind, vulnerable }): MechDamageEffect
+```
+
 ### `apps/itun/src/lib/rules/heatCheck.ts`
 
-A thin app-local layer, imported by submodule path. It re-exports
-all four functions above and adds the two pieces that can't be pure:
+A thin app-local layer, imported by submodule path. It re-exports the package's
+heat-check functions and adds the two pieces that can't be pure:
 
 ```typescript
 defaultRoll: Roll                                        // @randsum/roller binding
@@ -157,7 +160,7 @@ Item condition is a per-slug map on the mech record — `systemConditions` and
 changes via the `StatusBadge` on `MechItemCard.tsx`
 ([ADR-009](../adrs/ADR-009-condition-model-destroyed-color.md)); that badge's
 `onStatusCycle` runs `cycleItemCondition` in `MechSheet.tsx`, which advances the
-value (`nextCondition`) and writes the updated map with
+value (`cycleCondition` in `sheet/mechItemRules.ts`) and writes the updated map with
 `storeState.update('mech', …)`. Condition changes are never auto-applied.
 
 ---

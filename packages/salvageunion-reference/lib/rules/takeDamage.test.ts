@@ -11,6 +11,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   applyMechDamage,
   applyPilotDamage,
+  applySpDamage,
   criticalDamageOutcome,
   criticalInjuryOutcome,
   mechEffectiveDamage,
@@ -310,5 +311,31 @@ describe('performCriticalInjury', () => {
     const effect = performCriticalInjury({ roll: seqRoll(12), now: fixedNow })
     expect(effect.result.roll).toBe(12)
     expect(effect.result.rolledAt).toBe('2026-07-01T00:00:00.000Z')
+  })
+})
+
+// -------------------------------------------------------------------------
+// applySpDamage — the shared SP subtraction (ADR-006, never reimplemented)
+// -------------------------------------------------------------------------
+
+describe('applySpDamage', () => {
+  test('reduces SP and calculates HP damage for normal damage', () => {
+    expect(applySpDamage(10, 4)).toEqual({ newSp: 6, hpDamage: 2 })
+  })
+
+  test('clamps SP to 0 and still calculates HP damage when damage exceeds SP', () => {
+    expect(applySpDamage(3, 5)).toEqual({ newSp: 0, hpDamage: 2 })
+  })
+
+  test('floors HP damage for odd damage amounts', () => {
+    expect(applySpDamage(10, 3)).toEqual({ newSp: 7, hpDamage: 1 })
+  })
+
+  test('returns unchanged SP and zero HP damage for zero damage', () => {
+    expect(applySpDamage(10, 0)).toEqual({ newSp: 10, hpDamage: 0 })
+  })
+
+  test('handles damage exactly equal to SP', () => {
+    expect(applySpDamage(5, 5)).toEqual({ newSp: 0, hpDamage: 2 })
   })
 })
