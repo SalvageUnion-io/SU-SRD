@@ -54,6 +54,10 @@ full rationale.
     "types": "./lib/zod.ts",
     "default": "./lib/zod.ts"
   },
+  "./schema-definitions": {
+    "types": "./lib/schemaDefinitions.ts",
+    "default": "./lib/schemaDefinitions.ts"
+  },
   "./data/*": {
     "import": "./data/*.json",
     "default": "./data/*.json"
@@ -70,7 +74,11 @@ Consuming apps resolve `lib/index.ts` directly — there is no `dist/` build and
 no `development`/`import` condition split. `./rules` is the pure-math rules
 entry point ([ADR-006](../adrs/ADR-006-pure-rules-logic.md)). `./zod` is the
 canonical Zod re-export ([ADR-013](../adrs/ADR-013-csp-zod-jitless.md)) — every
-other package/app must import `z` from here, never from `zod` directly
+other package/app must import `z` from here, never from `zod` directly.
+`./schema-definitions` exposes the generated JSON Schema documents
+(`getJsonSchemaDefinition` / `getAllJsonSchemaDefinitions`) behind their own
+subpath so the ~783 KB schema corpus is never pulled into an app bundle through
+the main barrel — only the srd `/schema/[id].schema.json` build route imports it
 (enforced by `noRestrictedImports` in the root `biome.jsonc`).
 
 `tools/check-doc-drift.ts` (`bun run validate:all`) fails CI if this block

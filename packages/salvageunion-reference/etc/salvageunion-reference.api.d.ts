@@ -8772,7 +8772,6 @@ import type { SURefAbility, SURefChassis, SURefClass, SURefKeyword, SURefModule,
 export declare const ASSET_BASE_URL = "https://assets.salvageunion.io";
 /** Clear the cached action map so the next lookup reads fresh data. Called by `preload()`. */
 export declare function invalidateActionMap(): void;
-export type ItemCondition = 'intact' | 'damaged' | 'destroyed';
 /**
  * Extract tech level from an entity
  * @param entity - The entity to extract from
