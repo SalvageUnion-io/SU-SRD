@@ -63,7 +63,7 @@
 
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { ReferenceEntityCard } from 'component-lib'
+import { ReferenceEntityCard, Stat } from 'component-lib'
 
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
@@ -190,6 +190,22 @@ export function CrawlerSheet({
   /** Remove one mounted weapon (per-card ✕ — archetype B). */
   function removeWeapon(slug: string) {
     patchCrawler((current) => ({ systems: current.systems.filter((s) => s !== slug) }))
+  }
+
+  /**
+   * Set one Scrap Pool tech-level bucket to `next` (Free Edit — hand-patch the
+   * pool directly). Reads the FRESHEST record so rapid steps don't race the
+   * async write, then applies the delta through `addToScrapPool` (floored at 0).
+   */
+  function setScrapBucket(tlBucket: number, next: number) {
+    if (readOnly) return
+    const fresh = storeState.get('crawler', crawler.id) ?? crawler
+    const currentPool = fresh.scrapPool ?? {}
+    const delta = next - scrapPoolBucket(currentPool, tlBucket)
+    if (delta === 0) return
+    void storeState.update('crawler', crawler.id, {
+      scrapPool: addToScrapPool(currentPool, tlBucket, delta),
+    })
   }
 
   return (
@@ -353,6 +369,32 @@ export function CrawlerSheet({
           }
           className="min-w-0"
         >
+          {/* Scrap Pool — the crawler's abstract TL-bucketed scrap store (rules
+              S12; the bucket bay-repair spends). Per-tech-level `Stat` steppers
+              let a crawler stow arbitrary scrap by hand (Free Edit). The
+              physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
+          <div className="mb-4 border-b border-dashed border-[color-mix(in_srgb,var(--tone-deep)_40%,transparent)] pb-4">
+            <span
+              className="mb-2 block font-cond text-label font-bold uppercase leading-none tracking-caps"
+              style={{ color: 'var(--tone-deep, var(--color-ink))' }}
+            >
+              Scrap Pool
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {SCRAP_TLS.map((t) => (
+                <Stat
+                  key={t}
+                  label={`T${t}`}
+                  value={scrapPoolBucket(pool, t)}
+                  min={0}
+                  size="mini"
+                  mode={readOnly ? 'read' : 'edit'}
+                  ariaLabel={`Tech ${t} scrap`}
+                  onChange={readOnly ? undefined : (next) => setScrapBucket(t, next)}
+                />
+              ))}
+            </div>
+          </div>
           <StorageManifest
             side="crawler"
             cargo={cargo}

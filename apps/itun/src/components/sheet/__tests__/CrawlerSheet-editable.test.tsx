@@ -6,11 +6,11 @@
  *   1. Bay status: Intact bays lead with their function action; a Damaged bay
  *      disables the function and promotes Repair (design §4.4 / pattern 8).
  *   2. Repair decrements 5 Scrap from the crawler-TL pool bucket, spilling
- *      into higher buckets, and flips the bay Intact (S12) — the scrapPool
- *      DATA/logic is kept (#413) even though the hand-edit Scrap Pool slab
- *      UI was dropped (D6).
+ *      into higher buckets, and flips the bay Intact (S12).
  *   3. A short pool is advisory — Repair still proceeds, never blocks (S12).
  *   4. readOnly suppresses every edit affordance.
+ *   5. The Storage Bay's Scrap Pool steppers hand-edit `crawler.scrapPool`
+ *      (Free Edit) — a crawler can stow arbitrary scrap by tech level.
  *
  * Uses the store-injection seam + a patched CrawlerBays.all. NO mock.module().
  */
@@ -272,5 +272,43 @@ describe('CrawlerSheet — readOnly suppresses edits', () => {
 
     expect(update).not.toHaveBeenCalled()
     expect(updateCrawlerBay).not.toHaveBeenCalled()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Scrap Pool editor (Free Edit — stow arbitrary scrap by tech level)
+// ---------------------------------------------------------------------------
+
+describe('CrawlerSheet — Scrap Pool steppers', () => {
+  let restore: () => void
+  afterEach(() => {
+    restore?.()
+  })
+
+  test('incrementing a tech-level bucket patches crawler.scrapPool', async () => {
+    restore = await patchCrawlerBays()
+    const update = mock(async () => fakeCrawler)
+    render(<CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler, { update })} />)
+
+    // fakeCrawler.scrapPool = { tl2: 3, tl3: 4 } → step T2 up to 4. Each TL box
+    // labels its stepper `Increase T{n}`, so T2's increment is unique.
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /increase t2/i }))
+    })
+
+    const call = update.mock.calls.at(-1)
+    expect(call?.[0]).toBe('crawler')
+    expect(call?.[2]).toMatchObject({ scrapPool: { tl2: 4, tl3: 4 } })
+  })
+
+  test('readOnly renders the pool as read-only (no steppers)', async () => {
+    restore = await patchCrawlerBays()
+    const update = mock(async () => fakeCrawler)
+    render(
+      <CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler, { update })} readOnly />
+    )
+
+    expect(screen.queryByRole('button', { name: /increase t2/i })).toBeNull()
+    expect(update).not.toHaveBeenCalled()
   })
 })

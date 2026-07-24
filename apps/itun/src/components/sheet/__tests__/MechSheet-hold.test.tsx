@@ -203,6 +203,28 @@ describe('MechSheet — The Hold (standalone Load / Unload, no crawler)', () => 
     expect(lots[0]).toMatchObject({ name: 'Water Barrel', units: 3, kind: 'unit' })
   })
 
+  test('the Scrap kind adds a tech-level scrap lot (cat SCRAP + tl + qty)', async () => {
+    const captured: CapturedUpdate[] = []
+    const mech = makeMech({ cargoLots: [] })
+    render(<MechSheet mech={mech} store={makeStore(mech, captured)} />)
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /^scrap$/i }))
+    })
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/scrap tech level/i), { target: { value: '3' } })
+      fireEvent.change(screen.getByLabelText(/scrap quantity/i), { target: { value: '5' } })
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /load scrap into the mech hold/i }))
+    })
+
+    expect(captured).toHaveLength(1)
+    const lots = must(captured[0]).patch.cargoLots as Array<Record<string, unknown>>
+    expect(lots).toHaveLength(1)
+    expect(lots[0]).toMatchObject({ cat: 'SCRAP', tl: 3, qty: 5, units: 5, kind: 'bulk' })
+  })
+
   test('a fractional slot cost is truncated, not silently dropped', async () => {
     // `CargoLotSchema.units` is `.int()`, and a `type="number"` field still
     // accepts a typed "1.5". Before coercion the lot failed its Zod parse on
