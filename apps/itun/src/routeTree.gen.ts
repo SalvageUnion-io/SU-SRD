@@ -9,30 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as EncounterRouteImport } from './routes/encounter'
-import { Route as ChangelogRouteImport } from './routes/changelog'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SIdRouteImport } from './routes/s/$id'
-import { Route as PilotsNewRouteImport } from './routes/pilots/new'
-import { Route as PilotsIdRouteImport } from './routes/pilots/$id'
-import { Route as MechsNewRouteImport } from './routes/mechs/new'
-import { Route as MechsIdRouteImport } from './routes/mechs/$id'
-import { Route as DashboardIdRouteImport } from './routes/dashboard/$id'
-import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as ChangelogRouteImport } from './routes/changelog'
+import { Route as EncounterRouteImport } from './routes/encounter'
 import { Route as CrawlersIdRouteImport } from './routes/crawlers/$id'
+import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
+import { Route as DashboardIdRouteImport } from './routes/dashboard/$id'
+import { Route as MechsIdRouteImport } from './routes/mechs/$id'
+import { Route as MechsNewRouteImport } from './routes/mechs/new'
+import { Route as PilotsIdRouteImport } from './routes/pilots/$id'
+import { Route as PilotsNewRouteImport } from './routes/pilots/new'
+import { Route as SIdRouteImport } from './routes/s/$id'
 import { Route as MechsPatternsIndexRouteImport } from './routes/mechs/patterns/index'
 import { Route as SheetKindIdRouteImport } from './routes/sheet/$kind/$id'
 import { Route as SheetKindIdShareRouteImport } from './routes/sheet/$kind/$id_.share'
 
-const EncounterRoute = EncounterRouteImport.update({
-  id: '/encounter',
-  path: '/encounter',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChangelogRoute = ChangelogRouteImport.update({
-  id: '/changelog',
-  path: '/changelog',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -40,39 +35,19 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ChangelogRoute = ChangelogRouteImport.update({
+  id: '/changelog',
+  path: '/changelog',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SIdRoute = SIdRouteImport.update({
-  id: '/s/$id',
-  path: '/s/$id',
+const EncounterRoute = EncounterRouteImport.update({
+  id: '/encounter',
+  path: '/encounter',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PilotsNewRoute = PilotsNewRouteImport.update({
-  id: '/pilots/new',
-  path: '/pilots/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PilotsIdRoute = PilotsIdRouteImport.update({
-  id: '/pilots/$id',
-  path: '/pilots/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MechsNewRoute = MechsNewRouteImport.update({
-  id: '/mechs/new',
-  path: '/mechs/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MechsIdRoute = MechsIdRouteImport.update({
-  id: '/mechs/$id',
-  path: '/mechs/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardIdRoute = DashboardIdRouteImport.update({
-  id: '/dashboard/$id',
-  path: '/dashboard/$id',
+const CrawlersIdRoute = CrawlersIdRouteImport.update({
+  id: '/crawlers/$id',
+  path: '/crawlers/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CrawlersNewRoute = CrawlersNewRouteImport.update({
@@ -80,9 +55,34 @@ const CrawlersNewRoute = CrawlersNewRouteImport.update({
   path: '/crawlers/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CrawlersIdRoute = CrawlersIdRouteImport.update({
-  id: '/crawlers/$id',
-  path: '/crawlers/$id',
+const DashboardIdRoute = DashboardIdRouteImport.update({
+  id: '/dashboard/$id',
+  path: '/dashboard/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MechsIdRoute = MechsIdRouteImport.update({
+  id: '/mechs/$id',
+  path: '/mechs/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MechsNewRoute = MechsNewRouteImport.update({
+  id: '/mechs/new',
+  path: '/mechs/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PilotsIdRoute = PilotsIdRouteImport.update({
+  id: '/pilots/$id',
+  path: '/pilots/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PilotsNewRoute = PilotsNewRouteImport.update({
+  id: '/pilots/new',
+  path: '/pilots/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SIdRoute = SIdRouteImport.update({
+  id: '/s/$id',
+  path: '/s/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MechsPatternsIndexRoute = MechsPatternsIndexRouteImport.update({
@@ -227,18 +227,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/encounter': {
-      id: '/encounter'
-      path: '/encounter'
-      fullPath: '/encounter'
-      preLoaderRoute: typeof EncounterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/changelog': {
-      id: '/changelog'
-      path: '/changelog'
-      fullPath: '/changelog'
-      preLoaderRoute: typeof ChangelogRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -248,53 +241,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/changelog': {
+      id: '/changelog'
+      path: '/changelog'
+      fullPath: '/changelog'
+      preLoaderRoute: typeof ChangelogRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/s/$id': {
-      id: '/s/$id'
-      path: '/s/$id'
-      fullPath: '/s/$id'
-      preLoaderRoute: typeof SIdRouteImport
+    '/encounter': {
+      id: '/encounter'
+      path: '/encounter'
+      fullPath: '/encounter'
+      preLoaderRoute: typeof EncounterRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pilots/new': {
-      id: '/pilots/new'
-      path: '/pilots/new'
-      fullPath: '/pilots/new'
-      preLoaderRoute: typeof PilotsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pilots/$id': {
-      id: '/pilots/$id'
-      path: '/pilots/$id'
-      fullPath: '/pilots/$id'
-      preLoaderRoute: typeof PilotsIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mechs/new': {
-      id: '/mechs/new'
-      path: '/mechs/new'
-      fullPath: '/mechs/new'
-      preLoaderRoute: typeof MechsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mechs/$id': {
-      id: '/mechs/$id'
-      path: '/mechs/$id'
-      fullPath: '/mechs/$id'
-      preLoaderRoute: typeof MechsIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/$id': {
-      id: '/dashboard/$id'
-      path: '/dashboard/$id'
-      fullPath: '/dashboard/$id'
-      preLoaderRoute: typeof DashboardIdRouteImport
+    '/crawlers/$id': {
+      id: '/crawlers/$id'
+      path: '/crawlers/$id'
+      fullPath: '/crawlers/$id'
+      preLoaderRoute: typeof CrawlersIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/crawlers/new': {
@@ -304,11 +269,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrawlersNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/crawlers/$id': {
-      id: '/crawlers/$id'
-      path: '/crawlers/$id'
-      fullPath: '/crawlers/$id'
-      preLoaderRoute: typeof CrawlersIdRouteImport
+    '/dashboard/$id': {
+      id: '/dashboard/$id'
+      path: '/dashboard/$id'
+      fullPath: '/dashboard/$id'
+      preLoaderRoute: typeof DashboardIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mechs/$id': {
+      id: '/mechs/$id'
+      path: '/mechs/$id'
+      fullPath: '/mechs/$id'
+      preLoaderRoute: typeof MechsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mechs/new': {
+      id: '/mechs/new'
+      path: '/mechs/new'
+      fullPath: '/mechs/new'
+      preLoaderRoute: typeof MechsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pilots/$id': {
+      id: '/pilots/$id'
+      path: '/pilots/$id'
+      fullPath: '/pilots/$id'
+      preLoaderRoute: typeof PilotsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pilots/new': {
+      id: '/pilots/new'
+      path: '/pilots/new'
+      fullPath: '/pilots/new'
+      preLoaderRoute: typeof PilotsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/s/$id': {
+      id: '/s/$id'
+      path: '/s/$id'
+      fullPath: '/s/$id'
+      preLoaderRoute: typeof SIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mechs/patterns/': {

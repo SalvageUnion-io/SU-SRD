@@ -45,10 +45,12 @@ test('wire pilot + mech + crawler on the live sheets and share a snapshot', asyn
   await page.getByRole('link', { name: /Assigned Pilot: Mira Voss/i }).click()
   await page.waitForURL(/\/sheet\/pilot\//, { timeout: 10_000 })
 
-  // Top-bar Edit is a trailing link into the Phase-3 edit wizard.
-  const editLink = page.getByRole('link', { name: /edit this pilot/i })
-  await expect(editLink).toBeVisible()
-  await expect(editLink).toHaveAttribute('href', /\/pilots\/.+\/edit$/)
+  // There is deliberately no top-bar "edit this pilot" link any more: the edit
+  // wizard route is gone (/pilots/$id is a bare redirect) and the Live Sheet is
+  // itself the Free Edit surface under ADR-021, edited in place per section.
+  // `Sheet-topbar-segments.test.tsx` pins its ABSENCE, so asserting it here
+  // would contradict a unit test rather than guard anything.
+  await expect(page.getByRole('link', { name: /edit this pilot/i })).toHaveCount(0)
 
   // --- Wire the crawler from the pilot sheet's rail ---
   await assignCrawlerOnPilotSheet(page, 'Iron Wagon')

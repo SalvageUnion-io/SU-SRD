@@ -101,12 +101,72 @@ export async function waitForReady(page: Page): Promise<void> {
 }
 
 /**
+ * Advance a guided wizard forward until `target` shows up, then stop.
+ *
+ * Specs that want to exercise ONE step used to `goto('/<kind>/new')` and assume
+ * that step was the landing step. Both assumptions have now broken once each: a
+ * `CreateModeChooser` gate was added in front of every wizard (hence
+ * `?mode=guided`), and the pilot wizard gained a "Your Stats" step ahead of
+ * "Class & Ability". Each time, the spec sat waiting for an element that was one
+ * click away until it burned its whole timeout.
+ *
+ * So don't encode WHICH step index a thing lives on — walk forward until it is
+ * on screen. Inserting another step ahead of the target then costs nothing.
+ */
+export async function advanceUntilVisible(
+  page: Page,
+  target: Locator,
+  maxSteps = 8
+): Promise<void> {
+  for (let step = 0; step < maxSteps; step++) {
+    // Target first, with a RETRYING wait. `isVisible()` resolves immediately —
+    // it does not retry the way `click()` and `expect().toBeVisible()` do — so
+    // probing it bare straight after `waitForReady()` (which only awaits the
+    // game-data flag, not the step's own paint) answers about a step that is
+    // one tick from rendering. Guarding this loop on a bare `isVisible()` is
+    // what made it fall straight through without ever clicking.
+    await target.waitFor({ state: 'visible', timeout: 2_000 }).catch(() => {})
+    if (await target.isVisible().catch(() => false)) return
+
+    // Not on this step, so look for the CTA. Waiting on it here also absorbs a
+    // slow first paint: if nothing had rendered yet, the next pass re-checks
+    // the target before clicking anything.
+    const next = page.getByRole('button', { name: /^Next( ·|$)/ }).first()
+    await next.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => {})
+    if (!(await next.isVisible().catch(() => false))) break
+
+    // Next goes briefly disabled while a step swaps in, so a bare
+    // `isDisabled()` here reads a transition as "this step is gated" and ends
+    // the walk early. Give it a bounded chance to settle and only stop when it
+    // stays disabled — that is a genuine gate the caller must satisfy itself.
+    if (await next.isDisabled().catch(() => false)) {
+      const settled = await expect(next)
+        .toBeEnabled({ timeout: 3_000 })
+        .then(() => true)
+        .catch(() => false)
+      if (!settled) break
+    }
+    await next.click()
+  }
+  await expect(target, 'target step should be reachable by advancing the wizard').toBeVisible({
+    timeout: 15_000,
+  })
+}
+
+/**
  * Click a chassis / class / ability / equipment / system / module card by its
  * displayed entity name. Asserts the card exists first so test failures point
  * at the right step.
  */
 export async function pickByName(page: Page, name: string): Promise<void> {
   const card = choiceCardByName(page, name)
+  // Step-agnostic, for the same reason `runWizard` is (see its note): these
+  // wizards get restructured, and a spec that says "pick Engineer" means it
+  // regardless of which step index Engineer currently lives on. When a step was
+  // inserted ahead of the Class/Chassis step, every one of these calls sat
+  // waiting for a card one click away until it burned its timeout — which is
+  // how ~18 specs went red at once. Walk forward to wherever the card is.
+  await advanceUntilVisible(page, card).catch(() => {})
   await expect(card, `card containing "${name}" should render`).toBeVisible({
     timeout: 15_000,
   })
@@ -121,8 +181,13 @@ export async function pickByName(page: Page, name: string): Promise<void> {
  * target that button rather than clicking the card.
  */
 export async function installLoadoutItem(page: Page, name: string): Promise<void> {
-  const add = page.getByRole('button', { name: `Add ${name}` })
-  await expect(add, `"Add ${name}" install button should render`).toBeVisible({
+  // The button reads "Add one <name>" on the craft steps ("one" because
+  // installing the same System/Module twice is rules-legal, so each press
+  // appends a single copy). Accept the bare "Add <name>" too rather than
+  // pinning whichever wording is current.
+  const label = new RegExp(`^Add (one )?${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
+  const add = page.getByRole('button', { name: label })
+  await expect(add, `"Add one ${name}" install button should render`).toBeVisible({
     timeout: 15_000,
   })
   await add.click()
@@ -199,7 +264,17 @@ async function runWizard(
   page: Page,
   kind: 'pilots' | 'mechs' | 'crawlers',
   identity: Record<string, string>,
-  createLabel: RegExp
+  createLabel: RegExp,
+  /**
+   * Option names to choose when this walk is offered them. Being step-agnostic
+   * means "take whatever is on offer", which makes the BUILT ENTITY
+   * nondeterministic — and specs downstream assert on it ("the sheet header
+   * shows Engineer"). Those assertions were really depending on which option
+   * happened to sit last in the DOM. Naming the picks here keeps the walk
+   * structure-agnostic while making its OUTPUT deterministic, which is what
+   * the downstream specs actually need.
+   */
+  prefer: string[] = []
 ): Promise<void> {
   await gotoStable(page, `/${kind}/new?mode=guided`)
   await waitForReady(page)
@@ -241,15 +316,35 @@ async function runWizard(
       // instead just re-picks within the first section (click every class in
       // turn and you end on the last one, ability still unchosen).
       for (let round = 0; round < 6 && (await next.isDisabled()); round++) {
-        const unselected = optionCells(page).filter({
-          hasNot: page.locator('[aria-checked="true"], [aria-pressed="true"]'),
-        })
-        const count = await unselected.count()
-        if (count === 0) break
-        await unselected
-          .nth(count - 1)
-          .click()
-          .catch(() => {})
+        // Match unselected cells by their OWN state attribute. The previous
+        // `filter({ hasNot })` asked whether a cell CONTAINS a selected
+        // descendant, which a selected cell does not — so every already-picked
+        // option counted as unselected and the walk could re-click (and thereby
+        // DEselect) what it had just chosen. Measured on the class step: 9
+        // cells, 1 picked, `hasNot` reported 9 unselected; the attribute
+        // selector reports the correct 8.
+        const unselected = page.locator('[aria-pressed="false"], [aria-checked="false"]')
+
+        // Take a named pick when one is on offer, so the built entity is the
+        // same every run.
+        let picked = false
+        for (const want of prefer) {
+          const candidate = unselected.filter({ hasText: want }).first()
+          if (await candidate.isVisible().catch(() => false)) {
+            await candidate.click().catch(() => {})
+            picked = true
+            break
+          }
+        }
+
+        if (!picked) {
+          const count = await unselected.count()
+          if (count === 0) break
+          await unselected
+            .nth(count - 1)
+            .click()
+            .catch(() => {})
+        }
         await page.waitForTimeout(350)
       }
       await expect(next, `wizard ${kind} step ${step} should unlock after picking`).toBeEnabled({
@@ -264,7 +359,10 @@ async function runWizard(
 
 /** Build a pilot. Steps: Stats → Class & Ability → Equipment → Callsign → Background → Motto → Keepsake → Appearance → Review. */
 export async function buildPilot(page: Page, name: string, callsign: string): Promise<void> {
-  await runWizard(page, 'pilots', { name, callsign }, /Create Pilot/i)
+  // Engineer, so specs may assert the built pilot's class on the sheet. Without
+  // a named pick the walk takes whatever option sits last in the DOM and the
+  // class silently varies between runs.
+  await runWizard(page, 'pilots', { name, callsign }, /Create Pilot/i, ['Engineer'])
 }
 
 /**
@@ -275,7 +373,10 @@ export async function buildPilot(page: Page, name: string, callsign: string): Pr
  * so both spellings are offered; whichever is absent is a no-op.
  */
 export async function buildMech(page: Page, name: string): Promise<void> {
-  await runWizard(page, 'mechs', { 'name / pattern': name, 'mech name': name }, /Create Mech/i)
+  // Mule chassis — the one downstream specs assert on. See buildPilot.
+  await runWizard(page, 'mechs', { 'name / pattern': name, 'mech name': name }, /Create Mech/i, [
+    'Mule',
+  ])
 }
 
 /** Build a crawler. Steps: Type → Statistics → Armament Bay → Crew → Name → Review. */
@@ -284,17 +385,23 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
 }
 
 /**
- * Open the live sheet for the named entity from the dashboard's saved rows
- * (each row is an <li> with a 'Sheet' link).
+ * Open the live sheet for the named entity from the Roster's saved rows.
+ *
+ * Each row is an <li> rendering component-lib's `EntityRow`, whose sheet link
+ * is labelled **"View"**. It used to read "Sheet"; when the label changed this
+ * helper kept waiting for the old name until the whole job hit its 30-minute
+ * ceiling, so match the link by its `/sheet/` href instead of its text — the
+ * href is the contract this helper actually depends on, and it survives the
+ * next copy change.
  */
 export async function openSheetFor(page: Page, name: string): Promise<void> {
   await gotoStable(page, '/')
   await waitForReady(page)
   const row = page.locator('li', { hasText: name }).first()
-  await expect(row, `dashboard row for "${name}" should render`).toBeVisible({
+  await expect(row, `roster row for "${name}" should render`).toBeVisible({
     timeout: 15_000,
   })
-  await row.getByRole('link', { name: /^Sheet$/ }).click()
+  await row.locator('a[href*="/sheet/"]').first().click()
   await page.waitForURL(/\/sheet\//, { timeout: 20_000 })
 }
 

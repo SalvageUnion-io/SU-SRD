@@ -1,80 +1,95 @@
 import { test, expect } from '@playwright/test'
-import { clickNext, pickByName, waitForReady } from './_helpers'
+import { advanceUntilVisible, clickNext, pickByName, waitForReady } from './_helpers'
 
 /**
- * Pilot wizard happy path on the WizShell skeleton (plan 3.2/3.6) — create a
- * pilot, then EDIT it (add a 4th, level-2 ability — advancement beyond the
- * creation budget), reload, and verify persistence. Runs through a real
- * browser engine so it catches Chromium-level CSS/interaction issues the
+ * Pilot wizard happy path — create a pilot, then EDIT it (add a second ability
+ * beyond the creation budget), reload, and verify persistence. Runs through a
+ * real browser engine so it catches Chromium-level CSS/interaction issues the
  * happy-dom integration tests can't.
+ *
+ * CREATION BUDGETS ARE THE RULEBOOK'S, NOT THIS FILE'S. A pilot starts with
+ * exactly **1** Ability (Core Book p.18) and **2** Tech 1 Equipment (p.19) —
+ * `PILOT_CREATION_ABILITY_PICKS` / `PILOT_CREATION_EQUIPMENT_PICKS` in
+ * `salvageunion-reference/lib/rules/creation.ts` are the source of truth. This
+ * spec previously walked a separate "Abilities" step and asserted `3 / 3`,
+ * which had stopped matching both the wizard's shape and the rule it was
+ * meant to be guarding. If these numbers ever disagree with the constants
+ * again, fix whichever is wrong by checking the book — do not simply relax
+ * the test to whatever the app currently does.
  */
-test('build a pilot from scratch, then edit to add a 4th ability', async ({ page }) => {
-  await page.goto('/pilots/new')
+test('build a pilot from scratch, then edit to add a second ability', async ({ page }) => {
+  await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
 
-  // Step 1: Class — selectable class entity cards, ability pool below
+  // Step 1: Your Stats — derived starting values, nothing to choose.
+  await clickNext(page)
+
+  // Step 2: Class & Ability — the class, then exactly one Ability from the
+  // trees that class reveals. Both halves gate Next.
   await pickByName(page, 'Engineer')
-  await clickNext(page)
-
-  // Step 2: Abilities — three level-1 picks across Engineer's trees,
-  // live 'n / 3' count in the subtitle
   await pickByName(page, 'Engineering Expertise')
-  await pickByName(page, 'Jury Rig')
-  await pickByName(page, 'Mass Field Maintenance')
-  await expect(page.getByTestId('ability-count')).toHaveText(/3 \/ 3 selected/)
+  await expect(page.getByTestId('ability-count')).toHaveText('1 / 1')
   await clickNext(page)
 
-  // Step 3: Equipment — pick the first TL1 card (Sel-wrapped, aria-labelled)
-  const equipmentCards = page.locator('div[role="button"]')
-  await expect(equipmentCards.first()).toBeVisible()
-  await equipmentCards.first().click()
+  // Step 3: Equipment — exactly two Tech 1 picks.
+  const equipmentOptions = page.locator('[aria-pressed="false"], [aria-checked="false"]')
+  await expect(equipmentOptions.first()).toBeVisible()
+  await equipmentOptions.first().click()
+  await equipmentOptions.first().click()
+  await expect(page.getByTestId('equipment-count')).toHaveText('2 / 2')
   await clickNext(page)
 
-  // Step 4: Identity — name + callsign are required
+  // Step 4: identity — name + callsign both required before Next opens.
   await page.getByLabel(/^Name/).fill('Mira Voss')
   await page.getByLabel(/Callsign/).fill('Sparks')
-  await clickNext(page)
 
-  // Step 5: Background (optional)
-  await clickNext(page)
+  // Steps 5-8 (Background / Motto / Keepsake / Appearance) are optional prose.
+  // Walk to the Create CTA rather than counting them, so inserting or removing
+  // an optional step does not break this spec — the mistake that put the whole
+  // suite on the floor.
+  const createPilot = page.getByRole('button', { name: /Create Pilot/i })
+  await advanceUntilVisible(page, createPilot)
 
-  // Step 6: Review → Create Pilot ✦
-  await expect(page.getByText(/Mira Voss/)).toBeVisible()
-  await expect(page.getByText(/Sparks/)).toBeVisible()
-  await page.getByRole('button', { name: /Create Pilot/i }).click()
+  // Review shows what we entered.
+  await expect(page.getByText(/Mira Voss/).first()).toBeVisible()
+  await expect(page.getByText(/Sparks/).first()).toBeVisible()
+  await createPilot.click()
 
-  // After submission we land on the dashboard.
+  // After submission we land on the roster.
   await page.waitForURL(/\/$/, { timeout: 15_000 })
   await waitForReady(page)
   await expect(page.getByText('Mira Voss').first()).toBeVisible({
     timeout: 15_000,
   })
 
-  // --- Edit flow (plan 3.1/3.3): /pilots/$id/edit via detail page ---
+  // --- Advancement, on the live sheet ---
+  //
+  // This used to walk /pilots/$id → /pilots/$id/edit and re-run the wizard in
+  // "edit mode". Both routes are gone: /pilots/$id is now a bare redirect
+  // (see its route file) and the per-entity detail page was collapsed into the
+  // live sheet, which under ADR-021 is the Free Edit surface — you edit in
+  // place rather than replaying Guided Creation. The INTENT is unchanged and is
+  // what matters: an ability beyond the creation budget can be added, and it
+  // persists.
   await page
     .getByRole('link', { name: /^View$/ })
     .first()
     .click()
-  await page.waitForURL(/\/pilots\/[^/]+$/)
-  await page.getByRole('link', { name: /^Edit$/ }).click()
-  await page.waitForURL(/\/pilots\/[^/]+\/edit$/)
+  await page.waitForURL(/\/sheet\/pilot\//, { timeout: 15_000 })
   await waitForReady(page)
 
-  // Wizard opens in edit mode, prefilled — class step Next is enabled.
-  await expect(page.getByText('Edit Pilot')).toBeVisible()
-  await clickNext(page)
+  // The Abilities section's '+ Add ability' opens the one shared picker modal.
+  // It writes through on toggle — there is no Save button to press.
+  await page.getByRole('button', { name: /^Add ability$/i }).click()
+  const picker = page.getByRole('dialog')
+  await expect(picker).toBeVisible()
 
-  // Abilities in edit mode: all levels offered (Slab groups), uncapped.
-  // 'Talk Shop' is Mechanical Knowledge level 2 — a legal 4th pick.
-  await pickByName(page, 'Talk Shop')
-  await clickNext(page) // Equipment
-  await clickNext(page) // Identity (prefilled)
-  await clickNext(page) // Background
-  await clickNext(page) // Review
-  await page.getByRole('button', { name: /Save Pilot/i }).click()
+  // 'Talk Shop' is Mechanical Knowledge level 2, so creation never offers it —
+  // reaching it here is exactly the advancement-past-the-budget case.
+  await picker.getByText('Talk Shop').first().click()
+  await page.keyboard.press('Escape')
+  await expect(picker).toBeHidden()
 
-  // Save navigates to the pilot detail; the new ability renders there.
-  await page.waitForURL(/\/pilots\/[^/]+$/, { timeout: 15_000 })
   await expect(page.getByText('Talk Shop').first()).toBeVisible({
     timeout: 15_000,
   })
@@ -90,24 +105,31 @@ test('build a pilot from scratch, then edit to add a 4th ability', async ({ page
   await expect(page.getByRole('link', { name: /^View$/ })).toHaveCount(1)
 })
 
-test('ability budget cap renders Budget reached after 3 picks', async ({ page }) => {
-  await page.goto('/pilots/new')
+test('the creation ability budget caps at one pick', async ({ page }) => {
+  await page.goto('/pilots/new?mode=guided')
   await waitForReady(page)
 
   await pickByName(page, 'Engineer')
-  await clickNext(page)
-
   await pickByName(page, 'Engineering Expertise')
-  await pickByName(page, 'Jury Rig')
-  await pickByName(page, 'Mass Field Maintenance')
+  await expect(page.getByTestId('ability-count')).toHaveText('1 / 1')
 
-  // After the third pick, remaining (if any) cards render with the rust
-  // "Budget reached" inline reason. If Engineer's trees have exactly three
-  // level-1 abilities the message may not appear (cap is naturally
-  // enforced), so we tolerate either outcome.
-  const budgetMsg = page.getByText(/Budget reached/i)
-  const count = await budgetMsg.count()
-  expect(count >= 0).toBe(true)
-  // Sanity: the Next CTA is still enabled (abilities are optional).
+  // Further level-1 abilities stay on screen and stay clickable, but the
+  // budget holds: clicking them cannot push the count past the rulebook's one
+  // pick. That invariant — not the presence of any particular affordance — is
+  // what this test guards. It used to look for a "Budget reached" message and
+  // then assert `count >= 0`, which is true of every number, so it could not
+  // fail; the message no longer renders at all.
+  for (const other of ['Jury Rig', 'Mass Field Maintenance']) {
+    const card = page
+      .getByRole('button')
+      .or(page.getByRole('radio'))
+      .filter({ hasText: other })
+      .first()
+    if (!(await card.isVisible().catch(() => false))) continue
+    await card.click().catch(() => {})
+    await expect(page.getByTestId('ability-count')).toHaveText('1 / 1')
+  }
+
+  // And the step stays satisfiable — the budget gates the count, not progress.
   await expect(page.getByRole('button', { name: /^Next ·/ })).toBeEnabled()
 })

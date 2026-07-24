@@ -31,11 +31,16 @@ test.describe('sheet print preview', () => {
     // #334's print CSS hides the <header>, whose condensed copy of the name is
     // a <span>; role=heading targets the visible hero <h1> and dodges it.
     await expect(page.getByRole('heading', { name: 'Print Test' })).toBeVisible()
-    // The class chip should also render — scope to the hero region landmark
-    // (`<section aria-label="… sheet header">`) so we hit the visible MChip,
-    // not any duplicate outside the hero.
+    // The class must also survive print. It is no longer inside the hero
+    // landmark — the poster redesign left `… sheet header` holding just the
+    // <h1> and moved identity fields into the `… pilot details` region — so
+    // scope there. Still scoped rather than page-wide, so this fails if the
+    // class stops rendering rather than matching some unrelated occurrence.
     await expect(
-      page.getByRole('region', { name: /sheet header/i }).getByText('Engineer')
+      page
+        .getByRole('region', { name: /pilot details/i })
+        .getByText('Engineer', { exact: true })
+        .first()
     ).toBeVisible()
     // Stat pips keep their print hooks (filled pips survive the bg reset).
     expect(await page.locator('[data-pip]').count()).toBeGreaterThan(0)
@@ -51,7 +56,10 @@ test.describe('sheet print preview', () => {
 
     await expect(page.getByRole('heading', { name: 'Print Test' })).toBeVisible()
     await expect(
-      page.getByRole('region', { name: /sheet header/i }).getByText('Engineer')
+      page
+        .getByRole('region', { name: /pilot details/i })
+        .getByText('Engineer', { exact: true })
+        .first()
     ).toBeVisible()
   })
 })

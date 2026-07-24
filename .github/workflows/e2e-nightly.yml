@@ -222,27 +222,59 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # Notification — GitHub-native, no external service or webhook secret. On
-  # any suite failure, open (or comment on) a single tracking issue labeled
-  # `nightly-e2e-failure`; on the next all-green run, comment + close it. Uses
+  # any suite result that is not `success` — failed assertions OR a job that ran
+  # out its `timeout-minutes` (which reports as `cancelled`) — open (or comment
+  # on) a single tracking issue labeled `nightly-e2e-failure`; on the next
+  # all-green run, comment + close it. Uses
   # the default GITHUB_TOKEN (issues: write, scoped to just these two jobs) —
   # nothing to provision. `a11y-srd` is intentionally absent from `needs:`: it
   # is advisory and must not open or hold open the tracking issue.
   # ---------------------------------------------------------------------------
   notify-failure:
     needs: [e2e-itun, e2e-srd]
-    if: failure()
+    # NOT `failure()`. A job that exhausts its `timeout-minutes` is reported with
+    # result `cancelled`, and `failure()` does not cover `cancelled` — so when
+    # e2e-itun started timing out, `notify-failure` AND `notify-recovery` were
+    # both skipped and the suite broke silently for days. Nothing was red except
+    # the Actions tab nobody was watching, which is the exact hole this tracking
+    # issue exists to close.
+    #
+    # So: fire on any non-success result from either suite. `!cancelled()` still
+    # exempts a genuine cancellation of the whole run (manual stop, or the
+    # concurrency group superseding this run) — that is a human action, not a
+    # regression, and should not open an issue. A per-job timeout does NOT set
+    # `cancelled()`, so timeouts still notify.
+    if: >-
+      always() && !cancelled() &&
+      (needs.e2e-itun.result != 'success' || needs.e2e-srd.result != 'success')
     runs-on: ubuntu-latest
     permissions:
       issues: write
     steps:
       - name: Open or update the nightly-e2e-failure tracking issue
         uses: actions/github-script@v9
+        env:
+          ITUN_RESULT: ${{ needs.e2e-itun.result }}
+          SRD_RESULT: ${{ needs.e2e-srd.result }}
         with:
           script: |
             const label = 'nightly-e2e-failure'
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            // Name the per-suite results explicitly. 'cancelled' here almost
+            // always means "hit timeout-minutes", which reads very differently
+            // from 'failure' (assertions failed) and points at a hang rather
+            // than a broken expectation.
+            const results = [
+              ['e2e-itun', process.env.ITUN_RESULT],
+              ['e2e-srd', process.env.SRD_RESULT],
+            ]
             const body = [
-              `Nightly E2E (\`e2e-nightly.yml\`) failed on \`${context.ref}\`.`,
+              `Nightly E2E (\`e2e-nightly.yml\`) did not pass on \`${context.ref}\`.`,
+              '',
+              ...results.map(
+                ([job, result]) =>
+                  `- \`${job}\`: **${result}**${result === 'cancelled' ? ' (hit `timeout-minutes` — likely a hang, not an assertion failure)' : ''}`
+              ),
               '',
               `Run: ${runUrl}`,
             ].join('\n')

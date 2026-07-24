@@ -1,36 +1,46 @@
 import { test, expect } from '@playwright/test'
-import { clickNext, installLoadoutItem, pickByName, waitForReady } from './_helpers'
+import {
+  advanceUntilVisible,
+  fillIdentity,
+  installLoadoutItem,
+  pickByName,
+  waitForReady,
+} from './_helpers'
 
 /**
- * Mech-only build — steps through the chassis-first WizShell wizard
- * (Chassis -> Pattern -> Loadout -> Identity -> Review) and submits.
- * Verifies the entity-card chassis + pattern steps (radio cells) and the combined
- * Loadout step work in a real browser and that submit lands on the dashboard
- * with the mech visible.
+ * Mech-only build — steps through the Mech Workshop wizard and submits, then
+ * edits the created mech's loadout on its live sheet.
+ *
+ * The wizard is Gain Scrap → Craft your Mech Chassis → Statistics → Craft your
+ * Systems → Craft your Modules → Quirk → Appearance → Name → Review. It used to
+ * be described here as Chassis → Pattern → Loadout → Identity → Review, and
+ * this spec picked a "Custom Pattern" card that no longer exists — chassis are
+ * chosen directly and the loadout is crafted across the Systems/Modules steps.
+ *
+ * Only the chassis step gates, so walk to the steps this test cares about by
+ * their content instead of counting Next clicks.
  */
 test('build a mech from scratch', async ({ page }) => {
-  await page.goto('/mechs/new')
+  await page.goto('/mechs/new?mode=guided')
   await waitForReady(page)
 
-  // Step 1 — Chassis. Mule is a guaranteed SU starter chassis.
+  // Chassis — Mule is a guaranteed SU starter chassis. pickByName walks past
+  // the ungated Gain Scrap step to reach it.
   await pickByName(page, 'Mule')
-  await clickNext(page) // -> Pattern
 
-  // Step 2 — Pattern. Build a custom, named loadout.
-  await pickByName(page, 'Custom Pattern')
-  await page.getByLabel(/Pattern name/i).fill('Field Rig')
-  await clickNext(page) // -> Loadout
-
-  // Step 3 — Loadout (Systems tab by default; optional, soft budget)
+  // Systems — install one, so the created mech carries a real loadout.
+  const addCargoPod = page.getByRole('button', { name: /^Add (one )?Cargo Pod$/i })
+  await advanceUntilVisible(page, addCargoPod)
   await installLoadoutItem(page, 'Cargo Pod')
-  await clickNext(page) // -> Identity
 
-  // Step 4 — Identity
-  await page.getByLabel(/Mech name/i).fill('Iron Fist')
-  await clickNext(page) // -> Review
+  // Name — a mech's name IS its pattern, behind a click-to-edit field.
+  const nameEditor = page.getByLabel(/^Edit name \/ pattern$/i)
+  await advanceUntilVisible(page, nameEditor)
+  await fillIdentity(page, 'name / pattern', 'Iron Fist')
 
-  // Step 5 — Review -> create
-  await page.getByRole('button', { name: /Create Mech/i }).click()
+  const createMech = page.getByRole('button', { name: /Create Mech/i })
+  await advanceUntilVisible(page, createMech)
+  await createMech.click()
 
   await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
   await expect(page.getByText('Iron Fist').first()).toBeVisible({
@@ -39,50 +49,52 @@ test('build a mech from scratch', async ({ page }) => {
 })
 
 /**
- * Mech edit round-trip (plan 3.6): open the created mech's edit route from
- * the detail page, change the loadout, save, and confirm the upsert branch
- * saved in place (back on the detail page, no duplicate).
+ * Mech edit round-trip. The old /mechs/$id/edit route is gone — /mechs/$id is
+ * now a bare redirect and the per-entity detail page was collapsed into the
+ * live sheet, which under ADR-021 is the Free Edit surface. The intent is
+ * unchanged: change the loadout after creation and have it persist.
  */
-test('edit a mech loadout via /mechs/$id/edit', async ({ page }) => {
+test('edit a mech loadout on its live sheet', async ({ page }) => {
   // Build first.
-  await page.goto('/mechs/new')
+  await page.goto('/mechs/new?mode=guided')
   await waitForReady(page)
   await pickByName(page, 'Mule')
-  await clickNext(page) // -> Pattern
-  await pickByName(page, 'Custom Pattern')
-  await page.getByLabel(/Pattern name/i).fill('Field Rig')
-  await clickNext(page) // -> Loadout
-  await clickNext(page) // -> Identity
-  await page.getByLabel(/Mech name/i).fill('Iron Fist')
-  await clickNext(page) // -> Review
-  await page.getByRole('button', { name: /Create Mech/i }).click()
-  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
 
-  // Open the mech detail page from the dashboard row's View link, then Edit.
+  const nameEditor = page.getByLabel(/^Edit name \/ pattern$/i)
+  await advanceUntilVisible(page, nameEditor)
+  await fillIdentity(page, 'name / pattern', 'Iron Fist')
+
+  const createMech = page.getByRole('button', { name: /Create Mech/i })
+  await advanceUntilVisible(page, createMech)
+  await createMech.click()
+  await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 })
+  await waitForReady(page)
+
+  // Open the mech's live sheet from its roster row.
   await page
     .locator('li', { hasText: 'Iron Fist' })
     .getByRole('link', { name: /^View$/ })
     .click()
-  await page.waitForURL(/\/mechs\//, { timeout: 15_000 })
-  await page.getByRole('link', { name: /^Edit$/ }).click()
-  await page.waitForURL(/\/mechs\/.+\/edit/, { timeout: 15_000 })
+  await page.waitForURL(/\/sheet\/mech\//, { timeout: 15_000 })
   await waitForReady(page)
 
-  // Wizard is prefilled (chassis chosen), eyebrow flips to edit mode. Edit
-  // lands on the custom-loadout path, so the Loadout step is present.
-  await expect(page.getByText('Edit Mech')).toBeVisible()
-  await clickNext(page) // -> Pattern
-  await clickNext(page) // -> Loadout
-  await installLoadoutItem(page, 'Cargo Pod') // install a system in edit mode
-  await clickNext(page) // -> Identity
-  await clickNext(page) // -> Review
-  await page.getByRole('button', { name: /Save Mech/i }).click()
+  // '+ Add system' opens the shared picker, which writes through on toggle.
+  await page.getByRole('button', { name: /^Add system$/i }).click()
+  const picker = page.getByRole('dialog')
+  await expect(picker).toBeVisible()
+  // The systems picker runs the searcher in `mode="count"` (installing the
+  // same System twice is rules-legal), so each row carries an "Add one <name>"
+  // button rather than being a click-to-toggle card. Clicking the card's prose
+  // does nothing at all.
+  await picker.getByRole('button', { name: /^Add (one )?Cargo Pod$/i }).click()
+  await page.keyboard.press('Escape')
+  await expect(picker).toBeHidden()
 
-  // Save navigates back to the detail page — the same record, edited.
-  await page.waitForURL((url) => /\/mechs\/[^/]+$/.test(url.pathname), {
-    timeout: 15_000,
-  })
-  await expect(page.getByText('Iron Fist').first()).toBeVisible({
-    timeout: 15_000,
-  })
+  await expect(page.getByText('Cargo Pod').first()).toBeVisible({ timeout: 15_000 })
+
+  // Reload — the edit persisted to IndexedDB against the same record.
+  await page.reload()
+  await waitForReady(page)
+  await expect(page.getByText('Cargo Pod').first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('Iron Fist').first()).toBeVisible()
 })
