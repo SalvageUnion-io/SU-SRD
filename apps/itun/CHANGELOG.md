@@ -2,6 +2,13 @@
 
 Maintained by release-please (see ADR-024).
 
+## [0.4.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.4.0...itun-v0.4.1) (2026-07-24)
+
+
+### Bug Fixes
+
+* **reference:** resolve data-inspection findings — dead flags, enum, null-marker, redundant fields ([#555](https://github.com/SalvageUnion-io/SU-SRD/issues/555)) ([2658095](https://github.com/SalvageUnion-io/SU-SRD/commit/2658095793f18341538cd977d328aca98a7861cb))
+
 ## [0.4.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.3.1...itun-v0.4.0) (2026-07-24)
 
 
