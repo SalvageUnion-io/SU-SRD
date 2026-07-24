@@ -3,17 +3,17 @@
  * §4.4, plan 4.6; redesigned to the poster layout, Phase 2).
  *
  * Identity/Economy moved OUT of the hero (SheetCrawler.tsx now carries only
- * the name row + meta) and into this body's poster region grid — a 2-col
- * macro grid mirroring `clean-crawler.html`'s `.layout` (54fr content column
- * ∥ 46fr full-height Storage rail, split at the poster's 880px container
- * breakpoint), inside the same `@container` shape PilotSheet/MechSheet use:
+ * the name row + meta) and into this body's region flow. Following the printed
+ * Workshop-Manual crawler sheet (`Editable_..._Crawler_Sheets.pdf`), the sheet
+ * is a single-column region stack, inside the same `@container` shape
+ * PilotSheet/MechSheet use:
  *
- *   Content column (54fr): Identity + Economy (one card) → Bays → Armament
- *     Bay Weapons → Linked Units (bare section, no card frame, matching
- *     PilotSheet/MechSheet).
- *   Storage rail (46fr): Storage Bay, one `SheetSectionCard` that stretches
- *     to match the content column's full height via the grid row's default
- *     stretch (the poster's "full-height Storage right rail").
+ *   Identity + Economy (one card) → Bays (3-column `EntityGrid`) → Armament
+ *     Bay Weapons (3-column) → Linked Units (bare section, no card frame,
+ *     matching PilotSheet/MechSheet) → Storage Bay.
+ *   Storage Bay is the FULL-WIDTH band at the very BOTTOM (printed sheet p.2 —
+ *     Storage Bay spans the whole width beneath the bays), NOT a full-height
+ *     right column.
  *
  * Economy (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade lozenges) is built by
  * `SheetCrawler` (it owns the economy-dialog state + `patch`) and handed
@@ -200,18 +200,14 @@ export function CrawlerSheet({
       // width (redesign D7), not the viewport.
       className="sheet-section @container flex flex-col gap-6"
     >
-      {/* ===== 2-col macro grid: content column ∥ full-height Storage rail
-          (poster `.layout`, split at its 880px container breakpoint) =====
-          DOM order is content-column, Storage, THEN Linked Units — the
-          poster's own `grid-template-areas` stacks mobile rows as "id" "bays"
-          "storage" "links" (clean-crawler.html:215-222), so Storage reads
-          BEFORE Linked Units on a single column even though Storage is a
-          separate full-height rail at the desktop breakpoint. Explicit
-          `@[880px]:col-start-*`/`row-start-*` restores that desktop layout
-          (Storage spans both rows on the right) without reordering the DOM. */}
-      <div className="grid grid-cols-1 items-stretch gap-8 @[880px]:grid-cols-[minmax(0,54fr)_minmax(0,46fr)] @[880px]:gap-x-7">
-        {/* ----- Content column (Identity/Economy, Bays, Weapons) ----- */}
-        <div className="flex min-w-0 flex-col gap-6 @[880px]:col-start-1 @[880px]:row-start-1">
+      {/* ===== Single-column region flow (Workshop-Manual crawler sheet):
+          Identity → Bays → Armament Weapons → Linked Units → Storage Bay.
+          Storage is the FULL-WIDTH band at the very bottom (printed
+          `Editable_..._Crawler_Sheets.pdf` p.2), not a full-height right
+          column. ===== */}
+      <div className="flex min-w-0 flex-col gap-6">
+        {/* ----- Content region (Identity/Economy, Bays, Weapons) ----- */}
+        <div className="flex min-w-0 flex-col gap-6">
           {/* Identity + Economy */}
           <SheetSectionCard
             title="Identity"
@@ -255,7 +251,7 @@ export function CrawlerSheet({
                 </span>
               }
             >
-              <EntityGrid>
+              <EntityGrid columns={3}>
                 {bays.map((entry, i) => {
                   const isMechBay =
                     entry.bayRef === 'mech-bay' ||
@@ -302,7 +298,7 @@ export function CrawlerSheet({
               {crawler.systems.length === 0 ? (
                 <p className="font-body text-caption text-wk-muted">No weapons mounted.</p>
               ) : (
-                <EntityGrid>
+                <EntityGrid columns={3}>
                   {crawler.systems.map((slug) => {
                     const system = resolveCrawlerSystem(slug)
                     return (
@@ -338,8 +334,16 @@ export function CrawlerSheet({
           )}
         </div>
 
-        {/* ----- Storage rail (full-height, spans both content-column rows
-            at the desktop breakpoint) ----- */}
+        {/* Linked Units — poster renders this as a bare section header +
+            rail stack (no `.dcard` frame), matching PilotSheet/MechSheet. */}
+        <div>
+          <Slab variant="solid" label="Linked Units" />
+          <div className="flex flex-col gap-4">{linkedUnits}</div>
+        </div>
+
+        {/* ----- Storage Bay — the FULL-WIDTH bottom band (printed crawler
+            sheet p.2: Storage Bay spans the whole width beneath the bays), not
+            a full-height right column. ----- */}
         <SheetSectionCard
           title="Storage Bay"
           count={
@@ -347,7 +351,7 @@ export function CrawlerSheet({
               {lots.length} {lots.length === 1 ? 'lot' : 'lots'} · unlimited
             </span>
           }
-          className="min-w-0 @[880px]:col-start-2 @[880px]:row-start-1 @[880px]:row-span-2"
+          className="min-w-0"
         >
           <StorageManifest
             side="crawler"
@@ -357,13 +361,6 @@ export function CrawlerSheet({
             readOnly={readOnly}
           />
         </SheetSectionCard>
-
-        {/* Linked Units — poster renders this as a bare section header +
-            rail stack (no `.dcard` frame), matching PilotSheet/MechSheet. */}
-        <div className="@[880px]:col-start-1 @[880px]:row-start-2">
-          <Slab variant="solid" label="Linked Units" />
-          <div className="flex flex-col gap-4">{linkedUnits}</div>
-        </div>
       </div>
 
       {/* The weapons picker — the existing master-detail modal, mounted
