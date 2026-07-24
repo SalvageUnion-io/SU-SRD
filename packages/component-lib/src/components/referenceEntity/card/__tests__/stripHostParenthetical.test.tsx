@@ -83,3 +83,60 @@ describe('nested action rendering', () => {
     expect(screen.getByText('Refine (Nanite Sifter)')).toBeTruthy()
   })
 })
+
+/**
+ * The display rule for an action's trailing ` (Suffix)`:
+ *  - KEEP-case (suffix == owning entity): no `displayName` in data → the full
+ *    disambiguated name survives out of host, stripped only inside the owner.
+ *  - STRIP-case (generic suffix like `(NPC)`): a `displayName` == base is kept
+ *    in data → the generic suffix never renders, in or out of host.
+ *  - OVERRIDE: a hand-authored `displayName` wins verbatim everywhere.
+ */
+describe('action parenthetical display rule', () => {
+  const fabricationArm = () => {
+    const found = SalvageUnionReference.Systems.all().find((s) => s.name === 'Fabrication Arm')
+    if (!found) throw new Error('Fabrication Arm not in fixtures')
+    return found
+  }
+  const action = (name: string) => {
+    const found = SalvageUnionReference.Actions.all().find((a) => a.name === name)
+    if (!found) throw new Error(`${name} not in fixtures`)
+    return found
+  }
+
+  test('KEEP: standalone shows the full owner-disambiguated name', () => {
+    // Its redundant `displayName` was removed, so the name falls through in full.
+    render(<ReferenceEntityCard data={action('Chassis Repair (Fabrication Arm)') as never} />)
+
+    expect(screen.getByText('Chassis Repair (Fabrication Arm)')).toBeTruthy()
+  })
+
+  test('KEEP: inside the owner card the suffix is stripped', () => {
+    render(<ReferenceEntityCard data={fabricationArm()} />)
+
+    expect(screen.getByText('Chassis Repair')).toBeTruthy()
+    expect(screen.queryByText('Chassis Repair (Fabrication Arm)')).toBeNull()
+  })
+
+  test('STRIP: the generic suffix never renders, standalone or in host', () => {
+    // Standalone — the retained `displayName` strips `(NPC)`.
+    render(<ReferenceEntityCard data={action('First Aid Kit (NPC)') as never} />)
+    expect(screen.getByText('First Aid Kit')).toBeTruthy()
+    expect(screen.queryByText('First Aid Kit (NPC)')).toBeNull()
+    cleanup()
+
+    // Inside its owner (Machine Gun Squad) — same, still no `(NPC)`.
+    const owner = SalvageUnionReference.Squads.all().find((s) => s.name === 'Machine Gun Squad')
+    if (!owner) throw new Error('Machine Gun Squad not in fixtures')
+    render(<ReferenceEntityCard data={owner} />)
+    expect(screen.getByText('First Aid Kit')).toBeTruthy()
+    expect(screen.queryByText('First Aid Kit (NPC)')).toBeNull()
+  })
+
+  test('OVERRIDE: the hand-authored displayName wins verbatim', () => {
+    render(<ReferenceEntityCard data={action('Electro-Whip (Android Osborne)') as never} />)
+
+    expect(screen.getByText('Electro-Whip (Melee Armament)')).toBeTruthy()
+    expect(screen.queryByText('Electro-Whip (Android Osborne)')).toBeNull()
+  })
+})

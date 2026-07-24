@@ -64,6 +64,6 @@ describe('Bio-Titan / Iron Lady redistribution', () => {
     const ironLady = defined(getReference().Drones.find((d) => d.name === 'The Iron Lady'))
     const actions = getReference().resolveActions(ironLady)
     expect(Array.isArray(actions)).toBe(true)
-    expect(defined(actions).some((a) => a.displayName === 'Titanic Actions')).toBe(true)
+    expect(defined(actions).some((a) => a.name === 'Titanic Actions (The Iron Lady)')).toBe(true)
   })
 })
