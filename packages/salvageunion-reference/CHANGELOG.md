@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.3](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.5.2...salvageunion-reference-v2.5.3) (2026-07-24)
+
+
+### Bug Fixes
+
+* **reference:** show the action (Owner) suffix only when it disambiguates ([#558](https://github.com/SalvageUnion-io/SU-SRD/issues/558)) ([e134b96](https://github.com/SalvageUnion-io/SU-SRD/commit/e134b9673c7c710fd843f92376362c080b50792d))
+
 ## [2.5.2](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.5.1...salvageunion-reference-v2.5.2) (2026-07-24)
 
 
