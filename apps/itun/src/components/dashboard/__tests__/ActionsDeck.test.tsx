@@ -97,10 +97,11 @@ function renderDeck(mech: Mech, store: PlayStore) {
   )
 }
 
-/** The deck rows are shortform `ReferenceEntityCard` badges: each is a clickable
- * card exposing `role="button"` + `aria-label` = the action name. */
+/** The deck cards are shortform `ReferenceEntityCard` badges laid out as a
+ * masonry grid: each is a clickable card exposing `role="button"` +
+ * `aria-label` = the action name. */
 function deckCards(container: HTMLElement): HTMLElement[] {
-  return [...container.querySelectorAll<HTMLElement>('.pc-deck-list > li [role="button"]')]
+  return [...container.querySelectorAll<HTMLElement>('.pc-deck-grid > li [role="button"]')]
 }
 
 /** Click the deck badge whose action name (aria-label) matches exactly. */
@@ -169,19 +170,19 @@ describe('ActionsDeck', () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
-    const before = container.querySelectorAll('.pc-deck-list > li').length
+    const before = container.querySelectorAll('.pc-deck-grid > li').length
     expect(before).toBeGreaterThan(0)
     // Pick a timing tab that the system's actions do NOT match by intersecting
     // with a type absent from the deck. DownTime is not a tab, so use React
     // (Reaction) — most weapon systems are Turn actions, so React empties it.
     fireEvent.click(screen.getByRole('tab', { name: 'React' }))
-    const reactItems = container.querySelectorAll('.pc-deck-list > li').length
+    const reactItems = container.querySelectorAll('.pc-deck-grid > li').length
     // Either the deck filtered down, or it shows the no-match note.
     const emptied = reactItems < before || container.querySelector('.pc-deck-empty') !== null
     expect(emptied).toBe(true)
     // Back to All restores the full deck.
     fireEvent.click(screen.getByRole('tab', { name: 'All' }))
-    expect(container.querySelectorAll('.pc-deck-list > li').length).toBe(before)
+    expect(container.querySelectorAll('.pc-deck-grid > li').length).toBe(before)
   })
 
   test('a range readout renders with the reach count', () => {
