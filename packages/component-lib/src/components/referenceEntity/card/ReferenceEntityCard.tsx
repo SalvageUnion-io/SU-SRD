@@ -61,6 +61,7 @@ import { CatalogChoiceListing } from './CatalogChoiceListing'
 import { anchorBonusMarker, anchorChoiceMarkers } from './choiceAnchoring'
 import type { AnchoredContentBlock } from './choiceAnchoring'
 import { crawlerPopulationRange } from './crawlerPopulationRange'
+import { resolveCatalogLeadBlocks } from './catalogLead'
 import { firstParagraphText } from './firstParagraphText'
 import { EntityCardHeader } from './EntityCardHeader'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
@@ -875,7 +876,12 @@ function ReferenceEntityCardInner({
   // against the weight of the header band above. Doubling it puts comparable
   // visual weight back at the foot.
   const FOOTLESS_BOTTOM = { borderBottomWidth: '6px' }
-  const rendersFooter = !hide?.footer && (footerOverride != null || depth === 0)
+  // A CATALOG tile carries NO footer band. That band is authorship (source ·
+  // booklet · page) plus the entity type, and on an index page every tile in the
+  // grid is the same type — so the row is attribution over redundancy, repeated
+  // on every card. A tile is artwork + description; provenance belongs on the
+  // entity's own page, which the tile links to.
+  const rendersFooter = !hide?.footer && !isCatalog && (footerOverride != null || depth === 0)
   // Condition — routed into the shared rail as a status CONTROL rather than a
   // bespoke seal, via the same `foldStatusControl` the Card shell uses,
   // so the badge (and the fold rule) has one implementation across both card
@@ -1168,18 +1174,8 @@ function ReferenceEntityCardInner({
   // entity cards. A catalog tile suppresses those cards, so it must NOT collapse
   // — otherwise the tile renders with no description at all.
   const isGrantingAbility = !isCatalog && isAbility(entity) && grantedCount > 0
-  // CATALOG grant lead — a grant-equipment ability carries NO own content (only a
-  // description), so its catalog tile would render with an empty body. The nested
-  // grant cards are suppressed here (canExpand is false in catalog mode), so
-  // instead surface each granted entity's OPENING paragraph as the tile's body
-  // prose — rendered through `Content` so it matches the tile's description text.
-  const catalogGrantBlocks: SURefObjectContentBlock[] =
-    isCatalog && grantedCount > 0
-      ? resolveGrantedEntities(entity as SURefEntity).flatMap((g) => {
-          const lead = firstParagraphText('content' in g ? g.content : undefined)
-          return lead ? [{ type: 'paragraph' as const, value: lead }] : []
-        })
-      : []
+  // (The CATALOG LEAD — the prose a tile borrows when it has none of its own —
+  // is resolved after the body walk below, once that prose is known.)
   // CATALOG guide lead — a guide keeps most of its prose in `steps`, which a
   // catalog tile never expands (`canExpand` is false here). That left tiles in
   // two broken states at once: guides with a long preamble dumped all of it,
@@ -1470,6 +1466,22 @@ function ReferenceEntityCardInner({
   }
 
   // (The BONUS-PER-TECH-LEVEL box is built + anchored earlier, in the body walk.)
+
+  // CATALOG LEAD — the tile suppresses every nested element, and for a large
+  // family of entities that IS everything they carry: a grant-equipment ability
+  // (Holo Companion) holds only a description plus what it grants, and a Bio-Maw
+  // / Green Laser Turret / Adrenal Glands / Chimerium Mutant Squad holds nothing
+  // but its actions. Those tiles rendered as a bare paper strip under the stat
+  // band. So a tile with no prose of its own borrows an opening paragraph from
+  // what it suppressed — grants first, then actions (`resolveCatalogLeadBlocks`)
+  // — rendered through `Content` so it reads as the tile's description.
+  //
+  // Gated on the tile having produced no prose itself, and de-duplicated against
+  // the header's flavour hint, so nothing is ever said twice.
+  const catalogLeadBlocks: SURefObjectContentBlock[] =
+    isCatalog && bodyNodes.length === 0
+      ? resolveCatalogLeadBlocks(entity as SURefEntity, hintText)
+      : []
 
   // CRAWLER BAY damaged effect → a red-ghosted, action-card-style callout (the
   // string is filtered out of the body prose above). RED token: `--color-status-bad`.
@@ -1824,6 +1836,26 @@ function ReferenceEntityCardInner({
       </div>
     ) : undefined
 
+  // EMPTY CATALOG BODY — a handful of entities have nothing a tile can show and
+  // nothing to borrow: a Steel Billy Club or a Crawler Tech Level is entirely
+  // stat block, and the lead resolver deliberately borrows rather than invents.
+  // For those the body box is a bare strip of paper hanging under the stat band,
+  // so it is dropped and the tile ends at the band it actually filled.
+  //
+  // Only the sections that CAN still render under `extent="catalog"` are tested
+  // here — nested groups, actions, patterns, chassis abilities, drones and guide
+  // steps are all already cut by `canExpand` / `hide` above.
+  const catalogBodyEmpty =
+    isCatalog &&
+    !anchorNode &&
+    bodyNodes.length === 0 &&
+    catalogLeadBlocks.length === 0 &&
+    !damagedEffect &&
+    !rollTableNode &&
+    !abilitiesSection &&
+    !afterChoicesContent &&
+    !afterExtraContent
+
   return (
     <div className={outerClassName} {...outerInteraction}>
       {seam}
@@ -1860,10 +1892,13 @@ function ReferenceEntityCardInner({
             // branch grew, so a flat card (a floated artwork body — every class
             // and creature page) left its slack BELOW the footer: the footer
             // band sat across the middle of the card with bare paper under it.
-            flat
-              ? 'flow-root flex-1'
-              : 'flex min-h-[2.5rem] flex-1 flex-col justify-center gap-1.5',
-            compact ? 'p-2' : 'p-3',
+            flat ? 'flow-root flex-1' : 'flex flex-1 flex-col justify-center gap-1.5',
+            // An EMPTY catalog body keeps `flex-1` (it still absorbs the slack in
+            // a stretched grid) but drops the min-height and padding that would
+            // otherwise hang a bare strip of paper under the stat band.
+            catalogBodyEmpty
+              ? 'min-h-0 p-0'
+              : cn(!flat && 'min-h-[2.5rem]', compact ? 'p-2' : 'p-3'),
             // A damaged/destroyed entity dims its body content too (not just the
             // greyed header), so the whole card reads as de-emphasised.
             isDown && 'opacity-60'
@@ -1886,12 +1921,12 @@ function ReferenceEntityCardInner({
               {bodyNodes.length > 0 && <>{bodyNodes}</>}
             </>
           )}
-          {/* CATALOG grant-lead prose — a grant-equipment ability's tile has no
-              own body, so show the granted entity's opening description here,
-              styled through Content to match the tile's other body prose. */}
-          {catalogGrantBlocks.length > 0 && (
+          {/* CATALOG LEAD prose — a tile with no body of its own borrows an
+              opening line from what catalog mode suppressed (its grants, else
+              its actions), styled through Content so it reads as description. */}
+          {catalogLeadBlocks.length > 0 && (
             <Content
-              body={catalogGrantBlocks}
+              body={catalogLeadBlocks}
               compact={compact}
               chassisName={resolvedChassisName}
               fontSize={compact ? 'text-xs' : 'text-sm'}
@@ -2066,11 +2101,11 @@ function ReferenceEntityCardInner({
             footer (legacy `expand`, e.g. a crawler bay's crew inset). */}
         {expand && <div className={compact ? 'px-2 pb-2' : 'px-3 pb-3'}>{expand}</div>}
         {/* FOOTER — `footerOverride` replaces the identity footer; `hide.footer`
-            suppresses it entirely. Absent ⇒ the depth-0 identity footer, unchanged. */}
-        {hide?.footer
-          ? null
-          : (footerOverride ??
-            (depth === 0 && (
+            and the catalog extent suppress it entirely (see `rendersFooter`,
+            which the frame's bottom edge reads from too, so the band and the
+            frame can never disagree). Absent ⇒ the depth-0 identity footer. */}
+        {rendersFooter
+          ? (footerOverride ?? (
               <EntityCardIdentityFooter
                 bgColor={darkTone}
                 typeLabel={footerType}
@@ -2081,7 +2116,8 @@ function ReferenceEntityCardInner({
                 externalLink={extent === 'full' ? externalLinkNode : undefined}
                 compact={compact}
               />
-            )))}
+            ))
+          : null}
       </div>
     </div>
   )
