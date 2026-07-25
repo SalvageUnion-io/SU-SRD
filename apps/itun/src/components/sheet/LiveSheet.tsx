@@ -85,7 +85,12 @@ type LiveSheetProps = {
   /** Condensed-bar MiniStat readouts (values live, from the entity record). */
   strip?: LiveSheetStripItem[]
   back?: { href: string; label: string }
-  /** Kind/status pill shown next to the name stamp in the condensed bar. */
+  /**
+   * Kind/status pill. NO LONGER RENDERED in the bar: the gutter wordmark names
+   * the sheet's kind permanently, and repeating it in the condensed bar said
+   * the same word twice on one screen. Kept on the type because callers still
+   * pass it and a status pill may earn a place here later.
+   */
   pill?: { label: string; tone?: BadgeTone }
   /** Linked-entity rail content (RailChip / RailEmpty row) — slotted into the hero by the caller. */
   rail?: ReactNode
@@ -147,7 +152,6 @@ export function LiveSheet({
   name,
   strip = [],
   back,
-  pill,
   rail,
   segments,
   condense = true,
@@ -172,19 +176,27 @@ export function LiveSheet({
       data-variant={variant}
     >
       {/* Top bar — <header> is a print-stylesheet target (nav-hide rule).
-          It is NOT shown at rest: the sheet opens on its own identity block, and
-          a bar repeating that above it is chrome for nothing. It slides in once
-          the first row scrolls away, carrying only what you lose — the name and
-          the live vitals — tinted the sheet's own tone so it reads as part of
-          this entity rather than as app chrome. */}
+          Always present (its back/share/overflow controls are always wanted),
+          but UNSEAMED at rest: no bottom border while the sheet's own identity
+          block is still on screen, so the bar reads as part of the page rather
+          than as a lid on it. Scrolling past that block draws the border (and
+          the drop shadow) and fades in the condensed name + vitals.
+
+          `z-40`, above the entity cards' control rails (`z-30`): those rails
+          ride their card's top edge and were sliding OVER the sticky bar as
+          they scrolled under it.
+
+          Tinted with the same wash the ENTITY ROWS use — a 10% tone over paper,
+          not the full tone — so it reads as this entity's chrome without
+          fighting the ink on it. */}
       <header
-        aria-hidden={condense && !condensed}
         className={cn(
-          'sticky top-0 z-20 flex min-h-[58px] flex-wrap items-center gap-x-4 gap-y-1 border-b-2 border-ink px-4 py-2 transition-[opacity,transform] duration-150 sm:px-[30px]',
-          condense && !condensed && 'pointer-events-none -translate-y-full opacity-0',
-          condensed && 'shadow-[0_2px_0_var(--color-ink),0_14px_20px_-18px_var(--color-ink-50)]'
+          'sticky top-0 z-40 flex min-h-[58px] flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2 transition-[border-color,box-shadow] duration-150 sm:px-[30px]',
+          condensed
+            ? 'border-b-2 border-ink shadow-[0_2px_0_var(--color-ink),0_14px_20px_-18px_var(--color-ink-50)]'
+            : 'border-b-2 border-transparent'
         )}
-        style={{ background: 'var(--tone)' }}
+        style={{ background: 'color-mix(in srgb, var(--tone) 10%, var(--color-paper))' }}
       >
         {back && (
           <>
@@ -218,11 +230,6 @@ export function LiveSheet({
             <Badge shape="stamp" size="full" className="block max-w-full truncate">
               {name}
             </Badge>
-            {pill && (
-              <Badge surface={pill.tone ? 'tone' : 'outline'} tone={pill.tone}>
-                {pill.label}
-              </Badge>
-            )}
             {stripItems.map((item) => (
               <Stat
                 key={item.key}
@@ -312,11 +319,12 @@ export function LiveSheet({
           {/* The glyphs are as tall as the gutter is wide — in vertical writing
               the font-size IS the column width, so one value drives both and the
               wordmark can never outgrow or rattle around in its channel.
-              `top-0`, not an offset: the block runs bottom-to-top, so its TOP
-              edge is the word's LAST letter, which lands level with the top of
-              the identity block beside it. */}
+              It sticks BELOW the bar (`top-[58px]`, the bar's own min-height)
+              so it travels with the sheet instead of scrolling away: the block
+              runs bottom-to-top, so its top edge is the word's LAST letter,
+              which sits tucked right under the bar. */}
           <span
-            className="sticky top-0 block rotate-180 text-center font-cond text-[68px] font-extrabold uppercase leading-none tracking-caps-tight opacity-45 [writing-mode:vertical-rl]"
+            className="sticky top-[58px] block rotate-180 text-center font-cond text-[68px] font-extrabold uppercase leading-none tracking-caps-tight opacity-45 [writing-mode:vertical-rl]"
             style={{ color: 'var(--tone-deep)' }}
           >
             {variant}

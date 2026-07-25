@@ -50,18 +50,12 @@ afterEach(() => {
   cleanup()
 })
 
-// The sticky top bar is `aria-hidden` at rest — it only slides in once the
-// first row scrolls away, and happy-dom never fires the observer that flips
-// that. `{ hidden: true }` looks inside it, which is what these assertions are
-// about: the bar OFFERS this control, not that it is on screen right now.
 describe('Live Sheet — Launch Dashboard entry (P4.4)', () => {
   test('an editable pilot sheet offers a Launch Dashboard button', async () => {
     const pilot = await useEntityStore.getState().create('pilot', basePilotInput)
     render(<Sheet kind="pilot" id={pilot.id} />)
     await waitFor(() =>
-      expect(
-        screen.getByRole('button', { name: /launch the dashboard/i, hidden: true })
-      ).toBeTruthy()
+      expect(screen.getByRole('button', { name: /launch the dashboard/i })).toBeTruthy()
     )
   })
 

@@ -234,10 +234,7 @@ describe('Mobile responsive — touch targets min-h-11', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    // `hidden: true`: the sticky bar is aria-hidden until the first row scrolls
-    // away, and happy-dom never fires the observer that flips that. The touch
-    // target is what is being asserted, not the bar's visibility.
-    const link = screen.getByRole('link', { name: /share this pilot/i, hidden: true })
+    const link = screen.getByRole('link', { name: /share this pilot/i })
     expect((link as HTMLElement).className).toContain('min-h-11')
   })
 })

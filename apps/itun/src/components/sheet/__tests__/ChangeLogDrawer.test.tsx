@@ -119,14 +119,8 @@ describe('Sheet — Change Log menu wiring', () => {
     render(<Sheet kind="pilot" id={pilot.id} />)
 
     // Open the "⋯" overflow menu, then click the Change Log item.
-    // The sticky top bar is `aria-hidden` at rest — it only slides in once the
-    // first row scrolls away, and happy-dom never fires the observer that flips
-    // that. `{ hidden: true }` looks inside it, which is what these assertions are
-    // about: the bar OFFERS this control, not that it is on screen right now.
-    fireEvent.click(screen.getByRole('button', { name: 'More actions', hidden: true }))
-    fireEvent.click(
-      screen.getByRole('button', { name: /change log for this pilot/i, hidden: true })
-    )
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    fireEvent.click(screen.getByRole('button', { name: /change log for this pilot/i }))
 
     // The drawer (ModalShell dialog) mounts with the "Change Log" title.
     await waitFor(() => expect(screen.getByText(/No changes recorded yet/i)).toBeTruthy())

@@ -13,10 +13,6 @@
  * hrefs are asserted directly.
  */
 
-// `hidden: true` on the top-bar queries: the sticky bar is aria-hidden until
-// the first row scrolls away, and happy-dom never fires the observer that flips
-// it. These assertions are about what the bar CONTAINS, not whether it is on
-// screen at rest.
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -131,9 +127,9 @@ describe('Sheet — top-bar Edit action', () => {
       />
     )
     // Unified edit language: no global build-edit mode on the pilot sheet.
-    expect(screen.queryByRole('button', { name: /edit this pilot/i, hidden: true })).toBeNull()
+    expect(screen.queryByRole('button', { name: /edit this pilot/i })).toBeNull()
     // The Identity FIELD section owns its own Edit button instead.
-    const sectionEdit = screen.getByRole('button', { name: /edit identity/i, hidden: true })
+    const sectionEdit = screen.getByRole('button', { name: /edit identity/i })
     expect(sectionEdit.getAttribute('aria-pressed')).toBe('false')
   })
 
@@ -147,17 +143,17 @@ describe('Sheet — top-bar Edit action', () => {
       />
     )
     // Read-only by default: no inline click-to-edit fields are exposed.
-    expect(screen.queryByRole('button', { name: /edit callsign/i, hidden: true })).toBeNull()
+    expect(screen.queryByRole('button', { name: /edit callsign/i })).toBeNull()
 
-    fireEvent.click(screen.getByRole('button', { name: /edit identity/i, hidden: true }))
+    fireEvent.click(screen.getByRole('button', { name: /edit identity/i }))
 
     // Toggling on relabels the control and reveals the section's inline fields.
-    const on = screen.getByRole('button', { name: /done editing identity/i, hidden: true })
+    const on = screen.getByRole('button', { name: /done editing identity/i })
     expect(on.getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByRole('button', { name: /edit callsign/i, hidden: true })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /edit callsign/i })).toBeTruthy()
     // Class is picker-backed: its affordance opens the shared picker modal, so
     // its accessible name matches the visible 'Change' word (WCAG 2.5.3).
-    expect(screen.getByRole('button', { name: /change class/i, hidden: true })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /change class/i })).toBeTruthy()
   })
 
   test('mech sheet has NO global Edit toggle — editing is per-section (phase 2)', () => {
@@ -169,9 +165,9 @@ describe('Sheet — top-bar Edit action', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.queryByRole('button', { name: /edit this mech/i, hidden: true })).toBeNull()
+    expect(screen.queryByRole('button', { name: /edit this mech/i })).toBeNull()
     // The mech Identity FIELD section owns its own Edit button instead.
-    const sectionEdit = screen.getByRole('button', { name: /edit identity/i, hidden: true })
+    const sectionEdit = screen.getByRole('button', { name: /edit identity/i })
     expect(sectionEdit.getAttribute('aria-pressed')).toBe('false')
   })
 
@@ -184,9 +180,9 @@ describe('Sheet — top-bar Edit action', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.queryByRole('button', { name: /edit this crawler/i, hidden: true })).toBeNull()
+    expect(screen.queryByRole('button', { name: /edit this crawler/i })).toBeNull()
     // The crawler Identity FIELD section owns its own Edit button instead.
-    const sectionEdit = screen.getByRole('button', { name: /edit identity/i, hidden: true })
+    const sectionEdit = screen.getByRole('button', { name: /edit identity/i })
     expect(sectionEdit.getAttribute('aria-pressed')).toBe('false')
   })
 
@@ -200,9 +196,9 @@ describe('Sheet — top-bar Edit action', () => {
         readOnly
       />
     )
-    expect(screen.queryByRole('button', { name: /edit this pilot/i, hidden: true })).toBeNull()
-    expect(screen.queryByRole('button', { name: /edit identity/i, hidden: true })).toBeNull()
-    expect(screen.queryByRole('button', { name: /share/i, hidden: true })).toBeNull()
+    expect(screen.queryByRole('button', { name: /edit this pilot/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /edit identity/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /share/i })).toBeNull()
   })
 })
 
@@ -220,7 +216,7 @@ describe('Sheet — mobile segment switch', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.queryByRole('navigation', { name: /wired sheets/i, hidden: true })).toBeNull()
+    expect(screen.queryByRole('navigation', { name: /wired sheets/i })).toBeNull()
   })
 
   test('fully wired pilot sheet: active Pilot segment + Mech/Crawler links', () => {
@@ -232,7 +228,7 @@ describe('Sheet — mobile segment switch', () => {
         softLinkStore={makeSoftLinkStore([mechToPilot, pilotToCrawler])}
       />
     )
-    const nav = screen.getByRole('navigation', { name: /wired sheets/i, hidden: true })
+    const nav = screen.getByRole('navigation', { name: /wired sheets/i })
     expect(nav).toBeTruthy()
     // mobile-only row, stitched into the sticky bar
     expect(nav.className).toContain('sm:hidden')
@@ -263,7 +259,7 @@ describe('Sheet — mobile segment switch', () => {
         softLinkStore={makeSoftLinkStore([mechToPilot])}
       />
     )
-    const nav = screen.getByRole('navigation', { name: /wired sheets/i, hidden: true })
+    const nav = screen.getByRole('navigation', { name: /wired sheets/i })
     const active = nav.querySelector('[aria-current="page"]')
     expect(active?.textContent).toBe('Mech')
     const links = Array.from(nav.querySelectorAll('a')).map((a) => a.getAttribute('href'))
