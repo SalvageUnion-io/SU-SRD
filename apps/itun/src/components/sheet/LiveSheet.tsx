@@ -249,15 +249,32 @@ export function LiveSheet({
           </div>
         )}
 
-        {/* A badge-level jump to the linked units, which sit at the very foot
-            of the sheet — the one thing you scroll past everything to reach. */}
-        <AppLink href="#linked-units" className="no-underline" aria-label="Jump to linked units">
-          <Badge shape="chip" surface="outline">
-            Linked Units
-          </Badge>
-        </AppLink>
+        {/* One badge PER LINKED UNIT, on the right beside the sheet actions —
+            a hop straight to that pilot / mech / crawler, not a jump link to a
+            section at the foot of the page. They ride the condensed state with
+            the name and vitals: at rest the linked units are on screen in their
+            own section, so the bar has nothing to add.
 
-        <div className="ml-auto flex shrink-0 items-center gap-2.5">{actions}</div>
+            `segments` already carries the wired set (it drives the mobile
+            switcher below); the active one is this sheet, so it is skipped. */}
+        <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">
+          {condensed &&
+            segments
+              ?.filter((segment) => !segment.active)
+              .map((segment) => (
+                <AppLink
+                  key={segment.key}
+                  href={segment.href}
+                  className="no-underline"
+                  aria-label={`Open the wired ${segment.label.toLowerCase()}`}
+                >
+                  <Badge shape="chip" surface="outline">
+                    {segment.label}
+                  </Badge>
+                </AppLink>
+              ))}
+          <div className="flex shrink-0 items-center gap-2.5">{actions}</div>
+        </div>
 
         {/* Mobile segmented Pilot/Mech/Crawler switch (design §3.7) — full-width
             second row inside the sticky bar so it stays thumb-reachable. The

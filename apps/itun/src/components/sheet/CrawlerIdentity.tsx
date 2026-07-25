@@ -32,7 +32,7 @@ import { cn } from '../../lib/utils'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerSheetItems'
-import { Field } from 'component-lib'
+import { Field, Stat } from 'component-lib'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps'
 
 /** The standalone ability card never re-renders the action's choice UI. */
@@ -117,8 +117,11 @@ export function CrawlerIdentityPanel({
           onSave={canEdit ? saveName : undefined}
           prominent
         />
-        <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-[auto_minmax(0,1fr)]">
-          <Field label="Tech Level" value={techLevel !== undefined ? String(techLevel) : '—'} />
+        <div className="grid grid-cols-1 items-end gap-x-4 gap-y-3 sm:grid-cols-[auto_minmax(0,1fr)]">
+          {/* A STAT, not a Field: the tech level is derived from the crawler's
+              stored rung and never typed into, so it reads as a number plate
+              like the mech's chassis stats — a field box implied an input. */}
+          <Stat label="Tech Level" value={techLevel ?? '—'} size="compact" />
           <Field
             label="Type"
             value={type?.name ?? ''}

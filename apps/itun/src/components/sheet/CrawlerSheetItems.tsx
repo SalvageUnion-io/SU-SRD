@@ -84,6 +84,18 @@ type CrawlerBayCardProps = {
    * the composition has a docked mech; renders above the crew inset.
    */
   dockedMechName?: string
+  /**
+   * Contents this bay HOLDS, rendered inside it above the crew inset — the
+   * Armament Bay's mounted weapons. A bay's contents belong in the bay, not in
+   * a section elsewhere on the sheet describing it from a distance.
+   */
+  contents?: ReactNode
+  /**
+   * Overrides the bay's function action (Mount / Dock / Craft …). Without it
+   * the button opens the bay's rules; the Armament Bay points it at the weapons
+   * picker instead, which is the thing "Mount" actually means.
+   */
+  onFunction?: () => void
 }
 
 /**
@@ -104,6 +116,8 @@ export function CrawlerBayCard({
   store,
   readOnly,
   dockedMechName,
+  contents,
+  onFunction,
 }: CrawlerBayCardProps) {
   const storeState = store()
   const { selections, setSelections } = useEntityChoices(
@@ -214,7 +228,7 @@ export function CrawlerBayCard({
       title: damaged
         ? `${bay.name} is damaged — its function is offline until repaired.`
         : `${functionLabel} — open the ${bay.name} rules`,
-      onClick: () => detail.control.onClick?.(),
+      onClick: () => (onFunction ? onFunction() : detail.control.onClick?.()),
       variant: 'primary',
       disabled: damaged,
     },
@@ -258,6 +272,7 @@ export function CrawlerBayCard({
         expand={
           damaged && damagedText ? (
             <div className="flex flex-col gap-3">
+              {contents}
               {/* The damaged clause, centred: the card itself is greyed by its
                   `damaged` status, and this is the one thing the reader needs
                   off it while it is in that state. */}
@@ -267,6 +282,11 @@ export function CrawlerBayCard({
                 </span>
                 <p className="m-0 font-body text-sm leading-snug text-ink">{damagedText}</p>
               </div>
+              {crew}
+            </div>
+          ) : contents ? (
+            <div className="flex flex-col gap-3">
+              {contents}
               {crew}
             </div>
           ) : (
