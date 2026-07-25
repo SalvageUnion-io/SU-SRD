@@ -1,5 +1,6 @@
 import { z } from 'salvageunion-reference/zod'
 import { ItemConditionMapSchema } from './mech'
+import { PartnerInstanceSchema } from './partner'
 
 /**
  * Persisted choice selections for an entity that carries `choices`
@@ -205,6 +206,15 @@ export const PilotSchema = z
           .strict()
       )
       .optional(),
+
+    /**
+     * Statted Drones / Companions this pilot's abilities grant (Auto-Turret,
+     * Survey Drone, Mecha Companion). Each carries its own id, so Mecha
+     * Packmaster's TWO Mecha Companions are two distinct partners rather than
+     * one shared entry — the bug `equipmentLoadouts` could not express.
+     * Additive-optional; absent reads as none.
+     */
+    partners: z.array(PartnerInstanceSchema).optional(),
 
     /**
      * Manual fallback for the pilot's effective Crawler Tech Level (1–6), used

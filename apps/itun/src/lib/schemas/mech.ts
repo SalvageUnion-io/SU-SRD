@@ -1,25 +1,23 @@
 import { z } from 'salvageunion-reference/zod'
 
 import { CargoLotSchema } from './cargoLot'
+import { ItemConditionMapSchema } from './itemCondition'
+import { PartnerInstanceSchema } from './partner'
 
 /**
- * Per-item condition states for mech systems, modules, and pilot equipment.
- * Keyed by the item slug. When absent defaults to 'intact' at the display layer.
+ * Per-item condition states now live in `./itemCondition` — a leaf module, so
+ * that `mech.ts` (which owns partners) and `partner.ts` (which needs the
+ * condition map) do not import each other. Re-exported here because these names
+ * have importers across the app and the move is not meant to be visible.
+ *
+ * @public re-export of the extracted condition vocabulary; see ./itemCondition.
  */
-
-export const ItemConditionSchema = z.enum(['intact', 'damaged', 'destroyed'])
-
-export type ItemCondition = z.infer<typeof ItemConditionSchema>
-
-/** Map from item slug → condition */
-
-export const ItemConditionMapSchema = z.record(z.string(), ItemConditionSchema)
-
-/**
- * @knipignore Knip false positive: `lib/rules/downtime.ts` imports this type and
- * deleting it fails typecheck (TS2724), but knip does not credit that import.
- */
-export type ItemConditionMap = z.infer<typeof ItemConditionMapSchema>
+export {
+  ItemConditionSchema,
+  ItemConditionMapSchema,
+  type ItemCondition,
+  type ItemConditionMap,
+} from './itemCondition'
 
 /**
  * Reactor Overload outcome categories (Core Book p.234-235). Distinct from the
@@ -215,6 +213,15 @@ export const MechSchema = z
 
     /** Current heat level (falls back to chassis heatCapacity) */
     currentHeat: z.number().int().min(0).optional(),
+
+    /**
+     * Statted Drones this mech's CHASSIS ability fields — Little Sestra's Sestra
+     * Drone, Big Brother's four Big Brother Drones. Distinct from a pilot's
+     * ability-granted partners: these belong to the machine, not its pilot, and
+     * their tech level is fixed by the stat block rather than tracking the Union
+     * Crawler. Additive-optional; absent reads as none.
+     */
+    partners: z.array(PartnerInstanceSchema).optional(),
 
     /**
      * Per-system condition map (REQ-011 #240). Keyed by system slug.
