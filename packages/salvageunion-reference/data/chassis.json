@@ -8626,21 +8626,25 @@
         "drones": [
           {
             "name": "Shield Drone",
+            "ref": "Big Brother Drone",
             "systems": ["Refractive Shield Projector", "Electro-Magnetic Shield Projector"],
             "modules": ["Energy Cell"]
           },
           {
             "name": "Anti-Missile Drone",
+            "ref": "Big Brother Drone",
             "systems": ["Laser Anti-Missile System", "Chaff Launcher", "Chaff Launcher"],
             "modules": ["Evasion Protocols"]
           },
           {
             "name": "Fire Support Drone",
+            "ref": "Big Brother Drone",
             "systems": [".50 Cal Machine Gun", "Target Painter"],
             "modules": ["Sonic Screecher"]
           },
           {
             "name": "Minelayer Drone",
+            "ref": "Big Brother Drone",
             "systems": ["Anti-Mech Mine Layer"],
             "modules": ["Self-Destruct"]
           }

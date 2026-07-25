@@ -8145,6 +8145,7 @@ export declare const NpcSchema: z.ZodType<{
  */
 export declare const PatternDroneConfigSchema: z.ZodObject<{
     name: z.ZodString;
+    ref: z.ZodOptional<z.ZodString>;
     systems: z.ZodArray<z.ZodString>;
     modules: z.ZodArray<z.ZodString>;
 }, z.core.$strict>;

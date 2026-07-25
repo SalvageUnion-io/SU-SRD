@@ -14,7 +14,7 @@ import {
   resolveChassisDrone,
   resolveDroneOwnLoadout,
   resolveNestedEntities,
-  resolvePatternDrone,
+  resolvePatternDrones,
   resolvePatternGroups,
 } from '../resolveNestedEntities'
 
@@ -165,29 +165,66 @@ describe('drone loadouts', () => {
     expect(resolveChassisDrone(noDrone as SURefMetaEntity)).toBeUndefined()
   })
 
-  test("resolvePatternDrone resolves the PATTERN's drone loadout by name", () => {
-    const loadout = resolvePatternDrone(pattern('Little Sestra', 'Surveyor'))
-    expect((loadout?.drone as { name?: string })?.name).toBe('Sestra Drone')
-    expect(names(loadout?.systems ?? [])).toEqual([
+  test("resolvePatternDrones resolves the PATTERN's drone loadout by name", () => {
+    const loadouts = resolvePatternDrones(pattern('Little Sestra', 'Surveyor'))
+    expect(loadouts).toHaveLength(1)
+    expect((loadouts[0]?.drone as { name?: string })?.name).toBe('Sestra Drone')
+    expect(names(loadouts[0]?.systems ?? [])).toEqual([
       'Long Barrelled Green Laser',
       'High Gain Antenna',
       'Cargo Pod',
     ])
-    expect(names(loadout?.modules ?? [])).toEqual(['Survey Scanner', 'M315 Motion Scanner'])
+    expect(names(loadouts[0]?.modules ?? [])).toEqual(['Survey Scanner', 'M315 Motion Scanner'])
+    // No `ref` on this config — the config name IS the stat block, so there is
+    // no separate instance name to carry.
+    expect(loadouts[0]?.instanceName).toBeUndefined()
   })
 
-  test('resolvePatternDrone returns undefined for a pattern with no drones', () => {
-    expect(resolvePatternDrone(pattern('Mule', 'Hauler'))).toBeUndefined()
-    expect(resolvePatternDrone({ name: 'Fake' } as SURefObjectPattern)).toBeUndefined()
+  test('resolvePatternDrones returns EVERY drone a pattern fields, not just the first', () => {
+    // Big Brother's DronTek pattern fields four. Reading `drones[0]` silently
+    // dropped three of them — this is the regression that guards that fix.
+    const loadouts = resolvePatternDrones(pattern('Big Brother', 'DronTek'))
+    expect(loadouts).toHaveLength(4)
+    // Each is an INSTANCE over the one shared 'Big Brother Drone' stat block.
+    expect(loadouts.map((l) => (l.drone as { name?: string }).name)).toEqual([
+      'Big Brother Drone',
+      'Big Brother Drone',
+      'Big Brother Drone',
+      'Big Brother Drone',
+    ])
+    expect(loadouts.map((l) => l.instanceName)).toEqual([
+      'Shield Drone',
+      'Anti-Missile Drone',
+      'Fire Support Drone',
+      'Minelayer Drone',
+    ])
+    // …and each carries its OWN kit, so they don't render as four identical cards.
+    expect(names(loadouts[3]?.systems ?? [])).toEqual(['Anti-Mech Mine Layer'])
+    expect(names(loadouts[3]?.modules ?? [])).toEqual(['Self-Destruct'])
   })
 
-  test('resolvePatternDrone returns undefined when the named drone does not exist', () => {
+  test('resolvePatternDrones returns empty for a pattern with no drones', () => {
+    expect(resolvePatternDrones(pattern('Mule', 'Hauler'))).toEqual([])
+    expect(resolvePatternDrones({ name: 'Fake' } as SURefObjectPattern)).toEqual([])
+  })
+
+  test('resolvePatternDrones skips configs whose stat block does not exist', () => {
     expect(
-      resolvePatternDrone({
+      resolvePatternDrones({
         name: 'Fake',
         drones: [{ name: 'No Such Drone', systems: [], modules: [] }],
       } as unknown as SURefObjectPattern)
-    ).toBeUndefined()
+    ).toEqual([])
+  })
+
+  test('resolvePatternDrones resolves through `ref` when the instance name is not a stat block', () => {
+    const loadouts = resolvePatternDrones({
+      name: 'Fake',
+      drones: [{ name: 'Shield Drone', ref: 'Big Brother Drone', systems: [], modules: [] }],
+    } as unknown as SURefObjectPattern)
+    expect(loadouts).toHaveLength(1)
+    expect((loadouts[0]?.drone as { name?: string })?.name).toBe('Big Brother Drone')
+    expect(loadouts[0]?.instanceName).toBe('Shield Drone')
   })
 
   test("resolveDroneOwnLoadout reads the drone entity's own name arrays", () => {
