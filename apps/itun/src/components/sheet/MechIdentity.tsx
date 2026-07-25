@@ -38,7 +38,6 @@ type MechIdentityPanelProps = {
    * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
    * Edit/Done button (Phase 2: the chead row lives in the card, not here).
    */
-  editing?: boolean
   /** Partial merge on this mech; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch
   /**
@@ -59,7 +58,6 @@ type MechIdentityPanelProps = {
 export function MechIdentityPanel({
   mech,
   chassisName,
-  editing = false,
   patch,
   after,
   besideChassis,
@@ -68,7 +66,6 @@ export function MechIdentityPanel({
   const [chassisPickerOpen, setChassisPickerOpen] = useState(false)
 
   const canEdit = patch !== undefined
-  const isEditing = editing && canEdit
 
   /**
    * Persist the pattern name (required — never write empty). Name and pattern
@@ -93,8 +90,7 @@ export function MechIdentityPanel({
         <Field
           label="Pattern Name"
           value={mech.name}
-          editing={isEditing}
-          onSave={savePatternName}
+          onSave={canEdit ? savePatternName : undefined}
           prominent
         />
         {/* Chassis (picker-backed). Tech Level is NOT here: it is inherent to
@@ -107,8 +103,7 @@ export function MechIdentityPanel({
           <Field
             label="Chassis"
             value={chassisName}
-            editing={isEditing}
-            onEditClick={() => setChassisPickerOpen(true)}
+            onEditClick={canEdit ? () => setChassisPickerOpen(true) : undefined}
           />
           {besideChassis}
         </div>

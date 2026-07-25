@@ -68,7 +68,6 @@ type CrawlerIdentityPanelProps = {
    * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
    * Edit/Done button (Phase 2: the chead row lives in the card, not here).
    */
-  editing?: boolean
   /** CrawlerTypeCard's NPC inset needs an explicit flag — it writes through
    * the store directly (typeNpc), independent of `patch`. */
   readOnly?: boolean
@@ -80,14 +79,12 @@ export function CrawlerIdentityPanel({
   store,
   storeState,
   patch,
-  editing = false,
   readOnly = false,
   className,
 }: CrawlerIdentityPanelProps) {
   const [typePickerOpen, setTypePickerOpen] = useState(false)
 
   const canEdit = patch !== undefined && !readOnly
-  const isEditing = editing && canEdit
 
   const type = crawler.type ? resolveCrawlerType(crawler.type) : null
   const abilities = resolveTypeAbilities(crawler.type)
@@ -108,11 +105,10 @@ export function CrawlerIdentityPanel({
       <div className="flex min-w-0 flex-col gap-3">
         {/* Poster field row: Name (prominent) + Type (picker-backed). */}
         <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
-          <Field label="Name" value={crawler.name} editing={isEditing} onSave={saveName} />
+          <Field label="Name" value={crawler.name} onSave={canEdit ? saveName : undefined} />
           <Field
             label="Type"
             value={type?.name ?? ''}
-            editing={isEditing}
             onEditClick={canEdit ? () => setTypePickerOpen(true) : undefined}
           />
         </div>
@@ -147,10 +143,9 @@ export function CrawlerIdentityPanel({
         <Field
           label="Description"
           value={crawler.description ?? ''}
-          editing={isEditing}
           multiline
           placeholder={canEdit ? 'Describe your crawler…' : '—'}
-          onSave={saveDescription}
+          onSave={canEdit ? saveDescription : undefined}
         />
       </div>
 

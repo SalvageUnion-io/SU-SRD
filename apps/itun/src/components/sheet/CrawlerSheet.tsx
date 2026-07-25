@@ -78,7 +78,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import { EntityGridRow, MasonryColumns } from 'component-lib'
-import { CardRemoveButton, SectionManageButton, SectionEditButton } from 'component-lib'
+import { CardRemoveButton, SectionManageButton } from 'component-lib'
 import { SheetSectionSlab } from 'component-lib'
 import { StorageManifest } from './StorageManifest'
 
@@ -141,7 +141,6 @@ export function CrawlerSheet({
   const [systemsModalOpen, setSystemsModalOpen] = useState(false)
   // Identity is a FIELD section (unified edit language archetype A): its own
   // Edit/Done toggle, rendered in the SheetSectionCard header (Phase 2).
-  const [identityEditing, setIdentityEditing] = useState(false)
 
   /**
    * Persist a partial patch on this crawler (fire-and-forget write). The
@@ -234,22 +233,12 @@ export function CrawlerSheet({
           heroRef={heroRef}
           cat="Crawler"
           name={crawler.name}
-          controls={
-            !readOnly ? (
-              <SectionEditButton
-                section="Identity"
-                editing={identityEditing}
-                onToggle={() => setIdentityEditing((v) => !v)}
-              />
-            ) : undefined
-          }
           fields={
             <CrawlerIdentityPanel
               crawler={crawler}
               store={store}
               storeState={storeState}
               patch={readOnly ? undefined : patchCrawler}
-              editing={identityEditing}
               readOnly={readOnly}
             />
           }

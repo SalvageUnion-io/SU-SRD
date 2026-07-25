@@ -11,12 +11,23 @@ import { Glyph } from '../chrome/glyphs'
 import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
 
 /**
- * The ONE editing cue (redesign rule): dashed outline in the sheet's deep
- * tone on anything that is currently editable via a section Edit or a
- * per-card control.
+ * The ONE editing cue (redesign rule): dashed outline in the sheet's deep tone
+ * on anything editable.
  */
 export const EDIT_CUE_CLASS =
   'outline-dashed outline-2 outline-offset-2 outline-[color:var(--tone-deep,var(--color-rust))]'
+
+/**
+ * The same cue, ON DEMAND — shown when the field is hovered or holds focus.
+ *
+ * Live-sheet fields are always editable now (the section Edit toggle is gone),
+ * and a permanent dashed outline on every field would draw the whole sheet in
+ * dashes. Revealing it on approach says "this one is writable" at the moment
+ * you ask, and `focus-within` keeps that promise for the keyboard, which has no
+ * hover.
+ */
+export const EDIT_CUE_HOVER_CLASS =
+  'outline-offset-2 outline-[color:var(--tone-deep,var(--color-rust))] hover:outline-dashed hover:outline-2 focus-within:outline-dashed focus-within:outline-2'
 
 type CardControlOptions = {
   /** Entity name for the accessible labels ("Remove {name}" / "Swap {name}"). */

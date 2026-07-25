@@ -46,7 +46,6 @@ export function CrawlerIdentityStep({
       <Field
         label="Crawler Name"
         value={name}
-        editing
         onSave={(next) => onChange({ name: next })}
         placeholder="e.g. Crawler #132, aka ‘Tin Lizzy’"
         labelAction={
@@ -59,7 +58,6 @@ export function CrawlerIdentityStep({
       <Field
         label="Description"
         value={description}
-        editing
         multiline
         onSave={(next) => onChange({ description: next })}
         placeholder="What the crawler is, its build and history."

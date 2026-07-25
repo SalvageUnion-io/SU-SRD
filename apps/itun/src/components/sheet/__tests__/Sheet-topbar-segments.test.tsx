@@ -14,7 +14,7 @@
  */
 
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { Sheet } from '../Sheet'
@@ -117,7 +117,7 @@ const pilotToCrawler = makeLink(
 // ---------------------------------------------------------------------------
 
 describe('Sheet — top-bar Edit action', () => {
-  test('pilot sheet has NO global Edit toggle — editing is per-section', () => {
+  test('pilot sheet has NO Edit toggle — fields are click-to-edit', () => {
     render(
       <Sheet
         kind="pilot"
@@ -126,14 +126,13 @@ describe('Sheet — top-bar Edit action', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    // Unified edit language: no global build-edit mode on the pilot sheet.
+    // Unified edit language: no global build-edit mode on the pilot sheet, and
+    // no per-section one either — fields are edited by clicking the field.
     expect(screen.queryByRole('button', { name: /edit this pilot/i })).toBeNull()
-    // The Identity FIELD section owns its own Edit button instead.
-    const sectionEdit = screen.getByRole('button', { name: /edit identity/i })
-    expect(sectionEdit.getAttribute('aria-pressed')).toBe('false')
+    expect(screen.queryByRole('button', { name: /edit identity/i })).toBeNull()
   })
 
-  test('Identity section Edit flips only that section into inline-edit', () => {
+  test('identity fields are click-to-edit with no toggle to unlock first', () => {
     render(
       <Sheet
         kind="pilot"
@@ -142,21 +141,15 @@ describe('Sheet — top-bar Edit action', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    // Read-only by default: no inline click-to-edit fields are exposed.
-    expect(screen.queryByRole('button', { name: /edit callsign/i })).toBeNull()
-
-    fireEvent.click(screen.getByRole('button', { name: /edit identity/i }))
-
-    // Toggling on relabels the control and reveals the section's inline fields.
-    const on = screen.getByRole('button', { name: /done editing identity/i })
-    expect(on.getAttribute('aria-pressed')).toBe('true')
+    // No gate: the field is its own affordance from the first render. (It used
+    // to take a section "Edit identity" toggle to reveal these.)
     expect(screen.getByRole('button', { name: /edit callsign/i })).toBeTruthy()
     // Class is picker-backed: its affordance opens the shared picker modal, so
     // its accessible name matches the visible 'Change' word (WCAG 2.5.3).
     expect(screen.getByRole('button', { name: /change class/i })).toBeTruthy()
   })
 
-  test('mech sheet has NO global Edit toggle — editing is per-section (phase 2)', () => {
+  test('mech sheet has NO Edit toggle — fields are click-to-edit', () => {
     render(
       <Sheet
         kind="mech"
@@ -166,12 +159,11 @@ describe('Sheet — top-bar Edit action', () => {
       />
     )
     expect(screen.queryByRole('button', { name: /edit this mech/i })).toBeNull()
-    // The mech Identity FIELD section owns its own Edit button instead.
-    const sectionEdit = screen.getByRole('button', { name: /edit identity/i })
-    expect(sectionEdit.getAttribute('aria-pressed')).toBe('false')
+    // No per-section toggle either — fields are edited by clicking the field.
+    expect(screen.queryByRole('button', { name: /edit identity/i })).toBeNull()
   })
 
-  test('crawler sheet has NO global Edit toggle — editing is per-section (phase 3)', () => {
+  test('crawler sheet has NO Edit toggle — fields are click-to-edit', () => {
     render(
       <Sheet
         kind="crawler"
@@ -181,9 +173,8 @@ describe('Sheet — top-bar Edit action', () => {
       />
     )
     expect(screen.queryByRole('button', { name: /edit this crawler/i })).toBeNull()
-    // The crawler Identity FIELD section owns its own Edit button instead.
-    const sectionEdit = screen.getByRole('button', { name: /edit identity/i })
-    expect(sectionEdit.getAttribute('aria-pressed')).toBe('false')
+    // No per-section toggle either — fields are edited by clicking the field.
+    expect(screen.queryByRole('button', { name: /edit identity/i })).toBeNull()
   })
 
   test('readOnly hides Edit (and Share)', () => {

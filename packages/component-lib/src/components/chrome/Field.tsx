@@ -1,7 +1,7 @@
 import { forwardRef } from 'react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
-import { EDIT_CUE_CLASS } from '../shared/editLanguage'
+import { EDIT_CUE_HOVER_CLASS } from '../shared/editLanguage'
 import { Badge } from './Badge'
 import { InlineEditField } from './InlineEditField'
 import { INPUT_FOCUS } from './interaction'
@@ -30,14 +30,13 @@ type FieldStaticProps = FieldCommon & {
 /**
  * Edit-in-place / picker field (the merged `IdentityField`): renders a stored
  * `value` inside an ink-bordered value box under the same straddling stamp.
- * Read-only until `editing` unlocks the sheet's dashed "write here" cue (which
- * replaces the retired pen glyph as the editable affordance).
+ * ALWAYS editable when it is given a handler — there is no section Edit toggle
+ * to unlock first. The dashed "write here" cue appears on hover / focus rather
+ * than permanently, so a sheet of fields is not a sheet of dashes.
  */
 type FieldEditableProps = FieldCommon & {
-  /** Current stored value (shown read-only unless the section is editing). */
+  /** Current stored value. */
   value: string
-  /** Section-level edit flag (from the section's own Edit button). */
-  editing?: boolean
   /** Persist a freetext value — enables edit-in-place via `InlineEditField`. */
   onSave?: (next: string) => Promise<void> | void
   /**
@@ -122,7 +121,6 @@ export function Field(props: FieldProps) {
 
   const {
     value,
-    editing = false,
     onSave,
     onEditClick,
     multiline = false,
@@ -148,12 +146,16 @@ export function Field(props: FieldProps) {
       <div className={cn('relative block', className)}>
         {stamp}
         {action}
-        {editing ? (
+        {onEditClick ? (
           <button
             type="button"
             aria-label={`Change ${labelText.toLowerCase()}`}
             onClick={onEditClick}
-            className={cn(FIELD_BOX, 'cursor-pointer text-left hover:bg-ink-8', EDIT_CUE_CLASS)}
+            className={cn(
+              FIELD_BOX,
+              'cursor-pointer text-left hover:bg-ink-8',
+              EDIT_CUE_HOVER_CLASS
+            )}
           >
             {valueSpan}
           </button>
@@ -165,7 +167,9 @@ export function Field(props: FieldProps) {
   }
 
   // ---- Edit-in-place: the InlineEditField engine inside the value box. --------
-  const editable = editing && onSave !== undefined
+  // A handler is the ONLY gate: if the caller can persist it, the reader can
+  // edit it. (This used to also require a section-level `editing` flag.)
+  const editable = onSave !== undefined
   return (
     <div className={cn('relative block', fill && 'flex h-full flex-col', className)}>
       {stamp}
@@ -182,7 +186,7 @@ export function Field(props: FieldProps) {
         // than a new InlineEditField prop: the box is a flex row, so stretching
         // it and its child span is all the readout needs to fill.
         className={cn(
-          editable && EDIT_CUE_CLASS,
+          editable && EDIT_CUE_HOVER_CLASS,
           fill &&
             'h-full flex-1 items-stretch [&>span]:h-full [&>span]:items-start [&>span]:py-2.5',
           // Reaches the readout through the box's class hook, like `fill`.

@@ -59,7 +59,7 @@ import { destroyedUndoToast } from './destroyedUndoToast'
 import { EntityGridRow, MasonryColumns } from 'component-lib'
 import { PilotIdentityPanel } from './PilotIdentity'
 import type { UsedToggleKey } from './PilotIdentity'
-import { SectionManageButton, SectionEditButton, SheetPickerModal } from 'component-lib'
+import { SectionManageButton, SheetPickerModal } from 'component-lib'
 import { SheetSectionSlab, Slab } from 'component-lib'
 import { pilotInventoryCapacity, pilotInventoryUsed, resolveEquipment } from './pilotInventory'
 import type { SheetPatch } from './sheetViewProps'
@@ -159,7 +159,6 @@ export function PilotSheet({
   const [picker, setPicker] = useState<'abilities' | 'equipment' | null>(null)
   // Identity is a FIELD section (unified edit language archetype A): its own
   // Edit/Done toggle, now rendered in the SheetSectionCard header (Phase 2).
-  const [identityEditing, setIdentityEditing] = useState(false)
 
   // Soft warnings (REQ-012, ADR-021) on BUILD edits only — ability add/remove
   // and the class change. Advisory, never blocking: a clean edit saves straight
@@ -470,19 +469,9 @@ export function PilotSheet({
             </Badge>
           ) : undefined
         }
-        controls={
-          !readOnly ? (
-            <SectionEditButton
-              section="Identity"
-              editing={identityEditing}
-              onToggle={() => setIdentityEditing((v) => !v)}
-            />
-          ) : undefined
-        }
         fields={
           <PilotIdentityPanel
             pilot={pilot}
-            editing={identityEditing}
             onToggleUsed={readOnly ? undefined : toggleUsed}
             patch={readOnly ? undefined : patchPilot}
           />

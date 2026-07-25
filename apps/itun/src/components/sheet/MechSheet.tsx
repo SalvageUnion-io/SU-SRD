@@ -73,7 +73,7 @@ import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { useSoftWarnings } from '../shared/useSoftWarnings'
-import { SectionManageButton, SectionEditButton, SheetPickerModal } from 'component-lib'
+import { SectionManageButton, SheetPickerModal } from 'component-lib'
 import { SheetSectionSlab } from 'component-lib'
 import type { ChassisStatItem } from 'component-lib'
 import { StorageManifest } from './StorageManifest'
@@ -149,7 +149,6 @@ export function MechSheet({
   // Identity / Quirk+Appearance are FIELD sections (unified edit language
   // archetype A): their own Edit/Done toggle, rendered in the
   // SheetSectionCard header (Phase 2).
-  const [identityEditing, setIdentityEditing] = useState(false)
   // Quirk & Appearance now live inside the identity card, so they follow ITS
   // Edit toggle — a second Edit button inside the same frame would have been
   // two switches for one section.
@@ -428,28 +427,17 @@ export function MechSheet({
         // On a mech this region IS the chassis: its name, its stats, its
         // ability, its quirk. "Identity" named the shape, not the subject.
         fieldsTitle="Chassis"
-        controls={
-          !readOnly ? (
-            <SectionEditButton
-              section="Identity"
-              editing={identityEditing}
-              onToggle={() => setIdentityEditing((v) => !v)}
-            />
-          ) : undefined
-        }
         fields={
           <div className="flex h-full min-w-0 flex-col gap-4">
             <MechIdentityPanel
               mech={mech}
               chassisName={chassisName}
-              editing={identityEditing}
               patch={readOnly ? undefined : patchMech}
               besideChassis={
                 <Field
                   label="Quirk"
                   value={mech.quirk ?? ''}
-                  editing={identityEditing}
-                  onSave={saveQuirk}
+                  onSave={readOnly ? undefined : saveQuirk}
                   placeholder="No quirk recorded."
                 />
               }
@@ -518,10 +506,9 @@ export function MechSheet({
             <Field
               label="Appearance"
               value={mech.appearance ?? mech.description ?? ''}
-              editing={identityEditing}
               multiline
               fill
-              onSave={saveAppearance}
+              onSave={readOnly ? undefined : saveAppearance}
               placeholder="No appearance recorded."
               className="flex-1"
             />

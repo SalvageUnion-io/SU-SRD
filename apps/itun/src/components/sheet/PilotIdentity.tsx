@@ -101,7 +101,6 @@ type PilotIdentityPanelProps = {
    * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
    * Edit/Done button (Phase 2: the chead row lives in the card, not here).
    */
-  editing?: boolean
   /** Persist a used-flag change; omit on read-only sheets (static stamps). */
   onToggleUsed?: (key: UsedToggleKey, next: boolean) => void
   /** Partial merge on this pilot; omit on read-only sheets (no edit affordance). */
@@ -111,7 +110,6 @@ type PilotIdentityPanelProps = {
 
 export function PilotIdentityPanel({
   pilot,
-  editing = false,
   onToggleUsed,
   patch,
   className,
@@ -130,7 +128,6 @@ export function PilotIdentityPanel({
   const selectedClass = allClasses.find((c) => c.id === pendingClass)
 
   const canEdit = patch !== undefined
-  const isEditing = editing && canEdit
 
   /** Persist a trimmed freeform field (empty allowed). */
   const saveText = (field: keyof Pilot) => (next: string) => {
@@ -182,29 +179,25 @@ export function PilotIdentityPanel({
             <Field
               label="Callsign"
               value={pilot.callsign}
-              editing={isEditing}
-              onSave={saveRequired('callsign')}
+              onSave={canEdit ? saveRequired('callsign') : undefined}
               prominent
             />
             <Field
               label="Class"
               value={resolveClassName(pilot.classRef)}
-              editing={isEditing}
-              onEditClick={openClassPicker}
+              onEditClick={canEdit ? openClassPicker : undefined}
               prominent
             />
           </div>
           <Field
             label="Name"
             value={pilot.name}
-            editing={isEditing}
-            onSave={saveRequired('name')}
+            onSave={canEdit ? saveRequired('name') : undefined}
           />
           <Field
             label="Pronouns"
             value={pilot.pronouns ?? ''}
-            editing={isEditing}
-            onSave={saveText('pronouns')}
+            onSave={canEdit ? saveText('pronouns') : undefined}
             placeholder="—"
           />
         </div>
@@ -212,25 +205,22 @@ export function PilotIdentityPanel({
           <Field
             label="Motto"
             value={pilot.motto}
-            editing={isEditing}
             multiline
-            onSave={saveText('motto')}
+            onSave={canEdit ? saveText('motto') : undefined}
             labelAction={usedChip('motto', 'motto')}
           />
           <Field
             label="Keepsake"
             value={pilot.keepsake}
-            editing={isEditing}
             multiline
-            onSave={saveText('keepsake')}
+            onSave={canEdit ? saveText('keepsake') : undefined}
             labelAction={usedChip('keepsake', 'keepsake')}
           />
           <Field
             label="Background"
             value={pilot.background}
-            editing={isEditing}
             multiline
-            onSave={saveText('background')}
+            onSave={canEdit ? saveText('background') : undefined}
             labelAction={usedChip('background', 'background')}
           />
         </div>
@@ -241,9 +231,8 @@ export function PilotIdentityPanel({
       <Field
         label="Appearance"
         value={pilot.appearance}
-        editing={isEditing}
         multiline
-        onSave={saveText('appearance')}
+        onSave={canEdit ? saveText('appearance') : undefined}
       />
 
       {/* Bio — folded in from the dropped live-play Bio section (#409): the
@@ -253,10 +242,9 @@ export function PilotIdentityPanel({
         <Field
           label="Bio"
           value={pilot.description ?? ''}
-          editing={isEditing}
           multiline
           fill
-          onSave={saveText('description')}
+          onSave={canEdit ? saveText('description') : undefined}
           placeholder="No bio written yet."
           className="flex-1"
         />
