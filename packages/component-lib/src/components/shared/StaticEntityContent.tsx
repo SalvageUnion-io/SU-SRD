@@ -50,6 +50,26 @@ export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityC
         </div>
       )}
 
+      {/* Named sections (a guide's steps) — most of a guide's text lives here,
+          so without it a guide's no-JS/crawler rendering is a title and one
+          paragraph. Headings are h2: they sit under the h1 above. */}
+      {summary.sections.length > 0 && (
+        <div className="mb-3 space-y-3">
+          {summary.sections.map((section) => (
+            <section key={section.name}>
+              <h2 className="mb-1 font-cond text-base font-bold uppercase tracking-caps-tight">
+                {section.name}
+              </h2>
+              <div className="space-y-2">
+                {section.paragraphs.map((p) => (
+                  <p key={p}>{p}</p>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+
       {summary.traits.length > 0 && (
         <p className="mb-3">
           <span className="font-cond font-bold uppercase">Traits:</span>{' '}

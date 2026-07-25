@@ -566,6 +566,19 @@ export type StaticEntitySummary = {
         value: string | number;
     }[];
     traits: string[];
+    /**
+     * Named prose sections BELOW the entity's own content — currently a guide's
+     * `steps`, which hold most of a guide's text (28.7k of 34.2k characters
+     * across the shipped guides). Without these the no-JS/crawler rendering of a
+     * guide is its title and one intro paragraph, so the pages that carry the
+     * game's procedures were the ones indexing with almost no text.
+     *
+     * Empty for every entity that has no such sections.
+     */
+    sections: {
+        name: string;
+        paragraphs: string[];
+    }[];
 };
 /**
  * Extract a static summary from an entity for server-side rendering (SEO)

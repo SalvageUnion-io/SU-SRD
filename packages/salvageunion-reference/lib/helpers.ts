@@ -385,6 +385,16 @@ export type StaticEntitySummary = {
   contentParagraphs: string[]
   stats: { label: string; value: string | number }[]
   traits: string[]
+  /**
+   * Named prose sections BELOW the entity's own content — currently a guide's
+   * `steps`, which hold most of a guide's text (28.7k of 34.2k characters
+   * across the shipped guides). Without these the no-JS/crawler rendering of a
+   * guide is its title and one intro paragraph, so the pages that carry the
+   * game's procedures were the ones indexing with almost no text.
+   *
+   * Empty for every entity that has no such sections.
+   */
+  sections: { name: string; paragraphs: string[] }[]
 }
 
 /**
@@ -474,6 +484,30 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
     }
   }
 
+  // Guide STEPS — the bulk of a guide's prose. Each step becomes a named
+  // section so the no-JS/crawler rendering carries the whole procedure, not
+  // just the one-line intro that precedes it.
+  const sections: { name: string; paragraphs: string[] }[] = []
+  if ('steps' in entity && Array.isArray(entity.steps)) {
+    for (const step of entity.steps) {
+      if (!step || typeof step !== 'object' || typeof step.name !== 'string') continue
+      const paragraphs: string[] = []
+      if (Array.isArray(step.content)) {
+        for (const block of step.content) {
+          if (
+            block &&
+            typeof block === 'object' &&
+            (!block.type || block.type === 'paragraph') &&
+            typeof block.value === 'string'
+          ) {
+            paragraphs.push(block.value)
+          }
+        }
+      }
+      sections.push({ name: step.name, paragraphs })
+    }
+  }
+
   return {
     name,
     description,
@@ -483,5 +517,6 @@ export function extractStaticEntitySummary(entity: SURefEntity): StaticEntitySum
     contentParagraphs,
     stats,
     traits,
+    sections,
   }
 }

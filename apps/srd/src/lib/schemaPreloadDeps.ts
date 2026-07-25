@@ -69,7 +69,7 @@
  * - `guides` steps reference an arbitrary schema chosen in the guide's own
  *   JSON data (`step.schema[0]`, resolved via
  *   `SalvageUnionReference.findAllIn(schemaName, ...)` in
- *   GuideStepsDisplay.resolveSchemaEntities) — this is the same
+ *   referenceEntity/card/resolveGuideSteps.ts) — this is the same
  *   "any route can render any cross-referenced entity" situation ADR-005
  *   describes for ITUN. Not safely narrowable; kept at `'all'`.
  * - Every other schema (no `actions` field, not chassis/classes/factions/
