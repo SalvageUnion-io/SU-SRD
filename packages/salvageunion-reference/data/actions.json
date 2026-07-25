@@ -2738,7 +2738,15 @@
   },
   {
     "id": "c0af420b-1690-42c9-99b4-b17f084a1191",
-    "name": "Eggs",
+    "traits": [
+      {
+        "type": "hacking"
+      }
+    ],
+    "actionType": "Turn",
+    "range": ["Medium"],
+    "activationCost": 2,
+    "name": "Eggs Mayhem",
     "content": [
       {
         "type": "paragraph",
@@ -2747,9 +2755,14 @@
       {
         "type": "paragraph",
         "value": "This can only be used to read data and not to write or manipulate it."
+      },
+      {
+        "type": "paragraph",
+        "value": "When activated, choose a target Mech, database, or computer system within Range."
       }
     ],
-    "actionSource": "modules"
+    "actionSource": "modules",
+    "tableName": "Eggs Mayhem"
   },
   {
     "id": "a6e97497-6266-49f4-8c2f-796d62825070",
