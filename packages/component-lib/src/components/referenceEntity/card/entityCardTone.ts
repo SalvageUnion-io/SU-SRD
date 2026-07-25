@@ -73,6 +73,21 @@ export type DomainTone = {
 }
 
 /**
+ * A guide's own authored hue, or `undefined` for every other entity.
+ *
+ * Validated as a 6-digit hex by `GuideSchema` (`lib/schemas/entities.ts`), which
+ * also supplies the `#282019` ink default — so a guide always has one, and the
+ * narrowing here is a runtime guard against malformed data rather than an
+ * expected `undefined` branch. Anything that is not a non-empty string falls
+ * through to the ordinary domain tone.
+ */
+function entityGuideColor(entity: SURefMetaEntity): string | undefined {
+  if (entity == null || typeof entity !== 'object' || !('guideColor' in entity)) return undefined
+  const guideColor = entity.guideColor
+  return typeof guideColor === 'string' && guideColor.length > 0 ? guideColor : undefined
+}
+
+/**
  * The tone resolution: DOMAIN from the exhaustive map, ACCENT from the resolved
  * token. Gear rides the tech-level blue ramp; everything else takes its colour
  * from `calculateBackgroundColor` (the tier hue for abilities, the crawler
@@ -84,6 +99,24 @@ export function resolveDomainTone(
   entity: SURefMetaEntity
 ): DomainTone {
   const domain = SCHEMA_DOMAIN[schemaName]
+
+  // GUIDES carry their OWN stored hue (`guideColor`), and it must win over the
+  // glossary-ink domain default. The SRD index already paints each guide's
+  // catalog tile with this exact hex (`catalogHelpers.ts` → `catalogBg`), so
+  // resolving the card to `bg-ink-2` made every guide page a different colour
+  // from the link that opened it — the one entity type whose tone is authored
+  // per-item rather than derived from its domain.
+  //
+  // A DATA-SHAPE check, not a schema-name one (display-system rule): the hue
+  // rides the stored field, so anything carrying a `guideColor` is toned by it.
+  // Returned as `bgColor` (a raw CSS colour) rather than `bg` (a Tailwind
+  // class) — the card threads `bgColor` to the header, sub-header, footer,
+  // frame and nested children, and `accentSurface` applies it as an inline
+  // background that wins over the class.
+  const guideColor = entityGuideColor(entity)
+  if (guideColor) {
+    return { domain, bg: undefined, bgColor: guideColor }
+  }
 
   // GEAR → tech-level blue ramp (numeric tl-1..6, or the Bio / Nanite utility
   // class). Literal `bg-tl-*` strings so Tailwind actually emits the utility.
