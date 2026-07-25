@@ -230,6 +230,14 @@ export function Card({
   const borderWidth = frame === 'chrome' ? 'var(--bw-chrome)' : 'var(--bw-entity)'
 
   const showBody = !isListing && !!children
+  /**
+   * Does a FOOTER band render? The footer is what closes a card — a solid strip
+   * of the deep tone across its foot. Without one, the frame's own border is
+   * the only thing terminating the card, and at the same width as its sides it
+   * reads thin under the weight of the header band. It doubles in the footer's
+   * place. Mirrors the same rule in `ReferenceEntityCard`.
+   */
+  const rendersFooter = !isListing && Boolean(footerContent || (footMeta && footMeta.length > 0))
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: role="button" + tabIndex + keyboard handler are applied whenever resolvedCardClick makes the card interactive
@@ -260,6 +268,7 @@ export function Card({
               borderWidth,
               borderStyle: 'solid',
               borderColor: effectiveBorderColor,
+              ...(rendersFooter ? {} : { borderBottomWidth: `calc(${borderWidth} * 2)` }),
             }
           : {}),
         ...cardStyle?.style,

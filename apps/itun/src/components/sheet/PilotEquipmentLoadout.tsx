@@ -19,7 +19,7 @@ import { useEquipmentLoadout } from '../shared/useEquipmentLoadout'
 import type { EquipmentLoadout } from '../shared/useEquipmentLoadout'
 import type { useEntityStore } from '../../stores/entityStore'
 import { EntitySearcher } from 'component-lib'
-import { EntityGrid, EntityGridRow } from 'component-lib'
+import { EntityGridRow } from 'component-lib'
 import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
 import { SectionManageButton, SheetPickerModal } from 'component-lib'
@@ -73,7 +73,11 @@ export function PilotEquipmentLoadout({
     }
     const conditions = kind === 'system' ? loadout.systemConditions : loadout.moduleConditions
     return (
-      <EntityGrid>
+      // A SINGLE column, not the shared 2-up grid: this list is nested two
+      // levels deep (inside a drone's slab, inside the drone's own card, inside
+      // the Inventory slab), so by the time it renders it has roughly half a
+      // sheet's width to work with and a second column would crush each card.
+      <div className="flex min-w-0 flex-col gap-4">
         {slugs.map((itemSlug, index) => {
           const condition = conditions?.[itemSlug] ?? 'intact'
           return (
@@ -106,7 +110,7 @@ export function PilotEquipmentLoadout({
             </EntityGridRow>
           )
         })}
-      </EntityGrid>
+      </div>
     )
   }
 
