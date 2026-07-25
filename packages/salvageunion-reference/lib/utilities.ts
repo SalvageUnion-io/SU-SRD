@@ -181,6 +181,18 @@ function extractActionsFromCarrier(
 /**
  * Find action with name matching entity name
  * Used to determine if action stats should be extracted into entity header
+ *
+ * `displayName` counts as the action's name here, because it IS the name the
+ * action renders under (see `getReferenceEntityName`). The dataset uniquifies
+ * same-named actions from different sources with a parenthetical suffix —
+ * `Bio-Rifle (Equipment)` vs `Bio-Rifle (Chimerium Chosen)` — and keeps the real
+ * name in `displayName`; that suffix is an internal identifier, not a claim that
+ * the action is something other than its entity. Matched as EITHER field rather
+ * than `displayName ?? name` so the check is strictly additive.
+ *
+ * Kept in step with `resolveFoldedAction` in component-lib, which decides the
+ * same question for the render core.
+ *
  * @param entity - The entity to check
  * @returns The matching action or undefined
  */
@@ -196,7 +208,9 @@ function findMatchingAction(entity: SURefMetaEntity): SURefMetaAction | undefine
     return undefined
   }
 
-  return visibleActions.find((action) => action.name === entityName)
+  return visibleActions.find(
+    (action) => action.name === entityName || action.displayName === entityName
+  )
 }
 
 /**

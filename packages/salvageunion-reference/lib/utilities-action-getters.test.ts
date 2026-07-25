@@ -492,4 +492,23 @@ describe('Action Property Getters', () => {
       }
     })
   })
+
+  describe('self-action resolution via displayName', () => {
+    // The dataset uniquifies two different Bio-Rifle actions by source —
+    // `Bio-Rifle (Equipment)` and `Bio-Rifle (Chimerium Chosen)` — keeping the
+    // real name in `displayName`. That suffix is an internal identifier, so the
+    // equipment's own action must still resolve as its self-action; matching on
+    // `name` alone silently dropped its range/damage/traits.
+    test('Bio-Rifle equipment resolves facets from its (Equipment)-suffixed action', () => {
+      const bioRifle = defined(
+        getReference()
+          .Equipment.all()
+          .find((e) => 'name' in e && e.name === 'Bio-Rifle')
+      )
+      expect(getActionType(bioRifle)).toBe('Turn')
+      expect(getRange(bioRifle)).toEqual(['Medium'])
+      expect(defined(getDamage(bioRifle)).amount).toBe(4)
+      expect(defined(getTraits(bioRifle)).map((t) => t.type)).toContain('pinning')
+    })
+  })
 })

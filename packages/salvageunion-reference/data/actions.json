@@ -368,7 +368,8 @@
         "type": "targeter"
       }
     ],
-    "name": "Alpha Strike",
+    "activationCost": "X",
+    "name": "Alpha Strike Module",
     "content": [
       {
         "type": "paragraph",
@@ -2213,7 +2214,7 @@
   {
     "id": "914600a9-747d-4688-9625-b64b55656cee",
     "actionType": "Passive",
-    "name": "Corrupted Neuralink",
+    "name": "Corrupted Neuralink Module",
     "content": [
       {
         "type": "paragraph",
@@ -2500,7 +2501,7 @@
     "id": "d232677a-3608-47d9-bb13-8cef870feb7d",
     "actionType": "Turn",
     "activationCost": 1,
-    "name": "DDR",
+    "name": "DDR Module",
     "content": [
       {
         "type": "paragraph",
@@ -6765,7 +6766,7 @@
   },
   {
     "id": "d367c079-7e51-41c2-8562-c7457bd169b3",
-    "name": "Omega Push",
+    "name": "Omega Push Module",
     "content": [
       {
         "type": "paragraph",
@@ -7374,7 +7375,7 @@
     ],
     "actionType": "Free",
     "range": ["Medium"],
-    "name": "Portable Communications Unit",
+    "name": "Portable Comms Unit",
     "content": [
       {
         "type": "paragraph",
@@ -10274,7 +10275,7 @@
     "actionType": "Turn",
     "range": ["Long"],
     "activationCost": 1,
-    "name": "Projection Array",
+    "name": "Video Projection Array",
     "content": [
       {
         "type": "paragraph",
