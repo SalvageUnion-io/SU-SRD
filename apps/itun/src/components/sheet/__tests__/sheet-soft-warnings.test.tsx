@@ -136,13 +136,23 @@ async function click(name: RegExp) {
   })
 }
 
+/**
+ * Remove a collection item the way a player now does: the per-card ✕ is gone,
+ * so management happens in the section's picker. Open it from the slab's
+ * "Manage …" button, then toggle the item off in the searcher.
+ */
+async function removeViaPicker(manage: RegExp, item: RegExp) {
+  await click(manage)
+  await click(item)
+}
+
 describe('PilotSheet — soft warnings on ability edits', () => {
   test('a tree-order-breaking removal opens the dialog and persists nothing', async () => {
     const captured: CapturedUpdate[] = []
     const pilot = makePilot()
     render(<PilotSheet pilot={pilot} store={makePilotStore(pilot, captured)} />)
 
-    await click(new RegExp(`^Remove ${ABILITY_L1}$`, 'i'))
+    await removeViaPicker(/^Manage abilities$/i, new RegExp(`^${ABILITY_L1}$`, 'i'))
 
     // The advisory dialog names the offending rule…
     expect(screen.getByText(/trees are taken in order/i)).toBeTruthy()
@@ -156,7 +166,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
     const pilot = makePilot()
     render(<PilotSheet pilot={pilot} store={makePilotStore(pilot, captured)} />)
 
-    await click(new RegExp(`^Remove ${ABILITY_L1}$`, 'i'))
+    await removeViaPicker(/^Manage abilities$/i, new RegExp(`^${ABILITY_L1}$`, 'i'))
     await click(/save anyway/i)
 
     expect(captured).toHaveLength(1)
@@ -168,7 +178,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
     const pilot = makePilot()
     render(<PilotSheet pilot={pilot} store={makePilotStore(pilot, captured)} />)
 
-    await click(new RegExp(`^Remove ${ABILITY_L1}$`, 'i'))
+    await removeViaPicker(/^Manage abilities$/i, new RegExp(`^${ABILITY_L1}$`, 'i'))
     await click(/^cancel$/i)
 
     expect(captured).toHaveLength(0)
@@ -181,7 +191,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
     render(<PilotSheet pilot={pilot} store={makePilotStore(pilot, captured)} />)
 
     // Dropping the L2 leaves a well-ordered tree — nothing to warn about.
-    await click(new RegExp(`^Remove ${ABILITY_L2}$`, 'i'))
+    await removeViaPicker(/^Manage abilities$/i, new RegExp(`^${ABILITY_L2}$`, 'i'))
 
     expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
     expect(captured).toHaveLength(1)
@@ -195,7 +205,7 @@ describe('MechSheet — soft warnings on system removal', () => {
     const mech = makeMech()
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeMechStore(mech, captured)} />)
 
-    await click(/^Remove Smoke Machine$/i)
+    await removeViaPicker(/^Manage systems$/i, /^Remove Smoke Machine$/i)
 
     expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
     expect(captured).toHaveLength(1)

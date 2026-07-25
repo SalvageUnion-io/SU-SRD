@@ -26,7 +26,7 @@ import type { Pilot } from '../../lib/schemas/pilot'
  * These were three components that each hand-wrote the same inline markup and
  * differed only in WHICH stats they listed. The markup itself is now the
  * canonical `Stat` (`orientation="horizontal" surface="plain"`, ruleset §3.7);
- * `RailStatLine` (SheetRailParts) joins a list of these into the rail's running
+ * `rowStats` (below) adapts a list of these into the `EntityRow` stat cells the
  * text, and these functions just supply the numbers.
  *
  * The rules math stays here rather than moving into component-lib, which is
@@ -39,8 +39,8 @@ export type RailStat = {
   max: number
   /**
    * Trailing word after the reading ("Intact" in "Bays 4/5 Intact"). It belongs
-   * to the LINE, not to the cell: `RailStatLine` prints it after the `Stat`,
-   * outside the bold reading, so `Stat` keeps a clean `label | value` contract.
+   * to the READING, not to the cell — `rowStats` appends it after the value so
+   * `Stat` keeps a clean `label | value` contract.
    */
   suffix?: string
 }
@@ -95,4 +95,19 @@ export function mechStatusPill(mech: Mech): { label: string; tone: BadgeTone } {
     ...Object.values(mech.moduleConditions ?? {}),
   ].some((c) => c !== 'intact')
   return anyDamaged ? { label: 'Damaged', tone: 'warn' } : { label: 'Intact', tone: 'ok' }
+}
+
+/**
+ * A rail stat as an `EntityRow` stat cell: `SP 9/13`, `Bays 4/5 Intact`.
+ *
+ * `EntityRow` (the roster/index row the linked-unit slots now use) takes flat
+ * `label | value` pairs, while a rail stat carries its own max and sometimes a
+ * trailing word, so both fold into the value here rather than the row growing
+ * a shape only these call sites would use.
+ */
+export function rowStats(items: RailStat[]): { label: string; value: string }[] {
+  return items.map((item) => ({
+    label: item.label,
+    value: `${item.value}/${item.max}${item.suffix ? ` ${item.suffix}` : ''}`,
+  }))
 }

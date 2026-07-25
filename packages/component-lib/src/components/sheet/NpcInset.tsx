@@ -53,6 +53,7 @@ function NpcRow({
   label,
   grow = false,
   plain = false,
+  className,
   children,
 }: {
   label: string
@@ -60,10 +61,12 @@ function NpcRow({
   grow?: boolean
   /** Skip the prose treatment — the cell hosts its own component. */
   plain?: boolean
+  /** Grid placement from the caller (e.g. spanning both columns). */
+  className?: string
   children: ReactNode
 }) {
   return (
-    <div className="flex items-baseline gap-1.5">
+    <div className={cn('flex items-baseline gap-1.5', className)}>
       <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps-wide text-ink">
         {label}
       </dt>
@@ -102,7 +105,10 @@ export function NpcInset({
     <div role="group" aria-label={`${bayName} crew lead`}>
       <Inset
         tone="crawler"
-        tag="Crew"
+        // The ROLE is the tag. There is no "Crew" chip any more: every inset on
+        // a crawler is crew, so the word labelled nothing while occupying the
+        // one slot that could say WHICH crew this is.
+        tag={title}
         label={
           onNameChange ? (
             <InlineEditField
@@ -110,33 +116,36 @@ export function NpcInset({
               onSave={(next) => onNameChange(String(next))}
               type="text"
               ariaLabel={`Edit ${bayName} crew name`}
-              className="text-paper"
+              // `[&>span]:` reaches the READOUT: InlineEditField's own display
+              // span carries `text-ink`, which is invisible on this dark head
+              // bar, and a colour on the wrapper alone never reached it.
+              className="text-paper [&>span]:text-paper [&>span]:opacity-100"
             />
           ) : (
             name || '—'
           )
         }
+        // HP rides the head bar's right edge — it is this crew member's one
+        // live number, and in the body it sat below the fold of identity lines
+        // that never change.
         headRight={
-          title ? (
-            <span className="font-cond text-micro uppercase leading-none tracking-caps text-paper/60">
-              {title}
-            </span>
+          maxHp > 0 ? (
+            <Stat
+              label="HP"
+              value={hp}
+              max={maxHp}
+              size="mini"
+              mode={onHpChange ? 'edit' : 'read'}
+              onChange={onHpChange}
+            />
           ) : undefined
         }
-        bodyClassName="flex flex-wrap items-start gap-3"
+        bodyClassName="flex flex-wrap items-start gap-2"
       >
-        {maxHp > 0 && (
-          <Stat
-            label="HP"
-            value={hp}
-            max={maxHp}
-            size="mini"
-            mode={onHpChange ? 'edit' : 'read'}
-            onChange={onHpChange}
-          />
-        )}
-
-        <dl className="m-0 min-w-0 flex-1 space-y-1.5">
+        {/* Keepsake and Motto SHARE a row: both are one short phrase, and each
+            taking a full 44px row of its own made a four-row inset out of two
+            lines of content. Detail and Facts keep their own rows — they grow. */}
+        <dl className="m-0 grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 @md:grid-cols-2">
           <NpcRow label="Keepsake">
             {onKeepsakeChange ? (
               <InlineEditField
@@ -161,7 +170,7 @@ export function NpcInset({
               motto || '—'
             )}
           </NpcRow>
-          <NpcRow label="Detail" grow>
+          <NpcRow label="Detail" grow className="@md:col-span-2">
             {onDetailChange ? (
               <InlineEditField
                 multiline
@@ -175,7 +184,7 @@ export function NpcInset({
             )}
           </NpcRow>
           {(onFactsChange !== undefined || facts.length > 0) && (
-            <NpcRow label="Facts" grow plain>
+            <NpcRow label="Facts" grow plain className="@md:col-span-2">
               <NpcFactsEditor
                 facts={facts}
                 onChange={(next) => onFactsChange?.(next)}

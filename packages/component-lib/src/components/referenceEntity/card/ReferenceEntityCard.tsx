@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import type { ReactNode } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import type {
   SURefEntity,
   SURefEnumSchemaName,
@@ -864,6 +866,13 @@ function ReferenceEntityCardInner({
   const frameStyle = selected
     ? { border: `3px solid ${frameColor}`, boxShadow: '0 0 0 3px var(--color-rust)' }
     : { border: `3px solid ${frameColor}` }
+  // The footer band is what CLOSES a card: a full card ends on a solid strip of
+  // deep tone. Without one — a collapsed listing, a nested card, `hide.footer` —
+  // the frame's 3px bottom is the only thing terminating it, and it reads thin
+  // against the weight of the header band above. Doubling it puts comparable
+  // visual weight back at the foot.
+  const FOOTLESS_BOTTOM = { borderBottomWidth: '6px' }
+  const rendersFooter = !hide?.footer && (footerOverride != null || depth === 0)
   // Condition — routed into the shared rail as a status CONTROL rather than a
   // bespoke seal, via the same `foldStatusControl` the Card shell uses,
   // so the badge (and the fold rule) has one implementation across both card
@@ -1017,7 +1026,7 @@ function ReferenceEntityCardInner({
         {topRightRail}
         <div
           className="flex flex-1 flex-col overflow-hidden rounded-card bg-paper"
-          style={frameStyle}
+          style={{ ...frameStyle, ...FOOTLESS_BOTTOM }}
         >
           {header}
         </div>
@@ -1710,7 +1719,7 @@ function ReferenceEntityCardInner({
       {topRightRail}
       <div
         className="flex flex-1 flex-col overflow-hidden rounded-card bg-paper"
-        style={frameStyle}
+        style={rendersFooter ? frameStyle : { ...frameStyle, ...FOOTLESS_BOTTOM }}
       >
         {header}
         {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
@@ -2019,6 +2028,19 @@ export type ReferenceEntityCardWrapperProps = Omit<
   data: ReferenceCardEntity | undefined
   size?: CardSize
   extent?: CardExtent
+  /**
+   * Let the reader fold this card down to LISTING (`extent="head"` — header
+   * only) and back. Collapsed is the DEFAULT: a long collection reads as a
+   * scannable list of names and stats, and the reader opens the one they want.
+   *
+   * Costs nothing when absent — the whole affordance is expressed through
+   * existing `controls`: collapsed adds a hidden `cardClick` control (so the
+   * whole card is the expand target, which is what a header-only listing
+   * already looks clickable enough to be), expanded adds a ghost chevron.
+   */
+  collapsible?: boolean
+  /** Start folded. Only meaningful with `collapsible`; defaults to true. */
+  defaultCollapsed?: boolean
 }
 
 /**
@@ -2033,15 +2055,63 @@ export function ReferenceEntityCard({
   data,
   size,
   extent,
+  collapsible = false,
+  defaultCollapsed = true,
+  controls,
   ...rest
 }: ReferenceEntityCardWrapperProps): ReactNode {
+  // Hook before the nullable-data guard — a conditional hook would break the
+  // rules of hooks the first time a caller passed `undefined`.
+  const [collapsed, setCollapsed] = useState(collapsible && defaultCollapsed)
   if (!data) return null
 
+  const folded = collapsible && collapsed
   // The size / extent / compact / listing reconciliation is the Card
-  // layer's rule — inherited, not restated here.
-  const display = resolveCardDisplay({ size, extent })
+  // layer's rule — inherited, not restated here. Folding only overrides the
+  // EXTENT axis, so a collapsed card keeps whatever size it was given.
+  const display = resolveCardDisplay({ size, extent: folded ? 'head' : extent })
+
+  const label = getReferenceEntityName(data)
+  const foldControls: ReferenceEntityControl[] = !collapsible
+    ? []
+    : folded
+      ? [
+          {
+            key: '__expand',
+            // A VISIBLE chevron: the whole-card click alone left nothing on a
+            // folded listing saying it opens. `cardClick` stays on, so the
+            // card surface remains a target too — clicking the chevron fires
+            // this handler and then bubbles to that one, which is harmless
+            // because both fold handlers are idempotent setters (`false` /
+            // `true`) rather than toggles.
+            icon: ChevronDown,
+            variant: 'ghost',
+            cardClick: true,
+            ariaLabel: `Expand ${label}`,
+            onClick: () => setCollapsed(false),
+          },
+        ]
+      : [
+          {
+            key: '__collapse',
+            icon: ChevronUp,
+            variant: 'ghost',
+            ariaLabel: `Collapse ${label}`,
+            onClick: () => setCollapsed(true),
+          },
+        ]
 
   return (
-    <ReferenceEntityCardInner data={data} size={display.size} extent={display.extent} {...rest} />
+    <ReferenceEntityCardInner
+      data={data}
+      size={display.size}
+      extent={display.extent}
+      controls={foldControls.length > 0 ? [...(controls ?? []), ...foldControls] : controls}
+      // A folded card's whole surface is the expand target, so it needs an
+      // accessible name saying what activating it does — without this the
+      // wrapper is an unnamed role="button" wrapping the card's entire text.
+      {...(folded ? { cardClickLabel: `Expand ${label}` } : {})}
+      {...rest}
+    />
   )
 }

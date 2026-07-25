@@ -86,7 +86,7 @@ export const Identity: Story = () => {
     <div className="sheet--pilot flex max-w-md flex-col gap-8 bg-paper p-8">
       <div className="flex flex-col gap-2">
         <Caption>Edit-in-place, editing — dashed cue = "write here"; click to type.</Caption>
-        <Field label="Callsign" value={callsign} editing onSave={setCallsign} />
+        <Field label="Callsign" value={callsign} onSave={setCallsign} />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -96,12 +96,7 @@ export const Identity: Story = () => {
 
       <div className="flex flex-col gap-2">
         <Caption>Picker-backed — a button box opening the shared modal (real class).</Caption>
-        <Field
-          label="Class"
-          value={baseClasses()[0] ?? 'Salvager'}
-          editing
-          onEditClick={() => {}}
-        />
+        <Field label="Class" value={baseClasses()[0] ?? 'Salvager'} onEditClick={() => {}} />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -109,7 +104,6 @@ export const Identity: Story = () => {
         <Field
           label="Motto"
           value={motto}
-          editing
           multiline
           onSave={setMotto}
           labelAction={

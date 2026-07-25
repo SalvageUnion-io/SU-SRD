@@ -204,7 +204,7 @@ describe('Sheet — crawler-only (no links)', () => {
     expect(screen.getAllByText('Iron Tortoise').length).toBeGreaterThan(0)
   })
 
-  test('lead-pilot RailEmpty appears when no pilots wired', () => {
+  test('the Pilots slot renders empty when no pilots are wired', () => {
     render(
       <Sheet
         kind="crawler"
@@ -213,7 +213,8 @@ describe('Sheet — crawler-only (no links)', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByText(/No lead pilot set/)).toBeTruthy()
+    // The slot is "Pilots" now, not a single lead.
+    expect(screen.getByText(/No pilots wired to this crawler/)).toBeTruthy()
   })
 })
 

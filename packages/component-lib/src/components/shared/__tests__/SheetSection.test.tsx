@@ -5,7 +5,7 @@
  *     add variants.
  *   - the section header row: a solid `Slab` (stamp label + leader rule +
  *     trailing controls) — the shape the sheets' field/collection sections use.
- *   - SectionEditButton / SectionAddButton: rebuilt on HButton — icon + label,
+ *   - SectionEditButton / SectionManageButton: rebuilt on HButton — icon + label,
  *     stable accessible names.
  *   - cardRemoveControls: the per-card ✕ (+ optional ⇄) icon-only cluster fed
  *     to Card's card-level `controls` slot.
@@ -16,7 +16,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { ControlButtons } from '../ControlButtons'
 
 import { Slab } from '../../chrome/Slab'
-import { HButton, SectionAddButton, SectionEditButton } from '../SheetSection'
+import { HButton, SectionEditButton, SectionManageButton } from '../SheetSection'
 import { cardRemoveControls } from '../editLanguage'
 
 describe('HButton', () => {
@@ -89,21 +89,22 @@ describe('SectionEditButton', () => {
   })
 })
 
-describe('SectionAddButton', () => {
+describe('SectionManageButton', () => {
   afterEach(cleanup)
 
-  test('reads "Add {noun}" with the circled-plus affordance', () => {
-    render(<SectionAddButton label="ability" onClick={() => {}} />)
-    const btn = screen.getByRole('button', { name: 'Add ability' })
-    // Visible label carries the noun (poster: "Add ability").
-    expect(btn.textContent).toContain('Add ability')
+  test('reads "Manage {noun}" with the circled affordance', () => {
+    render(<SectionManageButton label="abilities" onClick={() => {}} />)
+    const btn = screen.getByRole('button', { name: 'Manage abilities' })
+    // The button opens the picker, which both adds AND removes — "Add" undersold
+    // it once the per-card ✕ was retired in favour of that one surface.
+    expect(btn.textContent).toContain('Manage abilities')
     expect(btn.className).toContain('border-[color:var(--tone-deep,var(--color-rust))]')
   })
 
   test('fires onClick when clicked', () => {
     const onClick = mock(() => {})
-    render(<SectionAddButton label="system" onClick={onClick} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Add system' }))
+    render(<SectionManageButton label="systems" onClick={onClick} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Manage systems' }))
     expect(onClick).toHaveBeenCalledTimes(1)
   })
 })

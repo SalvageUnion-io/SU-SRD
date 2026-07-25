@@ -25,7 +25,7 @@ import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import type { EquipmentLoadout } from '../shared/useEquipmentLoadout'
 import { PilotEquipmentLoadout } from './PilotEquipmentLoadout'
-import { CardRemoveButton, REMOVABLE_CARD_STYLE, cardRemoveControls } from 'component-lib'
+import { CardRemoveButton } from 'component-lib'
 import {
   equipmentMaxUses,
   equipmentSlotCost,
@@ -56,11 +56,6 @@ type PilotAbilityItemProps = {
   /** Spend this ability's fixed AP cost. Only invoked for fixed numeric costs. */
   onSpend: (cost: number) => void
   onToggleUsed: (next: boolean) => void
-  /**
-   * Per-card remove (✕) — always available on editable sheets (unified edit
-   * language archetype B). Omit on read-only sheets.
-   */
-  onRemove?: () => void
   readOnly: boolean
 }
 
@@ -75,7 +70,6 @@ export function PilotAbilityItem({
   used,
   onSpend,
   onToggleUsed,
-  onRemove,
   readOnly,
 }: PilotAbilityItemProps) {
   const apCost = resolveAbilityApCost(ability)
@@ -110,17 +104,16 @@ export function PilotAbilityItem({
         onToggleUsed(!used)
       },
     })
-    if (onRemove) controls.push(...cardRemoveControls({ name: ability.name, onRemove }))
   }
 
   return (
     <ReferenceEntityCard
       data={ability}
       size="medium"
+      collapsible
       hide={HIDE_CHOICES}
       footMeta={footMeta}
       controls={controls.length > 0 ? controls : undefined}
-      cardStyle={onRemove ? REMOVABLE_CARD_STYLE : undefined}
     />
   )
 }
@@ -248,46 +241,46 @@ export function PilotEquipmentItem({
       disabled: uses >= maxUses,
     })
   }
-  if (!readOnly && onRemove) {
-    controls.push(...cardRemoveControls({ name: equipment.name, onRemove }))
-  }
 
   const equipmentRecord: Record<string, unknown> & { name?: string } = equipment
 
+  // Drone/companion equipment (Survey Drone, Mecha Companion, Auto-Turret)
+  // carries its own systemSlots/moduleSlots, so it hosts a real installed
+  // loadout edited with the same picker mechs use. It renders INSIDE the host
+  // card's body (the `afterExtraContent` slot) rather than as sibling sections
+  // beneath it — the loadout belongs to that drone, and floating it outside
+  // read as two unrelated sections that happened to sit next to each other.
+  const loadout = isLoadoutHost(equipmentRecord) ? (
+    <PilotEquipmentLoadout
+      pilotId={pilotId}
+      slug={slug}
+      equipment={equipmentRecord}
+      seed={seedLoadout}
+      readOnly={readOnly}
+      store={store}
+    />
+  ) : undefined
+
   return (
-    <>
-      <ReferenceEntityCard
-        data={equipment}
-        size="medium"
-        selections={selections}
-        onSelectionChange={readOnly ? undefined : setSelections}
-        scalingParent={scalingParent}
-        status={condition}
-        onStatusClick={
-          readOnly
-            ? undefined
-            : () => {
-                onConditionChange(slug, CONDITION_CYCLE[condition])
-              }
-        }
-        footMeta={footMeta}
-        controls={controls.length > 0 ? controls : undefined}
-        cardStyle={!readOnly && onRemove ? REMOVABLE_CARD_STYLE : undefined}
-      />
-      {/* Drone/companion equipment (Survey Drone, Mecha Companion, Auto-Turret)
-          carries its own systemSlots/moduleSlots, so it hosts a real installed
-          loadout edited with the same picker mechs use. */}
-      {isLoadoutHost(equipmentRecord) && (
-        <PilotEquipmentLoadout
-          pilotId={pilotId}
-          slug={slug}
-          equipment={equipmentRecord}
-          seed={seedLoadout}
-          readOnly={readOnly}
-          store={store}
-        />
-      )}
-    </>
+    <ReferenceEntityCard
+      data={equipment}
+      size="medium"
+      collapsible
+      afterExtraContent={loadout}
+      selections={selections}
+      onSelectionChange={readOnly ? undefined : setSelections}
+      scalingParent={scalingParent}
+      status={condition}
+      onStatusClick={
+        readOnly
+          ? undefined
+          : () => {
+              onConditionChange(slug, CONDITION_CYCLE[condition])
+            }
+      }
+      footMeta={footMeta}
+      controls={controls.length > 0 ? controls : undefined}
+    />
   )
 }
 

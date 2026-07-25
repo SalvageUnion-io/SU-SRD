@@ -21,6 +21,7 @@
  */
 
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 
 import type { Mech } from '../../lib/schemas/mech'
 import { cn } from '../../lib/utils'
@@ -33,29 +34,38 @@ type MechIdentityPanelProps = {
   /** Resolved chassis display name (falls back to the raw ref upstream). */
   chassisName: string
   /** Chassis tech level; undefined renders as an em-dash. */
-  techLevel?: number
   /**
    * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
    * Edit/Done button (Phase 2: the chead row lives in the card, not here).
    */
-  editing?: boolean
   /** Partial merge on this mech; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch
+  /**
+   * Content below the chassis field (the chassis ability, which carries the
+   * chassis stats in its own header). The chassis NAME reads first and the
+   * card that elaborates it follows — same subject, in reading order.
+   */
+  after?: ReactNode
+  /**
+   * The field sharing the chassis's row (the mech's Quirk). Both are one-line
+   * values, so pairing them uses the row the half-width chassis field left
+   * empty rather than spending a whole row on each.
+   */
+  besideChassis?: ReactNode
   className?: string
 }
 
 export function MechIdentityPanel({
   mech,
   chassisName,
-  techLevel,
-  editing = false,
   patch,
+  after,
+  besideChassis,
   className,
 }: MechIdentityPanelProps) {
   const [chassisPickerOpen, setChassisPickerOpen] = useState(false)
 
   const canEdit = patch !== undefined
-  const isEditing = editing && canEdit
 
   /**
    * Persist the pattern name (required — never write empty). Name and pattern
@@ -80,19 +90,24 @@ export function MechIdentityPanel({
         <Field
           label="Pattern Name"
           value={mech.name}
-          editing={isEditing}
-          onSave={savePatternName}
+          onSave={canEdit ? savePatternName : undefined}
+          prominent
         />
-        {/* Secondary meta: chassis (picker-backed) + Tech Level (derived). */}
+        {/* Chassis (picker-backed). Tech Level is NOT here: it is inherent to
+            the chassis, never hand-set, and rendering it as a Field made it look
+            editable. It reads off the static-stats strip's TL box instead, with
+            the rest of the chassis-derived numbers. */}
+        {/* Half width: the chassis is a one-word picker value, and a full-bleed
+            box for it competed with the pattern name above. */}
         <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
           <Field
             label="Chassis"
             value={chassisName}
-            editing={isEditing}
-            onEditClick={() => setChassisPickerOpen(true)}
+            onEditClick={canEdit ? () => setChassisPickerOpen(true) : undefined}
           />
-          <Field label="Tech Level" value={techLevel !== undefined ? String(techLevel) : ''} />
+          {besideChassis}
         </div>
+        {after}
       </div>
 
       {/* Chassis swap — the existing confirmed destructive picker flow. */}

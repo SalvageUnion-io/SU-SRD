@@ -1,7 +1,7 @@
 import { forwardRef } from 'react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
-import { EDIT_CUE_CLASS } from '../shared/editLanguage'
+import { EDIT_CUE_HOVER_CLASS } from '../shared/editLanguage'
 import { Badge } from './Badge'
 import { InlineEditField } from './InlineEditField'
 import { INPUT_FOCUS } from './interaction'
@@ -30,14 +30,13 @@ type FieldStaticProps = FieldCommon & {
 /**
  * Edit-in-place / picker field (the merged `IdentityField`): renders a stored
  * `value` inside an ink-bordered value box under the same straddling stamp.
- * Read-only until `editing` unlocks the sheet's dashed "write here" cue (which
- * replaces the retired pen glyph as the editable affordance).
+ * ALWAYS editable when it is given a handler — there is no section Edit toggle
+ * to unlock first. The dashed "write here" cue appears on hover / focus rather
+ * than permanently, so a sheet of fields is not a sheet of dashes.
  */
 type FieldEditableProps = FieldCommon & {
-  /** Current stored value (shown read-only unless the section is editing). */
+  /** Current stored value. */
   value: string
-  /** Section-level edit flag (from the section's own Edit button). */
-  editing?: boolean
   /** Persist a freetext value — enables edit-in-place via `InlineEditField`. */
   onSave?: (next: string) => Promise<void> | void
   /**
@@ -50,6 +49,23 @@ type FieldEditableProps = FieldCommon & {
   /** Read-only placeholder when the value is empty. */
   placeholder?: string
   ariaLabel?: string
+  /**
+   * Grow to fill the height its parent gives it, instead of hugging one row.
+   * For the LAST field in a stretched card (the pilot's Bio), so the card's
+   * leftover height goes into a field the reader can actually use rather than
+   * sitting as dead paper under the last row.
+   *
+   * Read state: the value box and its readout stretch, and the text sits at the
+   * TOP (a long bio should start at the first line, not float mid-box). Edit
+   * state keeps the textarea's own row count — editing is transient.
+   */
+  fill?: boolean
+  /**
+   * Render the value at a larger rung. For the ONE field that names the thing
+   * the card is about (a mech's Pattern Name), so it reads as the subject
+   * rather than as a peer of the meta fields under it.
+   */
+  prominent?: boolean
 }
 
 type FieldProps = FieldStaticProps | FieldEditableProps
@@ -105,12 +121,13 @@ export function Field(props: FieldProps) {
 
   const {
     value,
-    editing = false,
     onSave,
     onEditClick,
     multiline = false,
     placeholder = '—',
     ariaLabel,
+    fill = false,
+    prominent = false,
   } = props
   const labelText = ariaLabel ?? (typeof label === 'string' ? label : '')
 
@@ -118,7 +135,7 @@ export function Field(props: FieldProps) {
     <span className={cn(STAMP_SEAM, 'left-2 flex w-fit items-center')}>{stampBadge}</span>
   )
   const valueSpan = (
-    <span className={cn('min-w-0 flex-1 truncate', value ? 'font-bold' : 'text-wk-muted')}>
+    <span className={cn('min-w-0 flex-1 truncate', value ? 'font-medium' : 'text-wk-muted')}>
       {value || placeholder}
     </span>
   )
@@ -129,12 +146,16 @@ export function Field(props: FieldProps) {
       <div className={cn('relative block', className)}>
         {stamp}
         {action}
-        {editing ? (
+        {onEditClick ? (
           <button
             type="button"
             aria-label={`Change ${labelText.toLowerCase()}`}
             onClick={onEditClick}
-            className={cn(FIELD_BOX, 'cursor-pointer text-left hover:bg-ink-8', EDIT_CUE_CLASS)}
+            className={cn(
+              FIELD_BOX,
+              'cursor-pointer text-left hover:bg-ink-8',
+              EDIT_CUE_HOVER_CLASS
+            )}
           >
             {valueSpan}
           </button>
@@ -146,9 +167,11 @@ export function Field(props: FieldProps) {
   }
 
   // ---- Edit-in-place: the InlineEditField engine inside the value box. --------
-  const editable = editing && onSave !== undefined
+  // A handler is the ONLY gate: if the caller can persist it, the reader can
+  // edit it. (This used to also require a section-level `editing` flag.)
+  const editable = onSave !== undefined
   return (
-    <div className={cn('relative block', className)}>
+    <div className={cn('relative block', fill && 'flex h-full flex-col', className)}>
       {stamp}
       {action}
       <InlineEditField
@@ -159,7 +182,16 @@ export function Field(props: FieldProps) {
         multiline={multiline}
         placeholder={placeholder}
         ariaLabel={`Edit ${labelText.toLowerCase()}`}
-        className={editable ? EDIT_CUE_CLASS : undefined}
+        // `fill` reaches the readout through the box's own class hook rather
+        // than a new InlineEditField prop: the box is a flex row, so stretching
+        // it and its child span is all the readout needs to fill.
+        className={cn(
+          editable && EDIT_CUE_HOVER_CLASS,
+          fill &&
+            'h-full flex-1 items-stretch [&>span]:h-full [&>span]:items-start [&>span]:py-2.5',
+          // Reaches the readout through the box's class hook, like `fill`.
+          prominent && '[&>span]:text-xl'
+        )}
       />
     </div>
   )

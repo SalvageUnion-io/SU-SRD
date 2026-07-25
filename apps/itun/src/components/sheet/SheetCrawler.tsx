@@ -28,12 +28,15 @@ import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
-import { RailChip } from './SheetRail'
-import { RailCta, RailStatLine } from './SheetRailParts'
-import { bayStates, mechRailItems, mechStatusPill, pilotRailItems } from './railStats'
+import { RailCta } from './SheetRailParts'
+import { AppLink } from '../shared/AppLink'
+import { bayStates, mechRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
+
+/** The Upgrade pool's cap (rules C4). */
+const UPGRADE_POOL_MAX = 30
 
 export function SheetCrawler({
   crawler,
@@ -90,7 +93,9 @@ export function SheetCrawler({
   // Crew are read-only readouts.
   const trading = bayGate(crawler, 'Trading Bay')
   const econItems: EconLozItem[] = [
-    ...(tl !== undefined ? [{ label: 'Tech LVL', value: tl, caption: 'Crawler' }] : []),
+    // Tech LVL is NOT here any more: it is the crawler's own rung, and it
+    // reads in the identity beside the crawler type. The economy rail keeps the
+    // things you SPEND (upkeep, upgrade pool, trade, crew).
     ...(tl !== undefined
       ? [
           {
@@ -107,19 +112,23 @@ export function SheetCrawler({
           },
         ]
       : []),
-    {
-      label: 'Upgrade',
-      value: crawler.upgradePool ?? 0,
-      max: 30,
-      caption: 'Pool',
-      action: editable
-        ? {
-            label: 'Fund',
-            ariaLabel: 'Upgrade Crawler',
-            onClick: () => setEconDialog('upgrade'),
-          }
-        : undefined,
-    },
+    // Upgrade is NOT a flat readout: it FILLS toward a cap, which is what a
+    // gauge shows and a number cannot. It renders as one below the SP gauge —
+    // its Fund action still collects into the foot row with the others.
+    ...(editable
+      ? [
+          {
+            label: 'Upgrade',
+            value: crawler.upgradePool ?? 0,
+            actionOnly: true,
+            action: {
+              label: 'Fund',
+              ariaLabel: 'Upgrade Crawler',
+              onClick: () => setEconDialog('upgrade'),
+            },
+          },
+        ]
+      : []),
     ...(trading.present && tl !== undefined
       ? [
           {
@@ -136,60 +145,79 @@ export function SheetCrawler({
           },
         ]
       : []),
-    ...(states.length > 0 ? [{ label: 'Crew', value: states.length, caption: 'Leads' }] : []),
   ]
 
-  // Unassign for the lead pilot's direct link (pilot-to-crawler) — always
-  // available on editable sheets per the unified edit language (no edit
-  // mode). The docked-mech chip is transitive (the lead pilot's mech) so
-  // it's nav-only.
-  const leadPilotLinkId = storeState.softLinks.find(
-    (l) =>
-      l.type === 'pilot-to-crawler' && l.to.id === crawler.id && l.from.id === composition.pilot?.id
-  )?.id
-  const unassignLeadPilot =
-    editable && leadPilotLinkId
-      ? () => void storeState.delete('softLink', leadPilotLinkId)
-      : undefined
+  // A crawler has no single "lead pilot" and no single docked mech: it is a
+  // home for a CREW. Both slots are lists — every pilot wired to this crawler,
+  // and every mech those pilots have — rather than the one-of-each the
+  // composition resolver picks out for the two-hop mech lookup.
+  const dockedMechs = composition.crawlerPilots
+    .map((crewPilot) => {
+      const link = storeState.softLinks.find(
+        (l) => l.type === 'mech-to-pilot' && l.to.id === crewPilot.id
+      )
+      return link ? storeState.get('mech', link.from.id) : null
+    })
+    .filter((m): m is NonNullable<typeof m> => m !== null)
+    // Deduped: two pilots may be wired to the same mech, which would otherwise
+    // render that mech twice (and collide on its React key).
+    .filter((m, i, all) => all.findIndex((other) => other.id === m.id) === i)
+
+  /** Unlink one pilot from this crawler (always available on editable sheets). */
+  function unlinkPilot(pilotId: string) {
+    const linkId = storeState.softLinks.find(
+      (l) => l.type === 'pilot-to-crawler' && l.to.id === crawler.id && l.from.id === pilotId
+    )?.id
+    return editable && linkId ? () => void storeState.delete('softLink', linkId) : undefined
+  }
 
   const rail = (
     <>
-      {composition.mech ? (
-        <RailChip
-          tone="mech"
-          roleLabel="Docked Mech"
-          name={composition.mech.name}
-          href={`/sheet/mech/${composition.mech.id}`}
-          status={mechStatusPill(composition.mech)}
-          stats={<RailStatLine items={mechRailItems(composition.mech)} />}
-        />
+      {dockedMechs.length > 0 ? (
+        dockedMechs.map((dockedMech) => (
+          <EntityRow
+            key={dockedMech.id}
+            entityType="mech"
+            className="flex-[1_1_0%]"
+            name={dockedMech.name}
+            sheetHref={`/sheet/mech/${dockedMech.id}`}
+            linkAs={AppLink}
+            meta="Docked Mech"
+            metaLine={mechStatusPill(dockedMech).label}
+            stats={rowStats(mechRailItems(dockedMech))}
+          />
+        ))
       ) : (
         <EntityRow
           empty
           entityType="mech"
           className="flex-[1_1_0%]"
-          roleLabel="Docked Mech"
-          message="No mech in the bay — dock one to repair, re-arm and track it from here."
+          roleLabel="Docked Mechs"
+          message="No mechs in the bay — dock one to repair, re-arm and track it from here."
           actions={editable ? <RailCta href="/mechs/new" label="+ Create" primary /> : undefined}
         />
       )}
-      {composition.pilot ? (
-        <RailChip
-          tone="pilot"
-          roleLabel="Lead Pilot"
-          name={composition.pilot.name}
-          href={`/sheet/pilot/${composition.pilot.id}`}
-          status={{ label: 'Active', tone: 'pilot' }}
-          stats={<RailStatLine items={pilotRailItems(composition.pilot)} />}
-          onUnassign={unassignLeadPilot}
-        />
+      {composition.crawlerPilots.length > 0 ? (
+        composition.crawlerPilots.map((crewPilot) => (
+          <EntityRow
+            key={crewPilot.id}
+            entityType="pilot"
+            className="flex-[1_1_0%]"
+            name={crewPilot.name}
+            sheetHref={`/sheet/pilot/${crewPilot.id}`}
+            linkAs={AppLink}
+            meta="Pilot"
+            stats={rowStats(pilotRailItems(crewPilot))}
+            onDeleteClick={unlinkPilot(crewPilot.id)}
+          />
+        ))
       ) : (
         <EntityRow
           empty
           entityType="pilot"
           className="flex-[1_1_0%]"
-          roleLabel="Lead Pilot"
-          message="No lead pilot set. Assign a crew member to speak for the crawler."
+          roleLabel="Pilots"
+          message="No pilots wired to this crawler yet."
           actions={editable ? <RailCta href="/pilots/new" label="+ Create" primary /> : undefined}
         />
       )}
@@ -218,6 +246,16 @@ export function SheetCrawler({
           onRevertOverride={
             editable ? () => overrideCrawlerMax({ maxSpModifier: undefined }) : undefined
           }
+          readOnly={!editable}
+        />
+      }
+      upgrade={
+        <VitalGauge
+          label="Upgrade"
+          subLabel="Pool"
+          value={crawler.upgradePool ?? 0}
+          max={UPGRADE_POOL_MAX}
+          onChange={editable ? (v) => patch({ upgradePool: v }) : undefined}
           readOnly={!editable}
         />
       }

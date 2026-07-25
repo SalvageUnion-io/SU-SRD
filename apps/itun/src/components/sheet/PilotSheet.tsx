@@ -14,9 +14,11 @@
  *   - Inventory (full-width band) — equipment cards + generic entries.
  *   - Linked Units — the assigned-mech / home-crawler rail.
  *
- * Every collection section is framed by `SheetSectionCard` (the poster
- * `.dcard`), except Linked Units which the poster renders as a bare `.sect`
- * header + rail stack (no card frame).
+ * Section containers follow the card-vs-slab rule (see `SheetSectionSlab`):
+ * a section of inputs/gauges is a CARD (here, the identity band), a section of
+ * entity cards is a SLAB (Abilities, Inventory, Linked Units) — cards already
+ * carry their own frame, so a second frame around them reads as one opaque
+ * block.
  *
  * Dropped (redesign D6 — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
@@ -54,11 +56,11 @@ import { EntitySearcher } from 'component-lib'
 import { useSoftLinks } from '../wiring/useSoftLinks'
 import { ConditionsEditor } from 'component-lib'
 import { destroyedUndoToast } from './destroyedUndoToast'
-import { EntityGrid, EntityGridRow } from 'component-lib'
+import { EntityGridRow, MasonryColumns } from 'component-lib'
 import { PilotIdentityPanel } from './PilotIdentity'
 import type { UsedToggleKey } from './PilotIdentity'
-import { SectionAddButton, SectionEditButton, SheetPickerModal, Slab } from 'component-lib'
-import { SheetSectionCard } from 'component-lib'
+import { SectionManageButton, SheetPickerModal } from 'component-lib'
+import { SheetSectionSlab, Slab } from 'component-lib'
 import { pilotInventoryCapacity, pilotInventoryUsed, resolveEquipment } from './pilotInventory'
 import type { SheetPatch } from './sheetViewProps'
 import {
@@ -68,6 +70,15 @@ import {
   PilotEquipmentItem,
 } from './PilotSheetItems'
 import { resolveAbility } from './pilotAbilities'
+
+/**
+ * The tree every pilot has regardless of class (Repair, Scrap, Mount, …).
+ *
+ * It is INTRINSIC, not chosen: it is never offered in the abilities picker and
+ * never stored in `pilot.abilities`. The sheet renders it from reference data,
+ * as its own tree above the class trees.
+ */
+const GENERIC_TREE = 'Generic'
 
 // ---------------------------------------------------------------------------
 // TpBlock — pilot Training Points, in the Vitals card's dashed-topped `.vrow`
@@ -79,7 +90,8 @@ import { resolveAbility } from './pilotAbilities'
 // `Stat` `size="full"` is stamp / 26px numeral / bottom stamp with the +/-
 // stepper column, which is the same anatomy the HP and AP gauges above it
 // already use. `ariaLabel` keeps the unbounded-counter accessible contract
-// (role="group" named "TP {value}", Increase/Decrease TP steppers).
+// (role="group" named "Training Points {value}", with Increase/Decrease
+// Training Points steppers — the visible label is split across the two lines).
 // ---------------------------------------------------------------------------
 
 function TpBlock({
@@ -93,11 +105,14 @@ function TpBlock({
 }) {
   return (
     <Stat
-      label="TP"
+      label="Training"
       value={value}
-      bottomLabel="Training Points"
+      bottomLabel="Points"
       size="full"
-      ariaLabel={`TP ${value}`}
+      ariaLabel={`Training Points ${value}`}
+      // Without this the steppers would read "Increase Training" — the label is
+      // now only the first half of the two-line readout.
+      stepperLabel="Training Points"
       mode={editable ? 'edit' : 'read'}
       onChange={editable ? onChange : undefined}
     />
@@ -118,9 +133,9 @@ type PilotSheetProps = {
   /** When true, every edit affordance is suppressed (published snapshots). */
   readOnly?: boolean
   /**
-   * Condense sentinel from the LiveSheet shell — wraps the identity band (the
-   * body's first region) so the sticky bar still condenses when it scrolls
-   * away. Undefined in bare test renders (no shell).
+   * Marks the body's first region. VESTIGIAL: the sticky bar condenses off its
+   * own 1px sentinel now, so nothing observes this. Undefined in bare test
+   * renders (no shell).
    */
   heroRef?: Ref<HTMLElement>
   /**
@@ -144,7 +159,6 @@ export function PilotSheet({
   const [picker, setPicker] = useState<'abilities' | 'equipment' | null>(null)
   // Identity is a FIELD section (unified edit language archetype A): its own
   // Edit/Done toggle, now rendered in the SheetSectionCard header (Phase 2).
-  const [identityEditing, setIdentityEditing] = useState(false)
 
   // Soft warnings (REQ-012, ADR-021) on BUILD edits only — ability add/remove
   // and the class change. Advisory, never blocking: a clean edit saves straight
@@ -209,6 +223,10 @@ export function PilotSheet({
   // edit-mode logic AbilitiesStep used, now feeding the shared searcher's filter.
   // Computed only while the Abilities picker is open: it reads the reference ORM,
   // which read-only snapshot renders never preload (the picker never opens there).
+  //
+  // GENERIC is deliberately NOT in this set: those abilities are intrinsic to
+  // every pilot rather than chosen, so they are never offered for selection —
+  // they are rendered from reference data in their own tree below.
   const abilityTrees = useMemo(() => {
     if (picker !== 'abilities') return null
     const cls: ClassLike | undefined = SalvageUnionReference.Classes.find(
@@ -220,6 +238,48 @@ export function PilotSheet({
       .map((a) => a.tree)
     return new Set(treesFor(cls, true, selectedTrees))
   }, [picker, pilot.classRef, pilot.abilities])
+
+  // Learned abilities grouped by tree — the section renders one sub-slab per
+  // tree rather than one flat grid. Generic is excluded here and sourced
+  // separately: it is intrinsic, so a pilot never "has" it in `abilities`.
+  const abilityGroups = useMemo(() => {
+    // Keyed by the STORED slug, not `ability.id`: `pilot.abilities` (and
+    // `usedAbilities`, and every handler) speak slugs, and the two are not the
+    // same string — grouping by id silently broke the used/recharge lookups.
+    const byTree = new Map<string, { slug: string; ability: SURefAbility }[]>()
+    for (const slug of pilot.abilities) {
+      const ability = resolveAbility(slug)
+      if (!ability || ability.tree === GENERIC_TREE) continue
+      const entry = { slug, ability }
+      const list = byTree.get(ability.tree)
+      if (list) list.push(entry)
+      else byTree.set(ability.tree, [entry])
+    }
+    return { trees: [...byTree.entries()] }
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- keyed on the slug list; resolveAbility is a pure ORM lookup
+  }, [pilot.abilities])
+
+  /**
+   * The Generic tree — EVERY pilot has all of it, so it is read from the
+   * reference data rather than from `pilot.abilities` (which only ever holds
+   * chosen, class-tree abilities). Keyed by `ability.id`, which `resolveAbility`
+   * accepts, so the used/recharge toggles persist like any other ability.
+   *
+   * Guarded: read-only snapshot renders may not have preloaded the ORM, and a
+   * missing catalog should drop the section, not throw the sheet.
+   */
+  const genericAbilities = useMemo(() => {
+    try {
+      return SalvageUnionReference.Abilities.all()
+        .filter((ability) => ability.tree === GENERIC_TREE)
+        .map((ability) => ({ slug: ability.id, ability }))
+    } catch {
+      return []
+    }
+  }, [])
+
+  /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
+  const unresolvedAbilities = pilot.abilities.filter((slug) => !resolveAbility(slug))
 
   const maxHP = Math.max(0, pilotMaxHP(pilot))
   const maxAP = Math.max(0, pilotMaxAP(pilot))
@@ -351,6 +411,24 @@ export function PilotSheet({
     await storeState.update('pilot', pilot.id, { genericInventory: next })
   }
 
+  /** One learned ability card — identical wherever its tree puts it. */
+  function renderAbility({ slug, ability }: { slug: string; ability: SURefAbility }) {
+    return (
+      <PilotAbilityItem
+        ability={ability}
+        currentAP={pilot.currentAP ?? pilotMaxAP(pilot)}
+        used={pilot.usedAbilities?.includes(slug) ?? false}
+        onSpend={(cost) => {
+          void handleSpendAP(cost)
+        }}
+        onToggleUsed={(next) => {
+          void handleAbilityUsedChange(slug, next)
+        }}
+        readOnly={readOnly}
+      />
+    )
+  }
+
   return (
     <section
       aria-label={`${pilot.name} pilot details`}
@@ -379,7 +457,7 @@ export function PilotSheet({
       {/* ===== Identity Band (Workshop-Manual pilot sheet top region) =====
           Edge wordmark ∥ identity fields ∥ HP/AP/TP + Conditions vitals rail,
           in one toned frame — the printed pilot sheet's top band. Carries the
-          shell's condense sentinel (heroRef). */}
+          shell's `heroRef` (vestigial — the bar's own sentinel drives condense now). */}
       <SheetHero
         heroRef={heroRef}
         cat="Pilot"
@@ -391,19 +469,9 @@ export function PilotSheet({
             </Badge>
           ) : undefined
         }
-        controls={
-          !readOnly ? (
-            <SectionEditButton
-              section="Identity"
-              editing={identityEditing}
-              onToggle={() => setIdentityEditing((v) => !v)}
-            />
-          ) : undefined
-        }
         fields={
           <PilotIdentityPanel
             pilot={pilot}
-            editing={identityEditing}
             onToggleUsed={readOnly ? undefined : toggleUsed}
             patch={readOnly ? undefined : patchPilot}
           />
@@ -442,88 +510,104 @@ export function PilotSheet({
               }
               readOnly={readOnly}
             />
-            <TpBlock
-              value={tp}
-              onChange={readOnly ? undefined : (v) => patchPilot({ trainingPoints: v })}
-              editable={!readOnly}
-            />
-            <div className="w-full min-w-0">
-              <span
-                className="mb-2 block font-cond text-label font-bold uppercase leading-none tracking-caps"
-                style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-              >
-                Conditions
-              </span>
-              <ConditionsEditor
-                conditions={pilot.conditions}
-                onChange={handleConditionsChange}
-                readOnly={readOnly}
+            {/* TP and Conditions SHARE a row. Stacked, the vitals column ran
+                well past the identity card beside it; TP is a single narrow
+                plate and Conditions is a short chip list, so neither needs a
+                full row of its own and pairing them squares the two cards up. */}
+            <div className="flex w-full min-w-0 items-start gap-3">
+              <TpBlock
+                value={tp}
+                onChange={readOnly ? undefined : (v) => patchPilot({ trainingPoints: v })}
+                editable={!readOnly}
               />
+              <div className="min-w-0 flex-1">
+                <span
+                  className="mb-2 block font-cond text-label font-bold uppercase leading-none tracking-caps"
+                  style={{ color: 'var(--tone-deep, var(--color-ink))' }}
+                >
+                  Conditions
+                </span>
+                <ConditionsEditor
+                  conditions={pilot.conditions}
+                  onChange={handleConditionsChange}
+                  readOnly={readOnly}
+                />
+              </div>
             </div>
           </div>
         }
       />
 
-      {/* ===== Abilities (full width, 3-column card grid — printed pilot sheet) ===== */}
-      <SheetSectionCard
+      {/* ===== Abilities — one sub-slab per ABILITY TREE =====
+          A SLAB, not a card: the grid is entity cards, which carry their own
+          frame. Inside it the abilities group by tree, because a pilot's
+          abilities ARE a set of trees and a flat grid lost that: GENERIC (the
+          eight every pilot can take) reads as a full-width row of its own, then
+          each class tree takes a single column, three trees to a row. The
+          per-tree leader is the DASHED `Slab`, subordinate to the section's own
+          solid stamp. */}
+      <SheetSectionSlab
         title="Abilities"
-        count={
-          <Stat
-            orientation="horizontal"
-            size="compact"
-            label="Known"
-            value={pilot.abilities.length}
-          />
-        }
+        count={`${pilot.abilities.length} known`}
         controls={
           readOnly ? undefined : (
-            <SectionAddButton label="ability" onClick={() => setPicker('abilities')} />
+            <SectionManageButton label="abilities" onClick={() => setPicker('abilities')} />
           )
         }
       >
-        {pilot.abilities.length === 0 ? (
+        {pilot.abilities.length === 0 && genericAbilities.length === 0 ? (
           <p className="font-body text-caption text-wk-muted">No abilities learned yet.</p>
         ) : (
-          <EntityGrid columns={3}>
-            {pilot.abilities.map((slug) => {
-              const ability = resolveAbility(slug)
-              if (!ability) {
-                return (
-                  <EntityGridRow key={slug}>
-                    <Panel className="px-3 py-2.5 font-body text-sm text-wk-muted">{slug}</Panel>
-                  </EntityGridRow>
-                )
-              }
-              return (
-                <EntityGridRow key={ability.id}>
-                  <PilotAbilityItem
-                    ability={ability}
-                    currentAP={pilot.currentAP ?? pilotMaxAP(pilot)}
-                    used={pilot.usedAbilities?.includes(slug) ?? false}
-                    onSpend={(cost) => {
-                      void handleSpendAP(cost)
-                    }}
-                    onToggleUsed={(next) => {
-                      void handleAbilityUsedChange(slug, next)
-                    }}
-                    onRemove={
-                      readOnly
-                        ? undefined
-                        : () => {
-                            toggleAbility(slug)
-                          }
-                    }
-                    readOnly={readOnly}
-                  />
-                </EntityGridRow>
-              )
-            })}
-          </EntityGrid>
+          <div className="flex flex-col gap-5">
+            {genericAbilities.length > 0 && (
+              <div>
+                {/* No count: the class trees show how many you have TAKEN,
+                    which is a number worth reading. Generic is intrinsic and
+                    fixed, so a tally beside it is noise. */}
+                <Slab label={GENERIC_TREE} />
+                <MasonryColumns maxColumns={3}>
+                  {genericAbilities.map((entry) => (
+                    <EntityGridRow key={entry.slug}>{renderAbility(entry)}</EntityGridRow>
+                  ))}
+                </MasonryColumns>
+              </div>
+            )}
+
+            {abilityGroups.trees.length > 0 && (
+              // One COLUMN per tree, three to a row — a tree's abilities stack
+              // under their own leader instead of being interleaved with
+              // another tree's by a masonry flow.
+              <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 xl:grid-cols-3">
+                {abilityGroups.trees.map(([tree, entries]) => (
+                  <div key={tree} className="min-w-0">
+                    <Slab label={tree} count={entries.length} />
+                    <div className="flex flex-col gap-4">
+                      {entries.map((entry) => (
+                        <div key={entry.slug} className="min-w-0">
+                          {renderAbility(entry)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {unresolvedAbilities.length > 0 && (
+              <div className="flex flex-col gap-2">
+                {unresolvedAbilities.map((slug) => (
+                  <Panel key={slug} className="px-3 py-2.5 font-body text-sm text-wk-muted">
+                    {slug}
+                  </Panel>
+                ))}
+              </div>
+            )}
+          </div>
         )}
-      </SheetSectionCard>
+      </SheetSectionSlab>
 
       {/* ===== Inventory (full-width band, printed pilot sheet bottom) ===== */}
-      <SheetSectionCard
+      <SheetSectionSlab
         title="Inventory"
         count={
           <span className={overCapacity ? 'text-status-bad' : undefined}>
@@ -532,14 +616,14 @@ export function PilotSheet({
         }
         controls={
           readOnly ? undefined : (
-            <SectionAddButton label="equipment" onClick={() => setPicker('equipment')} />
+            <SectionManageButton label="equipment" onClick={() => setPicker('equipment')} />
           )
         }
       >
         {pilot.equipment.length === 0 && genericInventory.length === 0 ? (
           <p className="font-body text-caption text-wk-muted">Nothing carried.</p>
         ) : (
-          <EntityGrid>
+          <MasonryColumns maxColumns={2}>
             {pilot.equipment.map((slug) => (
               <EntityGridRow key={slug}>
                 <PilotEquipmentItem
@@ -584,7 +668,7 @@ export function PilotSheet({
                 />
               </EntityGridRow>
             ))}
-          </EntityGrid>
+          </MasonryColumns>
         )}
         {!readOnly && (
           <div className="mt-3">
@@ -595,15 +679,20 @@ export function PilotSheet({
             />
           </div>
         )}
-      </SheetSectionCard>
+      </SheetSectionSlab>
 
-      {/* ===== R4: Linked Units (full width, stacked beneath all other sections) ===== */}
-      <div>
-        {/* Linked Units — poster renders this as a bare section header + rail
-            stack (no `.dcard` frame), unlike Identity/Vitals/Abilities/Inventory. */}
-        <Slab variant="solid" label="Linked Units" />
-        <div className="flex flex-col gap-4">{linkedUnits}</div>
-      </div>
+      {/* ===== R4: Linked Units (full width, stacked beneath all other sections) =====
+          Already a bare slab leader + rail stack in the poster; now expressed
+          through the shared slab container like every other card section. */}
+      <SheetSectionSlab
+        id="linked-units"
+        title="Linked Units"
+        // Side by side: each linked unit is one roster row, and two of them stack
+        // to a wasteful column on a sheet that has the width for both.
+        bodyClassName="flex flex-col gap-4 @3xl:flex-row"
+      >
+        {linkedUnits}
+      </SheetSectionSlab>
 
       {/* The ONE shared picker modal — abilities & equipment '+ Add' both open
           it (multi-select grids write through on toggle; no Save button). */}

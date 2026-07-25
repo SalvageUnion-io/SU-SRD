@@ -85,7 +85,12 @@ type LiveSheetProps = {
   /** Condensed-bar MiniStat readouts (values live, from the entity record). */
   strip?: LiveSheetStripItem[]
   back?: { href: string; label: string }
-  /** Kind/status pill shown next to the name stamp in the condensed bar. */
+  /**
+   * Kind/status pill. NO LONGER RENDERED in the bar: the gutter wordmark names
+   * the sheet's kind permanently, and repeating it in the condensed bar said
+   * the same word twice on one screen. Kept on the type because callers still
+   * pass it and a status pill may earn a place here later.
+   */
   pill?: { label: string; tone?: BadgeTone }
   /** Linked-entity rail content (RailChip / RailEmpty row) — slotted into the hero by the caller. */
   rail?: ReactNode
@@ -147,7 +152,6 @@ export function LiveSheet({
   name,
   strip = [],
   back,
-  pill,
   rail,
   segments,
   condense = true,
@@ -158,7 +162,16 @@ export function LiveSheet({
   className,
 }: LiveSheetProps) {
   const heroRef = useRef<HTMLElement | null>(null)
-  const condensed = useCondensed(heroRef, condense)
+  // A 1px sentinel directly beneath the bar, NOT the identity block: the bar
+  // should seam and fill the moment you scroll past IT, rather than waiting for
+  // a whole region to clear the viewport.
+  //
+  // `heroRef` below is now VESTIGIAL: it is still created, handed to the body
+  // and attached by each sheet to its first region, but nothing observes it any
+  // more. Left in place rather than unpicked across eight files at the end of
+  // this pass; removing it is a mechanical follow-up.
+  const topRef = useRef<HTMLDivElement | null>(null)
+  const condensed = useCondensed(topRef, condense)
 
   const stripItems = strip.map((item) => ({
     ...item,
@@ -171,13 +184,28 @@ export function LiveSheet({
       style={{ background: 'var(--ground)' }}
       data-variant={variant}
     >
-      {/* Top bar — <header> is a print-stylesheet target (nav-hide rule). */}
+      {/* Top bar — <header> is a print-stylesheet target (nav-hide rule).
+          Always present (its back/share/overflow controls are always wanted),
+          but UNSEAMED at rest: no bottom border while the sheet's own identity
+          block is still on screen, so the bar reads as part of the page rather
+          than as a lid on it. Scrolling past that block draws the border (and
+          the drop shadow) and fades in the condensed name + vitals.
+
+          `z-40`, above the entity cards' control rails (`z-30`): those rails
+          ride their card's top edge and were sliding OVER the sticky bar as
+          they scrolled under it.
+
+          Tinted with the same wash the ENTITY ROWS use — a 10% tone over paper,
+          not the full tone — so it reads as this entity's chrome without
+          fighting the ink on it. */}
       <header
         className={cn(
-          'sticky top-0 z-20 flex min-h-[58px] flex-wrap items-center gap-x-4 gap-y-1 border-b-2 border-ink px-4 py-2 sm:px-[30px]',
-          condensed && 'shadow-[0_2px_0_var(--color-ink),0_14px_20px_-18px_var(--color-ink-50)]'
+          'sticky top-0 z-40 flex min-h-[58px] flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2 transition-[border-color,box-shadow] duration-150 sm:px-[30px]',
+          condensed
+            ? 'border-b-2 border-ink shadow-[0_2px_0_var(--color-ink),0_14px_20px_-18px_var(--color-ink-50)]'
+            : 'border-b-2 border-transparent'
         )}
-        style={{ background: 'var(--ground-2)' }}
+        style={{ background: 'color-mix(in srgb, var(--tone) 10%, var(--color-paper))' }}
       >
         {back && (
           <>
@@ -190,15 +218,6 @@ export function LiveSheet({
             >
               <ArrowLeft className="size-[18px]" aria-hidden="true" />
             </AppLink>
-            {/* SU cargo mark anchors the sheet's own chrome; the global
-                AppHeader (brand chrome) sits above this sticky bar. */}
-            <img
-              src="/logos/su-cargo-dark.svg"
-              alt=""
-              width={28}
-              height={28}
-              className="block size-7 shrink-0 rounded-[2px]"
-            />
           </>
         )}
 
@@ -220,11 +239,6 @@ export function LiveSheet({
             <Badge shape="stamp" size="full" className="block max-w-full truncate">
               {name}
             </Badge>
-            {pill && (
-              <Badge surface={pill.tone ? 'tone' : 'outline'} tone={pill.tone}>
-                {pill.label}
-              </Badge>
-            )}
             {stripItems.map((item) => (
               <Stat
                 key={item.key}
@@ -239,7 +253,32 @@ export function LiveSheet({
           </div>
         )}
 
-        <div className="ml-auto flex shrink-0 items-center gap-2.5">{actions}</div>
+        {/* One badge PER LINKED UNIT, on the right beside the sheet actions —
+            a hop straight to that pilot / mech / crawler, not a jump link to a
+            section at the foot of the page. They ride the condensed state with
+            the name and vitals: at rest the linked units are on screen in their
+            own section, so the bar has nothing to add.
+
+            `segments` already carries the wired set (it drives the mobile
+            switcher below); the active one is this sheet, so it is skipped. */}
+        <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">
+          {condensed &&
+            segments
+              ?.filter((segment) => !segment.active)
+              .map((segment) => (
+                <AppLink
+                  key={segment.key}
+                  href={segment.href}
+                  className="no-underline"
+                  aria-label={`Open the wired ${segment.label.toLowerCase()}`}
+                >
+                  <Badge shape="chip" surface="outline">
+                    {segment.label}
+                  </Badge>
+                </AppLink>
+              ))}
+          <div className="flex shrink-0 items-center gap-2.5">{actions}</div>
+        </div>
 
         {/* Mobile segmented Pilot/Mech/Crawler switch (design §3.7) — full-width
             second row inside the sticky bar so it stays thumb-reachable. The
@@ -279,6 +318,10 @@ export function LiveSheet({
         )}
       </header>
 
+      {/* Condense sentinel — the moment this scrolls under the sticky bar, the
+          bar seams (border + shadow) and fills (name + vitals). */}
+      <div ref={topRef} aria-hidden="true" className="h-px w-full" />
+
       {/* Hero band — the rail is passed through so the hero slots it inside
           its own frame (design: hero rail strip sits under the band, inside
           the 3px entity border). Optional: Workshop-Manual sheets own their
@@ -292,13 +335,46 @@ export function LiveSheet({
       {/* Body slabs — extra phone bottom padding when the FAB floats so the
           last card's controls stay reachable behind the thumb zone. When the
           body owns the hero (no renderHero), it takes the hero's top padding. */}
-      <div
-        className={cn(
-          'px-4 pb-[34px] sm:px-[30px] sm:pb-[60px]',
-          renderHero ? 'pt-[18px] sm:pt-6' : 'pt-4 sm:pt-[22px]'
-        )}
-      >
-        {renderBody({ heroRef })}
+      <div className="relative">
+        {/* Edge wordmark — PILOT / MECH / CRAWLER running up the page gutter.
+            It sits in the shell's own padding, outside the content column, so
+            it differentiates the sheet at a glance without taking part in (or
+            stealing width from) the content. Sticky, so it stays with you as
+            the sheet scrolls. Hidden below xl, where the gutter is only wide
+            enough for the content's own breathing room. */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 hidden w-[68px] select-none xl:block"
+        >
+          {/* The glyphs are as tall as the gutter is wide — in vertical writing
+              the font-size IS the column width, so one value drives both and the
+              wordmark can never outgrow or rattle around in its channel.
+              It sticks BELOW the bar (`top-[58px]`, the bar's own min-height)
+              so it travels with the sheet instead of scrolling away: the block
+              runs bottom-to-top, so its top edge is the word's LAST letter,
+              which sits tucked right under the bar. */}
+          <span
+            className={cn(
+              'sticky top-[58px] block rotate-180 text-center font-cond font-extrabold uppercase leading-none tracking-caps-tight opacity-45 [writing-mode:vertical-rl]',
+              // In vertical writing the font-size IS the column width, so this is
+              // the gutter's own dimension expressed as type, not a reading on the
+              // scale: it must track the `w-[68px]` channel above, and any ladder
+              // rung would overflow the gutter or leave the wordmark rattling in it.
+              'text-[68px]' // design-tokens-ignore: gutter width, not a type rung
+            )}
+            style={{ color: 'var(--tone-deep)' }}
+          >
+            {variant}
+          </span>
+        </span>
+        <div
+          className={cn(
+            'px-4 pb-[34px] sm:px-[30px] sm:pb-[60px] xl:pl-[84px]',
+            renderHero ? 'pt-[18px] sm:pt-6' : 'pt-4 sm:pt-[22px]'
+          )}
+        >
+          {renderBody({ heroRef })}
+        </div>
       </div>
     </div>
   )

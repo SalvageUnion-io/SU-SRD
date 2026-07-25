@@ -141,7 +141,9 @@ export function InlineEditField({
           // The display state is the tap target that opens the editor, so it
           // keeps a 44px minimum in BOTH layouts — dropping to min-h-9 would
           // have silently shrunk it below the touch target.
-          'inline-flex min-h-11 items-center font-body font-bold text-ink',
+          // font-medium, not bold: a sheet is mostly filled-in fields, and at
+          // bold every value competed with the ink stamps labelling it.
+          'inline-flex min-h-11 items-center font-body font-medium text-ink',
           // Bordered mode fills its value box; plain mode stays inline.
           bordered && 'w-full rounded-card px-3',
           !hasValue && 'font-normal text-wk-muted',

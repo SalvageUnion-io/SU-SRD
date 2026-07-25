@@ -287,7 +287,7 @@ describe('Sheet — crawler+pilots wired composition', () => {
     expect(screen.getAllByText(/The Hive/).length).toBeGreaterThan(0)
   })
 
-  test('lead pilot (first wired) appears in the rail chip', () => {
+  test('a wired pilot appears as a linked row', () => {
     render(
       <Sheet
         kind="crawler"
@@ -299,7 +299,7 @@ describe('Sheet — crawler+pilots wired composition', () => {
     expect(screen.getAllByText(/Desta Oryn/).length).toBeGreaterThan(0)
   })
 
-  test('non-lead pilots do not render — the rail carries only the lead (design §4.4)', () => {
+  test('EVERY wired pilot renders — a crawler is a home for a crew, not a lead', () => {
     render(
       <Sheet
         kind="crawler"
@@ -308,7 +308,8 @@ describe('Sheet — crawler+pilots wired composition', () => {
         softLinkStore={makeSoftLinkStore([pilot1ToCrawlerLink, pilot2ToCrawlerLink])}
       />
     )
-    expect(screen.queryByText(/Hann Vex/)).toBeNull()
+    // A crawler has no single "lead pilot": both wired pilots get a row.
+    expect(screen.getAllByText(/Hann Vex/).length).toBeGreaterThan(0)
   })
 
   test('lead-pilot RailEmpty not rendered when pilots are wired', () => {

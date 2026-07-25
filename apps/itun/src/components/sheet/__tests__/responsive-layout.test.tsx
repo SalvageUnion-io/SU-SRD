@@ -153,8 +153,11 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
     const flow = container.querySelector('section[aria-label$="crawler sheet"] > div')
     expect(flow).toBeTruthy()
     expect((flow as HTMLElement).className).toContain('flex-col')
-    // The Storage Bay band is present.
-    expect(container.textContent).toContain('Storage Bay')
+    // The storage band is present. Asserted on its CONTENT rather than the
+    // words "Storage Bay": storage now renders inside the Storage Bay's own bay
+    // card when that bay is installed, and as a standalone band when it is not
+    // (this fixture has no bays). The scrap pool is in the band either way.
+    expect(container.textContent).toContain('Scrap Pool')
   })
 })
 

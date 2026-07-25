@@ -194,6 +194,15 @@ type HorizontalValueProps = Exact<{
 /** [box] the default centred value box; `mode="edit"` adds steppers (former StatControl). */
 type ValueBoxProps = Exact<{
   label: StatValue
+  /**
+   * Accessible-name stem for the +/- buttons, exactly as on the horizontal
+   * anatomy — `Decrease {stepperLabel}` / `Increase {stepperLabel}`, defaulting
+   * to `label`. It was declared on the horizontal anatomy only, so `Exact<>`
+   * forbade it here even though both rungs render steppers; a box whose visible
+   * `label` is one half of a two-line readout ('TRAINING' over 'POINTS') had no
+   * way to name its steppers with the whole phrase.
+   */
+  stepperLabel?: string
   orientation?: 'vertical'
   value?: StatValue
   max?: number
@@ -460,6 +469,7 @@ function HorizontalValue({
  * ------------------------------------------------------------------ */
 function ValueBox({
   label,
+  stepperLabel,
   value,
   max,
   min = 0,
@@ -666,7 +676,7 @@ function ValueBox({
         <div className="flex flex-col justify-center gap-0.5">
           <button
             type="button"
-            aria-label={`Increase ${label}`}
+            aria-label={`Increase ${stepperLabel ?? label}`}
             onClick={() =>
               onChange?.(max !== undefined ? Math.min(max, numericValue + 1) : numericValue + 1)
             }
@@ -679,7 +689,7 @@ function ValueBox({
           </button>
           <button
             type="button"
-            aria-label={`Decrease ${label}`}
+            aria-label={`Decrease ${stepperLabel ?? label}`}
             onClick={() => onChange?.(Math.max(min, numericValue - 1))}
             disabled={atMin}
             className={`flex min-h-11 min-w-11 items-center justify-center rounded-badge border-chrome font-body font-bold leading-none transition-colors sm:min-h-0 sm:min-w-0 ${btnSize} ${btnResting} ${

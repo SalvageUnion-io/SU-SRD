@@ -4,7 +4,7 @@
  * Auto-Turret). These equipment entities carry their own systemSlots/moduleSlots,
  * so they host a real loadout the same way a mech does.
  *
- * Reuses the exact mech loadout stack — SheetSectionCard + SectionAddButton +
+ * Reuses the exact mech loadout stack — SheetSectionCard + SectionManageButton +
  * SheetPickerModal + EntitySearcher (mode="count") for editing, and MechItemCard
  * for each installed item (status cycle + uses stepper + repair + remove) —
  * writing through `pilot.equipmentLoadouts[slug]` via useEquipmentLoadout. There
@@ -19,11 +19,11 @@ import { useEquipmentLoadout } from '../shared/useEquipmentLoadout'
 import type { EquipmentLoadout } from '../shared/useEquipmentLoadout'
 import type { useEntityStore } from '../../stores/entityStore'
 import { EntitySearcher } from 'component-lib'
-import { EntityGrid, EntityGridRow } from 'component-lib'
+import { EntityGridRow } from 'component-lib'
 import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
-import { SectionAddButton, SheetPickerModal } from 'component-lib'
-import { SheetSectionCard } from 'component-lib'
+import { SectionManageButton, SheetPickerModal } from 'component-lib'
+import { SheetSectionSlab } from 'component-lib'
 
 /** Read a numeric slot field off the drone-equipment entity, defaulting to 0. */
 function slotMax(equipment: Record<string, unknown>, field: 'systemSlots' | 'moduleSlots'): number {
@@ -73,7 +73,11 @@ export function PilotEquipmentLoadout({
     }
     const conditions = kind === 'system' ? loadout.systemConditions : loadout.moduleConditions
     return (
-      <EntityGrid>
+      // A SINGLE column, not the shared 2-up grid: this list is nested two
+      // levels deep (inside a drone's slab, inside the drone's own card, inside
+      // the Inventory slab), so by the time it renders it has roughly half a
+      // sheet's width to work with and a second column would crush each card.
+      <div className="flex min-w-0 flex-col gap-4">
         {slugs.map((itemSlug, index) => {
           const condition = conditions?.[itemSlug] ?? 'intact'
           return (
@@ -106,14 +110,20 @@ export function PilotEquipmentLoadout({
             </EntityGridRow>
           )
         })}
-      </EntityGrid>
+      </div>
     )
   }
 
   return (
-    <div className="mt-3 flex flex-col gap-3">
+    // Rendered INSIDE the host equipment card (see PilotEquipmentItem), so
+    // these are SLABS, not cards: a card frame here would be a third enclosure
+    // nested inside the equipment card's own. They start COLLAPSED — a drone's
+    // loadout is detail you open when you want it, not something that should
+    // push the rest of the inventory down the page.
+    <div className="flex flex-col gap-3">
       {'systemSlots' in equipment && (
-        <SheetSectionCard
+        <SheetSectionSlab
+          defaultCollapsed
           title="Systems"
           count={
             <span className="tabular-nums">
@@ -122,16 +132,17 @@ export function PilotEquipmentLoadout({
           }
           controls={
             readOnly ? undefined : (
-              <SectionAddButton label="system" onClick={() => setPicker('system')} />
+              <SectionManageButton label="systems" onClick={() => setPicker('system')} />
             )
           }
         >
           {renderItems('system', loadout.systems, removeSystem)}
-        </SheetSectionCard>
+        </SheetSectionSlab>
       )}
 
       {'moduleSlots' in equipment && (
-        <SheetSectionCard
+        <SheetSectionSlab
+          defaultCollapsed
           title="Modules"
           count={
             <span className="tabular-nums">
@@ -140,12 +151,12 @@ export function PilotEquipmentLoadout({
           }
           controls={
             readOnly ? undefined : (
-              <SectionAddButton label="module" onClick={() => setPicker('module')} />
+              <SectionManageButton label="modules" onClick={() => setPicker('module')} />
             )
           }
         >
           {renderItems('module', loadout.modules, removeModule)}
-        </SheetSectionCard>
+        </SheetSectionSlab>
       )}
 
       <SheetPickerModal

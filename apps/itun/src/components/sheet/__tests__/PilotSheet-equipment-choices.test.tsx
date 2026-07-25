@@ -20,6 +20,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { PilotSheet } from '../PilotSheet'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { expandCards } from '../../__tests__/expandCards'
 
 // PilotSheet resolves equipment slugs via salvageunion-reference at render, and
 // the choice cards deep-link trait/keyword entities — preload 'all' so those
@@ -130,6 +131,7 @@ describe('PilotSheet — equipment choice cards', () => {
     const pilot = makePilot()
     const { store } = makePilotStubStore(pilot)
     render(<PilotSheet pilot={pilot} store={store} />)
+    expandCards()
 
     // The Weapon Type options render as toggle buttons.
     expect(screen.getByRole('button', { name: /Ballistic/i })).toBeTruthy()
@@ -140,6 +142,7 @@ describe('PilotSheet — equipment choice cards', () => {
     const pilot = makePilot()
     const { store, updateMock } = makePilotStubStore(pilot)
     render(<PilotSheet pilot={pilot} store={store} />)
+    expandCards()
 
     const ballistic = screen.getByRole('button', { name: /Ballistic/i })
     await act(async () => {
@@ -162,6 +165,7 @@ describe('PilotSheet — equipment choice cards', () => {
     })
     const { store } = makePilotStubStore(pilot)
     render(<PilotSheet pilot={pilot} store={store} />)
+    expandCards()
 
     const energy = screen.getByRole('button', { name: /Energy/i })
     expect(energy.getAttribute('aria-pressed')).toBe('true')
@@ -180,6 +184,7 @@ describe('PilotSheet — equipment choice cards', () => {
     })
     const { store } = makeEmptyStore()
     render(<PilotSheet pilot={pilot} store={store} readOnly />)
+    expandCards()
 
     const energy = screen.getByRole('button', { name: /Energy/i })
     expect(energy.getAttribute('aria-pressed')).toBe('true')
@@ -192,6 +197,7 @@ describe('PilotSheet — equipment choice cards', () => {
     const pilot = makePilot()
     const { store, updateMock } = makePilotStubStore(pilot)
     render(<PilotSheet pilot={pilot} store={store} readOnly />)
+    expandCards()
 
     const ballistic = screen.getByRole('button', { name: /Ballistic/i })
     expect(ballistic).toBeTruthy()

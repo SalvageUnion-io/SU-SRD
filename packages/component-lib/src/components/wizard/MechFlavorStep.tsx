@@ -45,7 +45,6 @@ export function MechFlavorStep({
       <Field
         label={label}
         value={value}
-        editing
         onSave={onChange}
         multiline={multiline}
         placeholder={placeholder}

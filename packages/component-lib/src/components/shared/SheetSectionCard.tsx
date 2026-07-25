@@ -100,7 +100,12 @@ export function SheetSectionCard({
     >
       {/* Accent side strips (`.dcard-body` margin) wrap the paper block; the
           paper block carries the deep-tone LEFT rule. */}
-      <div className="flex flex-1 flex-col bg-[var(--tone)] px-3">
+      {/* `pb-3` matches the `px-3` side strips. Without it the card showed 12px
+          of tone down each side but nothing along the bottom, so the foot was
+          just the frame border and read thin against those sides — the card
+          looked unterminated. A footer band supplies this weight when there is
+          one; this is the same weight for the sections that have none. */}
+      <div className="flex flex-1 flex-col bg-[var(--tone)] px-3 pb-3">
         <div
           className={cn(
             'flex-1 border-l-entity border-[var(--tone-deep)] bg-paper px-3.5 py-3',

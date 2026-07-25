@@ -44,6 +44,7 @@ export { Footer } from './components/shared/Footer'
 export { AppBar } from './components/shared/AppBar'
 export type { AppBarNavItem } from './components/shared/AppBar'
 export { CatalogTile } from './components/shared/CatalogTile'
+export { Content } from './components/referenceEntity/Content'
 export { StaticEntityContent } from './components/shared/StaticEntityContent'
 export { SearchField } from './components/shared/SearchField'
 export { MobileSearchDialog } from './components/shared/MobileSearchDialog'
@@ -166,6 +167,7 @@ export { SlotGrid } from './components/shared/SlotGrid'
 
 // Promoted app compositions (legacy-tier — poster/sheet chrome lifted from ITUN)
 export { SheetSectionCard } from './components/shared/SheetSectionCard'
+export { SheetSectionSlab } from './components/shared/SheetSectionSlab'
 
 // Live-sheet presentation lifted out of ITUN (pure presentation — the app keeps
 // only the store-wired containers that feed these).
@@ -208,12 +210,12 @@ export { SHEET_ICONBTN_CLASS } from './components/sheet/sheetChrome'
 // Edit/Add toggles, the one shared picker modal, per-card remove) lifted out of
 // ITUN so the sheet containers come from the design system like their cards do.
 export {
-  SectionAddButton,
+  SectionManageButton,
   SectionEditButton,
   SheetPickerModal,
   CardRemoveButton,
 } from './components/shared/SheetSection'
-export { cardRemoveControls, REMOVABLE_CARD_STYLE } from './components/shared/editLanguage'
+export { cardRemoveControls } from './components/shared/editLanguage'
 export { RuleBrief } from './components/shared/RuleBrief'
 export type { StepRule } from './components/shared/RuleBrief'
 export { OffRulesEscape } from './components/shared/OffRulesEscape'

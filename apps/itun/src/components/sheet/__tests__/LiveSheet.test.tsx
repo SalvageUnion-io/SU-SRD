@@ -86,37 +86,40 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
 }
 
 function stripWrapper(): HTMLElement {
-  // The condensed block wraps the name stamp, kind pill, and live readouts — all
-  // hidden at rest, fading in together once the hero scrolls out of view (Option
-  // A: the resting bar is slim, back + actions only). Find it via the name stamp.
+  // The condensed block wraps the name stamp and the live readouts — hidden at
+  // rest, fading in together once the hero scrolls out of view (Option A: the
+  // resting bar is slim, back + actions only). Find it via the name stamp.
   return screen.getByText('Mara Vex').parentElement as HTMLElement
 }
 
-describe('LiveSheet — condensed identity (name stamp + kind pill)', () => {
-  test('name and kind pill are hidden at rest — they live in the poster below', () => {
+// The KIND PILL is gone from the bar: the gutter wordmark (PILOT / MECH /
+// CRAWLER, running up the page margin) names the sheet's kind permanently, and
+// repeating it in the condensed bar said the same word twice on one screen.
+// These tests now pin the NAME stamp alone, and that the pill is not rendered.
+describe('LiveSheet — condensed identity (name stamp)', () => {
+  test('the name is hidden at rest — it lives in the poster below', () => {
     renderShell()
-    // Both sit inside the condense block, aria-hidden until the hero scrolls
-    // out of view, so the resting bar stays slim (only back + actions show).
+    // It sits inside the condense block, aria-hidden until the hero scrolls out
+    // of view, so the resting bar stays slim (only back + actions show).
     expect(screen.getByText('Mara Vex').closest('[aria-hidden="true"]')).not.toBeNull()
-    const pill = screen.getByText('Pilot')
-    expect(pill.closest('[aria-hidden="true"]')).not.toBeNull()
-    // One canonical badge radius — the rounded-full kindpill variant was retired.
-    expect(pill.className).toContain('rounded-badge')
   })
 
-  test('name and kind pill fade in once the hero scrolls out of view', () => {
+  test('the kind pill is never rendered in the bar', () => {
+    renderShell()
+    expect(screen.queryByText('Pilot')).toBeNull()
+  })
+
+  test('the name fades in once the hero scrolls out of view', () => {
     renderShell()
     act(() => {
       must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
     expect(screen.getByText('Mara Vex').closest('[aria-hidden="false"]')).not.toBeNull()
-    expect(screen.getByText('Pilot')).toBeTruthy()
   })
 
-  test('name and kind pill are not rendered when condense is disabled', () => {
+  test('the name is not rendered when condense is disabled', () => {
     renderShell({ condense: false })
     expect(screen.queryByText('Mara Vex')).toBeNull()
-    expect(screen.queryByText('Pilot')).toBeNull()
   })
 })
 
@@ -141,9 +144,10 @@ describe('LiveSheet — condense strip gating (S11)', () => {
     expect(wrapper.getAttribute('aria-hidden')).toBe('false')
     expect(wrapper.className).not.toContain('pointer-events-none')
     expect(wrapper.className).toContain('opacity-100')
-    // Live stat readout present in the condensed bar
+    // Live stat readout present in the condensed bar. The kind pill is NOT —
+    // the gutter wordmark carries the sheet's kind now.
     expect(screen.getByText('7/10')).toBeTruthy()
-    expect(screen.getByText('Pilot')).toBeTruthy()
+    expect(screen.queryByText('Pilot')).toBeNull()
   })
 
   test('hero back in view: strip hides again', () => {
@@ -159,7 +163,7 @@ describe('LiveSheet — condense strip gating (S11)', () => {
 
   test('condense=false renders no condensed block and observes nothing', () => {
     renderShell({ condense: false })
-    // The whole condensed block (name + pill + strip) is gated on condense.
+    // The whole condensed block (name + strip) is gated on condense.
     expect(screen.queryByText('Mara Vex')).toBeNull()
     expect(screen.queryByLabelText('HP 7 of 10')).toBeNull()
     expect(observerCallbacks.length).toBe(0)

@@ -25,13 +25,14 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefMetaAction } from 'salvageunion-reference'
 import { ReferenceEntityCard } from 'component-lib'
 
+import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { cn } from '../../lib/utils'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerSheetItems'
-import { Field } from 'component-lib'
+import { Field, Stat } from 'component-lib'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps'
 
 /** The standalone ability card never re-renders the action's choice UI. */
@@ -68,7 +69,6 @@ type CrawlerIdentityPanelProps = {
    * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
    * Edit/Done button (Phase 2: the chead row lives in the card, not here).
    */
-  editing?: boolean
   /** CrawlerTypeCard's NPC inset needs an explicit flag — it writes through
    * the store directly (typeNpc), independent of `patch`. */
   readOnly?: boolean
@@ -80,16 +80,17 @@ export function CrawlerIdentityPanel({
   store,
   storeState,
   patch,
-  editing = false,
   readOnly = false,
   className,
 }: CrawlerIdentityPanelProps) {
   const [typePickerOpen, setTypePickerOpen] = useState(false)
 
   const canEdit = patch !== undefined && !readOnly
-  const isEditing = editing && canEdit
 
   const type = crawler.type ? resolveCrawlerType(crawler.type) : null
+  // Derived, never hand-set — the crawler's stored rung, read here beside the
+  // type rather than in the economy rail.
+  const techLevel = parseCrawlerTechLevel(crawler.techLevel)
   const abilities = resolveTypeAbilities(crawler.type)
 
   /** Persist the crawler name (required — never write empty). */
@@ -106,51 +107,62 @@ export function CrawlerIdentityPanel({
   return (
     <section aria-label="Crawler identity" className={cn('min-w-0', className)}>
       <div className="flex min-w-0 flex-col gap-3">
-        {/* Poster field row: Name (prominent) + Type (picker-backed). */}
-        <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
-          <Field label="Name" value={crawler.name} editing={isEditing} onSave={saveName} />
+        {/* Name leads at full prominence (the crawler's own name, like a
+            pilot's callsign). Tech Level sits to the LEFT of the type: it is
+            the crawler's rung, read alongside what kind of crawler it is,
+            rather than buried in the economy rail. */}
+        <Field
+          label="Name"
+          value={crawler.name}
+          onSave={canEdit ? saveName : undefined}
+          prominent
+        />
+        <div className="grid grid-cols-1 items-end gap-x-4 gap-y-3 sm:grid-cols-[auto_minmax(0,1fr)]">
+          {/* A STAT, not a Field: the tech level is derived from the crawler's
+              stored rung and never typed into, so it reads as a number plate
+              like the mech's chassis stats — a field box implied an input.
+              Split across the plate's two label lines (Tech / Level) rather
+              than one wide line, which stretched the plate out of square. */}
+          <Stat
+            label="Tech"
+            bottomLabel="Level"
+            value={techLevel ?? '—'}
+            size="compact"
+            ariaLabel={`Tech Level ${techLevel ?? '—'}`}
+          />
           <Field
             label="Type"
             value={type?.name ?? ''}
-            editing={isEditing}
             onEditClick={canEdit ? () => setTypePickerOpen(true) : undefined}
           />
         </div>
 
-        {/* The type's special ability + the type itself as compact entity
-            cards (max 2 columns; 1 on mobile). The type card keeps the
-            special-NPC inset + Keepsake/Motto persistence. */}
-        {(abilities.length > 0 || crawler.type) && (
-          <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2">
-            {abilities.map((ability) => (
+        {/* The type's INTERNALS, laid out directly in identity: no card frame
+            around them. The ability and the crew sit side by side and fill the
+            band of paper the dissolved type card used to leave empty. */}
+        {crawler.type && (
+          <CrawlerTypeCard
+            crawlerId={crawler.id}
+            typeRef={crawler.type}
+            typeNpc={crawler.typeNpc}
+            seedSelections={crawler.bayChoices?.[crawler.type]}
+            store={store}
+            readOnly={readOnly}
+            ability={abilities.map((ability) => (
               <div key={ability.id} className="min-w-0">
                 <ReferenceEntityCard data={ability} size="medium" hide={HIDE_CHOICES} />
               </div>
             ))}
-            {crawler.type && (
-              <div className="min-w-0">
-                <CrawlerTypeCard
-                  crawlerId={crawler.id}
-                  typeRef={crawler.type}
-                  typeNpc={crawler.typeNpc}
-                  seedSelections={crawler.bayChoices?.[crawler.type]}
-                  store={store}
-                  readOnly={readOnly}
-                  compact
-                />
-              </div>
-            )}
-          </div>
+          />
         )}
 
         {/* Description panel — same FIELD section (edits with Identity). */}
         <Field
           label="Description"
           value={crawler.description ?? ''}
-          editing={isEditing}
           multiline
           placeholder={canEdit ? 'Describe your crawler…' : '—'}
-          onSave={saveDescription}
+          onSave={canEdit ? saveDescription : undefined}
         />
       </div>
 

@@ -112,7 +112,7 @@ export function SectionEditButton({
 // (B) COLLECTION sections — always-available add / per-card remove
 // ---------------------------------------------------------------------------
 
-type SectionAddButtonProps = {
+type SectionManageButtonProps = {
   /** What gets added, for the accessible label, e.g. 'ability'. */
   label: string
   onClick: () => void
@@ -124,18 +124,18 @@ type SectionAddButtonProps = {
  * // TODO(redesign): rule-gate add/remove (TP / maxAbilities / slots / scrap
  * economy) — deferred; users self-manage for now.
  */
-export function SectionAddButton({ label, onClick, className }: SectionAddButtonProps) {
+export function SectionManageButton({ label, onClick, className }: SectionManageButtonProps) {
   return (
     <HButton
       variant="add"
-      aria-label={`Add ${label.toLowerCase()}`}
+      aria-label={`Manage ${label.toLowerCase()}`}
       onClick={onClick}
       className={className}
     >
       <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-current">
         <Glyph name="plus" className="h-2 w-2" />
       </span>
-      Add {label}
+      Manage {label}
     </HButton>
   )
 }

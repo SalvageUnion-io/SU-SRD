@@ -7,7 +7,7 @@ import { Slab } from '../chrome/Slab'
 import {
   CardRemoveButton,
   HButton,
-  SectionAddButton,
+  SectionManageButton,
   SectionEditButton,
   SheetPickerModal,
 } from './SheetSection'
@@ -56,7 +56,7 @@ export const Default: Story = () => {
           variant="solid"
           label="Systems"
           count={1}
-          actions={<SectionAddButton label="system" onClick={() => setOpen(true)} />}
+          actions={<SectionManageButton label="systems" onClick={() => setOpen(true)} />}
         />
         <div className="mt-2 flex flex-col gap-2">
           {system ? <ReferenceEntityCard data={system} size="medium" /> : null}

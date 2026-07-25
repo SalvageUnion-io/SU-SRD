@@ -20,6 +20,7 @@ import { PilotSheet } from '../PilotSheet'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { expandCards } from '../../__tests__/expandCards'
 
 beforeAll(async () => {
   // PilotSheet resolves abilities + their action AP costs from reference data,
@@ -74,10 +75,13 @@ function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeo
 describe('PilotSheet — ability AP cost (Slice D)', () => {
   test('displays the ability AP cost in the card foot', () => {
     render(<PilotSheet pilot={makePilot()} store={makeStubStore(makePilot())} />)
-    // footMeta renders the label and value as adjacent spans in the card foot
-    const label = screen.getByText('AP Cost')
-    expect(label).toBeTruthy()
-    expect(label.parentElement?.textContent).toContain('3')
+    expandCards()
+    // footMeta renders the label and value as adjacent spans in the card foot.
+    // The intrinsic Generic tree puts its own "AP Cost" feet on the page, so
+    // this asserts over ALL of them rather than assuming a single match.
+    const labels = screen.getAllByText('AP Cost')
+    expect(labels.length).toBeGreaterThan(0)
+    expect(labels.some((l) => l.parentElement?.textContent?.includes('3'))).toBe(true)
   })
 })
 
@@ -86,6 +90,7 @@ describe('PilotSheet — spend AP (Slice D)', () => {
     const pilot = makePilot({ currentAP: 5 })
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
+    expandCards()
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /spend 3 ap for talk shop/i }))
@@ -100,6 +105,7 @@ describe('PilotSheet — spend AP (Slice D)', () => {
     const pilot = makePilot({ currentAP: 3 })
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
+    expandCards()
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /spend 3 ap for talk shop/i }))
@@ -112,6 +118,7 @@ describe('PilotSheet — spend AP (Slice D)', () => {
     const pilot = makePilot({ currentAP: 2 }) // cost is 3
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
+    expandCards()
 
     const spendBtn = screen.getByRole<HTMLButtonElement>('button', {
       name: /spend 3 ap for talk shop/i,
@@ -130,6 +137,7 @@ describe('PilotSheet — used/recharge toggle (Slice D)', () => {
     const pilot = makePilot()
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
+    expandCards()
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /mark talk shop used/i }))
@@ -144,6 +152,7 @@ describe('PilotSheet — used/recharge toggle (Slice D)', () => {
     const pilot = makePilot({ usedAbilities: [ABILITY_TALK_SHOP] })
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
+    expandCards()
 
     // Seeded as used → button recharges
     await act(async () => {
@@ -160,12 +169,13 @@ describe('PilotSheet — abilities readOnly (Slice D)', () => {
   test('no spend / toggle buttons when readOnly', () => {
     const pilot = makePilot({ usedAbilities: [ABILITY_TALK_SHOP] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
+    expandCards()
 
     expect(screen.queryByRole('button', { name: /spend/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /mark .* used/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /recharge/i })).toBeNull()
     // AP cost still shown read-only, plus a static Used stamp
-    expect(screen.getByText('AP Cost')).toBeTruthy()
+    expect(screen.getAllByText('AP Cost').length).toBeGreaterThan(0)
     expect(screen.getByText('Used')).toBeTruthy()
   })
 })

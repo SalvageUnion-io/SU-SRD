@@ -104,7 +104,6 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
                 <Field
                   label="Name"
                   value={value.name ?? ''}
-                  editing
                   onSave={(next) => updateNpc(source.ref, { name: next })}
                   placeholder="Name this crew lead"
                   ariaLabel={`${source.npc.position ?? 'crew'} name`}
@@ -112,7 +111,6 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
                 <Field
                   label="Background"
                   value={value.description ?? ''}
-                  editing
                   onSave={(next) => updateNpc(source.ref, { description: next })}
                   placeholder="Appearance and personality"
                   ariaLabel={`${source.npc.position ?? 'crew'} background`}
@@ -121,7 +119,6 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
                   <Field
                     label="Keepsake"
                     value={value.keepsake ?? ''}
-                    editing
                     onSave={(next) => updateNpc(source.ref, { keepsake: next })}
                     placeholder="A personal item"
                     ariaLabel={`${source.npc.position ?? 'crew'} keepsake`}
@@ -131,7 +128,6 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
                   <Field
                     label="Motto"
                     value={value.motto ?? ''}
-                    editing
                     onSave={(next) => updateNpc(source.ref, { motto: next })}
                     placeholder="A personal saying"
                     ariaLabel={`${source.npc.position ?? 'crew'} motto`}

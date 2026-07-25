@@ -8,8 +8,8 @@ type CardControlRailProps = {
   /** Every card affordance — action buttons and the typed item variants
    * (stepper / badge / status / link). */
   controls?: ReferenceEntityControl[]
-  /** Compact geometry: the rail rides centred on the frame edge rather than
-   * hanging above it. */
+  /** Compact geometry for the BUTTONS (smaller squares); the rail's own
+   * position is the same at every density — see below. */
   compact?: boolean
   /** Extra nodes rendered between the status cell and the action cluster —
    * the entity card's selection and multi-select seals, which carry bespoke
@@ -32,19 +32,24 @@ type CardControlRailProps = {
  * entity card's version here gives both layers the working geometry, and gives
  * `status` exactly one rendering path — a `controls` entry — instead of two.
  *
- * The rail is CENTRED on the card's top edge (`left-1/2 -translate-x-1/2` +
- * `justify-center`), not pinned to the right corner. Centring does NOT relax the
- * overflow containment: the containment comes from `flex-wrap` +
- * `max-w-[calc(100%-1rem)]`, which cap the row at the card width minus a 0.5rem
- * gutter each side and wrap a crowded rail (status seal + selection seal + count
- * seal + three controls) onto stacked, equal-height lines rather than letting it
- * escape the frame. `justify` only sets how those wrapped lines align INSIDE
- * that capped box — it has no bearing on whether the box overflows — so moving
- * from `justify-end` to `justify-center` keeps the exact same bound. Because the
- * box is centred, the max-width leaves the gutter symmetric (0.5rem each side)
- * instead of only on the left. Centring must not reorder the cells: `status`
- * stays the first child so a card carrying both a condition and a selection seal
- * keeps the condition leftmost within the (now centred) row.
+ * The rail rides the card's top-RIGHT corner (`right-2` + `justify-end`),
+ * CENTRED on the frame line (`top-0 -translate-y-1/2`) at every density — the
+ * StampSeam signature, half above the border and half over it. The non-compact
+ * case used a bare `-mt-2` on an absolutely-positioned element, which has no
+ * `top` to resolve against, so the rail floated clear of the card and sat on
+ * the page above it instead of riding the edge. It
+ * was briefly centred (`left-1/2 -translate-x-1/2` + `justify-center`); centring
+ * put the controls over the card's title, which is the one thing a reader scans
+ * a collapsed listing for, so they are back in the corner they came from.
+ *
+ * Position has no bearing on overflow either way: containment comes from
+ * `flex-wrap` + `max-w-[calc(100%-1rem)]`, which cap the row at the card width
+ * minus a 0.5rem gutter and wrap a crowded rail (status seal + selection seal +
+ * count seal + three controls) onto stacked, equal-height lines rather than
+ * letting it escape the frame. `justify` only aligns those wrapped lines INSIDE
+ * that capped box. Cell ORDER is unchanged: `status` stays the first child, so a
+ * card carrying both a condition and a selection seal keeps the condition
+ * leftmost within the row.
  */
 export function CardControlRail({ controls, compact = false, seals }: CardControlRailProps) {
   const visible = (controls ?? []).filter((c) => !c.hidden)
@@ -62,8 +67,7 @@ export function CardControlRail({ controls, compact = false, seals }: CardContro
   return (
     <div
       className={cn(
-        'absolute left-1/2 z-30 flex max-w-[calc(100%-1rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-1.5',
-        compact ? 'top-0 -translate-y-1/2' : '-mt-2'
+        'absolute right-2 top-0 z-30 flex max-w-[calc(100%-1rem)] -translate-y-1/2 flex-wrap items-center justify-end gap-1.5'
       )}
     >
       {statusControls.length > 0 && <ControlButtons controls={statusControls} compact={compact} />}

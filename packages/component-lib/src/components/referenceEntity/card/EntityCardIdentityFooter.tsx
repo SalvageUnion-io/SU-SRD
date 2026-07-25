@@ -59,7 +59,10 @@ export function EntityCardIdentityFooter({
       className={cn(
         // px-3 so the type's left edge lines up with the seam/title/sub-header.
         'flex w-full items-center justify-between gap-3',
-        compact ? 'px-3 py-1' : 'px-3 py-1.5'
+        // The band was 4px/6px of padding around a 12px line — a 24px strip
+        // that read as a hairline rather than a footer, especially on the live
+        // sheets (every card there is `medium`, so it took the compact rung).
+        compact ? 'px-3 py-2' : 'px-3 py-2.5'
       )}
       style={{ backgroundColor: bgColor }}
     >

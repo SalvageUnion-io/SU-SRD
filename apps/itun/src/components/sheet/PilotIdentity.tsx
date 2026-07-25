@@ -49,41 +49,43 @@ function UsedChip({
   used: boolean
   onToggle?: (next: boolean) => void
 }) {
-  // Hollow leading dot; ON = tone-filled. Rendered as the chip's leading child
-  // (Badge's `swatch` is a square colour plate, so the round toggle dot rides
-  // as `children` with an explicit gap).
-  const dot = (
+  // The stamp itself never changes: black at every state, so the row's shape is
+  // stable and the eye isn't asked to re-read the label to learn the state.
+  // ONLY the pip carries it — a small CHIP (the stamp's own rectangular
+  // vocabulary), hollow when unset and tone-filled when set.
+  const pip = (
     <span
       aria-hidden="true"
       className={cn(
-        'h-3 w-3 shrink-0 rounded-full border-2 border-current',
+        'h-3 w-4 shrink-0 rounded-[2px] border-2 border-current',
         used && 'border-[color:var(--tone,var(--color-pilot))] bg-[var(--tone,var(--color-pilot))]'
       )}
     />
   )
   if (!onToggle) {
-    // Read-only: a static 'USED' stamp, shown only when set.
+    // Read-only: the stamp shows only when set (nothing to toggle, so an unset
+    // one would be a control that isn't).
     if (!used) return null
     return (
       <Badge shape="chip" surface="solid" className="gap-1.5">
-        {dot}
+        {pip}
         Used
       </Badge>
     )
   }
-  // Interactive: the Badge aria-pressed toggle pattern — solid when pressed,
-  // ghost when not; Badge supplies cursor + focus ring.
+  // Interactive: `aria-pressed` carries the state for assistive tech, since the
+  // surface no longer does it visually.
   return (
     <Badge
       as="button"
       shape="chip"
-      surface={used ? 'solid' : 'ghost'}
+      surface="solid"
       aria-pressed={used}
       aria-label={used ? `Reset ${label} used` : `Mark ${label} used`}
       onClick={() => onToggle(!used)}
       className="gap-1.5"
     >
-      {dot}
+      {pip}
       Used
     </Badge>
   )
@@ -99,7 +101,6 @@ type PilotIdentityPanelProps = {
    * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
    * Edit/Done button (Phase 2: the chead row lives in the card, not here).
    */
-  editing?: boolean
   /** Persist a used-flag change; omit on read-only sheets (static stamps). */
   onToggleUsed?: (key: UsedToggleKey, next: boolean) => void
   /** Partial merge on this pilot; omit on read-only sheets (no edit affordance). */
@@ -109,7 +110,6 @@ type PilotIdentityPanelProps = {
 
 export function PilotIdentityPanel({
   pilot,
-  editing = false,
   onToggleUsed,
   patch,
   className,
@@ -128,7 +128,6 @@ export function PilotIdentityPanel({
   const selectedClass = allClasses.find((c) => c.id === pendingClass)
 
   const canEdit = patch !== undefined
-  const isEditing = editing && canEdit
 
   /** Persist a trimmed freeform field (empty allowed). */
   const saveText = (field: keyof Pilot) => (next: string) => {
@@ -161,78 +160,93 @@ export function PilotIdentityPanel({
   )
 
   return (
-    <div className={cn('min-w-0', className)}>
+    // `h-full` + a flex column: the identity card is stretched to match the
+    // vitals card beside it, so the panel spends that height on its fields
+    // (the Bio grows into whatever is left) instead of leaving dead paper.
+    <div className={cn('flex h-full min-w-0 flex-col gap-3', className)}>
       {/* Poster field grid — left / right columns; single column on mobile in
-          the poster's reading order. */}
+          the poster's reading order. The columns keep their natural row rhythm
+          — spreading them independently pulled Keepsake/Background out of line
+          with Callsign/Class, since each column distributes its own slack. All
+          the leftover height goes to the Bio instead. */}
       <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-3">
-          {/* Name lives here too: with the global Edit toggle gone, this is
-              the pilot's name edit surface (the hero title mirrors it). */}
+          {/* Callsign and Class lead TOGETHER, at the same prominence: what a
+              pilot is called and what they do are the two facts you identify
+              them by. Name lives here too — with the global Edit toggle gone,
+              this is the pilot's name edit surface (the hero title mirrors it). */}
+          <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+            <Field
+              label="Callsign"
+              value={pilot.callsign}
+              onSave={canEdit ? saveRequired('callsign') : undefined}
+              prominent
+            />
+            <Field
+              label="Class"
+              value={resolveClassName(pilot.classRef)}
+              onEditClick={canEdit ? openClassPicker : undefined}
+              prominent
+            />
+          </div>
           <Field
             label="Name"
             value={pilot.name}
-            editing={isEditing}
-            onSave={saveRequired('name')}
+            onSave={canEdit ? saveRequired('name') : undefined}
           />
           <Field
-            label="Callsign"
-            value={pilot.callsign}
-            editing={isEditing}
-            onSave={saveRequired('callsign')}
-          />
-          <Field
-            label="Class"
-            value={resolveClassName(pilot.classRef)}
-            editing={isEditing}
-            onEditClick={openClassPicker}
-          />
-          <Field
-            label="Appearance"
-            value={pilot.appearance}
-            editing={isEditing}
-            multiline
-            onSave={saveText('appearance')}
+            label="Pronouns"
+            value={pilot.pronouns ?? ''}
+            onSave={canEdit ? saveText('pronouns') : undefined}
+            placeholder="—"
           />
         </div>
         <div className="flex min-w-0 flex-col gap-3">
           <Field
             label="Motto"
             value={pilot.motto}
-            editing={isEditing}
             multiline
-            onSave={saveText('motto')}
+            onSave={canEdit ? saveText('motto') : undefined}
             labelAction={usedChip('motto', 'motto')}
           />
           <Field
             label="Keepsake"
             value={pilot.keepsake}
-            editing={isEditing}
             multiline
-            onSave={saveText('keepsake')}
+            onSave={canEdit ? saveText('keepsake') : undefined}
             labelAction={usedChip('keepsake', 'keepsake')}
           />
           <Field
             label="Background"
             value={pilot.background}
-            editing={isEditing}
             multiline
-            onSave={saveText('background')}
+            onSave={canEdit ? saveText('background') : undefined}
             labelAction={usedChip('background', 'background')}
           />
         </div>
       </div>
 
+      {/* Appearance spans the card: it is prose, and a half-width column
+          wrapped it into a narrow ribbon beside the single-line fields. */}
+      <Field
+        label="Appearance"
+        value={pilot.appearance}
+        multiline
+        onSave={canEdit ? saveText('appearance') : undefined}
+      />
+
       {/* Bio — folded in from the dropped live-play Bio section (#409): the
           freeform backstory previously rendered via SheetDescription now
           lives as an extra full-width identity field. */}
-      <div className="mt-3">
+      <div className="flex min-h-0 flex-1 flex-col">
         <Field
           label="Bio"
           value={pilot.description ?? ''}
-          editing={isEditing}
           multiline
-          onSave={saveText('description')}
+          fill
+          onSave={canEdit ? saveText('description') : undefined}
           placeholder="No bio written yet."
+          className="flex-1"
         />
       </div>
 

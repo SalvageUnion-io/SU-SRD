@@ -7,8 +7,8 @@
  *      directly (no RouterProvider → AppLink degrades to plain `<a href>`).
  *   2. Entity-not-found — an id absent from the store renders the styled
  *      "{kind} not found" surface with a "Back to Roster" exit link.
- *   3. Rail Unassign availability — per the unified edit language the rail
- *      chip's ✕ Unassign control is always available on editable sheets and
+ *   3. Rail unlink availability — per the unified edit language the linked
+ *      row's Delete control is always available on editable sheets and
  *      never rendered on read-only (snapshot) sheets.
  *
  * Fixture/store setup mirrors Sheet-topbar-segments.test.tsx.
@@ -127,6 +127,19 @@ const pilotToCrawler = makeLink(
 // 1. Cross-links on the rail
 // ---------------------------------------------------------------------------
 
+/**
+ * The linked-unit slots render the roster's `EntityRow`, whose View link is
+ * labelled "View" on every row — so a link is targeted by its DESTINATION here
+ * rather than by an accessible name that no longer distinguishes rows. That is
+ * what these tests were ever asserting: that the cross-link points at the right
+ * sheet.
+ */
+function linkTo(href: string): HTMLElement {
+  const match = screen.getAllByRole('link').find((a) => a.getAttribute('href') === href)
+  if (!match) throw new Error(`no link to ${href}`)
+  return match
+}
+
 describe('Sheet — rail cross-links', () => {
   test('wired pilot sheet links to its assigned mech and home crawler', () => {
     render(
@@ -137,14 +150,8 @@ describe('Sheet — rail cross-links', () => {
         softLinkStore={makeSoftLinkStore([mechToPilot, pilotToCrawler])}
       />
     )
-    // The rail chip anchor carries a distinctive "<role>: <name> — open sheet"
-    // aria-label, so it targets the rail chip (not the mobile segment switch,
-    // which links to the same hrefs).
-    const mechChip = screen.getByRole('link', { name: /Assigned Mech: Iron Fist/i })
-    expect(mechChip.getAttribute('href')).toBe('/sheet/mech/mech-1')
-
-    const crawlerChip = screen.getByRole('link', { name: /Home Crawler: Iron Tortoise/i })
-    expect(crawlerChip.getAttribute('href')).toBe('/sheet/crawler/crawler-1')
+    expect(linkTo('/sheet/mech/mech-1')).toBeTruthy()
+    expect(linkTo('/sheet/crawler/crawler-1')).toBeTruthy()
   })
 
   test('wired mech sheet links to its assigned pilot', () => {
@@ -156,11 +163,10 @@ describe('Sheet — rail cross-links', () => {
         softLinkStore={makeSoftLinkStore([mechToPilot])}
       />
     )
-    const pilotChip = screen.getByRole('link', { name: /Assigned Pilot: Yara Voss/i })
-    expect(pilotChip.getAttribute('href')).toBe('/sheet/pilot/pilot-1')
+    expect(linkTo('/sheet/pilot/pilot-1')).toBeTruthy()
   })
 
-  test('wired crawler sheet links to its lead pilot and docked mech', () => {
+  test('wired crawler sheet links to its pilots and docked mechs', () => {
     render(
       <Sheet
         kind="crawler"
@@ -171,11 +177,8 @@ describe('Sheet — rail cross-links', () => {
     )
     // Lead pilot = first pilot wired to the crawler; docked mech = that lead
     // pilot's assigned mech (two-hop resolution in composition.ts).
-    const pilotChip = screen.getByRole('link', { name: /Lead Pilot: Yara Voss/i })
-    expect(pilotChip.getAttribute('href')).toBe('/sheet/pilot/pilot-1')
-
-    const mechChip = screen.getByRole('link', { name: /Docked Mech: Iron Fist/i })
-    expect(mechChip.getAttribute('href')).toBe('/sheet/mech/mech-1')
+    expect(linkTo('/sheet/pilot/pilot-1')).toBeTruthy()
+    expect(linkTo('/sheet/mech/mech-1')).toBeTruthy()
   })
 })
 
@@ -213,11 +216,11 @@ describe('Sheet — entity not found', () => {
 })
 
 // ---------------------------------------------------------------------------
-// 3. Rail Unassign is gated behind edit mode
+// 3. Unlinking is gated behind edit mode (EntityRow's Delete)
 // ---------------------------------------------------------------------------
 
-describe('Sheet — rail Unassign availability (unified edit language)', () => {
-  test('Unassign is always available on an editable sheet, never on read-only', () => {
+describe('Sheet — rail unlink availability (unified edit language)', () => {
+  test('unlink is always available on an editable sheet, never on read-only', () => {
     // The rail's Unassign link id is derived from the LIVE store's softLinks
     // (composition only exposes resolved entities), so seed the real store —
     // composition + PublishButton still read the injected snapshots.
@@ -235,12 +238,12 @@ describe('Sheet — rail Unassign availability (unified edit language)', () => {
       />
     )
 
-    // Sanity: the wired mech chip is present.
-    expect(screen.getByRole('link', { name: /Assigned Mech: Iron Fist/i })).toBeTruthy()
+    // Sanity: the wired mech row is present.
+    expect(linkTo('/sheet/mech/mech-1')).toBeTruthy()
 
     // Collection add/remove is ALWAYS available on editable sheets — no edit
     // mode gate (redesign archetype B).
-    expect(screen.getByRole('button', { name: /unassign/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Delete Iron Fist$/i })).toBeTruthy()
     unmount()
 
     // Read-only (snapshot) sheets never expose the destructive control.
@@ -253,6 +256,6 @@ describe('Sheet — rail Unassign availability (unified edit language)', () => {
         readOnly
       />
     )
-    expect(screen.queryByRole('button', { name: /unassign/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Delete Iron Fist$/i })).toBeNull()
   })
 })
