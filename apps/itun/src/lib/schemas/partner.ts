@@ -48,7 +48,6 @@ import { ItemConditionMapSchema } from './itemCondition'
  * in both" note above — this is a disambiguator, not a convenience.
  */
 export const PartnerHostSchemaSchema = z.enum(['equipment', 'drones'])
-export type PartnerHostSchema = z.infer<typeof PartnerHostSchemaSchema>
 
 export const PartnerInstanceSchema = z
   .object({

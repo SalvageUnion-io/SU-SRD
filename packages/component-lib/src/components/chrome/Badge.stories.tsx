@@ -15,12 +15,17 @@ const traits = SalvageUnionReference.Traits.all()
 const actions = SalvageUnionReference.Actions.all()
 const classes = SalvageUnionReference.Classes.all()
 const crawler = SalvageUnionReference.Crawlers.all()[0]
+// The Sestra Drone is a real PARTNER stat block — a statted drone a chassis
+// ability fields — so the partner tone gets a genuine partner name, not a
+// stand-in (real-data story rule).
+const partner = SalvageUnionReference.Drones.all().find((d) => d.name === 'Sestra Drone')
 
 const chassisName = chassis?.name ?? 'Chassis'
 const techLabel = `Tech ${chassis?.techLevel ?? 1}`
 
 const pilotLabel = classes[0]?.name ?? 'Pilot'
 const crawlerName = crawler?.name ?? 'Crawler'
+const partnerName = partner?.name ?? 'Sestra Drone'
 
 const traitLabel = (name: string, fallback: string) =>
   traits.find((t) => t.name === name)?.name ?? fallback
@@ -38,6 +43,7 @@ const TONE_LABELS: Record<BadgeTone, string> = {
   pilot: pilotLabel,
   mech: chassisName,
   crawler: crawlerName,
+  partner: partnerName,
   ok: 'Intact',
   warn: 'Damaged',
   bad: 'Destroyed',
@@ -47,7 +53,7 @@ function Row({ children }: { children: ReactNode }) {
   return <div className="flex flex-wrap items-start gap-3">{children}</div>
 }
 
-const BADGE_TONES: BadgeTone[] = ['pilot', 'mech', 'crawler', 'ok', 'warn', 'bad']
+const BADGE_TONES: BadgeTone[] = ['pilot', 'mech', 'crawler', 'partner', 'ok', 'warn', 'bad']
 
 /**
  * The unified `Badge` — Pill / Chip were named presets, now retired into this one

@@ -38,7 +38,7 @@ import { AppLink } from '../shared/AppLink'
 
 import { SHEET_ICONBTN_CLASS } from 'component-lib'
 
-export type SheetVariant = 'pilot' | 'mech' | 'crawler'
+export type SheetVariant = 'pilot' | 'mech' | 'crawler' | 'partner'
 
 export type LiveSheetSegment = {
   key: SheetVariant
@@ -272,7 +272,12 @@ export function LiveSheet({
                   className="no-underline"
                   aria-label={`Open the wired ${segment.label.toLowerCase()}`}
                 >
-                  <Badge shape="chip" surface="outline">
+                  {/* Tinted with the TARGET's ontology tone, not the current
+                      sheet's: the badge's job is to say where it goes, and a
+                      row of identical outline chips made every destination
+                      look alike. `segment.key` is the target's variant, so the
+                      tone is read straight off it. */}
+                  <Badge shape="chip" surface="tone" tone={segment.key}>
                     {segment.label}
                   </Badge>
                 </AppLink>

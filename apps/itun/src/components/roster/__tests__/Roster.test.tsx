@@ -263,12 +263,18 @@ describe('Roster — Starter Set (spawned on first visit)', () => {
       })
     })
     // Seeding is async (IndexedDB write + rehydrate) — settle until the crew shows.
-    await settle(() => screen.queryByText('Bonesaw') !== null)
+    //
+    // getAll, not get: a crew member's name now appears BOTH in its own row's
+    // name tab and in the tone-tinted cross-link badge on every row wired to
+    // it. The badge used to read '↳ Bonesaw', which no exact-text query
+    // matched; it now reads 'Bonesaw' exactly, so a singular query throws on
+    // multiple matches instead of returning the row.
+    await settle(() => screen.queryAllByText('Bonesaw').length > 0)
 
     expect(screen.getByRole('heading', { name: 'Pilots' })).toBeTruthy()
-    expect(screen.getByText('Bonesaw')).toBeTruthy()
-    expect(screen.getByText('Scrapper')).toBeTruthy()
-    expect(screen.getByText("Crawler #430 'Tenacity'")).toBeTruthy()
+    expect(screen.getAllByText('Bonesaw').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Scrapper').length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Crawler #430 'Tenacity'").length).toBeGreaterThan(0)
   })
 })
 
@@ -300,7 +306,7 @@ describe('Roster — entity listing', () => {
     expect((sheetLinks[0] as HTMLAnchorElement).href).toContain(`/sheet/pilot/${pilot.id}`)
   })
 
-  test('row meta encodes cross-links by name via ↳', async () => {
+  test('row meta encodes cross-links as tone-tinted badges linking to the target sheet', async () => {
     const store = useEntityStore.getState()
     await Promise.all([store.hydrate('pilot'), store.hydrate('mech'), store.hydrate('softLink')])
     const pilot = await store.create('pilot', {
@@ -321,8 +327,23 @@ describe('Roster — entity listing', () => {
     await renderRoster()
 
     // Pilot row meta names the assigned mech; mech row meta names the pilot.
-    expect(screen.getByText(/↳ Iron Fist/)).toBeTruthy()
-    expect(screen.getByText(/↳ Mara Vex/)).toBeTruthy()
+    // These used to be muted '↳ Name' text; they are now Badges tinted with the
+    // TARGET's ontology tone, so the assertion is on the link + its tone class
+    // rather than on the arrow glyph.
+    // Targeted by accessible name, not by href: every row also has its own
+    // "View" link to the same sheet, so href alone matches two elements.
+    // The label names the TARGET, so the pilot row's badge reads "Iron Fist".
+    const toMech = screen.getByRole('link', { name: /open iron fist's mech sheet/i })
+    const toPilot = screen.getByRole('link', { name: /open mara vex's pilot sheet/i })
+    expect(toMech.getAttribute('href')).toBe(`/sheet/mech/${mech.id}`)
+    expect(toPilot.getAttribute('href')).toBe(`/sheet/pilot/${pilot.id}`)
+    expect(toMech.textContent).toContain('Iron Fist')
+    expect(toPilot.textContent).toContain('Mara Vex')
+
+    // The tone is the destination's, not the row's — a pilot row's mech badge
+    // is mech-toned. This is the whole point of the change.
+    expect(toMech.querySelector('.bg-mech')).toBeTruthy()
+    expect(toPilot.querySelector('.bg-pilot')).toBeTruthy()
   })
 })
 
