@@ -74,9 +74,8 @@ import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { useSoftWarnings } from '../shared/useSoftWarnings'
 import { SectionManageButton, SectionEditButton, SheetPickerModal } from 'component-lib'
-import { SheetSectionCard, SheetSectionSlab } from 'component-lib'
+import { SheetSectionSlab } from 'component-lib'
 import type { ChassisStatItem } from 'component-lib'
-import { ChassisStats } from 'component-lib'
 import { StorageManifest } from './StorageManifest'
 import { freshEntity } from './controlPrimitives'
 import type { SheetPatch } from './sheetViewProps'
@@ -445,18 +444,19 @@ export function MechSheet({
               chassisName={chassisName}
               editing={identityEditing}
               patch={readOnly ? undefined : patchMech}
-              stats={
-                <ChassisStats items={specs} className="grid grid-cols-2 gap-2 @sm:grid-cols-4" />
-              }
-              aside={
-                // The chassis's ability sits beside the chassis name and its
-                // stats: all three describe what this machine IS, before
-                // anything was installed on it. Always visible, never folded —
-                // there is nothing to manage or choose here, so a fold would
-                // hide the one thing that distinguishes this chassis.
+              after={
+                // The chassis's ability, carrying the CHASSIS STATS in its own
+                // header: the numbers describe the machine the ability belongs
+                // to, so the card that names it is where they read. That folds
+                // what were two adjacent blocks (a bare stat strip and a card)
+                // into one, full-width under the chassis name.
+                //
+                // Always visible, never folded — there is nothing to manage or
+                // choose here, so a fold would hide the one thing that
+                // distinguishes this chassis from another.
                 chassisAbilities.length > 0 ? (
                   <div className="flex min-w-0 flex-col gap-4">
-                    {chassisAbilities.map((ability) => {
+                    {chassisAbilities.map((ability, i) => {
                       // Activating an ability (spending its EP) is a Guided-Play
                       // transaction — it lives on the Dashboard, not the
                       // Free-Edit Live Sheet (ADR-021). The sheet shows the
@@ -471,7 +471,21 @@ export function MechSheet({
                         >
                           <ReferenceEntityCard
                             data={ability}
-                            hostTone="var(--color-sheet-mech-deep)"
+                            size="large"
+                            // Only the FIRST ability carries the stats — they
+                            // belong to the chassis, not to each ability, and
+                            // repeating them down a list would read as though
+                            // each ability had its own.
+                            statsOverride={
+                              i === 0
+                                ? specs.map((spec) => ({
+                                    key: spec.code,
+                                    label: spec.code,
+                                    value: spec.value,
+                                    outOfMax: spec.max,
+                                  }))
+                                : undefined
+                            }
                             // `[(CHASSIS)]` in the ability's text resolves to
                             // the PATTERN name, not the chassis's: on a live
                             // sheet the reader is looking at this machine, and
@@ -583,7 +597,7 @@ export function MechSheet({
           Cargo is the thing a crew reaches for mid-session, and the printed
           sheet's bottom-of-page-2 placement buried it under two long loadout
           lists. It reads before them here. */}
-      <SheetSectionCard
+      <SheetSectionSlab
         title="The Hold"
         count={
           <span className="tabular-nums">
@@ -599,7 +613,7 @@ export function MechSheet({
           crawlerName={crawler?.name ?? null}
           readOnly={readOnly}
         />
-      </SheetSectionCard>
+      </SheetSectionSlab>
 
       {/* ===== R3: Systems & Modules — kept as two sections (different
           collections/pickers; not a trivial unify), each led by its own

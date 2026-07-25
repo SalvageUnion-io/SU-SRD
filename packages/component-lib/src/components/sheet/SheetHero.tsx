@@ -22,7 +22,7 @@
 
 import type { ReactNode, Ref } from 'react'
 import { Badge } from '../chrome/Badge'
-import { SheetSectionCard } from '../shared/SheetSectionCard'
+import { SheetSectionSlab } from '../shared/SheetSectionSlab'
 import { Stat } from '../shared/Stat'
 
 import { cn } from '../../utils/cn'
@@ -54,9 +54,9 @@ type SheetHeroProps = {
    * `identity`/`specs`/`trackers`) is unchanged when `fields` is absent, so
    * snapshots and un-migrated sheets keep working.
    *
-   * The two cards are `SheetSectionCard`s, the same container every other
-   * input/gauge section on the sheet uses — so the card-vs-slab rule holds with
-   * no third shape. The edge wordmark is NOT here: it belongs to the page
+   * Both are `SheetSectionSlab`s — the ONE section container on a live sheet.
+   * Frames belong to entity cards, which carry their own; a section that also
+   * framed itself stacked two enclosures and read as a block. The edge wordmark is NOT here: it belongs to the page
    * gutter (`LiveSheet`), outside the content column, so it differentiates the
    * sheet without occupying it.
    */
@@ -111,10 +111,10 @@ export function SheetHero({
         )}
       >
         <h1 className="sr-only">{name}</h1>
-        <SheetSectionCard title={fieldsTitle} count={meta} controls={controls}>
+        <SheetSectionSlab title={fieldsTitle} count={meta} controls={controls}>
           {fields}
-        </SheetSectionCard>
-        {vitals && <SheetSectionCard title={vitalsTitle}>{vitals}</SheetSectionCard>}
+        </SheetSectionSlab>
+        {vitals && <SheetSectionSlab title={vitalsTitle}>{vitals}</SheetSectionSlab>}
       </section>
     )
   }

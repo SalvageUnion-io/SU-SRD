@@ -79,7 +79,7 @@ import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import { EntityGridRow, MasonryColumns } from 'component-lib'
 import { CardRemoveButton, SectionManageButton, SectionEditButton } from 'component-lib'
-import { SheetSectionCard, SheetSectionSlab } from 'component-lib'
+import { SheetSectionSlab } from 'component-lib'
 import { StorageManifest } from './StorageManifest'
 
 import { CrawlerBayCard } from './CrawlerSheetItems'
@@ -349,7 +349,7 @@ export function CrawlerSheet({
         {/* ----- Storage Bay — the FULL-WIDTH bottom band (printed crawler
             sheet p.2: Storage Bay spans the whole width beneath the bays), not
             a full-height right column. ----- */}
-        <SheetSectionCard
+        <SheetSectionSlab
           title="Storage Bay"
           count={
             <span className="tabular-nums">
@@ -391,7 +391,7 @@ export function CrawlerSheet({
             crawlerName={crawler.name}
             readOnly={readOnly}
           />
-        </SheetSectionCard>
+        </SheetSectionSlab>
       </div>
 
       {/* The weapons picker — the existing master-detail modal, mounted

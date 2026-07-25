@@ -41,14 +41,12 @@ type MechIdentityPanelProps = {
   editing?: boolean
   /** Partial merge on this mech; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch
-  /** The chassis-stat strip — rendered UNDER the chassis field, in its column. */
-  stats?: ReactNode
   /**
-   * Content beside the chassis column (the chassis ability). It sits next to
-   * the chassis NAME and its STATS because all three describe the same thing:
-   * what this machine is before anything was installed on it.
+   * Content below the chassis field (the chassis ability, which carries the
+   * chassis stats in its own header). The chassis NAME reads first and the
+   * card that elaborates it follows — same subject, in reading order.
    */
-  aside?: ReactNode
+  after?: ReactNode
   className?: string
 }
 
@@ -57,8 +55,7 @@ export function MechIdentityPanel({
   chassisName,
   editing = false,
   patch,
-  stats,
-  aside,
+  after,
   className,
 }: MechIdentityPanelProps) {
   const [chassisPickerOpen, setChassisPickerOpen] = useState(false)
@@ -97,21 +94,17 @@ export function MechIdentityPanel({
             the chassis, never hand-set, and rendering it as a Field made it look
             editable. It reads off the static-stats strip's TL box instead, with
             the rest of the chassis-derived numbers. */}
-        {/* The chassis column (name + its stats) and the ability beside it.
-            Half width for the chassis field: it is a one-word picker value, and
-            a full-bleed box for it competed with the pattern name above. */}
-        <div className="grid grid-cols-1 items-start gap-4 @3xl:grid-cols-2">
-          <div className="flex min-w-0 flex-col gap-3">
-            <Field
-              label="Chassis"
-              value={chassisName}
-              editing={isEditing}
-              onEditClick={() => setChassisPickerOpen(true)}
-            />
-            {stats}
-          </div>
-          {aside && <div className="min-w-0">{aside}</div>}
+        {/* Half width: the chassis is a one-word picker value, and a full-bleed
+            box for it competed with the pattern name above. */}
+        <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+          <Field
+            label="Chassis"
+            value={chassisName}
+            editing={isEditing}
+            onEditClick={() => setChassisPickerOpen(true)}
+          />
         </div>
+        {after}
       </div>
 
       {/* Chassis swap — the existing confirmed destructive picker flow. */}
