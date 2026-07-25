@@ -86,6 +86,7 @@ import {
   resolvePatternDrone,
   resolvePatternGroups,
 } from './resolveNestedEntities'
+import { resolveGuideSteps } from './resolveGuideSteps'
 
 /** Beyond this nesting depth a card renders header-only (no body expansion) —
  * bounds runaway recursion (deep chassis → systems → actions, or grant cycles). */
@@ -1652,6 +1653,100 @@ function ReferenceEntityCardInner({
       </div>
     ) : null
 
+  // GUIDE STEPS — a guide keeps almost all of its prose in `steps` (28.7k of
+  // 34.2k characters across the dataset), so a card that renders only the
+  // top-level `content` renders almost none of the guide: the "Salvaging" page
+  // was a heading and a source line with all 3.7k characters of its rules
+  // missing. Each step is a dashed `Slab` (its name) + its prose, with the
+  // entities it selects from and its roll table rendered through the same
+  // primitives every other section uses. A `section` opens a solid `Slab`
+  // above it — those are the book's major divisions ("Post-Session Downtime").
+  //
+  // Read-only by design: this is the SRD's transcription of the procedure.
+  // Walking a guide as an interactive wizard is ITUN's job (`DowntimeWizard`),
+  // and belongs to the surfaces that own player state (ADR-021).
+  const guideSteps = canExpand && !isAction ? resolveGuideSteps(entity) : []
+  const guideStepsNode =
+    guideSteps.length > 0 ? (
+      <div className="flex flex-col gap-3">
+        {guideSteps.map(({ step, number, section, entities, table, subGuide }) => {
+          // `sidebar` marks a step whose entities are a progression LADDER
+          // (crawler tech levels) rather than a set of options — they read down
+          // a narrow column beside the prose instead of across a masonry.
+          const sidebar = step.entityLayout === 'sidebar' && entities.length > 0
+          const prose = step.content && step.content.length > 0 && (
+            <Content
+              body={step.content}
+              compact={compact}
+              chassisName={resolvedChassisName}
+              fontSize={compact ? 'text-xs' : 'text-sm'}
+              headerBg={tone.bg}
+              headerBgColor={tone.bgColor}
+            />
+          )
+          const cards = entities.map((option, index) => (
+            <ReferenceEntityCardInner
+              key={cardKey(option, index)}
+              size="medium"
+              extent="head"
+              depth={depth + 1}
+              hostDown={isDown}
+              data={option}
+              chassisName={resolvedChassisName}
+            />
+          ))
+          return (
+            <div key={step.id} className="flex flex-col gap-1.5">
+              {section && <Slab variant="solid" label={section} />}
+              <Slab
+                variant="dashed"
+                label={`${number}. ${step.name}`}
+                count={step.optional ? 'Optional' : undefined}
+              />
+              {sidebar ? (
+                <div className="flex flex-col gap-3 md:flex-row md:items-start">
+                  <div className="flex shrink-0 flex-col gap-1.5 md:w-2/5">{cards}</div>
+                  <div className="min-w-0 flex-1">{prose}</div>
+                </div>
+              ) : (
+                <>
+                  {prose}
+                  {cards.length > 0 && (
+                    <div className="columns-1 gap-1.5 sm:columns-2">
+                      {entities.map((option, index) => (
+                        <div key={cardKey(option, index)} className="mb-1.5 break-inside-avoid">
+                          {cards[index]}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+              {table && (
+                <RollTable
+                  table={table.table}
+                  tableName={table.name}
+                  showCommand
+                  size={compact ? 'compact' : 'full'}
+                  collapsible={isCatalog || depth > 0}
+                  disabled={isDown}
+                />
+              )}
+              {subGuide && (
+                <ReferenceEntityCardInner
+                  size="medium"
+                  extent="head"
+                  depth={depth + 1}
+                  hostDown={isDown}
+                  data={subGuide}
+                />
+              )}
+            </div>
+          )
+        })}
+      </div>
+    ) : null
+
   // LEFT ANCHOR — the artwork image if present, else a prominent nested NPC.
   // Content (flavor + nested groups/actions) flows to the RIGHT of / below the
   // anchor, filling the whitespace. Responsive: stacks full-width on narrow.
@@ -1842,6 +1937,9 @@ function ReferenceEntityCardInner({
               <p className="bg-paper p-2 text-xs leading-snug text-ink">{damagedEffect}</p>
             </div>
           )}
+
+          {/* GUIDE STEPS — the bulk of a guide, straight after its intro prose. */}
+          {guideStepsNode}
 
           {/* ROLL TABLE — the entity's own table, after its prose preamble. */}
           {rollTableNode}
