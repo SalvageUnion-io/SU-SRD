@@ -684,6 +684,18 @@ export const NpcSchema: z.ZodType<{
 export const PatternDroneConfigSchema = z
   .object({
     name: NameSchema.describe('Name of this drone configuration'),
+    /**
+     * The `drones` entry this configuration instantiates. Absent means `name`
+     * IS the stat block (Little Sestra's "Sestra Drone"); present means `name`
+     * is an INSTANCE name over a shared stat block — Big Brother's DronTek
+     * pattern fields four differently-kitted "Big Brother Drone"s called Shield
+     * Drone, Anti-Missile Drone, Fire Support Drone and Minelayer Drone, none
+     * of which exist as their own `drones` records.
+     */
+    ref: z
+      .string()
+      .optional()
+      .describe('Name of the drones entry this configuration instantiates (defaults to `name`)'),
     systems: z.array(z.string()).describe('System names installed on this drone'),
     modules: z.array(z.string()).describe('Module names installed on this drone'),
   })

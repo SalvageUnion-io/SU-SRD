@@ -53,7 +53,7 @@ import { STORE_NAMES } from './stores'
  * model replaces the old cross-workspace "All Builds" view; see
  * lib/defaultWorkspace.ts.)
  */
-export const DB_VERSION = 10
+export const DB_VERSION = 11
 
 const DB_NAME = 'itun-v1'
 

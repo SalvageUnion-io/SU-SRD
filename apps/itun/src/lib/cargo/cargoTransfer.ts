@@ -1,15 +1,27 @@
 /**
- * cargoTransfer — the single pure reducer for cargo crossing the mech⇄crawler
+ * cargoTransfer — the single pure reducer for cargo crossing the CARRIER⇄DEPOT
  * boundary (design §2.12, plan 4.1/4.7). The prototype's nested-setState
  * transfer logic is reimplemented here as one reducer over both lot lists plus
- * the crawler scrap pool; `useCargo` wraps it and persists through the stores.
+ * the depot scrap pool; `useCargo` wraps it and persists through the stores.
+ *
+ * CARRIER and DEPOT, not "mech" and "crawler". The two sides are a *capped*
+ * hold and an *unlimited* one, and nothing in the arithmetic below cares which
+ * entity owns either. That mattered once partners arrived: a partner "uses the
+ * same rules as Mechs" (Core Book, at all four partner entries) and carries a
+ * real `cargoCapacity` — Survey Drone 1, Mecha Companion 3, Sestra Drone 3 — so
+ * it is a capped carrier in exactly the sense this reducer already meant. The
+ * fields were renamed rather than the partner being passed through a field
+ * called `mechLots`, which would have been a lie that outlived whoever wrote it.
+ *
+ * (The crawler Storage Bay remains the only depot; the book's Load action also
+ * permits carrier→carrier handoff, which this reducer does not yet model.)
  *
  * Transfer rules:
- * - **Stow (mech → crawler):** always whole-lot (the crawler hold is
- *   unlimited); the lot is prepended to the crawler list.
- * - **Load (crawler → mech):** cap-checked against the mech's free slots.
+ * - **Stow (carrier → depot):** always whole-lot (the depot hold is
+ *   unlimited); the lot is prepended to the depot list.
+ * - **Load (depot → carrier):** cap-checked against the carrier's free slots.
  *   Unit lots move whole-or-not. Bulk lots split: the moved portion mints a
- *   NEW lot (fresh id) on the mech and the source is decremented or removed.
+ *   NEW lot (fresh id) on the carrier and the source is decremented or removed.
  * - **Over-capacity is enforced on inbound transfers only** — existing
  *   over-capacity is displayed honestly (red pips), never clamped away.
  *
@@ -31,13 +43,13 @@ import { makeScrapLot, totalLotUnits } from '../schemas/cargoLot'
 import type { ScrapPool } from '../schemas/crawler'
 
 export type CargoBoundaryState = {
-  /** Lots in the mech hold. */
-  mechLots: CargoLot[]
-  /** Mech cargo capacity (derived: chassis stat + modifier). */
-  mechCargoCap: number
-  /** Lots in the crawler hold (unlimited). */
-  crawlerLots: CargoLot[]
-  /** The crawler's shared TL-bucketed scrap pool. */
+  /** Lots in the carrier's hold — a mech's, or a partner's. */
+  carrierLots: CargoLot[]
+  /** Carrier cargo capacity (derived: chassis/stat-block stat + modifier). */
+  carrierCargoCap: number
+  /** Lots in the depot hold (the crawler Storage Bay — unlimited). */
+  depotLots: CargoLot[]
+  /** The depot's shared TL-bucketed scrap pool. */
   scrapPool: ScrapPool
 }
 
@@ -48,19 +60,19 @@ export type CargoTransferAction =
   // Mech-hold-local edits — NO crawler required. A mech's cargo hold is its own
   // container (distinct from the crawler's Storage Bay), so cargo can be added
   // to / discarded from it whether or not a crawler is linked.
-  | { type: 'add-mech-lot'; lot: CargoLot }
-  | { type: 'remove-mech-lot'; lotId: string }
+  | { type: 'add-carrier-lot'; lot: CargoLot }
+  | { type: 'remove-carrier-lot'; lotId: string }
   // Crawler-bay-local edits — NO docked mech required. The Storage Bay is its
   // own container too, so cargo can be added to / discarded from it whether or
   // not a mech is docked.
-  | { type: 'add-crawler-lot'; lot: CargoLot }
-  | { type: 'remove-crawler-lot'; lotId: string }
+  | { type: 'add-depot-lot'; lot: CargoLot }
+  | { type: 'remove-depot-lot'; lotId: string }
 
 export type CargoTransferOk = {
   ok: true
   state: CargoBoundaryState
   /** Which sides changed — lets the persistence layer write only what moved. */
-  changed: { mech: boolean; crawler: boolean }
+  changed: { carrier: boolean; depot: boolean }
   /** Quantity actually moved (bulk loads / scrap withdrawals may be partial). */
   moved?: number
 }
@@ -69,7 +81,7 @@ export type CargoTransferError = { ok: false; reason: string }
 
 export type CargoTransferResult = CargoTransferOk | CargoTransferError
 
-/** Mech hold usage. `over` is display truth — over-capacity is never clamped. */
+/** Carrier hold usage. `over` is display truth — over-capacity is never clamped. */
 export type CargoUsage = {
   used: number
   cap: number
@@ -78,7 +90,7 @@ export type CargoUsage = {
   over: boolean
 }
 
-export function mechCargoUsage(
+export function carrierCargoUsage(
   lots: ReadonlyArray<Pick<CargoLot, 'units'>>,
   cap: number
 ): CargoUsage {
@@ -135,14 +147,14 @@ export function cargoTransfer(
       return load(state, action.lotId, action.qty)
     case 'withdraw-scrap':
       return withdrawScrap(state, action.tl, action.qty)
-    case 'add-mech-lot':
-      return addMechLot(state, action.lot)
-    case 'remove-mech-lot':
-      return removeMechLot(state, action.lotId)
-    case 'add-crawler-lot':
-      return addCrawlerLot(state, action.lot)
-    case 'remove-crawler-lot':
-      return removeCrawlerLot(state, action.lotId)
+    case 'add-carrier-lot':
+      return addCarrierLot(state, action.lot)
+    case 'remove-carrier-lot':
+      return removeCarrierLot(state, action.lotId)
+    case 'add-depot-lot':
+      return addDepotLot(state, action.lot)
+    case 'remove-depot-lot':
+      return removeDepotLot(state, action.lotId)
   }
 }
 
@@ -152,23 +164,23 @@ export function cargoTransfer(
  * hold entries are record-keeping, matching how wizard/pattern cargo can seed a
  * hold above cap. Prepended so the newest lot reads first, mirroring load/stow.
  */
-function addMechLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferResult {
+function addCarrierLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferResult {
   return {
     ok: true,
-    state: { ...state, mechLots: [lot, ...state.mechLots] },
-    changed: { mech: true, crawler: false },
+    state: { ...state, carrierLots: [lot, ...state.carrierLots] },
+    changed: { carrier: true, depot: false },
   }
 }
 
 /** Remove (discard) a lot from the mech hold entirely — no crawler required. */
-function removeMechLot(state: CargoBoundaryState, lotId: string): CargoTransferResult {
-  if (!state.mechLots.some((l) => l.id === lotId)) {
+function removeCarrierLot(state: CargoBoundaryState, lotId: string): CargoTransferResult {
+  if (!state.carrierLots.some((l) => l.id === lotId)) {
     return { ok: false, reason: `Cargo lot "${lotId}" is not in the mech hold.` }
   }
   return {
     ok: true,
-    state: { ...state, mechLots: state.mechLots.filter((l) => l.id !== lotId) },
-    changed: { mech: true, crawler: false },
+    state: { ...state, carrierLots: state.carrierLots.filter((l) => l.id !== lotId) },
+    changed: { carrier: true, depot: false },
   }
 }
 
@@ -176,35 +188,35 @@ function removeMechLot(state: CargoBoundaryState, lotId: string): CargoTransferR
  * Add a lot directly to the crawler's Storage Bay (no mech boundary). The bay is
  * unlimited, so there is no cap check. Prepended, mirroring stow/load ordering.
  */
-function addCrawlerLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferResult {
+function addDepotLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferResult {
   return {
     ok: true,
-    state: { ...state, crawlerLots: [lot, ...state.crawlerLots] },
-    changed: { mech: false, crawler: true },
+    state: { ...state, depotLots: [lot, ...state.depotLots] },
+    changed: { carrier: false, depot: true },
   }
 }
 
 /** Remove (discard) a lot from the crawler's Storage Bay — no mech required. */
-function removeCrawlerLot(state: CargoBoundaryState, lotId: string): CargoTransferResult {
-  if (!state.crawlerLots.some((l) => l.id === lotId)) {
+function removeDepotLot(state: CargoBoundaryState, lotId: string): CargoTransferResult {
+  if (!state.depotLots.some((l) => l.id === lotId)) {
     return { ok: false, reason: `Cargo lot "${lotId}" is not in the crawler Storage Bay.` }
   }
   return {
     ok: true,
-    state: { ...state, crawlerLots: state.crawlerLots.filter((l) => l.id !== lotId) },
-    changed: { mech: false, crawler: true },
+    state: { ...state, depotLots: state.depotLots.filter((l) => l.id !== lotId) },
+    changed: { carrier: false, depot: true },
   }
 }
 
 function stow(state: CargoBoundaryState, lotId: string): CargoTransferResult {
-  const lot = state.mechLots.find((l) => l.id === lotId)
+  const lot = state.carrierLots.find((l) => l.id === lotId)
   if (!lot)
     return {
       ok: false,
       reason: `Cargo lot "${lotId}" is not in the mech hold.`,
     }
 
-  const mechLots = state.mechLots.filter((l) => l.id !== lotId)
+  const carrierLots = state.carrierLots.filter((l) => l.id !== lotId)
 
   // SCRAP crossing INTO the crawler deposits the matching TL pool bucket.
   if (lot.cat === 'SCRAP' && lot.tl !== undefined) {
@@ -212,18 +224,18 @@ function stow(state: CargoBoundaryState, lotId: string): CargoTransferResult {
       ok: true,
       state: {
         ...state,
-        mechLots,
+        carrierLots,
         scrapPool: addToScrapPool(state.scrapPool, lot.tl, scrapQtyOf(lot)),
       },
-      changed: { mech: true, crawler: true },
+      changed: { carrier: true, depot: true },
       moved: scrapQtyOf(lot),
     }
   }
 
   return {
     ok: true,
-    state: { ...state, mechLots, crawlerLots: [lot, ...state.crawlerLots] },
-    changed: { mech: true, crawler: true },
+    state: { ...state, carrierLots, depotLots: [lot, ...state.depotLots] },
+    changed: { carrier: true, depot: true },
   }
 }
 
@@ -232,14 +244,14 @@ function load(
   lotId: string,
   requestedQty?: number
 ): CargoTransferResult {
-  const lot = state.crawlerLots.find((l) => l.id === lotId)
+  const lot = state.depotLots.find((l) => l.id === lotId)
   if (!lot)
     return {
       ok: false,
       reason: `Cargo lot "${lotId}" is not in the crawler hold.`,
     }
 
-  const { free } = mechCargoUsage(state.mechLots, state.mechCargoCap)
+  const { free } = carrierCargoUsage(state.carrierLots, state.carrierCargoCap)
   if (free <= 0) return { ok: false, reason: 'The mech hold has no free cargo slots.' }
 
   // Unit lots move whole-or-not.
@@ -254,10 +266,10 @@ function load(
       ok: true,
       state: {
         ...state,
-        mechLots: [lot, ...state.mechLots],
-        crawlerLots: state.crawlerLots.filter((l) => l.id !== lotId),
+        carrierLots: [lot, ...state.carrierLots],
+        depotLots: state.depotLots.filter((l) => l.id !== lotId),
       },
-      changed: { mech: true, crawler: true },
+      changed: { carrier: true, depot: true },
     }
   }
 
@@ -280,17 +292,17 @@ function load(
     units: movedUnits,
   }
   const remainingQty = lot.qty - moveQty
-  const crawlerLots =
+  const depotLots =
     remainingQty <= 0
-      ? state.crawlerLots.filter((l) => l.id !== lotId)
-      : state.crawlerLots.map((l) =>
+      ? state.depotLots.filter((l) => l.id !== lotId)
+      : state.depotLots.map((l) =>
           l.id === lotId ? { ...l, qty: remainingQty, units: l.units - movedUnits } : l
         )
 
   return {
     ok: true,
-    state: { ...state, mechLots: [minted, ...state.mechLots], crawlerLots },
-    changed: { mech: true, crawler: true },
+    state: { ...state, carrierLots: [minted, ...state.carrierLots], depotLots },
+    changed: { carrier: true, depot: true },
     moved: moveQty,
   }
 }
@@ -306,7 +318,7 @@ function withdrawScrap(state: CargoBoundaryState, tl: number, qty: number): Carg
     return { ok: false, reason: `The Tech ${tl} scrap bucket is empty.` }
   }
 
-  const { free } = mechCargoUsage(state.mechLots, state.mechCargoCap)
+  const { free } = carrierCargoUsage(state.carrierLots, state.carrierCargoCap)
   if (free <= 0) return { ok: false, reason: 'The mech hold has no free cargo slots.' }
 
   // 1 slot per scrap — partial-fill to whatever both the bucket and cap allow.
@@ -314,21 +326,23 @@ function withdrawScrap(state: CargoBoundaryState, tl: number, qty: number): Carg
 
   // Merge into an existing same-TL bulk SCRAP lot so repeated withdrawals
   // don't proliferate lots; mint a fresh one otherwise.
-  const existing = state.mechLots.find((l) => l.cat === 'SCRAP' && l.kind === 'bulk' && l.tl === tl)
-  const mechLots = existing
-    ? state.mechLots.map((l) =>
+  const existing = state.carrierLots.find(
+    (l) => l.cat === 'SCRAP' && l.kind === 'bulk' && l.tl === tl
+  )
+  const carrierLots = existing
+    ? state.carrierLots.map((l) =>
         l.id === existing.id ? { ...l, qty: (l.qty ?? 0) + moveQty, units: l.units + moveQty } : l
       )
-    : [makeScrapLot(tl, moveQty), ...state.mechLots]
+    : [makeScrapLot(tl, moveQty), ...state.carrierLots]
 
   return {
     ok: true,
     state: {
       ...state,
-      mechLots,
+      carrierLots,
       scrapPool: addToScrapPool(state.scrapPool, tl, -moveQty),
     },
-    changed: { mech: true, crawler: true },
+    changed: { carrier: true, depot: true },
     moved: moveQty,
   }
 }

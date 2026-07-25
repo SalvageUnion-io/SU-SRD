@@ -1,5 +1,6 @@
 import { z } from 'salvageunion-reference/zod'
 import { ItemConditionMapSchema } from './mech'
+import { PartnerInstanceSchema } from './partner'
 
 /**
  * Persisted choice selections for an entity that carries `choices`
@@ -171,6 +172,20 @@ export const PilotSchema = z
     equipmentChoices: z.record(z.string(), ChoiceSelectionsSchema).optional(),
 
     /**
+     * @deprecated Superseded by `partners` (ADR-027). Nothing reads or writes
+     * this any more — the v11 migration lifts each entry into a
+     * `PartnerInstance` with its own id, which is what fixed the bug described
+     * below (two of one drone sharing a single slug-keyed entry).
+     *
+     * The field is RETAINED rather than deleted for two reasons, both concrete:
+     * `PilotSchema` is `.strict()`, so a migrated record that still carries the
+     * key would fail to parse the moment the field disappears; and keeping it
+     * means the migration stays reversible from a pre-v11 export. Removing it
+     * needs a follow-up migration that deletes the key from every stored pilot
+     * FIRST — which is a separate, irreversible change and does not belong in
+     * the same release as the feature that replaced it.
+     *
+     * ---
      * Per-equipment installed loadout for drone/companion equipment that carries
      * its own systemSlots/moduleSlots (Survey Drone, Mecha Companion,
      * Auto-Turret). Keyed by equipment slug → the systems/modules installed on
@@ -205,6 +220,15 @@ export const PilotSchema = z
           .strict()
       )
       .optional(),
+
+    /**
+     * Statted Drones / Companions this pilot's abilities grant (Auto-Turret,
+     * Survey Drone, Mecha Companion). Each carries its own id, so Mecha
+     * Packmaster's TWO Mecha Companions are two distinct partners rather than
+     * one shared entry — the bug `equipmentLoadouts` could not express.
+     * Additive-optional; absent reads as none.
+     */
+    partners: z.array(PartnerInstanceSchema).optional(),
 
     /**
      * Manual fallback for the pilot's effective Crawler Tech Level (1–6), used

@@ -23,14 +23,11 @@ import type { GenericInventoryEntry } from '../../lib/schemas/pilot'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
-import type { EquipmentLoadout } from '../shared/useEquipmentLoadout'
-import { PilotEquipmentLoadout } from './PilotEquipmentLoadout'
 import { CardRemoveButton } from 'component-lib'
 import {
   equipmentMaxUses,
   equipmentSlotCost,
   genericEntrySlots,
-  isLoadoutHost,
   resolveEquipment,
 } from './pilotInventory'
 
@@ -132,12 +129,6 @@ type PilotEquipmentItemProps = {
    * pilot prop so read-only/snapshot rendering does not depend on the store.
    */
   seedSelections: ChoiceSelections | undefined
-  /**
-   * Persisted installed loadout for drone/companion equipment (Survey Drone,
-   * Mecha Companion, Auto-Turret), sourced from the canonical pilot prop.
-   * Undefined for normal gear, which never renders a loadout section.
-   */
-  seedLoadout: EquipmentLoadout | undefined
   condition: ItemCondition
   /** Uses remaining for this item; undefined = full (rules A14). */
   usesLeft: number | undefined
@@ -168,7 +159,6 @@ export function PilotEquipmentItem({
   slug,
   pilotId,
   seedSelections,
-  seedLoadout,
   condition,
   usesLeft,
   onConditionChange,
@@ -242,31 +232,17 @@ export function PilotEquipmentItem({
     })
   }
 
-  const equipmentRecord: Record<string, unknown> & { name?: string } = equipment
-
   // Drone/companion equipment (Survey Drone, Mecha Companion, Auto-Turret)
-  // carries its own systemSlots/moduleSlots, so it hosts a real installed
-  // loadout edited with the same picker mechs use. It renders INSIDE the host
-  // card's body (the `afterExtraContent` slot) rather than as sibling sections
-  // beneath it — the loadout belongs to that drone, and floating it outside
-  // read as two unrelated sections that happened to sit next to each other.
-  const loadout = isLoadoutHost(equipmentRecord) ? (
-    <PilotEquipmentLoadout
-      pilotId={pilotId}
-      slug={slug}
-      equipment={equipmentRecord}
-      seed={seedLoadout}
-      readOnly={readOnly}
-      store={store}
-    />
-  ) : undefined
+  // no longer hosts its loadout here. Those are PARTNERS now: real instances
+  // with their own ids, stats, conditions, cargo and sheet, listed in the
+  // pilot's linked units and opened at /sheet/partner/:id (ADR-027). The
+  // equipment card stays the GRANT; the partner is the thing granted.
 
   return (
     <ReferenceEntityCard
       data={equipment}
       size="medium"
       collapsible
-      afterExtraContent={loadout}
       selections={selections}
       onSelectionChange={readOnly ? undefined : setSelections}
       scalingParent={scalingParent}

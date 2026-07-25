@@ -5,7 +5,7 @@ import { FOCUS_RING } from './interaction'
 import { STAMP_SEAM } from './stampSeam'
 import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE, type SizeRung } from '../../styles/sizing'
 
-export type BadgeTone = 'pilot' | 'mech' | 'crawler' | 'ok' | 'warn' | 'bad'
+export type BadgeTone = 'pilot' | 'mech' | 'crawler' | 'partner' | 'ok' | 'warn' | 'bad'
 /** Chip surfaces (the rounded `shape="chip"` default). */
 export type BadgeSurface = 'solid' | 'ghost' | 'outline' | 'tone' | 'quiet'
 /**
@@ -23,6 +23,7 @@ const BADGE_TONES: Record<BadgeTone, string> = {
   pilot: 'border-ink bg-pilot text-ink',
   mech: 'border-ink bg-mech text-ink',
   crawler: 'border-ink bg-crawler text-paper',
+  partner: 'border-ink bg-partner text-paper',
   ok: 'border-status-ok bg-status-ok text-paper',
   warn: 'border-status-warn bg-status-warn text-paper',
   bad: 'border-status-bad bg-status-bad text-paper',

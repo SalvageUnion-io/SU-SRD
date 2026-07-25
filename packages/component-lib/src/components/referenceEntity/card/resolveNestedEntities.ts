@@ -135,7 +135,9 @@ export function resolvePatternGroups(pattern: SURefObjectPattern): NestedGroup[]
   for (const d of pattern.drones ?? [])
     push(
       'Drones',
-      SalvageUnionReference.findIn('drones', (x) => x.name === d.name)
+      // `ref ?? name` — an instance name ('Shield Drone') resolves through its
+      // shared stat block ('Big Brother Drone'). See `resolvePatternDrones`.
+      SalvageUnionReference.findIn('drones', (x) => x.name === (d.ref ?? d.name))
     )
 
   return [...groups.entries()].map(([label, entities]) => ({ label, entities }))
@@ -147,6 +149,14 @@ export type DroneLoadout = {
   drone: SURefEntity
   systems: SURefEntity[]
   modules: SURefEntity[]
+  /**
+   * The name this pattern gives THIS drone, when it differs from the stat
+   * block's own name. Big Brother's DronTek pattern fields four Big Brother
+   * Drones called Shield / Anti-Missile / Fire Support / Minelayer Drone, so
+   * without this they would all render as four identical "Big Brother Drone"
+   * cards. Absent when the config names the stat block directly.
+   */
+  instanceName?: string
 }
 
 function resolveLoadout(
@@ -179,13 +189,31 @@ export function resolveChassisDrone(entity: SURefMetaEntity): DroneLoadout | und
   return { drone, ...resolveLoadout(droneSystems, droneModules) }
 }
 
-/** The drone a PATTERN specifies — named + loadout come from `pattern.drones[0]`. */
-export function resolvePatternDrone(pattern: SURefObjectPattern): DroneLoadout | undefined {
-  const config = pattern.drones?.[0]
-  if (!config) return undefined
-  const drone = SalvageUnionReference.findIn('drones', (d) => d.name === config.name)
-  if (!drone) return undefined
-  return { drone, ...resolveLoadout(config.systems ?? [], config.modules ?? []) }
+/**
+ * EVERY drone a PATTERN fields — each with its own name and loadout.
+ *
+ * Plural because patterns are: Little Sestra's three patterns ship one Sestra
+ * Drone each, but Big Brother's DronTek pattern ships FOUR. This used to read
+ * `pattern.drones[0]` and returned a single loadout, which silently dropped
+ * three of Big Brother's four.
+ *
+ * A config's stat block is `ref ?? name` — `ref` is what lets an instance name
+ * ("Shield Drone") sit over a shared stat block ("Big Brother Drone"). Configs
+ * that resolve to nothing are skipped rather than failing the whole pattern.
+ */
+export function resolvePatternDrones(pattern: SURefObjectPattern): DroneLoadout[] {
+  return (pattern.drones ?? []).flatMap((config) => {
+    const statBlockName = config.ref ?? config.name
+    const drone = SalvageUnionReference.findIn('drones', (d) => d.name === statBlockName)
+    if (!drone) return []
+    return [
+      {
+        drone,
+        ...resolveLoadout(config.systems ?? [], config.modules ?? []),
+        ...(config.ref ? { instanceName: config.name } : {}),
+      },
+    ]
+  })
 }
 
 /** A drone's OWN systems/modules loadout (from its `systems`/`modules` name

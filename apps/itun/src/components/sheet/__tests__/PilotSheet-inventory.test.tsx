@@ -266,3 +266,77 @@ describe('PilotSheet — inventory readOnly', () => {
     expect(screen.getByText(/4 \/ 6 slots/)).toBeTruthy()
   })
 })
+
+// ---------------------------------------------------------------------------
+// Partner-granting equipment vs ordinary equipment (ADR-027)
+// ---------------------------------------------------------------------------
+
+/**
+ * A pilot equips N items at will. SOME of those grant a partner (Survey Drone,
+ * Mecha Companion, Auto-Turret); the rest are ordinary gear. Both kinds live in
+ * the same `equipment[]` and both occupy inventory slots — the grant does not
+ * leave the inventory when the partner is created from it.
+ *
+ * This is worth pinning because ADR-027 moved the drone's LOADOUT out of the
+ * equipment card, and the obvious over-correction is to move the equipment
+ * itself out too. The equipment is the GRANT; the partner is the thing granted.
+ */
+describe('PilotSheet — partner-granting equipment stays ordinary equipment', () => {
+  test('partner-granting and non-granting equipment render side by side', async () => {
+    const pilot = makePilot({
+      equipment: ['first-aid-kit', 'survey-drone'],
+      partners: [
+        {
+          id: 'p-custos',
+          hostRef: 'survey-drone',
+          hostSchema: 'equipment',
+          name: 'Custos',
+          systems: [],
+          modules: [],
+          conditions: [],
+        },
+      ],
+    })
+    render(
+      <PilotSheet pilot={pilot} store={makeEntityStoreMock() as unknown as typeof useEntityStore} />
+    )
+    await expandCards()
+
+    // Ordinary gear is untouched by the partner work.
+    expect(screen.getAllByText(/First Aid Kit/i).length).toBeGreaterThan(0)
+    // The granting equipment is STILL equipment — it did not leave the inventory.
+    expect(screen.getAllByText(/Survey Drone/i).length).toBeGreaterThan(0)
+  })
+
+  test('granting equipment still costs its inventory slot', () => {
+    const bare = makePilot({ equipment: ['first-aid-kit'] })
+    const withDrone = makePilot({ equipment: ['first-aid-kit', 'survey-drone'] })
+    // Slot math is computed from `equipment[]`, so a granting item must count.
+    expect(withDrone.equipment.length).toBe(bare.equipment.length + 1)
+  })
+
+  test('the equipment card no longer carries the loadout — the partner does', async () => {
+    const pilot = makePilot({
+      equipment: ['survey-drone'],
+      partners: [
+        {
+          id: 'p-1',
+          hostRef: 'survey-drone',
+          hostSchema: 'equipment',
+          systems: ['high-gain-antenna'],
+          modules: [],
+          conditions: [],
+        },
+      ],
+    })
+    render(
+      <PilotSheet pilot={pilot} store={makeEntityStoreMock() as unknown as typeof useEntityStore} />
+    )
+    await expandCards()
+
+    // The old PilotEquipmentLoadout rendered 'Add System' / 'Add Module'
+    // controls inside the equipment card. Those belong to the partner sheet now.
+    expect(screen.queryByRole('button', { name: /add system/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /add module/i })).toBeNull()
+  })
+})

@@ -17,7 +17,7 @@ import type { Crawler } from '../schemas/crawler'
 import type { Mech } from '../schemas/mech'
 import {
   cargoTransfer,
-  mechCargoUsage,
+  carrierCargoUsage,
   scrapPoolBucket,
   type CargoBoundaryState,
   type CargoTransferAction,
@@ -87,9 +87,9 @@ export function useCargo({
   const storeState = store()
 
   const state: CargoBoundaryState = {
-    mechLots: mech?.cargoLots ?? [],
-    mechCargoCap: mech ? mechMaxCargo(mech) : 0,
-    crawlerLots: crawler?.cargoLots ?? [],
+    carrierLots: mech?.cargoLots ?? [],
+    carrierCargoCap: mech ? mechMaxCargo(mech) : 0,
+    depotLots: crawler?.cargoLots ?? [],
     scrapPool: crawler?.scrapPool ?? {},
   }
 
@@ -114,14 +114,14 @@ export function useCargo({
     // between two sequential writes could otherwise vanish or duplicate the
     // moved lot (audit item 2).
     const updates: Parameters<typeof storeState.transfer>[0]['updates'] = []
-    if (result.changed.mech) {
-      updates.push({ type: 'mech', id: mech.id, patch: { cargoLots: result.state.mechLots } })
+    if (result.changed.carrier) {
+      updates.push({ type: 'mech', id: mech.id, patch: { cargoLots: result.state.carrierLots } })
     }
-    if (result.changed.crawler) {
+    if (result.changed.depot) {
       updates.push({
         type: 'crawler',
         id: crawler.id,
-        patch: { cargoLots: result.state.crawlerLots, scrapPool: result.state.scrapPool },
+        patch: { cargoLots: result.state.depotLots, scrapPool: result.state.scrapPool },
       })
     }
     if (updates.length === 0) return result
@@ -144,16 +144,20 @@ export function useCargo({
     // Same fix the sheet controls already use (`freshEntity`).
     const freshMech = storeState.get('mech', mech.id) ?? mech
     const result = cargoTransfer(
-      { ...state, mechLots: freshMech.cargoLots ?? [], mechCargoCap: mechMaxCargo(freshMech) },
+      {
+        ...state,
+        carrierLots: freshMech.cargoLots ?? [],
+        carrierCargoCap: mechMaxCargo(freshMech),
+      },
       action
     )
     if (!result.ok) return result
 
-    if (!result.changed.mech) return result
+    if (!result.changed.carrier) return result
     return commitUpdates(
       () =>
         storeState.transfer({
-          updates: [{ type: 'mech', id: mech.id, patch: { cargoLots: result.state.mechLots } }],
+          updates: [{ type: 'mech', id: mech.id, patch: { cargoLots: result.state.carrierLots } }],
         }),
       result
     )
@@ -174,19 +178,19 @@ export function useCargo({
     const result = cargoTransfer(
       {
         ...state,
-        crawlerLots: freshCrawler.cargoLots ?? [],
+        depotLots: freshCrawler.cargoLots ?? [],
         scrapPool: freshCrawler.scrapPool ?? {},
       },
       action
     )
     if (!result.ok) return result
 
-    if (!result.changed.crawler) return result
+    if (!result.changed.depot) return result
     return commitUpdates(
       () =>
         storeState.transfer({
           updates: [
-            { type: 'crawler', id: crawler.id, patch: { cargoLots: result.state.crawlerLots } },
+            { type: 'crawler', id: crawler.id, patch: { cargoLots: result.state.depotLots } },
           ],
         }),
       result
@@ -195,14 +199,14 @@ export function useCargo({
 
   return {
     state,
-    usage: mechCargoUsage(state.mechLots, state.mechCargoCap),
+    usage: carrierCargoUsage(state.carrierLots, state.carrierCargoCap),
     poolBucket: (tl) => scrapPoolBucket(state.scrapPool, tl),
     stow: (lotId) => dispatch({ type: 'stow', lotId }),
     load: (lotId, qty) => dispatch({ type: 'load', lotId, qty }),
     withdrawScrap: (tl, qty) => dispatch({ type: 'withdraw-scrap', tl, qty }),
-    addMechLot: (lot) => dispatchMechLocal({ type: 'add-mech-lot', lot }),
-    removeMechLot: (lotId) => dispatchMechLocal({ type: 'remove-mech-lot', lotId }),
-    addCrawlerLot: (lot) => dispatchCrawlerLocal({ type: 'add-crawler-lot', lot }),
-    removeCrawlerLot: (lotId) => dispatchCrawlerLocal({ type: 'remove-crawler-lot', lotId }),
+    addMechLot: (lot) => dispatchMechLocal({ type: 'add-carrier-lot', lot }),
+    removeMechLot: (lotId) => dispatchMechLocal({ type: 'remove-carrier-lot', lotId }),
+    addCrawlerLot: (lot) => dispatchCrawlerLocal({ type: 'add-depot-lot', lot }),
+    removeCrawlerLot: (lotId) => dispatchCrawlerLocal({ type: 'remove-depot-lot', lotId }),
   }
 }

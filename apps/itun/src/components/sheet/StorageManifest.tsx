@@ -492,7 +492,7 @@ export function StorageManifest({
   readOnly = false,
   className,
 }: StorageManifestProps) {
-  const lots = side === 'mech' ? cargo.state.mechLots : cargo.state.crawlerLots
+  const lots = side === 'mech' ? cargo.state.carrierLots : cargo.state.depotLots
   const { used, cap, free, over } = cargo.usage
   const linkedCounterpart = side === 'mech' ? crawlerName : mechName
 

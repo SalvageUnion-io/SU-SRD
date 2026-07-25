@@ -21,7 +21,7 @@ import { Fragment, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
-import { Button, buttonVariants, EmptyState, EntityRow } from 'component-lib'
+import { Badge, Button, buttonVariants, EmptyState, EntityRow } from 'component-lib'
 
 import {
   setActiveWorkspaceId,
@@ -142,8 +142,19 @@ export function Roster() {
   const crawlerNameById = new Map(allCrawlers.map((c) => [c.id, c.name]))
 
   /**
-   * '↳ Name' segment as a link to the target entity's live sheet (design
-   * review U-4), or undefined when the target id/name can't be resolved.
+   * A cross-link to another entity's live sheet, as a Badge tinted with THAT
+   * entity's ontology tone (design review U-4).
+   *
+   * These used to be muted '↳ Name' underlined text. The row already tones its
+   * own rail by ontology, so a monochrome cross-link was the one place on the
+   * row where "which kind of thing is this?" had to be read rather than seen —
+   * and a pilot linking to both a mech and a crawler rendered two visually
+   * identical segments. The tone comes from the TARGET's kind, never the row's.
+   *
+   * Badge wrapped in the link rather than rendered `as={AppLink}`: its chip
+   * props are typed for a span and carry no `href`. This is the same shape the
+   * live-sheet header already uses for its linked-unit badges, so the two read
+   * identically — one anchor, one focus stop.
    */
   function linkSegment(
     kind: SegmentKind,
@@ -154,9 +165,12 @@ export function Roster() {
     return (
       <AppLink
         href={`/sheet/${kind}/${id}`}
-        className="text-wk-muted underline decoration-wk-muted/50 underline-offset-2 hover:text-rust"
+        className="inline-flex max-w-full align-middle no-underline"
+        aria-label={`Open ${name}'s ${kind} sheet`}
       >
-        ↳ {name}
+        <Badge shape="chip" surface="tone" tone={kind} className="max-w-full truncate">
+          {name}
+        </Badge>
       </AppLink>
     )
   }

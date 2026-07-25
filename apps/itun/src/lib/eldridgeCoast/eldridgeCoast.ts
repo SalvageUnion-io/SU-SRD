@@ -26,7 +26,7 @@
  *     Custos & PR-1, Mecha Companion → Incitatus, Auto-Turret → Rek Jet). They
  *     live on their owning pilot: the drone-equipment slug in `equipment[]`, its
  *     Name/Appearance/A.I.-Personality in `equipmentChoices`, and its installed
- *     systems/modules in `equipmentLoadouts` (ADR-023). The equipment carries its
+ *     systems/modules in `partners` (ADR-027). The stat block carries its
  *     own SP/EP/slots, so it renders as a proper stat card with an editable
  *     loadout — no "unknown chassis" artifact.
  *   - The crawlers' home-brew Library / Bar bays are not SRD bays (only the ten
@@ -112,7 +112,7 @@ function pilot(
         | 'maxApModifier'
         | 'trainingPoints'
         | 'equipmentChoices'
-        | 'equipmentLoadouts'
+        | 'partners'
       >
     >
 ): Pilot {
@@ -135,7 +135,7 @@ const PILOT_LESTER = 'eldridge-pilot-lester'
 
 // Drone/companion equipment choice ids (from each granting equipment's SRD
 // `choices`) — used to seed the companion's Name / Appearance / A.I. Personality
-// via the pilot's equipmentChoices, alongside the equipmentLoadouts below.
+// via the pilot's equipmentChoices, alongside the partners below.
 const SURVEY_DRONE_NAME = '0b31fd03-df8b-485b-9a1e-d048496e89b7'
 const MECHA_COMPANION_NAME = 'c0d1e2f3-a4b5-4c6d-9e0f-1a2b3c4d5e6f'
 const MECHA_COMPANION_APPEARANCE = 'a901dcdc-8c95-4bea-90ee-3c02cd695d93'
@@ -176,12 +176,22 @@ export const ELDRIDGE_PILOTS: readonly Pilot[] = [
         [MECHA_COMPANION_APPEARANCE]: ['Industrial and utilitarian.'],
       },
     },
-    equipmentLoadouts: {
-      'survey-drone': {
+    partners: [
+      {
+        id: 'eldridge-partner-custos',
+        hostRef: 'survey-drone',
+        hostSchema: 'equipment',
+        name: 'Custos',
         systems: ['nanofibre-net-launcher', '50-cal-machine-gun'],
         modules: ['hacking-repeater-node', 'damage-assessor', 'comms-module'],
+        conditions: [],
       },
-      'mecha-companion': {
+      {
+        id: 'eldridge-partner-incitatus',
+        hostRef: 'mecha-companion',
+        hostSchema: 'equipment',
+        name: 'Incitatus',
+        appearance: 'Industrial and utilitarian.',
         systems: [
           'locomotion-system',
           'long-barrelled-green-laser',
@@ -189,8 +199,9 @@ export const ELDRIDGE_PILOTS: readonly Pilot[] = [
           'tracking-node',
         ],
         modules: ['comms-module', 'navigation-module'],
+        conditions: [],
       },
-    },
+    ],
     motto: 'Feel the fear and do it anyway.',
     keepsake: 'Butterfly Earrings',
     appearance: 'Gaunt, all hair buzzed with the shortest clippers. He/him, age 34.',
@@ -294,12 +305,17 @@ export const ELDRIDGE_PILOTS: readonly Pilot[] = [
     equipmentChoices: {
       'survey-drone': { [SURVEY_DRONE_NAME]: ['PR-1'] },
     },
-    equipmentLoadouts: {
-      'survey-drone': {
+    partners: [
+      {
+        id: 'eldridge-partner-pr-1',
+        hostRef: 'survey-drone',
+        hostSchema: 'equipment',
+        name: 'PR-1',
         systems: ['hydraulic-crusher'],
         modules: ['hull-magnetiser', 'self-destruct', 'survey-scanner'],
+        conditions: [],
       },
-    },
+    ],
     motto: "It's worth a shot.",
     keepsake: 'Tatterfolk family photo',
     appearance: 'Wiry. They/them, age 38.',
@@ -339,8 +355,13 @@ export const ELDRIDGE_PILOTS: readonly Pilot[] = [
         [AUTO_TURRET_AI]: ['Changes personality frequently'],
       },
     },
-    equipmentLoadouts: {
-      'auto-turret': {
+    partners: [
+      {
+        id: 'eldridge-partner-rek-jet',
+        hostRef: 'auto-turret',
+        hostSchema: 'equipment',
+        name: 'Rek Jet',
+        aiPersonality: 'Changes personality frequently',
         systems: [
           'red-laser',
           'locomotion-system',
@@ -349,8 +370,9 @@ export const ELDRIDGE_PILOTS: readonly Pilot[] = [
           'welding-laser',
         ],
         modules: ['comms-module'],
+        conditions: [],
       },
-    },
+    ],
     motto: 'It is not a bug, it is a feature.',
     keepsake: 'Roach Squad Pin',
     appearance: 'Small and Dirty. He/him.',
@@ -666,7 +688,7 @@ export const ELDRIDGE_CRAWLERS: readonly Crawler[] = [HAVEN_CRAWLER, GLADHAND_CR
 // SoftLinks — pilot↔mech assignments (confirmed by the campaign owner) and
 // pilot↔crawler crew membership. Companions are NOT mechs: they live on their
 // owning pilot as ability-granted equipment with an installed loadout (see the
-// pilots' equipmentLoadouts above) — Caligula's Custos (Survey Drone) + Incitatus
+// pilots' partners above) — Caligula's Custos (Survey Drone) + Incitatus
 // (Mecha Companion), Gersin's PR-1 (Survey Drone), Roach-Boy's Rek Jet
 // (Auto-Turret). The mech-to-pilot links cover only the true mechs:
 //   - Parcel → GOAT

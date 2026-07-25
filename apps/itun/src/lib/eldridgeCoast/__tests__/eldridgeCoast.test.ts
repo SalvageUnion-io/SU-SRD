@@ -137,13 +137,26 @@ describe('Eldridge Coast seed — reference refs resolve (drift guard)', () => {
     }
   })
 
-  test('every pilot equipmentLoadout system/module ref resolves', () => {
+  test('every partner system/module ref resolves', () => {
+    // This guard used to read `equipmentLoadouts`. When the companions moved to
+    // `partners` (ADR-027) that field went undefined on every seeded pilot, so
+    // the loops stopped executing and the test passed having asserted nothing —
+    // a drift guard that silently stopped guarding. The count assertion below
+    // is the fix: it fails if the refs it walks ever go empty again.
+    let checked = 0
     for (const p of ELDRIDGE_PILOTS) {
-      for (const loadout of Object.values(p.equipmentLoadouts ?? {})) {
-        for (const s of loadout.systems) expect(resolveSystemRef(s)).toBeTruthy()
-        for (const mod of loadout.modules) expect(resolveModuleRef(mod)).toBeTruthy()
+      for (const partner of p.partners ?? []) {
+        for (const s of partner.systems) {
+          expect(resolveSystemRef(s)).toBeTruthy()
+          checked++
+        }
+        for (const mod of partner.modules) {
+          expect(resolveModuleRef(mod)).toBeTruthy()
+          checked++
+        }
       }
     }
+    expect(checked).toBeGreaterThan(0)
   })
 
   test('the three companion owners carry the granted drone equipment', () => {
@@ -155,12 +168,38 @@ describe('Eldridge Coast seed — reference refs resolve (drift guard)', () => {
     expect(cali?.equipment).toContain('mecha-companion')
     expect(gersin?.equipment).toContain('survey-drone')
     expect(roach?.equipment).toContain('auto-turret')
-    // Each drone-equipment slug resolves + carries a loadout.
+    // Each drone-equipment slug has a matching PARTNER instance (ADR-027).
+    // The equipment entry is the GRANT; the partner is the thing granted, and
+    // it is what carries the loadout, the name and the stats.
     for (const p of [cali, gersin, roach]) {
       for (const slug of ['survey-drone', 'mecha-companion', 'auto-turret']) {
         if (p?.equipment.includes(slug)) {
-          expect(p.equipmentLoadouts?.[slug]).toBeDefined()
+          expect(p.partners?.some((partner) => partner.hostRef === slug)).toBe(true)
         }
+      }
+    }
+  })
+
+  test('companions are named partner instances with their own ids', () => {
+    const byId = new Map(ELDRIDGE_PILOTS.map((p) => [p.id, p]))
+    const names = ELDRIDGE_PILOTS.flatMap((p) => (p.partners ?? []).map((x) => x.name))
+    expect(names).toEqual(expect.arrayContaining(['Custos', 'Incitatus', 'PR-1', 'Rek Jet']))
+
+    // Caligula fields TWO — the case slug-keyed loadouts could not express.
+    const cali = byId.get('eldridge-pilot-caligula')
+    expect(cali?.partners).toHaveLength(2)
+    expect(new Set(cali?.partners?.map((x) => x.id)).size).toBe(2)
+
+    // Every partner id is unique across the whole seed: they are addressed by a
+    // flat /sheet/partner/:id, so a collision would open the wrong sheet.
+    const ids = ELDRIDGE_PILOTS.flatMap((p) => (p.partners ?? []).map((x) => x.id))
+    expect(new Set(ids).size).toBe(ids.length)
+
+    // hostSchema is 'equipment' for every pilot-granted partner — the
+    // disambiguator that keeps 'survey-drone' off the opposition stat block.
+    for (const p of ELDRIDGE_PILOTS) {
+      for (const partner of p.partners ?? []) {
+        expect(partner.hostSchema).toBe('equipment')
       }
     }
   })

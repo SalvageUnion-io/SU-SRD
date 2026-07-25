@@ -588,8 +588,8 @@ export function MechSheet({
         title="The Hold"
         count={
           <span className="tabular-nums">
-            {cargo.state.mechLots.length} {cargo.state.mechLots.length === 1 ? 'lot' : 'lots'} ·{' '}
-            {cargo.usage.used}/{cargo.usage.cap} slots
+            {cargo.state.carrierLots.length} {cargo.state.carrierLots.length === 1 ? 'lot' : 'lots'}{' '}
+            · {cargo.usage.used}/{cargo.usage.cap} slots
           </span>
         }
       >

@@ -11,6 +11,7 @@
 
 import { EntityRow, Stat } from 'component-lib'
 
+import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { AssignCrawlerToPilot } from '../wiring/AssignCrawlerToPilot'
@@ -18,6 +19,7 @@ import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { PilotSheet } from './PilotSheet'
+import { PartnerRows } from './PartnerRows'
 import { RailCta } from './SheetRailParts'
 import { AppLink } from '../shared/AppLink'
 import { crawlerRailItems, mechRailItems, mechStatusPill, rowStats } from './railStats'
@@ -60,6 +62,11 @@ export function SheetPilot({
   ]
 
   const dead = isPilotDead(pilot)
+
+  // A pilot-granted partner's stats scale off the UNION CRAWLER's tech level,
+  // not the pilot's (Core Book pp.29/48/68) — so the partner rows need this,
+  // resolved through the same helper the Crawler Level slab already uses.
+  const effectiveCrawlerLevel = resolveEffectiveCrawlerLevel(pilot, composition.crawler)
 
   // Linked Units rail content (poster R3, span 5) — built here because it
   // needs `composition` (resolved mech/crawler), which PilotSheet does not
@@ -125,6 +132,22 @@ export function SheetPilot({
           }
         />
       )}
+      {/* Ability-granted partners ride the same rail as the wired mech and
+          crawler: they are things this pilot owns and can open, so they belong
+          beside the other linked units rather than in a section of their own.
+          Absent when the pilot has none — no empty slot, because a partner is
+          granted by an ability, never created from a blank row. */}
+      <PartnerRows
+        partners={pilot.partners ?? []}
+        crawlerTechLevel={effectiveCrawlerLevel}
+        hostAbilityRefs={pilot.abilities}
+        onRemove={
+          editable
+            ? (partnerId) =>
+                patch({ partners: (pilot.partners ?? []).filter((p) => p.id !== partnerId) })
+            : undefined
+        }
+      />
     </>
   )
 

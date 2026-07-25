@@ -575,6 +575,10 @@
                     "minLength": 1,
                     "description": "Name of this drone configuration"
                   },
+                  "ref": {
+                    "description": "Name of the drones entry this configuration instantiates (defaults to `name`)",
+                    "type": "string"
+                  },
                   "systems": {
                     "type": "array",
                     "items": { "type": "string" },

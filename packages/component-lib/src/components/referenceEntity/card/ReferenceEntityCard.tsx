@@ -83,9 +83,10 @@ import {
   resolveChassisDrone,
   resolveDroneOwnLoadout,
   resolveNestedEntities,
-  resolvePatternDrone,
+  resolvePatternDrones,
   resolvePatternGroups,
 } from './resolveNestedEntities'
+import type { DroneLoadout } from './resolveNestedEntities'
 import { resolveGuideSteps } from './resolveGuideSteps'
 
 /** Beyond this nesting depth a card renders header-only (no body expansion) —
@@ -1464,14 +1465,16 @@ function ReferenceEntityCardInner({
   // DRONE — a chassis controls a drone (named by a chassis ability); a pattern
   // specifies one. Rendered as a compact drone card + its systems/modules listings,
   // just below the chassis ability and above patterns/systems/modules.
-  const droneInfo =
+  // A pattern may field SEVERAL (Big Brother's DronTek fields four); a chassis
+  // ability names exactly one. Both collapse to a list so the render is uniform.
+  const droneInfos: DroneLoadout[] =
     canExpand && !isAction
       ? isPattern && pattern
-        ? resolvePatternDrone(pattern)
+        ? resolvePatternDrones(pattern)
         : schemaName === 'chassis'
-          ? resolveChassisDrone(entity)
-          : undefined
-      : undefined
+          ? [resolveChassisDrone(entity)].filter((d): d is DroneLoadout => d !== undefined)
+          : []
+      : []
 
   // THIS card's own drone loadout (when it IS a drone): the parent-provided
   // `droneLoadout`, else the drone's own systems/modules. Rendered as listings
@@ -1960,19 +1963,24 @@ function ReferenceEntityCardInner({
 
           {/* DRONE — the compact drone card; its systems + modules render INSIDE
               the drone card (via the `droneLoadout` prop), NOT here. */}
-          {droneInfo &&
+          {droneInfos.map((droneInfo, index) =>
             wrapFlat(
               flat,
-              undefined,
+              `drone-${droneInfo.instanceName ?? index}`,
               <ReferenceEntityCardInner
                 size="medium"
                 depth={depth + 1}
                 hostDown={isDown}
                 data={droneInfo.drone}
                 chassisName={resolvedChassisName}
+                // A pattern-named instance ('Shield Drone') titles the card;
+                // the stat block it rides on ('Big Brother Drone') still
+                // supplies every stat, trait and content block below.
+                titleOverride={droneInfo.instanceName}
                 droneLoadout={{ systems: droneInfo.systems, modules: droneInfo.modules }}
               />
-            )}
+            )
+          )}
 
           {/* THIS card's OWN drone loadout (when it is a drone) — systems +
               modules as listings, nested inside the drone card's own body. */}
