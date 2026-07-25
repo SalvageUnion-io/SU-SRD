@@ -99,6 +99,14 @@ export const PilotSchema = z
 
     /** Pilot's callsign / handle — must not be empty. */
     callsign: z.string().min(1),
+    /**
+     * The pilot's pronouns, as free text — never a picker. A closed list gets
+     * someone wrong, and this is the pilot's own word for themselves.
+     *
+     * Additive-optional, so records written before this field still validate on
+     * read (no version bump / migration).
+     */
+    pronouns: z.string().optional(),
 
     /** Slug reference to a Pilot Class in salvageunion-reference */
     classRef: z.string(),

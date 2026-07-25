@@ -49,41 +49,43 @@ function UsedChip({
   used: boolean
   onToggle?: (next: boolean) => void
 }) {
-  // Hollow leading dot; ON = tone-filled. Rendered as the chip's leading child
-  // (Badge's `swatch` is a square colour plate, so the round toggle dot rides
-  // as `children` with an explicit gap).
-  const dot = (
+  // The stamp itself never changes: black at every state, so the row's shape is
+  // stable and the eye isn't asked to re-read the label to learn the state.
+  // ONLY the pip carries it — a small CHIP (the stamp's own rectangular
+  // vocabulary), hollow when unset and tone-filled when set.
+  const pip = (
     <span
       aria-hidden="true"
       className={cn(
-        'h-3 w-3 shrink-0 rounded-full border-2 border-current',
+        'h-3 w-4 shrink-0 rounded-[2px] border-2 border-current',
         used && 'border-[color:var(--tone,var(--color-pilot))] bg-[var(--tone,var(--color-pilot))]'
       )}
     />
   )
   if (!onToggle) {
-    // Read-only: a static 'USED' stamp, shown only when set.
+    // Read-only: the stamp shows only when set (nothing to toggle, so an unset
+    // one would be a control that isn't).
     if (!used) return null
     return (
       <Badge shape="chip" surface="solid" className="gap-1.5">
-        {dot}
+        {pip}
         Used
       </Badge>
     )
   }
-  // Interactive: the Badge aria-pressed toggle pattern — solid when pressed,
-  // ghost when not; Badge supplies cursor + focus ring.
+  // Interactive: `aria-pressed` carries the state for assistive tech, since the
+  // surface no longer does it visually.
   return (
     <Badge
       as="button"
       shape="chip"
-      surface={used ? 'solid' : 'ghost'}
+      surface="solid"
       aria-pressed={used}
       aria-label={used ? `Reset ${label} used` : `Mark ${label} used`}
       onClick={() => onToggle(!used)}
       className="gap-1.5"
     >
-      {dot}
+      {pip}
       Used
     </Badge>
   )
@@ -185,6 +187,14 @@ export function PilotIdentityPanel({
             value={pilot.callsign}
             editing={isEditing}
             onSave={saveRequired('callsign')}
+            prominent
+          />
+          <Field
+            label="Pronouns"
+            value={pilot.pronouns ?? ''}
+            editing={isEditing}
+            onSave={saveText('pronouns')}
+            placeholder="—"
           />
           <Field
             label="Class"

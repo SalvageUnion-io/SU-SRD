@@ -22,7 +22,7 @@
 
 import type { ReactNode, Ref } from 'react'
 import { Badge } from '../chrome/Badge'
-import { SheetSectionSlab } from '../shared/SheetSectionSlab'
+import { SheetSectionCard } from '../shared/SheetSectionCard'
 import { Stat } from '../shared/Stat'
 
 import { cn } from '../../utils/cn'
@@ -54,9 +54,9 @@ type SheetHeroProps = {
    * `identity`/`specs`/`trackers`) is unchanged when `fields` is absent, so
    * snapshots and un-migrated sheets keep working.
    *
-   * Both are `SheetSectionSlab`s — the ONE section container on a live sheet.
-   * Frames belong to entity cards, which carry their own; a section that also
-   * framed itself stacked two enclosures and read as a block. The edge wordmark is NOT here: it belongs to the page
+   * Both are `SheetSectionCard`s — the ONLY framed sections on a live sheet.
+   * Every section BELOW them is a slab, so the frame marks the opening region
+   * rather than repeating down the page. The edge wordmark is NOT here: it belongs to the page
    * gutter (`LiveSheet`), outside the content column, so it differentiates the
    * sheet without occupying it.
    */
@@ -111,27 +111,20 @@ export function SheetHero({
         )}
       >
         <h1 className="sr-only">{name}</h1>
-        {/* `collapsible={false}`: these two are the sheet's subject and its
-            live state — always wanted, and folding them would leave a page of
-            labels above the content. The collections below them fold. */}
-        <SheetSectionSlab
+        {/* The OPENING sections are the only ones that keep a card container:
+            they are the sheet's subject and its live state, so they read as
+            framed objects. Everything below them is a slab. They do not fold —
+            a card has no chevron, which is exactly right here. */}
+        <SheetSectionCard
           title={fieldsTitle}
           count={meta}
           controls={controls}
-          collapsible={false}
-          // A flex COLUMN with a flex-1 body, not `h-full` on both: `h-full`
-          // gave the body 100% of the section's height ON TOP of the leader's,
-          // so the card overflowed its own box and covered the section below it.
           className="flex h-full flex-col"
           bodyClassName="flex min-h-0 flex-1 flex-col"
         >
           {fields}
-        </SheetSectionSlab>
-        {vitals && (
-          <SheetSectionSlab title={vitalsTitle} collapsible={false}>
-            {vitals}
-          </SheetSectionSlab>
-        )}
+        </SheetSectionCard>
+        {vitals && <SheetSectionCard title={vitalsTitle}>{vitals}</SheetSectionCard>}
       </section>
     )
   }
