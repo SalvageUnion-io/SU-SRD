@@ -292,13 +292,32 @@ export function LiveSheet({
       {/* Body slabs — extra phone bottom padding when the FAB floats so the
           last card's controls stay reachable behind the thumb zone. When the
           body owns the hero (no renderHero), it takes the hero's top padding. */}
-      <div
-        className={cn(
-          'px-4 pb-[34px] sm:px-[30px] sm:pb-[60px]',
-          renderHero ? 'pt-[18px] sm:pt-6' : 'pt-4 sm:pt-[22px]'
-        )}
-      >
-        {renderBody({ heroRef })}
+      <div className="relative">
+        {/* Edge wordmark — PILOT / MECH / CRAWLER running up the page gutter.
+            It sits in the shell's own padding, outside the content column, so
+            it differentiates the sheet at a glance without taking part in (or
+            stealing width from) the content. Sticky, so it stays with you as
+            the sheet scrolls. Hidden below xl, where the gutter is only wide
+            enough for the content's own breathing room. */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 hidden w-[52px] select-none xl:block"
+        >
+          <span
+            className="sticky top-[86px] block rotate-180 text-center font-cond text-display-lg font-extrabold uppercase leading-none tracking-caps-tight opacity-45 [writing-mode:vertical-rl]"
+            style={{ color: 'var(--tone-deep)' }}
+          >
+            {variant}
+          </span>
+        </span>
+        <div
+          className={cn(
+            'px-4 pb-[34px] sm:px-[30px] sm:pb-[60px] xl:pl-[68px]',
+            renderHero ? 'pt-[18px] sm:pt-6' : 'pt-4 sm:pt-[22px]'
+          )}
+        >
+          {renderBody({ heroRef })}
+        </div>
       </div>
     </div>
   )

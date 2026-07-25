@@ -30,6 +30,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { CrawlerSheet } from '../CrawlerSheet'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { expandCards } from '../../__tests__/expandCards'
 
 afterEach(() => {
   cleanup()
@@ -157,6 +158,7 @@ describe('CrawlerSheet — bay choice cards (Slice B)', () => {
     const crawler = makeCrawler()
     const { store } = makeCrawlerStubStore(crawler)
     render(<CrawlerSheet crawler={crawler} store={store} />)
+    expandCards()
 
     expect(screen.getByRole('button', { name: /Autocannon/i })).toBeTruthy()
     expect(screen.getByRole('button', { name: /Missile Pod/i })).toBeTruthy()
@@ -167,6 +169,7 @@ describe('CrawlerSheet — bay choice cards (Slice B)', () => {
     const crawler = makeCrawler()
     const { store, updateMock } = makeCrawlerStubStore(crawler)
     render(<CrawlerSheet crawler={crawler} store={store} />)
+    expandCards()
 
     const autocannon = screen.getByRole('button', { name: /Autocannon/i })
     await act(async () => {
@@ -189,6 +192,7 @@ describe('CrawlerSheet — bay choice cards (Slice B)', () => {
     })
     const { store, updateMock } = makeCrawlerStubStore(crawler)
     render(<CrawlerSheet crawler={crawler} store={store} />)
+    expandCards()
 
     const autocannon = screen.getByRole('button', { name: /Autocannon/i })
     await act(async () => {
@@ -210,6 +214,7 @@ describe('CrawlerSheet — bay choice cards (Slice B)', () => {
     })
     const { store } = makeCrawlerStubStore(crawler)
     render(<CrawlerSheet crawler={crawler} store={store} />)
+    expandCards()
 
     const missile = screen.getByRole('button', { name: /Missile Pod/i })
     expect(missile.getAttribute('aria-pressed')).toBe('true')
@@ -225,6 +230,7 @@ describe('CrawlerSheet — bay choice cards (Slice B)', () => {
     })
     const { store } = makeEmptyStore()
     render(<CrawlerSheet crawler={crawler} store={store} readOnly />)
+    expandCards()
 
     const missile = screen.getByRole('button', { name: /Missile Pod/i })
     expect(missile.getAttribute('aria-pressed')).toBe('true')
@@ -238,6 +244,7 @@ describe('CrawlerSheet — bay choice cards (Slice B)', () => {
     const crawler = makeCrawler()
     const { store, updateMock } = makeCrawlerStubStore(crawler)
     render(<CrawlerSheet crawler={crawler} store={store} readOnly />)
+    expandCards()
 
     const autocannon = screen.getByRole('button', { name: /Autocannon/i })
     expect(autocannon).toBeTruthy()

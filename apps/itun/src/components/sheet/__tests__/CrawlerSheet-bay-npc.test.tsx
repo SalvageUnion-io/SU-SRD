@@ -26,6 +26,7 @@ import { CrawlerSchema } from '../../../lib/schemas/crawler'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { expandCards } from '../../__tests__/expandCards'
 
 afterEach(() => {
   cleanup()
@@ -137,6 +138,7 @@ describe('CrawlerSheet — crew lead identity (NpcInset)', () => {
   test('renders name, SRD role title and detail', async () => {
     restore = await patchCrawlerBays()
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} />)
+    expandCards()
 
     const inset = screen.getByLabelText('Command Bay crew lead')
     expect(within(inset).getByText('Dax Orsund')).toBeTruthy()
@@ -153,6 +155,7 @@ describe('CrawlerSheet — crew lead identity (NpcInset)', () => {
         store={makeStubStore(baseCrawler, { updateCrawlerBay })}
       />
     )
+    expandCards()
 
     const field = screen.getByLabelText('Edit Command Bay crew name')
     await act(async () => {
@@ -181,6 +184,7 @@ describe('CrawlerSheet — crew lead identity (NpcInset)', () => {
         store={makeStubStore(baseCrawler, { updateCrawlerBay })}
       />
     )
+    expandCards()
 
     const field = screen.getByLabelText('Edit Command Bay crew detail')
     await act(async () => {
@@ -222,6 +226,7 @@ describe('CrawlerSheet — crew HP editing (NpcInset)', () => {
         store={makeStubStore(baseCrawler, { updateCrawlerBay })}
       />
     )
+    expandCards()
 
     const inset = screen.getByLabelText('Command Bay crew lead')
     // Crew HP is an editable value box (starts full at 4/4, max 4); its steppers
@@ -242,6 +247,7 @@ describe('CrawlerSheet — crew HP editing (NpcInset)', () => {
   test('readOnly renders crew HP without editable steppers', async () => {
     restore = await patchCrawlerBays()
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} readOnly />)
+    expandCards()
     const inset = screen.getByLabelText('Command Bay crew lead')
     expect(within(inset).queryByRole('button', { name: 'Decrease HP' })).toBeNull()
     expect(within(inset).queryByRole('button', { name: 'Increase HP' })).toBeNull()
@@ -268,6 +274,7 @@ describe('CrawlerSheet — crew keepsake via bayChoices', () => {
       bayChoices: { 'command-bay': { [KEEPSAKE_CHOICE_ID]: ['A bent cog'] } },
     }
     render(<CrawlerSheet crawler={withKeepsake} store={makeStubStore(withKeepsake)} />)
+    expandCards()
     const inset = screen.getByLabelText('Command Bay crew lead')
     expect(within(inset).getByText('A bent cog')).toBeTruthy()
   })
@@ -276,6 +283,7 @@ describe('CrawlerSheet — crew keepsake via bayChoices', () => {
     restore = await patchCrawlerBays()
     const update = mock(async () => baseCrawler)
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler, { update })} />)
+    expandCards()
 
     const field = screen.getByLabelText('Edit Command Bay crew keepsake')
     await act(async () => {
@@ -295,6 +303,7 @@ describe('CrawlerSheet — crew keepsake via bayChoices', () => {
   test('a bay whose NPC has no Keepsake choice renders a read-only dash', async () => {
     restore = await patchCrawlerBays()
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} />)
+    expandCards()
     // Mech Bay's mock npc carries no choices — keepsake cannot persist.
     expect(screen.queryByLabelText('Edit Mech Bay crew keepsake')).toBeNull()
   })
@@ -317,6 +326,7 @@ describe('CrawlerSheet — crew motto via bayChoices', () => {
       bayChoices: { 'command-bay': { [MOTTO_CHOICE_ID]: ['No retreat'] } },
     }
     render(<CrawlerSheet crawler={withMotto} store={makeStubStore(withMotto)} />)
+    expandCards()
     const inset = screen.getByLabelText('Command Bay crew lead')
     expect(within(inset).getByText('No retreat')).toBeTruthy()
   })
@@ -325,6 +335,7 @@ describe('CrawlerSheet — crew motto via bayChoices', () => {
     restore = await patchCrawlerBays()
     const update = mock(async () => baseCrawler)
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler, { update })} />)
+    expandCards()
 
     const field = screen.getByLabelText('Edit Command Bay crew motto')
     await act(async () => {
@@ -344,6 +355,7 @@ describe('CrawlerSheet — crew motto via bayChoices', () => {
   test('a bay whose NPC has no Motto choice renders a read-only dash', async () => {
     restore = await patchCrawlerBays()
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} />)
+    expandCards()
     // Mech Bay's mock npc carries no choices — motto cannot persist.
     expect(screen.queryByLabelText('Edit Mech Bay crew motto')).toBeNull()
   })
@@ -368,6 +380,7 @@ describe('CrawlerSheet — crew facts (NpcInset)', () => {
         store={makeStubStore(baseCrawler, { updateCrawlerBay })}
       />
     )
+    expandCards()
 
     const addBtn = screen.getByLabelText('Add Command Bay crew fact')
     await act(async () => {
@@ -396,6 +409,7 @@ describe('CrawlerSheet — crew facts (NpcInset)', () => {
         store={makeStubStore(baseCrawler, { updateCrawlerBay })}
       />
     )
+    expandCards()
 
     const removeBtn = screen.getByLabelText('Remove Command Bay crew fact Hates synths')
     await act(async () => {
@@ -432,6 +446,7 @@ describe('CrawlerSheet — crew readOnly', () => {
         readOnly
       />
     )
+    expandCards()
 
     const inset = screen.getByLabelText('Command Bay crew lead')
     expect(within(inset).getByText('Dax Orsund')).toBeTruthy()

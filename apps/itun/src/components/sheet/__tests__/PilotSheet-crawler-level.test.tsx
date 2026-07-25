@@ -31,6 +31,7 @@ import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { expandCards } from '../../__tests__/expandCards'
 
 const SNIPER_NAME = 'Custom Sniper Rifle'
 let SNIPER_ID = ''
@@ -142,6 +143,7 @@ describe('PilotSheet — Crawler Level slab dropped (redesign D6, #410)', () => 
     const pilot = makePilot({ crawlerLevel: 2 })
     const { store } = makeStore({ pilot })
     render(<PilotSheet pilot={pilot} store={store} />)
+    expandCards()
 
     expect(screen.queryByLabelText('Edit Crawler Level')).toBeNull()
     expect(screen.queryByText('Crawler Level')).toBeNull()
@@ -156,6 +158,7 @@ describe('PilotSheet — Crawler Level slab dropped (redesign D6, #410)', () => 
       softLinks: [pilotToCrawlerLink(pilot.id, crawler.id)],
     })
     render(<PilotSheet pilot={pilot} store={store} />)
+    expandCards()
 
     expect(screen.queryByLabelText('Edit Crawler Level')).toBeNull()
     expect(screen.queryByText(/from associated crawler/i)).toBeNull()
@@ -172,6 +175,7 @@ describe('PilotSheet — Crawler Level slab dropped (redesign D6, #410)', () => 
       softLinks: [pilotToCrawlerLink(pilot.id, crawler.id)],
     })
     render(<PilotSheet pilot={pilot} store={store} />)
+    expandCards()
 
     expect(screen.getByText('0/3')).toBeTruthy()
   })
@@ -180,6 +184,7 @@ describe('PilotSheet — Crawler Level slab dropped (redesign D6, #410)', () => 
     const pilot = makePilot({ crawlerLevel: undefined })
     const { store } = makeStore({ pilot })
     render(<PilotSheet pilot={pilot} store={store} />)
+    expandCards()
 
     // Custom Sniper Rifle is TL1 (a granted item with no inherent rules tech
     // level). Its effective tech level floors at that base, so with no crawler

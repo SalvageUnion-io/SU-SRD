@@ -26,9 +26,12 @@
  * rather than restating its markup, so the leader stays one implementation.
  */
 
+import { useId, useState } from 'react'
 import type { ReactNode } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { Slab } from '../chrome/Slab'
 import { cn } from '../../utils/cn'
+import { FOCUS_RING } from '../chrome/interaction'
 
 type SheetSectionSlabProps = {
   /** Section title — the solid black stamp in the slab leader. */
@@ -45,6 +48,12 @@ type SheetSectionSlabProps = {
   className?: string
   /** Extra classes on the content block (e.g. grid gaps). */
   bodyClassName?: string
+  /**
+   * Start folded. Slabs default to OPEN — a sheet whose sections were all shut
+   * would open on a page of labels telling you nothing about the character.
+   * (Entity CARDS default the other way; see `ReferenceEntityCard.collapsible`.)
+   */
+  defaultCollapsed?: boolean
   children: ReactNode
 }
 
@@ -55,8 +64,12 @@ export function SheetSectionSlab({
   controls,
   className,
   bodyClassName,
+  defaultCollapsed = false,
   children,
 }: SheetSectionSlabProps) {
+  const [collapsed, setCollapsed] = useState(defaultCollapsed)
+  const bodyId = useId()
+
   return (
     // `.sheet-section` keeps the print page-break rule the card container also
     // carries, so moving a section between the two never changes pagination.
@@ -68,8 +81,44 @@ export function SheetSectionSlab({
           sideways (measured, not assumed). Wrapping drops the controls to
           their own line instead; the card container never had this problem
           because its header band is a separate `ml-auto` row. */}
-      <Slab variant="solid" label={title} count={count} actions={controls} className="flex-wrap" />
-      <div className={cn('min-w-0', bodyClassName)}>{children}</div>
+      <Slab
+        variant="solid"
+        label={title}
+        count={count}
+        className="flex-wrap"
+        actions={
+          <>
+            {controls}
+            <button
+              type="button"
+              onClick={() => setCollapsed((v) => !v)}
+              aria-expanded={!collapsed}
+              aria-controls={bodyId}
+              // The accessible name carries the section, so a screen reader
+              // hears "Collapse Systems" rather than a rail of bare chevrons.
+              aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${title}`}
+              className={cn(
+                'inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-card border-chrome border-ink/35 text-ink transition-colors hover:bg-ink/10',
+                FOCUS_RING
+              )}
+            >
+              <ChevronDown
+                aria-hidden="true"
+                className={cn(
+                  'size-4 transition-transform duration-150',
+                  collapsed && '-rotate-90'
+                )}
+              />
+            </button>
+          </>
+        }
+      />
+      {/* Kept mounted and hidden rather than unmounted: the cards inside hold
+          their own open/closed state, and unmounting would silently reset every
+          one of them each time the section was folded. */}
+      <div id={bodyId} hidden={collapsed} className={cn('min-w-0', bodyClassName)}>
+        {children}
+      </div>
     </section>
   )
 }

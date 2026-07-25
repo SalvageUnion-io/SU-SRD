@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import type { ReactNode } from 'react'
+import { ChevronUp } from 'lucide-react'
 import type {
   SURefEntity,
   SURefEnumSchemaName,
@@ -2019,6 +2021,19 @@ export type ReferenceEntityCardWrapperProps = Omit<
   data: ReferenceCardEntity | undefined
   size?: CardSize
   extent?: CardExtent
+  /**
+   * Let the reader fold this card down to LISTING (`extent="head"` — header
+   * only) and back. Collapsed is the DEFAULT: a long collection reads as a
+   * scannable list of names and stats, and the reader opens the one they want.
+   *
+   * Costs nothing when absent — the whole affordance is expressed through
+   * existing `controls`: collapsed adds a hidden `cardClick` control (so the
+   * whole card is the expand target, which is what a header-only listing
+   * already looks clickable enough to be), expanded adds a ghost chevron.
+   */
+  collapsible?: boolean
+  /** Start folded. Only meaningful with `collapsible`; defaults to true. */
+  defaultCollapsed?: boolean
 }
 
 /**
@@ -2033,15 +2048,58 @@ export function ReferenceEntityCard({
   data,
   size,
   extent,
+  collapsible = false,
+  defaultCollapsed = true,
+  controls,
   ...rest
 }: ReferenceEntityCardWrapperProps): ReactNode {
+  // Hook before the nullable-data guard — a conditional hook would break the
+  // rules of hooks the first time a caller passed `undefined`.
+  const [collapsed, setCollapsed] = useState(collapsible && defaultCollapsed)
   if (!data) return null
 
+  const folded = collapsible && collapsed
   // The size / extent / compact / listing reconciliation is the Card
-  // layer's rule — inherited, not restated here.
-  const display = resolveCardDisplay({ size, extent })
+  // layer's rule — inherited, not restated here. Folding only overrides the
+  // EXTENT axis, so a collapsed card keeps whatever size it was given.
+  const display = resolveCardDisplay({ size, extent: folded ? 'head' : extent })
+
+  const label = getReferenceEntityName(data)
+  const foldControls: ReferenceEntityControl[] = !collapsible
+    ? []
+    : folded
+      ? [
+          {
+            key: '__expand',
+            // Not rendered — it exists to make the whole listing the expand
+            // target (and to bring the hover-enlarge affordance with it).
+            hidden: true,
+            cardClick: true,
+            ariaLabel: `Expand ${label}`,
+            onClick: () => setCollapsed(false),
+          },
+        ]
+      : [
+          {
+            key: '__collapse',
+            icon: ChevronUp,
+            variant: 'ghost',
+            ariaLabel: `Collapse ${label}`,
+            onClick: () => setCollapsed(true),
+          },
+        ]
 
   return (
-    <ReferenceEntityCardInner data={data} size={display.size} extent={display.extent} {...rest} />
+    <ReferenceEntityCardInner
+      data={data}
+      size={display.size}
+      extent={display.extent}
+      controls={foldControls.length > 0 ? [...(controls ?? []), ...foldControls] : controls}
+      // A folded card's whole surface is the expand target, so it needs an
+      // accessible name saying what activating it does — without this the
+      // wrapper is an unnamed role="button" wrapping the card's entire text.
+      {...(folded ? { cardClickLabel: `Expand ${label}` } : {})}
+      {...rest}
+    />
   )
 }

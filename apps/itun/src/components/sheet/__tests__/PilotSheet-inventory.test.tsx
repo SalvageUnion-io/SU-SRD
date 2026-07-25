@@ -18,6 +18,7 @@ import { PilotSheet } from '../PilotSheet'
 import type { GenericInventoryEntry, Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { expandCards } from '../../__tests__/expandCards'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -85,6 +86,7 @@ describe('PilotSheet — inventory slot math (rules A13)', () => {
       genericInventory: [SCRAP],
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
+    expandCards()
     expect(screen.getByText(/6 \/ 6 slots/)).toBeTruthy()
   })
 
@@ -98,6 +100,7 @@ describe('PilotSheet — inventory slot math (rules A13)', () => {
     })
     // 1 + 6 + 3 = 10
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
+    expandCards()
     expect(screen.getByText(/10 \/ 6 slots/)).toBeTruthy()
   })
 })
@@ -113,12 +116,14 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
       equipmentUses: { 'First Aid Kit': 1 },
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
+    expandCards()
     expect(screen.getByText('1/3')).toBeTruthy()
   })
 
   test('absent key reads as full uses', () => {
     const pilot = makePilot({ equipment: ['First Aid Kit'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
+    expandCards()
     expect(screen.getByText('3/3')).toBeTruthy()
   })
 
@@ -129,6 +134,7 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
     })
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
+    expandCards()
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Use First Aid Kit' }))
@@ -146,6 +152,7 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
     })
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
+    expandCards()
 
     const useBtn = screen.getByRole<HTMLButtonElement>('button', {
       name: 'Use First Aid Kit',
@@ -164,6 +171,7 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
   test('no uses affordance on items without a uses trait', () => {
     const pilot = makePilot({ equipment: ['Rifle'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
+    expandCards()
     expect(screen.queryByRole('button', { name: /use rifle/i })).toBeNull()
   })
 })
@@ -177,6 +185,7 @@ describe('PilotSheet — generic inventory entries (plan S7)', () => {
     const pilot = makePilot()
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
+    expandCards()
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Add Scrap (3 slots)' }))
@@ -191,6 +200,7 @@ describe('PilotSheet — generic inventory entries (plan S7)', () => {
     const pilot = makePilot()
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
+    expandCards()
 
     await act(async () => {
       fireEvent.change(screen.getByRole('textbox', { name: 'New item name' }), {
@@ -222,6 +232,7 @@ describe('PilotSheet — generic inventory entries (plan S7)', () => {
     const pilot = makePilot({ genericInventory: [SCRAP] })
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
+    expandCards()
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Remove Scrap' }))
@@ -244,6 +255,7 @@ describe('PilotSheet — inventory readOnly', () => {
       genericInventory: [SCRAP],
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
+    expandCards()
 
     expect(screen.queryByRole('button', { name: /use first aid kit/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /restock/i })).toBeNull()

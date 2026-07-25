@@ -62,7 +62,7 @@ import type { ItemCondition, Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { EntitySearcher } from 'component-lib'
 import { destroyedUndoToast } from './destroyedUndoToast'
-import { EntityGrid, EntityGridRow } from 'component-lib'
+import { EntityGridRow, MasonryColumns } from 'component-lib'
 import { InlineEditField } from 'component-lib'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
@@ -389,7 +389,7 @@ export function MechSheet({
       )
     }
     return (
-      <EntityGrid columns={3}>
+      <MasonryColumns maxColumns={3}>
         {slugs.map((slug, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: the same system/module slug may be installed more than once, so the slug alone is not unique; install order is stable
           <EntityGridRow key={`${slug}-${index}`}>
@@ -419,7 +419,7 @@ export function MechSheet({
             />
           </EntityGridRow>
         ))}
-      </EntityGrid>
+      </MasonryColumns>
     )
   }
 
@@ -545,7 +545,7 @@ export function MechSheet({
               title="Chassis Ability"
               count={`${chassisAbilities.length} ${chassisAbilities.length === 1 ? 'action' : 'actions'}`}
             >
-              <EntityGrid>
+              <MasonryColumns maxColumns={2}>
                 {chassisAbilities.map((ability) => {
                   // Activating an ability (spending its EP) is a Guided-Play
                   // transaction — it lives on the Dashboard, not the Free-Edit
@@ -562,11 +562,15 @@ export function MechSheet({
                       mode="rail"
                       footMeta={epCost > 0 ? [{ label: 'EP Cost', value: epCost }] : undefined}
                     >
-                      <ReferenceEntityCard data={ability} hostTone="var(--color-sheet-mech-deep)" />
+                      <ReferenceEntityCard
+                        data={ability}
+                        hostTone="var(--color-sheet-mech-deep)"
+                        collapsible
+                      />
                     </EntityGridRow>
                   )
                 })}
-              </EntityGrid>
+              </MasonryColumns>
             </SheetSectionSlab>
           </div>
         )}

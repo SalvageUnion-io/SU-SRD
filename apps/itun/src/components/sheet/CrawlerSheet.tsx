@@ -11,7 +11,7 @@
  *
  *   Identity Band: edge wordmark ∥ Name/Type/Ability/Description fields ∥ the
  *     Economy rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts, built
- *     by SheetCrawler and passed as `economy`) → Bays (3-column `EntityGrid`)
+ *     by SheetCrawler and passed as `economy`) → Bays (3-column masonry)
  *     → Armament Bay Weapons (3-column) → Linked Units (bare section, no card
  *     frame) → Storage Bay.
  *   Storage Bay is the FULL-WIDTH band at the very BOTTOM (printed sheet p.2 —
@@ -77,7 +77,7 @@ import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
-import { EntityGrid, EntityGridRow } from 'component-lib'
+import { EntityGridRow, MasonryColumns } from 'component-lib'
 import {
   CardRemoveButton,
   REMOVABLE_CARD_STYLE,
@@ -260,6 +260,7 @@ export function CrawlerSheet({
             />
           }
           vitals={economy}
+          vitalsTitle="Economy"
         />
 
         {/* ----- Content region (Bays, Weapons) ----- */}
@@ -277,7 +278,7 @@ export function CrawlerSheet({
                 </span>
               }
             >
-              <EntityGrid columns={3}>
+              <MasonryColumns maxColumns={3}>
                 {bays.map((entry, i) => {
                   const isMechBay =
                     entry.bayRef === 'mech-bay' ||
@@ -300,7 +301,7 @@ export function CrawlerSheet({
                     </EntityGridRow>
                   )
                 })}
-              </EntityGrid>
+              </MasonryColumns>
             </SheetSectionSlab>
           )}
 
@@ -324,7 +325,7 @@ export function CrawlerSheet({
               {crawler.systems.length === 0 ? (
                 <p className="font-body text-caption text-wk-muted">No weapons mounted.</p>
               ) : (
-                <EntityGrid columns={3}>
+                <MasonryColumns maxColumns={3}>
                   {crawler.systems.map((slug) => {
                     const system = resolveCrawlerSystem(slug)
                     return (
@@ -333,6 +334,7 @@ export function CrawlerSheet({
                           <ReferenceEntityCard
                             data={system}
                             size="medium"
+                            collapsible
                             controls={
                               readOnly
                                 ? undefined
@@ -354,7 +356,7 @@ export function CrawlerSheet({
                       </EntityGridRow>
                     )
                   })}
-                </EntityGrid>
+                </MasonryColumns>
               )}
             </SheetSectionSlab>
           )}

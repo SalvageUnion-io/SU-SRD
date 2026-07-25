@@ -22,6 +22,7 @@
 
 import type { ReactNode, Ref } from 'react'
 import { Badge } from '../chrome/Badge'
+import { SheetSectionCard } from '../shared/SheetSectionCard'
 import { Stat } from '../shared/Stat'
 
 import { cn } from '../../utils/cn'
@@ -46,17 +47,26 @@ type SheetHeroProps = {
   trackers?: ReactNode
   /**
    * BAND MODE (Workshop-Manual identity band). When provided, the hero renders
-   * the printed-sheet identity band — a left **edge wordmark** (`cat`, paper on
-   * the sheet tone, NOT a black stamp), the `fields` identity block in the
-   * middle, and the `vitals` current/max rail on the right — and DROPS the big
-   * name stamp (the name lives in its own field). `name` still becomes the
-   * accessible `<h1>`. Legacy mode (name stamp + `identity`/`specs`/`trackers`)
-   * is unchanged when `fields` is absent, so snapshots and un-migrated sheets
-   * keep working.
+   * the sheet's top region as TWO section cards side by side — a wide "thick"
+   * card of identity FIELDS and a narrow "long" card of current/max GAUGES —
+   * and DROPS the big name stamp (the name lives in its own field). `name`
+   * still becomes the accessible `<h1>`. Legacy mode (name stamp +
+   * `identity`/`specs`/`trackers`) is unchanged when `fields` is absent, so
+   * snapshots and un-migrated sheets keep working.
+   *
+   * The two cards are `SheetSectionCard`s, the same container every other
+   * input/gauge section on the sheet uses — so the card-vs-slab rule holds with
+   * no third shape. The edge wordmark is NOT here: it belongs to the page
+   * gutter (`LiveSheet`), outside the content column, so it differentiates the
+   * sheet without occupying it.
    */
   fields?: ReactNode
-  /** Band mode: the current/max gauge rail (right column). */
+  /** Band mode: the current/max gauge card (the narrow "long" one). */
   vitals?: ReactNode
+  /** Band mode: title of the fields card. */
+  fieldsTitle?: string
+  /** Band mode: title of the gauges card (crawler passes 'Economy'). */
+  vitalsTitle?: string
   /** Band mode: header-right controls (e.g. the identity Edit/Done toggle). */
   controls?: ReactNode
   /** Forwarded to the hero root for the shell's condense observer. */
@@ -73,42 +83,33 @@ export function SheetHero({
   trackers,
   fields,
   vitals,
+  fieldsTitle = 'Identity',
+  vitalsTitle = 'Vitals',
   controls,
   heroRef,
   className,
 }: SheetHeroProps) {
-  // BAND MODE — the printed-sheet identity band: edge wordmark ∥ fields ∥
-  // vitals rail. Drops the name stamp; the name is the accessible <h1>.
+  // BAND MODE — the sheet's top region as TWO cards: a wide fields card and a
+  // narrow gauges card. Drops the name stamp; the name is the accessible <h1>.
+  // The wordmark is the page gutter's job (LiveSheet), not this region's.
   if (fields) {
     return (
       <section
         ref={heroRef}
         aria-label={`${name} sheet header`}
-        className={cn('relative overflow-hidden rounded-card border-entity border-ink', className)}
-        style={{ background: 'var(--tone)' }}
+        // The gauges card is content-width ("long" — a narrow tall column);
+        // the fields card takes the rest ("thick"). They stack on narrow
+        // viewports so neither ever crushes.
+        className={cn(
+          'grid grid-cols-1 items-start gap-[22px] @3xl:grid-cols-[minmax(0,1fr)_260px] @3xl:gap-6',
+          className
+        )}
       >
         <h1 className="sr-only">{name}</h1>
-        <div className="grid grid-cols-1 gap-3 p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-4 sm:p-4">
-          {/* Edge wordmark — paper on the sheet tone (NOT an ink stamp): a
-              horizontal eyebrow on mobile, a vertical left-edge wordmark that
-              reads bottom-to-top on sm+, mirroring the printed sheets. */}
-          <span
-            aria-hidden="true"
-            className="font-cond text-display font-extrabold uppercase leading-none tracking-caps-tight text-paper sm:self-stretch sm:rotate-180 sm:place-self-center sm:text-display-lg sm:[writing-mode:vertical-rl]"
-          >
-            {cat}
-          </span>
-
-          {/* Identity fields (middle) + optional edit control. */}
-          <div className="flex min-w-0 flex-col gap-2">
-            {controls && <div className="flex justify-end">{controls}</div>}
-            {fields}
-            {meta && <div className="flex flex-wrap items-center gap-1.5">{meta}</div>}
-          </div>
-
-          {/* Current/max gauge rail (right). */}
-          {vitals && <div className="min-w-0 sm:w-[220px]">{vitals}</div>}
-        </div>
+        <SheetSectionCard title={fieldsTitle} count={meta} controls={controls}>
+          {fields}
+        </SheetSectionCard>
+        {vitals && <SheetSectionCard title={vitalsTitle}>{vitals}</SheetSectionCard>}
       </section>
     )
   }

@@ -117,6 +117,7 @@ export function PilotAbilityItem({
     <ReferenceEntityCard
       data={ability}
       size="medium"
+      collapsible
       hide={HIDE_CHOICES}
       footMeta={footMeta}
       controls={controls.length > 0 ? controls : undefined}
@@ -259,6 +260,7 @@ export function PilotEquipmentItem({
       <ReferenceEntityCard
         data={equipment}
         size="medium"
+        collapsible
         selections={selections}
         onSelectionChange={readOnly ? undefined : setSelections}
         scalingParent={scalingParent}

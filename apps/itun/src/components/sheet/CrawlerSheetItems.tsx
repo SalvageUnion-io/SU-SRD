@@ -216,6 +216,7 @@ export function CrawlerBayCard({
       <ReferenceEntityCard
         data={cardData}
         size="medium"
+        collapsible
         hide={HIDE_BAY_CONTENT}
         status={condition}
         onStatusClick={readOnly ? undefined : toggleCondition}

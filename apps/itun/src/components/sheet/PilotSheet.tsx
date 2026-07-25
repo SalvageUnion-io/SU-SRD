@@ -56,7 +56,7 @@ import { EntitySearcher } from 'component-lib'
 import { useSoftLinks } from '../wiring/useSoftLinks'
 import { ConditionsEditor } from 'component-lib'
 import { destroyedUndoToast } from './destroyedUndoToast'
-import { EntityGrid, EntityGridRow } from 'component-lib'
+import { EntityGridRow, MasonryColumns } from 'component-lib'
 import { PilotIdentityPanel } from './PilotIdentity'
 import type { UsedToggleKey } from './PilotIdentity'
 import { SectionAddButton, SectionEditButton, SheetPickerModal } from 'component-lib'
@@ -481,7 +481,7 @@ export function PilotSheet({
         {pilot.abilities.length === 0 ? (
           <p className="font-body text-caption text-wk-muted">No abilities learned yet.</p>
         ) : (
-          <EntityGrid columns={3}>
+          <MasonryColumns maxColumns={3}>
             {pilot.abilities.map((slug) => {
               const ability = resolveAbility(slug)
               if (!ability) {
@@ -515,7 +515,7 @@ export function PilotSheet({
                 </EntityGridRow>
               )
             })}
-          </EntityGrid>
+          </MasonryColumns>
         )}
       </SheetSectionSlab>
 
@@ -536,7 +536,7 @@ export function PilotSheet({
         {pilot.equipment.length === 0 && genericInventory.length === 0 ? (
           <p className="font-body text-caption text-wk-muted">Nothing carried.</p>
         ) : (
-          <EntityGrid>
+          <MasonryColumns maxColumns={2}>
             {pilot.equipment.map((slug) => (
               <EntityGridRow key={slug}>
                 <PilotEquipmentItem
@@ -581,7 +581,7 @@ export function PilotSheet({
                 />
               </EntityGridRow>
             ))}
-          </EntityGrid>
+          </MasonryColumns>
         )}
         {!readOnly && (
           <div className="mt-3">

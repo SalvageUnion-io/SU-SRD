@@ -236,6 +236,7 @@ export function MechItemCard({
       <ReferenceEntityCard
         data={entity}
         size="medium"
+        collapsible
         hide={HIDE_CHOICES}
         status={condition}
         onStatusClick={readOnly ? undefined : onStatusCycle}
