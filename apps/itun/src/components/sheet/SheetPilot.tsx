@@ -140,6 +140,7 @@ export function SheetPilot({
       <PartnerRows
         partners={pilot.partners ?? []}
         crawlerTechLevel={effectiveCrawlerLevel}
+        hostAbilityRefs={pilot.abilities}
         onRemove={
           editable
             ? (partnerId) =>

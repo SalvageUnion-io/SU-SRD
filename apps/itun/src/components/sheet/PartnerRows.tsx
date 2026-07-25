@@ -19,26 +19,11 @@
 
 import { EntityRow } from 'component-lib'
 
-import { partnerTechLevel, resolvePartnerStatBlock } from '../../lib/rules/partnerStats'
+import { partnerCap, partnerTechLevel } from '../../lib/rules/partnerStats'
 import type { PartnerInstance } from '../../lib/schemas/partner'
 import { AppLink } from '../shared/AppLink'
+import { partnerDisplayName, partnerRoleLabel } from './partnerDisplay'
 import { partnerRailItems, rowStats } from './railStats'
-
-/** Display name: the instance's own, else the stat block's, else the raw ref. */
-export function partnerDisplayName(partner: PartnerInstance): string {
-  if (partner.name && partner.name.trim() !== '') return partner.name
-  const block = resolvePartnerStatBlock(partner) as { name?: string } | null
-  return block?.name ?? partner.hostRef
-}
-
-/**
- * The stat block's name, shown as the row's role label so a renamed partner
- * still says what it IS — "Custos" over "Survey Drone".
- */
-function partnerRoleLabel(partner: PartnerInstance): string {
-  const block = resolvePartnerStatBlock(partner) as { name?: string } | null
-  return block?.name ?? 'Partner'
-}
 
 type PartnerRowsProps = {
   partners: readonly PartnerInstance[]
@@ -48,15 +33,37 @@ type PartnerRowsProps = {
    * fixed by their stat block — see `partnerTechLevel`.
    */
   crawlerTechLevel?: number
+  /**
+   * The host's ability slugs. Only used to resolve the per-partner CAP, which
+   * a second ability can raise — Mecha Packmaster (Core Book p. 69) takes Mecha
+   * Companion from one to two — so the cap cannot be read off the stat block
+   * alone. Omit for mech hosts, whose chassis-fielded drones have no such
+   * modifier.
+   */
+  hostAbilityRefs?: readonly string[]
   /** Fired with the partner id when its row's remove control is pressed. */
   onRemove?: (partnerId: string) => void
 }
 
-export function PartnerRows({ partners, crawlerTechLevel, onRemove }: PartnerRowsProps) {
+export function PartnerRows({
+  partners,
+  crawlerTechLevel,
+  hostAbilityRefs = [],
+  onRemove,
+}: PartnerRowsProps) {
+  // How many of each stat block the host fields, so a row can say "2 of 2".
+  const fielded = new Map<string, number>()
+  for (const p of partners) fielded.set(p.hostRef, (fielded.get(p.hostRef) ?? 0) + 1)
+
   return (
     <>
       {partners.map((partner) => {
         const techLevel = partnerTechLevel(partner, crawlerTechLevel)
+        // Advisory only: over-cap is SHOWN, never blocked (ADR-007, and the
+        // Live Sheet is a Free-Edit surface per ADR-021).
+        const cap = partnerCap(partner.hostRef, hostAbilityRefs)
+        const used = fielded.get(partner.hostRef) ?? 1
+        const capNote = used > 1 || used > cap ? ` · ${used} of ${cap}` : ''
         return (
           <EntityRow
             key={partner.id}
@@ -66,7 +73,7 @@ export function PartnerRows({ partners, crawlerTechLevel, onRemove }: PartnerRow
             sheetHref={`/sheet/partner/${partner.id}`}
             linkAs={AppLink}
             meta={partnerRoleLabel(partner)}
-            metaLine={`Tech ${techLevel}`}
+            metaLine={`Tech ${techLevel}${capNote}`}
             stats={rowStats(partnerRailItems(partner, techLevel))}
             onDeleteClick={onRemove ? () => onRemove(partner.id) : undefined}
           />

@@ -13,6 +13,8 @@ import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
+import { fireEvent } from '@testing-library/react'
+
 import { SheetPartner } from '../SheetPartner'
 import { findPartner, replacePartner } from '../../../lib/partnerLookup'
 import type { Mech } from '../../../lib/schemas/mech'
@@ -180,5 +182,53 @@ describe('SheetPartner — the Hold', () => {
     const host = pilot([partner()])
     render(<SheetPartner found={findPartner([host], [], 'p1')!} readOnly />)
     expect(screen.queryByText(/Storage Bay/i)).toBeNull()
+  })
+})
+
+describe('SheetPartner — item condition', () => {
+  /**
+   * Repair and the status badge are DIFFERENT verbs and were briefly the same
+   * function: `onRepair` was wired to the Intact→Damaged→Destroyed cycle, so
+   * repairing a Damaged item destroyed it. That is data loss dressed as a fix,
+   * and nothing in the type system objects — both are `() => void`.
+   */
+  test('Repair sets Intact; it does not advance the damage cycle', () => {
+    const updates: Array<Record<string, unknown>> = []
+    const fakeStore = (() => ({
+      update: (_t: string, _id: string, fields: Record<string, unknown>) => {
+        updates.push(fields)
+        return Promise.resolve()
+      },
+      transfer: () => Promise.resolve(),
+      list: () => [],
+      softLinks: [],
+    })) as unknown as typeof import('../../../stores/entityStore').useEntityStore
+
+    const host = pilot([
+      partner({
+        systems: ['high-gain-antenna'],
+        systemConditions: { 'high-gain-antenna': 'damaged' },
+      }),
+    ])
+    render(<SheetPartner found={findPartner([host], [], 'p1')!} store={fakeStore} />)
+
+    // Opens the confirm modal…
+    fireEvent.click(screen.getByRole('button', { name: /^Repair High Gain Antenna$/i }))
+    // …and confirm WITHOUT deducting: a partner has no crawler scrap pool
+    // wired, so the deduct button is disabled. Per the rules a partner
+    // restores in a Mech Bay during Downtime rather than from the pool here.
+    fireEvent.click(screen.getByRole('button', { name: /without deducting/i }))
+
+    const written = updates
+      .flatMap((u) =>
+        Array.isArray(u.partners) ? (u.partners as Array<Record<string, unknown>>) : []
+      )
+      .map((p) => (p.systemConditions as Record<string, string> | undefined)?.['high-gain-antenna'])
+      .filter(Boolean)
+
+    expect(written.length).toBeGreaterThan(0)
+    // The whole point: never 'destroyed'.
+    expect(written).not.toContain('destroyed')
+    expect(written).toContain('intact')
   })
 })

@@ -110,3 +110,42 @@ describe('PartnerRows', () => {
     expect(links).toContain('/sheet/partner/b')
   })
 })
+
+describe('PartnerRows — per-host cap (advisory)', () => {
+  test('a lone partner shows no cap note — 1 of 1 is noise', () => {
+    render(
+      <PartnerRows partners={[partner({ hostRef: 'mecha-companion' })]} crawlerTechLevel={3} />
+    )
+    expect(screen.queryByText(/of 1/)).toBeNull()
+  })
+
+  test('Mecha Packmaster raises the cap, so two companions read "2 of 2"', () => {
+    render(
+      <PartnerRows
+        partners={[
+          partner({ id: 'a', hostRef: 'mecha-companion' }),
+          partner({ id: 'b', hostRef: 'mecha-companion' }),
+        ]}
+        crawlerTechLevel={3}
+        hostAbilityRefs={['mecha-companion', 'mecha-packmaster']}
+      />
+    )
+    expect(screen.getAllByText(/2 of 2/).length).toBe(2)
+  })
+
+  test('over-cap is SHOWN, not blocked — two companions without Packmaster read "2 of 1"', () => {
+    render(
+      <PartnerRows
+        partners={[
+          partner({ id: 'a', hostRef: 'mecha-companion' }),
+          partner({ id: 'b', hostRef: 'mecha-companion' }),
+        ]}
+        crawlerTechLevel={3}
+        hostAbilityRefs={['mecha-companion']}
+      />
+    )
+    // Both rows still render: the Live Sheet is a Free-Edit surface (ADR-021),
+    // so the rules cap is advisory (ADR-007) and never removes a row.
+    expect(screen.getAllByText(/2 of 1/).length).toBe(2)
+  })
+})

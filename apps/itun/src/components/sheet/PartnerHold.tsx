@@ -14,6 +14,8 @@
  * its own Stow/Unstow pair on the crawler sheet.
  */
 
+import type { ReactNode } from 'react'
+
 import { Button, Stat } from 'component-lib'
 
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
@@ -26,7 +28,7 @@ type PartnerHoldProps = {
   readOnly?: boolean
 }
 
-function LotRow({ lot, children }: { lot: CargoLot; children?: React.ReactNode }) {
+function LotRow({ lot, children }: { lot: CargoLot; children?: ReactNode }) {
   return (
     <li className="flex items-center gap-2 border-b border-ink/10 py-1.5 last:border-b-0">
       <span className="min-w-0 flex-1 truncate font-body text-sm text-ink">{lot.name}</span>

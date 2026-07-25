@@ -19,6 +19,8 @@
  * host's sheet or a direct link, because it has no independent existence.
  */
 
+import type { Ref } from 'react'
+
 import {
   Badge,
   buttonVariants,
@@ -39,6 +41,7 @@ import {
   partnerTechLevel,
   resolvePartnerStatBlock,
 } from '../../lib/rules/partnerStats'
+import type { ItemCondition } from '../../lib/schemas/itemCondition'
 import type { PartnerInstance } from '../../lib/schemas/partner'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { cn } from '../../lib/utils'
@@ -48,7 +51,7 @@ import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { MechItemCard } from './MechItemCard'
 import { PartnerHold } from './PartnerHold'
-import { partnerDisplayName } from './PartnerRows'
+import { partnerDisplayName } from './partnerDisplay'
 import { resolveModule, resolveSystem } from './mechItemRules'
 
 type SheetPartnerProps = {
@@ -101,15 +104,21 @@ export function SheetPartner({
   const conditionsFor = (kind: 'system' | 'module') =>
     (kind === 'system' ? partner.systemConditions : partner.moduleConditions) ?? {}
 
-  const setItemCondition = (kind: 'system' | 'module', slug: string): void => {
-    const current = conditionsFor(kind)[slug] ?? 'intact'
-    const next =
-      current === 'intact' ? 'damaged' : current === 'damaged' ? 'destroyed' : ('intact' as const)
+  /** Write one item's condition, whatever the caller decided it should be. */
+  const setItemCondition = (kind: 'system' | 'module', slug: string, next: ItemCondition): void => {
     patch(
       kind === 'system'
         ? { systemConditions: { ...conditionsFor('system'), [slug]: next } }
         : { moduleConditions: { ...conditionsFor('module'), [slug]: next } }
     )
+  }
+
+  /** The status badge CYCLES: Intact → Damaged → Destroyed → Intact. */
+  const cycleItemCondition = (kind: 'system' | 'module', slug: string): void => {
+    const current = conditionsFor(kind)[slug] ?? 'intact'
+    const next: ItemCondition =
+      current === 'intact' ? 'damaged' : current === 'damaged' ? 'destroyed' : 'intact'
+    setItemCondition(kind, slug, next)
   }
 
   const renderItems = (kind: 'system' | 'module') => {
@@ -137,11 +146,13 @@ export function SheetPartner({
               usesRemaining={partner.itemUses?.[slug]}
               scrapPool={null}
               readOnly={readOnly}
-              onStatusCycle={() => setItemCondition(kind, slug)}
+              onStatusCycle={() => cycleItemCondition(kind, slug)}
               onUsesChange={(next) =>
                 patch({ itemUses: { ...(partner.itemUses ?? {}), [slug]: next } })
               }
-              onRepair={() => setItemCondition(kind, slug)}
+              // Repair means REPAIR: straight to Intact. This was wired to the
+              // cycle, so repairing a Damaged item destroyed it.
+              onRepair={() => setItemCondition(kind, slug, 'intact')}
               onRemove={
                 editable
                   ? () =>
@@ -180,7 +191,7 @@ export function SheetPartner({
         </AppLink>
       }
       renderBody={({ heroRef }) => (
-        <div ref={heroRef as React.Ref<HTMLDivElement>} className="flex flex-col gap-4">
+        <div ref={heroRef as Ref<HTMLDivElement>} className="flex flex-col gap-4">
           <SheetSectionCard title="Identity" source={statBlock?.name}>
             <div className="flex flex-col gap-3">
               <Field
