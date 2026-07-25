@@ -23,7 +23,7 @@ import { EntityGrid, EntityGridRow } from 'component-lib'
 import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
 import { SectionManageButton, SheetPickerModal } from 'component-lib'
-import { SheetSectionCard } from 'component-lib'
+import { SheetSectionSlab } from 'component-lib'
 
 /** Read a numeric slot field off the drone-equipment entity, defaulting to 0. */
 function slotMax(equipment: Record<string, unknown>, field: 'systemSlots' | 'moduleSlots'): number {
@@ -111,9 +111,15 @@ export function PilotEquipmentLoadout({
   }
 
   return (
-    <div className="mt-3 flex flex-col gap-3">
+    // Rendered INSIDE the host equipment card (see PilotEquipmentItem), so
+    // these are SLABS, not cards: a card frame here would be a third enclosure
+    // nested inside the equipment card's own. They start COLLAPSED — a drone's
+    // loadout is detail you open when you want it, not something that should
+    // push the rest of the inventory down the page.
+    <div className="flex flex-col gap-3">
       {'systemSlots' in equipment && (
-        <SheetSectionCard
+        <SheetSectionSlab
+          defaultCollapsed
           title="Systems"
           count={
             <span className="tabular-nums">
@@ -127,11 +133,12 @@ export function PilotEquipmentLoadout({
           }
         >
           {renderItems('system', loadout.systems, removeSystem)}
-        </SheetSectionCard>
+        </SheetSectionSlab>
       )}
 
       {'moduleSlots' in equipment && (
-        <SheetSectionCard
+        <SheetSectionSlab
+          defaultCollapsed
           title="Modules"
           count={
             <span className="tabular-nums">
@@ -145,7 +152,7 @@ export function PilotEquipmentLoadout({
           }
         >
           {renderItems('module', loadout.modules, removeModule)}
-        </SheetSectionCard>
+        </SheetSectionSlab>
       )}
 
       <SheetPickerModal

@@ -866,6 +866,13 @@ function ReferenceEntityCardInner({
   const frameStyle = selected
     ? { border: `3px solid ${frameColor}`, boxShadow: '0 0 0 3px var(--color-rust)' }
     : { border: `3px solid ${frameColor}` }
+  // The footer band is what CLOSES a card: a full card ends on a solid strip of
+  // deep tone. Without one — a collapsed listing, a nested card, `hide.footer` —
+  // the frame's 3px bottom is the only thing terminating it, and it reads thin
+  // against the weight of the header band above. Doubling it puts comparable
+  // visual weight back at the foot.
+  const FOOTLESS_BOTTOM = { borderBottomWidth: '6px' }
+  const rendersFooter = !hide?.footer && (footerOverride != null || depth === 0)
   // Condition — routed into the shared rail as a status CONTROL rather than a
   // bespoke seal, via the same `foldStatusControl` the Card shell uses,
   // so the badge (and the fold rule) has one implementation across both card
@@ -1019,7 +1026,7 @@ function ReferenceEntityCardInner({
         {topRightRail}
         <div
           className="flex flex-1 flex-col overflow-hidden rounded-card bg-paper"
-          style={frameStyle}
+          style={{ ...frameStyle, ...FOOTLESS_BOTTOM }}
         >
           {header}
         </div>
@@ -1712,7 +1719,7 @@ function ReferenceEntityCardInner({
       {topRightRail}
       <div
         className="flex flex-1 flex-col overflow-hidden rounded-card bg-paper"
-        style={frameStyle}
+        style={rendersFooter ? frameStyle : { ...frameStyle, ...FOOTLESS_BOTTOM }}
       >
         {header}
         {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}

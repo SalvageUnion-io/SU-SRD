@@ -325,7 +325,14 @@ export function resolveAxisMarkers(entity: SURefMetaEntity): AxisMarker[] {
   // into ONE pill). TECH LEVEL moved to the header's top-right stat cluster.
   if (isAbility(entity)) {
     const tree = entity.tree != null ? String(entity.tree) : undefined
-    const level = entity.level != null ? String(entity.level) : undefined
+    // The level pill is a numeric TIER within a tree. The Generic tree carries
+    // `level: "G"` — a marker meaning "generic", not a rung — and feeding that
+    // to a numeric readout rendered it as `0`, so a Generic card's seam read
+    // "GENERIC 0" as though it sat below tier 1. A non-numeric level is dropped
+    // and the tree name stands alone.
+    const rawLevel = entity.level
+    const level =
+      rawLevel != null && Number.isFinite(Number(rawLevel)) ? String(rawLevel) : undefined
     if (tree) return [{ label: tree, value: level }]
     if (level) return [{ label: 'Level', value: level }]
     return []

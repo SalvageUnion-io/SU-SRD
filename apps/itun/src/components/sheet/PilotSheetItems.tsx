@@ -244,40 +244,43 @@ export function PilotEquipmentItem({
 
   const equipmentRecord: Record<string, unknown> & { name?: string } = equipment
 
+  // Drone/companion equipment (Survey Drone, Mecha Companion, Auto-Turret)
+  // carries its own systemSlots/moduleSlots, so it hosts a real installed
+  // loadout edited with the same picker mechs use. It renders INSIDE the host
+  // card's body (the `afterExtraContent` slot) rather than as sibling sections
+  // beneath it — the loadout belongs to that drone, and floating it outside
+  // read as two unrelated sections that happened to sit next to each other.
+  const loadout = isLoadoutHost(equipmentRecord) ? (
+    <PilotEquipmentLoadout
+      pilotId={pilotId}
+      slug={slug}
+      equipment={equipmentRecord}
+      seed={seedLoadout}
+      readOnly={readOnly}
+      store={store}
+    />
+  ) : undefined
+
   return (
-    <>
-      <ReferenceEntityCard
-        data={equipment}
-        size="medium"
-        collapsible
-        selections={selections}
-        onSelectionChange={readOnly ? undefined : setSelections}
-        scalingParent={scalingParent}
-        status={condition}
-        onStatusClick={
-          readOnly
-            ? undefined
-            : () => {
-                onConditionChange(slug, CONDITION_CYCLE[condition])
-              }
-        }
-        footMeta={footMeta}
-        controls={controls.length > 0 ? controls : undefined}
-      />
-      {/* Drone/companion equipment (Survey Drone, Mecha Companion, Auto-Turret)
-          carries its own systemSlots/moduleSlots, so it hosts a real installed
-          loadout edited with the same picker mechs use. */}
-      {isLoadoutHost(equipmentRecord) && (
-        <PilotEquipmentLoadout
-          pilotId={pilotId}
-          slug={slug}
-          equipment={equipmentRecord}
-          seed={seedLoadout}
-          readOnly={readOnly}
-          store={store}
-        />
-      )}
-    </>
+    <ReferenceEntityCard
+      data={equipment}
+      size="medium"
+      collapsible
+      afterExtraContent={loadout}
+      selections={selections}
+      onSelectionChange={readOnly ? undefined : setSelections}
+      scalingParent={scalingParent}
+      status={condition}
+      onStatusClick={
+        readOnly
+          ? undefined
+          : () => {
+              onConditionChange(slug, CONDITION_CYCLE[condition])
+            }
+      }
+      footMeta={footMeta}
+      controls={controls.length > 0 ? controls : undefined}
+    />
   )
 }
 
