@@ -33,7 +33,6 @@ type MechIdentityPanelProps = {
   /** Resolved chassis display name (falls back to the raw ref upstream). */
   chassisName: string
   /** Chassis tech level; undefined renders as an em-dash. */
-  techLevel?: number
   /**
    * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
    * Edit/Done button (Phase 2: the chead row lives in the card, not here).
@@ -47,7 +46,6 @@ type MechIdentityPanelProps = {
 export function MechIdentityPanel({
   mech,
   chassisName,
-  techLevel,
   editing = false,
   patch,
   className,
@@ -82,8 +80,14 @@ export function MechIdentityPanel({
           value={mech.name}
           editing={isEditing}
           onSave={savePatternName}
+          prominent
         />
-        {/* Secondary meta: chassis (picker-backed) + Tech Level (derived). */}
+        {/* Chassis (picker-backed). Tech Level is NOT here: it is inherent to
+            the chassis, never hand-set, and rendering it as a Field made it look
+            editable. It reads off the static-stats strip's TL box instead, with
+            the rest of the chassis-derived numbers. */}
+        {/* Half width: the chassis is a one-word picker value, and a full-bleed
+            box for it competed with the pattern name above. */}
         <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
           <Field
             label="Chassis"
@@ -91,7 +95,6 @@ export function MechIdentityPanel({
             editing={isEditing}
             onEditClick={() => setChassisPickerOpen(true)}
           />
-          <Field label="Tech Level" value={techLevel !== undefined ? String(techLevel) : ''} />
         </div>
       </div>
 

@@ -61,6 +61,12 @@ type FieldEditableProps = FieldCommon & {
    * state keeps the textarea's own row count — editing is transient.
    */
   fill?: boolean
+  /**
+   * Render the value at a larger rung. For the ONE field that names the thing
+   * the card is about (a mech's Pattern Name), so it reads as the subject
+   * rather than as a peer of the meta fields under it.
+   */
+  prominent?: boolean
 }
 
 type FieldProps = FieldStaticProps | FieldEditableProps
@@ -123,6 +129,7 @@ export function Field(props: FieldProps) {
     placeholder = '—',
     ariaLabel,
     fill = false,
+    prominent = false,
   } = props
   const labelText = ariaLabel ?? (typeof label === 'string' ? label : '')
 
@@ -176,7 +183,10 @@ export function Field(props: FieldProps) {
         // it and its child span is all the readout needs to fill.
         className={cn(
           editable && EDIT_CUE_CLASS,
-          fill && 'h-full flex-1 items-stretch [&>span]:h-full [&>span]:items-start [&>span]:py-2.5'
+          fill &&
+            'h-full flex-1 items-stretch [&>span]:h-full [&>span]:items-start [&>span]:py-2.5',
+          // Reaches the readout through the box's class hook, like `fill`.
+          prominent && '[&>span]:text-xl'
         )}
       />
     </div>

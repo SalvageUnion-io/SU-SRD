@@ -23,6 +23,7 @@ import { MechSheet } from '../MechSheet'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { expandCards } from '../../__tests__/expandCards'
 
 // MechSheet resolves system/module slugs against the reference data at render.
 beforeAll(async () => {
@@ -83,11 +84,19 @@ describe('MechSheet — system/module entity cards (plan 4.5)', () => {
   test('a real system renders as a card with its name and a stat', () => {
     const mech = makeMech({ systems: [REAL_SYSTEM] })
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStubStore(mech)} />)
+    // Item cards ship collapsed, so the foot stats are not in the DOM until the
+    // card is opened — the same affordance a player clicks.
+    expandCards()
 
     // Name (from the reference entity, not the bare slug span).
     expect(screen.getAllByText(REAL_SYSTEM).length).toBeGreaterThan(0)
-    // A stat surfaced by the entity display.
-    expect(screen.getAllByText('Tech Level').length).toBeGreaterThan(0)
+    // A stat surfaced by the entity display. 'Slots' rather than 'Tech Level':
+    // the identity panel's Tech Level FIELD is gone (it is chassis-derived and
+    // reads off the static-stats strip), while 'Slots' appears only on an item
+    // card — so this still proves the CARD rendered, not the strip. Cased as
+    // the DOM has it; the all-caps is a CSS transform, which text queries do
+    // not see.
+    expect(screen.getAllByText('Slots').length).toBeGreaterThan(0)
   })
 
   test('the status badge cycle persists via store.update (intact → damaged)', async () => {

@@ -228,7 +228,16 @@ export function ChassisStats({ items, className }: ChassisStatsProps) {
     <div className={cn('flex flex-wrap items-start gap-2', className)}>
       {items.map((item) => {
         const block = (
-          <Stat key={item.code} label={item.code} value={item.value} max={item.max} size="mini" />
+          // `compact`, not `mini`: these are the chassis's defining numbers —
+          // the first thing read off a mech sheet — and at the mini rung they
+          // sat below the identity fields they qualify.
+          <Stat
+            key={item.code}
+            label={item.code}
+            value={item.value}
+            max={item.max}
+            size="compact"
+          />
         )
         return item.onClick ? (
           <button
