@@ -101,9 +101,9 @@ type CrawlerSheetProps = {
   /** Suppresses every edit affordance (published snapshots). */
   readOnly?: boolean
   /**
-   * Condense sentinel from the LiveSheet shell — wraps the identity band (the
-   * body's first region) so the sticky bar still condenses when it scrolls
-   * away. Undefined in bare test renders (no shell).
+   * Marks the body's first region. VESTIGIAL: the sticky bar condenses off its
+   * own 1px sentinel now, so nothing observes this. Undefined in bare test
+   * renders (no shell).
    */
   heroRef?: Ref<HTMLElement>
   /**

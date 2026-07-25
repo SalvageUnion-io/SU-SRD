@@ -133,9 +133,9 @@ type PilotSheetProps = {
   /** When true, every edit affordance is suppressed (published snapshots). */
   readOnly?: boolean
   /**
-   * Condense sentinel from the LiveSheet shell — wraps the identity band (the
-   * body's first region) so the sticky bar still condenses when it scrolls
-   * away. Undefined in bare test renders (no shell).
+   * Marks the body's first region. VESTIGIAL: the sticky bar condenses off its
+   * own 1px sentinel now, so nothing observes this. Undefined in bare test
+   * renders (no shell).
    */
   heroRef?: Ref<HTMLElement>
   /**
@@ -457,7 +457,7 @@ export function PilotSheet({
       {/* ===== Identity Band (Workshop-Manual pilot sheet top region) =====
           Edge wordmark ∥ identity fields ∥ HP/AP/TP + Conditions vitals rail,
           in one toned frame — the printed pilot sheet's top band. Carries the
-          shell's condense sentinel (heroRef). */}
+          shell's `heroRef` (vestigial — the bar's own sentinel drives condense now). */}
       <SheetHero
         heroRef={heroRef}
         cat="Pilot"

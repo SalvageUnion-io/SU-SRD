@@ -159,6 +159,9 @@ export function SheetCrawler({
       return link ? storeState.get('mech', link.from.id) : null
     })
     .filter((m): m is NonNullable<typeof m> => m !== null)
+    // Deduped: two pilots may be wired to the same mech, which would otherwise
+    // render that mech twice (and collide on its React key).
+    .filter((m, i, all) => all.findIndex((other) => other.id === m.id) === i)
 
   /** Unlink one pilot from this crawler (always available on editable sheets). */
   function unlinkPilot(pilotId: string) {

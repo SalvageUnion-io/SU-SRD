@@ -12,8 +12,8 @@ import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../.
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
-import type { ReactNode } from 'react'
-import { NpcInset } from 'component-lib'
+import type { ComponentProps, ReactNode } from 'react'
+import { Content, NpcInset } from 'component-lib'
 import { BAY_REPAIR_COST } from './crawlerSheetItemRules'
 
 export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
@@ -413,10 +413,21 @@ export function CrawlerTypeCard({
   //
   // The type's own choices ride the ability column, so a type that carries a
   // permanent pick is still editable without the card that used to host it.
+  // The type's own PROSE survives the dissolved card. Losing the frame was the
+  // point; losing the paragraph that says what an Exploratory crawler IS was
+  // not — it is the only place that text appears on the sheet.
+  // The cast is the duplicated-structural-type problem, not a shape mismatch:
+  // `component-lib` and `salvageunion-reference` each declare their own content
+  // block type with identical members, so TS treats them as unrelated.
+  const description = <Content body={type.content as ComponentProps<typeof Content>['body']} />
+
   return (
-    <div className="grid min-w-0 grid-cols-1 items-start gap-3 @2xl:grid-cols-2">
-      {ability}
-      {crew}
+    <div className="flex min-w-0 flex-col gap-3">
+      {description}
+      <div className="grid min-w-0 grid-cols-1 items-start gap-3 @2xl:grid-cols-2">
+        {ability}
+        {crew}
+      </div>
     </div>
   )
 }

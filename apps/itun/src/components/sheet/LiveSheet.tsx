@@ -164,8 +164,12 @@ export function LiveSheet({
   const heroRef = useRef<HTMLElement | null>(null)
   // A 1px sentinel directly beneath the bar, NOT the identity block: the bar
   // should seam and fill the moment you scroll past IT, rather than waiting for
-  // a whole region to clear the viewport. `heroRef` is still handed to the body
-  // (each sheet wraps its first region with it) so that contract is unchanged.
+  // a whole region to clear the viewport.
+  //
+  // `heroRef` below is now VESTIGIAL: it is still created, handed to the body
+  // and attached by each sheet to its first region, but nothing observes it any
+  // more. Left in place rather than unpicked across eight files at the end of
+  // this pass; removing it is a mechanical follow-up.
   const topRef = useRef<HTMLDivElement | null>(null)
   const condensed = useCondensed(topRef, condense)
 
