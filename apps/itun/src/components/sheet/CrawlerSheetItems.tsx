@@ -318,10 +318,7 @@ type CrawlerTypeCardProps = {
   ability?: ReactNode
   /**
    * Compact identity-band placement (redesign phase 3): renders the card
-   * compact and strips the type's `actions` — the special ability is passed in
-   * as `ability` instead, so the type card must not double-render it.
    */
-  compact?: boolean
 }
 
 /**
@@ -339,7 +336,6 @@ export function CrawlerTypeCard({
   seedSelections,
   store,
   readOnly,
-  compact = false,
   ability,
 }: CrawlerTypeCardProps) {
   const storeState = store()
@@ -409,34 +405,18 @@ export function CrawlerTypeCard({
     />
   ) : undefined
 
-  // Card renders WITHOUT the SRD npc block — the special NPC lives in the
-  // inset. Compact placement also strips `actions` (see the prop doc).
-  // Double-cast is irreducible here: `npc`/`actions` are REQUIRED on
-  // SURefCrawler, so the stripped object satisfies no SURefEntity member and
-  // the card's hide config has no `npc` switch to express this instead.
-  const cardData = {
-    ...type,
-    npc: undefined,
-    ...(compact ? { actions: undefined } : {}),
-  } as unknown as SURefEntity
-
+  // NO card container. The crawler type used to render as a full entity card
+  // with its ability and crew folded into the `expand` slot — a frame around a
+  // frame around a frame, and the outer one left a band of empty paper down the
+  // identity card. Its INTERNALS are handed back instead, for the identity
+  // panel to lay out beside its own fields.
+  //
+  // The type's own choices ride the ability column, so a type that carries a
+  // permanent pick is still editable without the card that used to host it.
   return (
-    <ReferenceEntityCard
-      data={cardData}
-      size={compact ? 'medium' : 'large'}
-      selections={selections}
-      onSelectionChange={readOnly ? undefined : setSelections}
-      // The type's ABILITY and its CREW sit side by side inside the type card:
-      // both describe this crawler type, and standing the ability up as a
-      // sibling card beside the type split one subject across two frames.
-      expand={
-        ability || crew ? (
-          <div className="grid grid-cols-1 items-start gap-3 @2xl:grid-cols-2">
-            {ability}
-            {crew}
-          </div>
-        ) : undefined
-      }
-    />
+    <div className="grid min-w-0 grid-cols-1 items-start gap-3 @2xl:grid-cols-2">
+      {ability}
+      {crew}
+    </div>
   )
 }

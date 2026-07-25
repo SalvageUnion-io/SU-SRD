@@ -228,7 +228,7 @@ describe('Smoke — crawler-only sheet', () => {
     expect(screen.getAllByText(/Rust Colossus/).length).toBeGreaterThan(0)
   })
 
-  test('crawler tech level appears in the sheet (identity Tech Level field)', () => {
+  test('crawler tech level appears in the sheet (identity Tech/Level plate)', () => {
     render(
       <Sheet
         kind="crawler"
@@ -238,8 +238,10 @@ describe('Smoke — crawler-only sheet', () => {
       />
     )
     // Tech Level reads in IDENTITY beside the crawler type now, not in the
-    // economy rail — the rail keeps the things you SPEND.
-    expect(screen.getByText('Tech Level')).toBeTruthy()
+    // economy rail — the rail keeps the things you SPEND. Its label is split
+    // across the stat plate's two lines, so the accessible name carries the
+    // whole phrase.
+    expect(screen.getByLabelText(/Tech Level/)).toBeTruthy()
   })
 })
 

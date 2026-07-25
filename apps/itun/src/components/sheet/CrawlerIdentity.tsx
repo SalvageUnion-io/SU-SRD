@@ -120,8 +120,16 @@ export function CrawlerIdentityPanel({
         <div className="grid grid-cols-1 items-end gap-x-4 gap-y-3 sm:grid-cols-[auto_minmax(0,1fr)]">
           {/* A STAT, not a Field: the tech level is derived from the crawler's
               stored rung and never typed into, so it reads as a number plate
-              like the mech's chassis stats — a field box implied an input. */}
-          <Stat label="Tech Level" value={techLevel ?? '—'} size="compact" />
+              like the mech's chassis stats — a field box implied an input.
+              Split across the plate's two label lines (Tech / Level) rather
+              than one wide line, which stretched the plate out of square. */}
+          <Stat
+            label="Tech"
+            bottomLabel="Level"
+            value={techLevel ?? '—'}
+            size="compact"
+            ariaLabel={`Tech Level ${techLevel ?? '—'}`}
+          />
           <Field
             label="Type"
             value={type?.name ?? ''}
@@ -129,9 +137,9 @@ export function CrawlerIdentityPanel({
           />
         </div>
 
-        {/* The type takes the FULL row, with its ability and crew side by side
-            inside it — one type, one card, rather than an ability card standing
-            beside the thing it belongs to. */}
+        {/* The type's INTERNALS, laid out directly in identity: no card frame
+            around them. The ability and the crew sit side by side and fill the
+            band of paper the dissolved type card used to leave empty. */}
         {crawler.type && (
           <CrawlerTypeCard
             crawlerId={crawler.id}
@@ -140,7 +148,6 @@ export function CrawlerIdentityPanel({
             seedSelections={crawler.bayChoices?.[crawler.type]}
             store={store}
             readOnly={readOnly}
-            compact
             ability={abilities.map((ability) => (
               <div key={ability.id} className="min-w-0">
                 <ReferenceEntityCard data={ability} size="medium" hide={HIDE_CHOICES} />

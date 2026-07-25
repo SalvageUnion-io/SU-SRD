@@ -145,7 +145,6 @@ export function SheetCrawler({
           },
         ]
       : []),
-    ...(states.length > 0 ? [{ label: 'Crew', value: states.length, caption: 'Leads' }] : []),
   ]
 
   // Unassign for the lead pilot's direct link (pilot-to-crawler) — always
