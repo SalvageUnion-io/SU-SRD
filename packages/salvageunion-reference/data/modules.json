@@ -382,7 +382,7 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 196,
-    "actions": ["Projection Array"],
+    "actions": ["Video Projection Array"],
     "additionalSources": [
       {
         "source": "Salvage Union Starter Set",
@@ -617,7 +617,7 @@
     "slotsRequired": 1,
     "salvageValue": 2,
     "page": 203,
-    "actions": ["Alpha Strike"]
+    "actions": ["Alpha Strike Module"]
   },
   {
     "id": "49957195-dedf-4f22-862c-296c010efda4",
@@ -779,7 +779,7 @@
     "slotsRequired": 2,
     "salvageValue": 2,
     "page": 206,
-    "actions": ["Omega Push"]
+    "actions": ["Omega Push Module"]
   },
   {
     "id": "8e991403-1d78-464e-b71c-ccd397bf733e",
@@ -789,7 +789,7 @@
     "slotsRequired": 1,
     "salvageValue": 1,
     "page": 206,
-    "actions": ["DDR"]
+    "actions": ["DDR Module"]
   },
   {
     "id": "684e6851-9a5c-496b-8104-14350e1d32e2",
@@ -841,7 +841,7 @@
     "salvageValue": 2,
     "blackMarket": true,
     "page": 71,
-    "actions": ["Corrupted Neuralink"]
+    "actions": ["Corrupted Neuralink Module"]
   },
   {
     "id": "f2f2656a-9f02-415d-a9ac-6749d45bccff",

@@ -115,7 +115,7 @@
     "name": "Portable Comms Unit",
     "techLevel": 1,
     "page": 301,
-    "actions": ["Portable Communications Unit"],
+    "actions": ["Portable Comms Unit"],
     "additionalSources": [
       {
         "source": "Salvage Union Starter Set",
