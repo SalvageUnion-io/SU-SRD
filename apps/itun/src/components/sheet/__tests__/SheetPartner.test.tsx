@@ -158,3 +158,27 @@ describe('SheetPartner', () => {
     expect(screen.getByText(/No modules installed/i)).toBeTruthy()
   })
 })
+
+describe('SheetPartner — the Hold', () => {
+  test('a partner with cargo capacity gets a hold', () => {
+    // Survey Drone carries 1 at Tech 1.
+    const host = pilot([partner()])
+    render(<SheetPartner found={findPartner([host], [], 'p1')!} readOnly />)
+    expect(screen.getByText(/The Hold/i)).toBeTruthy()
+    expect(screen.getByText(/Nothing carried/i)).toBeTruthy()
+  })
+
+  test('an Immobile zero-cargo partner has NO hold at all, not an empty one', () => {
+    // Auto-Turret: cargoCapacity 0 + Immobile. A 0/0 hold would invite a
+    // player to try loading something into a thing that cannot carry.
+    const host = pilot([partner({ hostRef: 'auto-turret' })])
+    render(<SheetPartner found={findPartner([host], [], 'p1')!} readOnly />)
+    expect(screen.queryByText(/The Hold/i)).toBeNull()
+  })
+
+  test('the Storage Bay side appears only when a crawler is linked', () => {
+    const host = pilot([partner()])
+    render(<SheetPartner found={findPartner([host], [], 'p1')!} readOnly />)
+    expect(screen.queryByText(/Storage Bay/i)).toBeNull()
+  })
+})

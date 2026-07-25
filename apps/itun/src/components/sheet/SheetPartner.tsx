@@ -30,6 +30,7 @@ import {
   Stat,
 } from 'component-lib'
 
+import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
 import { replacePartner } from '../../lib/partnerLookup'
 import type { PartnerWithHost } from '../../lib/partnerLookup'
@@ -46,6 +47,7 @@ import { AppLink } from '../shared/AppLink'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { MechItemCard } from './MechItemCard'
+import { PartnerHold } from './PartnerHold'
 import { partnerDisplayName } from './PartnerRows'
 import { resolveModule, resolveSystem } from './mechItemRules'
 
@@ -74,6 +76,9 @@ export function SheetPartner({
   const techLevel = partnerTechLevel(partner, crawlerTechLevel)
   const max = partnerDerivedStats(partner, techLevel)
   const statBlock = resolvePartnerStatBlock(partner) as { name?: string } | null
+
+  const cargo = usePartnerCargo({ found, techLevel, crawler, store, readOnly })
+  const usage = cargo.usage
 
   const sp = Math.min(partner.currentSP ?? max.structurePoints, max.structurePoints)
   const ep = Math.min(partner.currentEP ?? max.energyPoints, max.energyPoints)
@@ -216,6 +221,16 @@ export function SheetPartner({
               <Stat label="Cargo" value={max.cargoCapacity} />
             </div>
           </SheetSectionCard>
+
+          {/* THE HOLD — absent, not empty, when the partner cannot carry.
+              Auto-Turret has cargoCapacity 0 AND the Immobile trait: it is not
+              a container with nothing in it, it is not a container. Rendering a
+              0/0 hold would invite the player to try. */}
+          {max.cargoCapacity > 0 && (
+            <SheetSectionCard title="The Hold" source={`${usage.used}/${usage.cap}`}>
+              <PartnerHold cargo={cargo} crawlerLinked={Boolean(crawler)} readOnly={readOnly} />
+            </SheetSectionCard>
+          )}
 
           <SheetSectionSlab title="Systems" count={partner.systems.length}>
             {renderItems('system')}
