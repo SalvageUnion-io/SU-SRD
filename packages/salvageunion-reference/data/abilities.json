@@ -1380,7 +1380,7 @@
       }
     ],
     "actions": ["Area Salvage"],
-    "description": "You salvage an area for scrap. This could be an abandoned factory, a ruined settlement, or a crumbling research facility. The Mediator will tell you if an area can be Area Salvaged or not. It costs 1 AP for a Pilot or 1 EP in a Mech."
+    "description": "You salvage an area for scrap."
   },
   {
     "id": "07cd4482-d26b-40d4-8bb8-4881fbbebbd4",
@@ -1398,7 +1398,7 @@
       }
     ],
     "actions": ["Mech Salvage"],
-    "description": "You salvage a destroyed Mech Chassis for Scrap and Systems."
+    "description": "You salvage a Mech, this could be one you have found in the wastelands or just downed in combat."
   },
   {
     "id": "2a992b4f-45ea-4810-9039-9226ba15b7e5",
@@ -1406,7 +1406,7 @@
     "tree": "Generic",
     "level": "G",
     "source": "Salvage Union Workshop Manual",
-    "mechActionType": "Short",
+    "mechActionType": "Turn",
     "page": 248,
     "additionalSources": [
       {
@@ -1416,7 +1416,7 @@
       }
     ],
     "actions": ["Scrap"],
-    "description": "You break down a Mech Chassis, System, or Module into Scrap."
+    "description": "You break down an Intact or Damaged Mech Chassis, System, Module, or Vehicle in Range into Scrap."
   },
   {
     "id": "f70b4b9a-3887-46fb-a217-b99c8841ae64",
@@ -1434,7 +1434,7 @@
       }
     ],
     "actions": ["Repair"],
-    "description": "You repair a damaged Mech Chassis, System, or Module."
+    "description": "You repair a damaged Mech Chassis, Vehicle, System, or Module in Range to the Intact Condition."
   },
   {
     "id": "b926e557-d8ad-45db-a933-056b85563ea0",
@@ -1451,7 +1451,8 @@
         "page": 33
       }
     ],
-    "actions": ["Mount"]
+    "actions": ["Mount"],
+    "description": "You Mount a System or Module onto a target Mech in Range."
   },
   {
     "id": "ad933f31-b106-413f-ac75-1a7b933091cd",
@@ -1468,7 +1469,8 @@
         "page": 33
       }
     ],
-    "actions": ["Patch Up"]
+    "actions": ["Patch Up"],
+    "description": "You restore up to 3 + X Structure Points on a target Mech or Vehicle."
   },
   {
     "id": "888c8bb1-efa9-41cc-9a71-515c96fb6a37",
@@ -1485,7 +1487,8 @@
         "page": 33
       }
     ],
-    "actions": ["Load"]
+    "actions": ["Load"],
+    "description": "You pick up and load a Mech Chassis, System, Module, or piece of Scrap in Range."
   },
   {
     "id": "8a689f26-b3f3-4473-a2a0-f0d2fde5b9d9",

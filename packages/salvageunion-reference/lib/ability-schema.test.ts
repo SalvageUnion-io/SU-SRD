@@ -5,7 +5,8 @@
  *   - tree:    103/103 — always present → required
  *   - level:   103/103 — always present → required
  *   - actions: 103/103 — always present → required
- *   - description:        100/103 — sometimes present → optional (unchanged)
+ *   - description:        103/103 — now always present, but kept optional so
+ *                                  homebrew data need not supply one
  *   - mechActionType:       7/103 — sometimes present → optional (unchanged)
  *   - grants:               6/103 — sometimes present → optional (unchanged)
  *   - activationCurrency:   1/103 — sometimes present → optional (unchanged)

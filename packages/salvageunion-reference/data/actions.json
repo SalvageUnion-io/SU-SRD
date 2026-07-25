@@ -464,6 +464,7 @@
   },
   {
     "id": "c8a3aedc-fea0-4355-b255-83504b66ed50",
+    "range": ["Close"],
     "actionType": "Long",
     "activationCost": 1,
     "name": "Area Salvage",
@@ -8521,7 +8522,7 @@
   {
     "id": "7c006633-d112-4369-bbe0-8fa86f165ab5",
     "range": ["Close"],
-    "actionType": "Long",
+    "actionType": "Short",
     "name": "Scrap",
     "requiredTraits": ["salvaging"],
     "content": [
