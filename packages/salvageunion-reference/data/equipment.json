@@ -558,7 +558,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Sniper Rifle",
     "techLevel": 4,
-    "page": 47,
+    "page": 85,
     "actions": ["Sniper Rifle"],
     "additionalSources": [
       {
@@ -646,7 +646,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Custom Sniper Rifle",
     "techLevel": 1,
-    "page": 85,
+    "page": 50,
     "id": "fc761f88-48ef-4925-8335-b7a6908a27f3",
     "content": [
       {
@@ -1026,7 +1026,7 @@
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "actions": ["Hacking Kit"],
-    "page": 51,
+    "page": 34,
     "id": "c9929a61-d5fc-4362-827f-d0c7644ddd3d",
     "content": [
       {
@@ -1201,7 +1201,7 @@
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "actions": ["Custom Missile Launcher"],
-    "page": 73,
+    "page": 55,
     "id": "d83b2f0b-ba15-431d-baa2-2e2381a4d9fb",
     "content": [
       {
