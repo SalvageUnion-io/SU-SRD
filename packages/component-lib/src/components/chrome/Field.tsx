@@ -50,6 +50,17 @@ type FieldEditableProps = FieldCommon & {
   /** Read-only placeholder when the value is empty. */
   placeholder?: string
   ariaLabel?: string
+  /**
+   * Grow to fill the height its parent gives it, instead of hugging one row.
+   * For the LAST field in a stretched card (the pilot's Bio), so the card's
+   * leftover height goes into a field the reader can actually use rather than
+   * sitting as dead paper under the last row.
+   *
+   * Read state: the value box and its readout stretch, and the text sits at the
+   * TOP (a long bio should start at the first line, not float mid-box). Edit
+   * state keeps the textarea's own row count — editing is transient.
+   */
+  fill?: boolean
 }
 
 type FieldProps = FieldStaticProps | FieldEditableProps
@@ -111,6 +122,7 @@ export function Field(props: FieldProps) {
     multiline = false,
     placeholder = '—',
     ariaLabel,
+    fill = false,
   } = props
   const labelText = ariaLabel ?? (typeof label === 'string' ? label : '')
 
@@ -148,7 +160,7 @@ export function Field(props: FieldProps) {
   // ---- Edit-in-place: the InlineEditField engine inside the value box. --------
   const editable = editing && onSave !== undefined
   return (
-    <div className={cn('relative block', className)}>
+    <div className={cn('relative block', fill && 'flex h-full flex-col', className)}>
       {stamp}
       {action}
       <InlineEditField
@@ -159,7 +171,13 @@ export function Field(props: FieldProps) {
         multiline={multiline}
         placeholder={placeholder}
         ariaLabel={`Edit ${labelText.toLowerCase()}`}
-        className={editable ? EDIT_CUE_CLASS : undefined}
+        // `fill` reaches the readout through the box's own class hook rather
+        // than a new InlineEditField prop: the box is a flex row, so stretching
+        // it and its child span is all the readout needs to fill.
+        className={cn(
+          editable && EDIT_CUE_CLASS,
+          fill && 'h-full flex-1 items-stretch [&>span]:h-full [&>span]:items-start [&>span]:py-2.5'
+        )}
       />
     </div>
   )

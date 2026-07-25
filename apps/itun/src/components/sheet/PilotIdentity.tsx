@@ -161,9 +161,15 @@ export function PilotIdentityPanel({
   )
 
   return (
-    <div className={cn('min-w-0', className)}>
+    // `h-full` + a flex column: the identity card is stretched to match the
+    // vitals card beside it, so the panel spends that height on its fields
+    // (the Bio grows into whatever is left) instead of leaving dead paper.
+    <div className={cn('flex h-full min-w-0 flex-col gap-3', className)}>
       {/* Poster field grid — left / right columns; single column on mobile in
-          the poster's reading order. */}
+          the poster's reading order. The columns keep their natural row rhythm
+          — spreading them independently pulled Keepsake/Background out of line
+          with Callsign/Class, since each column distributes its own slack. All
+          the leftover height goes to the Bio instead. */}
       <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-3">
           {/* Name lives here too: with the global Edit toggle gone, this is
@@ -225,14 +231,16 @@ export function PilotIdentityPanel({
       {/* Bio — folded in from the dropped live-play Bio section (#409): the
           freeform backstory previously rendered via SheetDescription now
           lives as an extra full-width identity field. */}
-      <div className="mt-3">
+      <div className="flex min-h-0 flex-1 flex-col">
         <Field
           label="Bio"
           value={pilot.description ?? ''}
           editing={isEditing}
           multiline
+          fill
           onSave={saveText('description')}
           placeholder="No bio written yet."
+          className="flex-1"
         />
       </div>
 
