@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import type {
   SURefEntity,
   SURefEnumSchemaName,
@@ -2071,9 +2071,14 @@ export function ReferenceEntityCard({
       ? [
           {
             key: '__expand',
-            // Not rendered — it exists to make the whole listing the expand
-            // target (and to bring the hover-enlarge affordance with it).
-            hidden: true,
+            // A VISIBLE chevron: the whole-card click alone left nothing on a
+            // folded listing saying it opens. `cardClick` stays on, so the
+            // card surface remains a target too — clicking the chevron fires
+            // this handler and then bubbles to that one, which is harmless
+            // because both fold handlers are idempotent setters (`false` /
+            // `true`) rather than toggles.
+            icon: ChevronDown,
+            variant: 'ghost',
             cardClick: true,
             ariaLabel: `Expand ${label}`,
             onClick: () => setCollapsed(false),

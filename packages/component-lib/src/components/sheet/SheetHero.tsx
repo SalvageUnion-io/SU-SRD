@@ -100,8 +100,13 @@ export function SheetHero({
         // The gauges card is content-width ("long" — a narrow tall column);
         // the fields card takes the rest ("thick"). They stack on narrow
         // viewports so neither ever crushes.
+        //
+        // No `items-start`: grid items stretch by default, so the two cards are
+        // always the SAME height whichever one is taller. `Card` is a flex
+        // column with a `flex-1` body, so the shorter card grows its paper body
+        // rather than leaving the frame short and the row ragged.
         className={cn(
-          'grid grid-cols-1 items-start gap-[22px] @3xl:grid-cols-[minmax(0,1fr)_260px] @3xl:gap-6',
+          'grid grid-cols-1 gap-[22px] @3xl:grid-cols-[minmax(0,1fr)_260px] @3xl:gap-6',
           className
         )}
       >
