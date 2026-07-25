@@ -174,15 +174,26 @@ export function PilotIdentityPanel({
           the leftover height goes to the Bio instead. */}
       <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-3">
-          {/* Name lives here too: with the global Edit toggle gone, this is
-              the pilot's name edit surface (the hero title mirrors it). */}
-          <Field
-            label="Callsign"
-            value={pilot.callsign}
-            editing={isEditing}
-            onSave={saveRequired('callsign')}
-            prominent
-          />
+          {/* Callsign and Class lead TOGETHER, at the same prominence: what a
+              pilot is called and what they do are the two facts you identify
+              them by. Name lives here too — with the global Edit toggle gone,
+              this is the pilot's name edit surface (the hero title mirrors it). */}
+          <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+            <Field
+              label="Callsign"
+              value={pilot.callsign}
+              editing={isEditing}
+              onSave={saveRequired('callsign')}
+              prominent
+            />
+            <Field
+              label="Class"
+              value={resolveClassName(pilot.classRef)}
+              editing={isEditing}
+              onEditClick={openClassPicker}
+              prominent
+            />
+          </div>
           <Field
             label="Name"
             value={pilot.name}
@@ -195,19 +206,6 @@ export function PilotIdentityPanel({
             editing={isEditing}
             onSave={saveText('pronouns')}
             placeholder="—"
-          />
-          <Field
-            label="Class"
-            value={resolveClassName(pilot.classRef)}
-            editing={isEditing}
-            onEditClick={openClassPicker}
-          />
-          <Field
-            label="Appearance"
-            value={pilot.appearance}
-            editing={isEditing}
-            multiline
-            onSave={saveText('appearance')}
           />
         </div>
         <div className="flex min-w-0 flex-col gap-3">
@@ -237,6 +235,16 @@ export function PilotIdentityPanel({
           />
         </div>
       </div>
+
+      {/* Appearance spans the card: it is prose, and a half-width column
+          wrapped it into a narrow ribbon beside the single-line fields. */}
+      <Field
+        label="Appearance"
+        value={pilot.appearance}
+        editing={isEditing}
+        multiline
+        onSave={saveText('appearance')}
+      />
 
       {/* Bio — folded in from the dropped live-play Bio section (#409): the
           freeform backstory previously rendered via SheetDescription now
