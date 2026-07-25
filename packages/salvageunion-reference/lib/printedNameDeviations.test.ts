@@ -32,7 +32,7 @@ import { SalvageUnionReference } from './index.js'
 
 type Deviation = {
   /** The `SalvageUnionReference` accessor the entity lives under. */
-  schema: 'Modules' | 'Systems' | 'Equipment'
+  schema: 'Modules' | 'Systems' | 'Equipment' | 'CrawlerBays'
   /** The name in the dataset — the canonical one, which slugs and URLs use. */
   name: string
   /** The heading as printed in the book. */
@@ -91,6 +91,13 @@ const DEVIATIONS: Deviation[] = [
     printedAs: 'Advanced Epoxy Applicator',
     page: 84,
     why: 'Same "Adv." abbreviation, distinguishing it from the Handheld Epoxy Canister (p. 83) and Integrated Epoxy Printer (p. 110).',
+  },
+  {
+    schema: 'CrawlerBays',
+    name: 'VR Tubes',
+    printedAs: 'Mech Simulator',
+    page: 57,
+    why: 'RAINMAKER prints this as location "[19] Mech Simulator" in an adventure map, and the bay text is near-verbatim from it. The dataset renames it because it exists here as an installable Crawler Bay rather than a room: "Mech Simulator" reads as a place, "VR Tubes" as equipment. The book\'s own name is unusable anyway — an adventure location and a Crawler Bay are different kinds of thing.',
   },
 ]
 
