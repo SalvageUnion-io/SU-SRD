@@ -18,7 +18,11 @@ import type { SnapshotPayload } from '../../lib/snapshot/client'
 
 // Preload chassis data so MechSheet can resolve chassis without throwing
 beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis'])
+  // 'all', not just ['chassis']: production gates every sheet behind
+  // `GameDataReady`, which preloads the whole catalog, and the pilot sheet now
+  // renders the intrinsic Generic ability tree (abilities + the class data its
+  // cards reach for). A partial preload here diverged from how the app renders.
+  await SalvageUnionReference.preload('all')
 })
 
 afterEach(() => {

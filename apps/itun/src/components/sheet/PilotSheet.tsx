@@ -72,9 +72,11 @@ import {
 import { resolveAbility } from './pilotAbilities'
 
 /**
- * The tree every pilot draws from regardless of class (Repair, Scrap, Mount, …).
- * It is a real `tree` value in the dataset, not a synthetic bucket — which is
- * why it can be both offered by the picker and grouped in the section.
+ * The tree every pilot has regardless of class (Repair, Scrap, Mount, …).
+ *
+ * It is INTRINSIC, not chosen: it is never offered in the abilities picker and
+ * never stored in `pilot.abilities`. The sheet renders it from reference data,
+ * as its own tree above the class trees.
  */
 const GENERIC_TREE = 'Generic'
 
@@ -223,9 +225,9 @@ export function PilotSheet({
   // Computed only while the Abilities picker is open: it reads the reference ORM,
   // which read-only snapshot renders never preload (the picker never opens there).
   //
-  // GENERIC is always in the set. `treesFor` returns only the CLASS's trees, so
-  // the eight Generic abilities every pilot can take (Repair, Scrap, Mount, …)
-  // matched no tree and the picker silently offered none of them.
+  // GENERIC is deliberately NOT in this set: those abilities are intrinsic to
+  // every pilot rather than chosen, so they are never offered for selection —
+  // they are rendered from reference data in their own tree below.
   const abilityTrees = useMemo(() => {
     if (picker !== 'abilities') return null
     const cls: ClassLike | undefined = SalvageUnionReference.Classes.find(
@@ -235,11 +237,12 @@ export function PilotSheet({
     const selectedTrees = SalvageUnionReference.Abilities.all()
       .filter((a) => pilot.abilities.includes(a.id))
       .map((a) => a.tree)
-    return new Set([GENERIC_TREE, ...treesFor(cls, true, selectedTrees)])
+    return new Set(treesFor(cls, true, selectedTrees))
   }, [picker, pilot.classRef, pilot.abilities])
 
-  // Learned abilities grouped by tree, Generic first — the section renders one
-  // sub-slab per tree rather than one flat grid.
+  // Learned abilities grouped by tree — the section renders one sub-slab per
+  // tree rather than one flat grid. Generic is excluded here and sourced
+  // separately: it is intrinsic, so a pilot never "has" it in `abilities`.
   const abilityGroups = useMemo(() => {
     // Keyed by the STORED slug, not `ability.id`: `pilot.abilities` (and
     // `usedAbilities`, and every handler) speak slugs, and the two are not the
@@ -247,17 +250,34 @@ export function PilotSheet({
     const byTree = new Map<string, { slug: string; ability: SURefAbility }[]>()
     for (const slug of pilot.abilities) {
       const ability = resolveAbility(slug)
-      if (!ability) continue
+      if (!ability || ability.tree === GENERIC_TREE) continue
       const entry = { slug, ability }
       const list = byTree.get(ability.tree)
       if (list) list.push(entry)
       else byTree.set(ability.tree, [entry])
     }
-    const generic = byTree.get(GENERIC_TREE) ?? []
-    byTree.delete(GENERIC_TREE)
-    return { generic, trees: [...byTree.entries()] }
+    return { trees: [...byTree.entries()] }
     // eslint-disable-next-line react-hooks/preserve-manual-memoization -- keyed on the slug list; resolveAbility is a pure ORM lookup
   }, [pilot.abilities])
+
+  /**
+   * The Generic tree — EVERY pilot has all of it, so it is read from the
+   * reference data rather than from `pilot.abilities` (which only ever holds
+   * chosen, class-tree abilities). Keyed by `ability.id`, which `resolveAbility`
+   * accepts, so the used/recharge toggles persist like any other ability.
+   *
+   * Guarded: read-only snapshot renders may not have preloaded the ORM, and a
+   * missing catalog should drop the section, not throw the sheet.
+   */
+  const genericAbilities = useMemo(() => {
+    try {
+      return SalvageUnionReference.Abilities.all()
+        .filter((ability) => ability.tree === GENERIC_TREE)
+        .map((ability) => ({ slug: ability.id, ability }))
+    } catch {
+      return []
+    }
+  }, [])
 
   /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
   const unresolvedAbilities = pilot.abilities.filter((slug) => !resolveAbility(slug))
@@ -546,15 +566,18 @@ export function PilotSheet({
           )
         }
       >
-        {pilot.abilities.length === 0 ? (
+        {pilot.abilities.length === 0 && genericAbilities.length === 0 ? (
           <p className="font-body text-caption text-wk-muted">No abilities learned yet.</p>
         ) : (
           <div className="flex flex-col gap-5">
-            {abilityGroups.generic.length > 0 && (
+            {genericAbilities.length > 0 && (
               <div>
-                <Slab label={GENERIC_TREE} count={abilityGroups.generic.length} />
+                {/* No count: the class trees show how many you have TAKEN,
+                    which is a number worth reading. Generic is intrinsic and
+                    fixed, so a tally beside it is noise. */}
+                <Slab label={GENERIC_TREE} />
                 <MasonryColumns maxColumns={3}>
-                  {abilityGroups.generic.map((entry) => (
+                  {genericAbilities.map((entry) => (
                     <EntityGridRow key={entry.slug}>{renderAbility(entry)}</EntityGridRow>
                   ))}
                 </MasonryColumns>
