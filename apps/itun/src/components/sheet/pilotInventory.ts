@@ -34,15 +34,6 @@ export function resolveEquipment(slug: string): SURefEquipment | null {
 }
 
 /**
- * True when a resolved equipment item is a loadout host — it carries its own
- * systemSlots/moduleSlots (Survey Drone, Mecha Companion, Auto-Turret) and so
- * hosts a real system/module loadout the way a mech does.
- */
-export function isLoadoutHost(equipment: Record<string, unknown> | null): boolean {
-  return !!equipment && ('systemSlots' in equipment || 'moduleSlots' in equipment)
-}
-
-/**
  * Inventory slots one equipment item occupies: 1, or 2 when it carries the
  * Heavy/Portable trait (rules A13). Unresolved items count 1.
  */

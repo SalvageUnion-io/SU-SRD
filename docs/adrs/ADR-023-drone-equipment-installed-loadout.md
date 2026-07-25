@@ -2,7 +2,13 @@
 
 ## Status
 
-Accepted.
+**Superseded by [ADR-027](ADR-027-partners-owned-by-host.md).**
+
+The slug keying below was recorded here as an accepted limitation. It is a bug:
+Mecha Packmaster grants TWO Mecha Companions, which shared one loadout, one name
+and one condition set. ADR-027 replaces `equipmentLoadouts` with per-instance
+`partners` on both the pilot AND the mech — the mech side had no model here at
+all, so a chassis-fielded drone was dropped entirely.
 
 ## Context
 
