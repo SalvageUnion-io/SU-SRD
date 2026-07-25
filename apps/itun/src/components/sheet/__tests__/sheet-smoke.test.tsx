@@ -340,7 +340,7 @@ describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
     await act(async () => {
       // SP is a VitalGauge now: clicking the top-lit segment (index 4 =
       // "Set SP to 5") steps SP 5 → 4 (pipClickValue click-to-set).
-      fireEvent.click(screen.getByRole('button', { name: 'Set SP to 5' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Set SP to 5', hidden: true }))
     })
 
     expect(captured.length).toBe(1)
@@ -369,7 +369,7 @@ describe('Smoke — the top-bar Share link points at the share screen', () => {
       />
     )
 
-    const link = screen.getByRole('link', { name: /share this pilot/i })
+    const link = screen.getByRole('link', { name: /share this pilot/i, hidden: true })
     expect(link.getAttribute('href')).toBe('/sheet/pilot/pilot-smoke-1/share')
   })
 })
@@ -386,7 +386,7 @@ describe('Smoke — SnapshotPageInner 404', () => {
 
   test('notFound=true renders a back-to-dashboard link', () => {
     render(<SnapshotPageInner snapshot={null} notFound={true} error={null} />)
-    expect(screen.getByRole('link', { name: /back to roster/i })).toBeTruthy()
+    expect(screen.getByRole('link', { name: /back to roster/i, hidden: true })).toBeTruthy()
   })
 })
 
@@ -405,7 +405,7 @@ describe('Smoke — readOnly mode', () => {
         readOnly={true}
       />
     )
-    expect(screen.queryByRole('link', { name: /share this pilot/i })).toBeNull()
+    expect(screen.queryByRole('link', { name: /share this pilot/i, hidden: true })).toBeNull()
   })
 
   test('Sheet with readOnly=false (default) renders the Share link', () => {
@@ -417,6 +417,6 @@ describe('Smoke — readOnly mode', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByRole('link', { name: /share this pilot/i })).toBeTruthy()
+    expect(screen.getByRole('link', { name: /share this pilot/i, hidden: true })).toBeTruthy()
   })
 })

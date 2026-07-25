@@ -63,6 +63,9 @@ type SheetSectionSlabProps = {
    * collections below them, which a reader closes to get past.
    */
   collapsible?: boolean
+  /** DOM id on the section — an in-page link target (e.g. the header's
+   *  "Linked Units" jump). */
+  id?: string
   children: ReactNode
 }
 
@@ -75,6 +78,7 @@ export function SheetSectionSlab({
   bodyClassName,
   defaultCollapsed = false,
   collapsible = true,
+  id,
   children,
 }: SheetSectionSlabProps) {
   const [collapsed, setCollapsed] = useState(collapsible && defaultCollapsed)
@@ -84,7 +88,7 @@ export function SheetSectionSlab({
   return (
     // `.sheet-section` keeps the print page-break rule the card container also
     // carries, so moving a section between the two never changes pagination.
-    <section className={cn('sheet-section', className)}>
+    <section id={id} className={cn('sheet-section', className)}>
       {/* `flex-wrap`: the slab leader is one flex row of shrink-0 parts (stamp,
           count, rule, controls). A long title beside a long control — e.g.
           "Armament Bay Weapons" + "+ Add weapons system" — is 432px of content

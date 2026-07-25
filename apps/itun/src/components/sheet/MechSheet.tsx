@@ -652,6 +652,7 @@ export function MechSheet({
 
       {/* ===== Linked Units — the last region ===== */}
       <SheetSectionSlab
+        id="linked-units"
         title="Linked Units"
         // Side by side: each linked unit is one roster row, and two of them stack
         // to a wasteful column on a sheet that has the width for both.

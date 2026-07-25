@@ -171,13 +171,20 @@ export function LiveSheet({
       style={{ background: 'var(--ground)' }}
       data-variant={variant}
     >
-      {/* Top bar — <header> is a print-stylesheet target (nav-hide rule). */}
+      {/* Top bar — <header> is a print-stylesheet target (nav-hide rule).
+          It is NOT shown at rest: the sheet opens on its own identity block, and
+          a bar repeating that above it is chrome for nothing. It slides in once
+          the first row scrolls away, carrying only what you lose — the name and
+          the live vitals — tinted the sheet's own tone so it reads as part of
+          this entity rather than as app chrome. */}
       <header
+        aria-hidden={condense && !condensed}
         className={cn(
-          'sticky top-0 z-20 flex min-h-[58px] flex-wrap items-center gap-x-4 gap-y-1 border-b-2 border-ink px-4 py-2 sm:px-[30px]',
+          'sticky top-0 z-20 flex min-h-[58px] flex-wrap items-center gap-x-4 gap-y-1 border-b-2 border-ink px-4 py-2 transition-[opacity,transform] duration-150 sm:px-[30px]',
+          condense && !condensed && 'pointer-events-none -translate-y-full opacity-0',
           condensed && 'shadow-[0_2px_0_var(--color-ink),0_14px_20px_-18px_var(--color-ink-50)]'
         )}
-        style={{ background: 'var(--ground-2)' }}
+        style={{ background: 'var(--tone)' }}
       >
         {back && (
           <>
@@ -190,15 +197,6 @@ export function LiveSheet({
             >
               <ArrowLeft className="size-[18px]" aria-hidden="true" />
             </AppLink>
-            {/* SU cargo mark anchors the sheet's own chrome; the global
-                AppHeader (brand chrome) sits above this sticky bar. */}
-            <img
-              src="/logos/su-cargo-dark.svg"
-              alt=""
-              width={28}
-              height={28}
-              className="block size-7 shrink-0 rounded-[2px]"
-            />
           </>
         )}
 
@@ -238,6 +236,14 @@ export function LiveSheet({
             ))}
           </div>
         )}
+
+        {/* A badge-level jump to the linked units, which sit at the very foot
+            of the sheet — the one thing you scroll past everything to reach. */}
+        <AppLink href="#linked-units" className="no-underline" aria-label="Jump to linked units">
+          <Badge shape="chip" surface="outline">
+            Linked Units
+          </Badge>
+        </AppLink>
 
         <div className="ml-auto flex shrink-0 items-center gap-2.5">{actions}</div>
 
@@ -301,10 +307,16 @@ export function LiveSheet({
             enough for the content's own breathing room. */}
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 hidden w-[52px] select-none xl:block"
+          className="pointer-events-none absolute inset-y-0 left-0 hidden w-[68px] select-none xl:block"
         >
+          {/* The glyphs are as tall as the gutter is wide — in vertical writing
+              the font-size IS the column width, so one value drives both and the
+              wordmark can never outgrow or rattle around in its channel.
+              `top-0`, not an offset: the block runs bottom-to-top, so its TOP
+              edge is the word's LAST letter, which lands level with the top of
+              the identity block beside it. */}
           <span
-            className="sticky top-[86px] block rotate-180 text-center font-cond text-display-lg font-extrabold uppercase leading-none tracking-caps-tight opacity-45 [writing-mode:vertical-rl]"
+            className="sticky top-0 block rotate-180 text-center font-cond text-[68px] font-extrabold uppercase leading-none tracking-caps-tight opacity-45 [writing-mode:vertical-rl]"
             style={{ color: 'var(--tone-deep)' }}
           >
             {variant}
@@ -312,7 +324,7 @@ export function LiveSheet({
         </span>
         <div
           className={cn(
-            'px-4 pb-[34px] sm:px-[30px] sm:pb-[60px] xl:pl-[68px]',
+            'px-4 pb-[34px] sm:px-[30px] sm:pb-[60px] xl:pl-[84px]',
             renderHero ? 'pt-[18px] sm:pt-6' : 'pt-4 sm:pt-[22px]'
           )}
         >

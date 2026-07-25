@@ -696,6 +696,7 @@ export function PilotSheet({
           Already a bare slab leader + rail stack in the poster; now expressed
           through the shared slab container like every other card section. */}
       <SheetSectionSlab
+        id="linked-units"
         title="Linked Units"
         // Side by side: each linked unit is one roster row, and two of them stack
         // to a wasteful column on a sheet that has the width for both.

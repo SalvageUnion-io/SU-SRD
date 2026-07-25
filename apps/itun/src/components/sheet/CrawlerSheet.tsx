@@ -343,6 +343,7 @@ export function CrawlerSheet({
         {/* Linked Units — poster renders this as a bare section header +
             rail stack (no `.dcard` frame), matching PilotSheet/MechSheet. */}
         <SheetSectionSlab
+          id="linked-units"
           title="Linked Units"
           // Side by side: each linked unit is one roster row, and two of them stack
           // to a wasteful column on a sheet that has the width for both.
