@@ -445,8 +445,47 @@ export function MechSheet({
               chassisName={chassisName}
               editing={identityEditing}
               patch={readOnly ? undefined : patchMech}
+              stats={
+                <ChassisStats items={specs} className="grid grid-cols-2 gap-2 @sm:grid-cols-4" />
+              }
+              aside={
+                // The chassis's ability sits beside the chassis name and its
+                // stats: all three describe what this machine IS, before
+                // anything was installed on it. Always visible, never folded —
+                // there is nothing to manage or choose here, so a fold would
+                // hide the one thing that distinguishes this chassis.
+                chassisAbilities.length > 0 ? (
+                  <div className="flex min-w-0 flex-col gap-4">
+                    {chassisAbilities.map((ability) => {
+                      // Activating an ability (spending its EP) is a Guided-Play
+                      // transaction — it lives on the Dashboard, not the
+                      // Free-Edit Live Sheet (ADR-021). The sheet shows the
+                      // ability + its EP cost; EP is spent by hand-editing the
+                      // EP gauge (free state).
+                      const epCost =
+                        typeof ability.activationCost === 'number' ? ability.activationCost : 0
+                      return (
+                        <EntityGridRow
+                          key={ability.id}
+                          footMeta={epCost > 0 ? [{ label: 'EP Cost', value: epCost }] : undefined}
+                        >
+                          <ReferenceEntityCard
+                            data={ability}
+                            hostTone="var(--color-sheet-mech-deep)"
+                            // `[(CHASSIS)]` in the ability's text resolves to
+                            // the PATTERN name, not the chassis's: on a live
+                            // sheet the reader is looking at this machine, and
+                            // "Increases the Cargo Capacity of Bad Penny" is
+                            // what the sentence is actually about.
+                            chassisName={mech.name}
+                          />
+                        </EntityGridRow>
+                      )
+                    })}
+                  </div>
+                ) : undefined
+              }
             />
-            <ChassisStats items={specs} className="grid grid-cols-2 gap-2 @sm:grid-cols-4" />
 
             {/* Quirk & Appearance live IN identity: they are two more fields
                 describing this machine, and standing them up as their own card
@@ -472,32 +511,6 @@ export function MechSheet({
                 placeholder="No appearance recorded."
               />
             </div>
-
-            {/* The chassis's ability is identity too — it is what this chassis
-                IS, not a loadout choice. No slab and no fold: there is nothing
-                to manage here and nothing to choose, so a section header would
-                be labelling a single fixed fact and a fold would hide the one
-                thing that distinguishes this chassis from another. */}
-            {chassisAbilities.length > 0 && (
-              <div className="flex min-w-0 flex-col gap-4">
-                {chassisAbilities.map((ability) => {
-                  // Activating an ability (spending its EP) is a Guided-Play
-                  // transaction — it lives on the Dashboard, not the Free-Edit
-                  // Live Sheet (ADR-021). The sheet shows the ability + its EP
-                  // cost; EP is spent by hand-editing the EP gauge (free state).
-                  const epCost =
-                    typeof ability.activationCost === 'number' ? ability.activationCost : 0
-                  return (
-                    <EntityGridRow
-                      key={ability.id}
-                      footMeta={epCost > 0 ? [{ label: 'EP Cost', value: epCost }] : undefined}
-                    >
-                      <ReferenceEntityCard data={ability} hostTone="var(--color-sheet-mech-deep)" />
-                    </EntityGridRow>
-                  )
-                })}
-              </div>
-            )}
           </div>
         }
         vitals={
