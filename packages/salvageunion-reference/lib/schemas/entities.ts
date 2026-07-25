@@ -446,8 +446,22 @@ export const GuideSchema = BaseEntitySchema.extend({
     // #282019 IS `--color-ink`, spelled as a literal because this validates
     // DATA, not styling: the field's contract is a 6-digit hex (see the regex
     // above), so `var(--color-ink)` is not a legal value here. The default was
-    // pure black, which the warm palette retired — and it is load-bearing, not
-    // decorative: 64 of the 79 guides omit `guideColor` and render on it.
+    // pure black, which the warm palette retired.
+    //
+    // It is a FALLBACK, not a shipped value. Every guide in `data/guides.json`
+    // carries its own explicit hue and none of them is `#282019`, so nothing
+    // currently renders on this default; it exists so a guide added without a
+    // colour still parses and still gets an ink band rather than a blank one.
+    //
+    // The previous version of this note asserted the opposite — "load-bearing,
+    // not decorative: 64 of the 79 guides omit `guideColor` and render on it".
+    // That was never true of this schema: the file has held 15 guides, every one
+    // with an explicit colour, since before the note was written. It is recorded
+    // rather than silently deleted because the false claim pointed the wrong way
+    // for a reader deciding how much this field matters — the card layer now
+    // resolves a guide's whole tone from it (`entityCardTone.ts`, matching the
+    // SRD index tile), and "most guides just use the default" would have been a
+    // materially wrong thing to believe while touching that.
     .default('#282019')
     .describe('Hex color for entity display header/footer'),
   steps: z.array(GuideStepSchema).describe('Ordered sequence of steps'),
