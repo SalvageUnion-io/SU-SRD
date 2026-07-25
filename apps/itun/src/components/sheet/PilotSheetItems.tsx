@@ -25,7 +25,7 @@ import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import type { EquipmentLoadout } from '../shared/useEquipmentLoadout'
 import { PilotEquipmentLoadout } from './PilotEquipmentLoadout'
-import { CardRemoveButton, cardRemoveControls } from 'component-lib'
+import { CardRemoveButton } from 'component-lib'
 import {
   equipmentMaxUses,
   equipmentSlotCost,
@@ -56,11 +56,6 @@ type PilotAbilityItemProps = {
   /** Spend this ability's fixed AP cost. Only invoked for fixed numeric costs. */
   onSpend: (cost: number) => void
   onToggleUsed: (next: boolean) => void
-  /**
-   * Per-card remove (✕) — always available on editable sheets (unified edit
-   * language archetype B). Omit on read-only sheets.
-   */
-  onRemove?: () => void
   readOnly: boolean
 }
 
@@ -75,7 +70,6 @@ export function PilotAbilityItem({
   used,
   onSpend,
   onToggleUsed,
-  onRemove,
   readOnly,
 }: PilotAbilityItemProps) {
   const apCost = resolveAbilityApCost(ability)
@@ -110,7 +104,6 @@ export function PilotAbilityItem({
         onToggleUsed(!used)
       },
     })
-    if (onRemove) controls.push(...cardRemoveControls({ name: ability.name, onRemove }))
   }
 
   return (
@@ -247,9 +240,6 @@ export function PilotEquipmentItem({
       variant: 'ghost',
       disabled: uses >= maxUses,
     })
-  }
-  if (!readOnly && onRemove) {
-    controls.push(...cardRemoveControls({ name: equipment.name, onRemove }))
   }
 
   const equipmentRecord: Record<string, unknown> & { name?: string } = equipment

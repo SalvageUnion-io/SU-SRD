@@ -31,7 +31,7 @@ import type { ScrapPool } from '../../lib/schemas/crawler'
 import type { ItemCondition } from '../../lib/schemas/mech'
 import { itemEconomy, repairPoolTl, repairScrapCost } from './mechItemRules'
 import type { MechItem, MechItemEconomy } from './mechItemRules'
-import { CardRemoveButton, cardRemoveControls } from 'component-lib'
+import { CardRemoveButton } from 'component-lib'
 
 /** Stable hide literal — keeps ReferenceEntityCard's memo effective. */
 const HIDE_CHOICES = { choices: true } as const
@@ -179,7 +179,6 @@ export function MechItemCard({
               } satisfies ReferenceEntityControl,
             ]
           : []),
-        ...(onRemove ? cardRemoveControls({ name: entity.name, onRemove }) : []),
       ]
 
   // Repair confirm — a modal (design: no inline confirm cluster / footer).

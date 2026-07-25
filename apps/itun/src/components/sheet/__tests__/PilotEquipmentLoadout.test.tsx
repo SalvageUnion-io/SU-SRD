@@ -4,7 +4,7 @@
  * Asserts that:
  *   1. Systems + Modules sections render the seeded installed items (resolved
  *      to their reference names) and the used/max slot counts.
- *   2. Editable mode exposes the "Add system"/"Add module" affordances and
+ *   2. Editable mode exposes the "Manage systems"/"Manage modules" affordances and
  *      opening one shows the picker; readOnly hides them.
  *   3. isLoadoutHost gates on the slot-carrying data shape.
  *
@@ -75,7 +75,7 @@ describe('isLoadoutHost', () => {
 })
 
 describe('PilotEquipmentLoadout — render', () => {
-  test('renders installed systems/modules + slot counts, and the add affordances', () => {
+  test('renders installed systems/modules + slot counts, and the manage affordances', () => {
     render(
       <PilotEquipmentLoadout
         pilotId={PILOT_ID}
@@ -96,8 +96,8 @@ describe('PilotEquipmentLoadout — render', () => {
     expect(screen.getByText('1/3 slots')).toBeTruthy()
     expect(screen.getByText('1/1 slots')).toBeTruthy()
     // Editable add affordances.
-    expect(screen.getByLabelText('Add system')).toBeTruthy()
-    expect(screen.getByLabelText('Add module')).toBeTruthy()
+    expect(screen.getByLabelText('Manage systems')).toBeTruthy()
+    expect(screen.getByLabelText('Manage modules')).toBeTruthy()
   })
 
   test('empty loadout shows the empty copy', () => {
@@ -116,7 +116,7 @@ describe('PilotEquipmentLoadout — render', () => {
     expect(screen.getByText('0/3 slots')).toBeTruthy()
   })
 
-  test('readOnly hides the add affordances', () => {
+  test('readOnly hides the manage affordances', () => {
     render(
       <PilotEquipmentLoadout
         pilotId={PILOT_ID}
@@ -127,7 +127,7 @@ describe('PilotEquipmentLoadout — render', () => {
         store={makeStore()}
       />
     )
-    expect(screen.queryByLabelText('Add system')).toBeNull()
-    expect(screen.queryByLabelText('Add module')).toBeNull()
+    expect(screen.queryByLabelText('Manage systems')).toBeNull()
+    expect(screen.queryByLabelText('Manage modules')).toBeNull()
   })
 })

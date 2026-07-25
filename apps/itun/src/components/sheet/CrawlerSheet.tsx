@@ -78,12 +78,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import { EntityGridRow, MasonryColumns } from 'component-lib'
-import {
-  CardRemoveButton,
-  SectionAddButton,
-  SectionEditButton,
-  cardRemoveControls,
-} from 'component-lib'
+import { CardRemoveButton, SectionManageButton, SectionEditButton } from 'component-lib'
 import { SheetSectionCard, SheetSectionSlab } from 'component-lib'
 import { StorageManifest } from './StorageManifest'
 
@@ -314,10 +309,7 @@ export function CrawlerSheet({
               count={<span className="tabular-nums">{crawler.systems.length}</span>}
               controls={
                 readOnly ? undefined : (
-                  <SectionAddButton
-                    label="weapons system"
-                    onClick={() => setSystemsModalOpen(true)}
-                  />
+                  <SectionManageButton label="weapons" onClick={() => setSystemsModalOpen(true)} />
                 )
               }
             >
@@ -330,19 +322,7 @@ export function CrawlerSheet({
                     return (
                       <EntityGridRow key={slug}>
                         {system ? (
-                          <ReferenceEntityCard
-                            data={system}
-                            size="medium"
-                            collapsible
-                            controls={
-                              readOnly
-                                ? undefined
-                                : cardRemoveControls({
-                                    name: system.name,
-                                    onRemove: () => removeWeapon(slug),
-                                  })
-                            }
-                          />
+                          <ReferenceEntityCard data={system} size="medium" collapsible />
                         ) : (
                           <div className="flex items-center justify-between gap-2 rounded border border-ink px-2 py-1 text-sm text-wk-muted">
                             <span className="min-w-0 truncate">{slug}</span>

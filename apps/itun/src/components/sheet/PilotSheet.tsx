@@ -59,8 +59,8 @@ import { destroyedUndoToast } from './destroyedUndoToast'
 import { EntityGridRow, MasonryColumns } from 'component-lib'
 import { PilotIdentityPanel } from './PilotIdentity'
 import type { UsedToggleKey } from './PilotIdentity'
-import { SectionAddButton, SectionEditButton, SheetPickerModal } from 'component-lib'
-import { SheetSectionSlab } from 'component-lib'
+import { SectionManageButton, SectionEditButton, SheetPickerModal } from 'component-lib'
+import { SheetSectionSlab, Slab } from 'component-lib'
 import { pilotInventoryCapacity, pilotInventoryUsed, resolveEquipment } from './pilotInventory'
 import type { SheetPatch } from './sheetViewProps'
 import {
@@ -70,6 +70,13 @@ import {
   PilotEquipmentItem,
 } from './PilotSheetItems'
 import { resolveAbility } from './pilotAbilities'
+
+/**
+ * The tree every pilot draws from regardless of class (Repair, Scrap, Mount, …).
+ * It is a real `tree` value in the dataset, not a synthetic bucket — which is
+ * why it can be both offered by the picker and grouped in the section.
+ */
+const GENERIC_TREE = 'Generic'
 
 // ---------------------------------------------------------------------------
 // TpBlock — pilot Training Points, in the Vitals card's dashed-topped `.vrow`
@@ -215,6 +222,10 @@ export function PilotSheet({
   // edit-mode logic AbilitiesStep used, now feeding the shared searcher's filter.
   // Computed only while the Abilities picker is open: it reads the reference ORM,
   // which read-only snapshot renders never preload (the picker never opens there).
+  //
+  // GENERIC is always in the set. `treesFor` returns only the CLASS's trees, so
+  // the eight Generic abilities every pilot can take (Repair, Scrap, Mount, …)
+  // matched no tree and the picker silently offered none of them.
   const abilityTrees = useMemo(() => {
     if (picker !== 'abilities') return null
     const cls: ClassLike | undefined = SalvageUnionReference.Classes.find(
@@ -224,8 +235,32 @@ export function PilotSheet({
     const selectedTrees = SalvageUnionReference.Abilities.all()
       .filter((a) => pilot.abilities.includes(a.id))
       .map((a) => a.tree)
-    return new Set(treesFor(cls, true, selectedTrees))
+    return new Set([GENERIC_TREE, ...treesFor(cls, true, selectedTrees)])
   }, [picker, pilot.classRef, pilot.abilities])
+
+  // Learned abilities grouped by tree, Generic first — the section renders one
+  // sub-slab per tree rather than one flat grid.
+  const abilityGroups = useMemo(() => {
+    // Keyed by the STORED slug, not `ability.id`: `pilot.abilities` (and
+    // `usedAbilities`, and every handler) speak slugs, and the two are not the
+    // same string — grouping by id silently broke the used/recharge lookups.
+    const byTree = new Map<string, { slug: string; ability: SURefAbility }[]>()
+    for (const slug of pilot.abilities) {
+      const ability = resolveAbility(slug)
+      if (!ability) continue
+      const entry = { slug, ability }
+      const list = byTree.get(ability.tree)
+      if (list) list.push(entry)
+      else byTree.set(ability.tree, [entry])
+    }
+    const generic = byTree.get(GENERIC_TREE) ?? []
+    byTree.delete(GENERIC_TREE)
+    return { generic, trees: [...byTree.entries()] }
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- keyed on the slug list; resolveAbility is a pure ORM lookup
+  }, [pilot.abilities])
+
+  /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
+  const unresolvedAbilities = pilot.abilities.filter((slug) => !resolveAbility(slug))
 
   const maxHP = Math.max(0, pilotMaxHP(pilot))
   const maxAP = Math.max(0, pilotMaxAP(pilot))
@@ -357,6 +392,24 @@ export function PilotSheet({
     await storeState.update('pilot', pilot.id, { genericInventory: next })
   }
 
+  /** One learned ability card — identical wherever its tree puts it. */
+  function renderAbility({ slug, ability }: { slug: string; ability: SURefAbility }) {
+    return (
+      <PilotAbilityItem
+        ability={ability}
+        currentAP={pilot.currentAP ?? pilotMaxAP(pilot)}
+        used={pilot.usedAbilities?.includes(slug) ?? false}
+        onSpend={(cost) => {
+          void handleSpendAP(cost)
+        }}
+        onToggleUsed={(next) => {
+          void handleAbilityUsedChange(slug, next)
+        }}
+        readOnly={readOnly}
+      />
+    )
+  }
+
   return (
     <section
       aria-label={`${pilot.name} pilot details`}
@@ -476,56 +529,68 @@ export function PilotSheet({
         }
       />
 
-      {/* ===== Abilities (full width, 3-column card grid — printed pilot sheet) =====
+      {/* ===== Abilities — one sub-slab per ABILITY TREE =====
           A SLAB, not a card: the grid is entity cards, which carry their own
-          frame — see SheetSectionSlab's header for the card-vs-slab rule. */}
+          frame. Inside it the abilities group by tree, because a pilot's
+          abilities ARE a set of trees and a flat grid lost that: GENERIC (the
+          eight every pilot can take) reads as a full-width row of its own, then
+          each class tree takes a single column, three trees to a row. The
+          per-tree leader is the DASHED `Slab`, subordinate to the section's own
+          solid stamp. */}
       <SheetSectionSlab
         title="Abilities"
         count={`${pilot.abilities.length} known`}
         controls={
           readOnly ? undefined : (
-            <SectionAddButton label="ability" onClick={() => setPicker('abilities')} />
+            <SectionManageButton label="abilities" onClick={() => setPicker('abilities')} />
           )
         }
       >
         {pilot.abilities.length === 0 ? (
           <p className="font-body text-caption text-wk-muted">No abilities learned yet.</p>
         ) : (
-          <MasonryColumns maxColumns={3}>
-            {pilot.abilities.map((slug) => {
-              const ability = resolveAbility(slug)
-              if (!ability) {
-                return (
-                  <EntityGridRow key={slug}>
-                    <Panel className="px-3 py-2.5 font-body text-sm text-wk-muted">{slug}</Panel>
-                  </EntityGridRow>
-                )
-              }
-              return (
-                <EntityGridRow key={ability.id}>
-                  <PilotAbilityItem
-                    ability={ability}
-                    currentAP={pilot.currentAP ?? pilotMaxAP(pilot)}
-                    used={pilot.usedAbilities?.includes(slug) ?? false}
-                    onSpend={(cost) => {
-                      void handleSpendAP(cost)
-                    }}
-                    onToggleUsed={(next) => {
-                      void handleAbilityUsedChange(slug, next)
-                    }}
-                    onRemove={
-                      readOnly
-                        ? undefined
-                        : () => {
-                            toggleAbility(slug)
-                          }
-                    }
-                    readOnly={readOnly}
-                  />
-                </EntityGridRow>
-              )
-            })}
-          </MasonryColumns>
+          <div className="flex flex-col gap-5">
+            {abilityGroups.generic.length > 0 && (
+              <div>
+                <Slab label={GENERIC_TREE} count={abilityGroups.generic.length} />
+                <MasonryColumns maxColumns={3}>
+                  {abilityGroups.generic.map((entry) => (
+                    <EntityGridRow key={entry.slug}>{renderAbility(entry)}</EntityGridRow>
+                  ))}
+                </MasonryColumns>
+              </div>
+            )}
+
+            {abilityGroups.trees.length > 0 && (
+              // One COLUMN per tree, three to a row — a tree's abilities stack
+              // under their own leader instead of being interleaved with
+              // another tree's by a masonry flow.
+              <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 xl:grid-cols-3">
+                {abilityGroups.trees.map(([tree, entries]) => (
+                  <div key={tree} className="min-w-0">
+                    <Slab label={tree} count={entries.length} />
+                    <div className="flex flex-col gap-4">
+                      {entries.map((entry) => (
+                        <div key={entry.slug} className="min-w-0">
+                          {renderAbility(entry)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {unresolvedAbilities.length > 0 && (
+              <div className="flex flex-col gap-2">
+                {unresolvedAbilities.map((slug) => (
+                  <Panel key={slug} className="px-3 py-2.5 font-body text-sm text-wk-muted">
+                    {slug}
+                  </Panel>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </SheetSectionSlab>
 
@@ -539,7 +604,7 @@ export function PilotSheet({
         }
         controls={
           readOnly ? undefined : (
-            <SectionAddButton label="equipment" onClick={() => setPicker('equipment')} />
+            <SectionManageButton label="equipment" onClick={() => setPicker('equipment')} />
           )
         }
       >

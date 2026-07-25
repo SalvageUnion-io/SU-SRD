@@ -209,7 +209,7 @@ export { SHEET_ICONBTN_CLASS } from './components/sheet/sheetChrome'
 // Edit/Add toggles, the one shared picker modal, per-card remove) lifted out of
 // ITUN so the sheet containers come from the design system like their cards do.
 export {
-  SectionAddButton,
+  SectionManageButton,
   SectionEditButton,
   SheetPickerModal,
   CardRemoveButton,

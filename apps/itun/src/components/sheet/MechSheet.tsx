@@ -70,7 +70,7 @@ import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { useSoftWarnings } from '../shared/useSoftWarnings'
-import { SectionAddButton, SectionEditButton, SheetPickerModal } from 'component-lib'
+import { SectionManageButton, SectionEditButton, SheetPickerModal } from 'component-lib'
 import { SheetSectionCard, SheetSectionSlab } from 'component-lib'
 import type { ChassisStatItem } from 'component-lib'
 import { ChassisStats } from 'component-lib'
@@ -608,7 +608,7 @@ export function MechSheet({
         }
         controls={
           readOnly ? undefined : (
-            <SectionAddButton label="system" onClick={() => setPicker('system')} />
+            <SectionManageButton label="systems" onClick={() => setPicker('system')} />
           )
         }
       >
@@ -624,7 +624,7 @@ export function MechSheet({
         }
         controls={
           readOnly ? undefined : (
-            <SectionAddButton label="module" onClick={() => setPicker('module')} />
+            <SectionManageButton label="modules" onClick={() => setPicker('module')} />
           )
         }
       >

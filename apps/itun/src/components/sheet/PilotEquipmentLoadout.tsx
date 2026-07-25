@@ -4,7 +4,7 @@
  * Auto-Turret). These equipment entities carry their own systemSlots/moduleSlots,
  * so they host a real loadout the same way a mech does.
  *
- * Reuses the exact mech loadout stack — SheetSectionCard + SectionAddButton +
+ * Reuses the exact mech loadout stack — SheetSectionCard + SectionManageButton +
  * SheetPickerModal + EntitySearcher (mode="count") for editing, and MechItemCard
  * for each installed item (status cycle + uses stepper + repair + remove) —
  * writing through `pilot.equipmentLoadouts[slug]` via useEquipmentLoadout. There
@@ -22,7 +22,7 @@ import { EntitySearcher } from 'component-lib'
 import { EntityGrid, EntityGridRow } from 'component-lib'
 import { MechItemCard } from './MechItemCard'
 import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
-import { SectionAddButton, SheetPickerModal } from 'component-lib'
+import { SectionManageButton, SheetPickerModal } from 'component-lib'
 import { SheetSectionCard } from 'component-lib'
 
 /** Read a numeric slot field off the drone-equipment entity, defaulting to 0. */
@@ -122,7 +122,7 @@ export function PilotEquipmentLoadout({
           }
           controls={
             readOnly ? undefined : (
-              <SectionAddButton label="system" onClick={() => setPicker('system')} />
+              <SectionManageButton label="systems" onClick={() => setPicker('system')} />
             )
           }
         >
@@ -140,7 +140,7 @@ export function PilotEquipmentLoadout({
           }
           controls={
             readOnly ? undefined : (
-              <SectionAddButton label="module" onClick={() => setPicker('module')} />
+              <SectionManageButton label="modules" onClick={() => setPicker('module')} />
             )
           }
         >
