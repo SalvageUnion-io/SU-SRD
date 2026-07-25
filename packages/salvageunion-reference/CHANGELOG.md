@@ -7,6 +7,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.5.3...salvageunion-reference-v2.6.0) (2026-07-25)
+
+
+### Features
+
+* Partner Sheets — statted drones/companions owned by a pilot or a mech ([#578](https://github.com/SalvageUnion-io/SU-SRD/issues/578)) ([7ee4d1b](https://github.com/SalvageUnion-io/SU-SRD/commit/7ee4d1b45e11d44f90da0c90dad82e08a1edca30))
+
+
+### Bug Fixes
+
+* name self-actions after their entities so book facets fold (6 entities + Bio-Rifle matcher) ([#566](https://github.com/SalvageUnion-io/SU-SRD/issues/566)) ([b0598b3](https://github.com/SalvageUnion-io/SU-SRD/commit/b0598b31329b82caf33193f360706fc17b897a93))
+* **reference:** correct Generic ability data against core book p.248-249 ([#570](https://github.com/SalvageUnion-io/SU-SRD/issues/570)) ([531cb10](https://github.com/SalvageUnion-io/SU-SRD/commit/531cb10952b0a6c7485e5c41b7b1a2ec04336266))
+* **reference:** point nine equipment records at their entry page + an index-backed name/page scan ([#569](https://github.com/SalvageUnion-io/SU-SRD/issues/569)) ([baddaec](https://github.com/SalvageUnion-io/SU-SRD/commit/baddaec2cc10794931220971e400bdf110420b30))
+* **reference:** restore Eggs Mayhem module facets and roll table ([#563](https://github.com/SalvageUnion-io/SU-SRD/issues/563)) ([4049a8a](https://github.com/SalvageUnion-io/SU-SRD/commit/4049a8a2aaab8f292076e4aec5769044704b5452))
+* **srd:** render guide steps — most guide prose was missing from every guide page ([#564](https://github.com/SalvageUnion-io/SU-SRD/issues/564)) ([de44fd1](https://github.com/SalvageUnion-io/SU-SRD/commit/de44fd1440313587947cde142492dbb40ef913f9))
+
 ## [2.5.3](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.5.2...salvageunion-reference-v2.5.3) (2026-07-24)
 
 
