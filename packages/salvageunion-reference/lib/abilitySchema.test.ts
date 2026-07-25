@@ -84,17 +84,19 @@ describe('AbilitySchema optionality audit', () => {
     expect(defined(withActivationCurrency[0]).activationCurrency).toBe('Variable')
   })
 
-  it('description is present on 100 out of 103 abilities', () => {
+  // Load, Mount, and Patch Up were the last three abilities without a
+  // description — the card renders `description` as its header flavor with no
+  // fallback, so those three rendered as blank Generic cards. They now carry a
+  // clipped first sentence of their rules text like every other ability. The
+  // schema field stays optional (homebrew data need not supply one); this audit
+  // records that the shipped dataset is complete.
+  it('description is present on all 103 abilities', () => {
     const abilities = SalvageUnionReference.Abilities.all()
 
     const withDescription = abilities.filter((a) => a.description !== undefined)
-    expect(withDescription.length).toBe(100)
+    expect(withDescription.length).toBe(103)
 
     const withoutDescription = abilities.filter((a) => a.description === undefined)
-    expect(withoutDescription.length).toBe(3)
-
-    // Verify which abilities are missing it
-    const names = withoutDescription.map((a) => a.name).sort()
-    expect(names).toEqual(['Load', 'Mount', 'Patch Up'])
+    expect(withoutDescription.length).toBe(0)
   })
 })
