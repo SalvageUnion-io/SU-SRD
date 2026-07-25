@@ -54,6 +54,15 @@ type SheetSectionSlabProps = {
    * (Entity CARDS default the other way; see `ReferenceEntityCard.collapsible`.)
    */
   defaultCollapsed?: boolean
+  /**
+   * Can the reader fold this section away at all? Defaults to true.
+   *
+   * The sheet's OPENING sections (Identity / Chassis, Vitals) pass false: they
+   * are the sheet's subject and its live state, always wanted, and collapsing
+   * them would leave a page of labels above the content. A fold is for the
+   * collections below them, which a reader closes to get past.
+   */
+  collapsible?: boolean
   children: ReactNode
 }
 
@@ -65,10 +74,12 @@ export function SheetSectionSlab({
   className,
   bodyClassName,
   defaultCollapsed = false,
+  collapsible = true,
   children,
 }: SheetSectionSlabProps) {
-  const [collapsed, setCollapsed] = useState(defaultCollapsed)
+  const [collapsed, setCollapsed] = useState(collapsible && defaultCollapsed)
   const bodyId = useId()
+  const folded = collapsible && collapsed
 
   return (
     // `.sheet-section` keeps the print page-break rule the card container also
@@ -89,34 +100,36 @@ export function SheetSectionSlab({
         actions={
           <>
             {controls}
-            <button
-              type="button"
-              onClick={() => setCollapsed((v) => !v)}
-              aria-expanded={!collapsed}
-              aria-controls={bodyId}
-              // The accessible name carries the section, so a screen reader
-              // hears "Collapse Systems" rather than a rail of bare chevrons.
-              aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${title}`}
-              className={cn(
-                'inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-card border-chrome border-ink/35 text-ink transition-colors hover:bg-ink/10',
-                FOCUS_RING
-              )}
-            >
-              <ChevronDown
-                aria-hidden="true"
+            {collapsible && (
+              <button
+                type="button"
+                onClick={() => setCollapsed((v) => !v)}
+                aria-expanded={!collapsed}
+                aria-controls={bodyId}
+                // The accessible name carries the section, so a screen reader
+                // hears "Collapse Systems" rather than a rail of bare chevrons.
+                aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${title}`}
                 className={cn(
-                  'size-4 transition-transform duration-150',
-                  collapsed && '-rotate-90'
+                  'inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-card border-chrome border-ink/35 text-ink transition-colors hover:bg-ink/10',
+                  FOCUS_RING
                 )}
-              />
-            </button>
+              >
+                <ChevronDown
+                  aria-hidden="true"
+                  className={cn(
+                    'size-4 transition-transform duration-150',
+                    collapsed && '-rotate-90'
+                  )}
+                />
+              </button>
+            )}
           </>
         }
       />
       {/* Kept mounted and hidden rather than unmounted: the cards inside hold
           their own open/closed state, and unmounting would silently reset every
           one of them each time the section was folded. */}
-      <div id={bodyId} hidden={collapsed} className={cn('min-w-0', bodyClassName)}>
+      <div id={bodyId} hidden={folded} className={cn('min-w-0', bodyClassName)}>
         {children}
       </div>
     </section>

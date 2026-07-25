@@ -47,6 +47,12 @@ type MechIdentityPanelProps = {
    * card that elaborates it follows — same subject, in reading order.
    */
   after?: ReactNode
+  /**
+   * The field sharing the chassis's row (the mech's Quirk). Both are one-line
+   * values, so pairing them uses the row the half-width chassis field left
+   * empty rather than spending a whole row on each.
+   */
+  besideChassis?: ReactNode
   className?: string
 }
 
@@ -56,6 +62,7 @@ export function MechIdentityPanel({
   editing = false,
   patch,
   after,
+  besideChassis,
   className,
 }: MechIdentityPanelProps) {
   const [chassisPickerOpen, setChassisPickerOpen] = useState(false)
@@ -103,6 +110,7 @@ export function MechIdentityPanel({
             editing={isEditing}
             onEditClick={() => setChassisPickerOpen(true)}
           />
+          {besideChassis}
         </div>
         {after}
       </div>

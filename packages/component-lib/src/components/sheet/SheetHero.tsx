@@ -111,10 +111,27 @@ export function SheetHero({
         )}
       >
         <h1 className="sr-only">{name}</h1>
-        <SheetSectionSlab title={fieldsTitle} count={meta} controls={controls}>
+        {/* `collapsible={false}`: these two are the sheet's subject and its
+            live state — always wanted, and folding them would leave a page of
+            labels above the content. The collections below them fold. */}
+        <SheetSectionSlab
+          title={fieldsTitle}
+          count={meta}
+          controls={controls}
+          collapsible={false}
+          // A flex COLUMN with a flex-1 body, not `h-full` on both: `h-full`
+          // gave the body 100% of the section's height ON TOP of the leader's,
+          // so the card overflowed its own box and covered the section below it.
+          className="flex h-full flex-col"
+          bodyClassName="flex min-h-0 flex-1 flex-col"
+        >
           {fields}
         </SheetSectionSlab>
-        {vitals && <SheetSectionSlab title={vitalsTitle}>{vitals}</SheetSectionSlab>}
+        {vitals && (
+          <SheetSectionSlab title={vitalsTitle} collapsible={false}>
+            {vitals}
+          </SheetSectionSlab>
+        )}
       </section>
     )
   }

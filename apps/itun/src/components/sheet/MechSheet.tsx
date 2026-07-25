@@ -438,12 +438,21 @@ export function MechSheet({
           ) : undefined
         }
         fields={
-          <div className="flex min-w-0 flex-col gap-4">
+          <div className="flex h-full min-w-0 flex-col gap-4">
             <MechIdentityPanel
               mech={mech}
               chassisName={chassisName}
               editing={identityEditing}
               patch={readOnly ? undefined : patchMech}
+              besideChassis={
+                <Field
+                  label="Quirk"
+                  value={mech.quirk ?? ''}
+                  editing={identityEditing}
+                  onSave={saveQuirk}
+                  placeholder="No quirk recorded."
+                />
+              }
               after={
                 // The chassis's ability, carrying the CHASSIS STATS in its own
                 // header: the numbers describe the machine the ability belongs
@@ -501,30 +510,21 @@ export function MechSheet({
               }
             />
 
-            {/* Quirk & Appearance live IN identity: they are two more fields
-                describing this machine, and standing them up as their own card
-                beside the identity card split one subject across two frames.
-                They are ordinary editable `Field`s like Pattern Name and
-                Chassis — same stamp, same box, same Edit toggle — rather than
-                the bespoke dt/dd pair they used to be. */}
-            <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
-              <Field
-                label="Quirk"
-                value={mech.quirk ?? ''}
-                editing={identityEditing}
-                multiline
-                onSave={saveQuirk}
-                placeholder="No quirk recorded."
-              />
-              <Field
-                label="Appearance"
-                value={mech.appearance ?? mech.description ?? ''}
-                editing={identityEditing}
-                multiline
-                onSave={saveAppearance}
-                placeholder="No appearance recorded."
-              />
-            </div>
+            {/* Appearance closes the card: multi-line and full width, taking
+                whatever height the slab has left (the identity slab stretches
+                to match the vitals beside it, and that space should go to a
+                field the reader can use rather than sitting as dead paper).
+                Quirk is one line, so it rides the chassis row above instead. */}
+            <Field
+              label="Appearance"
+              value={mech.appearance ?? mech.description ?? ''}
+              editing={identityEditing}
+              multiline
+              fill
+              onSave={saveAppearance}
+              placeholder="No appearance recorded."
+              className="flex-1"
+            />
           </div>
         }
         vitals={
