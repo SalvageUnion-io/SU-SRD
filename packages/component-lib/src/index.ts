@@ -214,7 +214,7 @@ export {
   SheetPickerModal,
   CardRemoveButton,
 } from './components/shared/SheetSection'
-export { cardRemoveControls, REMOVABLE_CARD_STYLE } from './components/shared/editLanguage'
+export { cardRemoveControls } from './components/shared/editLanguage'
 export { RuleBrief } from './components/shared/RuleBrief'
 export type { StepRule } from './components/shared/RuleBrief'
 export { OffRulesEscape } from './components/shared/OffRulesEscape'

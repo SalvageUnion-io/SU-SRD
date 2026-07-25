@@ -8,7 +8,6 @@
  */
 
 import { Glyph } from '../chrome/glyphs'
-import { cn } from '../../utils/cn'
 import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
 
 /**
@@ -18,16 +17,6 @@ import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityC
  */
 export const EDIT_CUE_CLASS =
   'outline-dashed outline-2 outline-offset-2 outline-[color:var(--tone-deep,var(--color-rust))]'
-
-/**
- * Card `cardStyle` override that stamps the editing cue onto a removable
- * entity card (redesign G4: the cue moves from the per-card control BUTTON onto
- * the CARD). Includes `shadow-lg` because Card's `cardStyle.className`
- * REPLACES the default shadow.
- */
-export const REMOVABLE_CARD_STYLE: { className: string } = {
-  className: cn('shadow-lg', EDIT_CUE_CLASS),
-}
 
 type CardControlOptions = {
   /** Entity name for the accessible labels ("Remove {name}" / "Swap {name}"). */

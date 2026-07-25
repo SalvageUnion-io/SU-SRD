@@ -81,7 +81,8 @@ import { resolveAbility } from './pilotAbilities'
 // `Stat` `size="full"` is stamp / 26px numeral / bottom stamp with the +/-
 // stepper column, which is the same anatomy the HP and AP gauges above it
 // already use. `ariaLabel` keeps the unbounded-counter accessible contract
-// (role="group" named "TP {value}", Increase/Decrease TP steppers).
+// (role="group" named "Training Points {value}", with Increase/Decrease
+// Training Points steppers — the visible label is split across the two lines).
 // ---------------------------------------------------------------------------
 
 function TpBlock({
@@ -95,11 +96,14 @@ function TpBlock({
 }) {
   return (
     <Stat
-      label="TP"
+      label="Training"
       value={value}
-      bottomLabel="Training Points"
+      bottomLabel="Points"
       size="full"
-      ariaLabel={`TP ${value}`}
+      ariaLabel={`Training Points ${value}`}
+      // Without this the steppers would read "Increase Training" — the label is
+      // now only the first half of the two-line readout.
+      stepperLabel="Training Points"
       mode={editable ? 'edit' : 'read'}
       onChange={editable ? onChange : undefined}
     />

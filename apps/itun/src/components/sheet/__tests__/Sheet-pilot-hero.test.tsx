@@ -162,7 +162,7 @@ describe('Pilot hero — HP/AP trackers', () => {
 describe('Pilot hero — TP tracker', () => {
   test('TP renders without a max (unbounded counter)', () => {
     renderHero(makePilot({ trainingPoints: 2 }))
-    expect(screen.getByRole('group', { name: 'TP 2' })).toBeTruthy()
+    expect(screen.getByRole('group', { name: 'Training Points 2' })).toBeTruthy()
   })
 
   test('increasing TP persists trainingPoints', async () => {
@@ -171,7 +171,7 @@ describe('Pilot hero — TP tracker', () => {
     renderHero(pilot, updateSpy)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Increase TP' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Increase Training Points' }))
     })
 
     expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {

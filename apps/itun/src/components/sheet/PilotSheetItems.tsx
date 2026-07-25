@@ -25,7 +25,7 @@ import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
 import type { EquipmentLoadout } from '../shared/useEquipmentLoadout'
 import { PilotEquipmentLoadout } from './PilotEquipmentLoadout'
-import { CardRemoveButton, REMOVABLE_CARD_STYLE, cardRemoveControls } from 'component-lib'
+import { CardRemoveButton, cardRemoveControls } from 'component-lib'
 import {
   equipmentMaxUses,
   equipmentSlotCost,
@@ -121,7 +121,6 @@ export function PilotAbilityItem({
       hide={HIDE_CHOICES}
       footMeta={footMeta}
       controls={controls.length > 0 ? controls : undefined}
-      cardStyle={onRemove ? REMOVABLE_CARD_STYLE : undefined}
     />
   )
 }
@@ -274,7 +273,6 @@ export function PilotEquipmentItem({
         }
         footMeta={footMeta}
         controls={controls.length > 0 ? controls : undefined}
-        cardStyle={!readOnly && onRemove ? REMOVABLE_CARD_STYLE : undefined}
       />
       {/* Drone/companion equipment (Survey Drone, Mecha Companion, Auto-Turret)
           carries its own systemSlots/moduleSlots, so it hosts a real installed

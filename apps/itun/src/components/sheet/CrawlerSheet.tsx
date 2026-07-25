@@ -80,7 +80,6 @@ import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import { EntityGridRow, MasonryColumns } from 'component-lib'
 import {
   CardRemoveButton,
-  REMOVABLE_CARD_STYLE,
   SectionAddButton,
   SectionEditButton,
   cardRemoveControls,
@@ -343,7 +342,6 @@ export function CrawlerSheet({
                                     onRemove: () => removeWeapon(slug),
                                   })
                             }
-                            cardStyle={readOnly ? undefined : REMOVABLE_CARD_STYLE}
                           />
                         ) : (
                           <div className="flex items-center justify-between gap-2 rounded border border-ink px-2 py-1 text-sm text-wk-muted">
