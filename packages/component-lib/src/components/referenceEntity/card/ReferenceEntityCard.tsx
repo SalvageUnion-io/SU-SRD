@@ -87,6 +87,7 @@ import {
   resolvePatternGroups,
 } from './resolveNestedEntities'
 import type { DroneLoadout } from './resolveNestedEntities'
+import { resolveGuideLead } from './resolveGuideLead'
 import { resolveGuideSteps } from './resolveGuideSteps'
 
 /** Beyond this nesting depth a card renders header-only (no body expansion) —
@@ -1179,7 +1180,19 @@ function ReferenceEntityCardInner({
           return lead ? [{ type: 'paragraph' as const, value: lead }] : []
         })
       : []
-  const content = 'content' in entity ? entity.content : undefined
+  // CATALOG guide lead — a guide keeps most of its prose in `steps`, which a
+  // catalog tile never expands (`canExpand` is false here). That left tiles in
+  // two broken states at once: guides with a long preamble dumped all of it,
+  // and the three guides with NO top-level content rendered a title and a
+  // source line only. Narrow the tile to the guide's own opening paragraph,
+  // falling back to its first step's — selected verbatim from the data, never
+  // summarised (see `resolveGuideLead`).
+  const catalogGuideLead = isCatalog ? resolveGuideLead(entity) : undefined
+  const content = catalogGuideLead
+    ? [{ type: 'paragraph' as const, value: catalogGuideLead }]
+    : 'content' in entity
+      ? entity.content
+      : undefined
   // The crawler-bay damaged-effect string also appears as the last content
   // paragraph; it renders in the "WHEN DAMAGED" callout, so it's filtered out of
   // the body prose below to avoid duplication.
