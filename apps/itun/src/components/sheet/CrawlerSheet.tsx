@@ -79,7 +79,7 @@ import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import { EntityGridRow, MasonryColumns } from 'component-lib'
 import { CardRemoveButton, SectionManageButton } from 'component-lib'
-import { SheetSectionSlab } from 'component-lib'
+import { SheetSectionCard, SheetSectionSlab } from 'component-lib'
 import { StorageManifest } from './StorageManifest'
 
 import { CrawlerBayCard } from './CrawlerSheetItems'
@@ -234,13 +234,65 @@ export function CrawlerSheet({
           cat="Crawler"
           name={crawler.name}
           fields={
-            <CrawlerIdentityPanel
-              crawler={crawler}
-              store={store}
-              storeState={storeState}
-              patch={readOnly ? undefined : patchCrawler}
-              readOnly={readOnly}
-            />
+            <div className="flex min-w-0 flex-col gap-4">
+              <CrawlerIdentityPanel
+                crawler={crawler}
+                store={store}
+                storeState={storeState}
+                patch={readOnly ? undefined : patchCrawler}
+                readOnly={readOnly}
+              />
+
+              {/* The Armament Bay's mounted weapons live in IDENTITY: they are
+                  what this crawler is armed with, a permanent part of the
+                  machine rather than a collection you work through mid-session
+                  like the bays or the hold. */}
+              {/* Armament Bay weapons — crawler weapon systems mount here (Core
+                  Book p.213). Collection section: '+ Add' is always available
+                  and opens the existing weapons picker; each card carries a
+                  remove (✕). */}
+              {(crawler.systems.length > 0 || !readOnly) && (
+                <SheetSectionSlab
+                  title="Armament Bay Weapons"
+                  count={<span className="tabular-nums">{crawler.systems.length}</span>}
+                  controls={
+                    readOnly ? undefined : (
+                      <SectionManageButton
+                        label="weapons"
+                        onClick={() => setSystemsModalOpen(true)}
+                      />
+                    )
+                  }
+                >
+                  {crawler.systems.length === 0 ? (
+                    <p className="font-body text-caption text-wk-muted">No weapons mounted.</p>
+                  ) : (
+                    <MasonryColumns maxColumns={3}>
+                      {crawler.systems.map((slug) => {
+                        const system = resolveCrawlerSystem(slug)
+                        return (
+                          <EntityGridRow key={slug}>
+                            {system ? (
+                              <ReferenceEntityCard data={system} size="medium" collapsible />
+                            ) : (
+                              <div className="flex items-center justify-between gap-2 rounded border border-ink px-2 py-1 text-sm text-wk-muted">
+                                <span className="min-w-0 truncate">{slug}</span>
+                                {!readOnly && (
+                                  <CardRemoveButton
+                                    name={slug}
+                                    onRemove={() => removeWeapon(slug)}
+                                  />
+                                )}
+                              </div>
+                            )}
+                          </EntityGridRow>
+                        )
+                      })}
+                    </MasonryColumns>
+                  )}
+                </SheetSectionSlab>
+              )}
+            </div>
           }
           vitals={economy}
           vitalsTitle="Economy"
@@ -287,46 +339,6 @@ export function CrawlerSheet({
               </MasonryColumns>
             </SheetSectionSlab>
           )}
-
-          {/* Armament Bay weapons — crawler weapon systems mount here (Core
-              Book p.213). Collection section: '+ Add' is always available
-              and opens the existing weapons picker; each card carries a
-              remove (✕). */}
-          {(crawler.systems.length > 0 || !readOnly) && (
-            <SheetSectionSlab
-              title="Armament Bay Weapons"
-              count={<span className="tabular-nums">{crawler.systems.length}</span>}
-              controls={
-                readOnly ? undefined : (
-                  <SectionManageButton label="weapons" onClick={() => setSystemsModalOpen(true)} />
-                )
-              }
-            >
-              {crawler.systems.length === 0 ? (
-                <p className="font-body text-caption text-wk-muted">No weapons mounted.</p>
-              ) : (
-                <MasonryColumns maxColumns={3}>
-                  {crawler.systems.map((slug) => {
-                    const system = resolveCrawlerSystem(slug)
-                    return (
-                      <EntityGridRow key={slug}>
-                        {system ? (
-                          <ReferenceEntityCard data={system} size="medium" collapsible />
-                        ) : (
-                          <div className="flex items-center justify-between gap-2 rounded border border-ink px-2 py-1 text-sm text-wk-muted">
-                            <span className="min-w-0 truncate">{slug}</span>
-                            {!readOnly && (
-                              <CardRemoveButton name={slug} onRemove={() => removeWeapon(slug)} />
-                            )}
-                          </div>
-                        )}
-                      </EntityGridRow>
-                    )
-                  })}
-                </MasonryColumns>
-              )}
-            </SheetSectionSlab>
-          )}
         </div>
 
         {/* Linked Units — poster renders this as a bare section header +
@@ -341,10 +353,11 @@ export function CrawlerSheet({
           {linkedUnits}
         </SheetSectionSlab>
 
-        {/* ----- Storage Bay — the FULL-WIDTH bottom band (printed crawler
-            sheet p.2: Storage Bay spans the whole width beneath the bays), not
-            a full-height right column. ----- */}
-        <SheetSectionSlab
+        {/* ----- Storage Bay — the crawler's own BAY, rendered as a
+            full-width box rather than a plain section: the hold IS a bay (Core
+            Book p.213), so it wears the same frame its siblings above do
+            instead of reading as loose furniture at the foot of the sheet. ----- */}
+        <SheetSectionCard
           title="Storage Bay"
           count={
             <span className="tabular-nums">
@@ -386,7 +399,7 @@ export function CrawlerSheet({
             crawlerName={crawler.name}
             readOnly={readOnly}
           />
-        </SheetSectionSlab>
+        </SheetSectionCard>
       </div>
 
       {/* The weapons picker — the existing master-detail modal, mounted

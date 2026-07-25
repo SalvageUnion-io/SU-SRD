@@ -228,7 +228,7 @@ describe('Smoke — crawler-only sheet', () => {
     expect(screen.getAllByText(/Rust Colossus/).length).toBeGreaterThan(0)
   })
 
-  test('crawler tech level appears in the sheet (economy rail Tech LVL readout)', () => {
+  test('crawler tech level appears in the sheet (identity Tech Level field)', () => {
     render(
       <Sheet
         kind="crawler"
@@ -237,7 +237,9 @@ describe('Smoke — crawler-only sheet', () => {
         softLinkStore={makeSoftLinkStore([])}
       />
     )
-    expect(screen.getByText('Tech LVL')).toBeTruthy()
+    // Tech Level reads in IDENTITY beside the crawler type now, not in the
+    // economy rail — the rail keeps the things you SPEND.
+    expect(screen.getByText('Tech Level')).toBeTruthy()
   })
 })
 

@@ -102,7 +102,10 @@ export function NpcInset({
     <div role="group" aria-label={`${bayName} crew lead`}>
       <Inset
         tone="crawler"
-        tag="Crew"
+        // The ROLE is the tag. There is no "Crew" chip any more: every inset on
+        // a crawler is crew, so the word labelled nothing while occupying the
+        // one slot that could say WHICH crew this is.
+        tag={title}
         label={
           onNameChange ? (
             <InlineEditField
@@ -110,32 +113,32 @@ export function NpcInset({
               onSave={(next) => onNameChange(String(next))}
               type="text"
               ariaLabel={`Edit ${bayName} crew name`}
-              className="text-paper"
+              // `[&>span]:` reaches the READOUT: InlineEditField's own display
+              // span carries `text-ink`, which is invisible on this dark head
+              // bar, and a colour on the wrapper alone never reached it.
+              className="text-paper [&>span]:text-paper [&>span]:opacity-100"
             />
           ) : (
             name || '—'
           )
         }
+        // HP rides the head bar's right edge — it is this crew member's one
+        // live number, and in the body it sat below the fold of identity lines
+        // that never change.
         headRight={
-          title ? (
-            <span className="font-cond text-micro uppercase leading-none tracking-caps text-paper/60">
-              {title}
-            </span>
+          maxHp > 0 ? (
+            <Stat
+              label="HP"
+              value={hp}
+              max={maxHp}
+              size="mini"
+              mode={onHpChange ? 'edit' : 'read'}
+              onChange={onHpChange}
+            />
           ) : undefined
         }
         bodyClassName="flex flex-wrap items-start gap-3"
       >
-        {maxHp > 0 && (
-          <Stat
-            label="HP"
-            value={hp}
-            max={maxHp}
-            size="mini"
-            mode={onHpChange ? 'edit' : 'read'}
-            onChange={onHpChange}
-          />
-        )}
-
         <dl className="m-0 min-w-0 flex-1 space-y-1.5">
           <NpcRow label="Keepsake">
             {onKeepsakeChange ? (

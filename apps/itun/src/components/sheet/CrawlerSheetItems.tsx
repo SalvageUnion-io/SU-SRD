@@ -12,6 +12,7 @@ import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../.
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
+import type { ReactNode } from 'react'
 import { NpcInset } from 'component-lib'
 import { BAY_REPAIR_COST } from './crawlerSheetItemRules'
 
@@ -32,8 +33,33 @@ const BAY_FUNCTIONS: Record<string, string> = {
   Cantina: 'Rumour',
 }
 
-/** Stable hide literal — the bay's long rules text lives in the detail modal. */
-const HIDE_BAY_CONTENT = { content: true } as const
+/**
+ * The card's OWN "When Damaged" block is always suppressed: the clause is held
+ * back while the bay is INTACT — it describes a state you are not in, and
+ * printed inline it read as though it applied now — and when the bay IS damaged
+ * it is re-rendered as a centred callout over the dimmed card instead.
+ */
+const HIDE_DAMAGED = { damagedEffect: true } as const
+
+/**
+ * Several bays ALSO restate their damaged clause as a trailing content
+ * paragraph, so hiding `damagedEffect` alone still left it on the card. This
+ * catches that duplicate.
+ */
+const WHEN_DAMAGED = /\b(?:is|becomes|are|become)\s+damaged\b/i
+
+/** Split a bay's rules content into its always-true half and its damaged half. */
+function splitBayContent(content: unknown): { normal: unknown[]; damaged: string[] } {
+  if (!Array.isArray(content)) return { normal: [], damaged: [] }
+  const normal: unknown[] = []
+  const damaged: string[] = []
+  for (const block of content) {
+    const value = (block as { value?: unknown })?.value
+    if (typeof value === 'string' && WHEN_DAMAGED.test(value)) damaged.push(value)
+    else normal.push(block)
+  }
+  return { normal, damaged }
+}
 
 type CrawlerBayCardProps = {
   crawlerId: string
@@ -208,23 +234,45 @@ export function CrawlerBayCard({
   ]
 
   // The card renders WITHOUT the SRD npc block — the crew lead lives in the
-  // expand inset instead (design §4.4); the rules text lives in the modal.
-  const cardData: SURefEntity = { ...bay, npc: undefined }
+  // expand inset instead (design §4.4) — and without the "when damaged" clause,
+  // which is held back until it applies (see WHEN_DAMAGED).
+  const { normal } = splitBayContent(bay.content)
+  const damagedText =
+    typeof (bay as { damagedEffect?: unknown }).damagedEffect === 'string'
+      ? (bay as { damagedEffect: string }).damagedEffect
+      : ''
+  const cardData = { ...bay, npc: undefined, content: normal } as unknown as SURefEntity
 
   return (
     <>
       <ReferenceEntityCard
         data={cardData}
         size="medium"
-        collapsible
-        hide={HIDE_BAY_CONTENT}
+        hide={HIDE_DAMAGED}
         status={condition}
         onStatusClick={readOnly ? undefined : toggleCondition}
         selections={selections}
         onSelectionChange={readOnly ? undefined : setSelections}
         controls={controls}
         footMeta={footMeta}
-        expand={crew}
+        expand={
+          damaged && damagedText ? (
+            <div className="flex flex-col gap-3">
+              {/* The damaged clause, centred: the card itself is greyed by its
+                  `damaged` status, and this is the one thing the reader needs
+                  off it while it is in that state. */}
+              <div className="rounded-card border-chrome border-status-bad bg-paper px-4 py-3 text-center">
+                <span className="mb-1 block font-cond text-label font-bold uppercase leading-none tracking-caps text-status-bad">
+                  When Damaged
+                </span>
+                <p className="m-0 font-body text-sm leading-snug text-ink">{damagedText}</p>
+              </div>
+              {crew}
+            </div>
+          ) : (
+            crew
+          )
+        }
       />
       {detail.modal}
     </>
@@ -244,10 +292,14 @@ type CrawlerTypeCardProps = {
   store: typeof useEntityStore
   readOnly: boolean
   /**
+   * The type's special-ability card(s). Rendered INSIDE this card, beside the
+   * crew inset (see the `expand` slot), because both describe the same type.
+   */
+  ability?: ReactNode
+  /**
    * Compact identity-band placement (redesign phase 3): renders the card
-   * compact and strips the type's `actions` — the special ability renders as
-   * its own sibling entity card in the identity band, so the type card must
-   * not double-render it.
+   * compact and strips the type's `actions` — the special ability is passed in
+   * as `ability` instead, so the type card must not double-render it.
    */
   compact?: boolean
 }
@@ -268,6 +320,7 @@ export function CrawlerTypeCard({
   store,
   readOnly,
   compact = false,
+  ability,
 }: CrawlerTypeCardProps) {
   const storeState = store()
   const { selections, setSelections } = useEntityChoices(
@@ -353,7 +406,17 @@ export function CrawlerTypeCard({
       size={compact ? 'medium' : 'large'}
       selections={selections}
       onSelectionChange={readOnly ? undefined : setSelections}
-      expand={crew}
+      // The type's ABILITY and its CREW sit side by side inside the type card:
+      // both describe this crawler type, and standing the ability up as a
+      // sibling card beside the type split one subject across two frames.
+      expand={
+        ability || crew ? (
+          <div className="grid grid-cols-1 items-start gap-3 @2xl:grid-cols-2">
+            {ability}
+            {crew}
+          </div>
+        ) : undefined
+      }
     />
   )
 }

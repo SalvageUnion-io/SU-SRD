@@ -25,6 +25,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefMetaAction } from 'salvageunion-reference'
 import { ReferenceEntityCard } from 'component-lib'
 
+import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { cn } from '../../lib/utils'
@@ -87,6 +88,9 @@ export function CrawlerIdentityPanel({
   const canEdit = patch !== undefined && !readOnly
 
   const type = crawler.type ? resolveCrawlerType(crawler.type) : null
+  // Derived, never hand-set — the crawler's stored rung, read here beside the
+  // type rather than in the economy rail.
+  const techLevel = parseCrawlerTechLevel(crawler.techLevel)
   const abilities = resolveTypeAbilities(crawler.type)
 
   /** Persist the crawler name (required — never write empty). */
@@ -103,9 +107,18 @@ export function CrawlerIdentityPanel({
   return (
     <section aria-label="Crawler identity" className={cn('min-w-0', className)}>
       <div className="flex min-w-0 flex-col gap-3">
-        {/* Poster field row: Name (prominent) + Type (picker-backed). */}
-        <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
-          <Field label="Name" value={crawler.name} onSave={canEdit ? saveName : undefined} />
+        {/* Name leads at full prominence (the crawler's own name, like a
+            pilot's callsign). Tech Level sits to the LEFT of the type: it is
+            the crawler's rung, read alongside what kind of crawler it is,
+            rather than buried in the economy rail. */}
+        <Field
+          label="Name"
+          value={crawler.name}
+          onSave={canEdit ? saveName : undefined}
+          prominent
+        />
+        <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-[auto_minmax(0,1fr)]">
+          <Field label="Tech Level" value={techLevel !== undefined ? String(techLevel) : '—'} />
           <Field
             label="Type"
             value={type?.name ?? ''}
@@ -113,30 +126,24 @@ export function CrawlerIdentityPanel({
           />
         </div>
 
-        {/* The type's special ability + the type itself as compact entity
-            cards (max 2 columns; 1 on mobile). The type card keeps the
-            special-NPC inset + Keepsake/Motto persistence. */}
-        {(abilities.length > 0 || crawler.type) && (
-          <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2">
-            {abilities.map((ability) => (
+        {/* The type takes the FULL row, with its ability and crew side by side
+            inside it — one type, one card, rather than an ability card standing
+            beside the thing it belongs to. */}
+        {crawler.type && (
+          <CrawlerTypeCard
+            crawlerId={crawler.id}
+            typeRef={crawler.type}
+            typeNpc={crawler.typeNpc}
+            seedSelections={crawler.bayChoices?.[crawler.type]}
+            store={store}
+            readOnly={readOnly}
+            compact
+            ability={abilities.map((ability) => (
               <div key={ability.id} className="min-w-0">
                 <ReferenceEntityCard data={ability} size="medium" hide={HIDE_CHOICES} />
               </div>
             ))}
-            {crawler.type && (
-              <div className="min-w-0">
-                <CrawlerTypeCard
-                  crawlerId={crawler.id}
-                  typeRef={crawler.type}
-                  typeNpc={crawler.typeNpc}
-                  seedSelections={crawler.bayChoices?.[crawler.type]}
-                  store={store}
-                  readOnly={readOnly}
-                  compact
-                />
-              </div>
-            )}
-          </div>
+          />
         )}
 
         {/* Description panel — same FIELD section (edits with Identity). */}

@@ -90,7 +90,9 @@ export function SheetCrawler({
   // Crew are read-only readouts.
   const trading = bayGate(crawler, 'Trading Bay')
   const econItems: EconLozItem[] = [
-    ...(tl !== undefined ? [{ label: 'Tech LVL', value: tl, caption: 'Crawler' }] : []),
+    // Tech LVL is NOT here any more: it is the crawler's own rung, and it
+    // reads in the identity beside the crawler type. The economy rail keeps the
+    // things you SPEND (upkeep, upgrade pool, trade, crew).
     ...(tl !== undefined
       ? [
           {
