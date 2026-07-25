@@ -25,12 +25,28 @@
  *     heading. The data is corroborated and the index is the one that is off.
  *     No action; this class exists so those entries stop being reported as bugs.
  *   NAME NOT IN INDEX — the dataset name is not printed. Either a deliberate
- *     deviation (see lib/printedNameDeviations.test.ts) or a typo. The tool
- *     suggests candidates by reporting which index entries point at the page
- *     the entity cites.
+ *     deviation or a typo. The tool suggests candidates by reporting which
+ *     index entries point at the page the entity cites.
+ *
+ * Two kinds of non-finding are counted rather than listed, because listing them
+ * is what turns a diagnostic into something people stop reading:
+ *
+ *   - The book's index is not a complete list of its own contents. A name that
+ *     is missing from it but printed on the page it cites is simply unindexed,
+ *     and fine.
+ *   - A name already ruled on and recorded in
+ *     `packages/salvageunion-reference/lib/printedNameDeviations.ts` has been
+ *     looked at, with a reason. That list is shared with the test that enforces
+ *     it, so recording a deviation both protects it and silences it here.
+ *
+ * Together those took this scan's name findings from 29 to 1 without loosening
+ * a single check.
  *
  * Everything here is advisory. The index parse and the heading test are both
  * heuristics over a PDF text layer; read the findings, do not apply them blind.
+ * The known false positive is an all-caps stylised entry ("AARDVARKS TONGUE",
+ * p. 202) whose heading the text layer interleaves with body copy, so it never
+ * occupies a line of its own.
  *
  * Requires the gitignored PDF extract: `bun tools/extract-rules.ts` first. With
  * no extract present this exits 0 with a notice — it is a local diagnostic, not
@@ -41,6 +57,7 @@
 import { readdirSync, readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { SalvageUnionReference } from '../packages/salvageunion-reference/lib/index'
+import { DEVIATIONS } from '../packages/salvageunion-reference/lib/printedNameDeviations'
 
 const EXTRACT_DIR = 'rules/extracted'
 /** Entities carrying this `source` are printed in the Core Book. */
@@ -96,9 +113,15 @@ function pagesOf(text: string): Map<number, string> {
  * therefore held and prepended to the line that has one.
  */
 function parseIndex(pages: Map<number, string>): Map<string, number[]> {
-  // An entry may cite several pages ("Mech Melee Armament, 110,127"); capture
-  // the whole list, or the name keeps the first page number glued to it.
-  const ENTRY = /^(.+?),\s*(\d{1,3}(?:\s*,\s*\d{1,3})*)$/
+  // An entry may cite several pages ("Mech Melee Armament, 110,127") and any of
+  // them may be a range ("Persona, 49-50"). Both forms must be recognised, or
+  // the name keeps a page number glued to it — and worse, an entry ending in a
+  // range fails to match at all, so it is treated as a wrapped entry's first
+  // half and glued onto the NEXT entry ("persona, 49 50 personal recreation
+  // device"). That one omission accounted for most of the false "not in index"
+  // reports.
+  const PAGES = String.raw`\d{1,3}(?:\s*[-–—]\s*\d{1,3})?`
+  const ENTRY = new RegExp(String.raw`^(.+?),\s*(${PAGES}(?:\s*,\s*${PAGES})*)$`)
   // Alphabet headings ("D", "0-9") sit on their own line exactly where a wrapped
   // entry's first half would, and would otherwise be glued onto the next entry.
   const HEADING = /^(?:[A-Z]|[0-9]\s*-\s*[0-9])$/
@@ -126,7 +149,11 @@ function parseIndex(pages: Map<number, string>): Map<string, number[]> {
       const key = norm(m[1])
       if (!key) continue
       const list = index.get(key) ?? []
-      for (const p of m[2].split(',')) list.push(Number(p.trim()))
+      for (const part of m[2].split(',')) {
+        const [from, to] = part.split(/[-–—]/).map((n) => Number(n.trim()))
+        // A range is expanded so that citing any page within it counts as a hit.
+        for (let p = from; p <= (Number.isFinite(to) ? to : from); p++) list.push(p)
+      }
       index.set(key, list)
     }
   }
@@ -209,6 +236,11 @@ async function main() {
 
   const findings: Finding[] = []
   let checked = 0
+  /** Names absent from the index but printed on their cited page — fine, not reported. */
+  let unindexed = 0
+  /** Names already recorded as deliberate deviations — suppressed, not reported. */
+  let known = 0
+  const recorded = new Set(DEVIATIONS.map((d) => d.name))
   for (const schema of SCHEMAS) {
     for (const entity of SalvageUnionReference[schema].all()) {
       if (!('name' in entity) || typeof entity.name !== 'string') continue
@@ -218,6 +250,23 @@ async function main() {
       const cited = entity.page
       const indexed = index.get(norm(entity.name))
       if (!indexed) {
+        // The book's index is not a complete list of its own contents — plenty
+        // of real entries are simply missing from it. So "not indexed" on its
+        // own says nothing. Ask the page: if it prints the name as a heading,
+        // the entity is fine and merely unindexed, and reporting it is noise
+        // that buries the handful of names that really do differ.
+        if (printsName(pages.get(cited), entity.name)) {
+          unindexed++
+          continue
+        }
+        // Already ruled on and recorded, with a reason, in
+        // lib/printedNameDeviations.ts. Re-reporting these every run is what
+        // makes a diagnostic get ignored — the output should only ever be
+        // things nobody has looked at yet.
+        if (recorded.has(entity.name)) {
+          known++
+          continue
+        }
         const printed = (byPage.get(cited) ?? []).slice(0, 4)
         findings.push({
           kind: 'name',
@@ -249,7 +298,9 @@ async function main() {
   }
 
   console.log(`Parsed ${index.size} index entries from ${coreFile}`)
-  console.log(`Checked ${checked} Core Book entities\n`)
+  console.log(
+    `Checked ${checked} Core Book entities (${unindexed} unindexed but printed on their cited page, ${known} recorded deviations)\n`
+  )
   const LABELS = {
     page: 'PAGE MISMATCH (name not on the cited page — data is wrong)',
     'index-suspect':
