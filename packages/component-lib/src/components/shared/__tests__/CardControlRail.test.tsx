@@ -1,14 +1,16 @@
 /**
- * THE CENTRED CONTROL RAIL — centring must not cost overflow containment.
+ * THE CORNER CONTROL RAIL — position must not cost overflow containment.
  *
- * The rail is centred on the card's top edge (`left-1/2 -translate-x-1/2` +
- * `justify-center`) rather than pinned to the right corner. The containment is
- * NOT provided by the alignment — it is provided by `flex-wrap` +
- * `max-w-[calc(100%-1rem)]`, which cap the row at the card width and wrap a
- * crowded rail onto stacked lines. These tests pin both facts on the WORST CASE
- * a card can carry — a status seal, a selection seal, a count seal and three
- * action controls — so a future "just centre it" edit that drops the max-width
- * (and lets the rail spill) fails here.
+ * The rail rides the card's top-RIGHT corner (`right-2` + `justify-end`). It was
+ * briefly centred; centring laid the controls over the card's title, which is
+ * the one thing a reader scans a collapsed listing for.
+ *
+ * Containment is NOT provided by the alignment either way — it comes from
+ * `flex-wrap` + `max-w-[calc(100%-1rem)]`, which cap the row at the card width
+ * and wrap a crowded rail onto stacked lines. These tests pin both facts on the
+ * WORST CASE a card can carry — a status seal, a selection seal, a count seal
+ * and three action controls — so a re-position that drops the max-width (and
+ * lets the rail spill) fails here.
  */
 import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
@@ -41,32 +43,32 @@ function railEl(container: HTMLElement): HTMLElement {
 
 afterEach(cleanup)
 
-describe('CardControlRail — centred, still contained', () => {
-  test('the rail is centred (not right-pinned)', () => {
+describe('CardControlRail — corner-pinned, still contained', () => {
+  test('the rail is right-pinned (not centred)', () => {
     const { container } = render(
       <CardControlRail controls={crowdedControls} seals={crowdedSeals} />
     )
     const rail = railEl(container)
-    expect(rail.className).toContain('left-1/2')
-    expect(rail.className).toContain('-translate-x-1/2')
-    expect(rail.className).toContain('justify-center')
-    // The old right-corner anchor must be gone.
-    expect(rail.className).not.toContain('right-2')
-    expect(rail.className).not.toContain('justify-end')
+    expect(rail.className).toContain('right-2')
+    expect(rail.className).toContain('justify-end')
+    // The centred anchor must be gone.
+    expect(rail.className).not.toContain('left-1/2')
+    expect(rail.className).not.toContain('-translate-x-1/2')
+    expect(rail.className).not.toContain('justify-center')
   })
 
-  test('centring keeps the overflow bound — flex-wrap + max-w survive', () => {
+  test('the overflow bound is position-independent — flex-wrap + max-w survive', () => {
     const { container } = render(
       <CardControlRail controls={crowdedControls} seals={crowdedSeals} />
     )
     const rail = railEl(container)
     // These two together are what actually contain a crowded rail; the alignment
-    // does not. If a "centre it" change drops either, a full rail spills.
+    // does not. If a re-position change drops either, a full rail spills.
     expect(rail.className).toContain('flex-wrap')
     expect(rail.className).toContain('max-w-[calc(100%-1rem)]')
   })
 
-  test('centring does not reorder cells — status stays leftmost', () => {
+  test('positioning does not reorder cells — status stays leftmost', () => {
     render(<CardControlRail controls={crowdedControls} seals={crowdedSeals} />)
     const status = screen.getByRole('button', { name: /damaged/i })
     const selection = screen.getByTestId('selection-seal')
