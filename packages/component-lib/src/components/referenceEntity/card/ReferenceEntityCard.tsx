@@ -292,12 +292,24 @@ function formatActionType(type: string): string {
   return `${type} Action`
 }
 
-/** An action's classification + range / damage / traits as sub-header cells. The
+/**
+ * An action's classification + range / damage / traits as sub-header cells. The
  * action TYPE leads (a label-only cell), then range/damage/traits. The EP/AP
- * cost is the sub-header's `leading` node, rendered before all of these. */
-function actionCells(action: ActionFields): EntityCardSubHeaderCell[] {
+ * cost is the sub-header's `leading` node, rendered before all of these.
+ *
+ * `mechActionType` is the SPLIT: a handful of abilities cost a different action
+ * depending on whether you perform them in a Mech or on foot, and the book prints
+ * both — "Turn Action (Mech) // Short Action (Pilot)" (core book p.248-249). When
+ * it is present the single type cell becomes two qualified cells, Mech first, in
+ * the book's own order. Without it nothing changes: one unqualified cell, exactly
+ * as before, which is every other action in the dataset.
+ */
+function actionCells(action: ActionFields, mechActionType?: string): EntityCardSubHeaderCell[] {
   const cells: EntityCardSubHeaderCell[] = []
-  if (action.actionType) {
+  if (mechActionType && action.actionType) {
+    cells.push({ key: 'action-type-mech', label: `${formatActionType(mechActionType)} (Mech)` })
+    cells.push({ key: 'action-type', label: `${formatActionType(action.actionType)} (Pilot)` })
+  } else if (action.actionType) {
     cells.push({ key: 'action-type', label: formatActionType(action.actionType) })
   }
   if (action.range && action.range.length > 0) {
@@ -1026,7 +1038,16 @@ function ReferenceEntityCardInner({
   // A folded single action surfaces its type/range/damage/traits into the
   // sub-header; entity traits follow, deduped so a shared trait (e.g.
   // "Explosive") isn't listed twice.
-  const foldedActionCells = foldedActionFields ? actionCells(foldedActionFields) : []
+  // An ability carries the MECH half of a split action type; the action record
+  // carries the Pilot half. Only the ability knows both, so the split is resolved
+  // here rather than inside `actionCells`.
+  const abilityMechActionType =
+    isAbility(entity) && typeof entity.mechActionType === 'string'
+      ? entity.mechActionType
+      : undefined
+  const foldedActionCells = foldedActionFields
+    ? actionCells(foldedActionFields, abilityMechActionType)
+    : []
   const entityCells = traitCells(getTraits(entity) ?? [])
   const dedupedEntityCells = entityCells.filter(
     (cell) => !foldedActionCells.some((folded) => folded.key === cell.key)
