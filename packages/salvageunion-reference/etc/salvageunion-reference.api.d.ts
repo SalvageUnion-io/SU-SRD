@@ -759,6 +759,49 @@ export declare function resetAllForTesting(): void;
  */
 export declare function toPascalCase(id: string): string;
 //# sourceMappingURL=naming.d.ts.map
+// === lib/printedNameDeviations.d.ts ===
+/**
+ * Entities whose dataset `name` deliberately differs from the heading printed
+ * in the rulebook.
+ *
+ * These are NOT errors. Each one is a considered choice — usually because the
+ * book itself uses two names for the same thing (an entry heading plus a
+ * different form in its contents list, pattern loadouts, or summary tables) and
+ * the dataset picked the form that reads better in a list, or that a public URL
+ * already depends on.
+ *
+ * The problem this file solves is that the choice is invisible in the data. A
+ * future contributor re-deriving names from the PDFs sees `Video Projection
+ * Array` against a printed heading of `Projection Array`, reads it as a typo,
+ * "corrects" it — and silently breaks `/schema/modules/item/video-projection-
+ * array`, a URL that is canon.
+ *
+ * A documentary `alias` field on the records themselves was considered and
+ * rejected: a field written but read by nothing is exactly the `indexable`
+ * flag's failure mode (set on 39 records, consumed by no code, impossible to
+ * tell whether it is load-bearing), and knip cannot see a dead data field the
+ * way it sees a dead export. Encoding the decision as a test instead gives it
+ * teeth — renaming one of these to its printed form fails the build, with a
+ * message pointing at the reason — and it cannot rot into decoration.
+ *
+ * Search does not need this list: it already resolves both forms, because the
+ * dataset and printed names overlap enough to match on substring.
+ *
+ * Adding an entry is a claim you have checked the book. Include the page.
+ */
+export type Deviation = {
+    /** The `SalvageUnionReference` accessor the entity lives under. */
+    schema: 'Modules' | 'Systems' | 'Equipment' | 'CrawlerBays';
+    /** The name in the dataset — the canonical one, which slugs and URLs use. */
+    name: string;
+    /** The heading as printed in the book. */
+    printedAs: string;
+    /** Printed page carrying that heading. */
+    page: number;
+    why: string;
+};
+export declare const DEVIATIONS: Deviation[];
+//# sourceMappingURL=printedNameDeviations.d.ts.map
 // === lib/resolveChoiceView.d.ts ===
 /**
  * resolveChoiceView — pure resolver for granted-equipment choices.
