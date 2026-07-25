@@ -99,7 +99,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Improvised Melee Weapon",
     "techLevel": 1,
-    "page": 298,
+    "page": 81,
     "actions": ["Improvised Melee Weapon"],
     "additionalSources": [
       {
@@ -114,7 +114,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Portable Comms Unit",
     "techLevel": 1,
-    "page": 301,
+    "page": 81,
     "actions": ["Portable Comms Unit"],
     "additionalSources": [
       {
@@ -129,7 +129,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Salvaging Tools",
     "techLevel": 1,
-    "page": 298,
+    "page": 81,
     "actions": ["Salvaging Tools"],
     "additionalSources": [
       {
@@ -174,7 +174,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Pistol",
     "techLevel": 2,
-    "page": 314,
+    "page": 81,
     "actions": ["Pistol"],
     "additionalSources": [
       {
@@ -327,7 +327,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Green Laser Rifle",
     "techLevel": 3,
-    "page": 313,
+    "page": 82,
     "actions": ["Green Laser Rifle"],
     "additionalSources": [
       {
@@ -438,7 +438,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Reactive Armour",
     "techLevel": 3,
-    "page": 333,
+    "page": 83,
     "actions": ["Reactive Armour"],
     "additionalSources": [
       {
@@ -453,7 +453,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Rifle",
     "techLevel": 3,
-    "page": 127,
+    "page": 83,
     "actions": ["Rifle"],
     "additionalSources": [
       {
@@ -504,7 +504,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Electro Grappling Hook",
     "techLevel": 4,
-    "page": 301,
+    "page": 84,
     "actions": ["Electro Grappling Hook"]
   },
   {
@@ -573,7 +573,7 @@
     "source": "Salvage Union Workshop Manual",
     "name": "Monomolecular Sword",
     "techLevel": 5,
-    "page": 301,
+    "page": 85,
     "actions": ["Monomolecular Sword"]
   },
   {
