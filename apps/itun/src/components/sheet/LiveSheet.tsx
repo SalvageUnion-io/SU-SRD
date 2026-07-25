@@ -162,7 +162,12 @@ export function LiveSheet({
   className,
 }: LiveSheetProps) {
   const heroRef = useRef<HTMLElement | null>(null)
-  const condensed = useCondensed(heroRef, condense)
+  // A 1px sentinel directly beneath the bar, NOT the identity block: the bar
+  // should seam and fill the moment you scroll past IT, rather than waiting for
+  // a whole region to clear the viewport. `heroRef` is still handed to the body
+  // (each sheet wraps its first region with it) so that contract is unchanged.
+  const topRef = useRef<HTMLDivElement | null>(null)
+  const condensed = useCondensed(topRef, condense)
 
   const stripItems = strip.map((item) => ({
     ...item,
@@ -292,6 +297,10 @@ export function LiveSheet({
         )}
       </header>
 
+      {/* Condense sentinel — the moment this scrolls under the sticky bar, the
+          bar seams (border + shadow) and fills (name + vitals). */}
+      <div ref={topRef} aria-hidden="true" className="h-px w-full" />
+
       {/* Hero band — the rail is passed through so the hero slots it inside
           its own frame (design: hero rail strip sits under the band, inside
           the 3px entity border). Optional: Workshop-Manual sheets own their
@@ -324,7 +333,14 @@ export function LiveSheet({
               runs bottom-to-top, so its top edge is the word's LAST letter,
               which sits tucked right under the bar. */}
           <span
-            className="sticky top-[58px] block rotate-180 text-center font-cond text-[68px] font-extrabold uppercase leading-none tracking-caps-tight opacity-45 [writing-mode:vertical-rl]"
+            className={cn(
+              'sticky top-[58px] block rotate-180 text-center font-cond font-extrabold uppercase leading-none tracking-caps-tight opacity-45 [writing-mode:vertical-rl]',
+              // In vertical writing the font-size IS the column width, so this is
+              // the gutter's own dimension expressed as type, not a reading on the
+              // scale: it must track the `w-[68px]` channel above, and any ladder
+              // rung would overflow the gutter or leave the wordmark rattling in it.
+              'text-[68px]' // design-tokens-ignore: gutter width, not a type rung
+            )}
             style={{ color: 'var(--tone-deep)' }}
           >
             {variant}
