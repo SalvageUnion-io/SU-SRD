@@ -11,20 +11,17 @@ import { Glyph } from '../chrome/glyphs'
 import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
 
 /**
- * The ONE editing cue (redesign rule): dashed outline in the sheet's deep tone
- * on anything editable.
- */
-export const EDIT_CUE_CLASS =
-  'outline-dashed outline-2 outline-offset-2 outline-[color:var(--tone-deep,var(--color-rust))]'
-
-/**
- * The same cue, ON DEMAND — shown when the field is hovered or holds focus.
+ * The ONE editing cue (redesign rule): a dashed outline in the sheet's deep
+ * tone, shown ON DEMAND — when the field is hovered or holds focus.
  *
- * Live-sheet fields are always editable now (the section Edit toggle is gone),
- * and a permanent dashed outline on every field would draw the whole sheet in
+ * Live-sheet fields are always editable (the section Edit toggle is gone), and
+ * a permanent dashed outline on every field would draw the whole sheet in
  * dashes. Revealing it on approach says "this one is writable" at the moment
  * you ask, and `focus-within` keeps that promise for the keyboard, which has no
  * hover.
+ *
+ * The always-on variant this replaced is gone: its last consumer was the
+ * standalone remove button, which is a red stamp now.
  */
 export const EDIT_CUE_HOVER_CLASS =
   'outline-offset-2 outline-[color:var(--tone-deep,var(--color-rust))] hover:outline-dashed hover:outline-2 focus-within:outline-dashed focus-within:outline-2'
@@ -66,6 +63,10 @@ export function cardRemoveControls({
     ariaLabel: `Remove ${name}`,
     icon: (props) => <Glyph name="remove" {...props} />,
     onClick: onRemove,
+    // A red STAMP, not neutral chrome: this is the one control in the rail that
+    // destroys something, and in paper-and-ink it read like the fold chevron
+    // sitting next to it.
+    variant: 'danger',
   })
   return controls
 }

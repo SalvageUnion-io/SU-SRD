@@ -12,7 +12,7 @@
  *       per-card remove (✕) control.
  *   (C) STAT cells stay always-live StatBlock pips — no primitive needed here.
  *
- * `EDIT_CUE_CLASS` is the single editing cue: a consistent dashed outline on
+ * `EDIT_CUE_HOVER_CLASS` is the single editing cue: a dashed outline on
  * section-edit fields and per-card controls (StatBlocks carry no cue).
  */
 
@@ -26,7 +26,6 @@ import {
 import { Button } from '../chrome/Button'
 import { Glyph } from '../chrome/glyphs'
 import { ModalShell } from './ModalShell'
-import { EDIT_CUE_CLASS } from './editLanguage'
 
 import { cn } from '../../utils/cn'
 import { FOCUS_RING } from '../chrome/interaction'
@@ -161,9 +160,10 @@ export function CardRemoveButton({ name, onRemove, className }: CardRemoveButton
   return (
     <Button
       size="mini"
+      variant="danger"
       aria-label={`Remove ${name}`}
       onClick={onRemove}
-      className={cn(EDIT_CUE_CLASS, 'min-h-11 sm:min-h-6 print:hidden', className)}
+      className={cn('min-h-11 sm:min-h-6 print:hidden', className)}
     >
       &#10005; Remove
     </Button>

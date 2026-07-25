@@ -82,7 +82,7 @@ const FIELD_BOX =
  * 1. **static** — caller passes `children` (an `Input`/`Textarea`/`Select`); the
  *    child owns the border the stamp rides. Used by the pilot/mech wizard steps.
  * 2. **edit-in-place** — `value` + `onSave`: an `InlineEditField` engine inside
- *    a bordered value box; the dashed `EDIT_CUE_CLASS` signals editability.
+ *    a bordered value box; the dashed `EDIT_CUE_HOVER_CLASS` signals editability.
  * 3. **picker** — `value` + `onEditClick`: a button value box opening a modal.
  *
  * Shapes 2–3 are the absorbed `IdentityField`: the sheet identity rows lose the

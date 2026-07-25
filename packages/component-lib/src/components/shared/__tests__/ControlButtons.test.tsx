@@ -77,16 +77,15 @@ describe('ControlButtons', () => {
     expect(button.className).toContain('my-custom')
   })
 
-  test('compact renders smaller text', () => {
+  // Every control renders at the seam stamp's `mini` rung, at both densities:
+  // the rail sits beside that stamp, so a row that mixed heights read as three
+  // unrelated chips. `compact` no longer changes the size.
+  test('renders at the stamp rung regardless of density', () => {
     render(<ControlButtons controls={[makeControl()]} compact />)
-    const button = screen.getByRole('button')
-    expect(button.innerHTML).toContain('text-label')
-  })
-
-  test('default size renders text-xs', () => {
+    expect(screen.getByRole('button').innerHTML).toContain('text-badge')
+    cleanup()
     render(<ControlButtons controls={[makeControl()]} />)
-    const button = screen.getByRole('button')
-    expect(button.innerHTML).toContain('text-xs')
+    expect(screen.getByRole('button').innerHTML).toContain('text-badge')
   })
 
   test('empty controls array renders nothing', () => {
@@ -168,11 +167,34 @@ describe('ControlButtons', () => {
     const button = screen.getByLabelText('Remove Charge')
     // The accessible name comes from ariaLabel, not visible text.
     expect(button.textContent).toBe('')
-    // Square chrome (not the segmented label pill).
-    expect(button.className).toContain('h-8')
-    expect(button.className).toContain('w-8')
+    // Stamp chrome at the same rung as a worded control (no fixed 28/32px
+    // square), so an icon button and a worded one are interchangeable in a row.
+    expect(button.className).toContain('px-1')
+    expect(button.className).toContain('py-0.5')
+    expect(button.className).not.toContain('h-8')
     // The provided icon renders inside.
     expect(screen.getByTestId('remove-glyph')).toBeTruthy()
+  })
+
+  test('a danger icon control is a RED stamp, not neutral chrome', () => {
+    render(
+      <ControlButtons
+        controls={[
+          makeControl({
+            label: undefined,
+            ariaLabel: 'Remove Charge',
+            icon: RemoveGlyph,
+            variant: 'danger',
+          }),
+        ]}
+      />
+    )
+    // Remove is the one control in the rail that DESTROYS something; in
+    // paper-and-ink it read like the fold chevron beside it.
+    const button = screen.getByLabelText('Remove Charge')
+    expect(button.className).toContain('bg-status-bad')
+    expect(button.className).toContain('border-status-bad')
+    expect(button.className).not.toContain('bg-paper')
   })
 
   test('icon-only control keeps the 44px coarse-pointer tap floor', () => {

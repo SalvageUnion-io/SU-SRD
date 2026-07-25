@@ -3,6 +3,7 @@ import { useCallback } from 'react'
 import { Tooltip } from '@base-ui/react/tooltip'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
+import { RUNG_INLINE_PADDING, RUNG_TYPE } from '../../styles/sizing'
 import { CountStepper } from '../chrome/CountStepper'
 import { StatusBadge } from '../chrome/StatusBadge'
 import type {
@@ -32,16 +33,19 @@ const VARIANT: Record<
 
 type ControlButtonsProps = {
   controls: ReferenceEntityControl[]
+  /**
+   * Retained for the caller contract. It no longer changes control SIZE — every
+   * control renders at the seam stamp's `mini` rung so a rail never mixes
+   * heights — and nothing else in this component reads density.
+   */
   compact?: boolean
 }
 
 function ControlButton({
   control,
-  compact,
   onClickWithStop,
 }: {
   control: ReferenceEntityControl
-  compact: boolean
   onClickWithStop: (e: React.MouseEvent, onClick: () => void) => void
 }) {
   // Typed item variants — render a primitive instead of an action button.
@@ -81,29 +85,45 @@ function ControlButton({
   const hasCustomColors = !!(control.bgColor || control.textColor)
   const onClick = control.onClick ?? (() => {})
 
+  // Every rail control is stamp-sized. The rail sits beside the card's seam
+  // stamp, and the buttons used to run a rung larger than it (and the icon-only
+  // ones larger again, as fixed 28/32px squares), so one row carried three
+  // different heights. These are the `mini` stamp's own metrics — the same
+  // constants `Badge shape="stamp" size="mini"` resolves — so the row and the
+  // seam agree by construction rather than by matching numbers by eye.
   const segmentClasses = cn(
-    'px-1 font-cond font-bold uppercase tracking-caps-tight',
-    compact ? 'text-label' : 'text-xs'
+    'flex items-center font-cond font-bold uppercase tracking-caps-tight',
+    RUNG_INLINE_PADDING.mini,
+    RUNG_TYPE.mini.label
   )
 
-  // Icon-only control (design-spec `.ctl`): a square 28/32px button with a
-  // centred icon and no text — used by the live-sheet per-card remove/swap
-  // cluster. Neutral ink chrome (paper fill, ink border, hover inverts) so it
-  // reads consistently beside the absolute status badge. `min-h-11`/`min-w-11`
-  // holds the 44px coarse-pointer tap target without changing desktop size.
+  // Icon-only control (design-spec `.ctl`) — the live-sheet per-card
+  // remove/swap/fold cluster. It is a STAMP like every other control in the
+  // rail: same padding, same height, the glyph sized to the label line it
+  // replaces, so an icon button and a worded one are interchangeable in the
+  // row. `min-h-11`/`min-w-11` still holds the 44px coarse-pointer tap target
+  // without changing the desktop size.
+  //
+  // A `danger` icon (the ✕ remove) is a RED stamp — filled, not outlined —
+  // because it is the one control in the rail that destroys something, and as
+  // neutral paper chrome it read like the fold chevron beside it.
   const Icon = control.icon
   const isIconOnly = !!Icon && !control.label && !control.segmentText
   if (Icon && isIconOnly) {
+    const danger = variant === 'danger'
     return (
       <button
         type="button"
         className={cn(
-          'inline-flex shrink-0 items-center justify-center rounded-card border-2 transition-colors',
+          'inline-flex shrink-0 items-center justify-center border-2 transition-colors',
           'min-h-11 min-w-11 sm:min-h-0 sm:min-w-0',
-          compact ? 'h-7 w-7' : 'h-8 w-8',
+          RUNG_INLINE_PADDING.mini,
+          RUNG_TYPE.mini.label,
           isDisabled
             ? 'cursor-not-allowed border-wk-muted text-ink-2'
-            : 'cursor-pointer border-ink bg-paper text-ink hover:bg-ink hover:text-paper',
+            : danger
+              ? 'cursor-pointer border-status-bad bg-status-bad text-paper hover:brightness-110'
+              : 'cursor-pointer border-ink bg-paper text-ink hover:bg-ink hover:text-paper',
           control.className
         )}
         title={control.title ?? control.ariaLabel}
@@ -112,7 +132,7 @@ function ControlButton({
         aria-disabled={isDisabled || undefined}
         onClick={isDisabled ? undefined : (e) => onClickWithStop(e, onClick)}
       >
-        <Icon className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} />
+        <Icon className="h-3 w-3" />
       </button>
     )
   }
@@ -170,12 +190,10 @@ function ControlButton({
 
 function ControlButtonWithHover({
   control,
-  compact,
   onClickWithStop,
   hoverContent,
 }: {
   control: ReferenceEntityControl
-  compact: boolean
   onClickWithStop: (e: React.MouseEvent, onClick: () => void) => void
   hoverContent: ReactNode
 }) {
@@ -185,9 +203,7 @@ function ControlButtonWithHover({
         <Tooltip.Trigger
           delay={200}
           closeDelay={100}
-          render={
-            <ControlButton control={control} compact={compact} onClickWithStop={onClickWithStop} />
-          }
+          render={<ControlButton control={control} onClickWithStop={onClickWithStop} />}
         />
         <Tooltip.Portal>
           <Tooltip.Positioner sideOffset={5} align="start">
@@ -201,7 +217,7 @@ function ControlButtonWithHover({
   )
 }
 
-export function ControlButtons({ controls, compact = false }: ControlButtonsProps) {
+export function ControlButtons({ controls }: ControlButtonsProps) {
   const handleClick = useCallback((e: React.MouseEvent, onClick: () => void) => {
     // preventDefault so a control nested inside a wrapping navigation <a> (e.g.
     // the schema list cards) doesn't also trigger that anchor's navigation; a
@@ -222,17 +238,11 @@ export function ControlButtons({ controls, compact = false }: ControlButtonsProp
           <ControlButtonWithHover
             key={control.key}
             control={control}
-            compact={compact}
             onClickWithStop={handleClick}
             hoverContent={control.hoverContent}
           />
         ) : (
-          <ControlButton
-            key={control.key}
-            control={control}
-            compact={compact}
-            onClickWithStop={handleClick}
-          />
+          <ControlButton key={control.key} control={control} onClickWithStop={handleClick} />
         )
       )}
     </div>
