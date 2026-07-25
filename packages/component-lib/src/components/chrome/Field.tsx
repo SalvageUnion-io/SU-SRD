@@ -118,7 +118,7 @@ export function Field(props: FieldProps) {
     <span className={cn(STAMP_SEAM, 'left-2 flex w-fit items-center')}>{stampBadge}</span>
   )
   const valueSpan = (
-    <span className={cn('min-w-0 flex-1 truncate', value ? 'font-bold' : 'text-wk-muted')}>
+    <span className={cn('min-w-0 flex-1 truncate', value ? 'font-medium' : 'text-wk-muted')}>
       {value || placeholder}
     </span>
   )

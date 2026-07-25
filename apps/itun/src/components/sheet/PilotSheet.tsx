@@ -448,23 +448,29 @@ export function PilotSheet({
               }
               readOnly={readOnly}
             />
-            <TpBlock
-              value={tp}
-              onChange={readOnly ? undefined : (v) => patchPilot({ trainingPoints: v })}
-              editable={!readOnly}
-            />
-            <div className="w-full min-w-0">
-              <span
-                className="mb-2 block font-cond text-label font-bold uppercase leading-none tracking-caps"
-                style={{ color: 'var(--tone-deep, var(--color-ink))' }}
-              >
-                Conditions
-              </span>
-              <ConditionsEditor
-                conditions={pilot.conditions}
-                onChange={handleConditionsChange}
-                readOnly={readOnly}
+            {/* TP and Conditions SHARE a row. Stacked, the vitals column ran
+                well past the identity card beside it; TP is a single narrow
+                plate and Conditions is a short chip list, so neither needs a
+                full row of its own and pairing them squares the two cards up. */}
+            <div className="flex w-full min-w-0 items-start gap-3">
+              <TpBlock
+                value={tp}
+                onChange={readOnly ? undefined : (v) => patchPilot({ trainingPoints: v })}
+                editable={!readOnly}
               />
+              <div className="min-w-0 flex-1">
+                <span
+                  className="mb-2 block font-cond text-label font-bold uppercase leading-none tracking-caps"
+                  style={{ color: 'var(--tone-deep, var(--color-ink))' }}
+                >
+                  Conditions
+                </span>
+                <ConditionsEditor
+                  conditions={pilot.conditions}
+                  onChange={handleConditionsChange}
+                  readOnly={readOnly}
+                />
+              </div>
             </div>
           </div>
         }
