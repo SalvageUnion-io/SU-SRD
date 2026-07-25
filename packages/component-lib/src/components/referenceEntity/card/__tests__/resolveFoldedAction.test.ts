@@ -10,6 +10,27 @@ import { resolveFoldedAction } from '../resolveFoldedAction'
 const a = (name: string) => ({ name })
 
 describe('resolveFoldedAction', () => {
+  test('a (Host)-suffixed action folds via displayName (Bio-Rifle)', () => {
+    // The dataset uniquifies two different Bio-Rifle actions by source —
+    // `Bio-Rifle (Equipment)` and `Bio-Rifle (Chimerium Chosen)` — and keeps the
+    // real name in displayName. Matching on `name` alone made the Bio-Rifle
+    // equipment card render a nested "Bio-Rifle" sub-card inside itself.
+    const actions = [{ name: 'Bio-Rifle (Equipment)', displayName: 'Bio-Rifle' }]
+    expect(resolveFoldedAction(actions, 'Bio-Rifle')?.name).toBe('Bio-Rifle (Equipment)')
+  })
+
+  test('displayName does not fold into an unrelated entity', () => {
+    const actions = [{ name: 'Bio-Rifle (Chimerium Chosen)', displayName: 'Bio-Rifle' }]
+    expect(resolveFoldedAction(actions, 'Bio-Maw')).toBeUndefined()
+  })
+
+  test('a differing displayName does not stop a name match folding', () => {
+    // The match is EITHER field, not `displayName ?? name`, so it is strictly
+    // additive — this action still folds on its name.
+    const actions = [{ name: 'Grenade', displayName: 'Grenade (Pilot Equipment)' }]
+    expect(resolveFoldedAction(actions, 'Grenade')?.name).toBe('Grenade')
+  })
+
   test('single same-named action folds (Grenade)', () => {
     expect(resolveFoldedAction([a('Grenade')], 'Grenade')?.name).toBe('Grenade')
   })

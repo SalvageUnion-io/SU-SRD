@@ -13,10 +13,25 @@
  * stats in the Molebear's sub-header as though the creature itself were a Turn
  * Action, and the same for every creature with one differently-named attack.
  * A sole action is still just an action; it renders as its own card.
+ *
+ * `displayName` counts as the action's name for this test, because it IS the
+ * name the action renders under (see `getReferenceEntityName`, which prefers it).
+ * The dataset uniquifies same-named actions from different sources with a
+ * parenthetical — `Bio-Rifle (Equipment)` vs `Bio-Rifle (Chimerium Chosen)` —
+ * and carries the real name in `displayName`. That suffix is an internal
+ * identifier, not a claim that the action is something other than its entity,
+ * so matching on `name` alone made the Bio-Rifle equipment card render a nested
+ * "Bio-Rifle" sub-card inside itself instead of folding. This does NOT loosen
+ * the rule above: a `(Host)`-suffixed action still only folds into an entity
+ * whose name its `displayName` matches exactly.
+ *
+ * The match is deliberately EITHER field rather than `displayName ?? name`, so
+ * it is strictly additive — no action that folds on `name` today can stop
+ * folding because it also carries a differing `displayName`.
  */
-export function resolveFoldedAction<T extends { name?: string }>(
+export function resolveFoldedAction<T extends { name?: string; displayName?: string }>(
   foldableActions: T[],
   entityName: string
 ): T | undefined {
-  return foldableActions.find((a) => a.name === entityName)
+  return foldableActions.find((a) => a.name === entityName || a.displayName === entityName)
 }
