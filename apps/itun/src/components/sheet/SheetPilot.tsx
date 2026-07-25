@@ -11,7 +11,6 @@
 
 import { EntityRow, Stat } from 'component-lib'
 
-import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { AssignCrawlerToPilot } from '../wiring/AssignCrawlerToPilot'
@@ -19,9 +18,9 @@ import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { PilotSheet } from './PilotSheet'
-import { RailChip } from './SheetRail'
-import { RailCta, RailStatLine } from './SheetRailParts'
-import { crawlerRailItems, mechRailItems, mechStatusPill } from './railStats'
+import { RailCta } from './SheetRailParts'
+import { AppLink } from '../shared/AppLink'
+import { crawlerRailItems, mechRailItems, mechStatusPill, rowStats } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetPilotProps = SheetViewCommonProps & { pilot: Pilot }
@@ -68,14 +67,16 @@ export function SheetPilot({
   const rail = (
     <>
       {composition.mech ? (
-        <RailChip
-          tone="mech"
-          roleLabel="Assigned Mech"
+        <EntityRow
+          entityType="mech"
+          className="flex-[1_1_0%]"
           name={composition.mech.name}
-          href={`/sheet/mech/${composition.mech.id}`}
-          status={mechStatusPill(composition.mech)}
-          stats={<RailStatLine items={mechRailItems(composition.mech)} />}
-          onUnassign={unassign(mechLinkId)}
+          sheetHref={`/sheet/mech/${composition.mech.id}`}
+          linkAs={AppLink}
+          meta="Assigned Mech"
+          metaLine={mechStatusPill(composition.mech).label}
+          stats={rowStats(mechRailItems(composition.mech))}
+          onDeleteClick={unassign(mechLinkId)}
         />
       ) : (
         <EntityRow
@@ -88,14 +89,15 @@ export function SheetPilot({
         />
       )}
       {composition.crawler ? (
-        <RailChip
-          tone="crawler"
-          roleLabel="Home Crawler"
+        <EntityRow
+          entityType="crawler"
+          className="flex-[1_1_0%]"
           name={composition.crawler.name}
-          href={`/sheet/crawler/${composition.crawler.id}`}
-          tl={parseCrawlerTechLevel(composition.crawler.techLevel)}
-          stats={<RailStatLine items={crawlerRailItems(composition.crawler)} />}
-          onUnassign={unassign(crawlerLinkId)}
+          sheetHref={`/sheet/crawler/${composition.crawler.id}`}
+          linkAs={AppLink}
+          meta="Home Crawler"
+          stats={rowStats(crawlerRailItems(composition.crawler))}
+          onDeleteClick={unassign(crawlerLinkId)}
         />
       ) : (
         <EntityRow

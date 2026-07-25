@@ -651,7 +651,12 @@ export function MechSheet({
       </SheetSectionSlab>
 
       {/* ===== Linked Units — the last region ===== */}
-      <SheetSectionSlab title="Linked Units" bodyClassName="flex flex-col gap-4">
+      <SheetSectionSlab
+        title="Linked Units"
+        // Side by side: each linked unit is one roster row, and two of them stack
+        // to a wasteful column on a sheet that has the width for both.
+        bodyClassName="flex flex-col gap-4 @3xl:flex-row"
+      >
         {linkedUnits}
       </SheetSectionSlab>
 

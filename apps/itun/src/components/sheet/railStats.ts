@@ -96,3 +96,18 @@ export function mechStatusPill(mech: Mech): { label: string; tone: BadgeTone } {
   ].some((c) => c !== 'intact')
   return anyDamaged ? { label: 'Damaged', tone: 'warn' } : { label: 'Intact', tone: 'ok' }
 }
+
+/**
+ * A rail stat as an `EntityRow` stat cell: `SP 9/13`, `Bays 4/5 Intact`.
+ *
+ * `EntityRow` (the roster/index row the linked-unit slots now use) takes flat
+ * `label | value` pairs, while a rail stat carries its own max and sometimes a
+ * trailing word, so both fold into the value here rather than the row growing
+ * a shape only these call sites would use.
+ */
+export function rowStats(items: RailStat[]): { label: string; value: string }[] {
+  return items.map((item) => ({
+    label: item.label,
+    value: `${item.value}/${item.max}${item.suffix ? ` ${item.suffix}` : ''}`,
+  }))
+}

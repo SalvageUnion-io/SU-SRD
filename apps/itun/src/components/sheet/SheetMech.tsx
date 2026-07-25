@@ -11,7 +11,6 @@
  * the Dashboard, not the Free-Edit Live Sheet (ADR-021).
  */
 
-import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { mechMaxCargo, mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
@@ -22,9 +21,9 @@ import type { LiveSheetStripItem } from './LiveSheet'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { MechSheet } from './MechSheet'
 import { EntityRow } from 'component-lib'
-import { RailChip } from './SheetRail'
-import { RailCta, RailStatLine } from './SheetRailParts'
-import { crawlerRailItems, mechStatusPill, pilotRailItems } from './railStats'
+import { RailCta } from './SheetRailParts'
+import { AppLink } from '../shared/AppLink'
+import { crawlerRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetMechProps = SheetViewCommonProps & { mech: Mech }
@@ -81,14 +80,15 @@ export function SheetMech({
   const rail = (
     <>
       {composition.pilot ? (
-        <RailChip
-          tone="pilot"
-          roleLabel="Assigned Pilot"
+        <EntityRow
+          entityType="pilot"
+          className="flex-[1_1_0%]"
           name={composition.pilot.name}
-          href={`/sheet/pilot/${composition.pilot.id}`}
-          status={{ label: 'Active', tone: 'pilot' }}
-          stats={<RailStatLine items={pilotRailItems(composition.pilot)} />}
-          onUnassign={unassignPilot}
+          sheetHref={`/sheet/pilot/${composition.pilot.id}`}
+          linkAs={AppLink}
+          meta="Assigned Pilot"
+          stats={rowStats(pilotRailItems(composition.pilot))}
+          onDeleteClick={unassignPilot}
         />
       ) : (
         <EntityRow
@@ -108,13 +108,14 @@ export function SheetMech({
         />
       )}
       {composition.crawler ? (
-        <RailChip
-          tone="crawler"
-          roleLabel="Home Crawler"
+        <EntityRow
+          entityType="crawler"
+          className="flex-[1_1_0%]"
           name={composition.crawler.name}
-          href={`/sheet/crawler/${composition.crawler.id}`}
-          tl={parseCrawlerTechLevel(composition.crawler.techLevel)}
-          stats={<RailStatLine items={crawlerRailItems(composition.crawler)} />}
+          sheetHref={`/sheet/crawler/${composition.crawler.id}`}
+          linkAs={AppLink}
+          meta="Home Crawler"
+          stats={rowStats(crawlerRailItems(composition.crawler))}
         />
       ) : (
         <EntityRow

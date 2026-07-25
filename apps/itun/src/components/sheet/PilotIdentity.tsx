@@ -177,17 +177,17 @@ export function PilotIdentityPanel({
           {/* Name lives here too: with the global Edit toggle gone, this is
               the pilot's name edit surface (the hero title mirrors it). */}
           <Field
-            label="Name"
-            value={pilot.name}
-            editing={isEditing}
-            onSave={saveRequired('name')}
-          />
-          <Field
             label="Callsign"
             value={pilot.callsign}
             editing={isEditing}
             onSave={saveRequired('callsign')}
             prominent
+          />
+          <Field
+            label="Name"
+            value={pilot.name}
+            editing={isEditing}
+            onSave={saveRequired('name')}
           />
           <Field
             label="Pronouns"

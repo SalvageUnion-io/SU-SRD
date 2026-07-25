@@ -258,7 +258,7 @@ describe('LiveSheet rail replaces the segment switcher', () => {
     expect(screen.queryByRole('tablist')).toBeNull()
   })
 
-  test('wired (mech+pilot) Sheet shows the pilot as a navigating rail chip', () => {
+  test('wired (mech+pilot) Sheet shows the pilot as a navigating linked row', () => {
     const link = makeMechToPilotLink('mech-1', 'pilot-1')
     render(
       <Sheet
@@ -268,8 +268,12 @@ describe('LiveSheet rail replaces the segment switcher', () => {
         softLinkStore={makeSoftLinkStore([link])}
       />
     )
-    const chip = screen.getByLabelText(/Assigned Pilot: Yara Voss/i)
-    expect(chip).toBeTruthy()
-    expect(chip.getAttribute('href')).toBe('/sheet/pilot/pilot-1')
+    // Linked units render the roster's `EntityRow`, whose View link is labelled
+    // "View" on every row — so the row is targeted by its DESTINATION, which is
+    // what this test was ever asserting.
+    const viewLink = screen
+      .getAllByRole('link')
+      .find((a) => a.getAttribute('href') === '/sheet/pilot/pilot-1')
+    expect(viewLink).toBeTruthy()
   })
 })

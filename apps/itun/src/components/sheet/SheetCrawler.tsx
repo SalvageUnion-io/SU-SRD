@@ -28,9 +28,9 @@ import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
-import { RailChip } from './SheetRail'
-import { RailCta, RailStatLine } from './SheetRailParts'
-import { bayStates, mechRailItems, mechStatusPill, pilotRailItems } from './railStats'
+import { RailCta } from './SheetRailParts'
+import { AppLink } from '../shared/AppLink'
+import { bayStates, mechRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
@@ -155,13 +155,15 @@ export function SheetCrawler({
   const rail = (
     <>
       {composition.mech ? (
-        <RailChip
-          tone="mech"
-          roleLabel="Docked Mech"
+        <EntityRow
+          entityType="mech"
+          className="flex-[1_1_0%]"
           name={composition.mech.name}
-          href={`/sheet/mech/${composition.mech.id}`}
-          status={mechStatusPill(composition.mech)}
-          stats={<RailStatLine items={mechRailItems(composition.mech)} />}
+          sheetHref={`/sheet/mech/${composition.mech.id}`}
+          linkAs={AppLink}
+          meta="Docked Mech"
+          metaLine={mechStatusPill(composition.mech).label}
+          stats={rowStats(mechRailItems(composition.mech))}
         />
       ) : (
         <EntityRow
@@ -174,14 +176,15 @@ export function SheetCrawler({
         />
       )}
       {composition.pilot ? (
-        <RailChip
-          tone="pilot"
-          roleLabel="Lead Pilot"
+        <EntityRow
+          entityType="pilot"
+          className="flex-[1_1_0%]"
           name={composition.pilot.name}
-          href={`/sheet/pilot/${composition.pilot.id}`}
-          status={{ label: 'Active', tone: 'pilot' }}
-          stats={<RailStatLine items={pilotRailItems(composition.pilot)} />}
-          onUnassign={unassignLeadPilot}
+          sheetHref={`/sheet/pilot/${composition.pilot.id}`}
+          linkAs={AppLink}
+          meta="Lead Pilot"
+          stats={rowStats(pilotRailItems(composition.pilot))}
+          onDeleteClick={unassignLeadPilot}
         />
       ) : (
         <EntityRow

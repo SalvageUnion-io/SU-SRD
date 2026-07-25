@@ -695,7 +695,12 @@ export function PilotSheet({
       {/* ===== R4: Linked Units (full width, stacked beneath all other sections) =====
           Already a bare slab leader + rail stack in the poster; now expressed
           through the shared slab container like every other card section. */}
-      <SheetSectionSlab title="Linked Units" bodyClassName="flex flex-col gap-4">
+      <SheetSectionSlab
+        title="Linked Units"
+        // Side by side: each linked unit is one roster row, and two of them stack
+        // to a wasteful column on a sheet that has the width for both.
+        bodyClassName="flex flex-col gap-4 @3xl:flex-row"
+      >
         {linkedUnits}
       </SheetSectionSlab>
 
