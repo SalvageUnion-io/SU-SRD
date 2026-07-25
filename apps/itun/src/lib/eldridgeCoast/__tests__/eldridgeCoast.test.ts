@@ -137,13 +137,26 @@ describe('Eldridge Coast seed — reference refs resolve (drift guard)', () => {
     }
   })
 
-  test('every pilot equipmentLoadout system/module ref resolves', () => {
+  test('every partner system/module ref resolves', () => {
+    // This guard used to read `equipmentLoadouts`. When the companions moved to
+    // `partners` (ADR-027) that field went undefined on every seeded pilot, so
+    // the loops stopped executing and the test passed having asserted nothing —
+    // a drift guard that silently stopped guarding. The count assertion below
+    // is the fix: it fails if the refs it walks ever go empty again.
+    let checked = 0
     for (const p of ELDRIDGE_PILOTS) {
-      for (const loadout of Object.values(p.equipmentLoadouts ?? {})) {
-        for (const s of loadout.systems) expect(resolveSystemRef(s)).toBeTruthy()
-        for (const mod of loadout.modules) expect(resolveModuleRef(mod)).toBeTruthy()
+      for (const partner of p.partners ?? []) {
+        for (const s of partner.systems) {
+          expect(resolveSystemRef(s)).toBeTruthy()
+          checked++
+        }
+        for (const mod of partner.modules) {
+          expect(resolveModuleRef(mod)).toBeTruthy()
+          checked++
+        }
       }
     }
+    expect(checked).toBeGreaterThan(0)
   })
 
   test('the three companion owners carry the granted drone equipment', () => {
