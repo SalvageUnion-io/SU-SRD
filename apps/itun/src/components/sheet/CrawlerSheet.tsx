@@ -214,7 +214,10 @@ export function CrawlerSheet({
     crawler.systems.length === 0 ? (
       <p className="font-body text-caption text-wk-muted">No weapons mounted.</p>
     ) : (
-      <MasonryColumns maxColumns={2}>
+      // A full-width STACK, not a 2-up masonry: a mounted weapon reads as a
+      // listing row across the bay, and half a bay's width squeezed the card's
+      // header stats onto a second line.
+      <div className="flex min-w-0 flex-col gap-4">
         {crawler.systems.map((slug) => {
           const system = resolveCrawlerSystem(slug)
           return (
@@ -232,7 +235,7 @@ export function CrawlerSheet({
             </EntityGridRow>
           )
         })}
-      </MasonryColumns>
+      </div>
     )
 
   /** The Storage Bay's scrap pool + the crawler hold — rendered INSIDE it. */
@@ -348,7 +351,6 @@ export function CrawlerSheet({
             </div>
           }
           vitals={economy}
-          vitalsTitle="Economy"
         />
 
         {/* ----- Content region (Bays, Weapons) ----- */}

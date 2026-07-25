@@ -35,6 +35,9 @@ import type { SheetViewCommonProps } from './sheetViewProps'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
 
+/** The Upgrade pool's cap (rules C4). */
+const UPGRADE_POOL_MAX = 30
+
 export function SheetCrawler({
   crawler,
   composition,
@@ -109,19 +112,23 @@ export function SheetCrawler({
           },
         ]
       : []),
-    {
-      label: 'Upgrade',
-      value: crawler.upgradePool ?? 0,
-      max: 30,
-      caption: 'Pool',
-      action: editable
-        ? {
-            label: 'Fund',
-            ariaLabel: 'Upgrade Crawler',
-            onClick: () => setEconDialog('upgrade'),
-          }
-        : undefined,
-    },
+    // Upgrade is NOT a flat readout: it FILLS toward a cap, which is what a
+    // gauge shows and a number cannot. It renders as one below the SP gauge —
+    // its Fund action still collects into the foot row with the others.
+    ...(editable
+      ? [
+          {
+            label: 'Upgrade',
+            value: crawler.upgradePool ?? 0,
+            actionOnly: true,
+            action: {
+              label: 'Fund',
+              ariaLabel: 'Upgrade Crawler',
+              onClick: () => setEconDialog('upgrade'),
+            },
+          },
+        ]
+      : []),
     ...(trading.present && tl !== undefined
       ? [
           {
@@ -223,6 +230,16 @@ export function SheetCrawler({
           onRevertOverride={
             editable ? () => overrideCrawlerMax({ maxSpModifier: undefined }) : undefined
           }
+          readOnly={!editable}
+        />
+      }
+      upgrade={
+        <VitalGauge
+          label="Upgrade"
+          subLabel="Pool"
+          value={crawler.upgradePool ?? 0}
+          max={UPGRADE_POOL_MAX}
+          onChange={editable ? (v) => patch({ upgradePool: v }) : undefined}
           readOnly={!editable}
         />
       }
