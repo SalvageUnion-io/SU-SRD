@@ -2,6 +2,14 @@
 
 Maintained by release-please (see ADR-024).
 
+## [0.5.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.4.1...itun-v0.5.0) (2026-07-25)
+
+
+### Features
+
+* **itun:** live-sheet redesign — card/slab containers, folding, and a crew-shaped crawler ([#561](https://github.com/SalvageUnion-io/SU-SRD/issues/561)) ([b180c24](https://github.com/SalvageUnion-io/SU-SRD/commit/b180c244ab7b8d8df39512ed3805b80661efc22a))
+* Partner Sheets — statted drones/companions owned by a pilot or a mech ([#578](https://github.com/SalvageUnion-io/SU-SRD/issues/578)) ([7ee4d1b](https://github.com/SalvageUnion-io/SU-SRD/commit/7ee4d1b45e11d44f90da0c90dad82e08a1edca30))
+
 ## [0.4.1](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.4.0...itun-v0.4.1) (2026-07-24)
 
 
