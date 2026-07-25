@@ -147,60 +147,74 @@ export function SheetCrawler({
       : []),
   ]
 
-  // Unassign for the lead pilot's direct link (pilot-to-crawler) — always
-  // available on editable sheets per the unified edit language (no edit
-  // mode). The docked-mech chip is transitive (the lead pilot's mech) so
-  // it's nav-only.
-  const leadPilotLinkId = storeState.softLinks.find(
-    (l) =>
-      l.type === 'pilot-to-crawler' && l.to.id === crawler.id && l.from.id === composition.pilot?.id
-  )?.id
-  const unassignLeadPilot =
-    editable && leadPilotLinkId
-      ? () => void storeState.delete('softLink', leadPilotLinkId)
-      : undefined
+  // A crawler has no single "lead pilot" and no single docked mech: it is a
+  // home for a CREW. Both slots are lists — every pilot wired to this crawler,
+  // and every mech those pilots have — rather than the one-of-each the
+  // composition resolver picks out for the two-hop mech lookup.
+  const dockedMechs = composition.crawlerPilots
+    .map((crewPilot) => {
+      const link = storeState.softLinks.find(
+        (l) => l.type === 'mech-to-pilot' && l.to.id === crewPilot.id
+      )
+      return link ? storeState.get('mech', link.from.id) : null
+    })
+    .filter((m): m is NonNullable<typeof m> => m !== null)
+
+  /** Unlink one pilot from this crawler (always available on editable sheets). */
+  function unlinkPilot(pilotId: string) {
+    const linkId = storeState.softLinks.find(
+      (l) => l.type === 'pilot-to-crawler' && l.to.id === crawler.id && l.from.id === pilotId
+    )?.id
+    return editable && linkId ? () => void storeState.delete('softLink', linkId) : undefined
+  }
 
   const rail = (
     <>
-      {composition.mech ? (
-        <EntityRow
-          entityType="mech"
-          className="flex-[1_1_0%]"
-          name={composition.mech.name}
-          sheetHref={`/sheet/mech/${composition.mech.id}`}
-          linkAs={AppLink}
-          meta="Docked Mech"
-          metaLine={mechStatusPill(composition.mech).label}
-          stats={rowStats(mechRailItems(composition.mech))}
-        />
+      {dockedMechs.length > 0 ? (
+        dockedMechs.map((dockedMech) => (
+          <EntityRow
+            key={dockedMech.id}
+            entityType="mech"
+            className="flex-[1_1_0%]"
+            name={dockedMech.name}
+            sheetHref={`/sheet/mech/${dockedMech.id}`}
+            linkAs={AppLink}
+            meta="Docked Mech"
+            metaLine={mechStatusPill(dockedMech).label}
+            stats={rowStats(mechRailItems(dockedMech))}
+          />
+        ))
       ) : (
         <EntityRow
           empty
           entityType="mech"
           className="flex-[1_1_0%]"
-          roleLabel="Docked Mech"
-          message="No mech in the bay — dock one to repair, re-arm and track it from here."
+          roleLabel="Docked Mechs"
+          message="No mechs in the bay — dock one to repair, re-arm and track it from here."
           actions={editable ? <RailCta href="/mechs/new" label="+ Create" primary /> : undefined}
         />
       )}
-      {composition.pilot ? (
-        <EntityRow
-          entityType="pilot"
-          className="flex-[1_1_0%]"
-          name={composition.pilot.name}
-          sheetHref={`/sheet/pilot/${composition.pilot.id}`}
-          linkAs={AppLink}
-          meta="Lead Pilot"
-          stats={rowStats(pilotRailItems(composition.pilot))}
-          onDeleteClick={unassignLeadPilot}
-        />
+      {composition.crawlerPilots.length > 0 ? (
+        composition.crawlerPilots.map((crewPilot) => (
+          <EntityRow
+            key={crewPilot.id}
+            entityType="pilot"
+            className="flex-[1_1_0%]"
+            name={crewPilot.name}
+            sheetHref={`/sheet/pilot/${crewPilot.id}`}
+            linkAs={AppLink}
+            meta="Pilot"
+            stats={rowStats(pilotRailItems(crewPilot))}
+            onDeleteClick={unlinkPilot(crewPilot.id)}
+          />
+        ))
       ) : (
         <EntityRow
           empty
           entityType="pilot"
           className="flex-[1_1_0%]"
-          roleLabel="Lead Pilot"
-          message="No lead pilot set. Assign a crew member to speak for the crawler."
+          roleLabel="Pilots"
+          message="No pilots wired to this crawler yet."
           actions={editable ? <RailCta href="/pilots/new" label="+ Create" primary /> : undefined}
         />
       )}

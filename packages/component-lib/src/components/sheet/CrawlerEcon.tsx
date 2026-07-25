@@ -74,7 +74,10 @@ export function CrawlerEconFrame({ gauge, upgrade, items }: CrawlerEconFrameProp
         </div>
       )}
       {actions.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
+        // Centred: the row sits under a stack of gauges and stat plates that are
+        // themselves centred in the column, so a left-aligned button row hung
+        // off the edge of everything above it.
+        <div className="flex flex-wrap items-center justify-center gap-2">
           {actions.map((item) => (
             <Button
               key={item.label}

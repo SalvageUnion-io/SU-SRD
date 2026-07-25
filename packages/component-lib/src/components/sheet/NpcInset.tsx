@@ -53,6 +53,7 @@ function NpcRow({
   label,
   grow = false,
   plain = false,
+  className,
   children,
 }: {
   label: string
@@ -60,10 +61,12 @@ function NpcRow({
   grow?: boolean
   /** Skip the prose treatment — the cell hosts its own component. */
   plain?: boolean
+  /** Grid placement from the caller (e.g. spanning both columns). */
+  className?: string
   children: ReactNode
 }) {
   return (
-    <div className="flex items-baseline gap-1.5">
+    <div className={cn('flex items-baseline gap-1.5', className)}>
       <dt className="shrink-0 font-cond text-micro font-bold uppercase leading-none tracking-caps-wide text-ink">
         {label}
       </dt>
@@ -137,9 +140,12 @@ export function NpcInset({
             />
           ) : undefined
         }
-        bodyClassName="flex flex-wrap items-start gap-3"
+        bodyClassName="flex flex-wrap items-start gap-2"
       >
-        <dl className="m-0 min-w-0 flex-1 space-y-1.5">
+        {/* Keepsake and Motto SHARE a row: both are one short phrase, and each
+            taking a full 44px row of its own made a four-row inset out of two
+            lines of content. Detail and Facts keep their own rows — they grow. */}
+        <dl className="m-0 grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 @md:grid-cols-2">
           <NpcRow label="Keepsake">
             {onKeepsakeChange ? (
               <InlineEditField
@@ -164,7 +170,7 @@ export function NpcInset({
               motto || '—'
             )}
           </NpcRow>
-          <NpcRow label="Detail" grow>
+          <NpcRow label="Detail" grow className="@md:col-span-2">
             {onDetailChange ? (
               <InlineEditField
                 multiline
@@ -178,7 +184,7 @@ export function NpcInset({
             )}
           </NpcRow>
           {(onFactsChange !== undefined || facts.length > 0) && (
-            <NpcRow label="Facts" grow plain>
+            <NpcRow label="Facts" grow plain className="@md:col-span-2">
               <NpcFactsEditor
                 facts={facts}
                 onChange={(next) => onFactsChange?.(next)}

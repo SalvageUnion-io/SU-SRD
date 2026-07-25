@@ -166,7 +166,7 @@ describe('Sheet — rail cross-links', () => {
     expect(linkTo('/sheet/pilot/pilot-1')).toBeTruthy()
   })
 
-  test('wired crawler sheet links to its lead pilot and docked mech', () => {
+  test('wired crawler sheet links to its pilots and docked mechs', () => {
     render(
       <Sheet
         kind="crawler"
