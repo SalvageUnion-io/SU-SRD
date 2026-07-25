@@ -16,7 +16,7 @@
  * the region; the `Ecflow` entity-card grid is passed as `children`.
  *
  * Themes per sheet automatically via the `--tone` / `--tone-deep` CSS vars
- * (same route as `EDIT_CUE_CLASS` / `VitalGauge`), never per-section color
+ * (same route as `EDIT_CUE_HOVER_CLASS` / `VitalGauge`), never per-section color
  * classes. Keeps the `.sheet-section` print class for the page-break rule.
  */
 
