@@ -24,7 +24,11 @@ import type {
   SURefMetaEntity,
 } from 'salvageunion-reference'
 
-import { canActivateAction, resolveChassisRef } from 'salvageunion-reference/rules'
+import {
+  canActivateAction,
+  genericAbilities,
+  resolveChassisRef,
+} from 'salvageunion-reference/rules'
 import type { CoreRollBand } from '../../lib/rules/coreMechanic'
 import { clampHeat, heatCheckPatch, performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
@@ -343,6 +347,48 @@ export function buildMechActions(mech: Mech): PlayAction[] {
   build(mech.systems ?? [], 'system')
   build(mech.modules ?? [], 'module')
 
+  // The boarded Pilot keeps their universal abilities — Scrap, Repair, Mount and
+  // the rest are Mech actions in the book, and were previously unreachable from
+  // the cockpit because this deck only walked chassis/systems/modules.
+  out.push(...genericAbilityActions('EP'))
+
+  return out
+}
+
+/**
+ * The Generic abilities every Pilot has, as deck rows. They are universal (core
+ * book p.248, "All Pilots have the following Abilities") and derived rather than
+ * stored — see `genericAbilities` for why they can't live in `pilot.abilities`.
+ *
+ * Both decks get them, because both contexts are real: the book gives these
+ * abilities a Mech action type *and* a Pilot action type precisely because you
+ * perform them either boarded or on foot. `currency` is the deck's economy —
+ * mech rows spend EP, pilot rows spend AP.
+ *
+ * NOTE: the action's own `actionType` / `activationCost` are the PILOT variant,
+ * so a mech row currently states the on-foot timing. Correcting that needs the
+ * per-context action split, which is deliberately a separate change.
+ */
+function genericAbilityActions(currency: PlayActionCurrency): PlayAction[] {
+  const out: PlayAction[] = []
+
+  for (const ability of genericAbilities(SalvageUnionReference.Abilities.all())) {
+    deckActions(ability).forEach((action, i) => {
+      out.push({
+        key: `generic:${ability.id}:${action.id ?? i}`,
+        name: action.name,
+        kind: 'ability',
+        stamp: 'ABL',
+        currency,
+        ownerName: ability.name,
+        slug: ability.id,
+        economy: actionEconomy(action),
+        action,
+        condition: 'intact',
+      })
+    })
+  }
+
   return out
 }
 
@@ -399,6 +445,9 @@ export function buildPilotActions(pilot: Pilot): PlayAction[] {
       })
     })
   }
+
+  // Universal abilities, on the on-foot AP economy.
+  out.push(...genericAbilityActions('AP'))
 
   return out
 }

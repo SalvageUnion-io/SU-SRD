@@ -185,6 +185,57 @@ describe('activationPatch', () => {
   })
 })
 
+/**
+ * Every deck now ends with the universal Generic abilities (core book p.248),
+ * which are derived rather than stored on the pilot. Tests that assert on what a
+ * mech's own loadout contributes drop them first.
+ */
+const isGenericRow = (pa: { key: string }) => pa.key.startsWith('generic:')
+const loadoutRows = <T extends { key: string }>(deck: T[]) => deck.filter((pa) => !isGenericRow(pa))
+const genericRows = <T extends { key: string }>(deck: T[]) => deck.filter(isGenericRow)
+
+describe('generic abilities in the decks', () => {
+  test('the boarded mech deck carries them on the EP economy', () => {
+    const mech = mechFixture({ id: 'gm', name: 'Rig', chassisRef: 'not-a-real-chassis' })
+    const rows = genericRows(buildMechActions(mech))
+
+    expect(rows.length).toBeGreaterThan(0)
+    expect(rows.every((pa) => pa.currency === 'EP')).toBe(true)
+    expect(rows.map((pa) => pa.ownerName)).toContain('Scrap')
+  })
+
+  test('the on-foot pilot deck carries them on the AP economy', () => {
+    const pilot = pilotFixture({ id: 'gp', name: 'Vex' })
+    const rows = genericRows(buildPilotActions(pilot))
+
+    expect(rows.length).toBeGreaterThan(0)
+    expect(rows.every((pa) => pa.currency === 'AP')).toBe(true)
+    expect(rows.map((pa) => pa.ownerName)).toContain('Scrap')
+  })
+
+  test('they need no pick — an empty pilot still has them', () => {
+    const pilot = pilotFixture({ id: 'gp2', name: 'Ghost' })
+    const rows = genericRows(buildPilotActions(pilot))
+
+    expect(rows.map((pa) => pa.ownerName)).toContain('Area Salvage')
+  })
+
+  test('both decks agree on which abilities are universal', () => {
+    const mechOwners = new Set(
+      genericRows(
+        buildMechActions(mechFixture({ id: 'gm2', name: 'R', chassisRef: 'not-a-real-chassis' }))
+      ).map((pa) => pa.ownerName)
+    )
+    const pilotOwners = new Set(
+      genericRows(buildPilotActions(pilotFixture({ id: 'gp3', name: 'V' }))).map(
+        (pa) => pa.ownerName
+      )
+    )
+
+    expect([...mechOwners].sort()).toEqual([...pilotOwners].sort())
+  })
+})
+
 describe('buildMechActions', () => {
   test('surfaces a chassis ability action, stamped CHS', () => {
     // Find a chassis whose resolveActions returns at least one action.
@@ -195,7 +246,7 @@ describe('buildMechActions', () => {
     expect(chassis?.id).toBeTruthy()
 
     const mech = mechFixture({ id: 'm1', name: 'Rig', chassisRef: chassis?.id ?? '' })
-    const deck = buildMechActions(mech)
+    const deck = loadoutRows(buildMechActions(mech))
     expect(deck.length).toBeGreaterThan(0)
     expect(deck.every((pa) => pa.stamp === 'CHS')).toBe(true)
     expect(deck.every((pa) => pa.currency === 'EP')).toBe(true)
@@ -215,7 +266,7 @@ describe('buildMechActions', () => {
       chassisRef: 'not-a-real-chassis',
       systems: [multi.id],
     })
-    const deck = buildMechActions(mech)
+    const deck = loadoutRows(buildMechActions(mech))
     expect(deck.length).toBeGreaterThan(1)
     expect(deck.every((pa) => pa.stamp === 'SYS')).toBe(true)
     // Every card shares the same owner (the system) but has a distinct key.
@@ -223,9 +274,9 @@ describe('buildMechActions', () => {
     expect(new Set(deck.map((pa) => pa.key)).size).toBe(deck.length)
   })
 
-  test('empty for an unresolvable chassis with no items', () => {
+  test('no loadout rows for an unresolvable chassis with no items', () => {
     const mech = mechFixture({ id: 'm2', name: 'Ghost', chassisRef: 'not-a-real-chassis' })
-    expect(buildMechActions(mech)).toEqual([])
+    expect(loadoutRows(buildMechActions(mech))).toEqual([])
   })
 })
 
@@ -238,15 +289,15 @@ describe('buildPilotActions', () => {
     expect(ability?.id).toBeTruthy()
 
     const pilot = pilotFixture({ id: 'p1', name: 'Vex', abilities: [ability?.id ?? ''] })
-    const deck = buildPilotActions(pilot)
+    const deck = loadoutRows(buildPilotActions(pilot))
     expect(deck.length).toBeGreaterThan(0)
     expect(deck.every((pa) => pa.stamp === 'ABL')).toBe(true)
     expect(deck.every((pa) => pa.currency === 'AP')).toBe(true)
   })
 
-  test('empty for a pilot with no abilities or equipment', () => {
+  test('no learned rows for a pilot with no abilities or equipment', () => {
     const pilot = pilotFixture({ id: 'p2', name: 'Ghost' })
-    expect(buildPilotActions(pilot)).toEqual([])
+    expect(loadoutRows(buildPilotActions(pilot))).toEqual([])
   })
 })
 

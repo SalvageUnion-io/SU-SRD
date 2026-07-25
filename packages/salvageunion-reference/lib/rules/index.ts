@@ -50,6 +50,12 @@ export type {
   MechCreationBudgetInput,
   MechCreationLoadoutEntry,
 } from './creation.js'
+export {
+  GENERIC_ABILITY_TREE,
+  isGenericAbility,
+  genericAbilities,
+} from './genericAbilities.js'
+export type { GenericAbilityInput } from './genericAbilities.js'
 export { enrichPilotSnapshot } from './pilotSnapshot.js'
 export { computeCrawlerCapacity } from './crawlerCapacity.js'
 export { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap.js'
