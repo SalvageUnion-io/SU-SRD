@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [1.2.2](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.2.1...srd-v1.2.2) (2026-07-25)
+
+
+### Bug Fixes
+
+* **srd:** render guide steps — most guide prose was missing from every guide page ([#564](https://github.com/SalvageUnion-io/SU-SRD/issues/564)) ([de44fd1](https://github.com/SalvageUnion-io/SU-SRD/commit/de44fd1440313587947cde142492dbb40ef913f9))
+
 ## [1.2.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.2.0...srd-v1.2.1) (2026-07-23)
 
 
