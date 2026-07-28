@@ -38,7 +38,7 @@
         "src/stores/workspaceStore.ts",
         "src/stores/types.ts"
       ],
-      "project": ["src/**/*.{ts,tsx}", "netlify/**/*.ts"]
+      "project": ["src/**/*.{ts,tsx}", "netlify/**/*.ts", "convex/*.ts"]
     },
     "apps/su-assets": {
       "entry": ["netlify/functions/**/*.ts"],
