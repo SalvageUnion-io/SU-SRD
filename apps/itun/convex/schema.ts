@@ -42,6 +42,12 @@ export default defineSchema({
     image: v.optional(v.string()),
     emailVerificationTime: v.optional(v.number()),
     isAnonymous: v.optional(v.boolean()),
+    // Carried over from `authTables.users` even though Discord is the only
+    // provider: overriding that table means anything the library expects to
+    // find has to be redeclared here, and a missing field would surface as a
+    // write failure inside the auth flow rather than as a type error.
+    phone: v.optional(v.string()),
+    phoneVerificationTime: v.optional(v.number()),
 
     /** Discord snowflake, once linked. The only third-party identifier stored. */
     discordId: v.optional(v.string()),
@@ -55,6 +61,7 @@ export default defineSchema({
     avatarUrl: v.optional(v.string()),
   })
     .index('email', ['email'])
+    .index('phone', ['phone'])
     .index('by_discord', ['discordId']),
 
   /**

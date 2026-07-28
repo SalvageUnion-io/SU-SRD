@@ -22,6 +22,7 @@ const modules = {
   // map, so these two are required even though no test imports them directly.
   './_generated/api.js': () => import('../_generated/api'),
   './_generated/server.js': () => import('../_generated/server'),
+  './account.ts': () => import('../account'),
   './games.ts': () => import('../games'),
   './invites.ts': () => import('../invites'),
   './ownership.ts': () => import('../ownership'),
