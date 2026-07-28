@@ -1,7 +1,7 @@
 {
-  "packages/salvageunion-reference": 89,
-  "packages/component-lib": 86,
+  "packages/salvageunion-reference": 95,
+  "packages/component-lib": 87,
   "apps/srd": 95,
   "apps/itun": 89,
-  "apps/discord-bot": 92
+  "apps/discord-bot": 95
 }
