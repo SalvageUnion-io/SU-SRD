@@ -86,6 +86,20 @@ type SheetProps = {
   store?: typeof useEntityStore
   /** Hides publish + disables all stat editing (snapshot contexts). */
   readOnly?: boolean
+  /**
+   * Pilot ability refs to use instead of the composition's.
+   *
+   * A published snapshot shares a LIVE INSTANCE but carries a private read-only
+   * store with no pilot record and no soft-links, so the composition resolves
+   * `pilot: null` — and pilot-sourced contributions (Beefcake's +3+X Max SP and
+   * +6 Cargo, ADR-029) would silently vanish, making a shared mech read lower
+   * than the same mech on its owner's sheet.
+   *
+   * The snapshot payload carries the refs, and this passes them in explicitly
+   * rather than fabricating a pilot record — a synthetic pilot would surface in
+   * the Linked Units rail as a unit that was never shared.
+   */
+  pilotAbilities?: string[]
 }
 
 export function Sheet({
@@ -95,6 +109,7 @@ export function Sheet({
   softLinkStore,
   store = useEntityStore,
   readOnly = false,
+  pilotAbilities,
 }: SheetProps) {
   const storeState = store()
   const [changeLogOpen, setChangeLogOpen] = useState(false)
@@ -258,7 +273,7 @@ export function Sheet({
     resolved.kind === 'pilot' ? (
       <SheetPilot pilot={resolved.entity} {...common} />
     ) : resolved.kind === 'mech' ? (
-      <SheetMech mech={resolved.entity} {...common} />
+      <SheetMech mech={resolved.entity} pilotAbilitiesOverride={pilotAbilities} {...common} />
     ) : (
       <SheetCrawler crawler={resolved.entity} {...common} />
     )

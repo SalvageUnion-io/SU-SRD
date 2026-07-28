@@ -26,10 +26,18 @@ import { AppLink } from '../shared/AppLink'
 import { crawlerRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
 
-type SheetMechProps = SheetViewCommonProps & { mech: Mech }
+type SheetMechProps = SheetViewCommonProps & {
+  mech: Mech
+  /**
+   * Pilot ability refs to use instead of the composition's — supplied by a
+   * published snapshot, whose read-only store has no pilot record (ADR-029).
+   */
+  pilotAbilitiesOverride?: string[]
+}
 
 export function SheetMech({
   mech,
+  pilotAbilitiesOverride,
   composition,
   back,
   actions,
@@ -42,7 +50,7 @@ export function SheetMech({
   const chassis = resolveChassisRef(mech.chassisRef)
   // Beefcake raises the piloted MECH (ADR-029), so the condensed strip needs
   // the same piloting context the body sheet uses or the two would disagree.
-  const piloting = { abilities: composition.pilot?.abilities }
+  const piloting = { abilities: pilotAbilitiesOverride ?? composition.pilot?.abilities }
   const maxSP = mechMaxSP(mech, chassis, piloting)
   const maxEP = mechMaxEP(mech, chassis)
   const maxHeat = mechMaxHeat(mech, chassis)
@@ -160,7 +168,7 @@ export function SheetMech({
           heroRef={heroRef}
           crawler={composition.crawler}
           linkedUnits={rail}
-          pilotAbilities={composition.pilot?.abilities}
+          pilotAbilities={pilotAbilitiesOverride ?? composition.pilot?.abilities}
         />
       )}
     />

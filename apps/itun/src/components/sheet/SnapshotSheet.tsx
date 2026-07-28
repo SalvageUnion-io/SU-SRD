@@ -38,9 +38,27 @@ type SnapshotSheetProps = {
   snapshot: Record<string, unknown>
 }
 
+/**
+ * Ability refs of the pilot this instance was published with.
+ *
+ * A snapshot shares a LIVE INSTANCE, and a live mech's maxima depend on its
+ * pilot: Beefcake raises the piloted mech's Max SP and Cargo (ADR-029). Without
+ * this a shared mech reads LOWER than the same mech on its owner's sheet.
+ *
+ * Absent on snapshots published before the field existed, and on kinds that have
+ * no piloting context — treated as "no contributions", never as an error.
+ */
+function parseContext(snapshot: Record<string, unknown>): string[] | undefined {
+  const context = snapshot.context
+  if (!isRecord(context)) return undefined
+  const refs = context.pilotAbilities
+  if (!Array.isArray(refs)) return undefined
+  return refs.filter((r): r is string => typeof r === 'string')
+}
+
 type ParseResult =
   | { ok: true; kind: 'pilot'; entity: Pilot }
-  | { ok: true; kind: 'mech'; entity: Mech }
+  | { ok: true; kind: 'mech'; entity: Mech; pilotAbilities?: string[] }
   | { ok: true; kind: 'crawler'; entity: Crawler }
   | { ok: false; reason: string }
 
@@ -75,7 +93,7 @@ function parseSnapshot(snapshot: Record<string, unknown>): ParseResult {
         reason: `Invalid mech data: ${parsed.error.message}`,
       }
     }
-    return { ok: true, kind: 'mech', entity: parsed.data }
+    return { ok: true, kind: 'mech', entity: parsed.data, pilotAbilities: parseContext(snapshot) }
   }
 
   if (kind === 'crawler') {
@@ -165,7 +183,13 @@ export function SnapshotSheet({ snapshot }: SnapshotSheetProps) {
         This is a read-only snapshot. Changes made in-game are not reflected here.
       </div>
 
-      <Sheet kind={result.kind} id={result.entity.id} store={store} readOnly />
+      <Sheet
+        kind={result.kind}
+        id={result.entity.id}
+        store={store}
+        pilotAbilities={result.kind === 'mech' ? result.pilotAbilities : undefined}
+        readOnly
+      />
     </div>
   )
 }
