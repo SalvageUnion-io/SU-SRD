@@ -30,8 +30,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun run typecheck 2>&1 | head -20",
-            "statusMessage": "Typechecking after edit..."
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/typecheck-scoped.sh",
+            "statusMessage": "Typechecking the edited workspace..."
           }
         ]
       }
