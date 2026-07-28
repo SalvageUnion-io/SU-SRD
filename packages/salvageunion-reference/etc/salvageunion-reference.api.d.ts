@@ -2181,15 +2181,11 @@ export {};
  * decides what the number is; inferring a value from prose is forbidden.
  */
 export type RulesClaim = 'cap' | 'effect';
-/** Sentences claiming a change to a derived MAXIMUM or a slot count. */
-export declare const CAP_CLAIM_PATTERN: RegExp;
-/** Sentences claiming a trait, damage or range change. */
-export declare const EFFECT_CLAIM_PATTERN: RegExp;
 /**
  * What kind of mechanical change this text claims, if any.
  *
- * Returns the first class that matches; `cap` wins over `effect` when a
- * sentence somehow reads as both, because a maximum is the more specific claim.
+ * `cap` wins over `effect` when a sentence reads as both, because a maximum is
+ * the more specific claim.
  */
 export declare function statesMechanicalChange(text: string | undefined): RulesClaim | null;
 //# sourceMappingURL=rulesBearing.d.ts.map
