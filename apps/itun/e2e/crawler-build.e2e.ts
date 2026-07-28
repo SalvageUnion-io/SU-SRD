@@ -71,9 +71,12 @@ test('arm a crawler further from its live sheet', async ({ page }) => {
   await page.waitForURL(/\/sheet\/crawler\//, { timeout: 15_000 })
   await waitForReady(page)
 
-  // '+ Add weapons system' opens CrawlerSystemsEditModal, whose searcher runs
-  // in toggle mode — click the selectable cell itself, not its prose.
-  await page.getByRole('button', { name: /^Add weapons system$/i }).click()
+  // The Armament Bay card's function control opens CrawlerSystemsEditModal.
+  // Each bay carries a verb rather than a generic add (BAY_FUNCTIONS in
+  // CrawlerSheetItems: Dock / Craft / Heal / Mount…), so the armament bay's
+  // control is labelled 'Mount' — that verb IS "open the weapons picker".
+  // The searcher runs in toggle mode: click the selectable cell, not its prose.
+  await page.getByRole('button', { name: /^Mount$/i }).click()
   const picker = page.getByRole('dialog')
   await expect(picker).toBeVisible()
   const weapon = picker.locator('[aria-pressed="false"], [aria-checked="false"]').first()
@@ -84,10 +87,10 @@ test('arm a crawler further from its live sheet', async ({ page }) => {
 
   // The bay's installed count is the write-through's visible effect, and it
   // survives a reload (IndexedDB, same record — no duplicate crawler).
-  await expect(page.getByText('No weapons installed.')).toHaveCount(0)
+  await expect(page.getByText('No weapons mounted.')).toHaveCount(0)
 
   await page.reload()
   await waitForReady(page)
-  await expect(page.getByText('No weapons installed.')).toHaveCount(0)
+  await expect(page.getByText('No weapons mounted.')).toHaveCount(0)
   await expect(page.getByText('Iron Wagon').first()).toBeVisible({ timeout: 15_000 })
 })

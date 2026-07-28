@@ -230,8 +230,41 @@ jobs:
   # nothing to provision. `a11y-srd` is intentionally absent from `needs:`: it
   # is advisory and must not open or hold open the tracking issue.
   # ---------------------------------------------------------------------------
+  observability-probe:
+    # The one observability check CI structurally CANNOT do on a PR: whether the
+    # Sentry DSN is actually provisioned on the Netlify sites. The repo can only
+    # prove the wiring (tools/check-observability.ts, run in `validate:all` on
+    # every PR); whether the deploy env carries the DSN is invisible until you
+    # look at what production actually serves. This fetches both sites and
+    # asserts the SDK is really in the bytes being sent to users.
+    #
+    # This is the check whose absence let a fully-built, unit-tested, release-
+    # tagged Sentry stack sit dark in production with zero events ever captured:
+    # with no DSN the guard folds to false at build time and the SDK is
+    # tree-shaken out, so the app looks identical to a working one.
+    #
+    # Gated on the `OBSERVABILITY_PROBE` repo variable so it stays inert until
+    # the DSN is provisioned. An alarm that rings every night for a thing that
+    # does not exist yet is exactly the broken window this nightly suite already
+    # suffered from — the failure mode is that you stop reading it. Flip it on
+    # (repo → Settings → Secrets and variables → Actions → Variables →
+    # OBSERVABILITY_PROBE = on) the moment the DSN lands, and a production that
+    # goes dark again opens the tracking issue like any other nightly failure.
+    if: vars.OBSERVABILITY_PROBE == 'on'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Probe production for the Sentry SDK
+        run: bun run validate:observability:live
+
   notify-failure:
-    needs: [e2e-itun, e2e-srd]
+    needs: [e2e-itun, e2e-srd, observability-probe]
     # NOT `failure()`. A job that exhausts its `timeout-minutes` is reported with
     # result `cancelled`, and `failure()` does not cover `cancelled` — so when
     # e2e-itun started timing out, `notify-failure` AND `notify-recovery` were
@@ -244,9 +277,15 @@ jobs:
     # concurrency group superseding this run) — that is a human action, not a
     # regression, and should not open an issue. A per-job timeout does NOT set
     # `cancelled()`, so timeouts still notify.
+    #
+    # observability-probe is compared with `== 'failure'`, NOT `!= 'success'`:
+    # it is skipped whenever the OBSERVABILITY_PROBE variable is off, and a
+    # skipped job must not open an issue. Only a real dark-production result
+    # notifies.
     if: >-
       always() && !cancelled() &&
-      (needs.e2e-itun.result != 'success' || needs.e2e-srd.result != 'success')
+      (needs.e2e-itun.result != 'success' || needs.e2e-srd.result != 'success' ||
+       needs.observability-probe.result == 'failure')
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -304,8 +343,18 @@ jobs:
             }
 
   notify-recovery:
-    needs: [e2e-itun, e2e-srd]
-    if: success()
+    needs: [e2e-itun, e2e-srd, observability-probe]
+    # NOT a bare `success()`. A job whose `needs:` includes a SKIPPED job is
+    # itself skipped unless its condition starts with always()/!cancelled() —
+    # and observability-probe is skipped whenever the OBSERVABILITY_PROBE
+    # variable is off. A bare `success()` here would therefore stop closing the
+    # tracking issue entirely the moment that job was added, quietly undoing the
+    # recovery half of this suite. Spell the conditions out instead, treating a
+    # skipped probe as "nothing to say" rather than as a failure.
+    if: >-
+      always() && !cancelled() &&
+      needs.e2e-itun.result == 'success' && needs.e2e-srd.result == 'success' &&
+      needs.observability-probe.result != 'failure'
     runs-on: ubuntu-latest
     permissions:
       issues: write
