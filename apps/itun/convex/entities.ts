@@ -145,6 +145,8 @@ export const create = mutation({
   args: {
     table: OWNABLE,
     gameId: v.union(v.id('games'), v.null()),
+    /** The local UUID this row mirrors, so later edits can address it. */
+    appId: v.optional(v.string()),
     body: v.any(),
   },
   handler: async (ctx, args): Promise<Id<'pilots'> | Id<'mechs'>> => {
@@ -155,6 +157,7 @@ export const create = mutation({
     return await ctx.db.insert(args.table, {
       gameId: args.gameId,
       ownerId: userId,
+      appId: args.appId,
       body,
       updatedAt: Date.now(),
     })
@@ -268,5 +271,73 @@ export const claimLocal = mutation({
     }
 
     return { claimed, skipped }
+  },
+})
+
+/**
+ * Look a row up by the app-level UUID the client holds.
+ *
+ * This is the whole point of the `appId` column: a client that only knows its
+ * local UUID can still address the server row, so updates and deletes work
+ * without a mapping table. One indexed lookup, not a scan.
+ */
+async function byAppId(
+  ctx: MutationCtx,
+  table: OwnableTable,
+  appId: string
+): Promise<Doc<'pilots'> | Doc<'mechs'> | null> {
+  return (await ctx.db
+    .query(table)
+    .withIndex('by_app_id', (q) => q.eq('appId', appId))
+    .unique()) as Doc<'pilots'> | Doc<'mechs'> | null
+}
+
+/**
+ * Mirror a local write to the server of record, addressed by app id.
+ *
+ * Upsert rather than update: the row may not exist yet if the entity was
+ * created while Solo and the account was claimed afterwards. Treating a missing
+ * row as "create it" is what makes the mirror converge instead of silently
+ * dropping the first edit after a claim.
+ */
+export const upsertByAppId = mutation({
+  args: {
+    table: OWNABLE,
+    appId: v.string(),
+    gameId: v.union(v.id('games'), v.null()),
+    body: v.any(),
+  },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+    await assertGameMemberOrShelfOwner(ctx, args.gameId, userId)
+    const body = parseBody(args.table, args.body)
+
+    const existing = await byAppId(ctx, args.table, args.appId)
+    if (existing === null) {
+      await ctx.db.insert(args.table, {
+        gameId: args.gameId,
+        ownerId: userId,
+        appId: args.appId,
+        body,
+        updatedAt: Date.now(),
+      })
+      return
+    }
+
+    assertMayWrite(existing, userId)
+    await ctx.db.patch(existing._id, { body, updatedAt: Date.now() })
+  },
+})
+
+/** Delete by app id. A row that is already gone is not an error. */
+export const removeByAppId = mutation({
+  args: { table: OWNABLE, appId: v.string() },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+    const existing = await byAppId(ctx, args.table, args.appId)
+    if (existing === null) return
+
+    assertMayWrite(existing, userId)
+    await ctx.db.delete(existing._id)
   },
 })
