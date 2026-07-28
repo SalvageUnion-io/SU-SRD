@@ -52,6 +52,7 @@ import {
 } from './dashboardRules'
 import type { MechItemEconomy } from '../sheet/mechItemRules'
 import type { PlayAction, PlayActionCurrency, TimingTab } from './dashboardRules'
+import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 
 type ActionsDeckProps = {
   mech: Mech
@@ -136,7 +137,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
         apCost: economy.epCost,
         currentAP: fresh.currentAP ?? 0,
       })
-      if (Object.keys(patch).length > 0) void s.update('pilot', pilot.id, patch)
+      if (Object.keys(patch).length > 0) void s.update('pilot', pilot.id, patch, DASHBOARD_TXN)
       setActivated(true)
       return
     }
@@ -152,7 +153,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
       prevUses: fresh.itemUses,
     })
     if (Object.keys(patch).length > 0) {
-      void s.update('mech', mech.id, patch)
+      void s.update('mech', mech.id, patch, DASHBOARD_TXN)
     }
     setActivated(true)
   }
@@ -188,7 +189,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
       currentSP: fresh.currentSP ?? 0,
       roll: defaultRoll,
     })
-    void s.update('mech', mech.id, patch)
+    void s.update('mech', mech.id, patch, DASHBOARD_TXN)
     setRoll(performCoreRoll(defaultRoll))
     setPushLog(describePushOutcome(nextHeat, effect))
     setApplied(false)

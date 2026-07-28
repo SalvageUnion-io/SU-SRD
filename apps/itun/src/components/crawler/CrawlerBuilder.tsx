@@ -47,6 +47,7 @@ import { CrawlerReviewStep } from './CrawlerReviewStep'
 import { CrawlerStatsStep } from 'component-lib'
 import { CrawlerTypeSelectStep } from 'component-lib'
 import { SystemsList } from 'component-lib'
+import { WIZARD_TXN } from '../../stores/surfaceProvenance'
 
 /**
  * Book-order steps (Union Crawler pp.212–213 + Review — plan §4.3). Edit mode
@@ -290,7 +291,7 @@ export function CrawlerBuilder({
         const stored = store.get('crawler', crawlerId)
         const oldType = stored?.type ?? null
 
-        await store.update('crawler', crawlerId, crawlerFormToUpdatePatch(form))
+        await store.update('crawler', crawlerId, crawlerFormToUpdatePatch(form), WIZARD_TXN)
 
         // Crew/NPC edits + the type-NPC reset / orphan cleanup route through the
         // shared multi-write helper (also used by the live sheet's inline build

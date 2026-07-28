@@ -38,6 +38,7 @@ import { FlavorStep } from 'component-lib'
 import { ReviewStep } from './ReviewStep'
 import { StatsStep } from './StatsStep'
 import type { RollTableDeps } from 'component-lib'
+import { WIZARD_TXN } from '../../stores/surfaceProvenance'
 import {
   clearWizardDraft,
   readWizardDraft,
@@ -356,7 +357,7 @@ export function PilotWizard({
 
       // Upsert branch: update when editing — NEVER a second create.
       if (pilotId) {
-        await store.update('pilot', pilotId, pilotFormToUpdatePatch(form))
+        await store.update('pilot', pilotId, pilotFormToUpdatePatch(form), WIZARD_TXN)
         toast.success(`Saved ${form.name.trim() || 'pilot'}.`)
         clearWizardDraft(draftKey)
         onComplete(pilotId)

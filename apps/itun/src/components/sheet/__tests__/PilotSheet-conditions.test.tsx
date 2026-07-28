@@ -22,6 +22,7 @@ import type { EntityLookup } from '../Sheet'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import {
   makeEntityStoreMock,
   makeEntityLookupMock,
@@ -127,9 +128,14 @@ describe('Pilot sheet — adding conditions (#254)', () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', basePilot.id, {
-      conditions: ['Exposed'],
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'pilot',
+      basePilot.id,
+      {
+        conditions: ['Exposed'],
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('appends to existing conditions rather than replacing', async () => {
@@ -148,9 +154,14 @@ describe('Pilot sheet — adding conditions (#254)', () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {
-      conditions: ['Impaired', 'Exposed'],
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'pilot',
+      pilot.id,
+      {
+        conditions: ['Impaired', 'Exposed'],
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('does not add a blank condition', async () => {
@@ -204,9 +215,14 @@ describe('Pilot sheet — removing conditions (#254)', () => {
       fireEvent.click(removeButton)
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {
-      conditions: ['Impaired'],
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'pilot',
+      pilot.id,
+      {
+        conditions: ['Impaired'],
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 })
 

@@ -16,6 +16,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { ConditionsEditor } from 'component-lib'
 import { mechConditionsPatch } from './mechItemRules'
 import { freshEntity } from './controlPrimitives'
+import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 
 type MechConditionsEditorProps = {
   mech: Mech
@@ -34,7 +35,7 @@ export function MechConditionsEditor({
   async function handleChange(next: string[]) {
     // Freshest record from the store so rapid edits don't stomp each other.
     const fresh = freshEntity(storeState, 'mech', mech)
-    await storeState.update('mech', mech.id, mechConditionsPatch(fresh, next))
+    await storeState.update('mech', mech.id, mechConditionsPatch(fresh, next), LIVE_SHEET_MANUAL)
   }
 
   return (

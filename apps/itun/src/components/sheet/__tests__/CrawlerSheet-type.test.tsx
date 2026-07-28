@@ -23,6 +23,7 @@ import { CrawlerIdentityPanel } from '../CrawlerIdentity'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 
 afterEach(() => {
   cleanup()
@@ -190,9 +191,14 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
       fireEvent.blur(input)
     })
 
-    expect(update).toHaveBeenCalledWith('crawler', crawler.id, {
-      bayChoices: { [BATTLE_REF]: { [BATTLE_MOTTO_ID]: ['No retreat'] } },
-    })
+    expect(update).toHaveBeenCalledWith(
+      'crawler',
+      crawler.id,
+      {
+        bayChoices: { [BATTLE_REF]: { [BATTLE_MOTTO_ID]: ['No retreat'] } },
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('Augmented edge: hitPoints:0 NPC renders no HP block', async () => {

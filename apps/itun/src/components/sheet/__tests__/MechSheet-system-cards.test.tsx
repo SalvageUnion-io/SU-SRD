@@ -24,6 +24,7 @@ import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { expandCards } from '../../__tests__/expandCards'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 
 // MechSheet resolves system/module slugs against the reference data at render.
 beforeAll(async () => {
@@ -109,9 +110,14 @@ describe('MechSheet — system/module entity cards (plan 4.5)', () => {
       fireEvent.click(badge)
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('mech', mech.id, {
-      systemConditions: { [REAL_SYSTEM]: 'damaged' },
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'mech',
+      mech.id,
+      {
+        systemConditions: { [REAL_SYSTEM]: 'damaged' },
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('an unresolvable module slug falls back to plain text and still cycles', async () => {
@@ -127,9 +133,14 @@ describe('MechSheet — system/module entity cards (plan 4.5)', () => {
       fireEvent.click(badge)
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('mech', mech.id, {
-      moduleConditions: { 'totally-not-a-real-module': 'damaged' },
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'mech',
+      mech.id,
+      {
+        moduleConditions: { 'totally-not-a-real-module': 'damaged' },
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('a damaged status badge cycles on to destroyed', async () => {
@@ -145,8 +156,13 @@ describe('MechSheet — system/module entity cards (plan 4.5)', () => {
       fireEvent.click(badge)
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('mech', mech.id, {
-      systemConditions: { [REAL_SYSTEM]: 'destroyed' },
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'mech',
+      mech.id,
+      {
+        systemConditions: { [REAL_SYSTEM]: 'destroyed' },
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 })

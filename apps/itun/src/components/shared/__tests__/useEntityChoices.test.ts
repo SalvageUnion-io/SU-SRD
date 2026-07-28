@@ -18,6 +18,7 @@ import { act, renderHook } from '@testing-library/react'
 import { useEntityChoices } from '../useEntityChoices'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -125,11 +126,16 @@ describe('useEntityChoices — setSelections persistence', () => {
     })
 
     expect(updateFn).toHaveBeenCalledTimes(1)
-    expect(updateFn).toHaveBeenCalledWith('pilot', PILOT_ID, {
-      equipmentChoices: {
-        'custom-sniper-rifle': { 'choice-weapon-type': ['Ballistic'] },
+    expect(updateFn).toHaveBeenCalledWith(
+      'pilot',
+      PILOT_ID,
+      {
+        equipmentChoices: {
+          'custom-sniper-rifle': { 'choice-weapon-type': ['Ballistic'] },
+        },
       },
-    })
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('merges into the per-item map without clobbering sibling items', async () => {
@@ -152,12 +158,17 @@ describe('useEntityChoices — setSelections persistence', () => {
       result.current.setSelections({ 'choice-weapon-type': ['Energy'] })
     })
 
-    expect(updateFn).toHaveBeenCalledWith('pilot', PILOT_ID, {
-      equipmentChoices: {
-        'auto-turret': { 'choice-name': ['Sentinel'] },
-        'custom-sniper-rifle': { 'choice-weapon-type': ['Energy'] },
+    expect(updateFn).toHaveBeenCalledWith(
+      'pilot',
+      PILOT_ID,
+      {
+        equipmentChoices: {
+          'auto-turret': { 'choice-name': ['Sentinel'] },
+          'custom-sniper-rifle': { 'choice-weapon-type': ['Energy'] },
+        },
       },
-    })
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('reads the freshest field map from the store (stale-closure guard)', async () => {

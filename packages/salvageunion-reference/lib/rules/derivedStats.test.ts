@@ -178,6 +178,7 @@ describe('mech derivation', () => {
 //   Transport Hold   -> statBonus.cargoCapacity = 4  (Core Book p.168)
 //   Heat Sink        -> statBonus.heatCapacity  = 1  (Core Book p.170)
 //   Capacitance Bank -> statBonus.energyPoints  = 2  (Core Book p.173)
+//   Composite Armour -> statBonus.structurePoints = 5  (Core Book p.173)
 // ---------------------------------------------------------------------------
 describe('installed system/module stat bonuses', () => {
   const bare = { chassisRef: 'no-such-chassis' }
@@ -194,6 +195,19 @@ describe('installed system/module stat bonuses', () => {
     // base heatCapacity 5 + 2 Heat Sinks (+1 each) = 7
     expect(mechMaxHeat(mech, chassis)).toBe(7)
     expect(installedStatBonus(mech, 'heatCapacity')).toBe(2)
+  })
+
+  it('applies Composite Armour +5 Max SP, per installed copy', () => {
+    // Its rules text -- "increases your Mech's Max SP by 5 for each Composite
+    // Armour System you have installed" -- is exactly the shape statBonus
+    // exists for, but the field was absent, so the system contributed nothing.
+    const one = { ...bare, systems: ['Composite Armour'] }
+    expect(installedStatBonus(one, 'structurePoints')).toBe(5)
+    expect(mechMaxSP(one, chassis)).toBe(15) // base 10 + 5
+
+    const two = { ...bare, systems: ['Composite Armour', 'Composite Armour'] }
+    expect(installedStatBonus(two, 'structurePoints')).toBe(10)
+    expect(mechMaxSP(two, chassis)).toBe(20) // base 10 + 5 + 5
   })
 
   it('adds installed bonuses on top of the hand-edited modifier', () => {

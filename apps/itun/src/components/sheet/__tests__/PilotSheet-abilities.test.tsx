@@ -21,6 +21,7 @@ import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { expandCards } from '../../__tests__/expandCards'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 
 beforeAll(async () => {
   // PilotSheet resolves abilities + their action AP costs from reference data,
@@ -97,7 +98,7 @@ describe('PilotSheet — spend AP (Slice D)', () => {
     })
 
     // 5 - 3 = 2
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentAP: 2 })
+    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentAP: 2 }, LIVE_SHEET_MANUAL)
   })
 
   test('spend clamps currentAP at 0 (never negative)', async () => {
@@ -111,7 +112,7 @@ describe('PilotSheet — spend AP (Slice D)', () => {
       fireEvent.click(screen.getByRole('button', { name: /spend 3 ap for talk shop/i }))
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentAP: 0 })
+    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentAP: 0 }, LIVE_SHEET_MANUAL)
   })
 
   test('spend button is disabled when AP is insufficient', async () => {
@@ -143,9 +144,14 @@ describe('PilotSheet — used/recharge toggle (Slice D)', () => {
       fireEvent.click(screen.getByRole('button', { name: /mark talk shop used/i }))
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {
-      usedAbilities: [ABILITY_TALK_SHOP],
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'pilot',
+      pilot.id,
+      {
+        usedAbilities: [ABILITY_TALK_SHOP],
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('recharging removes the slug from usedAbilities', async () => {
@@ -159,9 +165,14 @@ describe('PilotSheet — used/recharge toggle (Slice D)', () => {
       fireEvent.click(screen.getByRole('button', { name: /recharge talk shop/i }))
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {
-      usedAbilities: [],
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'pilot',
+      pilot.id,
+      {
+        usedAbilities: [],
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 })
 

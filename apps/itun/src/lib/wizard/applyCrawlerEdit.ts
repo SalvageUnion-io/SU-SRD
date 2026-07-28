@@ -25,6 +25,7 @@ import type { SURefCrawler } from 'salvageunion-reference'
 
 import type { Crawler } from '../schemas/crawler'
 import type { EntityState } from '../../stores/entityStore'
+import { WIZARD_TXN } from '../../stores/surfaceProvenance'
 import {
   crawlerFormCrewToPatches,
   defaultTypeNpcState,
@@ -57,7 +58,7 @@ export async function applyCrawlerCrewAndTypeEdit(
   const crewPatches = crawlerFormCrewToPatches(form)
   for (const [bayRef, patch] of Object.entries(crewPatches.bayPatches)) {
     if (Object.keys(patch).length === 0) continue
-    await storeState.updateCrawlerBay(crawlerId, bayRef, patch)
+    await storeState.updateCrawlerBay(crawlerId, bayRef, patch, undefined, WIZARD_TXN)
   }
 
   // Accumulate every crawler-RECORD field change into ONE atomic update.
@@ -86,6 +87,6 @@ export async function applyCrawlerCrewAndTypeEdit(
   }
 
   if (Object.keys(recordPatch).length > 0) {
-    await storeState.update('crawler', crawlerId, recordPatch)
+    await storeState.update('crawler', crawlerId, recordPatch, WIZARD_TXN)
   }
 }

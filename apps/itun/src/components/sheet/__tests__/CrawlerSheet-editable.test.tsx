@@ -24,6 +24,7 @@ import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 
 afterEach(() => {
   cleanup()
@@ -161,14 +162,20 @@ describe('CrawlerSheet — bay function/Repair actions (design §4.4, S12)', () 
     })
 
     // tech-2 crawler: 3 from tl2, then 2 from tl3 (TL+ scrap allowed).
-    expect(update).toHaveBeenCalledWith('crawler', fakeCrawler.id, {
-      scrapPool: { tl2: 0, tl3: 2 },
-    })
+    expect(update).toHaveBeenCalledWith(
+      'crawler',
+      fakeCrawler.id,
+      {
+        scrapPool: { tl2: 0, tl3: 2 },
+      },
+      LIVE_SHEET_MANUAL
+    )
     expect(updateCrawlerBay).toHaveBeenCalledWith(
       fakeCrawler.id,
       'command-bay',
       { condition: 'intact' },
-      0
+      0,
+      LIVE_SHEET_MANUAL
     )
   })
 
@@ -189,14 +196,20 @@ describe('CrawlerSheet — bay function/Repair actions (design §4.4, S12)', () 
       fireEvent.click(must(repair))
     })
 
-    expect(update).toHaveBeenCalledWith('crawler', broke.id, {
-      scrapPool: { tl2: 0 },
-    })
+    expect(update).toHaveBeenCalledWith(
+      'crawler',
+      broke.id,
+      {
+        scrapPool: { tl2: 0 },
+      },
+      LIVE_SHEET_MANUAL
+    )
     expect(updateCrawlerBay).toHaveBeenCalledWith(
       broke.id,
       'command-bay',
       { condition: 'intact' },
-      0
+      0,
+      LIVE_SHEET_MANUAL
     )
   })
 
@@ -221,7 +234,8 @@ describe('CrawlerSheet — bay function/Repair actions (design §4.4, S12)', () 
       fakeCrawler.id,
       'mech-bay',
       { condition: 'damaged' },
-      1
+      1,
+      LIVE_SHEET_MANUAL
     )
 
     // Command Bay (damaged, index 0) → back to Intact, not Destroyed.
@@ -235,7 +249,8 @@ describe('CrawlerSheet — bay function/Repair actions (design §4.4, S12)', () 
       fakeCrawler.id,
       'command-bay',
       { condition: 'intact' },
-      0
+      0,
+      LIVE_SHEET_MANUAL
     )
   })
 })

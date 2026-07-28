@@ -32,6 +32,7 @@ import { RailCta } from './SheetRailParts'
 import { AppLink } from '../shared/AppLink'
 import { bayStates, mechRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
+import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
 
@@ -59,7 +60,7 @@ export function SheetCrawler({
   // delta; the gauge shows "overridden from N" + a revert. Tagged `override`.
   const derivedMaxSP = maxSP - (crawler.maxSpModifier ?? 0)
   const overrideCrawlerMax = (fields: Partial<Crawler>) => {
-    void storeState.update('crawler', crawler.id, fields, { kind: 'override' })
+    void storeState.update('crawler', crawler.id, fields, LIVE_SHEET_OVERRIDE)
   }
   const modOrUndef = (next: number, derived: number): number | undefined => {
     const mod = next - derived

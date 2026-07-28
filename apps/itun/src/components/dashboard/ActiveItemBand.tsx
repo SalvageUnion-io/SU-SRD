@@ -36,6 +36,7 @@ import type { EntityState } from '../../stores/entityStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
 import { ActiveItemBand as ActiveItemBandView, CountStepper, StorageBay } from 'component-lib'
 import type { ActiveItemBandView as ActiveItemBandViewModel, BandButton } from 'component-lib'
+import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import {
   VENT_PATCH,
   critDamagePatch,
@@ -180,7 +181,7 @@ function MechBand({
       currentSP: Math.min(m.currentSP ?? spMax, spMax),
       roll: defaultRoll,
     })
-    void store.update('mech', mech.id, patch)
+    void store.update('mech', mech.id, patch, DASHBOARD_TXN)
     setPrompt({ kind: 'reactor', log: describePushOutcome(nextHeat, effect), meltdown })
   }
 
@@ -193,12 +194,12 @@ function MechBand({
       currentSP: Math.min(m.currentSP ?? spMax, spMax),
       roll: defaultRoll,
     })
-    void store.update('mech', mech.id, patch)
+    void store.update('mech', mech.id, patch, DASHBOARD_TXN)
     setPrompt({ kind: 'reactor', log: describeHeatCheck(effect), meltdown })
   }
 
   function doVent() {
-    void store.update('mech', mech.id, VENT_PATCH)
+    void store.update('mech', mech.id, VENT_PATCH, DASHBOARD_TXN)
     setPrompt({
       kind: 'reactor',
       log: 'Vented — Heat 0, Vulnerable. (Shut down separately if needed.)',
@@ -206,7 +207,7 @@ function MechBand({
   }
 
   function doShutdown() {
-    void store.update('mech', mech.id, shutdownTogglePatch(fresh().shutdown))
+    void store.update('mech', mech.id, shutdownTogglePatch(fresh().shutdown), DASHBOARD_TXN)
   }
 
   function applyDamage() {
@@ -218,7 +219,7 @@ function MechBand({
       amount: dmg,
       vulnerable: m.vulnerable ?? false,
     })
-    void store.update('mech', mech.id, patch)
+    void store.update('mech', mech.id, patch, DASHBOARD_TXN)
     if (effect.criticalDue) {
       setPrompt({ kind: 'crit', effect: null, log: `−${effect.effectiveDamage} SP → 0.` })
     } else {
@@ -228,20 +229,23 @@ function MechBand({
 
   function rollCritical() {
     const { patch, effect } = critDamagePatch(defaultRoll)
-    void store.update('mech', mech.id, patch)
+    void store.update('mech', mech.id, patch, DASHBOARD_TXN)
     setPrompt({ kind: 'crit', effect, log: describeCritDamage(effect) })
   }
 
   function confirmDestroyed() {
-    void store.update('mech', mech.id, { destroyed: true })
+    void store.update('mech', mech.id, { destroyed: true }, DASHBOARD_TXN)
     setPrompt(null)
   }
 
   function jettison(lotId: string) {
     const m = fresh()
-    void store.update('mech', mech.id, {
-      cargoLots: m.cargoLots.filter((lot) => lot.id !== lotId),
-    })
+    void store.update(
+      'mech',
+      mech.id,
+      { cargoLots: m.cargoLots.filter((lot) => lot.id !== lotId) },
+      DASHBOARD_TXN
+    )
   }
 
   const overlay = ((): ActiveItemBandViewModel['overlay'] => {
@@ -461,7 +465,7 @@ function PilotBand({
       amount: dmg,
       vulnerable: false,
     })
-    void store.update('pilot', pilot.id, patch)
+    void store.update('pilot', pilot.id, patch, DASHBOARD_TXN)
     if (effect.criticalDue) {
       setPrompt({ kind: 'crit', effect: null, log: `−${effect.effectiveDamage} HP → 0.` })
     } else {
@@ -471,7 +475,7 @@ function PilotBand({
 
   function rollInjury() {
     const { patch, effect } = critInjuryPatch(defaultRoll)
-    void store.update('pilot', pilot.id, patch)
+    void store.update('pilot', pilot.id, patch, DASHBOARD_TXN)
     setPrompt({ kind: 'crit', effect, log: describeCritInjury(effect) })
   }
 

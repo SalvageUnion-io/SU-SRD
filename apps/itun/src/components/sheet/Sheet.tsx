@@ -40,6 +40,7 @@ import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
 import { SheetPilot } from './SheetPilot'
 import type { SheetPatch } from './sheetViewProps'
+import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 
 // Re-exported so existing consumers (PublishButton, tests) keep their import.
 export type { EntityLookup } from './composition'
@@ -237,7 +238,7 @@ export function Sheet({
    */
   const patch: SheetPatch = (input) => {
     const fields = typeof input === 'function' ? input(storeState.get(kind, id) ?? entity) : input
-    void storeState.update(kind, id, fields)
+    void storeState.update(kind, id, fields, LIVE_SHEET_MANUAL)
   }
 
   const common = {

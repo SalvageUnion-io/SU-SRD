@@ -71,6 +71,7 @@ import {
 } from './PilotSheetItems'
 import { PartnerCard } from './PartnerCard'
 import { resolveAbility } from './pilotAbilities'
+import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 
 /**
  * The tree every pilot has regardless of class (Repair, Scrap, Mount, …).
@@ -324,7 +325,7 @@ export function PilotSheet({
       saveBuildEdit(fields, 'Change class')
       return
     }
-    void storeState.update('pilot', pilot.id, fields)
+    void storeState.update('pilot', pilot.id, fields, LIVE_SHEET_MANUAL)
   }
 
   // Cap overrides (ADR-022, Free Edit): pin HP/AP maxima via a signed
@@ -333,7 +334,7 @@ export function PilotSheet({
   const derivedMaxHP = maxHP - (pilot.maxHpModifier ?? 0)
   const derivedMaxAP = maxAP - (pilot.maxApModifier ?? 0)
   const overridePilotMax = (fields: Partial<Pilot>) => {
-    void storeState.update('pilot', pilot.id, fields, { kind: 'override' })
+    void storeState.update('pilot', pilot.id, fields, LIVE_SHEET_OVERRIDE)
   }
   const modOrUndef = (next: number, derived: number): number | undefined => {
     const mod = next - derived
@@ -344,14 +345,19 @@ export function PilotSheet({
   function toggleUsed(key: UsedToggleKey, next: boolean) {
     const fresh = freshPilot()
     const prev = fresh.usedToggles ?? {}
-    void storeState.update('pilot', pilot.id, {
-      usedToggles: { ...prev, [key]: next },
-    })
+    void storeState.update(
+      'pilot',
+      pilot.id,
+      {
+        usedToggles: { ...prev, [key]: next },
+      },
+      LIVE_SHEET_MANUAL
+    )
   }
 
   /** Persist the full conditions list (flat string set, no partial merge). */
   function handleConditionsChange(next: string[]) {
-    void storeState.update('pilot', pilot.id, { conditions: next })
+    void storeState.update('pilot', pilot.id, { conditions: next }, LIVE_SHEET_MANUAL)
   }
 
   // Collection add/remove (unified edit language archetype B) — always
@@ -376,19 +382,29 @@ export function PilotSheet({
 
   function toggleEquipment(equipmentId: string) {
     const equipment = freshPilot().equipment
-    void storeState.update('pilot', pilot.id, {
-      equipment: equipment.includes(equipmentId)
-        ? equipment.filter((e) => e !== equipmentId)
-        : [...equipment, equipmentId],
-    })
+    void storeState.update(
+      'pilot',
+      pilot.id,
+      {
+        equipment: equipment.includes(equipmentId)
+          ? equipment.filter((e) => e !== equipmentId)
+          : [...equipment, equipmentId],
+      },
+      LIVE_SHEET_MANUAL
+    )
   }
 
   async function handleEquipmentConditionChange(slug: string, next: ItemCondition) {
     const prev = freshPilot().equipmentConditions ?? {}
     const prevCondition = prev[slug] ?? 'intact'
-    await storeState.update('pilot', pilot.id, {
-      equipmentConditions: { ...prev, [slug]: next },
-    })
+    await storeState.update(
+      'pilot',
+      pilot.id,
+      {
+        equipmentConditions: { ...prev, [slug]: next },
+      },
+      LIVE_SHEET_MANUAL
+    )
     // U-6: landing on 'destroyed' offers a one-tap Undo (mis-tap mid-combat).
     if (next === 'destroyed' && prevCondition !== 'destroyed') {
       const name = resolveEquipment(slug)?.name ?? slug
@@ -400,9 +416,14 @@ export function PilotSheet({
 
   async function handleUsesChange(slug: string, next: number) {
     const prev = freshPilot().equipmentUses ?? {}
-    await storeState.update('pilot', pilot.id, {
-      equipmentUses: { ...prev, [slug]: next },
-    })
+    await storeState.update(
+      'pilot',
+      pilot.id,
+      {
+        equipmentUses: { ...prev, [slug]: next },
+      },
+      LIVE_SHEET_MANUAL
+    )
   }
 
   async function handleSpendAP(cost: number) {
@@ -410,7 +431,7 @@ export function PilotSheet({
     const current = p.currentAP ?? pilotMaxAP(p)
     const next = Math.max(0, current - cost)
     if (next === current) return
-    await storeState.update('pilot', pilot.id, { currentAP: next })
+    await storeState.update('pilot', pilot.id, { currentAP: next }, LIVE_SHEET_MANUAL)
   }
 
   async function handleAbilityUsedChange(slug: string, next: boolean) {
@@ -420,13 +441,18 @@ export function PilotSheet({
     } else {
       prev.delete(slug)
     }
-    await storeState.update('pilot', pilot.id, {
-      usedAbilities: Array.from(prev),
-    })
+    await storeState.update(
+      'pilot',
+      pilot.id,
+      {
+        usedAbilities: Array.from(prev),
+      },
+      LIVE_SHEET_MANUAL
+    )
   }
 
   async function handleGenericInventoryChange(next: GenericInventoryEntry[]) {
-    await storeState.update('pilot', pilot.id, { genericInventory: next })
+    await storeState.update('pilot', pilot.id, { genericInventory: next }, LIVE_SHEET_MANUAL)
   }
 
   /** One learned ability card — identical wherever its tree puts it. */
@@ -707,9 +733,14 @@ export function PilotSheet({
                   readOnly
                     ? undefined
                     : () => {
-                        void storeState.update('pilot', pilot.id, {
-                          partners: partners.filter((p) => p.id !== partner.id),
-                        })
+                        void storeState.update(
+                          'pilot',
+                          pilot.id,
+                          {
+                            partners: partners.filter((p) => p.id !== partner.id),
+                          },
+                          LIVE_SHEET_MANUAL
+                        )
                       }
                 }
               />
