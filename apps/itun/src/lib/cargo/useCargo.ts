@@ -28,6 +28,12 @@ import {
 type UseCargoOptions = {
   /** The mech side of the boundary (null/undefined when no mech is docked). */
   mech?: Mech | null
+  /**
+   * The assigned pilot's ability refs. Beefcake raises the piloted MECH's Cargo
+   * Capacity by 6 (ADR-029), so cargo capacity cannot be derived from the mech
+   * alone. Absent = unlinked, which correctly contributes nothing.
+   */
+  pilotAbilities?: string[]
   /** The crawler side (null/undefined when no crawler is linked). */
   crawler?: Crawler | null
   /** Injectable store hook for testing; the real Zustand store otherwise. */
@@ -79,6 +85,7 @@ async function commitUpdates(
 }
 
 export function useCargo({
+  pilotAbilities,
   mech,
   crawler,
   store = useEntityStore,
@@ -88,7 +95,7 @@ export function useCargo({
 
   const state: CargoBoundaryState = {
     carrierLots: mech?.cargoLots ?? [],
-    carrierCargoCap: mech ? mechMaxCargo(mech) : 0,
+    carrierCargoCap: mech ? mechMaxCargo(mech, undefined, { abilities: pilotAbilities }) : 0,
     depotLots: crawler?.cargoLots ?? [],
     scrapPool: crawler?.scrapPool ?? {},
   }
@@ -147,7 +154,7 @@ export function useCargo({
       {
         ...state,
         carrierLots: freshMech.cargoLots ?? [],
-        carrierCargoCap: mechMaxCargo(freshMech),
+        carrierCargoCap: mechMaxCargo(freshMech, undefined, { abilities: pilotAbilities }),
       },
       action
     )

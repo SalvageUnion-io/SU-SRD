@@ -55,6 +55,8 @@ import {
   pilotMaxHPParts,
 } from '../../lib/rules/derivedStats'
 import { useEntity } from '../../hooks/queries'
+import { useEntityStore } from '../../stores/entityStore'
+import { resolveSheetComposition } from './composition'
 import { captureMessage } from '../../lib/observability'
 import { deleteSnapshot, probeSnapshotService, publishSnapshot } from '../../lib/snapshot/client'
 import type { PublishResult, SnapshotPayload } from '../../lib/snapshot/client'
@@ -150,6 +152,19 @@ export function ShareSnapshotScreen({
 
   const entity = entityStore ? entityStore.get(kind, id) : liveEntity
 
+  // The assigned pilot's ability refs travel with a mech snapshot so
+  // pilot-sourced contributions resolve for a viewer (see handlePublish).
+  const store = useEntityStore.getState()
+  const pilotAbilities =
+    kind === 'mech'
+      ? resolveSheetComposition({
+          kind,
+          id,
+          links: store.list('softLink'),
+          store: entityStore ?? store,
+        }).pilot?.abilities
+      : undefined
+
   if (!entity) {
     return (
       <main className="mx-auto max-w-5xl p-6">
@@ -175,10 +190,20 @@ export function ShareSnapshotScreen({
     setCopied(false)
     setCopyError(null)
 
-    // Bare-entity snapshot payload (v1) — wired composition is post-beta.
+    // A snapshot shares a LIVE INSTANCE, so it must carry the context that
+    // instance's numbers depend on. Beefcake is a pilot ability that raises the
+    // piloted mech's Max SP and Cargo (ADR-029) — without the pilot's ability
+    // refs a shared mech would read LOWER than the same mech on its owner's
+    // sheet. (A mech PATTERN is the opposite case: a stateless build template
+    // with no pilot and no live instance, shared context-free — patterns do not
+    // go through this flow at all.)
+    //
+    // Additive to the v1 `{ kind, entity }` shape: older snapshots simply have
+    // no `context`, and the reader treats it as absent rather than empty.
     const payload: SnapshotPayload = {
       kind,
       entity,
+      ...(pilotAbilities ? { context: { pilotAbilities } } : {}),
     }
 
     try {
@@ -489,6 +514,10 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
   if (isMech(entity)) {
     const mech = entity
     const chassis = resolveChassisRef(mech.chassisRef)
+    // This is the PUBLISH-time preview card, which shows the bare entity being
+    // published. The published snapshot itself carries the pilot's ability refs
+    // (see handlePublish) and the VIEWER resolves them, so a shared mech reads
+    // the same numbers as its owner's sheet.
     const spParts = mechMaxSPParts(mech, chassis)
     const epParts = mechMaxEPParts(mech, chassis)
     const heatParts = mechMaxHeatParts(mech, chassis)

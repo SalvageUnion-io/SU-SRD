@@ -137,6 +137,18 @@ export {
 } from './derivedStats.js'
 export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js'
 export {
+  abilityContributions,
+  resolveAmount,
+  sumContributions,
+} from './contributions.js'
+export type {
+  ContributionStat,
+  ContributionTarget,
+  ContributionAmount,
+  DeclaredContribution,
+  ResolvedContribution,
+} from './contributions.js'
+export {
   MEDIATOR_TABLE_NAMES,
   MEDIATOR_TABLE_LABEL,
   performMediatorRoll,

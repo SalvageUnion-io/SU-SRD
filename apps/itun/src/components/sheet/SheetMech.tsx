@@ -25,11 +25,20 @@ import { RailCta } from './SheetRailParts'
 import { AppLink } from '../shared/AppLink'
 import { crawlerRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
+import { pilotingContext } from '../../lib/rules/pilotingContext'
 
-type SheetMechProps = SheetViewCommonProps & { mech: Mech }
+type SheetMechProps = SheetViewCommonProps & {
+  mech: Mech
+  /**
+   * Pilot ability refs to use instead of the composition's — supplied by a
+   * published snapshot, whose read-only store has no pilot record (ADR-029).
+   */
+  pilotAbilitiesOverride?: string[]
+}
 
 export function SheetMech({
   mech,
+  pilotAbilitiesOverride,
   composition,
   back,
   actions,
@@ -40,10 +49,13 @@ export function SheetMech({
   storeState,
 }: SheetMechProps) {
   const chassis = resolveChassisRef(mech.chassisRef)
-  const maxSP = mechMaxSP(mech, chassis)
+  // Beefcake raises the piloted MECH (ADR-029), so the condensed strip needs
+  // the same piloting context the body sheet uses or the two would disagree.
+  const piloting = pilotingContext(mech, pilotAbilitiesOverride ?? composition.pilot?.abilities)
+  const maxSP = mechMaxSP(mech, chassis, piloting)
   const maxEP = mechMaxEP(mech, chassis)
   const maxHeat = mechMaxHeat(mech, chassis)
-  const maxCargo = mechMaxCargo(mech, chassis)
+  const maxCargo = mechMaxCargo(mech, chassis, piloting)
   const cargoUsed = totalLotUnits(mech.cargoLots)
   const sp = Math.min(mech.currentSP ?? maxSP, maxSP)
   const ep = Math.min(mech.currentEP ?? maxEP, maxEP)
@@ -157,6 +169,7 @@ export function SheetMech({
           heroRef={heroRef}
           crawler={composition.crawler}
           linkedUnits={rail}
+          pilotAbilities={pilotAbilitiesOverride ?? composition.pilot?.abilities}
         />
       )}
     />

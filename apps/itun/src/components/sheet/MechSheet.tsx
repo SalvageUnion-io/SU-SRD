@@ -82,6 +82,7 @@ import { freshEntity } from './controlPrimitives'
 import type { SheetPatch } from './sheetViewProps'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { linesFromBreakdown } from 'component-lib'
+import { pilotingContext } from '../../lib/rules/pilotingContext'
 
 // Narrow subset of chassis data the stat derivations need
 type ChassisLike = {
@@ -125,6 +126,13 @@ type MechSheetProps = {
    * its own, so this is passed straight through into the R4 section.
    */
   linkedUnits?: ReactNode
+  /**
+   * The assigned pilot's ability refs, handed down by SheetMech from
+   * `composition`. Beefcake is a PILOT ability that raises the piloted MECH's
+   * Max SP and Cargo, so a mech's maxima cannot be derived from the mech alone
+   * (ADR-029). Absent = unlinked, which correctly contributes nothing.
+   */
+  pilotAbilities?: string[]
 }
 
 function resolveChassis(mech: Mech, override?: ChassisLike | null): ChassisLike | null {
@@ -142,10 +150,11 @@ export function MechSheet({
   heroRef,
   crawler = null,
   linkedUnits,
+  pilotAbilities,
 }: MechSheetProps) {
   const chassis = resolveChassis(mech, chassisOverride)
   const storeState = store()
-  const cargo = useCargo({ mech, crawler, store, readOnly })
+  const cargo = useCargo({ mech, crawler, store, readOnly, pilotAbilities })
   // Which collection's shared picker modal is open ('+ Add' — unified edit
   // language archetype B; always available, never rule-gated for now).
   const [picker, setPicker] = useState<ItemKind | null>(null)
@@ -170,9 +179,12 @@ export function MechSheet({
   const [warningSubtitle, setWarningSubtitle] = useState<string | null>(null)
 
   // Derived maxima (plan 2.5): chassis stat + hand-edited modifiers.
-  const spParts = mechMaxSPParts(mech, chassis)
-  const epParts = mechMaxEPParts(mech, chassis)
-  const heatParts = mechMaxHeatParts(mech, chassis)
+  // Beefcake is a PILOT ability that raises the piloted MECH's Max SP and Cargo,
+  // so a mech's maxima cannot be derived from the mech alone (ADR-029).
+  const piloting = pilotingContext(mech, pilotAbilities)
+  const spParts = mechMaxSPParts(mech, chassis, piloting)
+  const epParts = mechMaxEPParts(mech, chassis, piloting)
+  const heatParts = mechMaxHeatParts(mech, chassis, piloting)
   const maxSP = spParts.total
   const maxEP = epParts.total
   const heatCap = heatParts.total

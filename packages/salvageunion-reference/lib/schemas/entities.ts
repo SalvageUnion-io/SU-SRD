@@ -5,6 +5,7 @@
 import { z } from '../zod.js'
 import {
   BaseEntitySchema,
+  ContributionSchema,
   ContentSchema,
   PatternSchema,
   NpcSchema,
@@ -56,6 +57,14 @@ export const AbilitySchema = BaseEntitySchema.extend({
     'Currency type used for activation'
   ).optional(),
   actions: z.array(z.string()).describe('Action names this ability provides'),
+  contributions: z
+    .array(ContributionSchema)
+    .describe(
+      'Flat stat changes this ability makes (ADR-029). An ability could previously ' +
+        'declare no mechanical change at all, so Beefcake, Bionic Arms, Bionic Legs ' +
+        'and Modular Face Implant were inert prose.'
+    )
+    .optional(),
 })
   .strict()
   .describe('Pilot abilities and skills')

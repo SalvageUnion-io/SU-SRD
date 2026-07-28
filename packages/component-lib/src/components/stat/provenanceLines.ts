@@ -17,16 +17,18 @@ export type ProvenanceLabels = {
 }
 
 /**
- * Turn a numeric `StatBreakdown` into the labelled ledger `StatProvenance`
+ * Turn a `StatBreakdown` into the labelled ledger `StatProvenance`
  * renders (ADR-029).
  *
- * The contribution line is currently a single **aggregate** — the derivation
- * sums `statBonus` across installed items and returns one number, so there is no
- * honest way to attribute it per item yet. Per-source attribution ("Heat Sink
- * ×2", "Beefcake") arrives with the contribution model, which is what makes each
- * addend nameable; this helper is shaped to take those lines unchanged when it
- * does. Showing one truthful aggregate now beats inventing a breakdown the data
- * cannot support.
+ * Two kinds of contribution, deliberately kept apart:
+ *
+ *   - `installed` is an **aggregate**: the derivation sums `statBonus` across
+ *     installed items, so there is no honest per-item attribution yet. One
+ *     truthful aggregate beats an invented breakdown.
+ *   - `sources` are **named** — an ability, by name — and get a line each.
+ *
+ * Folding the second into the first is the bug this shape exists to prevent: it
+ * renders "Beefcake +7" as installed hardware.
  *
  * Zero-valued lines are omitted — a ledger listing "+0" for everything a mech
  * does not have is noise, not provenance.
@@ -50,6 +52,18 @@ export function linesFromBreakdown(
       label: labels.installed ?? 'Installed items',
       ...(labels.installedDetail ? { detail: labels.installedDetail } : {}),
       amount: parts.installed,
+    })
+  }
+
+  // Named contributions get a line EACH. They must never be folded into the
+  // aggregate above: doing so attributed an ability's bonus to installed
+  // hardware, which is a provenance panel lying about provenance.
+  for (const source of parts.sources ?? []) {
+    lines.push({
+      kind: 'contribution',
+      label: source.source,
+      ...(source.copies > 1 ? { detail: `×${source.copies}` } : {}),
+      amount: source.amount,
     })
   }
 

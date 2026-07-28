@@ -6,7 +6,8 @@
  *   - reference equipment: 1 slot, 2 when Heavy/Portable (ORM getInventorySlots)
  *   - unresolved slugs: counted at 1 so the total never lies low
  *   - generic entries: explicit slotCost × qty (Scrap = 3 per unit, plan S7)
- *   - capacity: base 6 + maxInventorySlotsModifier (Beefcake +4, rules A13)
+ *   - capacity: base 6 + maxInventorySlotsModifier + ability contributions
+ *     (Beefcake +4, rules A13 — now applied from the ability, not hand-entered)
  *
  * Uses accounting (rules A14): an item's max uses come from its `uses` trait
  * (on the equipment record or its matching action). `equipmentUses[slug]`
@@ -19,6 +20,7 @@ import { SalvageUnionReference, getInventorySlots, getTraits } from 'salvageunio
 import type { SURefEquipment } from 'salvageunion-reference'
 
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
+import { abilityContributions, sumContributions } from 'salvageunion-reference/rules'
 import { PILOT_BASE_INVENTORY_SLOTS } from '../../lib/rules/derivedStats'
 import { matchesRef } from 'salvageunion-reference/rules'
 
@@ -77,12 +79,20 @@ export function pilotInventoryUsed(pilot: PilotInventoryInput): number {
   return equipmentSlots + genericSlots
 }
 
-type PilotCapacityInput = Pick<Pilot, 'maxInventorySlotsModifier'>
+type PilotCapacityInput = Pick<Pilot, 'maxInventorySlotsModifier'> &
+  Partial<Pick<Pilot, 'abilities'>>
 
 /**
  * Inventory capacity (rules A13: 6 base) plus the hand-edited passive bonus
- * (`maxInventorySlotsModifier`, e.g. Beefcake +4). Never below 0.
+ * (`maxInventorySlotsModifier`) PLUS any ability contributions (Beefcake +4).
+ * Never below 0.
  */
 export function pilotInventoryCapacity(pilot?: PilotCapacityInput): number {
-  return Math.max(0, PILOT_BASE_INVENTORY_SLOTS + (pilot?.maxInventorySlotsModifier ?? 0))
+  const fromAbilities = sumContributions(
+    abilityContributions(pilot?.abilities, 'pilot', 'inventorySlots')
+  )
+  return Math.max(
+    0,
+    PILOT_BASE_INVENTORY_SLOTS + (pilot?.maxInventorySlotsModifier ?? 0) + fromAbilities
+  )
 }
