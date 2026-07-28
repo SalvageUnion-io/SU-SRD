@@ -1,8 +1,10 @@
 /**
- * Tests for SrdExplorer — the Dashboard's SRD Explorer focus (D4). Verifies the
- * search box + 8 category tiles render, that picking a tile lists that
- * category, and that picking a row drills into the reference card with a back
- * affordance. Reference content needs the ORM, so preload('all') runs once.
+ * Tests for SrdExplorer — the Dashboard's SRD Explorer focus (D4). It renders
+ * the srd landing page's catalog without the site header, so the assertions are
+ * against `buildCatalogSections()` (the shared source) rather than a hand-listed
+ * set of tiles: that is the whole point of the change, and hard-coding the
+ * tiles here would reintroduce the drift it removed. Reference content needs
+ * the ORM, so preload('all') runs once.
  */
 
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
@@ -10,6 +12,7 @@ import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { EntityHrefProvider } from '../../referenceEntity/entityHrefContext'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
+import { buildCatalogSections } from '../../../catalog/catalogSections'
 import { SrdExplorer } from '../SrdExplorer'
 
 beforeAll(async () => {
@@ -40,48 +43,53 @@ function renderSrd() {
   )
 }
 
-const TILE_LABELS = [
-  'Chassis',
-  'Systems',
-  'Modules',
-  'Pilot Abilities',
-  'Equipment',
-  'NPCs',
-  'Crawler Bays',
-  'Roll Tables',
-]
+/** Find a catalog tile by its visible name. */
+function tile(container: HTMLElement, name: string): HTMLButtonElement {
+  return mustButton(
+    [...container.querySelectorAll('.pc-srd-catalog-grid button')].find(
+      (b) => b.textContent?.trim() === name
+    )
+  )
+}
+
+const sections = () => buildCatalogSections()
 
 describe('SrdExplorer', () => {
-  test('renders a search box + the 8 category tiles', () => {
+  test('renders a search box + every catalog section and tile', () => {
     const { container } = renderSrd()
     expect(container.querySelector('input[role="combobox"]')).toBeTruthy()
-    const labels = [...container.querySelectorAll('.pc-srd-tile-label')].map((t) => t.textContent)
-    expect(labels).toEqual(TILE_LABELS)
+
+    const expected = sections()
+    const headings = [...container.querySelectorAll('.pc-srd-catalog h2')].map((h) =>
+      h.textContent?.trim()
+    )
+    expect(headings).toEqual(expected.map((s) => s.label))
+
+    const tiles = [...container.querySelectorAll('.pc-srd-catalog-grid button')].map((b) =>
+      b.textContent?.trim()
+    )
+    expect(tiles).toEqual(expected.flatMap((s) => s.schemas.map((c) => c.label)))
   })
 
-  test('picking a tile lists that category with rows', () => {
-    const { container, getAllByRole } = renderSrd()
-    const chassisTile = mustButton(
-      getAllByRole('button').find(
-        (b) => b.querySelector('.pc-srd-tile-label')?.textContent === 'Chassis'
-      )
-    )
-    fireEvent.click(chassisTile)
-    // Now in the category listing.
+  test('the catalog covers schemas the old hand-listed tiles missed', () => {
+    const { container } = renderSrd()
+    // Classes / Crawlers / Traits are in the SRD catalog but had no tile here.
+    expect(tile(container, 'Classes')).toBeTruthy()
+    expect(tile(container, 'Crawlers')).toBeTruthy()
+    expect(tile(container, 'Traits')).toBeTruthy()
+  })
+
+  test('picking a schema tile lists that category with rows', () => {
+    const { container } = renderSrd()
+    fireEvent.click(tile(container, 'Chassis'))
     expect(container.querySelector('.pc-srd-crumb-title')?.textContent).toContain('Chassis')
     expect(container.querySelectorAll('.pc-srd-row').length).toBeGreaterThan(0)
   })
 
   test('picking a row drills into a reference card, back returns to the list', () => {
     const { container } = renderSrd()
-    const chassisTile = mustButton(
-      [...container.querySelectorAll('.pc-srd-tile')].find(
-        (b) => b.querySelector('.pc-srd-tile-label')?.textContent === 'Chassis'
-      )
-    )
-    fireEvent.click(chassisTile)
-    const firstRow = mustButton(container.querySelector('.pc-srd-row'))
-    fireEvent.click(firstRow)
+    fireEvent.click(tile(container, 'Chassis'))
+    fireEvent.click(mustButton(container.querySelector('.pc-srd-row')))
     // The reference card renders; no longer a listing.
     expect(container.querySelector('.pc-srd-entity')).toBeTruthy()
     expect(container.querySelector('.pc-srd-rows')).toBeNull()
@@ -94,18 +102,27 @@ describe('SrdExplorer', () => {
     expect(container.querySelectorAll('.pc-srd-row').length).toBeGreaterThan(0)
   })
 
-  test('category back affordance returns to the tiles home', () => {
+  test('a flat (guide) tile opens that entity outright', () => {
     const { container } = renderSrd()
-    const tile = mustButton(container.querySelector('.pc-srd-tile'))
-    fireEvent.click(tile)
+    fireEvent.click(tile(container, 'Heat'))
+    // Guides are single entities, so there is no intermediate listing.
+    expect(container.querySelector('.pc-srd-entity')).toBeTruthy()
+    expect(container.querySelector('.pc-srd-rows')).toBeNull()
+  })
+
+  test('category back affordance returns to the catalog', () => {
+    const { container } = renderSrd()
+    fireEvent.click(tile(container, 'Systems'))
     expect(container.querySelector('.pc-srd-rows')).toBeTruthy()
     fireEvent.click(
       mustButton(
         [...container.querySelectorAll('button')].find((b) => b.textContent?.startsWith('◀'))
       )
     )
-    // Back at the tiles home.
-    expect(container.querySelectorAll('.pc-srd-tile').length).toBe(8)
+    // Back at the catalog.
+    expect(container.querySelectorAll('.pc-srd-catalog-grid button').length).toBe(
+      sections().reduce((n, s) => n + s.schemas.length, 0)
+    )
   })
 
   test('search surfaces results and picking an entity drills in', async () => {

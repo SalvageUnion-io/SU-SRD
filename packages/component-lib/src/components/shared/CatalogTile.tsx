@@ -17,7 +17,14 @@ import { CATALOG_TILE_CHROME, CATALOG_TILE_FILL, CATALOG_TILE_LABEL } from '../c
  */
 
 type CatalogTileProps = {
-  href: string
+  /** Where the tile navigates. Ignored when `onActivate` is set. */
+  href?: string
+  /**
+   * Drill in place instead of navigating — the tile renders as a `<button>`
+   * with identical chrome. The Dashboard's SRD Explorer shows the same catalog
+   * inside a panel, where a link would take the player off the Dashboard.
+   */
+  onActivate?: () => void
   name: string
   /** Tile background — any CSS color/gradient string. Required by the default
    *  variant; the `ghost` variant ignores it (it fills with paper). */
@@ -52,6 +59,7 @@ const NAME_GHOST = 'font-cond text-lg font-bold uppercase tracking-caps-tight te
 
 export function CatalogTile({
   href,
+  onActivate,
   name,
   catalogBg,
   catalogLabel,
@@ -64,15 +72,29 @@ export function CatalogTile({
     ...(catalogLabel ? { '--catalog-label': catalogLabel } : {}),
   }
 
+  const className = cn(
+    CATALOG_TILE_CHROME,
+    TILE_LAYOUT,
+    isGhost ? TILE_GHOST : CATALOG_TILE_FILL,
+    onActivate && 'w-full text-center'
+  )
+  const label = (
+    <span className={isGhost ? NAME_GHOST : cn(NAME, catalogLabel && CATALOG_TILE_LABEL)}>
+      {name}
+    </span>
+  )
+
+  if (onActivate) {
+    return (
+      <button type="button" onClick={onActivate} className={className} style={style}>
+        {label}
+      </button>
+    )
+  }
+
   return (
-    <a
-      href={href}
-      className={cn(CATALOG_TILE_CHROME, TILE_LAYOUT, isGhost ? TILE_GHOST : CATALOG_TILE_FILL)}
-      style={style}
-    >
-      <span className={isGhost ? NAME_GHOST : cn(NAME, catalogLabel && CATALOG_TILE_LABEL)}>
-        {name}
-      </span>
+    <a href={href} className={className} style={style}>
+      {label}
     </a>
   )
 }

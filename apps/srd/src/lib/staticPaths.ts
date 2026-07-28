@@ -7,7 +7,7 @@ import {
 } from './gameData'
 import { nameToSlug, normalizePatternName, visiblePatterns } from 'salvageunion-reference'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
-import { isSchemaName } from './schemaName'
+import { isSchemaName } from 'component-lib'
 
 const catalog = getSchemaCatalog()
 

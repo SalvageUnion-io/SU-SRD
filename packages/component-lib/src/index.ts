@@ -105,6 +105,25 @@ export { RecoveryPanel } from './components/shared/RecoveryPanel'
 // Icon glyphs — currentColor, 1em, CSP-safe (ruleset §5, atom 11)
 export { Glyph } from './components/chrome/glyphs'
 
+// SRD catalog — the landing-page category sections, their tile colours, and the
+// schema-name guard. Shared so srd's landing page/top nav and the Dashboard's
+// SRD Explorer render one catalog rather than two hand-listed ones.
+export { buildCatalogSections } from './catalog/catalogSections'
+export {
+  buildCatalogCategories,
+  catalogNameOverrides,
+  invariantNouns,
+  pluralize,
+  pluralizeWord,
+} from './catalog/catalogHelpers'
+export type {
+  CatalogCard,
+  CatalogCategory,
+  CatalogSection,
+} from './catalog/catalogHelpers'
+export { getCatalogBg, getCatalogLabel } from './catalog/catalogColors'
+export { isSchemaName } from './catalog/schemaName'
+
 // Utilities — the ONE cn(): its tailwind-merge config knows the custom
 // text/tracking/border-width utilities (consumers must not re-wrap twMerge
 // with the default config, which drops them as unknown "colors").

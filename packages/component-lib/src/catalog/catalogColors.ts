@@ -1,4 +1,7 @@
-import { resolveSchemaDomain, type CardDomain } from 'component-lib'
+import {
+  resolveSchemaDomain,
+  type CardDomain,
+} from '../components/referenceEntity/card/entityCardTone'
 
 const techLevelGradient = [1, 2, 3, 4, 5, 6]
   .map((tl, i, arr) => {

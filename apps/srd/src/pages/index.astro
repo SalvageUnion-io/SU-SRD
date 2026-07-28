@@ -1,24 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { CatalogTile, SectionHeader } from 'component-lib'
-import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from '../lib/gameData'
-import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
-import { buildCatalogCategories } from '../lib/catalogHelpers'
+import { buildCatalogSections, CatalogTile, SectionHeader } from 'component-lib'
+import '../lib/gameData'
 import { SITE_URL } from '../lib/constants'
 
-const catalog = getSchemaCatalog()
-const schemas = catalog.schemas.filter((s) => !s.meta)
-const schemaMap = new Map(schemas.map((s) => [s.id, s]))
-const catalogCategories = SalvageUnionReference.CatalogCategories.all()
-
-const categories = buildCatalogCategories({
-  catalogCategories,
-  schemaMap,
-  findAllIn: (schemaName, pred) => SalvageUnionReference.findAllIn(schemaName, pred),
-  getReferenceEntityData,
-  getCatalogBg,
-  getCatalogLabel,
-})
+const categories = buildCatalogSections()
 ---
 
 <BaseLayout

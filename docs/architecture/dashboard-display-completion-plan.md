@@ -112,9 +112,13 @@ Controls above the `deckgrid`:
 ### 2.4 SRD Explorer (`srd` focus)
 
 - **Search box** — _"Search the SRD — chassis, systems, abilities, tables…"_
-- **8 category tiles** — Chassis (CHS) · Systems (SYS) · Modules (MOD) · Pilot
+- ~~**8 category tiles** — Chassis (CHS) · Systems (SYS) · Modules (MOD) · Pilot
   Abilities (ABL) · Equipment (EQP) · NPCs (NPC) · Crawler Bays (BAY) · Roll Tables
-  (TBL).
+  (TBL).~~ **Superseded.** The Explorer renders the **srd landing page's catalog
+  minus the site header** — the same category sections and `CatalogTile`s from the
+  shared `buildCatalogSections()`, so it covers all 23 schemas plus the guides
+  rather than a hand-listed 8 that silently missed Classes, Crawlers, Traits and
+  everything added since. Tiles drill in place instead of navigating.
 - Result cards drill into the real `ReferenceEntityDisplay` (the mockup stubs this
   with _"Full ReferenceEntityDisplay renders here."_).
 
@@ -296,9 +300,10 @@ tests.
 
 ### D4 — SRD Explorer (currently a hard stub)
 
-- **Search box** via `useSearchCombobox` / `search()`, **8 category tiles** over the
-  real accessors (§4.4), results drilling into `ReferenceEntityDisplay` in-panel
-  (shares D5's `EntityHrefProvider`). Respect the preload hazard.
+- **Search box** via `useSearchCombobox` / `search()`, the **SRD catalog** via the
+  shared `buildCatalogSections()` (see §2.4 — this replaced the planned 8 hand-listed
+  tiles), results drilling into `ReferenceEntityDisplay` in-panel (shares D5's
+  `EntityHrefProvider`). Respect the preload hazard.
 - Touches: `DisplayPanel.tsx` (`srd` branch) + a small `SrdExplorer`.
 
 ### D6 — Display visual fidelity (fold into D1–D5, not a separate build)
@@ -333,7 +338,7 @@ React` (React→`Reaction`). No bucketing; each type is its own tab.
   heat-vs-cap projection; Dashboard-local state (§4.2).
 - **Range** = lightweight self-declared band (`playStateStore.range`), compared
   against `action.range`. No enemy/target model (matches local-first).
-- **SRD Explorer** = search + 8 tiles + `ReferenceEntityDisplay` drill-in (reusing
-  `useSearchCombobox`), _not_ a separate standalone browser.
+- **SRD Explorer** = search + the shared SRD catalog + `ReferenceEntityDisplay`
+  drill-in (reusing `useSearchCombobox`), _not_ a separate standalone browser.
 - **Apply** auto-commits non-destructive rolled outcomes; destructive outcomes route
   through confirm/undo (ADR-007).

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { getSchemaCatalog, SalvageUnionReference } from 'salvageunion-reference'
-import { resolveSchemaDomain } from 'component-lib'
+import { resolveSchemaDomain } from '../../components/referenceEntity/card/entityCardTone'
 import { getCatalogBg } from '../catalogColors'
 
 const FALLBACK_COLOR = 'var(--color-pilot)'

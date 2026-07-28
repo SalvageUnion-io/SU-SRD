@@ -158,6 +158,12 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
       'Named exemption in canonical-primitive-language.md §Known-deviations: the Slab dashed leader is a deliberate control-panel shape built on ink tokens.',
   },
   {
+    file: 'packages/component-lib/src/catalog/catalogColors.ts',
+    rules: ['gradient'],
+    reason:
+      "All three gradients are HARD-STOP patterns, which the gradient rule's own fix text allows ('hard colour stops if you mean a pattern') — the tech-level ramp repeats each --color-tl-N twice at exact boundaries, and the ability-tier / class gradients do the same. No shading, and every stop is a token. A catalog tile stands in for a whole SPREAD of entities (six tech levels, three ability tiers, core→hybrid classes) rather than one hue, which is what the banding says. Not new code: this file lived in apps/srd, which the guard does not scan, and only became visible when it moved into component-lib to be shared with the Dashboard's SRD Explorer.",
+  },
+  {
     file: 'packages/component-lib/src/stories',
     rules: [
       'raw-color',
