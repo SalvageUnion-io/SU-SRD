@@ -25,7 +25,7 @@ import type { ActionsDeckView as ActionsDeckViewModel, DeckRow } from 'component
 import { CORE_ROLL_BANDS, describePushOutcome, performCoreRoll } from '../../lib/rules/coreMechanic'
 import type { CoreRollResult } from '../../lib/rules/coreMechanic'
 import { defaultRoll } from '../../lib/rules/heatCheck'
-import { mechMaxHeat } from '../../lib/rules/derivedStats'
+import { mechMaxEP, mechMaxHeat, mechMaxSP, pilotMaxAP } from '../../lib/rules/derivedStats'
 import { canActivateAction, resolveChassisRef } from 'salvageunion-reference/rules'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
@@ -133,9 +133,14 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
     if (effCurrency === 'AP') {
       if (!pilot) return
       const fresh = s.get('pilot', pilot.id) ?? pilot
+      // An unrecorded live stat means UNSPENT, not empty — a pilot who has never
+      // spent AP is at full AP. Defaulting to 0 here banked the spend against an
+      // empty pool and wrote AP 0 on the first activation. The stored value stays
+      // authoritative when present (same rule as ActiveItemBand's damage write):
+      // never clamp it here, since an unresolved ref makes the max 0.
       const patch = pilotActivationPatch({
         apCost: economy.epCost,
-        currentAP: fresh.currentAP ?? 0,
+        currentAP: fresh.currentAP ?? pilotMaxAP(fresh),
       })
       if (Object.keys(patch).length > 0) void s.update('pilot', pilot.id, patch, DASHBOARD_TXN)
       setActivated(true)
@@ -147,7 +152,8 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
     const patch = activationPatch({
       slug: action.slug,
       economy,
-      currentEP: fresh.currentEP ?? 0,
+      // Unrecorded EP means a mech that has never spent any — full, not empty.
+      currentEP: fresh.currentEP ?? mechMaxEP(fresh, chassis),
       currentHeat: fresh.currentHeat ?? 0,
       heatCap,
       prevUses: fresh.itemUses,
@@ -186,7 +192,9 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
     const { patch, effect, nextHeat } = pushPatch({
       heat: Math.min(fresh.currentHeat ?? 0, cap),
       heatCap: cap,
-      currentSP: fresh.currentSP ?? 0,
+      // Unrecorded SP means undamaged. At 0 an Overheat wrote the mech straight
+      // to SP 0 — one hit from destroyed — without it ever having taken damage.
+      currentSP: fresh.currentSP ?? mechMaxSP(fresh, chassis),
       roll: defaultRoll,
     })
     void s.update('mech', mech.id, patch, DASHBOARD_TXN)

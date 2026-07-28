@@ -17,6 +17,8 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { mechMaxEP, mechMaxHeat, mechMaxSP, pilotMaxAP } from '../../../lib/rules/derivedStats'
 import { itemEconomy, resolveModule, resolveSystem } from '../../sheet/mechItemRules'
 import { ActionsDeck } from '../ActionsDeck'
 import { hasCurrencyChoice, hasVariableHot, hotHeatFor } from '../dashboardRules'
@@ -390,5 +392,116 @@ describe('ActionsDeck', () => {
     expect(ability.actionNames.some((n) => labels.includes(n))).toBe(true)
     // The mech is left behind — none of its actions are reachable on foot.
     expect(mechActionNames().some((n) => labels.includes(n))).toBe(false)
+  })
+})
+
+/**
+ * An UNRECORDED live stat means unspent/undamaged, not empty. The deck's three
+ * write paths each defaulted the missing value to 0, so the first Activate or
+ * Push on a mech (or pilot) that had never had the field written banked the
+ * spend against an empty pool and stored EP 0 / AP 0 / SP 0 — a record that
+ * displayed full everywhere else, because every read path defaults to the max.
+ *
+ * These use a REAL chassis: `unknown-chassis` (used above) derives a max of 0,
+ * which would make the assertions pass under the old behaviour too.
+ */
+describe('ActionsDeck — unrecorded live stats default to full, not empty', () => {
+  const CHASSIS = 'Leviathan'
+
+  test('Activate spends EP from the full pool when EP was never stored', () => {
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: CHASSIS,
+      systems: [costedSystemId],
+      currentHeat: 0,
+    })
+    expect(mech.currentEP).toBeUndefined()
+    const { store, calls } = stubStore(mech)
+    const { container } = renderDeck(mech, store)
+    const { epCost } = clickPrimaryAction(container)
+    fireEvent.click(screen.getByText('Activate'))
+
+    const epMax = mechMaxEP(mech, resolveChassisRef(CHASSIS))
+    expect(epMax).toBeGreaterThan(epCost)
+    expect(calls).toHaveLength(1)
+    // Previously Math.max(0, 0 - epCost) === 0 — the mech's EP was zeroed.
+    expect(calls[0]?.patch.currentEP).toBe(epMax - epCost)
+  })
+
+  test('Activate spends AP from the full pool when AP was never stored', () => {
+    const mod = epApModule as { id: string; actionName: string }
+    expect(mod).toBeTruthy()
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: CHASSIS,
+      modules: [mod.id],
+      currentHeat: 0,
+    })
+    const pilot = pilotFixture({ id: 'p1', name: 'Vex' })
+    expect(pilot.currentAP).toBeUndefined()
+    const calls: Call[] = []
+    const store: PlayStore = makeEntityStoreMock({
+      get: (type, id) =>
+        type === 'mech' && id === mech.id
+          ? mech
+          : type === 'pilot' && id === pilot.id
+            ? pilot
+            : null,
+      update: async (type, id, patch) => {
+        calls.push({ type, id, patch })
+        return mech
+      },
+    }).getState()
+    const { container } = render(
+      <EntityHrefProvider value={() => undefined}>
+        <ActionsDeck mech={mech} pilot={pilot} mount="mech" store={store} />
+      </EntityHrefProvider>
+    )
+    clickActionByName(container, mod.actionName)
+    fireEvent.click(screen.getByLabelText('1 AP'))
+    fireEvent.click(screen.getByText('Activate'))
+
+    const apMax = pilotMaxAP(pilot)
+    expect(apMax).toBeGreaterThan(1)
+    expect(calls).toHaveLength(1)
+    expect(calls[0]?.type).toBe('pilot')
+    // Previously Math.max(0, 0 - 1) === 0 — the pilot's AP was zeroed.
+    expect(calls[0]?.patch.currentAP).toBe(apMax - 1)
+  })
+
+  test('Push damages SP from the full pool when SP was never stored', () => {
+    // Leviathan is SP 76 / Heat Cap 18. Starting at Heat 17 every Push clamps to
+    // the cap, so the Heat Check overloads on any d20 except a natural 20 (90%)
+    // and the 11-19 Overheat band (45%) then writes SP — ~40% of pushes. Over 80
+    // pushes at least one SP write is a certainty for any practical purpose.
+    // The damage is Heat-sized, so the expected write is 76 - 18 = 58, never 0.
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: CHASSIS,
+      systems: [costedSystemId],
+      currentHeat: 17,
+    })
+    expect(mech.currentSP).toBeUndefined()
+    const chassis = resolveChassisRef(CHASSIS)
+    const spMax = mechMaxSP(mech, chassis)
+    const heatAtCheck = mechMaxHeat(mech, chassis)
+    expect(spMax).toBeGreaterThan(heatAtCheck)
+
+    const { store, calls } = stubStore(mech)
+    const { container } = renderDeck(mech, store)
+    clickPrimaryAction(container)
+    fireEvent.click(screen.getByText('Roll')) // Push stays disabled until a roll exists
+    for (let i = 0; i < 80; i += 1) fireEvent.click(screen.getByText('Push'))
+
+    const spWrites = calls
+      .map((c) => c.patch.currentSP)
+      .filter((v): v is number => typeof v === 'number')
+    expect(spWrites.length).toBeGreaterThan(0)
+    // Previously every one of these was Math.max(0, 0 - heat) === 0: an undamaged
+    // mech recorded at SP 0, one hit from destroyed.
+    for (const v of spWrites) expect(v).toBe(spMax - heatAtCheck)
   })
 })
