@@ -2,6 +2,30 @@
 
 Maintained by release-please (see ADR-024).
 
+## [0.8.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.7.0...itun-v0.8.0) (2026-07-28)
+
+
+### Features
+
+* **itun:** a blocked Push teaches the rule instead of greying out ([#628](https://github.com/SalvageUnion-io/SU-SRD/issues/628)) ([e94e2e4](https://github.com/SalvageUnion-io/SU-SRD/commit/e94e2e43bdaa7e7b54255cf4a09e1919071f6226))
+* **itun:** activated contributions with manual expiry — Squeeze It In, Hull Magnetiser ([#635](https://github.com/SalvageUnion-io/SU-SRD/issues/635)) ([9156601](https://github.com/SalvageUnion-io/SU-SRD/commit/91566017bad64f91edf32e3fd60df902c1af7c4b))
+* **itun:** ADR-030 accounts & Games — Phase 0 + Phase 1 server layer ([#609](https://github.com/SalvageUnion-io/SU-SRD/issues/609)) ([813e666](https://github.com/SalvageUnion-io/SU-SRD/commit/813e666277e9580c9595a9e3547248a6cf79b8b9))
+* **itun:** Downtime Restore actually writes ([#637](https://github.com/SalvageUnion-io/SU-SRD/issues/637)) ([1f0da0a](https://github.com/SalvageUnion-io/SU-SRD/commit/1f0da0aaeeb57b5a537df4f373c99b2f7b4eb1b3))
+* **itun:** provision Convex backend and Discord auth scaffold ([#604](https://github.com/SalvageUnion-io/SU-SRD/issues/604)) ([0d6684a](https://github.com/SalvageUnion-io/SU-SRD/commit/0d6684a1bcbcaf9b7e2d97b9bacbbeb75d7e860d))
+* **itun:** split cap overrides from manual adjustments; derivations return breakdowns ([#608](https://github.com/SalvageUnion-io/SU-SRD/issues/608)) ([7139ab8](https://github.com/SalvageUnion-io/SU-SRD/commit/7139ab86117c7751e1020f7d739db73b5aefc4a4))
+* **itun:** stat provenance on frozen snapshots and partner cards ([#614](https://github.com/SalvageUnion-io/SU-SRD/issues/614)) ([285d873](https://github.com/SalvageUnion-io/SU-SRD/commit/285d8739adbfb5a8ffe48f539d97119ac4891f8f))
+* **itun:** wire salvage, crafting and scrap-mech into the Dashboard ([#629](https://github.com/SalvageUnion-io/SU-SRD/issues/629)) ([83f6c2b](https://github.com/SalvageUnion-io/SU-SRD/commit/83f6c2b0788d414397b2cfd16d68699af78a283c))
+* **itun:** wire stat provenance into the Live Sheets and the Dashboard ([#613](https://github.com/SalvageUnion-io/SU-SRD/issues/613)) ([fe0a5ce](https://github.com/SalvageUnion-io/SU-SRD/commit/fe0a5ceecee32fb0cc53c58350826069b63db2c3))
+* **reference:** abilities can declare stat contributions — Beefcake now applies ([#615](https://github.com/SalvageUnion-io/SU-SRD/issues/615)) ([1ad2625](https://github.com/SalvageUnion-io/SU-SRD/commit/1ad2625fc1b285fda97639b4e527c9b475b4d207))
+
+
+### Bug Fixes
+
+* **itun:** Change Log truth + Composite Armour's missing +5 Max SP ([#602](https://github.com/SalvageUnion-io/SU-SRD/issues/602)) ([47f53da](https://github.com/SalvageUnion-io/SU-SRD/commit/47f53dacf7132d481c0aca3d846ba4058f041dc9))
+* **itun:** spend Dashboard EP/AP/SP from the full pool, not from zero ([#626](https://github.com/SalvageUnion-io/SU-SRD/issues/626)) ([25de4d9](https://github.com/SalvageUnion-io/SU-SRD/commit/25de4d94ba14e43df17f3ce208818dbeb3c3852f))
+* **observability:** point the CSP at Sentry's EU ingest region ([#607](https://github.com/SalvageUnion-io/SU-SRD/issues/607)) ([f9ccbdb](https://github.com/SalvageUnion-io/SU-SRD/commit/f9ccbdb35fbf601be67d2eccc7e6999807680d57))
+* **observability:** unblock Sentry in CSP, gate the wiring, repair nightly E2E ([#601](https://github.com/SalvageUnion-io/SU-SRD/issues/601)) ([360abc8](https://github.com/SalvageUnion-io/SU-SRD/commit/360abc8ee465b7a6ebac7f591826c23357ec825b))
+
 ## [0.7.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.6.0...itun-v0.7.0) (2026-07-28)
 
 
