@@ -172,7 +172,7 @@ export function MechSheet({
   const heatCap = mechMaxHeat(mech, chassis)
   const currentSP = mech.currentSP ?? maxSP
   const currentEP = mech.currentEP ?? maxEP
-  const currentHeat = mech.currentHeat ?? heatCap
+  const currentHeat = Math.min(mech.currentHeat ?? 0, heatCap)
 
   // Slot budgets for the picker's loadout panel (soft — never blocks).
   const capacity = computeMechCapacity({

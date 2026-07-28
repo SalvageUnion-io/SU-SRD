@@ -49,7 +49,7 @@ export function SheetMech({
   const cargoUsed = totalLotUnits(mech.cargoLots)
   const sp = Math.min(mech.currentSP ?? maxSP, maxSP)
   const ep = Math.min(mech.currentEP ?? maxEP, maxEP)
-  const heat = Math.min(mech.currentHeat ?? maxHeat, maxHeat)
+  const heat = Math.min(mech.currentHeat ?? 0, maxHeat)
 
   // U-5: on phones the condensed bar leads with Heat + SP; EP/Hold fold
   // until the sm breakpoint.

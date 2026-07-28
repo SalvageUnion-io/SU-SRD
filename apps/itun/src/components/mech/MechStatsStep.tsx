@@ -42,7 +42,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
           size="mini"
         />
         <Stat label="EP" value={chassis.energyPoints} max={chassis.energyPoints} size="mini" />
-        <Stat label="HEAT" value={chassis.heatCapacity} max={chassis.heatCapacity} size="mini" />
+        <Stat label="HEAT" value={0} max={chassis.heatCapacity} size="mini" />
         <Stat label="SYS" value={chassis.systemSlots} max={chassis.systemSlots} size="mini" />
         <Stat label="MOD" value={chassis.moduleSlots} max={chassis.moduleSlots} size="mini" />
         <Stat label="CARGO" value={chassis.cargoCapacity} max={chassis.cargoCapacity} size="mini" />

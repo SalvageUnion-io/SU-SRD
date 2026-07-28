@@ -55,7 +55,7 @@ export function mechRailItems(mech: Mech): RailStat[] {
   return [
     { label: 'SP', value: mech.currentSP ?? maxSP, max: maxSP },
     { label: 'EP', value: mech.currentEP ?? maxEP, max: maxEP },
-    { label: 'Heat', value: mech.currentHeat ?? maxHeat, max: maxHeat },
+    { label: 'Heat', value: Math.min(mech.currentHeat ?? 0, maxHeat), max: maxHeat },
   ]
 }
 
