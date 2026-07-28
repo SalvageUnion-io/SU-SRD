@@ -73,7 +73,10 @@ function ConnectedClaim() {
   // two different local rosters are two different claims worth offering.
   const userKey = `${pilots.length}-${mechs.length}-${crawlers.length}`
 
-  if (total === 0 || dismissed || hasClaimed(userKey)) return null
+  // `summary !== null` means this session just did the claim, and the marker it
+  // wrote is what would otherwise hide the confirmation the instant it arrived
+  // — the card would vanish on click with nothing said about what happened.
+  if (total === 0 || dismissed || (summary === null && hasClaimed(userKey))) return null
 
   return (
     <Card>
