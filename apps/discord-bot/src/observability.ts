@@ -34,7 +34,13 @@ export function initObservability(): void {
     release: config.releaseSha,
   })
   enabled = true
-  console.log('[observability] Sentry error tracking enabled')
+  // Deliberately avoids the word "error": Render classifies log level from
+  // message *content*, not the stream it arrived on. This is a console.log on
+  // stdout, exactly like the "Starting Salvage Union Discord Bot..." line that
+  // Render files as `info` — but while it read "Sentry error tracking enabled"
+  // Render filed it as `level=error`, so the bot's one success message showed
+  // up in every error-level log filter. Keep this string error-free.
+  console.log('[observability] Sentry tracking enabled')
 }
 
 /**

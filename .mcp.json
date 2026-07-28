@@ -3,6 +3,10 @@
     "netlify": {
       "command": "npx",
       "args": ["-y", "@netlify/mcp"]
+    },
+    "sentry": {
+      "type": "http",
+      "url": "https://mcp.sentry.dev/mcp"
     }
   }
 }
