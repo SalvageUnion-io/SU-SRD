@@ -8,6 +8,7 @@ import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 import { cn } from '../../utils/cn'
 import { Slab } from '../chrome/Slab'
 import { Badge } from '../chrome/Badge'
+import { statesMechanicalChange } from 'salvageunion-reference/rules'
 
 /**
  * A single `datavalues` item — rendered as a horizontal Stat chip (the one
@@ -61,6 +62,20 @@ type ContentProps = {
   headerBg?: string
   /** Raw CSS color for borders (overrides headerBg-derived color when set) */
   headerBgColor?: string
+  /**
+   * True when the owning record carries structured data for the mechanical
+   * change its text states (ADR-029).
+   *
+   * When set, a paragraph that STATES a mechanical change is marked as
+   * rules-bearing — the reader can see which clause the app actually
+   * understands, adjacent to the claim itself. Prose that states a change on a
+   * record with no data stays unmarked, so a coverage gap is visible in the
+   * product and not only in CI.
+   *
+   * Extends ADR-026 §5's rust "modified" language from stat cells to a prose
+   * span; it is the same vocabulary, a third carrier.
+   */
+  rulesBearing?: boolean
 }
 
 /**
@@ -79,6 +94,7 @@ export function Content({
   fontSize = 'text-sm',
   compact = false,
   chassisName,
+  rulesBearing = false,
   headerBg,
   headerBgColor,
 }: ContentProps) {
@@ -144,6 +160,7 @@ export function Content({
               fontSize={fontSize}
               compact={compact}
               chassisName={chassisName}
+              rulesBearing={rulesBearing}
             />
           ))
         }
@@ -168,6 +185,7 @@ export function Content({
                 fontSize={fontSize}
                 compact={compact}
                 chassisName={chassisName}
+                rulesBearing={rulesBearing}
               />
             )}
             {labelText && (
@@ -183,6 +201,7 @@ export function Content({
                     block={block}
                     fontSize={fontSize}
                     compact={compact}
+                    rulesBearing={rulesBearing}
                     chassisName={chassisName}
                   />
                 ))}
@@ -200,11 +219,14 @@ function ContentBlock({
   fontSize,
   compact,
   chassisName,
+  rulesBearing = false,
 }: {
   block: SURefObjectContentBlock
   fontSize: string
   compact: boolean
   chassisName?: string
+  /** See `ContentProps.rulesBearing`. */
+  rulesBearing?: boolean
 }) {
   const type = block.type || 'paragraph'
   const blockValue = block.value
@@ -230,17 +252,29 @@ function ContentBlock({
   }
 
   switch (type) {
-    case 'paragraph':
+    case 'paragraph': {
+      // Mark the clause the app actually understands. Paragraph granularity is
+      // deliberate: the trait parser has already turned this text into a node
+      // array, so splicing a sentence-level mark back into it would be fragile
+      // for no gain — these paragraphs are one or two sentences.
+      const bearing = rulesBearing && statesMechanicalChange(stringValue) !== null
       return (
         <Text
           variant="body"
           as="div"
-          className={cn('mb-1', fontSize)}
+          className={cn('mb-1', fontSize, bearing && 'border-l-2 border-rust pl-2')}
           style={{ overflowWrap: 'break-word' }}
+          {...(bearing
+            ? {
+                'data-rules-bearing': 'true',
+                title: 'The app applies this rule',
+              }
+            : {})}
         >
           {parsedValue}
         </Text>
       )
+    }
 
     case 'heading': {
       // Section headings render as the canonical Slab separator — a level-1

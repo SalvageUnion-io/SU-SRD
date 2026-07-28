@@ -96,6 +96,28 @@ import { resolveGuideSteps } from './resolveGuideSteps'
 const MAX_DEPTH = 3
 
 /** A titanic action (bio-titan "Titanic Actions") — gets its own full-width row. */
+/**
+ * Does this record carry structured data for the mechanical change its text
+ * states (ADR-029)?
+ *
+ * Drives the rules-bearing mark on the granting prose, so a reader can see which
+ * clause the app actually applies — and so prose that claims a change with NO
+ * data stays visibly unmarked, making a coverage gap legible in the product
+ * rather than only in CI.
+ */
+function isRulesBearing(data: unknown): boolean {
+  const record = (data ?? {}) as {
+    contributions?: unknown
+    statBonus?: unknown
+    mutations?: unknown
+  }
+  return (
+    Array.isArray(record.contributions) ||
+    record.statBonus != null ||
+    Array.isArray(record.mutations)
+  )
+}
+
 function isTitanicAction(action: { name?: string }): boolean {
   return /titanic action/i.test(action.name ?? '')
 }
@@ -1432,6 +1454,7 @@ function ReferenceEntityCardInner({
         bodyNodes.push(
           <div key={`seg-${seg}`} className="[&:not(:last-child)]:mb-3">
             <Content
+              rulesBearing={isRulesBearing(data)}
               body={buffer}
               compact={compact}
               chassisName={resolvedChassisName}
@@ -1680,6 +1703,7 @@ function ReferenceEntityCardInner({
       <div className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
         <Slab variant="solid" label={normalizePatternName(pattern.name)} />
         <Content
+          rulesBearing={isRulesBearing(data)}
           body={pattern.content}
           compact={compact}
           chassisName={resolvedChassisName}
@@ -1713,6 +1737,7 @@ function ReferenceEntityCardInner({
           const sidebar = step.entityLayout === 'sidebar' && entities.length > 0
           const prose = step.content && step.content.length > 0 && (
             <Content
+              rulesBearing={isRulesBearing(data)}
               body={step.content}
               compact={compact}
               chassisName={resolvedChassisName}
@@ -1935,6 +1960,7 @@ function ReferenceEntityCardInner({
               its actions), styled through Content so it reads as description. */}
           {catalogLeadBlocks.length > 0 && (
             <Content
+              rulesBearing={isRulesBearing(data)}
               body={catalogLeadBlocks}
               compact={compact}
               chassisName={resolvedChassisName}
@@ -1965,6 +1991,7 @@ function ReferenceEntityCardInner({
                   />
                 )}
                 <Content
+                  rulesBearing={isRulesBearing(data)}
                   body={foldedActionContent}
                   compact={compact}
                   chassisName={resolvedChassisName}

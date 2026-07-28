@@ -136,6 +136,8 @@ export {
   clampCrawlerCurrentStats,
 } from './derivedStats.js'
 export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js'
+export { statesMechanicalChange } from './rulesBearing.js'
+export type { RulesClaim } from './rulesBearing.js'
 export {
   abilityContributions,
   resolveAmount,

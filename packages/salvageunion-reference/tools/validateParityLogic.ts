@@ -1,3 +1,5 @@
+import { statesMechanicalChange } from '../lib/rules/rulesBearing.js'
+
 /**
  * Rules-parity audit (ADR-029 §5) — does content DENOTE the mechanical change
  * its rules text claims?
@@ -146,14 +148,6 @@ export const PARITY_EXEMPTIONS: Record<string, string> = {
  */
 export const KNOWN_UNRESOLVED: readonly string[] = ['Bio-Wings', 'High Gain Antenna']
 
-/** Sentences claiming a change to a derived MAXIMUM or a slot count. */
-const CAP_PATTERN =
-  /(increase|reduce|decrease|gain|add)\w*\s+(?:your|their|its|the|a)?\s*[A-Za-z' ]{0,30}?(Max(?:imum)?\s+(?:SP|HP|EP|AP|Structure Points|Hit Points|Energy Points|Heat)|Cargo Capacity|Inventory Capacity|Heat Capacity|(?:System|Module) Slot)/i
-
-/** Sentences claiming a trait, damage or range change. */
-const EFFECT_PATTERN =
-  /(gains?\s+the\s+[A-Z][A-Za-z ]{2,24}\s*(?:Trait|trait)|(?:additional|extra|\+\s*\d+)\s+\w*\s*(?:SP|HP)?\s*damage|(?:increase|extend)\w*[^.]{0,30}Range band)/i
-
 function textOf(value: unknown, acc: string[]): void {
   if (typeof value === 'string') acc.push(value)
   else if (Array.isArray(value)) for (const v of value) textOf(v, acc)
@@ -223,11 +217,7 @@ export function auditParity(filesByName: Record<string, Json[]>): ParityFinding[
     const acc: string[] = []
     textOf(source.content ?? source.description ?? source.value ?? source, acc)
     for (const sentence of sentences(acc.join(' '))) {
-      const klass: ParityClass | null = CAP_PATTERN.test(sentence)
-        ? 'cap'
-        : EFFECT_PATTERN.test(sentence)
-          ? 'effect'
-          : null
+      const klass = statesMechanicalChange(sentence)
       if (!klass) continue
       const key = `${name}::${klass}`
       if (seen.has(key)) continue

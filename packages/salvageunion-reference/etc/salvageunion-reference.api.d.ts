@@ -1831,6 +1831,8 @@ export { applySpDamage, mechEffectiveDamage, applyMechDamage, criticalDamageOutc
 export type { DamageKind, MechDamageInput, MechDamageEffect, PilotDamageInput, PilotDamageEffect, CriticalDamageEffect, CriticalInjuryEffect, } from './takeDamage.js';
 export { PILOT_BASE_HP, PILOT_BASE_AP, PILOT_BASE_INVENTORY_SLOTS, injuryMaxHpPenalty, pilotMaxHP, pilotMaxAP, isPilotDead, clampPilotCurrentStats, installedStatBonus, mechMaxSP, mechMaxEP, mechMaxHeat, mechMaxCargo, clampMechCurrentStats, unifiedMechConditions, crawlerMaxSP, crawlerMaxSPParts, mechMaxSPParts, mechMaxEPParts, mechMaxHeatParts, mechMaxCargoParts, pilotMaxHPParts, pilotMaxAPParts, clampCrawlerCurrentStats, } from './derivedStats.js';
 export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js';
+export { statesMechanicalChange } from './rulesBearing.js';
+export type { RulesClaim } from './rulesBearing.js';
 export { abilityContributions, resolveAmount, sumContributions, } from './contributions.js';
 export type { ContributionStat, ContributionTarget, ContributionAmount, DeclaredContribution, ResolvedContribution, } from './contributions.js';
 export { MEDIATOR_TABLE_NAMES, MEDIATOR_TABLE_LABEL, performMediatorRoll, describeMediatorRoll, } from './mediatorTables.js';
@@ -2160,6 +2162,37 @@ export declare function resolveInstalledRef(ref: string): ({
 export declare function refDisplayName(ref: string): string;
 export {};
 //# sourceMappingURL=resolveRefs.d.ts.map
+// === lib/rules/rulesBearing.d.ts ===
+/**
+ * Detecting prose that STATES a mechanical change (ADR-029).
+ *
+ * One detector, two consumers, deliberately:
+ *
+ *   - the **parity audit** (`tools/validateParityLogic.ts`) asks "does this
+ *     record encode the change its text claims?"
+ *   - the **entity card** marks the sentence that grants a contribution, so a
+ *     reader can see which clause the app actually understands.
+ *
+ * They must never disagree. If the renderer marked a claim the audit did not
+ * enforce, a record could look machine-backed while being inert — exactly the
+ * state this whole effort exists to remove.
+ *
+ * This decides only whether prose *claims* something mechanical. It never
+ * decides what the number is; inferring a value from prose is forbidden.
+ */
+export type RulesClaim = 'cap' | 'effect';
+/** Sentences claiming a change to a derived MAXIMUM or a slot count. */
+export declare const CAP_CLAIM_PATTERN: RegExp;
+/** Sentences claiming a trait, damage or range change. */
+export declare const EFFECT_CLAIM_PATTERN: RegExp;
+/**
+ * What kind of mechanical change this text claims, if any.
+ *
+ * Returns the first class that matches; `cap` wins over `effect` when a
+ * sentence somehow reads as both, because a maximum is the more specific claim.
+ */
+export declare function statesMechanicalChange(text: string | undefined): RulesClaim | null;
+//# sourceMappingURL=rulesBearing.d.ts.map
 // === lib/rules/scrap.d.ts ===
 /**
  * Scrap economy rule utilities (REQ-014, REQ-015).
