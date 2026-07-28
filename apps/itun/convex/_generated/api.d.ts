@@ -11,6 +11,7 @@
 import type * as __tests___harness from "../__tests__/harness.js";
 import type * as account from "../account.js";
 import type * as auth from "../auth.js";
+import type * as bot from "../bot.js";
 import type * as crew from "../crew.js";
 import type * as downtime from "../downtime.js";
 import type * as entities from "../entities.js";
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   "__tests__/harness": typeof __tests___harness;
   account: typeof account;
   auth: typeof auth;
+  bot: typeof bot;
   crew: typeof crew;
   downtime: typeof downtime;
   entities: typeof entities;

@@ -243,12 +243,24 @@ export const claimLocal = mutation({
   args: {
     pilots: v.array(v.any()),
     mechs: v.array(v.any()),
+    crawlers: v.optional(v.array(v.any())),
+    softLinks: v.optional(v.array(v.any())),
+    mechPatterns: v.optional(v.array(v.any())),
   },
-  handler: async (ctx, args): Promise<{ claimed: number; skipped: number }> => {
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ claimed: number; skipped: number; byKind: Record<string, number> }> => {
     const userId = await requireUser(ctx)
     const now = Date.now()
     let claimed = 0
     let skipped = 0
+    const byKind: Record<string, number> = {}
+
+    const bump = (kind: string) => {
+      byKind[kind] = (byKind[kind] ?? 0) + 1
+      claimed += 1
+    }
 
     for (const [table, rows] of [
       ['pilots', args.pilots],
@@ -260,17 +272,98 @@ export const claimLocal = mutation({
           skipped += 1
           continue
         }
+        const appId =
+          typeof (body as { id?: unknown }).id === 'string'
+            ? (body as { id: string }).id
+            : undefined
         await ctx.db.insert(table, {
           gameId: null,
           ownerId: userId,
+          appId,
           body: parsed.data,
           updatedAt: now,
         })
-        claimed += 1
+        bump(table)
       }
     }
 
-    return { claimed, skipped }
+    /**
+     * Crawlers, soft links and patterns are claimed too.
+     *
+     * The first version of this mutation took only pilots and mechs, which
+     * silently dropped the crawler — the crew's HOME — along with every
+     * pilot-to-crawler and mech-to-pilot link that makes a roster a roster, and
+     * every saved pattern. Somebody claiming a long-running solo campaign would
+     * have watched half of it vanish with no error.
+     *
+     * A crawler has no owner column (it is communal, D8) and no Game yet, so a
+     * claimed one is parked on a **placeholder Game of one** rather than
+     * discarded: the shelf cannot hold it, and inventing a crawler-shaped shelf
+     * would be a third container the model does not have.
+     */
+    const crawlers = args.crawlers ?? []
+    let shelfGameId: Id<'games'> | null = null
+    if (crawlers.length > 0) {
+      shelfGameId = await ctx.db.insert('games', { name: 'Claimed crawler' })
+      await ctx.db.insert('memberships', {
+        gameId: shelfGameId,
+        userId,
+        mediator: false,
+        organizer: true,
+        joinedAt: now,
+      })
+    }
+    for (const body of crawlers) {
+      const parsed = CrawlerSchema.safeParse(body)
+      if (!parsed.success || shelfGameId === null) {
+        skipped += 1
+        continue
+      }
+      const appId =
+        typeof (body as { id?: unknown }).id === 'string' ? (body as { id: string }).id : undefined
+      await ctx.db.insert('crawlers', {
+        gameId: shelfGameId,
+        appId,
+        body: parsed.data,
+        updatedAt: now,
+      })
+      bump('crawlers')
+    }
+
+    for (const link of args.softLinks ?? []) {
+      const l = link as {
+        from?: { type?: string; id?: string }
+        to?: { type?: string; id?: string }
+        type?: string
+      }
+      if (
+        typeof l.from?.id !== 'string' ||
+        typeof l.to?.id !== 'string' ||
+        typeof l.type !== 'string'
+      ) {
+        skipped += 1
+        continue
+      }
+      await ctx.db.insert('softLinks', {
+        gameId: shelfGameId,
+        from: { type: String(l.from.type ?? ''), id: l.from.id },
+        to: { type: String(l.to.type ?? ''), id: l.to.id },
+        type: l.type,
+      })
+      bump('softLinks')
+    }
+
+    for (const body of args.mechPatterns ?? []) {
+      await ctx.db.insert('mechPatterns', {
+        ownerId: userId,
+        gameId: null,
+        sharedToGame: false,
+        body,
+      })
+      bump('mechPatterns')
+    }
+
+    return { claimed, skipped, byKind }
   },
 })
 

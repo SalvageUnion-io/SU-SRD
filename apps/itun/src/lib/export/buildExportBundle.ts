@@ -62,7 +62,7 @@ export async function buildExportBundle(
   ])
 
   const bundle: ExportBundle = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     exportedAt: new Date().toISOString(),
     entities: {
       pilots: entityStore.list('pilot'),
@@ -108,7 +108,7 @@ export async function buildEntityExport(
     case 'pilot': {
       const pilot = entityStore.list('pilot').find((p) => p.id === id)
       return {
-        schemaVersion: 1,
+        schemaVersion: 2,
         exportedAt: new Date().toISOString(),
         entities: { ...emptyEntities, pilots: pilot ? [pilot] : [] },
         workspaces: [],
@@ -120,7 +120,7 @@ export async function buildEntityExport(
     case 'mech': {
       const mech = entityStore.list('mech').find((m) => m.id === id)
       return {
-        schemaVersion: 1,
+        schemaVersion: 2,
         exportedAt: new Date().toISOString(),
         entities: { ...emptyEntities, mechs: mech ? [mech] : [] },
         workspaces: [],
@@ -132,7 +132,7 @@ export async function buildEntityExport(
     case 'crawler': {
       const crawler = entityStore.list('crawler').find((c) => c.id === id)
       return {
-        schemaVersion: 1,
+        schemaVersion: 2,
         exportedAt: new Date().toISOString(),
         entities: { ...emptyEntities, crawlers: crawler ? [crawler] : [] },
         workspaces: [],

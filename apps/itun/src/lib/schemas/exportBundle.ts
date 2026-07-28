@@ -33,7 +33,14 @@ import { WorkspaceSchema } from './workspace'
  * the raw shape before validation.
  */
 export const ExportBundleSchema = z.object({
-  schemaVersion: z.literal(1),
+  /**
+   * 1 = pre-ADR-030 (entities carry `workspaceId`); 2 = containers
+   * (`gameId`, null meaning the owner's shelf). `parseImportBundle` upgrades a
+   * v1 payload to v2 before validation, so anything reaching this schema is
+   * already normalised — but both are accepted so a hand-edited or
+   * partially-processed bundle still parses rather than failing opaquely.
+   */
+  schemaVersion: z.union([z.literal(1), z.literal(2)]),
   exportedAt: z.string(),
   entities: z.object({
     pilots: z.array(PilotSchema),

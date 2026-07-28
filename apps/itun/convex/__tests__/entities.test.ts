@@ -269,3 +269,94 @@ describe('claiming local data on first sign-in', () => {
     )
   })
 })
+
+describe('claiming a legacy roster carries the whole thing', () => {
+  test('crawler, soft links and patterns come across, not just pilots and mechs', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'Returning player')
+
+    const result = await u.as.mutation(api.entities.claimLocal, {
+      pilots: [pilotBody()],
+      mechs: [],
+      crawlers: [
+        {
+          id: 'c1',
+          schemaVersion: 1,
+          name: '#430',
+          techLevel: '1',
+          systems: [],
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+      softLinks: [
+        {
+          from: { type: 'pilot', id: 'p1' },
+          to: { type: 'crawler', id: 'c1' },
+          type: 'pilot-to-crawler',
+        },
+      ],
+      mechPatterns: [{ id: 'pat1', name: 'Mule loadout' }],
+    })
+
+    // The first version of this mutation took only pilots and mechs, so a
+    // returning player would have watched their crawler and every link between
+    // their entities disappear with no error.
+    expect(result.byKind.pilots).toBe(1)
+    expect(result.byKind.crawlers).toBe(1)
+    expect(result.byKind.softLinks).toBe(1)
+    expect(result.byKind.mechPatterns).toBe(1)
+    expect(result.skipped).toBe(0)
+  })
+
+  test('a claimed crawler gets a game, because a shelf cannot hold one', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+    await u.as.mutation(api.entities.claimLocal, {
+      pilots: [],
+      mechs: [],
+      crawlers: [
+        {
+          id: 'c1',
+          schemaVersion: 1,
+          name: '#430',
+          techLevel: '1',
+          systems: [],
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    })
+
+    // Crawlers are communal and game-scoped by design, so there is no shelf
+    // shaped to hold one — a placeholder game of one is the honest home.
+    const crawlers = await t.run(async (ctx) => await ctx.db.query('crawlers').collect())
+    expect(crawlers).toHaveLength(1)
+    expect(crawlers[0]?.gameId).not.toBeNull()
+
+    const memberships = await t.run(async (ctx) => await ctx.db.query('memberships').collect())
+    expect(memberships[0]?.organizer).toBe(true)
+  })
+
+  test('the local id is preserved as appId so later edits find the row', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+    await u.as.mutation(api.entities.claimLocal, { pilots: [pilotBody()], mechs: [] })
+
+    const rows = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
+    // Without this, the very first edit after a claim could not address its row.
+    expect(rows[0]?.appId).toBe('p1')
+  })
+
+  test('a malformed crawler is skipped without costing the rest of the roster', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'A')
+    const result = await u.as.mutation(api.entities.claimLocal, {
+      pilots: [pilotBody()],
+      mechs: [],
+      crawlers: [{ nonsense: true }],
+    })
+    expect(result.byKind.pilots).toBe(1)
+    expect(result.skipped).toBe(1)
+  })
+})
