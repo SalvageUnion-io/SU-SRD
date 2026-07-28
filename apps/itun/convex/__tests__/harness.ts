@@ -24,6 +24,7 @@ const modules = {
   './_generated/server.js': () => import('../_generated/server'),
   './account.ts': () => import('../account'),
   './crew.ts': () => import('../crew'),
+  './downtime.ts': () => import('../downtime'),
   './entities.ts': () => import('../entities'),
   './games.ts': () => import('../games'),
   './mediator.ts': () => import('../mediator'),

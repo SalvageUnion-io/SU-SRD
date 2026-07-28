@@ -229,6 +229,32 @@ export default defineSchema({
     .index('by_game', ['gameId'])
     .index('by_game_state', ['gameId', 'state']),
 
+  /**
+   * Crew-wide Downtime state (ADR-030, Phase 5).
+   *
+   * Downtime is the one procedure the whole crew performs in step, so the phase
+   * is **Game state advanced by the Mediator** rather than something each
+   * player tracks alone. Per-player step completion lives here too, so the
+   * table can see who is still working.
+   *
+   * One row per Game. `stepIndex: null` means Downtime is not running — which
+   * is a state, not an absence, and is why this is not simply the row's absence.
+   */
+  downtime: defineTable({
+    gameId: v.id('games'),
+    /** Null when Downtime is not running. */
+    stepIndex: v.union(v.number(), v.null()),
+    startedAt: v.union(v.number(), v.null()),
+    /**
+     * Which members have marked the current step done. Cleared whenever the
+     * phase advances — completion is per step, not cumulative, or a player who
+     * finished step 1 would look finished forever.
+     */
+    completedBy: v.array(v.id('users')),
+    /** Set once per Downtime so crawler upkeep is spent once, not per member. */
+    upkeepSpent: v.boolean(),
+  }).index('by_game', ['gameId']),
+
   /** Who is at the table right now. Ephemeral — never folded into an entity. */
   presence: defineTable({
     gameId: v.id('games'),
