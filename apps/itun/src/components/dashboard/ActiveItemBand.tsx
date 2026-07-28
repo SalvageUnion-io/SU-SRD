@@ -82,6 +82,7 @@ export function ActiveItemBand({ mech, pilot, crawler, store }: ActiveItemBandPr
       mech={mech}
       store={s}
       hasPilot={pilot !== null}
+      pilotAbilities={pilot?.abilities}
       onDismount={() => setMount('pilot')}
     />
   )
@@ -135,18 +136,22 @@ function MechBand({
   mech,
   store,
   hasPilot,
+  pilotAbilities,
   onDismount,
 }: {
   mech: Mech
+  /** Beefcake raises the piloted MECH's Max SP and Cargo (ADR-029). */
+  pilotAbilities?: string[]
   store: PlayStore
   hasPilot: boolean
   onDismount: () => void
 }) {
   const chassis = resolveChassisRef(mech.chassisRef)
-  const maxSP = mechMaxSP(mech, chassis)
+  const piloting = { abilities: pilotAbilities }
+  const maxSP = mechMaxSP(mech, chassis, piloting)
   const maxEP = mechMaxEP(mech, chassis)
   const maxHeat = mechMaxHeat(mech, chassis)
-  const maxCargo = mechMaxCargo(mech, chassis)
+  const maxCargo = mechMaxCargo(mech, chassis, piloting)
   const sp = Math.min(mech.currentSP ?? maxSP, maxSP)
   const ep = Math.min(mech.currentEP ?? maxEP, maxEP)
   const heat = Math.min(mech.currentHeat ?? 0, maxHeat)
@@ -174,7 +179,7 @@ function MechBand({
   function doPush() {
     const m = fresh()
     const cap = mechMaxHeat(m, chassis)
-    const spMax = mechMaxSP(m, chassis)
+    const spMax = mechMaxSP(m, chassis, piloting)
     const { patch, effect, nextHeat, meltdown } = pushPatch({
       heat: Math.min(m.currentHeat ?? 0, cap),
       heatCap: cap,
@@ -188,7 +193,7 @@ function MechBand({
   function doHeatCheck() {
     const m = fresh()
     const cap = mechMaxHeat(m, chassis)
-    const spMax = mechMaxSP(m, chassis)
+    const spMax = mechMaxSP(m, chassis, piloting)
     const { patch, effect, meltdown } = heatCheckOncePatch({
       heat: Math.min(m.currentHeat ?? 0, cap),
       currentSP: Math.min(m.currentSP ?? spMax, spMax),
@@ -215,7 +220,7 @@ function MechBand({
     // Damage operates on the stored SP (authoritative); default to max only
     // when it was never set. The gauge, not this write, clamps for display.
     const { patch, effect } = mechDamagePatch({
-      currentSP: m.currentSP ?? mechMaxSP(m, chassis),
+      currentSP: m.currentSP ?? mechMaxSP(m, chassis, piloting),
       amount: dmg,
       vulnerable: m.vulnerable ?? false,
     })

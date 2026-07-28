@@ -100,3 +100,37 @@ describe('contributions reach the derived maxima', () => {
     expect(mechMaxSPParts(mech, chassis, { abilities: ['Beefcake'], techLevel: 4 }).total).toBe(27)
   })
 })
+
+describe("Beefcake's four contributions each reach a real consumer", () => {
+  // Beefcake was the record that motivated the whole model, and it is the one
+  // most easily half-wired: two of its four contributions target the PILOT and
+  // two target the PILOTED MECH, so a surface that forgets the piloting context
+  // silently under-counts rather than failing.
+  const BEEFCAKE = ['Beefcake']
+
+  it('pilot Max HP +2', () => {
+    expect(pilotMaxHPParts({ abilities: BEEFCAKE }).total).toBe(12)
+  })
+
+  it('pilot Inventory +4 is declared (consumed by pilotInventoryCapacity)', () => {
+    expect(sumContributions(abilityContributions(BEEFCAKE, 'pilot', 'inventorySlots'))).toBe(4)
+  })
+
+  it('piloted mech Cargo +6', () => {
+    const mech = { chassisRef: 'no-such-chassis' }
+    expect(mechMaxCargoParts(mech, { cargoCapacity: 6 }, { abilities: BEEFCAKE }).total).toBe(12)
+  })
+
+  it('piloted mech Max SP 3+X, and X is the MECH tech level not the pilot', () => {
+    const mech = { chassisRef: 'no-such-chassis' }
+    const chassis = { structurePoints: 20 }
+    expect(mechMaxSPParts(mech, chassis, { abilities: BEEFCAKE, techLevel: 1 }).total).toBe(24)
+    expect(mechMaxSPParts(mech, chassis, { abilities: BEEFCAKE, techLevel: 6 }).total).toBe(29)
+  })
+
+  it('a mech with no piloting context gets NONE of it — the under-count to guard', () => {
+    const mech = { chassisRef: 'no-such-chassis' }
+    expect(mechMaxSPParts(mech, { structurePoints: 20 }).total).toBe(20)
+    expect(mechMaxCargoParts(mech, { cargoCapacity: 6 }).total).toBe(6)
+  })
+})

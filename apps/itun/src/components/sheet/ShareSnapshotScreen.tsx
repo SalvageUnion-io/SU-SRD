@@ -489,6 +489,16 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
   if (isMech(entity)) {
     const mech = entity
     const chassis = resolveChassisRef(mech.chassisRef)
+    // KNOWN LIMITATION: no piloting context here. A snapshot is a frozen,
+    // BARE entity (ADR-004) — a shared mech carries no pilot — so pilot-sourced
+    // contributions (Beefcake's +3+X Max SP and +6 Cargo) cannot be resolved,
+    // and a shared mech reads lower than the same mech on its owner's sheet.
+    //
+    // Passing `{ abilities: undefined }` would not help: the data is genuinely
+    // absent, not merely unthreaded. The real fix is to freeze the DERIVED
+    // maxima into the snapshot payload at publish time, which is a payload
+    // change and a separate piece of work. Do not "fix" this by threading a
+    // pilot that does not exist here.
     const spParts = mechMaxSPParts(mech, chassis)
     const epParts = mechMaxEPParts(mech, chassis)
     const heatParts = mechMaxHeatParts(mech, chassis)

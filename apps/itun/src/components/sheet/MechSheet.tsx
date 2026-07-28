@@ -153,7 +153,7 @@ export function MechSheet({
 }: MechSheetProps) {
   const chassis = resolveChassis(mech, chassisOverride)
   const storeState = store()
-  const cargo = useCargo({ mech, crawler, store, readOnly })
+  const cargo = useCargo({ mech, crawler, store, readOnly, pilotAbilities })
   // Which collection's shared picker modal is open ('+ Add' — unified edit
   // language archetype B; always available, never rule-gated for now).
   const [picker, setPicker] = useState<ItemKind | null>(null)

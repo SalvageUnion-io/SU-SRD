@@ -78,10 +78,18 @@ function pilotItem(pilot: Pilot): DialItem {
   }
 }
 
-function mechItem(mech: Mech): DialItem {
+/**
+ * Beefcake is a PILOT ability that raises the piloted MECH's Max SP and Cargo
+ * (ADR-029), so the mech dial cannot be derived from the mech alone.
+ */
+function mechItem(mech: Mech, pilot: Pilot | null): DialItem {
   const chassis = resolveChassisRef(mech.chassisRef)
-  const spParts = mechMaxSPParts(mech, chassis)
-  const heatParts = mechMaxHeatParts(mech, chassis)
+  const piloting = {
+    abilities: pilot?.abilities,
+    techLevel: typeof chassis?.techLevel === 'number' ? chassis.techLevel : undefined,
+  }
+  const spParts = mechMaxSPParts(mech, chassis, piloting)
+  const heatParts = mechMaxHeatParts(mech, chassis, piloting)
   const maxSP = spParts.total
   const maxHeat = heatParts.total
   const chassisLabel = `${chassis?.name ?? mech.chassisRef} chassis`
@@ -165,7 +173,7 @@ export function dialItems(args: {
   ]
   // The counterpart entities — everything NOT in the active row. In Downtime
   // the crawler is active, so the dial carries the mech + pilot instead.
-  if (mount !== 'mech') items.push(mechItem(mech))
+  if (mount !== 'mech') items.push(mechItem(mech, pilot))
   if (mount !== 'pilot' && pilot) items.push(pilotItem(pilot))
   if (mount !== 'downtime' && crawler) items.push(crawlerItem(crawler))
   items.push({

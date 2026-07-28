@@ -40,10 +40,13 @@ export function SheetMech({
   storeState,
 }: SheetMechProps) {
   const chassis = resolveChassisRef(mech.chassisRef)
-  const maxSP = mechMaxSP(mech, chassis)
+  // Beefcake raises the piloted MECH (ADR-029), so the condensed strip needs
+  // the same piloting context the body sheet uses or the two would disagree.
+  const piloting = { abilities: composition.pilot?.abilities }
+  const maxSP = mechMaxSP(mech, chassis, piloting)
   const maxEP = mechMaxEP(mech, chassis)
   const maxHeat = mechMaxHeat(mech, chassis)
-  const maxCargo = mechMaxCargo(mech, chassis)
+  const maxCargo = mechMaxCargo(mech, chassis, piloting)
   const cargoUsed = totalLotUnits(mech.cargoLots)
   const sp = Math.min(mech.currentSP ?? maxSP, maxSP)
   const ep = Math.min(mech.currentEP ?? maxEP, maxEP)
