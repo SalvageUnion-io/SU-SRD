@@ -46,13 +46,13 @@ import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { computeMechCapacity, resolveChassisRef } from 'salvageunion-reference/rules'
 import {
-  crawlerMaxSP,
-  mechMaxCargo,
-  mechMaxEP,
-  mechMaxHeat,
-  mechMaxSP,
-  pilotMaxAP,
-  pilotMaxHP,
+  crawlerMaxSPParts,
+  mechMaxCargoParts,
+  mechMaxEPParts,
+  mechMaxHeatParts,
+  mechMaxSPParts,
+  pilotMaxAPParts,
+  pilotMaxHPParts,
 } from '../../lib/rules/derivedStats'
 import { useEntity } from '../../hooks/queries'
 import { captureMessage } from '../../lib/observability'
@@ -71,6 +71,7 @@ import type { EntityLookup } from './composition'
 import { SheetHero, ChassisStats } from 'component-lib'
 import { SnapshotQr } from 'component-lib'
 import type { ChassisStatItem } from 'component-lib'
+import { linesFromBreakdown } from 'component-lib'
 
 type ShareSnapshotScreenProps = {
   kind: EntityRef['type']
@@ -437,8 +438,10 @@ function isMech(entity: Pilot | Mech | Crawler): entity is Mech {
 function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
   if (isPilot(entity)) {
     const pilot = entity
-    const maxHP = Math.max(0, pilotMaxHP(pilot))
-    const maxAP = Math.max(0, pilotMaxAP(pilot))
+    const hpParts = pilotMaxHPParts(pilot)
+    const apParts = pilotMaxAPParts(pilot)
+    const maxHP = Math.max(0, hpParts.total)
+    const maxAP = Math.max(0, apParts.total)
     return (
       <SheetHero
         cat="Pilot"
@@ -461,12 +464,19 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
               label="HP"
               max={maxHP}
               value={Math.min(pilot.currentHP ?? maxHP, maxHP)}
+              provenance={linesFromBreakdown(hpParts, {
+                base: 'Pilot',
+                baseDetail: 'base',
+                installed: 'Injuries',
+                installedDetail: 'rules A11',
+              })}
               readOnly
             />
             <VitalGauge
               label="AP"
               max={maxAP}
               value={Math.min(pilot.currentAP ?? maxAP, maxAP)}
+              provenance={linesFromBreakdown(apParts, { base: 'Pilot', baseDetail: 'base' })}
               readOnly
             />
             <Stat label="TP" value={pilot.trainingPoints ?? 0} />
@@ -479,10 +489,20 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
   if (isMech(entity)) {
     const mech = entity
     const chassis = resolveChassisRef(mech.chassisRef)
-    const maxSP = mechMaxSP(mech, chassis)
-    const maxEP = mechMaxEP(mech, chassis)
-    const maxHeat = mechMaxHeat(mech, chassis)
-    const maxCargo = mechMaxCargo(mech, chassis)
+    const spParts = mechMaxSPParts(mech, chassis)
+    const epParts = mechMaxEPParts(mech, chassis)
+    const heatParts = mechMaxHeatParts(mech, chassis)
+    const cargoParts = mechMaxCargoParts(mech, chassis)
+    const maxSP = spParts.total
+    const maxEP = epParts.total
+    const maxHeat = heatParts.total
+    const maxCargo = cargoParts.total
+    const chassisLabel = `${chassis?.name ?? mech.chassisRef} chassis`
+    const mechLabels = {
+      base: chassisLabel,
+      baseDetail: 'base',
+      installed: 'Installed systems & modules',
+    }
     const capacity = computeMechCapacity({
       chassisRef: mech.chassisRef,
       systems: mech.systems.map((ref) => ({ ref })),
@@ -520,6 +540,7 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
               subLabel="Structure"
               max={maxSP}
               value={Math.min(mech.currentSP ?? maxSP, maxSP)}
+              provenance={linesFromBreakdown(spParts, mechLabels)}
               readOnly
             />
             <VitalGauge
@@ -527,6 +548,7 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
               subLabel="Energy"
               max={maxEP}
               value={Math.min(mech.currentEP ?? maxEP, maxEP)}
+              provenance={linesFromBreakdown(epParts, mechLabels)}
               readOnly
             />
             <VitalGauge
@@ -534,6 +556,7 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
               max={maxHeat}
               value={Math.min(mech.currentHeat ?? 0, maxHeat)}
               danger={maxHeat > 0 ? heatDangerFrom(maxHeat) : undefined}
+              provenance={linesFromBreakdown(heatParts, mechLabels)}
               readOnly
             />
             <VitalGauge
@@ -541,6 +564,7 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
               max={maxCargo}
               value={totalLotUnits(mech.cargoLots)}
               caption={['Used', 'Cap']}
+              provenance={linesFromBreakdown(cargoParts, mechLabels)}
               readOnly
             />
           </>
@@ -550,7 +574,8 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
   }
 
   const crawler = entity
-  const maxSP = crawlerMaxSP(crawler)
+  const spParts = crawlerMaxSPParts(crawler)
+  const maxSP = spParts.total
   const tl = parseCrawlerTechLevel(crawler.techLevel)
   const states = (crawler.crawlerBays ?? []).map((bay) => bay.condition ?? 'intact')
   return (
@@ -567,6 +592,11 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
             max={maxSP}
             value={Math.min(crawler.currentSP ?? maxSP, maxSP)}
             caption={['Structure', 'Max']}
+            provenance={linesFromBreakdown(spParts, {
+              base: `Tech ${crawler.techLevel?.replace(/\D/g, '') || '?'} Crawler`,
+              baseDetail: 'base',
+              installed: 'Crawler type bonus',
+            })}
             readOnly
           />
           {states.length > 0 && <BayStatus label="Bays" states={states} />}

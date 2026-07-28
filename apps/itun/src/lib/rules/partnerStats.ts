@@ -28,6 +28,7 @@
  * pinned by tests rather than left to the call sites.
  */
 
+import type { StatBreakdown } from 'salvageunion-reference/rules'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
@@ -129,6 +130,44 @@ export function partnerDerivedStats(
     const base = statOf(statBlock, key) ?? 0
     const per = bonuses?.[key]
     out[key] = base + (typeof per === 'number' ? per * steps : 0)
+  }
+  return out
+}
+
+/**
+ * A partner's derived maxima, decomposed per stat (ADR-029).
+ *
+ * The tech-level scaling is a partner's whole story and nothing on screen
+ * explained it before, so each stat resolves to `{ base, installed, ... }` where
+ * `installed` carries the scaling — a rules-sourced contribution, exactly like a
+ * mech's summed `statBonus`.
+ *
+ * `override` is always absent: partners have no cap-pin field, so a partner stat
+ * is never overridden.
+ */
+export function partnerDerivedStatsParts(
+  partner: PartnerInstance,
+  techLevel: number
+): Record<PartnerStatKey, StatBreakdown> {
+  const statBlock = resolvePartnerStatBlock(partner)
+  const bonuses = (statBlock as { bonusPerTechLevel?: Record<string, number> } | null)
+    ?.bonusPerTechLevel
+  const steps = Math.max(0, techLevel - 1)
+
+  const out = {} as Record<PartnerStatKey, StatBreakdown>
+  for (const key of SCALED_STATS) {
+    const base = statOf(statBlock, key) ?? 0
+    const per = bonuses?.[key]
+    const scaled = typeof per === 'number' ? per * steps : 0
+    const derived = Math.max(0, base + scaled)
+    out[key] = {
+      base,
+      installed: scaled,
+      adjustment: 0,
+      derived,
+      total: derived,
+      overridden: false,
+    }
   }
   return out
 }

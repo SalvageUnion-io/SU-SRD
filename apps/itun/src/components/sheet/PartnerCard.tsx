@@ -42,6 +42,7 @@ import type { PartnerWithHost } from '../../lib/partnerLookup'
 import {
   partnerCap,
   partnerDerivedStats,
+  partnerDerivedStatsParts,
   partnerTechLevel,
   resolvePartnerStatBlock,
 } from '../../lib/rules/partnerStats'
@@ -54,6 +55,7 @@ import { PartnerHold } from './PartnerHold'
 import { partnerDisplayName } from './partnerDisplay'
 import { resolveModule, resolveSystem } from './mechItemRules'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { summarizeBreakdown } from 'component-lib'
 
 type PartnerCardProps = {
   /**
@@ -101,6 +103,17 @@ export function PartnerCard({
   const statBlock = resolvePartnerStatBlock(partner)
   const techLevel = partnerTechLevel(partner, crawlerTechLevel)
   const max = partnerDerivedStats(partner, techLevel)
+  // Tech-level scaling is a partner's whole story and nothing on screen
+  // explained it (ADR-029). `Stat` cells carry an editable stepper cluster, so
+  // the popover panel would nest a button inside a button — these render the
+  // derivation through the existing hoverText tooltip until Stat grows its own
+  // non-nesting affordance.
+  const maxParts = partnerDerivedStatsParts(partner, techLevel)
+  const scalingHover = (key: keyof typeof maxParts): string =>
+    summarizeBreakdown(maxParts[key], {
+      base: 'Base',
+      installed: `Tech ${techLevel} scaling`,
+    })
 
   const cargo = usePartnerCargo({
     found,
@@ -138,6 +151,7 @@ export function PartnerCard({
       label: 'SP',
       value: sp,
       outOfMax: max.structurePoints,
+      hoverText: scalingHover('structurePoints'),
       onChange: editable
         ? (next) => patch({ currentSP: clamp(next, max.structurePoints) })
         : undefined,
@@ -147,6 +161,7 @@ export function PartnerCard({
       label: 'EP',
       value: ep,
       outOfMax: max.energyPoints,
+      hoverText: scalingHover('energyPoints'),
       onChange: editable
         ? (next) => patch({ currentEP: clamp(next, max.energyPoints) })
         : undefined,
@@ -156,6 +171,7 @@ export function PartnerCard({
       label: 'Heat',
       value: heat,
       outOfMax: max.heatCapacity,
+      hoverText: scalingHover('heatCapacity'),
       onChange: editable
         ? (next) => patch({ currentHeat: clamp(next, max.heatCapacity) })
         : undefined,
