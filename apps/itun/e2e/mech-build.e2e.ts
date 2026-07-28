@@ -78,8 +78,10 @@ test('edit a mech loadout on its live sheet', async ({ page }) => {
   await page.waitForURL(/\/sheet\/mech\//, { timeout: 15_000 })
   await waitForReady(page)
 
-  // '+ Add system' opens the shared picker, which writes through on toggle.
-  await page.getByRole('button', { name: /^Add system$/i }).click()
+  // The Systems section header's manage control opens the shared picker, which
+  // writes through on toggle. SectionManageButton labels itself
+  // `Manage ${label}` — MechSheet passes label="systems".
+  await page.getByRole('button', { name: /^Manage systems$/i }).click()
   const picker = page.getByRole('dialog')
   await expect(picker).toBeVisible()
   // The systems picker runs the searcher in `mode="count"` (installing the

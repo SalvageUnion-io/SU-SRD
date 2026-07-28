@@ -94,9 +94,17 @@
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
     # Mirrors srd's proven CSP. connect-src allows the same-origin snapshot
-    # API ('self') plus the Netlify RUM endpoint; no 'unsafe-eval'. If a future
-    # feature needs another origin, widen the relevant directive here.
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://ingesteer.services-prod.nsvcs.net;"
+    # API ('self'), the Netlify RUM endpoint and Sentry's ingest origin; no
+    # 'unsafe-eval'. If a future feature needs another origin, widen the
+    # relevant directive here.
+    #
+    # The Sentry entry is load-bearing: without it the browser blocks every
+    # event before it leaves the page, so a provisioned DSN would report zero
+    # errors and look healthy. Kept in lockstep with SENTRY_INGEST_HOST in
+    # tools/check-observability.ts, which fails CI if this drifts. Wildcarded
+    # subdomain because the host encodes the Sentry org id; `us` is the default
+    # data region (an EU org uses `de`).
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://ingesteer.services-prod.nsvcs.net https://*.ingest.us.sentry.io;"
     X-DNS-Prefetch-Control = "on"
 
 [[headers]]
