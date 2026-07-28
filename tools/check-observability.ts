@@ -49,11 +49,23 @@ import { join } from 'node:path'
  * Wildcarded at the subdomain because the host encodes the Sentry org id
  * (`o<orgid>.ingest.<region>.sentry.io`); pinning the literal org would mean a
  * CSP edit every time a project moves org, and the wildcard is still tightly
- * scoped to Sentry's ingest domain. `us` is Sentry's default data region — an
- * EU-region org ingests at `*.ingest.de.sentry.io`, so this constant (and the
- * two netlify.toml CSPs that must match it) is the single place to change.
+ * scoped to Sentry's ingest domain.
+ *
+ * The REGION is the part that bites. This org is in the EU (`de`); Sentry's
+ * default is `us`, and a DSN issued in one region is silently unusable under a
+ * CSP written for the other — the beacon is blocked in the browser and the
+ * project simply reports nothing, which looks exactly like "no errors". This
+ * constant and the two netlify.toml CSPs must agree, and `checkLive` below also
+ * compares them against the host in the DSN actually shipped to production, so
+ * a region mismatch fails loudly instead of going quiet.
  */
-const SENTRY_INGEST_HOST = 'https://*.ingest.us.sentry.io'
+const SENTRY_INGEST_HOST = 'https://*.ingest.de.sentry.io'
+
+/** The `*.ingest.<region>.sentry.io` suffix implied by SENTRY_INGEST_HOST. */
+const SENTRY_INGEST_SUFFIX = SENTRY_INGEST_HOST.replace('https://*', '')
+
+/** A Sentry DSN as it appears inlined in a built bundle. */
+const DSN_IN_BUNDLE = /https:\/\/[0-9a-f]{16,}@([a-z0-9.-]+\.ingest\.[a-z0-9.-]*sentry\.io)\//i
 
 /** A marker that only appears once the Sentry SDK is really in a bundle. */
 const SDK_MARKER = /sentry/i
@@ -179,24 +191,45 @@ async function checkLive(app: BrowserApp): Promise<void> {
     return
   }
 
+  // The SDK and the inlined DSN can land in different chunks, so scan them all
+  // rather than returning on the first hit.
+  let sdkFoundIn: string | null = null
+  let dsnHost: string | null = null
+
   for (const url of urls) {
     try {
       const body = await (await fetch(url)).text()
-      if (SDK_MARKER.test(body)) {
-        console.log(`  [${app.name}] Sentry SDK present in ${url}`)
-        return
-      }
+      if (!sdkFoundIn && SDK_MARKER.test(body)) sdkFoundIn = url
+      if (!dsnHost) dsnHost = body.match(DSN_IN_BUNDLE)?.[1] ?? null
     } catch {
       // A single unreachable chunk is not proof of absence; keep looking.
     }
   }
 
-  fail(
-    app.name,
-    `Sentry SDK absent from all ${urls.length} script(s) served by ${app.productionUrl}.\n` +
-      `      The DSN (${app.dsnEnvVar}) is almost certainly unset on the Netlify site, so the\n` +
-      `      SDK was tree-shaken out of the build. Error tracking is DARK in production.`
-  )
+  if (!sdkFoundIn) {
+    fail(
+      app.name,
+      `Sentry SDK absent from all ${urls.length} script(s) served by ${app.productionUrl}.\n` +
+        `      The DSN (${app.dsnEnvVar}) is almost certainly unset on the Netlify site, so the\n` +
+        `      SDK was tree-shaken out of the build. Error tracking is DARK in production.`
+    )
+    return
+  }
+
+  console.log(`  [${app.name}] Sentry SDK present in ${sdkFoundIn}`)
+
+  // Region check. A DSN issued in one Sentry data region under a CSP written
+  // for the other yields a project that reports nothing at all — which is
+  // indistinguishable from "no errors happened". Compare what production is
+  // actually configured to talk to against what the CSP permits.
+  if (dsnHost && !dsnHost.endsWith(SENTRY_INGEST_SUFFIX)) {
+    fail(
+      app.name,
+      `DSN ships events to ${dsnHost}, but the CSP only allows ${SENTRY_INGEST_HOST}.\n` +
+        `      Every event will be blocked in the browser and the project will look silent.\n` +
+        `      Fix SENTRY_INGEST_HOST here and the connect-src in ${app.netlifyTomlPath}.`
+    )
+  }
 }
 
 const live = process.argv.includes('--live')

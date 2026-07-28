@@ -85,8 +85,13 @@
     # failure mode is silent AND looks healthy (zero errors reported). Kept in
     # lockstep with SENTRY_INGEST_HOST in tools/check-observability.ts, which
     # fails CI if this drifts. Wildcarded subdomain because the host encodes the
-    # Sentry org id; `us` is the default data region (an EU org uses `de`).
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://ingesteer.services-prod.nsvcs.net https://*.ingest.us.sentry.io;"
+    # Sentry org id.
+    #
+    # `de`, not `us`: this org is in Sentry's EU data region. A DSN issued in
+    # one region under a CSP written for the other is blocked in the browser and
+    # the project reports nothing — identical, from the outside, to "no errors".
+    # The nightly live probe now compares this against the DSN actually shipped.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://ingesteer.services-prod.nsvcs.net https://*.ingest.de.sentry.io;"
     X-DNS-Prefetch-Control = "on"
 
 # Astro hashed assets - immutable cache
