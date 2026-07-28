@@ -30,6 +30,14 @@ export function AccountStrip() {
     <div className="flex items-center justify-end gap-3 border-b border-[var(--color-ink)]/15 px-3 py-1">
       {mode === 'connected' && (
         <Link
+          to="/games"
+          className="font-cond text-xs font-bold tracking-widest text-[var(--color-ink)] uppercase hover:text-[var(--color-rust)]"
+        >
+          Games
+        </Link>
+      )}
+      {mode === 'connected' && (
+        <Link
           to="/account"
           className="font-cond text-xs font-bold tracking-widest text-[var(--color-ink)] uppercase hover:text-[var(--color-rust)]"
         >
