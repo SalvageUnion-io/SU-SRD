@@ -326,3 +326,189 @@ describe('destroying a game preserves owned characters', () => {
     await expect(player.as.mutation(api.games.destroy, { gameId })).rejects.toThrow(/organizer/i)
   })
 })
+
+describe('listMine', () => {
+  test('returns every game you belong to, with your role and the crew size', async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seedGame(t)
+
+    const mine = await organizer.as.query(api.games.listMine, {})
+    expect(mine).toHaveLength(1)
+    expect(mine[0]?._id).toBe(gameId)
+    expect(mine[0]?.organizer).toBe(true)
+    expect(mine[0]?.memberCount).toBe(2)
+
+    // The same game, seen from the other side, reports the other role.
+    const theirs = await player.as.query(api.games.listMine, {})
+    expect(theirs[0]?.organizer).toBe(false)
+  })
+
+  test('is empty for somebody in no games', async () => {
+    const t = testConvex()
+    await seedGame(t)
+    const outsider = await makeUser(t, 'Outsider')
+    expect(await outsider.as.query(api.games.listMine, {})).toHaveLength(0)
+  })
+
+  test('an anonymous caller cannot list games', async () => {
+    const t = testConvex()
+    await expect(t.query(api.games.listMine, {})).rejects.toThrow(/not signed in/i)
+  })
+})
+
+describe('requireMediator', () => {
+  test('a Mediator passes, a plain Player does not', async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seedGame(t)
+    await organizer.as.mutation(api.games.setMediator, {
+      gameId,
+      userId: player.userId,
+      mediator: true,
+    })
+
+    // setMediator is Organizer-gated, so exercise the Mediator gate through a
+    // mutation that actually requires it.
+    const pilotId = await seedPilot(t, gameId, null)
+    await player.as.mutation(api.ownership.assign, {
+      table: 'pilots',
+      entityId: pilotId,
+      toUserId: organizer.userId,
+    })
+
+    const pilot = await t.run(async (ctx) => await ctx.db.get(pilotId))
+    expect(pilot?.ownerId).toBe(organizer.userId)
+  })
+})
+
+describe('invite lifecycle', () => {
+  test('an expired code is refused', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const joiner = await makeUser(t, 'Late')
+    const code = await organizer.as.mutation(api.invites.create, { gameId })
+
+    await t.run(async (ctx) => {
+      for (const row of await ctx.db.query('invites').collect()) {
+        await ctx.db.patch(row._id, { expiresAt: Date.now() - 1000 })
+      }
+    })
+
+    await expect(joiner.as.mutation(api.invites.redeem, { code })).rejects.toThrow(/expired/i)
+  })
+
+  test('a used-up code is refused, and uses decrement', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const first = await makeUser(t, 'First')
+    const second = await makeUser(t, 'Second')
+    const code = await organizer.as.mutation(api.invites.create, { gameId, usesRemaining: 1 })
+
+    await first.as.mutation(api.invites.redeem, { code })
+    await expect(second.as.mutation(api.invites.redeem, { code })).rejects.toThrow(/used up/i)
+  })
+
+  test('redeeming twice does not consume a second use', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const joiner = await makeUser(t, 'Joiner')
+    const code = await organizer.as.mutation(api.invites.create, { gameId, usesRemaining: 2 })
+
+    await joiner.as.mutation(api.invites.redeem, { code })
+    await joiner.as.mutation(api.invites.redeem, { code })
+
+    // Tapping a link twice should land you in the game, not cost the table a
+    // seat it did not give away.
+    //
+    // Selected BY CODE: seedGame already minted an invite, so index 0 is a
+    // different row entirely — the first draft of this test asserted against it
+    // and failed for the wrong reason.
+    const invite = await t.run(async (ctx) =>
+      (await ctx.db.query('invites').collect()).find((i) => i.code === code)
+    )
+    expect(invite?.usesRemaining).toBe(1)
+  })
+
+  test('an unknown code is refused', async () => {
+    const t = testConvex()
+    await seedGame(t)
+    const joiner = await makeUser(t, 'Joiner')
+    await expect(joiner.as.mutation(api.invites.redeem, { code: 'NOPENOPE' })).rejects.toThrow(
+      /not valid/i
+    )
+  })
+
+  test('the Organizer can revoke a code before it is used', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const joiner = await makeUser(t, 'Joiner')
+    const code = await organizer.as.mutation(api.invites.create, { gameId })
+
+    const invite = await t.run(async (ctx) =>
+      (await ctx.db.query('invites').collect()).find((i) => i.code === code)
+    )
+    await organizer.as.mutation(api.invites.revoke, { inviteId: invite?._id as never })
+
+    await expect(joiner.as.mutation(api.invites.redeem, { code })).rejects.toThrow(/not valid/i)
+  })
+
+  test('a Player cannot revoke', async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seedGame(t)
+    const code = await organizer.as.mutation(api.invites.create, { gameId })
+    const invite = await t.run(async (ctx) =>
+      (await ctx.db.query('invites').collect()).find((i) => i.code === code)
+    )
+
+    await expect(
+      player.as.mutation(api.invites.revoke, { inviteId: invite?._id as never })
+    ).rejects.toThrow(/organizer/i)
+  })
+})
+
+describe('a shelved entity is not assignable', () => {
+  test('assigning one is refused, because there is no game to assign within', async () => {
+    const t = testConvex()
+    const { organizer } = await seedGame(t)
+    const shelved = await seedPilot(t, null, organizer.userId)
+
+    // Ownership only means something inside a crew. On a shelf the entity
+    // already belongs to exactly one person and there is nobody to hand it to.
+    await expect(
+      organizer.as.mutation(api.ownership.assign, {
+        table: 'pilots',
+        entityId: shelved,
+        toUserId: organizer.userId,
+      })
+    ).rejects.toThrow(/shelf/i)
+  })
+
+  test('releasing one is refused for the same reason', async () => {
+    const t = testConvex()
+    const { organizer } = await seedGame(t)
+    const shelved = await seedPilot(t, null, organizer.userId)
+
+    await expect(
+      organizer.as.mutation(api.ownership.release, { table: 'pilots', entityId: shelved })
+    ).rejects.toThrow(/already unclaimed/i)
+  })
+})
+
+describe('requireMediator', () => {
+  test('rejects a member who does not mediate', async () => {
+    const t = testConvex()
+    const { player, gameId } = await seedGame(t)
+    const { requireMediator } = await import('../model/permissions')
+
+    // Exercised directly: this PR ships the helper ahead of its Phase 3
+    // callers, and an untested gate is the kind that quietly stops gating.
+    await expect(
+      t.run(async (ctx) => {
+        const withIdentity = {
+          ...ctx,
+          auth: { getUserIdentity: async () => ({ subject: player.userId }) },
+        }
+        return await requireMediator(withIdentity as never, gameId)
+      })
+    ).rejects.toThrow(/mediator/i)
+  })
+})
