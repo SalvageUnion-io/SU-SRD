@@ -1,0 +1,193 @@
+# ADR-030: Accounts, Games, and a Server of Record
+
+## Status
+
+**Accepted — governing ADR for identity, ownership, and sharing.**
+**Supersedes [ADR-001](ADR-001-local-first-no-backend.md)** (local-first, no
+backend, no auth). **Amends [ADR-022](ADR-022-provenance-log-and-overrides.md)**
+(the Change Log is no longer local-only). Extends
+[ADR-021](ADR-021-itun-surface-taxonomy.md) with an ownership axis without
+altering any of its enforcement modes.
+
+"Accepted" records the **decision**. Almost none of it is built yet; the phased
+delivery plan is in
+[`accounts-and-games.md`](../architecture/accounts-and-games.md).
+
+## Context
+
+[ADR-001](ADR-001-local-first-no-backend.md) made ITUN local-first with no
+accounts and no application backend, and it closes with an explicit instruction:
+do not reintroduce auth, server-side user storage, or realtime sync without a new
+ADR superseding it. This is that ADR.
+
+The decision is not a reversal of ADR-001's reasoning — it is a change in what
+the product is for. ADR-001 correctly observed that _a player's pilots and mechs
+are private working documents, not multiplayer state_. That is still true of a
+person building a mech alone. It stopped being the whole story once the goal
+became running **a table**: several players, one Union Crawler, a Mediator, and a
+shared session where a Downtime happens to everybody at once.
+
+[ADR-021](ADR-021-itun-surface-taxonomy.md) anticipated this precisely. Its
+long-tail section lists **"Workspaces → Game spaces"**, a **"Shared, live
+Dashboard"**, and a **"dedicated Mediator layer"** as out of scope and
+_explicitly gated on revisiting ADR-001_. Nothing here is a surprise to the
+architecture; this ADR opens the gate ADR-021 described.
+
+Three existing decisions turned out to be well-shaped for this and are carried
+over unchanged:
+
+- **[ADR-004](ADR-004-snapshot-netlify-functions.md)** (immutable, unauthenticated
+  snapshots) remains the account-free way to hand someone a pilot. It is untouched.
+- **[ADR-027](ADR-027-partners-owned-by-host.md)/[ADR-028](ADR-028-partners-render-in-place.md)**
+  made partner ownership _intrinsic_ — partners ride their host through snapshots
+  and export bundles with no orphan cleanup. That ports to per-user ownership with
+  no change at all.
+- **[ADR-022](ADR-022-provenance-log-and-overrides.md)**'s Change Log is already
+  append-only, ordered, replay-shaped, and tagged with provenance and source
+  surface. It becomes the spine of this feature (see _Amendment_ below).
+
+## Decision
+
+### 1. Identity and the storage modes
+
+ITUN gains **accounts, authenticated by Discord OAuth and nothing else**. Discord
+is the only provider because the audience already lives there and the project
+already ships a bot, which this makes a first-class authenticated client rather
+than something needing its own credential story.
+
+**Convex is the server of record.** A signed-in client reads through a reactive
+subscription and writes to Convex; IndexedDB is demoted from source of truth to a
+warm cache. Reactive subscriptions are the product feature here — synchronized
+alerts and a live table are the point — not an add-on.
+
+This produces **three modes**, and every surface must be legible in all three:
+
+| Mode             | Truth        | Reads                 | Writes                     |
+| ---------------- | ------------ | --------------------- | -------------------------- |
+| **Solo**         | IndexedDB    | local                 | local — nothing is blocked |
+| **Connected**    | Convex       | reactive subscription | to Convex                  |
+| **Disconnected** | Convex, gone | cache, fully legible  | **blocked**                |
+
+**Solo is not Disconnected.** Anonymous play stays first-class: no sign-in is
+required to build a pilot and play alone, nothing is gated, and no banner
+appears. Signing in is an _upgrade_ taken to join a table. A **NOT CONNECTED**
+banner and read-only state are the honest cost of choosing a server of record,
+and only people who opted into a Game ever pay it.
+
+Offline writes are **blocked, not queued**. An outbox would reintroduce conflict
+resolution through the back door, which is the thing choosing a server of record
+avoided. Revisit only with evidence from a real session, not in anticipation.
+
+### 2. Containers: Games and Shelves
+
+A **Game** is the shared container — campaign, group, and the former Workspace
+collapsed into one concept. There is no separate "group" that outlives a Game and
+no separate "workspace" that sits beside one.
+
+A **Shelf** is the second container: a per-account home for entities that are not
+in play. It is deliberately _not_ a Game — a shelf has no Mediator, no invites,
+and no crew — and it syncs, so drafts follow you across devices.
+
+An entity is in exactly one container, encoded as two nullable columns:
+
+| `gameId` | `ownerId` | State                                                  |
+| -------- | --------- | ------------------------------------------------------ |
+| set      | set       | claimed and in play                                    |
+| set      | null      | **unclaimed** — awaiting assignment                    |
+| null     | set       | on the owner's shelf                                   |
+| null     | null      | **invalid** — must be unreachable through any mutation |
+
+An entity belongs to **one Game at a time**; a pilot's crawler level, scrap, TP,
+and injuries are Game-specific, so a shared pilot would be incoherent rather than
+convenient. Moving one is an explicit **fork** that copies and records its origin.
+
+### 3. Roles: a base role plus one modifier
+
+Every member of a Game is a **Player** or a **Mediator**. **Organizer** is an
+_orthogonal administrative flag_ carried by one of them — not a third role, and
+never held by a non-participant.
+
+- **Player** — owns their own pilots and mechs. The default.
+- **Mediator** — owns the world: NPCs, alerts, the Downtime phase. **May also own
+  a pilot and play.** The schema permits several; the UI is built for one.
+- **Organizer** — invites, membership, settings, rename, delete, transfer. Exactly
+  one per Game. **Confers no authority over game content**: an Organizer's reach
+  over pilots, mechs, and the crawler is whatever their base role already gave
+  them.
+
+The one deliberate bend: **assigning ownership** belongs to the Mediator, but
+falls back to the Organizer when a Game has no Mediator, so there is never a state
+in which nobody can hand out a pilot. This is defensible because who-owns-what is
+closer to membership than to content — assigning a pilot never edits one.
+
+### 4. Cross-player writes: propose, never impose
+
+**A Mediator never writes another person's sheet.** They push a **proposal**; it
+arrives on the player's Dashboard with the before/after visible, and the player
+applies or declines it. Proposals persist until answered — no timers, no expiry,
+and **no force-apply**, which would collapse this straight back into the direct
+write this decision rejects. A newer proposal against the same field marks the
+older one superseded, so a player never faces two contradictory pending changes
+to one value.
+
+This keeps ADR-001's honour-system ethos intact while giving the Mediator real
+reach, and it means **alerts and cross-player writes are one mechanism, not two**.
+
+Ownership itself is assigned rather than claimed: players do not self-claim
+unclaimed entities. Owners may always **release** what they hold, and the Mediator
+may **reassign**, so a mis-assignment is fixable. A player may own any number of
+entities in a Game — solo play and covering for an absent player both need it.
+
+### 5. Visibility
+
+Inside a Game, every member sees every crewmate's **vitals live** and may drill
+into a crewmate's full sheet **read-only**. The Mediator's prepared opposition
+(`encounterNpcs`) is the one thing that stays hidden. The **crawler is communal** —
+any member may edit it — with conflicting writes resolved by field-level merge,
+because the scrap pool and cargo lots are genuinely contended during Downtime.
+
+### 6. Surfaces
+
+The **Mediator gets its own surface**, the layer ADR-021 deferred; the Encounter
+tray is absorbed into it and `/encounter` retires. The player Dashboard's locked
+1280×800 canvas ([ADR-020](ADR-020-dashboard-fixed-canvas-scale-to-fit.md)) is
+**not** reopened: crew vitals arrive there as a **"Crew" dial item**, using the
+dial track's existing configurable show/hide and order.
+
+## Amendment to ADR-022
+
+ADR-022 states the Change Log is **local only** and never travels with a
+published snapshot. The first half no longer holds: the log is now
+**synchronized**, and gains `actorId`, a `state` of
+`applied | proposed | rejected | superseded`, and a `supersededBy` pointer. A
+proposal _is_ a log entry; applying one commits it.
+
+The second half stands unchanged — **a published snapshot remains frozen,
+historyless, and bare**. ADR-004 is not modified.
+
+## Consequences
+
+- **The app now holds PII.** Discord identifiers and profile data are real
+  obligations the project did not previously have: account deletion, data export,
+  and a plain-language privacy note are launch requirements, not follow-ups.
+  Deleting an account transfers Organizer to the longest-standing remaining
+  member and removes that account's owned entities; **the Game and the communal
+  crawler survive**, so a campaign never dies because one person quit.
+- **Anonymous use must keep working, forever.** Every feature that assumes a
+  `userId` needs a defined Solo behaviour. This is the single most likely source
+  of regressions.
+- **Convex cannot validate entity bodies.** The Zod schemas in
+  `apps/itun/src/lib/schemas/` stay the source of truth and Convex stores bodies
+  opaquely, so **every mutation must Zod-parse before persisting**. The
+  alternative — mirroring every field into Convex validators — forks the source of
+  truth into a second copy that rots.
+- **ADR-021's modes are unchanged**, but each now carries an ownership question:
+  a surface must ask _whose entity is this_ before asking what the mode enforces.
+- **Cost scales with concurrent players, not accounts**, since an open Dashboard
+  is a live subscription. No cap, seat limit, or paid tier is introduced; usage is
+  instrumented and revisited at a real number.
+- **Two deploy targets.** The SPA stays on Netlify; Convex is a data backend, not
+  a host.
+- Not adopted, deliberately: CRDTs or full offline sync; turn/initiative
+  enforcement across players; net-new homebrew authoring; any change to snapshot
+  sharing; accounts on `apps/srd`, which stays static, public, and login-free.

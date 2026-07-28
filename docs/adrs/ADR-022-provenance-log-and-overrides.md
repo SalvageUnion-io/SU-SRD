@@ -197,8 +197,10 @@ silently doubled.
 
 The five Eldridge Coast pregens are the unambiguous case in the other direction:
 those are **authored content**, not player overrides, and become real
-contributions rather than manual adjustments. `eldridgeCoast.ts` says so in its
-own header — "class/ability bonuses ... are encoded via `maxHpModifier` /
+contributions rather than manual adjustments. `eldridgeCoast.ts` said so in its
+own header (that seed module was deleted in
+[ADR-030](ADR-030-accounts-games-server-of-record.md) Phase 0; the quotation is
+preserved from git history because the argument still stands) — "class/ability bonuses ... are encoded via `maxHpModifier` /
 `maxApModifier`" — which is precisely the conflation this amendment removes.
 `pilotInventory.ts` carries the same admission for the third field ("base 6 +
 `maxInventorySlotsModifier` (Beefcake +4)"), a bonus no UI can even write today.

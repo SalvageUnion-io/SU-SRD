@@ -9,6 +9,8 @@ import { itunEntityHref } from '../lib/entityHref'
 import { AppLink } from '../components/shared/AppLink'
 import { BlockedUpgradeError } from '../lib/db/index'
 import { GameDataReady } from '../components/shared/GameDataReady'
+import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
+import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { BackupNudgeToast } from '../components/shared/BackupNudgeToast'
 // Self-hosted Barlow superfamily (mirrors srd) — keeps fonts on-origin so
@@ -70,26 +72,29 @@ function RootComponent() {
   const [searchOpen, setSearchOpen] = useState(false)
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <EntityHrefProvider value={itunEntityHref}>
-        {/* The shared brand header renders on EVERY route — including the live
+    <AppConvexProvider>
+      <QueryClientProvider client={queryClient}>
+        <EntityHrefProvider value={itunEntityHref}>
+          {/* The shared brand header renders on EVERY route — including the live
             sheet (/sheet/*) and snapshot (/s/*) play surfaces, which sit below
             it and keep their own sticky control bar. It renders ONE level above
             the game-data gate (a sibling of GameDataReady, not a child) — see
             GameDataReady.tsx's doc comment: brand chrome touches no reference
             data, so it paints immediately instead of sitting behind the full
             preload. */}
-        <AppHeader onSearchClick={() => setSearchOpen(true)} LinkComponent={AppLink} />
-        <GameDataReady>
-          <Outlet />
-          {/* Mounted on every route (inside the game-data gate, so search()
+          <NotConnectedBanner />
+          <AppHeader onSearchClick={() => setSearchOpen(true)} LinkComponent={AppLink} />
+          <GameDataReady>
+            <Outlet />
+            {/* Mounted on every route (inside the game-data gate, so search()
               is always safe) so the Cmd/Ctrl+K shortcut works everywhere,
               alongside the always-present AppHeader search trigger. */}
-          <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
-        </GameDataReady>
-        <Toaster />
-        <BackupNudgeToast />
-      </EntityHrefProvider>
-    </QueryClientProvider>
+            <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
+          </GameDataReady>
+          <Toaster />
+          <BackupNudgeToast />
+        </EntityHrefProvider>
+      </QueryClientProvider>
+    </AppConvexProvider>
   )
 }

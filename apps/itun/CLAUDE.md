@@ -1,9 +1,21 @@
 # itun (ITUN) — Character Builder & Game Manager
 
-Local-first React app for building and running Salvage Union pilots, mechs, and
-crawlers. **No auth, no backend** other than the snapshot-sharing Netlify
-Functions ([ADR-001](../../docs/adrs/ADR-001-local-first-no-backend.md),
-[ADR-004](../../docs/adrs/ADR-004-snapshot-netlify-functions.md)).
+React app for building and running Salvage Union pilots, mechs, and crawlers.
+
+**Two storage modes matter when you touch data**
+([ADR-030](../../docs/adrs/ADR-030-accounts-games-server-of-record.md), which
+supersedes ADR-001):
+
+- **Solo** — not signed in. IndexedDB is the source of truth and nothing is
+  gated. This is still the default and must keep working forever; a build with
+  no `VITE_CONVEX_URL` (CI, a fresh checkout) is permanently Solo.
+- **Connected / Disconnected** — signed in. Convex is the source of truth and
+  IndexedDB becomes a cache. Offline means **read-only**, not a write queue.
+
+Resolve the mode through `src/lib/connection/` — never by reading
+`navigator.onLine` or an auth flag directly. Snapshot sharing
+([ADR-004](../../docs/adrs/ADR-004-snapshot-netlify-functions.md)) is unchanged
+and remains the account-free way to share a build.
 
 ## Stack
 

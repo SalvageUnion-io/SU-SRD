@@ -38,6 +38,10 @@ function generateId(): string {
  * Generates a unique ID that does not already exist in the given store.
  * Retries up to MAX_RETRIES times on collision.
  *
+ * Generic in its collision check, so it also backs Game invite codes
+ * (convex/invites.ts) — Crockford base32 with no I/L/O/U means a code read
+ * aloud across a table cannot be mistyped into a different valid one.
+ *
  * @throws {Error} if all retry attempts collide (extremely unlikely at scale)
  */
 export async function generateUniqueId(exists: (id: string) => Promise<boolean>): Promise<string> {
@@ -47,5 +51,5 @@ export async function generateUniqueId(exists: (id: string) => Promise<boolean>)
       return id
     }
   }
-  throw new Error('Failed to generate a unique snapshot ID after max retries')
+  throw new Error('Failed to generate a unique short ID after max retries')
 }
