@@ -10,6 +10,12 @@ is still unbuilt. Subordinate to
 [ADR-021](ADR-021-itun-surface-taxonomy.md), which establishes the surface/mode
 model this ADR serves.
 
+**Amended 2026-07** — an override is now an **absolute pin**, not a signed delta
+in the same field the rules derivation reads. See
+[Amendment](#amendment-2026-07-overrides-become-absolute-pins); the amendment is a
+hard prerequisite for
+[ADR-028](ADR-028-contribution-model-and-stat-provenance.md).
+
 ## Context
 
 [ADR-021](ADR-021-itun-surface-taxonomy.md) makes the **Live Sheet** a Free-Edit
@@ -77,6 +83,10 @@ both the pinned value and the value it would derive to, so the UI can render an
 therefore **non-destructive and reversible**: reverting drops the pin and the stat
 resumes tracking its derivation.
 
+- **An override is an absolute pin, not a delta** (amended 2026-07 — see
+  [Amendment](#amendment-2026-07-overrides-become-absolute-pins)). The stored value is
+  the pinned maximum itself; the derived baseline is recomputed live and never
+  persisted.
 - The override marker is a small, visible graphical indicator on the affected stat
   — enough to tell an overridden value from a derived one at a glance. It appears
   **on the Live Sheet only**; a published snapshot renders the value plainly (a
@@ -103,3 +113,89 @@ resumes tracking its derivation.
 - Replay is preserved as a future option at low present cost — the log is designed
   for it even though no replay surface ships now.
 - Snapshot payloads and their privacy surface are unchanged: history stays local.
+
+## Amendment (2026-07): overrides become absolute pins
+
+### What was wrong
+
+As built, an override is stored as a **signed delta** in the same field the rules
+derivation reads — `maxSpModifier`, `maxHpModifier`, `maxApModifier`,
+`maxEpModifier`, `maxHeatModifier`, `maxCargoModifier` — and the "derived
+baseline" this ADR requires is recovered by **subtracting it back out**:
+
+```ts
+const derivedMaxSP = maxSP - (mech.maxSpModifier ?? 0) // MechSheet.tsx
+```
+
+So one field carries two incompatible meanings: the Free-Edit override pin _and_
+the only channel through which any rules modifier reaches a maximum today (which
+is why hand-entering Beefcake works at all, and why the Eldridge Coast pregens
+write these fields directly).
+
+The consequence is blocking. The moment a contribution applies automatically
+([ADR-028](ADR-028-contribution-model-and-stat-provenance.md)), it must not be
+written there — or a **rules-legal bonus renders as a hand override**, complete
+with an "overridden from N" callout and an offer to revert it. The sheet would
+actively lie. No data backfill can proceed until this is separated.
+
+### The amendment
+
+1. **An override stores the pinned value absolutely** (`max*Override`), not a
+   delta. The derived baseline is recomputed live from contributions and is never
+   persisted — which is closer to what this ADR always specified ("stores both the
+   pinned value and the value it would derive to") than the delta ever was.
+2. **`overridden` becomes an explicit flag**, not an inference. `VitalGauge` must
+   not decide whether a value was pinned by comparing two numbers.
+3. **Rules modifiers are never persisted on the entity.** They are derived
+   contributions, resolved at read time.
+4. **An override appends to the breakdown; it never replaces it.** The provenance
+   panel shows every derived contribution, subtotals them, and applies the pin as
+   the final line. This makes the retained baseline _visible_ rather than merely
+   stored, and makes the revert self-explanatory: the player can see the number it
+   falls back to and why that number is what it is.
+
+### Migration
+
+Existing `max*Modifier` values are an unrecoverable mixture of hand overrides and
+rules bonuses players typed in manually because the app would not apply them. A
+migration cannot distinguish the two.
+
+**Decision: convert every existing value to an absolute pin.** This is lossless —
+no displayed number changes for any character. The cost is cosmetic and accepted:
+a sheet where someone hand-entered a rules bonus will now show an override marker
+it did not show before. That marker is arguably correct, since the value genuinely
+was entered by hand.
+
+Rejected alternatives: grandfathering the marker behind a legacy flag (leaves a
+permanent flag in the schema to hide one migration); reconciling per stat by
+dropping values now covered by an automatic contribution (silently changes live
+characters' maxima); adding a parallel field without migrating (leaves the
+collision in place, so it solves nothing).
+
+The five Eldridge Coast pregens are the unambiguous case in the other direction:
+those are **authored content**, not player overrides, and become real
+contributions rather than pins. `eldridgeCoast.ts` says so in its own header —
+"class/ability bonuses ... are encoded via `maxHpModifier` / `maxApModifier`" —
+which is precisely the conflation this amendment removes. `pilotInventory.ts`
+carries the same admission for the third field ("base 6 + `maxInventorySlotsModifier`
+(Beefcake +4)"), a bonus no UI can even write today.
+
+**There is a direct precedent for the migration.** Migration 8
+(`8-crawler-battle-sp-to-derived.ts`) already performed this exact move for the
+Battle Crawler's +5 Max SP: a bonus that had been hand-carried in `maxSpModifier`
+was reclassified as derived, with the stored field healed rather than dropped.
+The pin migration is that operation generalized to the remaining five fields.
+
+### Also fixed alongside
+
+Three gaps in this ADR's own "every mutation is logged" guarantee, all found by
+inspection and none of them behavioural changes to the log's design:
+
+- `kind: 'transaction'` is defined in the schema, documented at
+  `entityStore.ts`, and badged in `ChangeLogDrawer` — but **emitted nowhere**. Every
+  Dashboard lifecycle transaction currently logs as a manual edit.
+- `source` is **never passed** by any call site; every persisted entry reads
+  `'unknown'`.
+- `entityStore.transfer()` performs cross-entity writes and **never calls
+  `emitChangeLog`**, so cargo stow/load and scrap hand-offs leave no trace. This is
+  the one true hole in the chokepoint guarantee.
