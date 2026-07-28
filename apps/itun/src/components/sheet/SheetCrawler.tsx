@@ -33,6 +33,7 @@ import { AppLink } from '../shared/AppLink'
 import { bayStates, mechRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
+import { linesFromBreakdown } from 'component-lib'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
 
@@ -56,6 +57,11 @@ export function SheetCrawler({
 
   const spParts = crawlerMaxSPParts(crawler)
   const maxSP = spParts.total
+  const spLines = linesFromBreakdown(spParts, {
+    base: `Tech ${crawler.techLevel?.replace(/\D/g, '') || '?'} Crawler`,
+    baseDetail: 'base',
+    installed: 'Crawler type bonus',
+  })
   const sp = Math.min(crawler.currentSP ?? maxSP, maxSP)
   // Cap override (ADR-022, Free Edit): pin Max SP via a signed maxSpModifier
   // delta; the gauge shows "overridden from N" + a revert. Tagged `override`.
@@ -243,6 +249,7 @@ export function SheetCrawler({
               : undefined
           }
           overriddenFrom={editable && spParts.overridden ? spParts.derived : undefined}
+          provenance={spLines}
           onRevertOverride={
             editable ? () => overrideCrawlerMax({ maxSpOverride: undefined }) : undefined
           }

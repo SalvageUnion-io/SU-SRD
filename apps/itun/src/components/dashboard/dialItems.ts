@@ -11,11 +11,11 @@
  */
 
 import {
-  crawlerMaxSP,
-  mechMaxHeat,
-  mechMaxSP,
-  pilotMaxAP,
-  pilotMaxHP,
+  crawlerMaxSPParts,
+  mechMaxSPParts,
+  mechMaxHeatParts,
+  pilotMaxHPParts,
+  pilotMaxAPParts,
 } from '../../lib/rules/derivedStats'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { CockpitPrefs, DialKind } from '../../lib/schemas/cockpitPrefs'
@@ -24,6 +24,7 @@ import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { MountState } from '../../stores/playStateStore'
 import type { DialItem as DialCellItem } from 'component-lib'
+import { linesFromBreakdown } from 'component-lib'
 
 export type DialItem = DialCellItem & { kind: DialKind }
 
@@ -41,8 +42,10 @@ export const DIAL_KIND_LABELS: Record<DialKind, string> = {
 export const LOCKED_DIAL_KIND: DialKind = 'actions'
 
 function pilotItem(pilot: Pilot): DialItem {
-  const maxHP = Math.max(0, pilotMaxHP(pilot))
-  const maxAP = Math.max(0, pilotMaxAP(pilot))
+  const hpParts = pilotMaxHPParts(pilot)
+  const apParts = pilotMaxAPParts(pilot)
+  const maxHP = Math.max(0, hpParts.total)
+  const maxAP = Math.max(0, apParts.total)
   return {
     key: `pilot:${pilot.id}`,
     kind: 'pilot',
@@ -50,16 +53,38 @@ function pilotItem(pilot: Pilot): DialItem {
     label: `Pilot · ${pilot.name}`,
     tone: 'pilot',
     gauges: [
-      { label: 'HP', value: Math.min(pilot.currentHP ?? maxHP, maxHP), max: maxHP, tone: 'pilot' },
-      { label: 'AP', value: Math.min(pilot.currentAP ?? maxAP, maxAP), max: maxAP, tone: 'pilot' },
+      {
+        label: 'HP',
+        value: Math.min(pilot.currentHP ?? maxHP, maxHP),
+        max: maxHP,
+        tone: 'pilot',
+        provenance: linesFromBreakdown(hpParts, {
+          base: 'Pilot',
+          baseDetail: 'base',
+          installed: 'Injuries',
+          installedDetail: 'rules A11',
+        }),
+        ...(hpParts.overridden ? { derivedMax: hpParts.derived } : {}),
+      },
+      {
+        label: 'AP',
+        value: Math.min(pilot.currentAP ?? maxAP, maxAP),
+        max: maxAP,
+        tone: 'pilot',
+        provenance: linesFromBreakdown(apParts, { base: 'Pilot', baseDetail: 'base' }),
+        ...(apParts.overridden ? { derivedMax: apParts.derived } : {}),
+      },
     ],
   }
 }
 
 function mechItem(mech: Mech): DialItem {
   const chassis = resolveChassisRef(mech.chassisRef)
-  const maxSP = mechMaxSP(mech, chassis)
-  const maxHeat = mechMaxHeat(mech, chassis)
+  const spParts = mechMaxSPParts(mech, chassis)
+  const heatParts = mechMaxHeatParts(mech, chassis)
+  const maxSP = spParts.total
+  const maxHeat = heatParts.total
+  const chassisLabel = `${chassis?.name ?? mech.chassisRef} chassis`
   return {
     key: `mech:${mech.id}`,
     kind: 'mech',
@@ -67,20 +92,38 @@ function mechItem(mech: Mech): DialItem {
     label: `Mech · ${mech.name}`,
     tone: 'mech',
     gauges: [
-      { label: 'SP', value: Math.min(mech.currentSP ?? maxSP, maxSP), max: maxSP, tone: 'mech' },
+      {
+        label: 'SP',
+        value: Math.min(mech.currentSP ?? maxSP, maxSP),
+        max: maxSP,
+        tone: 'mech',
+        provenance: linesFromBreakdown(spParts, {
+          base: chassisLabel,
+          baseDetail: 'base',
+          installed: 'Installed systems & modules',
+        }),
+        ...(spParts.overridden ? { derivedMax: spParts.derived } : {}),
+      },
       {
         label: 'Heat',
         value: Math.min(mech.currentHeat ?? 0, maxHeat),
         max: maxHeat,
         tone: 'mech',
         danger: Math.max(0, maxHeat - 2),
+        provenance: linesFromBreakdown(heatParts, {
+          base: chassisLabel,
+          baseDetail: 'base',
+          installed: 'Installed systems & modules',
+        }),
+        ...(heatParts.overridden ? { derivedMax: heatParts.derived } : {}),
       },
     ],
   }
 }
 
 function crawlerItem(crawler: Crawler): DialItem {
-  const maxSP = crawlerMaxSP(crawler)
+  const spParts = crawlerMaxSPParts(crawler)
+  const maxSP = spParts.total
   return {
     key: `crawler:${crawler.id}`,
     kind: 'crawler',
@@ -93,6 +136,12 @@ function crawlerItem(crawler: Crawler): DialItem {
         value: Math.min(crawler.currentSP ?? maxSP, maxSP),
         max: maxSP,
         tone: 'crawler',
+        provenance: linesFromBreakdown(spParts, {
+          base: `Tech ${crawler.techLevel?.replace(/\D/g, '') || '?'} Crawler`,
+          baseDetail: 'base',
+          installed: 'Crawler type bonus',
+        }),
+        ...(spParts.overridden ? { derivedMax: spParts.derived } : {}),
       },
     ],
   }

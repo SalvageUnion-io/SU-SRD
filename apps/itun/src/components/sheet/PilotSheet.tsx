@@ -77,6 +77,7 @@ import {
 import { PartnerCard } from './PartnerCard'
 import { resolveAbility } from './pilotAbilities'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
+import { linesFromBreakdown } from 'component-lib'
 
 /**
  * The tree every pilot has regardless of class (Repair, Scrap, Mount, …).
@@ -307,6 +308,17 @@ export function PilotSheet({
 
   const hpParts = pilotMaxHPParts(pilot)
   const apParts = pilotMaxAPParts(pilot)
+
+  // Stat provenance ledgers (ADR-029). Injuries ride the contribution line —
+  // a negative rules-sourced addend, derived from `injuries` so healing restores
+  // max HP with no bookkeeping.
+  const hpLines = linesFromBreakdown(hpParts, {
+    base: 'Pilot',
+    baseDetail: 'base',
+    installed: 'Injuries',
+    installedDetail: 'rules A11',
+  })
+  const apLines = linesFromBreakdown(apParts, { base: 'Pilot', baseDetail: 'base' })
   const maxHP = Math.max(0, hpParts.total)
   const maxAP = Math.max(0, apParts.total)
   const hp = Math.min(pilot.currentHP ?? maxHP, maxHP)
@@ -537,6 +549,7 @@ export function PilotSheet({
                   : (next) => overridePilotMax({ maxHpOverride: pinOrUndef(next, hpParts.derived) })
               }
               overriddenFrom={readOnly || !hpParts.overridden ? undefined : hpParts.derived}
+              provenance={hpLines}
               onRevertOverride={
                 readOnly ? undefined : () => overridePilotMax({ maxHpOverride: undefined })
               }
@@ -553,6 +566,7 @@ export function PilotSheet({
                   : (next) => overridePilotMax({ maxApOverride: pinOrUndef(next, apParts.derived) })
               }
               overriddenFrom={readOnly || !apParts.overridden ? undefined : apParts.derived}
+              provenance={apLines}
               onRevertOverride={
                 readOnly ? undefined : () => overridePilotMax({ maxApOverride: undefined })
               }

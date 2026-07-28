@@ -23,6 +23,7 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent, type React
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { Button } from '../chrome/Button'
 import { DashboardGauge, type GaugeTone } from './DashboardGauge'
+import type { ProvenanceLine } from '../stat/StatProvenance'
 
 export type DialGauge = {
   label: string
@@ -31,6 +32,10 @@ export type DialGauge = {
   tone: GaugeTone
   /** First 0-based segment index that reads as danger (redline) when filled. */
   danger?: number
+  /** Ledger explaining how `max` was derived (ADR-029). */
+  provenance?: ProvenanceLine[]
+  /** The value `max` would derive to without a Free-Edit pin. */
+  derivedMax?: number
 }
 
 /** A presentational dial entry. Statless entries are a centered title (Actions /
@@ -99,6 +104,8 @@ function DialCell({
             max={g.max}
             tone={g.tone}
             danger={g.danger}
+            provenance={g.provenance}
+            derivedMax={g.derivedMax}
           />
         ))}
       </div>
