@@ -19,6 +19,7 @@ import type * as invites from "../invites.js";
 import type * as mediator from "../mediator.js";
 import type * as model_permissions from "../model/permissions.js";
 import type * as ownership from "../ownership.js";
+import type * as proposals from "../proposals.js";
 import type * as templates from "../templates.js";
 
 import type {
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   mediator: typeof mediator;
   "model/permissions": typeof model_permissions;
   ownership: typeof ownership;
+  proposals: typeof proposals;
   templates: typeof templates;
 }>;
 
