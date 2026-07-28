@@ -1,8 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { CatalogTile } from 'component-lib'
+import { CatalogTile, getCatalogBg, getCatalogLabel } from 'component-lib'
 import { getSchemaCatalog } from '../lib/gameData'
-import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta).slice(0, 6)

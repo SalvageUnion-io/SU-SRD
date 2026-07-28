@@ -1,99 +1,39 @@
 /**
  * SrdExplorer — the Dashboard's SRD Explorer focus (D4).
  *
- * Replaces the old hard stub in `DisplayPanel`'s `srd` branch. Two ways in:
+ * Functionally the **srd landing page, minus the site header**: the same
+ * category sections and the same `CatalogTile`s, built from the same
+ * `buildCatalogSections()` the landing page and top nav use. It used to carry
+ * its own hand-listed 8 categories, so a schema added to the SRD catalog
+ * silently never appeared here.
  *
- *  1. A **search box** over the whole SRD, driven by component-lib's shared
- *     `useSearchCombobox` (the same hook behind the global search) — schema hits
- *     open a category list, entity hits drill straight into the card.
- *  2. **8 category tiles** (Chassis / Systems / Modules / Pilot Abilities /
- *     Equipment / NPCs / Crawler Bays / Roll Tables) mapping to the real ORM
- *     accessors; picking one lists that category, and picking a row drills into
- *     the faithful `ReferenceEntityCard` in-panel with a back affordance.
+ * Two differences from the landing page, both forced by living in a panel:
  *
- * Preload hazard: accessor `.all()` is only ever called inside a handler after
- * the ORM is ready (`isLoaded` seed + an idempotent `preload('all')` effect) —
- * never at module scope.
+ *  1. Tiles **drill in place** (`onActivate`) rather than navigating — a link
+ *     would take the player off the Dashboard.
+ *  2. Search sits above the catalog rather than in the header, driven by
+ *     component-lib's shared `useSearchCombobox` (the same hook behind the
+ *     global search). It is the header's one function worth keeping in-panel.
+ *
+ * Preload hazard: the catalog and the schema listings read the ORM, so they are
+ * built only once `ready` is true (`isLoaded` seed + an idempotent
+ * `preload('all')` effect) — never at module scope.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { Badge } from '../chrome/Badge'
+import { buildCatalogSections } from '../../catalog/catalogSections'
+import { isSchemaName } from '../../catalog/schemaName'
 import { Button } from '../chrome/Button'
 import { Input } from '../chrome/Field'
+import { SectionHeader } from '../chrome/SectionHeader'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
+import { CatalogTile } from '../shared/CatalogTile'
 import { useSearchCombobox } from '../shared/useSearchCombobox'
 
 const HIDE_CHOICES = { choices: true } as const
-
-type SrdCategory = {
-  /** Stable key (matches the ORM `schemaName` so search-schema hits map here). */
-  schemaName: string
-  /** Tile label. */
-  label: string
-  /** Source stamp (CHS / SYS / …). */
-  stamp: string
-  /** Preload-safe accessor — only invoked in a handler, never at module scope. */
-  all: () => SURefEntity[]
-}
-
-/**
- * The 8 SRD Explorer categories, each mapped to a real `SalvageUnionReference`
- * accessor. `all()` is a thunk so nothing queries the ORM until a tile is
- * actually clicked (post-preload).
- */
-const SRD_CATEGORIES: readonly SrdCategory[] = [
-  {
-    schemaName: 'chassis',
-    label: 'Chassis',
-    stamp: 'CHS',
-    all: () => SalvageUnionReference.Chassis.all(),
-  },
-  {
-    schemaName: 'systems',
-    label: 'Systems',
-    stamp: 'SYS',
-    all: () => SalvageUnionReference.Systems.all(),
-  },
-  {
-    schemaName: 'modules',
-    label: 'Modules',
-    stamp: 'MOD',
-    all: () => SalvageUnionReference.Modules.all(),
-  },
-  {
-    schemaName: 'abilities',
-    label: 'Pilot Abilities',
-    stamp: 'ABL',
-    all: () => SalvageUnionReference.Abilities.all(),
-  },
-  {
-    schemaName: 'equipment',
-    label: 'Equipment',
-    stamp: 'EQP',
-    all: () => SalvageUnionReference.Equipment.all(),
-  },
-  {
-    schemaName: 'npcs',
-    label: 'NPCs',
-    stamp: 'NPC',
-    all: () => SalvageUnionReference.NPCs.all(),
-  },
-  {
-    schemaName: 'crawler-bays',
-    label: 'Crawler Bays',
-    stamp: 'BAY',
-    all: () => SalvageUnionReference.CrawlerBays.all(),
-  },
-  {
-    schemaName: 'roll-tables',
-    label: 'Roll Tables',
-    stamp: 'TBL',
-    all: () => SalvageUnionReference.RollTables.all(),
-  },
-] as const
 
 /** Sort rows by name for a predictable listing. */
 function sortRows(entities: SURefEntity[]): SURefEntity[] {
@@ -104,14 +44,20 @@ function sortRows(entities: SURefEntity[]): SURefEntity[] {
   })
 }
 
-/** Home view: search box + the 8 category tiles. */
+/** Every entity in a schema, empty when the id isn't a real schema name. */
+function entitiesIn(schemaName: string): SURefEntity[] {
+  if (!isSchemaName(schemaName)) return []
+  return sortRows(SalvageUnionReference.findAllIn(schemaName, () => true))
+}
+
+/** Home view: the search box + the SRD catalog's category sections. */
 function SrdHome({
   ready,
-  onPickCategory,
+  onPickSchema,
   onPickEntity,
 }: {
   ready: boolean
-  onPickCategory: (schemaName: string) => void
+  onPickSchema: (schemaName: string, label: string) => void
   onPickEntity: (entity: SURefEntity) => void
 }) {
   const {
@@ -132,10 +78,13 @@ function SrdHome({
       if (result.kind === 'entity') {
         onPickEntity(result.entity)
       } else {
-        onPickCategory(result.schemaId)
+        onPickSchema(result.schemaId, result.title)
       }
     },
   })
+
+  // Only built once the ORM is ready — `buildCatalogSections` reads it.
+  const sections = useMemo(() => (ready ? buildCatalogSections() : []), [ready])
 
   const open = results.length > 0
 
@@ -179,48 +128,59 @@ function SrdHome({
         ) : null}
       </div>
 
-      <div className="pc-srd-tiles">
-        {SRD_CATEGORIES.map((cat) => (
-          <button
-            key={cat.schemaName}
-            type="button"
-            className="pc-srd-tile"
-            onClick={() => onPickCategory(cat.schemaName)}
-          >
-            <Badge shape="stamp" size="mini" className="rounded-card px-[5px] py-0.5 text-label">
-              {cat.stamp}
-            </Badge>
-            <span className="pc-srd-tile-label">{cat.label}</span>
-          </button>
-        ))}
-      </div>
+      {ready ? (
+        <div className="pc-srd-catalog">
+          {sections.map((section) => (
+            <div key={section.label}>
+              <SectionHeader label={section.label} className="mb-2" />
+              <div className="pc-srd-catalog-grid">
+                {section.schemas.map((card) => (
+                  <CatalogTile
+                    key={card.id}
+                    name={card.label}
+                    catalogBg={card.catalogBg}
+                    catalogLabel={card.catalogLabel}
+                    onActivate={() => {
+                      if (card.kind === 'schema') {
+                        onPickSchema(card.schemaName, card.label)
+                        return
+                      }
+                      const entity = entitiesIn(card.schemaName).find((e) => e.id === card.id)
+                      if (entity) onPickEntity(entity)
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="pc-display-note">Loading reference data…</div>
+      )}
     </div>
   )
 }
 
-/** Category view: a stamped header + a listing of the category's entities. */
+/** Category view: a breadcrumb + a listing of that schema's entities. */
 function SrdCategoryList({
-  category,
+  schemaName,
+  label,
   onBack,
   onPickEntity,
 }: {
-  category: SrdCategory
+  schemaName: string
+  label: string
   onBack: () => void
   onPickEntity: (entity: SURefEntity) => void
 }) {
-  const rows = sortRows(category.all())
+  const rows = entitiesIn(schemaName)
   return (
     <div className="pc-srd-list">
       <div className="pc-srd-crumb">
         <Button size="mini" onClick={onBack}>
-          ◀ Categories
+          ◀ Catalog
         </Button>
-        <span className="pc-srd-crumb-title">
-          <Badge shape="stamp" size="mini" className="rounded-card px-[5px] py-0.5 text-label">
-            {category.stamp}
-          </Badge>{' '}
-          {category.label}
-        </span>
+        <span className="pc-srd-crumb-title">{label}</span>
       </div>
       {rows.length === 0 ? (
         <div className="pc-display-note">No entries.</div>
@@ -256,10 +216,12 @@ function SrdEntity({ entity, onBack }: { entity: SURefEntity; onBack: () => void
   )
 }
 
+type SrdCategoryRef = { schemaName: string; label: string }
+
 type SrdView =
   | { kind: 'home' }
-  | { kind: 'category'; schemaName: string }
-  | { kind: 'entity'; entity: SURefEntity; from: 'home' | { schemaName: string } }
+  | ({ kind: 'category' } & SrdCategoryRef)
+  | { kind: 'entity'; entity: SURefEntity; from: 'home' | SrdCategoryRef }
 
 export function SrdExplorer() {
   // Seed readiness synchronously if the ORM is already loaded (usual dashboard
@@ -279,34 +241,35 @@ export function SrdExplorer() {
   }, [ready])
 
   if (view.kind === 'entity') {
+    const from = view.from
     return (
       <div className="pc-display-scroll pc-srd">
         <SrdEntity
           entity={view.entity}
-          onBack={() =>
-            setView(view.from === 'home' ? { kind: 'home' } : { kind: 'category', ...view.from })
-          }
+          onBack={() => setView(from === 'home' ? { kind: 'home' } : { kind: 'category', ...from })}
         />
       </div>
     )
   }
 
   if (view.kind === 'category') {
-    const category = SRD_CATEGORIES.find((c) => c.schemaName === view.schemaName)
-    if (!category || !ready) {
+    if (!ready) {
       return (
         <div className="pc-display-scroll pc-srd">
           <div className="pc-display-note">Loading reference data…</div>
         </div>
       )
     }
-    const schemaName = category.schemaName
+    const { schemaName, label } = view
     return (
       <div className="pc-display-scroll pc-srd">
         <SrdCategoryList
-          category={category}
+          schemaName={schemaName}
+          label={label}
           onBack={() => setView({ kind: 'home' })}
-          onPickEntity={(entity) => setView({ kind: 'entity', entity, from: { schemaName } })}
+          onPickEntity={(entity) =>
+            setView({ kind: 'entity', entity, from: { schemaName, label } })
+          }
         />
       </div>
     )
@@ -316,10 +279,8 @@ export function SrdExplorer() {
     <div className="pc-display-scroll pc-srd">
       <SrdHome
         ready={ready}
-        onPickCategory={(schemaName) => {
-          if (SRD_CATEGORIES.some((c) => c.schemaName === schemaName)) {
-            setView({ kind: 'category', schemaName })
-          }
+        onPickSchema={(schemaName, label) => {
+          if (isSchemaName(schemaName)) setView({ kind: 'category', schemaName, label })
         }}
         onPickEntity={(entity) => setView({ kind: 'entity', entity, from: 'home' })}
       />

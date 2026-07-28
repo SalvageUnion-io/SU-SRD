@@ -17,7 +17,7 @@
  */
 import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
 import { getEntitySlug } from 'salvageunion-reference'
-import { isSchemaName } from './schemaName'
+import { isSchemaName } from 'component-lib'
 import type { CompactSearchEntry } from './searchIndexTypes'
 
 /** Recursively extract display text from a ContentBlock tree (mirrors

@@ -1,11 +1,10 @@
 ---
 import { SiteHeader } from './SiteHeader'
-import { getSchemaCatalog, SalvageUnionReference, getReferenceEntityData } from '../lib/gameData'
+import '../lib/gameData'
 import { MobileNavIsland } from './islands/MobileNavIsland'
 import { MobileSearchIsland } from './islands/MobileSearchIsland'
 import { SearchIsland } from './islands/SearchIsland'
-import { getCatalogBg, getCatalogLabel } from '../lib/catalogColors'
-import { buildCatalogCategories } from '../lib/catalogHelpers'
+import { buildCatalogSections } from 'component-lib'
 import { ITUN_URL } from '../lib/constants'
 
 type BreadcrumbItem = {
@@ -21,20 +20,9 @@ type Props = {
 
 const { breadcrumbs, breadcrumbDescription } = Astro.props
 
-const catalog = getSchemaCatalog()
-const schemas = catalog.schemas.filter((s) => !s.meta)
-const schemaMap = new Map(schemas.map((s) => [s.id, s]))
 const currentPath = Astro.url.pathname
-const catalogCategories = SalvageUnionReference.CatalogCategories.all()
 
-const categories = buildCatalogCategories({
-  catalogCategories,
-  schemaMap,
-  findAllIn: (schemaName, pred) => SalvageUnionReference.findAllIn(schemaName, pred),
-  getReferenceEntityData,
-  getCatalogBg,
-  getCatalogLabel,
-})
+const categories = buildCatalogSections()
 ---
 
 <!-- Static brand chrome via the shared React SiteHeader; the interactive search

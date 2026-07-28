@@ -12,9 +12,18 @@ export type CatalogCategory = {
   flat: boolean
 }
 
-type CatalogCard = {
+export type CatalogCard = {
   id: string
   href: string
+  /**
+   * What the tile stands for. A `schema` tile opens a whole schema's listing;
+   * an `entity` tile (the flat categories — guides) opens one entity outright.
+   * srd encodes the same distinction in `href`; surfaces that drill in-place
+   * rather than navigate (the Dashboard's SRD Explorer) need it as data.
+   */
+  kind: 'schema' | 'entity'
+  /** The schema this tile belongs to — its own id for `schema`, the owning schema for `entity`. */
+  schemaName: string
   /** Raw display name (no pluralization, no overrides) */
   displayName: string
   /** Rendered label (pluralized for schema entries, override-applied for flat items) */
@@ -23,7 +32,7 @@ type CatalogCard = {
   catalogLabel?: string
 }
 
-type CatalogSection = {
+export type CatalogSection = {
   label: string
   schemas: CatalogCard[]
 }
@@ -95,6 +104,8 @@ export function buildCatalogCategories({
           return {
             id: item.id,
             href: `/schema/${schemaName}/item/${display.slug}/`,
+            kind: 'entity' as const,
+            schemaName,
             displayName: rawName,
             label: labelText,
             catalogBg: guideColor || getCatalogBg(schemaName),
@@ -113,6 +124,8 @@ export function buildCatalogCategories({
           {
             id: s.id,
             href: `/schema/${s.id}/`,
+            kind: 'schema' as const,
+            schemaName: s.id,
             displayName: rawDisplayName,
             label: pluralize(rawDisplayName, s.itemCount),
             catalogBg: getCatalogBg(s.id),

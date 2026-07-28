@@ -1059,33 +1059,21 @@
   color: var(--color-ink-50);
 }
 
-/* 8 category tiles. */
-.pc-srd-tiles {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-}
-.pc-srd-tile {
+/* The catalog: the srd landing page's category sections, in a panel. The tiles
+   themselves are the shared `CatalogTile`, so only the section stack and the
+   grid live here. The grid is auto-fill rather than the landing page's viewport
+   breakpoints (`sm:`/`lg:`) — those measure the WINDOW, so a narrow display
+   panel on a wide screen would be handed 3 columns of unreadably small tiles.
+   auto-fill tracks the panel's own width instead. */
+.pc-srd-catalog {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 12px 6px;
-  border: var(--bw-chrome) solid var(--color-ink-30);
-  border-radius: var(--radius-panel);
-  background: var(--color-paper);
-  cursor: pointer;
+  gap: 16px;
 }
-.pc-srd-tile:hover {
-  background: var(--color-ink-8);
-  border-color: var(--color-ink);
-}
-.pc-srd-tile-label {
-  font-family: var(--font-body);
-  font-size: var(--text-note);
-  font-weight: 600;
-  color: var(--color-ink);
-  text-align: center;
+.pc-srd-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
 }
 
 /* Category listing + breadcrumb. */
