@@ -104,11 +104,19 @@ describe('DisplayPanel', () => {
     sublabel: 'roll',
   }
 
-  test('Tables focus → a RollTable renders under the picker bar (D3)', () => {
+  test('Tables focus → a RollTable whose title is the picker trigger (D3)', () => {
     const { container } = renderDV(tablesFocus)
     expect(container.querySelector('.pc-display-scroll')).toBeTruthy()
-    // The picker bar replaces the old <select>.
-    expect(container.querySelector('[aria-haspopup="dialog"]')).toBeTruthy()
+    // The trigger lives IN the RollTable header band — the band that also
+    // carries the Roll control — rather than in a bar above it repeating the
+    // name that band already prints.
+    const trigger = container.querySelector('[aria-haspopup="dialog"]')
+    expect(trigger).toBeTruthy()
+    expect(
+      trigger?.closest('div')?.querySelector('button[aria-label="Roll on this table"]')
+    ).toBeTruthy()
+    expect(trigger?.textContent).toContain('Core Mechanic')
+    expect(trigger?.getAttribute('aria-expanded')).toBe('false')
     expect(container.querySelector('select')).toBeNull()
     // The reused RollTable renders a real table (not the fallback note).
     expect(container.querySelector('table')).toBeTruthy()
@@ -122,6 +130,7 @@ describe('DisplayPanel', () => {
     fireEvent.click(openBtn)
     const overlay = container.querySelector('[role="dialog"]')
     expect(overlay).toBeTruthy()
+    expect(openBtn.getAttribute('aria-expanded')).toBe('true')
     const cats = [...container.querySelectorAll('.pc-tablepick-cat')].map((c) => c.textContent)
     expect(cats).toEqual(['Combat', 'Pilot', 'Salvage', 'Crawler', 'Downtime'])
     // Closing removes the overlay.
@@ -129,18 +138,19 @@ describe('DisplayPanel', () => {
     expect(container.querySelector('.pc-tablepick')).toBeNull()
   })
 
-  test('Tables picker → picking a table updates the bar and closes (D3)', () => {
+  test('Tables picker → picking a table retitles the table and closes (D3)', () => {
     const { container } = renderDV(tablesFocus)
     fireEvent.click(container.querySelector('[aria-haspopup="dialog"]') as HTMLButtonElement)
     const items = [...container.querySelectorAll('.pc-tablepick-item')] as HTMLButtonElement[]
     const initiative = items.find((b) => b.textContent === 'Group Initiative')
     expect(initiative).toBeTruthy()
     fireEvent.click(initiative as HTMLButtonElement)
-    // Overlay closed and the mini-bar now names the picked table.
+    // Overlay closed and the header title now names the picked table.
     expect(container.querySelector('.pc-tablepick')).toBeNull()
     expect(container.querySelector('[aria-haspopup="dialog"]')?.textContent).toContain(
       'Group Initiative'
     )
+    expect(container.querySelector('caption')?.textContent).toBe('Group Initiative')
   })
 
   test('Tables → rolling records a roll-history row (D3)', async () => {
