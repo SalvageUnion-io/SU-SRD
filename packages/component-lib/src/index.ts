@@ -179,7 +179,7 @@ export { Colophon } from './components/shared/Colophon'
 // Stat trackers (ITUN design handoff — design-spec §2.7)
 export { VitalGauge } from './components/stat/VitalGauge'
 export { StatProvenance } from './components/stat/StatProvenance'
-export { linesFromBreakdown } from './components/stat/provenanceLines'
+export { linesFromBreakdown, summarizeBreakdown } from './components/stat/provenanceLines'
 export type { ProvenanceLabels } from './components/stat/provenanceLines'
 export type {
   ProvenanceLine,

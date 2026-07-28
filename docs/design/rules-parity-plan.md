@@ -80,7 +80,19 @@ Sizes use the repo's existing effort labels: **S** under 1 day · **M** 1–2 ·
 | **B3** | Live Sheet wiring               | M    | B2, A3  | All gauges carry breakdowns; **an override appends as the final line**, never replaces the list; revert target visible                     |
 | **B4** | Dashboard wiring                | S    | B2      | `DashboardGauge` stops discarding the props; Guided Play gains the "teach as it enforces" affordance                                       |
 | **B5** | Partner cards + Frozen snapshot | M    | B2      | Partner stats explain their `bonusPerTechLevel` scaling in `PartnerCard`; snapshots show the breakdown and never the revert                |
-| **B6** | Wizard previews                 | S    | B2      | The bespoke `sp-breakdown` string is retired in favour of the shared panel                                                                 |
+| **B6** | Wizard previews                 | S    | B2      | **Superseded — see note below.** The wizard already renders a shared-derivation breakdown, and its prose teaches a rule the panel cannot   |
+
+> **B6 note (resolved during B3–B5).** The unit was written as "retire the bespoke
+> `sp-breakdown` string in favour of the shared panel". That is the wrong goal.
+> The wizard's inline prose — _"the bonus derives from your Crawler type, so it
+> follows a type change automatically"_ — teaches a **rule**, not just the
+> arithmetic, and Guided Creation exists to teach while it enforces
+> ([ADR-021](../adrs/ADR-021-itun-surface-taxonomy.md)). Replacing it with a
+> hover panel would trade a visible explanation for a hidden one in the mode that
+> most needs the visible version. The underlying requirement — that the wizard's
+> breakdown comes from the shared derivation and cannot drift — is **already
+> satisfied**: `CrawlerStatsStep` calls `crawlerMaxSPParts` directly. No change
+> made; recorded so it is not "fixed" later by someone reading the original DoD.
 
 ### Phase C — The converged model
 

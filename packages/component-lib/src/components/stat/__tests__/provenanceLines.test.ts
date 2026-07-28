@@ -6,7 +6,7 @@
 import { describe, expect, test } from 'bun:test'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
 
-import { linesFromBreakdown } from '../provenanceLines'
+import { linesFromBreakdown, summarizeBreakdown } from '../provenanceLines'
 
 function parts(over: Partial<StatBreakdown> = {}): StatBreakdown {
   const base = { base: 10, installed: 0, adjustment: 0, derived: 10, total: 10, overridden: false }
@@ -64,5 +64,34 @@ describe('linesFromBreakdown', () => {
     ])
     expect(lines.at(-2)).toMatchObject({ label: 'Derived', amount: 17 })
     expect(lines.at(-1)).toMatchObject({ label: 'Override', amount: 25 })
+  })
+})
+
+describe('summarizeBreakdown', () => {
+  test('reads as an equation for surfaces that can only take a string', () => {
+    expect(
+      summarizeBreakdown(parts({ installed: 4, derived: 14, total: 14 }), {
+        base: 'Base',
+        installed: 'Tech 3 scaling',
+      })
+    ).toBe('Base 10 +4 Tech 3 scaling = 14')
+  })
+
+  test('uses a true minus for a negative contribution', () => {
+    expect(
+      summarizeBreakdown(parts({ installed: -2, derived: 8, total: 8 }), {
+        base: 'Pilot',
+        installed: 'injuries',
+      })
+    ).toBe('Pilot 10 −2 injuries = 8')
+  })
+
+  test('names the pin without hiding the derivation it replaced', () => {
+    const text = summarizeBreakdown(
+      parts({ installed: 4, derived: 14, override: 20, total: 20, overridden: true }),
+      { base: 'Base', installed: 'scaling' }
+    )
+    expect(text).toContain('= 14')
+    expect(text).toContain('overridden to 20')
   })
 })

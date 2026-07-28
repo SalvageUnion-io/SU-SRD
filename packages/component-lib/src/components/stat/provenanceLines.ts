@@ -76,3 +76,27 @@ export function linesFromBreakdown(
 
   return lines
 }
+
+/**
+ * A one-line text rendering of the same ledger, for surfaces that can only take
+ * a string.
+ *
+ * `Stat` cells carry an editable stepper cluster, so wrapping one in the
+ * `StatProvenance` popover trigger would nest a button inside a button. Until
+ * `Stat` grows its own non-nesting affordance, those surfaces render the
+ * derivation through the existing `hoverText` tooltip instead — less rich than
+ * the panel, but true, and it beats a number with no explanation at all.
+ */
+export function summarizeBreakdown(parts: StatBreakdown, labels: ProvenanceLabels): string {
+  const terms: string[] = [`${labels.base} ${parts.base}`]
+  if (parts.installed !== 0) {
+    const sign = parts.installed < 0 ? '−' : '+'
+    terms.push(`${sign}${Math.abs(parts.installed)} ${labels.installed ?? 'installed'}`)
+  }
+  if (parts.adjustment !== 0) {
+    const sign = parts.adjustment < 0 ? '−' : '+'
+    terms.push(`${sign}${Math.abs(parts.adjustment)} manual adjustment`)
+  }
+  const sum = `${terms.join(' ')} = ${parts.derived}`
+  return parts.overridden ? `${sum}; overridden to ${parts.override ?? parts.total}` : sum
+}
