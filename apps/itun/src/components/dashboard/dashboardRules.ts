@@ -246,7 +246,7 @@ export type PlayAction = {
   condition: ItemCondition
 }
 
-/** A named bucket of actions (grouped by source owner or by timing). */
+/** A named bucket of actions (grouped by source owner). */
 export type PlayActionGroup = { label: string; items: PlayAction[] }
 
 /** Self-declared engagement range band (playStateStore, ephemeral). */
@@ -292,8 +292,9 @@ function deckActions(entity: SURefMetaEntity): SURefMetaAction[] {
 /**
  * The boarded mech's activatable actions, flat — every action of the chassis,
  * each installed System, and each installed Module surfaces as its own
- * `PlayAction`. Grouping/filtering is a UI concern (see `groupBySource` /
- * `groupByTiming` / `TIMING_TABS`), kept out of this pure builder.
+ * `PlayAction`. Filtering is a UI concern (see `groupBySource` — which now only
+ * feeds the source filter chips — and `TIMING_TABS`), kept out of this pure
+ * builder.
  */
 export function buildMechActions(mech: Mech): PlayAction[] {
   const out: PlayAction[] = []
@@ -468,30 +469,6 @@ export function groupBySource(actions: PlayAction[]): PlayActionGroup[] {
     }
     g.items.push(a)
   }
-  return groups
-}
-
-const TIMING_ORDER = ['Turn', 'Short', 'Long', 'Free', 'Reaction', 'Passive', 'DownTime']
-
-/** Group actions by their `actionType`, in canonical timing order. */
-export function groupByTiming(actions: PlayAction[]): PlayActionGroup[] {
-  const groups: PlayActionGroup[] = []
-  const index = new Map<string, PlayActionGroup>()
-  for (const a of actions) {
-    const t = a.action.actionType ?? 'Other'
-    let g = index.get(t)
-    if (!g) {
-      g = { label: t, items: [] }
-      index.set(t, g)
-      groups.push(g)
-    }
-    g.items.push(a)
-  }
-  groups.sort((x, y) => {
-    const ix = TIMING_ORDER.indexOf(x.label)
-    const iy = TIMING_ORDER.indexOf(y.label)
-    return (ix === -1 ? 99 : ix) - (iy === -1 ? 99 : iy)
-  })
   return groups
 }
 

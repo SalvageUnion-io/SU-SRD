@@ -23,7 +23,6 @@ import {
   critInjuryPatch,
   economyForActivation,
   groupBySource,
-  groupByTiming,
   hasCurrencyChoice,
   hasVariableHot,
   heatCheckOncePatch,
@@ -305,17 +304,15 @@ describe('deck filtering / grouping / range', () => {
     expect(summary).toEqual({ inReach: 1, total: 2 })
   })
 
-  test('groupBySource / groupByTiming bucket the flat deck', () => {
+  // The deck renders one flat grid; `groupBySource` survives only to build the
+  // source filter chips (one per owning item), never a heading above the cards.
+  test('groupBySource buckets the flat deck by owning item', () => {
     const s1 = { ...mkAction({ actionType: 'Turn' }), ownerName: 'Gun' }
     const s2 = { ...mkAction({ actionType: 'Free' }), ownerName: 'Gun' }
     const s3 = { ...mkAction({ actionType: 'Turn' }), ownerName: 'Shield' }
     const bySource = groupBySource([s1, s2, s3])
     expect(bySource.map((g) => g.label)).toEqual(['Gun', 'Shield'])
     expect(bySource[0]?.items).toHaveLength(2)
-
-    const byTiming = groupByTiming([s1, s2, s3])
-    expect(byTiming.map((g) => g.label)).toEqual(['Turn', 'Free'])
-    expect(byTiming[0]?.items).toHaveLength(2)
   })
 
   test('actionMicroMeta renders range initials, damage, and traits', () => {

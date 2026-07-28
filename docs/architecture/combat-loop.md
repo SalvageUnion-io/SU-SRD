@@ -82,6 +82,15 @@ computed by `itemEconomy()` in `sheet/mechItemRules.ts` (primary action's
 `activationCost`, summed `Hot` amounts, max `Uses`); the Deck resolves a
 **per-action** economy via `economyForActivation()`.
 
+**What the deck offers** is decided by the mount, and it is not symmetrical.
+Boarded, the deck is the mech's chassis + systems + modules **and** the pilot's
+own abilities + equipment — the pilot is in the cockpit, so nothing of theirs
+leaves the table. On foot it is the pilot's actions alone. The two economies
+coexist in one flat grid: each `PlayAction` carries its own `currency`, and that
+(never the mount) decides whether an activation spends EP and adds Heat, or
+spends the pilot's AP and adds none. Push is likewise per action — an EP action
+can be Pushed, a pilot's cannot.
+
 `activationPatch` builds one patch and the caller applies it as a **single
 sequential write-through** ([ADR-008](../adrs/ADR-008-sequential-mutations.md)):
 
