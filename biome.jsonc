@@ -33,6 +33,7 @@
       "!**/test-results",
       "!**/*.tsbuildinfo",
       "!**/routeTree.gen.ts",
+      "!**/convex/_generated",
       "!packages/salvageunion-reference/lib/generated",
       // Generated API-surface snapshot (tools/generateApiReport.ts, drift-checked
       // in CI) — a raw declaration rollup, not hand-authored source.
