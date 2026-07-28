@@ -38,7 +38,7 @@ import { AppLink } from '../shared/AppLink'
 
 import { SHEET_ICONBTN_CLASS } from 'component-lib'
 
-export type SheetVariant = 'pilot' | 'mech' | 'crawler' | 'partner'
+export type SheetVariant = 'pilot' | 'mech' | 'crawler'
 
 export type LiveSheetSegment = {
   key: SheetVariant

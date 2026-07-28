@@ -113,13 +113,6 @@
   --color-mech: rgb(122, 151, 138); /* #7a978a */
   --color-mech-dark: rgb(92, 121, 108); /* #5c796c */
   --color-crawler: rgb(206, 88, 152); /* #ce5898 */
-  /* The 6th ontology domain: PARTNERS — the statted Drones / Companions an
-     ability grants to a pilot or a mech. They needed a hue of their own rather
-     than borrowing the mech sage: a partner row renders directly beneath its
-     mech on the same sheet, which is precisely where "looks like a mech" stops
-     being harmless. Blue also keeps them clear of `adversary`, the
-     world/opposition tone — a partner is player-side. */
-  --color-partner: rgb(79, 147, 196); /* #4f93c4 */
   /* The 5th ontology domain. Previously `su-rust` — a false friend: it is NOT
      the action rust (#a85222) and never was. It is the shared header tone for
      the world/opposition schemas: creatures, bio-titans, factions, npcs, meld,
@@ -232,8 +225,6 @@
   --color-sheet-mech-deep: rgb(47, 67, 56); /* #2f4338 */
   --color-sheet-crawler: var(--color-crawler); /* #ce5898 */
   --color-sheet-crawler-deep: rgb(126, 42, 91); /* #7e2a5b */
-  --color-sheet-partner: var(--color-partner); /* #4f93c4 */
-  --color-sheet-partner-deep: rgb(38, 82, 117); /* #265275 */
 
   /* Heat-at-cap pulse (design review U-1): a subtle status-bad ring that
      breathes outward. Use as `motion-safe:animate-heat-pulse` so
@@ -337,8 +328,7 @@
    `--sheet-tone` overrides the tone without redefining the grounds. */
 .sheet--pilot,
 .sheet--mech,
-.sheet--crawler,
-.sheet--partner {
+.sheet--crawler {
   --tone: var(--sheet-tone, var(--tone-default));
 }
 
@@ -377,16 +367,6 @@
      dark ink. */
   --tone-card: rgb(236, 156, 103);
   --tone-card-ink: var(--color-ink);
-}
-
-.sheet--partner {
-  --tone-default: var(--color-sheet-partner);
-  --tone-deep: var(--color-sheet-partner-deep);
-  --ground: oklch(from var(--tone) 0.955 0.026 h);
-  --ground-2: oklch(from var(--tone) 0.985 0.011 h);
-  /* No wizard builds a partner — one is granted by an ability, never stepped
-     through — so there is no printed step-card spread to source a `--tone-card`
-     from. Deliberately omitted rather than invented. */
 }
 
 /* Mobile-first touch targets */

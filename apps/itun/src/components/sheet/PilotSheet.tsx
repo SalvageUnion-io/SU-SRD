@@ -69,6 +69,7 @@ import {
   PilotAbilityItem,
   PilotEquipmentItem,
 } from './PilotSheetItems'
+import { PartnerCard } from './PartnerCard'
 import { resolveAbility } from './pilotAbilities'
 
 /**
@@ -211,6 +212,23 @@ export function PilotSheet({
     // eslint-disable-next-line react-hooks/preserve-manual-memoization -- intentional: effectiveCrawlerLevel is a derived scalar, memoized purely to keep the {techLevel} object identity stable for the memoized ReferenceEntityCard subtree
     [effectiveCrawlerLevel]
   )
+
+  // PARTNERS — the statted companions a pilot ability grants (Auto-Turret,
+  // Survey Drone, Mecha Companion). The granting equipment slug and the granted
+  // partner are the SAME entry in the player's eyes, so the partner instance
+  // renders IN PLACE of the ordinary equipment card rather than beside it: one
+  // card, one thing. Each instance gets its own card, which is what makes Mecha
+  // Packmaster's two Mecha Companions two cards over one equipment slug.
+  const partners = pilot.partners ?? []
+  const partnerSlugs = new Set(
+    partners.filter((p) => p.hostSchema === 'equipment').map((p) => p.hostRef)
+  )
+  const ordinaryEquipment = pilot.equipment.filter((slug) => !partnerSlugs.has(slug))
+  // How many of each stat block is fielded, so a card can say "2 of 2".
+  const fieldedByRef = partners.reduce<Record<string, number>>((acc, p) => {
+    acc[p.hostRef] = (acc[p.hostRef] ?? 0) + 1
+    return acc
+  }, {})
 
   const dead = isPilotDead(pilot)
   const slotsUsed = pilotInventoryUsed(pilot)
@@ -624,7 +642,7 @@ export function PilotSheet({
           <p className="font-body text-caption text-wk-muted">Nothing carried.</p>
         ) : (
           <MasonryColumns maxColumns={2}>
-            {pilot.equipment.map((slug) => (
+            {ordinaryEquipment.map((slug) => (
               <EntityGridRow key={slug}>
                 <PilotEquipmentItem
                   slug={slug}
@@ -668,6 +686,35 @@ export function PilotSheet({
               </EntityGridRow>
             ))}
           </MasonryColumns>
+        )}
+        {/* Ability-granted PARTNERS — full width, deliberately outside the
+            masonry above. Each carries a nested loadout and a cargo hold, so a
+            column would crush it, and a partner acts on its own turn rather
+            than being one item among the pilot's carried gear. */}
+        {partners.length > 0 && (
+          <div className="mt-3 flex flex-col gap-3">
+            {partners.map((partner) => (
+              <PartnerCard
+                key={partner.id}
+                found={{ partner, hostKind: 'pilot', host: pilot }}
+                crawler={linkedCrawler}
+                crawlerTechLevel={effectiveCrawlerLevel}
+                hostAbilityRefs={pilot.abilities}
+                fielded={fieldedByRef[partner.hostRef] ?? 1}
+                readOnly={readOnly}
+                store={store}
+                onRemove={
+                  readOnly
+                    ? undefined
+                    : () => {
+                        void storeState.update('pilot', pilot.id, {
+                          partners: partners.filter((p) => p.id !== partner.id),
+                        })
+                      }
+                }
+              />
+            ))}
+          </div>
         )}
         {!readOnly && (
           <div className="mt-3">

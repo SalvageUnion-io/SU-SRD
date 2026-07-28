@@ -233,10 +233,10 @@ export function PilotEquipmentItem({
   }
 
   // Drone/companion equipment (Survey Drone, Mecha Companion, Auto-Turret)
-  // no longer hosts its loadout here. Those are PARTNERS now: real instances
-  // with their own ids, stats, conditions, cargo and sheet, listed in the
-  // pilot's linked units and opened at /sheet/partner/:id (ADR-027). The
-  // equipment card stays the GRANT; the partner is the thing granted.
+  // never reaches this component. A granting slug is rendered by `PartnerCard`
+  // instead — full width, with the instance's own stats, loadout, conditions
+  // and hold — because the grant and the granted thing are one entry to the
+  // player (ADR-028). PilotSheet filters those slugs out before mapping here.
 
   return (
     <ReferenceEntityCard

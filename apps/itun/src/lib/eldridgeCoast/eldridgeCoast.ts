@@ -1,8 +1,7 @@
 /**
  * Built-in "The Eldridge Coast" workspace — a home-campaign roster transcribed
  * from its Salvage Union character-sheet workbook: six pilots, ten mech /
- * companion patterns, and two Union Crawlers (Haven and Gladhand) with their
- * named NPC bay crews.
+ * companion patterns, and the Union Crawler Haven with its named NPC bay crew.
  *
  * Modelled exactly on the Starter Set (lib/starterSet/) — the second built-in,
  * on-demand-seeded workspace:
@@ -58,7 +57,6 @@ const SEED_TS = '2020-01-01T00:00:00.000Z'
 
 /** Crawler-type ids (crawler `type` resolves by id/name, not slug). */
 const EXPLORATORY_TYPE_ID = 'd850cd93-f1cc-462b-bfa4-babfb0b2812e'
-const TRADE_CARAVAN_TYPE_ID = '46e44f56-be78-49d8-bfe4-32628ad4b8ef'
 
 /** Base crawler-bay ids (resolve by id/name, not slug). */
 const BAY = {
@@ -545,13 +543,16 @@ export const ELDRIDGE_MECHS: readonly Mech[] = [
 ]
 
 // ---------------------------------------------------------------------------
-// Crawlers — Haven (Exploratory) and Gladhand (Trade Caravan), both Tech 4
-// (City, base SP 35). The home-brew Library / Bar bays are folded into the
-// description (only the ten canonical bays exist as SRD bays).
+// Crawler — Haven (Exploratory), Tech 4 (City, base SP 35). The home-brew
+// Library / Bar bays are folded into the description (only the ten canonical
+// bays exist as SRD bays).
+//
+// ONE crawler: the roster's second crawler, Gladhand, was retired — every pilot
+// and mech belongs to Haven. Browsers that already seeded Gladhand have it
+// removed (and any pilot on it moved to Haven) by migration v12.
 // ---------------------------------------------------------------------------
 
 const CRAWLER_HAVEN = 'eldridge-crawler-haven'
-const CRAWLER_GLADHAND = 'eldridge-crawler-gladhand'
 
 type BayCrew = { ref: string; npcName: string; npcDescription?: string }
 
@@ -612,19 +613,6 @@ const HAVEN_BAY_CREW: readonly BayCrew[] = [
   },
 ]
 
-const GLADHAND_BAY_CREW: readonly BayCrew[] = [
-  { ref: BAY.command, npcName: 'Fawkes', npcDescription: 'Princep.' },
-  { ref: BAY.mech, npcName: 'Quisling', npcDescription: 'Greaser.' },
-  { ref: BAY.armament, npcName: 'Ames', npcDescription: 'Gunny.' },
-  { ref: BAY.crafting, npcName: 'Cariot', npcDescription: 'Forger.' },
-  { ref: BAY.trading, npcName: 'Jingwei', npcDescription: 'Operator. Looks like Santa.' },
-  { ref: BAY.med, npcName: 'Hansenn', npcDescription: 'Doctor.' },
-  { ref: BAY.pilot, npcName: 'Ephi', npcDescription: 'Ace.' },
-  { ref: BAY.armoury, npcName: 'Benedict', npcDescription: 'Quartermaster.' },
-  { ref: BAY.cantina, npcName: 'Brutus', npcDescription: 'Chef.' },
-  { ref: BAY.storage, npcName: 'Tanner', npcDescription: 'Bullwhacker.' },
-]
-
 const HAVEN_CRAWLER: Crawler = {
   id: CRAWLER_HAVEN,
   schemaVersion: 1,
@@ -654,35 +642,7 @@ const HAVEN_CRAWLER: Crawler = {
   updatedAt: SEED_TS,
 }
 
-const GLADHAND_CRAWLER: Crawler = {
-  id: CRAWLER_GLADHAND,
-  schemaVersion: 1,
-  name: 'Gladhand',
-  description:
-    'Union Crawler #213. Trade Caravan, Tech 4 (City). Type ability: Improved Trading Bay. Home-brew Library bay is unstaffed and the Bar is offline. Notable stores: Bio Scrap Freezer upgrade (40 units), Ejection System, Rolling Thunder Raider Chit, Target Painter, a T4 Mech Reactor Bomb, a Decommissioned Murmur, and a tier-1 GOAT chassis.',
-  techLevel: 'tech-4',
-  type: TRADE_CARAVAN_TYPE_ID,
-  typeNpc: {
-    npcName: 'Tiberius',
-    npcCurrentHP: 4,
-    npcDescription: 'Savvy Trader. A corpo trading AI.',
-  },
-  // Stored by NAME (see Haven's note).
-  systems: ['CACB Laser'],
-  crawlerBays: GLADHAND_BAY_CREW.map((c) => ({
-    bayRef: c.ref,
-    npcName: c.npcName,
-    npcCurrentHP: 4,
-    npcDescription: c.npcDescription,
-  })),
-  scrapPool: { tl1: 9, tl2: 4, tl3: 3, tl4: 2, tl5: 2, tl6: 1 },
-  upgradePool: 5,
-  workspaceId: ELDRIDGE_WORKSPACE_ID,
-  createdAt: SEED_TS,
-  updatedAt: SEED_TS,
-}
-
-export const ELDRIDGE_CRAWLERS: readonly Crawler[] = [HAVEN_CRAWLER, GLADHAND_CRAWLER]
+export const ELDRIDGE_CRAWLERS: readonly Crawler[] = [HAVEN_CRAWLER]
 
 // ---------------------------------------------------------------------------
 // SoftLinks — pilot↔mech assignments (confirmed by the campaign owner) and
@@ -697,9 +657,8 @@ export const ELDRIDGE_CRAWLERS: readonly Crawler[] = [HAVEN_CRAWLER, GLADHAND_CR
 //   - Lester 'Stumpy' Owens → New Duke
 //   - Nell → Son of Beanstalk
 //   - Gersin 'Part' → Peekaboo
-// All six pilots crew Haven (the Exploratory party crawler; its Storage-bay note
-// names pilot Parcel). Gladhand is a second crawler with its own NPC crew, no
-// pilots auto-assigned.
+// All six pilots crew Haven, the roster's one crawler (its Storage-bay note
+// names pilot Parcel).
 // ---------------------------------------------------------------------------
 
 const CREW_PILOT_IDS = [

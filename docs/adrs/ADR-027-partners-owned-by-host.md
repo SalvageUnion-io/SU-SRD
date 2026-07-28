@@ -2,7 +2,15 @@
 
 ## Status
 
-Accepted. Supersedes [ADR-023](ADR-023-drone-equipment-installed-loadout.md).
+Superseded by [ADR-028](ADR-028-partners-render-in-place.md). Supersedes
+[ADR-023](ADR-023-drone-equipment-installed-loadout.md).
+
+**The MODEL below still stands** — a `PartnerInstance` owned intrinsically by its
+host, `hostSchema` disambiguating the two grant paths, derived tech level,
+displayed-not-enforced caps, partners as cargo nodes. ADR-028 changes only the
+**surface**: the dedicated live sheet at `/sheet/partner/:id`, the sixth ontology
+hue, and the linked-unit rows described under "Surfaces" are removed in favour of
+rendering a partner in place on its host's sheet.
 
 ## Context
 

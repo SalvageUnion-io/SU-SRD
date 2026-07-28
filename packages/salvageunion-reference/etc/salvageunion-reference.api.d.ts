@@ -4360,6 +4360,16 @@ export declare const DroneSchema: z.ZodObject<{
     cargoCapacity: z.ZodOptional<z.ZodNumber>;
     actions: z.ZodOptional<z.ZodArray<z.ZodString>>;
     modules: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    bonusPerTechLevel: z.ZodOptional<z.ZodObject<{
+        structurePoints: z.ZodOptional<z.ZodNumber>;
+        energyPoints: z.ZodOptional<z.ZodNumber>;
+        heatCapacity: z.ZodOptional<z.ZodNumber>;
+        systemSlots: z.ZodOptional<z.ZodNumber>;
+        moduleSlots: z.ZodOptional<z.ZodNumber>;
+        cargoCapacity: z.ZodOptional<z.ZodNumber>;
+        techLevel: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>;
+        salvageValue: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$strip>>;
     choices: z.ZodOptional<z.ZodArray<z.ZodType<{
         id: string;
         name: string;

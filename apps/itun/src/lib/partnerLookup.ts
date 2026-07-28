@@ -1,18 +1,14 @@
 /**
- * partnerLookup — resolve a partner by its flat id across every possible host.
+ * partnerLookup — the host-owned partner's write helper.
  *
  * A partner lives in an array ON its host (a pilot or a mech), not in a store of
- * its own — ownership is intrinsic, so deleting a host removes its partners and
- * they ride through snapshots with it. The cost of that choice is exactly this
- * module: `/sheet/partner/:id` carries only the partner's id, so finding it
- * means scanning both host collections.
+ * its own: ownership is intrinsic, so deleting a host removes its partners and
+ * they ride through snapshots with it.
  *
- * That scan is deliberate rather than a shortcut around a missing index. The
- * alternative — making a partner a fourth entity store — buys O(1) lookup and
- * pays for it with orphaned partners whenever a host is deleted, a widened
- * `EntityRef` rippling into SoftLink / snapshots / export bundles, and a roster
- * citizen that must then be special-cased OUT of every listing. A linear pass
- * over one browser's builds is not a cost worth that.
+ * The by-id SCAN this module used to carry is gone along with the partner live
+ * sheet (ADR-028). Nothing addresses a partner by a bare id any more — one
+ * renders in place on its host's sheet, where the host is already in hand — so
+ * all that remains is patching a single entry of a host's array.
  */
 
 import type { Mech } from './schemas/mech'
@@ -23,31 +19,6 @@ import type { Pilot } from './schemas/pilot'
 export type PartnerWithHost =
   | { partner: PartnerInstance; hostKind: 'pilot'; host: Pilot }
   | { partner: PartnerInstance; hostKind: 'mech'; host: Mech }
-
-/**
- * Find a partner by id across all pilots and mechs.
- *
- * Returns the host alongside it because nothing useful can be done with a
- * partner in isolation: writing to it means patching its host's `partners`
- * array, and rendering it means showing where it belongs. Returns null when no
- * host claims the id — a partner whose host was deleted simply ceases to exist,
- * which is the intended semantics.
- */
-export function findPartner(
-  pilots: readonly Pilot[],
-  mechs: readonly Mech[],
-  partnerId: string
-): PartnerWithHost | null {
-  for (const host of pilots) {
-    const partner = host.partners?.find((p) => p.id === partnerId)
-    if (partner) return { partner, hostKind: 'pilot', host }
-  }
-  for (const host of mechs) {
-    const partner = host.partners?.find((p) => p.id === partnerId)
-    if (partner) return { partner, hostKind: 'mech', host }
-  }
-  return null
-}
 
 /**
  * Replace one partner within its host's `partners` array.
