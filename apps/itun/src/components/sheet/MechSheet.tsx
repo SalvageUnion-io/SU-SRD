@@ -58,7 +58,7 @@ import {
 
 import { useCargo } from '../../lib/cargo/useCargo'
 import { computeMechCapacity, resolveChassisRef } from 'salvageunion-reference/rules'
-import { mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
+import { mechMaxEPParts, mechMaxHeatParts, mechMaxSPParts } from '../../lib/rules/derivedStats'
 import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { ItemCondition, Mech } from '../../lib/schemas/mech'
@@ -169,9 +169,12 @@ export function MechSheet({
   const [warningSubtitle, setWarningSubtitle] = useState<string | null>(null)
 
   // Derived maxima (plan 2.5): chassis stat + hand-edited modifiers.
-  const maxSP = mechMaxSP(mech, chassis)
-  const maxEP = mechMaxEP(mech, chassis)
-  const heatCap = mechMaxHeat(mech, chassis)
+  const spParts = mechMaxSPParts(mech, chassis)
+  const epParts = mechMaxEPParts(mech, chassis)
+  const heatParts = mechMaxHeatParts(mech, chassis)
+  const maxSP = spParts.total
+  const maxEP = epParts.total
+  const heatCap = heatParts.total
   const currentSP = mech.currentSP ?? maxSP
   const currentEP = mech.currentEP ?? maxEP
   const currentHeat = Math.min(mech.currentHeat ?? 0, heatCap)
@@ -224,19 +227,21 @@ export function MechSheet({
     void storeState.update('mech', mech.id, fields, LIVE_SHEET_MANUAL)
   }
 
-  // Cap overrides (ADR-022, Free Edit): a derived maximum is pinned by storing
-  // a signed max*Modifier delta; the gauge shows "overridden from N" + a revert
-  // that clears the delta. Tagged `override` so the Change Log records it as one.
-  const derivedMaxSP = maxSP - (mech.maxSpModifier ?? 0)
-  const derivedMaxEP = maxEP - (mech.maxEpModifier ?? 0)
-  const derivedHeatCap = heatCap - (mech.maxHeatModifier ?? 0)
+  // Cap overrides (ADR-022 amendment, Free Edit): a pinned maximum is stored
+  // ABSOLUTELY in max*Override. The derivation keeps running underneath, so the
+  // gauge can show "overridden from N" and revert by clearing the pin.
+  //
+  // These used to be signed max*Modifier deltas with the baseline recovered by
+  // subtraction — which meant the same field carried both a hand pin and every
+  // rules modifier, so an automatic contribution would have rendered as an
+  // override. max*Modifier now means only "manual adjustment" and contributes to
+  // the derivation. See ADR-029.
   const overrideMechMax = (fields: Partial<Mech>) => {
     void storeState.update('mech', mech.id, fields, LIVE_SHEET_OVERRIDE)
   }
-  const modOrUndef = (next: number, derived: number): number | undefined => {
-    const mod = next - derived
-    return mod === 0 ? undefined : mod
-  }
+  /** A pin equal to the derived value is not an override — clear it instead. */
+  const pinOrUndef = (next: number, derived: number): number | undefined =>
+    next === derived ? undefined : next
 
   // Collection add/remove (unified edit language archetype B) — always
   // available, writes through immediately (ITUN auto-saves; no Save button).
@@ -550,11 +555,11 @@ export function MechSheet({
               onMaxChange={
                 readOnly
                   ? undefined
-                  : (next) => overrideMechMax({ maxSpModifier: modOrUndef(next, derivedMaxSP) })
+                  : (next) => overrideMechMax({ maxSpOverride: pinOrUndef(next, spParts.derived) })
               }
-              overriddenFrom={readOnly ? undefined : derivedMaxSP}
+              overriddenFrom={readOnly || !spParts.overridden ? undefined : spParts.derived}
               onRevertOverride={
-                readOnly ? undefined : () => overrideMechMax({ maxSpModifier: undefined })
+                readOnly ? undefined : () => overrideMechMax({ maxSpOverride: undefined })
               }
               readOnly={readOnly}
             />
@@ -567,11 +572,11 @@ export function MechSheet({
               onMaxChange={
                 readOnly
                   ? undefined
-                  : (next) => overrideMechMax({ maxEpModifier: modOrUndef(next, derivedMaxEP) })
+                  : (next) => overrideMechMax({ maxEpOverride: pinOrUndef(next, epParts.derived) })
               }
-              overriddenFrom={readOnly ? undefined : derivedMaxEP}
+              overriddenFrom={readOnly || !epParts.overridden ? undefined : epParts.derived}
               onRevertOverride={
-                readOnly ? undefined : () => overrideMechMax({ maxEpModifier: undefined })
+                readOnly ? undefined : () => overrideMechMax({ maxEpOverride: undefined })
               }
               readOnly={readOnly}
             />
@@ -584,11 +589,12 @@ export function MechSheet({
               onMaxChange={
                 readOnly
                   ? undefined
-                  : (next) => overrideMechMax({ maxHeatModifier: modOrUndef(next, derivedHeatCap) })
+                  : (next) =>
+                      overrideMechMax({ maxHeatOverride: pinOrUndef(next, heatParts.derived) })
               }
-              overriddenFrom={readOnly ? undefined : derivedHeatCap}
+              overriddenFrom={readOnly || !heatParts.overridden ? undefined : heatParts.derived}
               onRevertOverride={
-                readOnly ? undefined : () => overrideMechMax({ maxHeatModifier: undefined })
+                readOnly ? undefined : () => overrideMechMax({ maxHeatOverride: undefined })
               }
               readOnly={readOnly}
             />

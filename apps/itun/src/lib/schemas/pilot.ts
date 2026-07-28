@@ -281,6 +281,24 @@ export const PilotSchema = z
      */
     maxInventorySlotsModifier: z.number().int().optional(),
 
+    // ---------------------------------------------------------------------------
+    // Cap overrides — absolute pins (ADR-022 amendment, Free Edit only).
+    //
+    // When present the stat SHOWS this value and stops tracking its derivation.
+    // The derived total is still computed underneath for the "overridden from N"
+    // callout and the one-click revert; it is never persisted. Distinct from the
+    // max*Modifier fields above, which are manual adjustments that CONTRIBUTE to
+    // the derivation rather than replacing it. See ADR-029.
+    // ---------------------------------------------------------------------------
+    /** Absolute pinned max Hit Points. */
+    maxHpOverride: z.number().int().nonnegative().optional(),
+
+    /** Absolute pinned max Ability Points. */
+    maxApOverride: z.number().int().nonnegative().optional(),
+
+    /** Absolute pinned inventory capacity. */
+    maxInventorySlotsOverride: z.number().int().nonnegative().optional(),
+
     /**
      * Per-equipment Uses (X) counters (rules A14), keyed by equipment slug.
      * Value = uses remaining; absent key = item at full uses. All uses

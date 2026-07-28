@@ -168,23 +168,50 @@ export const MechSchema = z
     conditions: z.array(z.string()),
 
     // ---------------------------------------------------------------------------
-    // Hand-edited maxima modifiers (plan 2.3, rules B2/B4/B6/B14).
-    // Heat Sinks (+1 Max Heat each), Capacitance Banks (+2 Max EP each),
-    // Composite Armour (±5 Max SP), cargo holds (+N Cargo Cap) and similar
-    // passives are recorded here; derived maxima = chassis stat + modifier
+    // Manual adjustments (plan 2.3, rules B2/B4/B6/B14).
+    //
+    // A signed amount the player entered by hand that CONTRIBUTES to the derived
+    // maximum: derived = chassis stat + Σ installed statBonus + adjustment
     // (lib/rules/derivedStats.ts). Absent means 0.
+    //
+    // These are NOT overrides. Until the ADR-022 amendment these fields carried
+    // both meanings at once — the Free-Edit cap pin AND the only channel any
+    // rules modifier had — and the sheets recovered the "derived baseline" by
+    // subtracting them back out. A pin now lives in max*Override below, so a
+    // hand adjustment keeps composing with real contributions instead of
+    // freezing the stat. See ADR-029.
     // ---------------------------------------------------------------------------
-    /** Bonus/penalty to max Structure Points on top of the chassis value. */
+    /** Manual adjustment added to max Structure Points. */
     maxSpModifier: z.number().int().optional(),
 
-    /** Bonus/penalty to max Energy Points on top of the chassis value. */
+    /** Manual adjustment added to max Energy Points. */
     maxEpModifier: z.number().int().optional(),
 
-    /** Bonus/penalty to Heat Capacity on top of the chassis value. */
+    /** Manual adjustment added to Heat Capacity. */
     maxHeatModifier: z.number().int().optional(),
 
-    /** Bonus/penalty to Cargo Capacity on top of the chassis value. */
+    /** Manual adjustment added to Cargo Capacity. */
     maxCargoModifier: z.number().int().optional(),
+
+    // ---------------------------------------------------------------------------
+    // Cap overrides — absolute pins (ADR-022 amendment, Free Edit only).
+    //
+    // When present the stat SHOWS this value and stops tracking its derivation.
+    // The derived total is still computed underneath so the sheet can render an
+    // "overridden from N" callout and offer a one-click revert; it is never
+    // persisted. Clearing the field resumes derivation.
+    // ---------------------------------------------------------------------------
+    /** Absolute pinned max Structure Points. */
+    maxSpOverride: z.number().int().nonnegative().optional(),
+
+    /** Absolute pinned max Energy Points. */
+    maxEpOverride: z.number().int().nonnegative().optional(),
+
+    /** Absolute pinned Heat Capacity. */
+    maxHeatOverride: z.number().int().nonnegative().optional(),
+
+    /** Absolute pinned Cargo Capacity. */
+    maxCargoOverride: z.number().int().nonnegative().optional(),
 
     /** Optional: links this mech to a workspace */
     workspaceId: z.string().optional(),

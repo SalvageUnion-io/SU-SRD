@@ -1385,6 +1385,8 @@ type PilotDerivationInput = {
     injuries?: Injury[];
     maxHpModifier?: number;
     maxApModifier?: number;
+    maxHpOverride?: number;
+    maxApOverride?: number;
 };
 /** Total max-HP penalty from injuries: minor −1, major −2 (rules A2/A11). */
 export declare function injuryMaxHpPenalty(injuries: Injury[] | undefined): number;
@@ -1393,8 +1395,10 @@ export declare function injuryMaxHpPenalty(injuries: Injury[] | undefined): numb
  * (rules A2: "if Max HP reaches 0 the Pilot dies") and is surfaced by
  * isPilotDead(), not clamped away here.
  */
+export declare function pilotMaxHPParts(pilot: PilotDerivationInput): StatBreakdown;
 export declare function pilotMaxHP(pilot: PilotDerivationInput): number;
 /** Derived max AP (base 5 + Stat Training tiers etc.). */
+export declare function pilotMaxAPParts(pilot: PilotDerivationInput): StatBreakdown;
 export declare function pilotMaxAP(pilot: PilotDerivationInput): number;
 /** Dead-state check: derived max HP ≤ 0 means the pilot is dead. */
 export declare function isPilotDead(pilot: PilotDerivationInput): boolean;
@@ -1423,6 +1427,10 @@ type MechDerivationInput = {
     maxEpModifier?: number;
     maxHeatModifier?: number;
     maxCargoModifier?: number;
+    maxSpOverride?: number;
+    maxEpOverride?: number;
+    maxHeatOverride?: number;
+    maxCargoOverride?: number;
     systems?: string[];
     modules?: string[];
 };
@@ -1431,6 +1439,33 @@ type MechDerivationInput = {
  * Mirrors the `statBonus` field names declared on the reference item schema.
  */
 type StatBonusKey = 'structurePoints' | 'energyPoints' | 'heatCapacity' | 'cargoCapacity';
+/**
+ * How a derived maximum was arrived at (ADR-029).
+ *
+ * `derived` is what the rules produce: base + installed bonuses + the player's
+ * manual adjustment, floored at 0. `override` is an absolute Free-Edit pin
+ * (ADR-022 amendment); when set it REPLACES the derived value rather than
+ * adding to it, and `derived` is retained so the sheet can render an
+ * "overridden from N" callout and revert to it.
+ *
+ * `total` is what a surface should display.
+ */
+export type StatBreakdown = {
+    /** The rules baseline before anything is added (chassis stat, tech-level SP, a constant). */
+    base: number;
+    /** Summed `statBonus` across installed systems/modules, counted per copy. */
+    installed: number;
+    /** The player's hand-entered manual adjustment (`max*Modifier`). Contributes; never replaces. */
+    adjustment: number;
+    /** base + installed + adjustment, floored at 0. Always computed, even when pinned. */
+    derived: number;
+    /** The absolute pin, when the player set one. */
+    override?: number;
+    /** What to display: the pin when pinned, else `derived`. */
+    total: number;
+    /** True when a pin is in effect. */
+    overridden: boolean;
+};
 /**
  * Σ(declared statBonus × installed count) for one stat across every installed
  * system and module (rules B2/B4/B6/B14 — Heat Sink +1 Max Heat each,
@@ -1447,6 +1482,10 @@ export declare function installedStatBonus(mech: MechDerivationInput, stat: Stat
  * to avoid repeated ORM lookups; floored at 0 so a negative total never
  * produces a negative maximum.
  */
+export declare function mechMaxSPParts(mech: MechDerivationInput, chassis?: ChassisStats | null): StatBreakdown;
+export declare function mechMaxEPParts(mech: MechDerivationInput, chassis?: ChassisStats | null): StatBreakdown;
+export declare function mechMaxHeatParts(mech: MechDerivationInput, chassis?: ChassisStats | null): StatBreakdown;
+export declare function mechMaxCargoParts(mech: MechDerivationInput, chassis?: ChassisStats | null): StatBreakdown;
 export declare function mechMaxSP(mech: MechDerivationInput, chassis?: ChassisStats | null): number;
 export declare function mechMaxEP(mech: MechDerivationInput, chassis?: ChassisStats | null): number;
 export declare function mechMaxHeat(mech: MechDerivationInput, chassis?: ChassisStats | null): number;
@@ -1481,6 +1520,7 @@ export declare function unifiedMechConditions(mech: {
 }): string[];
 type CrawlerDerivationInput = {
     techLevel: string;
+    maxSpOverride?: number;
     /**
      * Chosen crawler-type ref (SRD id OR name) — the type's stored
      * `max_sp_bonus` mutations (Battle +5) apply AT READ, so the record keeps
@@ -1491,15 +1531,13 @@ type CrawlerDerivationInput = {
     maxSpModifier?: number;
 };
 /** The additive parts of a crawler's derived max SP (and their total). */
-export type CrawlerMaxSPParts = {
-    /** The tech level's structurePoints (20/25/30/35/40/50 for TL 1–6). */
-    base: number;
-    /** The chosen type's `max_sp_bonus` mutations, applied at read (Battle +5). */
+export type CrawlerMaxSPParts = StatBreakdown & {
+    /**
+     * The chosen type's `max_sp_bonus` mutations, applied at read (Battle +5).
+     * A named alias for `installed` — this stat's only rules-sourced contribution
+     * — kept because the wizard's SP breakdown copy reads it by name.
+     */
     typeBonus: number;
-    /** The hand-edited maxSpModifier (a pure player-edit field). */
-    modifier: number;
-    /** base + typeBonus + modifier, floored at 0. */
-    total: number;
 };
 /**
  * Derived crawler max SP, decomposed: the tech level's structurePoints from
@@ -1703,8 +1741,8 @@ export { CORE_ROLL_BANDS, coreRollBand, performCoreRoll, describePushOutcome, } 
 export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from './coreMechanic.js';
 export { applySpDamage, mechEffectiveDamage, applyMechDamage, criticalDamageOutcome, performCriticalDamage, pilotEffectiveDamage, applyPilotDamage, criticalInjuryOutcome, performCriticalInjury, } from './takeDamage.js';
 export type { DamageKind, MechDamageInput, MechDamageEffect, PilotDamageInput, PilotDamageEffect, CriticalDamageEffect, CriticalInjuryEffect, } from './takeDamage.js';
-export { PILOT_BASE_HP, PILOT_BASE_AP, PILOT_BASE_INVENTORY_SLOTS, injuryMaxHpPenalty, pilotMaxHP, pilotMaxAP, isPilotDead, clampPilotCurrentStats, installedStatBonus, mechMaxSP, mechMaxEP, mechMaxHeat, mechMaxCargo, clampMechCurrentStats, unifiedMechConditions, crawlerMaxSP, crawlerMaxSPParts, clampCrawlerCurrentStats, } from './derivedStats.js';
-export type { ChassisStats, CrawlerMaxSPParts } from './derivedStats.js';
+export { PILOT_BASE_HP, PILOT_BASE_AP, PILOT_BASE_INVENTORY_SLOTS, injuryMaxHpPenalty, pilotMaxHP, pilotMaxAP, isPilotDead, clampPilotCurrentStats, installedStatBonus, mechMaxSP, mechMaxEP, mechMaxHeat, mechMaxCargo, clampMechCurrentStats, unifiedMechConditions, crawlerMaxSP, crawlerMaxSPParts, mechMaxSPParts, mechMaxEPParts, mechMaxHeatParts, mechMaxCargoParts, pilotMaxHPParts, pilotMaxAPParts, clampCrawlerCurrentStats, } from './derivedStats.js';
+export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js';
 export { MEDIATOR_TABLE_NAMES, MEDIATOR_TABLE_LABEL, performMediatorRoll, describeMediatorRoll, } from './mediatorTables.js';
 export type { FindRollTable } from './mediatorTables.js';
 export type { TechLevel, SoftWarning, SoftWarningSeverity, SoftWarningContext, EditSnapshot, MechInput, MechSystemSlot, MechModuleSlot, MechCapacityResult, CapacityViolation, ScrapableItem, CargoItem, CargoItemRef, CargoItemCustom, CargoParent, CargoCapacityResult, CargoViolation, PilotSnapshot, MechSnapshot, AbilityInput, AbilityTier, SystemSnapshot, Roll, ReactorOverloadOutcome, HeatCheckResult, HeatCheckEffect, PushResult, CriticalDamageOutcome, CriticalDamageResult, CriticalInjuryOutcome, CriticalInjuryResult, MediatorTableId, MediatorRollResult, } from './types.js';
