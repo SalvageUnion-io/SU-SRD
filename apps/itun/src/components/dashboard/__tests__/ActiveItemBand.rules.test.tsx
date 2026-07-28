@@ -95,3 +95,45 @@ describe('ActiveItemBand rules buttons', () => {
     expect(usePlayStateStore.getState().mount).toBe('pilot')
   })
 })
+
+describe('blocked controls teach the rule (F6, ADR-021)', () => {
+  // Guided Play "teaches as it enforces". A blocked Push used to grey out with a
+  // hover title — unreachable on touch, and it taught nothing at the moment the
+  // rule actually bit.
+  const hotMech = mechFixture({
+    id: 'm-hot',
+    name: 'Iron Mongrel',
+    chassisRef: 'unknown-chassis',
+    currentSP: 10,
+    // heatCapacity resolves to 0 for an unknown chassis, so any heat is over cap
+    currentHeat: 0,
+    maxHeatOverride: 4,
+  })
+
+  test('a Push that would exceed the Heat Cap explains itself instead of greying out', () => {
+    const blocked = { ...hotMech, currentHeat: 3 } // 3 + 2 > 4
+    const { store, calls } = stubStore([blocked])
+    render(<ActiveItemBand mech={blocked} pilot={null} store={store} />)
+
+    const push = screen.getByRole('button', { name: /push/i })
+    expect(push.hasAttribute('disabled')).toBe(false)
+
+    fireEvent.click(push)
+
+    // It teaches rather than acting: the rule is shown and NOTHING is written.
+    expect(screen.getByText(/Heat Cap/i)).toBeTruthy()
+    expect(screen.getByText(/Quick Ref/i)).toBeTruthy()
+    expect(calls).toHaveLength(0)
+  })
+
+  test('a legal Push still performs the action, not the explanation', () => {
+    const ok = { ...hotMech, currentHeat: 0 } // 0 + 2 <= 4
+    const { store, calls } = stubStore([ok])
+    render(<ActiveItemBand mech={ok} pilot={null} store={store} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /push/i }))
+
+    expect(screen.queryByText(/Quick Ref/i)).toBeNull()
+    expect(calls.length).toBeGreaterThan(0)
+  })
+})

@@ -38,6 +38,7 @@ import { ActiveItemBand as ActiveItemBandView, CountStepper, StorageBay } from '
 import type { ActiveItemBandView as ActiveItemBandViewModel, BandButton } from 'component-lib'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
+import { RuleBrief, type StepRule } from 'component-lib'
 import {
   VENT_PATCH,
   critDamagePatch,
@@ -133,6 +134,19 @@ type MechPrompt =
   | { kind: 'storage' }
   | null
 
+/**
+ * Rules a blocked Guided-Play control explains when the player reaches for it
+ * (ADR-021 — the guided modes teach as they enforce).
+ *
+ * Paraphrased with a citation, matching the wizards' RuleBrief contract; the
+ * numbers are interpolated so the brief describes THIS mech's situation rather
+ * than the rule in the abstract.
+ */
+const PUSH_RULE = (heat: number, cap: number): StepRule => ({
+  rule: `Pushing adds 2 Heat before the roll, and a Mech can never exceed its Heat Cap. This Mech is at ${heat}/${cap} Heat, so a Push would take it past the Cap — vent or take a Heat Check first.`,
+  cite: 'Quick Ref · p.233',
+})
+
 function MechBand({
   mech,
   store,
@@ -176,6 +190,9 @@ function MechBand({
 
   // Quick Ref p.233 — can't Push if +2 Heat would exceed the Heat Cap.
   const pushLocked = heat + 2 > maxHeat
+
+  // The rule a blocked control explains when the player reaches for it.
+  const [blocked, setBlocked] = useState<StepRule | null>(null)
 
   function doPush() {
     const m = fresh()
@@ -255,6 +272,25 @@ function MechBand({
   }
 
   const overlay = ((): ActiveItemBandViewModel['overlay'] => {
+    if (blocked) {
+      return {
+        title: 'Blocked by a rule',
+        onClose: () => setBlocked(null),
+        // Keep the gauge the rule is ABOUT on screen while explaining it —
+        // the number and the reason belong together.
+        gauges: [
+          {
+            label: 'Heat',
+            value: heat,
+            max: maxHeat,
+            tone: 'mech',
+            danger: Math.max(0, maxHeat - 2),
+          },
+        ],
+        body: <RuleBrief rule={blocked.rule} cite={blocked.cite} />,
+        actions: [{ label: 'Got it', onClick: () => setBlocked(null), variant: 'go' }],
+      }
+    }
     if (!prompt) return null
     const onClose = () => setPrompt(null)
     if (prompt.kind === 'reactor') {
@@ -360,11 +396,14 @@ function MechBand({
         buttons: [
           {
             label: 'Push',
-            onClick: doPush,
-            disabled: pushLocked,
+            // Guided Play teaches as it enforces (ADR-021). A blocked Push used
+            // to grey out with a hover title — unreachable on touch, and it
+            // taught nothing at the moment the rule actually bit. It now stays
+            // pressable and opens the rule instead of performing the action.
+            onClick: pushLocked ? () => setBlocked(PUSH_RULE(heat, maxHeat)) : doPush,
             variant: 'go',
             title: pushLocked
-              ? `Can't Push at Heat ${heat}/${maxHeat} — +2 would exceed the Heat Cap (p.233).`
+              ? `Can't Push at Heat ${heat}/${maxHeat} — why?`
               : '+2 Heat, then a Heat Check',
           },
           {
