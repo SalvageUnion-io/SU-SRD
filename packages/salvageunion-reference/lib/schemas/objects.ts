@@ -535,6 +535,61 @@ export const ContributionSchema = z
   .describe('A flat mechanical contribution this content makes to a stat')
 
 /**
+ * Whose state an effect changes (ADR-029).
+ *
+ * `self` — the record declaring it — was the only target the model had, and THAT
+ * was the blocker, not the declaration site. Bio-Wings says "YOUR MECH gains the
+ * Fly Trait": declared as a self-effect it would say the Bio-Wings *system*
+ * flies, which is wrong rather than merely incomplete.
+ */
+export const EffectTargetSchema = z.enum(['self', 'hostMech'])
+
+/**
+ * Choice effect schema — describes a mechanical effect applied when a choice option is selected
+ */
+/**
+ * A single mechanical effect of a choice option, discriminated by `op` so each
+ * operation only permits the fields it actually uses (no `removeTrait` with an
+ * `amount`, no `addDamage` with an `amount`, etc.):
+ *
+ * - `addTrait`    — add a trait by name; optional `amount` is its magnitude
+ *                   (e.g. Burn 1). Adding a trait that already exists upgrades it.
+ * - `removeTrait` — strip a trait by name.
+ * - `setRange`    — replace the Range datavalue.
+ * - `addDamage`   — increase the Damage datavalue; optional `unit` (e.g. "SP").
+ */
+export const ChoiceEffectSchema = z.discriminatedUnion('op', [
+  z
+    .object({
+      op: z.literal('addTrait'),
+      value: z.string(),
+      amount: z.union([z.string(), z.number()]).optional(),
+      target: EffectTargetSchema.describe('Defaults to `self` when absent').optional(),
+    })
+    .strict(),
+  z
+    .object({
+      op: z.literal('removeTrait'),
+      value: z.string(),
+      target: EffectTargetSchema.describe('Defaults to `self` when absent').optional(),
+    })
+    .strict(),
+  z
+    .object({
+      op: z.literal('setRange'),
+      value: z.union([z.string(), z.number()]),
+    })
+    .strict(),
+  z
+    .object({
+      op: z.literal('addDamage'),
+      value: z.union([z.string(), z.number()]),
+      unit: z.string().optional(),
+    })
+    .strict(),
+])
+
+/**
  * A system or module that can be installed on a mech
  */
 export const SystemModuleSchema = StatsSchema.extend({
@@ -558,51 +613,19 @@ export const SystemModuleSchema = StatsSchema.extend({
         'flat per-copy bonus cannot.'
     )
     .optional(),
+  appliedEffects: z
+    .array(ChoiceEffectSchema)
+    .describe(
+      'Trait/damage/range effects this item applies unconditionally (ADR-029). ' +
+        'Same vocabulary as a choice option\u2019s `effects`, declared directly on ' +
+        'the record for grants that are not a choice. Named `appliedEffects`, not ' +
+        '`effects`: that key is already taken on meta entities with a different ' +
+        '`{ label, value }` shape (see getEffects), and one field name meaning two ' +
+        'things is how a schema rots.'
+    )
+    .optional(),
   actions: z.array(z.string()).describe('Action names this system/module provides'),
 }).describe('A system or module that can be installed on a mech')
-
-/**
- * Choice effect schema — describes a mechanical effect applied when a choice option is selected
- */
-/**
- * A single mechanical effect of a choice option, discriminated by `op` so each
- * operation only permits the fields it actually uses (no `removeTrait` with an
- * `amount`, no `addDamage` with an `amount`, etc.):
- *
- * - `addTrait`    — add a trait by name; optional `amount` is its magnitude
- *                   (e.g. Burn 1). Adding a trait that already exists upgrades it.
- * - `removeTrait` — strip a trait by name.
- * - `setRange`    — replace the Range datavalue.
- * - `addDamage`   — increase the Damage datavalue; optional `unit` (e.g. "SP").
- */
-export const ChoiceEffectSchema = z.discriminatedUnion('op', [
-  z
-    .object({
-      op: z.literal('addTrait'),
-      value: z.string(),
-      amount: z.union([z.string(), z.number()]).optional(),
-    })
-    .strict(),
-  z
-    .object({
-      op: z.literal('removeTrait'),
-      value: z.string(),
-    })
-    .strict(),
-  z
-    .object({
-      op: z.literal('setRange'),
-      value: z.union([z.string(), z.number()]),
-    })
-    .strict(),
-  z
-    .object({
-      op: z.literal('addDamage'),
-      value: z.union([z.string(), z.number()]),
-      unit: z.string().optional(),
-    })
-    .strict(),
-])
 
 /**
  * Choice options schema

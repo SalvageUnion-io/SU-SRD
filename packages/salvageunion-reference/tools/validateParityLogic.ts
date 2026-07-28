@@ -141,7 +141,14 @@ export const PARITY_EXEMPTIONS: Record<string, string> = {
  * on a stale entry, because a burn-down list that never shrinks is not burning
  * down.
  */
-export const KNOWN_UNRESOLVED: readonly string[] = ['Bio-Wings', 'High Gain Antenna']
+export const KNOWN_UNRESOLVED: readonly string[] = [
+  // Raises the Range band of OTHER installed Modules and Pilot Abilities,
+  // filtered by trait. Still blocked, and now precisely: it needs a `bumpRange`
+  // op (`setRange` sets an absolute value; this INCREMENTS by one) and
+  // cross-item targeting with a predicate — a loadout-level resolver, where
+  // every other effect resolves per entity.
+  'High Gain Antenna',
+]
 
 function textOf(value: unknown, acc: string[]): void {
   if (typeof value === 'string') acc.push(value)
@@ -167,6 +174,9 @@ function hasCapData(record: Json): boolean {
 }
 
 function hasEffectData(record: Json): boolean {
+  // Record-level effects (ADR-029) — a grant that is not a choice, e.g.
+  // Bio-Wings granting the host mech the Fly Trait outright.
+  if (Array.isArray(record.appliedEffects) && record.appliedEffects.length > 0) return true
   const choices = record.choices
   if (!Array.isArray(choices)) return false
   return choices.some((choice) => {
