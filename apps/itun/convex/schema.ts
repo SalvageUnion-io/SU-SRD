@@ -110,20 +110,48 @@ export default defineSchema({
   pilots: defineTable({
     gameId: v.union(v.id('games'), v.null()),
     ownerId: v.union(v.id('users'), v.null()),
+    /**
+     * The app-level UUID this row mirrors (ADR-030 §1).
+     *
+     * Convex mints its own `_id`, so a client holding only the local UUID has
+     * nothing to address a row by — which is what made an earlier
+     * write-mirroring attempt unworkable for updates and deletes. Carrying the
+     * app id as an indexed column gives one cheap lookup per write instead of
+     * a mapping table, and keeps `_id` idiomatic for everything server-side.
+     *
+     * Optional because rows created server-side (Game templates) have no local
+     * counterpart until somebody claims them.
+     */
+    appId: v.optional(v.string()),
     body: v.any(),
     updatedAt: v.number(),
   })
     .index('by_game', ['gameId'])
-    .index('by_owner', ['ownerId']),
+    .index('by_owner', ['ownerId'])
+    .index('by_app_id', ['appId']),
 
   mechs: defineTable({
     gameId: v.union(v.id('games'), v.null()),
     ownerId: v.union(v.id('users'), v.null()),
+    /**
+     * The app-level UUID this row mirrors (ADR-030 §1).
+     *
+     * Convex mints its own `_id`, so a client holding only the local UUID has
+     * nothing to address a row by — which is what made an earlier
+     * write-mirroring attempt unworkable for updates and deletes. Carrying the
+     * app id as an indexed column gives one cheap lookup per write instead of
+     * a mapping table, and keeps `_id` idiomatic for everything server-side.
+     *
+     * Optional because rows created server-side (Game templates) have no local
+     * counterpart until somebody claims them.
+     */
+    appId: v.optional(v.string()),
     body: v.any(),
     updatedAt: v.number(),
   })
     .index('by_game', ['gameId'])
-    .index('by_owner', ['ownerId']),
+    .index('by_owner', ['ownerId'])
+    .index('by_app_id', ['appId']),
 
   /**
    * The crawler is communal (D8) — no `ownerId` at all, and any member of the
@@ -133,9 +161,13 @@ export default defineSchema({
    */
   crawlers: defineTable({
     gameId: v.id('games'),
+    /** See `pilots.appId` — same reason, same lookup path. */
+    appId: v.optional(v.string()),
     body: v.any(),
     updatedAt: v.number(),
-  }).index('by_game', ['gameId']),
+  })
+    .index('by_game', ['gameId'])
+    .index('by_app_id', ['appId']),
 
   /** 'mech-to-pilot' | 'pilot-to-crawler'. EntityRef is NOT widened (ADR-027). */
   softLinks: defineTable({

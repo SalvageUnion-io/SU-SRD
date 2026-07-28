@@ -1,3 +1,5 @@
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
 import { convexClient } from '../lib/connection/convexClient'
 import { resolveConnectionMode, usesServerOfRecord } from '../lib/connection/connectionMode'
 
@@ -71,23 +73,51 @@ export class WritesBlockedOffline extends Error {
 }
 
 /**
- * ## Why there is no write-mirroring here yet
+ * Mirror a local write to the server of record, addressed by **app id**.
  *
- * The obvious next step — write locally, then mirror the same change to Convex
- * — does not work, and it is worth writing down so nobody rediscovers it the
- * hard way. Local records are keyed by an app-level `id` (a UUID minted by
- * `crud.ts`); Convex rows are keyed by its own `_id`. A create can be mirrored
- * because it needs no prior key, but an **update or delete has nothing to
- * address**: there is no id map between the two, so the mirror would either
- * silently no-op or need a lookup-by-body on every write.
+ * An earlier attempt at this could not work: Convex mints its own `_id`, so a
+ * client holding only its local UUID had nothing to address a row by. Creates
+ * mirrored fine and edits silently no-opped — a mirror that looks synced and
+ * is not. The fix is the indexed `appId` column, which lets one cheap lookup
+ * stand in for a mapping table.
  *
- * A mirror that works for creates and quietly fails for edits is worse than no
- * mirror, because it looks synced. The real cutover is the one ADR-030
- * describes — when Connected, Convex IS the source of truth and the store
- * reads from a reactive subscription rather than from IndexedDB — and that
- * needs the id mapping (or app-id-as-primary-key on the Convex side) decided
- * first. This module deliberately ships only the part that is sound.
+ * Three properties that matter:
+ *
+ *  - **Upsert, not update.** An entity built while Solo has no server row until
+ *    the account is claimed, so a missing row means "create it" rather than
+ *    "fail". That is what makes the mirror converge instead of dropping the
+ *    first edit after a claim.
+ *  - **Fire-and-forget.** The local write already succeeded and is what the UI
+ *    reads. A mirror failure must not roll it back or block the caller, so this
+ *    returns void and swallows into a console warning.
+ *  - **Only in `remote`.** In Solo there is no server to mirror to, and in
+ *    Disconnected the write never got this far (`requireWritableBackend`).
  */
+export async function mirrorWrite(
+  type: 'pilot' | 'mech',
+  op:
+    | { kind: 'upsert'; appId: string; gameId: string | null; body: unknown }
+    | { kind: 'delete'; appId: string }
+): Promise<void> {
+  if (selectBackend() !== 'remote' || convexClient === null) return
+
+  const table = type === 'pilot' ? 'pilots' : 'mechs'
+  try {
+    if (op.kind === 'upsert') {
+      await convexClient.mutation(api.entities.upsertByAppId, {
+        table,
+        appId: op.appId,
+        gameId: op.gameId === null ? null : (op.gameId as Id<'games'>),
+        body: op.body,
+      })
+    } else {
+      await convexClient.mutation(api.entities.removeByAppId, { table, appId: op.appId })
+    }
+  } catch (err) {
+    // Never surfaced as a failed user action: the local write stands.
+    console.warn('[itun] failed to mirror write to the server of record', err)
+  }
+}
 
 /**
  * Guard a write against the current mode.

@@ -39,7 +39,7 @@ import type { Mech } from '../lib/schemas/mech'
 import type { Pilot } from '../lib/schemas/pilot'
 import type { SoftLink } from '../lib/schemas/softLink'
 import type { CreateInput, EntityForType, EntityType } from './types'
-import { requireWritableBackend } from './entityBackend'
+import { mirrorWrite, requireWritableBackend } from './entityBackend'
 
 // Re-exported so consumers can import the type alongside the store itself.
 export type { EntityType }
@@ -249,6 +249,23 @@ const DB_STORES: { [K in EntityType]: DbStoreApi<K> } = {
   softLink: db.softLinks,
 }
 
+/**
+ * Mirror a just-persisted record to the server of record.
+ *
+ * Only pilots and mechs: the crawler is communal and merges per field
+ * server-side, and softLinks are derived. Fire-and-forget by design — the
+ * local write is what the UI reads, so a mirror failure must not undo it.
+ */
+function mirrorEntityWrite(type: EntityType, record: { id: string; gameId?: string | null }): void {
+  if (type !== 'pilot' && type !== 'mech') return
+  void mirrorWrite(type, {
+    kind: 'upsert',
+    appId: record.id,
+    gameId: record.gameId ?? null,
+    body: record,
+  })
+}
+
 function dbStoreFor<T extends EntityType>(type: T): DbStoreApi<T> {
   // Single correlated-union assertion: TS cannot carry the runtime
   // discriminant↔record-type invariant through the map lookup for a
@@ -343,6 +360,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     // writing to a local copy that would fork against the server.
     requireWritableBackend()
     const record = await dbStoreFor(type).create(withActiveWorkspace(type, input))
+    mirrorEntityWrite(type, record)
     set((state) => ({
       [key]: [record, ...(state[key] as EntityForType<T>[])],
     }))
@@ -361,6 +379,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     const before = get().get(type, id)
     requireWritableBackend()
     const updated = await dbStoreFor(type).update(id, patch)
+    mirrorEntityWrite(type, updated)
     set((state) => ({
       [key]: (state[key] as EntityForType<T>[]).map((e) => (e.id === id ? updated : e)),
     }))
@@ -488,6 +507,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
   async delete(type, id) {
     const key = storeKeyFor(type)
     requireWritableBackend()
+    if (type === 'pilot' || type === 'mech') void mirrorWrite(type, { kind: 'delete', appId: id })
 
     // Cascade: deleting an entity prunes its SoftLinks (plan 2.7, gap 9).
     // The entity delete and its link pruning run in a single IDB transaction
