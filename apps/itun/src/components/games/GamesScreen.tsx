@@ -7,6 +7,9 @@ import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { SignInControl } from '../account/SignInControl'
+import { DowntimePanel } from './DowntimePanel'
+import { ProposalInbox } from './ProposalInbox'
+import { Link } from '@tanstack/react-router'
 
 /**
  * Games: create one, invite people, join by code, hand over the Organizer role.
@@ -147,6 +150,21 @@ function GameRow({
         </div>
 
         {game.organizer && <InvitePanel gameId={game._id} />}
+
+        {/* A player's answer queue and the table's Downtime live with the game
+            they belong to, so a member never has to go looking for either. */}
+        <ProposalInbox gameId={game._id} />
+        <DowntimePanel gameId={game._id} />
+
+        {game.mediator && (
+          <Link
+            to="/mediator/$gameId"
+            params={{ gameId: game._id }}
+            className={`${label} text-[var(--color-rust)] hover:text-[var(--color-rust-hi)]`}
+          >
+            Open the Mediator surface →
+          </Link>
+        )}
       </div>
     </Card>
   )
