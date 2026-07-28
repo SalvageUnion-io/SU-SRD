@@ -2,6 +2,13 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [1.3.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.3.0...srd-v1.3.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* **observability:** point the CSP at Sentry's EU ingest region ([#607](https://github.com/SalvageUnion-io/SU-SRD/issues/607)) ([f9ccbdb](https://github.com/SalvageUnion-io/SU-SRD/commit/f9ccbdb35fbf601be67d2eccc7e6999807680d57))
+
 ## [1.3.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.2.2...srd-v1.3.0) (2026-07-28)
 
 
