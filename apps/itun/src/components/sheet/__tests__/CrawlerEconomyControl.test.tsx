@@ -25,6 +25,8 @@ import { CrawlerEconomyControl } from '../CrawlerEconomyControl'
 import type { Roll } from '../../../lib/rules/heatCheck'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import type { ChangeMeta } from '../../../stores/entityStore'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['crawler-bays', 'crawler-tech-levels'])
@@ -57,11 +59,17 @@ function makeCrawler(overrides: Partial<Crawler> = {}): Crawler {
 type BayPatch = Partial<NonNullable<Crawler['crawlerBays']>[number]>
 
 function makeStubStore(crawler: Crawler) {
-  const update = mock<(type: string, id: string, patch: Partial<Crawler>) => Promise<Crawler>>(
-    async () => crawler
-  )
+  const update = mock<
+    (type: string, id: string, patch: Partial<Crawler>, meta?: ChangeMeta) => Promise<Crawler>
+  >(async () => crawler)
   const updateCrawlerBay = mock<
-    (id: string, bayRef: string, patch: BayPatch, index?: number) => Promise<Crawler>
+    (
+      id: string,
+      bayRef: string,
+      patch: BayPatch,
+      index?: number,
+      meta?: ChangeMeta
+    ) => Promise<Crawler>
   >(async () => crawler)
   const store = makeEntityStoreMock({
     crawlers: [crawler],
@@ -117,6 +125,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
       'crawler',
       crawler.id,
       { scrapPool: { tl2: 1 }, upgradePool: 15 },
+      LIVE_SHEET_MANUAL,
     ])
     expect(screen.getByRole('status').textContent).toContain('Upgrade Pool now 15 of 30')
   })
@@ -148,6 +157,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
       'Med Bay',
       { condition: 'damaged' },
       1,
+      LIVE_SHEET_MANUAL,
     ])
     expect(screen.getByRole('status').textContent).toContain('Med Bay is Damaged')
   })
@@ -168,7 +178,12 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Roll Deterioration (d20)' }))
     await screen.findByRole('status')
 
-    expect(update.mock.calls[0]).toEqual(['crawler', crawler.id, { currentSP: 5 }])
+    expect(update.mock.calls[0]).toEqual([
+      'crawler',
+      crawler.id,
+      { currentSP: 5 },
+      LIVE_SHEET_MANUAL,
+    ])
     expect(updateCrawlerBay).not.toHaveBeenCalled()
   })
 
@@ -224,6 +239,7 @@ describe('CrawlerEconomyControl — Upgrade Crawler', () => {
           { bayRef: 'Med Bay', condition: 'intact' },
         ],
       },
+      LIVE_SHEET_MANUAL,
     ])
     expect(onClose).toHaveBeenCalled()
   })
@@ -254,6 +270,7 @@ describe('CrawlerEconomyControl — Upgrade Crawler', () => {
       'crawler',
       crawler.id,
       { scrapPool: { tl2: 5 }, upgradePool: 11 },
+      LIVE_SHEET_MANUAL,
     ])
   })
 })
@@ -276,7 +293,12 @@ describe('CrawlerEconomyControl — Trading Bay', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Trade' }))
     await screen.findByRole('status')
 
-    expect(update.mock.calls[0]).toEqual(['crawler', crawler.id, { scrapPool: { tl1: 1, tl4: 1 } }])
+    expect(update.mock.calls[0]).toEqual([
+      'crawler',
+      crawler.id,
+      { scrapPool: { tl1: 1, tl4: 1 } },
+      LIVE_SHEET_MANUAL,
+    ])
   })
 
   test('the availability roll reports the band and the TL+1 source', async () => {

@@ -41,6 +41,7 @@ import type { ChassisPattern } from './MechChassisStep'
 import { MechFlavorStep } from 'component-lib'
 import { MechReviewStep } from './MechReviewStep'
 import { MechStatsStep } from './MechStatsStep'
+import { WIZARD_TXN } from '../../stores/surfaceProvenance'
 import {
   clearWizardDraft,
   readWizardDraft,
@@ -384,7 +385,7 @@ export function MechWizard({
 
       // Upsert branch: update when editing — NEVER a second create.
       if (mechId) {
-        await store.update('mech', mechId, mechFormToUpdatePatch(form))
+        await store.update('mech', mechId, mechFormToUpdatePatch(form), WIZARD_TXN)
         toast.success(`Saved ${form.name.trim() || 'mech'}.`)
         clearWizardDraft(draftKey)
         onComplete(mechId)

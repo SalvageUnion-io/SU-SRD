@@ -27,6 +27,7 @@ import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { expandCards } from '../../__tests__/expandCards'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 
 afterEach(() => {
   cleanup()
@@ -171,7 +172,8 @@ describe('CrawlerSheet — crew lead identity (NpcInset)', () => {
       baseCrawler.id,
       'command-bay',
       { npcName: 'Mara Vex' },
-      0
+      0,
+      LIVE_SHEET_MANUAL
     )
   })
 
@@ -202,7 +204,8 @@ describe('CrawlerSheet — crew lead identity (NpcInset)', () => {
       baseCrawler.id,
       'command-bay',
       { npcDescription: 'A grizzled commander.' },
-      0
+      0,
+      LIVE_SHEET_MANUAL
     )
   })
 })
@@ -240,7 +243,8 @@ describe('CrawlerSheet — crew HP editing (NpcInset)', () => {
       baseCrawler.id,
       'command-bay',
       { npcCurrentHP: 3 },
-      0
+      0,
+      LIVE_SHEET_MANUAL
     )
   })
 
@@ -295,9 +299,14 @@ describe('CrawlerSheet — crew keepsake via bayChoices', () => {
       fireEvent.blur(input)
     })
 
-    expect(update).toHaveBeenCalledWith('crawler', baseCrawler.id, {
-      bayChoices: { 'command-bay': { [KEEPSAKE_CHOICE_ID]: ['A bent cog'] } },
-    })
+    expect(update).toHaveBeenCalledWith(
+      'crawler',
+      baseCrawler.id,
+      {
+        bayChoices: { 'command-bay': { [KEEPSAKE_CHOICE_ID]: ['A bent cog'] } },
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('a bay whose NPC has no Keepsake choice renders a read-only dash', async () => {
@@ -347,9 +356,14 @@ describe('CrawlerSheet — crew motto via bayChoices', () => {
       fireEvent.blur(input)
     })
 
-    expect(update).toHaveBeenCalledWith('crawler', baseCrawler.id, {
-      bayChoices: { 'command-bay': { [MOTTO_CHOICE_ID]: ['No retreat'] } },
-    })
+    expect(update).toHaveBeenCalledWith(
+      'crawler',
+      baseCrawler.id,
+      {
+        bayChoices: { 'command-bay': { [MOTTO_CHOICE_ID]: ['No retreat'] } },
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('a bay whose NPC has no Motto choice renders a read-only dash', async () => {
@@ -396,7 +410,8 @@ describe('CrawlerSheet — crew facts (NpcInset)', () => {
       baseCrawler.id,
       'command-bay',
       { npcFacts: ['Hates synths', 'Owes a debt'] },
-      0
+      0,
+      LIVE_SHEET_MANUAL
     )
   })
 
@@ -420,7 +435,8 @@ describe('CrawlerSheet — crew facts (NpcInset)', () => {
       baseCrawler.id,
       'command-bay',
       { npcFacts: [] },
-      0
+      0,
+      LIVE_SHEET_MANUAL
     )
   })
 })

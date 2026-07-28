@@ -23,6 +23,7 @@ import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 
 // PilotSheet resolves equipment/ability slugs; MechSheet resolves
 // system/module slugs, chassis stats and cargo caps at render — load all.
@@ -143,9 +144,14 @@ describe('MechSheet — system status badge (REQ-011 #240, plan 4.5)', () => {
       fireEvent.click(badge)
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('mech', mech.id, {
-      systemConditions: { 'plasma-torch': 'damaged' },
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'mech',
+      mech.id,
+      {
+        systemConditions: { 'plasma-torch': 'damaged' },
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('displayed condition reflects stored systemConditions value', () => {
@@ -195,9 +201,14 @@ describe('MechSheet — module status badge (REQ-011 #240, plan 4.5)', () => {
       fireEvent.click(badge)
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('mech', mech.id, {
-      moduleConditions: { 'reinforced-hull': 'damaged' },
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'mech',
+      mech.id,
+      {
+        moduleConditions: { 'reinforced-hull': 'damaged' },
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 })
 
@@ -217,9 +228,14 @@ describe('PilotSheet — equipment condition toggle (REQ-011 #240)', () => {
       fireEvent.click(toggle)
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', fakePilot.id, {
-      equipmentConditions: { pistol: 'damaged' },
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'pilot',
+      fakePilot.id,
+      {
+        equipmentConditions: { pistol: 'damaged' },
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('displayed condition reflects stored equipmentConditions value', () => {
@@ -293,11 +309,16 @@ describe('MechSheet — condition merge reads live store, not stale prop (#240 r
 
     // The patch must include BOTH the prior store condition and the new one —
     // proving the merge base came from store.get, not the empty prop map.
-    expect(updateSpy).toHaveBeenCalledWith('mech', fakeMech.id, {
-      systemConditions: {
-        'prior-system': 'destroyed',
-        'plasma-torch': 'damaged',
+    expect(updateSpy).toHaveBeenCalledWith(
+      'mech',
+      fakeMech.id,
+      {
+        systemConditions: {
+          'prior-system': 'destroyed',
+          'plasma-torch': 'damaged',
+        },
       },
-    })
+      LIVE_SHEET_MANUAL
+    )
   })
 })

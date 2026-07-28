@@ -85,6 +85,7 @@ import { StorageManifest } from './StorageManifest'
 import { CrawlerBayCard } from './CrawlerSheetItems'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { BAY_REPAIR_COST, SCRAP_TLS, resolveCrawlerSystem } from './crawlerSheetItemRules'
+import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 
 type CrawlerSheetProps = {
   crawler: Crawler
@@ -151,7 +152,7 @@ export function CrawlerSheet({
     if (readOnly) return
     const fields =
       typeof input === 'function' ? input(storeState.get('crawler', crawler.id) ?? crawler) : input
-    void storeState.update('crawler', crawler.id, fields)
+    void storeState.update('crawler', crawler.id, fields, LIVE_SHEET_MANUAL)
   }
 
   const tl = parseCrawlerTechLevel(crawler.techLevel) ?? 1
@@ -184,8 +185,14 @@ export function CrawlerSheet({
         remaining -= take
       }
     }
-    void storeState.update('crawler', crawler.id, { scrapPool: nextPool })
-    void storeState.updateCrawlerBay(crawler.id, entry.bayRef, { condition: 'intact' }, index)
+    void storeState.update('crawler', crawler.id, { scrapPool: nextPool }, LIVE_SHEET_MANUAL)
+    void storeState.updateCrawlerBay(
+      crawler.id,
+      entry.bayRef,
+      { condition: 'intact' },
+      index,
+      LIVE_SHEET_MANUAL
+    )
   }
 
   /** Remove one mounted weapon (per-card ✕ — archetype B). */
@@ -204,9 +211,14 @@ export function CrawlerSheet({
     const currentPool = fresh.scrapPool ?? {}
     const delta = next - scrapPoolBucket(currentPool, tlBucket)
     if (delta === 0) return
-    void storeState.update('crawler', crawler.id, {
-      scrapPool: addToScrapPool(currentPool, tlBucket, delta),
-    })
+    void storeState.update(
+      'crawler',
+      crawler.id,
+      {
+        scrapPool: addToScrapPool(currentPool, tlBucket, delta),
+      },
+      LIVE_SHEET_MANUAL
+    )
   }
 
   /** The Armament Bay's mounted weapons — rendered INSIDE that bay. */

@@ -80,6 +80,7 @@ import type { ChassisStatItem } from 'component-lib'
 import { StorageManifest } from './StorageManifest'
 import { freshEntity } from './controlPrimitives'
 import type { SheetPatch } from './sheetViewProps'
+import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 
 // Narrow subset of chassis data the stat derivations need
 type ChassisLike = {
@@ -220,7 +221,7 @@ export function MechSheet({
   /** Partial merge on this mech, reading the freshest record when needed. */
   const patchMech: SheetPatch = (input) => {
     const fields = typeof input === 'function' ? input(freshMech()) : input
-    void storeState.update('mech', mech.id, fields)
+    void storeState.update('mech', mech.id, fields, LIVE_SHEET_MANUAL)
   }
 
   // Cap overrides (ADR-022, Free Edit): a derived maximum is pinned by storing
@@ -230,7 +231,7 @@ export function MechSheet({
   const derivedMaxEP = maxEP - (mech.maxEpModifier ?? 0)
   const derivedHeatCap = heatCap - (mech.maxHeatModifier ?? 0)
   const overrideMechMax = (fields: Partial<Mech>) => {
-    void storeState.update('mech', mech.id, fields, { kind: 'override' })
+    void storeState.update('mech', mech.id, fields, LIVE_SHEET_OVERRIDE)
   }
   const modOrUndef = (next: number, derived: number): number | undefined => {
     const mod = next - derived
@@ -253,7 +254,8 @@ export function MechSheet({
       mech.id,
       kind === 'system'
         ? { systems: [...fresh.systems, slug] }
-        : { modules: [...fresh.modules, slug] }
+        : { modules: [...fresh.modules, slug] },
+      LIVE_SHEET_MANUAL
     )
   }
 
@@ -267,9 +269,14 @@ export function MechSheet({
   function removeItem(kind: ItemKind, index: number) {
     const fresh = freshMech()
     if (kind === 'module') {
-      void storeState.update('mech', mech.id, {
-        modules: fresh.modules.filter((_, i) => i !== index),
-      })
+      void storeState.update(
+        'mech',
+        mech.id,
+        {
+          modules: fresh.modules.filter((_, i) => i !== index),
+        },
+        LIVE_SHEET_MANUAL
+      )
       return
     }
     const removed = fresh.systems[index]
@@ -289,7 +296,8 @@ export function MechSheet({
     await storeState.update(
       'mech',
       mech.id,
-      kind === 'system' ? { systemConditions: nextMap } : { moduleConditions: nextMap }
+      kind === 'system' ? { systemConditions: nextMap } : { moduleConditions: nextMap },
+      LIVE_SHEET_MANUAL
     )
   }
 
@@ -311,9 +319,14 @@ export function MechSheet({
   async function setItemUses(slug: string, next: number) {
     const fresh = freshMech()
     const prevUses = fresh.itemUses ?? {}
-    await storeState.update('mech', mech.id, {
-      itemUses: { ...prevUses, [slug]: Math.max(0, next) },
-    })
+    await storeState.update(
+      'mech',
+      mech.id,
+      {
+        itemUses: { ...prevUses, [slug]: Math.max(0, next) },
+      },
+      LIVE_SHEET_MANUAL
+    )
   }
 
   /**
@@ -331,27 +344,38 @@ export function MechSheet({
     await storeState.update(
       'mech',
       mech.id,
-      kind === 'system' ? { systemConditions: nextMap } : { moduleConditions: nextMap }
+      kind === 'system' ? { systemConditions: nextMap } : { moduleConditions: nextMap },
+      LIVE_SHEET_MANUAL
     )
     if (deductTl !== null && crawler) {
       const freshCrawler = freshEntity(storeState, 'crawler', crawler)
-      await storeState.update('crawler', crawler.id, {
-        scrapPool: addToScrapPool(freshCrawler.scrapPool ?? {}, deductTl, -cost),
-      })
+      await storeState.update(
+        'crawler',
+        crawler.id,
+        {
+          scrapPool: addToScrapPool(freshCrawler.scrapPool ?? {}, deductTl, -cost),
+        },
+        LIVE_SHEET_MANUAL
+      )
     }
   }
 
   /** Quirk / Appearance field save — mirrors the old SheetDescription saves. */
   function saveQuirk(next: string) {
-    void storeState.update('mech', mech.id, { quirk: next.trim() || undefined })
+    void storeState.update('mech', mech.id, { quirk: next.trim() || undefined }, LIVE_SHEET_MANUAL)
   }
 
   /** Appearance heals the deprecated `description` field into `appearance`. */
   function saveAppearance(next: string) {
-    void storeState.update('mech', mech.id, {
-      appearance: next.trim() || undefined,
-      description: undefined,
-    })
+    void storeState.update(
+      'mech',
+      mech.id,
+      {
+        appearance: next.trim() || undefined,
+        description: undefined,
+      },
+      LIVE_SHEET_MANUAL
+    )
   }
 
   function renderItems(kind: ItemKind, slugs: string[]) {
@@ -659,9 +683,14 @@ export function MechSheet({
                   readOnly
                     ? undefined
                     : () => {
-                        void store.getState().update('mech', mech.id, {
-                          partners: (mech.partners ?? []).filter((p) => p.id !== partner.id),
-                        })
+                        void store.getState().update(
+                          'mech',
+                          mech.id,
+                          {
+                            partners: (mech.partners ?? []).filter((p) => p.id !== partner.id),
+                          },
+                          LIVE_SHEET_MANUAL
+                        )
                       }
                 }
               />

@@ -728,6 +728,7 @@
     "techLevel": 3,
     "slotsRequired": 3,
     "salvageValue": 1,
+    "statBonus": { "structurePoints": 5 },
     "page": 173,
     "actions": ["Composite Armour"]
   },

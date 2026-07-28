@@ -23,6 +23,7 @@ import type { EntityLookup } from '../Sheet'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import {
   makeEntityStoreMock,
   makeEntityLookupMock,
@@ -119,7 +120,7 @@ describe('Pilot hero — HP/AP trackers', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Set HP to 7' }))
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentHP: 6 })
+    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentHP: 6 }, LIVE_SHEET_MANUAL)
   })
 
   test('clicking the top AP segment persists currentAP (clamped to derived max 5)', async () => {
@@ -132,7 +133,7 @@ describe('Pilot hero — HP/AP trackers', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Set AP to 5' }))
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentAP: 5 })
+    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentAP: 5 }, LIVE_SHEET_MANUAL)
   })
 
   test('injuries lower the derived max HP (10 − 1 minor − 2 major = 7)', () => {
@@ -174,9 +175,14 @@ describe('Pilot hero — TP tracker', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Increase Training Points' }))
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {
-      trainingPoints: 3,
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'pilot',
+      pilot.id,
+      {
+        trainingPoints: 3,
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 })
 
@@ -194,9 +200,14 @@ describe('Pilot hero — identity used-toggles', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Mark motto used' }))
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {
-      usedToggles: { motto: true },
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'pilot',
+      pilot.id,
+      {
+        usedToggles: { motto: true },
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('resetting a used flag merges with existing flags', async () => {
@@ -208,9 +219,14 @@ describe('Pilot hero — identity used-toggles', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Reset motto used' }))
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {
-      usedToggles: { motto: false, keepsake: true },
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'pilot',
+      pilot.id,
+      {
+        usedToggles: { motto: false, keepsake: true },
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('readOnly: no toggle buttons, set flags render as static stamps', () => {

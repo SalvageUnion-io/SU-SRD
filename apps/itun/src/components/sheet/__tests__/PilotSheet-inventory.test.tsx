@@ -19,6 +19,7 @@ import type { GenericInventoryEntry, Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { expandCards } from '../../__tests__/expandCards'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -140,9 +141,14 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Use First Aid Kit' }))
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {
-      equipmentUses: { 'First Aid Kit': 1 },
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'pilot',
+      pilot.id,
+      {
+        equipmentUses: { 'First Aid Kit': 1 },
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('Use is disabled at 0; Restock refills to max', async () => {
@@ -163,9 +169,14 @@ describe('PilotSheet — per-item uses counters (rules A14)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Restock First Aid Kit' }))
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {
-      equipmentUses: { 'First Aid Kit': 3 },
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'pilot',
+      pilot.id,
+      {
+        equipmentUses: { 'First Aid Kit': 3 },
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('no uses affordance on items without a uses trait', () => {
@@ -191,9 +202,14 @@ describe('PilotSheet — generic inventory entries (plan S7)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Add Scrap (3 slots)' }))
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {
-      genericInventory: [expect.objectContaining({ name: 'Scrap', slotCost: 3 })],
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'pilot',
+      pilot.id,
+      {
+        genericInventory: [expect.objectContaining({ name: 'Scrap', slotCost: 3 })],
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('free-form add persists name, slot cost and qty', async () => {
@@ -217,15 +233,20 @@ describe('PilotSheet — generic inventory entries (plan S7)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Add inventory item' }))
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {
-      genericInventory: [
-        expect.objectContaining({
-          name: 'Salvaged Servo',
-          slotCost: 2,
-          qty: 2,
-        }),
-      ],
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'pilot',
+      pilot.id,
+      {
+        genericInventory: [
+          expect.objectContaining({
+            name: 'Salvaged Servo',
+            slotCost: 2,
+            qty: 2,
+          }),
+        ],
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('removing a generic entry filters it out', async () => {
@@ -238,9 +259,14 @@ describe('PilotSheet — generic inventory entries (plan S7)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Remove Scrap' }))
     })
 
-    expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, {
-      genericInventory: [],
-    })
+    expect(updateSpy).toHaveBeenCalledWith(
+      'pilot',
+      pilot.id,
+      {
+        genericInventory: [],
+      },
+      LIVE_SHEET_MANUAL
+    )
   })
 })
 

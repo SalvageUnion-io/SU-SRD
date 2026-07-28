@@ -31,6 +31,7 @@ import { CrawlerSheet } from '../CrawlerSheet'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { expandCards } from '../../__tests__/expandCards'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 
 afterEach(() => {
   cleanup()
@@ -176,11 +177,16 @@ describe('CrawlerSheet — bay choice cards (Slice B)', () => {
       fireEvent.click(autocannon)
     })
 
-    expect(updateMock).toHaveBeenCalledWith('crawler', crawler.id, {
-      bayChoices: {
-        [BAY_REF]: { [CHOICE_ID]: ['Autocannon'] },
+    expect(updateMock).toHaveBeenCalledWith(
+      'crawler',
+      crawler.id,
+      {
+        bayChoices: {
+          [BAY_REF]: { [CHOICE_ID]: ['Autocannon'] },
+        },
       },
-    })
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('toggling does not clobber a sibling bay choice', async () => {
@@ -199,12 +205,17 @@ describe('CrawlerSheet — bay choice cards (Slice B)', () => {
       fireEvent.click(autocannon)
     })
 
-    expect(updateMock).toHaveBeenCalledWith('crawler', crawler.id, {
-      bayChoices: {
-        'other-bay': { 'other-choice': ['Preserved'] },
-        [BAY_REF]: { [CHOICE_ID]: ['Autocannon'] },
+    expect(updateMock).toHaveBeenCalledWith(
+      'crawler',
+      crawler.id,
+      {
+        bayChoices: {
+          'other-bay': { 'other-choice': ['Preserved'] },
+          [BAY_REF]: { [CHOICE_ID]: ['Autocannon'] },
+        },
       },
-    })
+      LIVE_SHEET_MANUAL
+    )
   })
 
   test('persisted selection renders as chosen (aria-pressed)', async () => {

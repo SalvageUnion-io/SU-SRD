@@ -112,7 +112,9 @@ export type EntityState = {
      * index is patched when its bayRef matches; otherwise the first bayRef
      * match wins.
      */
-    index?: number
+    index?: number,
+    /** Change Log provenance for the resulting update (ADR-022). */
+    meta?: ChangeMeta
   ) => Promise<Crawler>
 
   /**
@@ -128,10 +130,13 @@ export type EntityState = {
    * stow/load, salvage hand-offs — where a partial write would duplicate or
    * destroy player data. Deletes cascade SoftLinks like delete().
    */
-  transfer: (ops: {
-    updates?: TransferUpdate[]
-    deletes?: { type: EntityType; id: string }[]
-  }) => Promise<void>
+  transfer: (
+    ops: {
+      updates?: TransferUpdate[]
+      deletes?: { type: EntityType; id: string }[]
+    },
+    meta?: ChangeMeta
+  ) => Promise<void>
 }
 
 /** One update inside a transfer() — the discriminant ties patch to type. */
@@ -363,17 +368,27 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     return updated
   },
 
-  async transfer(ops) {
+  async transfer(ops, meta) {
     const updates = ops.updates ?? []
     const deletes = ops.deletes ?? []
     if (updates.length === 0 && deletes.length === 0) return
+
+    // Capture before-images BEFORE the write, exactly as update() does, so the
+    // Change Log can diff them in phase 4. Without this, cross-entity moves
+    // (cargo stow/load, scrap hand-offs) mutated entities with no provenance at
+    // all — the one hole in ADR-022's "every mutation is logged" chokepoint
+    // guarantee, since transfer() bypasses update().
+    const withBefore = updates.map((u) => ({ ...u, before: get().get(u.type, u.id) }))
 
     // Phase 1 — validate everything BEFORE touching disk. prepareUpdate
     // merges + strict-parses without writing, so a Zod failure on any patch
     // aborts the whole transfer with nothing changed.
     const prepared = await Promise.all(
-      updates.map(async (u) => ({
+      withBefore.map(async (u) => ({
         type: u.type,
+        id: u.id,
+        patch: u.patch,
+        before: u.before,
         record: await (
           dbStoreFor(u.type).prepareUpdate as (id: string, patch: object) => Promise<{ id: string }>
         )(u.id, u.patch),
@@ -427,9 +442,23 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     if (pruned.size > 0 && !touched.has('softLink')) {
       publishStoreChange(STORE_NAMES.softLinks)
     }
+
+    // Phase 4 — provenance (ADR-022), mirroring update()'s awaited emit. One
+    // entry per changed field per updated entity. Deletes are not logged: the
+    // per-entity log goes with the entity.
+    for (const pu of prepared) {
+      await emitChangeLog(
+        pu.type,
+        pu.id,
+        pu.patch,
+        pu.before,
+        pu.record as EntityForType<typeof pu.type>,
+        meta
+      )
+    }
   },
 
-  async updateCrawlerBay(crawlerId, bayRef, patch, index) {
+  async updateCrawlerBay(crawlerId, bayRef, patch, index, meta) {
     // Read the freshest persisted record — NOT the in-memory copy — so two
     // tabs editing different bays merge instead of clobbering (plan 2.7).
     const fresh = await db.crawlers.get(crawlerId)
@@ -447,7 +476,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
       )
     }
     const next = bays.map((b, i) => (i === targetIndex ? { ...b, ...patch, bayRef } : b))
-    return get().update('crawler', crawlerId, { crawlerBays: next })
+    return get().update('crawler', crawlerId, { crawlerBays: next }, meta)
   },
 
   async delete(type, id) {

@@ -47,6 +47,7 @@ import type { Roll } from '../../lib/rules/heatCheck'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { freshEntity } from './controlPrimitives'
+import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 
 /** Which economy dialog is open (the lozenge that was clicked). */
 export type CrawlerEconomyDialog = 'upkeep' | 'upgrade' | 'trade'
@@ -138,10 +139,15 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
       return
     }
     const nextUpgradePool = (fresh.upgradePool ?? 0) + payment.upgradeCredit
-    await storeState.update('crawler', crawler.id, {
-      scrapPool: payment.pool,
-      upgradePool: nextUpgradePool,
-    })
+    await storeState.update(
+      'crawler',
+      crawler.id,
+      {
+        scrapPool: payment.pool,
+        upgradePool: nextUpgradePool,
+      },
+      LIVE_SHEET_MANUAL
+    )
     const drawText = payment.draws.map((d) => `${d.count}× T${d.tl}`).join(' + ')
     setResult(
       `Paid ${UPKEEP_SCRAP} Scrap (${drawText}) — Upgrade Pool now ${nextUpgradePool}${
@@ -164,7 +170,12 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
     const effect = performDeterioration({ currentSP, bayCount: bays.length, roll })
 
     if (effect.spLoss > 0) {
-      await storeState.update('crawler', crawler.id, { currentSP: effect.nextSP })
+      await storeState.update(
+        'crawler',
+        crawler.id,
+        { currentSP: effect.nextSP },
+        LIVE_SHEET_MANUAL
+      )
     }
     let bayName: string | null = null
     if (effect.randomBayIndex !== null) {
@@ -174,7 +185,8 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
           crawler.id,
           entry.bayRef,
           { condition: 'damaged' },
-          effect.randomBayIndex
+          effect.randomBayIndex,
+          LIVE_SHEET_MANUAL
         )
         bayName = resolveCrawlerBay(entry.bayRef)?.name ?? entry.bayRef
       }
@@ -272,10 +284,15 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
     const freshTl = parseCrawlerTechLevel(fresh.techLevel) ?? 1
     const result = contributeToUpgradePool(fresh.scrapPool ?? {}, freshTl, contribution)
     if (!result) return
-    await storeState.update('crawler', crawler.id, {
-      scrapPool: result.pool,
-      upgradePool: (fresh.upgradePool ?? 0) + contribution,
-    })
+    await storeState.update(
+      'crawler',
+      crawler.id,
+      {
+        scrapPool: result.pool,
+        upgradePool: (fresh.upgradePool ?? 0) + contribution,
+      },
+      LIVE_SHEET_MANUAL
+    )
   }
 
   /** Consume the pool, bump the Tech Level, repair damaged Bays (p.219). */
@@ -292,7 +309,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
     if (bays.some((bay) => (bay.condition ?? 'intact') === 'damaged')) {
       patch.crawlerBays = bays.map((bay) => ({ ...bay, condition: 'intact' as const }))
     }
-    await storeState.update('crawler', crawler.id, patch)
+    await storeState.update('crawler', crawler.id, patch, LIVE_SHEET_MANUAL)
     onClose()
   }
 
@@ -415,7 +432,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
       setConvertNote('The pool no longer covers that trade.')
       return
     }
-    await storeState.update('crawler', crawler.id, { scrapPool: result.pool })
+    await storeState.update('crawler', crawler.id, { scrapPool: result.pool }, LIVE_SHEET_MANUAL)
     setConvertNote(`Traded ${count}× T${fromTl} for ${result.toCount}× T${toTl}.`)
   }
 

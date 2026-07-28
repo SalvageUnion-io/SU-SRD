@@ -11,6 +11,7 @@ import { beforeEach, describe, expect, test } from 'bun:test'
 
 import { _clearAllStores, _resetDbSingleton, changeLog } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
+import { DASHBOARD_TXN } from '../surfaceProvenance'
 
 const basePilotInput = {
   schemaVersion: 1 as const,
@@ -64,6 +65,57 @@ describe('Change Log — write-through chokepoint', () => {
     expect(entry.source).toBe('unknown')
     expect(entry.seq).toBeGreaterThan(0)
     expect(typeof entry.ts).toBe('number')
+  })
+
+  test('transfer() logs every updated entity — the chokepoint hole (ADR-022)', async () => {
+    // transfer() commits cross-entity writes in one IDB transaction, bypassing
+    // update(). Before this was wired it emitted nothing, so cargo stow/load
+    // and scrap hand-offs mutated entities with no provenance at all.
+    const pilot = await seedPilot()
+    await useEntityStore.getState().transfer({
+      updates: [{ type: 'pilot', id: pilot.id, patch: { callsign: 'Wraith' } }],
+    })
+
+    const entries = await changeLog.listForEntity(pilot.id)
+    expect(entries).toHaveLength(1)
+    const entry = entries[0]
+    if (!entry) throw new Error('expected a Change Log entry from transfer()')
+    expect(entry.field).toBe('callsign')
+    expect(entry.before).toBe('Ghost')
+    expect(entry.after).toBe('Wraith')
+  })
+
+  test('transfer() carries its provenance tag through to the entry', async () => {
+    const pilot = await seedPilot()
+    await useEntityStore
+      .getState()
+      .transfer(
+        { updates: [{ type: 'pilot', id: pilot.id, patch: { callsign: 'Wraith' } }] },
+        { kind: 'transaction', source: 'dashboard' }
+      )
+
+    const entry = (await changeLog.listForEntity(pilot.id))[0]
+    if (!entry) throw new Error('expected a Change Log entry from transfer()')
+    expect(entry.kind).toBe('transaction')
+    expect(entry.source).toBe('dashboard')
+  })
+
+  test('transfer() emits nothing for a patch that changes no field', async () => {
+    const pilot = await seedPilot()
+    await useEntityStore.getState().transfer({
+      updates: [{ type: 'pilot', id: pilot.id, patch: { callsign: 'Ghost' } }],
+    })
+    expect(await changeLog.listForEntity(pilot.id)).toHaveLength(0)
+  })
+
+  test("kind 'transaction' is reachable — it was defined but emitted nowhere", async () => {
+    const pilot = await seedPilot()
+    await useEntityStore.getState().update('pilot', pilot.id, { callsign: 'Wraith' }, DASHBOARD_TXN)
+
+    const entry = (await changeLog.listForEntity(pilot.id))[0]
+    if (!entry) throw new Error('expected a Change Log entry')
+    expect(entry.kind).toBe('transaction')
+    expect(entry.source).toBe('dashboard')
   })
 
   test('a multi-field update appends one entry per changed field', async () => {
