@@ -23,6 +23,7 @@ const modules = {
   './_generated/api.js': () => import('../_generated/api'),
   './_generated/server.js': () => import('../_generated/server'),
   './account.ts': () => import('../account'),
+  './bot.ts': () => import('../bot'),
   './crew.ts': () => import('../crew'),
   './downtime.ts': () => import('../downtime'),
   './entities.ts': () => import('../entities'),
