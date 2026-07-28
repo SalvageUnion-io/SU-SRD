@@ -26,6 +26,7 @@ const modules = {
   './crew.ts': () => import('../crew'),
   './entities.ts': () => import('../entities'),
   './games.ts': () => import('../games'),
+  './mediator.ts': () => import('../mediator'),
   './invites.ts': () => import('../invites'),
   './ownership.ts': () => import('../ownership'),
   './templates.ts': () => import('../templates'),

@@ -16,6 +16,7 @@ import type * as entities from "../entities.js";
 import type * as games from "../games.js";
 import type * as http from "../http.js";
 import type * as invites from "../invites.js";
+import type * as mediator from "../mediator.js";
 import type * as model_permissions from "../model/permissions.js";
 import type * as ownership from "../ownership.js";
 import type * as templates from "../templates.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   games: typeof games;
   http: typeof http;
   invites: typeof invites;
+  mediator: typeof mediator;
   "model/permissions": typeof model_permissions;
   ownership: typeof ownership;
   templates: typeof templates;
