@@ -7,6 +7,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.7.0...salvageunion-reference-v2.8.0) (2026-07-28)
+
+
+### Features
+
+* **component-lib:** mark rules-bearing prose inline on entity cards ([#630](https://github.com/SalvageUnion-io/SU-SRD/issues/630)) ([2e72c3b](https://github.com/SalvageUnion-io/SU-SRD/commit/2e72c3b140087b17acd4a9d9d396f33a58fd8b4e))
+* **itun:** activated contributions with manual expiry — Squeeze It In, Hull Magnetiser ([#635](https://github.com/SalvageUnion-io/SU-SRD/issues/635)) ([9156601](https://github.com/SalvageUnion-io/SU-SRD/commit/91566017bad64f91edf32e3fd60df902c1af7c4b))
+* **itun:** split cap overrides from manual adjustments; derivations return breakdowns ([#608](https://github.com/SalvageUnion-io/SU-SRD/issues/608)) ([7139ab8](https://github.com/SalvageUnion-io/SU-SRD/commit/7139ab86117c7751e1020f7d739db73b5aefc4a4))
+* **reference:** abilities can declare stat contributions — Beefcake now applies ([#615](https://github.com/SalvageUnion-io/SU-SRD/issues/615)) ([1ad2625](https://github.com/SalvageUnion-io/SU-SRD/commit/1ad2625fc1b285fda97639b4e527c9b475b4d207))
+* **reference:** add the rules-parity audit — the gate that keeps content honest ([#627](https://github.com/SalvageUnion-io/SU-SRD/issues/627)) ([2221de8](https://github.com/SalvageUnion-io/SU-SRD/commit/2221de851c7f2a127334ac60a02eddf1eed6f16e))
+* **reference:** give effects a target — Bio-Wings grants the MECH the Fly Trait ([#640](https://github.com/SalvageUnion-io/SU-SRD/issues/640)) ([04b7d07](https://github.com/SalvageUnion-io/SU-SRD/commit/04b7d0747e6f9f1dd4e5f0ab941828fe94e830f1))
+
 ## [2.7.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.6.0...salvageunion-reference-v2.7.0) (2026-07-28)
 
 
