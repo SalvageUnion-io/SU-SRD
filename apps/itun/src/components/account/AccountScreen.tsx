@@ -5,6 +5,7 @@ import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { ClaimLocalData } from './ClaimLocalData'
 import { SignInControl } from './SignInControl'
 
 /**
@@ -47,6 +48,9 @@ function SignedInAccount() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* First thing on the account page: an existing player's local roster is
+          the most urgent thing to resolve after signing in. */}
+      <ClaimLocalData />
       <Card>
         <div className="flex flex-col gap-3 p-4">
           <Text as="label" className="font-cond text-xs font-bold tracking-widest uppercase">
