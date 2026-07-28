@@ -1361,6 +1361,7 @@
     "techLevel": "B",
     "slotsRequired": 6,
     "salvageValue": 25,
+    "appliedEffects": [{"op": "addTrait", "value": "Fly", "target": "hostMech"}],
     "page": 74,
     "actions": ["Bio-Wings"]
   },

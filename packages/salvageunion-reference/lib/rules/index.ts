@@ -137,6 +137,8 @@ export {
 } from './derivedStats.js'
 export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js'
 export { statesMechanicalChange } from './rulesBearing.js'
+export { mechTraits } from './mechTraits.js'
+export type { MechTrait } from './mechTraits.js'
 export type { RulesClaim } from './rulesBearing.js'
 export {
   abilityContributions,

@@ -465,7 +465,12 @@
                           "properties": {
                             "op": { "type": "string", "const": "addTrait" },
                             "value": { "type": "string" },
-                            "amount": { "anyOf": [{ "type": "string" }, { "type": "number" }] }
+                            "amount": { "anyOf": [{ "type": "string" }, { "type": "number" }] },
+                            "target": {
+                              "type": "string",
+                              "enum": ["self", "hostMech"],
+                              "description": "Defaults to `self` when absent"
+                            }
                           },
                           "required": ["op", "value"],
                           "additionalProperties": false
@@ -474,7 +479,12 @@
                           "type": "object",
                           "properties": {
                             "op": { "type": "string", "const": "removeTrait" },
-                            "value": { "type": "string" }
+                            "value": { "type": "string" },
+                            "target": {
+                              "type": "string",
+                              "enum": ["self", "hostMech"],
+                              "description": "Defaults to `self` when absent"
+                            }
                           },
                           "required": ["op", "value"],
                           "additionalProperties": false

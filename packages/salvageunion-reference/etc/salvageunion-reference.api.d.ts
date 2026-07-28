@@ -1874,6 +1874,8 @@ export type { DamageKind, MechDamageInput, MechDamageEffect, PilotDamageInput, P
 export { PILOT_BASE_HP, PILOT_BASE_AP, PILOT_BASE_INVENTORY_SLOTS, injuryMaxHpPenalty, pilotMaxHP, pilotMaxAP, isPilotDead, clampPilotCurrentStats, installedStatBonus, mechMaxSP, mechMaxEP, mechMaxHeat, mechMaxCargo, clampMechCurrentStats, unifiedMechConditions, crawlerMaxSP, crawlerMaxSPParts, mechMaxSPParts, mechMaxEPParts, mechMaxHeatParts, mechMaxCargoParts, pilotMaxHPParts, pilotMaxAPParts, clampCrawlerCurrentStats, } from './derivedStats.js';
 export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js';
 export { statesMechanicalChange } from './rulesBearing.js';
+export { mechTraits } from './mechTraits.js';
+export type { MechTrait } from './mechTraits.js';
 export type { RulesClaim } from './rulesBearing.js';
 export { abilityContributions, resolveAmount, sumContributions, } from './contributions.js';
 export type { ContributionStat, ContributionTarget, ContributionAmount, DeclaredContribution, ResolvedContribution, } from './contributions.js';
@@ -1882,6 +1884,46 @@ export type { FindRollTable } from './mediatorTables.js';
 export type { TechLevel, SoftWarning, SoftWarningSeverity, SoftWarningContext, EditSnapshot, MechInput, MechSystemSlot, MechModuleSlot, MechCapacityResult, CapacityViolation, ScrapableItem, CargoItem, CargoItemRef, CargoItemCustom, CargoParent, CargoCapacityResult, CargoViolation, PilotSnapshot, MechSnapshot, AbilityInput, AbilityTier, SystemSnapshot, Roll, ReactorOverloadOutcome, HeatCheckResult, HeatCheckEffect, PushResult, CriticalDamageOutcome, CriticalDamageResult, CriticalInjuryOutcome, CriticalInjuryResult, MediatorTableId, MediatorRollResult, } from './types.js';
 export type { CrawlerCapacityInput, CrawlerCapacityResult, CrawlerCapacityViolation, } from './crawlerCapacity.js';
 //# sourceMappingURL=index.d.ts.map
+// === lib/rules/mechTraits.d.ts ===
+/**
+ * Traits a mech has because of what is installed on it (ADR-029).
+ *
+ * Nothing aggregated a mech's traits before this. Bio-Wings says "Your Mech
+ * gains the Fly Trait" — a trait that belongs to the MECH, not to the system
+ * that granted it — so there was no shape to encode it into: declaring it as a
+ * self-effect would have said the Bio-Wings system flies, which is wrong rather
+ * than merely incomplete.
+ *
+ * That is why the blocker was never "a place to declare effects". It was that
+ * `ChoiceEffectSchema` had no `target`, and this derivation did not exist.
+ *
+ * Pure and side-effect-free (ADR-006). Derived at read time, never stored: a
+ * trait disappears the moment the granting item is removed, with no bookkeeping.
+ */
+/** A trait a mech holds, and what granted it. */
+export type MechTrait = {
+    /** Trait name, e.g. 'Fly'. */
+    name: string;
+    /** Optional magnitude, e.g. Burn 1. */
+    amount?: string | number;
+    /** Display name of the installed item that granted it. */
+    source: string;
+    /** The installed ref, so provenance UI can link back. */
+    ref: string;
+};
+/**
+ * Every trait the mech's installed systems and modules grant it.
+ *
+ * Only `target: 'hostMech'` effects are collected — a `self` effect belongs to
+ * the item's own card, not to the mech. Duplicates keep the highest magnitude,
+ * matching `resolveChoiceView`'s upgrade rule (Explosive 1 → 2) so the two
+ * resolvers cannot disagree about what stacking means.
+ */
+export declare function mechTraits(mech: {
+    systems?: string[];
+    modules?: string[];
+}): MechTrait[];
+//# sourceMappingURL=mechTraits.d.ts.map
 // === lib/rules/mediatorTables.d.ts ===
 /**
  * Mediator tables — Reaction / Morale / Retreat rolls (design-review R-5).
@@ -2110,6 +2152,23 @@ export declare function resolveSystemRef(ref: string): ({
         duration?: "permanent" | "activated" | undefined;
         note?: string | undefined;
     }[] | undefined;
+    appliedEffects?: ({
+        op: "addTrait";
+        value: string;
+        amount?: string | number | undefined;
+        target?: "self" | "hostMech" | undefined;
+    } | {
+        op: "removeTrait";
+        value: string;
+        target?: "self" | "hostMech" | undefined;
+    } | {
+        op: "setRange";
+        value: string | number;
+    } | {
+        op: "addDamage";
+        value: string | number;
+        unit?: string | undefined;
+    })[] | undefined;
 } & {
     schemaName: string;
 }) | null;
@@ -2173,6 +2232,23 @@ export declare function resolveModuleRef(ref: string): ({
         duration?: "permanent" | "activated" | undefined;
         note?: string | undefined;
     }[] | undefined;
+    appliedEffects?: ({
+        op: "addTrait";
+        value: string;
+        amount?: string | number | undefined;
+        target?: "self" | "hostMech" | undefined;
+    } | {
+        op: "removeTrait";
+        value: string;
+        target?: "self" | "hostMech" | undefined;
+    } | {
+        op: "setRange";
+        value: string | number;
+    } | {
+        op: "addDamage";
+        value: string | number;
+        unit?: string | undefined;
+    })[] | undefined;
 } & {
     schemaName: string;
 }) | null;
@@ -2239,6 +2315,23 @@ export declare function resolveInstalledRef(ref: string): ({
         duration?: "permanent" | "activated" | undefined;
         note?: string | undefined;
     }[] | undefined;
+    appliedEffects?: ({
+        op: "addTrait";
+        value: string;
+        amount?: string | number | undefined;
+        target?: "self" | "hostMech" | undefined;
+    } | {
+        op: "removeTrait";
+        value: string;
+        target?: "self" | "hostMech" | undefined;
+    } | {
+        op: "setRange";
+        value: string | number;
+    } | {
+        op: "addDamage";
+        value: string | number;
+        unit?: string | undefined;
+    })[] | undefined;
 } & {
     schemaName: string;
 }) | null;
@@ -3943,9 +4036,17 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                 op: z.ZodLiteral<"addTrait">;
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
                 value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -3978,9 +4079,17 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     op: z.ZodLiteral<"addTrait">;
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
                     value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -4096,6 +4205,29 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     }>>;
                     note: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>>;
+                appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    op: z.ZodLiteral<"addTrait">;
+                    value: z.ZodString;
+                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"removeTrait">;
+                    value: z.ZodString;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"setRange">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"addDamage">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    unit: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>], "op">>>;
                 actions: z.ZodArray<z.ZodString>;
             }, z.core.$strip>>;
         }, z.core.$strict>], "kind">>;
@@ -4124,9 +4256,17 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                 op: z.ZodLiteral<"addTrait">;
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
                 value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -4159,9 +4299,17 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     op: z.ZodLiteral<"addTrait">;
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
                     value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -4277,6 +4425,29 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     }>>;
                     note: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>>;
+                appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    op: z.ZodLiteral<"addTrait">;
+                    value: z.ZodString;
+                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"removeTrait">;
+                    value: z.ZodString;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"setRange">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"addDamage">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    unit: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>], "op">>>;
                 actions: z.ZodArray<z.ZodString>;
             }, z.core.$strip>>;
         }, z.core.$strict>], "kind">>;
@@ -4764,9 +4935,17 @@ export declare const DroneSchema: z.ZodObject<{
                 op: z.ZodLiteral<"addTrait">;
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
                 value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -4799,9 +4978,17 @@ export declare const DroneSchema: z.ZodObject<{
                     op: z.ZodLiteral<"addTrait">;
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
                     value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -4917,6 +5104,29 @@ export declare const DroneSchema: z.ZodObject<{
                     }>>;
                     note: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>>;
+                appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    op: z.ZodLiteral<"addTrait">;
+                    value: z.ZodString;
+                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"removeTrait">;
+                    value: z.ZodString;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"setRange">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"addDamage">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    unit: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>], "op">>>;
                 actions: z.ZodArray<z.ZodString>;
             }, z.core.$strip>>;
         }, z.core.$strict>], "kind">>;
@@ -4945,9 +5155,17 @@ export declare const DroneSchema: z.ZodObject<{
                 op: z.ZodLiteral<"addTrait">;
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
                 value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -4980,9 +5198,17 @@ export declare const DroneSchema: z.ZodObject<{
                     op: z.ZodLiteral<"addTrait">;
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
                     value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -5098,6 +5324,29 @@ export declare const DroneSchema: z.ZodObject<{
                     }>>;
                     note: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>>;
+                appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    op: z.ZodLiteral<"addTrait">;
+                    value: z.ZodString;
+                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"removeTrait">;
+                    value: z.ZodString;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"setRange">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"addDamage">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    unit: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>], "op">>>;
                 actions: z.ZodArray<z.ZodString>;
             }, z.core.$strip>>;
         }, z.core.$strict>], "kind">>;
@@ -5216,9 +5465,17 @@ export declare const EquipmentSchema: z.ZodObject<{
                 op: z.ZodLiteral<"addTrait">;
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
                 value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -5251,9 +5508,17 @@ export declare const EquipmentSchema: z.ZodObject<{
                     op: z.ZodLiteral<"addTrait">;
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
                     value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -5369,6 +5634,29 @@ export declare const EquipmentSchema: z.ZodObject<{
                     }>>;
                     note: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>>;
+                appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    op: z.ZodLiteral<"addTrait">;
+                    value: z.ZodString;
+                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"removeTrait">;
+                    value: z.ZodString;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"setRange">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"addDamage">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    unit: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>], "op">>>;
                 actions: z.ZodArray<z.ZodString>;
             }, z.core.$strip>>;
         }, z.core.$strict>], "kind">>;
@@ -5397,9 +5685,17 @@ export declare const EquipmentSchema: z.ZodObject<{
                 op: z.ZodLiteral<"addTrait">;
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
                 value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -5432,9 +5728,17 @@ export declare const EquipmentSchema: z.ZodObject<{
                     op: z.ZodLiteral<"addTrait">;
                     value: z.ZodString;
                     amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"removeTrait">;
                     value: z.ZodString;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
                 }, z.core.$strict>, z.ZodObject<{
                     op: z.ZodLiteral<"setRange">;
                     value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -5550,6 +5854,29 @@ export declare const EquipmentSchema: z.ZodObject<{
                     }>>;
                     note: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>>;
+                appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    op: z.ZodLiteral<"addTrait">;
+                    value: z.ZodString;
+                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"removeTrait">;
+                    value: z.ZodString;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"setRange">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"addDamage">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    unit: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>], "op">>>;
                 actions: z.ZodArray<z.ZodString>;
             }, z.core.$strip>>;
         }, z.core.$strict>], "kind">>;
@@ -5943,6 +6270,29 @@ export declare const ModuleSchema: z.ZodObject<{
         }>>;
         note: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>>>;
+    appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+        op: z.ZodLiteral<"addTrait">;
+        value: z.ZodString;
+        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            hostMech: "hostMech";
+        }>>;
+    }, z.core.$strict>, z.ZodObject<{
+        op: z.ZodLiteral<"removeTrait">;
+        value: z.ZodString;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            hostMech: "hostMech";
+        }>>;
+    }, z.core.$strict>, z.ZodObject<{
+        op: z.ZodLiteral<"setRange">;
+        value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+    }, z.core.$strict>, z.ZodObject<{
+        op: z.ZodLiteral<"addDamage">;
+        value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+        unit: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>], "op">>>;
     actions: z.ZodArray<z.ZodString>;
 }, z.core.$strict>;
 /**
@@ -6992,6 +7342,29 @@ export declare const SystemSchema: z.ZodObject<{
         }>>;
         note: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>>>;
+    appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+        op: z.ZodLiteral<"addTrait">;
+        value: z.ZodString;
+        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            hostMech: "hostMech";
+        }>>;
+    }, z.core.$strict>, z.ZodObject<{
+        op: z.ZodLiteral<"removeTrait">;
+        value: z.ZodString;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            hostMech: "hostMech";
+        }>>;
+    }, z.core.$strict>, z.ZodObject<{
+        op: z.ZodLiteral<"setRange">;
+        value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+    }, z.core.$strict>, z.ZodObject<{
+        op: z.ZodLiteral<"addDamage">;
+        value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+        unit: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>], "op">>>;
     actions: z.ZodArray<z.ZodString>;
 }, z.core.$strict>;
 /**
@@ -7243,9 +7616,17 @@ export declare const GuideSchema: z.ZodObject<{
                 op: z.ZodLiteral<"addTrait">;
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
                 value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -7302,9 +7683,17 @@ export declare const GuideSchema: z.ZodObject<{
                 op: z.ZodLiteral<"addTrait">;
                 value: z.ZodString;
                 amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"removeTrait">;
                 value: z.ZodString;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
             }, z.core.$strict>, z.ZodObject<{
                 op: z.ZodLiteral<"setRange">;
                 value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -8648,6 +9037,55 @@ export declare const ContributionSchema: z.ZodObject<{
     note: z.ZodOptional<z.ZodString>;
 }, z.core.$strict>;
 /**
+ * Whose state an effect changes (ADR-029).
+ *
+ * `self` — the record declaring it — was the only target the model had, and THAT
+ * was the blocker, not the declaration site. Bio-Wings says "YOUR MECH gains the
+ * Fly Trait": declared as a self-effect it would say the Bio-Wings *system*
+ * flies, which is wrong rather than merely incomplete.
+ */
+export declare const EffectTargetSchema: z.ZodEnum<{
+    self: "self";
+    hostMech: "hostMech";
+}>;
+/**
+ * Choice effect schema — describes a mechanical effect applied when a choice option is selected
+ */
+/**
+ * A single mechanical effect of a choice option, discriminated by `op` so each
+ * operation only permits the fields it actually uses (no `removeTrait` with an
+ * `amount`, no `addDamage` with an `amount`, etc.):
+ *
+ * - `addTrait`    — add a trait by name; optional `amount` is its magnitude
+ *                   (e.g. Burn 1). Adding a trait that already exists upgrades it.
+ * - `removeTrait` — strip a trait by name.
+ * - `setRange`    — replace the Range datavalue.
+ * - `addDamage`   — increase the Damage datavalue; optional `unit` (e.g. "SP").
+ */
+export declare const ChoiceEffectSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+    op: z.ZodLiteral<"addTrait">;
+    value: z.ZodString;
+    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+    target: z.ZodOptional<z.ZodEnum<{
+        self: "self";
+        hostMech: "hostMech";
+    }>>;
+}, z.core.$strict>, z.ZodObject<{
+    op: z.ZodLiteral<"removeTrait">;
+    value: z.ZodString;
+    target: z.ZodOptional<z.ZodEnum<{
+        self: "self";
+        hostMech: "hostMech";
+    }>>;
+}, z.core.$strict>, z.ZodObject<{
+    op: z.ZodLiteral<"setRange">;
+    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+}, z.core.$strict>, z.ZodObject<{
+    op: z.ZodLiteral<"addDamage">;
+    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+    unit: z.ZodOptional<z.ZodString>;
+}, z.core.$strict>], "op">;
+/**
  * A system or module that can be installed on a mech
  */
 export declare const SystemModuleSchema: z.ZodObject<{
@@ -8714,37 +9152,31 @@ export declare const SystemModuleSchema: z.ZodObject<{
         }>>;
         note: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>>>;
+    appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+        op: z.ZodLiteral<"addTrait">;
+        value: z.ZodString;
+        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            hostMech: "hostMech";
+        }>>;
+    }, z.core.$strict>, z.ZodObject<{
+        op: z.ZodLiteral<"removeTrait">;
+        value: z.ZodString;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            hostMech: "hostMech";
+        }>>;
+    }, z.core.$strict>, z.ZodObject<{
+        op: z.ZodLiteral<"setRange">;
+        value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+    }, z.core.$strict>, z.ZodObject<{
+        op: z.ZodLiteral<"addDamage">;
+        value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+        unit: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>], "op">>>;
     actions: z.ZodArray<z.ZodString>;
 }, z.core.$strip>;
-/**
- * Choice effect schema — describes a mechanical effect applied when a choice option is selected
- */
-/**
- * A single mechanical effect of a choice option, discriminated by `op` so each
- * operation only permits the fields it actually uses (no `removeTrait` with an
- * `amount`, no `addDamage` with an `amount`, etc.):
- *
- * - `addTrait`    — add a trait by name; optional `amount` is its magnitude
- *                   (e.g. Burn 1). Adding a trait that already exists upgrades it.
- * - `removeTrait` — strip a trait by name.
- * - `setRange`    — replace the Range datavalue.
- * - `addDamage`   — increase the Damage datavalue; optional `unit` (e.g. "SP").
- */
-export declare const ChoiceEffectSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
-    op: z.ZodLiteral<"addTrait">;
-    value: z.ZodString;
-    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-}, z.core.$strict>, z.ZodObject<{
-    op: z.ZodLiteral<"removeTrait">;
-    value: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
-    op: z.ZodLiteral<"setRange">;
-    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-}, z.core.$strict>, z.ZodObject<{
-    op: z.ZodLiteral<"addDamage">;
-    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-    unit: z.ZodOptional<z.ZodString>;
-}, z.core.$strict>], "op">;
 /**
  * Choice options schema
  */
@@ -8756,9 +9188,17 @@ declare const ChoiceOptionSchema: z.ZodObject<{
         op: z.ZodLiteral<"addTrait">;
         value: z.ZodString;
         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            hostMech: "hostMech";
+        }>>;
     }, z.core.$strict>, z.ZodObject<{
         op: z.ZodLiteral<"removeTrait">;
         value: z.ZodString;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            hostMech: "hostMech";
+        }>>;
     }, z.core.$strict>, z.ZodObject<{
         op: z.ZodLiteral<"setRange">;
         value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -8822,9 +9262,17 @@ declare const ChoiceSourceSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
             op: z.ZodLiteral<"addTrait">;
             value: z.ZodString;
             amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+            target: z.ZodOptional<z.ZodEnum<{
+                self: "self";
+                hostMech: "hostMech";
+            }>>;
         }, z.core.$strict>, z.ZodObject<{
             op: z.ZodLiteral<"removeTrait">;
             value: z.ZodString;
+            target: z.ZodOptional<z.ZodEnum<{
+                self: "self";
+                hostMech: "hostMech";
+            }>>;
         }, z.core.$strict>, z.ZodObject<{
             op: z.ZodLiteral<"setRange">;
             value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
@@ -8940,6 +9388,29 @@ declare const ChoiceSourceSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
             }>>;
             note: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>>>;
+        appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            op: z.ZodLiteral<"addTrait">;
+            value: z.ZodString;
+            amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+            target: z.ZodOptional<z.ZodEnum<{
+                self: "self";
+                hostMech: "hostMech";
+            }>>;
+        }, z.core.$strict>, z.ZodObject<{
+            op: z.ZodLiteral<"removeTrait">;
+            value: z.ZodString;
+            target: z.ZodOptional<z.ZodEnum<{
+                self: "self";
+                hostMech: "hostMech";
+            }>>;
+        }, z.core.$strict>, z.ZodObject<{
+            op: z.ZodLiteral<"setRange">;
+            value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+        }, z.core.$strict>, z.ZodObject<{
+            op: z.ZodLiteral<"addDamage">;
+            value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+            unit: z.ZodOptional<z.ZodString>;
+        }, z.core.$strict>], "op">>>;
         actions: z.ZodArray<z.ZodString>;
     }, z.core.$strip>>;
 }, z.core.$strict>], "kind">;
