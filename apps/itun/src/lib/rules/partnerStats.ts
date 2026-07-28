@@ -163,6 +163,10 @@ export function partnerDerivedStatsParts(
     out[key] = {
       base,
       installed: scaled,
+      // Tech-level scaling is an anonymous aggregate, not a named source: it
+      // comes from the stat block's own `bonusPerTechLevel`, not from a
+      // separately-nameable ability.
+      sources: [],
       adjustment: 0,
       derived,
       total: derived,

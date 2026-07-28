@@ -1427,6 +1427,7 @@ export declare function isCrawlerWeaponPickComplete(selectedCount: number): bool
  * consumer's Zod-inferred Pilot/Mech/Crawler types (e.g. ITUN's
  * `src/lib/schemas/`) satisfy them automatically.
  */
+import type { ResolvedContribution } from './contributions.js';
 /**
  * Base pilot stats per the core rules (10 HP / 5 AP / 6 inventory slots).
  * These are NOT in the reference data — class records do not encode them —
@@ -1527,8 +1528,21 @@ type StatBonusKey = 'structurePoints' | 'energyPoints' | 'heatCapacity' | 'cargo
 export type StatBreakdown = {
     /** The rules baseline before anything is added (chassis stat, tech-level SP, a constant). */
     base: number;
-    /** Summed `statBonus` across installed systems/modules, counted per copy. */
+    /**
+     * Summed `statBonus` across installed systems/modules, counted per copy.
+     *
+     * ANONYMOUS by construction — the sum is taken across items and there is no
+     * per-item attribution yet, so provenance renders it as one aggregate line.
+     * Named contributions live in `sources` and must NOT be folded in here, or the
+     * panel attributes an ability's bonus to installed hardware.
+     */
     installed: number;
+    /**
+     * Contributions that know their own source (ADR-029) — an ability, by name.
+     * Rendered as one labelled line each, so "Beefcake +7" is never mislabelled as
+     * installed hardware.
+     */
+    sources: ResolvedContribution[];
     /** The player's hand-entered manual adjustment (`max*Modifier`). Contributes; never replaces. */
     adjustment: number;
     /** base + installed + adjustment, floored at 0. Always computed, even when pinned. */

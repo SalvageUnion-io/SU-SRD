@@ -25,6 +25,7 @@ import { RailCta } from './SheetRailParts'
 import { AppLink } from '../shared/AppLink'
 import { crawlerRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
+import { pilotingContext } from '../../lib/rules/pilotingContext'
 
 type SheetMechProps = SheetViewCommonProps & {
   mech: Mech
@@ -50,7 +51,7 @@ export function SheetMech({
   const chassis = resolveChassisRef(mech.chassisRef)
   // Beefcake raises the piloted MECH (ADR-029), so the condensed strip needs
   // the same piloting context the body sheet uses or the two would disagree.
-  const piloting = { abilities: pilotAbilitiesOverride ?? composition.pilot?.abilities }
+  const piloting = pilotingContext(mech, pilotAbilitiesOverride ?? composition.pilot?.abilities)
   const maxSP = mechMaxSP(mech, chassis, piloting)
   const maxEP = mechMaxEP(mech, chassis)
   const maxHeat = mechMaxHeat(mech, chassis)

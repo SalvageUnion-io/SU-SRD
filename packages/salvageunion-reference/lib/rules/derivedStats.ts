@@ -23,6 +23,7 @@ import { SalvageUnionReference } from '../index.js'
 import { crawlerMaxSpBonus } from './creation.js'
 import { resolveChassisRef, resolveInstalledRef } from './resolveRefs.js'
 import { abilityContributions, sumContributions } from './contributions.js'
+import type { ResolvedContribution } from './contributions.js'
 
 // ---------------------------------------------------------------------------
 // Pilot
@@ -64,12 +65,14 @@ export function pilotMaxHPParts(pilot: PilotDerivationInput): StatBreakdown {
   // The injury penalty rides in `installed` — it is a rules-sourced contribution
   // like an installed statBonus, just a negative one, and is derived from
   // `injuries` so healing restores max HP with no bookkeeping.
-  const abilityHp = sumContributions(abilityContributions(pilot.abilities, 'pilot', 'maxHp'))
+  const hpSources = abilityContributions(pilot.abilities, 'pilot', 'maxHp')
+  const abilityHp = sumContributions(hpSources)
   const parts = breakdownOf(
     PILOT_BASE_HP,
-    -injuryMaxHpPenalty(pilot.injuries) + abilityHp,
+    -injuryMaxHpPenalty(pilot.injuries),
     pilot.maxHpModifier ?? 0,
-    pilot.maxHpOverride
+    pilot.maxHpOverride,
+    hpSources
   )
   // Max HP may legitimately reach 0 or below — that is the dead state
   // (rules A2), surfaced by isPilotDead() rather than clamped away. Recompute
@@ -88,9 +91,10 @@ export function pilotMaxHP(pilot: PilotDerivationInput): number {
 export function pilotMaxAPParts(pilot: PilotDerivationInput): StatBreakdown {
   return breakdownOf(
     PILOT_BASE_AP,
-    sumContributions(abilityContributions(pilot.abilities, 'pilot', 'maxAp')),
+    0,
     pilot.maxApModifier ?? 0,
-    pilot.maxApOverride
+    pilot.maxApOverride,
+    abilityContributions(pilot.abilities, 'pilot', 'maxAp')
   )
 }
 
@@ -186,8 +190,21 @@ type StatBonusKey = 'structurePoints' | 'energyPoints' | 'heatCapacity' | 'cargo
 export type StatBreakdown = {
   /** The rules baseline before anything is added (chassis stat, tech-level SP, a constant). */
   base: number
-  /** Summed `statBonus` across installed systems/modules, counted per copy. */
+  /**
+   * Summed `statBonus` across installed systems/modules, counted per copy.
+   *
+   * ANONYMOUS by construction — the sum is taken across items and there is no
+   * per-item attribution yet, so provenance renders it as one aggregate line.
+   * Named contributions live in `sources` and must NOT be folded in here, or the
+   * panel attributes an ability's bonus to installed hardware.
+   */
   installed: number
+  /**
+   * Contributions that know their own source (ADR-029) — an ability, by name.
+   * Rendered as one labelled line each, so "Beefcake +7" is never mislabelled as
+   * installed hardware.
+   */
+  sources: ResolvedContribution[]
   /** The player's hand-entered manual adjustment (`max*Modifier`). Contributes; never replaces. */
   adjustment: number
   /** base + installed + adjustment, floored at 0. Always computed, even when pinned. */
@@ -205,13 +222,15 @@ function breakdownOf(
   base: number,
   installed: number,
   adjustment: number,
-  override?: number
+  override?: number,
+  sources: ResolvedContribution[] = []
 ): StatBreakdown {
-  const derived = Math.max(0, base + installed + adjustment)
+  const derived = Math.max(0, base + installed + sumContributions(sources) + adjustment)
   const overridden = typeof override === 'number'
   return {
     base,
     installed,
+    sources,
     adjustment,
     derived,
     ...(overridden ? { override } : {}),
@@ -266,12 +285,10 @@ export function mechMaxSPParts(
   const c = resolveChassis(mech, chassis)
   return breakdownOf(
     c.structurePoints ?? 0,
-    installedStatBonus(mech, 'structurePoints') +
-      sumContributions(
-        abilityContributions(pilot?.abilities, 'pilotedMech', 'structurePoints', pilot?.techLevel)
-      ),
+    installedStatBonus(mech, 'structurePoints'),
     mech.maxSpModifier ?? 0,
-    mech.maxSpOverride
+    mech.maxSpOverride,
+    abilityContributions(pilot?.abilities, 'pilotedMech', 'structurePoints', pilot?.techLevel)
   )
 }
 
@@ -283,12 +300,10 @@ export function mechMaxEPParts(
   const c = resolveChassis(mech, chassis)
   return breakdownOf(
     c.energyPoints ?? 0,
-    installedStatBonus(mech, 'energyPoints') +
-      sumContributions(
-        abilityContributions(pilot?.abilities, 'pilotedMech', 'energyPoints', pilot?.techLevel)
-      ),
+    installedStatBonus(mech, 'energyPoints'),
     mech.maxEpModifier ?? 0,
-    mech.maxEpOverride
+    mech.maxEpOverride,
+    abilityContributions(pilot?.abilities, 'pilotedMech', 'energyPoints', pilot?.techLevel)
   )
 }
 
@@ -300,12 +315,10 @@ export function mechMaxHeatParts(
   const c = resolveChassis(mech, chassis)
   return breakdownOf(
     c.heatCapacity ?? 0,
-    installedStatBonus(mech, 'heatCapacity') +
-      sumContributions(
-        abilityContributions(pilot?.abilities, 'pilotedMech', 'heatCapacity', pilot?.techLevel)
-      ),
+    installedStatBonus(mech, 'heatCapacity'),
     mech.maxHeatModifier ?? 0,
-    mech.maxHeatOverride
+    mech.maxHeatOverride,
+    abilityContributions(pilot?.abilities, 'pilotedMech', 'heatCapacity', pilot?.techLevel)
   )
 }
 
@@ -317,12 +330,10 @@ export function mechMaxCargoParts(
   const c = resolveChassis(mech, chassis)
   return breakdownOf(
     c.cargoCapacity ?? 0,
-    installedStatBonus(mech, 'cargoCapacity') +
-      sumContributions(
-        abilityContributions(pilot?.abilities, 'pilotedMech', 'cargoCapacity', pilot?.techLevel)
-      ),
+    installedStatBonus(mech, 'cargoCapacity'),
     mech.maxCargoModifier ?? 0,
-    mech.maxCargoOverride
+    mech.maxCargoOverride,
+    abilityContributions(pilot?.abilities, 'pilotedMech', 'cargoCapacity', pilot?.techLevel)
   )
 }
 

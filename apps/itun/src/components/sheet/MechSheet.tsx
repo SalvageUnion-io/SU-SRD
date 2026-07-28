@@ -82,6 +82,7 @@ import { freshEntity } from './controlPrimitives'
 import type { SheetPatch } from './sheetViewProps'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { linesFromBreakdown } from 'component-lib'
+import { pilotingContext } from '../../lib/rules/pilotingContext'
 
 // Narrow subset of chassis data the stat derivations need
 type ChassisLike = {
@@ -180,14 +181,7 @@ export function MechSheet({
   // Derived maxima (plan 2.5): chassis stat + hand-edited modifiers.
   // Beefcake is a PILOT ability that raises the piloted MECH's Max SP and Cargo,
   // so a mech's maxima cannot be derived from the mech alone (ADR-029).
-  // Beefcake is a PILOT ability that raises the piloted MECH (ADR-029), and its
-  // Max SP is "3+X where X is the Mech's Tech Level" — so the piloting context
-  // carries the chassis tech level. Non-numeric tech levels ('B'/'N' — Bio-Titan,
-  // Nanite) have no numeric scale and resolve to the flat part rather than a guess.
-  const pilotingChassis = resolveChassisRef(mech.chassisRef)
-  const chassisTl =
-    typeof pilotingChassis?.techLevel === 'number' ? pilotingChassis.techLevel : undefined
-  const piloting = { abilities: pilotAbilities, techLevel: chassisTl }
+  const piloting = pilotingContext(mech, pilotAbilities)
   const spParts = mechMaxSPParts(mech, chassis, piloting)
   const epParts = mechMaxEPParts(mech, chassis, piloting)
   const heatParts = mechMaxHeatParts(mech, chassis, piloting)

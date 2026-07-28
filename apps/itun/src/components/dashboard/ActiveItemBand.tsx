@@ -37,6 +37,7 @@ import { usePlayStateStore } from '../../stores/playStateStore'
 import { ActiveItemBand as ActiveItemBandView, CountStepper, StorageBay } from 'component-lib'
 import type { ActiveItemBandView as ActiveItemBandViewModel, BandButton } from 'component-lib'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import { pilotingContext } from '../../lib/rules/pilotingContext'
 import {
   VENT_PATCH,
   critDamagePatch,
@@ -147,7 +148,7 @@ function MechBand({
   onDismount: () => void
 }) {
   const chassis = resolveChassisRef(mech.chassisRef)
-  const piloting = { abilities: pilotAbilities }
+  const piloting = pilotingContext(mech, pilotAbilities)
   const maxSP = mechMaxSP(mech, chassis, piloting)
   const maxEP = mechMaxEP(mech, chassis)
   const maxHeat = mechMaxHeat(mech, chassis)

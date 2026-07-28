@@ -25,6 +25,7 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import type { MountState } from '../../stores/playStateStore'
 import type { DialItem as DialCellItem } from 'component-lib'
 import { linesFromBreakdown } from 'component-lib'
+import { pilotingContext } from '../../lib/rules/pilotingContext'
 
 export type DialItem = DialCellItem & { kind: DialKind }
 
@@ -84,10 +85,7 @@ function pilotItem(pilot: Pilot): DialItem {
  */
 function mechItem(mech: Mech, pilot: Pilot | null): DialItem {
   const chassis = resolveChassisRef(mech.chassisRef)
-  const piloting = {
-    abilities: pilot?.abilities,
-    techLevel: typeof chassis?.techLevel === 'number' ? chassis.techLevel : undefined,
-  }
+  const piloting = pilotingContext(mech, pilot?.abilities)
   const spParts = mechMaxSPParts(mech, chassis, piloting)
   const heatParts = mechMaxHeatParts(mech, chassis, piloting)
   const maxSP = spParts.total

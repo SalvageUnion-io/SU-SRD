@@ -11,7 +11,12 @@ import { beforeAll, describe, expect, it } from 'bun:test'
 
 import { SalvageUnionReference } from '../index.js'
 import { abilityContributions, resolveAmount, sumContributions } from './contributions.js'
-import { mechMaxCargoParts, mechMaxSPParts, pilotMaxHPParts } from './derivedStats.js'
+import {
+  mechMaxCargoParts,
+  mechMaxHeatParts,
+  mechMaxSPParts,
+  pilotMaxHPParts,
+} from './derivedStats.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -132,5 +137,42 @@ describe("Beefcake's four contributions each reach a real consumer", () => {
     const mech = { chassisRef: 'no-such-chassis' }
     expect(mechMaxSPParts(mech, { structurePoints: 20 }).total).toBe(20)
     expect(mechMaxCargoParts(mech, { cargoCapacity: 6 }).total).toBe(6)
+  })
+})
+
+describe('named sources stay attributable', () => {
+  // The provenance panel labels `installed` as "Installed systems & modules".
+  // Folding an ability's contribution into that number made the panel attribute
+  // Beefcake's bonus to installed hardware — a provenance feature lying about
+  // provenance. Named contributions therefore ride `sources`, never `installed`.
+  it('an ability contribution does NOT inflate the anonymous installed aggregate', () => {
+    const mech = { chassisRef: 'no-such-chassis', systems: ['Heat Sink'] }
+    const chassis = { heatCapacity: 5 }
+    const parts = mechMaxHeatParts(mech, chassis, { abilities: ['Beefcake'] })
+    // Heat Sink is real installed hardware; Beefcake contributes no heat.
+    expect(parts.installed).toBe(1)
+    expect(parts.sources).toEqual([])
+  })
+
+  it('a piloted-mech contribution arrives as a NAMED source, not as installed', () => {
+    const mech = { chassisRef: 'no-such-chassis' }
+    const chassis = { structurePoints: 20 }
+    const parts = mechMaxSPParts(mech, chassis, { abilities: ['Beefcake'], techLevel: 4 })
+    expect(parts.installed).toBe(0)
+    expect(parts.sources).toHaveLength(1)
+    expect(parts.sources[0]?.source).toBe('Beefcake')
+    expect(parts.sources[0]?.amount).toBe(7)
+    // and the total still adds up
+    expect(parts.derived).toBe(27)
+  })
+
+  it('a pilot ability is named while the injury penalty stays anonymous', () => {
+    const parts = pilotMaxHPParts({
+      abilities: ['Bionic Legs'],
+      injuries: [{ severity: 'minor', note: '' }],
+    })
+    expect(parts.installed).toBe(-1) // the injury
+    expect(parts.sources.map((s) => s.source)).toEqual(['Bionic Legs'])
+    expect(parts.total).toBe(11) // 10 − 1 + 2
   })
 })

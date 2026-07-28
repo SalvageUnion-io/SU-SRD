@@ -9,7 +9,15 @@ import type { StatBreakdown } from 'salvageunion-reference/rules'
 import { linesFromBreakdown, summarizeBreakdown } from '../provenanceLines'
 
 function parts(over: Partial<StatBreakdown> = {}): StatBreakdown {
-  const base = { base: 10, installed: 0, adjustment: 0, derived: 10, total: 10, overridden: false }
+  const base = {
+    base: 10,
+    installed: 0,
+    sources: [],
+    adjustment: 0,
+    derived: 10,
+    total: 10,
+    overridden: false,
+  }
   return { ...base, ...over }
 }
 
@@ -93,5 +101,41 @@ describe('summarizeBreakdown', () => {
     )
     expect(text).toContain('= 14')
     expect(text).toContain('overridden to 20')
+  })
+})
+
+describe('named sources vs the anonymous aggregate', () => {
+  test('a named contribution gets its OWN line, never folded into installed', () => {
+    const lines = linesFromBreakdown(
+      parts({
+        installed: 5,
+        sources: [
+          { source: 'Beefcake', ref: 'beefcake', stat: 'structurePoints', amount: 7, copies: 1 },
+        ],
+        derived: 22,
+        total: 22,
+      }),
+      { base: 'Atlas chassis', installed: 'Installed systems & modules' }
+    )
+    const labels = lines.map((l) => l.label)
+    expect(labels).toContain('Installed systems & modules')
+    expect(labels).toContain('Beefcake')
+    // the ability's amount is NOT absorbed into the hardware aggregate
+    expect(lines.find((l) => l.label === 'Installed systems & modules')?.amount).toBe(5)
+    expect(lines.find((l) => l.label === 'Beefcake')?.amount).toBe(7)
+  })
+
+  test('a stacking source shows its copy count', () => {
+    const lines = linesFromBreakdown(
+      parts({
+        sources: [
+          { source: 'Heat Sink', ref: 'heat-sink', stat: 'heatCapacity', amount: 2, copies: 2 },
+        ],
+        derived: 12,
+        total: 12,
+      }),
+      { base: 'Atlas chassis' }
+    )
+    expect(lines.find((l) => l.label === 'Heat Sink')?.detail).toBe('×2')
   })
 })
