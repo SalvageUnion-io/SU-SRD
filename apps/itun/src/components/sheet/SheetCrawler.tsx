@@ -19,7 +19,7 @@ import { EntityRow, VitalGauge } from 'component-lib'
 
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
-import { crawlerMaxSP } from '../../lib/rules/derivedStats'
+import { crawlerMaxSPParts } from '../../lib/rules/derivedStats'
 import type { Crawler } from '../../lib/schemas/crawler'
 import { CrawlerEconFrame } from 'component-lib'
 import type { EconLozItem } from 'component-lib'
@@ -54,18 +54,17 @@ export function SheetCrawler({
   // Crawler-economy dialog behind the UPKEEP/UPGRADE/TRADE lozenges (R-4).
   const [econDialog, setEconDialog] = useState<CrawlerEconomyDialog | null>(null)
 
-  const maxSP = crawlerMaxSP(crawler)
+  const spParts = crawlerMaxSPParts(crawler)
+  const maxSP = spParts.total
   const sp = Math.min(crawler.currentSP ?? maxSP, maxSP)
   // Cap override (ADR-022, Free Edit): pin Max SP via a signed maxSpModifier
   // delta; the gauge shows "overridden from N" + a revert. Tagged `override`.
-  const derivedMaxSP = maxSP - (crawler.maxSpModifier ?? 0)
   const overrideCrawlerMax = (fields: Partial<Crawler>) => {
     void storeState.update('crawler', crawler.id, fields, LIVE_SHEET_OVERRIDE)
   }
-  const modOrUndef = (next: number, derived: number): number | undefined => {
-    const mod = next - derived
-    return mod === 0 ? undefined : mod
-  }
+  /** A pin equal to the derived value is not an override — clear it instead. */
+  const pinOrUndef = (next: number, derived: number): number | undefined =>
+    next === derived ? undefined : next
   const states = bayStates(crawler)
   const intactBays = states.filter((s) => s === 'intact').length
   const tl = parseCrawlerTechLevel(crawler.techLevel)
@@ -240,12 +239,12 @@ export function SheetCrawler({
           onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
           onMaxChange={
             editable
-              ? (next) => overrideCrawlerMax({ maxSpModifier: modOrUndef(next, derivedMaxSP) })
+              ? (next) => overrideCrawlerMax({ maxSpOverride: pinOrUndef(next, spParts.derived) })
               : undefined
           }
-          overriddenFrom={editable ? derivedMaxSP : undefined}
+          overriddenFrom={editable && spParts.overridden ? spParts.derived : undefined}
           onRevertOverride={
-            editable ? () => overrideCrawlerMax({ maxSpModifier: undefined }) : undefined
+            editable ? () => overrideCrawlerMax({ maxSpOverride: undefined }) : undefined
           }
           readOnly={!editable}
         />

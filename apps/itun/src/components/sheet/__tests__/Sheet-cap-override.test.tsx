@@ -55,27 +55,42 @@ afterEach(() => {
 describe('Live Sheet — cap override (P2.2)', () => {
   test('a pinned HP max shows the indicator; revert clears it and logs an override', async () => {
     const store = useEntityStore.getState()
-    // maxHpModifier pins Max HP above its derived baseline.
-    const pilot = await store.create('pilot', { ...basePilotInput, maxHpModifier: 2 })
+    // maxHpOverride is an ABSOLUTE pin (ADR-022 amendment) — base 10, pinned 14.
+    const pilot = await store.create('pilot', { ...basePilotInput, maxHpOverride: 14 })
 
     render(<Sheet kind="pilot" id={pilot.id} />)
 
-    // The override indicator renders on the HP gauge.
-    await waitFor(() => expect(screen.getByText(/overridden from \d+/i)).toBeTruthy())
+    // The override indicator renders on the HP gauge, naming the derived value.
+    await waitFor(() => expect(screen.getByText(/overridden from 10/i)).toBeTruthy())
 
     // One-click revert to the derived baseline.
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /revert hp max to derived \d+/i }))
     })
 
-    // The hand modifier is cleared…
+    // The pin is cleared…
     await waitFor(() => {
       const fresh = useEntityStore.getState().get('pilot', pilot.id)
-      expect(fresh?.maxHpModifier).toBeUndefined()
+      expect(fresh?.maxHpOverride).toBeUndefined()
     })
 
     // …and the revert is recorded as an `override` Change Log entry.
     const entries = await changeLog.listForEntity(pilot.id)
-    expect(entries.some((e) => e.kind === 'override' && e.field === 'maxHpModifier')).toBe(true)
+    expect(entries.some((e) => e.kind === 'override' && e.field === 'maxHpOverride')).toBe(true)
+  })
+
+  test('a manual adjustment is NOT an override — it contributes to the derivation', async () => {
+    // Before the ADR-022 amendment maxHpModifier carried both meanings at once,
+    // so a rules-sourced bonus would have rendered as a hand override with a
+    // revert button. It is now a contribution: the max rises, no indicator.
+    const store = useEntityStore.getState()
+    const pilot = await store.create('pilot', { ...basePilotInput, maxHpModifier: 2 })
+
+    render(<Sheet kind="pilot" id={pilot.id} />)
+
+    // Anchor on the sheet actually being rendered before asserting absence.
+    await screen.findByRole('button', { name: /more actions/i })
+    expect(screen.queryByText(/overridden from/i)).toBeNull()
+    expect(screen.queryByRole('button', { name: /revert hp max/i })).toBeNull()
   })
 })

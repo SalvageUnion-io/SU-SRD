@@ -154,37 +154,54 @@ actively lie. No data backfill can proceed until this is separated.
    stored, and makes the revert self-explanatory: the player can see the number it
    falls back to and why that number is what it is.
 
-### Migration
+### Migration — none required
 
 Existing `max*Modifier` values are an unrecoverable mixture of hand overrides and
 rules bonuses players typed in manually because the app would not apply them. A
 migration cannot distinguish the two.
 
-**Decision: convert every existing value to an absolute pin.** This is lossless —
-no displayed number changes for any character. The cost is cosmetic and accepted:
-a sheet where someone hand-entered a rules bonus will now show an override marker
-it did not show before. That marker is arguably correct, since the value genuinely
-was entered by hand.
+The original plan was to convert every existing value into an absolute pin. Two
+findings during implementation ruled that out, and revealed a better option:
 
-Rejected alternatives: grandfathering the marker behind a legacy flag (leaves a
-permanent flag in the schema to hide one migration); reconciling per stat by
-dropping values now covered by an automatic contribution (silently changes live
-characters' maxima); adding a parallel field without migrating (leaves the
-collision in place, so it solves nothing).
+1. **A migration cannot compute a pin.** Turning a delta into an absolute value
+   needs each record's full derived total — chassis `structurePoints`, the
+   installed `statBonus` sum, tech-level base, injury penalties. A migration may
+   only await IndexedDB operations on its versionchange transaction; awaiting
+   reference data lets the transaction auto-commit mid-migration (see the header
+   of `8-crawler-battle-sp-to-derived.ts`, which hardcodes frozen snapshots for
+   exactly this reason). Deferring the conversion to hydration instead would make
+   the result depend on _when_ the user next opened the app — a player who
+   upgraded across the contribution work would have their hand-entered bonus
+   converted against a derivation that already included the real one.
+2. **A pin stops tracking derivation — that is what a pin is for.** Converting
+   every legacy modifier into a pin would freeze that maximum permanently. The
+   affected population is precisely the players who hand-entered Beefcake because
+   the app would not apply it; they would be the ones whose sheets then _ignored_
+   Beefcake once it became a real contribution.
+
+**Decision: split the two meanings into two fields and migrate nothing.**
+
+- `max*Modifier` keeps its stored values and its current arithmetic, and is
+  re-documented as what it has always actually been: a **manual adjustment**
+  that contributes to the derived total.
+- `max*Override` is the new **absolute pin**, written only by the Live Sheet's
+  override control from this point on.
+
+This is lossless by construction — not one stored byte changes and not one
+displayed number moves — and it needs no migration, no hydration pass, and no
+version-skew reasoning. The legacy adjustment keeps composing with future
+contributions instead of freezing them out, and once the provenance panel lands
+it appears as its own labelled line (`Manual adjustment +6`), so a hand-entered
+bonus that duplicates a real one becomes **visible and removable** rather than
+silently doubled.
 
 The five Eldridge Coast pregens are the unambiguous case in the other direction:
 those are **authored content**, not player overrides, and become real
-contributions rather than pins. `eldridgeCoast.ts` says so in its own header —
-"class/ability bonuses ... are encoded via `maxHpModifier` / `maxApModifier`" —
-which is precisely the conflation this amendment removes. `pilotInventory.ts`
-carries the same admission for the third field ("base 6 + `maxInventorySlotsModifier`
-(Beefcake +4)"), a bonus no UI can even write today.
-
-**There is a direct precedent for the migration.** Migration 8
-(`8-crawler-battle-sp-to-derived.ts`) already performed this exact move for the
-Battle Crawler's +5 Max SP: a bonus that had been hand-carried in `maxSpModifier`
-was reclassified as derived, with the stored field healed rather than dropped.
-The pin migration is that operation generalized to the remaining five fields.
+contributions rather than manual adjustments. `eldridgeCoast.ts` says so in its
+own header — "class/ability bonuses ... are encoded via `maxHpModifier` /
+`maxApModifier`" — which is precisely the conflation this amendment removes.
+`pilotInventory.ts` carries the same admission for the third field ("base 6 +
+`maxInventorySlotsModifier` (Beefcake +4)"), a bonus no UI can even write today.
 
 ### Also fixed alongside
 

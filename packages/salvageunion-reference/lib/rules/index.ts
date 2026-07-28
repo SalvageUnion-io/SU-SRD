@@ -127,9 +127,15 @@ export {
   unifiedMechConditions,
   crawlerMaxSP,
   crawlerMaxSPParts,
+  mechMaxSPParts,
+  mechMaxEPParts,
+  mechMaxHeatParts,
+  mechMaxCargoParts,
+  pilotMaxHPParts,
+  pilotMaxAPParts,
   clampCrawlerCurrentStats,
 } from './derivedStats.js'
-export type { ChassisStats, CrawlerMaxSPParts } from './derivedStats.js'
+export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js'
 export {
   MEDIATOR_TABLE_NAMES,
   MEDIATOR_TABLE_LABEL,

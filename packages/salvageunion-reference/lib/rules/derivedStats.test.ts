@@ -25,6 +25,8 @@ import {
   mechMaxEP,
   mechMaxHeat,
   mechMaxSP,
+  pilotMaxHPParts,
+  mechMaxSPParts,
   pilotMaxAP,
   pilotMaxHP,
   unifiedMechConditions,
@@ -180,6 +182,77 @@ describe('mech derivation', () => {
 //   Capacitance Bank -> statBonus.energyPoints  = 2  (Core Book p.173)
 //   Composite Armour -> statBonus.structurePoints = 5  (Core Book p.173)
 // ---------------------------------------------------------------------------
+describe('cap overrides — absolute pins (ADR-022 amendment)', () => {
+  const bare = { chassisRef: 'no-such-chassis' }
+
+  it('a pin replaces the derived total and retains the baseline', () => {
+    const parts = mechMaxSPParts({ ...bare, systems: ['Heat Sink'], maxSpOverride: 40 }, chassis)
+    expect(parts.total).toBe(40)
+    expect(parts.overridden).toBe(true)
+    expect(parts.override).toBe(40)
+    // The derivation keeps running underneath so revert has a target.
+    expect(parts.derived).toBe(10)
+    expect(parts.base).toBe(10)
+  })
+
+  it('a manual adjustment CONTRIBUTES rather than replacing', () => {
+    const parts = mechMaxSPParts({ ...bare, maxSpModifier: 3 }, chassis)
+    expect(parts.adjustment).toBe(3)
+    expect(parts.derived).toBe(13)
+    expect(parts.total).toBe(13)
+    expect(parts.overridden).toBe(false)
+    expect(parts.override).toBeUndefined()
+  })
+
+  it('a pin and an adjustment coexist — the pin wins, the adjustment stays visible', () => {
+    const parts = mechMaxSPParts({ ...bare, maxSpModifier: 3, maxSpOverride: 25 }, chassis)
+    expect(parts.total).toBe(25)
+    expect(parts.derived).toBe(13)
+    expect(parts.adjustment).toBe(3)
+  })
+
+  it('a pin of 0 is honoured, not treated as absent', () => {
+    const parts = mechMaxSPParts({ ...bare, maxSpOverride: 0 }, chassis)
+    expect(parts.overridden).toBe(true)
+    expect(parts.total).toBe(0)
+  })
+
+  it('pilot max HP stays unclamped so the dead state survives a lethal injury total', () => {
+    const parts = pilotMaxHPParts({
+      injuries: [
+        { severity: 'major' as const, note: '' },
+        { severity: 'major' as const, note: '' },
+        { severity: 'major' as const, note: '' },
+        { severity: 'major' as const, note: '' },
+        { severity: 'major' as const, note: '' },
+        { severity: 'major' as const, note: '' },
+      ],
+    })
+    expect(parts.total).toBeLessThanOrEqual(0)
+    expect(
+      isPilotDead({
+        injuries: [
+          { severity: 'major' as const, note: '' },
+          { severity: 'major' as const, note: '' },
+          { severity: 'major' as const, note: '' },
+          { severity: 'major' as const, note: '' },
+          { severity: 'major' as const, note: '' },
+          { severity: 'major' as const, note: '' },
+        ],
+      })
+    ).toBe(true)
+  })
+
+  it('a pilot HP pin overrides the injury penalty', () => {
+    const parts = pilotMaxHPParts({
+      injuries: [{ severity: 'major' as const, note: '' }],
+      maxHpOverride: 12,
+    })
+    expect(parts.total).toBe(12)
+    expect(parts.derived).toBe(8)
+  })
+})
+
 describe('installed system/module stat bonuses', () => {
   const bare = { chassisRef: 'no-such-chassis' }
 
@@ -295,7 +368,7 @@ describe('crawler derivation', () => {
     })
     expect(parts.base).toBe(20)
     expect(parts.typeBonus).toBe(5)
-    expect(parts.modifier).toBe(2)
+    expect(parts.adjustment).toBe(2)
     expect(parts.total).toBe(27)
   })
 

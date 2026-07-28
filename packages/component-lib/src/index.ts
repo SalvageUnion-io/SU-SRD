@@ -178,6 +178,12 @@ export { Colophon } from './components/shared/Colophon'
 
 // Stat trackers (ITUN design handoff — design-spec §2.7)
 export { VitalGauge } from './components/stat/VitalGauge'
+export { StatProvenance } from './components/stat/StatProvenance'
+export type {
+  ProvenanceLine,
+  ProvenanceLineKind,
+  StatProvenanceProps,
+} from './components/stat/StatProvenance'
 export { BayStatus } from './components/stat/BayStatus'
 // Only `heatDangerFrom` survives — `heatLevel`/`HeatLevel`/`HEAT_HIGH_RATIO`
 // were measured to zero consumers and deleted.

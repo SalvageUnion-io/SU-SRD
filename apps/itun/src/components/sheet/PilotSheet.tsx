@@ -46,7 +46,12 @@ import { Badge, Panel, SheetHero, Stat, VitalGauge } from 'component-lib'
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
-import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
+import {
+  isPilotDead,
+  pilotMaxAP,
+  pilotMaxAPParts,
+  pilotMaxHPParts,
+} from '../../lib/rules/derivedStats'
 import { enrichPilotSnapshot } from 'salvageunion-reference/rules'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { useSoftWarnings } from '../shared/useSoftWarnings'
@@ -300,8 +305,10 @@ export function PilotSheet({
   /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
   const unresolvedAbilities = pilot.abilities.filter((slug) => !resolveAbility(slug))
 
-  const maxHP = Math.max(0, pilotMaxHP(pilot))
-  const maxAP = Math.max(0, pilotMaxAP(pilot))
+  const hpParts = pilotMaxHPParts(pilot)
+  const apParts = pilotMaxAPParts(pilot)
+  const maxHP = Math.max(0, hpParts.total)
+  const maxAP = Math.max(0, apParts.total)
   const hp = Math.min(pilot.currentHP ?? maxHP, maxHP)
   const ap = Math.min(pilot.currentAP ?? maxAP, maxAP)
   const tp = pilot.trainingPoints ?? 0
@@ -331,15 +338,12 @@ export function PilotSheet({
   // Cap overrides (ADR-022, Free Edit): pin HP/AP maxima via a signed
   // max*Modifier delta; the gauge shows "overridden from N" + a revert. Tagged
   // `override` for the Change Log.
-  const derivedMaxHP = maxHP - (pilot.maxHpModifier ?? 0)
-  const derivedMaxAP = maxAP - (pilot.maxApModifier ?? 0)
   const overridePilotMax = (fields: Partial<Pilot>) => {
     void storeState.update('pilot', pilot.id, fields, LIVE_SHEET_OVERRIDE)
   }
-  const modOrUndef = (next: number, derived: number): number | undefined => {
-    const mod = next - derived
-    return mod === 0 ? undefined : mod
-  }
+  /** A pin equal to the derived value is not an override — clear it instead. */
+  const pinOrUndef = (next: number, derived: number): number | undefined =>
+    next === derived ? undefined : next
 
   /** Toggle one of the once-per-Downtime used flags (rules A8–A10). */
   function toggleUsed(key: UsedToggleKey, next: boolean) {
@@ -530,11 +534,11 @@ export function PilotSheet({
               onMaxChange={
                 readOnly
                   ? undefined
-                  : (next) => overridePilotMax({ maxHpModifier: modOrUndef(next, derivedMaxHP) })
+                  : (next) => overridePilotMax({ maxHpOverride: pinOrUndef(next, hpParts.derived) })
               }
-              overriddenFrom={readOnly ? undefined : derivedMaxHP}
+              overriddenFrom={readOnly || !hpParts.overridden ? undefined : hpParts.derived}
               onRevertOverride={
-                readOnly ? undefined : () => overridePilotMax({ maxHpModifier: undefined })
+                readOnly ? undefined : () => overridePilotMax({ maxHpOverride: undefined })
               }
               readOnly={readOnly}
             />
@@ -546,11 +550,11 @@ export function PilotSheet({
               onMaxChange={
                 readOnly
                   ? undefined
-                  : (next) => overridePilotMax({ maxApModifier: modOrUndef(next, derivedMaxAP) })
+                  : (next) => overridePilotMax({ maxApOverride: pinOrUndef(next, apParts.derived) })
               }
-              overriddenFrom={readOnly ? undefined : derivedMaxAP}
+              overriddenFrom={readOnly || !apParts.overridden ? undefined : apParts.derived}
               onRevertOverride={
-                readOnly ? undefined : () => overridePilotMax({ maxApModifier: undefined })
+                readOnly ? undefined : () => overridePilotMax({ maxApOverride: undefined })
               }
               readOnly={readOnly}
             />
