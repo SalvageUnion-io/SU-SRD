@@ -25,6 +25,7 @@ import { migrate as migrate6MechRefsToSlugs } from './6-mech-refs-to-slugs'
 import { migrate as migrate8CrawlerBattleSpToDerived } from './8-crawler-battle-sp-to-derived'
 import { migrate as migrate10WorkspaceDefaultBackfill } from './10-workspace-default-backfill'
 import { migrate as migrate11EquipmentLoadoutsToPartners } from './11-equipment-loadouts-to-partners'
+import { migrate as migrate12CompanionMechsToPartners } from './12-companion-mechs-to-partners'
 
 /** The untyped versionchange transaction handed to the idb upgrade callback. */
 export type UpgradeTransaction = IDBPTransaction<
@@ -79,6 +80,11 @@ const MIGRATIONS: ReadonlyArray<Migration> = [
     toVersion: 11,
     description: 'equipment-loadouts-to-partners',
     migrate: (tx) => migrate11EquipmentLoadoutsToPartners(tx),
+  },
+  {
+    toVersion: 12,
+    description: 'companion-mechs-to-partners',
+    migrate: (tx) => migrate12CompanionMechsToPartners(tx),
   },
   // NOTE: the built-in Starter Set is NOT seeded by a migration. It is spawned
   // on-demand into each browser the first time the user opens the Starter Set

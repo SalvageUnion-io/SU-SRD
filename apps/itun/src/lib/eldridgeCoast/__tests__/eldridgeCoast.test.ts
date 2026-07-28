@@ -190,8 +190,9 @@ describe('Eldridge Coast seed — reference refs resolve (drift guard)', () => {
     expect(cali?.partners).toHaveLength(2)
     expect(new Set(cali?.partners?.map((x) => x.id)).size).toBe(2)
 
-    // Every partner id is unique across the whole seed: they are addressed by a
-    // flat /sheet/partner/:id, so a collision would open the wrong sheet.
+    // Every partner id is unique across the whole seed. Ids are what make
+    // multiplicity work (Packmaster's two companions) and what `replacePartner`
+    // patches by, so a collision would write to the wrong one.
     const ids = ELDRIDGE_PILOTS.flatMap((p) => (p.partners ?? []).map((x) => x.id))
     expect(new Set(ids).size).toBe(ids.length)
 

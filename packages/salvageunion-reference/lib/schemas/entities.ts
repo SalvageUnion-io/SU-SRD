@@ -278,6 +278,18 @@ export const DroneSchema = BaseEntitySchema.extend({
       .array(z.string())
       .describe('Mech module names this drone is equipped with')
       .optional(),
+    /**
+     * Present only on a drone that UPGRADES with its owner. Mirrors the field of
+     * the same name on `EquipmentSchema` so the two files that can supply a
+     * player-facing companion describe scaling the same way: its ABSENCE is the
+     * statement "this stat block is flat", rather than a fact the consuming app
+     * has to know by which file the record came out of.
+     *
+     * Every drone in the book is flat today (Sestra Drone is Tech 3, Big Brother
+     * Drone Tech 5, neither scales), so this is currently unpopulated — the
+     * uniformity is the point.
+     */
+    bonusPerTechLevel: StatsSchema.describe('Stat bonuses gained per tech level').optional(),
     choices: ChoicesSchema.describe('Configuration choices for this drone').optional(),
   })
   .strict()

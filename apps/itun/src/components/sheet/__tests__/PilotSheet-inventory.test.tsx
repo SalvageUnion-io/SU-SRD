@@ -274,15 +274,16 @@ describe('PilotSheet — inventory readOnly', () => {
 /**
  * A pilot equips N items at will. SOME of those grant a partner (Survey Drone,
  * Mecha Companion, Auto-Turret); the rest are ordinary gear. Both kinds live in
- * the same `equipment[]` and both occupy inventory slots — the grant does not
- * leave the inventory when the partner is created from it.
+ * the same `equipment[]` and both occupy inventory slots.
  *
- * This is worth pinning because ADR-027 moved the drone's LOADOUT out of the
- * equipment card, and the obvious over-correction is to move the equipment
- * itself out too. The equipment is the GRANT; the partner is the thing granted.
+ * ADR-028 renders a granting slug AS its partner: the grant and the granted
+ * thing are one entry to the player, so one card, not two. The distinction that
+ * survives is between RENDERING and SLOT COST — the equipment never leaves
+ * `equipment[]`, so it still costs its slot even though the ordinary equipment
+ * card is not what gets drawn.
  */
-describe('PilotSheet — partner-granting equipment stays ordinary equipment', () => {
-  test('partner-granting and non-granting equipment render side by side', async () => {
+describe('PilotSheet — a partner-granting slug renders as its partner', () => {
+  test('ordinary gear renders alongside the partner, and the grant is not drawn twice', async () => {
     const pilot = makePilot({
       equipment: ['first-aid-kit', 'survey-drone'],
       partners: [
@@ -304,8 +305,8 @@ describe('PilotSheet — partner-granting equipment stays ordinary equipment', (
 
     // Ordinary gear is untouched by the partner work.
     expect(screen.getAllByText(/First Aid Kit/i).length).toBeGreaterThan(0)
-    // The granting equipment is STILL equipment — it did not leave the inventory.
-    expect(screen.getAllByText(/Survey Drone/i).length).toBeGreaterThan(0)
+    // The partner renders under its OWN name, titleOverride-style.
+    expect(screen.getAllByText(/Custos/i).length).toBeGreaterThan(0)
   })
 
   test('granting equipment still costs its inventory slot', () => {
@@ -335,8 +336,11 @@ describe('PilotSheet — partner-granting equipment stays ordinary equipment', (
     await expandCards()
 
     // The old PilotEquipmentLoadout rendered 'Add System' / 'Add Module'
-    // controls inside the equipment card. Those belong to the partner sheet now.
+    // controls inside the equipment card. The partner card carries the loadout
+    // itself rather than a picker into it.
     expect(screen.queryByRole('button', { name: /add system/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /add module/i })).toBeNull()
+    // The installed system rides the partner card.
+    expect(screen.getAllByText(/High Gain Antenna/i).length).toBeGreaterThan(0)
   })
 })

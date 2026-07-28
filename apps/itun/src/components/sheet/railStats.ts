@@ -16,10 +16,8 @@ import {
   pilotMaxAP,
   pilotMaxHP,
 } from '../../lib/rules/derivedStats'
-import { partnerDerivedStats } from '../../lib/rules/partnerStats'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
-import type { PartnerInstance } from '../../lib/schemas/partner'
 import type { Pilot } from '../../lib/schemas/pilot'
 
 /**
@@ -56,25 +54,6 @@ export function mechRailItems(mech: Mech): RailStat[] {
     { label: 'SP', value: mech.currentSP ?? maxSP, max: maxSP },
     { label: 'EP', value: mech.currentEP ?? maxEP, max: maxEP },
     { label: 'Heat', value: Math.min(mech.currentHeat ?? 0, maxHeat), max: maxHeat },
-  ]
-}
-
-/**
- * Partner rail vitals: "SP 7/7 · EP 8/8 · Heat 0/6".
- *
- * The same three readings as a mech, because a partner "uses the same rules as
- * Mechs for … taking damage and being repaired; as well as Heat and Heat
- * Checks" (Core Book, four separate partner entries). The maxima come from
- * `partnerDerivedStats` rather than the mech helpers: a partner's ceilings scale
- * off its own stat block and tech level, which for a pilot-granted partner is
- * the UNION CRAWLER's tech level, not its host's.
- */
-export function partnerRailItems(partner: PartnerInstance, techLevel: number): RailStat[] {
-  const max = partnerDerivedStats(partner, techLevel)
-  return [
-    { label: 'SP', value: partner.currentSP ?? max.structurePoints, max: max.structurePoints },
-    { label: 'EP', value: partner.currentEP ?? max.energyPoints, max: max.energyPoints },
-    { label: 'Heat', value: partner.currentHeat ?? 0, max: max.heatCapacity },
   ]
 }
 

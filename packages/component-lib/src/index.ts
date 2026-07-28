@@ -1,5 +1,7 @@
 // Types
 export type { ReferenceEntityControl } from './components/referenceEntity/referenceEntityControlTypes'
+/** The `statsOverride` element type — public because the prop that takes it is. */
+export type { StatItem } from './components/shared/statsBarTypes'
 export type { CardFootMeta } from './components/shared/Card'
 
 // Base typography

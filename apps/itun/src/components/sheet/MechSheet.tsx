@@ -75,6 +75,7 @@ import { SoftWarningDialog } from '../shared/SoftWarningDialog'
 import { useSoftWarnings } from '../shared/useSoftWarnings'
 import { SectionManageButton, SheetPickerModal } from 'component-lib'
 import { SheetSectionSlab } from 'component-lib'
+import { PartnerCard } from './PartnerCard'
 import type { ChassisStatItem } from 'component-lib'
 import { StorageManifest } from './StorageManifest'
 import { freshEntity } from './controlPrimitives'
@@ -636,6 +637,38 @@ export function MechSheet({
       >
         {renderItems('module', mech.modules)}
       </SheetSectionSlab>
+
+      {/* ===== Partners — drones this mech's CHASSIS ABILITY fields (Little
+          Sestra's Sestra Drone, Big Brother's four). Its own region rather than
+          a Linked Units row: a partner is not a linked roster entity, it is part
+          of this mech's own kit — and it renders full width because it carries a
+          nested loadout and a hold. No crawler tech level is threaded: a
+          mech-granted drone is fixed by its stat block and never tracks the
+          Union Crawler, unlike a pilot's ability-granted partners. ===== */}
+      {(mech.partners ?? []).length > 0 && (
+        <SheetSectionSlab title="Partners" count={(mech.partners ?? []).length}>
+          <div className="flex flex-col gap-3">
+            {(mech.partners ?? []).map((partner) => (
+              <PartnerCard
+                key={partner.id}
+                found={{ partner, hostKind: 'mech', host: mech }}
+                fielded={(mech.partners ?? []).filter((p) => p.hostRef === partner.hostRef).length}
+                readOnly={readOnly}
+                store={store}
+                onRemove={
+                  readOnly
+                    ? undefined
+                    : () => {
+                        void store.getState().update('mech', mech.id, {
+                          partners: (mech.partners ?? []).filter((p) => p.id !== partner.id),
+                        })
+                      }
+                }
+              />
+            ))}
+          </div>
+        </SheetSectionSlab>
+      )}
 
       {/* ===== Linked Units — the last region ===== */}
       <SheetSectionSlab

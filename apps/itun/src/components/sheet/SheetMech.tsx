@@ -21,7 +21,6 @@ import type { LiveSheetStripItem } from './LiveSheet'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { MechSheet } from './MechSheet'
 import { EntityRow } from 'component-lib'
-import { PartnerRows } from './PartnerRows'
 import { RailCta } from './SheetRailParts'
 import { AppLink } from '../shared/AppLink'
 import { crawlerRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
@@ -39,7 +38,6 @@ export function SheetMech({
   readOnly,
   store,
   storeState,
-  patch,
 }: SheetMechProps) {
   const chassis = resolveChassisRef(mech.chassisRef)
   const maxSP = mechMaxSP(mech, chassis)
@@ -129,19 +127,6 @@ export function SheetMech({
           actions={editable ? <RailCta href="/crawlers/new" label="+ Create" primary /> : undefined}
         />
       )}
-      {/* Drones this mech's CHASSIS ability fields — Little Sestra's Sestra
-          Drone, Big Brother's four. No `crawlerTechLevel`: a mech-granted
-          drone's tech level is fixed by its own stat block and never tracks the
-          Union Crawler, unlike a pilot's ability-granted partners. */}
-      <PartnerRows
-        partners={mech.partners ?? []}
-        onRemove={
-          editable
-            ? (partnerId) =>
-                patch({ partners: (mech.partners ?? []).filter((p) => p.id !== partnerId) })
-            : undefined
-        }
-      />
     </>
   )
 

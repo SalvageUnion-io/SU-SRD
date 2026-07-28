@@ -1,5 +1,5 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { Bot, Cpu, type LucideIcon, Trash2, UserRound, Warehouse } from 'lucide-react'
+import { Bot, type LucideIcon, Trash2, UserRound, Warehouse } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
@@ -25,7 +25,7 @@ import { Stat } from './Stat'
  * a router dependency.
  */
 
-export type EntityRowType = 'pilot' | 'mech' | 'crawler' | 'partner'
+export type EntityRowType = 'pilot' | 'mech' | 'crawler'
 
 /** A single `label | value` stat rendered in the subheader as a horizontal Stat. */
 export type EntityRowStat = {
@@ -110,10 +110,6 @@ const TONE: Record<EntityRowType, { rail: string; wash: string }> = {
     rail: 'var(--color-sheet-crawler-deep)',
     wash: 'color-mix(in srgb, var(--color-sheet-crawler) 11%, var(--color-paper))',
   },
-  partner: {
-    rail: 'var(--color-sheet-partner-deep)',
-    wash: 'color-mix(in srgb, var(--color-sheet-partner) 11%, var(--color-paper))',
-  },
 }
 
 /** Per-ontology "missing entity" glyph for the empty variant (decorative). */
@@ -121,9 +117,6 @@ const EMPTY_GLYPH: Record<EntityRowType, LucideIcon> = {
   pilot: UserRound,
   mech: Bot,
   crawler: Warehouse,
-  // A partner is a drone/companion, not a mech — Bot is already the mech glyph,
-  // so this keeps the two distinguishable at a glance in the empty slot.
-  partner: Cpu,
 }
 
 export function EntityRow(props: EntityRowProps) {
