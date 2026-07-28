@@ -30,7 +30,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "idb": "8.0.3",
-    "lucide-react": "^1.25.0",
+    "lucide-react": "^1.27.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "salvageunion-reference": "workspace:*",
@@ -39,7 +39,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
-    "@playwright/test": "1.61.1",
+    "@playwright/test": "1.62.0",
     "@sentry/vite-plugin": "5.4.0",
     "@vitejs/plugin-react": "^6.0.4",
     "fake-indexeddb": "6.2.5",
