@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { InstrumentStage } from '../../stories/_dashboardStage'
-import { ActionsDeck, type DeckGroup } from './ActionsDeck'
+import { ActionsDeck, type DeckRow } from './ActionsDeck'
 
 export default { title: 'Compositions/Dashboard/Actions Deck' }
 
@@ -11,54 +11,35 @@ const TABS = ['All', 'Turn', 'Short', 'Long', 'Free', 'React'] as const
 const RANGES = ['Close', 'Medium', 'Long', 'Far'] as const
 
 /**
- * Real SRD actions as the deck's cards — each drives a shortform
- * `ReferenceEntityCard` badge, exactly as the ITUN wrapper feeds it. The last
- * card is locked (dimmed in place) to exercise the reach/overheat overlay.
+ * Real SRD actions as the deck's tiles — each drives a catalog-extent
+ * `ReferenceEntityCard`, exactly as the ITUN wrapper feeds it, in ONE flat grid
+ * (no source headings). The last tile is locked (dimmed in place) to exercise
+ * the reach/overheat overlay.
  */
-function realGroups(): DeckGroup[] {
-  const actions = SalvageUnionReference.Actions.all()
-  const chassisAction = actions.find((a) => /ram/i.test(a.name)) ?? actions[0]
-  const rest = actions.filter((a) => a !== chassisAction).slice(0, 5)
-  return [
-    {
-      label: 'Chassis',
-      rows: chassisAction
-        ? [
-            {
-              key: `act-${chassisAction.id}`,
-              entity: chassisAction,
-              name: chassisAction.name,
-              locked: false,
-            },
-          ]
-        : [],
-    },
-    {
-      label: 'Systems',
-      rows: rest.map((action, i) => ({
-        key: `act-${action.id}`,
-        entity: action,
-        name: action.name,
-        locked: i === rest.length - 1,
-        lockTitle: i === rest.length - 1 ? 'Out of range / overheat' : undefined,
-      })),
-    },
-  ]
+function realRows(): DeckRow[] {
+  const actions = SalvageUnionReference.Actions.all().slice(0, 6)
+  return actions.map((action, i) => ({
+    key: `act-${action.id}`,
+    entity: action,
+    name: action.name,
+    locked: i === actions.length - 1,
+    lockTitle: i === actions.length - 1 ? 'Out of range / overheat' : undefined,
+  }))
 }
 
 /**
- * The Actions deck list view: timing tabs, group/range tools, source tags, and
- * a masonry grid of shortform action cards (out-of-range cards dim in place).
- * Real SRD systems drive them; the resolve panel (not shown) reuses
+ * The Actions deck list view: timing tabs, range/reach tools, source tags, and
+ * one masonry grid of catalog action tiles (out-of-range tiles dim in place).
+ * Real SRD actions drive them; the resolve panel (not shown) reuses
  * ReferenceEntityCard.
  */
 export const Default: Story = () => {
   const [tab, setTab] = useState<string>('All')
   const [range, setRange] = useState<string>('Close')
-  const groups = realGroups()
+  const rows = realRows()
   return (
     <div className="flex flex-col gap-4">
-      <Caption>Actions deck (list view) — filter tabs, range/reach, masonry card grid.</Caption>
+      <Caption>Actions deck (list view) — filter tabs, range/reach, masonry tile grid.</Caption>
       <InstrumentStage width={560}>
         <div
           className="pc-display-light"
@@ -70,9 +51,6 @@ export const Default: Story = () => {
               tabs: TABS,
               activeTab: tab,
               onTab: setTab,
-              groupingLabel: 'Source',
-              groupingTitle: 'Group by timing',
-              onToggleGrouping: () => {},
               rangeBands: RANGES,
               activeRange: range,
               onRange: setRange,
@@ -85,7 +63,7 @@ export const Default: Story = () => {
               onSourceFilter: () => {},
               familyClass: 'pc-deck-fam-mech',
               hostTone: 'var(--color-mech)',
-              groups,
+              rows,
               onOpen: () => {},
             }}
           />

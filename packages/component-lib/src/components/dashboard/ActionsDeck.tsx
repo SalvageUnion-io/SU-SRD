@@ -13,23 +13,22 @@ import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard
 import type { ReferenceCardEntity } from '../referenceEntity/card/ReferenceEntityCard'
 
 /**
- * A render-ready action card. The action ENTITY drives a shortform
- * `ReferenceEntityCard` badge (name · Cost · type · Damage · range) — the same
- * card the SRD renders — so the deck reuses the canonical action rendering
- * instead of a hand-rolled row. The card states its own name, so the deck adds
- * no describing label above it. Reach/lock is resolved by the caller and
- * layered on top (dim + tooltip), never baked into the card.
+ * A render-ready action card. The action ENTITY drives a CATALOG-extent
+ * `ReferenceEntityCard` tile — the same index tile the SRD catalog renders — so
+ * the deck reuses the canonical action rendering instead of a hand-rolled row.
+ * The card states its own name, so the deck adds no describing label above it.
+ * Reach/lock is resolved by the caller and layered on top (dim + tooltip), never
+ * baked into the card.
  */
 export type DeckRow = {
   key: string
   /** Any card-renderable entity — ACTIONS are meta-entities, not `SURefEntity`. */
   entity: ReferenceCardEntity
-  /** Accessible name for the clickable badge (the action name). */
+  /** Accessible name for the clickable tile (the action name). */
   name: string
   locked: boolean
   lockTitle?: string
 }
-export type DeckGroup = { label: string; rows: DeckRow[] }
 
 export type ActionsDeckResolve = {
   onBack: () => void
@@ -74,9 +73,6 @@ export type ActionsDeckList = {
   tabs: readonly string[]
   activeTab: string
   onTab: (tab: string) => void
-  groupingLabel: string
-  groupingTitle: string
-  onToggleGrouping: () => void
   rangeBands: readonly string[]
   activeRange: string
   onRange: (band: string) => void
@@ -85,9 +81,10 @@ export type ActionsDeckList = {
   sourceFilter: string | null
   onSourceFilter: (source: string | null) => void
   familyClass: string
-  /** Host tone the action badges GHOST (mech vs pilot) — a resolvable CSS colour. */
+  /** Host tone the action tiles GHOST (mech vs pilot) — a resolvable CSS colour. */
   hostTone: string
-  groups: DeckGroup[]
+  /** The whole deck, flat — one grid, no source/timing headings above it. */
+  rows: DeckRow[]
   onOpen: (key: string) => void
 }
 
@@ -273,14 +270,6 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
         </div>
 
         <div className="pc-deck-toolrow">
-          <button
-            type="button"
-            className="pc-deck-tool"
-            onClick={view.onToggleGrouping}
-            title={view.groupingTitle}
-          >
-            Group: {view.groupingLabel}
-          </button>
           <div className="pc-deck-range">
             {view.rangeBands.map((band) => (
               <button
@@ -329,48 +318,51 @@ export function ActionsDeck({ view }: ActionsDeckProps) {
         )}
       </div>
 
-      {view.groups.length === 0 ? (
+      {view.rows.length === 0 ? (
         <div className="pc-deck-empty">No actions match this filter.</div>
       ) : (
         <div className="pc-deck">
-          {view.groups.map((group) => (
-            <section key={group.label}>
-              <h3 className="pc-deck-group-lab">{group.label}</h3>
-              {/*
-               * A masonry grid, not a column of rows. The cards stay the compact
-               * shortform (`small` + `head`) — deliberately NOT the full extent,
-               * which embeds its own buttons (nested sub-entity cards, the
-               * description expander, roll controls). Those are invalid inside
-               * this card's own `role="button"` wrapper, and their clicks would
-               * bubble into `onOpen` and open the resolve panel. Shortform cards
-               * still differ in height when a long action name wraps, which is
-               * what the masonry packing is for. `<ul>/<li>` stays — a set of
-               * actions IS a list semantically; "grid" is purely the layout.
-               */}
-              <ul className="pc-deck-grid">
-                {group.rows.map((row) => (
-                  // Lock (out of range / overheat) is a caller-resolved overlay,
-                  // layered on the canonical card — dim + tooltip — never a
-                  // property of the action card itself.
-                  <li
-                    key={row.key}
-                    className={row.locked ? 'is-locked' : undefined}
-                    title={row.lockTitle}
-                  >
-                    <ReferenceEntityCard
-                      data={row.entity}
-                      size="small"
-                      extent="head"
-                      hostTone={view.hostTone}
-                      disabled={row.locked}
-                      cardClickLabel={row.name}
-                      onCardClick={() => view.onOpen(row.key)}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
+          {/*
+           * ONE masonry grid over the whole deck — no source/timing headings, so
+           * an action is never filed under a name of its own; the tile already
+           * states what it is. The cards are the canonical CATALOG tile
+           * (`medium` + `catalog`), the same index tile the SRD catalog renders:
+           * it keeps the description but suppresses every nested element
+           * (sub-entities, roll tables, choices), which is what makes it safe
+           * inside this card's own `role="button"` wrapper — the full extent
+           * would embed buttons whose clicks bubble into `onOpen`. Tile heights
+           * differ with description length, which is what the masonry packing is
+           * for. `<ul>/<li>` stays — a set of actions IS a list semantically;
+           * "grid" is purely the layout.
+           */}
+          <ul className="pc-deck-grid">
+            {view.rows.map((row) => (
+              // Lock (out of range / overheat) is a caller-resolved overlay,
+              // layered on the canonical card — dim + tooltip — never a
+              // property of the action card itself.
+              <li
+                key={row.key}
+                className={row.locked ? 'is-locked' : undefined}
+                title={row.lockTitle}
+              >
+                <ReferenceEntityCard
+                  data={row.entity}
+                  size="medium"
+                  extent="catalog"
+                  // An action's roll table survives the catalog extent by design
+                  // (it IS the content on an SRD index page), but its Show/Roll
+                  // buttons cannot nest inside this tile's own `role="button"`.
+                  // The table is one click away — the resolve panel renders the
+                  // same action as a full card.
+                  hide={{ rollTable: true }}
+                  hostTone={view.hostTone}
+                  disabled={row.locked}
+                  cardClickLabel={row.name}
+                  onCardClick={() => view.onOpen(row.key)}
+                />
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>

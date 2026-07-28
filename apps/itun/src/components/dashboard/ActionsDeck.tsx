@@ -11,12 +11,16 @@
  *               Active Item band, never auto-written)
  *
  * On foot (`mount === 'pilot'`) the deck is the pilot's abilities + equipment on
- * the AP economy; boarded, it is the mech's chassis + systems + modules on EP.
+ * the AP economy. Boarded, it is BOTH: the mech's chassis + systems + modules on
+ * EP *and* the pilot's own actions on AP — the pilot is in the cockpit, so their
+ * abilities and equipment never leave the table. The two economies coexist in one
+ * flat deck; `PlayAction.currency` (not the mount) decides what an activation
+ * spends and whether it touches Heat.
  */
 
 import { useState } from 'react'
 import { ActionsDeck as ActionsDeckView } from 'component-lib'
-import type { ActionsDeckView as ActionsDeckViewModel, DeckGroup } from 'component-lib'
+import type { ActionsDeckView as ActionsDeckViewModel, DeckRow } from 'component-lib'
 
 import { CORE_ROLL_BANDS, describePushOutcome, performCoreRoll } from '../../lib/rules/coreMechanic'
 import type { CoreRollResult } from '../../lib/rules/coreMechanic'
@@ -36,7 +40,6 @@ import {
   buildPilotActions,
   economyForActivation,
   groupBySource,
-  groupByTiming,
   hasCurrencyChoice,
   hasVariableHot,
   isDestructiveOutcome,
@@ -69,12 +72,16 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
   const setRange = usePlayStateStore((st) => st.setRange)
   const armDamagePrompt = usePlayStateStore((st) => st.armDamagePrompt)
 
-  const isPilotDeck = mount === 'pilot' && pilot != null
-  const deck = isPilotDeck ? buildPilotActions(pilot) : buildMechActions(mech)
+  // On foot the mech's actions are unreachable; boarded, the pilot's own actions
+  // ride along with the mech's in one deck (SU pilots keep their abilities and
+  // equipment in the cockpit).
+  const onFoot = mount === 'pilot'
+  const pilotDeck = pilot ? buildPilotActions(pilot) : []
+  const deck = onFoot ? pilotDeck : [...buildMechActions(mech), ...pilotDeck]
 
   // Heat context for reach + heat-lock (pilots carry no heat).
   const heatCtx = (() => {
-    if (isPilotDeck) return { currentHeat: 0, heatCap: HUGE_HEAT_CAP }
+    if (onFoot) return { currentHeat: 0, heatCap: HUGE_HEAT_CAP }
     const fresh = s.get('mech', mech.id) ?? mech
     const chassis = resolveChassisRef(mech.chassisRef)
     return { currentHeat: fresh.currentHeat ?? 0, heatCap: mechMaxHeat(fresh, chassis) }
@@ -91,7 +98,6 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
   const [currency, setCurrency] = useState<PlayActionCurrency>('EP')
 
   const [tab, setTab] = useState<TimingTab>('All')
-  const [grouping, setGrouping] = useState<'source' | 'timing'>('source')
   const [sourceFilter, setSourceFilter] = useState<string | null>(null)
 
   const selected = deck.find((a) => a.key === selectedKey) ?? null
@@ -190,24 +196,30 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
   }
 
   if (deck.length === 0) {
-    const text = isPilotDeck
+    const text = onFoot
       ? 'This pilot has no activatable actions.'
-      : 'This mech has no activatable actions.'
+      : 'This mech and pilot have no activatable actions.'
     return <ActionsDeckView view={{ kind: 'empty', text }} />
   }
 
   if (selected) {
+    // Whether THIS action runs on the pilot's AP economy — per action, not per
+    // deck, since a boarded deck carries both. Pilot actions never touch Heat and
+    // can never be Pushed (Push is the mech reactor's move).
+    const isPilotAction = selected.currency === 'AP'
     // Fold the player-picked Hot X into this activation's economy (no-op unless
     // the action carries a variable Hot); the chosen currency drives the patch.
-    const currencyChoice = hasCurrencyChoice(selected.action)
-    const variableHot = hasVariableHot(selected.action) && !isPilotDeck
+    // The mech's EP is only reachable from the cockpit, so the EP-vs-AP radios
+    // are offered only when boarded.
+    const currencyChoice = hasCurrencyChoice(selected.action) && !onFoot
+    const variableHot = hasVariableHot(selected.action) && !isPilotAction
     const eco = economyForActivation(selected.economy, selected.action, hotX)
     const effCurrency: PlayActionCurrency = currencyChoice ? currency : selected.currency
 
-    // Heat projection + cap gate (mech deck only; pilots carry no Heat).
+    // Heat projection + cap gate (EP activations only; pilots carry no Heat).
+    const heatApplies = effCurrency === 'EP' && !onFoot
     const heatOk =
-      isPilotDeck ||
-      effCurrency === 'AP' ||
+      !heatApplies ||
       eco.heat <= 0 ||
       canActivateAction(heatCtx.currentHeat, eco.heat, heatCtx.heatCap)
     const projectedHeat = heatCtx.currentHeat + eco.heat
@@ -216,7 +228,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
 
     const cost: string[] = []
     if (eco.epCost > 0) cost.push(`${eco.epCost} ${effCurrency}`)
-    if (!isPilotDeck && effCurrency === 'EP' && eco.heat > 0) cost.push(`+${eco.heat} Heat`)
+    if (heatApplies && eco.heat > 0) cost.push(`+${eco.heat} Heat`)
     if (eco.maxUses > 0) cost.push(`Uses ${eco.maxUses}`)
 
     const view: ActionsDeckViewModel = {
@@ -253,7 +265,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
             : 'Activating would exceed the Heat Cap',
         onActivate: () => activate(selected, effCurrency, eco),
         onRoll: doRoll,
-        push: isPilotDeck ? undefined : { disabled: roll === null, onPush: doPush },
+        push: isPilotAction ? undefined : { disabled: roll === null, onPush: doPush },
         applyLabel: applied ? 'Applied' : 'Apply',
         applyDisabled: roll === null || applied || applyRouted,
         onApply: () => roll && doApply(roll),
@@ -274,40 +286,38 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
     return <ActionsDeckView view={view} />
   }
 
-  // ---- List view: filter → group → render ----
+  // ---- List view: filter → render (ONE flat grid, no source/timing headings) ----
   const byTab = deck.filter((pa) => tabMatchesAction(tab, pa.action))
   const visible =
     sourceFilter === null ? byTab : byTab.filter((pa) => pa.ownerName === sourceFilter)
-  const groups = grouping === 'source' ? groupBySource(visible) : groupByTiming(visible)
   const reach = reachSummary(visible, range, heatCtx.currentHeat, heatCtx.heatCap)
 
   // Source tags come from the whole deck so they never vanish under a tab filter.
+  // They are the only place a source name still appears — the grid itself files
+  // no action under a heading.
   const sources = groupBySource(deck).map((g) => ({
     label: g.label,
     stamp: g.items[0]?.stamp ?? 'SYS',
   }))
-  const familyClass = isPilotDeck ? 'pc-deck-fam-pilot' : 'pc-deck-fam-mech'
+  const familyClass = onFoot ? 'pc-deck-fam-pilot' : 'pc-deck-fam-mech'
 
-  const deckGroups: DeckGroup[] = groups.map((group) => ({
-    label: group.label,
-    rows: group.items.map((action) => {
-      const reachable = actionReachable(action, range, heatCtx.currentHeat, heatCtx.heatCap)
-      return {
-        key: action.key,
-        // The raw action entity drives the canonical shortform badge card; the
-        // deck no longer hand-assembles stamp/name/meta/cost rows.
-        entity: action.action,
-        name: action.name,
-        locked: !reachable,
-        lockTitle:
-          action.condition === 'destroyed'
-            ? 'Destroyed'
-            : reachable
-              ? undefined
-              : 'Out of range / overheat',
-      }
-    }),
-  }))
+  const rows: DeckRow[] = visible.map((action) => {
+    const reachable = actionReachable(action, range, heatCtx.currentHeat, heatCtx.heatCap)
+    return {
+      key: action.key,
+      // The raw action entity drives the canonical catalog tile; the deck no
+      // longer hand-assembles stamp/name/meta/cost rows.
+      entity: action.action,
+      name: action.name,
+      locked: !reachable,
+      lockTitle:
+        action.condition === 'destroyed'
+          ? 'Destroyed'
+          : reachable
+            ? undefined
+            : 'Out of range / overheat',
+    }
+  })
 
   const view: ActionsDeckViewModel = {
     kind: 'list',
@@ -317,9 +327,6 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
       const next = TIMING_TABS.find((x) => x === t)
       if (next !== undefined) setTab(next)
     },
-    groupingLabel: grouping === 'source' ? 'Source' : 'Timing',
-    groupingTitle: grouping === 'source' ? 'Group by timing' : 'Group by source',
-    onToggleGrouping: () => setGrouping((g) => (g === 'source' ? 'timing' : 'source')),
     rangeBands: RANGE_BANDS,
     activeRange: range,
     onRange: (b) => {
@@ -331,9 +338,9 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
     sourceFilter,
     onSourceFilter: setSourceFilter,
     familyClass,
-    // Action badges ghost the deck's host tone: pilot on foot, mech when boarded.
-    hostTone: isPilotDeck ? 'var(--color-pilot)' : 'var(--color-mech)',
-    groups: deckGroups,
+    // Action tiles ghost the deck's host tone: pilot on foot, mech when boarded.
+    hostTone: onFoot ? 'var(--color-pilot)' : 'var(--color-mech)',
+    rows,
     onOpen: (key) => {
       const action = deck.find((a) => a.key === key)
       if (action) open(action)

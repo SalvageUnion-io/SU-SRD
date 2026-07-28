@@ -132,7 +132,7 @@ export type { ActiveItemBandView, BandButton } from './components/dashboard/Acti
 export { DisplayPanel } from './components/dashboard/DisplayPanel'
 export type { DisplayContent } from './components/dashboard/DisplayPanel'
 export { ActionsDeck } from './components/dashboard/ActionsDeck'
-export type { ActionsDeckView, DeckGroup } from './components/dashboard/ActionsDeck'
+export type { ActionsDeckView, DeckRow } from './components/dashboard/ActionsDeck'
 export { CountStepper } from './components/chrome/CountStepper'
 export { Panel, Row } from './components/chrome/Panel'
 export { Slab } from './components/chrome/Slab'

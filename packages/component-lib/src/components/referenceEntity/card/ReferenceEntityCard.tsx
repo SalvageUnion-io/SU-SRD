@@ -256,6 +256,14 @@ export type ReferenceEntityCardProps = {
 export type ReferenceEntityCardHideConfig = {
   actions?: boolean
   patterns?: boolean
+  /**
+   * Suppress the entity's (or its folded action's) roll table. Needed where the
+   * whole card is itself a control — the Dashboard's Actions deck wraps each
+   * tile in a `role="button"` — since even the collapsible table carries its own
+   * Show/Roll buttons, which may not nest inside a button and whose clicks would
+   * bubble into the card's own handler.
+   */
+  rollTable?: boolean
   damagedEffect?: boolean
   choices?: boolean
   stats?: boolean
@@ -1650,15 +1658,16 @@ function ReferenceEntityCardInner({
   // the legacy renderer passed it unconditionally, and it is the affordance
   // that makes a roll table a table you can USE. No `tableName`: the card it
   // sits in already carries that name in its header.
-  const rollTableNode = entityTable ? (
-    <RollTable
-      table={entityTable}
-      showCommand
-      size={compact ? 'compact' : 'full'}
-      collapsible={isCatalog || depth > 0}
-      disabled={isDown}
-    />
-  ) : null
+  const rollTableNode =
+    entityTable && !hide?.rollTable ? (
+      <RollTable
+        table={entityTable}
+        showCommand
+        size={compact ? 'compact' : 'full'}
+        collapsible={isCatalog || depth > 0}
+        disabled={isDown}
+      />
+    ) : null
 
   // PATTERN PROSE — the pattern's OWN flavour, name-tabbed like a folded
   // action's prose so it can't be mistaken for the chassis prose that leads the

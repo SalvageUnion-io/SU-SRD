@@ -1,9 +1,10 @@
 /**
  * Tests for ActionsDeck — the D1 actions instrument on the light display.
- * Verifies the flat deck renders from the real ORM (grouped by source owner),
- * selecting an action opens the resolve panel, Activate writes the EP/uses patch
- * through the store, the timing tabs filter by actionType, and the on-foot
- * (mount='pilot') deck lists pilot actions on the AP economy.
+ * Verifies the deck renders from the real ORM as ONE flat grid (no per-source
+ * headings), selecting an action opens the resolve panel, Activate writes the
+ * EP/uses patch through the store, the timing tabs filter by actionType, and the
+ * mount decides the roster: boarded lists the mech's actions AND the pilot's,
+ * on foot only the pilot's (on the AP economy).
  *
  * Reference content needs the ORM, so preload('all') runs once. A system with a
  * real EP cost is picked from the loaded set so the Activate write is exercised.
@@ -42,6 +43,10 @@ let costedSystemId = ''
 let varHotSystem: { id: string; actionName: string } | null = null
 /** A module with an 'EP or AP' action → drives the cost-radio test. */
 let epApModule: { id: string; actionName: string } | null = null
+/** An ability carrying visible actions → drives the pilot-deck tests. */
+let pilotAbility: { id: string; actionNames: string[] } | null = null
+/** A module whose visible action carries a ROLL TABLE → the nested-control guard. */
+let tableModule: { id: string; actionName: string } | null = null
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -76,7 +81,38 @@ beforeAll(async () => {
       break
     }
   }
+  // A module whose visible action carries its own roll table. The catalog extent
+  // keeps roll tables (they ARE the content on an SRD index page), so the deck
+  // has to suppress them — their Show/Roll buttons can't nest in a clickable tile.
+  for (const mod of SalvageUnionReference.Modules.all()) {
+    if (!mod.id) continue
+    const resolved = resolveModule(mod.id)
+    const acts = resolved ? (SalvageUnionReference.resolveActions(resolved) ?? []) : []
+    const hit = acts.find((a) => !a.hidden && (a.table != null || a.tableName != null))
+    if (hit) {
+      tableModule = { id: mod.id, actionName: hit.name }
+      break
+    }
+  }
+  // A pilot ability with at least one visible action (the on-foot / cockpit deck).
+  for (const ability of SalvageUnionReference.Abilities.all()) {
+    if (!ability.id) continue
+    const acts = (SalvageUnionReference.resolveActions(ability) ?? []).filter((a) => !a.hidden)
+    if (acts.length > 0) {
+      pilotAbility = { id: ability.id, actionNames: acts.map((a) => a.name) }
+      break
+    }
+  }
 })
+
+/** The visible action names the costed system contributes to the mech deck. */
+function mechActionNames(): string[] {
+  const item = resolveSystem(costedSystemId)
+  if (!item) throw new Error(`unresolved system ${costedSystemId}`)
+  return (SalvageUnionReference.resolveActions(item) ?? [])
+    .filter((a) => !a.hidden)
+    .map((a) => a.name)
+}
 
 function makeMech(): Mech {
   return mechFixture({
@@ -97,7 +133,7 @@ function renderDeck(mech: Mech, store: PlayStore) {
   )
 }
 
-/** The deck cards are shortform `ReferenceEntityCard` badges laid out as a
+/** The deck cards are catalog-extent `ReferenceEntityCard` tiles laid out as one
  * masonry grid: each is a clickable card exposing `role="button"` +
  * `aria-label` = the action name. */
 function deckCards(container: HTMLElement): HTMLElement[] {
@@ -125,14 +161,40 @@ function clickPrimaryAction(container: HTMLElement): { epCost: number } {
 }
 
 describe('ActionsDeck', () => {
-  test('lists the installed system as a source-owner group', () => {
+  test('renders ONE flat grid — no per-source headings above the cards', () => {
     expect(costedSystemId).toBeTruthy()
     const mech = makeMech()
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
-    const item = resolveSystem(costedSystemId)
-    const labels = [...container.querySelectorAll('.pc-deck-group-lab')].map((n) => n.textContent)
-    expect(labels).toContain(item?.name ?? '')
+    // Every card lives in a single grid; the deck files none of them under a
+    // heading of its own name (the source names survive only as filter chips).
+    expect(container.querySelectorAll('.pc-deck-grid')).toHaveLength(1)
+    expect(container.querySelector('.pc-deck h1, .pc-deck h2, .pc-deck h3')).toBeNull()
+    expect(deckCards(container).length).toBeGreaterThan(0)
+  })
+
+  test('a catalog tile nests no control inside its own clickable card', () => {
+    const mod = tableModule as { id: string; actionName: string }
+    expect(mod).toBeTruthy()
+    const mech = mechFixture({
+      id: 'm1',
+      name: 'Rig',
+      chassisRef: 'unknown-chassis',
+      modules: [mod.id],
+      currentEP: 6,
+      currentHeat: 0,
+    })
+    const { store } = stubStore(mech)
+    const { container } = renderDeck(mech, store)
+    const card = deckCards(container).find((el) => el.getAttribute('aria-label') === mod.actionName)
+    expect(card).toBeTruthy()
+    // The tile's roll table (Show toggle + Roll button) is suppressed: a control
+    // inside the card would be invalid markup and its click would bubble into
+    // `onOpen`. The table is still one click away, in the resolve panel.
+    expect(card?.querySelectorAll('button, [role="button"]')).toHaveLength(0)
+    // …and the resolve panel DOES render it.
+    fireEvent.click(card as Element)
+    expect(screen.getByText('Roll the Die')).toBeTruthy()
   })
 
   test('selecting an action opens the resolve panel with Activate + Roll', () => {
@@ -297,25 +359,36 @@ describe('ActionsDeck', () => {
     expect(calls[0]?.patch.currentAP).toBe(4)
   })
 
-  test('on-foot deck (mount=pilot) lists pilot actions', () => {
-    const ability = SalvageUnionReference.Abilities.all().find((a) => {
-      const acts = SalvageUnionReference.resolveActions(a)
-      return acts !== undefined && acts.filter((x) => !x.hidden).length > 0
-    }) as { id?: string } | undefined
-    const pilot = pilotFixture({
-      id: 'p1',
-      name: 'Vex',
-      abilities: [ability?.id ?? ''],
-      currentAP: 5,
-    })
+  test('boarded deck (mount=mech) lists the pilot actions alongside the mech ones', () => {
+    const ability = pilotAbility as { id: string; actionNames: string[] }
+    expect(ability).toBeTruthy()
+    const mech = makeMech()
+    const pilot = pilotFixture({ id: 'p1', name: 'Vex', abilities: [ability.id], currentAP: 5 })
+    const { store } = stubStore(mech)
+    const { container } = render(
+      <EntityHrefProvider value={() => undefined}>
+        <ActionsDeck mech={mech} pilot={pilot} mount="mech" store={store} />
+      </EntityHrefProvider>
+    )
+    const labels = deckCards(container).map((el) => el.getAttribute('aria-label'))
+    // The mech's own system actions are there…
+    expect(mechActionNames().some((n) => labels.includes(n))).toBe(true)
+    // …and so is the pilot's ability action — the pilot is in the cockpit.
+    expect(ability.actionNames.some((n) => labels.includes(n))).toBe(true)
+  })
+
+  test('on-foot deck (mount=pilot) lists ONLY pilot actions', () => {
+    const ability = pilotAbility as { id: string; actionNames: string[] }
+    const pilot = pilotFixture({ id: 'p1', name: 'Vex', abilities: [ability.id], currentAP: 5 })
     const { store } = stubStore(pilot)
     const { container } = render(
       <EntityHrefProvider value={() => undefined}>
         <ActionsDeck mech={makeMech()} pilot={pilot} mount="pilot" store={store} />
       </EntityHrefProvider>
     )
-    // The pilot deck renders (a card or an empty note), never crashes; and there
-    // is no Push affordance until an action is opened (pilots have no Heat).
-    expect(container.querySelector('.pc-deck, .pc-deck-empty')).toBeTruthy()
+    const labels = deckCards(container).map((el) => el.getAttribute('aria-label'))
+    expect(ability.actionNames.some((n) => labels.includes(n))).toBe(true)
+    // The mech is left behind — none of its actions are reachable on foot.
+    expect(mechActionNames().some((n) => labels.includes(n))).toBe(false)
   })
 })
