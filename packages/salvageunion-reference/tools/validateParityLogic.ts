@@ -123,25 +123,28 @@ export const PARITY_EXEMPTIONS: Record<string, string> = {
  * The remaining backlog — records that state a change, are not exempt, and are
  * not yet encodable.
  *
- * Both are trait grants on the PLAYER's own side, which today can only be
- * declared through `choices[].choiceOptions[].effects` — a shape these records
- * do not have, because the grant is unconditional rather than a choice. Closing
- * them needs effects declarable directly on a system/ability (C3), not a data
- * edit. They are listed here so the gate can land while that is built, and so
- * the count is visible rather than assumed.
+ * Both need the SAME missing capability, and it is not the one the plan assumed.
+ * The plan called for "effects declarable directly on a system/ability" (C3),
+ * but declaring them is not the blocker: `ChoiceEffectSchema` has no TARGET, and
+ * neither of these effects lands on the record that declares it.
+ *
+ *   Bio-Wings         "Your Mech gains the Fly Trait" — targets the HOST MECH.
+ *                     Declared as a self-effect it would say the Bio-Wings
+ *                     system flies, which is wrong, not merely incomplete.
+ *   High Gain Antenna raises the Range band of OTHER installed Modules and
+ *                     Pilot Abilities, filtered by trait — cross-item targeting
+ *                     with a predicate.
+ *
+ * So closing these needs effects to gain a `target` (the same concept
+ * `ContributionSchema` already carries), not just a new place to declare them.
+ * Encoding them without it would apply real rules to the wrong entity — a
+ * silent wrong answer, which is worse than a visible gap.
  *
  * A name that becomes encoded must be REMOVED from this list; the runner fails
  * on a stale entry, because a burn-down list that never shrinks is not burning
  * down.
  */
-export const KNOWN_UNRESOLVED: readonly string[] = [
-  // "Your Mech gains the Fly Trait" — flat, unconditional, self-targeting.
-  'Bio-Wings',
-  // "increases the Range band of any of your installed Modules or Pilot
-  // Abilities with the Communication Trait" — self-side, but targets OTHER
-  // installed items, so it needs cross-item targeting as well as C3.
-  'High Gain Antenna',
-]
+export const KNOWN_UNRESOLVED: readonly string[] = ['Bio-Wings', 'High Gain Antenna']
 
 /** Sentences claiming a change to a derived MAXIMUM or a slot count. */
 const CAP_PATTERN =
