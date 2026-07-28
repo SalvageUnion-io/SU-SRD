@@ -7,6 +7,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.6.0...salvageunion-reference-v2.7.0) (2026-07-28)
+
+
+### Features
+
+* **itun:** render partners in place, delete the partner sheet ([#590](https://github.com/SalvageUnion-io/SU-SRD/issues/590)) ([33ddccd](https://github.com/SalvageUnion-io/SU-SRD/commit/33ddccd79c6b9db417dff0384f27188d3fe0b67f))
+
+
+### Bug Fixes
+
+* **itun:** Change Log truth + Composite Armour's missing +5 Max SP ([#602](https://github.com/SalvageUnion-io/SU-SRD/issues/602)) ([47f53da](https://github.com/SalvageUnion-io/SU-SRD/commit/47f53dacf7132d481c0aca3d846ba4058f041dc9))
+
 ## [2.6.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.5.3...salvageunion-reference-v2.6.0) (2026-07-25)
 
 
