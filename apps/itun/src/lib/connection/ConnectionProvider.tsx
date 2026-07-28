@@ -6,6 +6,7 @@ import { ConnectionContext } from './connectionContext'
 import type { ConnectionState } from './connectionContext'
 import { resolveConnectionMode, shouldWarnDisconnected, writesAllowed } from './connectionMode'
 import { convexClient, isConvexConfigured } from './convexClient'
+import { setEntityBackendAuthState } from '../../stores/entityBackend'
 
 /**
  * Supplies the current storage mode (ADR-030 §1) to the tree.
@@ -50,6 +51,14 @@ function useOnline(): boolean {
 
 function useConnectionState(signedIn: boolean): ConnectionState {
   const online = useOnline()
+
+  // The stores are not components and cannot call hooks, so the mode is PUSHED
+  // to them from here rather than pulled. One writer, one direction — and it
+  // happens in an effect so a render never has a side effect.
+  useEffect(() => {
+    setEntityBackendAuthState({ signedIn, online })
+  }, [signedIn, online])
+
   return useMemo(() => {
     const mode = resolveConnectionMode({
       convexConfigured: isConvexConfigured,

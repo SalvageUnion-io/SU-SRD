@@ -39,6 +39,7 @@ import type { Mech } from '../lib/schemas/mech'
 import type { Pilot } from '../lib/schemas/pilot'
 import type { SoftLink } from '../lib/schemas/softLink'
 import type { CreateInput, EntityForType, EntityType } from './types'
+import { requireWritableBackend } from './entityBackend'
 
 // Re-exported so consumers can import the type alongside the store itself.
 export type { EntityType }
@@ -337,6 +338,10 @@ export const useEntityStore = create<EntityState>((set, get) => ({
 
   async create<T extends EntityType>(type: T, input: CreateInput<T>): Promise<EntityForType<T>> {
     const key = storeKeyFor(type)
+    // Refuses rather than degrading when the server of record is unreachable
+    // (ADR-030 §1): a signed-in user offline is read-only, not silently
+    // writing to a local copy that would fork against the server.
+    requireWritableBackend()
     const record = await dbStoreFor(type).create(withActiveWorkspace(type, input))
     set((state) => ({
       [key]: [record, ...(state[key] as EntityForType<T>[])],
@@ -354,6 +359,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     const key = storeKeyFor(type)
     // Capture the before-image BEFORE the write so the Change Log can diff it.
     const before = get().get(type, id)
+    requireWritableBackend()
     const updated = await dbStoreFor(type).update(id, patch)
     set((state) => ({
       [key]: (state[key] as EntityForType<T>[]).map((e) => (e.id === id ? updated : e)),
@@ -481,6 +487,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
 
   async delete(type, id) {
     const key = storeKeyFor(type)
+    requireWritableBackend()
 
     // Cascade: deleting an entity prunes its SoftLinks (plan 2.7, gap 9).
     // The entity delete and its link pruning run in a single IDB transaction
