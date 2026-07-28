@@ -55,6 +55,7 @@
     "validate:traits": "bun tools/validateTraits.ts",
     "validate:schemas": "bun tools/validateSchemas.ts",
     "validate:all": "bun tools/validate.ts",
+    "validate:parity": "bun tools/validateParity.ts",
     "validate:fix": "bun tools/validate.ts --fix",
     "edit-data": "bun tools/edit-data.ts",
     "typecheck": "tsc --project tsconfig.json --noEmit",
