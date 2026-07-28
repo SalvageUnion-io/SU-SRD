@@ -61,9 +61,6 @@ import { join } from 'node:path'
  */
 const SENTRY_INGEST_HOST = 'https://*.ingest.de.sentry.io'
 
-/** The `*.ingest.<region>.sentry.io` suffix implied by SENTRY_INGEST_HOST. */
-const SENTRY_INGEST_SUFFIX = SENTRY_INGEST_HOST.replace('https://*', '')
-
 /** A Sentry DSN as it appears inlined in a built bundle. */
 const DSN_IN_BUNDLE = /https:\/\/[0-9a-f]{16,}@([a-z0-9.-]+\.ingest\.[a-z0-9.-]*sentry\.io)\//i
 
@@ -119,11 +116,30 @@ function read(path: string): string | null {
  * Returns null when the file declares no CSP at all (which is itself a finding
  * for an app that ships one).
  */
+function connectSrcOfPolicy(policy: string): string | null {
+  const directive = policy.split(';').find((d) => d.trim().startsWith('connect-src'))
+  return directive ? directive.trim() : null
+}
+
 function connectSrcOf(toml: string): string | null {
   const csp = toml.match(/Content-Security-Policy\s*=\s*"([^"]*)"/)
-  if (!csp) return null
-  const directive = csp[1].split(';').find((d) => d.trim().startsWith('connect-src'))
-  return directive ? directive.trim() : null
+  return csp ? connectSrcOfPolicy(csp[1]) : null
+}
+
+/**
+ * Would this `connect-src` actually let a beacon reach `host`? Handles the two
+ * source forms that matter here — an exact origin and a leftmost-subdomain
+ * wildcard — rather than string-matching a constant, so the answer is about the
+ * policy being served rather than about what this repo believes it declared.
+ */
+function connectSrcPermits(connectSrc: string, host: string): boolean {
+  return connectSrc
+    .split(/\s+/)
+    .slice(1) // drop the "connect-src" directive name itself
+    .some((source) => {
+      const bare = source.replace(/^https?:\/\//, '').replace(/\/$/, '')
+      return bare.startsWith('*.') ? host.endsWith(bare.slice(1)) : bare === host
+    })
 }
 
 function checkStatic(app: BrowserApp): void {
@@ -173,12 +189,18 @@ function scriptUrls(html: string, origin: string): string[] {
 
 async function checkLive(app: BrowserApp): Promise<void> {
   let html: string
+  // The CSP as ACTUALLY SERVED. Checking the repo's own constant here would be
+  // circular — the whole point of a live probe is to test the deployed truth,
+  // and a CSP can lag a merge, be overridden in the Netlify UI, or come from a
+  // _headers file this repo never sees.
+  let servedCsp: string | null = null
   try {
     const res = await fetch(app.productionUrl, { redirect: 'follow' })
     if (!res.ok) {
       fail(app.name, `production fetch failed: HTTP ${res.status} ${app.productionUrl}`)
       return
     }
+    servedCsp = res.headers.get('content-security-policy')
     html = await res.text()
   } catch (error) {
     fail(app.name, `production unreachable (${app.productionUrl}): ${String(error)}`)
@@ -218,18 +240,38 @@ async function checkLive(app: BrowserApp): Promise<void> {
 
   console.log(`  [${app.name}] Sentry SDK present in ${sdkFoundIn}`)
 
-  // Region check. A DSN issued in one Sentry data region under a CSP written
-  // for the other yields a project that reports nothing at all — which is
-  // indistinguishable from "no errors happened". Compare what production is
-  // actually configured to talk to against what the CSP permits.
-  if (dsnHost && !dsnHost.endsWith(SENTRY_INGEST_SUFFIX)) {
+  // The end-to-end assertion: does the CSP production is SERVING actually let
+  // the DSN production is SHIPPING send anything? A mismatch (most easily a
+  // us/de region slip) yields a project that reports nothing at all, which is
+  // indistinguishable from "no errors happened" — the failure this whole file
+  // exists to make loud.
+  //
+  // Verified against the real thing: with a `de` DSN deployed under the old
+  // `us` CSP, an earlier version of this probe that compared the DSN to
+  // SENTRY_INGEST_HOST (a constant in THIS repo) reported OK, because the repo
+  // constant had already been updated while production had not. Comparing
+  // against the served header is what catches it.
+  if (!dsnHost) {
+    console.log(`  [${app.name}] no DSN inlined in the bundle — skipping CSP reachability check`)
+    return
+  }
+  const servedConnectSrc = servedCsp ? connectSrcOfPolicy(servedCsp) : null
+  if (!servedConnectSrc) {
+    fail(app.name, `production serves no CSP connect-src; cannot confirm Sentry is reachable`)
+    return
+  }
+  if (!connectSrcPermits(servedConnectSrc, dsnHost)) {
     fail(
       app.name,
-      `DSN ships events to ${dsnHost}, but the CSP only allows ${SENTRY_INGEST_HOST}.\n` +
-        `      Every event will be blocked in the browser and the project will look silent.\n` +
-        `      Fix SENTRY_INGEST_HOST here and the connect-src in ${app.netlifyTomlPath}.`
+      `production ships a DSN pointing at ${dsnHost}, but the CSP it SERVES does not\n` +
+        `      permit that origin, so every event is blocked in the browser and the Sentry\n` +
+        `      project looks silent.\n` +
+        `      served: ${servedConnectSrc}\n` +
+        `      expected to allow: ${SENTRY_INGEST_HOST}`
     )
+    return
   }
+  console.log(`  [${app.name}] served CSP permits ${dsnHost}`)
 }
 
 const live = process.argv.includes('--live')
