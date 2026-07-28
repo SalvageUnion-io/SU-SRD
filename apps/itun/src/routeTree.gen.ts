@@ -20,6 +20,7 @@ import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
 import { Route as DashboardIdRouteImport } from './routes/dashboard/$id'
 import { Route as MechsIdRouteImport } from './routes/mechs/$id'
 import { Route as MechsNewRouteImport } from './routes/mechs/new'
+import { Route as MediatorGameIdRouteImport } from './routes/mediator/$gameId'
 import { Route as PilotsIdRouteImport } from './routes/pilots/$id'
 import { Route as PilotsNewRouteImport } from './routes/pilots/new'
 import { Route as SIdRouteImport } from './routes/s/$id'
@@ -82,6 +83,11 @@ const MechsNewRoute = MechsNewRouteImport.update({
   path: '/mechs/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MediatorGameIdRoute = MediatorGameIdRouteImport.update({
+  id: '/mediator/$gameId',
+  path: '/mediator/$gameId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PilotsIdRoute = PilotsIdRouteImport.update({
   id: '/pilots/$id',
   path: '/pilots/$id',
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/$id': typeof DashboardIdRoute
   '/mechs/$id': typeof MechsIdRoute
   '/mechs/new': typeof MechsNewRoute
+  '/mediator/$gameId': typeof MediatorGameIdRoute
   '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/dashboard/$id': typeof DashboardIdRoute
   '/mechs/$id': typeof MechsIdRoute
   '/mechs/new': typeof MechsNewRoute
+  '/mediator/$gameId': typeof MediatorGameIdRoute
   '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/dashboard/$id': typeof DashboardIdRoute
   '/mechs/$id': typeof MechsIdRoute
   '/mechs/new': typeof MechsNewRoute
+  '/mediator/$gameId': typeof MediatorGameIdRoute
   '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
   '/s/$id': typeof SIdRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/dashboard/$id'
     | '/mechs/$id'
     | '/mechs/new'
+    | '/mediator/$gameId'
     | '/pilots/$id'
     | '/pilots/new'
     | '/s/$id'
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/dashboard/$id'
     | '/mechs/$id'
     | '/mechs/new'
+    | '/mediator/$gameId'
     | '/pilots/$id'
     | '/pilots/new'
     | '/s/$id'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/dashboard/$id'
     | '/mechs/$id'
     | '/mechs/new'
+    | '/mediator/$gameId'
     | '/pilots/$id'
     | '/pilots/new'
     | '/s/$id'
@@ -243,6 +255,7 @@ export interface RootRouteChildren {
   DashboardIdRoute: typeof DashboardIdRoute
   MechsIdRoute: typeof MechsIdRoute
   MechsNewRoute: typeof MechsNewRoute
+  MediatorGameIdRoute: typeof MediatorGameIdRoute
   PilotsIdRoute: typeof PilotsIdRoute
   PilotsNewRoute: typeof PilotsNewRoute
   SIdRoute: typeof SIdRoute
@@ -330,6 +343,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MechsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mediator/$gameId': {
+      id: '/mediator/$gameId'
+      path: '/mediator/$gameId'
+      fullPath: '/mediator/$gameId'
+      preLoaderRoute: typeof MediatorGameIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pilots/$id': {
       id: '/pilots/$id'
       path: '/pilots/$id'
@@ -387,6 +407,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardIdRoute: DashboardIdRoute,
   MechsIdRoute: MechsIdRoute,
   MechsNewRoute: MechsNewRoute,
+  MediatorGameIdRoute: MediatorGameIdRoute,
   PilotsIdRoute: PilotsIdRoute,
   PilotsNewRoute: PilotsNewRoute,
   SIdRoute: SIdRoute,
