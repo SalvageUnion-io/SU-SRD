@@ -2,7 +2,13 @@
 
 ## Status
 
-Accepted
+**Superseded by [ADR-030](ADR-030-accounts-games-server-of-record.md)** (accounts, Games, and a
+server of record). Retained because its reasoning still governs the parts ADR-030
+kept: anonymous **Solo** play remains first-class and fully local, snapshot sharing
+([ADR-004](ADR-004-snapshot-netlify-functions.md)) is unchanged, and the
+honour-system stance on cross-player writes survives as propose-and-confirm.
+What ADR-030 overturns is narrower than this document's title suggests: accounts,
+a server of record for signed-in users, and shared multi-user Games.
 
 ## Context
 

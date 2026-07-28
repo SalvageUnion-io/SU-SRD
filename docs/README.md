@@ -102,6 +102,7 @@ Read the matching ADR before proposing alternatives.
 | [ADR-027](adrs/ADR-027-partners-owned-by-host.md)                    | Partners are owned by their host entity                                                                         |
 | [ADR-028](adrs/ADR-028-partners-render-in-place.md)                  | Partners render in place as reference entities; supersedes ADR-027                                              |
 | [ADR-029](adrs/ADR-029-contribution-model-and-stat-provenance.md)    | **Proposed** — one contribution model for caps/traits/damage + stat provenance; amends ADR-022's overrides      |
+| [ADR-030](adrs/ADR-030-accounts-games-server-of-record.md)           | **Governing** — accounts, Games, ownership, and Convex as server of record; supersedes ADR-001, amends ADR-022  |
 
 > ADR-021 is the governing decision for rules enforcement and takes precedence
 > over prior ADRs where they conflict on _how hard a rule is enforced on which
