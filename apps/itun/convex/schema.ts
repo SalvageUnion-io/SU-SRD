@@ -221,7 +221,7 @@ export default defineSchema({
     source: v.string(),
     /** Who performed or proposed it. */
     actorId: v.union(v.id('users'), v.null()),
-    /** 'applied' | 'proposed' | 'rejected' | 'superseded'. */
+    /** 'applied' | 'proposed' | 'declined' | 'superseded'. */
     state: v.string(),
     supersededBy: v.optional(v.id('changeLog')),
   })

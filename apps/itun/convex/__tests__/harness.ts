@@ -29,6 +29,7 @@ const modules = {
   './mediator.ts': () => import('../mediator'),
   './invites.ts': () => import('../invites'),
   './ownership.ts': () => import('../ownership'),
+  './proposals.ts': () => import('../proposals'),
   './templates.ts': () => import('../templates'),
   './model/permissions.ts': () => import('../model/permissions'),
 }
