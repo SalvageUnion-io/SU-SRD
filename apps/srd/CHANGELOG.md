@@ -2,6 +2,18 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [1.3.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.2.2...srd-v1.3.0) (2026-07-28)
+
+
+### Features
+
+* **itun:** render the SRD home page in the Dashboard SRD Explorer ([#593](https://github.com/SalvageUnion-io/SU-SRD/issues/593)) ([05906b6](https://github.com/SalvageUnion-io/SU-SRD/commit/05906b629fe97708f5c9faf8e638e29033e363e9))
+
+
+### Bug Fixes
+
+* **observability:** unblock Sentry in CSP, gate the wiring, repair nightly E2E ([#601](https://github.com/SalvageUnion-io/SU-SRD/issues/601)) ([360abc8](https://github.com/SalvageUnion-io/SU-SRD/commit/360abc8ee465b7a6ebac7f591826c23357ec825b))
+
 ## [1.2.2](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.2.1...srd-v1.2.2) (2026-07-25)
 
 
