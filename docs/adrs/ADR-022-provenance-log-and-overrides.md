@@ -14,7 +14,7 @@ model this ADR serves.
 in the same field the rules derivation reads. See
 [Amendment](#amendment-2026-07-overrides-become-absolute-pins); the amendment is a
 hard prerequisite for
-[ADR-028](ADR-028-contribution-model-and-stat-provenance.md).
+[ADR-029](ADR-029-contribution-model-and-stat-provenance.md).
 
 ## Context
 
@@ -133,7 +133,7 @@ is why hand-entering Beefcake works at all, and why the Eldridge Coast pregens
 write these fields directly).
 
 The consequence is blocking. The moment a contribution applies automatically
-([ADR-028](ADR-028-contribution-model-and-stat-provenance.md)), it must not be
+([ADR-029](ADR-029-contribution-model-and-stat-provenance.md)), it must not be
 written there — or a **rules-legal bonus renders as a hand override**, complete
 with an "overridden from N" callout and an offer to revert it. The sheet would
 actively lie. No data backfill can proceed until this is separated.

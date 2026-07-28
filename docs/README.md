@@ -100,7 +100,8 @@ Read the matching ADR before proposing alternatives.
 | [ADR-025](adrs/ADR-025-reference-versioned-releases-surface-gate.md) | Versioned internal releases + public-surface (TS + schema) gate for the ref; partially supersedes ADR-014       |
 | [ADR-026](adrs/ADR-026-entity-card-design-rules.md)                  | **Entity card design rules** — one renderer, choice/stat-atom/modified-stats/tech-level rules (built)           |
 | [ADR-027](adrs/ADR-027-partners-owned-by-host.md)                    | Partners are owned by their host entity                                                                         |
-| [ADR-028](adrs/ADR-028-contribution-model-and-stat-provenance.md)    | **Proposed** — one contribution model for caps/traits/damage + stat provenance; amends ADR-022's overrides      |
+| [ADR-028](adrs/ADR-028-partners-render-in-place.md)                  | Partners render in place as reference entities; supersedes ADR-027                                              |
+| [ADR-029](adrs/ADR-029-contribution-model-and-stat-provenance.md)    | **Proposed** — one contribution model for caps/traits/damage + stat provenance; amends ADR-022's overrides      |
 
 > ADR-021 is the governing decision for rules enforcement and takes precedence
 > over prior ADRs where they conflict on _how hard a rule is enforced on which

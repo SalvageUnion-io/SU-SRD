@@ -1,7 +1,7 @@
 # Rules Parity & Stat Provenance — Delivery Plan
 
 > **Decisions live in the ADRs, not here.**
-> [ADR-028](../adrs/ADR-028-contribution-model-and-stat-provenance.md) (the
+> [ADR-029](../adrs/ADR-029-contribution-model-and-stat-provenance.md) (the
 > contribution model + provenance) and the
 > [ADR-022 amendment](../adrs/ADR-022-provenance-log-and-overrides.md#amendment-2026-07-overrides-become-absolute-pins)
 > (overrides become absolute pins) are authoritative. This document is the
@@ -54,7 +54,7 @@ Two traps worth carrying into the work, both verified:
 | Scope                  | **Full contextual parity** — all six phases below                                                                                                          |
 | Migration              | **Convert every `max*Modifier` to an absolute pin.** Lossless; no displayed number changes. Accepted cost: some sheets gain an override marker they lacked |
 | Model                  | **Converge the two engines** into one contribution vocabulary; widen where effects may be _declared_, leave `resolveChoiceView`'s application logic alone  |
-| Process                | **ADR-022 amendment + new ADR-028**, both before code                                                                                                      |
+| Process                | **ADR-022 amendment + new ADR-029**, both before code                                                                                                      |
 | Duration-bound effects | **In scope**, as `duration: activated` contributions applied only by the Dashboard against ephemeral play state (ADR-019)                                  |
 | Order                  | **Provenance first** (A→B), then the model and data (C→D), then Dashboard wiring (F)                                                                       |
 | Surfaces               | Live Sheet, Dashboard, **partner cards, Frozen snapshot, wizard previews, entity reference cards**                                                         |
@@ -67,7 +67,7 @@ Sizes use the repo's existing effort labels: **S** under 1 day · **M** 1–2 ·
 
 | ID     | Unit                        | Size | Depends | Done when                                                                                                                                                                                 |
 | ------ | --------------------------- | ---- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **A1** | ADR-022 amendment + ADR-028 | S    | —       | Both merged; `docs/README.md` index updated                                                                                                                                               |
+| **A1** | ADR-022 amendment + ADR-029 | S    | —       | Both merged; `docs/README.md` index updated                                                                                                                                               |
 | **A2** | Parity audit + CI gate      | M    | A1      | Scans every record stating a mechanical change; asserts a contribution or a reasoned exemption; names record + sentence on failure. Advisory for one week, then blocking                  |
 | **A3** | Absolute-pin overrides      | L    | A1      | `max*Override` replaces the six delta fields; IDB migration lossless (property test: no displayed maximum changes); `VitalGauge` reads an explicit `overridden` flag, never a subtraction |
 
