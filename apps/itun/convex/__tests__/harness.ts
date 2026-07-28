@@ -26,6 +26,7 @@ const modules = {
   './games.ts': () => import('../games'),
   './invites.ts': () => import('../invites'),
   './ownership.ts': () => import('../ownership'),
+  './templates.ts': () => import('../templates'),
   './model/permissions.ts': () => import('../model/permissions'),
 }
 

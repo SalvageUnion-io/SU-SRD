@@ -16,6 +16,7 @@ import type * as http from "../http.js";
 import type * as invites from "../invites.js";
 import type * as model_permissions from "../model/permissions.js";
 import type * as ownership from "../ownership.js";
+import type * as templates from "../templates.js";
 
 import type {
   ApiFromModules,
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   invites: typeof invites;
   "model/permissions": typeof model_permissions;
   ownership: typeof ownership;
+  templates: typeof templates;
 }>;
 
 /**
