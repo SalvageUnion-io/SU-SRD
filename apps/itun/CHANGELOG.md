@@ -2,6 +2,18 @@
 
 Maintained by release-please (see ADR-024).
 
+## [0.6.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.5.0...itun-v0.6.0) (2026-07-28)
+
+
+### Features
+
+* **itun:** show the Actions deck as one catalog-tile grid, mech + pilot ([#591](https://github.com/SalvageUnion-io/SU-SRD/issues/591)) ([f8979b0](https://github.com/SalvageUnion-io/SU-SRD/commit/f8979b04b8d804c4c464bd596c0b31074d8f4769))
+
+
+### Bug Fixes
+
+* **itun:** start Heat at zero, never at capacity ([#588](https://github.com/SalvageUnion-io/SU-SRD/issues/588)) ([67cebf2](https://github.com/SalvageUnion-io/SU-SRD/commit/67cebf2901aff7bfda198e55f49c10a3f7442f3f))
+
 ## [0.5.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.4.1...itun-v0.5.0) (2026-07-25)
 
 
