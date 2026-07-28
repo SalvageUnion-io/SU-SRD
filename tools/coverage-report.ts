@@ -29,8 +29,10 @@ import {
   copyFileSync,
   appendFileSync,
 } from 'node:fs'
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+import { parseLcov } from './lib/parse-lcov'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -56,38 +58,6 @@ const WORKSPACES = [
   'apps/itun',
   'apps/discord-bot',
 ]
-
-/**
- * Sum a workspace's line coverage from its lcov, counting ONLY files that belong
- * to that workspace.
- *
- * A test run pulls in source from other workspaces (e.g. srd's `preload-reference`
- * loads `salvageunion-reference`), and Bun reports coverage for every file it
- * loaded. Summing all records therefore charged one workspace for another's
- * uncovered lines — srd read 44.8% because it was being measured mostly on
- * reference-package files its own tests never exercise. Each `SF:` record is
- * resolved against the lcov's directory and skipped unless it sits inside the
- * workspace being measured, so the ratchet tracks each workspace's own code.
- */
-function parseLcov(path: string, workspaceRoot: string): { linesFound: number; linesHit: number } {
-  const contents = readFileSync(path, 'utf-8')
-  const lcovDir = dirname(path)
-  let linesFound = 0
-  let linesHit = 0
-  let include = false
-  for (const line of contents.split('\n')) {
-    if (line.startsWith('SF:')) {
-      const file = line.slice(3).trim()
-      const abs = isAbsolute(file) ? file : resolve(lcovDir, file)
-      include = !relative(workspaceRoot, abs).startsWith('..')
-      continue
-    }
-    if (!include) continue
-    if (line.startsWith('LF:')) linesFound += Number(line.slice(3))
-    if (line.startsWith('LH:')) linesHit += Number(line.slice(3))
-  }
-  return { linesFound, linesHit }
-}
 
 const results: WorkspaceCoverage[] = []
 const missing: string[] = []
