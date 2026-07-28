@@ -81,6 +81,7 @@ import { StorageManifest } from './StorageManifest'
 import { freshEntity } from './controlPrimitives'
 import type { SheetPatch } from './sheetViewProps'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
+import { linesFromBreakdown } from 'component-lib'
 
 // Narrow subset of chassis data the stat derivations need
 type ChassisLike = {
@@ -194,6 +195,24 @@ export function MechSheet({
     ? (SalvageUnionReference.resolveActions(chassisEntity) ?? [])
     : []
   const chassisName = chassisEntity?.name ?? chassis?.name ?? mech.chassisRef
+
+  // Stat provenance ledgers (ADR-029). The installed line is a single aggregate
+  // until the contribution model can attribute it per item.
+  const spLines = linesFromBreakdown(spParts, {
+    base: `${chassisName} chassis`,
+    baseDetail: 'base',
+    installed: 'Installed systems & modules',
+  })
+  const epLines = linesFromBreakdown(epParts, {
+    base: `${chassisName} chassis`,
+    baseDetail: 'base',
+    installed: 'Installed systems & modules',
+  })
+  const heatLines = linesFromBreakdown(heatParts, {
+    base: `${chassisName} chassis`,
+    baseDetail: 'base',
+    installed: 'Installed systems & modules',
+  })
   const techLevel =
     typeof chassisEntity?.techLevel === 'number' ? chassisEntity.techLevel : undefined
 
@@ -558,6 +577,7 @@ export function MechSheet({
                   : (next) => overrideMechMax({ maxSpOverride: pinOrUndef(next, spParts.derived) })
               }
               overriddenFrom={readOnly || !spParts.overridden ? undefined : spParts.derived}
+              provenance={spLines}
               onRevertOverride={
                 readOnly ? undefined : () => overrideMechMax({ maxSpOverride: undefined })
               }
@@ -575,6 +595,7 @@ export function MechSheet({
                   : (next) => overrideMechMax({ maxEpOverride: pinOrUndef(next, epParts.derived) })
               }
               overriddenFrom={readOnly || !epParts.overridden ? undefined : epParts.derived}
+              provenance={epLines}
               onRevertOverride={
                 readOnly ? undefined : () => overrideMechMax({ maxEpOverride: undefined })
               }
@@ -593,6 +614,7 @@ export function MechSheet({
                       overrideMechMax({ maxHeatOverride: pinOrUndef(next, heatParts.derived) })
               }
               overriddenFrom={readOnly || !heatParts.overridden ? undefined : heatParts.derived}
+              provenance={heatLines}
               onRevertOverride={
                 readOnly ? undefined : () => overrideMechMax({ maxHeatOverride: undefined })
               }

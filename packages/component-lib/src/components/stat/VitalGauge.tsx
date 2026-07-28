@@ -5,6 +5,8 @@ import { cn } from '../../utils/cn'
 import type { SizeRung } from '../../styles/sizing'
 import { POSTER_STAMP } from '../chrome/posterStamp'
 import { pipClickValue, statBlockRowStarts, trackSegmentState } from './pipRows'
+import { StatProvenance } from './StatProvenance'
+import type { ProvenanceLine } from './StatProvenance'
 
 export type VitalGaugeProps = {
   /** Stamp label, e.g. 'HP', 'SP', 'Heat'. */
@@ -31,6 +33,17 @@ export type VitalGaugeProps = {
   overriddenFrom?: number
   /** Revert the cap override back to its derived baseline. */
   onRevertOverride?: () => void
+  /**
+   * Ledger explaining how `max` was derived (ADR-029). When supplied, a small
+   * marker beside the numeral opens the StatProvenance panel on hover, focus or
+   * tap.
+   *
+   * It is deliberately NOT the numeral itself: the numeral is already the
+   * click-to-edit override affordance, so one click would have to mean two
+   * things. When the stat is overridden the existing `*` marker becomes the
+   * trigger — it already signals "there is something here to explain".
+   */
+  provenance?: ProvenanceLine[]
   /** Caption pair, right-aligned under the track. Defaults to Current / Max. */
   caption?: [string, string]
   /** Non-interactive read-out (role="img"); over-capacity segments read red. */
@@ -81,6 +94,7 @@ export function VitalGauge({
   onMaxChange,
   overriddenFrom,
   onRevertOverride,
+  provenance,
   caption,
   readOnly,
   danger,
@@ -239,6 +253,26 @@ export function VitalGauge({
         >
           {shown}/{max}
         </span>
+        {/*
+         * Guided Play teaches as it enforces (ADR-021), so the compact
+         * instrument carries provenance too. This branch used to return before
+         * any of the override/provenance chrome, which is why the Dashboard
+         * silently dropped both props.
+         */}
+        {provenance && (
+          <StatProvenance
+            statLabel={`Max ${label}`}
+            lines={provenance}
+            total={max}
+            overridden={isOverridden}
+            className={cn(
+              'shrink-0 border-b-0 text-label leading-none',
+              onDark ? 'text-paper/60 hover:text-paper' : 'text-wk-muted hover:text-ink'
+            )}
+          >
+            {isOverridden ? '*' : 'ⓘ'}
+          </StatProvenance>
+        )}
       </div>
     )
   }
@@ -318,13 +352,34 @@ export function VitalGauge({
           ) : (
             <span className={cn('text-readout text-ink/70')}>{max}</span>
           )}
-          {isOverridden && (
-            <sup
-              title={`Overridden from ${overriddenFrom}`}
-              className="ml-0.5 text-label font-bold text-[var(--tone-deep)]"
+          {isOverridden &&
+            (provenance ? (
+              <StatProvenance
+                statLabel={`Max ${label}`}
+                lines={provenance}
+                total={max}
+                overridden
+                className="ml-0.5 border-b-0 align-super text-label font-bold text-[var(--tone-deep)]"
+              >
+                *
+              </StatProvenance>
+            ) : (
+              <sup
+                title={`Overridden from ${overriddenFrom}`}
+                className="ml-0.5 text-label font-bold text-[var(--tone-deep)]"
+              >
+                *
+              </sup>
+            ))}
+          {!isOverridden && provenance && (
+            <StatProvenance
+              statLabel={`Max ${label}`}
+              lines={provenance}
+              total={max}
+              className="ml-1 border-b-0 align-middle text-label leading-none text-wk-muted hover:text-ink"
             >
-              *
-            </sup>
+              ⓘ
+            </StatProvenance>
           )}
           {isOverridden && onRevertOverride && !editingMax && (
             <button
