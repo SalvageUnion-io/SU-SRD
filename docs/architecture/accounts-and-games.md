@@ -2,8 +2,10 @@
 
 > **Status:** Delivery plan for [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md).
 > The ADR records _why_ and _what_; this document records _in what order_ and
-> _what breaks_. Phase 0 and part of Phase 1 have landed; everything from Phase 2
-> on is planned, not built.
+> _what breaks_. **Phases 0-6 have landed as a stack of draft PRs** (#609 through
+> #645). The server layer, data model and permission rules are complete and
+> tested; the surfaces for Phases 3-5 are wired to that data but want a design
+> pass before they are called finished.
 >
 > Read alongside [ADR-021](../adrs/ADR-021-itun-surface-taxonomy.md) (the
 > enforcement modes this adds an ownership axis to),
@@ -79,7 +81,7 @@ Each phase's exit criterion is the next one's precondition.
   Pushing, Crafting, Salvage) are single-player gameplay mis-filed under
   "Multiplayer", and closing them would destroy live backlog.
 
-### Phase 1 — Accounts, Games & sync
+### Phase 1 — Accounts, Games & sync ✅
 
 Everything structural, nothing live. The Dashboard stays single-player, which is
 what de-risks the rest.
@@ -97,7 +99,7 @@ what de-risks the rest.
 each sees their own entities scoped to it — on two machines. An account can be
 fully deleted.
 
-### Phase 2 — Roles & visibility
+### Phase 2 — Roles & visibility ✅
 
 Capabilities on membership, Organizer transfer, Mediator assignment,
 **server-side** authorization on every mutation, read-only crewmate drill-in,
@@ -107,22 +109,22 @@ ownership assign/release/reassign, owner chips.
 Player cannot write a crewmate's pilot and that an Organizer gains nothing over
 content by holding the flag.
 
-### Phase 3 — The Mediator surface
+### Phase 3 — The Mediator surface ✅ (server; screen wants a design pass)
 
 Crew roster with live vitals, the communal crawler, the NPC tray; `/encounter`
 absorbed and retired; presence.
 
-### Phase 4 — Alerts & propose/confirm
+### Phase 4 — Alerts & propose/confirm ✅
 
 Proposal states on the Change Log, same-field supersession, player Apply/Decline,
 broadcast alerts, and the **Crew** dial item.
 
-### Phase 5 — Synchronized Downtime
+### Phase 5 — Synchronized Downtime ✅
 
 Downtime phase as Game state advanced by the Mediator; per-player step completion
 visible to the table; crawler upkeep resolved once rather than six times.
 
-### Phase 6 — Discord bot as a Game client
+### Phase 6 — Discord bot as a Game client ✅
 
 The bot authenticates as a participant rather than an admin; rolls made in
 Discord land as Change Log entries.

@@ -230,6 +230,27 @@ export default defineSchema({
     .index('by_game_state', ['gameId', 'state']),
 
   /**
+   * Which Discord channel a Game is bound to (ADR-030, Phase 6).
+   *
+   * The bot authenticates as a **participant**, not an admin — the whole point
+   * of closing the old #165 differently. A binding says "rolls in this channel
+   * belong to this Game", and the actor is resolved from the Discord user id
+   * against `users.discordId`, so the bot can never act as somebody who has not
+   * linked their account.
+   *
+   * One Game per channel: a channel that meant two Games would make every roll
+   * ambiguous.
+   */
+  channelBindings: defineTable({
+    gameId: v.id('games'),
+    channelId: v.string(),
+    boundBy: v.id('users'),
+    boundAt: v.number(),
+  })
+    .index('by_channel', ['channelId'])
+    .index('by_game', ['gameId']),
+
+  /**
    * Crew-wide Downtime state (ADR-030, Phase 5).
    *
    * Downtime is the one procedure the whole crew performs in step, so the phase
