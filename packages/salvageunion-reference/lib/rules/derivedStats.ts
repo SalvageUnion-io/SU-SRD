@@ -22,7 +22,8 @@
 import { SalvageUnionReference } from '../index.js'
 import { crawlerMaxSpBonus } from './creation.js'
 import { resolveChassisRef, resolveInstalledRef } from './resolveRefs.js'
-import { abilityContributions, sumContributions } from './contributions.js'
+import { abilityContributions, installedContributions, sumContributions } from './contributions.js'
+import type { ActiveEffects } from './contributions.js'
 import type { ResolvedContribution } from './contributions.js'
 
 // ---------------------------------------------------------------------------
@@ -137,6 +138,9 @@ export type ChassisStats = {
   energyPoints?: number
   heatCapacity?: number
   cargoCapacity?: number
+  /** Slot counts — read by `fromStat` contributions (Hull Magnetiser). */
+  systemSlots?: number
+  moduleSlots?: number
 }
 
 type MechDerivationInput = {
@@ -168,6 +172,12 @@ export type PilotingContext = {
   abilities?: string[]
   /** The mech's Tech Level, for `perTechLevel` amounts (Beefcake's 3+X). */
   techLevel?: number
+  /**
+   * Which `duration: 'activated'` contributions are switched on right now
+   * (F1). Ephemeral play state, never persisted — an activated effect that is
+   * off contributes nothing, exactly as if it were absent.
+   */
+  active?: ActiveEffects
 }
 
 /**
@@ -288,7 +298,24 @@ export function mechMaxSPParts(
     installedStatBonus(mech, 'structurePoints'),
     mech.maxSpModifier ?? 0,
     mech.maxSpOverride,
-    abilityContributions(pilot?.abilities, 'pilotedMech', 'structurePoints', pilot?.techLevel)
+    [
+      ...abilityContributions(
+        pilot?.abilities,
+        'pilotedMech',
+        'structurePoints',
+        pilot?.techLevel,
+        pilot?.active
+      ),
+      ...installedContributions(
+        [...(mech.systems ?? []), ...(mech.modules ?? [])],
+        'structurePoints',
+        {
+          techLevel: pilot?.techLevel,
+          active: pilot?.active,
+          stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
+        }
+      ),
+    ]
   )
 }
 
@@ -303,7 +330,24 @@ export function mechMaxEPParts(
     installedStatBonus(mech, 'energyPoints'),
     mech.maxEpModifier ?? 0,
     mech.maxEpOverride,
-    abilityContributions(pilot?.abilities, 'pilotedMech', 'energyPoints', pilot?.techLevel)
+    [
+      ...abilityContributions(
+        pilot?.abilities,
+        'pilotedMech',
+        'energyPoints',
+        pilot?.techLevel,
+        pilot?.active
+      ),
+      ...installedContributions(
+        [...(mech.systems ?? []), ...(mech.modules ?? [])],
+        'energyPoints',
+        {
+          techLevel: pilot?.techLevel,
+          active: pilot?.active,
+          stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
+        }
+      ),
+    ]
   )
 }
 
@@ -318,7 +362,24 @@ export function mechMaxHeatParts(
     installedStatBonus(mech, 'heatCapacity'),
     mech.maxHeatModifier ?? 0,
     mech.maxHeatOverride,
-    abilityContributions(pilot?.abilities, 'pilotedMech', 'heatCapacity', pilot?.techLevel)
+    [
+      ...abilityContributions(
+        pilot?.abilities,
+        'pilotedMech',
+        'heatCapacity',
+        pilot?.techLevel,
+        pilot?.active
+      ),
+      ...installedContributions(
+        [...(mech.systems ?? []), ...(mech.modules ?? [])],
+        'heatCapacity',
+        {
+          techLevel: pilot?.techLevel,
+          active: pilot?.active,
+          stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
+        }
+      ),
+    ]
   )
 }
 
@@ -333,7 +394,24 @@ export function mechMaxCargoParts(
     installedStatBonus(mech, 'cargoCapacity'),
     mech.maxCargoModifier ?? 0,
     mech.maxCargoOverride,
-    abilityContributions(pilot?.abilities, 'pilotedMech', 'cargoCapacity', pilot?.techLevel)
+    [
+      ...abilityContributions(
+        pilot?.abilities,
+        'pilotedMech',
+        'cargoCapacity',
+        pilot?.techLevel,
+        pilot?.active
+      ),
+      ...installedContributions(
+        [...(mech.systems ?? []), ...(mech.modules ?? [])],
+        'cargoCapacity',
+        {
+          techLevel: pilot?.techLevel,
+          active: pilot?.active,
+          stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
+        }
+      ),
+    ]
   )
 }
 

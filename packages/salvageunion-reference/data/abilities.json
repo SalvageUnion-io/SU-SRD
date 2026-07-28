@@ -445,6 +445,7 @@
     "level": 1,
     "page": 40,
     "actions": ["Squeeze it in"],
+    "contributions": [{"stat": "cargoCapacity", "target": "pilotedMech", "amount": 4, "duration": "activated", "stacks": true, "note": "\"temporarily increase the Cargo Capacity of a Mech in Range by 4\" — manual expiry"}],
     "description": "Temporarily increase the cargo capacity of a Mech.",
     "additionalSources": [
       {

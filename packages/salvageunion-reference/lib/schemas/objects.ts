@@ -481,6 +481,16 @@ export const ContributionAmountSchema = z.union([
       perTechLevel: z.number().int().describe("Multiplied by the target's tech level"),
     })
     .strict(),
+  z
+    .object({
+      /**
+       * The amount IS another of the target's stats. Hull Magnetiser increases
+       * Cargo Capacity "by its System Slot Value" — a number that changes with
+       * the chassis, so it cannot be written as a constant.
+       */
+      fromStat: ContributionStatSchema,
+    })
+    .strict(),
 ])
 
 /**
@@ -511,6 +521,14 @@ export const ContributionSchema = z
       .enum(['damaged', 'destroyed'])
       .describe('Condition at which this contribution stops applying')
       .optional(),
+    duration: z
+      .enum(['permanent', 'activated'])
+      .describe(
+        'Permanent (default) applies whenever held/installed. `activated` applies ' +
+          'only while the player has switched it on in Guided Play — ephemeral ' +
+          'play state (ADR-019), never persisted on the entity.'
+      )
+      .optional(),
     note: z.string().describe('Why this is encoded the way it is').optional(),
   })
   .strict()
@@ -532,6 +550,14 @@ export const SystemModuleSchema = StatsSchema.extend({
   statBonus: MechStatBonusSchema.describe(
     'Explicit flat bonuses this item applies to the host mech’s derived maxima, summed per installed copy'
   ).optional(),
+  contributions: z
+    .array(ContributionSchema)
+    .describe(
+      'Contributions this item makes (ADR-029). Distinct from `statBonus`: these ' +
+        'carry a target, a duration and expression amounts, so they cover what a ' +
+        'flat per-copy bonus cannot.'
+    )
+    .optional(),
   actions: z.array(z.string()).describe('Action names this system/module provides'),
 }).describe('A system or module that can be installed on a mech')
 

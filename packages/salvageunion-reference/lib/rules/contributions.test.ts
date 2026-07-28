@@ -176,3 +176,52 @@ describe('named sources stay attributable', () => {
     expect(parts.total).toBe(11) // 10 − 1 + 2
   })
 })
+
+describe('activated contributions — manual expiry (F1)', () => {
+  // Salvage Union states real durations ("lasts for 1 hour"), but the app has no
+  // play clock: inventing one would put wall-time into the data layer and make a
+  // sheet's numbers change while nobody is looking. The table keeps time, the
+  // app keeps state — so an activated effect applies only while switched on.
+  const mech = { chassisRef: 'no-such-chassis', modules: ['Hull Magnetiser'] }
+  const chassis = { cargoCapacity: 6, systemSlots: 15 }
+
+  it('an activated ability contributes NOTHING while switched off', () => {
+    expect(
+      sumContributions(abilityContributions(['Squeeze it in'], 'pilotedMech', 'cargoCapacity'))
+    ).toBe(0)
+  })
+
+  it('and contributes once switched on', () => {
+    const on = abilityContributions(['Squeeze it in'], 'pilotedMech', 'cargoCapacity', undefined, {
+      'Squeeze it in': true,
+    })
+    expect(sumContributions(on)).toBe(4)
+    expect(on[0]?.source).toBe('Squeeze it in')
+  })
+
+  it('a permanent contribution is unaffected by the active map', () => {
+    expect(
+      sumContributions(abilityContributions(['Bionic Legs'], 'pilot', 'maxHp', undefined, {}))
+    ).toBe(2)
+  })
+
+  it("Hull Magnetiser resolves its amount FROM the mech's System Slot Value", () => {
+    // "increases your Mech's Cargo Capacity by its System Slot Value" — a number
+    // that changes with the chassis, so it cannot be written as a constant.
+    const off = mechMaxCargoParts(mech, chassis)
+    expect(off.total).toBe(6)
+
+    const on = mechMaxCargoParts(mech, chassis, { active: { 'Hull Magnetiser': true } })
+    expect(on.total).toBe(6 + 15)
+    expect(on.sources[0]?.source).toBe('Hull Magnetiser')
+  })
+
+  it('a fromStat amount with no stat available resolves to 0, never a guess', () => {
+    const on = mechMaxCargoParts(
+      mech,
+      { cargoCapacity: 6 },
+      { active: { 'Hull Magnetiser': true } }
+    )
+    expect(on.total).toBe(6)
+  })
+})
