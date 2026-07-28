@@ -238,7 +238,10 @@ export const ELDRIDGE_PILOTS: readonly Pilot[] = [
     keepsake: 'Family Photo',
     appearance: 'Homebrewed Android. She/her.',
     background: 'Fugitive Corporate Property',
-    maxHpModifier: 8,
+    // Nell's 8 was 4 (class) + 4 hand-encoded for Bionic Arms/Legs, which the app
+    // could not apply. Those are real contributions now (ADR-029), so keeping the 8
+    // would double-count them — the exact hazard the ADR-022 amendment describes.
+    maxHpModifier: 4,
     maxApModifier: 2,
     trainingPoints: 1,
     description:

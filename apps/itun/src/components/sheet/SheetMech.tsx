@@ -157,6 +157,7 @@ export function SheetMech({
           heroRef={heroRef}
           crawler={composition.crawler}
           linkedUnits={rail}
+          pilotAbilities={composition.pilot?.abilities}
         />
       )}
     />

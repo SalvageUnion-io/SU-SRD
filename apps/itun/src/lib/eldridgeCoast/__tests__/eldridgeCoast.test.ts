@@ -20,7 +20,13 @@ import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:te
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 
 import { crawlerMaxSP, pilotMaxAP, pilotMaxHP } from '../../rules/derivedStats'
-import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
+import {
+  abilityContributions,
+  resolveChassisRef,
+  resolveModuleRef,
+  resolveSystemRef,
+  sumContributions,
+} from 'salvageunion-reference/rules'
 import { resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
 import { CrawlerSchema } from '../../schemas/crawler'
 import { MechSchema } from '../../schemas/mech'
@@ -234,7 +240,11 @@ describe('Eldridge Coast seed — reference refs resolve (drift guard)', () => {
 describe('Eldridge Coast seed — derived stats', () => {
   test('each pilot derives 10 + maxHpModifier HP and 5 + maxApModifier AP', () => {
     for (const p of ELDRIDGE_PILOTS) {
-      expect(pilotMaxHP(p)).toBe(10 + (p.maxHpModifier ?? 0))
+      // Max HP is base + manual adjustment + ABILITY CONTRIBUTIONS (ADR-029), so
+      // this is no longer `10 + modifier`: Nell's Bionic Arms/Legs add 4 that the
+      // record used to hand-encode.
+      const abilityHp = sumContributions(abilityContributions(p.abilities, 'pilot', 'maxHp'))
+      expect(pilotMaxHP(p)).toBe(10 + (p.maxHpModifier ?? 0) + abilityHp)
       expect(pilotMaxAP(p)).toBe(5 + (p.maxApModifier ?? 0))
     }
   })

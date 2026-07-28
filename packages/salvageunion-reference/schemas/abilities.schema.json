@@ -341,6 +341,71 @@
         "type": "array",
         "items": { "type": "string" },
         "description": "Action names this ability provides"
+      },
+      "contributions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "stat": {
+              "type": "string",
+              "enum": [
+                "structurePoints",
+                "energyPoints",
+                "heatCapacity",
+                "cargoCapacity",
+                "systemSlots",
+                "moduleSlots",
+                "maxHp",
+                "maxAp",
+                "inventorySlots"
+              ]
+            },
+            "amount": {
+              "anyOf": [
+                { "type": "integer", "minimum": -9007199254740991, "maximum": 9007199254740991 },
+                {
+                  "type": "object",
+                  "properties": {
+                    "flat": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "description": "The constant part"
+                    },
+                    "perTechLevel": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "description": "Multiplied by the target's tech level"
+                    }
+                  },
+                  "required": ["perTechLevel"],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "target": {
+              "type": "string",
+              "enum": ["self", "pilot", "pilotedMech", "crawler"],
+              "description": "Defaults to `self` when absent"
+            },
+            "stacks": {
+              "type": "boolean",
+              "description": "Applies once per installed copy (default true for installable items)"
+            },
+            "voidWhen": {
+              "type": "string",
+              "enum": ["damaged", "destroyed"],
+              "description": "Condition at which this contribution stops applying"
+            },
+            "note": { "type": "string", "description": "Why this is encoded the way it is" }
+          },
+          "required": ["stat", "amount"],
+          "additionalProperties": false,
+          "description": "A flat mechanical contribution this content makes to a stat"
+        },
+        "description": "Flat stat changes this ability makes (ADR-029). An ability could previously declare no mechanical change at all, so Beefcake, Bionic Arms, Bionic Legs and Modular Face Implant were inert prose."
       }
     },
     "required": ["id", "blackMarket", "name", "source", "page", "tree", "level", "actions"],

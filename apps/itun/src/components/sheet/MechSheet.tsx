@@ -125,6 +125,13 @@ type MechSheetProps = {
    * its own, so this is passed straight through into the R4 section.
    */
   linkedUnits?: ReactNode
+  /**
+   * The assigned pilot's ability refs, handed down by SheetMech from
+   * `composition`. Beefcake is a PILOT ability that raises the piloted MECH's
+   * Max SP and Cargo, so a mech's maxima cannot be derived from the mech alone
+   * (ADR-029). Absent = unlinked, which correctly contributes nothing.
+   */
+  pilotAbilities?: string[]
 }
 
 function resolveChassis(mech: Mech, override?: ChassisLike | null): ChassisLike | null {
@@ -142,6 +149,7 @@ export function MechSheet({
   heroRef,
   crawler = null,
   linkedUnits,
+  pilotAbilities,
 }: MechSheetProps) {
   const chassis = resolveChassis(mech, chassisOverride)
   const storeState = store()
@@ -170,9 +178,19 @@ export function MechSheet({
   const [warningSubtitle, setWarningSubtitle] = useState<string | null>(null)
 
   // Derived maxima (plan 2.5): chassis stat + hand-edited modifiers.
-  const spParts = mechMaxSPParts(mech, chassis)
-  const epParts = mechMaxEPParts(mech, chassis)
-  const heatParts = mechMaxHeatParts(mech, chassis)
+  // Beefcake is a PILOT ability that raises the piloted MECH's Max SP and Cargo,
+  // so a mech's maxima cannot be derived from the mech alone (ADR-029).
+  // Beefcake is a PILOT ability that raises the piloted MECH (ADR-029), and its
+  // Max SP is "3+X where X is the Mech's Tech Level" — so the piloting context
+  // carries the chassis tech level. Non-numeric tech levels ('B'/'N' — Bio-Titan,
+  // Nanite) have no numeric scale and resolve to the flat part rather than a guess.
+  const pilotingChassis = resolveChassisRef(mech.chassisRef)
+  const chassisTl =
+    typeof pilotingChassis?.techLevel === 'number' ? pilotingChassis.techLevel : undefined
+  const piloting = { abilities: pilotAbilities, techLevel: chassisTl }
+  const spParts = mechMaxSPParts(mech, chassis, piloting)
+  const epParts = mechMaxEPParts(mech, chassis, piloting)
+  const heatParts = mechMaxHeatParts(mech, chassis, piloting)
   const maxSP = spParts.total
   const maxEP = epParts.total
   const heatCap = heatParts.total

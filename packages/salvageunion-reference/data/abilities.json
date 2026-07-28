@@ -353,6 +353,7 @@
     "level": 2,
     "page": 35,
     "actions": ["Bionic Arms Attack", "Bionic Arms"],
+    "contributions": [{"stat": "maxHp", "target": "pilot", "amount": 2}],
     "content": [
       {
         "type": "paragraph",
@@ -376,6 +377,7 @@
     "level": 3,
     "page": 36,
     "actions": ["Bionic Legs"],
+    "contributions": [{"stat": "maxHp", "target": "pilot", "amount": 2}],
     "description": "Gain a set of integrated Bionic Legs. Gives improved base movement.",
     "additionalSources": [
       {
@@ -596,6 +598,7 @@
     "level": 1,
     "page": 42,
     "actions": ["Beefcake"],
+    "contributions": [{"stat": "structurePoints", "target": "pilotedMech", "amount": {"flat": 3, "perTechLevel": 1}, "note": "\"increases its Max Structure Points by 3+X (where X is the Mech's Tech Level)\""}, {"stat": "cargoCapacity", "target": "pilotedMech", "amount": 6}, {"stat": "maxHp", "target": "pilot", "amount": 2}, {"stat": "inventorySlots", "target": "pilot", "amount": 4}],
     "description": "Increase your size and strength, as well as the size and strength of your Mech."
   },
   {
@@ -1097,6 +1100,7 @@
     "level": 2,
     "page": 60,
     "actions": ["Modular Face Implant"],
+    "contributions": [{"stat": "moduleSlots", "target": "pilot", "amount": 1, "note": "\"Your Pilot gains a Module Slot\""}],
     "description": "Install a Module interfaced directly to your brain."
   },
   {

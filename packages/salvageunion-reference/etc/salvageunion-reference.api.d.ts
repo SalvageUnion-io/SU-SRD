@@ -995,6 +995,65 @@ export declare function resolveCatalogChoiceEntities(choice: SURefObjectChoice, 
  */
 export declare function isSchemaOnlyCatalogChoice(choice: SURefObjectChoice): boolean;
 //# sourceMappingURL=choiceCatalog.d.ts.map
+// === lib/rules/contributions.d.ts ===
+/**
+ * Resolving declared contributions into numbers (ADR-029).
+ *
+ * The numeric half of the converged modifier model. Content declares WHAT it
+ * changes (`ContributionSchema`); this module works out how much that is worth
+ * for a given holder, and — crucially — keeps each contribution's SOURCE
+ * attached, so a derivation can hand the provenance panel "Beefcake +7" instead
+ * of an anonymous addend.
+ *
+ * Pure and side-effect-free ([ADR-006](../../docs/adrs/ADR-006-pure-rules-logic.md)):
+ * no I/O, no ORM writes, no mutation of inputs.
+ */
+/** The stat keys a contribution may target. Mirrors `ContributionStatSchema`. */
+export type ContributionStat = 'structurePoints' | 'energyPoints' | 'heatCapacity' | 'cargoCapacity' | 'systemSlots' | 'moduleSlots' | 'maxHp' | 'maxAp' | 'inventorySlots';
+export type ContributionTarget = 'self' | 'pilot' | 'pilotedMech' | 'crawler';
+export type ContributionAmount = number | {
+    flat?: number;
+    perTechLevel: number;
+};
+/** A contribution as declared on a piece of reference content. */
+export type DeclaredContribution = {
+    stat: ContributionStat;
+    amount: ContributionAmount;
+    target?: ContributionTarget;
+    stacks?: boolean;
+    voidWhen?: 'damaged' | 'destroyed';
+    note?: string;
+};
+/** A resolved contribution: an amount, and the content that produced it. */
+export type ResolvedContribution = {
+    /** Display name of the granting entity, e.g. 'Beefcake'. */
+    source: string;
+    /** Slug/name ref so provenance UI can link back to it. */
+    ref: string;
+    stat: ContributionStat;
+    /** Signed, already multiplied by copies and resolved against tech level. */
+    amount: number;
+    /** How many copies contributed (1 unless the item stacks and is installed twice). */
+    copies: number;
+};
+/**
+ * Resolve a declared amount.
+ *
+ * `perTechLevel` needs the target's tech level; a caller that cannot supply one
+ * resolves it to the flat part rather than guessing, so an unknown tech level
+ * under-counts visibly instead of inventing a number.
+ */
+export declare function resolveAmount(amount: ContributionAmount, techLevel?: number): number;
+/**
+ * Every contribution the named abilities declare for `target`/`stat`.
+ *
+ * Abilities do not stack per copy — holding an ability twice is not a thing —
+ * so each resolved contribution is one copy.
+ */
+export declare function abilityContributions(abilityRefs: readonly string[] | undefined, target: ContributionTarget, stat: ContributionStat, techLevel?: number): ResolvedContribution[];
+/** Sum of resolved contributions — the number a derivation folds in. */
+export declare function sumContributions(contributions: readonly ResolvedContribution[]): number;
+//# sourceMappingURL=contributions.d.ts.map
 // === lib/rules/coreMechanic.d.ts ===
 /**
  * Core Mechanic d20 (design review R-6/U-3).
@@ -1382,6 +1441,8 @@ type Injury = {
     note: string;
 };
 type PilotDerivationInput = {
+    /** Ability refs the pilot holds — the source of ability contributions (ADR-029). */
+    abilities?: string[];
     injuries?: Injury[];
     maxHpModifier?: number;
     maxApModifier?: number;
@@ -1435,6 +1496,19 @@ type MechDerivationInput = {
     modules?: string[];
 };
 /**
+ * The pilot whose abilities contribute to the mech they are piloting.
+ *
+ * Beefcake is a PILOT ability that raises the piloted MECH's Max SP and Cargo,
+ * so a mech's maxima cannot be derived from the mech alone. Optional: a mech
+ * with no pilot in scope simply gets no ability contributions, which is what an
+ * unlinked mech should show.
+ */
+export type PilotingContext = {
+    abilities?: string[];
+    /** The mech's Tech Level, for `perTechLevel` amounts (Beefcake's 3+X). */
+    techLevel?: number;
+};
+/**
  * The mech-stat-bonus key each derivation sums over installed systems/modules.
  * Mirrors the `statBonus` field names declared on the reference item schema.
  */
@@ -1482,14 +1556,14 @@ export declare function installedStatBonus(mech: MechDerivationInput, stat: Stat
  * to avoid repeated ORM lookups; floored at 0 so a negative total never
  * produces a negative maximum.
  */
-export declare function mechMaxSPParts(mech: MechDerivationInput, chassis?: ChassisStats | null): StatBreakdown;
-export declare function mechMaxEPParts(mech: MechDerivationInput, chassis?: ChassisStats | null): StatBreakdown;
-export declare function mechMaxHeatParts(mech: MechDerivationInput, chassis?: ChassisStats | null): StatBreakdown;
-export declare function mechMaxCargoParts(mech: MechDerivationInput, chassis?: ChassisStats | null): StatBreakdown;
-export declare function mechMaxSP(mech: MechDerivationInput, chassis?: ChassisStats | null): number;
-export declare function mechMaxEP(mech: MechDerivationInput, chassis?: ChassisStats | null): number;
-export declare function mechMaxHeat(mech: MechDerivationInput, chassis?: ChassisStats | null): number;
-export declare function mechMaxCargo(mech: MechDerivationInput, chassis?: ChassisStats | null): number;
+export declare function mechMaxSPParts(mech: MechDerivationInput, chassis?: ChassisStats | null, pilot?: PilotingContext): StatBreakdown;
+export declare function mechMaxEPParts(mech: MechDerivationInput, chassis?: ChassisStats | null, pilot?: PilotingContext): StatBreakdown;
+export declare function mechMaxHeatParts(mech: MechDerivationInput, chassis?: ChassisStats | null, pilot?: PilotingContext): StatBreakdown;
+export declare function mechMaxCargoParts(mech: MechDerivationInput, chassis?: ChassisStats | null, pilot?: PilotingContext): StatBreakdown;
+export declare function mechMaxSP(mech: MechDerivationInput, chassis?: ChassisStats | null, pilot?: PilotingContext): number;
+export declare function mechMaxEP(mech: MechDerivationInput, chassis?: ChassisStats | null, pilot?: PilotingContext): number;
+export declare function mechMaxHeat(mech: MechDerivationInput, chassis?: ChassisStats | null, pilot?: PilotingContext): number;
+export declare function mechMaxCargo(mech: MechDerivationInput, chassis?: ChassisStats | null, pilot?: PilotingContext): number;
 /**
  * Clamp current SP/EP/Heat to the derived maxima. Run after any modifier or
  * chassis change and persist the returned patch when non-empty.
@@ -1743,6 +1817,8 @@ export { applySpDamage, mechEffectiveDamage, applyMechDamage, criticalDamageOutc
 export type { DamageKind, MechDamageInput, MechDamageEffect, PilotDamageInput, PilotDamageEffect, CriticalDamageEffect, CriticalInjuryEffect, } from './takeDamage.js';
 export { PILOT_BASE_HP, PILOT_BASE_AP, PILOT_BASE_INVENTORY_SLOTS, injuryMaxHpPenalty, pilotMaxHP, pilotMaxAP, isPilotDead, clampPilotCurrentStats, installedStatBonus, mechMaxSP, mechMaxEP, mechMaxHeat, mechMaxCargo, clampMechCurrentStats, unifiedMechConditions, crawlerMaxSP, crawlerMaxSPParts, mechMaxSPParts, mechMaxEPParts, mechMaxHeatParts, mechMaxCargoParts, pilotMaxHPParts, pilotMaxAPParts, clampCrawlerCurrentStats, } from './derivedStats.js';
 export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js';
+export { abilityContributions, resolveAmount, sumContributions, } from './contributions.js';
+export type { ContributionStat, ContributionTarget, ContributionAmount, DeclaredContribution, ResolvedContribution, } from './contributions.js';
 export { MEDIATOR_TABLE_NAMES, MEDIATOR_TABLE_LABEL, performMediatorRoll, describeMediatorRoll, } from './mediatorTables.js';
 export type { FindRollTable } from './mediatorTables.js';
 export type { TechLevel, SoftWarning, SoftWarningSeverity, SoftWarningContext, EditSnapshot, MechInput, MechSystemSlot, MechModuleSlot, MechCapacityResult, CapacityViolation, ScrapableItem, CargoItem, CargoItemRef, CargoItemCustom, CargoParent, CargoCapacityResult, CargoViolation, PilotSnapshot, MechSnapshot, AbilityInput, AbilityTier, SystemSnapshot, Roll, ReactorOverloadOutcome, HeatCheckResult, HeatCheckEffect, PushResult, CriticalDamageOutcome, CriticalDamageResult, CriticalInjuryOutcome, CriticalInjuryResult, MediatorTableId, MediatorRollResult, } from './types.js';
@@ -2904,6 +2980,35 @@ export declare const AbilitySchema: z.ZodObject<{
         Variable: "Variable";
     }>>;
     actions: z.ZodArray<z.ZodString>;
+    contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        stat: z.ZodEnum<{
+            structurePoints: "structurePoints";
+            energyPoints: "energyPoints";
+            heatCapacity: "heatCapacity";
+            systemSlots: "systemSlots";
+            moduleSlots: "moduleSlots";
+            cargoCapacity: "cargoCapacity";
+            maxHp: "maxHp";
+            maxAp: "maxAp";
+            inventorySlots: "inventorySlots";
+        }>;
+        amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+            flat: z.ZodOptional<z.ZodNumber>;
+            perTechLevel: z.ZodNumber;
+        }, z.core.$strict>]>;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            pilot: "pilot";
+            pilotedMech: "pilotedMech";
+            crawler: "crawler";
+        }>>;
+        stacks: z.ZodOptional<z.ZodBoolean>;
+        voidWhen: z.ZodOptional<z.ZodEnum<{
+            damaged: "damaged";
+            destroyed: "destroyed";
+        }>>;
+        note: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>>>;
 }, z.core.$strict>;
 /**
  * Requirements for ability trees
@@ -7919,6 +8024,97 @@ export declare const MechStatBonusSchema: z.ZodObject<{
     energyPoints: z.ZodOptional<z.ZodNumber>;
     heatCapacity: z.ZodOptional<z.ZodNumber>;
     cargoCapacity: z.ZodOptional<z.ZodNumber>;
+}, z.core.$strict>;
+/**
+ * The stats a contribution may raise or lower (ADR-029).
+ *
+ * A superset of `MechStatBonusSchema`'s four keys: an ability can change a
+ * PILOT stat (Bionic Legs "+2 Max HP", Beefcake "+4 Inventory Capacity") or a
+ * slot COUNT (Modular Face Implant "your Pilot gains a Module Slot"), neither of
+ * which the mech-only shape could express.
+ */
+export declare const ContributionStatSchema: z.ZodEnum<{
+    structurePoints: "structurePoints";
+    energyPoints: "energyPoints";
+    heatCapacity: "heatCapacity";
+    systemSlots: "systemSlots";
+    moduleSlots: "moduleSlots";
+    cargoCapacity: "cargoCapacity";
+    maxHp: "maxHp";
+    maxAp: "maxAp";
+    inventorySlots: "inventorySlots";
+}>;
+/**
+ * Whose stat a contribution changes.
+ *
+ * `self` is the host the contribution is declared on (a system contributing to
+ * its own mech). The others exist because Beefcake is a PILOT ability that
+ * raises the piloted MECH's Max SP and Cargo while also raising the pilot's own
+ * Max HP and Inventory — one record, two targets, which no single-target shape
+ * could express.
+ */
+export declare const ContributionTargetSchema: z.ZodEnum<{
+    self: "self";
+    pilot: "pilot";
+    pilotedMech: "pilotedMech";
+    crawler: "crawler";
+}>;
+/**
+ * How much a contribution is worth.
+ *
+ * A plain integer covers most records. `perTechLevel` exists for Beefcake —
+ * "increases its Max Structure Points by 3+X (where X is the Mech's Tech
+ * Level)" — where the amount is `flat + perTechLevel × techLevel`. Rendering the
+ * amount needs the target's tech level, so a consumer that cannot supply one
+ * resolves `perTechLevel` to 0 rather than guessing.
+ */
+export declare const ContributionAmountSchema: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+    flat: z.ZodOptional<z.ZodNumber>;
+    perTechLevel: z.ZodNumber;
+}, z.core.$strict>]>;
+/**
+ * A single mechanical contribution a piece of content makes to a stat
+ * (ADR-029).
+ *
+ * This is the numeric half of the converged model. The trait/damage/range half
+ * already exists as `ChoiceEffectSchema` and is applied by `resolveChoiceView`;
+ * the two are declared side by side rather than merged into one union, because
+ * they are resolved at different layers — stats at derivation time, effects at
+ * dataview time.
+ *
+ * **Never infer a contribution from prose.** Populate it only where the rules
+ * text states a flat mechanical change; anything conditional, prose-only, or
+ * duration-bound stays undeclared and is answered to the parity audit with an
+ * explicit exemption instead.
+ */
+export declare const ContributionSchema: z.ZodObject<{
+    stat: z.ZodEnum<{
+        structurePoints: "structurePoints";
+        energyPoints: "energyPoints";
+        heatCapacity: "heatCapacity";
+        systemSlots: "systemSlots";
+        moduleSlots: "moduleSlots";
+        cargoCapacity: "cargoCapacity";
+        maxHp: "maxHp";
+        maxAp: "maxAp";
+        inventorySlots: "inventorySlots";
+    }>;
+    amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+        flat: z.ZodOptional<z.ZodNumber>;
+        perTechLevel: z.ZodNumber;
+    }, z.core.$strict>]>;
+    target: z.ZodOptional<z.ZodEnum<{
+        self: "self";
+        pilot: "pilot";
+        pilotedMech: "pilotedMech";
+        crawler: "crawler";
+    }>>;
+    stacks: z.ZodOptional<z.ZodBoolean>;
+    voidWhen: z.ZodOptional<z.ZodEnum<{
+        damaged: "damaged";
+        destroyed: "destroyed";
+    }>>;
+    note: z.ZodOptional<z.ZodString>;
 }, z.core.$strict>;
 /**
  * A system or module that can be installed on a mech
