@@ -295,6 +295,7 @@ jobs:
         env:
           ITUN_RESULT: ${{ needs.e2e-itun.result }}
           SRD_RESULT: ${{ needs.e2e-srd.result }}
+          PROBE_RESULT: ${{ needs.observability-probe.result }}
         with:
           script: |
             const label = 'nightly-e2e-failure'
@@ -303,9 +304,18 @@ jobs:
             // always means "hit timeout-minutes", which reads very differently
             // from 'failure' (assertions failed) and points at a hang rather
             // than a broken expectation.
+            // observability-probe MUST appear here, not just in `needs:` and the
+            // `if:`. It can open this issue on its own, and without a line of its
+            // own the issue would read "e2e-itun: success, e2e-srd: success" while
+            // still being filed — an alarm that refuses to say what tripped it.
+            // Omitted entirely when skipped (the OBSERVABILITY_PROBE variable is
+            // off), so the report never lists a job that did not run.
             const results = [
               ['e2e-itun', process.env.ITUN_RESULT],
               ['e2e-srd', process.env.SRD_RESULT],
+              ...(process.env.PROBE_RESULT && process.env.PROBE_RESULT !== 'skipped'
+                ? [['observability-probe', process.env.PROBE_RESULT]]
+                : []),
             ]
             const body = [
               `Nightly E2E (\`e2e-nightly.yml\`) did not pass on \`${context.ref}\`.`,

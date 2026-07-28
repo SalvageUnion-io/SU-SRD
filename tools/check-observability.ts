@@ -179,6 +179,37 @@ function checkStatic(app: BrowserApp): void {
   }
 }
 
+/**
+ * Fetch, retrying transient network failures.
+ *
+ * This probe talks to the public internet from a CI runner, where a dropped
+ * socket or a momentary 5xx is ordinary weather — and a failure here OPENS A
+ * TRACKING ISSUE. The first real nightly run proved the point: it reported
+ * "production unreachable … The socket connection was closed unexpectedly"
+ * against a site that was demonstrably up seconds earlier.
+ *
+ * A probe that cries wolf teaches you to stop reading it, which is precisely
+ * the failure this file exists to prevent — so a verdict of "production is
+ * dark" has to survive several attempts before it is worth waking anyone.
+ *
+ * Retries only what is plausibly transient: network errors and 5xx. A 4xx is a
+ * real answer from a working server and is returned immediately.
+ */
+async function fetchWithRetry(url: string, attempts = 4): Promise<Response> {
+  let lastError: unknown = new Error('no attempt made')
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      const res = await fetch(url, { redirect: 'follow' })
+      if (res.status < 500) return res
+      lastError = new Error(`HTTP ${res.status}`)
+    } catch (error) {
+      lastError = error
+    }
+    if (attempt < attempts - 1) await Bun.sleep(1000 * 2 ** attempt)
+  }
+  throw lastError
+}
+
 /** Absolute-ises every `<script src>` the served HTML references. */
 function scriptUrls(html: string, origin: string): string[] {
   const re = /<script[^>]+src=["']([^"']+)["']/g
@@ -195,7 +226,7 @@ async function checkLive(app: BrowserApp): Promise<void> {
   // _headers file this repo never sees.
   let servedCsp: string | null = null
   try {
-    const res = await fetch(app.productionUrl, { redirect: 'follow' })
+    const res = await fetchWithRetry(app.productionUrl)
     if (!res.ok) {
       fail(app.name, `production fetch failed: HTTP ${res.status} ${app.productionUrl}`)
       return
@@ -220,7 +251,7 @@ async function checkLive(app: BrowserApp): Promise<void> {
 
   for (const url of urls) {
     try {
-      const body = await (await fetch(url)).text()
+      const body = await (await fetchWithRetry(url)).text()
       if (!sdkFoundIn && SDK_MARKER.test(body)) sdkFoundIn = url
       if (!dsnHost) dsnHost = body.match(DSN_IN_BUNDLE)?.[1] ?? null
     } catch {
