@@ -43,7 +43,24 @@ type PlayState = {
    *  active Item band should open its Take-Damage overlay (pre-armed) for the
    *  player to confirm. Consumed (reset) by the band once it opens the overlay. */
   damagePromptArmed: boolean
+  /**
+   * Which `duration: 'activated'` contributions are switched on, keyed by the
+   * declaring record's ref (ADR-029 / F1).
+   *
+   * **Manual expiry by design.** Salvage Union states real durations ("this
+   * effect lasts for 1 hour"), but the app has no play clock and inventing one
+   * would put wall-time into the data layer and make a sheet's numbers change
+   * while nobody is looking. The table keeps time; the app keeps state — the
+   * same division ADR-001's honour system already relies on.
+   *
+   * Ephemeral like the rest of this store: an activated effect never persists
+   * onto the entity, so it can never leak into a live sheet or a shared
+   * snapshot (ADR-019).
+   */
+  activeEffects: Record<string, boolean>
   setMount: (mount: MountState) => void
+  /** Switch an activated contribution on or off. */
+  toggleEffect: (ref: string) => void
   setWheel: (wheel: number) => void
   /** Set the self-declared engagement range band. */
   setRange: (range: RangeBand) => void
@@ -69,7 +86,10 @@ export const usePlayStateStore = create<PlayState>((set) => ({
   dtStep: 0,
   dtDone: {},
   damagePromptArmed: false,
+  activeEffects: {},
   setMount: (mount) => set({ mount }),
+  toggleEffect: (ref) =>
+    set((s) => ({ activeEffects: { ...s.activeEffects, [ref]: !s.activeEffects[ref] } })),
   setWheel: (wheel) => set({ wheel }),
   setRange: (range) => set({ range }),
   armDamagePrompt: () => set({ damagePromptArmed: true }),

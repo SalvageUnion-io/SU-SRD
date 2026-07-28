@@ -88,11 +88,6 @@ export const PARITY_EXEMPTIONS: Record<string, string> = {
   // Effect-of-an-effect: modifies another effect's OUTPUT, not a stat.
   Mender: 'effect-of-an-effect — changes how much a healing ability restores, not a stat',
 
-  // Duration-bound: ephemeral play state owned by the Dashboard (ADR-019), not
-  // the data-layer cap engine. In scope as `duration: activated` (F1), not here.
-  'Squeeze it in': 'duration-bound — 12h activated effect, Dashboard play state (F1)',
-  'Hull Magnetiser': 'duration-bound — 1h toggleable effect, Dashboard play state (F1)',
-
   // Grant at a moment: a one-off improvement applied WHEN it happens, not a
   // standing modifier. Encoding it as standing would re-apply it forever.
   'Pilot Bay': 'grant-at-a-moment — a one-off +2 HP / +1 AP improvement',

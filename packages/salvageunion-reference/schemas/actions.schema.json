@@ -551,6 +551,104 @@
                     "additionalProperties": false,
                     "description": "Explicit flat bonuses this item applies to the host mech’s derived maxima, summed per installed copy"
                   },
+                  "contributions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "stat": {
+                          "type": "string",
+                          "enum": [
+                            "structurePoints",
+                            "energyPoints",
+                            "heatCapacity",
+                            "cargoCapacity",
+                            "systemSlots",
+                            "moduleSlots",
+                            "maxHp",
+                            "maxAp",
+                            "inventorySlots"
+                          ]
+                        },
+                        "amount": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "flat": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991,
+                                  "description": "The constant part"
+                                },
+                                "perTechLevel": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991,
+                                  "description": "Multiplied by the target's tech level"
+                                }
+                              },
+                              "required": ["perTechLevel"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "fromStat": {
+                                  "type": "string",
+                                  "enum": [
+                                    "structurePoints",
+                                    "energyPoints",
+                                    "heatCapacity",
+                                    "cargoCapacity",
+                                    "systemSlots",
+                                    "moduleSlots",
+                                    "maxHp",
+                                    "maxAp",
+                                    "inventorySlots"
+                                  ]
+                                }
+                              },
+                              "required": ["fromStat"],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "target": {
+                          "type": "string",
+                          "enum": ["self", "pilot", "pilotedMech", "crawler"],
+                          "description": "Defaults to `self` when absent"
+                        },
+                        "stacks": {
+                          "type": "boolean",
+                          "description": "Applies once per installed copy (default true for installable items)"
+                        },
+                        "voidWhen": {
+                          "type": "string",
+                          "enum": ["damaged", "destroyed"],
+                          "description": "Condition at which this contribution stops applying"
+                        },
+                        "duration": {
+                          "type": "string",
+                          "enum": ["permanent", "activated"],
+                          "description": "Permanent (default) applies whenever held/installed. `activated` applies only while the player has switched it on in Guided Play — ephemeral play state (ADR-019), never persisted on the entity."
+                        },
+                        "note": {
+                          "type": "string",
+                          "description": "Why this is encoded the way it is"
+                        }
+                      },
+                      "required": ["stat", "amount"],
+                      "additionalProperties": false,
+                      "description": "A flat mechanical contribution this content makes to a stat"
+                    },
+                    "description": "Contributions this item makes (ADR-029). Distinct from `statBonus`: these carry a target, a duration and expression amounts, so they cover what a flat per-copy bonus cannot."
+                  },
                   "actions": {
                     "type": "array",
                     "items": { "type": "string" },
@@ -921,6 +1019,104 @@
                             },
                             "additionalProperties": false,
                             "description": "Explicit flat bonuses this item applies to the host mech’s derived maxima, summed per installed copy"
+                          },
+                          "contributions": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "stat": {
+                                  "type": "string",
+                                  "enum": [
+                                    "structurePoints",
+                                    "energyPoints",
+                                    "heatCapacity",
+                                    "cargoCapacity",
+                                    "systemSlots",
+                                    "moduleSlots",
+                                    "maxHp",
+                                    "maxAp",
+                                    "inventorySlots"
+                                  ]
+                                },
+                                "amount": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "flat": {
+                                          "type": "integer",
+                                          "minimum": -9007199254740991,
+                                          "maximum": 9007199254740991,
+                                          "description": "The constant part"
+                                        },
+                                        "perTechLevel": {
+                                          "type": "integer",
+                                          "minimum": -9007199254740991,
+                                          "maximum": 9007199254740991,
+                                          "description": "Multiplied by the target's tech level"
+                                        }
+                                      },
+                                      "required": ["perTechLevel"],
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "fromStat": {
+                                          "type": "string",
+                                          "enum": [
+                                            "structurePoints",
+                                            "energyPoints",
+                                            "heatCapacity",
+                                            "cargoCapacity",
+                                            "systemSlots",
+                                            "moduleSlots",
+                                            "maxHp",
+                                            "maxAp",
+                                            "inventorySlots"
+                                          ]
+                                        }
+                                      },
+                                      "required": ["fromStat"],
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                },
+                                "target": {
+                                  "type": "string",
+                                  "enum": ["self", "pilot", "pilotedMech", "crawler"],
+                                  "description": "Defaults to `self` when absent"
+                                },
+                                "stacks": {
+                                  "type": "boolean",
+                                  "description": "Applies once per installed copy (default true for installable items)"
+                                },
+                                "voidWhen": {
+                                  "type": "string",
+                                  "enum": ["damaged", "destroyed"],
+                                  "description": "Condition at which this contribution stops applying"
+                                },
+                                "duration": {
+                                  "type": "string",
+                                  "enum": ["permanent", "activated"],
+                                  "description": "Permanent (default) applies whenever held/installed. `activated` applies only while the player has switched it on in Guided Play — ephemeral play state (ADR-019), never persisted on the entity."
+                                },
+                                "note": {
+                                  "type": "string",
+                                  "description": "Why this is encoded the way it is"
+                                }
+                              },
+                              "required": ["stat", "amount"],
+                              "additionalProperties": false,
+                              "description": "A flat mechanical contribution this content makes to a stat"
+                            },
+                            "description": "Contributions this item makes (ADR-029). Distinct from `statBonus`: these carry a target, a duration and expression amounts, so they cover what a flat per-copy bonus cannot."
                           },
                           "actions": {
                             "type": "array",

@@ -262,6 +262,7 @@
     "techLevel": 2,
     "slotsRequired": 1,
     "salvageValue": 2,
+    "contributions": [{"stat": "cargoCapacity", "target": "self", "amount": {"fromStat": "systemSlots"}, "duration": "activated", "note": "\"increases your Mech's Cargo Capacity by its System Slot Value\" — manual expiry"}],
     "page": 194,
     "actions": ["Hull Magnetiser"],
     "additionalSources": [

@@ -1014,6 +1014,8 @@ export type ContributionTarget = 'self' | 'pilot' | 'pilotedMech' | 'crawler';
 export type ContributionAmount = number | {
     flat?: number;
     perTechLevel: number;
+} | {
+    fromStat: ContributionStat;
 };
 /** A contribution as declared on a piece of reference content. */
 export type DeclaredContribution = {
@@ -1022,6 +1024,8 @@ export type DeclaredContribution = {
     target?: ContributionTarget;
     stacks?: boolean;
     voidWhen?: 'damaged' | 'destroyed';
+    /** `activated` applies only while switched on in Guided Play (ADR-019). */
+    duration?: 'permanent' | 'activated';
     note?: string;
 };
 /** A resolved contribution: an amount, and the content that produced it. */
@@ -1043,16 +1047,44 @@ export type ResolvedContribution = {
  * resolves it to the flat part rather than guessing, so an unknown tech level
  * under-counts visibly instead of inventing a number.
  */
-export declare function resolveAmount(amount: ContributionAmount, techLevel?: number): number;
+export declare function resolveAmount(amount: ContributionAmount, techLevel?: number, stats?: Partial<Record<ContributionStat, number>>): number;
 /**
  * Every contribution the named abilities declare for `target`/`stat`.
  *
  * Abilities do not stack per copy — holding an ability twice is not a thing —
  * so each resolved contribution is one copy.
  */
-export declare function abilityContributions(abilityRefs: readonly string[] | undefined, target: ContributionTarget, stat: ContributionStat, techLevel?: number): ResolvedContribution[];
+/**
+ * Which `duration: 'activated'` contributions are currently switched on.
+ *
+ * Manual expiry by design: a player toggles an activated effect on and off.
+ * Salvage Union states real durations ("this effect lasts for 1 hour"), but the
+ * app has no play clock and inventing one would put time into the data layer —
+ * so the table keeps time and the app keeps state, which is the same division
+ * ADR-001's honour system already relies on.
+ *
+ * Ephemeral (ADR-019): this lives in play state and is never persisted.
+ */
+export type ActiveEffects = Readonly<Record<string, boolean>>;
+export declare function abilityContributions(abilityRefs: readonly string[] | undefined, target: ContributionTarget, stat: ContributionStat, techLevel?: number, active?: ActiveEffects, stats?: Partial<Record<ContributionStat, number>>): ResolvedContribution[];
 /** Sum of resolved contributions — the number a derivation folds in. */
 export declare function sumContributions(contributions: readonly ResolvedContribution[]): number;
+/**
+ * Contributions declared by the mech's own installed systems and modules.
+ *
+ * Distinct from `statBonus`, which is a flat per-copy number with no target,
+ * duration or expression. An installed item's contribution targets `self` — the
+ * host mech — so `target` is not consulted here.
+ *
+ * `stats` supplies the host's own values for `fromStat` amounts: Hull
+ * Magnetiser raises Cargo "by its System Slot Value", a number that changes
+ * with the chassis and so cannot be written as a constant.
+ */
+export declare function installedContributions(installedRefs: readonly string[] | undefined, stat: ContributionStat, options?: {
+    techLevel?: number;
+    active?: ActiveEffects;
+    stats?: Partial<Record<ContributionStat, number>>;
+}): ResolvedContribution[];
 //# sourceMappingURL=contributions.d.ts.map
 // === lib/rules/coreMechanic.d.ts ===
 /**
@@ -1427,6 +1459,7 @@ export declare function isCrawlerWeaponPickComplete(selectedCount: number): bool
  * consumer's Zod-inferred Pilot/Mech/Crawler types (e.g. ITUN's
  * `src/lib/schemas/`) satisfy them automatically.
  */
+import type { ActiveEffects } from './contributions.js';
 import type { ResolvedContribution } from './contributions.js';
 /**
  * Base pilot stats per the core rules (10 HP / 5 AP / 6 inventory slots).
@@ -1482,6 +1515,9 @@ export type ChassisStats = {
     energyPoints?: number;
     heatCapacity?: number;
     cargoCapacity?: number;
+    /** Slot counts — read by `fromStat` contributions (Hull Magnetiser). */
+    systemSlots?: number;
+    moduleSlots?: number;
 };
 type MechDerivationInput = {
     chassisRef: string;
@@ -1508,6 +1544,12 @@ export type PilotingContext = {
     abilities?: string[];
     /** The mech's Tech Level, for `perTechLevel` amounts (Beefcake's 3+X). */
     techLevel?: number;
+    /**
+     * Which `duration: 'activated'` contributions are switched on right now
+     * (F1). Ephemeral play state, never persisted — an activated effect that is
+     * off contributes nothing, exactly as if it were absent.
+     */
+    active?: ActiveEffects;
 };
 /**
  * The mech-stat-bonus key each derivation sums over installed systems/modules.
@@ -2054,6 +2096,20 @@ export declare function resolveSystemRef(ref: string): ({
         heatCapacity?: number | undefined;
         cargoCapacity?: number | undefined;
     } | undefined;
+    contributions?: {
+        stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+        amount: number | {
+            perTechLevel: number;
+            flat?: number | undefined;
+        } | {
+            fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+        };
+        target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+        stacks?: boolean | undefined;
+        voidWhen?: "damaged" | "destroyed" | undefined;
+        duration?: "permanent" | "activated" | undefined;
+        note?: string | undefined;
+    }[] | undefined;
 } & {
     schemaName: string;
 }) | null;
@@ -2103,6 +2159,20 @@ export declare function resolveModuleRef(ref: string): ({
         heatCapacity?: number | undefined;
         cargoCapacity?: number | undefined;
     } | undefined;
+    contributions?: {
+        stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+        amount: number | {
+            perTechLevel: number;
+            flat?: number | undefined;
+        } | {
+            fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+        };
+        target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+        stacks?: boolean | undefined;
+        voidWhen?: "damaged" | "destroyed" | undefined;
+        duration?: "permanent" | "activated" | undefined;
+        note?: string | undefined;
+    }[] | undefined;
 } & {
     schemaName: string;
 }) | null;
@@ -2155,6 +2225,20 @@ export declare function resolveInstalledRef(ref: string): ({
         heatCapacity?: number | undefined;
         cargoCapacity?: number | undefined;
     } | undefined;
+    contributions?: {
+        stat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+        amount: number | {
+            perTechLevel: number;
+            flat?: number | undefined;
+        } | {
+            fromStat: "structurePoints" | "energyPoints" | "heatCapacity" | "systemSlots" | "moduleSlots" | "cargoCapacity" | "maxHp" | "maxAp" | "inventorySlots";
+        };
+        target?: "self" | "pilot" | "pilotedMech" | "crawler" | undefined;
+        stacks?: boolean | undefined;
+        voidWhen?: "damaged" | "destroyed" | undefined;
+        duration?: "permanent" | "activated" | undefined;
+        note?: string | undefined;
+    }[] | undefined;
 } & {
     schemaName: string;
 }) | null;
@@ -3038,6 +3122,18 @@ export declare const AbilitySchema: z.ZodObject<{
         amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
             flat: z.ZodOptional<z.ZodNumber>;
             perTechLevel: z.ZodNumber;
+        }, z.core.$strict>, z.ZodObject<{
+            fromStat: z.ZodEnum<{
+                structurePoints: "structurePoints";
+                energyPoints: "energyPoints";
+                heatCapacity: "heatCapacity";
+                systemSlots: "systemSlots";
+                moduleSlots: "moduleSlots";
+                cargoCapacity: "cargoCapacity";
+                maxHp: "maxHp";
+                maxAp: "maxAp";
+                inventorySlots: "inventorySlots";
+            }>;
         }, z.core.$strict>]>;
         target: z.ZodOptional<z.ZodEnum<{
             self: "self";
@@ -3049,6 +3145,10 @@ export declare const AbilitySchema: z.ZodObject<{
         voidWhen: z.ZodOptional<z.ZodEnum<{
             damaged: "damaged";
             destroyed: "destroyed";
+        }>>;
+        duration: z.ZodOptional<z.ZodEnum<{
+            permanent: "permanent";
+            activated: "activated";
         }>>;
         note: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>>>;
@@ -3951,6 +4051,51 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     heatCapacity: z.ZodOptional<z.ZodNumber>;
                     cargoCapacity: z.ZodOptional<z.ZodNumber>;
                 }, z.core.$strict>>;
+                contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                    stat: z.ZodEnum<{
+                        structurePoints: "structurePoints";
+                        energyPoints: "energyPoints";
+                        heatCapacity: "heatCapacity";
+                        systemSlots: "systemSlots";
+                        moduleSlots: "moduleSlots";
+                        cargoCapacity: "cargoCapacity";
+                        maxHp: "maxHp";
+                        maxAp: "maxAp";
+                        inventorySlots: "inventorySlots";
+                    }>;
+                    amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                        flat: z.ZodOptional<z.ZodNumber>;
+                        perTechLevel: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        fromStat: z.ZodEnum<{
+                            structurePoints: "structurePoints";
+                            energyPoints: "energyPoints";
+                            heatCapacity: "heatCapacity";
+                            systemSlots: "systemSlots";
+                            moduleSlots: "moduleSlots";
+                            cargoCapacity: "cargoCapacity";
+                            maxHp: "maxHp";
+                            maxAp: "maxAp";
+                            inventorySlots: "inventorySlots";
+                        }>;
+                    }, z.core.$strict>]>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        pilot: "pilot";
+                        pilotedMech: "pilotedMech";
+                        crawler: "crawler";
+                    }>>;
+                    stacks: z.ZodOptional<z.ZodBoolean>;
+                    voidWhen: z.ZodOptional<z.ZodEnum<{
+                        damaged: "damaged";
+                        destroyed: "destroyed";
+                    }>>;
+                    duration: z.ZodOptional<z.ZodEnum<{
+                        permanent: "permanent";
+                        activated: "activated";
+                    }>>;
+                    note: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>>>;
                 actions: z.ZodArray<z.ZodString>;
             }, z.core.$strip>>;
         }, z.core.$strict>], "kind">>;
@@ -4087,6 +4232,51 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     heatCapacity: z.ZodOptional<z.ZodNumber>;
                     cargoCapacity: z.ZodOptional<z.ZodNumber>;
                 }, z.core.$strict>>;
+                contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                    stat: z.ZodEnum<{
+                        structurePoints: "structurePoints";
+                        energyPoints: "energyPoints";
+                        heatCapacity: "heatCapacity";
+                        systemSlots: "systemSlots";
+                        moduleSlots: "moduleSlots";
+                        cargoCapacity: "cargoCapacity";
+                        maxHp: "maxHp";
+                        maxAp: "maxAp";
+                        inventorySlots: "inventorySlots";
+                    }>;
+                    amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                        flat: z.ZodOptional<z.ZodNumber>;
+                        perTechLevel: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        fromStat: z.ZodEnum<{
+                            structurePoints: "structurePoints";
+                            energyPoints: "energyPoints";
+                            heatCapacity: "heatCapacity";
+                            systemSlots: "systemSlots";
+                            moduleSlots: "moduleSlots";
+                            cargoCapacity: "cargoCapacity";
+                            maxHp: "maxHp";
+                            maxAp: "maxAp";
+                            inventorySlots: "inventorySlots";
+                        }>;
+                    }, z.core.$strict>]>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        pilot: "pilot";
+                        pilotedMech: "pilotedMech";
+                        crawler: "crawler";
+                    }>>;
+                    stacks: z.ZodOptional<z.ZodBoolean>;
+                    voidWhen: z.ZodOptional<z.ZodEnum<{
+                        damaged: "damaged";
+                        destroyed: "destroyed";
+                    }>>;
+                    duration: z.ZodOptional<z.ZodEnum<{
+                        permanent: "permanent";
+                        activated: "activated";
+                    }>>;
+                    note: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>>>;
                 actions: z.ZodArray<z.ZodString>;
             }, z.core.$strip>>;
         }, z.core.$strict>], "kind">>;
@@ -4682,6 +4872,51 @@ export declare const DroneSchema: z.ZodObject<{
                     heatCapacity: z.ZodOptional<z.ZodNumber>;
                     cargoCapacity: z.ZodOptional<z.ZodNumber>;
                 }, z.core.$strict>>;
+                contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                    stat: z.ZodEnum<{
+                        structurePoints: "structurePoints";
+                        energyPoints: "energyPoints";
+                        heatCapacity: "heatCapacity";
+                        systemSlots: "systemSlots";
+                        moduleSlots: "moduleSlots";
+                        cargoCapacity: "cargoCapacity";
+                        maxHp: "maxHp";
+                        maxAp: "maxAp";
+                        inventorySlots: "inventorySlots";
+                    }>;
+                    amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                        flat: z.ZodOptional<z.ZodNumber>;
+                        perTechLevel: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        fromStat: z.ZodEnum<{
+                            structurePoints: "structurePoints";
+                            energyPoints: "energyPoints";
+                            heatCapacity: "heatCapacity";
+                            systemSlots: "systemSlots";
+                            moduleSlots: "moduleSlots";
+                            cargoCapacity: "cargoCapacity";
+                            maxHp: "maxHp";
+                            maxAp: "maxAp";
+                            inventorySlots: "inventorySlots";
+                        }>;
+                    }, z.core.$strict>]>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        pilot: "pilot";
+                        pilotedMech: "pilotedMech";
+                        crawler: "crawler";
+                    }>>;
+                    stacks: z.ZodOptional<z.ZodBoolean>;
+                    voidWhen: z.ZodOptional<z.ZodEnum<{
+                        damaged: "damaged";
+                        destroyed: "destroyed";
+                    }>>;
+                    duration: z.ZodOptional<z.ZodEnum<{
+                        permanent: "permanent";
+                        activated: "activated";
+                    }>>;
+                    note: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>>>;
                 actions: z.ZodArray<z.ZodString>;
             }, z.core.$strip>>;
         }, z.core.$strict>], "kind">>;
@@ -4818,6 +5053,51 @@ export declare const DroneSchema: z.ZodObject<{
                     heatCapacity: z.ZodOptional<z.ZodNumber>;
                     cargoCapacity: z.ZodOptional<z.ZodNumber>;
                 }, z.core.$strict>>;
+                contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                    stat: z.ZodEnum<{
+                        structurePoints: "structurePoints";
+                        energyPoints: "energyPoints";
+                        heatCapacity: "heatCapacity";
+                        systemSlots: "systemSlots";
+                        moduleSlots: "moduleSlots";
+                        cargoCapacity: "cargoCapacity";
+                        maxHp: "maxHp";
+                        maxAp: "maxAp";
+                        inventorySlots: "inventorySlots";
+                    }>;
+                    amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                        flat: z.ZodOptional<z.ZodNumber>;
+                        perTechLevel: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        fromStat: z.ZodEnum<{
+                            structurePoints: "structurePoints";
+                            energyPoints: "energyPoints";
+                            heatCapacity: "heatCapacity";
+                            systemSlots: "systemSlots";
+                            moduleSlots: "moduleSlots";
+                            cargoCapacity: "cargoCapacity";
+                            maxHp: "maxHp";
+                            maxAp: "maxAp";
+                            inventorySlots: "inventorySlots";
+                        }>;
+                    }, z.core.$strict>]>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        pilot: "pilot";
+                        pilotedMech: "pilotedMech";
+                        crawler: "crawler";
+                    }>>;
+                    stacks: z.ZodOptional<z.ZodBoolean>;
+                    voidWhen: z.ZodOptional<z.ZodEnum<{
+                        damaged: "damaged";
+                        destroyed: "destroyed";
+                    }>>;
+                    duration: z.ZodOptional<z.ZodEnum<{
+                        permanent: "permanent";
+                        activated: "activated";
+                    }>>;
+                    note: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>>>;
                 actions: z.ZodArray<z.ZodString>;
             }, z.core.$strip>>;
         }, z.core.$strict>], "kind">>;
@@ -5044,6 +5324,51 @@ export declare const EquipmentSchema: z.ZodObject<{
                     heatCapacity: z.ZodOptional<z.ZodNumber>;
                     cargoCapacity: z.ZodOptional<z.ZodNumber>;
                 }, z.core.$strict>>;
+                contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                    stat: z.ZodEnum<{
+                        structurePoints: "structurePoints";
+                        energyPoints: "energyPoints";
+                        heatCapacity: "heatCapacity";
+                        systemSlots: "systemSlots";
+                        moduleSlots: "moduleSlots";
+                        cargoCapacity: "cargoCapacity";
+                        maxHp: "maxHp";
+                        maxAp: "maxAp";
+                        inventorySlots: "inventorySlots";
+                    }>;
+                    amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                        flat: z.ZodOptional<z.ZodNumber>;
+                        perTechLevel: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        fromStat: z.ZodEnum<{
+                            structurePoints: "structurePoints";
+                            energyPoints: "energyPoints";
+                            heatCapacity: "heatCapacity";
+                            systemSlots: "systemSlots";
+                            moduleSlots: "moduleSlots";
+                            cargoCapacity: "cargoCapacity";
+                            maxHp: "maxHp";
+                            maxAp: "maxAp";
+                            inventorySlots: "inventorySlots";
+                        }>;
+                    }, z.core.$strict>]>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        pilot: "pilot";
+                        pilotedMech: "pilotedMech";
+                        crawler: "crawler";
+                    }>>;
+                    stacks: z.ZodOptional<z.ZodBoolean>;
+                    voidWhen: z.ZodOptional<z.ZodEnum<{
+                        damaged: "damaged";
+                        destroyed: "destroyed";
+                    }>>;
+                    duration: z.ZodOptional<z.ZodEnum<{
+                        permanent: "permanent";
+                        activated: "activated";
+                    }>>;
+                    note: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>>>;
                 actions: z.ZodArray<z.ZodString>;
             }, z.core.$strip>>;
         }, z.core.$strict>], "kind">>;
@@ -5180,6 +5505,51 @@ export declare const EquipmentSchema: z.ZodObject<{
                     heatCapacity: z.ZodOptional<z.ZodNumber>;
                     cargoCapacity: z.ZodOptional<z.ZodNumber>;
                 }, z.core.$strict>>;
+                contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                    stat: z.ZodEnum<{
+                        structurePoints: "structurePoints";
+                        energyPoints: "energyPoints";
+                        heatCapacity: "heatCapacity";
+                        systemSlots: "systemSlots";
+                        moduleSlots: "moduleSlots";
+                        cargoCapacity: "cargoCapacity";
+                        maxHp: "maxHp";
+                        maxAp: "maxAp";
+                        inventorySlots: "inventorySlots";
+                    }>;
+                    amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                        flat: z.ZodOptional<z.ZodNumber>;
+                        perTechLevel: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        fromStat: z.ZodEnum<{
+                            structurePoints: "structurePoints";
+                            energyPoints: "energyPoints";
+                            heatCapacity: "heatCapacity";
+                            systemSlots: "systemSlots";
+                            moduleSlots: "moduleSlots";
+                            cargoCapacity: "cargoCapacity";
+                            maxHp: "maxHp";
+                            maxAp: "maxAp";
+                            inventorySlots: "inventorySlots";
+                        }>;
+                    }, z.core.$strict>]>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        pilot: "pilot";
+                        pilotedMech: "pilotedMech";
+                        crawler: "crawler";
+                    }>>;
+                    stacks: z.ZodOptional<z.ZodBoolean>;
+                    voidWhen: z.ZodOptional<z.ZodEnum<{
+                        damaged: "damaged";
+                        destroyed: "destroyed";
+                    }>>;
+                    duration: z.ZodOptional<z.ZodEnum<{
+                        permanent: "permanent";
+                        activated: "activated";
+                    }>>;
+                    note: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>>>;
                 actions: z.ZodArray<z.ZodString>;
             }, z.core.$strip>>;
         }, z.core.$strict>], "kind">>;
@@ -5528,6 +5898,51 @@ export declare const ModuleSchema: z.ZodObject<{
         heatCapacity: z.ZodOptional<z.ZodNumber>;
         cargoCapacity: z.ZodOptional<z.ZodNumber>;
     }, z.core.$strict>>;
+    contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        stat: z.ZodEnum<{
+            structurePoints: "structurePoints";
+            energyPoints: "energyPoints";
+            heatCapacity: "heatCapacity";
+            systemSlots: "systemSlots";
+            moduleSlots: "moduleSlots";
+            cargoCapacity: "cargoCapacity";
+            maxHp: "maxHp";
+            maxAp: "maxAp";
+            inventorySlots: "inventorySlots";
+        }>;
+        amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+            flat: z.ZodOptional<z.ZodNumber>;
+            perTechLevel: z.ZodNumber;
+        }, z.core.$strict>, z.ZodObject<{
+            fromStat: z.ZodEnum<{
+                structurePoints: "structurePoints";
+                energyPoints: "energyPoints";
+                heatCapacity: "heatCapacity";
+                systemSlots: "systemSlots";
+                moduleSlots: "moduleSlots";
+                cargoCapacity: "cargoCapacity";
+                maxHp: "maxHp";
+                maxAp: "maxAp";
+                inventorySlots: "inventorySlots";
+            }>;
+        }, z.core.$strict>]>;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            pilot: "pilot";
+            pilotedMech: "pilotedMech";
+            crawler: "crawler";
+        }>>;
+        stacks: z.ZodOptional<z.ZodBoolean>;
+        voidWhen: z.ZodOptional<z.ZodEnum<{
+            damaged: "damaged";
+            destroyed: "destroyed";
+        }>>;
+        duration: z.ZodOptional<z.ZodEnum<{
+            permanent: "permanent";
+            activated: "activated";
+        }>>;
+        note: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>>>;
     actions: z.ZodArray<z.ZodString>;
 }, z.core.$strict>;
 /**
@@ -6532,6 +6947,51 @@ export declare const SystemSchema: z.ZodObject<{
         heatCapacity: z.ZodOptional<z.ZodNumber>;
         cargoCapacity: z.ZodOptional<z.ZodNumber>;
     }, z.core.$strict>>;
+    contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        stat: z.ZodEnum<{
+            structurePoints: "structurePoints";
+            energyPoints: "energyPoints";
+            heatCapacity: "heatCapacity";
+            systemSlots: "systemSlots";
+            moduleSlots: "moduleSlots";
+            cargoCapacity: "cargoCapacity";
+            maxHp: "maxHp";
+            maxAp: "maxAp";
+            inventorySlots: "inventorySlots";
+        }>;
+        amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+            flat: z.ZodOptional<z.ZodNumber>;
+            perTechLevel: z.ZodNumber;
+        }, z.core.$strict>, z.ZodObject<{
+            fromStat: z.ZodEnum<{
+                structurePoints: "structurePoints";
+                energyPoints: "energyPoints";
+                heatCapacity: "heatCapacity";
+                systemSlots: "systemSlots";
+                moduleSlots: "moduleSlots";
+                cargoCapacity: "cargoCapacity";
+                maxHp: "maxHp";
+                maxAp: "maxAp";
+                inventorySlots: "inventorySlots";
+            }>;
+        }, z.core.$strict>]>;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            pilot: "pilot";
+            pilotedMech: "pilotedMech";
+            crawler: "crawler";
+        }>>;
+        stacks: z.ZodOptional<z.ZodBoolean>;
+        voidWhen: z.ZodOptional<z.ZodEnum<{
+            damaged: "damaged";
+            destroyed: "destroyed";
+        }>>;
+        duration: z.ZodOptional<z.ZodEnum<{
+            permanent: "permanent";
+            activated: "activated";
+        }>>;
+        note: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>>>;
     actions: z.ZodArray<z.ZodString>;
 }, z.core.$strict>;
 /**
@@ -8114,6 +8574,18 @@ export declare const ContributionTargetSchema: z.ZodEnum<{
 export declare const ContributionAmountSchema: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
     flat: z.ZodOptional<z.ZodNumber>;
     perTechLevel: z.ZodNumber;
+}, z.core.$strict>, z.ZodObject<{
+    fromStat: z.ZodEnum<{
+        structurePoints: "structurePoints";
+        energyPoints: "energyPoints";
+        heatCapacity: "heatCapacity";
+        systemSlots: "systemSlots";
+        moduleSlots: "moduleSlots";
+        cargoCapacity: "cargoCapacity";
+        maxHp: "maxHp";
+        maxAp: "maxAp";
+        inventorySlots: "inventorySlots";
+    }>;
 }, z.core.$strict>]>;
 /**
  * A single mechanical contribution a piece of content makes to a stat
@@ -8145,6 +8617,18 @@ export declare const ContributionSchema: z.ZodObject<{
     amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
         flat: z.ZodOptional<z.ZodNumber>;
         perTechLevel: z.ZodNumber;
+    }, z.core.$strict>, z.ZodObject<{
+        fromStat: z.ZodEnum<{
+            structurePoints: "structurePoints";
+            energyPoints: "energyPoints";
+            heatCapacity: "heatCapacity";
+            systemSlots: "systemSlots";
+            moduleSlots: "moduleSlots";
+            cargoCapacity: "cargoCapacity";
+            maxHp: "maxHp";
+            maxAp: "maxAp";
+            inventorySlots: "inventorySlots";
+        }>;
     }, z.core.$strict>]>;
     target: z.ZodOptional<z.ZodEnum<{
         self: "self";
@@ -8156,6 +8640,10 @@ export declare const ContributionSchema: z.ZodObject<{
     voidWhen: z.ZodOptional<z.ZodEnum<{
         damaged: "damaged";
         destroyed: "destroyed";
+    }>>;
+    duration: z.ZodOptional<z.ZodEnum<{
+        permanent: "permanent";
+        activated: "activated";
     }>>;
     note: z.ZodOptional<z.ZodString>;
 }, z.core.$strict>;
@@ -8181,6 +8669,51 @@ export declare const SystemModuleSchema: z.ZodObject<{
         heatCapacity: z.ZodOptional<z.ZodNumber>;
         cargoCapacity: z.ZodOptional<z.ZodNumber>;
     }, z.core.$strict>>;
+    contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        stat: z.ZodEnum<{
+            structurePoints: "structurePoints";
+            energyPoints: "energyPoints";
+            heatCapacity: "heatCapacity";
+            systemSlots: "systemSlots";
+            moduleSlots: "moduleSlots";
+            cargoCapacity: "cargoCapacity";
+            maxHp: "maxHp";
+            maxAp: "maxAp";
+            inventorySlots: "inventorySlots";
+        }>;
+        amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+            flat: z.ZodOptional<z.ZodNumber>;
+            perTechLevel: z.ZodNumber;
+        }, z.core.$strict>, z.ZodObject<{
+            fromStat: z.ZodEnum<{
+                structurePoints: "structurePoints";
+                energyPoints: "energyPoints";
+                heatCapacity: "heatCapacity";
+                systemSlots: "systemSlots";
+                moduleSlots: "moduleSlots";
+                cargoCapacity: "cargoCapacity";
+                maxHp: "maxHp";
+                maxAp: "maxAp";
+                inventorySlots: "inventorySlots";
+            }>;
+        }, z.core.$strict>]>;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            pilot: "pilot";
+            pilotedMech: "pilotedMech";
+            crawler: "crawler";
+        }>>;
+        stacks: z.ZodOptional<z.ZodBoolean>;
+        voidWhen: z.ZodOptional<z.ZodEnum<{
+            damaged: "damaged";
+            destroyed: "destroyed";
+        }>>;
+        duration: z.ZodOptional<z.ZodEnum<{
+            permanent: "permanent";
+            activated: "activated";
+        }>>;
+        note: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>>>;
     actions: z.ZodArray<z.ZodString>;
 }, z.core.$strip>;
 /**
@@ -8362,6 +8895,51 @@ declare const ChoiceSourceSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
             heatCapacity: z.ZodOptional<z.ZodNumber>;
             cargoCapacity: z.ZodOptional<z.ZodNumber>;
         }, z.core.$strict>>;
+        contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            stat: z.ZodEnum<{
+                structurePoints: "structurePoints";
+                energyPoints: "energyPoints";
+                heatCapacity: "heatCapacity";
+                systemSlots: "systemSlots";
+                moduleSlots: "moduleSlots";
+                cargoCapacity: "cargoCapacity";
+                maxHp: "maxHp";
+                maxAp: "maxAp";
+                inventorySlots: "inventorySlots";
+            }>;
+            amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                flat: z.ZodOptional<z.ZodNumber>;
+                perTechLevel: z.ZodNumber;
+            }, z.core.$strict>, z.ZodObject<{
+                fromStat: z.ZodEnum<{
+                    structurePoints: "structurePoints";
+                    energyPoints: "energyPoints";
+                    heatCapacity: "heatCapacity";
+                    systemSlots: "systemSlots";
+                    moduleSlots: "moduleSlots";
+                    cargoCapacity: "cargoCapacity";
+                    maxHp: "maxHp";
+                    maxAp: "maxAp";
+                    inventorySlots: "inventorySlots";
+                }>;
+            }, z.core.$strict>]>;
+            target: z.ZodOptional<z.ZodEnum<{
+                self: "self";
+                pilot: "pilot";
+                pilotedMech: "pilotedMech";
+                crawler: "crawler";
+            }>>;
+            stacks: z.ZodOptional<z.ZodBoolean>;
+            voidWhen: z.ZodOptional<z.ZodEnum<{
+                damaged: "damaged";
+                destroyed: "destroyed";
+            }>>;
+            duration: z.ZodOptional<z.ZodEnum<{
+                permanent: "permanent";
+                activated: "activated";
+            }>>;
+            note: z.ZodOptional<z.ZodString>;
+        }, z.core.$strict>>>;
         actions: z.ZodArray<z.ZodString>;
     }, z.core.$strip>>;
 }, z.core.$strict>], "kind">;

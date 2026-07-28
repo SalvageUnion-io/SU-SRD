@@ -34,6 +34,7 @@ import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
 import type { EntityState } from '../../stores/entityStore'
+import { activatableEffects } from './dashboardEffects'
 import { usePlayStateStore } from '../../stores/playStateStore'
 import { ActiveItemBand as ActiveItemBandView, CountStepper, StorageBay } from 'component-lib'
 import type { ActiveItemBandView as ActiveItemBandViewModel, BandButton } from 'component-lib'
@@ -349,7 +350,12 @@ function MechBand({
   onDismount: () => void
 }) {
   const chassis = resolveChassisRef(mech.chassisRef)
-  const piloting = pilotingContext(mech, pilotAbilities)
+  const activeEffects = usePlayStateStore((st) => st.activeEffects)
+  const toggleEffect = usePlayStateStore((st) => st.toggleEffect)
+  const piloting = { ...pilotingContext(mech, pilotAbilities), active: activeEffects }
+  // What this mech/pilot could switch on (F1). Manual expiry: the table keeps
+  // time, the app keeps state.
+  const activatable = activatableEffects(mech, pilotAbilities)
   const maxSP = mechMaxSP(mech, chassis, piloting)
   const maxEP = mechMaxEP(mech, chassis)
   const maxHeat = mechMaxHeat(mech, chassis)
@@ -625,6 +631,20 @@ function MechBand({
           },
         ],
       },
+      ...(activatable.length > 0
+        ? [
+            {
+              label: 'Effects',
+              buttons: activatable.map((e) => ({
+                label: `${activeEffects[e.ref] ? '\u25CF' : '\u25CB'} ${e.name}`,
+                onClick: () => toggleEffect(e.ref),
+                title: activeEffects[e.ref]
+                  ? `${e.name} is active — click to end it`
+                  : `${e.name}: ${e.summary}`,
+              })),
+            },
+          ]
+        : []),
       {
         label: 'Egress',
         buttons: [
