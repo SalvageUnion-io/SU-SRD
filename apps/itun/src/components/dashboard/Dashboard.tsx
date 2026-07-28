@@ -125,7 +125,7 @@ export function Dashboard({ id }: { id: string }) {
         primary={<ActiveItemBand mech={mech} pilot={pilot} crawler={crawler} store={storeState} />}
         display={
           isDowntime ? (
-            <DowntimeWizard crawler={crawler} />
+            <DowntimeWizard crawler={crawler} mech={mech} pilot={pilot} />
           ) : (
             <DisplayPanel focus={focus} mech={mech} pilot={pilot} crawler={crawler} />
           )
