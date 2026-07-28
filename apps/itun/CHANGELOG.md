@@ -2,6 +2,15 @@
 
 Maintained by release-please (see ADR-024).
 
+## [0.7.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.6.0...itun-v0.7.0) (2026-07-28)
+
+
+### Features
+
+* **component-lib:** make the roll-table title its own table picker ([#592](https://github.com/SalvageUnion-io/SU-SRD/issues/592)) ([18f315a](https://github.com/SalvageUnion-io/SU-SRD/commit/18f315ac0501f00f52db63181dbf383d66909245))
+* **itun:** render partners in place, delete the partner sheet ([#590](https://github.com/SalvageUnion-io/SU-SRD/issues/590)) ([33ddccd](https://github.com/SalvageUnion-io/SU-SRD/commit/33ddccd79c6b9db417dff0384f27188d3fe0b67f))
+* **itun:** render the SRD home page in the Dashboard SRD Explorer ([#593](https://github.com/SalvageUnion-io/SU-SRD/issues/593)) ([05906b6](https://github.com/SalvageUnion-io/SU-SRD/commit/05906b629fe97708f5c9faf8e638e29033e363e9))
+
 ## [0.6.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.5.0...itun-v0.6.0) (2026-07-28)
 
 
