@@ -40,6 +40,18 @@ describe('dialItems', () => {
     expect(items.some((i) => i.label.startsWith('Crawler'))).toBe(false)
   })
 
+  test('a mech with no stored Heat reads 0, not Heat-at-capacity', () => {
+    const fresh = mechFixture({ id: 'm2', name: 'Fresh Rig', chassisRef: 'Mule' })
+    expect(fresh.currentHeat).toBeUndefined()
+    const item = dialItems({ mount: 'pilot', mech: fresh, pilot, crawler: null }).find(
+      (i) => i.label === 'Mech · Fresh Rig'
+    )
+    if (!item || item.statless) throw new Error('expected a statful mech dial item')
+    const heat = item.gauges.find((g) => g.label === 'Heat')
+    expect(heat?.max).toBeGreaterThan(0)
+    expect(heat?.value).toBe(0)
+  })
+
   test('statless views carry no gauges', () => {
     const items = dialItems({ mount: 'mech', mech, pilot: null, crawler: null })
     const actions = items.find((i) => i.label === 'Actions')

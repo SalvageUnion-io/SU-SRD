@@ -148,7 +148,7 @@ function MechBand({
   const maxCargo = mechMaxCargo(mech, chassis)
   const sp = Math.min(mech.currentSP ?? maxSP, maxSP)
   const ep = Math.min(mech.currentEP ?? maxEP, maxEP)
-  const heat = Math.min(mech.currentHeat ?? maxHeat, maxHeat)
+  const heat = Math.min(mech.currentHeat ?? 0, maxHeat)
   const cargo = totalLotUnits(mech.cargoLots)
 
   const [prompt, setPrompt] = useState<MechPrompt>(null)
@@ -175,7 +175,7 @@ function MechBand({
     const cap = mechMaxHeat(m, chassis)
     const spMax = mechMaxSP(m, chassis)
     const { patch, effect, nextHeat, meltdown } = pushPatch({
-      heat: Math.min(m.currentHeat ?? cap, cap),
+      heat: Math.min(m.currentHeat ?? 0, cap),
       heatCap: cap,
       currentSP: Math.min(m.currentSP ?? spMax, spMax),
       roll: defaultRoll,
@@ -189,7 +189,7 @@ function MechBand({
     const cap = mechMaxHeat(m, chassis)
     const spMax = mechMaxSP(m, chassis)
     const { patch, effect, meltdown } = heatCheckOncePatch({
-      heat: Math.min(m.currentHeat ?? cap, cap),
+      heat: Math.min(m.currentHeat ?? 0, cap),
       currentSP: Math.min(m.currentSP ?? spMax, spMax),
       roll: defaultRoll,
     })

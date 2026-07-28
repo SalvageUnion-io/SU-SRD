@@ -70,7 +70,7 @@ function mechItem(mech: Mech): DialItem {
       { label: 'SP', value: Math.min(mech.currentSP ?? maxSP, maxSP), max: maxSP, tone: 'mech' },
       {
         label: 'Heat',
-        value: Math.min(mech.currentHeat ?? maxHeat, maxHeat),
+        value: Math.min(mech.currentHeat ?? 0, maxHeat),
         max: maxHeat,
         tone: 'mech',
         danger: Math.max(0, maxHeat - 2),

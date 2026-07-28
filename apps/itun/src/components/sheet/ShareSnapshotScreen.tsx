@@ -532,7 +532,7 @@ function SnapshotPreviewCard({ entity }: SnapshotPreviewCardProps) {
             <VitalGauge
               label="Heat"
               max={maxHeat}
-              value={Math.min(mech.currentHeat ?? maxHeat, maxHeat)}
+              value={Math.min(mech.currentHeat ?? 0, maxHeat)}
               danger={maxHeat > 0 ? heatDangerFrom(maxHeat) : undefined}
               readOnly
             />

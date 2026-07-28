@@ -177,7 +177,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
     const fresh = s.get('mech', mech.id) ?? mech
     const cap = mechMaxHeat(fresh, chassis)
     const { patch, effect, nextHeat } = pushPatch({
-      heat: Math.min(fresh.currentHeat ?? cap, cap),
+      heat: Math.min(fresh.currentHeat ?? 0, cap),
       heatCap: cap,
       currentSP: fresh.currentSP ?? 0,
       roll: defaultRoll,
