@@ -37,9 +37,14 @@ type RollHistoryEntry = {
 }
 
 /**
- * TablesView — the Tables focus (D3): a 5-column category picker overlay, the
- * selected table rendered via the reused `RollTable`, and an ephemeral roll
- * history. Self-contained (reads the ORM roll tables).
+ * TablesView — the Tables focus (D3): the selected table rendered via the reused
+ * `RollTable`, whose header TITLE is the trigger for the 5-column category
+ * picker overlay, plus an ephemeral roll history. Self-contained (reads the ORM
+ * roll tables).
+ *
+ * The trigger used to be a separate bar above the table — a "Roll table" label
+ * and a button repeating the name the header band printed directly beneath it.
+ * `titleSelect` folds the two into one control (see `RollTable`).
  */
 function TablesView() {
   const tables: RollTableEntity[] = SalvageUnionReference.RollTables.all()
@@ -55,24 +60,12 @@ function TablesView() {
 
   return (
     <div className="pc-display-scroll pc-tables">
-      <div className="pc-tables-bar">
-        <span className="pc-tables-lab">Roll table</span>
-        <Button
-          size="compact"
-          className="min-w-0 flex-1 justify-start text-left"
-          onClick={() => setPickerOpen(true)}
-          aria-haspopup="dialog"
-          aria-expanded={pickerOpen}
-        >
-          {selected?.name ?? 'Choose a table'} ▾
-        </Button>
-      </div>
-
       {selected ? (
         <RollTable
           table={selected.table}
           tableName={selected.name}
           showCommand
+          titleSelect={{ onOpen: () => setPickerOpen(true), open: pickerOpen }}
           onRollResult={(text, key) => {
             seqRef.current += 1
             const entry: RollHistoryEntry = {

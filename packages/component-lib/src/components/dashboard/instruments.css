@@ -827,21 +827,10 @@
   position: relative;
 }
 
-/* Mini-bar: label + the "open picker" button. */
-.pc-tables-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.pc-tables-lab {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-badge);
-  color: var(--color-ink-50);
-}
+/* The picker trigger is the RollTable header title itself (`titleSelect`), so
+ * this focus has no mini-bar of its own — `.pc-tables-bar` / `.pc-tables-lab`
+ * were removed with it. */
+
 /* Roll history — last N results with a clear. */
 .pc-rollhist {
   margin-top: 14px;

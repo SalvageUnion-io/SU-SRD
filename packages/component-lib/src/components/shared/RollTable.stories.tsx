@@ -1,4 +1,5 @@
 import type { Story } from '@ladle/react'
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { RollTable } from './RollTable'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -36,7 +37,8 @@ export const Default: Story = () =>
       <p className="max-w-2xl font-body text-xs leading-relaxed text-ink-2">
         The banded d20 roll table. showCommand adds the rust Roll control + command name;
         size=&quot;compact&quot; tightens for rails/tooltips; disabled suppresses the Roll action
-        (Reference surface).
+        (Reference surface); titleSelect turns the header title into the surface&apos;s table picker
+        trigger.
       </p>
       <Row label="bare">
         <RollTable table={table} />
@@ -50,5 +52,26 @@ export const Default: Story = () =>
       <Row label="disabled (Reference)">
         <RollTable table={table} showCommand tableName={tableName} disabled />
       </Row>
+      <Row label="titleSelect (Dashboard Tables)">
+        <TitleSelectRow />
+      </Row>
     </div>
   ) : null
+
+/**
+ * `titleSelect` — the header title as the surface's table picker trigger, the
+ * shape the Dashboard Tables focus uses. Toggling stands in for the caller's
+ * picker opening: the caret flips and `aria-expanded` follows.
+ */
+function TitleSelectRow() {
+  const [open, setOpen] = useState(false)
+  if (!table) return null
+  return (
+    <RollTable
+      table={table}
+      showCommand
+      tableName={tableName}
+      titleSelect={{ onOpen: () => setOpen((v) => !v), open }}
+    />
+  )
+}

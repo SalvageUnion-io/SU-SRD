@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { Text } from '../base/Text'
 import { Badge } from '../chrome/Badge'
+import { FOCUS_RING_ON_TONE } from '../chrome/interaction'
 import { cn } from '../../utils/cn'
 import type { SizeRung } from '../../styles/sizing'
 
@@ -25,6 +26,31 @@ type RollTableType =
   | { type: 'standard' | 'alternate' | 'flat' | 'full'; [key: string]: TableContent }
 
 type ColumnsTableData = Extract<SURefObjectTable, { type: 'columns' }>
+
+/**
+ * Turns the header title into the surface's TABLE PICKER trigger.
+ *
+ * A surface that shows one of many tables (the Dashboard Tables view) used to
+ * carry a separate bar above the table — a label, then a button repeating the
+ * table's name, directly above the header band already printing that same name.
+ * With this the header title IS the trigger: one name, one control.
+ *
+ * Typed rather than a `node` slot, so the header keeps ownership of its own
+ * affordance (chevron, hit area, focus ring, aria) and every consumer gets the
+ * same one — the same reason entity-card interactivity is typed `controls`.
+ * The caller still owns what opening means; it renders its own picker.
+ *
+ * Independent of `disabled`, which suppresses the ROLL action only: choosing
+ * which table to read is not rolling on it.
+ */
+type RollTableTitleSelect = {
+  /** Open the caller's picker. */
+  onOpen: () => void
+  /** Whether that picker is currently open — drives `aria-expanded`. */
+  open?: boolean
+  /** Overrides the trigger's accessible name (default names the current table). */
+  ariaLabel?: string
+}
 
 type RollTableDisplayProps = {
   table: RollTableType
@@ -47,6 +73,11 @@ type RollTableDisplayProps = {
    * from the header and auto-expands to reveal the result). Implies the header.
    */
   collapsible?: boolean
+  /**
+   * Renders the header title as a picker trigger (see `RollTableTitleSelect`).
+   * Requires the header — pass `showCommand` or `collapsible`.
+   */
+  titleSelect?: RollTableTitleSelect
 }
 
 /**
@@ -68,6 +99,7 @@ function RollTableHeader({
   singleRoll,
   hasRolled,
   handleRoll,
+  titleSelect,
 }: {
   showHeader?: boolean
   collapsible?: boolean
@@ -78,8 +110,10 @@ function RollTableHeader({
   singleRoll?: boolean
   hasRolled: boolean
   handleRoll: () => void
+  titleSelect?: RollTableTitleSelect
 }) {
   if (!showHeader) return null
+  const title = tableName || 'Roll table'
   return (
     <Badge
       shape="stamp"
@@ -87,11 +121,11 @@ function RollTableHeader({
       size="compact"
       className="flex w-full items-center justify-between gap-2 px-2.5 py-1.5 tracking-caps-snug"
     >
-      <span className="inline-flex items-center gap-3">
+      <span className="inline-flex min-w-0 items-center gap-3">
         {collapsible && (
           <ExpandToggle expanded={expanded} onToggle={() => setExpanded((v) => !v)} />
         )}
-        {tableName || 'Roll table'}
+        {titleSelect ? <TitleSelect title={title} select={titleSelect} /> : title}
       </span>
       {!disabled && (
         <span className="inline-flex items-center gap-2">
@@ -118,6 +152,21 @@ function RollTableHeader({
   )
 }
 
+/** The 10px caret both header controls use — flipped when what it opens is open. */
+function Caret({ flipped }: { flipped?: boolean }) {
+  return (
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 12 12"
+      aria-hidden="true"
+      className={cn('shrink-0 transition-transform', flipped && 'rotate-180')}
+    >
+      <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  )
+}
+
 /** The expand/collapse control shown in a collapsible roll-table header. */
 function ExpandToggle({ expanded, onToggle }: { expanded: boolean; onToggle: () => void }) {
   return (
@@ -128,15 +177,35 @@ function ExpandToggle({ expanded, onToggle }: { expanded: boolean; onToggle: () 
       className="inline-flex items-center gap-1 font-cond text-badge font-bold uppercase tracking-caps-tight text-paper/80 hover:text-paper"
     >
       {expanded ? 'Hide' : 'Show'}
-      <svg
-        width="10"
-        height="10"
-        viewBox="0 0 12 12"
-        aria-hidden="true"
-        className={cn('transition-transform', expanded && 'rotate-180')}
-      >
-        <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" />
-      </svg>
+      <Caret flipped={expanded} />
+    </button>
+  )
+}
+
+/**
+ * The title-as-picker-trigger. Reads as the title it replaces (same band type),
+ * with a hairline plate + caret marking it as choosable and the on-tone focus
+ * ring — the paper-offset rung, because the rust ring would vanish on the ink
+ * band this sits in.
+ */
+function TitleSelect({ title, select }: { title: string; select: RollTableTitleSelect }) {
+  return (
+    <button
+      type="button"
+      onClick={select.onOpen}
+      aria-haspopup="dialog"
+      aria-expanded={select.open ?? false}
+      aria-label={select.ariaLabel ?? `Choose a roll table (current: ${title})`}
+      className={cn(
+        // `uppercase` is NOT redundant with the band: the UA reset gives
+        // `button` its own `text-transform: none`, so without it the trigger
+        // reads Title Case beside a band that is otherwise all caps.
+        'inline-flex min-w-0 cursor-pointer items-center gap-1.5 rounded-badge border border-paper/40 px-2 py-0.5 text-left uppercase text-paper hover:border-paper hover:bg-paper/10',
+        FOCUS_RING_ON_TONE
+      )}
+    >
+      <span className="truncate">{title}</span>
+      <Caret flipped={select.open} />
     </button>
   )
 }
@@ -408,6 +477,7 @@ function ColumnsRollTable({
   singleRoll = false,
   onRollResult,
   collapsible = false,
+  titleSelect,
 }: Omit<RollTableDisplayProps, 'table'> & { table: ColumnsTableData }) {
   const compact = size === 'compact'
   const [result, setResult] = useState<ColumnsRollResult | null>(null)
@@ -468,6 +538,7 @@ function ColumnsRollTable({
           singleRoll={singleRoll}
           hasRolled={hasRolled}
           handleRoll={handleRoll}
+          titleSelect={titleSelect}
         />
 
         <CollapsedResultSlideout
@@ -590,6 +661,7 @@ function StandardRollTable({
   singleRoll = false,
   onRollResult,
   collapsible = false,
+  titleSelect,
 }: RollTableDisplayProps) {
   const compact = size === 'compact'
   const digestedTable = digestRollTable(table)
@@ -657,6 +729,7 @@ function StandardRollTable({
           singleRoll={singleRoll}
           hasRolled={hasRolled}
           handleRoll={handleRoll}
+          titleSelect={titleSelect}
         />
         <CollapsedResultSlideout
           show={collapsible && !expanded}
