@@ -14,6 +14,7 @@
  *   - orphans          (validateOrphansLogic.ts)
  *   - traits           (validateTraitsLogic.ts)
  *   - schemas          (validateSchemasLogic.ts)
+ *   - parity           (validateParityLogic.ts)
  *
  * Every check's detection logic lives in its own `*Logic.ts` module, and the
  * standalone `bun run validate:*` CLIs (still supported individually) import
@@ -43,6 +44,7 @@ import { findActionReferenceErrors } from './validateActionReferencesLogic.js'
 import { runActionBackrefCheck } from './validateActionBackrefsLogic.js'
 import { runOrphanCheck } from './validateOrphansLogic.js'
 import { findTraitIssues } from './validateTraitsLogic.js'
+import { KNOWN_UNRESOLVED, auditParity, unresolvedFindings } from './validateParityLogic.js'
 import { validateAllFilesAgainstSchemas } from './validateSchemasLogic.js'
 import { fixMissingIds } from './generateMissingIds.js'
 
@@ -173,6 +175,34 @@ function traitsCheck(data: DataBag): Diagnostic[] {
   }))
 }
 
+/**
+ * Rules parity (ADR-029 §5): every stated mechanical change is encoded or
+ * reasoned. Known-unresolved records are tolerated so the gate can land while
+ * the backlog burns down; a NEW one fails, and a stale known entry fails too.
+ */
+function parityCheck(data: DataBag): Diagnostic[] {
+  const unresolved = unresolvedFindings(auditParity(data as never))
+  const diagnostics: Diagnostic[] = unresolved
+    .filter((f) => !KNOWN_UNRESOLVED.includes(f.record))
+    .map((f) => ({
+      check: 'parity',
+      file: f.schema,
+      path: `"${f.record}" [${f.klass}]`,
+      message: `states a mechanical change that is neither encoded nor exempt: "${f.sentence}"`,
+    }))
+  for (const name of KNOWN_UNRESOLVED) {
+    if (!unresolved.some((f) => f.record === name)) {
+      diagnostics.push({
+        check: 'parity',
+        file: 'tools/validateParityLogic.ts',
+        path: `KNOWN_UNRESOLVED "${name}"`,
+        message: 'stale entry — now encoded or gone; remove it so the list keeps burning down',
+      })
+    }
+  }
+  return diagnostics
+}
+
 function schemasCheck(data: DataBag): Diagnostic[] {
   const diagnostics: Diagnostic[] = []
   for (const report of validateAllFilesAgainstSchemas(data, zodSchemaMap)) {
@@ -205,6 +235,7 @@ const CHECKS: CheckDefinition[] = [
   { id: 'action-backrefs', label: 'Namesake action back-references', run: actionBackrefsCheck },
   { id: 'orphans', label: 'Orphan detection', run: orphansCheck },
   { id: 'traits', label: 'Trait data', run: traitsCheck },
+  { id: 'parity', label: 'Rules parity', run: parityCheck },
   { id: 'schemas', label: 'Zod schema validation', run: schemasCheck },
 ]
 

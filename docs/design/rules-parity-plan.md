@@ -130,6 +130,39 @@ Sizes use the repo's existing effort labels: **S** under 1 day · **M** 1–2 ·
 | **F5** | Downtime writes                    | L    | F2–F4   | Downtime stops narrating and starts writing, with ADR-007 confirmation on destructive consequences                                |
 | **F6** | `RuleBrief` at enforcement moments | S    | —       | A disabled Push cites the Heat Cap rule rather than greying out silently                                                          |
 
+## Where the translation actually stands
+
+The parity audit (`validate:all` → `parity`) is the authoritative count, not this
+document. As of A2 landing:
+
+|                                            |       |
+| ------------------------------------------ | ----: |
+| Stated mechanical claims in player content |    30 |
+| Encoded as structured data                 |    14 |
+| Exempt, with a recorded reason             |    14 |
+| **Unresolved**                             | **2** |
+
+**The trait/damage backlog was overstated by an order of magnitude.** This plan
+called D3 "~21 records". Classified against ADR-029's own rule — prose-only or
+conditional benefits get no bonus data — most were never encodable work:
+_target-applied_ effects land on an opponent (procedural adjudication, ADR-021);
+_conditional_ ones are gated on state the app does not track; _activated_ ones
+are per-use and belong to Dashboard play state; _effect-of-an-effect_ ones raise
+another system's output rather than a stat. D3 as scoped does not exist.
+
+**The two that remain need a capability, not a data edit — and not the one C3
+described.** C3 was written as "effects declarable directly on a system/ability".
+Declaring them is not the blocker: `ChoiceEffectSchema` has no `target`, and
+neither remaining effect lands on the record that declares it. Bio-Wings grants
+**the host mech** the Fly Trait; High Gain Antenna raises the Range band of
+**other installed items**, filtered by trait. Encoding them without a target
+would apply real rules to the wrong entity — a silent wrong answer, which is
+worse than a visible gap.
+
+So the real C3 is: **give effects the same `target` concept `ContributionSchema`
+already carries.** Until then the audit holds both as known-unresolved and fails
+on anything new.
+
 ## Critical path
 
 ```
