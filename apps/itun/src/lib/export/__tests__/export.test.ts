@@ -104,7 +104,9 @@ describe('parseImportBundle', () => {
       encounterNpcs: [],
     }
     const result = parseImportBundle(JSON.stringify(bundle))
-    expect(result.schemaVersion).toBe(1)
+    // A v1 payload is normalised to the current version on the way in, so the
+    // rest of the pipeline sees one format (ADR-030 containers).
+    expect(result.schemaVersion).toBe(2)
     expect(result.entities.pilots).toEqual([])
   })
 
@@ -145,7 +147,7 @@ describe('buildExportBundle', () => {
 
     const bundle = await buildExportBundle(entityStore, workspaceStore)
 
-    expect(bundle.schemaVersion).toBe(1)
+    expect(bundle.schemaVersion).toBe(2)
     expect(bundle.entities.pilots).toHaveLength(1)
     expect(bundle.entities.pilots[0]?.name).toBe('Test Pilot')
     expect(bundle.entities.mechs).toHaveLength(0)
