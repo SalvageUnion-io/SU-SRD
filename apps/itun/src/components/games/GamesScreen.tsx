@@ -154,7 +154,9 @@ function GameRow({
 
 function ConnectedGames() {
   const games = useQuery(api.games.listMine, {})
+  const templates = useQuery(api.templates.list, {})
   const create = useMutation(api.games.create)
+  const createFromTemplate = useMutation(api.templates.createGame)
   const redeem = useMutation(api.invites.redeem)
 
   const [newName, setNewName] = useState('')
@@ -183,6 +185,34 @@ function ConnectedGames() {
           >
             Create
           </Button>
+        </div>
+      </Card>
+
+      <Card>
+        <div className="flex flex-col gap-3 p-4">
+          <span className={label}>Or start from a template</span>
+          {templates?.map((t) => (
+            <div key={t.id} className="flex flex-col gap-2">
+              <Text as="span">{t.name}</Text>
+              <Text variant="hint" className="text-left">
+                {t.description}
+              </Text>
+              <div>
+                <Button
+                  variant="ghost"
+                  size="compact"
+                  onClick={() =>
+                    void createFromTemplate({
+                      templateId: 'starter-set',
+                      name: newName || undefined,
+                    })
+                  }
+                >
+                  Start this game
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
       </Card>
 
