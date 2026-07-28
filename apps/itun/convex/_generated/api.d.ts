@@ -11,6 +11,7 @@
 import type * as __tests___harness from "../__tests__/harness.js";
 import type * as account from "../account.js";
 import type * as auth from "../auth.js";
+import type * as crew from "../crew.js";
 import type * as entities from "../entities.js";
 import type * as games from "../games.js";
 import type * as http from "../http.js";
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   "__tests__/harness": typeof __tests___harness;
   account: typeof account;
   auth: typeof auth;
+  crew: typeof crew;
   entities: typeof entities;
   games: typeof games;
   http: typeof http;
