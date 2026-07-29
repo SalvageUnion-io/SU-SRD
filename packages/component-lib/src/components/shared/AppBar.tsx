@@ -52,6 +52,14 @@ type AppBarProps = {
   buyLabel?: ReactNode
   /** Mobile cluster (search trigger + hamburger drawer), shown below `lg`. */
   mobile?: ReactNode
+  /**
+   * Optional second row under the nav, right-aligned inside the masthead — the
+   * app's own utility controls (ITUN puts its account cluster here). Renders at
+   * every breakpoint, so it sits under the hamburger on mobile. Passed through
+   * as a slot rather than as `navItems`, because these are controls, not links,
+   * and the shared bar stays ignorant of what they do.
+   */
+  utilityRow?: ReactNode
   // Breadcrumbs (optional — the SRD schema/item routes)
   breadcrumbs?: BreadcrumbItem[]
   breadcrumbDescription?: string
@@ -79,88 +87,98 @@ export function AppBar({
   buyHref,
   buyLabel = 'BUY THE GAME',
   mobile,
+  utilityRow,
   breadcrumbs,
   breadcrumbDescription,
 }: AppBarProps) {
   return (
     <>
       <header
-        className="z-50 flex items-center gap-[14px] border-b-entity border-rust bg-ink-deep px-5 py-3 sm:px-[34px] sm:py-[14px]"
+        className="z-50 flex flex-col gap-2 border-b-entity border-rust bg-ink-deep px-5 py-3 sm:px-[34px] sm:py-[14px]"
         style={viewTransitionName ? { viewTransitionName } : undefined}
       >
-        {/* Brand lockup: SU cargo mark + wordmark (+ optional accent/badge) +
+        {/* Row 1 — brand + nav (or the mobile hamburger). */}
+        <div className="flex items-center gap-[14px]">
+          {/* Brand lockup: SU cargo mark + wordmark (+ optional accent/badge) +
             tracked eyebrow. `brandShrink` lets a long wordmark/eyebrow wrap
             instead of forcing horizontal overflow. */}
-        <LinkComponent
-          href="/"
-          className={cn(
-            'flex items-center gap-[14px] no-underline',
-            brandShrink ? 'min-w-0' : 'shrink-0'
-          )}
-        >
-          <img
-            src="/logos/su-cargo-dark.svg"
-            alt="Salvage Union"
-            width={64}
-            height={64}
-            className="block size-12 shrink-0 rounded-xl sm:size-16"
-          />
-          <span className="flex min-w-0 flex-col">
-            <span className="font-cond text-display font-bold leading-[0.98] tracking-normal text-paper sm:text-display-lg">
-              {wordmark}
-              {wordmarkAccent && <span className="text-rust">{wordmarkAccent}</span>}
-              {badge && (
-                <span className="ml-2 inline-block rounded bg-rust px-1.5 py-0.5 align-[0.32em] font-cond text-caption font-bold uppercase leading-none tracking-caps text-paper">
-                  {badge}
-                </span>
-              )}
-            </span>
-            <span
-              className={cn(
-                'mt-[7px] font-cond text-caption font-semibold uppercase tracking-eyebrow text-pilot sm:mt-[9px]',
-                brandShrink ? 'leading-tight' : 'whitespace-nowrap leading-none'
-              )}
-            >
-              {eyebrow}
-            </span>
-          </span>
-        </LinkComponent>
-
-        {/* Desktop nav cluster — links + search + buy, pushed right. */}
-        <nav
-          aria-label="Main navigation"
-          className="ml-auto hidden items-center gap-[26px] lg:flex"
-        >
-          {navItems.map((item) => {
-            // External items render a plain anchor in a new tab; internal ones
-            // route through LinkComponent. One element either way.
-            const Link = item.external ? 'a' : LinkComponent
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(NAV_LINK, item.active && NAV_LINK_ACTIVE)}
-                {...(item.external
-                  ? { target: '_blank', rel: 'noopener noreferrer' }
-                  : { 'aria-current': item.active ? ('page' as const) : undefined })}
+          <LinkComponent
+            href="/"
+            className={cn(
+              'flex items-center gap-[14px] no-underline',
+              brandShrink ? 'min-w-0' : 'shrink-0'
+            )}
+          >
+            <img
+              src="/logos/su-cargo-dark.svg"
+              alt="Salvage Union"
+              width={64}
+              height={64}
+              className="block size-12 shrink-0 rounded-xl sm:size-16"
+            />
+            <span className="flex min-w-0 flex-col">
+              <span className="font-cond text-display font-bold leading-[0.98] tracking-normal text-paper sm:text-display-lg">
+                {wordmark}
+                {wordmarkAccent && <span className="text-rust">{wordmarkAccent}</span>}
+                {badge && (
+                  <span className="ml-2 inline-block rounded bg-rust px-1.5 py-0.5 align-[0.32em] font-cond text-caption font-bold uppercase leading-none tracking-caps text-paper">
+                    {badge}
+                  </span>
+                )}
+              </span>
+              <span
+                className={cn(
+                  'mt-[7px] font-cond text-caption font-semibold uppercase tracking-eyebrow text-pilot sm:mt-[9px]',
+                  brandShrink ? 'leading-tight' : 'whitespace-nowrap leading-none'
+                )}
               >
-                {item.label}
-                {item.badge}
-              </Link>
-            )
-          })}
+                {eyebrow}
+              </span>
+            </span>
+          </LinkComponent>
 
-          {search}
+          {/* Desktop nav cluster — links + search + buy, pushed right. */}
+          <nav
+            aria-label="Main navigation"
+            className="ml-auto hidden items-center gap-[26px] lg:flex"
+          >
+            {navItems.map((item) => {
+              // External items render a plain anchor in a new tab; internal ones
+              // route through LinkComponent. One element either way.
+              const Link = item.external ? 'a' : LinkComponent
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(NAV_LINK, item.active && NAV_LINK_ACTIVE)}
+                  {...(item.external
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                    : { 'aria-current': item.active ? ('page' as const) : undefined })}
+                >
+                  {item.label}
+                  {item.badge}
+                </Link>
+              )
+            })}
 
-          {buyHref && (
-            <a href={buyHref} target="_blank" rel="noopener noreferrer" className={BUY_BUTTON}>
-              {buyLabel}
-            </a>
-          )}
-        </nav>
+            {search}
 
-        {/* Mobile: search trigger + hamburger, below `lg`. */}
-        {mobile && <div className="ml-auto flex items-center gap-1 lg:hidden">{mobile}</div>}
+            {buyHref && (
+              <a href={buyHref} target="_blank" rel="noopener noreferrer" className={BUY_BUTTON}>
+                {buyLabel}
+              </a>
+            )}
+          </nav>
+
+          {/* Mobile: search trigger + hamburger, below `lg`. */}
+          {mobile && <div className="ml-auto flex items-center gap-1 lg:hidden">{mobile}</div>}
+        </div>
+
+        {/* Row 2 — the app's own utility controls, right-aligned under the nav.
+            Its own row of the masthead rather than a child of the nav cluster,
+            so a wide cluster can never squeeze the brand on narrow screens.
+            Renders nothing (and costs no row) when the app passes no slot. */}
+        {utilityRow}
       </header>
 
       {breadcrumbs && breadcrumbs.length > 0 && (

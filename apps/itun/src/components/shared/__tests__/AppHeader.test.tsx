@@ -79,7 +79,8 @@ describe('AppHeader', () => {
     render(<AppHeader />)
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
     const drawer = screen.getByRole('dialog')
-    expect(within(drawer).getByRole('link', { name: /encounter/i })).toBeTruthy()
+    expect(within(drawer).getByRole('link', { name: /about/i })).toBeTruthy()
+    expect(within(drawer).getByRole('link', { name: /changelog/i })).toBeTruthy()
     expect(within(drawer).getByRole('link', { name: /SRD/i })).toBeTruthy()
     const drawerDiscord = within(drawer).getByRole<HTMLAnchorElement>('link', {
       name: /discord/i,
@@ -89,5 +90,23 @@ describe('AppHeader', () => {
       name: /buy the game/i,
     })
     expect(buy.getAttribute('href')).toBe('https://leyline.press/collections/salvage-union')
+  })
+
+  test('does not offer Encounter as a nav destination (it lives on the Mediator sheet)', () => {
+    render(<AppHeader />)
+    expect(screen.queryByRole('link', { name: /encounter/i })).toBeFalsy()
+    fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
+    const drawer = screen.getByRole('dialog')
+    expect(within(drawer).queryByRole('link', { name: /encounter/i })).toBeFalsy()
+  })
+
+  test('renders the utility row inside the masthead, below the nav', () => {
+    render(<AppHeader utilityRow={<button type="button">Sign out</button>} />)
+    const signOut = screen.getByRole('button', { name: 'Sign out' })
+    // Inside the <header> itself — the point of the slot is that these controls
+    // stopped being a separate strip stacked above the brand chrome.
+    expect(signOut.closest('header')).toBeTruthy()
+    // ...and outside the nav cluster, so it lands on its own row.
+    expect(signOut.closest('nav')).toBeFalsy()
   })
 })
