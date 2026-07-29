@@ -1,5 +1,5 @@
 import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 /**
  * `GamesScreen` in its connected state — the Games *index*.
@@ -16,6 +16,9 @@ import { cleanup, render, screen } from '@testing-library/react'
 
 let queryQueue: unknown[] = []
 let queryIndex = 0
+let redeemResult: unknown = { kind: 'joined', gameId: 'g9', granted: 0 }
+let redeemError: Error | null = null
+const navigations: unknown[] = []
 
 /**
  * `mock.module` replaces the entry in the process-wide module registry, so these
@@ -42,7 +45,10 @@ mock.module('convex/react', () => ({
     queryIndex += 1
     return v
   },
-  useMutation: () => async () => undefined,
+  useMutation: () => async () => {
+    if (redeemError !== null) throw redeemError
+    return redeemResult
+  },
   useConvexAuth: () => ({ isAuthenticated: true, isLoading: false }),
   ConvexReactClient: class {},
   // `@convex-dev/auth/react` (reached via SignInControl) imports these from
@@ -65,7 +71,9 @@ mock.module('@tanstack/react-router', () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
     <a href={to}>{children}</a>
   ),
-  useNavigate: () => async () => undefined,
+  useNavigate: () => async (opts: unknown) => {
+    navigations.push(opts)
+  },
   useRouter: () => undefined,
 }))
 
@@ -75,6 +83,8 @@ const { ConnectionProvider } = await import('../../../lib/connection/ConnectionP
 function withQueries(values: unknown[]): void {
   queryQueue = values
   queryIndex = 0
+  navigations.length = 0
+  redeemError = null
 }
 
 const wrap = () =>
@@ -173,6 +183,50 @@ describe('the Games index for a signed-in player', () => {
 
     expect(screen.getByText(/not in any games yet/i)).toBeTruthy()
     expect(screen.getByLabelText('Invite code')).toBeTruthy()
+  })
+})
+
+describe('joining by code from the lobby', () => {
+  test('a successful join routes into the game it joined', async () => {
+    withQueries(queriesFor(GAME))
+    wrap()
+
+    fireEvent.change(screen.getByLabelText('Invite code'), { target: { value: 'A1B2C3D4' } })
+    fireEvent.click(screen.getByText('Join'))
+
+    await waitFor(() => expect(navigations).toHaveLength(1))
+    expect(navigations[0]).toMatchObject({ params: { gameId: 'g9' } })
+  })
+
+  test('a gated code says it is waiting instead of routing nowhere', async () => {
+    withQueries(queriesFor(GAME))
+    redeemResult = { kind: 'pending', gameId: 'g9' }
+    wrap()
+
+    fireEvent.change(screen.getByLabelText('Invite code'), { target: { value: 'A1B2C3D4' } })
+    fireEvent.click(screen.getByText('Join'))
+
+    await waitFor(() => expect(screen.getByText(/once the organizer approves/i)).toBeTruthy())
+    // Routing into a Game you cannot yet see would be the wrong reassurance.
+    expect(navigations).toHaveLength(0)
+    redeemResult = { kind: 'joined', gameId: 'g9', granted: 0 }
+  })
+
+  test('a refusal is shown in the server’s own words', async () => {
+    withQueries(queriesFor(GAME))
+    wrap()
+    redeemError = new Error('That invite code has expired')
+
+    fireEvent.change(screen.getByLabelText('Invite code'), { target: { value: 'A1B2C3D4' } })
+    fireEvent.click(screen.getByText('Join'))
+
+    await waitFor(() => expect(screen.getByText(/has expired/)).toBeTruthy())
+  })
+
+  test('Join is disabled until a code is typed', () => {
+    withQueries(queriesFor(GAME))
+    wrap()
+    expect((screen.getByText('Join') as HTMLButtonElement).disabled).toBe(true)
   })
 })
 
