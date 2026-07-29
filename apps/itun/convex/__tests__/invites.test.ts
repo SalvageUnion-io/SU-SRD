@@ -379,6 +379,35 @@ describe('knock and approve', () => {
   })
 })
 
+describe('deleting a game', () => {
+  test('sweeps redemptions and pending knocks along with the invites', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const joiner = await makeUser(t, 'Sam')
+    const knocker = await makeUser(t, 'Knocker')
+
+    const open = await organizer.as.mutation(api.invites.create, { gameId })
+    await joiner.as.mutation(api.invites.redeem, { code: open })
+
+    const gated = await organizer.as.mutation(api.invites.create, {
+      gameId,
+      requiresApproval: true,
+    })
+    await knocker.as.mutation(api.invites.redeem, { code: gated })
+
+    await organizer.as.mutation(api.games.destroy, { gameId })
+
+    // A knock at a door that no longer exists would otherwise sit pending
+    // forever, and a redemption row would point at a deleted Game.
+    const leftovers = await t.run(async (ctx) => ({
+      invites: (await ctx.db.query('invites').collect()).length,
+      redemptions: (await ctx.db.query('inviteRedemptions').collect()).length,
+      requests: (await ctx.db.query('joinRequests').collect()).length,
+    }))
+    expect(leftovers).toEqual({ invites: 0, redemptions: 0, requests: 0 })
+  })
+})
+
 describe('games.get and the row summary', () => {
   test('summarize carries the crawler name and the entity counts', async () => {
     const t = testConvex()
