@@ -16,7 +16,10 @@
 import { SlashCommandBuilder } from 'discord.js'
 
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
+import { gamesCommand, meCommand, shelfCommand } from './account.js'
 import { checkCommand } from './check.js'
+import { crewCommand, sheetCommand } from './crew.js'
+import { gameCommand } from './game.js'
 import { lookupCommand } from './lookup.js'
 import { rollCommand } from './roll.js'
 
@@ -26,9 +29,25 @@ export const suCommand = {
     .setDescription('Salvage Union reference tools')
     .addSubcommand((sub) => rollCommand.subcommand(sub))
     .addSubcommand((sub) => checkCommand.subcommand(sub))
-    .addSubcommand((sub) => lookupCommand.subcommand(sub)),
+    .addSubcommand((sub) => lookupCommand.subcommand(sub))
+    // In The Union Now (ADR-030 Phase 6). Always registered, never conditional
+    // on configuration: a command that vanishes depending on how the bot was
+    // deployed is harder to explain than one that answers "not connected".
+    .addSubcommand((sub) => meCommand.subcommand(sub))
+    .addSubcommand((sub) => gamesCommand.subcommand(sub))
+    .addSubcommand((sub) => shelfCommand.subcommand(sub))
+    .addSubcommand((sub) => crewCommand.subcommand(sub))
+    .addSubcommand((sub) => sheetCommand.subcommand(sub))
+    .addSubcommandGroup((group) => gameCommand.group(group)),
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
+    // A group is dispatched by its group name; `getSubcommand()` inside one
+    // returns the LEAF (`bind`), which would otherwise fall through to the
+    // default and throw.
+    if (interaction.options.getSubcommandGroup() === 'game') {
+      return gameCommand.execute(interaction)
+    }
+
     switch (interaction.options.getSubcommand()) {
       case 'roll':
         return rollCommand.execute(interaction)
@@ -36,6 +55,16 @@ export const suCommand = {
         return checkCommand.execute(interaction)
       case 'lookup':
         return lookupCommand.execute(interaction)
+      case 'me':
+        return meCommand.execute(interaction)
+      case 'games':
+        return gamesCommand.execute(interaction)
+      case 'shelf':
+        return shelfCommand.execute(interaction)
+      case 'crew':
+        return crewCommand.execute(interaction)
+      case 'sheet':
+        return sheetCommand.execute(interaction)
       default:
         // Unreachable while the builder above and this switch agree; loud
         // beats silent if they ever drift.
@@ -44,11 +73,17 @@ export const suCommand = {
   },
 
   async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
+    if (interaction.options.getSubcommandGroup() === 'game') {
+      return gameCommand.autocomplete(interaction)
+    }
+
     switch (interaction.options.getSubcommand()) {
       case 'roll':
         return rollCommand.autocomplete(interaction)
       case 'lookup':
         return lookupCommand.autocomplete(interaction)
+      case 'sheet':
+        return sheetCommand.autocomplete(interaction)
       default:
         await interaction.respond([])
     }

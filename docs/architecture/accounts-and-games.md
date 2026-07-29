@@ -130,17 +130,28 @@ broadcast alerts, and the **Crew** dial item.
 Downtime phase as Game state advanced by the Mediator; per-player step completion
 visible to the table; crawler upkeep resolved once rather than six times.
 
-### Phase 6 — Discord bot as a Game client 🟡 (server only — nothing is wired)
+### Phase 6 — Discord bot as a Game client ✅ (alerts deferred)
 
 The bot authenticates as a participant rather than an admin; rolls made in
 Discord land as Change Log entries.
 
-**`convex/bot.ts` is written and tested; nothing calls it.** `grep` finds zero
-references to `api.bot.*` in `apps/itun/src` or `apps/discord-bot/src`, there is
-no credential by which the bot could authenticate to Convex, and `recordRoll`
-currently performs no auth check at all. The delivery plan — including the
-credential decision that `bot.ts` assumed rather than made — is
-[`discord-bot-game-client.md`](discord-bot-game-client.md).
+Built end-to-end: `/su me`, `/su games`, `/su shelf`, `/su crew`, `/su sheet`,
+`/su game bind|unbind|info`, and roll attribution on `/su roll` and `/su check`.
+The bot reaches Convex through a `/bot/*` HTTP route carrying a bearer
+credential that authenticates the **bot**, never the **actor** — every call
+still resolves its actor from a linked Discord id and runs the same
+`model/permissions.ts` checks the web does.
+
+Two things this phase closed that were not on the checklist. `recordRoll` had
+been a **public mutation with no authorization at all**; it is now an internal
+function, unreachable from any client. And there is no account-linking step to
+build: Discord is the sole auth provider, so the snowflake already sits in
+`authAccounts.providerAccountId` and is stamped at sign-in.
+
+**Deferred:** pushing Mediator alerts into the channel, which needs a reactive
+subscription rather than request/response. See
+[`discord-bot-game-client.md`](discord-bot-game-client.md) for the credential
+decision, the command surface, and the remaining phases.
 
 ### Phase 7 — The crew roster, and the rules for setting a table up ✅
 
@@ -263,6 +274,29 @@ bunx convex env set SITE_URL            <frontend origin>
 `VITE_CONVEX_SITE_URL`, nothing prompts for it, and omitting it fails with an
 opaque `Missing environment variable SITE_URL` 500 from the OAuth callback
 rather than anything pointing at configuration.
+
+**For the Discord bot** (ADR-030 Phase 6), one more on the Convex deployment
+and two on the Render worker:
+
+```bash
+# Convex — enables the /bot/* route. UNSET disables the whole surface, so a
+# deployment that has not opted in cannot be talked to by a bot at all.
+bunx convex env set ITUN_BOT_SECRET <a long random string>
+
+# Render (suref-discord-bot) — both, or the bot stays in Solo mode.
+ITUN_CONVEX_SITE_URL=https://<deployment>.convex.site
+ITUN_BOT_SECRET=<the same value>
+```
+
+`ITUN_CONVEX_SITE_URL` is the **HTTP-actions** origin (`.convex.site`), not the
+client URL (`.convex.cloud`) and not the web origin. Getting it wrong presents
+as every Game command reporting the deployment unreachable — which is honest but
+points at the network rather than at the typo.
+
+The secret is a **bearer credential**: whoever holds it can act as any Discord
+user who has linked an account. That is bounded (it cannot invent a membership,
+reach an unlinked account, read somebody's shelf, or see `encounterNpcs`) but it
+is real. Store it in 1Password, never in git, and rotate on any suspicion.
 
 ### Verifying a deployment without signing in
 

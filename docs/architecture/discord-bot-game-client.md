@@ -1,6 +1,6 @@
 # The Discord Bot as a Game Client
 
-**Status: plan. Nothing here is built.** Delivery plan for
+**Status: Phases 0–4 BUILT.** Phases 5–6 remain as drawn. Delivery plan for
 [issue #623](https://github.com/alxjrvs/SU-SRD/issues/623) — Phase 6 of
 [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md). Read
 [`accounts-and-games.md`](accounts-and-games.md) first for the account model this
@@ -407,34 +407,65 @@ Each phase is a shippable PR. Phase 0 is the only hard prerequisite.
   ships before anything binds a channel.
 - Auto-stamp `users.discordId` at sign-in; backfill existing users; retire
   `linkDiscordId` (§4).
-- Bot side: add `convex` to `apps/discord-bot/package.json`, extend `config.ts`
-  with `convexUrl` + `itunBotSecret` (both **optional** — Solo must keep
-  working), and add a thin injectable client module so tests stay offline.
-- Render: `CONVEX_URL`, `ITUN_BOT_SECRET` (1Password → Render env).
+- Bot side: extend `config.ts` with `itunSiteUrl` + `itunBotSecret` (both
+  **optional** — Solo must keep working), and add a thin client module so tests
+  stay offline.
+- Render: `ITUN_CONVEX_SITE_URL`, `ITUN_BOT_SECRET` (1Password → Render env).
 
 **Exit:** an integration test proves an unauthenticated `recordRoll` is rejected,
 and the bot can round-trip one authenticated call.
 
-### Phase 1 — Identity
+> **Built, with one deviation.** The plan said to add `convex` to the bot's
+> dependencies. It was not needed and was not added: with the surface exposed as
+> HTTP routes, the client is `fetch` and nothing else. The `convex` package buys
+> a websocket and reactive subscriptions, which matter only for Phase 5 — adding
+> a browser SDK to a Node worker now, for a feature later, is how dependency
+> weight accretes unnoticed. Add it when Phase 5 lands, not before.
+>
+> `recordRoll` was not merely authenticated but moved: it is
+> `internal.botClient.recordRoll`, and an **internal** Convex function is
+> unreachable from any client whatsoever. That is a stronger fix than a check
+> inside a public mutation, because it cannot be undone by someone later
+> forgetting the check.
+
+### Phase 1 — Identity ✅
 
 `/su me`, `/su games`. Smallest possible surface that exercises the whole pipe
 end-to-end, and it delivers the literal ask ("link to our ITUN account, list
-games") on its own.
+games") on its own. `/su shelf` shipped alongside them — it is the same shape
+(personal, ephemeral, needs no binding) and splitting it out bought nothing.
 
-### Phase 2 — Binding
+### Phase 2 — Binding ✅
 
-`/su game bind|unbind|info`. Organizer-gated, with Game autocomplete from
-`games.listMine`.
+`/su game bind|unbind|info`, the first subcommand **group** on `/su`.
+Organizer-gated server-side, with Game autocomplete drawn from the caller's own
+games. Binding announces itself publicly: it changes what the channel means for
+everyone in it.
 
-### Phase 3 — The read surfaces
+### Phase 3 — The read surfaces ✅ (one deferral)
 
-`/su crew`, `/su sheet`, `/su shelf`, plus the _Post to channel_ button action.
-The product payload.
+`/su crew` and `/su sheet`. The product payload.
 
-### Phase 4 — Roll attribution
+The _Post to channel_ button was **not** built. `/su crew` is public already —
+the case it was meant to serve — and adding a stateful component before anyone
+has asked to share a sheet is speculative surface. The customId scheme has room
+for a `share` action whenever it earns one.
+
+### Phase 4 — Roll attribution ✅
 
 Footer + `recordRoll` on `/su roll` and `/su check`. **Closes #623's exit
 criterion.**
+
+Two details the plan did not anticipate, both settled in
+`commands/rollAttribution.ts`:
+
+- **The reply is not deferred.** The roll is replied to first, exactly as
+  before, and the footer is edited afterwards once the recording lands. A dice
+  bot must feel instant, and deferring would have made every roll slower for
+  everybody — including Solo installs, which get no benefit at all.
+- **The re-roll buttons record too.** Attributing only the slash-command form
+  would leave the Change Log quietly disagreeing with the channel about what
+  happened at the table.
 
 ### Phase 5 — Alerts to the channel
 
@@ -457,7 +488,7 @@ Only after Phase 3 shows the channel is a surface people read.
 | Reference commands regressing when Convex is down.                         | The Solo/Connected/Degraded table (§5) is a test matrix, not prose. `/su lookup` must not import a Convex client at all.   |
 | Glyph bars rendering badly on mobile or in light theme.                    | Screenshot four clients before locking the set (§7).                                                                       |
 | `mock.module` leaking across bot test files.                               | Known Bun behaviour — restore in `afterAll`, spread the namespace at capture time. Prefer an injected client over mocking. |
-| The bot bundles via `bun build --external`; a new dep must be added there. | Add `convex` to the `--external` list in `apps/discord-bot/package.json`, or it silently bloats/breaks the Render build.   |
+| The bot bundles via `bun build --external`; a new dep must be added there. | Moot as built — no dependency was added (see Phase 0). It applies again at Phase 5, which does need `convex`.              |
 | Alert subscriptions replaying on restart.                                  | Watermark by `changeLog.ts`; never post an entry older than process start.                                                 |
 | Unclaimed entities (`ownerId: null`) rendering as blank.                   | Render **Unclaimed** as a state everywhere (§7 mockup). Same hazard the web surfaces carry.                                |
 

@@ -1,0 +1,7 @@
+[test]
+# src/config.ts reads required env vars at module scope, so anything importing
+# it throws on load without these. See test/env.ts.
+preload = ["./test/env.ts"]
+
+[test.env]
+NODE_ENV = "test"

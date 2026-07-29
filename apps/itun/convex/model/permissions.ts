@@ -53,11 +53,46 @@ export async function getMembership(
     .unique()
 }
 
-/** Membership in `gameId`, or a throw. The baseline check for any Game read. */
-export async function requireMember(ctx: AnyCtx, gameId: Id<'games'>): Promise<Doc<'memberships'>> {
-  const userId = await requireUser(ctx)
+/**
+ * ## The `…As` variants
+ *
+ * Every check below comes in two forms: one that reads the actor from the
+ * Convex auth token, and one taking the actor explicitly. They exist for the
+ * Discord bot (ADR-030 Phase 6), which authenticates over HTTP with a bot
+ * credential and resolves its actor from a linked Discord id — so it has a
+ * `userId` in hand but no token for `getAuthUserId` to read.
+ *
+ * The split is deliberately at the *actor*, not at the *rule*. The token-based
+ * functions are thin wrappers that resolve an actor and delegate, so there is
+ * exactly one implementation of "what may a Mediator do" and the bot cannot
+ * drift from it. Adding a rule here reaches every caller; adding one anywhere
+ * else is a bug.
+ */
+
+/** Membership in `gameId` for an explicit actor, or a throw. */
+export async function requireMemberAs(
+  ctx: AnyCtx,
+  gameId: Id<'games'>,
+  userId: Id<'users'>
+): Promise<Doc<'memberships'>> {
   const membership = await getMembership(ctx, gameId, userId)
   if (membership === null) throw new NotAuthorized('Not a member of this game')
+  return membership
+}
+
+/** Membership in `gameId`, or a throw. The baseline check for any Game read. */
+export async function requireMember(ctx: AnyCtx, gameId: Id<'games'>): Promise<Doc<'memberships'>> {
+  return await requireMemberAs(ctx, gameId, await requireUser(ctx))
+}
+
+/** Membership with `mediator: true` for an explicit actor, or a throw. */
+export async function requireMediatorAs(
+  ctx: AnyCtx,
+  gameId: Id<'games'>,
+  userId: Id<'users'>
+): Promise<Doc<'memberships'>> {
+  const membership = await requireMemberAs(ctx, gameId, userId)
+  if (!membership.mediator) throw new NotAuthorized('Only the Mediator can do that')
   return membership
 }
 
@@ -66,8 +101,17 @@ export async function requireMediator(
   ctx: AnyCtx,
   gameId: Id<'games'>
 ): Promise<Doc<'memberships'>> {
-  const membership = await requireMember(ctx, gameId)
-  if (!membership.mediator) throw new NotAuthorized('Only the Mediator can do that')
+  return await requireMediatorAs(ctx, gameId, await requireUser(ctx))
+}
+
+/** Membership with `organizer: true` for an explicit actor, or a throw. */
+export async function requireOrganizerAs(
+  ctx: AnyCtx,
+  gameId: Id<'games'>,
+  userId: Id<'users'>
+): Promise<Doc<'memberships'>> {
+  const membership = await requireMemberAs(ctx, gameId, userId)
+  if (!membership.organizer) throw new NotAuthorized('Only the Organizer can do that')
   return membership
 }
 
@@ -76,9 +120,7 @@ export async function requireOrganizer(
   ctx: AnyCtx,
   gameId: Id<'games'>
 ): Promise<Doc<'memberships'>> {
-  const membership = await requireMember(ctx, gameId)
-  if (!membership.organizer) throw new NotAuthorized('Only the Organizer can do that')
-  return membership
+  return await requireOrganizerAs(ctx, gameId, await requireUser(ctx))
 }
 
 /** True when `gameId` has at least one member flagged as Mediator. */
