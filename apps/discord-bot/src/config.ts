@@ -10,6 +10,18 @@ function optionalEnv(key: string): string | undefined {
   return process.env[key]
 }
 
+/** An absolute http(s) URL from the environment, or `fallback`. */
+function absoluteUrlOr(key: string, fallback: string): string {
+  const value = process.env[key]?.trim()
+  if (!value) return fallback
+  try {
+    const parsed = new URL(value)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? value : fallback
+  } catch {
+    return fallback
+  }
+}
+
 export const config = {
   discordToken: requireEnv('DISCORD_TOKEN'),
   discordClientId: requireEnv('DISCORD_CLIENT_ID'),
@@ -34,5 +46,11 @@ export const config = {
   itunSiteUrl: optionalEnv('ITUN_CONVEX_SITE_URL'),
   itunBotSecret: optionalEnv('ITUN_BOT_SECRET'),
   // Where embeds link back to. Only ever used to build a URL, never called.
-  itunWebUrl: optionalEnv('ITUN_WEB_URL') ?? 'https://intheunionnow.com',
+  //
+  // Validated rather than merely defaulted: `EmbedBuilder.setURL` THROWS on a
+  // relative or malformed URL, so a blank or scheme-less value here would not
+  // degrade — it would break every Game command with a generic error. A bad
+  // value falls back to the canonical origin, which is always better than
+  // taking the whole surface down over a typo in an env var.
+  itunWebUrl: absoluteUrlOr('ITUN_WEB_URL', 'https://intheunionnow.com'),
 } as const

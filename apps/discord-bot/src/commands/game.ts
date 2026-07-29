@@ -107,7 +107,18 @@ async function bind(interaction: CommandExecuteInteraction): Promise<void> {
     return
   }
 
+  // Picked, not typed. The option carries a Convex id, and a hand-typed name
+  // fails `v.id('games')` validation server-side — which the bot renders as
+  // "could not be reached", an outage message for a typo. `/su sheet` guards
+  // the same case; this one did not.
   const gameId = interaction.options.getString('game', true)
+  if (!/^[a-z0-9]{16,}$/i.test(gameId)) {
+    await interaction.editReply({
+      content: 'Pick a game from the list rather than typing its name.',
+    })
+    return
+  }
+
   const result = await client.bind(interaction.user.id, channelId, gameId)
 
   if (result.kind === 'denied') {

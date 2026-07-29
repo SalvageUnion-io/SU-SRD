@@ -18,10 +18,12 @@ import { NotAuthorized, requireUser } from './model/permissions'
  * Here the bot acts as a *participant*:
  *
  *  - A **channel binding** says "rolls in this channel belong to this Game".
- *  - The actor is resolved from the Discord user id against `users.discordId`,
- *    so the bot can only ever act as somebody who has signed in with that same
- *    Discord account and joined the Game. A stranger in the channel is not a
- *    member and gets nothing.
+ *  - The actor is resolved from the Discord user id against `authAccounts` —
+ *    the row `@convex-dev/auth` writes on every Discord sign-in — so the bot
+ *    can only ever act as somebody who has signed in with that same Discord
+ *    account and joined the Game. A stranger in the channel is not a member and
+ *    gets nothing. (Not `users.discordId`: see `model/bot.ts#userByDiscordId`
+ *    for why that column could never have been populated.)
  *
  * That is why Discord was chosen as the sole identity provider: the id the bot
  * already has in hand *is* the account key, so no separate credential, no

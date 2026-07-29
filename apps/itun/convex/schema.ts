@@ -49,7 +49,15 @@ export default defineSchema({
     phone: v.optional(v.string()),
     phoneVerificationTime: v.optional(v.number()),
 
-    /** Discord snowflake, once linked. The only third-party identifier stored. */
+    /**
+     * Discord snowflake. **Not the bot's resolution path and not written.**
+     *
+     * Identity resolves through `authAccounts.providerAccountId`, which
+     * `@convex-dev/auth` maintains on every sign-in — see
+     * `model/bot.ts#userByDiscordId`. This column and its `by_discord` index
+     * are retained only so existing rows keep validating; nothing reads them,
+     * and a value here resolves nobody.
+     */
     discordId: v.optional(v.string()),
     /**
      * Overridable display name (D33). Defaults from Discord but is editable —

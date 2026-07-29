@@ -53,6 +53,9 @@ function connect(result: ItunResult<unknown>): void {
   restore = setItunClientForTests(clientReturning(result))
 }
 
+/** A realistic Convex document id — the option carries one of these, not a name. */
+const GAME_ID = 'jd7k2m9p4q8r3s6t1v5w0x2y'
+
 const OK_ME = {
   kind: 'ok' as const,
   value: {
@@ -211,7 +214,7 @@ describe('/su game', () => {
     const { interaction, edits, followUps } = fakeExecute({
       subcommand: 'bind',
       subcommandGroup: 'game',
-      strings: { game: 'g1' },
+      strings: { game: GAME_ID },
     })
     await gameCommand.execute(interaction)
 
@@ -233,7 +236,7 @@ describe('/su game', () => {
     const { interaction, edits, followUps } = fakeExecute({
       subcommand: 'bind',
       subcommandGroup: 'game',
-      strings: { game: 'g1' },
+      strings: { game: GAME_ID },
     })
     await gameCommand.execute(interaction)
 
@@ -246,10 +249,25 @@ describe('/su game', () => {
     const { interaction, edits, followUps } = fakeExecute({
       subcommand: 'bind',
       subcommandGroup: 'game',
-      strings: { game: 'g1' },
+      strings: { game: GAME_ID },
     })
     await gameCommand.execute(interaction)
     expect(edits[0]?.content).toBe('unreachable')
+    expect(followUps).toHaveLength(0)
+  })
+
+  test('bind refuses a typed game name before calling anything', async () => {
+    connect({ kind: 'ok', value: { ok: true, name: 'Tenacity' } })
+    const { interaction, edits, followUps } = fakeExecute({
+      subcommand: 'bind',
+      subcommandGroup: 'game',
+      strings: { game: 'Tenacity' },
+    })
+    await gameCommand.execute(interaction)
+
+    // A hand-typed name fails `v.id('games')` server-side, which the bot would
+    // otherwise render as "could not be reached" — an outage message for a typo.
+    expect(edits[0]?.content).toContain('Pick a game from the list')
     expect(followUps).toHaveLength(0)
   })
 
@@ -300,7 +318,7 @@ describe('/su game', () => {
         subcommand,
         subcommandGroup: 'game',
         channelId: null,
-        strings: { game: 'g1' },
+        strings: { game: GAME_ID },
       })
       await gameCommand.execute(interaction)
       expect(replies[0]?.content).toContain('has to be run in a channel')
