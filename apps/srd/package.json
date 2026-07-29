@@ -8,6 +8,8 @@
     "dev": "astro dev",
     "typecheck": "astro check && tsc --noEmit -p tsconfig.json",
     "build": "astro build",
+    "og:generate": "astro build && OG_SCREENSHOTS=1 bun scripts/og-screenshots.ts",
+    "og:install-browser": "playwright install chromium",
     "preview": "astro preview",
     "lint": "biome lint .",
     "format": "biome format --write . && prettier --write '**/*.md' --ignore-unknown --log-level=warn",
