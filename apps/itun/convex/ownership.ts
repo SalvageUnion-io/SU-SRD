@@ -66,7 +66,8 @@ async function loadOwnable(
  * on *who holds* an entity rather than on its contents, which is the boundary
  * the propose-and-confirm rule actually protects.
  */
-async function logOwnershipChange(
+/* Exported so invite-driven grants log identically — see `invites.ts`. */
+export async function logOwnershipChange(
   ctx: MutationCtx,
   args: {
     table: OwnableTable

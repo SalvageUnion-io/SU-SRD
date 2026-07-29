@@ -1,180 +1,27 @@
 import { useState } from 'react'
-import { Button, Card, Text } from 'component-lib'
+import { Button, Card, EntityRow, Text } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
+import { useNavigate } from '@tanstack/react-router'
 
 import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { SignInControl } from '../account/SignInControl'
-import { Link } from '@tanstack/react-router'
+import { GameRow } from './GameRow'
+import { STAMP } from './gameChrome'
 
 /**
- * Games: create one, invite people, join by code, hand over the Organizer role.
+ * Games — the shelf of tables you belong to.
+ *
+ * This screen is about *choosing* a Game: start one, join one, open one. The
+ * crew, invites, proposals and Downtime all live on the Game's own screen,
+ * because stacking them under every list entry did not survive a second Game.
  *
  * The whole screen is gated on `mode === 'connected'`. That is not defensive
  * coding — a Game is inherently shared state, so there is nothing meaningful to
  * show a Solo user and nothing safe to show a Disconnected one, whose view
  * would be a stale snapshot of a roster that may have changed.
  */
-
-const label = 'font-cond text-xs font-bold tracking-caps-wide uppercase'
-
-function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
-  const createInvite = useMutation(api.invites.create)
-  const [code, setCode] = useState<string | null>(null)
-
-  return (
-    <div className="flex flex-col gap-2">
-      <Button
-        variant="ghost"
-        size="compact"
-        onClick={() => void createInvite({ gameId }).then(setCode)}
-      >
-        Create invite code
-      </Button>
-      {code !== null && (
-        <div className="flex flex-col gap-1">
-          {/* Crockford base32 with no I/L/O/U, so a code read aloud across a
-              table cannot be mistyped into a different valid one. Rendered
-              large and spaced because reading it aloud is the primary use. */}
-          <Text as="span" className="font-cond text-2xl font-bold tracking-caps-wide">
-            {code}
-          </Text>
-          <Text variant="hint" className="text-left">
-            Valid for 14 days. Anyone with this code can join as a player.
-          </Text>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function GameRow({
-  game,
-}: {
-  game: {
-    _id: Id<'games'>
-    name: string
-    mediator: boolean
-    organizer: boolean
-    memberCount: number
-  }
-}) {
-  const members = useQuery(api.games.members, { gameId: game._id })
-  const rename = useMutation(api.games.rename)
-  const setMediator = useMutation(api.games.setMediator)
-  const transferOrganizer = useMutation(api.games.transferOrganizer)
-  const [name, setName] = useState<string | null>(null)
-
-  const value = name ?? game.name
-
-  return (
-    <Card>
-      <div className="flex flex-col gap-3 p-4">
-        <div className="flex items-baseline justify-between gap-3">
-          <Text as="span" className="font-cond text-lg font-bold">
-            {game.name}
-          </Text>
-          <Text variant="hint" className="text-left">
-            {game.organizer ? 'Organizer · ' : ''}
-            {game.mediator ? 'Mediator' : 'Player'}
-          </Text>
-        </div>
-
-        {game.organizer && (
-          <div className="flex flex-wrap items-end gap-2">
-            <label className="flex flex-col gap-1">
-              <span className={label}>Name</span>
-              <input
-                aria-label={`Rename ${game.name}`}
-                className="border-2 border-[var(--color-ink)] bg-[var(--color-paper)] px-2 py-1"
-                value={value}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </label>
-            <Button
-              variant="primary"
-              size="compact"
-              onClick={() => void rename({ gameId: game._id, name: value })}
-            >
-              Save
-            </Button>
-          </div>
-        )}
-
-        <div className="flex flex-col gap-1">
-          <span className={label}>Crew</span>
-          {members === undefined && <Text variant="hint">Loading…</Text>}
-          {members?.map((m) => (
-            <div key={m.userId} className="flex items-baseline justify-between gap-3">
-              <Text as="span">{m.displayName}</Text>
-              <span className="flex items-center gap-2">
-                <Text variant="hint" className="text-left">
-                  {m.organizer ? 'Organizer · ' : ''}
-                  {m.mediator ? 'Mediator' : 'Player'}
-                </Text>
-                {game.organizer && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="mini"
-                      onClick={() =>
-                        void setMediator({
-                          gameId: game._id,
-                          userId: m.userId,
-                          mediator: !m.mediator,
-                        })
-                      }
-                    >
-                      {m.mediator ? 'Stand down' : 'Make Mediator'}
-                    </Button>
-                    {!m.organizer && (
-                      <Button
-                        variant="ghost"
-                        size="mini"
-                        onClick={() =>
-                          void transferOrganizer({ gameId: game._id, userId: m.userId })
-                        }
-                      >
-                        Hand over
-                      </Button>
-                    )}
-                  </>
-                )}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {game.organizer && <InvitePanel gameId={game._id} />}
-
-        {/* This screen is the lobby, so a row is a door rather than a
-            workspace. The answer queue and the table's Downtime used to render
-            inline here, which meant somebody in three campaigns met three
-            Downtime panels stacked up with nothing saying whose was whose. */}
-        <div className="flex flex-wrap items-center gap-3">
-          <Link
-            to="/games/$gameId"
-            params={{ gameId: game._id }}
-            className={`${label} text-[var(--color-rust)] hover:text-[var(--color-rust-hi)]`}
-          >
-            Open the crew →
-          </Link>
-          {game.mediator && (
-            <Link
-              to="/mediator/$gameId"
-              params={{ gameId: game._id }}
-              className={`${label} text-[var(--color-rust)] hover:text-[var(--color-rust-hi)]`}
-            >
-              Open the Mediator surface →
-            </Link>
-          )}
-        </div>
-      </div>
-    </Card>
-  )
-}
 
 function ConnectedGames() {
   const games = useQuery(api.games.listMine, {})
@@ -183,16 +30,36 @@ function ConnectedGames() {
   const createFromTemplate = useMutation(api.templates.createGame)
   const redeem = useMutation(api.invites.redeem)
 
+  const navigate = useNavigate()
+
   const [newName, setNewName] = useState('')
   const [code, setCode] = useState('')
   const [joinError, setJoinError] = useState<string | null>(null)
+  const [joinNotice, setJoinNotice] = useState<string | null>(null)
+
+  const join = () => {
+    setJoinError(null)
+    setJoinNotice(null)
+    void redeem({ code })
+      .then((result) => {
+        setCode('')
+        if (result.kind === 'pending') {
+          setJoinNotice('Asked to join. You will get in once the organizer approves.')
+          return
+        }
+        void navigate({ to: '/games/$gameId', params: { gameId: result.gameId } })
+      })
+      // The server distinguishes not-valid / expired / revoked / used-up, so
+      // surface its wording rather than a generic failure.
+      .catch((err: Error) => setJoinError(err.message))
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <Card>
         <div className="flex flex-wrap items-end gap-2 p-4">
           <label className="flex flex-col gap-1">
-            <span className={label}>Start a game</span>
+            <span className={STAMP}>Start a game</span>
             <input
               aria-label="New game name"
               placeholder="Union Crawler #430"
@@ -214,7 +81,7 @@ function ConnectedGames() {
 
       <Card>
         <div className="flex flex-col gap-3 p-4">
-          <span className={label}>Or start from a template</span>
+          <span className={STAMP}>Or start from a template</span>
           {templates?.map((t) => (
             <div key={t.id} className="flex flex-col gap-2">
               <Text as="span">{t.name}</Text>
@@ -244,7 +111,7 @@ function ConnectedGames() {
         <div className="flex flex-col gap-2 p-4">
           <div className="flex flex-wrap items-end gap-2">
             <label className="flex flex-col gap-1">
-              <span className={label}>Join with a code</span>
+              <span className={STAMP}>Join with a code</span>
               <input
                 aria-label="Invite code"
                 placeholder="A1B2C3D4"
@@ -257,14 +124,7 @@ function ConnectedGames() {
               variant="primary"
               size="compact"
               disabled={code.trim().length === 0}
-              onClick={() => {
-                setJoinError(null)
-                void redeem({ code })
-                  .then(() => setCode(''))
-                  // The server distinguishes not-valid / expired / used-up, so
-                  // surface its wording rather than a generic failure.
-                  .catch((err: Error) => setJoinError(err.message))
-              }}
+              onClick={join}
             >
               Join
             </Button>
@@ -274,18 +134,32 @@ function ConnectedGames() {
               {joinError}
             </Text>
           )}
+          {joinNotice !== null && (
+            <Text variant="hint" className="text-left">
+              {joinNotice}
+            </Text>
+          )}
         </div>
       </Card>
 
       {games === undefined && <Text>Loading your games…</Text>}
       {games?.length === 0 && (
-        <Text variant="hint" className="text-left">
-          You are not in any games yet. Create one, or join with a code from whoever set yours up.
-        </Text>
+        <EntityRow
+          empty
+          entityType="game"
+          roleLabel="Game"
+          message="You are not in any games yet — start one above, or join with a code from whoever set yours up."
+        />
       )}
-      {games?.map((g) => (
-        <GameRow key={g._id} game={g} />
-      ))}
+      {games !== undefined && games.length > 0 && (
+        <ul className="flex list-none flex-col gap-2.5 p-0">
+          {games.map((game) => (
+            <li key={game._id}>
+              <GameRow game={game} />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }

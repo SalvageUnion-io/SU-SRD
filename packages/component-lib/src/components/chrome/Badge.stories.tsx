@@ -37,6 +37,9 @@ const TONE_LABELS: Record<BadgeTone, string> = {
   pilot: pilotLabel,
   mech: chassisName,
   crawler: crawlerName,
+  // The Salvage Union term for the person running the table — the role a Game
+  // row's badge actually carries.
+  game: 'Mediator',
   ok: 'Intact',
   warn: 'Damaged',
   bad: 'Destroyed',
@@ -46,7 +49,7 @@ function Row({ children }: { children: ReactNode }) {
   return <div className="flex flex-wrap items-start gap-3">{children}</div>
 }
 
-const BADGE_TONES: BadgeTone[] = ['pilot', 'mech', 'crawler', 'ok', 'warn', 'bad']
+const BADGE_TONES: BadgeTone[] = ['pilot', 'mech', 'crawler', 'game', 'ok', 'warn', 'bad']
 
 /**
  * The unified `Badge` — Pill / Chip were named presets, now retired into this one

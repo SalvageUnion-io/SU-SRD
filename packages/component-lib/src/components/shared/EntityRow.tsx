@@ -1,5 +1,5 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { Bot, type LucideIcon, Trash2, UserRound, Warehouse } from 'lucide-react'
+import { Bot, type LucideIcon, Trash2, UserRound, Users, Warehouse } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
@@ -13,7 +13,7 @@ import { Stat } from './Stat'
  * Anatomy (grounded in ITUN's `EntityListItem`, re-composed on canon atoms):
  * a hover-lift frame (2px ink border, faint tone-wash background) fronted by a
  * 6px deep-tone LEFT accent rail keyed to entity ontology (pilot → orange,
- * mech → green, crawler → pink — the `--color-sheet-*` tokens), a black name
+ * mech → green, crawler → pink, game → blue — the `--color-sheet-*` tokens), a black name
  * tab (Barlow Semi Condensed, white-on-ink, caps at 0.04em tracking), an
  * optional muted meta caption beneath it, and trailing View (link) + Delete
  * (ghost trash) actions. Neither action is the rust action colour — a row
@@ -25,7 +25,12 @@ import { Stat } from './Stat'
  * a router dependency.
  */
 
-export type EntityRowType = 'pilot' | 'mech' | 'crawler'
+/**
+ * `game` is the shared table (ADR-030), not a game-data entity — it lists
+ * alongside the three player entities because it is another thing you own and
+ * open, and it carries its own tone so a Game row never reads as a crawler row.
+ */
+export type EntityRowType = 'pilot' | 'mech' | 'crawler' | 'game'
 
 /** A single `label | value` stat rendered in the subheader as a horizontal Stat. */
 export type EntityRowStat = {
@@ -47,9 +52,16 @@ type FilledEntityRowProps = {
    * (see the stats-render-through-Stat law, ruleset §3).
    */
   stats?: EntityRowStat[]
-  /** Optional class/role label beside the stats — rendered as an ontology-toned
-   * Badge (pilot → orange, mech → green, crawler → pink), never plain prose. */
-  meta?: ReactNode
+  /**
+   * Class/role label(s) beside the stats — rendered as ontology-toned Badges
+   * (pilot → orange, mech → green, crawler → pink, game → blue), never plain
+   * prose.
+   *
+   * Pass an ARRAY to render several badges; a Game row carries three (its
+   * crawler, its pilot count, its mech count). A single node stays a single
+   * badge, which is what every pre-existing caller passes.
+   */
+  meta?: ReactNode | ReactNode[]
   /**
    * Free-form caption under the name tab — muted, single-line, truncating.
    *
@@ -130,6 +142,10 @@ const TONE: Record<EntityRowType, { rail: string; wash: string }> = {
     rail: 'var(--color-sheet-crawler-deep)',
     wash: 'color-mix(in srgb, var(--color-sheet-crawler) 11%, var(--color-paper))',
   },
+  game: {
+    rail: 'var(--color-sheet-game-deep)',
+    wash: 'color-mix(in srgb, var(--color-sheet-game) 11%, var(--color-paper))',
+  },
 }
 
 /** Per-ontology "missing entity" glyph for the empty variant (decorative). */
@@ -137,6 +153,7 @@ const EMPTY_GLYPH: Record<EntityRowType, LucideIcon> = {
   pilot: UserRound,
   mech: Bot,
   crawler: Warehouse,
+  game: Users,
 }
 
 export function EntityRow(props: EntityRowProps) {
@@ -191,6 +208,13 @@ export function EntityRow(props: EntityRowProps) {
   } = props
   const frameStyle: CSSProperties = { background: tone.wash }
 
+  // `meta` accepts one node or several. Normalise to a list, dropping empties so
+  // a caller passing `undefined` (or a falsy conditional) renders no badge at
+  // all rather than an empty one.
+  const metaBadges = (Array.isArray(meta) ? meta : [meta]).filter(
+    (node) => node !== null && node !== undefined && node !== false && node !== ''
+  )
+
   return (
     <div
       className={cn(
@@ -218,16 +242,22 @@ export function EntityRow(props: EntityRowProps) {
           {metaLine && (
             <div className="mt-1.5 truncate font-body text-xs text-wk-muted">{metaLine}</div>
           )}
-          {(meta || (stats && stats.length > 0)) && (
+          {(metaBadges.length > 0 || (stats && stats.length > 0)) && (
             <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
               {/* Subheader info is only stats or toned badges — the class/role
                   line is a badge keyed to the entity's ontology tone (pilot →
-                  orange, mech → green, crawler → pink). */}
-              {meta && (
-                <Badge surface="tone" tone={entityType} className="max-w-full truncate">
-                  {meta}
+                  orange, mech → green, crawler → pink, game → blue). */}
+              {metaBadges.map((badge, i) => (
+                <Badge
+                  // biome-ignore lint/suspicious/noArrayIndexKey: static per-render list that never reorders; a count badge's text changes as the count does, so content is a worse key than position
+                  key={i}
+                  surface="tone"
+                  tone={entityType}
+                  className="max-w-full truncate"
+                >
+                  {badge}
                 </Badge>
-              )}
+              ))}
               {stats?.map((stat) => (
                 <Stat
                   key={String(stat.label)}

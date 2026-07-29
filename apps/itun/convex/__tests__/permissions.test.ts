@@ -448,7 +448,10 @@ describe('invite lifecycle', () => {
     )
     await organizer.as.mutation(api.invites.revoke, { inviteId: invite?._id as never })
 
-    await expect(joiner.as.mutation(api.invites.redeem, { code })).rejects.toThrow(/not valid/i)
+    // "revoked", not "not valid": revocation is now a soft delete, so the row
+    // survives to keep its redemption history resolvable and the refusal can say
+    // what actually happened instead of pretending the code never existed.
+    await expect(joiner.as.mutation(api.invites.redeem, { code })).rejects.toThrow(/revoked/i)
   })
 
   test('a Player cannot revoke', async () => {
