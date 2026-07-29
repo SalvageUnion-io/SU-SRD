@@ -8,6 +8,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { CrewVitals } from './CrewVitals'
 import { DowntimePanel } from './DowntimePanel'
+import { GameRoster } from './GameRoster'
 import { INPUT, ROW, SECTION, STAMP, TITLE } from './gameChrome'
 
 /**
@@ -26,15 +27,31 @@ import { INPUT, ROW, SECTION, STAMP, TITLE } from './gameChrome'
  * This is a plain scrolling surface instead — the *right* shape for a list that
  * grows with the crew.
  *
- * ## Scope note
+ * ## It opens with the crew, in the app's own vocabulary
  *
- * The composition here is functional and uses the app's existing chrome
- * vocabulary (hard ink borders, stamped condensed caps, the shipped tracking
- * ladder). It has not had a design pass, and the visual arrangement is the part
- * most likely to change.
+ * The first version of this screen opened with a bordered list of names and
+ * numbers and offered no way into a sheet, no way to launch anything, and no
+ * way to make anything — a status display for a surface whose whole job is
+ * running a table. It now opens with `GameRoster`, the same three ontology-toned
+ * columns of `EntityRow`s the home Roster uses, so the Mediator sees the crew
+ * the way they see their own builds and can act on them from the same place.
+ *
+ * The instruments below it are what a Mediator has that a player does not:
+ * presence, proposals, alerts, the Downtime phase, and the opposition tray.
+ * That ordering is the claim — the table first, the apparatus second.
  */
 
-const PROPOSABLE_FIELDS = ['currentHp', 'currentAp', 'currentSp', 'currentHeat'] as const
+/**
+ * The live-play fields a Mediator may propose a change to.
+ *
+ * **These are Zod field names and the casing is load-bearing.** They read
+ * `currentHp` / `currentAp` / `currentSp` before, none of which exist on
+ * `PilotSchema` or `MechSchema` — so a proposal applied cleanly, wrote a key
+ * nothing reads, and moved no number on the player's sheet. `proposals.apply`
+ * now parses the merged body and refuses a field the schema has no room for,
+ * which turns that class of typo into an error instead of a silent no-op.
+ */
+const PROPOSABLE_FIELDS = ['currentHP', 'currentAP', 'currentSP', 'currentHeat'] as const
 
 function NpcTray({ gameId }: { gameId: Id<'games'> }) {
   const npcs = useQuery(api.mediator.npcs, { gameId })
@@ -262,6 +279,11 @@ function MediatorBody({ gameId }: { gameId: Id<'games'> }) {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* The table first: who is in this game, and everything you can do about
+          it — open, launch, hand out, raise a crawler. */}
+      <GameRoster gameId={gameId} />
+      {/* Then the numbers, live. The roster shows vitals per row; this is the
+          same crew read as one strip, which is how you scan a table mid-fight. */}
       <Card>
         <div className="p-4">
           <CrewVitals gameId={gameId} />
@@ -280,7 +302,9 @@ export function MediatorScreen({ gameId }: { gameId: string }) {
   const { mode } = useConnection()
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-6 p-4">
+    // Wider than it was: the surface now leads with a three-column roster, and
+    // the old 3xl column squeezed it to one column on every screen size.
+    <main className="mx-auto flex max-w-6xl flex-col gap-6 p-4 sm:p-8">
       <Text as="h1" className={TITLE}>
         Mediator
       </Text>

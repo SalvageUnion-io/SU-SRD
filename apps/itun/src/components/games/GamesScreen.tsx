@@ -7,8 +7,6 @@ import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { SignInControl } from '../account/SignInControl'
-import { DowntimePanel } from './DowntimePanel'
-import { ProposalInbox } from './ProposalInbox'
 import { Link } from '@tanstack/react-router'
 
 /**
@@ -151,20 +149,28 @@ function GameRow({
 
         {game.organizer && <InvitePanel gameId={game._id} />}
 
-        {/* A player's answer queue and the table's Downtime live with the game
-            they belong to, so a member never has to go looking for either. */}
-        <ProposalInbox gameId={game._id} />
-        <DowntimePanel gameId={game._id} />
-
-        {game.mediator && (
+        {/* This screen is the lobby, so a row is a door rather than a
+            workspace. The answer queue and the table's Downtime used to render
+            inline here, which meant somebody in three campaigns met three
+            Downtime panels stacked up with nothing saying whose was whose. */}
+        <div className="flex flex-wrap items-center gap-3">
           <Link
-            to="/mediator/$gameId"
+            to="/games/$gameId"
             params={{ gameId: game._id }}
             className={`${label} text-[var(--color-rust)] hover:text-[var(--color-rust-hi)]`}
           >
-            Open the Mediator surface →
+            Open the crew →
           </Link>
-        )}
+          {game.mediator && (
+            <Link
+              to="/mediator/$gameId"
+              params={{ gameId: game._id }}
+              className={`${label} text-[var(--color-rust)] hover:text-[var(--color-rust-hi)]`}
+            >
+              Open the Mediator surface →
+            </Link>
+          )}
+        </div>
       </div>
     </Card>
   )

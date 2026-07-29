@@ -91,25 +91,80 @@ export async function gameHasMediator(ctx: AnyCtx, gameId: Id<'games'>): Promise
 }
 
 /**
- * Whoever may assign or reassign entity ownership in this Game.
+ * Whoever runs the table: the Mediator, or the Organizer while a Game has none.
  *
  * This is the **one deliberate bend** in "Organizer confers no content
- * authority" (ADR-030 §3). Assignment belongs to the Mediator, but a Game with
- * no Mediator assigned would otherwise have nobody able to hand out a pilot —
- * a dead end reachable the moment a Game is created. So the Organizer picks it
- * up, and *only* when there is no Mediator.
+ * authority" (ADR-030 §3), and it exists because every one of these acts is a
+ * dead end otherwise. A Game is created with `mediator: false` on its only
+ * membership, so if table authority were Mediator-strict there would be an
+ * unreachable state the moment somebody makes a Game alone: no crawler can be
+ * raised, no pilot handed out, and nothing to appoint a Mediator *for*.
  *
- * It is defensible because who-owns-what is closer to membership than to
- * content: assigning a pilot never edits one.
+ * The fallback is narrow on purpose — it applies only while the Game has no
+ * Mediator at all, and it is re-evaluated per call rather than latched, so
+ * appointing one takes the authority back the same instant.
+ *
+ * Three acts share this rule, and they share it because they are the same
+ * kind of act — *setting the table up* rather than editing what is on it:
+ *
+ *   - raising or scrapping a **crawler** (ADR-030 §5 amendment)
+ *   - creating an entity **unclaimed**, for the crew to pick up
+ *   - **assigning** or reassigning ownership
+ *
+ * None of them edits a sheet. That is the line: a table runner arranges who
+ * holds what and what the crew sails in, and still cannot change a number on
+ * somebody else's pilot — for that there is a proposal (§4).
+ */
+export async function isTableRunner(
+  ctx: AnyCtx,
+  gameId: Id<'games'>,
+  membership: Doc<'memberships'>
+): Promise<boolean> {
+  if (membership.mediator) return true
+  return membership.organizer && !(await gameHasMediator(ctx, gameId))
+}
+
+export async function requireTableRunner(
+  ctx: AnyCtx,
+  gameId: Id<'games'>
+): Promise<Doc<'memberships'>> {
+  const membership = await requireMember(ctx, gameId)
+  if (await isTableRunner(ctx, gameId, membership)) return membership
+  throw new NotAuthorized(
+    'Only the Mediator can do that (or the Organizer, when the game has no Mediator)'
+  )
+}
+
+/**
+ * Whoever may assign or reassign entity ownership in this Game.
+ *
+ * Kept as its own name because the call sites read better for it and because
+ * ADR-030 §3 names assignment specifically; the rule itself is
+ * `requireTableRunner`, and there is deliberately only one implementation of
+ * it so the two can never drift into different answers.
  */
 export async function requireOwnershipAssigner(
   ctx: AnyCtx,
   gameId: Id<'games'>
 ): Promise<Doc<'memberships'>> {
-  const membership = await requireMember(ctx, gameId)
-  if (membership.mediator) return membership
-  if (membership.organizer && !(await gameHasMediator(ctx, gameId))) return membership
-  throw new NotAuthorized(
-    'Only the Mediator can assign ownership (or the Organizer, when the game has no Mediator)'
-  )
+  return await requireTableRunner(ctx, gameId)
+}
+
+/**
+ * True once a Game has somewhere for its crew to live.
+ *
+ * The crawler is the crew's home, and in Salvage Union a pilot without one is
+ * a character with no context — no Bay to repair in, no scrap pool, no place
+ * to return to. So a Game is *set up* by raising a crawler, and only then does
+ * it start taking pilots and mechs from its players.
+ *
+ * This is a gate on **players adding to a Game**, never on the table runner,
+ * who has to be able to build the crawler first for anyone else to have one.
+ */
+export async function gameHasCrawler(ctx: AnyCtx, gameId: Id<'games'>): Promise<boolean> {
+  const first = await ctx.db
+    .query('crawlers')
+    .withIndex('by_game', (q) => q.eq('gameId', gameId))
+    .first()
+  return first !== null
 }

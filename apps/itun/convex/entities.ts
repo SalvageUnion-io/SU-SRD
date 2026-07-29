@@ -6,7 +6,15 @@ import { PilotSchema } from '../src/lib/schemas/pilot'
 import type { Doc, Id } from './_generated/dataModel'
 import { mutation, query } from './_generated/server'
 import type { MutationCtx, QueryCtx } from './_generated/server'
-import { NotAuthorized, getMembership, requireMember, requireUser } from './model/permissions'
+import {
+  NotAuthorized,
+  gameHasCrawler,
+  getMembership,
+  isTableRunner,
+  requireMember,
+  requireTableRunner,
+  requireUser,
+} from './model/permissions'
 
 /**
  * Entity reads and writes against the server of record (ADR-030 §1).
@@ -33,6 +41,20 @@ import { NotAuthorized, getMembership, requireMember, requireUser } from './mode
  * member may write it, resolved by field-level merge rather than
  * last-write-wins, since the scrap pool and cargo lots are genuinely contended
  * during Downtime.
+ *
+ * ## Who may put things *into* a Game
+ *
+ * Communal-to-edit is not the same as free-to-create, and the crawler is where
+ * the two come apart. **Raising and scrapping a crawler is the table runner's
+ * act; filling its fields is everyone's.** That split is what makes a Game a
+ * table rather than a shared folder: the Mediator sets out what the crew sails
+ * in, and the crew then keeps its scrap, cargo and bays between them.
+ *
+ * The mirror image is the gate on players: a Game with no crawler is not yet
+ * set up, so a player's pilots and mechs wait until there is one. The table
+ * runner is exempt for the obvious reason — somebody has to be able to raise
+ * the first crawler, and a rule that stopped them would make every new Game a
+ * dead end.
  */
 
 const OWNABLE = v.union(v.literal('pilots'), v.literal('mechs'))
@@ -70,14 +92,38 @@ function assertMayWrite(doc: Doc<'pilots'> | Doc<'mechs'>, userId: Id<'users'>):
   throw new NotAuthorized("You cannot edit another player's entity")
 }
 
-async function assertGameMemberOrShelfOwner(
+/**
+ * Whether this user may add a new entity to this Game, and as whom.
+ *
+ * The shelf is unconditional: it is your own, so there is nobody to be set up
+ * for and nothing to gate on. Inside a Game the answer depends on the crawler,
+ * for the reason in the module header — with one exception, the table runner,
+ * who is who *raises* the crawler.
+ *
+ * Returns whether the caller is the table runner rather than a bare boolean
+ * pass/fail, because the caller immediately needs that same answer to decide
+ * whether an `unassigned` create is allowed. Asking twice would mean two
+ * lookups and, worse, two places the rule could drift.
+ */
+async function assertMayAddToContainer(
   ctx: QueryCtx | MutationCtx,
   gameId: Id<'games'> | null,
   userId: Id<'users'>
-): Promise<void> {
-  if (gameId === null) return
+): Promise<{ tableRunner: boolean }> {
+  if (gameId === null) return { tableRunner: false }
+
   const membership = await getMembership(ctx, gameId, userId)
   if (membership === null) throw new NotAuthorized('Not a member of this game')
+
+  const tableRunner = await isTableRunner(ctx, gameId, membership)
+  if (tableRunner) return { tableRunner }
+
+  if (!(await gameHasCrawler(ctx, gameId))) {
+    throw new NotAuthorized(
+      'This game has no Union Crawler yet — the Mediator raises one before the crew joins it'
+    )
+  }
+  return { tableRunner }
 }
 
 /** Everything in a Game the caller can see: all pilots and mechs, plus the crawler. */
@@ -105,10 +151,27 @@ export const listForGame = query({
         .collect(),
     ])
 
+    /**
+     * `appId` travels with every row because the client's copy of an entity is
+     * addressed by it, not by `_id`. Without it a surface cannot answer "do I
+     * already hold this one locally?", and the honest answer to that question
+     * is what decides whether a row offers a sheet link or an offer to pick it
+     * up. It is not secret — it is a UUID the owner's own browser minted.
+     */
     return {
-      pilots: pilots.map((p) => ({ _id: p._id, ownerId: p.ownerId, body: p.body })),
-      mechs: mechs.map((m) => ({ _id: m._id, ownerId: m.ownerId, body: m.body })),
-      crawlers: crawlers.map((c) => ({ _id: c._id, body: c.body })),
+      pilots: pilots.map((p) => ({
+        _id: p._id,
+        appId: p.appId ?? null,
+        ownerId: p.ownerId,
+        body: p.body,
+      })),
+      mechs: mechs.map((m) => ({
+        _id: m._id,
+        appId: m.appId ?? null,
+        ownerId: m.ownerId,
+        body: m.body,
+      })),
+      crawlers: crawlers.map((c) => ({ _id: c._id, appId: c.appId ?? null, body: c.body })),
       softLinks: softLinks.map((l) => ({ _id: l._id, from: l.from, to: l.to, type: l.type })),
     }
   },
@@ -140,23 +203,44 @@ export const listShelf = query({
   },
 })
 
-/** Create an entity, on the caller's shelf or in a Game they belong to. */
+/**
+ * Create an entity, on the caller's shelf or in a Game they belong to.
+ *
+ * `unassigned` is how a Mediator pre-builds a character **for somebody else**:
+ * the row lands with `ownerId: null` and any player in the Game may pick it up
+ * (`ownership.claim`). It is the create-time twin of a template's pre-gens, and
+ * it is table-runner-only for the same reason assignment is — an ownerless
+ * entity is an offer to the crew, and a player making one would be dropping
+ * their own character into the pool rather than offering anything.
+ */
 export const create = mutation({
   args: {
     table: OWNABLE,
     gameId: v.union(v.id('games'), v.null()),
     /** The local UUID this row mirrors, so later edits can address it. */
     appId: v.optional(v.string()),
+    /** Table-runner only: land it unclaimed for a player to pick up. */
+    unassigned: v.optional(v.boolean()),
     body: v.any(),
   },
   handler: async (ctx, args): Promise<Id<'pilots'> | Id<'mechs'>> => {
     const userId = await requireUser(ctx)
-    await assertGameMemberOrShelfOwner(ctx, args.gameId, userId)
+    const { tableRunner } = await assertMayAddToContainer(ctx, args.gameId, userId)
     const body = parseBody(args.table, args.body)
+
+    // `gameId: null && ownerId: null` is the one invalid combination in the
+    // schema — a shelf is a *person's*, so an unclaimed shelf entity would be
+    // owned by nobody and reachable by nobody.
+    if (args.unassigned === true && args.gameId === null) {
+      throw new NotAuthorized('A shelf has no crew to pick anything up — shelved builds are yours')
+    }
+    if (args.unassigned === true && !tableRunner) {
+      throw new NotAuthorized('Only the Mediator can leave a new character unclaimed')
+    }
 
     return await ctx.db.insert(args.table, {
       gameId: args.gameId,
-      ownerId: userId,
+      ownerId: args.unassigned === true ? null : userId,
       appId: args.appId,
       body,
       updatedAt: Date.now(),
@@ -192,6 +276,61 @@ export const remove = mutation({
 
     assertMayWrite(doc as Doc<'pilots'> | Doc<'mechs'>, userId)
     await ctx.db.delete(doc._id)
+  },
+})
+
+/**
+ * Raise a Union Crawler in this Game. Table runner only.
+ *
+ * A Game may hold **several** crawlers, and that is not a leniency — a long
+ * campaign genuinely runs more than one: a crawler is lost or scrapped and the
+ * crew rebuilds, or a second one is met, escorted and eventually joined. The
+ * schema never said one, and forcing it here would make the ordinary course of
+ * a campaign look like a bug.
+ *
+ * There is deliberately no `unassigned` axis: a crawler has no `ownerId` at all
+ * (D8). It belongs to the crew from the moment it exists, which is exactly why
+ * players may fill in its fields without ever being handed it.
+ */
+export const createCrawler = mutation({
+  args: {
+    gameId: v.id('games'),
+    /** The local UUID this row mirrors — see `pilots.appId`. */
+    appId: v.optional(v.string()),
+    body: v.any(),
+  },
+  handler: async (ctx, args): Promise<Id<'crawlers'>> => {
+    await requireTableRunner(ctx, args.gameId)
+
+    const result = CrawlerSchema.safeParse(args.body)
+    if (!result.success) {
+      throw new Error(`Invalid crawler payload: ${result.error.issues[0]?.message ?? 'unknown'}`)
+    }
+
+    return await ctx.db.insert('crawlers', {
+      gameId: args.gameId,
+      appId: args.appId,
+      body: result.data,
+      updatedAt: Date.now(),
+    })
+  },
+})
+
+/**
+ * Scrap a crawler. Table runner only — the mirror of raising one.
+ *
+ * Communal editing does **not** extend to destruction: the crawler is the
+ * crew's home and every pilot in the Game is anchored to it, so one member
+ * deleting it would take the table's shared state with them. Whoever runs the
+ * table decides a crawler is gone.
+ */
+export const removeCrawler = mutation({
+  args: { crawlerId: v.id('crawlers') },
+  handler: async (ctx, args): Promise<void> => {
+    const doc = await ctx.db.get(args.crawlerId)
+    if (doc === null) return
+    await requireTableRunner(ctx, doc.gameId)
+    await ctx.db.delete(args.crawlerId)
   },
 })
 
@@ -392,6 +531,12 @@ async function byAppId(
  * created while Solo and the account was claimed afterwards. Treating a missing
  * row as "create it" is what makes the mirror converge instead of silently
  * dropping the first edit after a claim.
+ *
+ * The insert branch is a **create into a container**, so it answers to the same
+ * gate `create` does. Leaving it open would have made the whole rule cosmetic:
+ * the client's ordinary write path comes through here, so a player blocked from
+ * `create` would simply have built the pilot locally and had the mirror place
+ * it in the Game a moment later.
  */
 export const upsertByAppId = mutation({
   args: {
@@ -402,11 +547,11 @@ export const upsertByAppId = mutation({
   },
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
-    await assertGameMemberOrShelfOwner(ctx, args.gameId, userId)
     const body = parseBody(args.table, args.body)
 
     const existing = await byAppId(ctx, args.table, args.appId)
     if (existing === null) {
+      await assertMayAddToContainer(ctx, args.gameId, userId)
       await ctx.db.insert(args.table, {
         gameId: args.gameId,
         ownerId: userId,
@@ -418,7 +563,75 @@ export const upsertByAppId = mutation({
     }
 
     assertMayWrite(existing, userId)
+
+    /**
+     * A mirrored write also re-homes the row when the client has moved it.
+     *
+     * Until this existed, `MoveToContainerControl` re-stamped the local record
+     * and the mirror patched only the body — so moving a build onto a Game
+     * looked like it worked, the roster filtered by the new container, and the
+     * server row never left the shelf. The move is a create *into* the target
+     * container as far as the rules are concerned, so it answers to the same
+     * gate; leaving the source is unconditional.
+     */
+    if (existing.gameId !== args.gameId) {
+      await assertMayAddToContainer(ctx, args.gameId, userId)
+      await ctx.db.patch(existing._id, { gameId: args.gameId })
+    }
+
     await ctx.db.patch(existing._id, { body, updatedAt: Date.now() })
+  },
+})
+
+/**
+ * Mirror a local crawler write, addressed by app id, as a field-level merge.
+ *
+ * The crawler needs its own mirror because it is the one entity whose local
+ * edits are legitimate from *any* member — "players can only edit fields" is
+ * only true end to end if those edits actually arrive. Routing them through the
+ * same merge `patchCrawler` uses is what keeps two people editing scrap and
+ * cargo in the same minute from overwriting each other.
+ *
+ * Unlike the ownable tables this **never inserts**. A missing row means the
+ * crawler is not in this Game — either it is a purely local build (Solo, or on
+ * the shelf, neither of which has a server row to reach) or it was scrapped by
+ * the table runner. Creating one here would route around the rule that raising
+ * a crawler is the table runner's act, which is precisely the hole the ownable
+ * upsert had to be closed against.
+ */
+export const patchCrawlerByAppId = mutation({
+  args: { appId: v.string(), patch: v.any() },
+  handler: async (ctx, args): Promise<void> => {
+    const existing = await ctx.db
+      .query('crawlers')
+      .withIndex('by_app_id', (q) => q.eq('appId', args.appId))
+      .unique()
+    if (existing === null) return
+
+    await requireMember(ctx, existing.gameId)
+
+    const merged = { ...(existing.body as Record<string, unknown>), ...(args.patch as object) }
+    const result = CrawlerSchema.safeParse(merged)
+    if (!result.success) {
+      throw new Error(`Invalid crawler payload: ${result.error.issues[0]?.message ?? 'unknown'}`)
+    }
+
+    await ctx.db.patch(existing._id, { body: result.data, updatedAt: Date.now() })
+  },
+})
+
+/** Scrap a crawler addressed by app id. Table runner only, like `removeCrawler`. */
+export const removeCrawlerByAppId = mutation({
+  args: { appId: v.string() },
+  handler: async (ctx, args): Promise<void> => {
+    const existing = await ctx.db
+      .query('crawlers')
+      .withIndex('by_app_id', (q) => q.eq('appId', args.appId))
+      .unique()
+    if (existing === null) return
+
+    await requireTableRunner(ctx, existing.gameId)
+    await ctx.db.delete(existing._id)
   },
 })
 

@@ -30,6 +30,12 @@ type EntityStore<T extends EntityBase> = {
    * Throws if id not found.
    */
   update: (id: string, patch: Partial<Omit<T, 'id'>>) => Promise<T>
+  /**
+   * Writes a record the app did not mint, under the id it already carries.
+   * The cache-fill path for rows pulled from the server of record — see the
+   * implementation for why this is not `create` or `update`.
+   */
+  put: (record: T) => Promise<T>
   /** Deletes by id. Silent no-op if id not found. */
   delete: (id: string) => Promise<void>
 }
@@ -169,6 +175,36 @@ export function makeStore<T extends EntityBase>(
     return record
   }
 
+  /**
+   * Cache a record that arrived from somewhere else, keeping its id.
+   *
+   * Neither `create` nor `update` can do this, and the reasons are the whole
+   * point of having a third verb:
+   *
+   *  - `create` mints a fresh UUID. A server row cached under a new id is a
+   *    *copy*, so the next edit would mirror back addressed by an appId the
+   *    server has never seen and land as a second entity.
+   *  - `update` requires the row to exist locally, which by definition it does
+   *    not the first time a Game's crawler or a claimed pre-gen is pulled down.
+   *
+   * Reads are salvage-tolerant everywhere else in this module, and adoption is
+   * a read that happens to persist: a Game row written by a newer build than
+   * this one must still be openable, so a strict-parse failure falls back to
+   * the salvage shape rather than refusing the whole entity.
+   */
+  async function put(record: T): Promise<T> {
+    const db = await getDb()
+    const strict = schema.safeParse(record)
+    const parsed = strict.success ? strict.data : salvageRead(record, `id="${record.id}"`)
+    if (parsed === null) {
+      throw new Error(
+        `[itun-db] Cannot cache record id="${record.id}" in "${storeName}": it does not parse`
+      )
+    }
+    await db.put(storeName, parsed)
+    return parsed
+  }
+
   async function del(id: string): Promise<void> {
     const db = await getDb()
     const existing = await db.get(storeName, id)
@@ -176,5 +212,5 @@ export function makeStore<T extends EntityBase>(
     await db.delete(storeName, id)
   }
 
-  return { list, get, create, update, prepareUpdate, delete: del }
+  return { list, get, create, update, prepareUpdate, put, delete: del }
 }

@@ -1,5 +1,7 @@
 import { v } from 'convex/values'
 
+import { MechSchema } from '../src/lib/schemas/mech'
+import { PilotSchema } from '../src/lib/schemas/pilot'
 import type { Doc, Id } from './_generated/dataModel'
 import { mutation, query } from './_generated/server'
 import type { MutationCtx } from './_generated/server'
@@ -157,8 +159,26 @@ export const apply = mutation({
     const { doc } = await requireProposalTarget(ctx, proposal.entityId)
     if (doc.ownerId !== userId) throw new NotAuthorized('Only the owner can apply this')
 
-    const body = { ...(doc.body as Record<string, unknown>), [proposal.field]: proposal.after }
-    await ctx.db.patch(doc._id, { body, updatedAt: Date.now() })
+    /**
+     * Parse before persisting, like every other write against an entity body.
+     *
+     * This mutation used to patch the merged object straight in, and it is the
+     * one place where skipping the parse does real damage rather than merely
+     * risking it: the field name comes from a proposal row, so a typo'd or
+     * stale key was written as a **new** key on the body instead of changing
+     * anything. The player applied a proposal, saw nothing move, and the sheet
+     * quietly carried a field nothing reads. Parsing rejects that at the source.
+     */
+    const parser = proposal.entityType === 'mech' ? MechSchema : PilotSchema
+    const merged = { ...(doc.body as Record<string, unknown>), [proposal.field]: proposal.after }
+    const result = parser.safeParse(merged)
+    if (!result.success) {
+      throw new Error(
+        `That proposal does not fit this sheet: ${result.error.issues[0]?.message ?? 'unknown'}`
+      )
+    }
+
+    await ctx.db.patch(doc._id, { body: result.data, updatedAt: Date.now() })
     await ctx.db.patch(args.proposalId, { state: 'applied' })
   },
 })

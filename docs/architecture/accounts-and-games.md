@@ -41,8 +41,9 @@ In brief, grouped:
 | Containers   | **Game** (shared) and **Shelf** (personal). One entity, one container. Moving is an explicit fork.     |
 | Roles        | Base role Player \| Mediator, plus an orthogonal **Organizer** flag. Organizer ⇒ no content authority. |
 | Cross-player | **Propose → player confirms.** Never a direct write, never force-applied.                              |
-| Ownership    | Nullable. Mediator assigns (Organizer falls back); owners release; Mediator reassigns.                 |
-| Crawler      | Communal, field-level merge.                                                                           |
+| Ownership    | Nullable. Mediator assigns; owners release; **players self-claim what nobody holds**.                  |
+| Crawler      | Communal to edit; **the table runner raises and scraps one**. A Game may hold several.                 |
+| Joining      | A Game takes a player's pilots and mechs **once it has a crawler**. The table runner is exempt.        |
 | Visibility   | Live vitals for all; read-only sheet drill-in; Mediator NPCs hidden.                                   |
 | Surfaces     | New Mediator surface absorbs `/encounter`; a **"Crew" dial item** on the player Dashboard.             |
 | Anonymous    | Solo stays first-class and needs no account, forever.                                                  |
@@ -133,6 +134,48 @@ visible to the table; crawler upkeep resolved once rather than six times.
 
 The bot authenticates as a participant rather than an admin; rolls made in
 Discord land as Change Log entries.
+
+### Phase 7 — The crew roster, and the rules for setting a table up ✅
+
+The design pass Phase 3 deferred, plus the ownership rules it exposed as missing.
+
+- **`GameRoster`** — a Game's crew in the home Roster's own shape: three
+  ontology-toned `EntityRow` columns, create CTAs, sheet and Dashboard launches,
+  an owner chip per row, and an **UNCLAIMED** stamp seal that opens a pick-up
+  confirm. `/games/:id` for any member; `/mediator/:id` opens with it and keeps
+  the private instruments below.
+- **The table-setup rules** (ADR-030 §5a): the table runner raises and scraps
+  crawlers, a Game may hold several, and it takes a player's pilots and mechs
+  once one exists.
+- **Self-claim** (`ownership.claim`), amending ADR-030 §4.
+- **Adoption** — `entityStore.adopt` / `forget` cache a Game row into IndexedDB
+  under its own id and drop it again, which is what makes a sheet or the
+  Dashboard openable for a character built at somebody else's table.
+- **The crawler mirror** — local crawler edits reach the Game as a field merge
+  (`patchCrawlerByAppId`), so "players may edit its fields" is true end to end.
+- Two live defects found on the way: `crew.vitals` read `currentHp`/`currentSp`
+  where the Zod schemas define `currentHP`/`currentSP`, so **every vital on the
+  Mediator's crew strip was null** and rendered as an em-dash indistinguishable
+  from an undamaged crew; and `proposals.apply` wrote the merged body **without
+  parsing it**, so a proposal against a misspelled field added a key nothing
+  reads and moved no number. Both fixed, both pinned by tests that build their
+  fixtures by parsing the real schema rather than hand-writing field names.
+
+**Known gaps, deliberately left:**
+
+- **A refused mirror is only a console warning.** If the server rejects a
+  mirrored write (a player creating into a Game with no crawler, an edit to
+  something they no longer own), the local copy stands and nothing tells them.
+  The surfaces avoid offering those actions, so this is reachable mainly by
+  going around them; surfacing it as a toast is the next step.
+- **No read-only drill-in.** ADR-030 §5 permits reading a crewmate's sheet;
+  `crew.readEntity` exists on the server with no consumer, because ITUN's sheet
+  is an editing surface. Rows for entities you do not own therefore offer
+  vitals and an owner, but no link.
+- **Adopted copies re-sync only on the way in.** Opening a row through the
+  roster overwrites this browser's copy from the server, so the crawler a
+  crewmate just edited is current when you open it — but a sheet already open
+  does not update underneath you.
 
 ---
 

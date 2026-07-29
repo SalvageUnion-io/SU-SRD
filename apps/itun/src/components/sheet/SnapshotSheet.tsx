@@ -138,6 +138,10 @@ function makeSnapshotStore(parsed: Extract<ParseResult, { ok: true }>): typeof u
     get: ((type: EntityType, id: string) =>
       byType(type).find((e) => e.id === id) ?? null) as EntityState['get'],
     create: readOnlyWrite,
+    // A snapshot is frozen and container-less (ADR-004), so there is no server
+    // row it could be a cache of — adoption is as unavailable as any other write.
+    adopt: readOnlyWrite,
+    forget: readOnlyWrite,
     update: readOnlyWrite,
     updateCrawlerBay: readOnlyWrite,
     delete: readOnlyWrite,

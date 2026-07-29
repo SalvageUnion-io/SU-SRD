@@ -42,6 +42,8 @@ export type EntityStoreMockOverrides = {
   list?: (type: EntityType) => AnyEntity[]
   get?: (type: EntityType, id: string) => AnyEntity | null
   create?: (type: EntityType, input: CreateInput<EntityType>) => Promise<AnyEntity | null>
+  adopt?: (type: EntityType, record: AnyEntity) => Promise<AnyEntity | null>
+  forget?: EntityState['forget']
   update?: (
     type: EntityType,
     id: string,
@@ -94,6 +96,12 @@ export function makeEntityStoreMock(
       : async () => {
           throw new Error('entityStore mock: create not stubbed')
         },
+    adopt: overrides.adopt
+      ? (overrides.adopt as EntityState['adopt'])
+      : async () => {
+          throw new Error('entityStore mock: adopt not stubbed')
+        },
+    forget: overrides.forget ?? (async () => {}),
     update: overrides.update
       ? (overrides.update as EntityState['update'])
       : async () => {

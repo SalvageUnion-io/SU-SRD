@@ -19,9 +19,25 @@ import {
  * pre-builds a character, or when a Game is seeded from a template. Every
  * surface that renders an owner must render "Unclaimed" rather than a blank.
  *
- * Players do **not** self-claim. Assignment is a deliberate act by whoever runs
- * the table (see `requireOwnershipAssigner`), so this module is the whole of
- * the write path for the `ownerId` column and each act lands in the Change Log.
+ * This module is the whole of the write path for the `ownerId` column, and
+ * every act in it lands in the Change Log.
+ *
+ * ## Players self-claim what is offered (amends ADR-030 §4)
+ *
+ * ADR-030 originally said assignment was the Mediator's alone and players never
+ * self-claimed. That has been amended, and the reason is what the unclaimed
+ * state is actually *for*: a Mediator pre-builds characters, or a template
+ * seeds six of them, precisely so people can arrive and take one. Making the
+ * Mediator hand each one over individually adds a round trip to the table's
+ * first ten minutes and buys nothing — an unclaimed entity is already an offer
+ * to the crew, and `claim` is a player accepting it.
+ *
+ * What did **not** change is the boundary the original rule protected: claiming
+ * touches only what is *free*. An entity somebody already holds cannot be taken
+ * — it must be released first, by its owner or the Mediator — so no player can
+ * ever pull a character out from under a crewmate. `assign` remains the
+ * table runner's power for placing an entity with a *particular* person, which
+ * self-claim cannot express.
  */
 
 /** The two entity tables that carry an owner. Crawlers are communal by design. */
@@ -112,6 +128,49 @@ export const assign = mutation({
       before: doc.ownerId,
       after: args.toUserId,
       actorId: actor.userId,
+    })
+  },
+})
+
+/**
+ * Pick up an unclaimed entity in a Game you belong to.
+ *
+ * Membership is the whole check *plus* the entity being free — see the module
+ * header for why that pair is the entire rule. Note what is deliberately absent:
+ * there is no crawler gate here. That gate governs a player *adding* to a Game;
+ * claiming adds nothing, it only puts a name to something the table already
+ * holds, and a pre-gen offered before the crawler was raised should not become
+ * unclaimable because of the order the Mediator worked in.
+ *
+ * Racing is resolved by the transaction: two players claiming the same pre-gen
+ * in the same instant serialize, and the second one finds it owned and is told
+ * so, rather than silently overwriting the first.
+ */
+export const claim = mutation({
+  args: { table: ownableTable, entityId: v.string() },
+  handler: async (ctx, args): Promise<void> => {
+    const doc = await loadOwnable(ctx, args.table, args.entityId)
+    if (doc.gameId === null) {
+      throw new NotAuthorized('That build is on somebody’s shelf, not in a game')
+    }
+
+    const membership = await requireMember(ctx, doc.gameId)
+
+    if (doc.ownerId === membership.userId) return
+    if (doc.ownerId !== null) {
+      throw new NotAuthorized(
+        'A crewmate already holds that — it has to be released before anyone else can take it'
+      )
+    }
+
+    await ctx.db.patch(doc._id, { ownerId: membership.userId, updatedAt: Date.now() })
+    await logOwnershipChange(ctx, {
+      table: args.table,
+      entityId: args.entityId,
+      gameId: doc.gameId,
+      before: null,
+      after: membership.userId,
+      actorId: membership.userId,
     })
   },
 })

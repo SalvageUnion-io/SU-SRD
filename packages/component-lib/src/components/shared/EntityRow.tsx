@@ -59,8 +59,16 @@ type FilledEntityRowProps = {
    * Badge would be illegible, which is why these are two props and not one.
    */
   metaLine?: ReactNode
-  /** Destination for the View link. */
-  sheetHref: string
+  /**
+   * Destination for the View link. **Omit when there is nothing to open.**
+   *
+   * A row is not always a door. A shared roster lists entities the viewer can
+   * see but has no sheet for — a crewmate's pilot, a pre-generated character
+   * nobody has picked up yet — and rendering a View link that leads somewhere
+   * empty (or worse, somewhere they cannot legitimately edit) would be the
+   * dead end the row exists to describe. Without it, no link renders.
+   */
+  sheetHref?: string
   /**
    * Element the View link renders as (default `'a'`). Pass an app's router Link
    * to get client-side navigation; it receives `href` and `className`.
@@ -69,6 +77,18 @@ type FilledEntityRowProps = {
   /** Fired when the ghost trash Delete button is pressed. Omit to hide the
    * Delete button entirely (e.g. read-only poster surfaces). */
   onDeleteClick?: () => void
+  /**
+   * Extra trailing controls, rendered before View/Delete.
+   *
+   * Deliberately a slot rather than a set of named props: what a row can do
+   * depends on the surface it is listed on, and the two known consumers already
+   * disagree — a personal roster row navigates and deletes, while a shared
+   * Game row may also be picked up, offered back to the crew, or launched into
+   * the Dashboard. Teaching this primitive those verbs would push ownership,
+   * accounts and routing into a package whose contract is to know about none of
+   * them (the same reasoning as the owner chip's, ADR-030 D32).
+   */
+  actions?: ReactNode
 }
 
 /**
@@ -166,6 +186,7 @@ export function EntityRow(props: EntityRowProps) {
     metaLine,
     sheetHref,
     onDeleteClick,
+    actions,
     linkAs: Link = 'a',
   } = props
   const frameStyle: CSSProperties = { background: tone.wash }
@@ -220,13 +241,19 @@ export function EntityRow(props: EntityRowProps) {
           )}
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5">
-          <Link
-            href={sheetHref}
-            className={cn(buttonVariants({ variant: 'default', size: 'compact' }), 'no-underline')}
-          >
-            View
-          </Link>
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+          {actions}
+          {sheetHref !== undefined && (
+            <Link
+              href={sheetHref}
+              className={cn(
+                buttonVariants({ variant: 'default', size: 'compact' }),
+                'no-underline'
+              )}
+            >
+              View
+            </Link>
+          )}
           {onDeleteClick && (
             <Button
               variant="ghost"
