@@ -1,24 +1,31 @@
 /**
  * Build-time OG-image generator.
  *
- * Renders the REAL catalog tile for every entity — the same
- * `ReferenceEntityCard data={…} size="medium" extent="catalog" cardClickable`
- * the schema index emits — and composes it onto a 1200×630 canvas at
- * `dist/schema/{schemaId}/item/{itemId}.og.png`, the path each item page
- * references as its og:image.
+ * Renders the REAL catalog tile for every entity — the shared `CatalogTile` the
+ * schema index grid emits — and composes it onto a 1200×630 canvas at
+ * `dist/schema/{schemaId}/item/{itemId}.og.png`, the path each page references
+ * as its og:image.
+ *
+ * Chassis PATTERNS are covered as entities in their own right: a pattern has its
+ * own page, its own card view (the card takes the chassis as `data` plus the
+ * `pattern` it renders as the subject) and its own provenance, so it gets its
+ * own tile at `…/item/{itemId}/pattern/{patternId}.og.png` rather than
+ * inheriting the chassis image.
  *
  * Pipeline:
- *   1. Enumerate entities via getItemStaticPaths (same source as the routes, so
- *      every og.png path matches a real item page).
+ *   1. Enumerate targets via getItemStaticPaths + getPatternStaticPaths (the
+ *      same sources as the routes, so every og.png path matches a real page).
  *   2. Serve the freshly-built `dist/` with `astro preview`.
  *   3. Drive headless chromium (Playwright). Each worker loads `/og-card/` ONCE
  *      (game-data corpus + island loaded a single time) and re-renders each
  *      entity in place via `window.__ogSetEntity` — far faster and lighter than
  *      a navigation per entity, and it avoids the under-load dynamic-import
  *      failures that per-navigation rendering hit on the Netlify builder.
- *   4. Screenshot the TILE ELEMENT (not the viewport) at a device scale factor
- *      that lands it at exactly OG_WIDTH, then `contain`-fit it onto the canvas
- *      with sharp, padded in the tile's own page background.
+ *   4. Screenshot the padded FRAME around the tile (not the viewport, and not
+ *      the tile box itself — the card is `overflow-visible` and its decorations
+ *      overhang) at a device scale factor that lands it at exactly OG_WIDTH,
+ *      then `contain`-fit it onto the canvas with sharp, matted in the surface
+ *      the Catalog view puts behind its tiles.
  *
  * WHY THIS IS OPT-IN (read before re-enabling it in a deploy):
  * an earlier version of this script ran on every Netlify build and rendered the
@@ -39,9 +46,16 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
-import { getItemStaticPaths } from '../src/lib/staticPaths'
+import { getItemStaticPaths, getPatternStaticPaths } from '../src/lib/staticPaths'
 import { DEFAULT_OG_IMAGE, SITE_URL } from '../src/lib/constants'
-import { CATALOG_TILE_WIDTH, OG_HEIGHT, OG_WIDTH, ogImagePath } from '../src/lib/ogCard'
+import {
+  CATALOG_FRAME_WIDTH,
+  CATALOG_TILE_PADDING,
+  CATALOG_TILE_WIDTH,
+  OG_HEIGHT,
+  OG_WIDTH,
+  ogImagePath,
+} from '../src/lib/ogCard'
 
 const PORT = Number(process.env.OG_SCREENSHOTS_PORT ?? 4399)
 const CONCURRENCY = Number(process.env.OG_SCREENSHOTS_CONCURRENCY ?? 5)
@@ -54,11 +68,15 @@ const BUDGET_MS = Number(process.env.OG_SCREENSHOTS_BUDGET_MS ?? 10 * 60_000)
 // The island mounts inside an <astro-island> wrapper, so the tile is a
 // descendant of #og-card rather than a child — match it by its own marker.
 const TILE_SELECTOR = '[data-og-tile]'
+// …but CAPTURE the padded frame, not the tile: the card is `overflow-visible`
+// and a pattern tile's chassis name-tab overhangs its box, which an
+// element-scoped screenshot of the tile would slice off.
+const FRAME_SELECTOR = '#og-card'
 const NAV_TIMEOUT = 30_000
-// Render the 432px tile at exactly OG_WIDTH device pixels. The browser rasterises
-// at this scale (real layout, not an image resize), so a tile that fits the
-// canvas is written with no resampling at all.
-const SCALE = OG_WIDTH / CATALOG_TILE_WIDTH
+// Render the padded frame at exactly OG_WIDTH device pixels. The browser
+// rasterises at this scale (real layout, not an image resize), so a frame that
+// fits the canvas is written with no resampling at all.
+const SCALE = OG_WIDTH / CATALOG_FRAME_WIDTH
 // Container-hardening flags: no GPU process (it gets OOM-killed, exit_code=9,
 // and takes the browser down) and a small shared-memory footprint.
 const LAUNCH_ARGS = [
@@ -83,7 +101,7 @@ const DIST_DIR = join(APP_ROOT, 'dist')
 //
 // Unchanged entity + cached PNG → copy into dist, no screenshot.
 // ---------------------------------------------------------------------------
-const SCRIPT_VERSION = 3
+const SCRIPT_VERSION = 5
 const CACHE_DIR = join(APP_ROOT, 'node_modules', '.cache', 'srd-og')
 const MANIFEST_PATH = join(CACHE_DIR, 'manifest.json')
 
@@ -106,17 +124,33 @@ function entityHash(item: unknown): string {
 }
 
 function cachePngPath(entity: Entity): string {
-  return join(CACHE_DIR, entity.schemaId, `${entity.itemId}.og.png`)
+  return entity.patternId
+    ? join(CACHE_DIR, entity.schemaId, entity.itemId, 'pattern', `${entity.patternId}.og.png`)
+    : join(CACHE_DIR, entity.schemaId, `${entity.itemId}.og.png`)
 }
 
 function distPngPath(entity: Entity): string {
-  return join(DIST_DIR, 'schema', entity.schemaId, 'item', `${entity.itemId}.og.png`)
+  return join(DIST_DIR, ogImagePath(entity.schemaId, entity.itemId, entity.patternId))
 }
 
-type Entity = { schemaId: string; itemId: string; hash: string }
+/**
+ * One renderable target. A chassis pattern is its own kind of entity here — its
+ * own page, its own card view, its own og:image — distinguished by `patternId`.
+ */
+type Entity = { schemaId: string; itemId: string; patternId?: string; hash: string }
+
+/** Stable identity for a target, matching the island's `data-og-current` key. */
+function entityKey(entity: Entity): string {
+  return entity.patternId
+    ? `${entity.schemaId}/${entity.itemId}/pattern/${entity.patternId}`
+    : `${entity.schemaId}/${entity.itemId}`
+}
 
 function itemHtmlPath(entity: Entity): string {
-  return join(DIST_DIR, 'schema', entity.schemaId, 'item', entity.itemId, 'index.html')
+  const base = join(DIST_DIR, 'schema', entity.schemaId, 'item', entity.itemId)
+  return entity.patternId
+    ? join(base, 'pattern', entity.patternId, 'index.html')
+    : join(base, 'index.html')
 }
 
 /**
@@ -137,7 +171,8 @@ function pointPageAtOgImage(entity: Entity): boolean {
   const html = readFileSync(htmlPath, 'utf8')
   const defaultUrl = new URL(DEFAULT_OG_IMAGE, SITE_URL).href
   if (!html.includes(defaultUrl)) return false
-  const ownUrl = new URL(ogImagePath(entity.schemaId, entity.itemId), SITE_URL).href
+  const ownUrl = new URL(ogImagePath(entity.schemaId, entity.itemId, entity.patternId), SITE_URL)
+    .href
   writeFileSync(htmlPath, html.split(defaultUrl).join(ownUrl))
   return true
 }
@@ -168,11 +203,24 @@ async function run() {
     return
   }
 
-  const allEntities: Entity[] = getItemStaticPaths().map((p) => ({
-    schemaId: p.params.schemaId,
-    itemId: p.params.itemId,
-    hash: entityHash(p.props.item),
-  }))
+  // Items and chassis patterns alike — a pattern is its own kind of entity, so
+  // it gets its own Catalog tile and its own preview rather than inheriting the
+  // chassis banner.
+  const allEntities: Entity[] = [
+    ...getItemStaticPaths().map((p) => ({
+      schemaId: p.params.schemaId,
+      itemId: p.params.itemId,
+      hash: entityHash(p.props.item),
+    })),
+    ...getPatternStaticPaths().map((p) => ({
+      schemaId: p.params.schemaId,
+      itemId: p.params.itemId,
+      patternId: p.params.patternId,
+      // Hash the PATTERN, not the chassis: two patterns of one chassis must not
+      // collide, and editing a pattern has to invalidate only its own tile.
+      hash: entityHash(p.props.pattern),
+    })),
+  ]
   if (allEntities.length === 0) {
     log('no entities found — nothing to render.')
     return
@@ -184,7 +232,7 @@ async function run() {
   const entities: Entity[] = []
   let restored = 0
   for (const entity of allEntities) {
-    const key = `${entity.schemaId}/${entity.itemId}`
+    const key = entityKey(entity)
     const cached = cachePngPath(entity)
     if (previous[key] === entity.hash && existsSync(cached)) {
       mkdirSync(dirname(distPngPath(entity)), { recursive: true })
@@ -201,7 +249,7 @@ async function run() {
   // PNG that was never written.
   const nextManifest: Manifest = {}
   for (const entity of allEntities) {
-    const key = `${entity.schemaId}/${entity.itemId}`
+    const key = entityKey(entity)
     if (previous[key] === entity.hash && existsSync(cachePngPath(entity))) {
       nextManifest[key] = entity.hash
     }
@@ -264,6 +312,7 @@ async function run() {
 
   const base = `http://127.0.0.1:${PORT}`
   const failures: { entity: Entity; error: string }[] = []
+  const overhangs: { key: string; overhang: number }[] = []
   const deadline = Date.now() + BUDGET_MS
   let generated = 0
   let done = 0
@@ -284,11 +333,11 @@ async function run() {
   // Swap the in-page entity and capture it — no navigation, so the island + data
   // corpus stay loaded across the whole run.
   const captureInPage = async (page: Page, entity: Entity): Promise<void> => {
-    const key = `${entity.schemaId}/${entity.itemId}`
-    await page.evaluate(([schema, item]) => window.__ogSetEntity?.(schema, item), [
-      entity.schemaId,
-      entity.itemId,
-    ] as [string, string])
+    const key = entityKey(entity)
+    await page.evaluate(
+      ([schema, item, pattern]) => window.__ogSetEntity?.(schema, item, pattern || undefined),
+      [entity.schemaId, entity.itemId, entity.patternId ?? ''] as [string, string, string]
+    )
     // Wait until that exact entity is the one committed to the DOM.
     await page.waitForFunction(
       (k) => document.documentElement.getAttribute('data-og-current') === k,
@@ -319,7 +368,32 @@ async function run() {
       return frame ? getComputedStyle(frame).backgroundColor : 'rgb(255,255,255)'
     })
 
-    const shot = await tile.screenshot({ type: 'png' })
+    // Guard the padding rather than trusting it: if a card ever overhangs its
+    // box by more than CATALOG_TILE_PADDING, say so instead of silently
+    // shipping a clipped preview.
+    const overhang = await page.evaluate(() => {
+      const el = document.querySelector('[data-og-tile]')
+      if (!el) return 0
+      const box = el.getBoundingClientRect()
+      let worst = 0
+      for (const child of Array.from(el.querySelectorAll('*'))) {
+        const r = child.getBoundingClientRect()
+        if (r.width === 0 && r.height === 0) continue
+        worst = Math.max(
+          worst,
+          box.top - r.top,
+          box.left - r.left,
+          r.right - box.right,
+          r.bottom - box.bottom
+        )
+      }
+      return Math.ceil(worst)
+    })
+    if (overhang > CATALOG_TILE_PADDING) {
+      overhangs.push({ key, overhang })
+    }
+
+    const shot = await page.locator(FRAME_SELECTOR).screenshot({ type: 'png' })
     const outPath = distPngPath(entity)
     mkdirSync(dirname(outPath), { recursive: true })
     // `contain` pads a tile that fits (no resampling — it was rasterised at
@@ -422,9 +496,16 @@ async function run() {
       `budget of ${Math.round(BUDGET_MS / 1000)}s reached — ${entities.length - done} entit(ies) keep the default og:image. Re-run to continue; the cache carries what rendered.`
     )
   }
+  if (overhangs.length > 0) {
+    const worst = Math.max(...overhangs.map((o) => o.overhang))
+    log(
+      `WARNING: ${overhangs.length} card(s) overhang their box by up to ${worst}px, beyond the ${CATALOG_TILE_PADDING}px capture padding — those previews are clipped. Raise CATALOG_TILE_PADDING in src/lib/ogCard.ts.`
+    )
+    for (const o of overhangs.slice(0, 5)) log(`  clipped: ${o.key} (${o.overhang}px)`)
+  }
   if (failures.length > 0) {
     for (const f of failures.slice(0, 20)) {
-      log(`FAILED ${f.entity.schemaId}/${f.entity.itemId}: ${f.error}`)
+      log(`FAILED ${entityKey(f.entity)}: ${f.error}`)
     }
     log(`${failures.length}/${entities.length} og:image(s) failed to render.`)
   }

@@ -18,6 +18,26 @@
 export const CATALOG_TILE_WIDTH = 432
 
 /**
+ * Breathing room around the tile in the capture frame.
+ *
+ * Not cosmetic: the catalog card is `overflow-visible`, so decorations render
+ * OUTSIDE its box — a pattern tile's chassis name-tab sits 8px above it. An
+ * element-scoped screenshot clips to the box, which sliced the top off that tab.
+ * The frame is captured instead of the tile, so anything that overhangs is in
+ * shot.
+ *
+ * 24px is headroom over the widest real overhang: pattern name-tabs reach 8px,
+ * and `roll-tables/callsign-table` reaches 17px. `og-screenshots.ts` warns when
+ * any entity exceeds this rather than silently shipping a clipped card — that
+ * warning is what found the 17px case, so trust it over this comment if they
+ * ever disagree.
+ */
+export const CATALOG_TILE_PADDING = 24
+
+/** Total width of the captured frame — what the OG scale factor is derived from. */
+export const CATALOG_FRAME_WIDTH = CATALOG_TILE_WIDTH + CATALOG_TILE_PADDING * 2
+
+/**
  * og:image canvas. 1200×630 is the size BaseLayout declares for every image the
  * site emits (`og:image:width` / `:height`), and the ratio Slack/Discord/X/
  * Facebook render a "large" link card at.
@@ -28,10 +48,16 @@ export const OG_HEIGHT = 630
 /**
  * Where an entity's og:image lives, relative to the site root.
  *
- * `[itemId].astro` points `og:image` at this path and the generator writes the
- * PNG to the matching location under `dist/` — keep them derived from this one
- * function so a rename can't silently 404 every social preview.
+ * The generator writes the PNG here and rewrites the matching page's `og:image`
+ * to point at it — keep both derived from this one function so a rename can't
+ * silently 404 every social preview.
+ *
+ * A chassis pattern is addressed as an entity in its own right (it has its own
+ * page, its own card view and its own provenance), mirroring its page URL with
+ * the `.og.png` suffix moved to the end.
  */
-export function ogImagePath(schemaId: string, itemId: string): string {
-  return `/schema/${schemaId}/item/${itemId}.og.png`
+export function ogImagePath(schemaId: string, itemId: string, patternId?: string): string {
+  return patternId
+    ? `/schema/${schemaId}/item/${itemId}/pattern/${patternId}.og.png`
+    : `/schema/${schemaId}/item/${itemId}.og.png`
 }

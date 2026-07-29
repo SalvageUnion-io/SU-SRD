@@ -20,7 +20,7 @@ import '@fontsource/barlow-semi-condensed/600.css'
 import '@fontsource/barlow-semi-condensed/700.css'
 import '../styles/global.css'
 import { OgCardIsland } from '../components/islands/OgCardIsland'
-import { CATALOG_TILE_WIDTH } from '../lib/ogCard'
+import { CATALOG_TILE_WIDTH, CATALOG_TILE_PADDING } from '../lib/ogCard'
 ---
 
 <!doctype html>
@@ -29,7 +29,10 @@ import { CATALOG_TILE_WIDTH } from '../lib/ogCard'
     <meta charset="UTF-8" />
     <meta name="robots" content="noindex, nofollow" />
     <title>OG card render</title>
-    <style is:global define:vars={{ tileWidth: `${CATALOG_TILE_WIDTH}px` }}>
+    <style
+      is:global
+      define:vars={{ tileWidth: `${CATALOG_TILE_WIDTH}px`, tilePad: `${CATALOG_TILE_PADDING}px` }}
+    >
       html,
       body {
         margin: 0;
@@ -44,8 +47,12 @@ import { CATALOG_TILE_WIDTH } from '../lib/ogCard'
          Set on #og-card rather than <body>: global.css styles `body` with an
          unlayered rule, which beats Tailwind's layered utilities, so a
          `bg-wk-bg` class there would silently lose to the page background. */
+      /* content-box so the CONTENT is exactly the tile width and the padding sits
+         outside it — the tile must lay out at its true index-page width. */
       #og-card {
+        box-sizing: content-box;
         width: var(--tileWidth);
+        padding: var(--tilePad);
         background-color: var(--color-wk-bg);
       }
       body {

@@ -1,4 +1,4 @@
-import type { SURefEntity } from 'salvageunion-reference'
+import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { ReferenceEntityCard } from 'component-lib'
 
 type CatalogTileProps = {
@@ -6,6 +6,10 @@ type CatalogTileProps = {
   /** Where the tile links. The schema index navigates here; the og:image render
    *  surface never follows it, but keeps it so the markup is identical. */
   href: string
+  /** Render one of `entity`'s patterns (chassis only) as the subject instead of
+   *  the chassis itself — the pattern is its own kind of entity, with its own
+   *  page, card view and provenance, so it gets its own tile. */
+  pattern?: SURefObjectPattern
 }
 
 /**
@@ -20,10 +24,16 @@ type CatalogTileProps = {
  * Wrap in `EntityHrefProvider` + `EntityDetailLinkProvider` at the grid level;
  * both render sites do.
  */
-export function CatalogTile({ entity, href }: CatalogTileProps) {
+export function CatalogTile({ entity, href, pattern }: CatalogTileProps) {
   return (
-    <a href={href} aria-label={entity.name} className="relative block">
-      <ReferenceEntityCard data={entity} size="medium" extent="catalog" cardClickable />
+    <a href={href} aria-label={pattern?.name ?? entity.name} className="relative block">
+      <ReferenceEntityCard
+        data={entity}
+        pattern={pattern}
+        size="medium"
+        extent="catalog"
+        cardClickable
+      />
     </a>
   )
 }
