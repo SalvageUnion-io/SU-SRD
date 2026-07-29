@@ -2,6 +2,17 @@
 
 Maintained by release-please (see ADR-024).
 
+## [0.9.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.8.0...itun-v0.9.0) (2026-07-29)
+
+
+### Features
+
+* **itun:** a Game invite scheme that can be managed, carried, and gated ([#655](https://github.com/SalvageUnion-io/SU-SRD/issues/655)) ([a712b75](https://github.com/SalvageUnion-io/SU-SRD/commit/a712b753d33b4bc80256e730bbd45cdc6dbfbd44))
+* **itun:** a Game's crew as a roster, and the rules for setting a table up ([#656](https://github.com/SalvageUnion-io/SU-SRD/issues/656)) ([644d133](https://github.com/SalvageUnion-io/SU-SRD/commit/644d1336506d3340dc4ac5b4d3a52a929705483a))
+* **itun:** accounts, Games, and a live Mediator surface (ADR-030) ([#647](https://github.com/SalvageUnion-io/SU-SRD/issues/647)) ([eec0a7f](https://github.com/SalvageUnion-io/SU-SRD/commit/eec0a7f5dcf539198b80d7891f9518e9d4aaaeea))
+* **itun:** move the account controls into the masthead ([#654](https://github.com/SalvageUnion-io/SU-SRD/issues/654)) ([b72ea0c](https://github.com/SalvageUnion-io/SU-SRD/commit/b72ea0c708c8aefeb637b2b8573d98a0a3128f79))
+* **itun:** retire Workspaces in favour of Games and the Shelf ([#652](https://github.com/SalvageUnion-io/SU-SRD/issues/652)) ([ab9ca74](https://github.com/SalvageUnion-io/SU-SRD/commit/ab9ca74594356fdb0b645408d6d9bc330fcd00c9))
+
 ## [0.8.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.7.0...itun-v0.8.0) (2026-07-28)
 
 
