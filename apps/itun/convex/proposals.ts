@@ -1,0 +1,227 @@
+import { v } from 'convex/values'
+
+import type { Doc, Id } from './_generated/dataModel'
+import { mutation, query } from './_generated/server'
+import type { MutationCtx } from './_generated/server'
+import { NotAuthorized, requireMediator, requireMember, requireUser } from './model/permissions'
+
+/**
+ * Proposals and alerts (ADR-030 §4, Phase 4).
+ *
+ * This is the mechanism that lets a Mediator reach a player's sheet without
+ * ever writing it. They push a **proposal**; the player applies or declines it.
+ *
+ * ## Alerts and cross-player writes are one system, not two
+ *
+ * Both are rows in the Change Log. A proposal is an entry in `proposed` state
+ * carrying `before`/`after` for one field; an alert is the same row with no
+ * entity target. That is the payoff for ADR-022 having built the log
+ * append-only, ordered and replay-shaped before any of this existed — there was
+ * no second bus to design.
+ *
+ * ## Three rules the tests pin
+ *
+ *  - **Nothing expires.** An unanswered proposal stays `proposed` forever. A
+ *    timer would silently drop damage a player was meant to take, which is the
+ *    exact bookkeeping error the feature exists to prevent.
+ *  - **Nothing is force-applied.** There is no mutation here that writes an
+ *    entity on the player's behalf. Adding one would collapse
+ *    propose-and-confirm back into the direct write ADR-030 rejects.
+ *  - **Newer supersedes older, per field.** A second proposal against the same
+ *    `(entityId, field)` retires the first, so a player never faces two
+ *    contradictory pending changes to one value.
+ */
+
+/** Only the Mediator proposes; only the target's owner answers. */
+async function requireProposalTarget(
+  ctx: MutationCtx,
+  entityId: string
+): Promise<{ doc: Doc<'pilots'> | Doc<'mechs'>; gameId: Id<'games'> }> {
+  const doc = (await ctx.db.get(entityId as Id<'pilots'> | Id<'mechs'>)) as
+    | Doc<'pilots'>
+    | Doc<'mechs'>
+    | null
+  if (doc === null) throw new Error('That entity no longer exists')
+  if (doc.gameId === null) {
+    throw new NotAuthorized('An entity on a shelf is not part of a game and cannot be proposed to')
+  }
+  return { doc, gameId: doc.gameId }
+}
+
+/**
+ * Propose a change to one field of a player's entity.
+ *
+ * `before` is captured from the Mediator's view at propose time and is shown to
+ * the player alongside `after`, so they can see what the Mediator believed the
+ * value was. It is deliberately not re-read at apply time: a mismatch is
+ * information the player should see, not something to paper over.
+ */
+export const propose = mutation({
+  args: {
+    entityId: v.string(),
+    entityType: v.union(v.literal('pilot'), v.literal('mech')),
+    field: v.string(),
+    before: v.any(),
+    after: v.any(),
+  },
+  handler: async (ctx, args): Promise<Id<'changeLog'>> => {
+    const { doc, gameId } = await requireProposalTarget(ctx, args.entityId)
+    const membership = await requireMediator(ctx, gameId)
+
+    if (doc.ownerId === null) {
+      throw new NotAuthorized('That entity is unclaimed — assign it before proposing changes')
+    }
+
+    // Supersede any live proposal against the same field, so the player is
+    // never asked to choose between two contradictory pending values.
+    const live = await ctx.db
+      .query('changeLog')
+      .withIndex('by_entity', (q) => q.eq('entityId', args.entityId))
+      .collect()
+
+    const proposalId = await ctx.db.insert('changeLog', {
+      gameId,
+      entityType: args.entityType,
+      entityId: args.entityId,
+      ts: Date.now(),
+      kind: 'transaction',
+      field: args.field,
+      before: args.before,
+      after: args.after,
+      source: 'mediator-proposal',
+      actorId: membership.userId,
+      state: 'proposed',
+    })
+
+    for (const row of live) {
+      if (row.state === 'proposed' && row.field === args.field && row._id !== proposalId) {
+        await ctx.db.patch(row._id, { state: 'superseded', supersededBy: proposalId })
+      }
+    }
+
+    return proposalId
+  },
+})
+
+/** Proposals awaiting this player's answer, newest first. */
+export const pending = query({
+  args: { gameId: v.id('games') },
+  handler: async (ctx, args) => {
+    await requireMember(ctx, args.gameId)
+    const userId = await requireUser(ctx)
+
+    const rows = await ctx.db
+      .query('changeLog')
+      .withIndex('by_game_state', (q) => q.eq('gameId', args.gameId).eq('state', 'proposed'))
+      .collect()
+
+    const mine = []
+    for (const row of rows) {
+      const target = (await ctx.db.get(row.entityId as Id<'pilots'> | Id<'mechs'>)) as
+        | Doc<'pilots'>
+        | Doc<'mechs'>
+        | null
+      // Only the owner is asked. A proposal against somebody else's entity is
+      // not this player's to answer, and showing it would leak an edit in
+      // flight.
+      if (target === null || target.ownerId !== userId) continue
+      mine.push({
+        _id: row._id,
+        entityId: row.entityId,
+        entityType: row.entityType,
+        field: row.field,
+        before: row.before,
+        after: row.after,
+        ts: row.ts,
+      })
+    }
+    return mine.sort((a, b) => b.ts - a.ts)
+  },
+})
+
+/**
+ * Apply a proposal to your own entity.
+ *
+ * The **player** performs the write — that is the whole point. The mutation
+ * refuses if the caller is not the owner, so "apply" can never become a path
+ * by which somebody else's confirmation moves your numbers.
+ */
+export const apply = mutation({
+  args: { proposalId: v.id('changeLog') },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+    const proposal = await ctx.db.get(args.proposalId)
+    if (proposal === null) throw new Error('That proposal no longer exists')
+    if (proposal.state !== 'proposed') throw new Error('That proposal has already been answered')
+
+    const { doc } = await requireProposalTarget(ctx, proposal.entityId)
+    if (doc.ownerId !== userId) throw new NotAuthorized('Only the owner can apply this')
+
+    const body = { ...(doc.body as Record<string, unknown>), [proposal.field]: proposal.after }
+    await ctx.db.patch(doc._id, { body, updatedAt: Date.now() })
+    await ctx.db.patch(args.proposalId, { state: 'applied' })
+  },
+})
+
+/** Decline a proposal. Recorded, not deleted — the log is append-only. */
+export const decline = mutation({
+  args: { proposalId: v.id('changeLog') },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+    const proposal = await ctx.db.get(args.proposalId)
+    if (proposal === null) return
+    if (proposal.state !== 'proposed') return
+
+    const { doc } = await requireProposalTarget(ctx, proposal.entityId)
+    if (doc.ownerId !== userId) throw new NotAuthorized('Only the owner can decline this')
+
+    await ctx.db.patch(args.proposalId, { state: 'declined' })
+  },
+})
+
+/**
+ * Broadcast a table-wide alert.
+ *
+ * The same log row with no entity target — which is why alerts needed no
+ * separate bus. Any member reads them; only the Mediator sends.
+ */
+export const broadcast = mutation({
+  args: { gameId: v.id('games'), message: v.string() },
+  handler: async (ctx, args): Promise<void> => {
+    const membership = await requireMediator(ctx, args.gameId)
+    const message = args.message.trim()
+    if (message.length === 0) throw new Error('An alert needs a message')
+
+    await ctx.db.insert('changeLog', {
+      gameId: args.gameId,
+      entityType: 'game',
+      entityId: args.gameId,
+      ts: Date.now(),
+      kind: 'transaction',
+      field: 'alert',
+      before: null,
+      after: message,
+      source: 'mediator-alert',
+      actorId: membership.userId,
+      state: 'applied',
+    })
+  },
+})
+
+/** Table-wide alerts, newest first. */
+export const alerts = query({
+  args: { gameId: v.id('games'), limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    await requireMember(ctx, args.gameId)
+    const rows = await ctx.db
+      .query('changeLog')
+      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
+      .collect()
+
+    return rows
+      .filter((r) => r.field === 'alert')
+      .sort((a, b) => b.ts - a.ts)
+      .slice(0, args.limit ?? 20)
+      .map((r) => ({ _id: r._id, message: String(r.after), ts: r.ts, actorId: r.actorId }))
+  },
+})

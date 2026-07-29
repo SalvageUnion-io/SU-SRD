@@ -13,7 +13,19 @@
   # src/lib/observability.ts and src/vite-env.d.ts). SENTRY_AUTH_TOKEN /
   # SENTRY_ORG / SENTRY_PROJECT (set as Netlify site env vars, not here) turn
   # on sourcemap upload for that same release in vite.config.ts.
-  command = "bun install --frozen-lockfile && VITE_COMMIT_REF=\"$COMMIT_REF\" bun --filter itun build"
+  #
+  # When CONVEX_DEPLOY_KEY is present the Convex backend (schema + functions in
+  # apps/itun/convex) is pushed FIRST, and `--cmd` then runs the site build with
+  # VITE_CONVEX_URL set to the deployment that was just pushed to. Doing it in
+  # that order is what keeps the shipped client and the backend it talks to in
+  # agreement: a build that compiled against a URL whose schema had not been
+  # deployed yet would fail at runtime, not at build time.
+  #
+  # Without the key the build is byte-for-byte what it was before accounts —
+  # a plain Solo build (ADR-030 §1). That is the supported state for deploy
+  # previews and branch deploys, which have no Convex deployment of their own,
+  # and it means adding this step cannot break them.
+  command = 'bun install --frozen-lockfile && if [ -n "$CONVEX_DEPLOY_KEY" ]; then cd apps/itun && VITE_COMMIT_REF="$COMMIT_REF" bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"; else VITE_COMMIT_REF="$COMMIT_REF" bun --filter itun build; fi'
   publish = "apps/itun/dist"
   functions = "apps/itun/netlify/functions"
   # Skip the build when nothing affecting ITUN changed since the last published
@@ -108,7 +120,22 @@
     # one region under a CSP written for the other is blocked in the browser and
     # the project reports nothing — identical, from the outside, to "no errors".
     # The nightly live probe now compares this against the DSN actually shipped.
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://ingesteer.services-prod.nsvcs.net https://*.ingest.de.sentry.io;"
+    #
+    # The Convex entries are load-bearing for the same reason, and fail the same
+    # silent way. The accounts client (ADR-030) opens a WebSocket to the
+    # deployment for its reactive queries and POSTs mutations over HTTPS, and
+    # `@convex-dev/auth` exchanges tokens against the deployment's `.site`
+    # origin. Omit these and every one of those is blocked by the browser before
+    # it leaves the page: `VITE_CONVEX_URL` is set, the client constructs
+    # happily, the app reports itself Connected — and nothing ever reaches the
+    # server. Sign-in just never completes, with no error surface.
+    #
+    # Wildcarded per deployment name, like the Sentry host above, because the
+    # deployment differs by context: production is `exuberant-porpoise-183`,
+    # while a branch deploy or a local `convex dev` points somewhere else. A
+    # hardcoded host would work in production and silently break everywhere
+    # else. Both schemes are required — `wss:` does NOT inherit from `https:`.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.ko-fi.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://ingesteer.services-prod.nsvcs.net https://*.ingest.de.sentry.io https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;"
     X-DNS-Prefetch-Control = "on"
 
 [[headers]]

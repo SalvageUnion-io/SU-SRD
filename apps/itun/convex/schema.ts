@@ -42,6 +42,12 @@ export default defineSchema({
     image: v.optional(v.string()),
     emailVerificationTime: v.optional(v.number()),
     isAnonymous: v.optional(v.boolean()),
+    // Carried over from `authTables.users` even though Discord is the only
+    // provider: overriding that table means anything the library expects to
+    // find has to be redeclared here, and a missing field would surface as a
+    // write failure inside the auth flow rather than as a type error.
+    phone: v.optional(v.string()),
+    phoneVerificationTime: v.optional(v.number()),
 
     /** Discord snowflake, once linked. The only third-party identifier stored. */
     discordId: v.optional(v.string()),
@@ -55,6 +61,7 @@ export default defineSchema({
     avatarUrl: v.optional(v.string()),
   })
     .index('email', ['email'])
+    .index('phone', ['phone'])
     .index('by_discord', ['discordId']),
 
   /**
@@ -103,20 +110,48 @@ export default defineSchema({
   pilots: defineTable({
     gameId: v.union(v.id('games'), v.null()),
     ownerId: v.union(v.id('users'), v.null()),
+    /**
+     * The app-level UUID this row mirrors (ADR-030 §1).
+     *
+     * Convex mints its own `_id`, so a client holding only the local UUID has
+     * nothing to address a row by — which is what made an earlier
+     * write-mirroring attempt unworkable for updates and deletes. Carrying the
+     * app id as an indexed column gives one cheap lookup per write instead of
+     * a mapping table, and keeps `_id` idiomatic for everything server-side.
+     *
+     * Optional because rows created server-side (Game templates) have no local
+     * counterpart until somebody claims them.
+     */
+    appId: v.optional(v.string()),
     body: v.any(),
     updatedAt: v.number(),
   })
     .index('by_game', ['gameId'])
-    .index('by_owner', ['ownerId']),
+    .index('by_owner', ['ownerId'])
+    .index('by_app_id', ['appId']),
 
   mechs: defineTable({
     gameId: v.union(v.id('games'), v.null()),
     ownerId: v.union(v.id('users'), v.null()),
+    /**
+     * The app-level UUID this row mirrors (ADR-030 §1).
+     *
+     * Convex mints its own `_id`, so a client holding only the local UUID has
+     * nothing to address a row by — which is what made an earlier
+     * write-mirroring attempt unworkable for updates and deletes. Carrying the
+     * app id as an indexed column gives one cheap lookup per write instead of
+     * a mapping table, and keeps `_id` idiomatic for everything server-side.
+     *
+     * Optional because rows created server-side (Game templates) have no local
+     * counterpart until somebody claims them.
+     */
+    appId: v.optional(v.string()),
     body: v.any(),
     updatedAt: v.number(),
   })
     .index('by_game', ['gameId'])
-    .index('by_owner', ['ownerId']),
+    .index('by_owner', ['ownerId'])
+    .index('by_app_id', ['appId']),
 
   /**
    * The crawler is communal (D8) — no `ownerId` at all, and any member of the
@@ -126,9 +161,13 @@ export default defineSchema({
    */
   crawlers: defineTable({
     gameId: v.id('games'),
+    /** See `pilots.appId` — same reason, same lookup path. */
+    appId: v.optional(v.string()),
     body: v.any(),
     updatedAt: v.number(),
-  }).index('by_game', ['gameId']),
+  })
+    .index('by_game', ['gameId'])
+    .index('by_app_id', ['appId']),
 
   /** 'mech-to-pilot' | 'pilot-to-crawler'. EntityRef is NOT widened (ADR-027). */
   softLinks: defineTable({
@@ -182,13 +221,60 @@ export default defineSchema({
     source: v.string(),
     /** Who performed or proposed it. */
     actorId: v.union(v.id('users'), v.null()),
-    /** 'applied' | 'proposed' | 'rejected' | 'superseded'. */
+    /** 'applied' | 'proposed' | 'declined' | 'superseded'. */
     state: v.string(),
     supersededBy: v.optional(v.id('changeLog')),
   })
     .index('by_entity', ['entityId'])
     .index('by_game', ['gameId'])
     .index('by_game_state', ['gameId', 'state']),
+
+  /**
+   * Which Discord channel a Game is bound to (ADR-030, Phase 6).
+   *
+   * The bot authenticates as a **participant**, not an admin — the whole point
+   * of closing the old #165 differently. A binding says "rolls in this channel
+   * belong to this Game", and the actor is resolved from the Discord user id
+   * against `users.discordId`, so the bot can never act as somebody who has not
+   * linked their account.
+   *
+   * One Game per channel: a channel that meant two Games would make every roll
+   * ambiguous.
+   */
+  channelBindings: defineTable({
+    gameId: v.id('games'),
+    channelId: v.string(),
+    boundBy: v.id('users'),
+    boundAt: v.number(),
+  })
+    .index('by_channel', ['channelId'])
+    .index('by_game', ['gameId']),
+
+  /**
+   * Crew-wide Downtime state (ADR-030, Phase 5).
+   *
+   * Downtime is the one procedure the whole crew performs in step, so the phase
+   * is **Game state advanced by the Mediator** rather than something each
+   * player tracks alone. Per-player step completion lives here too, so the
+   * table can see who is still working.
+   *
+   * One row per Game. `stepIndex: null` means Downtime is not running — which
+   * is a state, not an absence, and is why this is not simply the row's absence.
+   */
+  downtime: defineTable({
+    gameId: v.id('games'),
+    /** Null when Downtime is not running. */
+    stepIndex: v.union(v.number(), v.null()),
+    startedAt: v.union(v.number(), v.null()),
+    /**
+     * Which members have marked the current step done. Cleared whenever the
+     * phase advances — completion is per step, not cumulative, or a player who
+     * finished step 1 would look finished forever.
+     */
+    completedBy: v.array(v.id('users')),
+    /** Set once per Downtime so crawler upkeep is spent once, not per member. */
+    upkeepSpent: v.boolean(),
+  }).index('by_game', ['gameId']),
 
   /** Who is at the table right now. Ephemeral — never folded into an entity. */
   presence: defineTable({

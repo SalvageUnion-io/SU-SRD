@@ -8,12 +8,21 @@
  * @module
  */
 
+import type * as __tests___harness from "../__tests__/harness.js";
+import type * as account from "../account.js";
 import type * as auth from "../auth.js";
+import type * as bot from "../bot.js";
+import type * as crew from "../crew.js";
+import type * as downtime from "../downtime.js";
+import type * as entities from "../entities.js";
 import type * as games from "../games.js";
 import type * as http from "../http.js";
 import type * as invites from "../invites.js";
+import type * as mediator from "../mediator.js";
 import type * as model_permissions from "../model/permissions.js";
 import type * as ownership from "../ownership.js";
+import type * as proposals from "../proposals.js";
+import type * as templates from "../templates.js";
 
 import type {
   ApiFromModules,
@@ -22,12 +31,21 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "__tests__/harness": typeof __tests___harness;
+  account: typeof account;
   auth: typeof auth;
+  bot: typeof bot;
+  crew: typeof crew;
+  downtime: typeof downtime;
+  entities: typeof entities;
   games: typeof games;
   http: typeof http;
   invites: typeof invites;
+  mediator: typeof mediator;
   "model/permissions": typeof model_permissions;
   ownership: typeof ownership;
+  proposals: typeof proposals;
+  templates: typeof templates;
 }>;
 
 /**

@@ -140,7 +140,22 @@ export const PilotSchema = z
     /** Active condition slugs */
     conditions: z.array(z.string()),
 
-    /** Optional: links this pilot to a workspace */
+    /**
+     * Which container holds this entity (ADR-030 §2).
+     *
+     * `undefined` means the record predates the container split and should be
+     * read through `containerOf()`, which falls back to `workspaceId`.
+     * `null` means the owner's **Shelf** — not "unset". The distinction is the
+     * whole point: a shelf is a real place an entity lives, not the absence of
+     * one.
+     */
+    gameId: z.string().nullable().optional(),
+    /**
+     * @deprecated Superseded by `gameId` (ADR-030 §2). Retained because these
+     * schemas are `.strict()`: dropping the key would fail the parse of every
+     * already-migrated record. Removing it needs a follow-up migration that
+     * strips it from stored rows first — a separate, irreversible change.
+     */
     workspaceId: z.string().optional(),
 
     // ---------------------------------------------------------------------------

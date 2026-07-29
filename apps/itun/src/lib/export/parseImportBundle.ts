@@ -3,6 +3,8 @@ import { normalizeLegacyCargoRecord } from '../schemas/cargoLot'
 import { ExportBundleSchema } from '../schemas/exportBundle'
 import type { ExportBundle } from '../schemas/exportBundle'
 import { normalizeLegacyPilotRecord } from '../schemas/pilot'
+import type { ContainerFields } from '../container'
+import { assignContainers } from './legacyContainers'
 
 /**
  * Bundles written before the cargo→cargoLots rename carry mechs (and
@@ -57,6 +59,11 @@ function normalizeLegacyBundle(raw: unknown): unknown {
  *
  * On success returns the validated ExportBundle.
  */
+/** Bundle versions this build can read. v1 predates the Game/Shelf split. */
+const SUPPORTED_VERSIONS: readonly number[] = [1, 2]
+/** What a bundle written today declares. */
+const CURRENT_VERSION = 2
+
 export function parseImportBundle(jsonText: string): ExportBundle {
   let raw: unknown
   try {
@@ -67,10 +74,35 @@ export function parseImportBundle(jsonText: string): ExportBundle {
   raw = normalizeLegacyBundle(raw)
 
   // Check schemaVersion early to give a clearer error before full Zod parse.
-  if (isRecord(raw) && 'schemaVersion' in raw && raw.schemaVersion !== 1) {
+  //
+  // v2 is the post-ADR-030 shape: entities carry `gameId` (a Game, or null for
+  // the owner's shelf) instead of `workspaceId`. v1 is still accepted and
+  // always will be — a backup taken before accounts existed is exactly the file
+  // somebody reaches for when they come back after a year, and refusing it
+  // would strand the data this whole migration is supposed to carry forward.
+  if (
+    isRecord(raw) &&
+    'schemaVersion' in raw &&
+    !SUPPORTED_VERSIONS.includes(Number(raw.schemaVersion))
+  ) {
     throw new Error(
-      `Import failed: unsupported schemaVersion "${String(raw.schemaVersion)}". Only version 1 is supported.`
+      `Import failed: unsupported schemaVersion "${String(raw.schemaVersion)}". Supported: ${SUPPORTED_VERSIONS.join(', ')}.`
     )
+  }
+
+  // A v1 bundle predates containers, so give every entity one on the way in,
+  // using the SAME rule migration 13 applies on an existing device. A roster
+  // must not land somewhere different depending on how it arrived.
+  if (isRecord(raw) && Number(raw.schemaVersion) === 1 && isRecord(raw.entities)) {
+    const e = raw.entities as Record<string, unknown>
+    for (const kind of ['pilots', 'mechs', 'crawlers'] as const) {
+      if (Array.isArray(e[kind])) {
+        e[kind] = assignContainers(e[kind] as ContainerFields[])
+      }
+    }
+    // Normalised to the current shape so the rest of the pipeline sees one
+    // format rather than branching on version at every step.
+    ;(raw as Record<string, unknown>).schemaVersion = CURRENT_VERSION
   }
 
   const result = ExportBundleSchema.safeParse(raw)

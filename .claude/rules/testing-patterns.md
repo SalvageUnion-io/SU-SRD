@@ -42,6 +42,46 @@ Testing patterns using Bun's test runner and Testing Library for component tests
 - Use `mock()` from `bun:test` for module/function mocking
 - Mock external dependencies appropriately
 
+### `mock.module` is process-global — restore what you replace
+
+`mock.module` rewrites the entry in the module registry for the whole test
+process, **not** for the file that called it. Every test file that runs after
+yours gets your replacement. This is not theoretical: mocking the entity store
+in one component test broke 219 tests across the suite, and the failures
+surfaced in files that had never heard of the mocked module.
+
+Capture the real exports first, and put them back in `afterAll`:
+
+```typescript
+// The spread is load-bearing. A module namespace is a LIVE view, and mocking
+// rewrites it in place — hold the namespace itself and by `afterAll` it
+// already reads as the mock, so you restore the mock over the mock.
+const realStore = { ...(await import('../../stores/entityStore')) }
+
+mock.module('../../stores/entityStore', () => ({ useEntityStore: fake }))
+
+afterAll(() => {
+  mock.module('../../stores/entityStore', () => realStore)
+})
+```
+
+Two corollaries:
+
+- **Partial mocks break importers you did not think about.** Replacing
+  `convex/react` with only the hooks under test made `@convex-dev/auth/react`
+  fail at import on a missing `ConvexProviderWithAuth`. Mock every export the
+  transitive importers reach, not just the ones your component calls.
+- **Beware module-scope environment reads.** `config.ts` reads `process.env`
+  once at import, so setting an env var to drive a test hands that value to
+  every later file too. Mock the config module instead of setting the variable.
+
+### Call `cleanup()` explicitly in component tests
+
+Testing Library's auto-cleanup has proven order-dependent here — a file passed
+alone and failed in the full suite. When several tests in a file render the
+same accessible name, one leaked render turns every later query into "found
+multiple elements". Add `afterEach(cleanup)` rather than depending on it.
+
 ## Examples
 
 **Package test:**

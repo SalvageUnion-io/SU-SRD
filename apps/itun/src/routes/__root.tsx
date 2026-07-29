@@ -10,6 +10,7 @@ import { AppLink } from '../components/shared/AppLink'
 import { BlockedUpgradeError } from '../lib/db/index'
 import { GameDataReady } from '../components/shared/GameDataReady'
 import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
+import { AccountStrip } from '../components/account/AccountStrip'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { BackupNudgeToast } from '../components/shared/BackupNudgeToast'
@@ -83,6 +84,7 @@ function RootComponent() {
             data, so it paints immediately instead of sitting behind the full
             preload. */}
           <NotConnectedBanner />
+          <AccountStrip />
           <AppHeader onSearchClick={() => setSearchOpen(true)} LinkComponent={AppLink} />
           <GameDataReady>
             <Outlet />
