@@ -24,6 +24,7 @@ const modules = {
   './_generated/server.js': () => import('../_generated/server'),
   './account.ts': () => import('../account'),
   './bot.ts': () => import('../bot'),
+  './botClient.ts': () => import('../botClient'),
   './crew.ts': () => import('../crew'),
   './downtime.ts': () => import('../downtime'),
   './entities.ts': () => import('../entities'),
@@ -33,6 +34,7 @@ const modules = {
   './ownership.ts': () => import('../ownership'),
   './proposals.ts': () => import('../proposals'),
   './templates.ts': () => import('../templates'),
+  './model/bot.ts': () => import('../model/bot'),
   './model/permissions.ts': () => import('../model/permissions'),
 }
 

@@ -9,14 +9,18 @@
  * roll in the channel history, matching how a dice bot is expected to behave.
  */
 
-import { MessageFlags, type ButtonInteraction } from 'discord.js'
+import { MessageFlags } from 'discord.js'
 
 import { buildCheckMessage } from './commands/check.js'
+import type { CommandButtonInteraction } from './commands/interactions.js'
 import { buildTableLookupMessage } from './commands/lookup.js'
 import { buildRollMessage } from './commands/roll.js'
+import { attributeRoll } from './commands/rollAttribution.js'
 import { parseCustomId } from './customId.js'
 
-export async function handleButtonInteraction(interaction: ButtonInteraction): Promise<void> {
+export async function handleButtonInteraction(
+  interaction: CommandButtonInteraction
+): Promise<void> {
   const parsed = parseCustomId(interaction.customId)
   if (!parsed) {
     // Not one of our buttons, or a malformed id — nothing we can act on.
@@ -43,4 +47,14 @@ export async function handleButtonInteraction(interaction: ButtonInteraction): P
   }
 
   await interaction.reply(message)
+
+  // A re-roll is a roll. Recording only the slash-command form would mean the
+  // Change Log quietly disagreed with the channel about what happened at the
+  // table — and "why is my re-roll missing?" is a worse question than any this
+  // saves. `lookup` is not a roll and is deliberately excluded.
+  if (parsed.action === 'roll' || parsed.action === 'check') {
+    const description =
+      parsed.action === 'roll' ? `Rolled on ${parsed.payload}` : `Rolled ${parsed.payload}`
+    await attributeRoll(interaction, message.embeds, description, { rerolled: parsed.payload })
+  }
 }

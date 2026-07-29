@@ -40,6 +40,26 @@ services:
       # Sentry error tracking — set the value in the Render dashboard.
       - key: SENTRY_DSN
         sync: false
+      # In The Union Now (ADR-030 Phase 6). BOTH are needed together, and with
+      # either missing the bot runs in Solo mode: rolling, checking and lookup
+      # work exactly as they always have, and the Game commands answer "this
+      # server isn't connected". That is a deliberate default, not a failure —
+      # a deploy with no credentials degrades instead of crashing at startup.
+      #
+      # ITUN_CONVEX_SITE_URL is the Convex HTTP-ACTIONS origin (.convex.site),
+      # not the client URL (.convex.cloud) and not the web origin. Getting it
+      # wrong presents as every Game command reporting the deployment
+      # unreachable, which points at the network rather than at the typo.
+      #
+      # ITUN_BOT_SECRET must match `bunx convex env set ITUN_BOT_SECRET` on the
+      # deployment. It is a bearer credential — whoever holds it can act as any
+      # Discord user who has linked an account (bounded: it cannot invent a
+      # membership, reach an unlinked account, read somebody's shelf, or see
+      # encounterNpcs). Set it in the dashboard, never here.
+      - key: ITUN_CONVEX_SITE_URL
+        sync: false
+      - key: ITUN_BOT_SECRET
+        sync: false
       # NOT declared here on purpose: RENDER_GIT_COMMIT (the deployed commit
       # SHA) is a Render "reserved" env var Render injects automatically into
       # every service's environment — it can't be set via envVars and needs no

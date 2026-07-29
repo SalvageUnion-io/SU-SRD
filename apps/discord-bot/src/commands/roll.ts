@@ -11,6 +11,7 @@ import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
 
 import { rollResultRow } from '../customId.js'
 import { BRAND_NAME, ROLL_EMBED_FOOTER, buildRollEmbedData } from '../format.js'
+import { attributeRoll } from './rollAttribution.js'
 
 // Roll tables load lazily once SalvageUnionReference.preload() has run at startup.
 // Accessing them at module load would throw before preload completes, so defer to first use.
@@ -104,5 +105,10 @@ export const rollCommand = {
       return
     }
     await interaction.reply(message)
+    // After the reply, never before it: a bound channel adds a footer line, an
+    // unbound one costs the roller nothing. See rollAttribution.ts.
+    await attributeRoll(interaction, message.embeds, `Rolled on ${tableName}`, {
+      table: tableName,
+    })
   },
 }

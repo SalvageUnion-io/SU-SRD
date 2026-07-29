@@ -13,48 +13,20 @@ import { MessageFlags } from 'discord.js'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { buildTableLookupMessage, lookupCommand } from '../commands/lookup.js'
+import { type ReplyArg, fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
 })
 
-// A recorded reply payload — a structural SUPERTYPE of InteractionReplyOptions
-// (readonly arrays, wide flags) so the mock satisfies the narrow
-// CommandExecuteInteraction contract with no forced cast.
-type ReplyArg = { content?: string; embeds?: readonly unknown[]; flags?: unknown }
-
-/** Mock of the narrow execute-interaction surface, recording the reply. */
+/** Shared narrow-interaction fakes; see fakeInteraction.ts. */
 function mockChatInput(entity: string) {
-  const replies: ReplyArg[] = []
-  // lookup.execute reads getString('entity', true) — overload-declared to
-  // mirror discord.js's required-form getString.
-  function getString(name: string, required: true): string
-  function getString(name: string, required?: boolean): string | null
-  function getString(name: string): string | null {
-    return name === 'entity' ? entity : null
-  }
-  const interaction: Parameters<typeof lookupCommand.execute>[0] = {
-    options: { getSubcommand: () => 'lookup', getString },
-    // execute reads client.user for embed branding; no avatar in tests.
-    client: { user: null },
-    reply: (arg: ReplyArg) => {
-      replies.push(arg)
-      return Promise.resolve()
-    },
-  }
+  const { interaction, replies } = fakeExecute({ subcommand: 'lookup', strings: { entity } })
   return { interaction, replies }
 }
 
-/** Mock of the narrow autocomplete-interaction surface, recording the choices. */
 function mockAutocomplete(focused: string) {
-  const responses: { name: string; value: string }[][] = []
-  const interaction: Parameters<typeof lookupCommand.autocomplete>[0] = {
-    options: { getSubcommand: () => 'lookup', getFocused: () => focused },
-    respond: (choices: { name: string; value: string }[]) => {
-      responses.push(choices)
-      return Promise.resolve()
-    },
-  }
+  const { interaction, responses } = fakeAutocomplete({ subcommand: 'lookup', focused })
   return { interaction, responses }
 }
 

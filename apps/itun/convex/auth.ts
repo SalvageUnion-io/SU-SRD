@@ -16,6 +16,13 @@ import { convexAuth } from '@convex-dev/auth/server'
  * Signing in is an *upgrade*, never a gate (D10) — anonymous solo play stays
  * first-class and needs none of this.
  */
+/**
+ * No `afterUserCreatedOrUpdated` callback stamps the Discord snowflake here,
+ * and deliberately so: `@convex-dev/auth` destructures `id` out of the OAuth
+ * profile before any callback sees it, so such a stamp is always `undefined`
+ * and fails silently. The bot resolves a Discord id through `authAccounts`
+ * instead — see `model/bot.ts#userByDiscordId`.
+ */
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   providers: [Discord],
 })

@@ -23,6 +23,7 @@ import type { DiceNotation, RollerRollResult } from '@randsum/roller'
 
 import { rollAgainRow } from '../customId.js'
 import { BRAND_NAME, ROLL_EMBED_FOOTER, buildCheckEmbedData } from '../format.js'
+import { attributeRoll } from './rollAttribution.js'
 
 /** A message payload ready for `interaction.reply`, or a user-facing error. */
 export type CheckMessage =
@@ -89,5 +90,7 @@ export const checkCommand = {
       return
     }
     await interaction.reply(message)
+    // See rollAttribution.ts — after the reply, silent on failure.
+    await attributeRoll(interaction, message.embeds, `Rolled ${notation}`, { notation })
   },
 }

@@ -10,39 +10,9 @@ import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord.js'
 
 import { buildCheckMessage, checkCommand } from '../commands/check.js'
+import { type ReplyArg, fakeExecute } from './fakeInteraction.js'
 
-// A recorded reply payload — a structural SUPERTYPE of InteractionReplyOptions
-// (readonly arrays, wide flags) so the mock satisfies the narrow
-// CommandExecuteInteraction contract with no forced cast.
-type ReplyArg = {
-  content?: string
-  embeds?: readonly unknown[]
-  components?: readonly unknown[]
-  flags?: unknown
-}
-
-/** Mock of the narrow execute-interaction surface, recording the reply. */
-function mockChatInput(dice: string | null) {
-  const replies: ReplyArg[] = []
-  // Overload-declared so the required-form `getString('dice', true)` types as
-  // string, exactly as discord.js declares it.
-  function getString(name: string, required: true): string
-  function getString(name: string, required?: boolean): string | null
-  function getString(name: string): string | null {
-    return name === 'dice' ? dice : null
-  }
-  const interaction: Parameters<typeof checkCommand.execute>[0] = {
-    options: { getSubcommand: () => 'check', getString },
-    // execute reads client.user for embed branding; no avatar in tests.
-    client: { user: null },
-    reply: (arg: ReplyArg) => {
-      replies.push(arg)
-      return Promise.resolve()
-    },
-  }
-  return { interaction, replies }
-}
-
+/** Pull the embed payload off a recorded reply. */
 function embedData(reply: ReplyArg): {
   title?: string
   fields?: { name: string; value: string }[]
@@ -52,6 +22,17 @@ function embedData(reply: ReplyArg): {
     | undefined
   if (!embed) throw new Error('expected an embed on the reply')
   return embed.data
+}
+
+/** Shared narrow-interaction fakes; see fakeInteraction.ts. */
+function mockChatInput(dice: string | null) {
+  const { interaction, replies } = fakeExecute({
+    subcommand: 'check',
+    strings: { dice },
+    // Unbound: attribution is a no-op, so these assert the roll output itself.
+    channelId: null,
+  })
+  return { interaction, replies }
 }
 
 describe('buildCheckMessage', () => {

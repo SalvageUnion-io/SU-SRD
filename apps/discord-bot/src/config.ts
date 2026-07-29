@@ -10,6 +10,18 @@ function optionalEnv(key: string): string | undefined {
   return process.env[key]
 }
 
+/** An absolute http(s) URL from the environment, or `fallback`. */
+function absoluteUrlOr(key: string, fallback: string): string {
+  const value = process.env[key]?.trim()
+  if (!value) return fallback
+  try {
+    const parsed = new URL(value)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? value : fallback
+  } catch {
+    return fallback
+  }
+}
+
 export const config = {
   discordToken: requireEnv('DISCORD_TOKEN'),
   discordClientId: requireEnv('DISCORD_CLIENT_ID'),
@@ -21,4 +33,24 @@ export const config = {
   // needed) — the deployed commit SHA, used to tag Sentry events with a
   // release so an error maps back to the exact deploy that produced it.
   releaseSha: optionalEnv('RENDER_GIT_COMMIT'),
+
+  // In The Union Now (ADR-030 Phase 6). BOTH optional and BOTH required
+  // together: with either missing the bot runs in Solo mode — reference
+  // commands work exactly as they always have, and the Game commands say they
+  // are not connected. That is the deliberate default, so a deploy that has
+  // not been given credentials degrades rather than crashing at startup.
+  //
+  // `itunSiteUrl` is the Convex HTTP-actions origin (`*.convex.site`), NOT the
+  // client URL (`*.convex.cloud`) and NOT the web origin. Getting this wrong
+  // presents as every Game command reporting the deployment unreachable.
+  itunSiteUrl: optionalEnv('ITUN_CONVEX_SITE_URL'),
+  itunBotSecret: optionalEnv('ITUN_BOT_SECRET'),
+  // Where embeds link back to. Only ever used to build a URL, never called.
+  //
+  // Validated rather than merely defaulted: `EmbedBuilder.setURL` THROWS on a
+  // relative or malformed URL, so a blank or scheme-less value here would not
+  // degrade — it would break every Game command with a generic error. A bad
+  // value falls back to the canonical origin, which is always better than
+  // taking the whole surface down over a typo in an env var.
+  itunWebUrl: absoluteUrlOr('ITUN_WEB_URL', 'https://intheunionnow.com'),
 } as const
