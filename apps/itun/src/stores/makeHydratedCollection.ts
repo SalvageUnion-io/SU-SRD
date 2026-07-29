@@ -2,7 +2,7 @@
  * makeHydratedCollection — the shared skeleton behind every single-collection
  * Zustand store (audit item 22).
  *
- * workspaceStore, encounterStore, and patternStore all follow the same
+ * encounterStore and patternStore both follow the same
  * discipline (ADR-003): lazy auto-hydration from IndexedDB on first read,
  * write-through persistence (db first, then in-memory set()), cross-tab
  * invalidation via lib/db/broadcast, and the backup nudge on every write.
@@ -10,10 +10,10 @@
  * across three copies) — which is exactly how mechPatterns ended up
  * BYPASSING the layer entirely (direct db reads, no broadcast, no nudge).
  *
- * The collection key is parametrized (`workspaces`, `encounterNpcs`,
+ * The collection key is parametrized (`encounterNpcs`,
  * `mechPatterns`) so each store's public state shape is unchanged —
- * existing selectors keep working. Domain helpers (workspace cascade,
- * encounter listForWorkspace) stay in the owning store file, spread around
+ * existing selectors keep working. Domain helpers (encounter
+ * listForContainer) stay in the owning store file, spread around
  * this slice.
  *
  * entityStore is deliberately NOT built on this: it multiplexes four entity

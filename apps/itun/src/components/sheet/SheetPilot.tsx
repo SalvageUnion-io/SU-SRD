@@ -16,6 +16,7 @@ import type { Pilot } from '../../lib/schemas/pilot'
 import { AssignCrawlerToPilot } from '../wiring/AssignCrawlerToPilot'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
+import { containerOf } from '../../lib/container'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { PilotSheet } from './PilotSheet'
 import { RailCta } from './SheetRailParts'
@@ -143,7 +144,7 @@ export function SheetPilot({
               initialPilotId={pilot.id}
               initialMechId={composition.mech?.id}
               initialCrawlerId={composition.crawler?.id}
-              activeWorkspaceId={pilot.workspaceId}
+              activeContainer={containerOf(pilot)}
             />
             {actions}
           </>

@@ -32,7 +32,9 @@ and remains the account-free way to share a build.
 ## Persistence (read before touching data)
 
 - Player data lives in **IndexedDB** via `idb` (`src/lib/db/`). Stores
-  (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `workspaces`,
+  (`src/lib/db/stores.ts`): `pilots`, `mechs`, `crawlers`, `workspaces` (a
+  retired container — see below; the object store survives only so migrations
+  v10/v13 still run on old databases),
   `softLinks`, `mechPatterns`, `encounterNpcs`, and the append-only
   `changeLog` provenance store ([ADR-022](../../docs/adrs/ADR-022-provenance-log-and-overrides.md)) —
   the last is keyed by an autoIncrement `seq`, not `id`, and has no CRUD
@@ -48,9 +50,15 @@ and remains the account-free way to share a build.
 
 ## State flow (`src/stores/`)
 
-- `entityStore` (pilots/mechs/crawlers/softLinks), plus `workspaceStore`,
-  `activeWorkspaceStore`, `patternStore`, `encounterStore`, and the ephemeral
+- `entityStore` (pilots/mechs/crawlers/softLinks), plus `activeContainerStore`,
+  `cockpitPrefsStore`, `patternStore`, `encounterStore`, and the ephemeral
   `playStateStore` (Dashboard mount state).
+- **Workspaces are retired.** An entity lives in exactly one **container** — a
+  shared **Game** or the owner's personal **Shelf** — encoded as one nullable
+  `gameId` and resolved through `src/lib/container.ts`, never by reading
+  `workspaceId` (deprecated, kept only as a pre-ADR-030 fallback). Filter with
+  `containerOf` + `sameContainer`, and only when `mode === 'connected'`: a Solo
+  user has no Games, so their surfaces render the whole pile unfiltered.
 - **Lazy auto-hydration:** first `list(type)` loads from IndexedDB; later reads
   are synchronous.
 - **Write-through:** `update`/`create`/`delete` persist to IndexedDB first, then

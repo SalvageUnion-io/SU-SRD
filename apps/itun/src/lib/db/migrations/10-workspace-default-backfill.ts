@@ -15,12 +15,26 @@
  *
  * IMPORTANT: this runs inside the versionchange transaction. Only IndexedDB
  * operations on `tx` may be awaited — no reference-data reads (they would let
- * the transaction auto-commit mid-migration). The Default workspace record is a
- * static JS constant, not a reference lookup, so importing it is safe.
+ * the transaction auto-commit mid-migration).
+ *
+ * HISTORICAL. Workspaces have since been retired (ADR-030 §2) and migration
+ * v13 maps what this wrote onto a Game or the Shelf. This step still has to
+ * run, and run FIRST, for anyone upgrading from v9 or installing fresh: v13's
+ * mapping reads the `workspaceId` that only this migration puts there. Its
+ * constants are inlined because the module that held them is gone — the same
+ * reason v13 inlines the id.
  */
 
-import { DEFAULT_WORKSPACE, DEFAULT_WORKSPACE_ID } from '../../defaultWorkspace'
 import { isRecord } from '../../isRecord'
+
+/** Inlined from the deleted lib/defaultWorkspace.ts — see the note above. */
+const DEFAULT_WORKSPACE_ID = 'default-workspace'
+const DEFAULT_WORKSPACE = {
+  id: DEFAULT_WORKSPACE_ID,
+  schemaVersion: 1,
+  name: 'Default workspace',
+  createdAt: '2020-01-01T00:00:00.000Z',
+} as const
 import { STORE_NAMES } from '../stores'
 import type { UpgradeTransaction } from './index'
 

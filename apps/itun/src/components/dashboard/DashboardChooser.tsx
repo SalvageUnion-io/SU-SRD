@@ -30,6 +30,8 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { Button, ModalShell, FieldError, Radio } from 'component-lib'
 
 import { useCrawlers, useMechs, usePilots, useSoftLinkList } from '../../hooks/queries'
+import { containerOf, sameContainer } from '../../lib/container'
+import type { Container, ContainerFields } from '../../lib/container'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { MechPattern } from '../../lib/schemas/pattern'
@@ -70,13 +72,13 @@ type DashboardChooserProps = {
   initialMechId?: string
   initialCrawlerId?: string
   /**
-   * Scope the pilot/mech/crawler pickers to the current workspace: a workspace
-   * id shows only that workspace's entities. Unset = unscoped (all saved
-   * entities) — the tests' default and a safe fallback for an entity with no
-   * workspace. Stand-in mech patterns and default-TL crawler tokens carry no
-   * workspace, so they are always offered.
+   * Scope the pilot/mech/crawler pickers to one container (ADR-030 §2).
+   * Unset = unscoped (all saved entities) — the tests' default, and what a Solo
+   * user always gets, since with no account there is only ever one pile.
+   * Stand-in mech patterns and default-TL crawler tokens carry no container, so
+   * they are always offered.
    */
-  activeWorkspaceId?: string
+  activeContainer?: Container
   /** Button label — defaults to "Launch Dashboard". */
   label?: string
   className?: string
@@ -103,7 +105,7 @@ export function DashboardChooser({
   initialPilotId,
   initialMechId,
   initialCrawlerId,
-  activeWorkspaceId,
+  activeContainer,
   label = 'Launch Dashboard',
   className,
 }: DashboardChooserProps) {
@@ -120,12 +122,11 @@ export function DashboardChooser({
   const allCrawlers: Crawler[] = useCrawlers()
   const links: SoftLink[] = useSoftLinkList()
 
-  // Scope the pickers to the chosen workspace so the chooser can only launch
-  // entities that workspace holds. Prop omitted = unscoped (tests / no-workspace
-  // fallback); an id = that workspace only.
-  const inScope = <T extends { workspaceId?: string }>(list: T[]): T[] => {
-    if (activeWorkspaceId === undefined) return list
-    return list.filter((e) => e.workspaceId === activeWorkspaceId)
+  // Scope the pickers to the chosen container so the chooser can only launch
+  // entities that container holds. Prop omitted = unscoped.
+  const inScope = <T extends ContainerFields>(list: T[]): T[] => {
+    if (activeContainer === undefined) return list
+    return list.filter((e) => sameContainer(containerOf(e), activeContainer))
   }
   const pilots = inScope(allPilots)
   const mechs = inScope(allMechs)

@@ -27,7 +27,8 @@
 
 import { create } from 'zustand'
 
-import { getActiveWorkspaceId } from './activeWorkspaceStore'
+import { getActiveContainer } from './activeContainerStore'
+import { moveTo } from '../lib/container'
 import { recordDataWrite } from '../lib/backupNudge'
 import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
 import * as db from '../lib/db/index'
@@ -293,17 +294,21 @@ function afterWrite(type: EntityType): void {
 }
 
 /**
- * Stamp a brand-new build with the current workspace so it belongs somewhere
- * (mandatory current-workspace model — there is no unassigned pool any more).
- * Applies to pilots/mechs/crawlers only; SoftLinks carry no workspace, and an
- * input that already sets `workspaceId` (imports, explicit assignment) is left
- * untouched so it isn't clobbered.
+ * Stamp a brand-new build with the current container so it belongs somewhere
+ * (ADR-030 §2 — an entity is always in exactly one Game or on the Shelf).
+ *
+ * Applies to pilots/mechs/crawlers only; SoftLinks carry no container. An
+ * input that already decided its own container is left untouched so it isn't
+ * clobbered — and "already decided" includes an explicit `gameId: null`,
+ * because null *is* the Shelf rather than an absence (see lib/container.ts).
+ * Testing for `undefined` rather than nullishness is what keeps a deliberate
+ * shelving from being overwritten by whatever container happens to be open.
  */
-function withActiveWorkspace<T extends EntityType>(type: T, input: CreateInput<T>): CreateInput<T> {
+function withActiveContainer<T extends EntityType>(type: T, input: CreateInput<T>): CreateInput<T> {
   if (type === 'softLink') return input
-  const rec = input as { workspaceId?: string }
-  if (rec.workspaceId != null) return input
-  return { ...input, workspaceId: getActiveWorkspaceId() } as CreateInput<T>
+  const rec = input as { gameId?: string | null }
+  if (rec.gameId !== undefined) return input
+  return { ...input, ...moveTo(getActiveContainer()) } as CreateInput<T>
 }
 
 export const useEntityStore = create<EntityState>((set, get) => ({
@@ -359,7 +364,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     // (ADR-030 §1): a signed-in user offline is read-only, not silently
     // writing to a local copy that would fork against the server.
     requireWritableBackend()
-    const record = await dbStoreFor(type).create(withActiveWorkspace(type, input))
+    const record = await dbStoreFor(type).create(withActiveContainer(type, input))
     mirrorEntityWrite(type, record)
     set((state) => ({
       [key]: [record, ...(state[key] as EntityForType<T>[])],

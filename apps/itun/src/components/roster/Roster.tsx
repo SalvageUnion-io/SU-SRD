@@ -1,10 +1,9 @@
 /**
  * Roster — "ITUN · Saved Builds" (design-spec §3.1, §3.7).
  *
- * On mount: calls entityStore.hydrate() for all three entity types +
- * softLinks + workspaceStore.hydrate().
+ * On mount: calls entityStore.hydrate() for all three entity types + softLinks.
  * After hydration: renders the header (h1 + Download all/Import row + the
- * workspace faux-select) over a 3-col Pilots/Mechs/Crawlers grid of SavedRows.
+ * container faux-select) over a 3-col Pilots/Mechs/Crawlers grid of SavedRows.
  * Row meta encodes cross-links via '↳ Name' sheet links (mech-to-pilot,
  * pilot-to-crawler softLinks). At the mobile endpoint (≤ md) the columns
  * collapse to a single column behind a segmented Pilot/Mech/Crawler switch
@@ -24,8 +23,6 @@ import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { Badge, Button, buttonVariants, EmptyState, EntityRow } from 'component-lib'
 
 import {
-  setActiveWorkspaceId,
-  useActiveWorkspaceId,
   useCrawlers,
   useHydrateEntities,
   useMechs,
@@ -34,18 +31,20 @@ import {
 } from '../../hooks/queries'
 import type { SoftLink } from '../../lib/schemas/softLink'
 import { resolveClassName } from '../../lib/classRef'
+import { useConnection } from '../../lib/connection/connectionContext'
+import { containerOf, sameContainer } from '../../lib/container'
+import type { ContainerFields } from '../../lib/container'
 import { cn } from '../../lib/utils'
 import type { EntityType } from '../../stores/entityStore'
-import { DEFAULT_WORKSPACE_ID } from '../../lib/defaultWorkspace'
-import { ensureStarterSetSeeded } from '../../lib/starterSet/seedStarterSet'
-import { STARTER_WORKSPACE_ID } from '../../lib/starterSet/starterSet'
+import { ensureStarterSetSeeded, isStarterSetSeeded } from '../../lib/starterSet/seedStarterSet'
+import { setActiveContainer, useActiveContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { AppLink } from '../shared/AppLink'
-import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher'
+import { ContainerSwitcher } from '../container/ContainerSwitcher'
 import { RosterSkeleton } from 'component-lib'
 import { ModalShell } from 'component-lib'
 
@@ -114,27 +113,26 @@ const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
 
 export function Roster() {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
-  /** The current workspace (global, persisted) — always a concrete id. */
-  const activeWorkspaceId = useActiveWorkspaceId()
+  /** The current container (global, persisted). Only consulted when Connected. */
+  const activeContainer = useActiveContainer()
+  const { mode } = useConnection()
   /** Mobile-endpoint segmented switch (design §3.7) — which column shows ≤ md */
   const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
 
-  // Hydrate all three entity types + softLinks + workspaces on mount.
-  const hydratedAll = useHydrateEntities(['pilot', 'mech', 'crawler', 'softLink'], {
-    workspaces: true,
-  })
+  // Hydrate all three entity types + softLinks on mount.
+  const hydratedAll = useHydrateEntities(['pilot', 'mech', 'crawler', 'softLink'])
 
   const allPilots = usePilots()
   const allMechs = useMechs()
   const allCrawlers = useCrawlers()
   const softLinks: SoftLink[] = useSoftLinkList()
-  // Saved patterns are global (not workspace-scoped) — the Dashboard chooser
+  // Saved patterns are global (not container-scoped) — the Dashboard chooser
   // offers them as stand-in mechs, so their presence also enables a launch.
   const patterns = usePatternStore((s) => s.mechPatterns)
   usePatternStore.getState().list()
 
   // Name lookups for '↳ Name' cross-links — built from the UNFILTERED lists so
-  // links resolve across workspace boundaries.
+  // links resolve across container boundaries.
   const pilotNameById = new Map(allPilots.map((p) => [p.id, p.name]))
   const mechNameById = new Map(allMechs.map((m) => [m.id, m.name]))
   const crawlerNameById = new Map(allCrawlers.map((c) => [c.id, c.name]))
@@ -173,32 +171,51 @@ export function Roster() {
     )
   }
 
-  // Filter to the current workspace — the only view now (no cross-workspace
-  // "All Builds"). Everything created here is stamped with this workspace.
-  const pilots = allPilots.filter((p) => p.workspaceId === activeWorkspaceId)
-  const mechs = allMechs.filter((m) => m.workspaceId === activeWorkspaceId)
-  const crawlers = allCrawlers.filter((c) => c.workspaceId === activeWorkspaceId)
+  /**
+   * Scope the roster to the current container — but ONLY when signed in.
+   *
+   * A Solo user has no Games (there is no account, so nothing to share with),
+   * which makes their builds one pile and any filter of it a filter on a
+   * distinction that does not exist for them. Worse, it would hide things:
+   * migration v13 mapped every non-Default workspace onto `gameId: <that
+   * workspace id>`, so a Solo user who once used Workspaces has entities
+   * addressed by ids matching no real Game. Showing the pile whole is both
+   * simpler and the only rendering that cannot lose a build.
+   */
+  const inContainer = <T extends ContainerFields>(list: T[]): T[] => {
+    if (mode !== 'connected') return list
+    return list.filter((e) => sameContainer(containerOf(e), activeContainer))
+  }
+
+  const pilots = inContainer(allPilots)
+  const mechs = inContainer(allMechs)
+  const crawlers = inContainer(allCrawlers)
 
   /**
-   * First-run welcome: only for a brand-new user sitting in an empty DEFAULT
-   * workspace. Any other empty workspace (a fresh campaign the user made, or the
-   * un-summoned Starter Set) falls through to the normal grid with its per-column
-   * "create" empty states — the big welcome would misfire there.
+   * First-run welcome: a brand-new user with nothing at all. Deliberately keyed
+   * to the UNFILTERED lists — an empty *container* belonging to someone who
+   * already has builds elsewhere is not a first run, and the big welcome would
+   * misfire there. Those fall through to the normal grid and its per-column
+   * "create" empty states.
    */
-  const isFirstRun =
-    activeWorkspaceId === DEFAULT_WORKSPACE_ID &&
-    pilots.length === 0 &&
-    mechs.length === 0 &&
-    crawlers.length === 0
+  const isFirstRun = allPilots.length === 0 && allMechs.length === 0 && allCrawlers.length === 0
 
   /**
-   * Workspace select. Opening the built-in Starter Set spawns it into this
-   * browser on first visit (idempotent), then switches to it — the roster is
-   * never seeded until the user asks for it here.
+   * Spawn the built-in Starter Set onto the Shelf (idempotent, opt-in).
+   *
+   * `isStarterSetSeeded` reads the entity store, so it re-evaluates on the
+   * rehydrate the seed performs — the button disappears on its own once the
+   * rows land, with no extra state to keep in sync.
    */
-  async function handleSelectWorkspace(id: string) {
-    if (id === STARTER_WORKSPACE_ID) await ensureStarterSetSeeded()
-    setActiveWorkspaceId(id)
+  const starterSeeded = allPilots.length > 0 && isStarterSetSeeded()
+  const [seedingStarter, setSeedingStarter] = useState(false)
+  async function handleLoadStarterSet() {
+    setSeedingStarter(true)
+    try {
+      await ensureStarterSetSeeded()
+    } finally {
+      setSeedingStarter(false)
+    }
   }
 
   function openDeleteDialog(type: EntityType, id: string, name: string) {
@@ -219,25 +236,38 @@ export function Roster() {
     <main className="min-h-screen bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
       {/* Brand identity lives in the global AppHeader (routes/__root.tsx);
           the page keeps an accessible title only. Visible header row:
-          Download all/Import · workspace faux-select. */}
+          Download all/Import · container faux-select. */}
       <h1 className="sr-only">Saved Builds</h1>
       <div className="border-b-2 border-ink pb-5">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-wrap items-start gap-2.5">
             <ExportAllButton />
             <ImportButton />
+            {/* The built-in Starter Set, opt-in. It used to be an entry in the
+                Workspace switcher; with no Workspaces to switch between it
+                needs its own affordance, and it disappears once loaded so it
+                never becomes permanent chrome. */}
+            {!starterSeeded && (
+              <Button
+                variant="ghost"
+                size="compact"
+                disabled={seedingStarter}
+                onClick={() => void handleLoadStarterSet()}
+              >
+                {seedingStarter ? 'Loading…' : 'Load Starter Set'}
+              </Button>
+            )}
             {/* Launch the Dashboard for a chosen pilot/mech/crawler crew
-                (design-spec §8). Shown once the CURRENT workspace has a mech to
-                run, or any saved pattern exists to launch as a stand-in — the
-                chooser scopes saved mechs to this workspace. */}
+                (design-spec §8). Shown once the current view has a mech to run,
+                or any saved pattern exists to launch as a stand-in — the
+                chooser scopes saved mechs to the same container. */}
             {(mechs.length > 0 || patterns.length > 0) && (
-              <DashboardChooser activeWorkspaceId={activeWorkspaceId} />
+              <DashboardChooser
+                activeContainer={mode === 'connected' ? activeContainer : undefined}
+              />
             )}
           </div>
-          <WorkspaceSwitcher
-            activeWorkspaceId={activeWorkspaceId}
-            onSelect={(id) => void handleSelectWorkspace(id)}
-          />
+          <ContainerSwitcher activeContainer={activeContainer} onSelect={setActiveContainer} />
         </div>
         {/* Standing durability notice (not the recurring backup-nudge toast):
             ITUN is local-first with no backend, so this line is always visible
@@ -461,8 +491,7 @@ function FirstRunWelcome() {
         Build your first pilot
       </AppLink>
       <p className="max-w-prose font-body text-xs text-wk-muted">
-        Workspaces let you group builds by campaign — everything you make lives only in this
-        browser.
+        Everything you make lives only in this browser. Sign in to share builds with a Game.
       </p>
     </div>
   )

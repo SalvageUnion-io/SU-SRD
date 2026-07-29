@@ -7,9 +7,9 @@ paths:
 
 ITUN is local-first ([ADR-001](../../docs/adrs/ADR-001-local-first-no-backend.md)).
 There is **no API backend** for player data, so TanStack Query is **not** the
-persistence cache. Persistent entity state (pilots, mechs, crawlers, workspaces,
-soft-links, mech patterns) flows through the **Zustand stores**
-(`src/stores/entityStore.ts`, `workspaceStore.ts`), which write through to
+persistence cache. Persistent entity state (pilots, mechs, crawlers, soft-links,
+mech patterns) flows through the **Zustand stores**
+(`src/stores/entityStore.ts`, `encounterStore.ts`), which write through to
 IndexedDB ([ADR-002](../../docs/adrs/ADR-002-indexeddb-idb-zod.md),
 [ADR-003](../../docs/adrs/ADR-003-zustand-hydration.md)).
 

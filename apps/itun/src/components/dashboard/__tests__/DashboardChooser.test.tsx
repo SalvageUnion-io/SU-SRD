@@ -187,22 +187,22 @@ describe('DashboardChooser — wizard', () => {
     expect(screen.getByRole('radio', { name: /Iron Jaw/ })).toBeTruthy()
   })
 
-  test('scopes the pilot list to the active workspace', async () => {
+  test('scopes the pilot list to the active container', async () => {
     const store = useEntityStore.getState()
     await Promise.all([store.hydrate('pilot'), store.hydrate('mech'), store.hydrate('crawler')])
-    // Two pilots in two different workspaces; the chooser is scoped to ws-a.
-    await store.create('pilot', { ...basePilotInput, name: 'Alpha Pilot', workspaceId: 'ws-a' })
-    await store.create('pilot', { ...basePilotInput, name: 'Bravo Pilot', workspaceId: 'ws-b' })
+    // Two pilots in two different Games; the chooser is scoped to game-a.
+    await store.create('pilot', { ...basePilotInput, name: 'Alpha Pilot', gameId: 'game-a' })
+    await store.create('pilot', { ...basePilotInput, name: 'Bravo Pilot', gameId: 'game-b' })
 
     await act(async () => {
-      render(<DashboardChooser activeWorkspaceId="ws-a" />)
+      render(<DashboardChooser activeContainer={{ kind: 'game', gameId: 'game-a' }} />)
     })
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Launch the Dashboard' }))
     })
     await settle(() => screen.queryByRole('radio', { name: /Alpha Pilot/ }) !== null)
 
-    // Only the ws-a pilot is offered; the ws-b pilot is filtered out.
+    // Only the game-a pilot is offered; the game-b pilot is filtered out.
     expect(screen.getByRole('radio', { name: /Alpha Pilot/ })).toBeTruthy()
     expect(screen.queryByRole('radio', { name: /Bravo Pilot/ })).toBeNull()
   })

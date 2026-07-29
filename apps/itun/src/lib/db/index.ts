@@ -35,7 +35,6 @@ import { MechSchema } from '../schemas/mech'
 import { MechPatternSchema } from '../schemas/pattern'
 import { PilotSchema } from '../schemas/pilot'
 import { SoftLinkSchema } from '../schemas/softLink'
-import { WorkspaceSchema } from '../schemas/workspace'
 import { CHANGE_LOG_ENTITY_INDEX, makeChangeLogStore } from './changeLog'
 import { makeStore } from './crud'
 import { runMigrations } from './migrations/index'
@@ -48,10 +47,10 @@ import { STORE_NAMES } from './stores'
  * Battle crawlers whose maxSpModifier hand-carried the type's +5 — the bonus
  * is now derived at read from the type's mutations. v9 creates the append-only
  * `changeLog` (provenance) store — creation only, no record rewrite; ADR-022.
- * v10 creates the mandatory built-in Default workspace and backfills every
- * unassigned pilot/mech/crawler/encounterNpc into it — the current-workspace
- * model replaces the old cross-workspace "All Builds" view; see
- * lib/defaultWorkspace.ts.)
+ * v10 creates the built-in Default workspace and backfills every unassigned
+ * pilot/mech/crawler/encounterNpc into it; v13 then maps that onto a Game or
+ * the Shelf. Workspaces are retired, but v10 still has to run — v13 reads what
+ * it writes.)
  */
 export const DB_VERSION = 13
 
@@ -389,9 +388,10 @@ export const crawlers = makeStore(getDb, CrawlerSchema, STORE_NAMES.crawlers, {
   hasUpdatedAt: true,
   salvageSchema: deepStrip(CrawlerSchema),
 })
-export const workspaces = makeStore(getDb, WorkspaceSchema, STORE_NAMES.workspaces, {
-  salvageSchema: deepStrip(WorkspaceSchema),
-})
+// No `workspaces` CRUD store: Workspaces are retired (ADR-030 §2). The object
+// store itself is still CREATED in the upgrade path above and still written by
+// migration v10, because v13 reads what v10 writes when an old database is
+// opened — but nothing in the running app reads or writes it any more.
 export const softLinks = makeStore(getDb, SoftLinkSchema, STORE_NAMES.softLinks, {
   salvageSchema: deepStrip(SoftLinkSchema),
 })

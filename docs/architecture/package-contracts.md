@@ -271,7 +271,7 @@ published, and `ConditionChip` ships only as a sub-part of `Conditions`.
 - `component-lib` (workspace:\*) — shared components + theme
 - `idb` — IndexedDB wrapper for local-first persistence (`src/lib/db/`)
 - `@tanstack/react-router`, `@tanstack/react-query` — routing + async/derived data
-- `zustand` — write-through entity/workspace stores (`src/stores/`)
+- `zustand` — write-through entity/container stores (`src/stores/`)
 - `@base-ui/react` — headless UI primitives
 - `@netlify/blobs` — snapshot-sharing Netlify Functions storage
 

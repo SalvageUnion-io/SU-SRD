@@ -228,7 +228,7 @@ export function orderKinds(kinds: DialKind[], prefs?: CockpitPrefs): DialKind[] 
  * Apply persisted dial prefs to a freshly-built item list: drop hidden kinds
  * (never `actions`), then reorder by the stored kind order (unlisted kinds keep
  * their default relative order, after the ordered ones). Pure — the Dial reads
- * the result; Dashboard owns fetching prefs from the workspace.
+ * the result; Dashboard owns fetching prefs for the container.
  */
 export function applyDialPrefs(items: DialItem[], prefs?: CockpitPrefs): DialItem[] {
   if (!prefs) return items

@@ -17,12 +17,4 @@ export {
   useSoftLinkList,
 } from './entities'
 
-export {
-  setActiveWorkspaceId,
-  useActiveWorkspaceId,
-  useWorkspace,
-  useWorkspaceActions,
-  useWorkspaces,
-} from './workspaces'
-
 export { useHydrateEntities } from './useHydrateEntities'

@@ -6,7 +6,6 @@ import { MechSchema } from './mech'
 import { MechPatternSchema } from './pattern'
 import { PilotSchema } from './pilot'
 import { SoftLinkSchema } from './softLink'
-import { WorkspaceSchema } from './workspace'
 
 /**
  * ExportBundle — the envelope written to disk during a full backup or
@@ -14,7 +13,7 @@ import { WorkspaceSchema } from './workspace'
  * version; parseImportBundle() rejects any other value.
  *
  * Entity scope:
- *   - Full backup (buildExportBundle): all pilots, mechs, crawlers, workspaces,
+ *   - Full backup (buildExportBundle): all pilots, mechs, crawlers,
  *     softLinks, mechPatterns, and encounterNpcs currently in the store.
  *   - Single-entity export (buildEntityExport): the entity itself plus any
  *     softLinks whose `from` or `to` ref points to that entity id. Workspaces
@@ -47,7 +46,14 @@ export const ExportBundleSchema = z.object({
     mechs: z.array(MechSchema),
     crawlers: z.array(CrawlerSchema),
   }),
-  workspaces: z.array(WorkspaceSchema),
+  /**
+   * @deprecated Workspaces are retired (ADR-030 §2). Kept in the schema, and
+   * kept permissive, purely so a bundle written before they were removed still
+   * imports — the array is read by nothing. Dropping the key outright would
+   * turn every existing backup into a parse error, which is the one thing an
+   * export format must never do.
+   */
+  workspaces: z.array(z.unknown()).default([]),
   softLinks: z.array(SoftLinkSchema),
   /**
    * Saved mech patterns (gap 6: export is the ONLY backup path for local-first

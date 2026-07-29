@@ -11,24 +11,25 @@
  *      condition ticks, per-NPC Mediator rolls, and Remove.
  *
  * Local-first: instances persist to IndexedDB via encounterStore and are
- * workspace-scoped through the same WorkspaceSwitcher the roster uses. There is
- * always a current workspace (no cross-workspace "All Builds"), so every new
- * instance is stamped with it.
+ * container-scoped through the same ContainerSwitcher the roster uses
+ * (ADR-030 §2). Signed out there are no Games, so the tray is unfiltered and
+ * new instances land on the Shelf — see Roster.tsx for the same branch.
  */
 
 import { useState } from 'react'
 import { Users } from 'lucide-react'
 import { EmptyState, Skeleton } from 'component-lib'
 
-import { setActiveWorkspaceId, useActiveWorkspaceId } from '../../hooks/queries'
 import { useHydrateOnMount } from '../../hooks/queries/useHydrateEntities'
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import type { MediatorRollResult } from '../../lib/schemas/encounterNpc'
+import { useConnection } from '../../lib/connection/connectionContext'
+import { moveTo } from '../../lib/container'
+import { setActiveContainer, useActiveContainer } from '../../stores/activeContainerStore'
 import { useEncounterStore } from '../../stores/encounterStore'
-import { useWorkspaceStore } from '../../stores/workspaceStore'
 import { Card } from 'component-lib'
-import { WorkspaceSwitcher } from '../workspace/WorkspaceSwitcher'
+import { ContainerSwitcher } from '../container/ContainerSwitcher'
 import { AddNpcControl } from './AddNpcControl'
 import { EncounterNpcCard } from './EncounterNpcCard'
 import { MediatorRollControl } from './MediatorRollControl'
@@ -83,17 +84,17 @@ export function EncounterScreen({
   findTable,
 }: EncounterScreenProps) {
   const storeState = store()
-  /** The current workspace (global, persisted) — always a concrete id. */
-  const activeWorkspaceId = useActiveWorkspaceId()
+  /** The current container (global, persisted). Only consulted when Connected. */
+  const activeContainer = useActiveContainer()
+  const { mode } = useConnection()
+  /** null = unfiltered, which is every Solo user (no account ⇒ no Games). */
+  const scope = mode === 'connected' ? activeContainer : null
   /** Whole-group roll result — page state, not persisted (per-NPC rolls are). */
   const [groupResult, setGroupResult] = useState<MediatorRollResult | null>(null)
 
-  // Imperative hydrate — WorkspaceSwitcher owns the reactive subscription.
-  const hydrated = useHydrateOnMount(() =>
-    Promise.all([storeState.hydrate(), useWorkspaceStore.getState().hydrate()])
-  )
+  const hydrated = useHydrateOnMount(() => storeState.hydrate())
 
-  const npcs = storeState.listForWorkspace(activeWorkspaceId)
+  const npcs = storeState.listForContainer(scope)
 
   async function handleAdd(candidate: EncounterCandidate) {
     // Number repeat instances of the same reference NPC: 'Raider', 'Raider 2', …
@@ -101,7 +102,7 @@ export function EncounterScreen({
     // COUNT — counting would mint a duplicate after a mid-sequence removal
     // (add ×3, remove 'Raider 2', add again → count says 'Raider 3' twice).
     const siblings = storeState
-      .listForWorkspace(activeWorkspaceId)
+      .listForContainer(scope)
       .filter((n) => n.refSlug === candidate.slug && n.refSchema === candidate.schema)
     let maxSuffix = 0
     for (const sibling of siblings) {
@@ -114,7 +115,7 @@ export function EncounterScreen({
     }
     await storeState.create({
       schemaVersion: 1,
-      workspaceId: activeWorkspaceId,
+      ...moveTo(activeContainer),
       refSchema: candidate.schema,
       refSlug: candidate.slug,
       refName: candidate.name,
@@ -136,10 +137,7 @@ export function EncounterScreen({
               Alpha
             </span>
           </h1>
-          <WorkspaceSwitcher
-            activeWorkspaceId={activeWorkspaceId}
-            onSelect={setActiveWorkspaceId}
-          />
+          <ContainerSwitcher activeContainer={activeContainer} onSelect={setActiveContainer} />
         </div>
         <p className="mb-0 mt-2 max-w-2xl font-body text-sm text-wk-muted">
           Track reference NPCs through a fight — HP/SP, conditions, and the Mediator&rsquo;s

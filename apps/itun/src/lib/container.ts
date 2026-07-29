@@ -1,5 +1,3 @@
-import { DEFAULT_WORKSPACE_ID } from './defaultWorkspace'
-
 /**
  * Which container an entity lives in (ADR-030 §2).
  *
@@ -14,6 +12,13 @@ import { DEFAULT_WORKSPACE_ID } from './defaultWorkspace'
  * module exists to prevent: treating a shelved entity as unmigrated would send
  * it back through the fallback on every read.
  */
+
+/**
+ * Id of the built-in Default workspace, inlined because Workspaces are retired
+ * and the module that defined it is gone. It survives ONLY as a value to
+ * recognise in pre-ADR-030 records — the same reason migration 13 inlines it.
+ */
+const DEFAULT_WORKSPACE_ID = 'default-workspace'
 
 /** A shared Game, by id. */
 export type GameContainer = { kind: 'game'; gameId: string }
@@ -51,6 +56,18 @@ export function containerOf(entity: ContainerFields): Container {
     return { kind: 'game', gameId: entity.workspaceId }
   }
   return SHELF
+}
+
+/**
+ * Whether two containers are the same place.
+ *
+ * Containers are compared structurally rather than by reference: `containerOf`
+ * builds a fresh object on every call, so `===` would be false for two reads of
+ * the same entity and every filter written against it would return nothing.
+ */
+export function sameContainer(a: Container, b: Container): boolean {
+  if (a.kind === 'game' && b.kind === 'game') return a.gameId === b.gameId
+  return a.kind === b.kind
 }
 
 /** True when the entity is on the owner's shelf rather than in a Game. */

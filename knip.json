@@ -35,7 +35,8 @@
         "src/lib/snapshot/id.ts",
         "src/lib/snapshot/rateLimit.ts",
         "src/stores/entityStore.ts",
-        "src/stores/workspaceStore.ts",
+        "src/stores/activeContainerStore.ts",
+        "src/stores/cockpitPrefsStore.ts",
         "src/stores/types.ts"
       ],
       "project": ["src/**/*.{ts,tsx}", "netlify/**/*.ts", "convex/*.ts"]

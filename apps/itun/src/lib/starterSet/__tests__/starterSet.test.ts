@@ -31,7 +31,6 @@ import { CrawlerSchema } from '../../schemas/crawler'
 import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
 import { SoftLinkSchema } from '../../schemas/softLink'
-import { WorkspaceSchema } from '../../schemas/workspace'
 import {
   _clearAllStores,
   _resetDbSingleton,
@@ -39,19 +38,10 @@ import {
   mechs,
   pilots,
   softLinks,
-  workspaces,
 } from '../../db/index'
 import { useEntityStore } from '../../../stores/entityStore'
-import { useWorkspaceStore } from '../../../stores/workspaceStore'
 import { ensureStarterSetSeeded, isStarterSetSeeded } from '../seedStarterSet'
-import {
-  STARTER_CRAWLERS,
-  STARTER_MECHS,
-  STARTER_PILOTS,
-  STARTER_SOFT_LINKS,
-  STARTER_WORKSPACE,
-  STARTER_WORKSPACE_ID,
-} from '../starterSet'
+import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS, STARTER_SOFT_LINKS } from '../starterSet'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
@@ -63,10 +53,6 @@ function slugExists(all: ReadonlyArray<{ name: string }>, slug: string): boolean
 }
 
 describe('Starter Set seed — schema validity', () => {
-  test('workspace strict-parses', () => {
-    expect(() => WorkspaceSchema.parse(STARTER_WORKSPACE)).not.toThrow()
-  })
-
   test('every pilot strict-parses', () => {
     for (const p of STARTER_PILOTS) expect(() => PilotSchema.parse(p)).not.toThrow()
   })
@@ -83,9 +69,11 @@ describe('Starter Set seed — schema validity', () => {
     for (const l of STARTER_SOFT_LINKS) expect(() => SoftLinkSchema.parse(l)).not.toThrow()
   })
 
-  test('all seeded rows belong to the Starter Set workspace', () => {
+  test('all seeded rows land on the Shelf', () => {
+    // Workspaces are retired (ADR-030 §2) — the set no longer has a container
+    // of its own, so every row is explicitly shelved rather than undecided.
     for (const e of [...STARTER_PILOTS, ...STARTER_MECHS, ...STARTER_CRAWLERS]) {
-      expect(e.workspaceId).toBe(STARTER_WORKSPACE_ID)
+      expect(e.gameId).toBeNull()
     }
   })
 
@@ -97,7 +85,6 @@ describe('Starter Set seed — schema validity', () => {
 
   test('ids are unique across the whole seed', () => {
     const ids = [
-      STARTER_WORKSPACE.id,
       ...STARTER_PILOTS.map((p) => p.id),
       ...STARTER_MECHS.map((m) => m.id),
       ...STARTER_CRAWLERS.map((c) => c.id),
@@ -243,7 +230,6 @@ describe('Starter Set seed — on-demand seeding', () => {
       softLinks: [],
       hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
     })
-    useWorkspaceStore.setState({ workspaces: [], hydrated: false })
   })
 
   afterEach(async () => {
@@ -253,8 +239,6 @@ describe('Starter Set seed — on-demand seeding', () => {
   test('ensureStarterSetSeeded spawns the full roster on first call, and it parses', async () => {
     expect(isStarterSetSeeded()).toBe(false)
     await ensureStarterSetSeeded()
-
-    expect((await workspaces.list()).some((w) => w.id === STARTER_WORKSPACE_ID)).toBe(true)
 
     const storedPilots = await pilots.list()
     const storedMechs = await mechs.list()
@@ -273,7 +257,6 @@ describe('Starter Set seed — on-demand seeding', () => {
   test('is idempotent — a second call never duplicates', async () => {
     await ensureStarterSetSeeded()
     await ensureStarterSetSeeded()
-    expect(await workspaces.list()).toHaveLength(1)
     expect(await pilots.list()).toHaveLength(STARTER_PILOTS.length)
     expect(await softLinks.list()).toHaveLength(STARTER_SOFT_LINKS.length)
   })

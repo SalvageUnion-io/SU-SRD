@@ -10,14 +10,15 @@
  * See docs/architecture/play-cockpit.md for the full plan.
  */
 
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { Dial, DashboardCanvas, DashboardGrid, RailBar, buttonVariants } from 'component-lib'
-import { useWorkspace } from '../../hooks/queries/workspaces'
 import type { CockpitPrefs } from '../../lib/schemas/cockpitPrefs'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
-import { useWorkspaceStore } from '../../stores/workspaceStore'
+import { containerOf } from '../../lib/container'
+import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
+import { setCockpitPrefs, useCockpitPrefs } from '../../stores/cockpitPrefsStore'
 import { resolveSheetComposition } from '../sheet/composition'
 import type { EntityLookup } from '../sheet/composition'
 import { ActiveItemBand } from './ActiveItemBand'
@@ -36,22 +37,24 @@ export function Dashboard({ id }: { id: string }) {
   const leaveDowntime = usePlayStateStore((s) => s.leaveDowntime)
   const mech = storeState.get('mech', id)
 
-  // Persisted dial prefs live on the owning workspace (local-first, Phase 7).
-  // Hooks run unconditionally (before the no-mech early return); when the mech
-  // has no workspace, prefs fall back to session-only React state.
-  const workspaceId = mech?.workspaceId ?? null
-  const workspace = useWorkspace(workspaceId)
-  const [sessionPrefs, setSessionPrefs] = useState<CockpitPrefs | undefined>(undefined)
-  const prefs = workspace?.cockpitPrefs ?? sessionPrefs
+  // Persisted dial prefs are scoped to the mech's container (ADR-030 §2) and
+  // kept in localStorage — see cockpitPrefsStore for why neither container is
+  // the right record to hang them off. Hooks run unconditionally, before the
+  // no-mech early return, so `containerOf` is fed a stand-in when there is no
+  // mech yet; nothing reads those prefs in that state.
+  //
+  // `containerOf` mints a fresh object every render, so it is round-tripped
+  // through its serialized form to get a value that is stable while the mech's
+  // container is — otherwise `setPrefs` would change identity on every render
+  // and defeat every memo below it.
+  const containerKey = serializeContainer(containerOf(mech ?? {}))
+  const container = useMemo(() => parseContainer(containerKey), [containerKey])
+  const prefs = useCockpitPrefs(container)
   const setPrefs = useCallback(
     (next: CockpitPrefs) => {
-      if (workspaceId) {
-        void useWorkspaceStore.getState().update(workspaceId, { cockpitPrefs: next })
-      } else {
-        setSessionPrefs(next)
-      }
+      setCockpitPrefs(container, next)
     },
-    [workspaceId]
+    [container]
   )
 
   if (!mech) {
@@ -116,7 +119,7 @@ export function Dashboard({ id }: { id: string }) {
                   size: 'compact',
                 })}
               >
-                ◄ Return to Workspace
+                ◄ Return to Roster
               </AppLink>
             }
             onLeaveDowntime={isDowntime ? leaveDowntime : undefined}

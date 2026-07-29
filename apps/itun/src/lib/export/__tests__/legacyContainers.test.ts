@@ -1,8 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 
-import { DEFAULT_WORKSPACE_ID } from '../../defaultWorkspace'
 import { parseImportBundle } from '../parseImportBundle'
 import { assignContainers, withContainer } from '../legacyContainers'
+
+/** Inlined from the deleted lib/defaultWorkspace.ts (Workspaces are retired). */
+const DEFAULT_WORKSPACE_ID = 'default-workspace'
 
 /**
  * Legacy data carried forward (ADR-030 §2).

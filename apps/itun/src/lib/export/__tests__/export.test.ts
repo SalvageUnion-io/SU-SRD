@@ -2,11 +2,11 @@
  * Unit tests for lib/export/* utilities.
  *
  * Uses fake-indexeddb (preloaded via bunfig.toml) + the real entityStore /
- * workspaceStore so we exercise the full CRUD path without a real browser.
+ * the entity store so we exercise the full CRUD path without a real browser.
  *
  * Test matrix:
  *   - parseImportBundle: valid bundle, malformed JSON, wrong schemaVersion
- *   - buildExportBundle: round-trip with pilots + softLinks + workspaces
+ *   - buildExportBundle: round-trip with pilots + softLinks + containers
  *   - buildEntityExport: single entity + attached softLinks only
  *   - mergeImport: fresh ids, id-remap integrity, duplicate skip, dangling ref skip
  */
@@ -15,7 +15,6 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 
 import { _clearAllStores, _resetDbSingleton } from '../../db/index'
 import { useEntityStore } from '../../../stores/entityStore'
-import { useWorkspaceStore } from '../../../stores/workspaceStore'
 
 import { buildExportBundle, buildEntityExport } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
@@ -71,21 +70,15 @@ function resetEntityStore(): void {
   })
 }
 
-function resetWorkspaceStore(): void {
-  useWorkspaceStore.setState({ workspaces: [], hydrated: false })
-}
-
 beforeEach(async () => {
   _resetDbSingleton()
   await _clearAllStores()
   resetEntityStore()
-  resetWorkspaceStore()
 })
 
 afterEach(async () => {
   await _clearAllStores()
   resetEntityStore()
-  resetWorkspaceStore()
 })
 
 // ---------------------------------------------------------------------------
@@ -140,12 +133,11 @@ describe('parseImportBundle', () => {
 describe('buildExportBundle', () => {
   test('round-trip: build then parse yields valid bundle', async () => {
     const entityStore = useEntityStore.getState()
-    const workspaceStore = useWorkspaceStore.getState()
 
     await entityStore.hydrate('pilot')
     await entityStore.create('pilot', basePilotInput)
 
-    const bundle = await buildExportBundle(entityStore, workspaceStore)
+    const bundle = await buildExportBundle(entityStore)
 
     expect(bundle.schemaVersion).toBe(2)
     expect(bundle.entities.pilots).toHaveLength(1)
@@ -159,17 +151,13 @@ describe('buildExportBundle', () => {
     expect(reparsed.entities.pilots[0]?.name).toBe('Test Pilot')
   })
 
-  test('includes softLinks and workspaces in full backup', async () => {
+  test('includes softLinks in a full backup, and no workspaces', async () => {
     const entityStore = useEntityStore.getState()
-    const workspaceStore = useWorkspaceStore.getState()
-
-    await workspaceStore.hydrate()
-    const ws = await workspaceStore.create({ name: 'Campaign Alpha' })
 
     await entityStore.hydrate('pilot')
     const pilot = await entityStore.create('pilot', {
       ...basePilotInput,
-      workspaceId: ws.id,
+      gameId: 'game-alpha',
     })
 
     await entityStore.hydrate('mech')
@@ -182,11 +170,12 @@ describe('buildExportBundle', () => {
       type: 'mech-to-pilot',
     })
 
-    const bundle = await buildExportBundle(entityStore, workspaceStore)
+    const bundle = await buildExportBundle(entityStore)
 
-    expect(bundle.workspaces).toHaveLength(1)
-    expect(bundle.workspaces[0]?.name).toBe('Campaign Alpha')
+    // Workspaces are retired: the key survives for old bundles, always empty.
+    expect(bundle.workspaces).toHaveLength(0)
     expect(bundle.entities.pilots).toHaveLength(1)
+    expect(bundle.entities.pilots[0]?.gameId).toBe('game-alpha')
     expect(bundle.entities.mechs).toHaveLength(1)
     expect(bundle.softLinks).toHaveLength(1)
     expect(bundle.softLinks[0]?.from.id).toBe(mech.id)
@@ -250,17 +239,13 @@ describe('buildEntityExport', () => {
 
 describe('mergeImport — round-trip', () => {
   test('importing into empty store creates all entities with fresh ids', async () => {
-    // Build source store with one pilot, one mech, one link, one workspace.
+    // Build source store with one pilot, one mech, one link.
     const sourceEntityStore = useEntityStore.getState()
-    const sourceWorkspaceStore = useWorkspaceStore.getState()
-
-    await sourceWorkspaceStore.hydrate()
-    const ws = await sourceWorkspaceStore.create({ name: 'Campaign Alpha' })
 
     await sourceEntityStore.hydrate('pilot')
     const pilot = await sourceEntityStore.create('pilot', {
       ...basePilotInput,
-      workspaceId: ws.id,
+      gameId: 'game-alpha',
     })
 
     await sourceEntityStore.hydrate('mech')
@@ -273,40 +258,33 @@ describe('mergeImport — round-trip', () => {
       type: 'mech-to-pilot',
     })
 
-    const bundle = await buildExportBundle(sourceEntityStore, sourceWorkspaceStore)
+    const bundle = await buildExportBundle(sourceEntityStore)
 
     // ---- reset to simulate a fresh target store ----
     _resetDbSingleton()
     await _clearAllStores()
     resetEntityStore()
-    resetWorkspaceStore()
 
     const targetEntityStore = useEntityStore.getState()
-    const targetWorkspaceStore = useWorkspaceStore.getState()
 
-    const summary = await mergeImport(bundle, targetEntityStore, targetWorkspaceStore)
+    const summary = await mergeImport(bundle, targetEntityStore)
 
     expect(summary.created.pilots).toBe(1)
     expect(summary.created.mechs).toBe(1)
-    expect(summary.created.workspaces).toBe(1)
     expect(summary.created.softLinks).toBe(1)
     expect(summary.skippedDuplicates).toBe(0)
 
     // Re-hydrate to verify state
     _resetDbSingleton()
     resetEntityStore()
-    resetWorkspaceStore()
     const verifyEntityStore = useEntityStore.getState()
-    const verifyWorkspaceStore = useWorkspaceStore.getState()
     await verifyEntityStore.hydrate('pilot')
     await verifyEntityStore.hydrate('mech')
     await verifyEntityStore.hydrate('softLink')
-    await verifyWorkspaceStore.hydrate()
 
     const importedPilots = verifyEntityStore.list('pilot')
     const importedMechs = verifyEntityStore.list('mech')
     const importedLinks = verifyEntityStore.list('softLink')
-    const importedWorkspaces = verifyWorkspaceStore.list()
 
     expect(importedPilots).toHaveLength(1)
     expect(importedPilots[0]?.name).toBe('Test Pilot')
@@ -316,13 +294,9 @@ describe('mergeImport — round-trip', () => {
     expect(importedMechs).toHaveLength(1)
     expect(importedMechs[0]?.id).not.toBe(mech.id)
 
-    expect(importedWorkspaces).toHaveLength(1)
-    expect(importedWorkspaces[0]?.name).toBe('Campaign Alpha')
-    const newWsId = importedWorkspaces[0]?.id
-    expect(newWsId).not.toBe(ws.id)
-
-    // Pilot's workspaceId must point to the NEW workspace id.
-    expect(importedPilots[0]?.workspaceId).toBe(newWsId)
+    // The source pilot was in a Game; the import lands it on the Shelf, because
+    // Game membership comes from the server rather than from a file.
+    expect(importedPilots[0]?.gameId).toBeNull()
 
     // SoftLink must reference the new pilot and mech ids.
     const importedLink = importedLinks[0]
@@ -335,7 +309,6 @@ describe('mergeImport — round-trip', () => {
 
   test('id-remap integrity: no dangling softLink refs after import', async () => {
     const sourceEntityStore = useEntityStore.getState()
-    const sourceWorkspaceStore = useWorkspaceStore.getState()
 
     await sourceEntityStore.hydrate('pilot')
     const p1 = await sourceEntityStore.create('pilot', { ...basePilotInput, name: 'P1' })
@@ -357,17 +330,15 @@ describe('mergeImport — round-trip', () => {
     })
 
     // Build bundle — note imaginary-crawler-id is NOT in entities.crawlers
-    const bundle = await buildExportBundle(sourceEntityStore, sourceWorkspaceStore)
+    const bundle = await buildExportBundle(sourceEntityStore)
 
     _resetDbSingleton()
     await _clearAllStores()
     resetEntityStore()
-    resetWorkspaceStore()
 
     const targetEntityStore = useEntityStore.getState()
-    const targetWorkspaceStore = useWorkspaceStore.getState()
 
-    const summary = await mergeImport(bundle, targetEntityStore, targetWorkspaceStore)
+    const summary = await mergeImport(bundle, targetEntityStore)
 
     // The dangling link (imaginary-crawler-id not in idMap) should be skipped.
     expect(summary.created.softLinks).toBe(1)
@@ -375,7 +346,6 @@ describe('mergeImport — round-trip', () => {
     // Verify all imported link ids are valid
     _resetDbSingleton()
     resetEntityStore()
-    resetWorkspaceStore()
     const verifyStore = useEntityStore.getState()
     await verifyStore.hydrate('pilot')
     await verifyStore.hydrate('mech')
@@ -398,7 +368,6 @@ describe('mergeImport — round-trip', () => {
 
   test('does not overwrite existing entities — skips duplicates', async () => {
     const entityStore = useEntityStore.getState()
-    const workspaceStore = useWorkspaceStore.getState()
 
     await entityStore.hydrate('pilot')
     const existingPilot = await entityStore.create('pilot', {
@@ -421,7 +390,7 @@ describe('mergeImport — round-trip', () => {
       encounterNpcs: [],
     }
 
-    const summary = await mergeImport(bundle, entityStore, workspaceStore)
+    const summary = await mergeImport(bundle, entityStore)
 
     // Should be skipped, not created again.
     expect(summary.created.pilots).toBe(0)
@@ -430,7 +399,6 @@ describe('mergeImport — round-trip', () => {
     // Only one pilot should exist.
     _resetDbSingleton()
     resetEntityStore()
-    resetWorkspaceStore()
     const verifyStore = useEntityStore.getState()
     await verifyStore.hydrate('pilot')
     expect(verifyStore.list('pilot')).toHaveLength(1)
@@ -444,7 +412,6 @@ describe('mergeImport — round-trip', () => {
 describe('mergeImport — remappedLinks counter', () => {
   test('increments remappedLinks when a link endpoint id is remapped', async () => {
     const sourceEntityStore = useEntityStore.getState()
-    const sourceWorkspaceStore = useWorkspaceStore.getState()
 
     await sourceEntityStore.hydrate('pilot')
     const pilot = await sourceEntityStore.create('pilot', basePilotInput)
@@ -459,17 +426,15 @@ describe('mergeImport — remappedLinks counter', () => {
       type: 'mech-to-pilot',
     })
 
-    const bundle = await buildExportBundle(sourceEntityStore, sourceWorkspaceStore)
+    const bundle = await buildExportBundle(sourceEntityStore)
 
     _resetDbSingleton()
     await _clearAllStores()
     resetEntityStore()
-    resetWorkspaceStore()
 
     const targetEntityStore = useEntityStore.getState()
-    const targetWorkspaceStore = useWorkspaceStore.getState()
 
-    const summary = await mergeImport(bundle, targetEntityStore, targetWorkspaceStore)
+    const summary = await mergeImport(bundle, targetEntityStore)
 
     // Ids are always remapped when importing into a fresh store.
     expect(summary.remappedLinks).toBe(1)

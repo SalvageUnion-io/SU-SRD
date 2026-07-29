@@ -2,22 +2,15 @@
  * useHydrateEntities — the shared "hydrate everything on mount, then flip a
  * flag" pattern (design review T-7), extracted from Dashboard.
  *
- * Hydrates the given entity types (plus, optionally, workspaces) once on
- * mount and returns false until ALL of them have resolved — the exact
- * Promise.all + local-state behavior the pages used inline, so skeletons
- * keep their existing timing.
+ * Hydrates the given entity types once on mount and returns false until ALL
+ * of them have resolved — the exact Promise.all + local-state behavior the
+ * pages used inline, so skeletons keep their existing timing.
  */
 
 import { useEffect, useState } from 'react'
 
 import { useEntityStore } from '../../stores/entityStore'
 import type { EntityType } from '../../stores/entityStore'
-import { useWorkspaceStore } from '../../stores/workspaceStore'
-
-type UseHydrateEntitiesOptions = {
-  /** Also hydrate workspaceStore alongside the entity types. */
-  workspaces?: boolean
-}
 
 /**
  * useHydrateOnMount — the generalization for stores outside entityStore
@@ -68,15 +61,9 @@ export function useHydrateOnMount(hydrate: () => Promise<unknown>): boolean {
   return state.hydrated
 }
 
-export function useHydrateEntities(
-  types: readonly EntityType[],
-  options?: UseHydrateEntitiesOptions
-): boolean {
+export function useHydrateEntities(types: readonly EntityType[]): boolean {
   return useHydrateOnMount(() => {
     const store = useEntityStore.getState()
-    return Promise.all([
-      ...types.map((type) => store.hydrate(type)),
-      ...(options?.workspaces ? [useWorkspaceStore.getState().hydrate()] : []),
-    ])
+    return Promise.all(types.map((type) => store.hydrate(type)))
   })
 }

@@ -6,7 +6,7 @@ import type { EntityType } from '../../stores/types'
 
 /**
  * Minimal create-only store interface required by mergeImport.
- * The real entityStore and workspaceStore both satisfy this.
+ * The real entityStore satisfies this.
  */
 type MergeEntityStore = {
   hydrate: (type: EntityType) => Promise<void>
@@ -15,12 +15,6 @@ type MergeEntityStore = {
     type: T,
     input: import('../../stores/types').CreateInput<T>
   ) => Promise<import('../../stores/types').EntityForType<T>>
-}
-
-type MergeWorkspaceStore = {
-  hydrate: () => Promise<void>
-  list: () => import('../schemas/workspace').Workspace[]
-  create: (input: { name: string }) => Promise<import('../schemas/workspace').Workspace>
 }
 
 /**
@@ -47,7 +41,6 @@ export type MergeSummary = {
     pilots: number
     mechs: number
     crawlers: number
-    workspaces: number
     softLinks: number
     mechPatterns: number
     encounterNpcs: number
@@ -63,10 +56,15 @@ export type MergeSummary = {
  *   1. Hydrate current store state so we know which ids already exist.
  *   2. Assign FRESH UUIDs to every entity in the bundle.
  *   3. Build an old-id → new-id map.
- *   4. Remap:
- *        - softLink.from.id / softLink.to.id through the map.
- *        - pilot/mech/crawler/encounterNpc.workspaceId through the map.
+ *   4. Remap softLink.from.id / softLink.to.id through the map.
  *   5. Create each remapped entity via store.create() (NEVER overwrite).
+ *
+ * Every imported entity lands on the importer's **Shelf** (ADR-030 §2).
+ * Game membership is granted by the server, not carried in a file, so a bundle
+ * naming a Game the importer does not belong to would otherwise drop its
+ * entities into a container they can never open. This is the same instinct the
+ * old workspace remapping had — drop references that mean nothing here — with
+ * the Shelf as the one container every account is guaranteed to have.
  *
  * Entities whose old id already exists in the store are skipped (counted in
  * skippedDuplicates). Soft links that reference an id not present in the
@@ -78,7 +76,6 @@ export type MergeSummary = {
 export async function mergeImport(
   bundle: ExportBundle,
   entityStore: MergeEntityStore,
-  workspaceStore: MergeWorkspaceStore,
   patternStore: MergePatternStore = db.mechPatterns,
   encounterNpcStore: MergeEncounterNpcStore = db.encounterNpcs
 ): Promise<MergeSummary> {
@@ -88,13 +85,11 @@ export async function mergeImport(
     entityStore.hydrate('mech'),
     entityStore.hydrate('crawler'),
     entityStore.hydrate('softLink'),
-    workspaceStore.hydrate(),
   ])
 
   const existingPilotIds = new Set(entityStore.list('pilot').map((e) => e.id))
   const existingMechIds = new Set(entityStore.list('mech').map((e) => e.id))
   const existingCrawlerIds = new Set(entityStore.list('crawler').map((e) => e.id))
-  const existingWorkspaceIds = new Set(workspaceStore.list().map((w) => w.id))
   const existingSoftLinkIds = new Set(entityStore.list('softLink').map((l) => l.id))
 
   /** old id → new id for every entity that will be created */
@@ -105,7 +100,6 @@ export async function mergeImport(
       pilots: 0,
       mechs: 0,
       crawlers: 0,
-      workspaces: 0,
       softLinks: 0,
       mechPatterns: 0,
       encounterNpcs: 0,
@@ -115,22 +109,7 @@ export async function mergeImport(
   }
 
   // -------------------------------------------------------------------------
-  // 1. Workspaces — remap first so entity workspaceId refs can be remapped.
-  // -------------------------------------------------------------------------
-  for (const ws of bundle.workspaces) {
-    if (existingWorkspaceIds.has(ws.id)) {
-      summary.skippedDuplicates++
-      // Map old id → existing id so downstream refs stay valid.
-      idMap.set(ws.id, ws.id)
-      continue
-    }
-    const newWs = await workspaceStore.create({ name: ws.name })
-    idMap.set(ws.id, newWs.id)
-    summary.created.workspaces++
-  }
-
-  // -------------------------------------------------------------------------
-  // 2. Pilots
+  // 1. Pilots
   // -------------------------------------------------------------------------
   for (const pilot of bundle.entities.pilots) {
     if (existingPilotIds.has(pilot.id)) {
@@ -139,13 +118,11 @@ export async function mergeImport(
       continue
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _id, createdAt: _ca, updatedAt: _ua, workspaceId, ...rest } = pilot
-    const remappedWorkspaceId =
-      workspaceId !== undefined ? (idMap.get(workspaceId) ?? undefined) : undefined
+    const { id: _id, createdAt: _ca, updatedAt: _ua, workspaceId: _ws, gameId: _g, ...rest } = pilot
 
     const created = await entityStore.create('pilot', {
       ...rest,
-      ...(remappedWorkspaceId !== undefined ? { workspaceId: remappedWorkspaceId } : {}),
+      gameId: null,
     })
     idMap.set(pilot.id, created.id)
     summary.created.pilots++
@@ -161,13 +138,11 @@ export async function mergeImport(
       continue
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _id, createdAt: _ca, updatedAt: _ua, workspaceId, ...rest } = mech
-    const remappedWorkspaceId =
-      workspaceId !== undefined ? (idMap.get(workspaceId) ?? undefined) : undefined
+    const { id: _id, createdAt: _ca, updatedAt: _ua, workspaceId: _ws, gameId: _g, ...rest } = mech
 
     const created = await entityStore.create('mech', {
       ...rest,
-      ...(remappedWorkspaceId !== undefined ? { workspaceId: remappedWorkspaceId } : {}),
+      gameId: null,
     })
     idMap.set(mech.id, created.id)
     summary.created.mechs++
@@ -183,13 +158,18 @@ export async function mergeImport(
       continue
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _id, createdAt: _ca, updatedAt: _ua, workspaceId, ...rest } = crawler
-    const remappedWorkspaceId =
-      workspaceId !== undefined ? (idMap.get(workspaceId) ?? undefined) : undefined
+    const {
+      id: _id,
+      createdAt: _ca,
+      updatedAt: _ua,
+      workspaceId: _ws,
+      gameId: _g,
+      ...rest
+    } = crawler
 
     const created = await entityStore.create('crawler', {
       ...rest,
-      ...(remappedWorkspaceId !== undefined ? { workspaceId: remappedWorkspaceId } : {}),
+      gameId: null,
     })
     idMap.set(crawler.id, created.id)
     summary.created.crawlers++
@@ -243,8 +223,8 @@ export async function mergeImport(
 
   // -------------------------------------------------------------------------
   // 7. Encounter NPCs — fresh UUIDs, exact-id dedupe (same policy as
-  //    entities). workspaceId is remapped through idMap the same way
-  //    pilot/mech/crawler are (dropped if the referenced workspace was not
+  //    entities). Container handling matches pilot/mech/crawler: everything
+  //    lands on the Shelf (dropped if the referenced container was not
   //    part of this bundle / not in the map).
   // -------------------------------------------------------------------------
   const existingEncounterNpcIds = new Set((await encounterNpcStore.list()).map((n) => n.id))
@@ -254,13 +234,11 @@ export async function mergeImport(
       continue
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _id, createdAt: _ca, updatedAt: _ua, workspaceId, ...rest } = npc
-    const remappedWorkspaceId =
-      workspaceId !== undefined ? (idMap.get(workspaceId) ?? undefined) : undefined
+    const { id: _id, createdAt: _ca, updatedAt: _ua, workspaceId: _ws, gameId: _g, ...rest } = npc
 
     await encounterNpcStore.create({
       ...rest,
-      ...(remappedWorkspaceId !== undefined ? { workspaceId: remappedWorkspaceId } : {}),
+      gameId: null,
     })
     summary.created.encounterNpcs++
   }
