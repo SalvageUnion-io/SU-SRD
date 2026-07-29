@@ -35,7 +35,7 @@ function pilot(overrides: Partial<OwnedEntity> & { body?: Record<string, unknown
     ownerId: 'u1',
     ownerName: 'alxjrvs',
     present: false,
-    body: { callsign: 'Rook', currentHp: 6, currentAp: 3 },
+    body: { callsign: 'Rook', currentHP: 6, currentAP: 3 },
     ...overrides,
   }
 }
@@ -69,6 +69,55 @@ describe('gauge', () => {
     // Over-max (a stale override, a hand-edited body) clamps the BAR but
     // reports the real number — hiding it would be lying about the sheet.
     expect(gauge(14, 10)).toBe('██████████ 14/10')
+  })
+})
+
+describe('vital field names', () => {
+  test('reads the CANONICAL schema spellings', () => {
+    // The regression this guards is not hypothetical: `crew.vitals` shipped
+    // reading `currentHp` while apps/itun/src/lib/schemas/pilot.ts defines
+    // `currentHP`, so every vital rendered as an em-dash indistinguishable
+    // from an undamaged crew (#656). Nothing links these two workspaces at
+    // build time, so only a test can hold the spelling.
+    const embed = buildCrewEmbed(
+      {
+        game: { gameId: 'g1', name: 'Tenacity' },
+        viewerId: 'u1',
+        pilots: [pilot({ body: { callsign: 'Rook', currentHP: 6, currentAP: 3 } })],
+        mechs: [
+          {
+            id: 'm1',
+            ownerId: 'u1',
+            ownerName: 'alxjrvs',
+            present: false,
+            body: { name: 'Mule', chassisRef: 'mule', currentSP: 8, currentHeat: 3 },
+          },
+        ],
+        crawler: null,
+      },
+      WEB
+    )
+    const value = embed.fields[0]?.value ?? ''
+    expect(value).toContain('6/10')
+    expect(value).toContain('3/5')
+    expect(value).toContain('8/12')
+    expect(value).toContain('3/6')
+  })
+
+  test('still reads the historical lower-case spelling', () => {
+    // Salvage-tolerant, like ITUN's own data layer: rows written before the
+    // spelling was settled must not render as an undamaged crew.
+    const embed = buildCrewEmbed(
+      {
+        game: { gameId: 'g1', name: 'Tenacity' },
+        viewerId: 'u1',
+        pilots: [pilot({ body: { callsign: 'Rook', currentHp: 4, currentAp: 1 } })],
+        mechs: [],
+        crawler: null,
+      },
+      WEB
+    )
+    expect(embed.fields[0]?.value).toContain('4/10')
   })
 })
 
@@ -132,7 +181,7 @@ describe('buildCrewEmbed', () => {
             ownerId: 'u1',
             ownerName: 'alxjrvs',
             present: false,
-            body: { name: 'Iron Mongrel', chassisRef: 'mule', currentSp: 8, currentHeat: 3 },
+            body: { name: 'Iron Mongrel', chassisRef: 'mule', currentSP: 8, currentHeat: 3 },
           },
         ],
       }),
@@ -167,7 +216,7 @@ describe('buildCrewEmbed', () => {
             ownerId: 'u1',
             ownerName: 'alxjrvs',
             present: false,
-            body: { name: 'Iron Mongrel', chassisRef: 'mule', currentSp: 0 },
+            body: { name: 'Iron Mongrel', chassisRef: 'mule', currentSP: 0 },
           },
         ],
       }),

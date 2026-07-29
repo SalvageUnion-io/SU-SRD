@@ -65,10 +65,32 @@ export type EmbedData = {
 
 const FOOTER = 'In The Union Now'
 
-/** Read a number off an opaque body, or null when it is absent or not one. */
-function num(body: EntityBody, key: string): number | null {
-  const value = body[key]
-  return typeof value === 'number' && Number.isFinite(value) ? value : null
+/**
+ * Read a number off an opaque body, trying each name in order.
+ *
+ * Several names rather than one, because the field names below are a **cross-
+ * workspace contract that nothing checks at build time**: the Zod schemas in
+ * `apps/itun/src/lib/schemas/` are the source of truth, Convex stores the body
+ * as `v.any()`, and the bot cannot import those schemas. A misspelling here
+ * therefore compiles, passes any test written from the same misspelling, and
+ * renders a confidently wrong number.
+ *
+ * That is not hypothetical. `crew.vitals` shipped reading `currentHp` while the
+ * schema defines `currentHP`, so **every vital on the Mediator's crew strip was
+ * null** and rendered as an em-dash indistinguishable from an undamaged crew
+ * (found and fixed in #656). This code was written from that same wrong
+ * spelling.
+ *
+ * So reads are salvage-tolerant, exactly as ITUN's own data layer is: the
+ * canonical name is tried first and the historical variant second. Being
+ * tolerant costs one array lookup; being wrong costs a table a session.
+ */
+function num(body: EntityBody, ...keys: string[]): number | null {
+  for (const key of keys) {
+    const value = body[key]
+    if (typeof value === 'number' && Number.isFinite(value)) return value
+  }
+  return null
 }
 
 /** Read a string off an opaque body, or null when absent/blank/not a string. */
@@ -124,9 +146,10 @@ function pilotStats(body: EntityBody): {
     maxApOverride: num(body, 'maxApOverride') ?? undefined,
   }
   return {
-    hp: num(body, 'currentHp'),
+    // Canonical spellings come from apps/itun/src/lib/schemas/{pilot,mech}.ts.
+    hp: num(body, 'currentHP', 'currentHp'),
     maxHp: pilotMaxHP(input),
-    ap: num(body, 'currentAp'),
+    ap: num(body, 'currentAP', 'currentAp'),
     maxAp: pilotMaxAP(input),
   }
 }
@@ -148,7 +171,7 @@ function mechStats(body: EntityBody): {
     maxHeatOverride: num(body, 'maxHeatOverride') ?? undefined,
   }
   return {
-    sp: num(body, 'currentSp'),
+    sp: num(body, 'currentSP', 'currentSp'),
     maxSp: mechMaxSP(input),
     heat: num(body, 'currentHeat'),
     maxHeat: mechMaxHeat(input),

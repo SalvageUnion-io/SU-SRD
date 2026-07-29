@@ -72,7 +72,7 @@ const OK_CREW = {
         ownerId: 'u1',
         ownerName: 'alxjrvs',
         present: true,
-        body: { callsign: 'Rook', currentHp: 6, currentAp: 3 },
+        body: { callsign: 'Rook', currentHP: 6, currentAP: 3 },
       },
     ],
     mechs: [],
@@ -148,7 +148,7 @@ describe('/su sheet', () => {
         table: 'pilots',
         id: 'p1',
         ownerName: 'alxjrvs',
-        body: { callsign: 'Rook', currentHp: 6 },
+        body: { callsign: 'Rook', currentHP: 6 },
       },
     })
     const { interaction, edits } = fakeExecute({
