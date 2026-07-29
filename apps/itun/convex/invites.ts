@@ -8,7 +8,9 @@ import { NotAuthorized, getMembership, requireOrganizer, requireUser } from './m
 import { logOwnershipChange } from './ownership'
 
 /**
- * Invite codes (ADR-030 §2) — how a player joins a Game.
+ * Invite codes (ADR-030 §3, and the invite amendment) — how a player joins a
+ * Game. Not §2: that section is Containers, and its only mention of invites is
+ * that a shelf has none.
  *
  * Codes reuse `generateUniqueId` from the snapshot module rather than growing a
  * second generator: it is already Crockford base32 (no I/L/O/U, so a code read

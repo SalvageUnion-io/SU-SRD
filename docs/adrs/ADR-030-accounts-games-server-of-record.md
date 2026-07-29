@@ -214,9 +214,10 @@ is not built — the crew vitals strip carries that information for now.
 
 ## Amendment — an invite carries what the Organizer decided
 
-§2 describes an invite code as sufficient to join, and §3 leaves the seat and
-the hand-out as separate acts performed after the fact. Both are amended in one
-direction: **an invite now expresses a decision the Organizer has already made.**
+§3 gives the Organizer "invites, membership" and stops there, leaving a code as
+a bare key and the seat and the hand-out as separate acts performed after the
+fact. That is amended in one direction: **an invite now expresses a decision the
+Organizer has already made.**
 
 **An invite may be minted as a request.** With approval required, the code
 identifies the Game and grants nothing until the Organizer lets the knocker in.

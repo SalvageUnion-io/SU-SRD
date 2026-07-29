@@ -499,7 +499,8 @@ harness (`convex/__tests__/harness.ts`), and `invites` is covered there today:
   Log entry with `actorId` = inviter; **a stale grant still joins**; re-redeem
   stays idempotent and consumes no use; `preview` leaks nothing beyond §4.2.
 - 5: knock creates no membership; approval seats with the invite's role and
-  grants; knock consumes no use, approval does; decline is terminal.
+  grants; knock consumes no use, approval does; a declined knocker may ask
+  again (an Organizer who declined by mistake should not need a fresh code).
 
 ---
 

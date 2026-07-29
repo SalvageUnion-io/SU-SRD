@@ -181,6 +181,10 @@ export default defineSchema({
     decidedAt: v.optional(v.number()),
   })
     .index('by_game_state', ['gameId', 'state'])
+    // Plain `by_game` as well as the compound: deleting a Game sweeps every
+    // request regardless of state, and a prefix scan of `by_game_state` would
+    // read as "pending only" to the next person who touched it.
+    .index('by_game', ['gameId'])
     .index('by_user', ['userId'])
     .index('by_invite_user', ['inviteId', 'userId']),
 

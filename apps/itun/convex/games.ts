@@ -199,12 +199,17 @@ export const destroy = mutation({
       }
     }
 
-    // Game-scoped rows with no personal counterpart just go.
+    // Game-scoped rows with no personal counterpart just go. `inviteRedemptions`
+    // and `joinRequests` belong here for the same reason `invites` does: they
+    // describe a way into a Game that no longer exists, and an unanswered knock
+    // at a deleted door would sit pending forever.
     for (const table of [
       'crawlers',
       'encounterNpcs',
       'softLinks',
       'invites',
+      'inviteRedemptions',
+      'joinRequests',
       'memberships',
       'presence',
     ] as const) {
