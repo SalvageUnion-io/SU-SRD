@@ -66,8 +66,47 @@ export const Default: Story = () => (
  * the ontology tone wash + a black role tab and the default per-ontology
  * missing-entity glyph, over a helper message and optional create action.
  */
+/**
+ * The `game` ontology (ADR-030) — a shared table, listed as a peer of the
+ * player builds. Blue rail, and three toned badges instead of one: the Game's
+ * communal crawler, its pilot count, its mech count. `meta` takes an array to
+ * carry them.
+ */
+export const Game: Story = () => (
+  <div className="max-w-md bg-paper p-5">
+    <ul className="flex list-none flex-col gap-2.5">
+      <li>
+        <EntityRow
+          entityType="game"
+          name="Union Crawler #430"
+          meta={[crawlerType?.name ?? 'Crawler', '4 Pilots', '3 Mechs']}
+          metaLine="Mediator · started from the Starter Set"
+          sheetHref="#/games/430"
+        />
+      </li>
+      <li>
+        {/* A brand-new Game: no crawler yet and nothing built, so the counts
+            read zero rather than the badges vanishing. */}
+        <EntityRow
+          entityType="game"
+          name="Thursday Night Salvage"
+          meta={['No crawler', '0 Pilots', '0 Mechs']}
+          metaLine="Player · organized by Vex"
+          sheetHref="#/games/thursday"
+        />
+      </li>
+    </ul>
+  </div>
+)
+
 export const Empty: Story = () => (
   <div className="flex max-w-md flex-col gap-2.5 bg-paper p-5">
+    <EntityRow
+      empty
+      entityType="game"
+      roleLabel="Game"
+      message="You are not in any games yet — start one, or join with a code."
+    />
     <EntityRow
       empty
       entityType="mech"

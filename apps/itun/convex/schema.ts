@@ -96,16 +96,93 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_game_user', ['gameId', 'userId']),
 
-  /** Invite codes (closes the intent of legacy issue #157). */
+  /**
+   * Invite codes (closes the intent of legacy issue #157).
+   *
+   * An invite is not just a key to the door — it carries what the Organizer
+   * already decided when they minted it: which seat the joiner takes, and which
+   * unclaimed entities are waiting for them. That turns "send code → they join →
+   * find them in the crew list → assign a pilot → assign its mech" into one act.
+   *
+   * Everything past `usesRemaining` is optional so pre-existing rows stay valid.
+   */
   invites: defineTable({
     gameId: v.id('games'),
     code: v.string(),
     createdBy: v.id('users'),
     expiresAt: v.optional(v.number()),
     usesRemaining: v.optional(v.number()),
+
+    createdAt: v.optional(v.number()),
+
+    /** Organizer's private note ("for Sam"). Never shown to the redeemer. */
+    label: v.optional(v.string()),
+
+    /** The seat granted on redeem. Absent means 'player'. */
+    role: v.optional(v.union(v.literal('player'), v.literal('mediator'))),
+
+    /**
+     * Entities handed over on join. A list, not a single id: the Starter Set
+     * case is a pilot AND its mech, and a one-entity field would need a second
+     * mechanism a week later.
+     */
+    grants: v.optional(
+      v.array(
+        v.object({
+          table: v.union(v.literal('pilots'), v.literal('mechs')),
+          entityId: v.string(),
+        })
+      )
+    ),
+
+    /**
+     * When true the code identifies the Game but grants nothing until the
+     * Organizer approves the knock. For a code posted somewhere public, where
+     * membership would otherwise hand a stranger read access to every
+     * crewmate's sheet (ADR-030 §5).
+     */
+    requiresApproval: v.optional(v.boolean()),
+
+    /**
+     * Soft revoke. The row survives so `inviteRedemptions` keeps referring to
+     * something and "who joined via which code" stays answerable after an
+     * Organizer tidies up.
+     */
+    revokedAt: v.optional(v.number()),
   })
     .index('by_code', ['code'])
     .index('by_game', ['gameId']),
+
+  /** Who actually used which invite — the audit trail revocation alone can't give. */
+  inviteRedemptions: defineTable({
+    inviteId: v.id('invites'),
+    gameId: v.id('games'),
+    userId: v.id('users'),
+    redeemedAt: v.number(),
+  })
+    .index('by_invite', ['inviteId'])
+    .index('by_game', ['gameId']),
+
+  /**
+   * A knock at the door, for invites minted with `requiresApproval`.
+   *
+   * A pending request is **not** a membership: no `memberships` row exists until
+   * approval, so a knocker sees nothing of the Game. Approval runs the same
+   * seat-granting path a direct redeem does, so role and grants behave
+   * identically whichever door was used.
+   */
+  joinRequests: defineTable({
+    gameId: v.id('games'),
+    inviteId: v.id('invites'),
+    userId: v.id('users'),
+    requestedAt: v.number(),
+    state: v.union(v.literal('pending'), v.literal('approved'), v.literal('declined')),
+    decidedBy: v.optional(v.id('users')),
+    decidedAt: v.optional(v.number()),
+  })
+    .index('by_game_state', ['gameId', 'state'])
+    .index('by_user', ['userId'])
+    .index('by_invite_user', ['inviteId', 'userId']),
 
   pilots: defineTable({
     gameId: v.union(v.id('games'), v.null()),

@@ -23,16 +23,21 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { DowntimePanel } from './DowntimePanel'
 import { GameRoster } from './GameRoster'
+import { InvitePanel } from './InvitePanel'
 import { ProposalInbox } from './ProposalInbox'
 import { TITLE } from './gameChrome'
 import { AppLink } from '../shared/AppLink'
 
 function GameBody({ gameId }: { gameId: string }) {
-  const games = useQuery(api.games.listMine, {})
-  const game = games?.find((g) => g._id === gameId)
+  // `games.get` rather than listMine-and-find: this route wants one Game, and
+  // it distinguishes "still loading" from "not a member" without fetching every
+  // table the viewer belongs to.
+  const game = useQuery(api.games.get, { gameId: gameId as Id<'games'> })
 
-  if (games === undefined) return <Text>Loading this game…</Text>
-  if (game === undefined) {
+  if (game === undefined) return <Text>Loading this game…</Text>
+  // `null` covers both "you left" and "no such game", deliberately — a
+  // non-member must not be able to tell an existing Game from a deleted one.
+  if (game === null) {
     return (
       <Card>
         <div className="p-4">
@@ -48,6 +53,15 @@ function GameBody({ gameId }: { gameId: string }) {
   return (
     <div className="flex flex-col gap-6">
       <GameRoster gameId={gameId} gameName={game.name} />
+      {/* Invites are administrative, so they live with the Game rather than in
+          the lobby, and only the Organizer sees them (ADR-030 §3). */}
+      {game.organizer && (
+        <Card>
+          <div className="p-4">
+            <InvitePanel gameId={gameId as Id<'games'>} />
+          </div>
+        </Card>
+      )}
       <ProposalInbox gameId={gameId as Id<'games'>} />
       <DowntimePanel gameId={gameId as Id<'games'>} />
       {game.mediator && (

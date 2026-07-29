@@ -1,13 +1,13 @@
-import { afterAll, describe, expect, mock, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 /**
- * `GamesScreen` in its connected state.
+ * `GamesScreen` in its connected state — the Games *index*.
  *
- * The Solo test proves it does not crash without a provider. This covers what
- * the screen actually does for a signed-in player: which controls a plain
- * member gets versus an Organizer, and whether the Mediator link appears only
- * for somebody who mediates.
+ * Since the route split this screen is only about choosing a Game: create,
+ * join, and one row per table. Everything per-Game (crew, invites, roles, the
+ * Mediator link) moved to `/games/$gameId`, and is covered by
+ * `GameDetailScreen.connected.test.tsx`.
  *
  * Queries are answered in **call order** — the generated `api` object is a
  * Proxy that throws the moment a test inspects it, so position is the only
@@ -16,6 +16,9 @@ import { render, screen } from '@testing-library/react'
 
 let queryQueue: unknown[] = []
 let queryIndex = 0
+let redeemResult: unknown = { kind: 'joined', gameId: 'g9', granted: 0 }
+let redeemError: Error | null = null
+const navigations: unknown[] = []
 
 /**
  * `mock.module` replaces the entry in the process-wide module registry, so these
@@ -42,7 +45,10 @@ mock.module('convex/react', () => ({
     queryIndex += 1
     return v
   },
-  useMutation: () => async () => undefined,
+  useMutation: () => async () => {
+    if (redeemError !== null) throw redeemError
+    return redeemResult
+  },
   useConvexAuth: () => ({ isAuthenticated: true, isLoading: false }),
   ConvexReactClient: class {},
   // `@convex-dev/auth/react` (reached via SignInControl) imports these from
@@ -59,12 +65,16 @@ mock.module('@convex-dev/auth/react', () => ({
   ConvexAuthProvider: ({ children }: { children: unknown }) => children,
 }))
 
-// The Mediator link is a router `Link`, which needs a RouterProvider it has no
-// business needing here — the assertion is whether the link is offered at all.
+// Rows link through the router, and joining navigates — neither needs a real
+// RouterProvider for these assertions.
 mock.module('@tanstack/react-router', () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
     <a href={to}>{children}</a>
   ),
+  useNavigate: () => async (opts: unknown) => {
+    navigations.push(opts)
+  },
+  useRouter: () => undefined,
 }))
 
 const { GamesScreen } = await import('../GamesScreen')
@@ -73,6 +83,8 @@ const { ConnectionProvider } = await import('../../../lib/connection/ConnectionP
 function withQueries(values: unknown[]): void {
   queryQueue = values
   queryIndex = 0
+  navigations.length = 0
+  redeemError = null
 }
 
 const wrap = () =>
@@ -89,51 +101,53 @@ const GAME = {
   mediator: false,
   organizer: false,
   memberCount: 3,
+  crawlerName: 'Hamlet',
+  pilotCount: 4,
+  mechCount: 3,
 }
-
-const MEMBERS = [
-  {
-    userId: 'u1',
-    displayName: 'Ash',
-    avatarUrl: undefined,
-    mediator: false,
-    organizer: true,
-    joinedAt: 1,
-  },
-  {
-    userId: 'u2',
-    displayName: 'Beefcake',
-    avatarUrl: undefined,
-    mediator: true,
-    organizer: false,
-    joinedAt: 2,
-  },
-]
 
 const TEMPLATES = [
   { id: 'starter-set', name: 'Reclamation of the Wastes', description: 'Six pre-gens.' },
 ]
 
-/** listMine, templates, members, pending, downtime state, amMediator. */
+/** listMine, templates — the index's only two queries. */
 function queriesFor(game: Record<string, unknown>): unknown[] {
-  return [
-    [game],
-    TEMPLATES,
-    MEMBERS,
-    [],
-    { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
-    false,
-  ]
+  return [[game], TEMPLATES]
 }
 
-describe('GamesScreen for a signed-in player', () => {
-  test('lists the games you are in, with the crew', () => {
+afterEach(cleanup)
+
+describe('the Games index for a signed-in player', () => {
+  test('lists a row per game', () => {
+    withQueries(queriesFor(GAME))
+    wrap()
+    expect(screen.getByText('Union Crawler #430')).toBeTruthy()
+  })
+
+  test('the row badges say what the table is', () => {
     withQueries(queriesFor(GAME))
     wrap()
 
-    expect(screen.getByText('Union Crawler #430')).toBeTruthy()
-    expect(screen.getByText('Ash')).toBeTruthy()
-    expect(screen.getByText('Beefcake')).toBeTruthy()
+    // A Game row answers "what is this table" before you open it.
+    expect(screen.getByText('Hamlet')).toBeTruthy()
+    expect(screen.getByText('4 Pilots')).toBeTruthy()
+    expect(screen.getByText('3 Mechs')).toBeTruthy()
+  })
+
+  test('a game with nothing in it still renders all three badges', () => {
+    withQueries(queriesFor({ ...GAME, crawlerName: null, pilotCount: 0, mechCount: 0 }))
+    wrap()
+
+    // Dropping the badges would make a new Game's row look broken rather than empty.
+    expect(screen.getByText('No crawler')).toBeTruthy()
+    expect(screen.getByText('0 Pilots')).toBeTruthy()
+    expect(screen.getByText('0 Mechs')).toBeTruthy()
+  })
+
+  test('the row links to the game, not to a modal', () => {
+    withQueries(queriesFor(GAME))
+    wrap()
+    expect(screen.getByText('View').getAttribute('href')).toBe('/games/g1')
   })
 
   test('offers create and join to everybody', () => {
@@ -144,34 +158,16 @@ describe('GamesScreen for a signed-in player', () => {
     expect(screen.getByLabelText('Invite code')).toBeTruthy()
   })
 
-  test('a plain member gets no administrative controls', () => {
-    withQueries(queriesFor(GAME))
+  test('per-game administration is NOT on the index, for anyone', () => {
+    withQueries(queriesFor({ ...GAME, organizer: true, mediator: true }))
     wrap()
 
-    // Renaming, inviting and role changes are the Organizer's, and hiding them
-    // is the courtesy half of a rule the server enforces regardless.
+    // These moved to /games/$gameId. An Organizer seeing them here would mean
+    // the split half-happened.
     expect(screen.queryByLabelText('Rename Union Crawler #430')).toBeNull()
     expect(screen.queryByText('Create invite code')).toBeNull()
     expect(screen.queryByText('Make Mediator')).toBeNull()
-  })
-
-  test('an Organizer gets rename, invites and role controls', () => {
-    withQueries(queriesFor({ ...GAME, organizer: true }))
-    wrap()
-
-    expect(screen.getByLabelText('Rename Union Crawler #430')).toBeTruthy()
-    expect(screen.getByText('Create invite code')).toBeTruthy()
-    expect(screen.getAllByText(/Make Mediator|Stand down/).length).toBeGreaterThan(0)
-  })
-
-  test('the Mediator link appears only for somebody who mediates', () => {
-    withQueries(queriesFor(GAME))
-    wrap()
     expect(screen.queryByText(/Open the Mediator surface/)).toBeNull()
-
-    withQueries(queriesFor({ ...GAME, mediator: true }))
-    wrap()
-    expect(screen.getAllByText(/Open the Mediator surface/).length).toBeGreaterThan(0)
   })
 
   test('offers a template to start from', () => {
@@ -187,6 +183,50 @@ describe('GamesScreen for a signed-in player', () => {
 
     expect(screen.getByText(/not in any games yet/i)).toBeTruthy()
     expect(screen.getByLabelText('Invite code')).toBeTruthy()
+  })
+})
+
+describe('joining by code from the lobby', () => {
+  test('a successful join routes into the game it joined', async () => {
+    withQueries(queriesFor(GAME))
+    wrap()
+
+    fireEvent.change(screen.getByLabelText('Invite code'), { target: { value: 'A1B2C3D4' } })
+    fireEvent.click(screen.getByText('Join'))
+
+    await waitFor(() => expect(navigations).toHaveLength(1))
+    expect(navigations[0]).toMatchObject({ params: { gameId: 'g9' } })
+  })
+
+  test('a gated code says it is waiting instead of routing nowhere', async () => {
+    withQueries(queriesFor(GAME))
+    redeemResult = { kind: 'pending', gameId: 'g9' }
+    wrap()
+
+    fireEvent.change(screen.getByLabelText('Invite code'), { target: { value: 'A1B2C3D4' } })
+    fireEvent.click(screen.getByText('Join'))
+
+    await waitFor(() => expect(screen.getByText(/once the organizer approves/i)).toBeTruthy())
+    // Routing into a Game you cannot yet see would be the wrong reassurance.
+    expect(navigations).toHaveLength(0)
+    redeemResult = { kind: 'joined', gameId: 'g9', granted: 0 }
+  })
+
+  test('a refusal is shown in the server’s own words', async () => {
+    withQueries(queriesFor(GAME))
+    wrap()
+    redeemError = new Error('That invite code has expired')
+
+    fireEvent.change(screen.getByLabelText('Invite code'), { target: { value: 'A1B2C3D4' } })
+    fireEvent.click(screen.getByText('Join'))
+
+    await waitFor(() => expect(screen.getByText(/has expired/)).toBeTruthy())
+  })
+
+  test('Join is disabled until a code is typed', () => {
+    withQueries(queriesFor(GAME))
+    wrap()
+    expect((screen.getByText('Join') as HTMLButtonElement).disabled).toBe(true)
   })
 })
 

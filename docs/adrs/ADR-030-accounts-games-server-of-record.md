@@ -212,6 +212,45 @@ editing surface, so opening a crewmate's would hand over an editor whose writes
 the server refuses. The read-only drill-in §5 permits is a separate surface and
 is not built — the crew vitals strip carries that information for now.
 
+## Amendment — an invite carries what the Organizer decided
+
+§2 describes an invite code as sufficient to join, and §3 leaves the seat and
+the hand-out as separate acts performed after the fact. Both are amended in one
+direction: **an invite now expresses a decision the Organizer has already made.**
+
+**An invite may be minted as a request.** With approval required, the code
+identifies the Game and grants nothing until the Organizer lets the knocker in.
+This adds no role and no membership state — a pending request is _not_ a
+membership, and an approved one produces exactly the membership a direct redeem
+would, through the same code path. Bearer codes remain the default; this is a
+per-invite choice, not a mode.
+
+The reason is §5. Membership confers read access to every crewmate's sheet, so
+a code posted somewhere public is a broader disclosure than the Organizer
+intended. Approval is the Organizer exercising the membership authority §3
+already gives them, one step later.
+
+**An invite may also carry a seat and a hand-out** — a `role` of Player or
+Mediator, and a list of unclaimed entities handed over on join.
+
+This sits alongside the self-claim amendment above rather than against it. That
+amendment made an unclaimed entity an **offer to the crew**, which anyone may
+accept; `assign` survived it as the table runner's power to place an entity with
+a _particular_ person. An invite grant is exactly that power, scheduled: the
+Organizer names the recipient in advance, and the Change Log records **them** as
+`actorId` rather than whoever walked through the door. Both routes to ownership
+respect the same boundary — neither can touch an entity somebody already holds.
+A grant whose entity has since been claimed, moved, or deleted is **skipped, and
+the join still succeeds**: arriving without the promised pilot is a notice,
+whereas failing the join over a stale pointer would strand someone outside a
+Game they were genuinely invited to.
+
+Revocation becomes a **soft delete**, so an invite's redemption history stays
+resolvable, and it never evicts anyone already seated: closing a door is not the
+same act as removing someone from the room.
+
+Enforced in `convex/invites.ts` (`seat`, `assertSpendable`, `decideRequest`).
+
 ## Amendment to ADR-022
 
 ADR-022 states the Change Log is **local only** and never travels with a

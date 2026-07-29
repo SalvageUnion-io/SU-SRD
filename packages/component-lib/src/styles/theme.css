@@ -225,6 +225,15 @@
   --color-sheet-mech-deep: rgb(47, 67, 56); /* #2f4338 */
   --color-sheet-crawler: var(--color-crawler); /* #ce5898 */
   --color-sheet-crawler-deep: rgb(126, 42, 91); /* #7e2a5b */
+  /* Game — the shared table (ADR-030), the fourth ontology. Blue, so a Game row
+     never reads as the crawler row sitting next to it. The base is the palette's
+     existing game-state accent; the deep is a LITERAL, not `var(--color-tl-5)`,
+     which holds the same value but means TECH LEVEL — aliasing it would tie the
+     Game ontology to tech-level semantics. Chosen for contrast, not by eye:
+     EntityRow's empty variant paints `tone.rail` as TEXT on the tone wash, and
+     #1e5364 measures 7.7:1 there, mid-family between mech (9.1) and crawler (7.5). */
+  --color-sheet-game: var(--color-wk-accent); /* #7dceeb */
+  --color-sheet-game-deep: rgb(30, 83, 100); /* #1e5364 */
 
   /* Heat-at-cap pulse (design review U-1): a subtle status-bad ring that
      breathes outward. Use as `motion-safe:animate-heat-pulse` so

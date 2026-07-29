@@ -28,17 +28,56 @@ type GameSummary = {
   mediator: boolean
   organizer: boolean
   memberCount: number
+  /** The communal crawler's name, or null before one exists. */
+  crawlerName: string | null
+  pilotCount: number
+  mechCount: number
 }
 
+/**
+ * Collapse a Game + the caller's membership into the row the Games list draws.
+ *
+ * The crawler name and the two counts exist because a Game lists as an
+ * `EntityRow` whose badges are "crawler · n pilots · n mechs" — the row has to
+ * say what the table *is*, not just what it is called.
+ *
+ * **Counting means collecting.** Convex has no count API, so each count is a
+ * `by_game` scan whose rows are then discarded, and `listMine` runs this once
+ * per Game you belong to. That is fine at a table's scale (a Game holds single
+ * digits of each) and is the honest cost of the badges; if it ever bites, the
+ * fix is a denormalised counter on `games`, not a cleverer query here.
+ */
 async function summarize(
   ctx: MutationCtx | Parameters<typeof requireMember>[0],
   game: Doc<'games'>,
   membership: Doc<'memberships'>
 ): Promise<GameSummary> {
-  const members = await ctx.db
-    .query('memberships')
-    .withIndex('by_game', (q) => q.eq('gameId', game._id))
-    .collect()
+  const [members, pilots, mechs, crawlers] = await Promise.all([
+    ctx.db
+      .query('memberships')
+      .withIndex('by_game', (q) => q.eq('gameId', game._id))
+      .collect(),
+    ctx.db
+      .query('pilots')
+      .withIndex('by_game', (q) => q.eq('gameId', game._id))
+      .collect(),
+    ctx.db
+      .query('mechs')
+      .withIndex('by_game', (q) => q.eq('gameId', game._id))
+      .collect(),
+    ctx.db
+      .query('crawlers')
+      .withIndex('by_game', (q) => q.eq('gameId', game._id))
+      .collect(),
+  ])
+
+  // The name lives in the opaque body Convex cannot validate (ADR-030), so read
+  // it defensively rather than trusting the shape — the same move `crew.vitals`
+  // makes for pilot and mech names.
+  const crawlerBody = crawlers[0]?.body as Record<string, unknown> | null | undefined
+  const rawName = crawlerBody?.name
+  const crawlerName = typeof rawName === 'string' && rawName.length > 0 ? rawName : null
+
   return {
     _id: game._id,
     name: game.name,
@@ -46,6 +85,9 @@ async function summarize(
     mediator: membership.mediator,
     organizer: membership.organizer,
     memberCount: members.length,
+    crawlerName,
+    pilotCount: pilots.length,
+    mechCount: mechs.length,
   }
 }
 
@@ -67,6 +109,26 @@ export const listMine = query({
       out.push(await summarize(ctx, game, membership))
     }
     return out
+  },
+})
+
+/**
+ * One Game, for its own route.
+ *
+ * Returns `null` rather than throwing when the caller is not a member, because
+ * a bookmarked `/games/<id>` for a Game you left is an ordinary thing to visit,
+ * not an error to surface. `null` also covers "no such Game", deliberately: a
+ * non-member must not be able to tell an existing Game from a deleted one.
+ */
+export const get = query({
+  args: { gameId: v.id('games') },
+  handler: async (ctx, args): Promise<GameSummary | null> => {
+    const userId = await requireUser(ctx)
+    const membership = await getMembership(ctx, args.gameId, userId)
+    if (membership === null) return null
+    const game = await ctx.db.get(args.gameId)
+    if (game === null) return null
+    return await summarize(ctx, game, membership)
   },
 })
 
