@@ -69,6 +69,7 @@ const OK_CREW = {
     pilots: [
       {
         id: 'p1',
+        appId: 'app-p1',
         ownerId: 'u1',
         ownerName: 'alxjrvs',
         present: true,
@@ -147,6 +148,7 @@ describe('/su sheet', () => {
         ok: true,
         table: 'pilots',
         id: 'p1',
+        appId: 'app-p1',
         ownerName: 'alxjrvs',
         body: { callsign: 'Rook', currentHP: 6 },
       },
@@ -217,8 +219,15 @@ describe('/su game', () => {
     expect(followUps[0]?.content).toContain('now the table for')
   })
 
-  test('bind denied by the Organizer rule says so, and announces nothing', async () => {
-    connect({ kind: 'denied', reason: 'forbidden', message: 'no' })
+  test('a forbidden bind reports the SERVER’s reason, not a generic one', async () => {
+    // The server knows the specifics and this module does not: being told "that
+    // channel is already bound to another game" is a different problem from
+    // "binding is the Organizer's job", and a generic line would mislead.
+    connect({
+      kind: 'denied',
+      reason: 'forbidden',
+      message: 'That channel is already bound to another game',
+    })
     const { interaction, edits, followUps } = fakeExecute({
       subcommand: 'bind',
       subcommandGroup: 'game',
@@ -226,7 +235,7 @@ describe('/su game', () => {
     })
     await gameCommand.execute(interaction)
 
-    expect(edits[0]?.content).toContain('Organizer')
+    expect(edits[0]?.content).toContain('already bound to another game')
     expect(followUps).toHaveLength(0)
   })
 
@@ -358,7 +367,14 @@ describe('/su dispatch', () => {
   test('routes /su sheet', async () => {
     connect({
       kind: 'ok',
-      value: { ok: true, table: 'pilots', id: 'p1', ownerName: null, body: { callsign: 'X' } },
+      value: {
+        ok: true,
+        table: 'pilots',
+        id: 'p1',
+        appId: 'app-p1',
+        ownerName: null,
+        body: { callsign: 'X' },
+      },
     })
     const { interaction, edits } = fakeExecute({
       subcommand: 'sheet',

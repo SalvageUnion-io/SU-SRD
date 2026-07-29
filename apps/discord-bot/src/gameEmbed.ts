@@ -186,14 +186,38 @@ export function ownerLabel(entity: OwnedEntity): string {
   return entity.ownerName ?? 'Crewmate'
 }
 
-/** Web URLs. The glance lives in Discord; the surface lives in the app. */
+/**
+ * Web URLs. The glance lives in Discord; the surface lives in the app.
+ *
+ * Both mirror real TanStack routes — `/games/$gameId` and `/sheet/$kind/$id`.
+ * A link that 404s is worse than no link: it reads as the app having lost the
+ * thing, rather than as the bot having guessed.
+ */
 export function gameUrl(webUrl: string, gameId: string): string {
-  return `${webUrl.replace(/\/+$/, '')}/games?game=${encodeURIComponent(gameId)}`
+  return `${webUrl.replace(/\/+$/, '')}/games/${encodeURIComponent(gameId)}`
 }
 
-export function sheetUrl(webUrl: string, table: 'pilots' | 'mechs', id: string): string {
+/**
+ * A sheet URL, or null when the entity cannot be opened from a browser.
+ *
+ * Takes the **app-level** id, never the Convex `_id`: `/sheet/$kind/$id`
+ * resolves out of IndexedDB by app id, so a URL built from `_id` opens nothing.
+ * Null in, null out — a server-created entity nobody has claimed has no local
+ * counterpart, and renders as a bare name.
+ */
+export function sheetUrl(
+  webUrl: string,
+  table: 'pilots' | 'mechs',
+  appId: string | null
+): string | null {
+  if (appId === null || appId.length === 0) return null
   const kind = table === 'pilots' ? 'pilot' : 'mech'
-  return `${webUrl.replace(/\/+$/, '')}/sheet/${kind}/${encodeURIComponent(id)}`
+  return `${webUrl.replace(/\/+$/, '')}/sheet/${kind}/${encodeURIComponent(appId)}`
+}
+
+/** `name` as a markdown link when there is somewhere to go, else bare. */
+function maybeLink(name: string, url: string | null): string {
+  return url === null ? name : `[${name}](${url})`
 }
 
 /**
@@ -204,7 +228,21 @@ export function sheetUrl(webUrl: string, table: 'pilots' | 'mechs', id: string):
  * so naming the reason leaks nothing to the channel while still explaining
  * itself. A command that silently does nothing is the worst of the options.
  */
-export function denialMessage(reason: DenialReason, webUrl: string): string {
+export function denialMessage(
+  reason: DenialReason,
+  webUrl: string,
+  serverMessage?: string
+): string {
+  // For `forbidden` and `not-found` the SERVER knows the specifics and this
+  // module does not: "that channel is already bound to another game" is a very
+  // different thing to be told than "binding is the Organizer's job", and a
+  // generic line here would actively mislead. The reasons below are the ones
+  // where the bot adds something the server cannot — a sign-in link, the name
+  // of the command that fixes it — so those keep their own wording.
+  if ((reason === 'forbidden' || reason === 'not-found') && serverMessage) {
+    return serverMessage
+  }
+
   switch (reason) {
     case 'unlinked':
       return [
@@ -292,8 +330,8 @@ export function buildShelfEmbed(shelf: ShelfResult, webUrl: string): EmbedData {
       name: `Pilots (${shelf.pilots.length})`,
       value: truncate(
         shelf.pilots
-          .map(
-            (p) => `[${name(p.body, ['callsign', 'name'])}](${sheetUrl(webUrl, 'pilots', p.id)})`
+          .map((p) =>
+            maybeLink(name(p.body, ['callsign', 'name']), sheetUrl(webUrl, 'pilots', p.appId))
           )
           .join('\n'),
         LIMIT.fieldValue
@@ -306,7 +344,7 @@ export function buildShelfEmbed(shelf: ShelfResult, webUrl: string): EmbedData {
       name: `Mechs (${shelf.mechs.length})`,
       value: truncate(
         shelf.mechs
-          .map((m) => `[${name(m.body, ['name'])}](${sheetUrl(webUrl, 'mechs', m.id)})`)
+          .map((m) => maybeLink(name(m.body, ['name']), sheetUrl(webUrl, 'mechs', m.appId)))
           .join('\n'),
         LIMIT.fieldValue
       ),
@@ -328,12 +366,16 @@ export function buildShelfEmbed(shelf: ShelfResult, webUrl: string): EmbedData {
 }
 
 /** One crewmate's block on the crew board: their pilots, then their mechs. */
-function crewFieldValue(pilots: OwnedEntity[], mechs: OwnedEntity[]): string {
+function crewFieldValue(pilots: OwnedEntity[], mechs: OwnedEntity[], webUrl: string): string {
   const lines: string[] = []
   for (const pilot of pilots) {
     const stats = pilotStats(pilot.body)
     const dead = stats.maxHp <= 0 || stats.hp === 0
-    lines.push(`**${str(pilot.body, 'callsign') ?? 'Pilot'}**${dead ? ' ✖' : ''}`)
+    const pilotName = maybeLink(
+      str(pilot.body, 'callsign') ?? 'Pilot',
+      sheetUrl(webUrl, 'pilots', pilot.appId)
+    )
+    lines.push(`**${pilotName}**${dead ? ' ✖' : ''}`)
     lines.push(`HP ${gauge(stats.hp, stats.maxHp)}`)
     lines.push(`AP ${gauge(stats.ap, stats.maxAp)}`)
   }
@@ -341,7 +383,11 @@ function crewFieldValue(pilots: OwnedEntity[], mechs: OwnedEntity[]): string {
     const stats = mechStats(mech.body)
     const destroyed = stats.sp === 0
     const overheated = stats.heat !== null && stats.maxHeat > 0 && stats.heat >= stats.maxHeat
-    lines.push(`${str(mech.body, 'name') ?? 'Mech'}${destroyed ? ' ✖' : ''}`)
+    const mechName = maybeLink(
+      str(mech.body, 'name') ?? 'Mech',
+      sheetUrl(webUrl, 'mechs', mech.appId)
+    )
+    lines.push(`${mechName}${destroyed ? ' ✖' : ''}`)
     lines.push(`SP ${gauge(stats.sp, stats.maxSp)}`)
     lines.push(`HT ${gauge(stats.heat, stats.maxHeat, '▲')}${overheated ? ' ⚠' : ''}`)
   }
@@ -357,11 +403,21 @@ function crewFieldValue(pilots: OwnedEntity[], mechs: OwnedEntity[]): string {
  */
 export function buildCrewEmbed(crew: CrewResult, webUrl: string): EmbedData {
   type Bucket = { label: string; present: boolean; pilots: OwnedEntity[]; mechs: OwnedEntity[] }
-  const buckets = new Map<string, Bucket>()
+
+  // Owners in a map, unclaimed in its own variable — rather than one map with a
+  // sentinel key. A sentinel has to both sort last and never collide with a
+  // user id, and those are two assumptions somebody has to keep true; holding
+  // it separately makes "unclaimed renders last, and always renders"
+  // structural instead of conventional.
+  const owned = new Map<string, Bucket>()
+  let unclaimed: Bucket | null = null
 
   const bucketFor = (entity: OwnedEntity): Bucket => {
-    const key = entity.ownerId ?? ' unclaimed'
-    const existing = buckets.get(key)
+    if (entity.ownerId === null) {
+      unclaimed ??= { label: UNCLAIMED, present: false, pilots: [], mechs: [] }
+      return unclaimed
+    }
+    const existing = owned.get(entity.ownerId)
     if (existing !== undefined) return existing
     const created: Bucket = {
       label: ownerLabel(entity),
@@ -369,30 +425,31 @@ export function buildCrewEmbed(crew: CrewResult, webUrl: string): EmbedData {
       pilots: [],
       mechs: [],
     }
-    buckets.set(key, created)
+    owned.set(entity.ownerId, created)
     return created
   }
 
   for (const pilot of crew.pilots) bucketFor(pilot).pilots.push(pilot)
   for (const mech of crew.mechs) bucketFor(mech).mechs.push(mech)
 
-  // Unclaimed sorts last: it is a state worth showing, not a crewmate.
-  const ordered = [...buckets.entries()].sort(([a], [b]) => a.localeCompare(b))
+  const ordered = [...owned.values()].sort((a, b) => a.label.localeCompare(b.label))
+  // Appended, so it is last without depending on how anything sorts.
+  if (unclaimed !== null) ordered.push(unclaimed)
 
-  const fields = ordered.slice(0, LIMIT.fields).map(([, bucket]) => ({
+  const fields = ordered.slice(0, LIMIT.fields).map((bucket) => ({
     name: truncate(`${bucket.present ? '● ' : ''}${bucket.label}`, LIMIT.fieldName),
-    value: truncate(crewFieldValue(bucket.pilots, bucket.mechs), LIMIT.fieldValue),
+    value: truncate(crewFieldValue(bucket.pilots, bucket.mechs, webUrl), LIMIT.fieldValue),
     inline: true,
   }))
 
-  const anyCritical = [...crew.pilots].some((p) => {
+  const anyCritical = crew.pilots.some((p) => {
     const stats = pilotStats(p.body)
     return stats.maxHp <= 0 || stats.hp === 0
   })
   const anyWrecked = crew.mechs.some((m) => mechStats(m.body).sp === 0)
 
-  const aboard = ordered.filter(([key]) => !key.startsWith(' ')).length
-  const present = ordered.filter(([key, b]) => !key.startsWith(' ') && b.present).length
+  const aboard = owned.size
+  const present = [...owned.values()].filter((b) => b.present).length
 
   return {
     title: truncate(`${crew.game.name} — Crew`, LIMIT.title),
@@ -475,9 +532,11 @@ export function buildSheetEmbed(sheet: SheetResult, webUrl: string): EmbedData {
   const name =
     sheet.table === 'pilots' ? (str(body, 'callsign') ?? 'Pilot') : (str(body, 'name') ?? 'Mech')
 
+  const url = sheetUrl(webUrl, sheet.table, sheet.appId)
   return {
     title: truncate(name, LIMIT.title),
-    url: sheetUrl(webUrl, sheet.table, sheet.id),
+    // Omitted rather than dead: an unclaimed entity has nothing to open.
+    ...(url === null ? {} : { url }),
     color: NEUTRAL,
     description: `Owned by **${owner}** · read-only`,
     fields,

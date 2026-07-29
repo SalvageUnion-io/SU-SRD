@@ -167,8 +167,14 @@ export const shelf = internalQuery({
 
     return {
       ok: true,
-      pilots: pilots.filter((p) => p.gameId === null).map((p) => ({ id: p._id, body: p.body })),
-      mechs: mechs.filter((m) => m.gameId === null).map((m) => ({ id: m._id, body: m.body })),
+      // See `crew` on why `appId` rides along: it is what the web sheet route
+      // actually resolves by.
+      pilots: pilots
+        .filter((p) => p.gameId === null)
+        .map((p) => ({ id: p._id, appId: p.appId ?? null, body: p.body })),
+      mechs: mechs
+        .filter((m) => m.gameId === null)
+        .map((m) => ({ id: m._id, appId: m.appId ?? null, body: m.body })),
     }
   },
 })
@@ -244,6 +250,12 @@ export const crew = internalQuery({
 
     const entry = (row: Doc<'pilots'> | Doc<'mechs'>) => ({
       id: row._id,
+      // The web sheet route resolves an entity by its APP-level id out of
+      // IndexedDB, not by the Convex `_id` — so a link built from `_id` opens
+      // nothing. Null for rows created server-side (a Game template) that
+      // nobody has claimed into a browser yet, and the bot omits the link
+      // rather than emitting a dead one.
+      appId: row.appId ?? null,
       ownerId: row.ownerId,
       ownerName: row.ownerId === null ? null : (names.get(row.ownerId)?.name ?? null),
       present: row.ownerId === null ? false : (names.get(row.ownerId)?.present ?? false),
@@ -283,7 +295,11 @@ export const sheet = internalQuery({
     const doc = await ctx.db.get(args.entityId as Id<'pilots'> | Id<'mechs'>)
     if (doc === null) return fail('not-found')
 
-    const row = doc as unknown as { gameId: Id<'games'> | null; ownerId: Id<'users'> | null }
+    const row = doc as unknown as {
+      gameId: Id<'games'> | null
+      ownerId: Id<'users'> | null
+      appId?: string
+    }
     // Not `forbidden` — telling somebody an id exists but is another table's is
     // itself a disclosure. An id they may not read is an id that is not there.
     if (row.gameId !== actor.value.gameId) return fail('not-found')
@@ -293,6 +309,7 @@ export const sheet = internalQuery({
       ok: true,
       table: args.table,
       id: args.entityId,
+      appId: row.appId ?? null,
       ownerName: row.ownerId === null ? null : (names.get(row.ownerId)?.name ?? null),
       body: (doc as unknown as { body: unknown }).body,
     }

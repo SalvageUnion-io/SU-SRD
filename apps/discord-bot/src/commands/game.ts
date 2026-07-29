@@ -111,7 +111,9 @@ async function bind(interaction: CommandExecuteInteraction): Promise<void> {
   const result = await client.bind(interaction.user.id, channelId, gameId)
 
   if (result.kind === 'denied') {
-    await interaction.editReply({ content: denialMessage(result.reason, config.itunWebUrl) })
+    await interaction.editReply({
+      content: denialMessage(result.reason, config.itunWebUrl, result.message),
+    })
     return
   }
   if (result.kind === 'unavailable') {
@@ -138,7 +140,9 @@ async function unbind(interaction: CommandExecuteInteraction): Promise<void> {
 
   const result = await client.unbind(interaction.user.id, channelId)
   if (result.kind === 'denied') {
-    await interaction.editReply({ content: denialMessage(result.reason, config.itunWebUrl) })
+    await interaction.editReply({
+      content: denialMessage(result.reason, config.itunWebUrl, result.message),
+    })
     return
   }
   if (result.kind === 'unavailable') {

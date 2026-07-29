@@ -7,8 +7,10 @@ import {
   buildGamesEmbed,
   buildShelfEmbed,
   denialMessage,
+  gameUrl,
   gauge,
   ownerLabel,
+  sheetUrl,
 } from '../gameEmbed.js'
 import type { CrewResult, OwnedEntity } from '../itun/types.js'
 
@@ -32,6 +34,7 @@ beforeAll(async () => {
 function pilot(overrides: Partial<OwnedEntity> & { body?: Record<string, unknown> }): OwnedEntity {
   return {
     id: 'p1',
+    appId: 'app-p1',
     ownerId: 'u1',
     ownerName: 'alxjrvs',
     present: false,
@@ -87,6 +90,7 @@ describe('vital field names', () => {
         mechs: [
           {
             id: 'm1',
+            appId: 'app-m1',
             ownerId: 'u1',
             ownerName: 'alxjrvs',
             present: false,
@@ -178,6 +182,7 @@ describe('buildCrewEmbed', () => {
         mechs: [
           {
             id: 'm1',
+            appId: 'app-m1',
             ownerId: 'u1',
             ownerName: 'alxjrvs',
             present: false,
@@ -213,6 +218,7 @@ describe('buildCrewEmbed', () => {
         mechs: [
           {
             id: 'm1',
+            appId: 'app-m1',
             ownerId: 'u1',
             ownerName: 'alxjrvs',
             present: false,
@@ -246,6 +252,106 @@ describe('buildCrewEmbed', () => {
   })
 })
 
+describe('deep links', () => {
+  test('a game links to its own route, not a query string', () => {
+    // /games/$gameId is the real TanStack route (games_.$gameId.tsx). A link
+    // that 404s reads as the app having lost the game, not as the bot guessing.
+    expect(gameUrl(WEB, 'g1')).toBe(`${WEB}/games/g1`)
+  })
+
+  test('a sheet links by APP id, never by the Convex id', () => {
+    // /sheet/$kind/$id resolves out of IndexedDB by app-level id, so a URL
+    // built from the Convex `_id` opens nothing at all.
+    expect(sheetUrl(WEB, 'pilots', 'app-p1')).toBe(`${WEB}/sheet/pilot/app-p1`)
+    expect(sheetUrl(WEB, 'mechs', 'app-m1')).toBe(`${WEB}/sheet/mech/app-m1`)
+  })
+
+  test('an entity with no app id has no link at all', () => {
+    // Unclaimed server-side entities have no local counterpart to open.
+    expect(sheetUrl(WEB, 'pilots', null)).toBeNull()
+    expect(sheetUrl(WEB, 'pilots', '')).toBeNull()
+  })
+
+  test('the crew board links what it can and leaves the rest bare', () => {
+    const embed = buildCrewEmbed(
+      {
+        game: { gameId: 'g1', name: 'Tenacity' },
+        viewerId: 'u1',
+        pilots: [
+          pilot({ appId: 'app-p1', body: { callsign: 'Rook', currentHP: 6 } }),
+          pilot({
+            id: 'p2',
+            appId: null,
+            ownerId: null,
+            ownerName: null,
+            body: { callsign: 'Nobody' },
+          }),
+        ],
+        mechs: [],
+        crawler: null,
+      },
+      WEB
+    )
+    const linked = embed.fields.find((f) => f.name.includes('alxjrvs'))?.value ?? ''
+    const bare = embed.fields.find((f) => f.name.includes('Unclaimed'))?.value ?? ''
+    expect(linked).toContain(`${WEB}/sheet/pilot/app-p1`)
+    expect(bare).toContain('Nobody')
+    expect(bare).not.toContain('](')
+  })
+
+  test('the shelf renders an unlinkable entity as a bare name', () => {
+    const embed = buildShelfEmbed(
+      { pilots: [{ id: 'p1', appId: null, body: { callsign: 'Rook' } }], mechs: [] },
+      WEB
+    )
+    expect(embed.fields[0]?.value).toBe('Rook')
+  })
+})
+
+describe('unclaimed ordering', () => {
+  test('unclaimed renders LAST, after every owner', () => {
+    // It is a state worth showing, not a crewmate — it should not be the first
+    // thing the table reads. Previously it sorted FIRST, because the sentinel
+    // key began with a space.
+    const embed = buildCrewEmbed(
+      {
+        game: { gameId: 'g1', name: 'Tenacity' },
+        viewerId: 'u1',
+        pilots: [
+          pilot({ id: 'p0', ownerId: null, ownerName: null, body: { callsign: 'Nobody' } }),
+          pilot({ id: 'p1', ownerId: 'u9', ownerName: 'Zed' }),
+          pilot({ id: 'p2', ownerId: 'u1', ownerName: 'alxjrvs' }),
+        ],
+        mechs: [],
+        crawler: null,
+      },
+      WEB
+    )
+    const names = embed.fields.map((f) => f.name)
+    expect(names[names.length - 1]).toContain('Unclaimed')
+    // Owners stay alphabetical among themselves.
+    expect(names[0]).toContain('alxjrvs')
+    expect(names[1]).toContain('Zed')
+  })
+
+  test('the aboard count excludes the unclaimed bucket', () => {
+    const embed = buildCrewEmbed(
+      {
+        game: { gameId: 'g1', name: 'Tenacity' },
+        viewerId: 'u1',
+        pilots: [
+          pilot({ id: 'p0', ownerId: null, ownerName: null }),
+          pilot({ id: 'p1', ownerId: 'u1', ownerName: 'alxjrvs' }),
+        ],
+        mechs: [],
+        crawler: null,
+      },
+      WEB
+    )
+    expect(embed.description).toContain('1 aboard')
+  })
+})
+
 describe('buildShelfEmbed', () => {
   test('explains an empty shelf rather than rendering a blank card', () => {
     const embed = buildShelfEmbed({ pilots: [], mechs: [] }, WEB)
@@ -255,10 +361,10 @@ describe('buildShelfEmbed', () => {
 
   test('links each entity to its sheet', () => {
     const embed = buildShelfEmbed(
-      { pilots: [{ id: 'p1', body: { callsign: 'Rook' } }], mechs: [] },
+      { pilots: [{ id: 'p1', appId: 'app-p1', body: { callsign: 'Rook' } }], mechs: [] },
       WEB
     )
-    expect(embed.fields[0]?.value).toContain(`${WEB}/sheet/pilot/p1`)
+    expect(embed.fields[0]?.value).toContain(`${WEB}/sheet/pilot/app-p1`)
   })
 })
 

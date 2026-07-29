@@ -59,6 +59,15 @@ export type EntityBody = Record<string, unknown>
 
 export type OwnedEntity = {
   id: string
+  /**
+   * The app-level id, or null.
+   *
+   * Deep links use THIS, never `id`: the web sheet route resolves an entity out
+   * of IndexedDB by its app-level id, so a URL built from the Convex `_id`
+   * opens nothing. Null means nobody has claimed the entity into a browser yet,
+   * and the bot renders the name without a link rather than a dead one.
+   */
+  appId: string | null
   ownerId: string | null
   ownerName: string | null
   present: boolean
@@ -74,8 +83,8 @@ export type CrewResult = {
 }
 
 export type ShelfResult = {
-  pilots: { id: string; body: EntityBody }[]
-  mechs: { id: string; body: EntityBody }[]
+  pilots: { id: string; appId: string | null; body: EntityBody }[]
+  mechs: { id: string; appId: string | null; body: EntityBody }[]
 }
 
 export type ChannelResult = {
@@ -98,6 +107,7 @@ export type ChannelResult = {
 export type SheetResult = {
   table: 'pilots' | 'mechs'
   id: string
+  appId: string | null
   ownerName: string | null
   body: EntityBody
 }

@@ -138,7 +138,9 @@ export async function respondWithItun<T>(
       return
     }
     case 'denied':
-      await interaction.editReply({ content: denialMessage(result.reason, config.itunWebUrl) })
+      await interaction.editReply({
+        content: denialMessage(result.reason, config.itunWebUrl, result.message),
+      })
       return
     case 'unavailable':
       await interaction.editReply({ content: result.message })

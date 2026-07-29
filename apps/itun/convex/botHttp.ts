@@ -126,8 +126,11 @@ export const botRoute = httpAction(async (ctx, request) => {
         : await ctx.runMutation(MUTATIONS[op as keyof typeof MUTATIONS], args as never)
     return json(result, 200)
   } catch (error) {
-    // Argument-validation failures are the bot's fault and are worth telling it
-    // about; anything else is ours and is deliberately opaque over the wire.
+    // The message is passed through deliberately, and it is safe to: this
+    // route is already behind the bot credential, so the only reader is the
+    // bot, and the bot renders every non-200 as a flat "could not be reached"
+    // rather than surfacing this text to anybody. What it buys is a real
+    // argument-validation error in the logs instead of a bare 400.
     const message = error instanceof Error ? error.message : 'internal error'
     return json({ error: message }, 400)
   }
