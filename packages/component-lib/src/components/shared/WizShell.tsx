@@ -383,15 +383,25 @@ export function WizShell({
         <main className="flex min-w-0 flex-1 flex-col px-5 py-5 lg:px-10 lg:py-[30px]">
           {tintedStepCard ? (
             /* Blown-up tinted step card (mockup `.stepcard`): tone-card fill,
-               flush ink number tab, white condensed step head. */
+               flush ink number tab, condensed step head in the card ink. */
             <div className={cn('min-h-0 flex-1 sm:pl-5', contentPad)}>
               <article
-                className="relative rounded-xl px-5 pb-6 pt-5 shadow-[0_14px_26px_-14px_var(--color-ink-40),inset_0_0_46px_var(--color-ink-8)] sm:pl-8"
+                /* `sm:pl-12` (48px) is LOAD-BEARING, not a taste-level inset: it
+                   is the gutter the overhanging number tab below is measured
+                   against. The tab is `w-14` (56px) at `-left-5` (-20px), so its
+                   right edge lands 36px inside the card — under the old `sm:pl-8`
+                   (32px) the content box started 4px to the LEFT of that, and the
+                   black tab printed on top of both the step title's first glyph
+                   and the RuleBrief panel's left edge. 48px clears it by 12px.
+                   Same overhang-plus-clearance relationship as `ModeDoor`'s tab.
+                   Move one of the three numbers and you must move the others. */
+                className="relative rounded-xl px-5 pb-6 pt-5 shadow-[0_14px_26px_-14px_var(--color-ink-40),inset_0_0_46px_var(--color-ink-8)] sm:pl-12"
                 style={{
                   background: 'var(--tone-card, var(--tone))',
-                  // Card ink: rust (mech) needs WHITE body ink for legible
-                  // contrast; sky blue / peach keep dark ink. Content that
-                  // sits directly on the card inherits via `text-current`.
+                  // Card ink, ONE rule for all three sheets: every step card is
+                  // now a light tint derived from its page tone, so all of them
+                  // take dark ink (6.8–9.7:1). Content sitting directly on the
+                  // card — the step head included — inherits via `text-current`.
                   color: 'var(--tone-card-ink, var(--color-ink))',
                 }}
               >
@@ -402,7 +412,17 @@ export function WizShell({
                   {active + 1}
                 </span>
                 <header>
-                  <h1 className="m-0 font-cond text-display font-bold uppercase leading-[1.05] text-paper [text-shadow:0_1px_0_var(--color-ink-40)]">
+                  {/* The title INHERITS `--tone-card-ink` from the article
+                      (`text-current`) instead of hardcoding `text-paper`. White
+                      was safe only while the step cards were dark book literals;
+                      now that every card is a light tint derived from its page
+                      tone, a white title measures 1.54:1 on the pilot fill and
+                      1.91 / 2.18 on mech and crawler — invisible.
+                      Inheriting keeps the title and the body copy on the same
+                      ink rule, so a future dark card flips both together. The
+                      dark `text-shadow` went with it: it existed to lift white
+                      type off a saturated fill and only muddies dark type. */}
+                  <h1 className="m-0 font-cond text-display font-bold uppercase leading-[1.05] text-current">
                     <span className="sr-only">
                       Step {active + 1} of {steps.length} ·{' '}
                     </span>

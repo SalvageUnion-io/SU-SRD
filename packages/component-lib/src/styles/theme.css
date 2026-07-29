@@ -339,6 +339,39 @@
 .sheet--mech,
 .sheet--crawler {
   --tone: var(--sheet-tone, var(--tone-default));
+
+  /* WIZARD STEP-CARD FILL — ONE rule for all three sheets, derived from the
+     page tone rather than three book literals.
+
+     It used to be three hardcoded spread colours: pilot sky-blue (#6BB8D6,
+     pp.18–19), mech rust (#B0553A, pp.94–95), crawler peach (#EC9C67,
+     pp.212–213). On the crawler that shipped an ORANGE card onto a wholly pink
+     page — the masthead band, the `--ground` fill and the guided door all
+     resolve from `--tone`, so the one blown-up element mid-screen was the only
+     thing that did not belong. Deriving it fixes that by construction and
+     survives a restyle: change `--tone` and the step card follows.
+
+     The formula is a fixed STEP off the tone, not a fixed colour, so each sheet
+     keeps its own hue:
+       lightness +0.13 — enough of a gap that the `var(--tone)` RuleBrief band
+                         sitting INSIDE the card still reads as a distinct band.
+                         A fixed target lightness could not do this: pilot's
+                         tone is already L=0.729, so any shared absolute value
+                         either collapsed against pilot's band or blew past the
+                         legibility ceiling on the other two.
+       chroma   ×0.62  — backs off the saturation so the card reads as the
+                         paper the step is printed on, not a second band.
+     Sampled from rendered pixels (NOT the raw formula output — pilot's ideal
+     value is outside sRGB, so the browser gamut-maps it): #F9BC99 (pilot),
+     #A6B9B0 (mech), #DD93B7 (crawler).
+
+     Every card therefore lands light and takes DARK ink, at 9.67 / 7.77 /
+     6.81:1. That unifies a split that used to exist: mech alone carried
+     `--color-paper` ink because rust was too dark to read against. One fill
+     rule, one ink rule. See WizShell's `tintedStepCard`, whose step title
+     inherits this ink rather than hardcoding white. */
+  --tone-card: oklch(from var(--tone) calc(l + 0.13) calc(c * 0.62) h);
+  --tone-card-ink: var(--color-ink);
 }
 
 .sheet--pilot {
@@ -346,12 +379,6 @@
   --tone-deep: var(--color-sheet-pilot-deep);
   --ground: oklch(from var(--tone) 0.955 0.03 h);
   --ground-2: oklch(from var(--tone) 0.985 0.012 h);
-  /* Wizard step-card fill (wizard-refresh mockup): the sky-blue step cards of
-     the printed Pilot Bay spread, pp.18–19 (#6BB8D6). Opt-in via WizShell's
-     tintedStepCard — only book-order wizards render it. Sky blue is light
-     enough for dark ink. */
-  --tone-card: rgb(107, 184, 214);
-  --tone-card-ink: var(--color-ink);
 }
 
 .sheet--mech {
@@ -359,11 +386,6 @@
   --tone-deep: var(--color-sheet-mech-deep);
   --ground: oklch(from var(--tone) 0.955 0.022 h);
   --ground-2: oklch(from var(--tone) 0.985 0.01 h);
-  /* Mech Workshop step-card rust, pp.94–95 (#B0553A). Rust is too dark for
-     ink text — the card ink is WHITE (matching the printed spread's white
-     body copy on the rust step cards). */
-  --tone-card: rgb(176, 85, 58);
-  --tone-card-ink: var(--color-paper);
 }
 
 .sheet--crawler {
@@ -371,11 +393,6 @@
   --tone-deep: var(--color-sheet-crawler-deep);
   --ground: oklch(from var(--tone) 0.955 0.03 h);
   --ground-2: oklch(from var(--tone) 0.985 0.012 h);
-  /* Union Crawler step-card peach, pp.212–213 (#EC9C67) — unused until the
-     crawler wizard's book-order phase opts in. Peach is light enough for
-     dark ink. */
-  --tone-card: rgb(236, 156, 103);
-  --tone-card-ink: var(--color-ink);
 }
 
 /* Mobile-first touch targets */
