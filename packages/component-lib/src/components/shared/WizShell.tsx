@@ -411,7 +411,16 @@ export function WizShell({
                   {active + 1}
                 </span>
                 <header>
-                  <h1 className="m-0 font-cond text-display font-bold uppercase leading-[1.05] text-paper [text-shadow:0_1px_0_var(--color-ink-40)]">
+                  {/* The title INHERITS `--tone-card-ink` from the article
+                      (`text-current`) instead of hardcoding `text-paper`. White
+                      was safe only while the step cards were dark book literals;
+                      now that every card is a light tint derived from its page
+                      tone, a white title lands at 1.47:1 on pilot — invisible.
+                      Inheriting keeps the title and the body copy on the same
+                      ink rule, so a future dark card flips both together. The
+                      dark `text-shadow` went with it: it existed to lift white
+                      type off a saturated fill and only muddies dark type. */}
+                  <h1 className="m-0 font-cond text-display font-bold uppercase leading-[1.05] text-current">
                     <span className="sr-only">
                       Step {active + 1} of {steps.length} ·{' '}
                     </span>
