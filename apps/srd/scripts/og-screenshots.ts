@@ -117,8 +117,13 @@ function readManifest(): Manifest {
 }
 
 function entityHash(item: unknown): string {
+  // Every geometry input that changes the OUTPUT is in the key — including the
+  // frame width, so adjusting CATALOG_TILE_PADDING self-invalidates instead of
+  // quietly serving PNGs rendered at the old scale.
   return createHash('sha1')
-    .update(`v${SCRIPT_VERSION}:${OG_WIDTH}x${OG_HEIGHT}@${CATALOG_TILE_WIDTH}:`)
+    .update(
+      `v${SCRIPT_VERSION}:${OG_WIDTH}x${OG_HEIGHT}@${CATALOG_TILE_WIDTH}+${CATALOG_FRAME_WIDTH}:`
+    )
     .update(JSON.stringify(item))
     .digest('hex')
 }
@@ -167,8 +172,15 @@ function itemHtmlPath(entity: Entity): string {
  */
 function pointPageAtOgImage(entity: Entity): boolean {
   const htmlPath = itemHtmlPath(entity)
-  if (!existsSync(htmlPath)) return false
-  const html = readFileSync(htmlPath, 'utf8')
+  // Read directly and handle the failure, rather than existsSync-then-read:
+  // the check-then-use pattern is a file-system race (CodeQL js/file-system-race)
+  // and buys nothing here, since the read can fail for reasons a stat can't rule out.
+  let html: string
+  try {
+    html = readFileSync(htmlPath, 'utf8')
+  } catch {
+    return false
+  }
   const defaultUrl = new URL(DEFAULT_OG_IMAGE, SITE_URL).href
   if (!html.includes(defaultUrl)) return false
   const ownUrl = new URL(ogImagePath(entity.schemaId, entity.itemId, entity.patternId), SITE_URL)
