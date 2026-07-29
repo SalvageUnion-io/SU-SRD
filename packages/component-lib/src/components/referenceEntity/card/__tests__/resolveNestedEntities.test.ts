@@ -130,12 +130,64 @@ describe('resolvePatternGroups', () => {
     expect(names(group(groups, 'Systems')?.entities ?? [])).toEqual(['Green Laser'])
   })
 
-  test('duplicate entries within a group are de-duplicated', () => {
+  test('a `count` renders one card per installed copy', () => {
+    // Atlas's Thunder Storm is the printed case: the book's pattern block reads
+    // ".50 Cal Machine Gun x6". This resolver used to de-duplicate by entity id,
+    // so all six collapsed into one card and the pattern silently under-reported
+    // its armament.
+    const groups = resolvePatternGroups(pattern('Atlas', 'Thunder Storm'))
+    expect(names(group(groups, 'Systems')?.entities ?? [])).toEqual([
+      '.50 Cal Machine Gun',
+      '.50 Cal Machine Gun',
+      '.50 Cal Machine Gun',
+      '.50 Cal Machine Gun',
+      '.50 Cal Machine Gun',
+      '.50 Cal Machine Gun',
+      'Armour Plating',
+      'Escape Hatch',
+      'Locomotion System',
+      'Personnel Transport Pod',
+      'Shotgun Pit',
+    ])
+  })
+
+  test('several counted systems in one pattern each keep their own multiplicity', () => {
+    // Leviathan's Destroyer is the heaviest case in the dataset: three separate
+    // counted weapons, which the old de-dupe flattened to one card each.
+    const systems = names(
+      group(resolvePatternGroups(pattern('Leviathan', 'Destroyer')), 'Systems')?.entities ?? []
+    )
+    expect(systems.filter((n) => n === '.50 Cal Machine Gun')).toHaveLength(6)
+    expect(systems.filter((n) => n === 'Red Laser')).toHaveLength(3)
+    expect(systems.filter((n) => n === '30mm Autocannon')).toHaveLength(2)
+  })
+
+  test('a multiple spelled as REPEATED ENTRIES (no `count`) also survives', () => {
+    // The data spells multiplicity two ways. Trooper's DronTek lists
+    // `Articulated Rigging Arm` and `Chaff Launcher` twice each as separate
+    // entries rather than carrying a `count`, so a fix that only reads `count`
+    // would still drop these.
+    const systems = names(
+      group(resolvePatternGroups(pattern('Trooper', 'DronTek')), 'Systems')?.entities ?? []
+    )
+    expect(systems.filter((n) => n === 'Articulated Rigging Arm')).toHaveLength(2)
+    expect(systems.filter((n) => n === 'Chaff Launcher')).toHaveLength(2)
+  })
+
+  test('a count of 1 (or none) still renders exactly one card', () => {
     const groups = resolvePatternGroups({
       name: 'Fake',
-      systems: [{ name: 'Green Laser' }, { name: 'Green Laser' }],
+      systems: [{ name: 'Green Laser', count: 1 }, { name: 'Escape Hatch' }],
     } as SURefObjectPattern)
-    expect(group(groups, 'Systems')?.entities).toHaveLength(1)
+    expect(names(group(groups, 'Systems')?.entities ?? [])).toEqual(['Green Laser', 'Escape Hatch'])
+  })
+
+  test('a module `count` expands the same way a system count does', () => {
+    const groups = resolvePatternGroups({
+      name: 'Fake',
+      modules: [{ name: 'Comms Module', count: 3 }],
+    } as SURefObjectPattern)
+    expect(group(groups, 'Modules')?.entities).toHaveLength(3)
   })
 
   test('an empty pattern yields no groups', () => {

@@ -104,6 +104,27 @@ describe('full pattern view reading order', () => {
     expect(patternProse).toBeLessThan(systems)
     expect(systems).toBeLessThan(modules)
   })
+
+  test('a system installed six times renders six cards, not one', () => {
+    // The end-to-end guard for the multiplicity fix in `resolvePatternGroups`.
+    // Atlas's Thunder Storm prints as ".50 Cal Machine Gun x6" in the book; the
+    // card used to de-duplicate the loadout by entity id, so the whole pattern
+    // rendered a single machine gun and read as a far lighter build than it is.
+    const chassis = SalvageUnionReference.Chassis.all().find((c) => c.name === 'Atlas')
+    if (!chassis) throw new Error('Atlas fixture missing')
+    const pattern = chassis.patterns?.find((p) => p.name === 'Thunder Storm')
+    if (!pattern) throw new Error('Thunder Storm pattern fixture missing')
+    // Guard the fixture: the count is what drives the expansion.
+    expect(pattern.systems?.find((s) => s.name === '.50 Cal Machine Gun')?.count).toBe(6)
+
+    render(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />)
+
+    // One name node per rendered card.
+    expect(screen.getAllByText('.50 Cal Machine Gun')).toHaveLength(6)
+    // The uncounted systems stay single — the fix must not multiply everything.
+    expect(screen.getAllByText('Shotgun Pit')).toHaveLength(1)
+    expect(screen.getAllByText('Armour Plating')).toHaveLength(1)
+  })
 })
 
 /**

@@ -99,38 +99,46 @@ export function resolveNestedEntities(entity: SURefMetaEntity): NestedGroup[] {
 /**
  * A single pattern's loadout, grouped for the PATTERN view: its `systems` and
  * `modules` (and any named `drones`), resolved by name into real reference
- * entities and de-duplicated. Rendered as `Slab`-separated masonry groups of
- * compact cards under the pattern (with the chassis name as a seam stampseal).
+ * entities. Rendered as `Slab`-separated masonry groups of compact cards under
+ * the pattern (with the chassis name as a seam stampseal).
+ *
+ * MULTIPLICITY IS PRESERVED — one card per installed copy, matching the printed
+ * pattern block (Atlas's Thunder Storm reads ".50 Cal Machine Gun x6") and the
+ * wizard's own expansion in `useChassisPatternConfig`.
+ *
+ * This function used to de-duplicate by `label:schema:id`, which silently
+ * collapsed every multiple in the SRD pattern view — 60 of 209 patterns, so
+ * Leviathan's Destroyer showed one .50 Cal instead of six, one Red Laser
+ * instead of three, one 30mm Autocannon instead of two. It also swallowed the
+ * OTHER way the data spells a multiple: Trooper's DronTek pattern repeats
+ * `Articulated Rigging Arm` and `Chaff Launcher` as separate entries with no
+ * `count`, so both spellings have to survive the walk.
+ *
+ * Duplicate cards are safe to render: the card's `cardKey` disambiguates by
+ * index, not by entity id.
  */
 export function resolvePatternGroups(pattern: SURefObjectPattern): NestedGroup[] {
   const groups = new Map<string, SURefEntity[]>()
-  const seen = new Set<string>()
 
-  const push = (label: string, candidate: SURefEntity | undefined): void => {
+  const push = (label: string, candidate: SURefEntity | undefined, count = 1): void => {
     if (!candidate) return
-    const id = 'id' in candidate && typeof candidate.id === 'string' ? candidate.id : ''
-    const name = 'name' in candidate && typeof candidate.name === 'string' ? candidate.name : ''
-    const schema =
-      'schemaName' in candidate && typeof candidate.schemaName === 'string'
-        ? candidate.schemaName
-        : ''
-    const key = `${label}:${schema}:${id || name}`
-    if (seen.has(key)) return
-    seen.add(key)
+    const copies = Array.from({ length: Math.max(1, count) }, () => candidate)
     const bucket = groups.get(label)
-    if (bucket) bucket.push(candidate)
-    else groups.set(label, [candidate])
+    if (bucket) bucket.push(...copies)
+    else groups.set(label, copies)
   }
 
   for (const s of pattern.systems ?? [])
     push(
       'Systems',
-      SalvageUnionReference.findIn('systems', (x) => x.name === s.name)
+      SalvageUnionReference.findIn('systems', (x) => x.name === s.name),
+      s.count
     )
   for (const m of pattern.modules ?? [])
     push(
       'Modules',
-      SalvageUnionReference.findIn('modules', (x) => x.name === m.name)
+      SalvageUnionReference.findIn('modules', (x) => x.name === m.name),
+      m.count
     )
   for (const d of pattern.drones ?? [])
     push(
