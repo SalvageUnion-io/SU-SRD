@@ -49,7 +49,18 @@ export const vitals = query({
       names.set(m.userId, user?.displayName ?? user?.name ?? 'Crewmate')
     }
 
-    /** Read a numeric field off an opaque body without trusting its shape. */
+    /**
+     * Read a numeric field off an opaque body without trusting its shape.
+     *
+     * **The key must match the Zod schema exactly, including case.** These
+     * originally read `currentHp` / `currentAp` / `currentSp` while
+     * `src/lib/schemas/` defines `currentHP` / `currentAP` / `currentSP`, so
+     * every pilot's HP and AP and every mech's SP came back null and the crew
+     * strip rendered a full row of em-dashes — indistinguishable from "nobody
+     * has taken damage yet", which is why it survived review. The body is
+     * `v.any()` on this side of the wire, so nothing but this comment and the
+     * test below will catch it next time.
+     */
     const num = (body: unknown, key: string): number | null => {
       const value = (body as Record<string, unknown> | null)?.[key]
       return typeof value === 'number' ? value : null
@@ -63,8 +74,8 @@ export const vitals = query({
         ownerId: p.ownerId,
         ownerName: p.ownerId === null ? null : (names.get(p.ownerId) ?? null),
         name: ((p.body as Record<string, unknown> | null)?.callsign as string) ?? 'Pilot',
-        currentHp: num(p.body, 'currentHp'),
-        currentAp: num(p.body, 'currentAp'),
+        currentHP: num(p.body, 'currentHP'),
+        currentAP: num(p.body, 'currentAP'),
       })),
       mechs: mechs.map((m) => ({
         _id: m._id,
@@ -72,7 +83,7 @@ export const vitals = query({
         ownerId: m.ownerId,
         ownerName: m.ownerId === null ? null : (names.get(m.ownerId) ?? null),
         name: ((m.body as Record<string, unknown> | null)?.name as string) ?? 'Mech',
-        currentSp: num(m.body, 'currentSp'),
+        currentSP: num(m.body, 'currentSP'),
         currentHeat: num(m.body, 'currentHeat'),
       })),
     }

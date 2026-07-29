@@ -11,8 +11,13 @@ import { render, screen } from '@testing-library/react'
  *
  * Queries are answered in **call order**; the generated `api` object is a Proxy
  * that throws when inspected, so position is the only stable key. Render order
- * is: amMediator, crew (vitals), presence, crew (propose form), alerts,
- * downtime state, downtime amMediator, npcs.
+ * is: amMediator, then the crew roster's three (me, members, listForGame), then
+ * crew (vitals), presence, crew (propose form), alerts, downtime state,
+ * downtime amMediator, npcs.
+ *
+ * Positional answering is brittle by construction — inserting a panel shifts
+ * every later answer — so `mediatingQueries` is the single place that encodes
+ * the order, and each case names only what it cares about.
  */
 
 let queryQueue: unknown[] = []
@@ -71,8 +76,8 @@ const CLAIMED_PILOT = {
   ownerId: 'u2',
   ownerName: 'Beefcake',
   name: 'Roach-Boy',
-  currentHp: 8,
-  currentAp: 4,
+  currentHP: 8,
+  currentAP: 4,
 }
 
 const UNCLAIMED_PILOT = {
@@ -81,19 +86,42 @@ const UNCLAIMED_PILOT = {
   ownerId: null,
   ownerName: null,
   name: 'Pre-gen',
-  currentHp: 10,
-  currentAp: 5,
+  currentHP: 10,
+  currentAP: 5,
 }
 
 const DOWNTIME = { running: false, stepIndex: null, completedBy: [], upkeepSpent: false }
 
+/** The signed-in viewer, as `account.me` returns them. */
+const ME = { _id: 'u1', displayName: 'Mediator', avatarUrl: null, email: null }
+
+/** This game's roster, as `games.members` returns it. */
+const MEMBERS = [
+  { userId: 'u1', displayName: 'Mediator', mediator: true, organizer: true },
+  { userId: 'u2', displayName: 'Beefcake', mediator: false, organizer: false },
+]
+
+/** An empty crew listing, as `entities.listForGame` returns one. */
+const EMPTY_LISTING = { pilots: [], mechs: [], crawlers: [], softLinks: [] }
+
 /** The full mediating render, with whatever crew and tray the case needs. */
 function mediatingQueries(
   crew: Record<string, unknown>,
-  extra: { presence?: unknown; alerts?: unknown; npcs?: unknown } = {}
+  extra: {
+    presence?: unknown
+    alerts?: unknown
+    npcs?: unknown
+    members?: unknown
+    listing?: unknown
+  } = {}
 ): unknown[] {
   return [
     true,
+    // The crew roster leads the surface now: who I am, who is in this game,
+    // and what the game holds.
+    ME,
+    extra.members ?? MEMBERS,
+    extra.listing ?? EMPTY_LISTING,
     crew,
     extra.presence ?? [],
     crew,

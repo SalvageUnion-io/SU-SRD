@@ -56,12 +56,38 @@ function pilotBody(over: Record<string, unknown> = {}) {
   }
 }
 
+/** A minimal body that satisfies CrawlerSchema — techLevel is a STRING. */
+function crawlerBody(over: Record<string, unknown> = {}) {
+  return {
+    id: 'c1',
+    schemaVersion: 1,
+    name: '#430',
+    techLevel: '1',
+    systems: [],
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    ...over,
+  }
+}
+
+/**
+ * A Game that is **set up**: crew invited and a crawler raised.
+ *
+ * The crawler is not decoration. A player may only add pilots and mechs to a
+ * Game that has one, so a fixture without it is a Game nobody can play in —
+ * every "the owner can write their own" case would fail at the create step, on
+ * a rule that has nothing to do with what it is testing. Raising it here keeps
+ * those tests about what they say they are about; the gate itself is proven
+ * directly in `tableSetup.test.ts`.
+ */
 async function seedGame(t: Ctx) {
   const organizer = await makeUser(t, 'Organizer')
   const player = await makeUser(t, 'Player')
   const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
   const code = await organizer.as.mutation(api.invites.create, { gameId })
   await player.as.mutation(api.invites.redeem, { code })
+  // The Organizer runs the table while the Game has no Mediator appointed.
+  await organizer.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
   return { organizer, player, gameId }
 }
 

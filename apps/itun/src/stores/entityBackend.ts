@@ -120,6 +120,55 @@ export async function mirrorWrite(
 }
 
 /**
+ * Mirror a local **crawler** write. Separate from `mirrorWrite` because the
+ * crawler's server contract is genuinely a different one, not a variant.
+ *
+ * Three differences, each of them a rule rather than an implementation detail:
+ *
+ *  - **Updates merge per field, they do not replace.** The crawler is communal
+ *    and contended during Downtime, so this sends the *patch* rather than the
+ *    whole body — two members editing scrap and cargo in the same minute both
+ *    land (ADR-030 §5).
+ *  - **There is no upsert.** Raising a crawler is the table runner's act, so a
+ *    create is a create (`createCrawler`, which the server refuses for a
+ *    player) and an edit can never quietly become one.
+ *  - **Only inside a Game.** A shelved or Solo crawler has no server row and
+ *    nothing to merge into.
+ *
+ * Fire-and-forget like the ownable mirror: the local write already succeeded
+ * and is what the UI reads. A refusal here means the local copy is ahead of a
+ * Game that did not accept it — see the known-gaps note in
+ * `docs/architecture/accounts-and-games.md`.
+ */
+export async function mirrorCrawlerWrite(
+  op:
+    | { kind: 'create'; appId: string; gameId: string; body: unknown }
+    | { kind: 'patch'; appId: string; patch: unknown }
+    | { kind: 'delete'; appId: string }
+): Promise<void> {
+  if (selectBackend() !== 'remote' || convexClient === null) return
+
+  try {
+    if (op.kind === 'create') {
+      await convexClient.mutation(api.entities.createCrawler, {
+        gameId: op.gameId as Id<'games'>,
+        appId: op.appId,
+        body: op.body,
+      })
+    } else if (op.kind === 'patch') {
+      await convexClient.mutation(api.entities.patchCrawlerByAppId, {
+        appId: op.appId,
+        patch: op.patch,
+      })
+    } else {
+      await convexClient.mutation(api.entities.removeCrawlerByAppId, { appId: op.appId })
+    }
+  } catch (err) {
+    console.warn('[itun] failed to mirror crawler write to the server of record', err)
+  }
+}
+
+/**
  * Guard a write against the current mode.
  *
  * Called by the store before it touches persistence. Returns the backend to

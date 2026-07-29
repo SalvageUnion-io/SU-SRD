@@ -133,10 +133,23 @@ to one value.
 This keeps ADR-001's honour-system ethos intact while giving the Mediator real
 reach, and it means **alerts and cross-player writes are one mechanism, not two**.
 
-Ownership itself is assigned rather than claimed: players do not self-claim
-unclaimed entities. Owners may always **release** what they hold, and the Mediator
-may **reassign**, so a mis-assignment is fixable. A player may own any number of
-entities in a Game — solo play and covering for an absent player both need it.
+Owners may always **release** what they hold, and the Mediator may **reassign**,
+so a mis-assignment is fixable. A player may own any number of entities in a
+Game — solo play and covering for an absent player both need it.
+
+> **Amended: players self-claim what is offered.** This section originally read
+> "ownership is assigned rather than claimed: players do not self-claim". That
+> is reversed. An unclaimed entity is an **offer to the crew** — that is the
+> whole reason the Mediator pre-builds characters and a template seeds six of
+> them — so a player taking one is accepting an offer, not seizing anything.
+> Requiring the Mediator to hand each one over individually added a round trip
+> to the first ten minutes of every table and bought no safety.
+>
+> The boundary the original rule protected is intact and is the important half:
+> **claiming touches only what is free.** An entity somebody already holds
+> cannot be taken; it must be released first, by its owner or by the Mediator.
+> `assign` remains the table runner's power to place an entity with a
+> _particular_ person, which self-claim cannot express.
 
 ### 5. Visibility
 
@@ -146,6 +159,35 @@ into a crewmate's full sheet **read-only**. The Mediator's prepared opposition
 any member may edit it — with conflicting writes resolved by field-level merge,
 because the scrap pool and cargo lots are genuinely contended during Downtime.
 
+### 5a. Setting the table up: who raises the crawler, and when a Game takes crew
+
+Communal-to-**edit** is not free-to-**create**, and the crawler is where the two
+come apart:
+
+- **Raising and scrapping a crawler is the table runner's act** — the Mediator,
+  or the Organizer while a Game has no Mediator (the same narrow fallback §3
+  already grants for assignment, and for the same reason: a Game is created with
+  `mediator: false` on its only membership, so a Mediator-strict rule would make
+  every new Game an unreachable state). Filling the crawler's fields stays
+  everyone's, exactly as §5 says.
+- **A Game takes a player's pilots and mechs once it has a crawler.** In Salvage
+  Union the crew is anchored to its crawler — it is where they repair, where the
+  scrap pool lives, where they return to — so a Game without one is not yet set
+  up. The table runner is exempt, because somebody has to be able to raise the
+  first one.
+- **A Game may hold several crawlers.** This was always true of the schema and is
+  now true of the surfaces. A campaign that loses a crawler and rebuilds, or
+  meets and eventually joins a second, is ordinary play rather than a state to
+  reject.
+
+The line all three sit on: a table runner arranges **what the crew sails in and
+who holds what**, and still cannot change a number on somebody else's sheet. For
+that there is a proposal (§4).
+
+Enforced in `convex/model/permissions.ts` (`requireTableRunner`, `gameHasCrawler`)
+and `convex/entities.ts`, and mirrored — never re-decided — for the UI in
+`apps/itun/src/lib/games/gameRoster.ts`.
+
 ### 6. Surfaces
 
 The **Mediator gets its own surface**, the layer ADR-021 deferred; the Encounter
@@ -153,6 +195,22 @@ tray is absorbed into it and `/encounter` retires. The player Dashboard's locked
 1280×800 canvas ([ADR-020](ADR-020-dashboard-fixed-canvas-scale-to-fit.md)) is
 **not** reopened: crew vitals arrive there as a **"Crew" dial item**, using the
 dial track's existing configurable show/hide and order.
+
+**A Game's crew is rendered as the Roster renders a shelf.** `/games/:id` (any
+member) and `/mediator/:id` (the Mediator, who gets the private instruments
+below it) both open with the same three ontology-toned columns of `EntityRow`s
+the home Roster uses, with a create CTA per column and a Dashboard launch on the
+rows that support one. A Game asks "what have we got and what can I do with it"
+of a different container, and answering it in a second visual vocabulary — which
+the first cut did, as a stack of bordered cards with no way into a sheet and no
+way to make anything — is how an app stops feeling like one app.
+
+What a shared roster adds on top of the personal one: an owner chip per row,
+an **UNCLAIMED** stamp seal that opens the pick-up confirm, and creation gated by
+§5a. Only entities the viewer **owns** offer a sheet link; ITUN's sheet is a live
+editing surface, so opening a crewmate's would hand over an editor whose writes
+the server refuses. The read-only drill-in §5 permits is a separate surface and
+is not built — the crew vitals strip carries that information for now.
 
 ## Amendment to ADR-022
 

@@ -44,7 +44,7 @@ export function CrewVitals({ gameId }: { gameId: Id<'games'> }) {
                 {owner(p.ownerName, p.ownerId)}
               </Text>
               <Text as="span" className={NUM}>
-                HP {p.currentHp ?? '—'} · AP {p.currentAp ?? '—'}
+                HP {p.currentHP ?? '—'} · AP {p.currentAP ?? '—'}
               </Text>
             </span>
           </div>
@@ -64,7 +64,7 @@ export function CrewVitals({ gameId }: { gameId: Id<'games'> }) {
                 {owner(m.ownerName, m.ownerId)}
               </Text>
               <Text as="span" className={NUM}>
-                SP {m.currentSp ?? '—'} · Heat {m.currentHeat ?? '—'}
+                SP {m.currentSP ?? '—'} · Heat {m.currentHeat ?? '—'}
               </Text>
             </span>
           </div>

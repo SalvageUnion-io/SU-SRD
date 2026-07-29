@@ -40,7 +40,7 @@ import type { Mech } from '../lib/schemas/mech'
 import type { Pilot } from '../lib/schemas/pilot'
 import type { SoftLink } from '../lib/schemas/softLink'
 import type { CreateInput, EntityForType, EntityType } from './types'
-import { mirrorWrite, requireWritableBackend } from './entityBackend'
+import { mirrorCrawlerWrite, mirrorWrite, requireWritableBackend } from './entityBackend'
 
 // Re-exported so consumers can import the type alongside the store itself.
 export type { EntityType }
@@ -84,6 +84,32 @@ export type EntityState = {
 
   /** Persists to db then updates in-memory state. Zod errors propagate. */
   create: <T extends EntityType>(type: T, input: CreateInput<T>) => Promise<EntityForType<T>>
+
+  /**
+   * Cache a row from the server of record under the id it already has
+   * (ADR-030 §1 — IndexedDB is the warm cache once you are signed in).
+   *
+   * This is the *only* write path that does not mirror back, and that is the
+   * point rather than an optimisation: the record came from the server, so
+   * echoing it would be a write nobody asked for — and for a crawler, whose
+   * mirror is a field merge, a pointless round trip that could clobber an edit
+   * a crewmate made between the read and the echo.
+   *
+   * It is also not a Change Log event. Nothing changed; a copy arrived.
+   */
+  adopt: <T extends EntityType>(type: T, record: EntityForType<T>) => Promise<EntityForType<T>>
+
+  /**
+   * Drop this browser's copy of an entity **without deleting it anywhere else**
+   * — the exact inverse of `adopt`, and deliberately not `delete`.
+   *
+   * The case it exists for: you hand a character back to the crew. The entity
+   * is not gone, it is simply no longer yours, and `delete` would try to mirror
+   * a destruction the server rightly refuses. Keeping the copy instead is worse
+   * still — it leaves a live sheet whose every save is rejected, which is the
+   * most confusing failure this app can produce.
+   */
+  forget: (type: EntityType, id: string) => Promise<void>
 
   /**
    * Merges patch, persists to db, updates in-memory state, then appends a
@@ -240,6 +266,7 @@ type DbStoreApi<T extends EntityType> = {
   create: (input: CreateInput<T>) => Promise<EntityForType<T>>
   update: (id: string, patch: Partial<EntityForType<T>>) => Promise<EntityForType<T>>
   prepareUpdate: (id: string, patch: Partial<EntityForType<T>>) => Promise<EntityForType<T>>
+  put: (record: EntityForType<T>) => Promise<EntityForType<T>>
   delete: (id: string) => Promise<void>
 }
 
@@ -253,11 +280,32 @@ const DB_STORES: { [K in EntityType]: DbStoreApi<K> } = {
 /**
  * Mirror a just-persisted record to the server of record.
  *
- * Only pilots and mechs: the crawler is communal and merges per field
- * server-side, and softLinks are derived. Fire-and-forget by design — the
- * local write is what the UI reads, so a mirror failure must not undo it.
+ * SoftLinks are derived and never mirrored. Pilots and mechs upsert their whole
+ * body; the crawler takes the other path (`mirrorCrawlerWrite`) because it is
+ * communal — its edits merge per field and only its table runner may raise or
+ * scrap one. Fire-and-forget by design: the local write is what the UI reads,
+ * so a mirror failure must not undo it.
+ *
+ * `patch` is passed on an update so a crawler mirrors the *changed fields*
+ * rather than its whole body; sending everything would turn a merge back into
+ * last-write-wins and lose whatever a crewmate changed in the same minute.
  */
-function mirrorEntityWrite(type: EntityType, record: { id: string; gameId?: string | null }): void {
+function mirrorEntityWrite(
+  type: EntityType,
+  record: { id: string; gameId?: string | null },
+  patch?: object
+): void {
+  if (type === 'crawler') {
+    const gameId = record.gameId ?? null
+    // Shelf and Solo crawlers have no server row to merge into.
+    if (gameId === null) return
+    if (patch === undefined) {
+      void mirrorCrawlerWrite({ kind: 'create', appId: record.id, gameId, body: record })
+      return
+    }
+    void mirrorCrawlerWrite({ kind: 'patch', appId: record.id, patch })
+    return
+  }
   if (type !== 'pilot' && type !== 'mech') return
   void mirrorWrite(type, {
     kind: 'upsert',
@@ -373,6 +421,40 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     return record
   },
 
+  async adopt<T extends EntityType>(type: T, record: EntityForType<T>): Promise<EntityForType<T>> {
+    const key = storeKeyFor(type)
+    // Deliberately no `requireWritableBackend()`: filling the cache is not a
+    // user write. A Disconnected reader must still be able to open what they
+    // already pulled down, and refusing here would make going offline lose
+    // access to a sheet rather than merely making it read-only.
+    const cached = await dbStoreFor(type).put(record)
+    set((state) => {
+      const list = state[key] as EntityForType<T>[]
+      const exists = list.some((e) => e.id === cached.id)
+      return {
+        [key]: exists ? list.map((e) => (e.id === cached.id ? cached : e)) : [cached, ...list],
+      }
+    })
+    publishStoreChange(broadcastNameFor(type))
+    return cached
+  },
+
+  async forget(type, id) {
+    const key = storeKeyFor(type)
+    // Local only, and cascading like `delete` does: a SoftLink pointing at an
+    // entity this browser no longer holds would render as a broken cross-link.
+    const prunedIds = await db.deleteEntityWithSoftLinks(broadcastNameFor(type), id)
+    if (prunedIds.length > 0) {
+      const pruned = new Set(prunedIds)
+      set((state) => ({ softLinks: state.softLinks.filter((l) => !pruned.has(l.id)) }))
+      publishStoreChange(STORE_NAMES.softLinks)
+    }
+    set((state) => ({
+      [key]: (state[key] as { id: string }[]).filter((e) => e.id !== id),
+    }))
+    publishStoreChange(broadcastNameFor(type))
+  },
+
   async update<T extends EntityType>(
     type: T,
     id: string,
@@ -384,7 +466,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     const before = get().get(type, id)
     requireWritableBackend()
     const updated = await dbStoreFor(type).update(id, patch)
-    mirrorEntityWrite(type, updated)
+    mirrorEntityWrite(type, updated, patch)
     set((state) => ({
       [key]: (state[key] as EntityForType<T>[]).map((e) => (e.id === id ? updated : e)),
     }))
@@ -513,6 +595,11 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     const key = storeKeyFor(type)
     requireWritableBackend()
     if (type === 'pilot' || type === 'mech') void mirrorWrite(type, { kind: 'delete', appId: id })
+    // Scrapping a crawler is the table runner's act; the server refuses anyone
+    // else, which is why this mirrors rather than deleting only locally.
+    if (type === 'crawler' && get().get('crawler', id)?.gameId != null) {
+      void mirrorCrawlerWrite({ kind: 'delete', appId: id })
+    }
 
     // Cascade: deleting an entity prunes its SoftLinks (plan 2.7, gap 9).
     // The entity delete and its link pruning run in a single IDB transaction

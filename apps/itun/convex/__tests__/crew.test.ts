@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
+import { MechSchema } from '../../src/lib/schemas/mech'
+import { PilotSchema } from '../../src/lib/schemas/pilot'
 import { api } from '../_generated/api'
 import { testConvex } from './harness'
 
@@ -39,7 +41,7 @@ describe('vitals', () => {
       await ctx.db.insert('pilots', {
         gameId,
         ownerId: player.userId,
-        body: { callsign: 'Roach-Boy', currentHp: 7, currentAp: 3 },
+        body: { callsign: 'Roach-Boy', currentHP: 7, currentAP: 3 },
         updatedAt: 1,
       })
     })
@@ -47,9 +49,63 @@ describe('vitals', () => {
     const crew = await organizer.as.query(api.crew.vitals, { gameId })
     expect(crew.pilots).toHaveLength(1)
     expect(crew.pilots[0]?.name).toBe('Roach-Boy')
-    expect(crew.pilots[0]?.currentHp).toBe(7)
+    expect(crew.pilots[0]?.currentHP).toBe(7)
     // The chip needs a name, not just an id.
     expect(crew.pilots[0]?.ownerName).toBe('Beefcake')
+  })
+
+  test('reads the field names the Zod schema actually defines', async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seedGame(t)
+
+    // The body is built by PARSING a real record rather than hand-written, so
+    // the key names come from the schema instead of from this test's memory of
+    // them. That is the whole point: this query used to read `currentHp` while
+    // the schema defines `currentHP`, every vital came back null, and the crew
+    // strip rendered em-dashes that were indistinguishable from an undamaged
+    // crew. A hand-written fixture agreed with the bug and kept it green.
+    const pilot = PilotSchema.parse({
+      id: 'p1',
+      schemaVersion: 1,
+      name: 'Roach-Boy',
+      callsign: 'Roach-Boy',
+      classRef: 'salvager',
+      abilities: [],
+      equipment: [],
+      motto: '',
+      keepsake: '',
+      appearance: '',
+      conditions: [],
+      currentHP: 9,
+      currentAP: 4,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    })
+    const mech = MechSchema.parse({
+      id: 'm1',
+      schemaVersion: 1,
+      name: 'Iron Mongrel',
+      chassisRef: 'iron-mongrel',
+      systems: [],
+      modules: [],
+      cargoLots: [],
+      conditions: [],
+      currentSP: 12,
+      currentHeat: 2,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    })
+
+    await t.run(async (ctx) => {
+      await ctx.db.insert('pilots', { gameId, ownerId: player.userId, body: pilot, updatedAt: 1 })
+      await ctx.db.insert('mechs', { gameId, ownerId: player.userId, body: mech, updatedAt: 1 })
+    })
+
+    const crew = await organizer.as.query(api.crew.vitals, { gameId })
+    expect(crew.pilots[0]?.currentHP).toBe(9)
+    expect(crew.pilots[0]?.currentAP).toBe(4)
+    expect(crew.mechs[0]?.currentSP).toBe(12)
+    expect(crew.mechs[0]?.currentHeat).toBe(2)
   })
 
   test('an unclaimed pilot has a null owner name rather than a missing row', async () => {
@@ -82,7 +138,7 @@ describe('vitals', () => {
     const crew = await organizer.as.query(api.crew.vitals, { gameId })
     // Bodies are opaque, so the projection must not trust their shape. Zero
     // would render as "dead" on a vitals strip, which is worse than blank.
-    expect(crew.pilots[0]?.currentHp).toBeNull()
+    expect(crew.pilots[0]?.currentHP).toBeNull()
   })
 
   test('a non-member gets nothing', async () => {

@@ -192,6 +192,25 @@ export function Roster() {
   const crawlers = inContainer(allCrawlers)
 
   /**
+   * Raising a crawler INSIDE a Game is the table runner's act (ADR-030 §5a), so
+   * while a Game is the current container this CTA hands off to that Game's
+   * crew surface, which knows who the viewer is and either offers the control
+   * or explains why it cannot.
+   *
+   * The alternative — keeping the wizard link and letting the write fail — is
+   * the worst of both: `entityStore.create` stamps the current container, the
+   * crawler is built locally, the mirror is refused, and the roster shows a
+   * crawler that the Game does not have. Deciding it here needs no permission
+   * lookup, because the container alone is enough to know this is the wrong
+   * door.
+   */
+  const inGame = mode === 'connected' && activeContainer.kind === 'game'
+  const crawlerCreateHref = inGame
+    ? `/games/${activeContainer.kind === 'game' ? activeContainer.gameId : ''}`
+    : '/crawlers/new'
+  const crawlerCreateLabel = inGame ? 'Raise one in this game' : 'Create Crawler'
+
+  /**
    * First-run welcome: a brand-new user with nothing at all. Deliberately keyed
    * to the UNFILTERED lists — an empty *container* belonging to someone who
    * already has builds elsewhere is not a first run, and the big welcome would
@@ -397,8 +416,8 @@ export function Roster() {
                 title="Crawlers"
                 headingId="crawlers-heading"
                 active={activeSegment === 'crawler'}
-                createHref="/crawlers/new"
-                createLabel="Create Crawler"
+                createHref={crawlerCreateHref}
+                createLabel={crawlerCreateLabel}
                 emptyMessage="No crawlers yet."
                 emptyIcon={<Warehouse className="size-7 text-sheet-crawler-deep" />}
               >
