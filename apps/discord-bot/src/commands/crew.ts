@@ -82,7 +82,7 @@ export const sheetCommand = {
       return
     }
 
-    const result = await client.crew(interaction.user.id, channelId)
+    const result = await client.crewForAutocomplete(interaction.user.id, channelId)
     if (result.kind !== 'ok') {
       await interaction.respond([])
       return
@@ -116,8 +116,12 @@ export const sheetCommand = {
     // into an autocomplete field, so this is parsed rather than trusted.
     const raw = interaction.options.getString('entity', true)
     const separator = raw.indexOf(':')
-    const table = raw.slice(0, separator)
-    const entityId = raw.slice(separator + 1)
+    // Checked, not assumed: `indexOf` returns -1 with no colon, and slicing on
+    // that silently yields `raw.slice(0, -1)` — so `mechsX` would parse as
+    // table `mechs` and be sent to the server, surfacing a typo as "In The
+    // Union Now could not be reached" rather than as "pick from the list".
+    const table = separator === -1 ? '' : raw.slice(0, separator)
+    const entityId = separator === -1 ? '' : raw.slice(separator + 1)
     if ((table !== 'pilots' && table !== 'mechs') || entityId.length === 0) {
       await interaction.reply({
         content: 'Pick an entity from the list rather than typing a name.',

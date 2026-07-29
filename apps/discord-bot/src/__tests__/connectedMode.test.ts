@@ -40,6 +40,8 @@ function clientReturning(result: ItunResult<unknown>): ItunClient {
     shelf: answer,
     channel: answer,
     crew: answer,
+    crewForAutocomplete: answer,
+    gamesForAutocomplete: answer,
     sheet: answer,
     bind: answer,
     unbind: answer,

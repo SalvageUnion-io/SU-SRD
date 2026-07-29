@@ -292,7 +292,16 @@ export const sheet = internalQuery({
     const actor = await resolveActor(ctx, args.channelId, args.discordId)
     if (!actor.ok) return fail(actor.reason)
 
-    const doc = await ctx.db.get(args.entityId as Id<'pilots'> | Id<'mechs'>)
+    // `normalizeId` is what makes `table` load-bearing rather than decorative.
+    // A Convex id is table-tagged, but `db.get` will happily return a document
+    // from ANY table — so casting the string and checking only `gameId` let a
+    // member pass an `encounterNpcs` id and read the Mediator's prepared
+    // opposition, the one thing ADR-030 §5 says must stay hidden. It also
+    // turns a malformed id from a throw into a clean not-found.
+    const entityId = ctx.db.normalizeId(args.table, args.entityId)
+    if (entityId === null) return fail('not-found')
+
+    const doc = await ctx.db.get(entityId)
     if (doc === null) return fail('not-found')
 
     const row = doc as unknown as {

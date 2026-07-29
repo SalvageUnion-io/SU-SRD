@@ -145,12 +145,18 @@ function pilotStats(body: EntityBody): {
     maxHpOverride: num(body, 'maxHpOverride') ?? undefined,
     maxApOverride: num(body, 'maxApOverride') ?? undefined,
   }
+  const maxHp = pilotMaxHP(input)
+  const maxAp = pilotMaxAP(input)
   return {
     // Canonical spellings come from apps/itun/src/lib/schemas/{pilot,mech}.ts.
-    hp: num(body, 'currentHP', 'currentHp'),
-    maxHp: pilotMaxHP(input),
-    ap: num(body, 'currentAP', 'currentAp'),
-    maxAp: pilotMaxAP(input),
+    // ABSENT MEANS FULL, not zero — the field is only written once something
+    // has changed it, and all 35 call sites in the app read it as `?? max`.
+    // Defaulting to 0 instead would render a fresh, undamaged crew as wiped
+    // out, which is precisely backwards on the one surface built to show it.
+    hp: num(body, 'currentHP', 'currentHp') ?? maxHp,
+    maxHp,
+    ap: num(body, 'currentAP', 'currentAp') ?? maxAp,
+    maxAp,
   }
 }
 
@@ -170,10 +176,15 @@ function mechStats(body: EntityBody): {
     maxSpOverride: num(body, 'maxSpOverride') ?? undefined,
     maxHeatOverride: num(body, 'maxHeatOverride') ?? undefined,
   }
+  const maxSp = mechMaxSP(input)
   return {
-    sp: num(body, 'currentSP', 'currentSp'),
-    maxSp: mechMaxSP(input),
-    heat: num(body, 'currentHeat'),
+    // Absent SP means full, as above.
+    sp: num(body, 'currentSP', 'currentSp') ?? maxSp,
+    maxSp,
+    // Heat is the exception and reads the other way: absent means COLD, which
+    // is 0. A mech starts at no heat and gains it, where SP starts full and is
+    // lost — so the same "field not written yet" state means opposite numbers.
+    heat: num(body, 'currentHeat') ?? 0,
     maxHeat: mechMaxHeat(input),
   }
 }

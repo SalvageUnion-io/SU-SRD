@@ -35,12 +35,28 @@ import type {
 /** Requests are user-facing; a slow deployment must not hold a slash command. */
 const REQUEST_TIMEOUT_MS = 8_000
 
+/**
+ * Autocomplete gets a much tighter budget than everything else.
+ *
+ * Discord gives an autocomplete interaction **3 seconds** and it cannot be
+ * deferred — miss it and `respond()` throws `Unknown interaction`, once per
+ * keystroke, which is far worse than an empty list. So these calls give up
+ * early and the picker simply shows nothing.
+ */
+const AUTOCOMPLETE_TIMEOUT_MS = 2_000
+
+/** Ops invoked from an autocomplete handler, where the 3s deadline applies. */
+const AUTOCOMPLETE_OPS = new Set(['crew', 'games'])
+
 export type ItunClient = {
   me(discordId: string): Promise<ItunResult<MeResult>>
   games(discordId: string): Promise<ItunResult<GamesResult>>
   shelf(discordId: string): Promise<ItunResult<ShelfResult>>
   channel(discordId: string, channelId: string): Promise<ItunResult<ChannelResult>>
   crew(discordId: string, channelId: string): Promise<ItunResult<CrewResult>>
+  /** As `crew`/`games`, but under the 3s autocomplete deadline. */
+  crewForAutocomplete(discordId: string, channelId: string): Promise<ItunResult<CrewResult>>
+  gamesForAutocomplete(discordId: string): Promise<ItunResult<GamesResult>>
   sheet(
     discordId: string,
     channelId: string,
@@ -123,7 +139,11 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
 
   const origin = siteUrl.replace(/\/+$/, '')
 
-  async function call<T>(op: string, payload: Record<string, unknown>): Promise<ItunResult<T>> {
+  async function call<T>(
+    op: string,
+    payload: Record<string, unknown>,
+    forAutocomplete = false
+  ): Promise<ItunResult<T>> {
     try {
       const response = await fetch(`${origin}/bot/${op}`, {
         method: 'POST',
@@ -132,7 +152,9 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        signal: AbortSignal.timeout(
+          forAutocomplete && AUTOCOMPLETE_OPS.has(op) ? AUTOCOMPLETE_TIMEOUT_MS : REQUEST_TIMEOUT_MS
+        ),
       })
 
       // A non-JSON body from a proxy or an error page must not throw past the
@@ -150,6 +172,8 @@ export function createItunClient(config: Partial<ItunClientConfig>): ItunClient 
     shelf: (discordId) => call('shelf', { discordId }),
     channel: (discordId, channelId) => call('channel', { discordId, channelId }),
     crew: (discordId, channelId) => call('crew', { discordId, channelId }),
+    crewForAutocomplete: (discordId, channelId) => call('crew', { discordId, channelId }, true),
+    gamesForAutocomplete: (discordId) => call('games', { discordId }, true),
     sheet: (discordId, channelId, table, entityId) =>
       call('sheet', { discordId, channelId, table, entityId }),
     bind: (discordId, channelId, gameId) => call('bind', { discordId, channelId, gameId }),

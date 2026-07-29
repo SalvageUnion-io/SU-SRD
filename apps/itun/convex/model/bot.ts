@@ -43,49 +43,45 @@ export type BotDenial =
 
 export type BotResolution<T> = { ok: true; value: T } | { ok: false; reason: BotDenial }
 
-/** The account linked to a Discord id, or null when nobody has signed in as it. */
+/**
+ * The account behind a Discord id, or null when nobody has signed in as it.
+ *
+ * Resolved through **`authAccounts`**, which is the row `@convex-dev/auth`
+ * writes on every Discord sign-in — `{ provider: 'discord', providerAccountId:
+ * <snowflake> }`, indexed as `providerAndAccountId`. It is therefore correct by
+ * construction, with nothing to stamp, backfill, or keep in step.
+ *
+ * This replaces an earlier attempt that denormalized the snowflake onto
+ * `users.discordId` from an `afterUserCreatedOrUpdated` callback. That could
+ * never have worked, and silently: the library destructures `id` out of the
+ * OAuth profile before the callback sees it
+ * (`implementation/index.js`: `const { id, ...profileFromCallback } = await
+ * provider.profile(...)`), so the value was always `undefined` and every bot
+ * command would have answered "no account" forever. Reading `authAccounts`
+ * removes the copy rather than fixing the copier — there is no second place for
+ * the truth to drift to.
+ *
+ * Note the ordering that also rules out doing this *inside* that callback:
+ * `upsertUserAndAccount` runs `createOrUpdateUser` (which fires the callback)
+ * **before** `createOrUpdateAccount`, so on a first sign-in the account row does
+ * not exist yet.
+ */
 export async function userByDiscordId(
   ctx: AnyCtx,
   discordId: string
 ): Promise<Doc<'users'> | null> {
   const trimmed = discordId.trim()
   if (trimmed.length === 0) return null
-  return await ctx.db
-    .query('users')
-    .withIndex('by_discord', (q) => q.eq('discordId', trimmed))
+
+  const account = await ctx.db
+    .query('authAccounts')
+    .withIndex('providerAndAccountId', (q) =>
+      q.eq('provider', 'discord').eq('providerAccountId', trimmed)
+    )
     .unique()
-}
+  if (account === null) return null
 
-/**
- * Record a user's Discord id, so the bot can find them.
- *
- * Called from the sign-in callback rather than from a "link your account"
- * form: Discord is the only auth provider, so `@convex-dev/auth` has already
- * written the snowflake to `authAccounts.providerAccountId` by the time anyone
- * could be asked to paste it. There is no linking step to build (ADR-030 §1);
- * there is only this stamp.
- *
- * Returns false without writing when the id already belongs to a *different*
- * account. It should be unreachable — Auth.js keys accounts by
- * `providerAccountId`, so one snowflake cannot produce two users — but the
- * caller is a sign-in hook, and a throw there would lock somebody out of their
- * account over a bookkeeping collision. Refusing the stamp degrades the bot;
- * throwing would degrade the app.
- */
-export async function stampDiscordId(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-  discordId: string
-): Promise<boolean> {
-  const trimmed = discordId.trim()
-  if (trimmed.length === 0) return false
-
-  const existing = await userByDiscordId(ctx, trimmed)
-  if (existing !== null && existing._id !== userId) return false
-  if (existing !== null && existing._id === userId) return true
-
-  await ctx.db.patch(userId, { discordId: trimmed })
-  return true
+  return await ctx.db.get(account.userId)
 }
 
 /** The binding for a channel, or null when the channel speaks for no Game. */

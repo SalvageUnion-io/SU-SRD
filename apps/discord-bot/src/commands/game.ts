@@ -59,7 +59,7 @@ export const gameCommand = {
       return
     }
 
-    const result = await client.games(interaction.user.id)
+    const result = await client.gamesForAutocomplete(interaction.user.id)
     if (result.kind !== 'ok') {
       await interaction.respond([])
       return

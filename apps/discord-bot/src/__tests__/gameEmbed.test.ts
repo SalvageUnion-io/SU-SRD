@@ -125,6 +125,65 @@ describe('vital field names', () => {
   })
 })
 
+describe('absent vitals', () => {
+  test('an unwritten HP/AP/SP means FULL, not zero', () => {
+    // The field is only written once something changes it, and all 35 call
+    // sites in the app read it as `?? max`. Defaulting to 0 would render a
+    // fresh, undamaged crew as wiped out — backwards on the one surface built
+    // to show exactly this.
+    const embed = buildCrewEmbed(
+      {
+        game: { gameId: 'g1', name: 'Tenacity' },
+        viewerId: 'u1',
+        pilots: [pilot({ body: { callsign: 'Rook' } })],
+        mechs: [
+          {
+            id: 'm1',
+            appId: 'app-m1',
+            ownerId: 'u1',
+            ownerName: 'alxjrvs',
+            present: false,
+            body: { name: 'Mule', chassisRef: 'mule' },
+          },
+        ],
+        crawler: null,
+      },
+      WEB
+    )
+    const value = embed.fields[0]?.value ?? ''
+    expect(value).toContain('10/10')
+    expect(value).toContain('5/5')
+    expect(value).toContain('12/12')
+    // ...and the crew is emphatically NOT flagged as critical.
+    expect(embed.color).not.toBe(0xb0432b)
+  })
+
+  test('an unwritten Heat means COLD, which is zero', () => {
+    // The one field that reads the other way: a mech starts at no heat and
+    // gains it, where SP starts full and is lost.
+    const embed = buildCrewEmbed(
+      {
+        game: { gameId: 'g1', name: 'Tenacity' },
+        viewerId: 'u1',
+        pilots: [],
+        mechs: [
+          {
+            id: 'm1',
+            appId: 'app-m1',
+            ownerId: 'u1',
+            ownerName: 'alxjrvs',
+            present: false,
+            body: { name: 'Mule', chassisRef: 'mule' },
+          },
+        ],
+        crawler: null,
+      },
+      WEB
+    )
+    expect(embed.fields[0]?.value).toContain('0/6')
+  })
+})
+
 describe('ownerLabel', () => {
   test('renders an unowned entity as a state, never a blank', () => {
     // ADR-030: a null ownerId is a normal state, and every surface that reads

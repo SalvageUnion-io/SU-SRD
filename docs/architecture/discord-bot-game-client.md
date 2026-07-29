@@ -492,6 +492,15 @@ Only after Phase 3 shows the channel is a surface people read.
 | Alert subscriptions replaying on restart.                                  | Watermark by `changeLog.ts`; never post an entry older than process start.                                                 |
 | Unclaimed entities (`ownerId: null`) rendering as blank.                   | Render **Unclaimed** as a state everywhere (§7 mockup). Same hazard the web surfaces carry.                                |
 
+**Known gap, deliberately left:** `mechStats` derives Max SP and Max Heat
+without a `PilotingContext`, so a pilot ability that contributes to the mech it
+pilots (or a `perTechLevel` amount) is not counted, and `/su crew` can show a
+different maximum than the app does for the same mech. Closing it means
+resolving mech→pilot through `softLinks`, whose refs are app-level ids rather
+than Convex ids, and threading the piloting pilot's abilities through the
+`crew` payload. Worth doing; not worth doing late in the change that introduced
+the surface.
+
 Not a risk: **knip**. Verified — its Convex plugin already treats `convex/` as an
 entry point, so new server functions do not need `@public` tags.
 

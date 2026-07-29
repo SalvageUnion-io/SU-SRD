@@ -21,10 +21,26 @@ import { testConvex } from './harness'
 
 type Ctx = ReturnType<typeof testConvex>
 
+/**
+ * A user, optionally signed in with Discord.
+ *
+ * The Discord identity is seeded as an `authAccounts` row — the row
+ * `@convex-dev/auth` writes on a real sign-in — because that is what the bot
+ * resolves against. Writing `users.discordId` instead would test a field
+ * nothing reads.
+ */
 async function makeUser(t: Ctx, name: string, discordId?: string) {
-  const userId = await t.run(
-    async (ctx) => await ctx.db.insert('users', { name, displayName: name, discordId })
-  )
+  const userId = await t.run(async (ctx) => {
+    const id = await ctx.db.insert('users', { name, displayName: name })
+    if (discordId !== undefined) {
+      await ctx.db.insert('authAccounts', {
+        userId: id,
+        provider: 'discord',
+        providerAccountId: discordId,
+      })
+    }
+    return id
+  })
   return { userId, as: t.withIdentity({ subject: userId }) }
 }
 
@@ -188,64 +204,90 @@ describe('the bot cannot act as anybody', () => {
   })
 })
 
-describe('identity is linked at sign-in, not by hand', () => {
-  test('the backfill stamps ids from the accounts Auth.js already wrote', async () => {
+describe('the Mediator’s prepared opposition stays hidden', () => {
+  test('a pilot id cannot be passed as a mech, or vice versa', async () => {
     const t = testConvex()
-    const legacy = await makeUser(t, 'Legacy')
-    await t.run(
+    const { organizer, gameId } = await seedBoundGame(t)
+    const pilotId = await t.run(
       async (ctx) =>
-        await ctx.db.insert('authAccounts', {
-          userId: legacy.userId,
-          provider: 'discord',
-          providerAccountId: 'discord-legacy',
+        await ctx.db.insert('pilots', {
+          gameId,
+          ownerId: organizer.userId,
+          body: { callsign: 'Rook' },
+          updatedAt: Date.now(),
         })
     )
 
-    const summary = await t.mutation(internal.bot.backfillDiscordIds, {})
-    expect(summary).toMatchObject({ scanned: 1, stamped: 1 })
-
-    const user = await t.run(async (ctx) => await ctx.db.get(legacy.userId))
-    expect(user?.discordId).toBe('discord-legacy')
+    // A Convex id is table-tagged, but `db.get` returns a document from ANY
+    // table — so a handler that casts the string and checks only `gameId`
+    // would happily serve this pilot as a mech.
+    const result = await t.query(internal.botClient.sheet, {
+      discordId: 'discord-player',
+      channelId: 'chan-1',
+      table: 'mechs',
+      entityId: pilotId,
+    })
+    expect(result).toMatchObject({ ok: false, reason: 'not-found' })
   })
 
-  test('the backfill is idempotent', async () => {
+  test('an encounterNpcs id is not readable through the sheet surface', async () => {
     const t = testConvex()
-    const legacy = await makeUser(t, 'Legacy')
-    await t.run(
-      async (ctx) =>
-        await ctx.db.insert('authAccounts', {
-          userId: legacy.userId,
-          provider: 'discord',
-          providerAccountId: 'discord-legacy',
-        })
+    const { gameId } = await seedBoundGame(t)
+    const npcId = await t.run(
+      async (ctx) => await ctx.db.insert('encounterNpcs', { gameId, body: { name: 'Ambush' } })
     )
 
-    await t.mutation(internal.bot.backfillDiscordIds, {})
-    const second = await t.mutation(internal.bot.backfillDiscordIds, {})
-    expect(second).toMatchObject({ scanned: 1, stamped: 1, skipped: 0 })
+    // ADR-030 §5: the Mediator's prepared opposition is the ONE thing a player
+    // must not be able to read, and `botHttp.ts` says so in as many words.
+    // Same Game, so a gameId-only check would have let this through.
+    const result = await t.query(internal.botClient.sheet, {
+      discordId: 'discord-player',
+      channelId: 'chan-1',
+      table: 'pilots',
+      entityId: npcId,
+    })
+    expect(result).toMatchObject({ ok: false, reason: 'not-found' })
   })
 
-  test('one Discord id never resolves to two accounts', async () => {
+  test('a malformed id is not-found rather than a throw', async () => {
     const t = testConvex()
     await seedBoundGame(t)
-    const impostor = await makeUser(t, 'Impostor')
+    const result = await t.query(internal.botClient.sheet, {
+      discordId: 'discord-player',
+      channelId: 'chan-1',
+      table: 'pilots',
+      entityId: 'not-an-id',
+    })
+    expect(result).toMatchObject({ ok: false, reason: 'not-found' })
+  })
+})
+
+describe('identity comes from the sign-in itself', () => {
+  test('a Discord id resolves through the account row Auth.js writes', async () => {
+    const t = testConvex()
+    await seedBoundGame(t)
+
+    // No stamping, no backfill, no `users.discordId`: `authAccounts` already
+    // holds the snowflake, and reading it removes the copy rather than fixing
+    // the copier. An earlier attempt stamped it from an
+    // `afterUserCreatedOrUpdated` callback, which could never work — the
+    // library destructures `id` out of the OAuth profile before any callback
+    // sees it, so the value was always undefined and every bot command would
+    // have answered "no account" forever.
+    const result = await t.query(internal.botClient.me, { discordId: 'discord-player' })
+    expect(result).toMatchObject({ ok: true })
+  })
+
+  test('a users.discordId column alone resolves nothing', async () => {
+    const t = testConvex()
     await t.run(
-      async (ctx) =>
-        await ctx.db.insert('authAccounts', {
-          userId: impostor.userId,
-          provider: 'discord',
-          // Already held by the seeded player.
-          providerAccountId: 'discord-player',
-        })
+      async (ctx) => await ctx.db.insert('users', { name: 'Ghost', discordId: 'discord-ghost' })
     )
 
-    // Refused rather than thrown: this runs inside a sign-in hook, and a throw
-    // there would lock somebody out over a bookkeeping collision.
-    const summary = await t.mutation(internal.bot.backfillDiscordIds, {})
-    expect(summary).toMatchObject({ stamped: 0, skipped: 1 })
-
-    const still = await t.run(async (ctx) => await ctx.db.get(impostor.userId))
-    expect(still?.discordId).toBeUndefined()
+    // Guards against reintroducing the denormalized column as a second source
+    // of truth: it is not where identity lives.
+    const result = await t.query(internal.botClient.me, { discordId: 'discord-ghost' })
+    expect(result).toMatchObject({ ok: false, reason: 'unlinked' })
   })
 })
 

@@ -1,8 +1,8 @@
 import { v } from 'convex/values'
 
 import type { Id } from './_generated/dataModel'
-import { internalMutation, mutation, query } from './_generated/server'
-import { bindChannelAs, bindingForChannel, stampDiscordId, unbindChannelAs } from './model/bot'
+import { mutation, query } from './_generated/server'
+import { bindChannelAs, bindingForChannel, unbindChannelAs } from './model/bot'
 import { NotAuthorized, requireUser } from './model/permissions'
 
 /**
@@ -36,8 +36,10 @@ import { NotAuthorized, requireUser } from './model/permissions'
  *
  * `linkDiscordId` asked a signed-in user to paste their own Discord snowflake.
  * Discord is the only auth provider, so `authAccounts.providerAccountId`
- * already held it; it is now stamped at sign-in by the `auth.ts` callback and
- * backfilled by `backfillDiscordIds` below. There is no linking step.
+ * already holds it and the bot reads it straight from there
+ * (`model/bot.ts#userByDiscordId`). There is no linking step, and nothing to
+ * stamp or backfill — the copy that would have needed keeping in step simply
+ * does not exist.
  */
 
 /** Bind this channel to a Game. Administrative, so Organizer only. */
@@ -90,35 +92,5 @@ export const rolls = query({
       .sort((a, b) => b.ts - a.ts)
       .slice(0, args.limit ?? 20)
       .map((r) => ({ _id: r._id, ts: r.ts, actorId: r.actorId, payload: r.after }))
-  },
-})
-
-/**
- * Stamp `users.discordId` for accounts that predate the sign-in callback.
- *
- * Internal and idempotent — run it once after deploying the callback, and
- * again without harm. It reads the Discord snowflake from the place Auth.js
- * already recorded it, which is the same source the callback uses, so a
- * backfilled row and a freshly signed-in row are indistinguishable.
- *
- * Returns counts rather than nothing so the operator can tell "worked, nobody
- * needed it" from "silently matched nothing", which look identical otherwise.
- */
-export const backfillDiscordIds = internalMutation({
-  args: {},
-  handler: async (ctx): Promise<{ scanned: number; stamped: number; skipped: number }> => {
-    const accounts = await ctx.db
-      .query('authAccounts')
-      .withIndex('providerAndAccountId', (q) => q.eq('provider', 'discord'))
-      .collect()
-
-    let stamped = 0
-    let skipped = 0
-    for (const account of accounts) {
-      const ok = await stampDiscordId(ctx, account.userId, account.providerAccountId)
-      if (ok) stamped += 1
-      else skipped += 1
-    }
-    return { scanned: accounts.length, stamped, skipped }
   },
 })
