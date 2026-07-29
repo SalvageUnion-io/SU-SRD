@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { FOCUS_RING } from 'component-lib'
 
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
@@ -29,8 +30,10 @@ import { SignInControl } from './SignInControl'
  * users see exactly the chrome they saw before.
  */
 
-const ACCOUNT_LINK =
-  'font-cond text-caption font-semibold uppercase tracking-caps-wide text-paper/60 no-underline transition-colors hover:text-paper'
+// The masthead nav-link treatment one size down — same paper-on-ink ramp and
+// the same rust focus ring its siblings in `AppBar` use, so the utility row
+// reads as part of the bar rather than as a transplanted light-mode strip.
+const ACCOUNT_LINK = `font-cond text-caption font-semibold uppercase tracking-caps-wide text-paper/60 no-underline transition-colors hover:text-paper ${FOCUS_RING}`
 
 export function AccountStrip() {
   const { mode } = useConnection()
