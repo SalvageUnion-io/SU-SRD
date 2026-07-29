@@ -41,6 +41,24 @@ export type CommandExecuteInteraction = {
   followUp(payload: InteractionReplyOptions): Promise<unknown>
 }
 
+/**
+ * What the button router reads off a message-component interaction.
+ *
+ * Narrow for the same reason the command surfaces are: discord.js's
+ * `ButtonInteraction` satisfies this structurally, so the dispatcher passes one
+ * straight through, while a test builds the four members it actually uses with
+ * no cast. `user`/`channelId`/`editReply` are here because a re-roll is a roll
+ * and is attributed exactly like a slash-command one.
+ */
+export type CommandButtonInteraction = {
+  customId: string
+  client: { user: { displayAvatarURL(): string } | null }
+  user: { id: string }
+  channelId: string | null
+  reply(payload: InteractionReplyOptions): Promise<unknown>
+  editReply(payload: InteractionEditReplyOptions): Promise<unknown>
+}
+
 /** What `autocomplete` handlers read off an autocomplete interaction. */
 export type CommandAutocompleteInteraction = {
   options: {

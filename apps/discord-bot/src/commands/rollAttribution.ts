@@ -53,10 +53,11 @@ export async function attributeRoll(
 ): Promise<void> {
   const channelId = interaction.channelId
   const embed = embeds[0]
-  if (itun === null || channelId === null || embed === undefined) return
+  const client = itun()
+  if (client === null || channelId === null || embed === undefined) return
 
   try {
-    const recorded = await itun.recordRoll(interaction.user.id, channelId, description, result)
+    const recorded = await client.recordRoll(interaction.user.id, channelId, description, result)
     if (recorded.kind !== 'ok') return
 
     embed.setFooter({ text: `${ROLL_EMBED_FOOTER} · recorded to ${recorded.value.game}` })

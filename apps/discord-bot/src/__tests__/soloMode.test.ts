@@ -26,7 +26,7 @@ beforeAll(async () => {
 
 describe('with no ITUN deployment configured', () => {
   test('there is no client at all', () => {
-    expect(itun).toBeNull()
+    expect(itun()).toBeNull()
   })
 
   test('rolling is untouched — no defer, no edit, just the reply', async () => {

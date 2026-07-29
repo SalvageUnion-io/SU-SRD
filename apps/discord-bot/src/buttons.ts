@@ -9,15 +9,18 @@
  * roll in the channel history, matching how a dice bot is expected to behave.
  */
 
-import { MessageFlags, type ButtonInteraction } from 'discord.js'
+import { MessageFlags } from 'discord.js'
 
 import { buildCheckMessage } from './commands/check.js'
+import type { CommandButtonInteraction } from './commands/interactions.js'
 import { buildTableLookupMessage } from './commands/lookup.js'
 import { buildRollMessage } from './commands/roll.js'
 import { attributeRoll } from './commands/rollAttribution.js'
 import { parseCustomId } from './customId.js'
 
-export async function handleButtonInteraction(interaction: ButtonInteraction): Promise<void> {
+export async function handleButtonInteraction(
+  interaction: CommandButtonInteraction
+): Promise<void> {
   const parsed = parseCustomId(interaction.customId)
   if (!parsed) {
     // Not one of our buttons, or a malformed id — nothing we can act on.

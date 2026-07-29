@@ -76,12 +76,13 @@ export const sheetCommand = {
    */
   async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
     const channelId = interaction.channelId
-    if (itun === null || channelId === null) {
+    const client = itun()
+    if (client === null || channelId === null) {
       await interaction.respond([])
       return
     }
 
-    const result = await itun.crew(interaction.user.id, channelId)
+    const result = await client.crew(interaction.user.id, channelId)
     if (result.kind !== 'ok') {
       await interaction.respond([])
       return

@@ -33,10 +33,37 @@ import type { CommandExecuteInteraction } from './interactions.js'
  * reads configuration. Null is not an error state — it is the default, and the
  * reference commands never touch this module at all.
  */
-export const itun: ItunClient | null = createItunClient({
+let client: ItunClient | null = createItunClient({
   siteUrl: config.itunSiteUrl,
   botSecret: config.itunBotSecret,
 })
+
+/** The current client, or null in Solo mode. */
+export function itun(): ItunClient | null {
+  return client
+}
+
+/**
+ * Swap the client, returning a function that puts the old one back.
+ *
+ * A deliberate, named test seam. `config.ts` reads `process.env` at module
+ * scope and the client is resolved from it once at import, so by the time any
+ * test runs, this module is already in the registry and setting an environment
+ * variable would do nothing. `mock.module` is worse still — it is process-
+ * global in Bun, so faking configuration for one file would silently hand that
+ * fake to every file that ran afterwards.
+ *
+ * Returning a restore function rather than exposing a setter is the point:
+ * a test cannot forget what the previous value was, and `afterEach(restore)`
+ * is the whole contract. Solo mode is what everything else must see.
+ */
+export function setItunClientForTests(next: ItunClient | null): () => void {
+  const previous = client
+  client = next
+  return () => {
+    client = previous
+  }
+}
 
 export const SOLO_NOTICE = [
   '**This server isn’t connected to In The Union Now.**',
@@ -89,12 +116,13 @@ export async function respondWithItun<T>(
 ): Promise<void> {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
-  if (itun === null) {
+  const active = itun()
+  if (active === null) {
     await interaction.editReply({ content: SOLO_NOTICE })
     return
   }
 
-  const result = await options.call(itun)
+  const result = await options.call(active)
   switch (result.kind) {
     case 'ok': {
       const embed = toEmbed(

@@ -53,12 +53,13 @@ export const gameCommand = {
 
   /** Autocomplete over the caller's own games — never anybody else's. */
   async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
-    if (itun === null) {
+    const client = itun()
+    if (client === null) {
       await interaction.respond([])
       return
     }
 
-    const result = await itun.games(interaction.user.id)
+    const result = await client.games(interaction.user.id)
     if (result.kind !== 'ok') {
       await interaction.respond([])
       return
@@ -100,13 +101,14 @@ async function bind(interaction: CommandExecuteInteraction): Promise<void> {
   if (channelId === null) return
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral })
-  if (itun === null) {
+  const client = itun()
+  if (client === null) {
     await interaction.editReply({ content: SOLO_NOTICE })
     return
   }
 
   const gameId = interaction.options.getString('game', true)
-  const result = await itun.bind(interaction.user.id, channelId, gameId)
+  const result = await client.bind(interaction.user.id, channelId, gameId)
 
   if (result.kind === 'denied') {
     await interaction.editReply({ content: denialMessage(result.reason, config.itunWebUrl) })
@@ -128,12 +130,13 @@ async function unbind(interaction: CommandExecuteInteraction): Promise<void> {
   if (channelId === null) return
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral })
-  if (itun === null) {
+  const client = itun()
+  if (client === null) {
     await interaction.editReply({ content: SOLO_NOTICE })
     return
   }
 
-  const result = await itun.unbind(interaction.user.id, channelId)
+  const result = await client.unbind(interaction.user.id, channelId)
   if (result.kind === 'denied') {
     await interaction.editReply({ content: denialMessage(result.reason, config.itunWebUrl) })
     return
