@@ -84,8 +84,11 @@ function RootComponent() {
             data, so it paints immediately instead of sitting behind the full
             preload. */}
           <NotConnectedBanner />
-          <AccountStrip />
-          <AppHeader onSearchClick={() => setSearchOpen(true)} LinkComponent={AppLink} />
+          <AppHeader
+            onSearchClick={() => setSearchOpen(true)}
+            LinkComponent={AppLink}
+            utilityRow={<AccountStrip />}
+          />
           <GameDataReady>
             <Outlet />
             {/* Mounted on every route (inside the game-data gate, so search()

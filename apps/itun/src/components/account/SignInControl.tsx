@@ -21,13 +21,35 @@ import { isConvexConfigured } from '../../lib/connection/convexClient'
  * than silence — signing in is an upgrade, not a missing feature (ADR-030 §1).
  */
 
-function ConvexSignIn() {
+/**
+ * The dark-masthead treatment: a paper hairline on the near-black bar. The
+ * merge order in `Button`'s `cn()` lets these win over the variant's own
+ * border/text colours.
+ *
+ * Both states use it, including sign-in. `variant="primary"` is right on the
+ * paper account screen, but in the masthead it would put a second rust button
+ * directly under "Buy the game" — two identical CTAs, neither reading as the
+ * primary one. The utility row stays quiet; the bar keeps one loud action.
+ */
+const DARK_BUTTON = 'border-paper/40 bg-transparent text-paper hover:border-paper hover:bg-paper/10'
+
+type SignInControlProps = {
+  /** Render for a dark surface (the masthead utility row) instead of paper. */
+  onDark?: boolean
+}
+
+function ConvexSignIn({ onDark }: SignInControlProps) {
   const { signIn, signOut } = useAuthActions()
   const { mode } = useConnection()
 
   if (mode === 'connected') {
     return (
-      <Button variant="ghost" size="compact" onClick={() => void signOut()}>
+      <Button
+        variant="ghost"
+        size="compact"
+        className={onDark ? DARK_BUTTON : undefined}
+        onClick={() => void signOut()}
+      >
         Sign out
       </Button>
     )
@@ -38,13 +60,18 @@ function ConvexSignIn() {
   if (mode === 'disconnected') return null
 
   return (
-    <Button variant="primary" size="compact" onClick={() => void signIn('discord')}>
+    <Button
+      variant={onDark ? 'ghost' : 'primary'}
+      size="compact"
+      className={onDark ? DARK_BUTTON : undefined}
+      onClick={() => void signIn('discord')}
+    >
       Sign in with Discord
     </Button>
   )
 }
 
-export function SignInControl() {
+export function SignInControl({ onDark }: SignInControlProps) {
   if (!isConvexConfigured) return null
-  return <ConvexSignIn />
+  return <ConvexSignIn onDark={onDark} />
 }

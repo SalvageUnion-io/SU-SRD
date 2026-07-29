@@ -1,4 +1,4 @@
-import type { ElementType } from 'react'
+import type { ElementType, ReactNode } from 'react'
 import { Badge } from '../chrome/Badge'
 import { FOCUS_RING } from '../chrome/interaction'
 import { Search } from 'lucide-react'
@@ -9,10 +9,14 @@ import type { NavDrawerItem } from './NavDrawer'
 
 /**
  * AppHeader — the ITUN builder's masthead (app-local config over the shared
- * `AppBar`): the "In the Union Now" brand, ITUN's nav (Encounter / About +
+ * `AppBar`): the "In the Union Now" brand, ITUN's nav (About / Changelog +
  * outbound Discord / SRD cross-links), a search-trigger button that opens the
- * global reference dialog, and the "Buy the game" button. Below `lg` the nav
- * collapses into the shared `NavDrawer`.
+ * global reference dialog, the "Buy the game" button, and an optional
+ * app-supplied utility row (ITUN's account cluster) on a second row beneath.
+ * Below `lg` the nav collapses into the shared `NavDrawer`.
+ *
+ * The Encounter tray is deliberately absent from the nav: it is reached through
+ * the Mediator sheet now, not as a top-level destination.
  *
  * Router-agnostic: internal links route through the injected `LinkComponent`
  * (ITUN passes its router-aware AppLink; defaults to a plain anchor).
@@ -22,23 +26,7 @@ import type { NavDrawerItem } from './NavDrawer'
 // the trigger button reads as the same search bar.
 const SEARCH_BOX = `flex shrink-0 cursor-pointer items-center gap-2 rounded border border-ink bg-paper px-3 py-[7px] font-body text-caption text-ink-2 transition-colors hover:border-rust ${FOCUS_RING} lg:w-64`
 
-// Small "Alpha" pills — the shared stamp atom rather than two hand-rolled
-// spans that differed only in size (px-1/text-label vs px-1.5/text-badge).
-// `bg-rust` overrides only the stamp PLATE — geometry, face and tracking still
-// come from the atom, so these can't drift from every other stamp again.
-const DESKTOP_ALPHA = (
-  <Badge shape="stamp" size="mini" className="ml-1.5 rounded bg-rust px-1 py-0.5">
-    Alpha
-  </Badge>
-)
-const DRAWER_ALPHA = (
-  <Badge shape="stamp" className="ml-2 rounded bg-rust px-1.5 py-0.5">
-    Alpha
-  </Badge>
-)
-
 const DESKTOP_NAV: AppBarNavItem[] = [
-  { label: 'Encounter', href: '/encounter', badge: DESKTOP_ALPHA },
   { label: 'About', href: '/about' },
   { label: 'Changelog', href: '/changelog' },
   { label: 'Discord ↗', href: 'https://salvageunion.io/discord/', external: true },
@@ -60,7 +48,6 @@ const ITUN_DRAWER_BRAND = (
 )
 
 const DRAWER_NAV: NavDrawerItem[] = [
-  { label: 'Encounter', href: '/encounter', badge: DRAWER_ALPHA },
   { label: 'About', href: '/about' },
   { label: 'Changelog', href: '/changelog' },
   { label: 'Discord ↗', href: 'https://salvageunion.io/discord/', external: true },
@@ -77,9 +64,15 @@ type AppHeaderProps = {
   onSearchClick?: () => void
   /** Link component for internal routes. Defaults to a plain anchor; ITUN passes AppLink. */
   LinkComponent?: ElementType
+  /**
+   * App-owned controls rendered on a second row under the nav — ITUN passes its
+   * account cluster (Games / Account / sign in-out), which used to sit in a
+   * separate strip above the masthead.
+   */
+  utilityRow?: ReactNode
 }
 
-export function AppHeader({ onSearchClick, LinkComponent = 'a' }: AppHeaderProps) {
+export function AppHeader({ onSearchClick, LinkComponent = 'a', utilityRow }: AppHeaderProps) {
   return (
     <AppBar
       wordmark="IN THE UNION NOW"
@@ -104,6 +97,7 @@ export function AppHeader({ onSearchClick, LinkComponent = 'a' }: AppHeaderProps
           </button>
         )
       }
+      utilityRow={utilityRow}
       mobile={
         <NavDrawer
           brand={ITUN_DRAWER_BRAND}
