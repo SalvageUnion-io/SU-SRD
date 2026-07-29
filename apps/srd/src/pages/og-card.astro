@@ -3,10 +3,15 @@
  * Build-only OG-card render surface (1:1 with the Catalog tile).
  *
  * A single static page that renders the REAL catalog `ReferenceEntityCard` for
- * the entity named by `?schema=&item=`, pinned to the width the schema index
- * gives its masonry tiles. `scripts/og-screenshots.ts` drives chromium across
- * every entity here after the build, screenshots the TILE ELEMENT, and composes
- * it onto a 1200×630 canvas at `dist/schema/{schemaId}/item/{itemId}.og.png`.
+ * the entity named by `?schema=&item=`, at a masonry-tile width the schema index
+ * could give it. `scripts/og-screenshots.ts` drives chromium across every entity
+ * here after the build, screenshots the TILE ELEMENT, and composes it onto a
+ * 1200×630 canvas at `dist/schema/{schemaId}/item/{itemId}.og.png`.
+ *
+ * The tile width is not fixed: the generator re-measures the card at each
+ * candidate width and re-sets `--tileWidth` on the frame to whichever one fills
+ * the canvas best (see `pickTileWidth`). CATALOG_TILE_MIN_WIDTH below is only
+ * the default this page loads at.
  *
  * Resolving the entity client-side (OgCardIsland) keeps the build to ONE page
  * instead of ~1,000. Excluded from the sitemap (astro.config) and noindexed.
@@ -20,7 +25,7 @@ import '@fontsource/barlow-semi-condensed/600.css'
 import '@fontsource/barlow-semi-condensed/700.css'
 import '../styles/global.css'
 import { OgCardIsland } from '../components/islands/OgCardIsland'
-import { CATALOG_TILE_WIDTH, CATALOG_TILE_PADDING } from '../lib/ogCard'
+import { CATALOG_TILE_MIN_WIDTH, CATALOG_TILE_PADDING } from '../lib/ogCard'
 ---
 
 <!doctype html>
@@ -31,7 +36,7 @@ import { CATALOG_TILE_WIDTH, CATALOG_TILE_PADDING } from '../lib/ogCard'
     <title>OG card render</title>
     <style
       is:global
-      define:vars={{ tileWidth: `${CATALOG_TILE_WIDTH}px`, tilePad: `${CATALOG_TILE_PADDING}px` }}
+      define:vars={{ tileWidth: `${CATALOG_TILE_MIN_WIDTH}px`, tilePad: `${CATALOG_TILE_PADDING}px` }}
     >
       html,
       body {
@@ -48,7 +53,12 @@ import { CATALOG_TILE_WIDTH, CATALOG_TILE_PADDING } from '../lib/ogCard'
          unlayered rule, which beats Tailwind's layered utilities, so a
          `bg-wk-bg` class there would silently lose to the page background. */
       /* content-box so the CONTENT is exactly the tile width and the padding sits
-         outside it — the tile must lay out at its true index-page width. */
+         outside it — the tile must lay out at its true index-page width.
+
+         `--tileWidth` is re-set on this element by the generator once per entity
+         (custom properties inherit, so an element-level value beats the :root
+         default `define:vars` writes), which is the seam the wide-card fit uses
+         to re-flow the same card at a different masonry width. */
       #og-card {
         box-sizing: content-box;
         width: var(--tileWidth);
