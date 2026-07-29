@@ -361,10 +361,12 @@
                          legibility ceiling on the other two.
        chroma   ×0.62  — backs off the saturation so the card reads as the
                          paper the step is printed on, not a second band.
-     Resolves to ≈ #FFC09D (pilot), #AABDB4 (mech), #E296BB (crawler).
+     Sampled from rendered pixels (NOT the raw formula output — pilot's ideal
+     value is outside sRGB, so the browser gamut-maps it): #F9BC99 (pilot),
+     #A6B9B0 (mech), #DD93B7 (crawler).
 
-     Every card therefore lands light (L 0.76–0.86) and takes DARK ink, at
-     8.1–10.1:1. That unifies a split that used to exist: mech alone carried
+     Every card therefore lands light and takes DARK ink, at 9.67 / 7.77 /
+     6.81:1. That unifies a split that used to exist: mech alone carried
      `--color-paper` ink because rust was too dark to read against. One fill
      rule, one ink rule. See WizShell's `tintedStepCard`, whose step title
      inherits this ink rather than hardcoding white. */
