@@ -1,7 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 
-import { DEFAULT_WORKSPACE_ID } from '../defaultWorkspace'
-import { containerOf, gameIdOf, isOnShelf, moveTo } from '../container'
+import { containerOf, gameIdOf, isOnShelf, moveTo, sameContainer } from '../container'
+
+/** Inlined from the deleted lib/defaultWorkspace.ts (Workspaces are retired). */
+const DEFAULT_WORKSPACE_ID = 'default-workspace'
 
 /**
  * The container resolver (ADR-030 §2).
@@ -69,5 +71,22 @@ describe('helpers', () => {
       kind: 'game',
       gameId: 'g1',
     })
+  })
+
+  test('sameContainer compares structurally, not by reference', () => {
+    // This is the whole reason the helper exists: containerOf mints a fresh
+    // object every call, so `===` is false for two reads of the SAME entity
+    // and every filter written against it would quietly return nothing.
+    const entity = { gameId: 'g1' }
+    expect(containerOf(entity)).not.toBe(containerOf(entity))
+    expect(sameContainer(containerOf(entity), containerOf(entity))).toBe(true)
+  })
+
+  test('sameContainer distinguishes the shelf from a game, and games from each other', () => {
+    expect(sameContainer({ kind: 'shelf' }, { kind: 'shelf' })).toBe(true)
+    expect(sameContainer({ kind: 'shelf' }, { kind: 'game', gameId: 'g1' })).toBe(false)
+    expect(sameContainer({ kind: 'game', gameId: 'g1' }, { kind: 'game', gameId: 'g2' })).toBe(
+      false
+    )
   })
 })

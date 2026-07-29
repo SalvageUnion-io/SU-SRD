@@ -8,7 +8,7 @@
  *   - by-id hooks return null for unknown/undefined ids
  *   - selector identity: an unrelated write does NOT re-render a by-id
  *     subscriber (entity references are stable across update() of others)
- *   - workspace hooks mirror the same contract; useWorkspaceActions is
+ *   - (workspace hooks were removed with Workspaces themselves; container
  *     render-stable
  *
  * Conventions: real stores + fake-indexeddb, no mock.module(),
@@ -20,15 +20,7 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { useEntityStore } from '../../../stores/entityStore'
-import { useWorkspaceStore } from '../../../stores/workspaceStore'
-import {
-  useMech,
-  usePilot,
-  usePilots,
-  useWorkspace,
-  useWorkspaceActions,
-  useWorkspaces,
-} from '../index'
+import { useMech, usePilot, usePilots } from '../index'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -66,7 +58,6 @@ function resetStores(): void {
     softLinks: [],
     hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
   })
-  useWorkspaceStore.setState({ workspaces: [], hydrated: false })
 }
 
 beforeEach(async () => {
@@ -200,66 +191,5 @@ describe('usePilot / useMech (by id)', () => {
 
     expect(renderSpy.mock.calls.length).toBe(rendersAfterMount)
     expect(screen.getByText('Rust Bucket')).toBeTruthy()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Workspace hooks
-// ---------------------------------------------------------------------------
-
-describe('useWorkspaces / useWorkspace', () => {
-  test('returns workspaces and auto-hydrates', async () => {
-    await useWorkspaceStore.getState().hydrate()
-    const ws = await useWorkspaceStore.getState().create({ name: 'Alpha Crew' })
-    useWorkspaceStore.setState((s) => ({ ...s, hydrated: false }))
-
-    function Probe() {
-      const all = useWorkspaces()
-      const one = useWorkspace(ws.id)
-      const none = useWorkspace(null)
-      return (
-        <p>
-          {all[0]?.name ?? 'empty'} / {one ? one.name : 'null'} /{' '}
-          {none === null ? 'none-null' : 'none-found'}
-        </p>
-      )
-    }
-
-    await act(async () => {
-      render(<Probe />)
-    })
-
-    await waitFor(() => {
-      expect(screen.getByText(/Alpha Crew \/ Alpha Crew \/ none-null/)).toBeTruthy()
-    })
-    expect(useWorkspaceStore.getState().hydrated).toBe(true)
-  })
-})
-
-describe('useWorkspaceActions', () => {
-  test('returns working actions and never re-renders the consumer', async () => {
-    await useWorkspaceStore.getState().hydrate()
-
-    // Spy doubles as render counter and captures the hook's return value.
-    const renderSpy = mock<(actions: ReturnType<typeof useWorkspaceActions>) => void>(() => {})
-    function Probe() {
-      renderSpy(useWorkspaceActions())
-      return null
-    }
-
-    await act(async () => {
-      render(<Probe />)
-    })
-    const actions = renderSpy.mock.calls.at(-1)?.[0]
-    if (!actions) throw new Error('useWorkspaceActions was never captured')
-    const rendersAfterMount = renderSpy.mock.calls.length
-
-    await act(async () => {
-      await actions.create({ name: 'Beta Crew' })
-    })
-
-    // Actions are identity-stable; the workspaces array change is not selected.
-    expect(renderSpy.mock.calls.length).toBe(rendersAfterMount)
-    expect(useWorkspaceStore.getState().workspaces.some((w) => w.name === 'Beta Crew')).toBe(true)
   })
 })

@@ -18,6 +18,7 @@ import type { Mech } from '../../lib/schemas/mech'
 import { AssignPilotToMech } from '../wiring/AssignPilotToMech'
 import { LiveSheet } from './LiveSheet'
 import type { LiveSheetStripItem } from './LiveSheet'
+import { containerOf } from '../../lib/container'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
 import { MechSheet } from './MechSheet'
 import { EntityRow } from 'component-lib'
@@ -154,7 +155,7 @@ export function SheetMech({
       actions={
         editable ? (
           <>
-            <DashboardChooser initialMechId={mech.id} activeWorkspaceId={mech.workspaceId} />
+            <DashboardChooser initialMechId={mech.id} activeContainer={containerOf(mech)} />
             {actions}
           </>
         ) : (

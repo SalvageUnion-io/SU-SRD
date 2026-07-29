@@ -88,7 +88,12 @@ what de-risks the rest.
 
 - Convex project, schema, Discord OAuth ✅ (see `apps/itun/convex/`)
 - Games: create, rename, delete, invite code, join
-- `Workspace` → `Game` + `Shelf` split; nullable `gameId`
+- `Workspace` → `Game` + `Shelf` split; nullable `gameId`. **The client cutover
+  has now landed too**: the Workspace switcher, list, and assign controls are
+  deleted, the Roster/Encounter surfaces resolve through `lib/container.ts`, the
+  Starter Set seeds onto the Shelf, and Dashboard dial prefs moved off the
+  Workspace record into `cockpitPrefsStore` (localStorage, keyed by container).
+  Solo surfaces render unfiltered — see the note in `activeContainerStore.ts`.
 - The three storage modes + the **NOT CONNECTED** banner
 - Claim-local-data flow on first sign-in
 - "Fork into Game" and "copy to shelf"
@@ -133,18 +138,18 @@ Discord land as Change Log entries.
 
 ## 5. What breaks
 
-| Site                   | Hazard                                                                                                                                                                 |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `entityStore`          | Write-through to IndexedDB is the single write path for the whole app; the server of record inverts it. Keep the public API identical and swap the backend beneath it. |
-| `activeWorkspaceStore` | Holds a raw id in `localStorage` with a hardcoded default. The "always exactly one current container" invariant survives; its guarantor changes.                       |
-| `db/broadcast.ts`      | Cross-tab invalidation is superseded by Convex reactivity **only in Connected mode**. Keep it — Solo needs it.                                                         |
-| `ExportBundle`         | `schemaVersion: 1` is a literal. Adding ownership columns is breaking; bump to `2` and keep reading v1 as Solo entities.                                               |
-| Migration v10          | The Default-workspace backfill must become a no-op for anyone who never signs in.                                                                                      |
-| Nullable `ownerId`     | Every surface reading an owner must render **Unclaimed** as a state, not a blank or a crash.                                                                           |
-| Owner chips            | Pass as a `badge` control from the app — do not teach `component-lib` about users; `apps/srd` must need no change.                                                     |
-| PWA + auth             | A token expiring mid-session should present as Disconnected, not as a crash.                                                                                           |
-| PII                    | Account deletion, export, and a privacy note are Phase 1 scope.                                                                                                        |
-| Snapshots              | None. [ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md) is untouched, and becomes the only unauthenticated surface left.                                        |
+| Site                   | Hazard                                                                                                                                                                      |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `entityStore`          | Write-through to IndexedDB is the single write path for the whole app; the server of record inverts it. Keep the public API identical and swap the backend beneath it.      |
+| `activeWorkspaceStore` | **Replaced** by `activeContainerStore`, which persists `shelf` \| `game:<id>`. The "exactly one current container" invariant survives; it is only consulted when Connected. |
+| `db/broadcast.ts`      | Cross-tab invalidation is superseded by Convex reactivity **only in Connected mode**. Keep it — Solo needs it.                                                              |
+| `ExportBundle`         | `schemaVersion: 1` is a literal. Adding ownership columns is breaking; bump to `2` and keep reading v1 as Solo entities.                                                    |
+| Migration v10          | The Default-workspace backfill must become a no-op for anyone who never signs in.                                                                                           |
+| Nullable `ownerId`     | Every surface reading an owner must render **Unclaimed** as a state, not a blank or a crash.                                                                                |
+| Owner chips            | Pass as a `badge` control from the app — do not teach `component-lib` about users; `apps/srd` must need no change.                                                          |
+| PWA + auth             | A token expiring mid-session should present as Disconnected, not as a crash.                                                                                                |
+| PII                    | Account deletion, export, and a privacy note are Phase 1 scope.                                                                                                             |
+| Snapshots              | None. [ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md) is untouched, and becomes the only unauthenticated surface left.                                             |
 
 ---
 

@@ -15,14 +15,6 @@ type ExportStore = {
 }
 
 /**
- * Minimal workspace store interface for export.
- */
-type ExportWorkspaceStore = {
-  hydrate: () => Promise<void>
-  list: () => import('../schemas/workspace').Workspace[]
-}
-
-/**
  * Minimal pattern source for export. Patterns are not in entityStore — they
  * are read straight from the db layer; tests may pass a double.
  */
@@ -40,14 +32,13 @@ type ExportEncounterNpcStore = {
 }
 
 /**
- * buildExportBundle — full backup of all entities, workspaces, and softLinks.
+ * buildExportBundle — full backup of all entities and softLinks.
  *
  * Hydrates every store type first so the caller does not need to pre-hydrate.
  * The returned bundle is a plain serialisable object — no IDB references.
  */
 export async function buildExportBundle(
   entityStore: ExportStore,
-  workspaceStore: ExportWorkspaceStore,
   patternStore: ExportPatternStore = db.mechPatterns,
   encounterNpcStore: ExportEncounterNpcStore = db.encounterNpcs
 ): Promise<ExportBundle> {
@@ -58,7 +49,6 @@ export async function buildExportBundle(
     entityStore.hydrate('mech'),
     entityStore.hydrate('crawler'),
     entityStore.hydrate('softLink'),
-    workspaceStore.hydrate(),
   ])
 
   const bundle: ExportBundle = {
@@ -69,7 +59,7 @@ export async function buildExportBundle(
       mechs: entityStore.list('mech'),
       crawlers: entityStore.list('crawler'),
     },
-    workspaces: workspaceStore.list(),
+    workspaces: [],
     softLinks: entityStore.list('softLink'),
     mechPatterns,
     encounterNpcs,
@@ -83,9 +73,8 @@ export async function buildExportBundle(
  * buildEntityExport — single entity + its directly-attached softLinks.
  *
  * Only the entity and links whose `from.id` or `to.id` matches the entity id
- * are included. Workspaces are intentionally omitted — the importing store
- * will already have its own workspace set, and mergeImport handles
- * workspaceId remapping by clearing references to unknown workspaces.
+ * are included. `workspaces` is always `[]` — the field survives only so old
+ * bundles keep parsing (see ExportBundleSchema); nothing writes it any more.
  *
  * Design note: we do NOT pull in the referenced endpoints (e.g. the mech
  * that a pilot-to-mech link points to). A single-entity export is intended

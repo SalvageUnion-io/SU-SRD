@@ -28,5 +28,5 @@ export type CreateInput<T extends EntityType> = Omit<
   'id' | 'createdAt' | 'updatedAt'
 >
 
-/** The three entity types that carry workspaceId (SoftLink does not). */
+/** The three entity types that carry a container (SoftLink does not). */
 export type AssignableType = 'pilot' | 'mech' | 'crawler'

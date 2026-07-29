@@ -6,12 +6,15 @@
  *
  * Built on makeHydratedCollectionSlice (ADR-003 discipline: lazy
  * auto-hydration, write-through, cross-tab invalidation, backup nudge).
- * Workspace scoping mirrors the dashboard — records carry an optional
- * `workspaceId`; `listForWorkspace(null)` returns everything ("All Builds").
+ * Container scoping mirrors the roster — records resolve through
+ * `containerOf`; `listForContainer(null)` returns everything, which is what a
+ * Solo user always gets (no account means no Games to scope to).
  */
 
 import { create } from 'zustand'
 
+import { containerOf, sameContainer } from '../lib/container'
+import type { Container } from '../lib/container'
 import * as db from '../lib/db/index'
 import { STORE_NAMES } from '../lib/db/stores'
 import type { EncounterNpc } from '../lib/schemas/encounterNpc'
@@ -28,10 +31,10 @@ export type EncounterNpcCreateInput = Omit<EncounterNpc, 'id' | 'createdAt' | 'u
 type EncounterState = HydratedCollectionSlice<'encounterNpcs', EncounterNpc> &
   HydratedCollectionActions<EncounterNpc, EncounterNpcCreateInput> & {
     /**
-     * Tracked NPCs for a workspace; null = all ("All Builds", mirroring the
-     * dashboard's workspace filter semantics).
+     * Tracked NPCs in one container; null = all, mirroring the roster's
+     * unfiltered Solo view.
      */
-    listForWorkspace: (workspaceId: string | null) => EncounterNpc[]
+    listForContainer: (container: Container | null) => EncounterNpc[]
   }
 
 const slice = makeHydratedCollectionSlice<'encounterNpcs', EncounterNpc, EncounterNpcCreateInput>({
@@ -43,10 +46,10 @@ const slice = makeHydratedCollectionSlice<'encounterNpcs', EncounterNpc, Encount
 export const useEncounterStore = create<EncounterState>((set, get) => ({
   ...slice(set, get),
 
-  listForWorkspace(workspaceId) {
+  listForContainer(container) {
     const all = get().list()
-    if (workspaceId === null) return all
-    return all.filter((n) => n.workspaceId === workspaceId)
+    if (container === null) return all
+    return all.filter((n) => sameContainer(containerOf(n), container))
   },
 }))
 

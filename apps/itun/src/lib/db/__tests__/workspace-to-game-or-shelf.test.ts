@@ -12,9 +12,11 @@
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 
-import { DEFAULT_WORKSPACE_ID } from '../../defaultWorkspace'
 import { containerOf } from '../../container'
 import { openItunDatabase } from '../index'
+
+/** Inlined from the deleted lib/defaultWorkspace.ts (Workspaces are retired). */
+const DEFAULT_WORKSPACE_ID = 'default-workspace'
 
 const TEST_DB_NAME = 'itun-test-v12-to-v13'
 

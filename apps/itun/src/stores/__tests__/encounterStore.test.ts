@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { _clearAllStores, _resetDbSingleton } from '../../lib/db/index'
 import type { EncounterNpcCreateInput } from '../encounterStore'
 import { useEncounterStore } from '../encounterStore'
+import { SHELF } from '../../lib/container'
 
 const baseNpcInput: EncounterNpcCreateInput = {
   schemaVersion: 1,
@@ -114,16 +115,21 @@ describe('encounterStore — hydration persistence', () => {
   })
 })
 
-describe('encounterStore — workspace scoping', () => {
-  test('listForWorkspace filters by workspaceId; null returns all', async () => {
+describe('encounterStore — container scoping', () => {
+  test('listForContainer filters by container; null returns all', async () => {
     const store = useEncounterStore.getState()
-    await store.create({ ...baseNpcInput, workspaceId: 'ws-1' })
-    await store.create({ ...baseNpcInput, name: 'Wastelander', workspaceId: 'ws-2' })
-    await store.create({ ...baseNpcInput, name: 'Unassigned' })
+    await store.create({ ...baseNpcInput, gameId: 'game-1' })
+    await store.create({ ...baseNpcInput, name: 'Wastelander', gameId: 'game-2' })
+    await store.create({ ...baseNpcInput, name: 'Shelved', gameId: null })
 
     const state = useEncounterStore.getState()
-    expect(state.listForWorkspace(null).length).toBe(3)
-    expect(state.listForWorkspace('ws-1').map((n) => n.name)).toEqual(['Raider'])
-    expect(state.listForWorkspace('ws-2').map((n) => n.name)).toEqual(['Wastelander'])
+    expect(state.listForContainer(null).length).toBe(3)
+    expect(state.listForContainer({ kind: 'game', gameId: 'game-1' }).map((n) => n.name)).toEqual([
+      'Raider',
+    ])
+    expect(state.listForContainer({ kind: 'game', gameId: 'game-2' }).map((n) => n.name)).toEqual([
+      'Wastelander',
+    ])
+    expect(state.listForContainer(SHELF).map((n) => n.name)).toEqual(['Shelved'])
   })
 })

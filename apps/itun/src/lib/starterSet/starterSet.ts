@@ -1,5 +1,5 @@
 /**
- * Built-in "Starter Set" workspace — the pre-generated roster from the Salvage
+ * Built-in "Starter Set" roster — the pre-generated crew from the Salvage
  * Union Starter Set adventure *Reclamation of the Wastes*: the six pilots of
  * Union Crawler #430 'Tenacity', each with their mech, plus the crawler and its
  * crew, wired together with SoftLinks.
@@ -15,10 +15,11 @@
  *     user later deletes (a same-version re-open doesn't re-run the upgrade).
  *   - `createdAt`/`updatedAt` are a FIXED constant for the same determinism —
  *     these rows never sort ahead of the user's own newest-first builds.
- *   - Everything lives in the `STARTER_WORKSPACE_ID` workspace. The Dashboard
- *     excludes that workspace from its "All Builds" view and its first-run
- *     check, so a fresh install still opens blank; the Starter Set is reachable
- *     only by selecting it in the Workspace switcher.
+ *   - Every record is stamped `gameId: null` — the **Shelf** (ADR-030 §2).
+ *     These rows used to sit in their own Workspace, which is what kept them
+ *     out of the user's own builds; with Workspaces retired there is no such
+ *     container, so isolation now comes from the seed being opt-in rather than
+ *     from where the rows live. See `seedStarterSet.ts` for the full reasoning.
  *
  * Slugs verified against the reference dataset — the seed test
  * (`__tests__/starterSet.test.ts`) fails if any ref stops resolving.
@@ -36,10 +37,6 @@ import type { Crawler } from '../schemas/crawler'
 import type { Mech } from '../schemas/mech'
 import type { Pilot } from '../schemas/pilot'
 import type { SoftLink } from '../schemas/softLink'
-import type { Workspace } from '../schemas/workspace'
-
-/** Deterministic id of the built-in Starter Set workspace. */
-export const STARTER_WORKSPACE_ID = 'starter-set-workspace'
 
 /** Fixed timestamp for every seeded row (see file header — determinism). */
 const SEED_TS = '2020-01-01T00:00:00.000Z'
@@ -62,17 +59,6 @@ const BAY = {
 } as const
 
 // ---------------------------------------------------------------------------
-// Workspace
-// ---------------------------------------------------------------------------
-
-export const STARTER_WORKSPACE: Workspace = {
-  id: STARTER_WORKSPACE_ID,
-  schemaVersion: 1,
-  name: 'Starter Set',
-  createdAt: SEED_TS,
-}
-
-// ---------------------------------------------------------------------------
 // Pilots + mechs — one crew member per row, kept side-by-side for review.
 // ---------------------------------------------------------------------------
 
@@ -90,7 +76,7 @@ function pilot(
     callsign: fields.name,
     appearance: '',
     conditions: [],
-    workspaceId: STARTER_WORKSPACE_ID,
+    gameId: null,
     createdAt: SEED_TS,
     updatedAt: SEED_TS,
     ...fields,
@@ -105,7 +91,7 @@ function mech(
     schemaVersion: 1,
     cargoLots: [],
     conditions: [],
-    workspaceId: STARTER_WORKSPACE_ID,
+    gameId: null,
     createdAt: SEED_TS,
     updatedAt: SEED_TS,
     ...fields,
@@ -451,7 +437,7 @@ const STARTER_CRAWLER: Crawler = {
       [WASTELAND_MOTTO_ID]: ['The early bird gets the worm.'],
     },
   },
-  workspaceId: STARTER_WORKSPACE_ID,
+  gameId: null,
   createdAt: SEED_TS,
   updatedAt: SEED_TS,
 }

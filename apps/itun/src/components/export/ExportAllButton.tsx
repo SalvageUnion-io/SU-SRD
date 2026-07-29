@@ -1,6 +1,6 @@
 /**
  * ExportAllButton — triggers a full backup download (all pilots, mechs,
- * crawlers, workspaces, and softLinks) as a single JSON file.
+ * crawlers, and softLinks) as a single JSON file.
  *
  * Uses buildExportBundle + downloadJson from lib/export.
  * Success/failure surface as toasts; errors also render inline so the
@@ -13,7 +13,6 @@ import { Button, toast } from 'component-lib'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
-import { useWorkspaceStore } from '../../stores/workspaceStore'
 
 export function ExportAllButton() {
   const [busy, setBusy] = useState(false)
@@ -24,8 +23,7 @@ export function ExportAllButton() {
     setError(null)
     try {
       const entityStore = useEntityStore.getState()
-      const workspaceStore = useWorkspaceStore.getState()
-      const bundle = await buildExportBundle(entityStore, workspaceStore)
+      const bundle = await buildExportBundle(entityStore)
       const date = new Date().toISOString().slice(0, 10)
       downloadJson(`itun-backup-${date}.json`, bundle)
       toast.success('Backup downloaded.')

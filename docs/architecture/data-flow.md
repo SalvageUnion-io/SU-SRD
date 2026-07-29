@@ -62,7 +62,7 @@ comment at the top of `src/lib/db/index.ts`).
   | `mechs`        | Player mechs (chassis ref, pattern, current HP/SP, pattern items) |
   | `crawlers`     | Player crawler instances (crawler ref, tech level, bays, scrap)   |
   | `mechPatterns` | Saved mech builds (immutable after creation)                      |
-  | `workspaces`   | Grouping container for a player's entities                        |
+  | `workspaces`   | **Retired** (ADR-030 §2) — kept so migrations v10/v13 still run   |
   | `softLinks`    | Typed relationships between pilots/mechs/crawlers                 |
 
 Player records store **slug references** into reference entities (e.g.
@@ -81,7 +81,7 @@ Key behaviours:
 - **Salvage path on read:** reads use `schema.strip()` so a drifted record
   (e.g. after a PWA auto-update version skew) has unknown fields stripped with a
   console warning instead of bricking hydration.
-- **`hasUpdatedAt`:** Pilot/Mech/Crawler stamp `updatedAt` on write; Workspace,
+- **`hasUpdatedAt`:** Pilot/Mech/Crawler stamp `updatedAt` on write;
   SoftLink, and MechPattern carry `createdAt` only.
 
 ### Migrations (`src/lib/db/migrations/`)
@@ -120,7 +120,8 @@ shared state):
   - **Multi-tab:** every successful write publishes the affected store via
     `lib/db/broadcast`; writes from other tabs invalidate this tab's cache so
     already-hydrated stores re-read from IndexedDB.
-- **`workspaceStore`** — the active workspace and workspace membership.
+- **`activeContainerStore`** — the current container: a Game, or the Shelf.
+  Only consulted in Connected mode; a Solo user has one unfiltered pile.
 
 Writes also call `recordDataWrite()` (`lib/backupNudge`), which periodically
 nudges the user to export a backup — the local-first analogue of durability.

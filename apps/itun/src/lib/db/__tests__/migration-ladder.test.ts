@@ -26,7 +26,6 @@ import { MechPatternSchema } from '../../schemas/pattern'
 import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
 import { SoftLinkSchema } from '../../schemas/softLink'
-import { WorkspaceSchema } from '../../schemas/workspace'
 import { DB_VERSION, openItunDatabase } from '../index'
 import { STORE_NAMES } from '../stores'
 
@@ -201,8 +200,13 @@ describe('migration ladder: v1 fixture → DB_VERSION', () => {
       expect(crawler.name).toBe('The Rustwalker')
       expect(crawler.systems).toEqual(['scanner-array'])
 
-      const workspace = WorkspaceSchema.parse(await db.get(STORE_NAMES.workspaces, 'ws-v1-1'))
-      expect(workspace.name).toBe('Campaign One')
+      // Workspaces are retired (ADR-030 §2), so there is no schema to parse
+      // against any more — but the ROW must still survive the ladder, because
+      // migration v13 reads `workspaceId` off entities that v10 wrote here.
+      const workspace = (await db.get(STORE_NAMES.workspaces, 'ws-v1-1')) as
+        | { name: string }
+        | undefined
+      expect(workspace?.name).toBe('Campaign One')
 
       const link = SoftLinkSchema.parse(await db.get(STORE_NAMES.softLinks, 'link-v1-1'))
       expect(link.from.id).toBe('mech-v1-1')

@@ -2,7 +2,7 @@
  * DialConfig (ITUN binding) — adapts the app's CockpitPrefs to the presentational
  * DialConfig in component-lib. Owns the prefs logic (ordering, locked-visible
  * Actions, building the persisted CockpitPrefs); emits a new CockpitPrefs on
- * every change so Dashboard can persist it to the owning Workspace record.
+ * every change so Dashboard can persist it against the owning container.
  *
  * The overlay operates on stable dial KINDS (not per-instance keys), so the same
  * prefs apply regardless of which mech/pilot/crawler is loaded.
@@ -17,7 +17,7 @@ type DialConfigProps = {
   kinds: DialKind[]
   /** Current persisted prefs (undefined → defaults: all visible, default order). */
   prefs?: CockpitPrefs
-  /** Emit updated prefs (Dashboard persists to the workspace). */
+  /** Emit updated prefs (Dashboard persists them per container). */
   onChange: (next: CockpitPrefs) => void
   onClose: () => void
 }

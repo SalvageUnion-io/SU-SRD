@@ -8,7 +8,6 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 
 import { _clearAllStores, _resetDbSingleton, mechPatterns } from '../../db/index'
 import { useEntityStore } from '../../../stores/entityStore'
-import { useWorkspaceStore } from '../../../stores/workspaceStore'
 import { buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
 import { parseImportBundle } from '../parseImportBundle'
@@ -27,7 +26,6 @@ function resetStores(): void {
       softLinks: false,
     },
   })
-  useWorkspaceStore.setState({ workspaces: [], hydrated: false })
 }
 
 beforeEach(async () => {
@@ -63,7 +61,7 @@ describe('buildExportBundle — mech patterns', () => {
   test('a full backup includes saved patterns', async () => {
     await mechPatterns.create(patternInput)
 
-    const bundle = await buildExportBundle(useEntityStore.getState(), useWorkspaceStore.getState())
+    const bundle = await buildExportBundle(useEntityStore.getState())
 
     expect(bundle.mechPatterns).toHaveLength(1)
     expect(bundle.mechPatterns[0]?.name).toBe('Scout Loadout')
@@ -73,17 +71,13 @@ describe('buildExportBundle — mech patterns', () => {
 describe('mergeImport — mech patterns', () => {
   test('round-trip: exported patterns import with fresh ids', async () => {
     const created = await mechPatterns.create(patternInput)
-    const bundle = await buildExportBundle(useEntityStore.getState(), useWorkspaceStore.getState())
+    const bundle = await buildExportBundle(useEntityStore.getState())
 
     // Simulate a different browser: wipe everything, then import.
     await _clearAllStores()
     resetStores()
 
-    const summary = await mergeImport(
-      bundle,
-      useEntityStore.getState(),
-      useWorkspaceStore.getState()
-    )
+    const summary = await mergeImport(bundle, useEntityStore.getState())
     expect(summary.created.mechPatterns).toBe(1)
 
     const imported = await mechPatterns.list()
@@ -94,14 +88,10 @@ describe('mergeImport — mech patterns', () => {
 
   test('exact-id duplicates are skipped', async () => {
     await mechPatterns.create(patternInput)
-    const bundle = await buildExportBundle(useEntityStore.getState(), useWorkspaceStore.getState())
+    const bundle = await buildExportBundle(useEntityStore.getState())
 
     // Import into the SAME store — the pattern id already exists.
-    const summary = await mergeImport(
-      bundle,
-      useEntityStore.getState(),
-      useWorkspaceStore.getState()
-    )
+    const summary = await mergeImport(bundle, useEntityStore.getState())
     expect(summary.created.mechPatterns).toBe(0)
     expect(summary.skippedDuplicates).toBeGreaterThanOrEqual(1)
     expect(await mechPatterns.list()).toHaveLength(1)

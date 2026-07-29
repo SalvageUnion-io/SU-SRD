@@ -29,7 +29,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { ExportEntityButton } from '../export/ExportEntityButton'
 import { AppLink } from '../shared/AppLink'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
-import { AssignToWorkspaceButton } from '../workspace/AssignToWorkspaceButton'
+import { MoveToContainerControl } from '../container/MoveToContainerControl'
 
 import { ChangeLogDrawer } from './ChangeLogDrawer'
 import { resolveSheetComposition } from './composition'
@@ -155,7 +155,7 @@ export function Sheet({
   const back = { href: '/', label: 'Roster' }
   // Top-bar trailing actions (app-bar right group, design source
   // clean-pilot.html `.bar-actions`): Share (publish) stays inline; Print,
-  // Export and Workspace tuck into the "⋯" overflow at every width — the app
+  // Export and the container control tuck into the "⋯" overflow at every width — the app
   // bar's priority row is just Share + overflow.
   // NO sheet has a global Edit toggle any more — editing is section-based
   // (unified edit language: per-section Edit buttons, always-available
@@ -174,15 +174,11 @@ export function Sheet({
     </button>
   )
   // Entity-level admin affordances relocated from the (removed) detail page:
-  // single-entity JSON export + workspace assignment. Unassigning a linked
-  // entity lives on the rail chip, not here — it's contextual to the link.
+  // single-entity JSON export + container move. Unassigning a linked entity
+  // lives on the rail chip, not here — it's contextual to the link.
   const exportButton = <ExportEntityButton type={kind} id={id} name={entity.name} />
-  const workspaceControl = (
-    <AssignToWorkspaceButton
-      entityType={kind}
-      entityId={id}
-      currentWorkspaceId={entity.workspaceId}
-    />
+  const containerControl = (
+    <MoveToContainerControl entityType={kind} entityId={id} entity={entity} />
   )
   // The per-entity Change Log (provenance) opens from the overflow menu, never
   // inline on the sheet body (ADR-022). Its open-state lives here, on the
@@ -209,7 +205,7 @@ export function Sheet({
       <SheetActionsMenu>
         {printButton}
         {exportButton}
-        {workspaceControl}
+        {containerControl}
         {changeLogButton}
       </SheetActionsMenu>
     </div>

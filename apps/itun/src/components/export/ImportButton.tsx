@@ -19,7 +19,6 @@ import { mergeImport } from '../../lib/export/mergeImport'
 import { parseImportBundle } from '../../lib/export/parseImportBundle'
 import type { MergeSummary } from '../../lib/export/mergeImport'
 import { useEntityStore } from '../../stores/entityStore'
-import { useWorkspaceStore } from '../../stores/workspaceStore'
 
 export function ImportButton() {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -43,14 +42,9 @@ export function ImportButton() {
       const text = await file.text()
       const bundle = parseImportBundle(text)
       const entityStore = useEntityStore.getState()
-      const workspaceStore = useWorkspaceStore.getState()
-      const result = await mergeImport(bundle, entityStore, workspaceStore)
+      const result = await mergeImport(bundle, entityStore)
       setSummary(result)
-      const total =
-        result.created.pilots +
-        result.created.mechs +
-        result.created.crawlers +
-        result.created.workspaces
+      const total = result.created.pilots + result.created.mechs + result.created.crawlers
       toast.success(`Import complete — ${total} entit${total === 1 ? 'y' : 'ies'} created.`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Import failed.'
@@ -84,8 +78,7 @@ export function ImportButton() {
       {summary && !error && (
         <p className="font-body text-xs text-wk-muted">
           Imported: {summary.created.pilots} pilot(s), {summary.created.mechs} mech(s),{' '}
-          {summary.created.crawlers} crawler(s), {summary.created.softLinks} link(s),{' '}
-          {summary.created.workspaces} workspace(s).
+          {summary.created.crawlers} crawler(s), {summary.created.softLinks} link(s).
           {summary.skippedDuplicates > 0 && ` Skipped ${summary.skippedDuplicates} duplicate(s).`}
         </p>
       )}

@@ -18,9 +18,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
-import { STARTER_WORKSPACE_ID } from '../../../lib/starterSet/starterSet'
 import { useEntityStore } from '../../../stores/entityStore'
-import { useWorkspaceStore } from '../../../stores/workspaceStore'
 import { Roster } from '../Roster'
 
 // ---------------------------------------------------------------------------
@@ -231,36 +229,25 @@ describe('Roster — first-run welcome', () => {
   })
 })
 
-describe('Roster — Starter Set (spawned on first visit)', () => {
-  // The Starter Set is NOT pre-seeded — selecting it in the switcher spawns it
-  // into the shared fake-indexeddb via ensureStarterSetSeeded. The shared
-  // beforeEach clears the db + entityStore; reset the workspace store too so
-  // each test starts with nothing seeded.
-  beforeEach(() => {
-    act(() => useWorkspaceStore.setState({ workspaces: [], hydrated: false }))
-  })
-  afterEach(() => {
-    act(() => useWorkspaceStore.setState({ workspaces: [], hydrated: false }))
-  })
+describe('Roster — Starter Set (spawned on demand)', () => {
+  // The Starter Set is NOT pre-seeded. With Workspaces retired it is no longer
+  // an entry in a switcher; it has its own button, which spawns it onto the
+  // Shelf via ensureStarterSetSeeded and then disappears.
 
-  test('a fresh user sees the welcome screen and a Starter Set option, nothing seeded yet', async () => {
+  test('a fresh user sees the welcome screen and a Load Starter Set button, nothing seeded yet', async () => {
     await renderRoster()
 
     expect(screen.getByRole('heading', { name: /Welcome to In the Union Now/i })).toBeTruthy()
-    // The switcher offers Starter Set even before it exists as a workspace.
-    const switcher = screen.getByLabelText<HTMLSelectElement>('Select workspace')
-    expect([...switcher.options].some((o) => o.textContent === 'Starter Set')).toBe(true)
+    expect(screen.getByRole('button', { name: 'Load Starter Set' })).toBeTruthy()
     // Nothing spawned yet — no crew rendered.
     expect(screen.queryByText('Bonesaw')).toBeFalsy()
   })
 
-  test('selecting Starter Set spawns it into the browser and renders the crew', async () => {
+  test('loading the Starter Set spawns it into the browser and renders the crew', async () => {
     await renderRoster()
 
     await act(async () => {
-      fireEvent.change(screen.getByLabelText('Select workspace'), {
-        target: { value: STARTER_WORKSPACE_ID },
-      })
+      fireEvent.click(screen.getByRole('button', { name: 'Load Starter Set' }))
     })
     // Seeding is async (IndexedDB write + rehydrate) — settle until the crew shows.
     //

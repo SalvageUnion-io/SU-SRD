@@ -10,9 +10,10 @@
  *   buildExportBundle → JSON.stringify → parseImportBundle → mergeImport
  *
  * and asserts every field survives except the three that are INTENTIONALLY
- * re-minted (id, createdAt, updatedAt) and workspaceId (intentionally
- * remapped to the newly-created workspace's id — see mergeImport's
- * doc-comment). That remap is exercised explicitly, not treated as noise.
+ * re-minted (id, createdAt, updatedAt) and the container (intentionally reset
+ * to the importer's Shelf, since Game membership comes from the server rather
+ * than from a file — see mergeImport's doc-comment). That reset is exercised
+ * explicitly, not treated as noise.
  *
  * No property-testing library (e.g. fast-check) is a dependency of this repo
  * (checked package.json first, per the harness brief) — this is deliberately
@@ -28,7 +29,6 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 
 import { _clearAllStores, _resetDbSingleton, encounterNpcs, mechPatterns } from '../../db/index'
 import { useEntityStore } from '../../../stores/entityStore'
-import { useWorkspaceStore } from '../../../stores/workspaceStore'
 import { buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
 import { parseImportBundle } from '../parseImportBundle'
@@ -42,7 +42,6 @@ function resetStores(): void {
     softLinks: [],
     hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
   })
-  useWorkspaceStore.setState({ workspaces: [], hydrated: false })
 }
 
 beforeEach(async () => {
@@ -59,7 +58,14 @@ afterEach(async () => {
 /** Strip the fields mergeImport intentionally re-mints/remaps on import. */
 function stable(record: Record<string, unknown>): Record<string, unknown> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id: _id, createdAt: _ca, updatedAt: _ua, workspaceId: _wsId, ...rest } = record
+  const {
+    id: _id,
+    createdAt: _ca,
+    updatedAt: _ua,
+    workspaceId: _wsId,
+    gameId: _gid,
+    ...rest
+  } = record
   return rest
 }
 
@@ -69,11 +75,7 @@ async function roundTrip(bundle: ExportBundle): Promise<ExportBundle> {
   _resetDbSingleton()
   await _clearAllStores()
   resetStores()
-  const summary = await mergeImport(
-    parseImportBundle(json),
-    useEntityStore.getState(),
-    useWorkspaceStore.getState()
-  )
+  const summary = await mergeImport(parseImportBundle(json), useEntityStore.getState())
   void summary
   return parseImportBundle(json) // re-parse for shape assertions below
 }
@@ -261,36 +263,27 @@ const richEncounterNpcInput = {
 describe('export round-trip — field fidelity', () => {
   test('pilot: every optional/nested field survives buildExportBundle → JSON → parseImportBundle → mergeImport', async () => {
     const entityStore = useEntityStore.getState()
-    const workspaceStore = useWorkspaceStore.getState()
-
-    await workspaceStore.hydrate()
-    const ws = await workspaceStore.create({ name: 'Campaign Alpha' })
 
     await entityStore.hydrate('pilot')
-    const created = await entityStore.create('pilot', { ...richPilotInput, workspaceId: ws.id })
+    const created = await entityStore.create('pilot', { ...richPilotInput, gameId: 'game-alpha' })
 
-    const bundle = await buildExportBundle(entityStore, workspaceStore)
+    const bundle = await buildExportBundle(entityStore)
     const parsed = await roundTrip(bundle)
 
     _resetDbSingleton()
     resetStores()
     const verifyEntityStore = useEntityStore.getState()
-    const verifyWorkspaceStore = useWorkspaceStore.getState()
     await verifyEntityStore.hydrate('pilot')
-    await verifyWorkspaceStore.hydrate()
 
     const importedPilot = verifyEntityStore.list('pilot')[0]
-    const importedWs = verifyWorkspaceStore.list()[0]
     expect(importedPilot).toBeDefined()
-    expect(importedWs).toBeDefined()
     if (!importedPilot) throw new Error('expected imported pilot')
-    if (!importedWs) throw new Error('expected imported workspace')
 
-    // Every field except id/createdAt/updatedAt/workspaceId is preserved exactly.
+    // Every field except id/createdAt/updatedAt/container is preserved exactly.
     expect(stable(importedPilot)).toEqual(stable(created))
-    // workspaceId is intentionally remapped — to the NEW workspace's id.
-    expect(importedPilot.workspaceId).toBe(importedWs.id)
-    expect(importedPilot.workspaceId).not.toBe(ws.id)
+    // The container is intentionally NOT carried across: Game membership comes
+    // from the server, not from a file, so an import lands on the Shelf.
+    expect(importedPilot.gameId).toBeNull()
 
     // Sanity: the exported bundle actually carried the rich fields (i.e. the
     // round trip exercised them, not an accidentally-empty pilot).
@@ -300,12 +293,11 @@ describe('export round-trip — field fidelity', () => {
 
   test('mech: bulk SCRAP + unit cargo lots, condition maps, heat/damage results all survive', async () => {
     const entityStore = useEntityStore.getState()
-    const workspaceStore = useWorkspaceStore.getState()
 
     await entityStore.hydrate('mech')
     const created = await entityStore.create('mech', richMechInput)
 
-    const bundle = await buildExportBundle(entityStore, workspaceStore)
+    const bundle = await buildExportBundle(entityStore)
     await roundTrip(bundle)
 
     _resetDbSingleton()
@@ -321,12 +313,11 @@ describe('export round-trip — field fidelity', () => {
 
   test('crawler: crawlerBays/typeNpc/scrapPool/bayChoices all survive', async () => {
     const entityStore = useEntityStore.getState()
-    const workspaceStore = useWorkspaceStore.getState()
 
     await entityStore.hydrate('crawler')
     const created = await entityStore.create('crawler', richCrawlerInput)
 
-    const bundle = await buildExportBundle(entityStore, workspaceStore)
+    const bundle = await buildExportBundle(entityStore)
     await roundTrip(bundle)
 
     _resetDbSingleton()
@@ -342,11 +333,10 @@ describe('export round-trip — field fidelity', () => {
 
   test('mechPattern: bulk SCRAP cargo lot survives (no workspaceId field to remap)', async () => {
     const entityStore = useEntityStore.getState()
-    const workspaceStore = useWorkspaceStore.getState()
 
     const created = await mechPatterns.create(richPatternInput)
 
-    const bundle = await buildExportBundle(entityStore, workspaceStore)
+    const bundle = await buildExportBundle(entityStore)
     await roundTrip(bundle)
 
     const imported = (await mechPatterns.list())[0]
@@ -356,35 +346,25 @@ describe('export round-trip — field fidelity', () => {
     expect(stable(imported)).toEqual(stable(created))
   })
 
-  test('encounterNpc: conditions + lastMediatorRoll survive, workspaceId remaps to new workspace', async () => {
+  test('encounterNpc: conditions + lastMediatorRoll survive, container resets to the Shelf', async () => {
     const entityStore = useEntityStore.getState()
-    const workspaceStore = useWorkspaceStore.getState()
 
-    await workspaceStore.hydrate()
-    const ws = await workspaceStore.create({ name: 'Campaign Alpha' })
+    const created = await encounterNpcs.create({ ...richEncounterNpcInput, gameId: 'game-alpha' })
 
-    const created = await encounterNpcs.create({ ...richEncounterNpcInput, workspaceId: ws.id })
-
-    const bundle = await buildExportBundle(entityStore, workspaceStore)
+    const bundle = await buildExportBundle(entityStore)
     expect(bundle.encounterNpcs).toHaveLength(1)
     const parsed = await roundTrip(bundle)
 
     _resetDbSingleton()
     resetStores()
-    const verifyWorkspaceStore = useWorkspaceStore.getState()
-    await verifyWorkspaceStore.hydrate()
-    const importedWs = verifyWorkspaceStore.list()[0]
     const imported = (await encounterNpcs.list())[0]
     expect(imported).toBeDefined()
-    expect(importedWs).toBeDefined()
     if (!imported) throw new Error('expected imported record')
-    if (!importedWs) throw new Error('expected imported workspace')
 
-    // Every field except id/createdAt/updatedAt/workspaceId is preserved exactly.
+    // Every field except id/createdAt/updatedAt/container is preserved exactly.
     expect(stable(imported)).toEqual(stable(created))
-    // workspaceId is intentionally remapped — to the NEW workspace's id.
-    expect(imported.workspaceId).toBe(importedWs.id)
-    expect(imported.workspaceId).not.toBe(ws.id)
+    // The container is not carried across — an import lands on the Shelf.
+    expect(imported.gameId).toBeNull()
 
     // Sanity: the exported bundle actually carried the rich fields.
     expect(parsed.encounterNpcs[0]?.conditions).toEqual(['bleeding'])
@@ -393,26 +373,25 @@ describe('export round-trip — field fidelity', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Cross-entity fidelity: softLinks + workspace assignment survive together
+// Cross-entity fidelity: softLinks + container assignment survive together
 // in one full-backup round trip (not just each entity type in isolation).
 // ---------------------------------------------------------------------------
 
 describe('export round-trip — cross-entity full backup', () => {
-  test('pilot + mech + crawler + softLinks + workspace all round-trip consistently', async () => {
+  test('pilot + mech + crawler + softLinks + container all round-trip consistently', async () => {
     const entityStore = useEntityStore.getState()
-    const workspaceStore = useWorkspaceStore.getState()
-
-    await workspaceStore.hydrate()
-    const ws = await workspaceStore.create({ name: 'Campaign Alpha' })
 
     await entityStore.hydrate('pilot')
-    const pilot = await entityStore.create('pilot', { ...richPilotInput, workspaceId: ws.id })
+    const pilot = await entityStore.create('pilot', { ...richPilotInput, gameId: 'game-alpha' })
 
     await entityStore.hydrate('mech')
-    const mech = await entityStore.create('mech', { ...richMechInput, workspaceId: ws.id })
+    const mech = await entityStore.create('mech', { ...richMechInput, gameId: 'game-alpha' })
 
     await entityStore.hydrate('crawler')
-    const crawler = await entityStore.create('crawler', { ...richCrawlerInput, workspaceId: ws.id })
+    const crawler = await entityStore.create('crawler', {
+      ...richCrawlerInput,
+      gameId: 'game-alpha',
+    })
 
     await entityStore.hydrate('softLink')
     await entityStore.create('softLink', {
@@ -427,14 +406,15 @@ describe('export round-trip — cross-entity full backup', () => {
     })
 
     await mechPatterns.create(richPatternInput)
-    await encounterNpcs.create({ ...richEncounterNpcInput, workspaceId: ws.id })
+    await encounterNpcs.create({ ...richEncounterNpcInput, gameId: 'game-alpha' })
 
-    const bundle = await buildExportBundle(entityStore, workspaceStore)
+    const bundle = await buildExportBundle(entityStore)
     expect(bundle.entities.pilots).toHaveLength(1)
     expect(bundle.entities.mechs).toHaveLength(1)
     expect(bundle.entities.crawlers).toHaveLength(1)
     expect(bundle.softLinks).toHaveLength(2)
-    expect(bundle.workspaces).toHaveLength(1)
+    // Workspaces are retired: the key survives for old bundles, always empty.
+    expect(bundle.workspaces).toHaveLength(0)
     expect(bundle.mechPatterns).toHaveLength(1)
     expect(bundle.encounterNpcs).toHaveLength(1)
 
@@ -443,28 +423,25 @@ describe('export round-trip — cross-entity full backup', () => {
     _resetDbSingleton()
     resetStores()
     const verifyEntityStore = useEntityStore.getState()
-    const verifyWorkspaceStore = useWorkspaceStore.getState()
     await verifyEntityStore.hydrate('pilot')
     await verifyEntityStore.hydrate('mech')
     await verifyEntityStore.hydrate('crawler')
     await verifyEntityStore.hydrate('softLink')
-    await verifyWorkspaceStore.hydrate()
 
     const importedPilot = verifyEntityStore.list('pilot')[0]
     const importedMech = verifyEntityStore.list('mech')[0]
     const importedCrawler = verifyEntityStore.list('crawler')[0]
     const importedLinks = verifyEntityStore.list('softLink')
-    const importedWs = verifyWorkspaceStore.list()[0]
     const importedPatterns = await mechPatterns.list()
     const importedEncounterNpcs = await encounterNpcs.list()
-    if (!importedPilot || !importedMech || !importedCrawler || !importedWs) {
-      throw new Error('expected imported pilot, mech, crawler and workspace')
+    if (!importedPilot || !importedMech || !importedCrawler) {
+      throw new Error('expected imported pilot, mech and crawler')
     }
 
-    // All three entities re-point at the SAME new workspace id.
-    expect(importedPilot.workspaceId).toBe(importedWs.id)
-    expect(importedMech.workspaceId).toBe(importedWs.id)
-    expect(importedCrawler.workspaceId).toBe(importedWs.id)
+    // All three land in the SAME container — the importer's Shelf.
+    expect(importedPilot.gameId).toBeNull()
+    expect(importedMech.gameId).toBeNull()
+    expect(importedCrawler.gameId).toBeNull()
 
     // Both softLinks remapped to the fresh entity ids — no dangling refs.
     expect(importedLinks).toHaveLength(2)
@@ -480,10 +457,10 @@ describe('export round-trip — cross-entity full backup', () => {
     expect(importedPatterns).toHaveLength(1)
     expect(importedPatterns[0]?.chassisRef).toBe('mule-chassis')
 
-    // Encounter NPC survives too, workspaceId re-pointed at the same new workspace.
+    // Encounter NPC survives too, and lands on the same Shelf.
     expect(importedEncounterNpcs).toHaveLength(1)
     expect(importedEncounterNpcs[0]?.refSlug).toBe('wasteland-raider')
-    expect((importedEncounterNpcs[0] as { workspaceId?: string }).workspaceId).toBe(importedWs.id)
+    expect(importedEncounterNpcs[0]?.gameId).toBeNull()
 
     // Deep field fidelity, same as the per-entity tests above.
     expect(stable(importedPilot)).toEqual(stable({ ...pilot }))

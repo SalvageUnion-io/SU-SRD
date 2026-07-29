@@ -167,9 +167,9 @@ export function CrawlerBuilder({
   const [allBays, setAllBays] = useState<SURefEntity[]>([])
   const [types, setTypes] = useState<SURefCrawler[]>([])
 
-  // Advisory prelude context (plan §4.3 step 0): a gentle count of existing
-  // pilots/mechs in this workspace — surfaced in step 1's RuleBrief, NEVER a
-  // blocker (the whole table's state can't be verified).
+  // Advisory prelude context (plan §4.3 step 0): a gentle count of the pilots
+  // and mechs saved here — surfaced in step 1's RuleBrief, NEVER a blocker
+  // (the whole table's state can't be verified).
   const pilotCount = usePilots().length
   const mechCount = useMechs().length
 
@@ -436,9 +436,8 @@ export function CrawlerBuilder({
                   Ability that only it can do, as well as a special NPC who resides on the Crawler
                   and confers their own bonuses.{' '}
                   <span className="text-ink-2">
-                    (This workspace has {pilotCount} Pilot{pilotCount === 1 ? '' : 's'} and{' '}
-                    {mechCount} Mech{mechCount === 1 ? '' : 's'} so far — context only, never a
-                    blocker.)
+                    (You have {pilotCount} Pilot{pilotCount === 1 ? '' : 's'} and {mechCount} Mech
+                    {mechCount === 1 ? '' : 's'} saved so far — context only, never a blocker.)
                   </span>
                 </>
               ),

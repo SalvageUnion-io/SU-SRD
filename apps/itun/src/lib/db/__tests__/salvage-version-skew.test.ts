@@ -10,7 +10,7 @@
  * stray TOP-LEVEL unknown field. This file:
  *
  *   1. Extends the "top-level unknown field survives" case to every store
- *      (mechs, crawlers, workspaces, softLinks, mechPatterns, encounterNpcs)
+ *      (mechs, crawlers, softLinks, mechPatterns, encounterNpcs)
  *      and asserts every OTHER known field — including nested arrays/objects
  *      — round-trips exactly. A field silently vanishing that ISN'T the
  *      injected unknown one would be drift beyond the documented contract.
@@ -46,7 +46,6 @@ import {
   openItunDatabase,
   pilots,
   softLinks,
-  workspaces,
 } from '../index'
 import { STORE_NAMES } from '../stores'
 import { must } from '../../../components/__tests__/must'
@@ -131,21 +130,6 @@ describe('salvage read: top-level unknown field strips only that field', () => {
       const record = await crawlers.get(created.id)
       expect(record).not.toBeNull()
       expect('fieldFromTheFuture' in must(record)).toBe(false)
-      expect(record).toEqual(created)
-      expect(warnings.some((w) => w.includes('salvage path'))).toBe(true)
-    } finally {
-      restore()
-    }
-  })
-
-  test('workspace — survives with all fields intact', async () => {
-    const created = await workspaces.create({ schemaVersion: 1, name: 'Campaign Alpha' })
-
-    await putRaw(STORE_NAMES.workspaces, { ...created, fieldFromTheFuture: 'x' })
-
-    const { warnings, restore } = captureWarnings()
-    try {
-      const record = await workspaces.get(created.id)
       expect(record).toEqual(created)
       expect(warnings.some((w) => w.includes('salvage path'))).toBe(true)
     } finally {

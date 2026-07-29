@@ -17,13 +17,16 @@
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 
-import { DEFAULT_WORKSPACE_ID, DEFAULT_WORKSPACE_NAME } from '../../defaultWorkspace'
 import { MechPatternSchema } from '../../schemas/pattern'
 import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
 import { DB_VERSION, _clearAllStores, openItunDatabase, pilots } from '../index'
 import { STORE_NAMES } from '../stores'
 import { must } from '../../../components/__tests__/must'
+
+/** Inlined from the deleted lib/defaultWorkspace.ts (Workspaces are retired). */
+const DEFAULT_WORKSPACE_ID = 'default-workspace'
+const DEFAULT_WORKSPACE_NAME = 'Default workspace'
 
 const TEST_DB_NAME = 'itun-migrations-test'
 
