@@ -2,6 +2,14 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [1.4.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.3.1...srd-v1.4.0) (2026-07-29)
+
+
+### Features
+
+* **srd:** fit each entity's og:image card to the preview canvas ([#662](https://github.com/SalvageUnion-io/SU-SRD/issues/662)) ([43a99a0](https://github.com/SalvageUnion-io/SU-SRD/commit/43a99a0092059254c6068e56d835452614a6d602))
+* **srd:** render each entity's og:image from its Catalog tile ([#657](https://github.com/SalvageUnion-io/SU-SRD/issues/657)) ([c7f2b71](https://github.com/SalvageUnion-io/SU-SRD/commit/c7f2b71d7ecc5adc14fb9a55c64909258985ce34))
+
 ## [1.3.1](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.3.0...srd-v1.3.1) (2026-07-28)
 
 
