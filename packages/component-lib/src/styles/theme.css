@@ -371,10 +371,20 @@
   --tone-deep: var(--color-sheet-crawler-deep);
   --ground: oklch(from var(--tone) 0.955 0.03 h);
   --ground-2: oklch(from var(--tone) 0.985 0.012 h);
-  /* Union Crawler step-card peach, pp.212–213 (#EC9C67) — unused until the
-     crawler wizard's book-order phase opts in. Peach is light enough for
-     dark ink. */
-  --tone-card: rgb(236, 156, 103);
+  /* Crawler step-card pink — DERIVED from the page tone, not a book literal.
+     This used to be the printed spread's peach (#EC9C67, pp.212–213), which
+     shipped an orange card onto a wholly pink surface: the masthead band, the
+     `--ground` page fill and the guided door all resolve from `--tone`
+     (#CE5898), so the one blown-up element in the middle of the screen was the
+     only thing that did not belong to the page. Relative colour keeps it tied
+     to the tone — restyle the crawler and the step card follows.
+
+     L/C are chosen to land on the SAME ink contrast as its sibling step cards
+     (7.13:1, vs pilot sky-blue 7.21 and the retired peach 7.26), so
+     `--tone-card-ink: ink` stays as legible as it was and the card still reads
+     a clear step lighter than the `--tone` masthead band above it.
+     Resolves to ≈ #E197BB. */
+  --tone-card: oklch(from var(--tone) 0.76 0.1 h);
   --tone-card-ink: var(--color-ink);
 }
 
