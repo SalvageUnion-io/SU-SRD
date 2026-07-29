@@ -17,7 +17,11 @@ export default defineConfig({
   integrations: [
     react(),
     sitemap({
-      filter: (page) => !page.includes('/image') && !page.includes('/greembeem'),
+      filter: (page) =>
+        !page.includes('/image') &&
+        !page.includes('/greembeem') &&
+        !page.includes('.og.png') &&
+        !page.includes('/og-card'),
     }),
     AstroPWA({
       registerType: 'autoUpdate',

@@ -3,7 +3,6 @@ import type { SURefEntity } from 'salvageunion-reference'
 import { getTechLevel, getSource, getEntitySlug, getTree } from 'salvageunion-reference'
 import {
   Badge,
-  ReferenceEntityCard,
   Skeleton,
   FilterRow,
   MasonryColumns,
@@ -16,6 +15,7 @@ import {
 import { GameDataGate, type SchemaList } from '../../lib/useGameData'
 import { srdEntityHref } from '../../lib/entityHref'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
+import { CatalogTile } from './CatalogTile'
 
 // Hoisted to a stable module-level reference so the `memo()` on
 // ReferenceEntityCard is not defeated by a fresh inline object literal on
@@ -342,21 +342,12 @@ export function SchemaViewerIsland({
                 <EntityDetailLinkProvider value={true}>
                   <MasonryColumns>
                     {filteredData.map((item: SURefEntity) => (
-                      <a
-                        key={item.id}
-                        href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
-                        aria-label={item.name}
-                        className="relative block"
-                      >
-                        <Suspense fallback={<Skeleton mode="card" compact />}>
-                          <ReferenceEntityCard
-                            data={item}
-                            size="medium"
-                            extent="catalog"
-                            cardClickable
-                          />
-                        </Suspense>
-                      </a>
+                      <Suspense key={item.id} fallback={<Skeleton mode="card" compact />}>
+                        <CatalogTile
+                          entity={item}
+                          href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
+                        />
+                      </Suspense>
                     ))}
                   </MasonryColumns>
                 </EntityDetailLinkProvider>

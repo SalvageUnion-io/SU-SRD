@@ -1,0 +1,61 @@
+---
+/**
+ * Build-only OG-card render surface (1:1 with the Catalog tile).
+ *
+ * A single static page that renders the REAL catalog `ReferenceEntityCard` for
+ * the entity named by `?schema=&item=`, pinned to the width the schema index
+ * gives its masonry tiles. `scripts/og-screenshots.ts` drives chromium across
+ * every entity here after the build, screenshots the TILE ELEMENT, and composes
+ * it onto a 1200×630 canvas at `dist/schema/{schemaId}/item/{itemId}.og.png`.
+ *
+ * Resolving the entity client-side (OgCardIsland) keeps the build to ONE page
+ * instead of ~1,000. Excluded from the sitemap (astro.config) and noindexed.
+ */
+import '@fontsource/barlow/400.css'
+import '@fontsource/barlow/500.css'
+import '@fontsource/barlow/600.css'
+import '@fontsource/barlow/700.css'
+import '@fontsource/barlow-semi-condensed/500.css'
+import '@fontsource/barlow-semi-condensed/600.css'
+import '@fontsource/barlow-semi-condensed/700.css'
+import '../styles/global.css'
+import { OgCardIsland } from '../components/islands/OgCardIsland'
+import { CATALOG_TILE_WIDTH } from '../lib/ogCard'
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>OG card render</title>
+    <style is:global define:vars={{ tileWidth: `${CATALOG_TILE_WIDTH}px` }}>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      /* The tile is screenshotted as an ELEMENT, so the page only has to lay it
+         out at the right width. The frame carries `--color-wk-bg` — the surface
+         the schema index puts behind its tiles — so any transparency in the card
+         composites exactly as it does in the Catalog view, and the generator
+         reads this same computed colour to matte the canvas.
+
+         Set on #og-card rather than <body>: global.css styles `body` with an
+         unlayered rule, which beats Tailwind's layered utilities, so a
+         `bg-wk-bg` class there would silently lose to the page background. */
+      #og-card {
+        width: var(--tileWidth);
+        background-color: var(--color-wk-bg);
+      }
+      body {
+        background-color: var(--color-wk-bg);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="og-card">
+      <OgCardIsland client:load />
+    </div>
+  </body>
+</html>
