@@ -130,10 +130,17 @@ broadcast alerts, and the **Crew** dial item.
 Downtime phase as Game state advanced by the Mediator; per-player step completion
 visible to the table; crawler upkeep resolved once rather than six times.
 
-### Phase 6 — Discord bot as a Game client ✅
+### Phase 6 — Discord bot as a Game client 🟡 (server only — nothing is wired)
 
 The bot authenticates as a participant rather than an admin; rolls made in
 Discord land as Change Log entries.
+
+**`convex/bot.ts` is written and tested; nothing calls it.** `grep` finds zero
+references to `api.bot.*` in `apps/itun/src` or `apps/discord-bot/src`, there is
+no credential by which the bot could authenticate to Convex, and `recordRoll`
+currently performs no auth check at all. The delivery plan — including the
+credential decision that `bot.ts` assumed rather than made — is
+[`discord-bot-game-client.md`](discord-bot-game-client.md).
 
 ### Phase 7 — The crew roster, and the rules for setting a table up ✅
 

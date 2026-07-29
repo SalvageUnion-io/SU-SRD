@@ -18,6 +18,8 @@ conventions, then the relevant architecture doc below.
 
 **I'm working on the snapshot share feature** → [adrs/ADR-004-snapshot-netlify-functions.md](adrs/ADR-004-snapshot-netlify-functions.md)
 
+**I'm working on accounts, Games, or the Discord bot as a game client** → [adrs/ADR-030-accounts-games-server-of-record.md](adrs/ADR-030-accounts-games-server-of-record.md) (**governing** ADR for identity + ownership) + [architecture/accounts-and-games.md](architecture/accounts-and-games.md) (delivery phases + ops reference) + [architecture/discord-bot-game-client.md](architecture/discord-bot-game-client.md)
+
 **I need to know how a Salvage Union rule actually works** → run `bun run rules:regen` to produce the agent-readable rules digest in `docs/rules/` (gitignored — condensed from the PDFs in `rules/`, also gitignored). Read those instead of re-parsing the PDFs.
 
 **I'm changing ITUN's local data layer (IndexedDB schemas/migrations)** → `apps/itun/src/lib/db/migrations/` + [architecture/data-flow.md](architecture/data-flow.md)
@@ -36,15 +38,17 @@ conventions, then the relevant architecture doc below.
 
 ### [`architecture/`](architecture/) — Cross-cutting architecture
 
-| Doc                                                               | Scope                                                                      |
-| ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| [display-system.md](architecture/display-system.md)               | The two card shells (ReferenceEntityCard / Card), size × extent, controls  |
-| [data-flow.md](architecture/data-flow.md)                         | Reference data + player data hydration, IndexedDB, Zustand, TanStack Query |
-| [package-contracts.md](architecture/package-contracts.md)         | Package APIs, dependency rules, cross-package change checklist             |
-| [rules-engine-boundary.md](architecture/rules-engine-boundary.md) | **Rules & the ITUN Surfaces** — enforcement mode × rule-class matrix       |
-| [dashboard.md](architecture/dashboard.md)                         | The Dashboard (Guided-Play surface) design — layout, instruments, canvas   |
-| [combat-loop.md](architecture/combat-loop.md)                     | Action activation, heat checks, conditions — current local-first flow      |
-| [seo-accessibility.md](architecture/seo-accessibility.md)         | SEO strategy (srd) + WCAG 2.1 AA patterns                                  |
+| Doc                                                                   | Scope                                                                                                  |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| [display-system.md](architecture/display-system.md)                   | The two card shells (ReferenceEntityCard / Card), size × extent, controls                              |
+| [data-flow.md](architecture/data-flow.md)                             | Reference data + player data hydration, IndexedDB, Zustand, TanStack Query                             |
+| [package-contracts.md](architecture/package-contracts.md)             | Package APIs, dependency rules, cross-package change checklist                                         |
+| [rules-engine-boundary.md](architecture/rules-engine-boundary.md)     | **Rules & the ITUN Surfaces** — enforcement mode × rule-class matrix                                   |
+| [dashboard.md](architecture/dashboard.md)                             | The Dashboard (Guided-Play surface) design — layout, instruments, canvas                               |
+| [combat-loop.md](architecture/combat-loop.md)                         | Action activation, heat checks, conditions — current local-first flow                                  |
+| [seo-accessibility.md](architecture/seo-accessibility.md)             | SEO strategy (srd) + WCAG 2.1 AA patterns                                                              |
+| [accounts-and-games.md](architecture/accounts-and-games.md)           | ADR-030 delivery phases + the Convex/Netlify/Discord operational reference                             |
+| [discord-bot-game-client.md](architecture/discord-bot-game-client.md) | **Plan** — the bot as an authenticated Game client: credential model, command surface, embed rendering |
 
 ### `docs/rules/` — Agent-readable rules digest (generated, gitignored)
 
