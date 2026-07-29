@@ -452,7 +452,11 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                                   onClick={() => setClaimTarget(row)}
                                 />
                               )}
-                              {row.can.release && caps.tableRunner && (
+                              {/* Any owner, not just the table runner: ADR-030
+                                  §4 says ownership is voluntary in the outward
+                                  direction, and the pick-up confirm promises
+                                  exactly this as the way back out. */}
+                              {row.can.release && (
                                 <Button
                                   variant="ghost"
                                   size="compact"

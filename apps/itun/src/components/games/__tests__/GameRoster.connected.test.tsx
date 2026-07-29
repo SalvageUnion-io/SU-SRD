@@ -109,6 +109,18 @@ describe('what a row offers', () => {
     expect(screen.getByRole('button', { name: 'Dashboard' })).toBeTruthy()
   })
 
+  test('what you own can be handed back to the crew', () => {
+    renderAs(ME, listing({ pilots: [MY_PILOT] }))
+    // Ownership is voluntary outward (ADR-030 §4), and the pick-up confirm
+    // promises this as the way back out — so it cannot be Mediator-only.
+    expect(screen.getByRole('button', { name: 'Offer to the crew' })).toBeTruthy()
+  })
+
+  test("but a crewmate's cannot", () => {
+    renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
+    expect(screen.queryByRole('button', { name: 'Offer to the crew' })).toBeNull()
+  })
+
   test("a crewmate's pilot shows who holds it and opens nothing", () => {
     renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
 
