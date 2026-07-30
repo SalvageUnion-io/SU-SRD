@@ -40,8 +40,15 @@ export type TemplateId = keyof typeof TEMPLATES
 export const list = query({
   args: {},
   handler: async () => {
+    // `id` is typed as the TemplateId union rather than `string` so a caller can
+    // pass the row straight to `createGame`. With a plain `string` the only way
+    // to satisfy that mutation's `v.literal` validator was to hardcode the id at
+    // the call site, which meant the lobby rendered one template and created
+    // another the moment a second one existed. Typed this way, adding a template
+    // widens the union and `createGame`'s validator becomes the type error —
+    // which is the right place to notice.
     return Object.entries(TEMPLATES).map(([id, t]) => ({
-      id,
+      id: id as TemplateId,
       name: t.name,
       description: t.description,
     }))
