@@ -120,9 +120,15 @@ export function resolveNestedEntities(entity: SURefMetaEntity): NestedGroup[] {
 export function resolvePatternGroups(pattern: SURefObjectPattern): NestedGroup[] {
   const groups = new Map<string, SURefEntity[]>()
 
+  // `count` defaults to 1 when ABSENT, but an explicit 0 renders nothing — the
+  // schema permits it (`NonNegativeIntegerSchema`) and "zero installed" is the
+  // only honest reading. Clamping it up to 1 would invent a card the loadout
+  // does not claim, and would disagree with `useChassisPatternConfig`, which
+  // this function is otherwise kept in step with.
   const push = (label: string, candidate: SURefEntity | undefined, count = 1): void => {
     if (!candidate) return
-    const copies = Array.from({ length: Math.max(1, count) }, () => candidate)
+    const copies = Array.from({ length: count }, () => candidate)
+    if (copies.length === 0) return
     const bucket = groups.get(label)
     if (bucket) bucket.push(...copies)
     else groups.set(label, copies)

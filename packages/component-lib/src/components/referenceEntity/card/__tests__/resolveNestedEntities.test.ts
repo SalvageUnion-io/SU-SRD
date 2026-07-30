@@ -182,6 +182,24 @@ describe('resolvePatternGroups', () => {
     expect(names(group(groups, 'Systems')?.entities ?? [])).toEqual(['Green Laser', 'Escape Hatch'])
   })
 
+  test('an explicit `count` of 0 renders nothing, rather than one card', () => {
+    // The schema permits 0, and "zero installed" must not be clamped up to one —
+    // that would invent a card and diverge from `useChassisPatternConfig`.
+    const groups = resolvePatternGroups({
+      name: 'Fake',
+      systems: [{ name: 'Green Laser', count: 0 }, { name: 'Escape Hatch' }],
+    } as SURefObjectPattern)
+    expect(names(group(groups, 'Systems')?.entities ?? [])).toEqual(['Escape Hatch'])
+  })
+
+  test('a group whose every entry has count 0 is dropped entirely', () => {
+    const groups = resolvePatternGroups({
+      name: 'Fake',
+      systems: [{ name: 'Green Laser', count: 0 }],
+    } as SURefObjectPattern)
+    expect(group(groups, 'Systems')).toBeUndefined()
+  })
+
   test('a module `count` expands the same way a system count does', () => {
     const groups = resolvePatternGroups({
       name: 'Fake',
