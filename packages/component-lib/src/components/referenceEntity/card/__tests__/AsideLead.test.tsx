@@ -1,15 +1,23 @@
 /**
- * ASIDE LEAD is OPT-IN. An artwork card whose trailing section is a section of
- * its own — the class pages' ability trees — drops the float so the section
- * spans the full width beneath the illustration instead of wrapping it.
+ * ASIDE LEAD. An artwork card whose trailing content is a section of its own —
+ * the class pages' ability trees, a pattern's loadout — drops the float so that
+ * section spans the full width beneath the illustration instead of wrapping it.
  *
- * The gate is an explicit `asideLead` prop, deliberately NOT inferred from
- * `afterExtraContent` being present. That slot is generic: a pattern's
- * Systems/Modules loadout fills it too, and a pattern card renders with the
- * CHASSIS as its `data`, so it inherits the chassis artwork. An inferred gate
- * therefore caught every ITUN mech-wizard pattern card on an artwork-bearing
- * chassis and pushed its loadout beneath the image — a class-page layout
- * applied to a surface that never asked for it. These tests pin both halves.
+ * TWO WAYS IN, and the difference is the point:
+ *
+ * - An explicit `asideLead` prop, for a consumer filling the generic
+ *   `afterExtraContent` slot. Still deliberately NOT inferred from that slot
+ *   being filled: the slot says nothing about what the card IS, so inferring
+ *   would sweep in cards that never asked for the layout.
+ * - A PATTERN card, on its own identity. Its body is chassis artwork + chassis
+ *   prose, then the pattern proper — its flavour and the Systems/Modules it
+ *   installs — which reads as a section, so it belongs below the fold.
+ *
+ * The second case reverses an earlier ruling that patterns must keep the float.
+ * That ruling was about not being caught ACCIDENTALLY by the generic-slot gate
+ * (a pattern card's `data` IS the chassis, so it inherits chassis artwork and
+ * used to fill `afterExtraContent` with its loadout). The loadout now renders
+ * inline as shortform badges, and the layout is chosen rather than inherited.
  */
 import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
 import { cleanup, render } from '@testing-library/react'
@@ -59,22 +67,27 @@ describe('aside lead is opt-in', () => {
     expect(container.innerHTML).toContain(FLOAT)
   })
 
-  test('a PATTERN card with a trailing section keeps the float', () => {
-    // The regression this gate narrows: a pattern card's `data` IS the chassis,
-    // so it inherits the chassis artwork, and its loadout fills the same generic
-    // slot. It must not be dragged into the class-page layout.
+  test('a PATTERN card on an artwork chassis drops the float', () => {
+    // A pattern takes the lead layout on its own identity — no `asideLead` prop
+    // and no trailing slot needed. Its pattern prose and loadout are a section,
+    // and sit at full width below the artwork + chassis prose lead row.
     const chassis = mule()
     const pattern = visiblePatterns(chassis.patterns ?? [])[0]
     if (!pattern) throw new Error('Mule pattern fixture missing')
 
     const { container } = render(
-      <ReferenceEntityCard
-        data={chassis}
-        pattern={pattern}
-        size="medium"
-        afterExtraContent={trailing}
-      />
+      <ReferenceEntityCard data={chassis} pattern={pattern} size="medium" />
     )
+    expect(container.innerHTML).not.toContain(FLOAT)
+    // The loadout still renders — it moved, it did not disappear.
+    expect(container.textContent).toContain('Systems')
+  })
+
+  test('the BASIC chassis card keeps the float', () => {
+    // Only the PATTERN view takes the lead layout. The chassis card itself
+    // still wraps its pattern list around the illustration, so the reversal
+    // stays scoped to the one view that asked for it.
+    const { container } = render(<ReferenceEntityCard data={mule()} size="medium" />)
     expect(container.innerHTML).toContain(FLOAT)
   })
 

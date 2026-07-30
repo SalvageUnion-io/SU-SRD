@@ -53,7 +53,7 @@ import { Content } from '../Content'
 import { ChoiceGroups } from '../choiceCard/ChoiceGroups'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
-import { useEntityExternalLink, usePatternHref } from '../entityHrefContext'
+import { useEntityExternalLink, useEntityHref, usePatternHref } from '../entityHrefContext'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { accentDeepColor, accentSurface, borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
@@ -87,7 +87,7 @@ import {
   resolvePatternDrones,
   resolvePatternGroups,
 } from './resolveNestedEntities'
-import type { DroneLoadout } from './resolveNestedEntities'
+import type { DroneLoadout, NestedGroup } from './resolveNestedEntities'
 import { resolveGuideLead } from './resolveGuideLead'
 import { resolveGuideSteps } from './resolveGuideSteps'
 
@@ -1632,6 +1632,48 @@ function ReferenceEntityCardInner({
     return renderGroup(label, entities, undefined, flat)
   }
 
+  // A pattern's LOADOUT — its Systems and Modules groups SIDE BY SIDE, each a
+  // dashed Slab over a wrap of shortform badges (see `LoadoutBadge`).
+  //
+  // One block, not one per group, because the two columns only line up if a
+  // single grid owns both: a pattern installs far more systems than modules
+  // (Thunder Storm, six to two), so stacked groups left the modules row alone
+  // on a line under a mostly-empty one. Single column below `sm` — two columns
+  // of badges on a phone would each be too narrow to hold a system name.
+  //
+  // FLOWS AROUND the floated anchor (artwork): a grid container establishes its
+  // own independent formatting context, so it is placed BESIDE the float in the
+  // width that is left rather than overlapping it — no `clear` and no
+  // `flow-root` needed, and `flow-root` would in fact fight the `grid` display
+  // for the same property. Both columns narrow together, so the loadout never
+  // splits into one indented column and one full-width one.
+  const renderPatternLoadout = (groups: NestedGroup[], flat = false): ReactNode => (
+    <div className={cn('grid grid-cols-1 gap-x-3 gap-y-1.5 sm:grid-cols-2', flat && 'mb-1.5')}>
+      {groups.map((group, index) => (
+        <div
+          key={group.label}
+          className={cn(
+            'flex flex-col gap-1.5',
+            // A VERTICAL RULE between the columns. On the column itself rather
+            // than a third grid cell, so it spans whichever column is taller
+            // (Systems usually far outruns Modules) instead of standing at the
+            // height of an empty divider track. Suppressed on the first column
+            // and below `sm`, where the groups stack and the rule would sit
+            // across the flow rather than between two columns.
+            index > 0 && 'sm:border-l-chrome sm:border-ink/20 sm:pl-3'
+          )}
+        >
+          <Slab variant="dashed" label={group.label} />
+          <div className="flex flex-wrap items-start gap-1.5">
+            {group.entities.map((item, itemIndex) => (
+              <LoadoutBadge key={cardKey(item, itemIndex)} data={item} hostDown={isDown} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
   // A dashed-Slab group of LISTING rows (drone systems / modules) — flat-aware.
   const renderListingGroup = (
     label: string,
@@ -1701,7 +1743,12 @@ function ReferenceEntityCardInner({
   const patternProse =
     isPattern && pattern.content && pattern.content.length > 0 ? (
       <div className="flex flex-col gap-1.5 [&:not(:last-child)]:mb-3">
-        <Slab variant="solid" label={normalizePatternName(pattern.name)} />
+        {/* `w-fit` scopes the title to ITSELF: the solid Slab's leader rule is
+            `flex-1`, so at full width it ran a line clear across the card and
+            read as a page-wide divider rather than a label on the pattern
+            block below it. Shrink-to-fit collapses the rule to its `min-w-3`
+            stub, leaving a tight name tab. */}
+        <Slab variant="solid" label={normalizePatternName(pattern.name)} className="w-fit" />
         <Content
           rulesBearing={isRulesBearing(data)}
           body={pattern.content}
@@ -1823,14 +1870,25 @@ function ReferenceEntityCardInner({
   // LEAD, and everything after it — the trailing section included — spans the
   // full width beneath both. No float, so nothing wraps.
   //
-  // The consumer OPTS IN via `asideLead`; it is never inferred from
-  // `afterExtraContent` being present. That slot is generic, and a pattern's
-  // Systems/Modules loadout fills it too — and since a pattern card renders
-  // with the CHASSIS as its `data`, it inherits the chassis artwork and would
-  // satisfy an inferred gate, dragging every artwork-chassis pattern card into
-  // a class-page layout. Artwork + a trailing section are still required: with
-  // neither there is no lead row to build.
-  const asideLead = asideLeadRequested && showImage && !!afterExtraContent
+  // A consumer OPTS IN via `asideLead`; it is still never inferred merely from
+  // `afterExtraContent` being present. That slot is generic, so an inferred
+  // gate would sweep in any card that happened to fill it, for no reason
+  // connected to what the card IS.
+  //
+  // A PATTERN takes the lead layout on its own identity, which is a different
+  // claim: a pattern view is chassis artwork + chassis prose, and then the
+  // pattern proper — its own flavour and the Systems/Modules it installs. That
+  // second half is a SECTION, exactly like a class page's ability trees, so it
+  // belongs below the fold at full width rather than wrapped into the column
+  // left over beside the illustration. (This deliberately reverses the earlier
+  // ruling that patterns stay out of this layout. That ruling was about not
+  // being dragged in ACCIDENTALLY by the generic-slot gate; the loadout now
+  // renders inline rather than through `afterExtraContent`, and reads as a
+  // section rather than as prose, so the layout is chosen, not inherited.)
+  //
+  // Artwork is still required either way: with none there is no lead row to
+  // build, and a pattern with no chassis art keeps the ordinary flow.
+  const asideLead = showImage && (isPattern || (asideLeadRequested && !!afterExtraContent))
   const flat = hasAnchor && !asideLead
   const inFlowGroups = (isPattern ? patternGroups : nestedGroups).filter(
     (group) => group !== npcGroup
@@ -2074,9 +2132,11 @@ function ReferenceEntityCardInner({
           {/* PATTERN prose — after the chassis ability, ahead of the loadout. */}
           {patternProse}
 
-          {/* PATTERN view → loadout groups. BASIC chassis / entities → nested groups. */}
-          {(!isPattern || !hide?.patterns) &&
-            inFlowGroups.map((group) => renderNestedGroup(group.label, group.entities, flat))}
+          {/* PATTERN view → the side-by-side loadout of shortform badges.
+              BASIC chassis / entities → nested cards, one group per section. */}
+          {isPattern
+            ? !hide?.patterns && renderPatternLoadout(inFlowGroups, flat)
+            : inFlowGroups.map((group) => renderNestedGroup(group.label, group.entities, flat))}
 
           {!hide?.actions &&
             gridActions.length > 0 &&
@@ -2206,6 +2266,51 @@ function PatternListRow({
       className={cn('block rounded-card', FOCUS_RING)}
     >
       {card}
+    </a>
+  )
+}
+
+/**
+ * `LoadoutBadge` — one installed system/module in a pattern's loadout, rendered
+ * as the card's own SHORTFORM token (`size="small" extent="head"`) and linking
+ * to that entity's page.
+ *
+ * A pattern is a BUILD LIST, not rules to read: its systems and modules are
+ * ordinary catalogue entities whose full text lives on their own pages, and
+ * printing all of it inline made the loadout the longest thing on the page
+ * while burying what the pattern itself says — Atlas's Thunder Storm expanded
+ * to six identical, full-length .50 Cal Machine Gun cards. The shortform badge
+ * gives the build at a glance and one click through to any entry.
+ *
+ * The badge is the card at its smallest rung, NOT a hand-assembled chip: it
+ * carries the entity's own tone band and classification tail, so the tone and
+ * tech-level read survive the compression for free.
+ *
+ * MULTIPLES REPEAT. Six machine guns are six badges, matching the loadout the
+ * pattern actually installs (and `resolvePatternGroups`, which emits one entry
+ * per copy) — a "×6" count would compress the shape of the build out of a row
+ * whose whole job is showing it.
+ *
+ * A real `<a>`, for the same reasons as `PatternListRow`: middle-click, hover
+ * preview, crawlable. With no `EntityHrefProvider` above it the badge renders
+ * inert rather than linking nowhere.
+ */
+function LoadoutBadge({ data, hostDown }: { data: ReferenceCardEntity; hostDown?: boolean }) {
+  const href = useEntityHref(data as SURefEntity)
+  const badge = (
+    <ReferenceEntityCardInner
+      data={data}
+      size="small"
+      extent="head"
+      depth={1}
+      hostDown={hostDown}
+      cardClickable={!!href}
+    />
+  )
+  if (!href) return badge
+  return (
+    <a href={href} className={cn('block rounded-card', FOCUS_RING)}>
+      {badge}
     </a>
   )
 }

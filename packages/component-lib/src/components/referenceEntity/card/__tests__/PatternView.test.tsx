@@ -14,7 +14,7 @@ import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference, nameToSlug, visiblePatterns } from 'salvageunion-reference'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
-import { PatternHrefProvider } from '../../entityHrefContext'
+import { EntityHrefProvider, PatternHrefProvider } from '../../entityHrefContext'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** The Mule — a chassis carrying patterns, a chassis ability and chassis prose. */
@@ -105,11 +105,16 @@ describe('full pattern view reading order', () => {
     expect(systems).toBeLessThan(modules)
   })
 
-  test('a system installed six times renders six cards, not one', () => {
+  test('a system installed six times renders six badges, not one', () => {
     // The end-to-end guard for the multiplicity fix in `resolvePatternGroups`.
     // Atlas's Thunder Storm prints as ".50 Cal Machine Gun x6" in the book; the
     // card used to de-duplicate the loadout by entity id, so the whole pattern
     // rendered a single machine gun and read as a far lighter build than it is.
+    //
+    // The loadout is now a row of SHORTFORM badges rather than full cards, and
+    // multiplicity still REPEATS: six copies are six badges, not one badge
+    // reading "×6". A count collapses the shape of the build out of the one row
+    // whose job is showing it.
     const chassis = SalvageUnionReference.Chassis.all().find((c) => c.name === 'Atlas')
     if (!chassis) throw new Error('Atlas fixture missing')
     const pattern = chassis.patterns?.find((p) => p.name === 'Thunder Storm')
@@ -119,11 +124,78 @@ describe('full pattern view reading order', () => {
 
     render(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />)
 
-    // One name node per rendered card.
+    // One name node per rendered badge.
     expect(screen.getAllByText('.50 Cal Machine Gun')).toHaveLength(6)
+    // No collapsed count anywhere — the copies are the count.
+    expect(screen.queryByText(/×6/)).toBeNull()
     // The uncounted systems stay single — the fix must not multiply everything.
     expect(screen.getAllByText('Shotgun Pit')).toHaveLength(1)
     expect(screen.getAllByText('Armour Plating')).toHaveLength(1)
+  })
+})
+
+/**
+ * THE LOADOUT IS A ROW OF LINKED BADGES. A pattern's systems and modules are
+ * ordinary catalogue entities whose full text lives on their own pages, so the
+ * pattern view cites them at the card's shortform rung and links out, rather
+ * than reprinting every rule inline — Thunder Storm used to expand to six
+ * full-length, identical .50 Cal Machine Gun cards.
+ */
+describe('pattern loadout badges', () => {
+  beforeAll(async () => {
+    await SalvageUnionReference.preload('all')
+  })
+
+  /** Stands in for srd's entity route builder. */
+  const testEntityHref = (entity: SURefEntity) =>
+    `/schema/${'schemaName' in entity ? String(entity.schemaName) : ''}/item/${
+      'name' in entity ? nameToSlug(String(entity.name)) : ''
+    }`
+
+  const thunderStorm = () => {
+    const chassis = SalvageUnionReference.Chassis.all().find((c) => c.name === 'Atlas')
+    if (!chassis) throw new Error('Atlas fixture missing')
+    const pattern = chassis.patterns?.find((p) => p.name === 'Thunder Storm')
+    if (!pattern) throw new Error('Thunder Storm pattern fixture missing')
+    return { chassis, pattern }
+  }
+
+  test('every loadout entry links to its own page', () => {
+    const { chassis, pattern } = thunderStorm()
+    render(
+      <EntityHrefProvider value={testEntityHref}>
+        <ReferenceEntityCard data={chassis} pattern={pattern} size="large" />
+      </EntityHrefProvider>
+    )
+
+    // All six machine-gun copies are links, each to the system's one page.
+    const guns = screen.getAllByRole('link', { name: /\.50 Cal Machine Gun/ })
+    expect(guns).toHaveLength(6)
+    for (const gun of guns) {
+      expect(gun.getAttribute('href')).toBe('/schema/systems/item/50-cal-machine-gun')
+    }
+    // Modules link out through the same builder.
+    expect(screen.getByRole('link', { name: /Comms Module/ }).getAttribute('href')).toBe(
+      '/schema/modules/item/comms-module'
+    )
+  })
+
+  test('the loadout does not reprint the entities` rules inline', () => {
+    const { chassis, pattern } = thunderStorm()
+    const { container } = render(
+      <ReferenceEntityCard data={chassis} pattern={pattern} size="large" />
+    )
+    // The machine gun's own description belongs on its page, not six times over
+    // in a pattern's loadout.
+    expect(container.textContent).not.toContain('This simple ballistic weapon')
+  })
+
+  test('without a href builder the badges are not links', () => {
+    const { chassis, pattern } = thunderStorm()
+    render(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />)
+    expect(screen.queryAllByRole('link', { name: /\.50 Cal Machine Gun/ })).toHaveLength(0)
+    // The badges themselves still render — they just aren't navigable.
+    expect(screen.getAllByText('.50 Cal Machine Gun')).toHaveLength(6)
   })
 })
 
