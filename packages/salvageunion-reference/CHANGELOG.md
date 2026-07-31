@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.8.0...salvageunion-reference-v2.9.0) (2026-07-31)
+
+
+### Features
+
+* **itun:** accounts, Games, and a live Mediator surface (ADR-030) ([#647](https://github.com/SalvageUnion-io/SU-SRD/issues/647)) ([eec0a7f](https://github.com/SalvageUnion-io/SU-SRD/commit/eec0a7f5dcf539198b80d7891f9518e9d4aaaeea))
+
 ## [2.8.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.7.0...salvageunion-reference-v2.8.0) (2026-07-28)
 
 
