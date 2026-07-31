@@ -197,6 +197,58 @@ describe('pattern loadout badges', () => {
     // The badges themselves still render — they just aren't navigable.
     expect(screen.getAllByText('.50 Cal Machine Gun')).toHaveLength(6)
   })
+
+  test('each loadout group is an announced list', () => {
+    // The loadout is a countable set of installed parts, so it is a real `ul`:
+    // a screen reader says "list, 6 items" instead of reading a run of
+    // anonymous links. The links carry their own name (the entity's), NOT the
+    // badge's scraped text — that would read ".50 Cal Machine Gun TL 1".
+    const { chassis, pattern } = thunderStorm()
+    render(
+      <EntityHrefProvider value={testEntityHref}>
+        <ReferenceEntityCard data={chassis} pattern={pattern} size="large" />
+      </EntityHrefProvider>
+    )
+    expect(screen.getByRole('list', { name: 'Systems installed' })).toBeTruthy()
+    expect(screen.getByRole('list', { name: 'Modules installed' })).toBeTruthy()
+    // Exact accessible name, tail excluded.
+    expect(screen.getAllByRole('link', { name: '.50 Cal Machine Gun' })).toHaveLength(6)
+  })
+})
+
+/**
+ * A PATTERN CARD IS NEVER `flat` — it takes the aside lead, which drops the
+ * float. `wrapFlat` DISCARDS the key it is handed when `flat` is false, so
+ * every call site has to set the key on the card itself too. The drone row was
+ * the one that didn't, which made every multi-drone pattern on an artwork
+ * chassis (all three Little Sestra patterns, Big Brother's DronTek) render
+ * keyless list children the moment patterns moved below the fold.
+ */
+describe('pattern drone rows keep their keys', () => {
+  beforeAll(async () => {
+    await SalvageUnionReference.preload('all')
+  })
+
+  test('no keyless-children warning on a drone-fielding pattern', () => {
+    const warnings: string[] = []
+    const realError = console.error
+    console.error = (...args: unknown[]) => {
+      warnings.push(args.map(String).join(' '))
+    }
+    try {
+      for (const name of ['Little Sestra', 'Big Brother']) {
+        const chassis = SalvageUnionReference.Chassis.all().find((c) => c.name === name)
+        if (!chassis) throw new Error(`${name} fixture missing`)
+        for (const pattern of chassis.patterns ?? []) {
+          render(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />)
+          cleanup()
+        }
+      }
+    } finally {
+      console.error = realError
+    }
+    expect(warnings.filter((w) => w.includes('unique "key"'))).toHaveLength(0)
+  })
 })
 
 /**

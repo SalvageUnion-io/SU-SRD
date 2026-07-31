@@ -1641,19 +1641,24 @@ function ReferenceEntityCardInner({
   // on a line under a mostly-empty one. Single column below `sm` — two columns
   // of badges on a phone would each be too narrow to hold a system name.
   //
-  // FLOWS AROUND the floated anchor (artwork): a grid container establishes its
-  // own independent formatting context, so it is placed BESIDE the float in the
-  // width that is left rather than overlapping it — no `clear` and no
-  // `flow-root` needed, and `flow-root` would in fact fight the `grid` display
-  // for the same property. Both columns narrow together, so the loadout never
-  // splits into one indented column and one full-width one.
-  const renderPatternLoadout = (groups: NestedGroup[], flat = false): ReactNode => (
-    <div className={cn('grid grid-cols-1 gap-x-3 gap-y-1.5 sm:grid-cols-2', flat && 'mb-1.5')}>
+  // NO float handling here, deliberately: a pattern card takes the ASIDE LEAD,
+  // which drops the float entirely, so this always renders full width beneath
+  // the lead row. (An earlier revision took a `flat` argument and documented how
+  // the grid would sit beside the floated artwork. Once patterns moved below the
+  // fold that state became unreachable — `flat` is `hasAnchor && !asideLead`,
+  // and a pattern's `asideLead` is gated on the same artwork — so the parameter
+  // was dead and the comment described a layout that can no longer happen.)
+  const renderPatternLoadout = (groups: NestedGroup[]): ReactNode => (
+    <div className="grid grid-cols-1 gap-x-3 gap-y-1.5 sm:grid-cols-2">
       {groups.map((group, index) => (
         <div
           key={group.label}
           className={cn(
-            'flex flex-col gap-1.5',
+            // `min-w-0` is load-bearing: a grid item defaults to `min-width:
+            // auto`, so a column refuses to shrink below its widest badge and
+            // the card's `overflow-hidden` hard-clips it. "Electro-Magnetic
+            // Shield Projector" plus its TL tail overruns a two-column track.
+            'flex min-w-0 flex-col gap-1.5',
             // A VERTICAL RULE between the columns. On the column itself rather
             // than a third grid cell, so it spans whichever column is taller
             // (Systems usually far outruns Modules) instead of standing at the
@@ -1664,11 +1669,19 @@ function ReferenceEntityCardInner({
           )}
         >
           <Slab variant="dashed" label={group.label} />
-          <div className="flex flex-wrap items-start gap-1.5">
+          {/* A real LIST: the loadout is a countable set of installed parts, so
+              a screen reader should announce "list, 6 items" rather than a run
+              of anonymous links. `list-none` keeps the markers off. */}
+          <ul
+            aria-label={`${group.label} installed`}
+            className="flex list-none flex-wrap items-start gap-1.5"
+          >
             {group.entities.map((item, itemIndex) => (
-              <LoadoutBadge key={cardKey(item, itemIndex)} data={item} hostDown={isDown} />
+              <li key={cardKey(item, itemIndex)} className="min-w-0">
+                <LoadoutBadge data={item} hostDown={isDown} />
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       ))}
     </div>
@@ -2110,6 +2123,12 @@ function ReferenceEntityCardInner({
               flat,
               `drone-${droneInfo.instanceName ?? index}`,
               <ReferenceEntityCardInner
+                // The key rides the CARD, not only `wrapFlat`'s wrapper:
+                // `wrapFlat` drops the key it is handed when `flat` is false,
+                // and a pattern card is now never flat (it takes the aside
+                // lead), so every multi-drone pattern rendered keyless list
+                // children. Every other `wrapFlat` call site already sets it.
+                key={`drone-${droneInfo.instanceName ?? index}`}
                 size="medium"
                 depth={depth + 1}
                 hostDown={isDown}
@@ -2135,7 +2154,7 @@ function ReferenceEntityCardInner({
           {/* PATTERN view → the side-by-side loadout of shortform badges.
               BASIC chassis / entities → nested cards, one group per section. */}
           {isPattern
-            ? !hide?.patterns && renderPatternLoadout(inFlowGroups, flat)
+            ? !hide?.patterns && renderPatternLoadout(inFlowGroups)
             : inFlowGroups.map((group) => renderNestedGroup(group.label, group.entities, flat))}
 
           {!hide?.actions &&
@@ -2309,7 +2328,15 @@ function LoadoutBadge({ data, hostDown }: { data: ReferenceCardEntity; hostDown?
   )
   if (!href) return badge
   return (
-    <a href={href} className={cn('block rounded-card', FOCUS_RING)}>
+    // An explicit accessible name, for the same reason `PatternListRow` carries
+    // one: without it the anchor's name is scraped from the badge's contents and
+    // reads ".50 Cal Machine Gun TL 1" — the tech-level tail glued onto the name,
+    // six identical times over on Thunder Storm.
+    <a
+      href={href}
+      aria-label={getReferenceEntityName(data)}
+      className={cn('block rounded-card', FOCUS_RING)}
+    >
       {badge}
     </a>
   )
