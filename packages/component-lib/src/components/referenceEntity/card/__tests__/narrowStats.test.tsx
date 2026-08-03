@@ -8,8 +8,11 @@
  * off the side of a phone-width card, over the breadcrumb and out of the
  * viewport. The fix has two layers, and both are pinned here:
  *
- *   1. the cluster SHRINKS (so the boxes wrap onto a second row) — the no-JS
- *      floor, and what the pre-hydration paint and a crawler see;
+ *   1. the cluster SHRINKS (so the boxes wrap onto a second row) — the floor
+ *      for every case the measurement below declines to judge (an unmeasurable
+ *      band, no `ResizeObserver`). It is not what a crawler sees: srd gates the
+ *      card behind `GameDataGate` and serves `StaticEntityContent` to no-JS
+ *      readers, and ITUN is client-only, so the card is never server-rendered;
  *   2. once mounted the header MEASURES itself and, when the boxes don't fit,
  *      swaps to the compact `[label | value]` cells with their short-form
  *      labels (SV / SYS / MODS) — the same badge anatomy a listing card uses.
@@ -125,7 +128,30 @@ describe('header stats under width pressure', () => {
   })
 })
 
-describe('the no-JS floor', () => {
+describe('a listing card renders the cells too', () => {
+  test('and takes the short-form labels with them', () => {
+    // `listing` puts the stats on the compact cells without being `compact`, so
+    // a `size="large" extent="head"` card's `stats` still carry the two-line
+    // long form. Reading them from `stats` would seat "Structure / Points"
+    // inside a shortform cell — the labels and the anatomy must move together.
+    const { container } = render(
+      <EntityCardHeader
+        title="Mule"
+        bg="bg-tl-1"
+        bgColor={undefined}
+        titleClass="text-5xl"
+        stats={FULL_STATS}
+        narrowStats={NARROW_STATS}
+        listing
+      />
+    )
+
+    expect(screen.getByText('SYS')).toBeTruthy()
+    expect(container.textContent).not.toContain('Structure')
+  })
+})
+
+describe('the unmeasured floor', () => {
   test('the value-box cluster can shrink, so it wraps instead of overflowing', () => {
     // `shrink-0` here is the original bug: it pinned the cluster at max-content,
     // so the wrap never engaged and the row ran off the card.

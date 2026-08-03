@@ -65,11 +65,18 @@ const HYSTERESIS = 24
  * before the name has any room at all, which a phone (or a narrow grid column)
  * does not have — the cluster used to be `shrink-0`, so it neither shrank nor
  * wrapped and simply ran off the card, over the header and out of the viewport.
- * The cluster now wraps (that alone keeps it on the card with no JS, which is
- * what a crawler and the pre-hydration paint see), and once mounted the header
- * measures itself and swaps to the compact `[label | value]` cells — the same
- * badge anatomy a listing card already uses — which fit a phone at 2 rows
- * instead of 3 stacks of boxes.
+ * The cluster now wraps, and on top of that the header measures itself and
+ * swaps to the compact `[label | value]` cells — the same badge anatomy a
+ * listing card already uses — which fit a phone at 2 rows instead of 3 stacks
+ * of boxes.
+ *
+ * The wrap is the floor for every case this measurement declines to judge: an
+ * unmeasurable band (below), no `ResizeObserver`, or a host that renders the
+ * card without ever running an effect. It is NOT what a crawler sees — srd
+ * gates this card behind `GameDataGate` and serves `StaticEntityContent` to
+ * no-JS readers, and ITUN is client-only, so the card is never
+ * server-rendered. Nor is it a visible frame: `useLayoutEffect` measures
+ * before paint, so the boxes never flash on a narrow card.
  *
  * Measured, not breakpointed, because "enough space" is a function of the CARD's
  * width and its stat COUNT, not the viewport: a 2-stat card is fine at 320px and
@@ -152,9 +159,13 @@ export function EntityCardHeader({
       {title}
     </TitleTag>
   )
-  // Too narrow for the value boxes → the compact cells, with the short-form
-  // labels that anatomy is written for.
-  const clusterStats = narrow ? (narrowStats ?? stats) : stats
+  // On the compact cells → the short-form labels that anatomy is written for.
+  // `listing` is included because it renders the cells too: a `size="large"`
+  // + `extent="head"` card is NOT `compact`, so its `stats` carry the two-line
+  // long form, and without this it would put "Structure / Points" inside a
+  // shortform cell. (`compact` needs no clause — such a card's two lists are
+  // the same list.)
+  const clusterStats = narrow || listing ? (narrowStats ?? stats) : stats
   const statsNode =
     stats.length > 0 ? (
       <EntityCardStatBox stats={clusterStats} compact={compactStats || narrow} />
@@ -255,7 +266,14 @@ export function EntityCardHeader({
         // word) is already most of a phone-width band and it painted straight
         // over the stats, which is the same collision the compact cells fix one
         // level down. Wrapping gives each side a whole row instead.
-        narrow && 'flex-wrap gap-y-2',
+        //
+        // Only WITHOUT prose. The prose rule owns both columns' widths (a 75%
+        // ceiling on the title, a 55% basis on the description), and those beat
+        // the stacking classes below — `max-w-[75%]` clamps `basis-full`, and a
+        // non-auto basis beats `w-full`. So it would read as a stack rule that
+        // silently does nothing; a card carrying BOTH prose and stats keeps the
+        // prose allocation, which is what it did before this change.
+        narrow && !hasProse && 'flex-wrap gap-y-2',
         accent.className
       )}
       style={accent.style}
@@ -269,7 +287,7 @@ export function EntityCardHeader({
         className={cn(
           hasProse ? TITLE_VS_PROSE : 'min-w-0 flex-1',
           // Stacked: the title takes the whole first row.
-          narrow && 'basis-full'
+          narrow && !hasProse && 'basis-full'
         )}
       >
         {titleNode}
@@ -285,7 +303,7 @@ export function EntityCardHeader({
             'flex min-w-0 flex-wrap items-center justify-end gap-2',
             hasProse && PROSE_COLUMN,
             // Stacked: the cluster owns the second row, still right-aligned.
-            narrow && 'w-full'
+            narrow && !hasProse && 'w-full'
           )}
         >
           {rightContent}

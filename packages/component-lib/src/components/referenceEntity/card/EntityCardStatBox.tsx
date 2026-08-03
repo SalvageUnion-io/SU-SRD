@@ -107,9 +107,10 @@ export function EntityCardStatBox({ stats, compact = false }: EntityCardStatBoxP
   // `flex-wrap` beside it could never engage (a flex item that cannot shrink
   // never reaches a width its children must wrap at). Eight chassis stats then
   // ran a 420px line off the side of a phone-width card, straight over the
-  // breadcrumb. Shrinking lets the boxes wrap onto a second row, which is the
-  // no-JS floor; the header additionally swaps to the compact cells once it can
-  // measure that they don't fit (see `useNarrowStats`).
+  // breadcrumb. Shrinking lets the boxes wrap onto a second row instead — the
+  // floor for every case the header's measurement declines to judge (an
+  // unmeasurable band, no `ResizeObserver`). When it CAN measure, it swaps to
+  // the compact cells rather than wrapping at all (see `useNarrowStats`).
   return (
     <div className="flex min-w-0 flex-wrap items-start justify-end gap-1">
       {stats.map(renderStat)}
