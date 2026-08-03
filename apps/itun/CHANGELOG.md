@@ -2,6 +2,14 @@
 
 Maintained by release-please (see ADR-024).
 
+## [0.10.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.9.0...itun-v0.10.0) (2026-08-03)
+
+
+### Features
+
+* **discord-bot:** the bot as an authenticated ITUN Game client ([#623](https://github.com/SalvageUnion-io/SU-SRD/issues/623)) ([#653](https://github.com/SalvageUnion-io/SU-SRD/issues/653)) ([10fe183](https://github.com/SalvageUnion-io/SU-SRD/commit/10fe183a8a5a7372ec42148f2baf22d0453414df))
+* **itun:** the Games lobby as a controls band over its list ([#664](https://github.com/SalvageUnion-io/SU-SRD/issues/664)) ([c45f433](https://github.com/SalvageUnion-io/SU-SRD/commit/c45f43373834d6dbedf46d8483d51104ffe1c389))
+
 ## [0.9.0](https://github.com/SalvageUnion-io/SU-SRD/compare/itun-v0.8.0...itun-v0.9.0) (2026-07-29)
 
 
