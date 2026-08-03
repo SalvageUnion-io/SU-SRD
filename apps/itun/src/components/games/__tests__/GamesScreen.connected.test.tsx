@@ -170,11 +170,37 @@ describe('the Games index for a signed-in player', () => {
     expect(screen.queryByText(/Open the Mediator surface/)).toBeNull()
   })
 
-  test('offers a template to start from', () => {
+  test('offers a template to start from, behind a control rather than inline', () => {
     withQueries(queriesFor(GAME))
     wrap()
+
+    // A template is a list to READ — a name plus a paragraph each — so it sits
+    // in a dialog and the controls band stays a band. Inline, it wedged a
+    // screenful of prose between the controls and the games list.
+    expect(screen.queryByText('Reclamation of the Wastes')).toBeNull()
+
+    fireEvent.click(screen.getByText('From a template'))
+
     expect(screen.getByText('Reclamation of the Wastes')).toBeTruthy()
     expect(screen.getByText('Start this game')).toBeTruthy()
+  })
+
+  test('the creating controls come BEFORE the games they act on', () => {
+    withQueries(queriesFor(GAME))
+    const { container } = wrap()
+
+    // The point of the band (this is the Roster's rhythm): what you can DO is
+    // one ink-ruled row across the top, and what you HAVE lists beneath it.
+    // This screen used to stack three creation Cards, so the games you came to
+    // open sat below a screenful of forms you had already used.
+    const text = container.textContent ?? ''
+    const controls = text.indexOf('Start a game')
+    const joinControl = text.indexOf('Join with a code')
+    const list = text.indexOf('Union Crawler #430')
+
+    for (const index of [controls, joinControl, list]) expect(index).toBeGreaterThan(-1)
+    expect(controls).toBeLessThan(list)
+    expect(joinControl).toBeLessThan(list)
   })
 
   test('no games yet says so, and still offers the way in', () => {
