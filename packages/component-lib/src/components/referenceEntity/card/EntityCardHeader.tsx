@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { cn } from '../../../utils/cn'
 import { accentSurface } from '../referenceEntityHelpers'
@@ -21,6 +22,13 @@ type EntityCardHeaderProps = {
   titleAs?: 'span' | 'h1'
   /** The full header stat cluster (all stats), clustered + wrapping top-right. */
   stats: StatItem[]
+  /**
+   * The SAME cluster with short-form labels (TL / SV / SYS …), used when the
+   * band measures too narrow to seat the vertical value boxes and the stats
+   * fall back to the compact `[label | value]` cells. Omit and `stats` is
+   * reused — correct for a caller whose labels are already short (sheet stats).
+   */
+  narrowStats?: StatItem[]
   /** Top-right flavor slot — white hint text (an ability's `description`), shown
    * when the entity has no numeric vitals occupying the axis. */
   rightContent?: ReactNode
@@ -41,6 +49,70 @@ const TITLE_VS_PROSE = 'max-w-[75%] shrink-[20]'
  * demands the room. */
 const PROSE_COLUMN = 'flex-[1_1_55%]'
 
+/** A vertical value box's footprint in the cluster: `w-12` (48px) + the 4px gap. */
+const VALUE_BOX_WIDTH = 52
+/** Room the title must keep beside the cluster before the boxes give way — the
+ * band's horizontal padding plus roughly one word of name. */
+const TITLE_RESERVE = 140
+/** Re-widening must clear the threshold by this much before the boxes come
+ * back, so a card sitting exactly on it can't oscillate between anatomies. */
+const HYSTERESIS = 24
+
+/**
+ * Does the band have room for `statCount` vertical value boxes beside the title?
+ *
+ * A full card's stat cluster is a fixed-width block: 8 chassis stats want ~416px
+ * before the name has any room at all, which a phone (or a narrow grid column)
+ * does not have — the cluster used to be `shrink-0`, so it neither shrank nor
+ * wrapped and simply ran off the card, over the header and out of the viewport.
+ * The cluster now wraps, and on top of that the header measures itself and
+ * swaps to the compact `[label | value]` cells — the same badge anatomy a
+ * listing card already uses — which fit a phone at 2 rows instead of 3 stacks
+ * of boxes.
+ *
+ * The wrap is the floor for every case this measurement declines to judge: an
+ * unmeasurable band (below), no `ResizeObserver`, or a host that renders the
+ * card without ever running an effect. It is NOT what a crawler sees — srd
+ * gates this card behind `GameDataGate` and serves `StaticEntityContent` to
+ * no-JS readers, and ITUN is client-only, so the card is never
+ * server-rendered. Nor is it a visible frame: `useLayoutEffect` measures
+ * before paint, so the boxes never flash on a narrow card.
+ *
+ * Measured, not breakpointed, because "enough space" is a function of the CARD's
+ * width and its stat COUNT, not the viewport: a 2-stat card is fine at 320px and
+ * an 8-stat one is cramped in a 500px column on a desktop.
+ *
+ * A width of 0 (happy-dom, which performs no layout; a display:none ancestor)
+ * is NOT a verdict — it leaves the boxes alone rather than reporting every card
+ * as cramped.
+ */
+function useNarrowStats(statCount: number, enabled: boolean) {
+  const bandRef = useRef<HTMLDivElement>(null)
+  const [narrow, setNarrow] = useState(false)
+
+  useLayoutEffect(() => {
+    if (!enabled) {
+      setNarrow(false)
+      return
+    }
+    const band = bandRef.current
+    if (!band || typeof ResizeObserver === 'undefined') return
+
+    const measure = () => {
+      const width = band.clientWidth
+      if (!width) return
+      const needed = statCount * VALUE_BOX_WIDTH + TITLE_RESERVE
+      setNarrow((prev) => (prev ? width < needed + HYSTERESIS : width < needed))
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(band)
+    return () => observer.disconnect()
+  }, [statCount, enabled])
+
+  return { bandRef, narrow }
+}
+
 /**
  * EntityCardHeader — the unified card's HEADER band (the tone).
  *
@@ -60,11 +132,15 @@ export function EntityCardHeader({
   titleSlot,
   titleAs,
   stats,
+  narrowStats,
   rightContent,
   listing = false,
   compact = false,
 }: EntityCardHeaderProps) {
   const accent = accentSurface(bg, bgColor)
+  // A compact/listing card is ALREADY on the cells, so it needs no measuring.
+  const compactStats = compact || listing
+  const { bandRef, narrow } = useNarrowStats(stats.length, !compactStats && stats.length > 0)
 
   const TitleTag = titleAs ?? 'span'
   const titleNode = titleSlot ?? (
@@ -83,8 +159,17 @@ export function EntityCardHeader({
       {title}
     </TitleTag>
   )
+  // On the compact cells → the short-form labels that anatomy is written for.
+  // `listing` is included because it renders the cells too: a `size="large"`
+  // + `extent="head"` card is NOT `compact`, so its `stats` carry the two-line
+  // long form, and without this it would put "Structure / Points" inside a
+  // shortform cell. (`compact` needs no clause — such a card's two lists are
+  // the same list.)
+  const clusterStats = narrow || listing ? (narrowStats ?? stats) : stats
   const statsNode =
-    stats.length > 0 ? <EntityCardStatBox stats={stats} compact={compact || listing} /> : null
+    stats.length > 0 ? (
+      <EntityCardStatBox stats={clusterStats} compact={compactStats || narrow} />
+    ) : null
 
   // WIDTH ALLOCATION — who yields depends on WHAT occupies the right side.
   // This rule has regressed in three directions (title under the stats, title
@@ -139,6 +224,7 @@ export function EntityCardHeader({
   if (compact) {
     return (
       <div
+        ref={bandRef}
         className={cn(
           // items-center so the (usually one-line) title centers vertically
           // against a taller wrapped flavor/stat cluster.
@@ -171,8 +257,23 @@ export function EntityCardHeader({
 
   return (
     <div
+      ref={bandRef}
       className={cn(
         'flex w-full min-w-0 items-center justify-between gap-4 px-3 py-3',
+        // NARROW — the two sides STACK (title row, then the cluster). Yielding
+        // is a width negotiation, and at this width there is nothing left to
+        // negotiate: a full card's title is `text-5xl`, so its min-content (one
+        // word) is already most of a phone-width band and it painted straight
+        // over the stats, which is the same collision the compact cells fix one
+        // level down. Wrapping gives each side a whole row instead.
+        //
+        // Only WITHOUT prose. The prose rule owns both columns' widths (a 75%
+        // ceiling on the title, a 55% basis on the description), and those beat
+        // the stacking classes below — `max-w-[75%]` clamps `basis-full`, and a
+        // non-auto basis beats `w-full`. So it would read as a stack rule that
+        // silently does nothing; a card carrying BOTH prose and stats keeps the
+        // prose allocation, which is what it did before this change.
+        narrow && !hasProse && 'flex-wrap gap-y-2',
         accent.className
       )}
       style={accent.style}
@@ -182,7 +283,15 @@ export function EntityCardHeader({
           never run under the stats. With PROSE on the right the title keeps its
           content width while it fits beside the description's 55% ask, and
           yields past that — see the rule above. */}
-      <div className={cn(hasProse ? TITLE_VS_PROSE : 'min-w-0 flex-1')}>{titleNode}</div>
+      <div
+        className={cn(
+          hasProse ? TITLE_VS_PROSE : 'min-w-0 flex-1',
+          // Stacked: the title takes the whole first row.
+          narrow && !hasProse && 'basis-full'
+        )}
+      >
+        {titleNode}
+      </div>
       {hasRight && (
         // Stats-only: the cluster reserves its own width (it doesn't grow, and
         // holds content size until the title is fully collapsed) and wraps
@@ -192,7 +301,9 @@ export function EntityCardHeader({
         <div
           className={cn(
             'flex min-w-0 flex-wrap items-center justify-end gap-2',
-            hasProse && PROSE_COLUMN
+            hasProse && PROSE_COLUMN,
+            // Stacked: the cluster owns the second row, still right-aligned.
+            narrow && !hasProse && 'w-full'
           )}
         >
           {rightContent}

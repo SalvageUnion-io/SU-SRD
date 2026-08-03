@@ -727,41 +727,53 @@ function ReferenceEntityCardInner({
   // Stat LABELS are size-aware. Build with FULL labels (Structure / Points),
   // then abbreviate (SP, Cargo, …) ONLY on a compact/nested/listing card; a
   // non-compact card keeps the full labels (may wrap two lines, which is fine).
-  const rawHeaderStats: StatItem[] =
-    isAction || isPatternListing
-      ? []
-      : buildReferenceEntityStats(entity, {
-          compact,
-          primaryOnly: !!primaryStatsOnly || extent === 'head',
-          schemaName,
-          techLevel,
-        })
-  // TECH LEVEL is a header headline stat (value box), NOT a seam pill — a
-  // size-aware label ("Tech Level" full / "TL" compact), placed first in the
-  // top-right cluster. `buildReferenceEntityStats` doesn't emit it, so add it.
-  const techLevelStat: StatItem | undefined =
-    !isAction && !isPatternListing && techLevel != null
-      ? {
-          key: 'tech-level',
-          // Compact (horizontal) renders the SHORT form "TL" — the same
-          // shortLabel treatment SP / EP / SV get, and the abbreviation players
-          // actually use. Bare "Tech" was neither the full name nor the short
-          // one. The full-size vertical value box keeps two-line "Tech" / "Level".
-          label: compact ? 'TL' : 'Tech',
-          bottomLabel: compact ? undefined : 'Level',
-          value: String(techLevelDisplay),
-          // A TL-scalable item shows the EFFECTIVE level; a rust `modified`
-          // border when above base (controlled from without via `scalingParent`).
-          ...(techLevelModified ? { state: 'modified' as const } : {}),
-        }
-      : undefined
-  const headerStats: StatItem[] = [
-    ...(techLevelStat ? [techLevelStat] : []),
-    // ATOM MODEL: compact = horizontal cells + SHORTFORM labels (SP, TL, Cargo, …).
-    // Non-compact = the vertical value box with FULL two-line labels — the
-    // slotsRequired stat reads "Slots" / "Required".
-    ...rawHeaderStats,
-  ]
+  //
+  // The cluster is built TWICE for a non-compact card, because the two
+  // anatomies want different LABELS and the header picks between them by
+  // measuring itself (see `narrowStats` on EntityCardHeader): a full card that
+  // is too narrow to seat its value boxes — a phone, or a narrow grid column —
+  // falls back to the compact cells, and those read "SV / SYS / MODS", not the
+  // two-line long form. Both lists are pure config off the same entity, so the
+  // second build is cheap.
+  const buildHeaderStats = (asCompact: boolean): StatItem[] => {
+    const rawHeaderStats: StatItem[] =
+      isAction || isPatternListing
+        ? []
+        : buildReferenceEntityStats(entity, {
+            compact: asCompact,
+            primaryOnly: !!primaryStatsOnly || extent === 'head',
+            schemaName,
+            techLevel,
+          })
+    // TECH LEVEL is a header headline stat (value box), NOT a seam pill — a
+    // size-aware label ("Tech Level" full / "TL" compact), placed first in the
+    // top-right cluster. `buildReferenceEntityStats` doesn't emit it, so add it.
+    const techLevelStat: StatItem | undefined =
+      !isAction && !isPatternListing && techLevel != null
+        ? {
+            key: 'tech-level',
+            // Compact (horizontal) renders the SHORT form "TL" — the same
+            // shortLabel treatment SP / EP / SV get, and the abbreviation players
+            // actually use. Bare "Tech" was neither the full name nor the short
+            // one. The full-size vertical value box keeps two-line "Tech" / "Level".
+            label: asCompact ? 'TL' : 'Tech',
+            bottomLabel: asCompact ? undefined : 'Level',
+            value: String(techLevelDisplay),
+            // A TL-scalable item shows the EFFECTIVE level; a rust `modified`
+            // border when above base (controlled from without via `scalingParent`).
+            ...(techLevelModified ? { state: 'modified' as const } : {}),
+          }
+        : undefined
+    return [
+      ...(techLevelStat ? [techLevelStat] : []),
+      // ATOM MODEL: compact = horizontal cells + SHORTFORM labels (SP, TL, Cargo, …).
+      // Non-compact = the vertical value box with FULL two-line labels — the
+      // slotsRequired stat reads "Slots" / "Required".
+      ...rawHeaderStats,
+    ]
+  }
+  const headerStats: StatItem[] = buildHeaderStats(compact)
+  const narrowHeaderStats: StatItem[] = compact ? headerStats : buildHeaderStats(true)
 
   const costSource = action ?? foldedActionFields
   const costNode: ReactNode =
@@ -838,6 +850,9 @@ function ReferenceEntityCardInner({
   //   suppresses them.
   // - status chip leads the right cluster; rightContent overrides the flavor.
   const effectiveHeaderStats: StatItem[] = hide?.stats ? [] : (statsOverride ?? headerStats)
+  // Override stats are the caller's own labels, so they serve BOTH anatomies —
+  // an editable sheet stat (SP / EP / HEAT) is already short-form.
+  const effectiveNarrowStats: StatItem[] = hide?.stats ? [] : (statsOverride ?? narrowHeaderStats)
   const effectiveRightContent: ReactNode = rightContentProp ?? flavorNode
   // Consumer-supplied select/alter interactivity lives in the controls bar. The
   // condition toggle (Intact/Damaged/Destroyed) is NOT here — it rides the
@@ -854,6 +869,7 @@ function ReferenceEntityCardInner({
       titleClass={titleClass}
       titleTextClass={titleTextClass}
       stats={effectiveHeaderStats}
+      narrowStats={effectiveNarrowStats}
       rightContent={effectiveRightContent}
       listing={extent === 'head'}
       compact={compact}
