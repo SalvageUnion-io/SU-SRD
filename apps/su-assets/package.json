@@ -5,6 +5,6 @@
   "type": "module",
   "description": "Dedicated Netlify site serving Salvage Union entity artwork from Netlify Blobs. Bytes live in Blobs, not git.",
   "dependencies": {
-    "@netlify/blobs": "^10.7.10"
+    "@netlify/blobs": "^10.7.11"
   }
 }
