@@ -80,10 +80,11 @@ describe('GameScreen', () => {
   test('every panel states its name in its header band', () => {
     // A pending proposal, so the inbox renders at all (it returns null when
     // there is nothing to answer).
-    // Slot 5 is `proposals.pending` — see the REST comment for the order.
-    const withProposal: unknown[] = [...REST]
-    withProposal[5] = [{ _id: 'p1', entityType: 'pilot', field: 'currentHP', to: 3 }]
-    withQueries([{ ...GAME, organizer: true }, ...withProposal])
+    withQueries({
+      ...REST,
+      'games:get': { ...GAME, organizer: true },
+      'proposals:pending': [{ _id: 'p1', entityType: 'pilot', field: 'currentHP', to: 3 }],
+    })
     wrap()
 
     // These titles used to sit inside each panel's body as a small grey stamp.
