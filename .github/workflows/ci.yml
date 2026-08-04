@@ -244,12 +244,15 @@ jobs:
     # HOW ADVISORIES GET CLEARED HERE. Most resolve on their own when the
     # lockfile moves. The rest are held above the vulnerable range by the
     # `overrides` block in the root package.json — those entries are SECURITY
-    # FLOORS, not compatibility pins, and several high advisories currently
-    # depend on them. (`sharp` is the one exception: it is a real pinned
-    # dependency mirrored in the root and apps/srd devDependencies, so it stays
-    # exact.) No `--ignore` is needed: the formerly ignored GHSA-gv7w-rqvm-qjhr
-    # left the resolved lockfile with the vite 8 upgrade, and the residual
-    # esbuild advisory from the vite-7-pinned srd subtree is `low`, below this
+    # FLOORS, and the block is load-bearing: delete it, re-resolve, and two high
+    # advisories come straight back — `sharp` (GHSA-f88m-g3jw-g9cj, reached via
+    # workspace:srd -> astro) and `undici` (GHSA-vxpw-j846-p89q, via discord.js).
+    # The other floors do not bind on a fresh resolve today; they are kept as
+    # cheap insurance against a parent range drifting back down.
+    #
+    # No `--ignore` is needed: the formerly ignored GHSA-gv7w-rqvm-qjhr left the
+    # resolved lockfile with the vite 8 upgrade, and the residual esbuild
+    # advisory from the vite-7-pinned srd subtree is `low`, below this
     # `--audit-level=high` gate.
     #
     # WHEN THIS JOB FAILS ON A TRANSITIVE DEP, the fix is `bun update <pkg>`
@@ -261,6 +264,12 @@ jobs:
     # hand-bumped that way twice — 5.0.7 -> 5.0.8 (#565) and 5.0.8 -> 5.0.9
     # (#673) — each time after the exact pin had blocked every open PR.
     # Raise the floor, never freeze it.
+    #
+    # `sharp` is the one deliberate exception: it is ALSO a real pinned
+    # devDependency in the root and apps/srd, so its override is kept exact and
+    # in lockstep with those pins rather than floated. It is still a security
+    # floor (see the advisory above) — do not drop it. The cost of that choice
+    # is that a future sharp advisory needs all three pins bumped by hand.
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
