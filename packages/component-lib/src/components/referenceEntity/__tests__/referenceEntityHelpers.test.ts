@@ -147,3 +147,22 @@ describe('bandSurface — the header band fill', () => {
     expect(band.style).toBeUndefined()
   })
 })
+
+describe('bandSurface — the ink-title opt-out', () => {
+  test('deep: false leaves the band at its base tone', () => {
+    // A damaged / destroyed / ghosted card keeps an INK title on a light grey
+    // band. Darkening that band measures 2.40:1 against 4.87:1 undarkened — so
+    // the contrast fix, applied blindly, would have broken the one state it was
+    // most important not to break. `ReferenceEntityCard` passes
+    // `bandDeep={!(isDown || isGhosted)}`.
+    const grey = 'color-mix(in srgb, var(--color-ink) 50%, var(--color-paper))'
+    const band = bandSurface(undefined, grey, false)
+    expect(band.style?.backgroundColor).toBe(grey)
+  })
+
+  test('deep defaults to true, so an ordinary card still darkens', () => {
+    expect(bandSurface('bg-pilot', undefined).style?.backgroundColor).toBe(
+      'color-mix(in srgb, var(--color-pilot) 65%, black)'
+    )
+  })
+})

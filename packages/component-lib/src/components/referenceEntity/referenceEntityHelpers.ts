@@ -163,12 +163,20 @@ export function accentDeeperColor(
  * An UNTONED card is returned unchanged: there is no base colour to darken, its
  * band is paper, and its title is ink. Darkening nothing would paint a black
  * band under black text.
+ *
+ * `deep: false` opts out for the same reason in the other direction. A DAMAGED,
+ * DESTROYED or GHOSTED card keeps an ink title on a grey band, and darkening
+ * that band takes it from 4.87:1 to 2.40:1 — this fix, applied blindly, would
+ * have broken the very thing it exists to fix. The caller that knows the title
+ * is ink is the caller that must say so.
  */
 export function bandSurface(
   headerBg: string | undefined,
-  headerBgColor: string | undefined
+  headerBgColor: string | undefined,
+  deep = true
 ): { className: string; style: CSSProperties | undefined } {
-  const deep = accentDeepColor(headerBg, headerBgColor)
   if (!deep) return accentSurface(headerBg, headerBgColor)
-  return { className: '', style: { backgroundColor: deep } }
+  const fill = accentDeepColor(headerBg, headerBgColor)
+  if (!fill) return accentSurface(headerBg, headerBgColor)
+  return { className: '', style: { backgroundColor: fill } }
 }

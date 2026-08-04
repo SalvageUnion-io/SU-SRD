@@ -16,6 +16,12 @@ type EntityCardHeaderProps = {
   /** On-tone text colour class for the title, which sits directly on the header
    * band (`text-ink` / `text-paper` — resolved against the band tone). */
   titleTextClass?: string
+  /**
+   * Darken the band to the deep fill (default). Pass `false` when the title on
+   * it is INK — a damaged / destroyed / ghosted card keeps a light grey band,
+   * and darkening it would drop that ink title to 2.40:1.
+   */
+  bandDeep?: boolean
   /** Write layer: a full replacement node for the title (overrides the name-tab). */
   titleSlot?: ReactNode
   /** SEO: render the name-tab as an `h1` (item pages) instead of the default `span`. */
@@ -129,6 +135,7 @@ export function EntityCardHeader({
   bgColor,
   titleClass,
   titleTextClass = 'text-ink',
+  bandDeep = true,
   titleSlot,
   titleAs,
   stats,
@@ -139,7 +146,7 @@ export function EntityCardHeader({
 }: EntityCardHeaderProps) {
   // The band is the accent DARKENED — see `bandSurface`. The title sits on it
   // in paper-white, which the base tones could not carry legibly.
-  const accent = bandSurface(bg, bgColor)
+  const accent = bandSurface(bg, bgColor, bandDeep)
   // A compact/listing card is ALREADY on the cells, so it needs no measuring.
   const compactStats = compact || listing
   const { bandRef, narrow } = useNarrowStats(stats.length, !compactStats && stats.length > 0)
