@@ -35,7 +35,7 @@ export function DowntimePanel({ gameId }: { gameId: Id<'games'> }) {
   if (state === undefined) return null
 
   return (
-    <Card headerBg={PANEL_TONE} headerContent={<span className={PANEL_TITLE}>Downtime</span>}>
+    <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Downtime</h2>}>
       <div className="flex flex-col gap-3 p-4">
         {!state.running && (
           <>

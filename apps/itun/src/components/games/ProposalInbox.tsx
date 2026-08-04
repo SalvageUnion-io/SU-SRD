@@ -38,7 +38,7 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
   return (
     <Card
       headerBg={PANEL_TONE}
-      headerContent={<span className={PANEL_TITLE}>Awaiting your answer</span>}
+      headerContent={<h2 className={PANEL_TITLE}>Awaiting your answer</h2>}
     >
       <div className="flex flex-col gap-3 p-4">
         {pending.map((p) => (

@@ -119,9 +119,15 @@ describe('GameScreen', () => {
     // They are the Card's header now, and `Invite someone` in particular
     // changed OWNER in that move — it is rendered by GameScreen, not by
     // InvitePanel — so nothing else would catch it going missing.
-    expect(screen.getByText('Invite someone')).toBeTruthy()
-    expect(screen.getByText('Awaiting your answer')).toBeTruthy()
-    expect(screen.getByText('Downtime')).toBeTruthy()
+    // Queried by ROLE, not by text: these are section headings, and a screen
+    // reader navigating the Game surface should find them as such. They were
+    // spans until the a11y pass; `getByRole` is what stops them regressing to
+    // one.
+    expect(screen.getByRole('heading', { level: 2, name: 'Invite someone' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 2, name: 'Awaiting your answer' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 2, name: 'Downtime' })).toBeTruthy()
+    // …under the page's h1, over the roster columns' h3s. No level is skipped.
+    expect(screen.getByRole('heading', { level: 1, name: 'Game' })).toBeTruthy()
   })
 
   test('an Organizer gets invite management', () => {

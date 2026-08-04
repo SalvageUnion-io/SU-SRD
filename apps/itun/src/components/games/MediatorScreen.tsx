@@ -60,7 +60,7 @@ function NpcTray({ gameId }: { gameId: Id<'games'> }) {
   const [name, setName] = useState('')
 
   return (
-    <Card headerBg={PANEL_TONE} headerContent={<span className={PANEL_TITLE}>Opposition</span>}>
+    <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Opposition</h2>}>
       <div className="flex flex-col gap-3 p-4">
         <Text variant="hint">Only you can see this. Players never read the tray.</Text>
 
@@ -118,10 +118,7 @@ function ProposeForm({ gameId }: { gameId: Id<'games'> }) {
   const chosen = targets.find((t) => t.id === target)
 
   return (
-    <Card
-      headerBg={PANEL_TONE}
-      headerContent={<span className={PANEL_TITLE}>Propose a change</span>}
-    >
+    <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Propose a change</h2>}>
       <div className="flex flex-col gap-3 p-4">
         <Text variant="hint">
           You are asking, not setting. The player sees the before and after, and applies or declines
@@ -201,7 +198,7 @@ function AlertBar({ gameId }: { gameId: Id<'games'> }) {
   const [message, setMessage] = useState('')
 
   return (
-    <Card headerBg={PANEL_TONE} headerContent={<span className={PANEL_TITLE}>Tell the table</span>}>
+    <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Tell the table</h2>}>
       <div className="flex flex-col gap-3 p-4">
         <div className="flex flex-wrap items-end gap-2">
           <label className="flex flex-1 flex-col gap-1">
@@ -239,7 +236,7 @@ function PresenceList({ gameId }: { gameId: Id<'games'> }) {
   if (rows === undefined || rows.length === 0) return null
 
   return (
-    <Card headerBg={PANEL_TONE} headerContent={<span className={PANEL_TITLE}>At the table</span>}>
+    <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>At the table</h2>}>
       <div className="flex flex-col gap-1 p-4">
         {rows.map((r) => (
           <div key={r.userId} className={ROW}>
@@ -275,7 +272,7 @@ function MediatorBody({ gameId }: { gameId: Id<'games'> }) {
       <GameRoster gameId={gameId} />
       {/* Then the numbers, live. The roster shows vitals per row; this is the
           same crew read as one strip, which is how you scan a table mid-fight. */}
-      <Card headerBg={PANEL_TONE} headerContent={<span className={PANEL_TITLE}>Crew vitals</span>}>
+      <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Vitals</h2>}>
         <div className="p-4">
           <CrewVitals gameId={gameId} />
         </div>

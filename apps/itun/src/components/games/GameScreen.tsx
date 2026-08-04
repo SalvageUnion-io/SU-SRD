@@ -56,10 +56,7 @@ function GameBody({ gameId }: { gameId: string }) {
       {/* Invites are administrative, so they live with the Game rather than in
           the lobby, and only the Organizer sees them (ADR-030 §3). */}
       {game.organizer && (
-        <Card
-          headerBg={PANEL_TONE}
-          headerContent={<span className={PANEL_TITLE}>Invite someone</span>}
-        >
+        <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Invite someone</h2>}>
           <div className="p-4">
             <InvitePanel gameId={gameId as Id<'games'>} />
           </div>

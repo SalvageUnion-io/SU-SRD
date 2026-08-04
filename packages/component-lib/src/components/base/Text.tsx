@@ -35,7 +35,16 @@ type TextProps = {
   children: React.ReactNode
   className?: string
   style?: React.CSSProperties
-  as?: 'p' | 'span' | 'div' | 'label' | 'h1'
+  /**
+   * The element to render as.
+   *
+   * The heading levels go to `h3` because a page needs more than one rung: an
+   * h1 page title over h2 sections over h3 sub-sections. Stopping at `h1` meant
+   * a surface that wanted a real hierarchy had to drop out of this primitive
+   * and hand-roll a bare `<h2>`, which is how the Game surface ended up with an
+   * h1 and a set of orphaned h3s and nothing in between.
+   */
+  as?: 'p' | 'span' | 'div' | 'label' | 'h1' | 'h2' | 'h3'
 } & VariantProps<typeof textVariants> &
   Omit<React.HTMLAttributes<HTMLElement>, 'children' | 'style'>
 
