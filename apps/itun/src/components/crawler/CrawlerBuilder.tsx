@@ -1,52 +1,53 @@
+import type { StepRule } from 'component-lib'
+import {
+  Banner,
+  CrawlerStatsStep,
+  CrawlerTypeSelectStep,
+  OffRulesEscape,
+  RuleBrief,
+  SystemsList,
+  toast,
+  WizShell,
+  WizTracker,
+} from 'component-lib'
 import { useEffect, useMemo, useRef, useState } from 'react'
-
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type {
   SURefCrawler,
   SURefEntity,
   SURefMetaCrawlerTechLevel,
   SURefSystem,
 } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationCrawlerWeapon, isWeaponSystem } from 'salvageunion-reference/rules'
-import { toast } from 'component-lib'
-
 import { useMechs, usePilots } from '../../hooks/queries'
 import { computeCrawlerCapacity } from '../../lib/rules/crawlerCapacity'
+import type { CrawlerWizardStepId, StepGateResult } from '../../lib/rules/creation'
 import {
   clampCrawlerCreationDraft,
   crawlerCreationStepGate,
   crawlerWeaponSlotsFor,
 } from '../../lib/rules/creation'
-import type { CrawlerWizardStepId, StepGateResult } from '../../lib/rules/creation'
 import { crawlerMaxSP } from '../../lib/rules/derivedStats'
 import type { SoftWarning } from '../../lib/rules/types'
 import { CrawlerSchema } from '../../lib/schemas/crawler'
 import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
+import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import {
-  EMPTY_CRAWLER_FORM_STATE,
   crawlerFormToCreateInput,
   crawlerFormToUpdatePatch,
+  EMPTY_CRAWLER_FORM_STATE,
   seedDefaultCrawlerBays,
 } from '../../lib/wizard/crawlerFormState'
-import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import {
   clearWizardDraft,
   readWizardDraft,
   useWizardDraftSync,
   wizardDraftKey,
 } from '../../lib/wizard/wizardDraft'
-import { Banner } from 'component-lib'
-import { OffRulesEscape } from 'component-lib'
-import { RuleBrief } from 'component-lib'
-import type { StepRule } from 'component-lib'
-import { WizShell, WizTracker } from 'component-lib'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
 import { CrawlerReviewStep } from './CrawlerReviewStep'
-import { CrawlerStatsStep } from 'component-lib'
-import { CrawlerTypeSelectStep } from 'component-lib'
-import { SystemsList } from 'component-lib'
 
 /**
  * Book-order steps (Union Crawler pp.212–213 + Review — plan §4.3). Edit mode

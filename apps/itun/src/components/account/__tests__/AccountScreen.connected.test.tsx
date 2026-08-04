@@ -17,8 +17,8 @@ import { fireEvent, render, screen } from '@testing-library/react'
  * the end of the queue and collapse the screen back to its loading state.
  */
 
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import type { QueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 let authed = true
 

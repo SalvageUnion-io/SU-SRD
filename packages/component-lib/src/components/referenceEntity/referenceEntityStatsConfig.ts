@@ -1,21 +1,21 @@
 import type {
+  SURefEnumSchemaName,
   SURefMetaEntity,
   SURefObjectBonusPerTechLevel,
-  SURefEnumSchemaName,
 } from 'salvageunion-reference'
 import {
-  getSlotsRequired,
-  getSalvageValue,
   getBioSalvageValue,
-  getStructurePoints,
+  getCargoCapacity,
   getEnergyPoints,
   getHeatCapacity,
-  getSystemSlots,
-  getModuleSlots,
-  getCargoCapacity,
   getHitPoints,
-  getUpkeepCost,
+  getModuleSlots,
+  getSalvageValue,
+  getSlotsRequired,
+  getStructurePoints,
+  getSystemSlots,
   getUpgradeCost,
+  getUpkeepCost,
 } from 'salvageunion-reference'
 import type { StatItem } from '../shared/statsBarTypes'
 

@@ -17,8 +17,8 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ReferenceEntityCard } from '../ReferenceEntityCard'
 import { InsideTooltipContext } from '../../../ui/insideTooltipContext'
+import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const TRIGGER = '[data-base-ui-tooltip-trigger]'
 

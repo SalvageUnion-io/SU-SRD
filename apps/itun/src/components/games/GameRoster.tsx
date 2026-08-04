@@ -37,11 +37,7 @@
  * somebody else's table.
  */
 
-import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
-import { Bot, UserRound, Warehouse } from 'lucide-react'
-import { useMutation, useQuery } from 'convex/react'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
 import {
   Badge,
   Button,
@@ -51,25 +47,23 @@ import {
   ModalShell,
   Text,
 } from 'component-lib'
-
+import { useMutation, useQuery } from 'convex/react'
+import { Bot, UserRound, Warehouse } from 'lucide-react'
+import { useState } from 'react'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../hooks/queries'
 import { resolveClassName } from '../../lib/classRef'
-import {
-  crawlerRows,
-  ownableRows,
-  tableCapabilities,
-  type RosterRow,
-  type RosterKind,
-} from '../../lib/games/gameRoster'
+import type { RosterKind, RosterRow } from '../../lib/games/gameRoster'
+import { crawlerRows, ownableRows, tableCapabilities } from '../../lib/games/gameRoster'
 import type { OwnerChip } from '../../lib/ownership/ownerChip'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
+import { cn } from '../../lib/utils'
 import { setActiveContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
-import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
 import { SECTION } from './gameChrome'

@@ -16,11 +16,11 @@
  * stamping the mech.
  */
 
+import { Button, FieldError, ModalShell } from 'component-lib'
 import { useState } from 'react'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
-import { useEntityStore } from '../../../stores/entityStore'
 import type { MechPattern } from '../../../lib/schemas/pattern'
-import { Button, ModalShell, FieldError } from 'component-lib'
+import { useEntityStore } from '../../../stores/entityStore'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern

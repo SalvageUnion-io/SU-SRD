@@ -35,37 +35,36 @@
  * sheets. Pure logic lives in lib/rules/crawlerEconomy.ts (injectable d20).
  */
 
+import { Button, FieldError, ModalShell, Select, Slab, Stat } from 'component-lib'
 import { useState } from 'react'
-import { Button, ModalShell, Select, Slab, Stat, FieldError } from 'component-lib'
-
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
+import type { DeteriorationEffect, TradingRollResult } from '../../lib/rules/crawlerEconomy'
 import {
-  SCRAP_TLS,
-  TRADING_AVAILABILITY_LABEL,
-  UPKEEP_SCRAP,
   bayGate,
   contributeToUpgradePool,
-  convertScrap,
   convertedCount,
+  convertScrap,
   crawlerUpgradeQuote,
   exchangeStep,
   payUpkeep,
   performDeterioration,
   performTradingRoll,
   poolAvailableAtOrAbove,
+  SCRAP_TLS,
+  TRADING_AVAILABILITY_LABEL,
   tradingSourceTl,
+  UPKEEP_SCRAP,
   upkeepShortfall,
 } from '../../lib/rules/crawlerEconomy'
-import type { DeteriorationEffect, TradingRollResult } from '../../lib/rules/crawlerEconomy'
 import { crawlerMaxSP } from '../../lib/rules/derivedStats'
-import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { Roll } from '../../lib/rules/heatCheck'
+import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
-import { freshEntity } from './controlPrimitives'
 import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
+import { freshEntity } from './controlPrimitives'
 
 /** Which economy dialog is open (the lozenge that was clicked). */
 export type CrawlerEconomyDialog = 'upkeep' | 'upgrade' | 'trade'

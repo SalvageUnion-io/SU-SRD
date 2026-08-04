@@ -12,10 +12,10 @@
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefObjectPattern } from 'salvageunion-reference'
-import { ReferenceEntityCard } from '../ReferenceEntityCard'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { formatProvenance, resolveAdditionalSources } from '../provenance'
+import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const equipmentNamed = (name: string) => {
   const found = SalvageUnionReference.Equipment.all().find((e) => e.name === name)

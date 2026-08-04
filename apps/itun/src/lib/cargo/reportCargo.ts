@@ -15,7 +15,6 @@
  */
 
 import { toast } from 'component-lib'
-
 import type { CargoTransferResult } from './cargoTransfer'
 
 /** Fire a cargo dispatch and surface its refusal reason as an error toast. */

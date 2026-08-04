@@ -26,12 +26,12 @@
  * rather than restating its markup, so the leader stays one implementation.
  */
 
-import { useId, useState } from 'react'
-import type { ReactNode } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { Slab } from '../chrome/Slab'
+import type { ReactNode } from 'react'
+import { useId, useState } from 'react'
 import { cn } from '../../utils/cn'
 import { FOCUS_RING } from '../chrome/interaction'
+import { Slab } from '../chrome/Slab'
 
 type SheetSectionSlabProps = {
   /** Section title — the solid black stamp in the slab leader. */

@@ -8,8 +8,8 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ReferenceEntityCard } from '../ReferenceEntityCard'
 import { crawlerPopulationRange } from '../crawlerPopulationRange'
+import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const tier = (name: string) => {
   const found = SalvageUnionReference.CrawlerTechLevels.all().find((t) => t.name === name)

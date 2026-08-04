@@ -28,9 +28,8 @@
  */
 
 import { create } from 'zustand'
-
-import { SHELF } from '../lib/container'
 import type { Container } from '../lib/container'
+import { SHELF } from '../lib/container'
 
 const STORAGE_KEY = 'itun.activeContainer'
 

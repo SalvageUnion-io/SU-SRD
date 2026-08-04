@@ -1,8 +1,8 @@
-import type { ReactNode, RefObject } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
-import { Card } from './Card'
+import type { ReactNode, RefObject } from 'react'
 import { Badge } from '../chrome/Badge'
+import { Card } from './Card'
 
 type ModalShellProps = {
   open: boolean

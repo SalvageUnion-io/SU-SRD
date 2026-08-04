@@ -29,13 +29,13 @@
  * which now lives in the generated file this script produces).
  */
 
-import { writeFileSync, readFileSync, mkdirSync } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as prettier from 'prettier'
-
-import { registry, type RegistryEntry } from '../lib/schemas/registry.js'
 import { toPascalCase } from '../lib/naming.js'
+import type { RegistryEntry } from '../lib/schemas/registry.js'
+import { registry } from '../lib/schemas/registry.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)

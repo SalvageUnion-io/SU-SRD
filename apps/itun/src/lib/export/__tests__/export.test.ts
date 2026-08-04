@@ -12,14 +12,12 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-
-import { _clearAllStores, _resetDbSingleton } from '../../db/index'
 import { useEntityStore } from '../../../stores/entityStore'
-
-import { buildExportBundle, buildEntityExport } from '../buildExportBundle'
+import { _clearAllStores, _resetDbSingleton } from '../../db/index'
+import type { ExportBundle } from '../../schemas/exportBundle'
+import { buildEntityExport, buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
 import { parseImportBundle } from '../parseImportBundle'
-import type { ExportBundle } from '../../schemas/exportBundle'
 
 // ---------------------------------------------------------------------------
 // Test fixtures

@@ -6,15 +6,15 @@
  * picker, the SRD Explorer, or an app-provided slot (the Actions deck).
  */
 
-import { useRef, useState, type ReactNode } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import type { ReactNode } from 'react'
+import { useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { Button } from '../chrome/Button'
-import { ControlButtons } from '../shared/ControlButtons'
-import { RollTable } from '../shared/RollTable'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
+import { ControlButtons } from '../shared/ControlButtons'
+import { RollTable } from '../shared/RollTable'
 import { SrdExplorer } from './SrdExplorer'
 import { TablePickerOverlay } from './TablePickerOverlay'
 import type { PickableTable } from './tableCategories'

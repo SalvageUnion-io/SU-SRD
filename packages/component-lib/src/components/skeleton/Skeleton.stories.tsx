@@ -1,6 +1,5 @@
 import type { Story } from '@ladle/react'
 import { Caption } from '../../stories/_harness'
-
 import { Skeleton } from './Skeleton'
 
 export default {

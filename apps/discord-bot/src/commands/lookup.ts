@@ -1,23 +1,17 @@
+import type { ActionRowBuilder, ButtonBuilder, SlashCommandSubcommandBuilder } from 'discord.js'
+import { EmbedBuilder, MessageFlags } from 'discord.js'
+import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 import {
-  type ActionRowBuilder,
-  type ButtonBuilder,
-  EmbedBuilder,
-  MessageFlags,
-  type SlashCommandSubcommandBuilder,
-} from 'discord.js'
-import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
-import {
-  search,
-  getEntitySlug,
   findEntityBySlug,
+  getEntitySlug,
   isSchemaName,
   nameToSlug,
+  search,
 } from 'salvageunion-reference'
-import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
-
 import { rollAgainRow } from '../customId.js'
 import { BRAND_NAME } from '../format.js'
 import { buildLookupEmbed } from '../lookupEmbed.js'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 
 type Hit = {
   schemaName: SURefEnumSchemaName

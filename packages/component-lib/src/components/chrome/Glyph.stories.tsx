@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import { Caption } from '../../stories/_harness'
-
-import { Glyph, type GlyphName } from './glyphs'
+import type { GlyphName } from './glyphs'
+import { Glyph } from './glyphs'
 
 export default {
   title: 'Atoms/Glyph',

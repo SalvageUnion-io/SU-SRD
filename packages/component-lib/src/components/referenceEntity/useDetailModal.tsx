@@ -1,13 +1,13 @@
-import { useState } from 'react'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { EntityDetailDialog } from './EntityDetailDialog'
-import { ReferenceEntityCard } from './card/ReferenceEntityCard'
-import type { ReferenceEntityCardHideConfig } from './card/ReferenceEntityCard'
-import { DetailIcon } from './DetailIcon'
-import { useEntityHref, useEntityDetailLink } from './entityHrefContext'
-import type { ReferenceEntityControl } from './referenceEntityControlTypes'
 import type { StatItem } from '../shared/statsBarTypes'
+import type { ReferenceEntityCardHideConfig } from './card/ReferenceEntityCard'
+import { ReferenceEntityCard } from './card/ReferenceEntityCard'
+import { DetailIcon } from './DetailIcon'
+import { EntityDetailDialog } from './EntityDetailDialog'
+import { useEntityDetailLink, useEntityHref } from './entityHrefContext'
+import type { ReferenceEntityControl } from './referenceEntityControlTypes'
 
 type UseDetailModalOptions = {
   children?: ReactNode

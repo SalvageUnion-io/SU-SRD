@@ -7,11 +7,10 @@
  * results to persistence, MechItemCard renders them.
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefMetaAction, SURefModule, SURefSystem } from 'salvageunion-reference'
-
-import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
+import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import type { ScrapPool } from '../../lib/schemas/crawler'
 import type { ItemCondition, Mech } from '../../lib/schemas/mech'
 

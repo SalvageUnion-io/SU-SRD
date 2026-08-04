@@ -26,13 +26,12 @@
  * `exportBundle.ts`) and is covered below the same way mechPatterns is.
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-
-import { _clearAllStores, _resetDbSingleton, encounterNpcs, mechPatterns } from '../../db/index'
 import { useEntityStore } from '../../../stores/entityStore'
+import { _clearAllStores, _resetDbSingleton, encounterNpcs, mechPatterns } from '../../db/index'
+import type { ExportBundle } from '../../schemas/exportBundle'
 import { buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
 import { parseImportBundle } from '../parseImportBundle'
-import type { ExportBundle } from '../../schemas/exportBundle'
 
 function resetStores(): void {
   useEntityStore.setState({

@@ -1,7 +1,7 @@
-import { describe, test, expect, mock } from 'bun:test'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import { ControlButtons } from '../ControlButtons'
+import { describe, expect, mock, test } from 'bun:test'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { ReferenceEntityControl } from '../../referenceEntity/referenceEntityControlTypes'
+import { ControlButtons } from '../ControlButtons'
 
 function makeControl(overrides: Partial<ReferenceEntityControl> = {}): ReferenceEntityControl {
   return {

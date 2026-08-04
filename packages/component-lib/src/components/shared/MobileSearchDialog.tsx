@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import type { ReactNode } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
+import type { ReactNode } from 'react'
+import { useState } from 'react'
 
 type MobileSearchDialogProps = {
   /**

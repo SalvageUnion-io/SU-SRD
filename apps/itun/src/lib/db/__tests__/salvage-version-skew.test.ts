@@ -36,7 +36,7 @@
  * section. Every raw connection opened here is closed before the test ends.
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-
+import { must } from '../../../components/__tests__/must'
 import {
   _clearAllStores,
   crawlers,
@@ -48,7 +48,6 @@ import {
   softLinks,
 } from '../index'
 import { STORE_NAMES } from '../stores'
-import { must } from '../../../components/__tests__/must'
 
 /** Overwrite a record's raw bytes in IDB, bypassing all Zod validation. */
 async function putRaw(storeName: string, record: unknown): Promise<void> {

@@ -5,9 +5,9 @@
 
 import { z } from '../../zod.js'
 import { NonNegativeIntegerSchema, TechLevelSchema } from '../common.js'
-import { StatsSchema } from './primitives.js'
 import { ContributionSchema } from './contributions.js'
 import { ChoiceEffectSchema } from './effects.js'
+import { StatsSchema } from './primitives.js'
 
 /**
  * A system or module that can be installed on a mech

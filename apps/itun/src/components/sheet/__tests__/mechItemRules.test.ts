@@ -10,7 +10,7 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
+import { must } from '../../__tests__/must'
 import {
   cycleCondition,
   itemEconomy,
@@ -20,7 +20,6 @@ import {
   resolveModule,
   resolveSystem,
 } from '../mechItemRules'
-import { must } from '../../__tests__/must'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['systems', 'modules', 'actions'])

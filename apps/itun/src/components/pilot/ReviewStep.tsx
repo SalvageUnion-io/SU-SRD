@@ -1,6 +1,6 @@
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { FieldError, KvRow, Panel, ReferenceEntityCard } from 'component-lib'
 import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
-import { KvRow, Panel, ReferenceEntityCard, FieldError } from 'component-lib'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 
 /**

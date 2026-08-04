@@ -1,6 +1,6 @@
 import { Field, Textarea } from '../chrome/Field'
-import type { RollTableDeps } from './rollTableHelpers'
 import { RollTableButton } from './RollTableButton'
+import type { RollTableDeps } from './rollTableHelpers'
 
 type BackgroundStepProps = {
   background: string

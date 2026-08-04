@@ -2,7 +2,7 @@
  * Tests for SalvageUnionReference.resolveActions()
  */
 
-import { describe, it, expect } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import type { SalvageUnionReference as SURefType } from './index.js'
 
 let SalvageUnionReference: typeof SURefType

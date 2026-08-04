@@ -9,11 +9,11 @@
  */
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { useDetailModal } from '../useDetailModal'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntityDetailLinkProvider, EntityHrefProvider } from '../entityHrefContext'
 import { PatternEquipmentItem } from '../pattern/PatternEquipmentItem'
+import { useDetailModal } from '../useDetailModal'
 
 const system = (name: string): SURefEntity => {
   const match = SalvageUnionReference.Systems.all().find((s) => s.name === name)

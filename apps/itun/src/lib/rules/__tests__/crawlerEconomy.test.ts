@@ -9,16 +9,14 @@
  */
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import type { Roll } from '../heatCheck'
+import type { ScrapPool } from '../../schemas/crawler'
 import {
-  DETERIORATION_SP_LOSS,
-  UPKEEP_SCRAP,
   bayGate,
   contributeToUpgradePool,
-  convertScrap,
   convertedCount,
+  convertScrap,
   crawlerUpgradeQuote,
+  DETERIORATION_SP_LOSS,
   deteriorationOutcome,
   drawFromPool,
   exchangeStep,
@@ -28,9 +26,10 @@ import {
   poolAvailableAtOrAbove,
   tradingAvailability,
   tradingSourceTl,
+  UPKEEP_SCRAP,
   upkeepShortfall,
 } from '../crawlerEconomy'
-import type { ScrapPool } from '../../schemas/crawler'
+import type { Roll } from '../heatCheck'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['crawler-tech-levels', 'crawler-bays'])

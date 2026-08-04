@@ -24,7 +24,6 @@
  */
 
 import { toast } from 'component-lib'
-
 import { WritesBlockedOffline } from '../../stores/entityBackend'
 
 /**

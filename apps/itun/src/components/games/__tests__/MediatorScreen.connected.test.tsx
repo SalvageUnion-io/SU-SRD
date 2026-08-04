@@ -16,8 +16,8 @@ import { render, screen } from '@testing-library/react'
  * inserting a panel shifted every later answer silently.
  */
 
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import type { QueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 // Module scope, before the imports below: `mock.module` only affects imports
 // that resolve after it runs. See `convexMock.ts` for the capture/restore rules.

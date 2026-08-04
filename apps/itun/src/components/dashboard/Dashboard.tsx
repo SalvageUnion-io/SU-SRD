@@ -10,23 +10,22 @@
  * See docs/architecture/play-cockpit.md for the full plan.
  */
 
+import { buttonVariants, DashboardCanvas, DashboardGrid, Dial, RailBar } from 'component-lib'
 import { useCallback, useMemo } from 'react'
-
-import { Dial, DashboardCanvas, DashboardGrid, RailBar, buttonVariants } from 'component-lib'
-import type { CockpitPrefs } from '../../lib/schemas/cockpitPrefs'
-import { useEntityStore } from '../../stores/entityStore'
-import { usePlayStateStore } from '../../stores/playStateStore'
 import { containerOf } from '../../lib/container'
+import type { CockpitPrefs } from '../../lib/schemas/cockpitPrefs'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 import { setCockpitPrefs, useCockpitPrefs } from '../../stores/cockpitPrefsStore'
-import { resolveSheetComposition } from '../sheet/composition'
+import { useEntityStore } from '../../stores/entityStore'
+import { usePlayStateStore } from '../../stores/playStateStore'
+import { AppLink } from '../shared/AppLink'
 import type { EntityLookup } from '../sheet/composition'
+import { resolveSheetComposition } from '../sheet/composition'
 import { ActiveItemBand } from './ActiveItemBand'
 import { DialConfig } from './DialConfig'
-import { applyDialPrefs, configurableKinds, dialItems } from './dialItems'
 import { DisplayPanel } from './DisplayPanel'
 import { DowntimeWizard } from './DowntimeWizard'
-import { AppLink } from '../shared/AppLink'
+import { applyDialPrefs, configurableKinds, dialItems } from './dialItems'
 
 export function Dashboard({ id }: { id: string }) {
   const storeState = useEntityStore()

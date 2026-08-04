@@ -14,14 +14,14 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
+import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { legalStartingPatterns, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
-import { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { mechFormToCreateInput, mechToFormState } from '../../../lib/wizard/mechFormState'
-import { MechWizard } from '../MechWizard'
+import { useEntityStore } from '../../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { must } from '../../__tests__/must'
+import { MechWizard } from '../MechWizard'
 
 // ---------------------------------------------------------------------------
 // Pre-load reference data

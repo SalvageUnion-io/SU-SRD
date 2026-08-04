@@ -5,10 +5,10 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-
 import type { CockpitPrefs } from '../../../lib/schemas/cockpitPrefs'
-import { applyDialPrefs, configurableKinds, orderKinds, type DialItem } from '../dialItems'
 import { crawlerFixture, pilotFixture } from '../../__tests__/fixtures'
+import type { DialItem } from '../dialItems'
+import { applyDialPrefs, configurableKinds, orderKinds } from '../dialItems'
 
 function items(): DialItem[] {
   return [

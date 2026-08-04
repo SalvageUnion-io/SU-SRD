@@ -4,15 +4,14 @@
  * Uses Zod 4 native z.toJSONSchema() to convert Zod schemas to JSON Schema format
  */
 
-import { writeFileSync, mkdirSync } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { z } from '../lib/zod.js'
 import * as prettier from 'prettier'
-
 // The canonical schema-id -> Zod map lives in ModelFactory (one registry,
 // audit item 23) — the generator no longer keeps its own copy.
 import { zodSchemaMap } from '../lib/ModelFactory.js'
+import { z } from '../lib/zod.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)

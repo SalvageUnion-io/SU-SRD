@@ -1,6 +1,6 @@
 import type { SURefCrawler, SURefMetaCrawlerTechLevel } from 'salvageunion-reference'
-import { EmptyState } from '../chrome/EmptyState'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
+import { EmptyState } from '../chrome/EmptyState'
 import { Stat } from '../shared/Stat'
 
 type CrawlerStatsStepProps = {

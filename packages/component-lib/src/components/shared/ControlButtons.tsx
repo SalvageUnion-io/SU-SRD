@@ -1,9 +1,9 @@
+import { Tooltip } from '@base-ui/react/tooltip'
 import type { ReactNode } from 'react'
 import { useCallback } from 'react'
-import { Tooltip } from '@base-ui/react/tooltip'
+import { RUNG_INLINE_PADDING, RUNG_TYPE } from '../../styles/sizing'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
-import { RUNG_INLINE_PADDING, RUNG_TYPE } from '../../styles/sizing'
 import { CountStepper } from '../chrome/CountStepper'
 import { StatusBadge } from '../chrome/StatusBadge'
 import type {

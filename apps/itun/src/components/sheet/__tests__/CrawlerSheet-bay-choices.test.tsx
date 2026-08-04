@@ -24,14 +24,13 @@
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import type { SURefCrawlerBay } from 'salvageunion-reference'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-
-import { CrawlerSheet } from '../CrawlerSheet'
+import type { SURefCrawlerBay } from 'salvageunion-reference'
 import type { Crawler } from '../../../lib/schemas/crawler'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import { expandCards } from '../../__tests__/expandCards'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { expandCards } from '../../__tests__/expandCards'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { CrawlerSheet } from '../CrawlerSheet'
 
 afterEach(() => {
   cleanup()

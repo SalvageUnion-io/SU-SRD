@@ -2,34 +2,34 @@
  * Tests for utility functions (type guards and property extractors)
  */
 
-import { describe, it, expect } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
+// Import SalvageUnionReference - use lazy getter to avoid initialization issues
+import type { SalvageUnionReference as SURefType } from './index.js'
 import {
-  getTechLevel,
-  getTechLevelNumber,
-  getSalvageValue,
-  getSlotsRequired,
-  getPageReference,
   extractActions,
+  getAssetUrl,
+  getCargoCapacity,
   getChassisAbilities,
-  getStructurePoints,
   getEnergyPoints,
   getHeatCapacity,
-  getSystemSlots,
-  getModuleSlots,
-  getCargoCapacity,
   getHitPoints,
-  getUpkeepCost,
-  getUpgradeCost,
-  getAssetUrl,
+  getModuleSlots,
+  getPageReference,
   getPatterns,
+  getSalvageValue,
+  getSlotsRequired,
+  getStructurePoints,
+  getSystemSlots,
+  getTechLevel,
+  getTechLevelNumber,
+  getUpgradeCost,
+  getUpkeepCost,
   isHiddenPattern,
   normalizePatternName,
   resolveFormationMember,
   visiblePatterns,
 } from './utilities.js'
 
-// Import SalvageUnionReference - use lazy getter to avoid initialization issues
-import type { SalvageUnionReference as SURefType } from './index.js'
 let SalvageUnionReference: typeof SURefType
 
 function getReference() {

@@ -1,10 +1,10 @@
 import type { Story } from '@ladle/react'
-import { EntityTooltip } from './EntityTooltip'
-import { ReferenceEntityCard } from './card/ReferenceEntityCard'
-import { InsideTooltipContext } from '../ui/insideTooltipContext'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Badge } from '../chrome/Badge'
 import { Stat } from '../shared/Stat'
+import { InsideTooltipContext } from '../ui/insideTooltipContext'
+import { ReferenceEntityCard } from './card/ReferenceEntityCard'
+import { EntityTooltip } from './EntityTooltip'
 
 export default {
   title: 'Compositions/Entity/Entity Tooltip',

@@ -7,7 +7,7 @@
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { SalvageUnionReference, resolveGrantedEntities } from 'salvageunion-reference'
+import { resolveGrantedEntities, SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** A chassis carries a `patterns` list + chassis abilities at full size. */

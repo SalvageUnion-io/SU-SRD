@@ -18,11 +18,10 @@
  * surface, alongside the AppHeader search trigger (now present on every route).
  */
 
+import type { SearchComboboxResult } from 'component-lib'
+import { INPUT_FOCUS, ModalShell, useDetailModal, useSearchCombobox } from 'component-lib'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { INPUT_FOCUS, ModalShell, useDetailModal, useSearchCombobox } from 'component-lib'
-import type { SearchComboboxResult } from 'component-lib'
-
 import { deepLinkToSchema } from '../../lib/srd-deep-link'
 
 type GlobalSearchProps = {

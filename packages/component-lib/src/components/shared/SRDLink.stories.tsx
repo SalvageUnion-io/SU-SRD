@@ -1,6 +1,5 @@
 import type { Story } from '@ladle/react'
-import { SalvageUnionReference, getEntitySlug } from 'salvageunion-reference'
-
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { SRDLink } from './SRDLink'
 
 export default {

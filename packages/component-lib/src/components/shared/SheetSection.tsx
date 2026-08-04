@@ -16,19 +16,13 @@
  * section-edit fields and per-card controls (StatBlocks carry no cue).
  */
 
-import {
-  type ComponentPropsWithoutRef,
-  type ReactElement,
-  type ReactNode,
-  cloneElement,
-  isValidElement,
-} from 'react'
+import type { ComponentPropsWithoutRef, ReactElement, ReactNode } from 'react'
+import { cloneElement, isValidElement } from 'react'
+import { cn } from '../../utils/cn'
 import { Button } from '../chrome/Button'
 import { Glyph } from '../chrome/glyphs'
-import { ModalShell } from './ModalShell'
-
-import { cn } from '../../utils/cn'
 import { FOCUS_RING } from '../chrome/interaction'
+import { ModalShell } from './ModalShell'
 
 // ---------------------------------------------------------------------------
 // HButton — the container-header control button (design `.hbtn`, clean-edit.html

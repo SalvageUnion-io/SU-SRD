@@ -11,11 +11,10 @@
  * for everything the card renders.
  */
 
-import { computeMechCapacity, resolveChassisRef } from 'salvageunion-reference/rules'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { linesFromBreakdown } from 'component-lib'
 import type { ChassisStatItem, ProvenanceLine } from 'component-lib'
-
+import { linesFromBreakdown } from 'component-lib'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import { computeMechCapacity, resolveChassisRef } from 'salvageunion-reference/rules'
 import { useCargo } from '../../lib/cargo/useCargo'
 import { mechMaxEPParts, mechMaxHeatParts, mechMaxSPParts } from '../../lib/rules/derivedStats'
 import { pilotingContext } from '../../lib/rules/pilotingContext'

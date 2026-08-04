@@ -27,10 +27,10 @@
  */
 
 import { mock } from 'bun:test'
-import { createElement } from 'react'
-import type { ReactNode } from 'react'
-import { getFunctionName } from 'convex/server'
 import type { FunctionReference } from 'convex/server'
+import { getFunctionName } from 'convex/server'
+import type { ReactNode } from 'react'
+import { createElement } from 'react'
 
 /** `'games:get'` → the value that query should return this test. */
 export type QueryAnswers = Record<string, unknown>

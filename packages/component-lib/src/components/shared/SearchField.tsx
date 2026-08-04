@@ -1,6 +1,6 @@
-import { forwardRef } from 'react'
-import type { InputHTMLAttributes } from 'react'
 import { Search } from 'lucide-react'
+import type { InputHTMLAttributes } from 'react'
+import { forwardRef } from 'react'
 import { cn } from '../../utils/cn'
 import { FOCUS_WITHIN } from '../chrome/interaction'
 

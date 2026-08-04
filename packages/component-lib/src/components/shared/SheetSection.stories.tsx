@@ -2,13 +2,13 @@ import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
-import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { Slab } from '../chrome/Slab'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import {
   CardRemoveButton,
   HButton,
-  SectionManageButton,
   SectionEditButton,
+  SectionManageButton,
   SheetPickerModal,
 } from './SheetSection'
 

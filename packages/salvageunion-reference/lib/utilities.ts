@@ -23,10 +23,10 @@
  * consumers outside the package should keep importing from the package barrel.
  */
 
-export * from './entityFields.js'
 export * from './actionResolution.js'
-export * from './entityGuards.js'
-export * from './patterns.js'
 export * from './assets.js'
-export * from './traitText.js'
+export * from './entityFields.js'
+export * from './entityGuards.js'
 export * from './inventorySlots.js'
+export * from './patterns.js'
+export * from './traitText.js'

@@ -1,10 +1,10 @@
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { EmptyState } from '../chrome/EmptyState'
 import type { SURefAbility, SURefClass } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
+import { EmptyState } from '../chrome/EmptyState'
 import { Slab } from '../chrome/Slab'
-import { MasonryColumns } from '../shared/MasonryColumns'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
+import { MasonryColumns } from '../shared/MasonryColumns'
 import { selectableClasses } from './classOptions'
 
 type SURClassesAccessor = {

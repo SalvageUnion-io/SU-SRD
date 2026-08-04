@@ -7,8 +7,8 @@
  * need dark-on-light regardless of app theme.
  */
 
-import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
+import { useEffect, useState } from 'react'
 
 type SnapshotQrProps = {
   /** Absolute share URL (e.g. https://…/s/<id>). */

@@ -20,13 +20,12 @@
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { CrawlerEconomyControl } from '../CrawlerEconomyControl'
 import type { Roll } from '../../../lib/rules/heatCheck'
 import type { Crawler } from '../../../lib/schemas/crawler'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import { LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
 import type { ChangeMeta } from '../../../stores/entityStore'
+import { LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { CrawlerEconomyControl } from '../CrawlerEconomyControl'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['crawler-bays', 'crawler-tech-levels'])

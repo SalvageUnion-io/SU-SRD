@@ -13,20 +13,20 @@
  * public surface.
  */
 
+import { getGrants } from './entityFields.js'
+import { getModel } from './helpers.js'
+import { SalvageUnionReference } from './index.js'
+import { getDataMaps } from './ModelFactory.js'
 import type {
-  SURefMetaEntity,
-  SURefMetaAction,
   SURefEntity,
+  SURefMetaAction,
+  SURefMetaEntity,
+  SURefObjectActionOptions,
+  SURefObjectChoice,
   SURefObjectSystemModule,
   SURefObjectTable,
   SURefObjectTrait,
-  SURefObjectChoice,
-  SURefObjectActionOptions,
 } from './types/index.js'
-import { getDataMaps } from './ModelFactory.js'
-import { getModel } from './helpers.js'
-import { SalvageUnionReference } from './index.js'
-import { getGrants } from './entityFields.js'
 
 // Cached action map - built once since action data is static
 let _actionMap: Map<string, SURefMetaAction> | null = null

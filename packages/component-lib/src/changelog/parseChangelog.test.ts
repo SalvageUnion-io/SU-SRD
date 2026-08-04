@@ -1,6 +1,6 @@
-import { describe, test, expect } from 'bun:test'
-import { parseChangelog, mergeChangelogs } from './parseChangelog'
+import { describe, expect, test } from 'bun:test'
 import type { ChangelogEntry } from './parseChangelog'
+import { mergeChangelogs, parseChangelog } from './parseChangelog'
 
 const RELEASE_PLEASE = `# Changelog
 

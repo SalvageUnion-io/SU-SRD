@@ -1,7 +1,6 @@
-import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-
-import { matchesRef, resolveChassisRef } from 'salvageunion-reference/rules'
 import { EmptyState, ReferenceEntityCard } from 'component-lib'
+import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { matchesRef, resolveChassisRef } from 'salvageunion-reference/rules'
 
 type ChassisOptionListProps = {
   selectedChassis: string

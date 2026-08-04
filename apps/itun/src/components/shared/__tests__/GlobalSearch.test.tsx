@@ -10,12 +10,11 @@
  */
 
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { useState } from 'react'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { GlobalSearch } from '../GlobalSearch'
 import { must } from '../../__tests__/must'
+import { GlobalSearch } from '../GlobalSearch'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')

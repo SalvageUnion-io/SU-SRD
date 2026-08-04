@@ -1,5 +1,5 @@
-import { Fragment } from 'react'
 import type { ReactNode } from 'react'
+import { Fragment } from 'react'
 import type { SURefEnumSchemaName } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { EntityTooltip } from '../EntityTooltip'

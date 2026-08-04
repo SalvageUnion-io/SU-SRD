@@ -16,19 +16,17 @@
  * new instances land on the Shelf — see Roster.tsx for the same branch.
  */
 
-import { useState } from 'react'
+import { Card, EmptyState, Skeleton } from 'component-lib'
 import { Users } from 'lucide-react'
-import { EmptyState, Skeleton } from 'component-lib'
-
+import { useState } from 'react'
 import { useHydrateOnMount } from '../../hooks/queries/useHydrateEntities'
+import { useConnection } from '../../lib/connection/connectionContext'
+import { moveTo } from '../../lib/container'
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import type { MediatorRollResult } from '../../lib/schemas/encounterNpc'
-import { useConnection } from '../../lib/connection/connectionContext'
-import { moveTo } from '../../lib/container'
 import { setActiveContainer, useActiveContainer } from '../../stores/activeContainerStore'
 import { useEncounterStore } from '../../stores/encounterStore'
-import { Card } from 'component-lib'
 import { ContainerSwitcher } from '../container/ContainerSwitcher'
 import { AddNpcControl } from './AddNpcControl'
 import { EncounterNpcCard } from './EncounterNpcCard'

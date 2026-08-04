@@ -20,10 +20,8 @@
  * dropping it left the player with a button that appeared to do nothing.
  */
 
-import type { ReactNode } from 'react'
-
 import { Button, Stat } from 'component-lib'
-
+import type { ReactNode } from 'react'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'

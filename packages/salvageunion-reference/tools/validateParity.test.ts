@@ -8,11 +8,10 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-
 import {
-  KNOWN_DOUBLE_ENCODED,
   auditParity,
   findDoubleEncodings,
+  KNOWN_DOUBLE_ENCODED,
   staleDoubleEncodings,
   unresolvedFindings,
 } from './validateParityLogic.js'

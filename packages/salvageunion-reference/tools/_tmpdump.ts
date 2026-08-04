@@ -1,5 +1,6 @@
 import { loadAllDataFiles } from './loadData.js'
 import { auditParity, PARITY_EXEMPTIONS } from './validateParityLogic.js'
+
 const bag = loadAllDataFiles()
 const f = auditParity(bag as never)
 for (const x of f)

@@ -1,10 +1,10 @@
 import type { Story } from '@ladle/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { Caption } from './_harness'
-import { Badge } from '../components/chrome/Badge'
 import { Text } from '../components/base/Text'
-import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE, type SizeRung } from '../styles/sizing'
+import { Badge } from '../components/chrome/Badge'
+import type { SizeRung } from '../styles/sizing'
+import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE } from '../styles/sizing'
+import { Caption } from './_harness'
 
 export default {
   title: 'Foundations/Sizing',

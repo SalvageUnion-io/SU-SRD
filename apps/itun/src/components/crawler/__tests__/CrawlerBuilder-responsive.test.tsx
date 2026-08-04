@@ -12,8 +12,8 @@
  *  - className string assertions for layout classes (happy-dom has no layout engine)
  */
 
-import { act, render } from '@testing-library/react'
 import { beforeAll, describe, expect, test } from 'bun:test'
+import { act, render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { CrawlerBuilder } from '../CrawlerBuilder'
 

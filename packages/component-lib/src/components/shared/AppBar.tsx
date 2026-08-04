@@ -1,5 +1,5 @@
-import { Fragment } from 'react'
 import type { ElementType, ReactNode } from 'react'
+import { Fragment } from 'react'
 import { cn } from '../../utils/cn'
 import { FOCUS_RING } from '../chrome/interaction'
 

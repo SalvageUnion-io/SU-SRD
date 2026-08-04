@@ -1,10 +1,10 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Inset } from './Inset'
-import { Stat } from './Stat'
 import { Button } from '../chrome/Button'
 import { VitalGauge } from '../stat/VitalGauge'
+import { Inset } from './Inset'
+import { Stat } from './Stat'
 
 export default {
   title: 'Containers/Inset',

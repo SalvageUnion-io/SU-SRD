@@ -9,16 +9,15 @@
  */
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import { makeScrapLot, makeUnitLot } from '../../schemas/cargoLot'
 import type { ScrapPool } from '../../schemas/crawler'
+import type { ScrapMechComponent } from '../scrapMech'
 import {
   depositScrapDeposits,
   handOffCargo,
   mechScrapComponents,
   scrapMechBreakdown,
 } from '../scrapMech'
-import type { ScrapMechComponent } from '../scrapMech'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['chassis', 'systems', 'modules'])

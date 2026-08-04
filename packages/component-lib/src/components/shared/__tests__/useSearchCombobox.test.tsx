@@ -6,7 +6,7 @@
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
+import { schemaPluralLabel } from '../../../utils/schemaLabels'
 import { useSearchCombobox } from '../useSearchCombobox'
 
 /** Narrow a possibly-null query result, failing the test loudly if absent. */
@@ -51,6 +51,25 @@ describe('useSearchCombobox', () => {
     const { result } = renderHook(() => useSearchCombobox({ onSubmit: () => {} }))
     await typeAndSettle(result, 'mining laser')
     expect(result.current.results.some((r) => r.title.toLowerCase().includes('mining'))).toBe(true)
+  })
+
+  test('category rows and entity rows spell a schema the same way', async () => {
+    const { result } = renderHook(() => useSearchCombobox({ onSubmit: () => {} }))
+    await typeAndSettle(result, 'bay')
+
+    const entityRows = result.current.results.filter((r) => r.kind === 'entity')
+    expect(entityRows.length).toBeGreaterThan(0)
+    for (const row of entityRows) {
+      // The authored plural ('Crawler Bays'), never the raw kebab-case id.
+      expect(row.group).toBe(schemaPluralLabel(row.schemaId))
+      expect(row.group).not.toBe(row.schemaId)
+    }
+
+    const categoryRows = result.current.results.filter((r) => r.kind === 'schema')
+    for (const category of categoryRows) {
+      const sameSchema = entityRows.filter((r) => r.schemaId === category.schemaId)
+      for (const row of sameSchema) expect(row.group).toBe(category.title)
+    }
   })
 
   test('ArrowDown/Enter submits the highlighted result; bare Enter submits the first', async () => {

@@ -4,8 +4,8 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } fr
 // indexedDB so that idb's openDB() works in the test environment.
 
 import { _clearAllStores, pilots } from '../index'
-import { installMonotonicClock } from './monotonicClock'
 import type { MonotonicClock } from './monotonicClock'
+import { installMonotonicClock } from './monotonicClock'
 
 // `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
 // sorts on `createdAt`. A monotonic clock makes consecutive writes distinct and

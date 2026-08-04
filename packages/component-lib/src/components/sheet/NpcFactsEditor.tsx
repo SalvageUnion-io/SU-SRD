@@ -19,9 +19,9 @@
  * affordance — facts render as plain chips (published snapshots).
  */
 
+import { cn } from '../../utils/cn'
 import { Conditions } from '../chrome/Conditions'
 import { INPUT_FOCUS } from '../chrome/interaction'
-import { cn } from '../../utils/cn'
 import { useChipDraft } from './useChipDraft'
 
 type NpcFactsEditorProps = {

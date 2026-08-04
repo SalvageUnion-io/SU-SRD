@@ -15,15 +15,14 @@
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { MechSheet } from '../MechSheet'
-import { PilotSheet } from '../PilotSheet'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { MechSheet } from '../MechSheet'
+import { PilotSheet } from '../PilotSheet'
 
 // PilotSheet resolves equipment/ability slugs; MechSheet resolves
 // system/module slugs, chassis stats and cargo caps at render — load all.

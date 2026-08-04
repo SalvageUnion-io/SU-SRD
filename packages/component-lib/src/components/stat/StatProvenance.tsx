@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { Popover } from '@base-ui/react/popover'
-
+import { useState } from 'react'
 import { cn } from '../../utils/cn'
 import { capsLabel } from '../chrome/capsLabel'
 import { FOCUS_RING } from '../chrome/interaction'

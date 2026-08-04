@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-
 import { InlineEditField } from '../InlineEditField'
 
 /**

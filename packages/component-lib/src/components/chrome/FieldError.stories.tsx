@@ -1,8 +1,7 @@
 import type { Story } from '@ladle/react'
 import { Caption } from '../../stories/_harness'
-
-import { FieldError } from './FieldError'
 import { Field, Input } from './Field'
+import { FieldError } from './FieldError'
 
 export default {
   title: 'Atoms/Field Error',

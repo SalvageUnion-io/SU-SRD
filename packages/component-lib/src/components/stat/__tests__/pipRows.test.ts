@@ -1,5 +1,5 @@
-import { describe, test, expect } from 'bun:test'
-import { statBlockRows, pipClickValue } from '../pipRows'
+import { describe, expect, test } from 'bun:test'
+import { pipClickValue, statBlockRows } from '../pipRows'
 
 describe('statBlockRows — ≤6 per row, extras to LAST rows (ruleset §4.5)', () => {
   test('fits a single row up to 6', () => {

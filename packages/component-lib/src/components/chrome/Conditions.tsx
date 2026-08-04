@@ -1,7 +1,7 @@
 import { cn } from '../../utils/cn'
+import { Badge } from './Badge'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
-import { Badge } from './Badge'
 
 /**
  * Chip material for a chip row.

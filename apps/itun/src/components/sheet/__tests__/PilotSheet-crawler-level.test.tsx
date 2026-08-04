@@ -25,13 +25,12 @@
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { PilotSheet } from '../PilotSheet'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { expandCards } from '../../__tests__/expandCards'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { PilotSheet } from '../PilotSheet'
 
 const SNIPER_NAME = 'Custom Sniper Rifle'
 let SNIPER_ID = ''

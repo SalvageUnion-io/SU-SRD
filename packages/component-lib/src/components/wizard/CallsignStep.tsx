@@ -1,6 +1,6 @@
 import { Field, Input } from '../chrome/Field'
-import type { RollTableDeps } from './rollTableHelpers'
 import { RollTableButton } from './RollTableButton'
+import type { RollTableDeps } from './rollTableHelpers'
 
 type CallsignStepProps = {
   name: string

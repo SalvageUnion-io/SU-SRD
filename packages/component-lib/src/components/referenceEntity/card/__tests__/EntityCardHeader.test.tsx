@@ -29,8 +29,8 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { EntityCardHeader } from '../EntityCardHeader'
 import type { StatItem } from '../../../shared/statsBarTypes'
+import { EntityCardHeader } from '../EntityCardHeader'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')

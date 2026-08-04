@@ -12,8 +12,8 @@
  * contexts (tests without either API) publishing is a no-op.
  */
 
-import { STORE_NAMES } from './stores'
 import type { StoreName } from './stores'
+import { STORE_NAMES } from './stores'
 
 const CHANNEL_NAME = 'itun-db'
 const STORAGE_PING_KEY = 'itun-db-ping'

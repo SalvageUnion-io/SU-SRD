@@ -14,9 +14,8 @@
 
 import { ModeDoor } from 'component-lib'
 import { cn } from '../../lib/utils'
-import { AppLink } from '../shared/AppLink'
-
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
+import { AppLink } from '../shared/AppLink'
 
 type CreateModeChooserProps = {
   kind: BlankCreateKind

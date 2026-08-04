@@ -21,9 +21,9 @@
  * the philosophy, not the shape.
  */
 
-import type { StoreName } from '../lib/db/stores'
 import { recordDataWrite } from '../lib/backupNudge'
 import { publishStoreChange, subscribeStoreChanges } from '../lib/db/broadcast'
+import type { StoreName } from '../lib/db/stores'
 
 type DbCollection<T, CreateInput> = {
   list: () => Promise<T[]>

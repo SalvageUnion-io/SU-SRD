@@ -1,5 +1,4 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
-
 import { GameScreen } from '../components/games/GameScreen'
 
 /**

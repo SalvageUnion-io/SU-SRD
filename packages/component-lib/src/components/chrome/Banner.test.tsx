@@ -11,8 +11,8 @@
 import '@testing-library/jest-dom'
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-
-import { Banner, type BannerWarning } from './Banner'
+import type { BannerWarning } from './Banner'
+import { Banner } from './Banner'
 
 const warnWarning: BannerWarning = {
   message: '"Shield Gen" depends on "Power Core", which was removed from this mech.',

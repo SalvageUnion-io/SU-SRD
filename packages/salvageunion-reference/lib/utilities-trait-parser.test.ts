@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { SalvageUnionReference, findEntityBySlug, getDataMaps, nameToSlug } from './index.js'
+import { findEntityBySlug, getDataMaps, nameToSlug, SalvageUnionReference } from './index.js'
 import { parseTraitReferences } from './utilities.js'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */

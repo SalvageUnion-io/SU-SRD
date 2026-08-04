@@ -16,14 +16,13 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
+import type { PartnerInstance } from '../../schemas/partner'
 import {
   partnerCap,
   partnerDerivedStats,
   partnerTechLevel,
   resolvePartnerStatBlock,
 } from '../partnerStats'
-import type { PartnerInstance } from '../../schemas/partner'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')

@@ -50,7 +50,6 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
-import { getItemStaticPaths, getPatternStaticPaths } from '../src/lib/staticPaths'
 import { DEFAULT_OG_IMAGE, SITE_URL } from '../src/lib/constants'
 import {
   CATALOG_MIN_FRAME_WIDTH,
@@ -64,6 +63,7 @@ import {
   ogImagePath,
   pickTileWidth,
 } from '../src/lib/ogCard'
+import { getItemStaticPaths, getPatternStaticPaths } from '../src/lib/staticPaths'
 
 const PORT = Number(process.env.OG_SCREENSHOTS_PORT ?? 4399)
 const CONCURRENCY = Number(process.env.OG_SCREENSHOTS_CONCURRENCY ?? 5)

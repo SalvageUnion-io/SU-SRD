@@ -8,18 +8,18 @@
  * tools/generateRegistry.ts into lib/generated/modelFactoryRegistry.generated.ts
  * — run `bun run build:package` to regenerate after editing the manifest.
  */
-import { BaseModel } from './BaseModel.js'
+
 import schemaIndex from '../schemas/index.json' with { type: 'json' }
-import { z } from './zod.js'
-import { toPascalCase } from './naming.js'
+import { BaseModel } from './BaseModel.js'
 import {
   dataLoaders,
-  zodSchemaMap,
   schemaDisplayNames,
+  zodSchemaMap,
 } from './generated/modelFactoryRegistry.generated.js'
+import { toPascalCase } from './naming.js'
+import { z } from './zod.js'
 
-export { toPascalCase }
-export { zodSchemaMap, schemaDisplayNames }
+export { schemaDisplayNames, toPascalCase, zodSchemaMap }
 
 // ---------------------------------------------------------------------------
 // Load state

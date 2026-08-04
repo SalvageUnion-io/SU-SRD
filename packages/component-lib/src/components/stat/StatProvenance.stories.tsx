@@ -1,9 +1,8 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { mechMaxSPParts } from 'salvageunion-reference/rules'
-
-import { StatProvenance } from './StatProvenance'
-import type { ProvenanceLine } from './StatProvenance'
 import { Caption } from '../../stories/_harness'
+import type { ProvenanceLine } from './StatProvenance'
+import { StatProvenance } from './StatProvenance'
 
 export default {
   title: 'Atoms/Stat Provenance',

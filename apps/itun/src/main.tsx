@@ -1,10 +1,10 @@
+import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { RouterProvider, createRouter } from '@tanstack/react-router'
-import { routeTree } from './routeTree.gen'
-import { registerServiceWorker } from './lib/sw/register'
-import { initBrowserObservability } from './lib/observability'
 import { RouteNotFound, RoutePending } from './components/shared/RouteFallbacks'
+import { initBrowserObservability } from './lib/observability'
+import { registerServiceWorker } from './lib/sw/register'
+import { routeTree } from './routeTree.gen'
 
 const router = createRouter({
   routeTree,

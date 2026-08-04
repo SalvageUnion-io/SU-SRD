@@ -8,9 +8,8 @@
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { cleanup, renderHook } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import type { useEntityStore } from '../../../stores/entityStore'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import type { useEntityStore } from '../../../stores/entityStore'
 import type { CargoLot } from '../../schemas/cargoLot'
 import { makeScrapLot } from '../../schemas/cargoLot'
 import type { Crawler } from '../../schemas/crawler'

@@ -42,9 +42,8 @@
  * the Storage Bay needs no docked mech. Only the two BOUNDARY moves are gated.
  */
 
-import { useId, useState } from 'react'
 import { Badge, Button, Card, Input, SlotGrid, Stat } from 'component-lib'
-
+import { useId, useState } from 'react'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'

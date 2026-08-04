@@ -8,8 +8,8 @@
  * grouping, the name -> entity resolution, and the "nothing to resolve" exits.
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity, SURefMetaEntity, SURefObjectPattern } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   resolveChassisDrone,
   resolveDroneOwnLoadout,

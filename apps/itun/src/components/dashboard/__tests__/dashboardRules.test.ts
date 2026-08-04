@@ -9,10 +9,10 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import type { Roll } from '../../../lib/rules/heatCheck'
+import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import type { PlayAction } from '../dashboardRules'
 import {
-  VENT_PATCH,
   actionInRange,
   actionMicroMeta,
   actionReachable,
@@ -35,9 +35,8 @@ import {
   reachSummary,
   shutdownTogglePatch,
   tabMatchesAction,
+  VENT_PATCH,
 } from '../dashboardRules'
-import type { PlayAction } from '../dashboardRules'
-import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 
 /** A deterministic roller that returns the queued values, then 20. */
 function seqRoll(values: number[]): Roll {

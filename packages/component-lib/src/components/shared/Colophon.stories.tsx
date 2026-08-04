@@ -1,8 +1,7 @@
 import type { Story } from '@ladle/react'
-import { Colophon } from './Colophon'
-
 import aboutMd from '../../../../../ABOUT_JRVS.md?raw'
 import statementMd from '../../../../../LLM_STATEMENT.md?raw'
+import { Colophon } from './Colophon'
 
 export default { title: 'Compositions/Colophon' }
 

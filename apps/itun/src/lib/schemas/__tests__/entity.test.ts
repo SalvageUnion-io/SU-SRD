@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'bun:test'
-
 import { EntityRefSchema } from '../entity'
 
 describe('EntityRefSchema', () => {

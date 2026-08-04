@@ -4,64 +4,62 @@
 
 import type { z } from '../zod.js'
 
+export * from './common.js'
+export * from './entities.js'
 // Re-export all schemas
 export * from './enums.js'
-export * from './common.js'
 export * from './objects.js'
-export * from './entities.js'
-
-// Import schemas for type inference
-import type { SchemaNameSchema } from './enums.js'
-
-import type {
-  TraitSchema,
-  StatsSchema,
-  DataValueSchema,
-  ContentBlockSchema,
-  ContentSchema,
-  TableContentSchema,
-  TableSchema,
-  PatternSystemModuleSchema,
-  SystemModuleSchema,
-  ChoiceSchema,
-  PatternSchema,
-  DamageSchema,
-  AdvancedClassSchema,
-  FormationMechSchema,
-  GrantSchema,
-  CrawlerMutationSchema,
-  GuideStepSchema,
-} from './objects.js'
 
 import type {
   AbilitySchema,
   AbilityTreeRequirementSchema,
-  MetaActionSchema,
   BioTitanSchema,
+  CatalogCategorySchema,
   ChassisSchema,
   ClassSchema,
   CrawlerBaySchema,
-  CrawlerTechLevelSchema,
   CrawlerSchema,
+  CrawlerTechLevelSchema,
   CreatureSchema,
   DistanceSchema,
   DroneSchema,
   EquipmentSchema,
   FactionSchema,
+  GuideSchema,
   KeywordSchema,
   MeldSchema,
+  MetaActionSchema,
   ModuleSchema,
   NPCSchema,
   RollTableSchema,
+  SourceEntitySchema,
   SquadSchema,
   SystemSchema,
+  TechLevelEntitySchema,
   TraitEntitySchema,
   VehicleSchema,
-  GuideSchema,
-  SourceEntitySchema,
-  TechLevelEntitySchema,
-  CatalogCategorySchema,
 } from './entities.js'
+// Import schemas for type inference
+import type { SchemaNameSchema } from './enums.js'
+import type {
+  AdvancedClassSchema,
+  ChoiceSchema,
+  ContentBlockSchema,
+  ContentSchema,
+  CrawlerMutationSchema,
+  DamageSchema,
+  DataValueSchema,
+  FormationMechSchema,
+  GrantSchema,
+  GuideStepSchema,
+  PatternSchema,
+  PatternSystemModuleSchema,
+  StatsSchema,
+  SystemModuleSchema,
+  TableContentSchema,
+  TableSchema,
+  TraitSchema,
+} from './objects.js'
 
 // Inferred types, exported under the SURef* prefix used across the monorepo.
 

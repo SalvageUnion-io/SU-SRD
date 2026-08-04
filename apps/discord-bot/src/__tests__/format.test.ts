@@ -3,14 +3,13 @@
  * Uses real reference data (preloaded) so /lookup shapes match production.
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
-
+import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 import {
-  ROLL_COLORS,
-  ROLL_EMBED_FOOTER,
   buildRollEmbedData,
   entityUrl,
   getColor,
+  ROLL_COLORS,
+  ROLL_EMBED_FOOTER,
   truncate,
 } from '../format.js'
 

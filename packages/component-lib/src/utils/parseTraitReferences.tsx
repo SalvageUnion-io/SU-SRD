@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import type { ReactNode } from 'react'
+import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { InlineRef } from '../components/chrome/InlineRef'
 import { EntityTooltip } from '../components/referenceEntity/EntityTooltip'

@@ -14,9 +14,9 @@
 
 import { loadAllDataFiles } from './loadData.js'
 import {
-  KNOWN_UNRESOLVED,
   auditParity,
   findDoubleEncodings,
+  KNOWN_UNRESOLVED,
   staleDoubleEncodings,
   unresolvedFindings,
 } from './validateParityLogic.js'

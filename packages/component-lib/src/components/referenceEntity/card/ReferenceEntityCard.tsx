@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import type { ReactNode } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { useState } from 'react'
 import type {
   SURefEntity,
   SURefEnumSchemaName,
@@ -34,19 +34,20 @@ import {
 } from 'salvageunion-reference'
 import { isLegalStartingPattern, isSchemaOnlyCatalogChoice } from 'salvageunion-reference/rules'
 import { cn } from '../../../utils/cn'
-import type { EntityStatus } from '../../shared/entityStatus'
-import { type CardExtent, type CardSize, resolveCardDisplay } from '../../shared/displayMode'
-import { FOCUS_RING, activateOnKey } from '../../chrome/interaction'
-import { Slab } from '../../chrome/Slab'
 import { Badge } from '../../chrome/Badge'
 import { CountStepper } from '../../chrome/CountStepper'
+import { activateOnKey, FOCUS_RING } from '../../chrome/interaction'
+import { Slab } from '../../chrome/Slab'
 import { STAMP_SEAM } from '../../chrome/stampSeam'
 import { ActivationCost } from '../../shared/ActivationCost'
-import { CardImage } from '../../shared/CardImage'
+import type { CardFootMeta } from '../../shared/Card'
 import { CardControlRail } from '../../shared/CardControlRail'
+import { CardImage } from '../../shared/CardImage'
+import type { CardExtent, CardSize } from '../../shared/displayMode'
+import { resolveCardDisplay } from '../../shared/displayMode'
+import type { EntityStatus } from '../../shared/entityStatus'
 import { foldStatusControl } from '../../shared/foldStatusControl'
 import { RollTable } from '../../shared/RollTable'
-import type { CardFootMeta } from '../../shared/Card'
 import { Stat } from '../../shared/Stat'
 import type { StatItem } from '../../shared/statsBarTypes'
 import { Content } from '../Content'
@@ -58,19 +59,15 @@ import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { accentDeepColor, accentSurface, borderColorFromHeaderBg } from '../referenceEntityHelpers'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
 import { CatalogChoiceListing } from './CatalogChoiceListing'
-import { anchorBonusMarker, anchorChoiceMarkers } from './choiceAnchoring'
-import type { AnchoredContentBlock } from './choiceAnchoring'
-import { crawlerPopulationRange } from './crawlerPopulationRange'
 import { resolveCatalogLeadBlocks } from './catalogLead'
-import { firstParagraphText } from './firstParagraphText'
-import { resolveAdditionalSources } from './provenance'
+import type { AnchoredContentBlock } from './choiceAnchoring'
+import { anchorBonusMarker, anchorChoiceMarkers } from './choiceAnchoring'
+import { crawlerPopulationRange } from './crawlerPopulationRange'
 import { EntityCardHeader } from './EntityCardHeader'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
-import { EntityCardSubHeader } from './EntityCardSubHeader'
 import type { EntityCardSubHeaderCell } from './EntityCardSubHeader'
-import { resolveCardTable } from './resolveCardTable'
-import { resolveFoldedAction } from './resolveFoldedAction'
-import { stripHostParenthetical } from './stripHostParenthetical'
+import { EntityCardSubHeader } from './EntityCardSubHeader'
+import type { AxisMarker } from './entityCardTone'
 import {
   formatClassRequirements,
   ghostActionTone,
@@ -80,7 +77,13 @@ import {
   resolveEyebrow,
   titleSizeClass,
 } from './entityCardTone'
-import type { AxisMarker } from './entityCardTone'
+import { firstParagraphText } from './firstParagraphText'
+import { resolveAdditionalSources } from './provenance'
+import { resolveCardTable } from './resolveCardTable'
+import { resolveFoldedAction } from './resolveFoldedAction'
+import { resolveGuideLead } from './resolveGuideLead'
+import { resolveGuideSteps } from './resolveGuideSteps'
+import type { DroneLoadout, NestedGroup } from './resolveNestedEntities'
 import {
   resolveChassisDrone,
   resolveDroneOwnLoadout,
@@ -88,9 +91,7 @@ import {
   resolvePatternDrones,
   resolvePatternGroups,
 } from './resolveNestedEntities'
-import type { DroneLoadout, NestedGroup } from './resolveNestedEntities'
-import { resolveGuideLead } from './resolveGuideLead'
-import { resolveGuideSteps } from './resolveGuideSteps'
+import { stripHostParenthetical } from './stripHostParenthetical'
 
 /** Beyond this nesting depth a card renders header-only (no body expansion) —
  * bounds runaway recursion (deep chassis → systems → actions, or grant cycles). */

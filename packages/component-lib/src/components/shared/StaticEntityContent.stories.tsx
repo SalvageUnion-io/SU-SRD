@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react'
-import { SalvageUnionReference, extractStaticEntitySummary } from 'salvageunion-reference'
+import { extractStaticEntitySummary, SalvageUnionReference } from 'salvageunion-reference'
 import { StaticEntityContent } from './StaticEntityContent'
 
 export default {

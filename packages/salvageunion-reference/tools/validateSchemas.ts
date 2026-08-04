@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Validate every data file against its Zod schema.
  *
@@ -14,8 +15,8 @@
  * Exits non-zero if any file fails validation.
  */
 
-import { loadAllDataFiles } from './loadData.js'
 import { zodSchemaMap } from '../lib/ModelFactory.js'
+import { loadAllDataFiles } from './loadData.js'
 import { validateAllFilesAgainstSchemas } from './validateSchemasLogic.js'
 
 function main(): void {

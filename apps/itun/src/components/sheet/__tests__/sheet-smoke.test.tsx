@@ -26,22 +26,21 @@
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { Sheet } from '../Sheet'
-import type { EntityLookup } from '../Sheet'
-import type { SoftLinkStore } from '../../wiring/useSoftLinks'
-import type { SoftLink } from '../../../lib/schemas/softLink'
-import type { Pilot } from '../../../lib/schemas/pilot'
-import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
+import type { Mech } from '../../../lib/schemas/mech'
+import type { Pilot } from '../../../lib/schemas/pilot'
+import type { SoftLink } from '../../../lib/schemas/softLink'
+import { SnapshotPageInner } from '../../../routes/s/$id'
 import type { useEntityStore } from '../../../stores/entityStore'
 import {
-  makeEntityStoreMock,
   makeEntityLookupMock,
+  makeEntityStoreMock,
   makeSoftLinkStoreMock,
 } from '../../__tests__/mockEntityStore'
-import { SnapshotPageInner } from '../../../routes/s/$id'
 import { must } from '../../__tests__/must'
+import type { SoftLinkStore } from '../../wiring/useSoftLinks'
+import type { EntityLookup } from '../Sheet'
+import { Sheet } from '../Sheet'
 
 // ---------------------------------------------------------------------------
 // Preload salvageunion-reference once — MechSheet resolves chassis refs

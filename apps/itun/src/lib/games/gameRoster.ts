@@ -15,8 +15,8 @@
  * the server is right and this file is the bug.
  */
 
-import { ownerChipFor } from '../ownership/ownerChip'
 import type { OwnerChip } from '../ownership/ownerChip'
+import { ownerChipFor } from '../ownership/ownerChip'
 
 export type RosterKind = 'pilot' | 'mech' | 'crawler'
 

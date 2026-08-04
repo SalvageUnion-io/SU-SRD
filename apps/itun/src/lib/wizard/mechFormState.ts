@@ -15,9 +15,9 @@
  * the reference ORM (chassis stats) and so requires `chassis` preloaded.
  */
 
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { CargoLot } from '../schemas/cargoLot'
 import type { Mech } from '../schemas/mech'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
 
 /** Shape of form state carried through the mech wizard. */
 export type MechWizardFormState = {

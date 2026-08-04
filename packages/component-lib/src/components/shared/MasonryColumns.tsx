@@ -1,4 +1,5 @@
-import { Children, useSyncExternalStore, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import { Children, useSyncExternalStore } from 'react'
 
 type MasonryColumnsProps = {
   children: ReactNode

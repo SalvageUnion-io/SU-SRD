@@ -13,8 +13,8 @@ import { cleanup, render, screen } from '@testing-library/react'
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  */
 
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import type { QueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 // Module scope, before the imports below: `mock.module` only affects imports
 // that resolve after it runs. See `convexMock.ts` for the capture/restore rules.

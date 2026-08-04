@@ -4,9 +4,8 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { dialItems } from '../dialItems'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { dialItems } from '../dialItems'
 
 const mech = mechFixture({ id: 'm1', name: 'Iron Mongrel', chassisRef: 'x' })
 const pilot = pilotFixture({ id: 'p1', name: 'Vesh' })

@@ -20,11 +20,10 @@
  */
 
 import { SalvageUnionReference } from '../index.js'
+import type { ActiveEffects, ResolvedContribution } from './contributions.js'
+import { abilityContributions, installedContributions, sumContributions } from './contributions.js'
 import { crawlerMaxSpBonus } from './creation.js'
 import { resolveChassisRef } from './resolveRefs.js'
-import { abilityContributions, installedContributions, sumContributions } from './contributions.js'
-import type { ActiveEffects } from './contributions.js'
-import type { ResolvedContribution } from './contributions.js'
 
 // ---------------------------------------------------------------------------
 // Pilot

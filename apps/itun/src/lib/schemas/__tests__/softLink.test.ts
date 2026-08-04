@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'bun:test'
-
 import { SoftLinkSchema } from '../softLink'
 
 const validSoftLink = {

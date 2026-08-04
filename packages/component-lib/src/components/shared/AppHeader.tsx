@@ -1,11 +1,11 @@
+import { Search } from 'lucide-react'
 import type { ElementType, ReactNode } from 'react'
 import { Badge } from '../chrome/Badge'
 import { FOCUS_RING } from '../chrome/interaction'
-import { Search } from 'lucide-react'
-import { AppBar } from './AppBar'
 import type { AppBarNavItem } from './AppBar'
-import { NavDrawer } from './NavDrawer'
+import { AppBar } from './AppBar'
 import type { NavDrawerItem } from './NavDrawer'
+import { NavDrawer } from './NavDrawer'
 
 /**
  * AppHeader — the ITUN builder's masthead (app-local config over the shared

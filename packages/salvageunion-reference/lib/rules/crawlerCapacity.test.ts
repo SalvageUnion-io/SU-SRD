@@ -12,8 +12,8 @@
  */
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../index.js'
-import { computeCrawlerCapacity } from './crawlerCapacity.js'
 import type { CrawlerCapacityInput } from './crawlerCapacity.js'
+import { computeCrawlerCapacity } from './crawlerCapacity.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['crawler-tech-levels'])

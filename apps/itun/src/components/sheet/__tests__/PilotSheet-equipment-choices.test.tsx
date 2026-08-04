@@ -16,12 +16,11 @@
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { PilotSheet } from '../PilotSheet'
 import type { Pilot } from '../../../lib/schemas/pilot'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import { expandCards } from '../../__tests__/expandCards'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { expandCards } from '../../__tests__/expandCards'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { PilotSheet } from '../PilotSheet'
 
 // PilotSheet resolves equipment slugs via salvageunion-reference at render, and
 // the choice cards deep-link trait/keyword entities — preload 'all' so those

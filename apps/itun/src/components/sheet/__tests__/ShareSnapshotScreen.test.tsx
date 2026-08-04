@@ -12,17 +12,17 @@
  *   - AppLink degrades to <a href> without a router
  */
 
-import { afterEach, beforeAll, describe, expect, mock, type Mock, test } from 'bun:test'
+import type { Mock } from 'bun:test'
+import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { ShareSnapshotScreen } from '../ShareSnapshotScreen'
-import type { EntityLookup } from '../composition'
-import type { PublishResult, SnapshotPayload } from '../../../lib/snapshot/client'
-import { recordPublishedSnapshot } from '../../../lib/snapshot/publishedSnapshots'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
+import type { PublishResult, SnapshotPayload } from '../../../lib/snapshot/client'
+import { recordPublishedSnapshot } from '../../../lib/snapshot/publishedSnapshots'
 import { makeEntityLookupMock } from '../../__tests__/mockEntityStore'
+import type { EntityLookup } from '../composition'
+import { ShareSnapshotScreen } from '../ShareSnapshotScreen'
 
 // Preload chassis data so the mech preview can resolve chassis stats
 beforeAll(async () => {

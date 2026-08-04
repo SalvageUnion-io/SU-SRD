@@ -4,18 +4,16 @@
  * Presentational + callback-driven — CrawlerSheet owns all persistence.
  */
 
+import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from 'component-lib'
+import { Content, NpcInset, ReferenceEntityCard, useDetailModal } from 'component-lib'
+import type { ComponentProps, ReactNode } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
-import { type ReferenceEntityControl, ReferenceEntityCard, useDetailModal } from 'component-lib'
-import type { CardFootMeta, ChoiceSelections } from 'component-lib'
-
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
-import { useEntityChoices } from '../shared/useEntityChoices'
-import type { ComponentProps, ReactNode } from 'react'
-import { Content, NpcInset } from 'component-lib'
-import { BAY_REPAIR_COST } from './crawlerSheetItemRules'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { useEntityChoices } from '../shared/useEntityChoices'
+import { BAY_REPAIR_COST } from './crawlerSheetItemRules'
 import { runWrite } from './sheetWrite'
 
 export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]

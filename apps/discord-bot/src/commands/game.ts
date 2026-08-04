@@ -1,9 +1,9 @@
-import { MessageFlags, type SlashCommandSubcommandGroupBuilder } from 'discord.js'
-
+import type { SlashCommandSubcommandGroupBuilder } from 'discord.js'
+import { MessageFlags } from 'discord.js'
 import { config } from '../config.js'
 import { buildChannelEmbed, denialMessage } from '../gameEmbed.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
-import { SOLO_NOTICE, itun, respondWithItun } from './itunReply.js'
+import { itun, respondWithItun, SOLO_NOTICE } from './itunReply.js'
 
 /**
  * `/su game bind | unbind | info` — the channel↔Game link (ADR-030 Phase 6).

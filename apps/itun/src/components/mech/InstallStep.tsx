@@ -1,8 +1,8 @@
+import { Badge, MasonryColumns, ReferenceEntityCard } from 'component-lib'
 import { useMemo, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Badge, MasonryColumns, ReferenceEntityCard } from 'component-lib'
-import type { TechLevel } from '../../lib/rules/types'
 import { matchesRef } from 'salvageunion-reference/rules'
+import type { TechLevel } from '../../lib/rules/types'
 
 const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
 

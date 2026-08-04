@@ -10,15 +10,14 @@
  */
 
 import { describe, expect, mock, test } from 'bun:test'
-import { render, screen, fireEvent, act } from '@testing-library/react'
-
-import { AssignPilotToMech } from '../AssignPilotToMech'
-import type { AssignPilotStore } from '../AssignPilotToMech'
-import { AssignCrawlerToPilot } from '../AssignCrawlerToPilot'
-import type { AssignCrawlerStore } from '../AssignCrawlerToPilot'
-import type { SoftLink } from '../../../lib/schemas/softLink'
-import type { Pilot } from '../../../lib/schemas/pilot'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from '../../../lib/schemas/crawler'
+import type { Pilot } from '../../../lib/schemas/pilot'
+import type { SoftLink } from '../../../lib/schemas/softLink'
+import type { AssignCrawlerStore } from '../AssignCrawlerToPilot'
+import { AssignCrawlerToPilot } from '../AssignCrawlerToPilot'
+import type { AssignPilotStore } from '../AssignPilotToMech'
+import { AssignPilotToMech } from '../AssignPilotToMech'
 
 // ---------------------------------------------------------------------------
 // Fake data

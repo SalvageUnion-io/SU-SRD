@@ -45,28 +45,36 @@
  * every edit affordance (published snapshots).
  */
 
-import { useState } from 'react'
+import {
+  Badge,
+  ConditionsEditor,
+  EntityGridRow,
+  EntitySearcher,
+  MasonryColumns,
+  Panel,
+  SectionManageButton,
+  SheetHero,
+  SheetPickerModal,
+  SheetSectionSlab,
+  Slab,
+  Stat,
+  VitalGauge,
+} from 'component-lib'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 import type { SURefAbility } from 'salvageunion-reference'
-import { Badge, Panel, SheetHero, Stat, VitalGauge } from 'component-lib'
-
-import type { Pilot } from '../../lib/schemas/pilot'
 import { pilotMaxAP } from '../../lib/rules/derivedStats'
-import { SoftWarningDialog } from '../shared/SoftWarningDialog'
+import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
-import { EntitySearcher } from 'component-lib'
-import { ConditionsEditor } from 'component-lib'
-import { EntityGridRow, MasonryColumns } from 'component-lib'
+import { SoftWarningDialog } from '../shared/SoftWarningDialog'
+import { PartnerCard } from './PartnerCard'
 import { PilotIdentityPanel } from './PilotIdentity'
-import { SectionManageButton, SheetPickerModal } from 'component-lib'
-import { SheetSectionSlab, Slab } from 'component-lib'
 import {
   GenericEntryAdder,
   GenericEntryCard,
   PilotAbilityItem,
   PilotEquipmentItem,
 } from './PilotSheetItems'
-import { PartnerCard } from './PartnerCard'
 import { pinOrUndef, usePilotSheetActions } from './pilotSheetActions'
 import { GENERIC_TREE, usePilotSheetModel } from './pilotSheetModel'
 

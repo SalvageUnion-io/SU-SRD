@@ -18,20 +18,6 @@
  * text on an unresolved reference; nothing throws.
  */
 
-import {
-  SchemaToDisplayName,
-  extractVisibleActions,
-  findEntityBySlug,
-  getChassisAbilities,
-  getEntitySlug,
-  getPageReference,
-  getSalvageValue,
-  getSlotsRequired,
-  getTechLevel,
-  nameToSlug,
-  replaceChassisPlaceholder,
-  visiblePatterns,
-} from 'salvageunion-reference'
 import type {
   SURefChassis,
   SURefEntity,
@@ -43,7 +29,20 @@ import type {
   SURefObjectTableContent,
   SURefObjectTrait,
 } from 'salvageunion-reference'
-
+import {
+  extractVisibleActions,
+  findEntityBySlug,
+  getChassisAbilities,
+  getEntitySlug,
+  getPageReference,
+  getSalvageValue,
+  getSlotsRequired,
+  getTechLevel,
+  nameToSlug,
+  replaceChassisPlaceholder,
+  SchemaToDisplayName,
+  visiblePatterns,
+} from 'salvageunion-reference'
 import { truncate } from './format.js'
 
 const BASE = 'https://salvageunion.io'

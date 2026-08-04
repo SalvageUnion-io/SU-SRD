@@ -16,13 +16,12 @@
  * (no version games, no deletes — safe to share).
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-
-import { MechPatternSchema } from '../../schemas/pattern'
-import { MechSchema } from '../../schemas/mech'
-import { PilotSchema } from '../../schemas/pilot'
-import { DB_VERSION, _clearAllStores, openItunDatabase, pilots } from '../index'
-import { STORE_NAMES } from '../stores'
 import { must } from '../../../components/__tests__/must'
+import { MechSchema } from '../../schemas/mech'
+import { MechPatternSchema } from '../../schemas/pattern'
+import { PilotSchema } from '../../schemas/pilot'
+import { _clearAllStores, DB_VERSION, openItunDatabase, pilots } from '../index'
+import { STORE_NAMES } from '../stores'
 
 /** Inlined from the deleted lib/defaultWorkspace.ts (Workspaces are retired). */
 const DEFAULT_WORKSPACE_ID = 'default-workspace'

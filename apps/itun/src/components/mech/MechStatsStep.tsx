@@ -1,6 +1,6 @@
+import { EmptyState, entityHostTone, ReferenceEntityCard, Slab, Stat } from 'component-lib'
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { EmptyState, ReferenceEntityCard, Slab, Stat, entityHostTone } from 'component-lib'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 
 type MechStatsStepProps = {

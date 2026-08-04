@@ -1,9 +1,9 @@
+import type { ContainerFields } from '../container'
 import { isRecord } from '../isRecord'
 import { normalizeLegacyCargoRecord } from '../schemas/cargoLot'
-import { ExportBundleSchema } from '../schemas/exportBundle'
 import type { ExportBundle } from '../schemas/exportBundle'
+import { ExportBundleSchema } from '../schemas/exportBundle'
 import { normalizeLegacyPilotRecord } from '../schemas/pilot'
-import type { ContainerFields } from '../container'
 import { assignContainers } from './legacyContainers'
 
 /**

@@ -5,25 +5,23 @@
  * owns all persistence.
  */
 
-import { useState } from 'react'
-import type { SURefAbility } from 'salvageunion-reference'
+import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from 'component-lib'
 import {
   Button,
+  CardRemoveButton,
   Input,
   Panel,
   ReferenceEntityCard,
-  type ReferenceEntityControl,
   Stat,
   StatusBadge,
 } from 'component-lib'
-import type { CardFootMeta, ChoiceSelections } from 'component-lib'
-
+import { useState } from 'react'
+import type { SURefAbility } from 'salvageunion-reference'
+import { resolveAbilityApCost } from '../../lib/abilityCost'
 import type { ItemCondition } from '../../lib/schemas/mech'
 import type { GenericInventoryEntry } from '../../lib/schemas/pilot'
-import { resolveAbilityApCost } from '../../lib/abilityCost'
 import type { useEntityStore } from '../../stores/entityStore'
 import { useEntityChoices } from '../shared/useEntityChoices'
-import { CardRemoveButton } from 'component-lib'
 import {
   equipmentMaxUses,
   equipmentSlotCost,

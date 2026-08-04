@@ -8,7 +8,6 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord.js'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import { rollCommand } from '../commands/roll.js'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
 

@@ -9,8 +9,8 @@
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { CraftItemsStep } from '../CraftItemsStep'
 import { must } from '../../__tests__/must'
+import { CraftItemsStep } from '../CraftItemsStep'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')

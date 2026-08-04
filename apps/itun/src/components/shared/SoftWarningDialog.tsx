@@ -14,7 +14,6 @@
  */
 
 import { Banner, Button, ModalShell } from 'component-lib'
-
 import type { SoftWarning } from '../../lib/rules/types'
 
 type SoftWarningDialogProps = {

@@ -5,7 +5,7 @@
  *   and equipped modules intact.
  */
 
-import { describe, it, expect } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import type { SalvageUnionReference as SURefType } from './index.js'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */

@@ -1,15 +1,16 @@
 import type { ReactNode } from 'react'
-import type { CSSVarStyle } from '../../../styles/cssVars'
 import { useCallback, useState } from 'react'
 import type { SURefObjectChoice } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { CSSVarStyle } from '../../../styles/cssVars'
 import { cn } from '../../../utils/cn'
-import { INPUT_FOCUS } from '../../chrome/interaction'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
 import { Badge } from '../../chrome/Badge'
+import { INPUT_FOCUS } from '../../chrome/interaction'
 import { RollTable } from '../../shared/RollTable'
+import { accentDeepColor } from '../referenceEntityHelpers'
+import type { ChoiceSelections } from './choiceSelectionHelpers'
 import {
-  type ChoiceSelections,
   getChoiceCardOptions,
   getChoiceSourceKind,
   getChoiceTableName,
@@ -17,7 +18,6 @@ import {
   resolveMultiSelectCap,
   toggleSelection,
 } from './choiceSelectionHelpers'
-import { accentDeepColor } from '../referenceEntityHelpers'
 
 /**
  * ChoiceGroups — the write-layer choice renderer in the NEW design language.

@@ -1,5 +1,4 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
-
 import { MediatorScreen } from '../../components/games/MediatorScreen'
 
 export const Route = createFileRoute('/mediator/$gameId')({

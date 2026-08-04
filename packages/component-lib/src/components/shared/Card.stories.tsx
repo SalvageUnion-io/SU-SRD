@@ -1,10 +1,10 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
-import { Card } from './Card'
-import type { CardFootMeta } from './Card'
-import type { StatItem } from './statsBarTypes'
 import { Text } from '../base/Text'
 import { Badge } from '../chrome/Badge'
+import type { CardFootMeta } from './Card'
+import { Card } from './Card'
+import type { StatItem } from './statsBarTypes'
 
 export default {
   title: 'Containers/Card',

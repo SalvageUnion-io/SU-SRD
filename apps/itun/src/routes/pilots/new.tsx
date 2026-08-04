@@ -2,8 +2,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { PilotWizard } from '../../components/pilot/PilotWizard'
 import { NewEntityScreen } from '../../components/wizard/NewEntityScreen'
-import { parseCreateMode } from '../../lib/wizard/createMode'
 import type { CreateMode } from '../../lib/wizard/createMode'
+import { parseCreateMode } from '../../lib/wizard/createMode'
 
 export const Route = createFileRoute('/pilots/new')({
   // mode: absent → chooser · 'guided' → the wizard · 'blank' → blank dialog

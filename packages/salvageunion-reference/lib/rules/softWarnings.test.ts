@@ -8,9 +8,9 @@
  */
 import { describe, expect, it } from 'bun:test'
 import {
-  evaluateSoftWarnings,
-  evaluatePilotWarnings,
   evaluateMechWarnings,
+  evaluatePilotWarnings,
+  evaluateSoftWarnings,
   PILOT_ABILITY_CAP,
   SALVAGER_ABILITY_CAP,
 } from './softWarnings.js'

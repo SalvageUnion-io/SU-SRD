@@ -1,16 +1,16 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
-import type { Dispatch, ReactNode, SetStateAction } from 'react'
-import { resultForTable, resultForColumnsTable } from 'salvageunion-reference'
-import type { SURefObjectTable, SURefObjectTableContent } from 'salvageunion-reference'
 import { roll } from '@randsum/roller'
 import { Copy, X } from 'lucide-react'
+import type { Dispatch, ReactNode, SetStateAction } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { SURefObjectTable, SURefObjectTableContent } from 'salvageunion-reference'
+import { resultForColumnsTable, resultForTable } from 'salvageunion-reference'
 import { toast } from 'sonner'
+import type { SizeRung } from '../../styles/sizing'
+import { cn } from '../../utils/cn'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { Text } from '../base/Text'
 import { Badge } from '../chrome/Badge'
 import { FOCUS_RING_ON_TONE } from '../chrome/interaction'
-import { cn } from '../../utils/cn'
-import type { SizeRung } from '../../styles/sizing'
 
 type DigestedRollTable = {
   order: number

@@ -4,14 +4,13 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { makeEntityLookupMock } from '../../__tests__/mockEntityStore'
-import { resolveSheetComposition } from '../composition'
 import type { EntityLookup } from '../composition'
+import { resolveSheetComposition } from '../composition'
 
 const now = new Date().toISOString()
 

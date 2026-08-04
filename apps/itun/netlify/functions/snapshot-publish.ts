@@ -12,9 +12,9 @@
  */
 
 import { generateUniqueId } from '../../src/lib/snapshot/id'
-import { RateLimiter, getClientIp } from '../../src/lib/snapshot/rateLimit'
-import { createNetlifyBlobsStorage } from '../../src/lib/snapshot/storage'
+import { getClientIp, RateLimiter } from '../../src/lib/snapshot/rateLimit'
 import type { SnapshotStorage } from '../../src/lib/snapshot/storage'
+import { createNetlifyBlobsStorage } from '../../src/lib/snapshot/storage'
 import { captureException, initObservability } from './_observability'
 
 // ---------------------------------------------------------------------------

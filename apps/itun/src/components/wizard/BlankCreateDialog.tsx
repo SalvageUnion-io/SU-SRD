@@ -14,12 +14,11 @@
  * shell behind ConfirmDialog/SelectorDialog) and Field/Input chrome.
  */
 
+import { Button, Field, FieldError, Input, ModalShell, Select } from 'component-lib'
 import { useMemo, useState } from 'react'
-import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
-import { Button, Field, Input, ModalShell, Select, FieldError } from 'component-lib'
-
-import { createBlank } from '../../lib/wizard/blankCreate'
+import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
+import { createBlank } from '../../lib/wizard/blankCreate'
 
 type BlankCreateDialogProps = {
   kind: BlankCreateKind

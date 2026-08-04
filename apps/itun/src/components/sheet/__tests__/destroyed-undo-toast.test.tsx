@@ -9,14 +9,13 @@
 
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { Toaster, toast } from 'component-lib'
-
-import { MechSheet } from '../MechSheet'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
+import { MechSheet } from '../MechSheet'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')

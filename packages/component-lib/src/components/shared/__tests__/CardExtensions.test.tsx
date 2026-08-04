@@ -1,5 +1,5 @@
-import { describe, test, expect, mock } from 'bun:test'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { Card } from '../Card'
 import { displayBooleans, resolveCardDisplay } from '../displayMode'
 

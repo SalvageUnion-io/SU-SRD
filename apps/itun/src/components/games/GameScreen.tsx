@@ -14,20 +14,19 @@
  * belonged to. A list of games is a list; the work happens inside one.
  */
 
-import { useQuery } from 'convex/react'
 import { Card, Text } from 'component-lib'
-
+import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
-import { DowntimePanel } from './DowntimePanel'
-import { GameRoster } from './GameRoster'
-import { InvitePanel } from './InvitePanel'
-import { ProposalInbox } from './ProposalInbox'
-import { PAGE, PANEL_TITLE, PANEL_TONE, TITLE } from './gameChrome'
 import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
+import { DowntimePanel } from './DowntimePanel'
+import { GameRoster } from './GameRoster'
+import { PAGE, PANEL_TITLE, PANEL_TONE, TITLE } from './gameChrome'
+import { InvitePanel } from './InvitePanel'
+import { ProposalInbox } from './ProposalInbox'
 
 function GameBody({ gameId }: { gameId: string }) {
   // `games.get` rather than listMine-and-find: this route wants one Game, and

@@ -11,13 +11,8 @@
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import {
-  getSchemaCatalog,
-  SalvageUnionReference,
-  SchemaToModelMap,
-  type SURefEntity,
-} from 'salvageunion-reference'
-
+import type { SURefEntity } from 'salvageunion-reference'
+import { getSchemaCatalog, SalvageUnionReference, SchemaToModelMap } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** Text the tile renders, with the entity's own name removed — what a reader

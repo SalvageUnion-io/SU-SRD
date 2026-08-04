@@ -8,7 +8,6 @@
  */
 
 import { beforeAll, describe, expect, it } from 'bun:test'
-
 import { SalvageUnionReference } from '../index.js'
 import { abilityContributions, resolveAmount, sumContributions } from './contributions.js'
 import {

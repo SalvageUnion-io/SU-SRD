@@ -3,8 +3,7 @@
  * Uses real reference data: preloaded via the shared test preload.
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference, getEntitySlug } from '../index.js'
-
+import { getEntitySlug, SalvageUnionReference } from '../index.js'
 import {
   matchesRef,
   resolveChassisRef,

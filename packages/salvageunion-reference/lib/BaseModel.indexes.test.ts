@@ -14,8 +14,9 @@
  * id is also some other row's name or slug — which the dataset never does.
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
+import type { ModelWithMetadata } from './BaseModel.js'
+import { BaseModel } from './BaseModel.js'
 import { SalvageUnionReference, SchemaToModelMap } from './index.js'
-import { BaseModel, type ModelWithMetadata } from './BaseModel.js'
 import { nameToSlug } from './nameToSlug.js'
 
 type Row = { id?: string; name?: string }

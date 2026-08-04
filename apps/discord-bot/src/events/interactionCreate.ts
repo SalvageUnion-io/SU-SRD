@@ -1,11 +1,7 @@
-import {
-  MessageFlags,
-  type ButtonInteraction,
-  type ChatInputCommandInteraction,
-  type Interaction,
-} from 'discord.js'
-import type { Command } from '../commands/index.js'
+import type { ButtonInteraction, ChatInputCommandInteraction, Interaction } from 'discord.js'
+import { MessageFlags } from 'discord.js'
 import { handleButtonInteraction } from '../buttons.js'
+import type { Command } from '../commands/index.js'
 import { captureException } from '../observability.js'
 
 // Extend Client type to include commands

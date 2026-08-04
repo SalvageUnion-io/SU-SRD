@@ -3,8 +3,12 @@
  * These functions provide convenient access patterns used by consuming applications
  */
 
-import { SalvageUnionReference, SchemaToDisplayName } from './index.js'
+import type { ModelWithMetadata } from './BaseModel.js'
 import { lazyModelMap } from './generated/schemaRegistry.generated.js'
+import { SalvageUnionReference, SchemaToDisplayName } from './index.js'
+import type { EnhancedSchemaMetadata } from './ModelFactory.js'
+import { getSchemaCatalog } from './ModelFactory.js'
+import { getEntitySlug } from './slug.js'
 import type {
   SURefCrawler,
   SURefEntity,
@@ -12,32 +16,29 @@ import type {
   SURefObjectAdvancedClass,
   SURefObjectCrawlerMutation,
 } from './types/index.js'
-import type { ModelWithMetadata } from './BaseModel.js'
-import { getSchemaCatalog, type EnhancedSchemaMetadata } from './ModelFactory.js'
 import {
-  getName,
-  getDescription,
-  getSource,
-  getTree,
-  getPageReference,
-  getTechLevel,
+  getActionType,
   getAssetUrl,
+  getCargoCapacity,
   getContent,
-  getStructurePoints,
+  getDamage,
+  getDescription,
   getEnergyPoints,
   getHeatCapacity,
-  getSystemSlots,
+  getHitPoints,
   getModuleSlots,
-  getCargoCapacity,
+  getName,
+  getPageReference,
+  getRange,
   getSalvageValue,
   getSlotsRequired,
-  getHitPoints,
+  getSource,
+  getStructurePoints,
+  getSystemSlots,
+  getTechLevel,
   getTraits,
-  getActionType,
-  getRange,
-  getDamage,
+  getTree,
 } from './utilities.js'
-import { getEntitySlug } from './slug.js'
 
 /**
  * Get the display name for a schema

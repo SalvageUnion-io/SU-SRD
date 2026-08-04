@@ -1,5 +1,5 @@
-import { useContext } from 'react'
 import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
+import { useContext } from 'react'
 import { cn } from '../../utils/cn'
 import { InsideTooltipContext } from './insideTooltipContext'
 

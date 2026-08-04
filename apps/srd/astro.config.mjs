@@ -1,8 +1,8 @@
-import { defineConfig } from 'astro/config'
 import react from '@astrojs/react'
 import sitemap from '@astrojs/sitemap'
-import AstroPWA from '@vite-pwa/astro'
 import tailwindcss from '@tailwindcss/vite'
+import AstroPWA from '@vite-pwa/astro'
+import { defineConfig } from 'astro/config'
 
 export default defineConfig({
   site: 'https://salvageunion.io',

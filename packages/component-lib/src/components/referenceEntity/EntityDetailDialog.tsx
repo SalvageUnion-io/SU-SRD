@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
+import type { ReactNode } from 'react'
 
 type EntityDetailDialogProps = {
   open: boolean

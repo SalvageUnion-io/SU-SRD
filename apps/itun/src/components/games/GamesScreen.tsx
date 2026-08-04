@@ -1,14 +1,13 @@
-import { useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { Button, Card, EntityRow, ModalShell, Text } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
-import { useNavigate } from '@tanstack/react-router'
-
+import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
-import { ConvexPending } from '../shared/ConvexPending'
 import { SignInControl } from '../account/SignInControl'
+import { ConvexPending } from '../shared/ConvexPending'
 import { GameRow } from './GameRow'
 import { INPUT, PAGE, STAMP } from './gameChrome'
 

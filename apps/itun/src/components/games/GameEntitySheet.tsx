@@ -30,18 +30,17 @@
  * look something up.
  */
 
-import { useMemo } from 'react'
-import { useQuery } from 'convex/react'
 import { Card, Text } from 'component-lib'
-
+import { useQuery } from 'convex/react'
+import { useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import type { RosterKind } from '../../lib/games/gameRoster'
+import { AppLink } from '../shared/AppLink'
 import { makeFrozenStore, parseFrozenEntity } from '../sheet/frozenSheet'
 import { Sheet } from '../sheet/Sheet'
-import { AppLink } from '../shared/AppLink'
 import { PAGE, TITLE } from './gameChrome'
 
 type GameEntitySheetProps = {

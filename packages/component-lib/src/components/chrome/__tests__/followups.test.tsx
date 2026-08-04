@@ -1,5 +1,5 @@
-import { describe, test, expect } from 'bun:test'
-import { render, screen, cleanup } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { cleanup, render, screen } from '@testing-library/react'
 import { Badge } from '../Badge'
 import { EmptyState } from '../EmptyState'
 import { InlineRef } from '../InlineRef'

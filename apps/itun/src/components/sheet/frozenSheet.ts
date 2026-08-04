@@ -24,15 +24,14 @@
  */
 
 import { create } from 'zustand'
-
 import { isRecord } from '../../lib/isRecord'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
-import { CrawlerSchema } from '../../lib/schemas/crawler'
-import { MechSchema } from '../../lib/schemas/mech'
-import { PilotSchema, normalizeLegacyPilotRecord } from '../../lib/schemas/pilot'
 import { normalizeLegacyCargoRecord } from '../../lib/schemas/cargoLot'
+import type { Crawler } from '../../lib/schemas/crawler'
+import { CrawlerSchema } from '../../lib/schemas/crawler'
+import type { Mech } from '../../lib/schemas/mech'
+import { MechSchema } from '../../lib/schemas/mech'
+import type { Pilot } from '../../lib/schemas/pilot'
+import { normalizeLegacyPilotRecord, PilotSchema } from '../../lib/schemas/pilot'
 import type { EntityType, useEntityStore } from '../../stores/entityStore'
 
 /** A parsed frozen entity, or the reason it could not be parsed. */

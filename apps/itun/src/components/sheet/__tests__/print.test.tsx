@@ -15,14 +15,13 @@
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { Sheet } from '../Sheet'
-import type { EntityLookup } from '../Sheet'
-import type { SoftLinkStore } from '../../wiring/useSoftLinks'
-import type { Pilot } from '../../../lib/schemas/pilot'
-import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
+import type { Mech } from '../../../lib/schemas/mech'
+import type { Pilot } from '../../../lib/schemas/pilot'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
+import type { SoftLinkStore } from '../../wiring/useSoftLinks'
+import type { EntityLookup } from '../Sheet'
+import { Sheet } from '../Sheet'
 
 // ---------------------------------------------------------------------------
 // Preload chassis data so MechSheet can resolve chassisRef

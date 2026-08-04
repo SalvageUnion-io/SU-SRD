@@ -12,16 +12,15 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
-import type { PublishResult, SnapshotPayload } from '../../../lib/snapshot/client'
-import type { EntityLookup } from '../composition'
 import type { Mech } from '../../../lib/schemas/mech'
+import type { PublishResult, SnapshotPayload } from '../../../lib/snapshot/client'
 import { useEntityStore } from '../../../stores/entityStore'
-import { Sheet } from '../Sheet'
-import { ShareSnapshotScreen } from '../ShareSnapshotScreen'
 import { makeEntityLookupMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
+import type { EntityLookup } from '../composition'
+import { ShareSnapshotScreen } from '../ShareSnapshotScreen'
+import { Sheet } from '../Sheet'
 
 const basePilotInput = {
   schemaVersion: 1 as const,

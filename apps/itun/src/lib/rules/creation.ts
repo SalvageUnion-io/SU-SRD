@@ -13,8 +13,9 @@
  * route loaders already do).
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility, SURefClass, SURefEquipment, SURefSystem } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import type { CrawlerMutationInput, MechCreationBudget } from 'salvageunion-reference/rules'
 import {
   computeMechCapacity,
   crawlerWeaponSlots,
@@ -37,7 +38,6 @@ import {
   resolveModuleRef,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
-import type { CrawlerMutationInput, MechCreationBudget } from 'salvageunion-reference/rules'
 import type { CrawlerWizardFormState } from '../wizard/crawlerFormState'
 import type { MechWizardFormState } from '../wizard/mechFormState'
 import type { PilotWizardFormState } from '../wizard/pilotFormState'

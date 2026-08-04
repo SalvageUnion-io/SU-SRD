@@ -14,7 +14,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-
+import type { PublishResult, SnapshotPayload } from '../client'
 import {
   deleteSnapshot,
   probeSnapshotService,
@@ -22,7 +22,6 @@ import {
   retrieveSnapshot,
   SnapshotNotFoundError,
 } from '../client'
-import type { SnapshotPayload, PublishResult } from '../client'
 
 // ---------------------------------------------------------------------------
 // Fetch stub helpers

@@ -31,10 +31,10 @@
  */
 
 import type {
+  SURefObjectChoice,
+  SURefObjectContentBlock,
   SURefObjectDataValue,
   SURefObjectTrait,
-  SURefObjectContentBlock,
-  SURefObjectChoice,
 } from './schemas/index.js'
 
 /**

@@ -10,19 +10,13 @@
  * rather than crashing.
  */
 
-import {
-  type ActionRowBuilder,
-  type ButtonBuilder,
-  EmbedBuilder,
-  MessageFlags,
-  type SlashCommandSubcommandBuilder,
-} from 'discord.js'
-import type { CommandExecuteInteraction } from './interactions.js'
-import { roll } from '@randsum/roller'
 import type { DiceNotation, RollerRollResult } from '@randsum/roller'
-
+import { roll } from '@randsum/roller'
+import type { ActionRowBuilder, ButtonBuilder, SlashCommandSubcommandBuilder } from 'discord.js'
+import { EmbedBuilder, MessageFlags } from 'discord.js'
 import { rollAgainRow } from '../customId.js'
-import { BRAND_NAME, ROLL_EMBED_FOOTER, buildCheckEmbedData } from '../format.js'
+import { BRAND_NAME, buildCheckEmbedData, ROLL_EMBED_FOOTER } from '../format.js'
+import type { CommandExecuteInteraction } from './interactions.js'
 import { attributeRoll } from './rollAttribution.js'
 
 /** A message payload ready for `interaction.reply`, or a user-facing error. */

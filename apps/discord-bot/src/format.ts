@@ -4,9 +4,8 @@
  */
 
 import type { RollerRollResult } from '@randsum/roller'
-import type { RollOnTableOutcome } from 'salvageunion-reference'
+import type { RollOnTableOutcome, SURefEntity } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
-import type { SURefEntity } from 'salvageunion-reference'
 
 const SUREF_WEB_BASE_URL = 'https://salvageunion.io'
 

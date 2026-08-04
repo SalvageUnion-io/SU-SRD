@@ -9,15 +9,21 @@
  * the encounter store; Remove deletes the instance after a confirm.
  */
 
+import {
+  Button,
+  Card,
+  Conditions,
+  InlineEditField,
+  Input,
+  ModalShell,
+  Stat,
+  useDetailModal,
+} from 'component-lib'
 import { useMemo, useState } from 'react'
-import { Button, Conditions, Input, ModalShell, Stat, useDetailModal } from 'component-lib'
-
 import type { Roll } from '../../lib/rules/heatCheck'
 import type { FindRollTable } from '../../lib/rules/mediatorTables'
 import type { EncounterNpc, MediatorRollResult } from '../../lib/schemas/encounterNpc'
 import type { useEncounterStore } from '../../stores/encounterStore'
-import { Card } from 'component-lib'
-import { InlineEditField } from 'component-lib'
 import { MediatorRollControl } from './MediatorRollControl'
 import { ENCOUNTER_SCHEMA_LABEL, resolveCandidate } from './referenceNpcs'
 

@@ -25,18 +25,17 @@
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { Sheet } from '../Sheet'
-import type { EntityLookup } from '../Sheet'
-import type { SoftLinkStore } from '../../wiring/useSoftLinks'
-import { CrawlerSheet } from '../CrawlerSheet'
-import { SnapshotSheet } from '../SnapshotSheet'
-import { Roster } from '../../roster/Roster'
-import type { Pilot } from '../../../lib/schemas/pilot'
-import type { Mech } from '../../../lib/schemas/mech'
 import type { Crawler } from '../../../lib/schemas/crawler'
+import type { Mech } from '../../../lib/schemas/mech'
+import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
+import { Roster } from '../../roster/Roster'
+import type { SoftLinkStore } from '../../wiring/useSoftLinks'
+import { CrawlerSheet } from '../CrawlerSheet'
+import type { EntityLookup } from '../Sheet'
+import { Sheet } from '../Sheet'
+import { SnapshotSheet } from '../SnapshotSheet'
 
 // ---------------------------------------------------------------------------
 // Preload reference data

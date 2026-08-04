@@ -9,10 +9,9 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { fireEvent, render, waitFor } from '@testing-library/react'
-import { EntityHrefProvider } from '../../referenceEntity/entityHrefContext'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import { buildCatalogSections } from '../../../catalog/catalogSections'
+import { EntityHrefProvider } from '../../referenceEntity/entityHrefContext'
 import { SrdExplorer } from '../SrdExplorer'
 
 beforeAll(async () => {

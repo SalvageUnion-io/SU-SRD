@@ -12,11 +12,11 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { MechPatternSchema } from '../../../../lib/schemas/pattern'
-import { mechPatterns, mechs, _clearAllStores, _resetDbSingleton } from '../../../../lib/db/index'
-import { must } from '../../../__tests__/must'
-import { installMonotonicClock } from '../../../../lib/db/__tests__/monotonicClock'
 import type { MonotonicClock } from '../../../../lib/db/__tests__/monotonicClock'
+import { installMonotonicClock } from '../../../../lib/db/__tests__/monotonicClock'
+import { _clearAllStores, _resetDbSingleton, mechPatterns, mechs } from '../../../../lib/db/index'
+import { MechPatternSchema } from '../../../../lib/schemas/pattern'
+import { must } from '../../../__tests__/must'
 
 // `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
 // sorts on `createdAt`. A monotonic clock makes consecutive writes distinct and

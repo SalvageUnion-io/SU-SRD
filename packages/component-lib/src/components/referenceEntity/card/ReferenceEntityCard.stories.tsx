@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react'
-import { type ReactNode, useState } from 'react'
+import type { ReactNode } from 'react'
+import { useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { getChoices, SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../../stories/_harness'

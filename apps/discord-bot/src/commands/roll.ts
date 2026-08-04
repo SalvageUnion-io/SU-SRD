@@ -1,16 +1,10 @@
-import {
-  type ActionRowBuilder,
-  type ButtonBuilder,
-  EmbedBuilder,
-  MessageFlags,
-  type SlashCommandSubcommandBuilder,
-} from 'discord.js'
-import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { roll as rollDie } from '@randsum/roller'
-import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
-
+import type { ActionRowBuilder, ButtonBuilder, SlashCommandSubcommandBuilder } from 'discord.js'
+import { EmbedBuilder, MessageFlags } from 'discord.js'
+import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 import { rollResultRow } from '../customId.js'
-import { BRAND_NAME, ROLL_EMBED_FOOTER, buildRollEmbedData } from '../format.js'
+import { BRAND_NAME, buildRollEmbedData, ROLL_EMBED_FOOTER } from '../format.js'
+import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
 import { attributeRoll } from './rollAttribution.js'
 
 // Roll tables load lazily once SalvageUnionReference.preload() has run at startup.

@@ -25,8 +25,8 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { EntityCardHeader } from '../EntityCardHeader'
 import type { StatItem } from '../../../shared/statsBarTypes'
+import { EntityCardHeader } from '../EntityCardHeader'
 
 // The Mule's header cluster, in both label forms — the card builds these two
 // lists off one entity and hands the header both.

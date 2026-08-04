@@ -11,9 +11,9 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord.js'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import { buildTableLookupMessage, lookupCommand } from '../commands/lookup.js'
-import { type ReplyArg, fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
+import type { ReplyArg } from './fakeInteraction.js'
+import { fakeAutocomplete, fakeExecute } from './fakeInteraction.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')

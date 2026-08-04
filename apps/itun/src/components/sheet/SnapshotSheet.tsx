@@ -21,11 +21,9 @@
  */
 
 import { useMemo } from 'react'
-
 import { isRecord } from '../../lib/isRecord'
 import { AppLink } from '../shared/AppLink'
 import { makeFrozenStore, parseFrozenEntity } from './frozenSheet'
-
 import { Sheet } from './Sheet'
 
 type SnapshotSheetProps = {

@@ -1,8 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Changelog, mergeChangelogs, parseChangelog } from 'component-lib'
-
-import itunMd from '../../CHANGELOG.md?raw'
 import refMd from '../../../../packages/salvageunion-reference/CHANGELOG.md?raw'
+import itunMd from '../../CHANGELOG.md?raw'
 
 export const Route = createFileRoute('/changelog')({
   component: ChangelogPage,

@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
 import type { RefObject } from 'react'
+import { useEffect } from 'react'
 
 /**
  * Light-dismiss for non-modal popovers (overflow menus, the quick-roll

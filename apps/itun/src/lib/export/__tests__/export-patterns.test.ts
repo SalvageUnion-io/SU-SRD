@@ -5,13 +5,12 @@
  * fake-indexeddb/auto is preloaded via bunfig.toml.
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-
-import { _clearAllStores, _resetDbSingleton, mechPatterns } from '../../db/index'
+import { must } from '../../../components/__tests__/must'
 import { useEntityStore } from '../../../stores/entityStore'
+import { _clearAllStores, _resetDbSingleton, mechPatterns } from '../../db/index'
 import { buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
 import { parseImportBundle } from '../parseImportBundle'
-import { must } from '../../../components/__tests__/must'
 
 function resetStores(): void {
   useEntityStore.setState({

@@ -20,14 +20,13 @@
  */
 
 import { useRef, useState } from 'react'
-
+import { evaluateSoftWarnings as defaultEvaluate } from 'salvageunion-reference/rules'
 import type {
   MechSnapshot,
   PilotSnapshot,
   SoftWarning,
   SoftWarningContext,
 } from '../../lib/rules/types'
-import { evaluateSoftWarnings as defaultEvaluate } from 'salvageunion-reference/rules'
 import type { ChangeMeta } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'

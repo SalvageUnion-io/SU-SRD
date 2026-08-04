@@ -14,11 +14,10 @@
 import '@testing-library/jest-dom'
 import { describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
-
-import { useEntityChoices } from '../useEntityChoices'
 import type { Pilot } from '../../../lib/schemas/pilot'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { useEntityChoices } from '../useEntityChoices'
 
 // ---------------------------------------------------------------------------
 // Fixtures

@@ -13,12 +13,11 @@
  */
 
 import { describe, expect, mock, test } from 'bun:test'
-import { renderHook, act } from '@testing-library/react'
-
-import { useSoftLinks, resolveLinkType } from '../useSoftLinks'
-import type { SoftLinkStore } from '../useSoftLinks'
+import { act, renderHook } from '@testing-library/react'
 import type { SoftLink } from '../../../lib/schemas/softLink'
 import { must } from '../../__tests__/must'
+import type { SoftLinkStore } from '../useSoftLinks'
+import { resolveLinkType, useSoftLinks } from '../useSoftLinks'
 
 // ---------------------------------------------------------------------------
 // Helpers

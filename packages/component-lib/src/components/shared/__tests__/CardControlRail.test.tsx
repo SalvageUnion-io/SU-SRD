@@ -14,8 +14,8 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { CardControlRail } from '../CardControlRail'
 import type { ReferenceEntityControl } from '../../referenceEntity/referenceEntityControlTypes'
+import { CardControlRail } from '../CardControlRail'
 
 // The crowded worst case: a condition status + three action buttons on the
 // controls axis, plus two bespoke seals (selection + count) between them.

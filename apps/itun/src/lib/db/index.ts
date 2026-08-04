@@ -25,9 +25,8 @@
  *     skew where new code may meet old data (or vice versa).
  */
 
-import { openDB } from 'idb'
 import type { IDBPDatabase } from 'idb'
-
+import { openDB } from 'idb'
 import { CrawlerSchema } from '../schemas/crawler'
 import { deepStrip } from '../schemas/deepStrip'
 import { EncounterNpcSchema } from '../schemas/encounterNpc'

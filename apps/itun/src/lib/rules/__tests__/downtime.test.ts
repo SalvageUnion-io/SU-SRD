@@ -10,23 +10,22 @@
  */
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import type { Crawler } from '../../schemas/crawler'
 import type { Mech } from '../../schemas/mech'
 import type { Pilot } from '../../schemas/pilot'
 import type { SoftLink } from '../../schemas/softLink'
+import type { DowntimeSteps, MedBayStatus } from '../downtime'
 import {
-  CHASSIS_DAMAGED_CONDITION,
   allDowntimeSteps,
+  CHASSIS_DAMAGED_CONDITION,
   downtimeMechPatch,
   downtimePilotPatch,
   healableInjuries,
-  medBayStatus,
   mechBayStatus,
+  medBayStatus,
   repairableItems,
   resolveDowntimeScope,
 } from '../downtime'
-import type { DowntimeSteps, MedBayStatus } from '../downtime'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload([

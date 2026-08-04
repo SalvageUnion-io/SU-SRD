@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { resolveDataValueForTechLevel } from './contentBlockHelpers.js'
 import type { SURefObjectDataValue } from './types/index.js'
 

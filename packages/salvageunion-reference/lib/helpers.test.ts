@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
+import { getCrawlerMutations, getMaxSpBonus, getWeaponSlotCount } from './helpers.js'
 import { SalvageUnionReference } from './index.js'
-import { getCrawlerMutations, getWeaponSlotCount, getMaxSpBonus } from './helpers.js'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {

@@ -1,7 +1,6 @@
 import type { Story } from '@ladle/react'
-
-import { EmptyState } from './EmptyState'
 import { Button } from './Button'
+import { EmptyState } from './EmptyState'
 import { Glyph } from './glyphs'
 
 export default {

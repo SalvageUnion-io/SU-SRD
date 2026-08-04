@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-
 import { ConnectionProvider } from '../../../lib/connection/ConnectionProvider'
 import { isConvexConfigured } from '../../../lib/connection/convexClient'
 import { JoinScreen } from '../JoinScreen'

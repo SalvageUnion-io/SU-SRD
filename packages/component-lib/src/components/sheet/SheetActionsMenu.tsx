@@ -10,10 +10,9 @@
  * unique matches for queries in the resting state.
  */
 
-import { useRef, useState } from 'react'
-import type { ReactNode } from 'react'
 import { Ellipsis } from 'lucide-react'
-
+import type { ReactNode } from 'react'
+import { useRef, useState } from 'react'
 import { cn } from '../../utils/cn'
 import { useDismiss } from '../shared/useDismiss'
 import { SHEET_ICONBTN_CLASS } from './sheetChrome'

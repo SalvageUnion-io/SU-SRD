@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference, EntitySchemaNames, SchemaToModelMap } from './index.js'
 import { BaseModel } from './BaseModel.js'
+import { EntitySchemaNames, SalvageUnionReference, SchemaToModelMap } from './index.js'
 import {
-  isAbility,
-  getTechLevel,
-  getTechLevelNumber,
+  getPageReference,
   getSalvageValue,
   getSlotsRequired,
-  getPageReference,
+  getTechLevel,
+  getTechLevelNumber,
+  isAbility,
 } from './utilities.js'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */

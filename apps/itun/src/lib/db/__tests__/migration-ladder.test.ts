@@ -20,10 +20,9 @@
  * touched here).
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-
 import { CrawlerSchema } from '../../schemas/crawler'
-import { MechPatternSchema } from '../../schemas/pattern'
 import { MechSchema } from '../../schemas/mech'
+import { MechPatternSchema } from '../../schemas/pattern'
 import { PilotSchema } from '../../schemas/pilot'
 import { SoftLinkSchema } from '../../schemas/softLink'
 import { DB_VERSION, openItunDatabase } from '../index'

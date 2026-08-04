@@ -1,10 +1,10 @@
 import { EmbedBuilder, MessageFlags } from 'discord.js'
-
 import { config } from '../config.js'
 import { BRAND_NAME } from '../format.js'
 import type { EmbedData } from '../gameEmbed.js'
 import { denialMessage } from '../gameEmbed.js'
-import { createItunClient, type ItunClient } from '../itun/client.js'
+import type { ItunClient } from '../itun/client.js'
+import { createItunClient } from '../itun/client.js'
 import type { ItunResult } from '../itun/types.js'
 import type { CommandExecuteInteraction } from './interactions.js'
 

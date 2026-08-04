@@ -17,11 +17,11 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { useEntityStore } from '../../../stores/entityStore'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { pilotFormToCreateInput, pilotToFormState } from '../../../lib/wizard/pilotFormState'
-import { PilotWizard } from '../PilotWizard'
+import { useEntityStore } from '../../../stores/entityStore'
 import { must } from '../../__tests__/must'
+import { PilotWizard } from '../PilotWizard'
 
 // ---------------------------------------------------------------------------
 // Pre-load reference data

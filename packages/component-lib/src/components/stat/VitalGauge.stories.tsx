@@ -1,8 +1,7 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
-import type { CSSVarStyle } from '../../styles/cssVars'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { VitalGauge } from './VitalGauge'
 
 export default {

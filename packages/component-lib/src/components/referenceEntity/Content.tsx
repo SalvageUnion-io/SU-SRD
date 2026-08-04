@@ -1,14 +1,14 @@
 import type { SURefObjectContentBlock, SURefObjectDataValue } from 'salvageunion-reference'
-import { Text } from '../base/Text'
-import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { parseContentBlockString } from 'salvageunion-reference'
-import { Stat } from '../shared/Stat'
-import { ActivationCost } from '../shared/ActivationCost'
-import { borderColorFromHeaderBg } from './referenceEntityHelpers'
-import { cn } from '../../utils/cn'
-import { Slab } from '../chrome/Slab'
-import { Badge } from '../chrome/Badge'
 import { statesMechanicalChange } from 'salvageunion-reference/rules'
+import { cn } from '../../utils/cn'
+import { useParseTraitReferences } from '../../utils/parseTraitReferences'
+import { Text } from '../base/Text'
+import { Badge } from '../chrome/Badge'
+import { Slab } from '../chrome/Slab'
+import { ActivationCost } from '../shared/ActivationCost'
+import { Stat } from '../shared/Stat'
+import { borderColorFromHeaderBg } from './referenceEntityHelpers'
 
 /**
  * A single `datavalues` item — rendered as a horizontal Stat chip (the one

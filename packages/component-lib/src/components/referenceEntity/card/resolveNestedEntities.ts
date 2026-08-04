@@ -1,8 +1,8 @@
 import type { SURefEntity, SURefMetaEntity, SURefObjectPattern } from 'salvageunion-reference'
 import {
-  SalvageUnionReference,
   getChassisAbilities,
   resolveGrantedEntities,
+  SalvageUnionReference,
 } from 'salvageunion-reference'
 
 /** A labelled group of nested entities — rendered as a `Slab` separator + a

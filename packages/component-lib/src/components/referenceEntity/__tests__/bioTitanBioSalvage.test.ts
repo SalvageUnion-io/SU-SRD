@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'bun:test'
-import type { SURefMetaEntity, SURefEnumSchemaName } from 'salvageunion-reference'
+import { describe, expect, it } from 'bun:test'
+import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
 
 /**

@@ -26,16 +26,13 @@
  * usage) onto matching strip keys.
  */
 
-import { useEffect, useRef, useState } from 'react'
-import type { ReactNode, RefObject } from 'react'
-import { ArrowLeft } from 'lucide-react'
-import { Badge, buttonVariants, Stat } from 'component-lib'
 import type { StatTone } from 'component-lib'
-
+import { Badge, buttonVariants, SHEET_ICONBTN_CLASS, Stat } from 'component-lib'
+import { ArrowLeft } from 'lucide-react'
+import type { ReactNode, RefObject } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
-
-import { SHEET_ICONBTN_CLASS } from 'component-lib'
 
 export type SheetVariant = 'pilot' | 'mech' | 'crawler'
 

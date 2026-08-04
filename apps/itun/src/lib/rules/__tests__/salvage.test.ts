@@ -6,24 +6,23 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-
 import type { Roll } from '../heatCheck'
+import type { SalvageClaim, WreckChassis } from '../salvage'
 import {
   AREA_SALVAGE_LABEL,
-  EMPTY_CLAIM,
-  MECH_SALVAGE_LABEL,
   areaJackpotClaim,
   areaSalvageBand,
   claimAllows,
   claimExhausted,
   damagedSalvageLot,
+  EMPTY_CLAIM,
   halfSalvageScrap,
+  MECH_SALVAGE_LABEL,
   mechSalvageBand,
   performAreaSalvage,
   performMechSalvage,
   takeFromClaim,
 } from '../salvage'
-import type { SalvageClaim, WreckChassis } from '../salvage'
 
 /** Returns a Roll that always yields `value`, ignoring `sides`. */
 function fixedRoll(value: number): Roll {

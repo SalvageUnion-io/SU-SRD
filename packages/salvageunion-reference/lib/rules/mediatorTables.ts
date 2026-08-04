@@ -21,9 +21,8 @@
  * acting on it (fleeing, surrendering, marking losses) stays a table call.
  */
 
-import { resultForTable } from '../utils/resultForTable.js'
 import type { SURefRollTable } from '../types/index.js'
-
+import { resultForTable } from '../utils/resultForTable.js'
 import type { MediatorRollResult, MediatorTableId, Roll } from './types.js'
 
 /** Reference roll-table `name` for each Mediator table id. */

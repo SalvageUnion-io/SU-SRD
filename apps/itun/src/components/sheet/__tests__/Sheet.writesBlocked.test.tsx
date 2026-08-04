@@ -13,9 +13,8 @@
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { ConnectionContext } from '../../../lib/connection/connectionContext'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
+import { ConnectionContext } from '../../../lib/connection/connectionContext'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
 import { Sheet } from '../Sheet'

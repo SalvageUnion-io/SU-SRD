@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Unified validation runner.
  *
@@ -36,26 +37,28 @@
  * comment; that tradeoff is unchanged by this runner.
  */
 
-import { loadAllDataFiles, type DataBag } from './loadData.js'
 import { zodSchemaMap } from '../lib/ModelFactory.js'
-import { groupByCheck, type Diagnostic } from './validationTypes.js'
 import { checkAllFiles } from './checkUniqueIdsLogic.js'
-import { findSlugCollisions } from './validateSlugsLogic.js'
-import { findReferenceErrors } from './validateReferencesLogic.js'
-import { findActionReferenceErrors } from './validateActionReferencesLogic.js'
+import { fixMissingIds } from './generateMissingIds.js'
+import type { DataBag } from './loadData.js'
+import { loadAllDataFiles } from './loadData.js'
 import { runActionBackrefCheck } from './validateActionBackrefsLogic.js'
-import { runOrphanCheck } from './validateOrphansLogic.js'
+import { findActionReferenceErrors } from './validateActionReferencesLogic.js'
 import { runContentDupeCheck } from './validateContentDupesLogic.js'
-import { findTraitIssues } from './validateTraitsLogic.js'
+import { runOrphanCheck } from './validateOrphansLogic.js'
 import {
-  KNOWN_UNRESOLVED,
   auditParity,
   findDoubleEncodings,
+  KNOWN_UNRESOLVED,
   staleDoubleEncodings,
   unresolvedFindings,
 } from './validateParityLogic.js'
+import { findReferenceErrors } from './validateReferencesLogic.js'
 import { validateAllFilesAgainstSchemas } from './validateSchemasLogic.js'
-import { fixMissingIds } from './generateMissingIds.js'
+import { findSlugCollisions } from './validateSlugsLogic.js'
+import { findTraitIssues } from './validateTraitsLogic.js'
+import type { Diagnostic } from './validationTypes.js'
+import { groupByCheck } from './validationTypes.js'
 
 // ─── per-check adapters: native result shape -> Diagnostic[] ───────────────
 

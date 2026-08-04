@@ -11,10 +11,9 @@
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { SnapshotPageInner } from '../s/$id'
 import { SnapshotSheet } from '../../components/sheet/SnapshotSheet'
 import type { SnapshotPayload } from '../../lib/snapshot/client'
+import { SnapshotPageInner } from '../s/$id'
 
 // Preload chassis data so MechSheet can resolve chassis without throwing
 beforeAll(async () => {

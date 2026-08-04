@@ -1,8 +1,8 @@
+import type { EntityType } from '../../stores/types'
 import * as db from '../db/index'
 import type { EncounterNpc } from '../schemas/encounterNpc'
 import type { ExportBundle } from '../schemas/exportBundle'
 import type { MechPattern } from '../schemas/pattern'
-import type { EntityType } from '../../stores/types'
 
 /**
  * Minimal create-only store interface required by mergeImport.

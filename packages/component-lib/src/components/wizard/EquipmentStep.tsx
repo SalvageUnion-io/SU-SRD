@@ -1,9 +1,9 @@
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { EmptyState } from '../chrome/EmptyState'
 import type { SURefEquipment } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
-import { MasonryColumns } from '../shared/MasonryColumns'
+import { EmptyState } from '../chrome/EmptyState'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
+import { MasonryColumns } from '../shared/MasonryColumns'
 
 type SUREquipmentAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]

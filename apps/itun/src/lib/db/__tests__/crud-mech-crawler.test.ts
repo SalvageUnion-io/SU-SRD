@@ -9,10 +9,9 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-
-import { _clearAllStores, mechs, crawlers } from '../index'
-import { installMonotonicClock } from './monotonicClock'
+import { _clearAllStores, crawlers, mechs } from '../index'
 import type { MonotonicClock } from './monotonicClock'
+import { installMonotonicClock } from './monotonicClock'
 
 // `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
 // sorts on `createdAt`. A monotonic clock makes consecutive writes distinct and

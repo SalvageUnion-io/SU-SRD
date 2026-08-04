@@ -18,7 +18,6 @@
  */
 
 import type { IDBPDatabase, IDBPTransaction, StoreNames } from 'idb'
-
 import { migrate as migrate3CargoToCargoLots } from './3-cargo-to-cargo-lots'
 import { migrate as migrate4RemovePilotRollResults } from './4-remove-pilot-roll-results'
 import { migrate as migrate6MechRefsToSlugs } from './6-mech-refs-to-slugs'

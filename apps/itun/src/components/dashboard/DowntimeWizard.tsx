@@ -17,11 +17,10 @@
  * out of this pass.
  */
 
-import { useState } from 'react'
 import { Button, DowntimeWizard as DowntimeWizardView } from 'component-lib'
+import { useState } from 'react'
 import type { SURefObjectGuideStep } from 'salvageunion-reference'
-
-import { UPKEEP_SCRAP, bayGate } from '../../lib/rules/crawlerEconomy'
+import { bayGate, UPKEEP_SCRAP } from '../../lib/rules/crawlerEconomy'
 import {
   allDowntimeSteps,
   downtimeMechPatch,
@@ -33,8 +32,8 @@ import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
-import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import { usePlayStateStore } from '../../stores/playStateStore'
+import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 
 type DowntimeWizardProps = {
   crawler: Crawler | null

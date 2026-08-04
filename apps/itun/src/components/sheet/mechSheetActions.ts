@@ -18,13 +18,12 @@
 
 import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-
 import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
+import type { SoftWarning } from '../../lib/rules/types'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { ItemCondition, Mech } from '../../lib/schemas/mech'
 import type { ChangeMeta, useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
-import type { SoftWarning } from '../../lib/rules/types'
 import { useSoftWarnings } from '../shared/useSoftWarnings'
 import { freshEntity } from './controlPrimitives'
 import { destroyedUndoToast } from './destroyedUndoToast'

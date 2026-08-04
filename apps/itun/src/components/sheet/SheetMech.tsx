@@ -10,22 +10,22 @@
  * the Dashboard, not the Free-Edit Live Sheet (ADR-021).
  */
 
-import { mechMaxCargo, mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
+import { EntityRow } from 'component-lib'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { containerOf } from '../../lib/container'
+import { mechMaxCargo, mechMaxEP, mechMaxHeat, mechMaxSP } from '../../lib/rules/derivedStats'
+import { pilotingContext } from '../../lib/rules/pilotingContext'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Mech } from '../../lib/schemas/mech'
-import { AssignPilotToMech } from '../wiring/AssignPilotToMech'
-import { LiveSheet } from './LiveSheet'
-import type { LiveSheetStripItem } from './LiveSheet'
-import { containerOf } from '../../lib/container'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
-import { MechSheet } from './MechSheet'
-import { EntityRow } from 'component-lib'
-import { RailCta } from './SheetRailParts'
 import { AppLink } from '../shared/AppLink'
+import { AssignPilotToMech } from '../wiring/AssignPilotToMech'
+import type { LiveSheetStripItem } from './LiveSheet'
+import { LiveSheet } from './LiveSheet'
+import { MechSheet } from './MechSheet'
 import { crawlerRailItems, pilotRailItems, rowStats } from './railStats'
+import { RailCta } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
-import { pilotingContext } from '../../lib/rules/pilotingContext'
 import { runWrite } from './sheetWrite'
 
 type SheetMechProps = SheetViewCommonProps & {

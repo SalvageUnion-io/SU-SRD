@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, within } from '@testing-library/react'
 import { Stat } from '../Stat'
 

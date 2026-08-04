@@ -1,5 +1,4 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
-
 import { JoinScreen } from '../../components/games/JoinScreen'
 
 export const Route = createFileRoute('/join/$code')({

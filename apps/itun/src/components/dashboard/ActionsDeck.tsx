@@ -18,24 +18,26 @@
  * spends and whether it touches Heat.
  */
 
-import { useState } from 'react'
-import { ActionsDeck as ActionsDeckView } from 'component-lib'
 import type { ActionsDeckView as ActionsDeckViewModel, DeckRow } from 'component-lib'
-
-import { CORE_ROLL_BANDS, describePushOutcome, performCoreRoll } from '../../lib/rules/coreMechanic'
-import type { CoreRollResult } from '../../lib/rules/coreMechanic'
-import { defaultRoll } from '../../lib/rules/heatCheck'
-import { mechMaxEP, mechMaxHeat, mechMaxSP, pilotMaxAP } from '../../lib/rules/derivedStats'
+import { ActionsDeck as ActionsDeckView } from 'component-lib'
+import { useState } from 'react'
 import { canActivateAction, resolveChassisRef } from 'salvageunion-reference/rules'
+import type { CoreRollResult } from '../../lib/rules/coreMechanic'
+import { CORE_ROLL_BANDS, describePushOutcome, performCoreRoll } from '../../lib/rules/coreMechanic'
+import { mechMaxEP, mechMaxHeat, mechMaxSP, pilotMaxAP } from '../../lib/rules/derivedStats'
+import { defaultRoll } from '../../lib/rules/heatCheck'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
-import { usePlayStateStore } from '../../stores/playStateStore'
 import type { MountState } from '../../stores/playStateStore'
+import { usePlayStateStore } from '../../stores/playStateStore'
+import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import type { MechItemEconomy } from '../sheet/mechItemRules'
 import type { PlayStore } from './ActiveItemBand'
+import type { PlayAction, PlayActionCurrency, TimingTab } from './dashboardRules'
 import {
-  activationPatch,
   actionReachable,
+  activationPatch,
   buildMechActions,
   buildPilotActions,
   economyForActivation,
@@ -45,14 +47,11 @@ import {
   isDestructiveOutcome,
   pilotActivationPatch,
   pushPatch,
-  reachSummary,
-  tabMatchesAction,
   RANGE_BANDS,
+  reachSummary,
   TIMING_TABS,
+  tabMatchesAction,
 } from './dashboardRules'
-import type { MechItemEconomy } from '../sheet/mechItemRules'
-import type { PlayAction, PlayActionCurrency, TimingTab } from './dashboardRules'
-import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 
 type ActionsDeckProps = {
   mech: Mech

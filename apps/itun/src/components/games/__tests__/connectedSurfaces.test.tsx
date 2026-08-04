@@ -16,13 +16,13 @@ import { render, screen } from '@testing-library/react'
  * leaking into every test file that runs after this one.
  */
 
+import type { QueryAnswers } from '../../__tests__/convexMock'
 /**
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  * This file renders three different components, so a positional queue meant
  * three separate implicit orderings to keep straight.
  */
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import type { QueryAnswers } from '../../__tests__/convexMock'
 
 // Module scope, before the imports below: `mock.module` only affects imports
 // that resolve after it runs. See `convexMock.ts` for the capture/restore rules.

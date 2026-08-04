@@ -9,9 +9,8 @@
 
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-
-import { StatProvenance } from './StatProvenance'
 import type { ProvenanceLine } from './StatProvenance'
+import { StatProvenance } from './StatProvenance'
 
 const LINES: ProvenanceLine[] = [
   { kind: 'base', label: 'Atlas chassis', detail: 'base', amount: 18 },

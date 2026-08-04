@@ -1,5 +1,4 @@
 import type { SlashCommandSubcommandBuilder } from 'discord.js'
-
 import { config } from '../config.js'
 import { buildGamesEmbed, buildMeEmbed, buildShelfEmbed } from '../gameEmbed.js'
 import type { CommandExecuteInteraction } from './interactions.js'

@@ -12,9 +12,21 @@
  *     Injury *roll* when a hit hits 0, marking the mech Destroyed, and Eject.
  */
 
+import type {
+  ActiveItemBandView as ActiveItemBandViewModel,
+  BandButton,
+  StepRule,
+} from 'component-lib'
+import {
+  ActiveItemBand as ActiveItemBandView,
+  CountStepper,
+  RuleBrief,
+  StorageBay,
+} from 'component-lib'
 import { useEffect, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
+import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { describePushOutcome } from '../../lib/rules/coreMechanic'
 import {
   crawlerMaxSPParts,
   mechMaxCargo,
@@ -25,30 +37,24 @@ import {
   pilotMaxHP,
 } from '../../lib/rules/derivedStats'
 import { defaultRoll } from '../../lib/rules/heatCheck'
-import { describePushOutcome } from '../../lib/rules/coreMechanic'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { pilotingContext } from '../../lib/rules/pilotingContext'
 import type { CriticalDamageEffect, CriticalInjuryEffect } from '../../lib/rules/takeDamage'
-import type { Crawler } from '../../lib/schemas/crawler'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
+import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
-import { useEntityStore } from '../../stores/entityStore'
 import type { EntityState } from '../../stores/entityStore'
-import { activatableEffects } from './dashboardEffects'
+import { useEntityStore } from '../../stores/entityStore'
 import { usePlayStateStore } from '../../stores/playStateStore'
-import { ActiveItemBand as ActiveItemBandView, CountStepper, StorageBay } from 'component-lib'
-import type { ActiveItemBandView as ActiveItemBandViewModel, BandButton } from 'component-lib'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
-import { pilotingContext } from '../../lib/rules/pilotingContext'
-import { RuleBrief, type StepRule } from 'component-lib'
 import {
   areaSalvageOutcome,
   craftOutcome,
   crawlerTechLevelOf,
   scrapMechOutcome,
 } from './dashboardEconomy'
+import { activatableEffects } from './dashboardEffects'
 import {
-  VENT_PATCH,
   critDamagePatch,
   critInjuryPatch,
   describeCritDamage,
@@ -59,6 +65,7 @@ import {
   pilotDamagePatch,
   pushPatch,
   shutdownTogglePatch,
+  VENT_PATCH,
 } from './dashboardRules'
 
 /** The store surface the band needs — injectable so tests can assert patches. */

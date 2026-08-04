@@ -14,8 +14,8 @@
  * All functions are pure — no store, no React.
  */
 
-import type { Pilot } from '../schemas/pilot'
 import { PILOT_BASE_AP, PILOT_BASE_HP } from '../rules/derivedStats'
+import type { Pilot } from '../schemas/pilot'
 
 /** Shape of form state carried through the pilot wizard. */
 export type PilotWizardFormState = {

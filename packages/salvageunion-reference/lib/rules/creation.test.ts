@@ -13,9 +13,6 @@ import type { SURefAbility, SURefChassis, SURefClass, SURefEquipment } from '../
 import {
   CRAWLER_CREATION_MIN_WEAPONS,
   CRAWLER_CREATION_TECH_LEVEL,
-  MECH_CREATION_SCRAP_CAP,
-  PILOT_CREATION_ABILITY_PICKS,
-  PILOT_CREATION_EQUIPMENT_PICKS,
   crawlerMaxSpBonus,
   crawlerWeaponSlots,
   isCrawlerWeaponPickComplete,
@@ -31,7 +28,10 @@ import {
   isPilotEquipmentPickComplete,
   legalCreationAbilities,
   legalStartingPatterns,
+  MECH_CREATION_SCRAP_CAP,
   mechCreationBudget,
+  PILOT_CREATION_ABILITY_PICKS,
+  PILOT_CREATION_EQUIPMENT_PICKS,
   pilotEquipmentPicksRemaining,
 } from './creation.js'
 

@@ -1,9 +1,8 @@
 import type { Story } from '@ladle/react'
-import { Caption } from '../stories/_harness'
-import { MarkdownSection } from './MarkdownSection'
-
 import aboutMd from '../../../../ABOUT_JRVS.md?raw'
 import statementMd from '../../../../LLM_STATEMENT.md?raw'
+import { Caption } from '../stories/_harness'
+import { MarkdownSection } from './MarkdownSection'
 
 export default { title: 'Containers/Markdown Section' }
 

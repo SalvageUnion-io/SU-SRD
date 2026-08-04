@@ -1,13 +1,9 @@
-import { describe, it, expect } from 'bun:test'
-import { readFileSync, readdirSync } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { describe, expect, it } from 'bun:test'
+import { readdirSync, readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import {
-  findMissingActionBackrefs,
-  runActionBackrefCheck,
-  type ActionLike,
-  type EntityLike,
-} from './validateActionBackrefsLogic.js'
+import type { ActionLike, EntityLike } from './validateActionBackrefsLogic.js'
+import { findMissingActionBackrefs, runActionBackrefCheck } from './validateActionBackrefsLogic.js'
 
 describe('findMissingActionBackrefs', () => {
   it('passes when the namesake entity references its action', () => {

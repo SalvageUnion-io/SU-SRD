@@ -9,7 +9,6 @@
  */
 
 import type { ReactNode } from 'react'
-
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import type { CreateMode } from '../../lib/wizard/createMode'
 import { BlankCreateDialog } from './BlankCreateDialog'

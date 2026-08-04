@@ -28,13 +28,11 @@
  * (NO mock.module() in tests).
  */
 
-import { useCallback } from 'react'
-
 import type { ChoiceSelections } from 'component-lib'
-
+import { useCallback } from 'react'
 import { useEntityStore } from '../../stores/entityStore'
-import type { EntityType, EntityForType } from '../../stores/types'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import type { EntityForType, EntityType } from '../../stores/types'
 
 /**
  * Stable empty-selections reference. ReferenceEntityCard is wrapped in

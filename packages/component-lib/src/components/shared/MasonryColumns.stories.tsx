@@ -1,8 +1,8 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { Caption } from '../../stories/_harness'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { MasonryColumns } from './MasonryColumns'
 
 /**

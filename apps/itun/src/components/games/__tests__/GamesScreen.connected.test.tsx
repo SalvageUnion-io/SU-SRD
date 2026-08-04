@@ -12,8 +12,8 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  */
 
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import type { QueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 let redeemResult: unknown = { kind: 'joined', gameId: 'g9', granted: 0 }
 let redeemError: Error | null = null

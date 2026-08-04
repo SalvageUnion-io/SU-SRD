@@ -5,10 +5,10 @@
  * (ADR-006). Thin re-export shim — see that module for the implementation.
  */
 
-export {
-  MEDIATOR_TABLE_NAMES,
-  MEDIATOR_TABLE_LABEL,
-  performMediatorRoll,
-  describeMediatorRoll,
-} from 'salvageunion-reference/rules'
 export type { FindRollTable } from 'salvageunion-reference/rules'
+export {
+  describeMediatorRoll,
+  MEDIATOR_TABLE_LABEL,
+  MEDIATOR_TABLE_NAMES,
+  performMediatorRoll,
+} from 'salvageunion-reference/rules'

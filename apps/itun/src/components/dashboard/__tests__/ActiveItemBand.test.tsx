@@ -8,10 +8,9 @@
 import { beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import { usePlayStateStore } from '../../../stores/playStateStore'
-import { ActiveItemBand } from '../ActiveItemBand'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { ActiveItemBand } from '../ActiveItemBand'
 
 const mech = mechFixture({ id: 'm1', name: 'Iron Mongrel', chassisRef: 'unknown-chassis' })
 

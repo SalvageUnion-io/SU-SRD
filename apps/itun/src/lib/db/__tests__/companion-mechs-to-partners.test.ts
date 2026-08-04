@@ -11,7 +11,6 @@
  * still sitting in every browser that opened that workspace before the fix.
  */
 import { describe, expect, test } from 'bun:test'
-
 import {
   isCompanionMech,
   partnerFromCompanionMech,

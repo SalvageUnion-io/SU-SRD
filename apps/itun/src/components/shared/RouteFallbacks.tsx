@@ -15,10 +15,8 @@
  * accessibility regression, not a consolidation.
  */
 
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-
 import { buttonVariants } from 'component-lib'
-
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../lib/utils'
 import { AppLink } from './AppLink'
 

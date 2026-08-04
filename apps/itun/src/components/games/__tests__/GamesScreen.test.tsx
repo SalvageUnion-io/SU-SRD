@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-
 import { ConnectionProvider } from '../../../lib/connection/ConnectionProvider'
 import { isConvexConfigured } from '../../../lib/connection/convexClient'
 import { GamesScreen } from '../GamesScreen'

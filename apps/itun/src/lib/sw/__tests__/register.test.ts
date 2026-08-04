@@ -15,7 +15,7 @@
  * Full offline behavior is captured as a manual-test checklist in the PR
  * description (per AC-5).
  */
-import { describe, it, expect } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { registerServiceWorker } from '../register'
 
 describe('registerServiceWorker', () => {

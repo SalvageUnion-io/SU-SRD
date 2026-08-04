@@ -8,13 +8,13 @@
  * public surface.
  */
 
+import { SalvageUnionReference } from './index.js'
 import type {
   SURefEntity,
   SURefMetaEntity,
   SURefObjectFormationMech,
   SURefObjectPattern,
 } from './types/index.js'
-import { SalvageUnionReference } from './index.js'
 
 /**
  * Extract patterns from an entity

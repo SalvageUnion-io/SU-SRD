@@ -35,6 +35,7 @@ const DEFAULT_WORKSPACE = {
   name: 'Default workspace',
   createdAt: '2020-01-01T00:00:00.000Z',
 } as const
+
 import { STORE_NAMES } from '../stores'
 import type { UpgradeTransaction } from './index'
 

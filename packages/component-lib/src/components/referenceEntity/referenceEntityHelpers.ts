@@ -1,10 +1,10 @@
 import type { CSSProperties } from 'react'
 import type {
-  SURefMetaEntity,
   SURefEnumSchemaName,
+  SURefMetaEntity,
   SURefObjectBonusPerTechLevel,
 } from 'salvageunion-reference'
-import { getBlackMarket, isEntityData, getHybridClasses } from 'salvageunion-reference'
+import { getBlackMarket, getHybridClasses, isEntityData } from 'salvageunion-reference'
 
 /**
  * The card's accent surface: a Tailwind bg class (or the white fallback) plus an

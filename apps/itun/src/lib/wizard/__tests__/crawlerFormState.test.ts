@@ -10,12 +10,12 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../schemas/crawler'
 import { CrawlerSchema } from '../../schemas/crawler'
 import {
-  EMPTY_CRAWLER_FORM_STATE,
-  EMPTY_SCRAP_POOL,
   crawlerFormCrewToPatches,
   crawlerFormToCreateInput,
   crawlerFormToUpdatePatch,
   crawlerToFormState,
+  EMPTY_CRAWLER_FORM_STATE,
+  EMPTY_SCRAP_POOL,
   seedDefaultCrawlerBays,
   toScrapPoolPatch,
 } from '../crawlerFormState'

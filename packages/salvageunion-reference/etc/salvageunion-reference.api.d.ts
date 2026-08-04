@@ -158,10 +158,9 @@ export declare class LazyModel<T> extends BaseModel<T> {
  * — run `bun run build:package` to regenerate after editing the manifest.
  */
 import { BaseModel } from './BaseModel.js';
+import { schemaDisplayNames, zodSchemaMap } from './generated/modelFactoryRegistry.generated.js';
 import { toPascalCase } from './naming.js';
-import { zodSchemaMap, schemaDisplayNames } from './generated/modelFactoryRegistry.generated.js';
-export { toPascalCase };
-export { zodSchemaMap, schemaDisplayNames };
+export { schemaDisplayNames, toPascalCase, zodSchemaMap };
 /**
  * Returns true if the given schema ID has been loaded via preload().
  */
@@ -255,7 +254,7 @@ export declare function getSchemaCatalog(): {
  * there (and from the package barrel), so this is an internal home, not a new
  * public surface.
  */
-import type { SURefMetaEntity, SURefMetaAction, SURefObjectTable, SURefObjectTrait, SURefObjectChoice, SURefObjectActionOptions } from './types/index.js';
+import type { SURefMetaAction, SURefMetaEntity, SURefObjectActionOptions, SURefObjectChoice, SURefObjectTable, SURefObjectTrait } from './types/index.js';
 /** Clear the cached action map so the next lookup reads fresh data. Called by `preload()`. */
 export declare function invalidateActionMap(): void;
 /**
@@ -595,8 +594,7 @@ export declare function getGrants(entity: SURefMetaEntity): SURefObjectGrant[] |
  * there (and from the package barrel), so this is an internal home, not a new
  * public surface.
  */
-import type { SURefEntity, SURefMetaEntity } from './types/index.js';
-import type { SURefAbility, SURefClass, SURefKeyword, SURefObjectAdvancedClass } from './types/index.js';
+import type { SURefAbility, SURefClass, SURefEntity, SURefKeyword, SURefMetaEntity, SURefObjectAdvancedClass } from './types/index.js';
 /**
  * Type guard to distinguish SURefEntity (structured data with id/name/source/page)
  * from SURefMetaAction or other object types (which lack these fields)
@@ -824,9 +822,9 @@ export declare const SCHEMA_REGISTRY: {
  * Helper functions for common operations on Salvage Union reference data
  * These functions provide convenient access patterns used by consuming applications
  */
-import type { SURefCrawler, SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass, SURefObjectCrawlerMutation } from './types/index.js';
 import type { ModelWithMetadata } from './BaseModel.js';
-import { type EnhancedSchemaMetadata } from './ModelFactory.js';
+import type { EnhancedSchemaMetadata } from './ModelFactory.js';
+import type { SURefCrawler, SURefEntity, SURefEnumSchemaName, SURefObjectAdvancedClass, SURefObjectCrawlerMutation } from './types/index.js';
 /**
  * Get the display name for a schema
  * @param schemaName - The schema name
@@ -986,21 +984,22 @@ export declare function extractStaticEntitySummary(entity: SURefEntity): StaticE
  * Models are loaded lazily via SalvageUnionReference.preload().
  */
 import type { ModelWithMetadata } from './BaseModel.js';
-import { SCHEMA_REGISTRY, type SchemaToEntityMap, type EntitySchemaName } from './generated/schemaRegistry.generated.js';
-import type { SURefMetaAction, SURefEntity, SURefMetaEntity, SURefEnumSchemaName } from './types/index.js';
+import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated.js';
+import { SCHEMA_REGISTRY } from './generated/schemaRegistry.generated.js';
+import type { SURefEntity, SURefEnumSchemaName, SURefMetaAction, SURefMetaEntity } from './types/index.js';
 export { BaseModel, type ModelWithMetadata } from './BaseModel.js';
-export { getDataMaps, getSchemaCatalog, type EnhancedSchemaMetadata } from './ModelFactory.js';
-export { resultForTable, resultForColumnsTable, isColumnsTable, type TableRollResult, type ColumnsTableRollResult, } from './utils/resultForTable.js';
-export { rollOnTable, type RollOnTableOutcome, type D20Roller } from './rollOnTable.js';
-export * from './utilities.js';
+export { parseContentBlockString, replaceChassisPlaceholder, resolveDataValueForTechLevel, } from './contentBlockHelpers.js';
 export * from './helpers.js';
-export { nameToSlug, getEntitySlug, findEntityBySlug } from './slug.js';
-export { replaceChassisPlaceholder, parseContentBlockString, resolveDataValueForTechLevel, } from './contentBlockHelpers.js';
-export { search, searchIn, getSuggestions, invalidateSearchIndex, type SearchOptions, type SearchResult, isSchemaName, extractContentText, withinEditDistance1, TYPO_MIN_TOKEN_LENGTH, } from './search.js';
-export { resolveChoiceView, type ChoiceSelections, type ChoicePrompt, type ResolvedChoiceView, } from './resolveChoiceView.js';
-import { type SearchOptions, type SearchResult } from './search.js';
+export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory.js';
+export { type ChoicePrompt, type ChoiceSelections, type ResolvedChoiceView, resolveChoiceView, } from './resolveChoiceView.js';
+export { type D20Roller, type RollOnTableOutcome, rollOnTable } from './rollOnTable.js';
+export { extractContentText, getSuggestions, invalidateSearchIndex, isSchemaName, type SearchOptions, type SearchResult, search, searchIn, TYPO_MIN_TOKEN_LENGTH, withinEditDistance1, } from './search.js';
+export { findEntityBySlug, getEntitySlug, nameToSlug } from './slug.js';
+export * from './utilities.js';
+export { type ColumnsTableRollResult, isColumnsTable, resultForColumnsTable, resultForTable, type TableRollResult, } from './utils/resultForTable.js';
+import type { SearchOptions, SearchResult } from './search.js';
 export type * from './types/index.js';
-export type { SchemaToEntityMap, EntitySchemaName };
+export type { EntitySchemaName, SchemaToEntityMap };
 export declare const EntitySchemaNames: Set<keyof SchemaToEntityMap>;
 export declare const SchemaToModelMap: { readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]["model"]; };
 export declare const SchemaToDisplayName: { readonly [K in keyof typeof SCHEMA_REGISTRY]: (typeof SCHEMA_REGISTRY)[K]["display"]; };
@@ -1344,7 +1343,7 @@ export declare const DEVIATIONS: Deviation[];
  * correctly. All 88 choices in the dataset were verified to resolve identically
  * across the switch.
  */
-import type { SURefObjectDataValue, SURefObjectTrait, SURefObjectContentBlock, SURefObjectChoice } from './schemas/index.js';
+import type { SURefObjectChoice, SURefObjectContentBlock, SURefObjectDataValue, SURefObjectTrait } from './schemas/index.js';
 /**
  * Selections keyed by choice id, each holding the selected option values.
  */
@@ -1946,8 +1945,7 @@ export declare function isCrawlerWeaponPickComplete(selectedCount: number): bool
  * consumer's Zod-inferred Pilot/Mech/Crawler types (e.g. ITUN's
  * `src/lib/schemas/`) satisfy them automatically.
  */
-import type { ActiveEffects } from './contributions.js';
-import type { ResolvedContribution } from './contributions.js';
+import type { ActiveEffects, ResolvedContribution } from './contributions.js';
 /**
  * Base pilot stats per the core rules (10 HP / 5 AP / 6 inventory slots).
  * These are NOT in the reference data — class records do not encode them —
@@ -2301,30 +2299,30 @@ export {};
  * crypto.randomUUID()) remain app-local in ITUN for now.
  */
 export { computeMechCapacity } from './capacity.js';
-export { PILOT_CREATION_ABILITY_PICKS, PILOT_CREATION_EQUIPMENT_PICKS, MECH_CREATION_SCRAP_CAP, CRAWLER_CREATION_TECH_LEVEL, CRAWLER_CREATION_MIN_WEAPONS, isLegalCreationClass, isLegalCreationAbility, legalCreationAbilities, isLegalCreationEquipment, isLegalCreationChassis, isLegalCreationSystem, isLegalCreationModule, isLegalCreationCrawlerWeapon, isLegalStartingPattern, legalStartingPatterns, mechCreationBudget, crawlerWeaponSlots, crawlerMaxSpBonus, isCrawlerWeaponPickComplete, pilotEquipmentPicksRemaining, isPilotAbilityPickComplete, isPilotEquipmentPickComplete, } from './creation.js';
-export type { CreationCoreTrees, CreationAbilityInput, CreationEquipmentInput, CreationPatternInput, CrawlerMutationInput, MechCreationBudget, MechCreationBudgetInput, MechCreationLoadoutEntry, } from './creation.js';
-export { enrichPilotSnapshot } from './pilotSnapshot.js';
-export { computeCrawlerCapacity } from './crawlerCapacity.js';
-export { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap.js';
-export { evaluateSoftWarnings, evaluatePilotWarnings, evaluateMechWarnings, PILOT_ABILITY_CAP, SALVAGER_ABILITY_CAP, } from './softWarnings.js';
-export { isWeaponSystem } from './crawlerSystems.js';
-export { resolveCatalogChoiceEntities, isSchemaOnlyCatalogChoice, } from './choiceCatalog.js';
-export { matchesRef, resolveChassisRef, resolveSystemRef, resolveModuleRef, resolveInstalledRef, } from './resolveRefs.js';
-export { clampHeat, canActivateAction, reactorOverloadOutcome, performHeatCheck, performPush, } from './heatCheck.js';
-export { CORE_ROLL_BANDS, coreRollBand, performCoreRoll, describePushOutcome, describeOverloadOutcome, } from './coreMechanic.js';
-export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from './coreMechanic.js';
-export { applySpDamage, mechEffectiveDamage, applyMechDamage, criticalDamageOutcome, performCriticalDamage, pilotEffectiveDamage, applyPilotDamage, criticalInjuryOutcome, performCriticalInjury, } from './takeDamage.js';
-export type { DamageKind, MechDamageInput, MechDamageEffect, PilotDamageInput, PilotDamageEffect, CriticalDamageEffect, CriticalInjuryEffect, } from './takeDamage.js';
-export { PILOT_BASE_HP, PILOT_BASE_AP, PILOT_BASE_INVENTORY_SLOTS, injuryMaxHpPenalty, pilotMaxHP, pilotMaxAP, isPilotDead, clampPilotCurrentStats, mechMaxSP, mechMaxEP, mechMaxHeat, mechMaxCargo, clampMechCurrentStats, unifiedMechConditions, crawlerMaxSP, crawlerMaxSPParts, mechMaxSPParts, mechMaxEPParts, mechMaxHeatParts, mechMaxCargoParts, pilotMaxHPParts, pilotMaxAPParts, pilotMaxInventorySlots, pilotMaxInventorySlotsParts, clampCrawlerCurrentStats, } from './derivedStats.js';
-export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js';
-export { statesMechanicalChange } from './rulesBearing.js';
-export type { RulesClaim } from './rulesBearing.js';
+export { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities, } from './choiceCatalog.js';
+export type { ContributionAmount, ContributionStat, ContributionTarget, DeclaredContribution, ResolvedContribution, } from './contributions.js';
 export { abilityContributions, resolveAmount, sumContributions, } from './contributions.js';
-export type { ContributionStat, ContributionTarget, ContributionAmount, DeclaredContribution, ResolvedContribution, } from './contributions.js';
-export { MEDIATOR_TABLE_NAMES, MEDIATOR_TABLE_LABEL, performMediatorRoll, describeMediatorRoll, } from './mediatorTables.js';
-export type { FindRollTable } from './mediatorTables.js';
-export type { TechLevel, SoftWarning, SoftWarningSeverity, SoftWarningContext, EditSnapshot, MechInput, MechSystemSlot, MechModuleSlot, MechCapacityResult, CapacityViolation, ScrapableItem, CargoItem, CargoItemRef, CargoItemCustom, CargoParent, CargoCapacityResult, CargoViolation, PilotSnapshot, MechSnapshot, AbilityInput, AbilityTier, SystemSnapshot, Roll, ReactorOverloadOutcome, HeatCheckResult, HeatCheckEffect, PushResult, CriticalDamageOutcome, CriticalDamageResult, CriticalInjuryOutcome, CriticalInjuryResult, MediatorTableId, MediatorRollResult, } from './types.js';
+export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from './coreMechanic.js';
+export { CORE_ROLL_BANDS, coreRollBand, describeOverloadOutcome, describePushOutcome, performCoreRoll, } from './coreMechanic.js';
 export type { CrawlerCapacityInput, CrawlerCapacityResult, CrawlerCapacityViolation, } from './crawlerCapacity.js';
+export { computeCrawlerCapacity } from './crawlerCapacity.js';
+export { isWeaponSystem } from './crawlerSystems.js';
+export type { CrawlerMutationInput, CreationAbilityInput, CreationCoreTrees, CreationEquipmentInput, CreationPatternInput, MechCreationBudget, MechCreationBudgetInput, MechCreationLoadoutEntry, } from './creation.js';
+export { CRAWLER_CREATION_MIN_WEAPONS, CRAWLER_CREATION_TECH_LEVEL, crawlerMaxSpBonus, crawlerWeaponSlots, isCrawlerWeaponPickComplete, isLegalCreationAbility, isLegalCreationChassis, isLegalCreationClass, isLegalCreationCrawlerWeapon, isLegalCreationEquipment, isLegalCreationModule, isLegalCreationSystem, isLegalStartingPattern, isPilotAbilityPickComplete, isPilotEquipmentPickComplete, legalCreationAbilities, legalStartingPatterns, MECH_CREATION_SCRAP_CAP, mechCreationBudget, PILOT_CREATION_ABILITY_PICKS, PILOT_CREATION_EQUIPMENT_PICKS, pilotEquipmentPicksRemaining, } from './creation.js';
+export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js';
+export { clampCrawlerCurrentStats, clampMechCurrentStats, clampPilotCurrentStats, crawlerMaxSP, crawlerMaxSPParts, injuryMaxHpPenalty, isPilotDead, mechMaxCargo, mechMaxCargoParts, mechMaxEP, mechMaxEPParts, mechMaxHeat, mechMaxHeatParts, mechMaxSP, mechMaxSPParts, PILOT_BASE_AP, PILOT_BASE_HP, PILOT_BASE_INVENTORY_SLOTS, pilotMaxAP, pilotMaxAPParts, pilotMaxHP, pilotMaxHPParts, pilotMaxInventorySlots, pilotMaxInventorySlotsParts, unifiedMechConditions, } from './derivedStats.js';
+export { canActivateAction, clampHeat, performHeatCheck, performPush, reactorOverloadOutcome, } from './heatCheck.js';
+export type { FindRollTable } from './mediatorTables.js';
+export { describeMediatorRoll, MEDIATOR_TABLE_LABEL, MEDIATOR_TABLE_NAMES, performMediatorRoll, } from './mediatorTables.js';
+export { enrichPilotSnapshot } from './pilotSnapshot.js';
+export { matchesRef, resolveChassisRef, resolveInstalledRef, resolveModuleRef, resolveSystemRef, } from './resolveRefs.js';
+export type { RulesClaim } from './rulesBearing.js';
+export { statesMechanicalChange } from './rulesBearing.js';
+export { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap.js';
+export { evaluateMechWarnings, evaluatePilotWarnings, evaluateSoftWarnings, PILOT_ABILITY_CAP, SALVAGER_ABILITY_CAP, } from './softWarnings.js';
+export type { CriticalDamageEffect, CriticalInjuryEffect, DamageKind, MechDamageEffect, MechDamageInput, PilotDamageEffect, PilotDamageInput, } from './takeDamage.js';
+export { applyMechDamage, applyPilotDamage, applySpDamage, criticalDamageOutcome, criticalInjuryOutcome, mechEffectiveDamage, performCriticalDamage, performCriticalInjury, pilotEffectiveDamage, } from './takeDamage.js';
+export type { AbilityInput, AbilityTier, CapacityViolation, CargoCapacityResult, CargoItem, CargoItemCustom, CargoItemRef, CargoParent, CargoViolation, CriticalDamageOutcome, CriticalDamageResult, CriticalInjuryOutcome, CriticalInjuryResult, EditSnapshot, HeatCheckEffect, HeatCheckResult, MechCapacityResult, MechInput, MechModuleSlot, MechSnapshot, MechSystemSlot, MediatorRollResult, MediatorTableId, PilotSnapshot, PushResult, ReactorOverloadOutcome, Roll, ScrapableItem, SoftWarning, SoftWarningContext, SoftWarningSeverity, SystemSnapshot, TechLevel, } from './types.js';
 //# sourceMappingURL=index.d.ts.map
 // === lib/rules/mediatorTables.d.ts ===
 /**
@@ -3667,11 +3665,10 @@ export declare const AbilitySchema: z.ZodObject<{
     }>>;
     grants: z.ZodOptional<z.ZodArray<z.ZodObject<{
         schema: z.ZodUnion<readonly [z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -3684,6 +3681,7 @@ export declare const AbilitySchema: z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -4033,11 +4031,10 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
         rollTable: z.ZodOptional<z.ZodString>;
         schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -4050,6 +4047,7 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -4217,11 +4215,10 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"catalog">;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -4234,6 +4231,7 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -5069,11 +5067,10 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
     }>>;
     page: z.ZodOptional<z.ZodNumber>;
     actionSource: z.ZodOptional<z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -5086,6 +5083,7 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -5999,11 +5997,10 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             rollTable: z.ZodOptional<z.ZodString>;
             schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -6016,6 +6013,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -6183,11 +6181,10 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"catalog">;
                 schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                    classes: "classes";
-                    npcs: "npcs";
                     abilities: "abilities";
                     "ability-tree-requirements": "ability-tree-requirements";
                     chassis: "chassis";
+                    classes: "classes";
                     "crawler-bays": "crawler-bays";
                     "crawler-tech-levels": "crawler-tech-levels";
                     crawlers: "crawlers";
@@ -6200,6 +6197,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                     factions: "factions";
                     meld: "meld";
                     modules: "modules";
+                    npcs: "npcs";
                     "roll-tables": "roll-tables";
                     sources: "sources";
                     squads: "squads";
@@ -6387,11 +6385,10 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         rollTable: z.ZodOptional<z.ZodString>;
         schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -6404,6 +6401,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -6571,11 +6569,10 @@ export declare const CrawlerBaySchema: z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"catalog">;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -6588,6 +6585,7 @@ export declare const CrawlerBaySchema: z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -7012,11 +7010,10 @@ export declare const CrawlerSchema: z.ZodObject<{
             rollTable: z.ZodOptional<z.ZodString>;
             schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -7029,6 +7026,7 @@ export declare const CrawlerSchema: z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -7196,11 +7194,10 @@ export declare const CrawlerSchema: z.ZodObject<{
             }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"catalog">;
                 schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                    classes: "classes";
-                    npcs: "npcs";
                     abilities: "abilities";
                     "ability-tree-requirements": "ability-tree-requirements";
                     chassis: "chassis";
+                    classes: "classes";
                     "crawler-bays": "crawler-bays";
                     "crawler-tech-levels": "crawler-tech-levels";
                     crawlers: "crawlers";
@@ -7213,6 +7210,7 @@ export declare const CrawlerSchema: z.ZodObject<{
                     factions: "factions";
                     meld: "meld";
                     modules: "modules";
+                    npcs: "npcs";
                     "roll-tables": "roll-tables";
                     sources: "sources";
                     squads: "squads";
@@ -7802,11 +7800,10 @@ export declare const DroneSchema: z.ZodObject<{
         rollTable: z.ZodOptional<z.ZodString>;
         schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -7819,6 +7816,7 @@ export declare const DroneSchema: z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -7986,11 +7984,10 @@ export declare const DroneSchema: z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"catalog">;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -8003,6 +8000,7 @@ export declare const DroneSchema: z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -8297,11 +8295,10 @@ export declare const EquipmentSchema: z.ZodObject<{
         rollTable: z.ZodOptional<z.ZodString>;
         schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -8314,6 +8311,7 @@ export declare const EquipmentSchema: z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -8481,11 +8479,10 @@ export declare const EquipmentSchema: z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"catalog">;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -8498,6 +8495,7 @@ export declare const EquipmentSchema: z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -8661,11 +8659,10 @@ export declare const FactionSchema: z.ZodObject<{
         chassis: z.ZodString;
         pattern: z.ZodOptional<z.ZodString>;
         schema: z.ZodOptional<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -8678,6 +8675,7 @@ export declare const FactionSchema: z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -10382,8 +10380,6 @@ export declare const TraitEntitySchema: z.ZodObject<{
  * `modules` field — a vehicle carries neither (the schema is strict).
  */
 export declare const VehicleSchema: z.ZodObject<{
-    name: z.ZodString;
-    id: z.ZodString;
     traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
         type: z.ZodString;
@@ -10396,20 +10392,8 @@ export declare const VehicleSchema: z.ZodObject<{
     cargoCapacity: z.ZodOptional<z.ZodNumber>;
     techLevel: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>;
     salvageValue: z.ZodOptional<z.ZodNumber>;
-    source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
-        "False Flag": "False Flag";
-    }>;
-    booklet: z.ZodOptional<z.ZodString>;
-    page: z.ZodNumber;
+    name: z.ZodString;
+    id: z.ZodString;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
             paragraph: "paragraph";
@@ -10462,6 +10446,22 @@ export declare const VehicleSchema: z.ZodObject<{
             level: z.ZodOptional<z.ZodNumber>;
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
+    source: z.ZodEnum<{
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "The Hive": "The Hive";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Mech Monday": "Mech Monday";
+        "We Were Here First!": "We Were Here First!";
+        Rainmaker: "Rainmaker";
+        "False Flag": "False Flag";
+    }>;
+    page: z.ZodNumber;
+    booklet: z.ZodOptional<z.ZodString>;
+    hasArtwork: z.ZodOptional<z.ZodBoolean>;
+    blackMarket: z.ZodDefault<z.ZodBoolean>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
             "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -10478,8 +10478,6 @@ export declare const VehicleSchema: z.ZodObject<{
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
     }, z.core.$strict>>>;
-    hasArtwork: z.ZodOptional<z.ZodBoolean>;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
     actions: z.ZodOptional<z.ZodArray<z.ZodString>>;
 }, z.core.$strict>;
 /**
@@ -10646,11 +10644,10 @@ export declare const GuideSchema: z.ZodObject<{
             }, z.core.$strict>>>;
         }, z.core.$strict>>>>;
         schema: z.ZodOptional<z.ZodArray<z.ZodUnion<readonly [z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -10663,6 +10660,7 @@ export declare const GuideSchema: z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -10828,11 +10826,10 @@ export declare const CatalogCategorySchema: z.ZodObject<{
     id: z.ZodString;
     name: z.ZodString;
     schemas: z.ZodArray<z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -10845,6 +10842,7 @@ export declare const CatalogCategorySchema: z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -10979,11 +10977,10 @@ export declare const TreeSchema: z.ZodEnum<{
  * Name of the schema
  */
 export declare const SchemaNameSchema: z.ZodEnum<{
-    classes: "classes";
-    npcs: "npcs";
     abilities: "abilities";
     "ability-tree-requirements": "ability-tree-requirements";
     chassis: "chassis";
+    classes: "classes";
     "crawler-bays": "crawler-bays";
     "crawler-tech-levels": "crawler-tech-levels";
     crawlers: "crawlers";
@@ -10996,6 +10993,7 @@ export declare const SchemaNameSchema: z.ZodEnum<{
     factions: "factions";
     meld: "meld";
     modules: "modules";
+    npcs: "npcs";
     "roll-tables": "roll-tables";
     sources: "sources";
     squads: "squads";
@@ -11011,13 +11009,13 @@ export declare const SchemaNameSchema: z.ZodEnum<{
  * Schema index - exports all Zod schemas and inferred TypeScript types
  */
 import type { z } from '../zod.js';
-export * from './enums.js';
 export * from './common.js';
-export * from './objects.js';
 export * from './entities.js';
+export * from './enums.js';
+export * from './objects.js';
+import type { AbilitySchema, AbilityTreeRequirementSchema, BioTitanSchema, CatalogCategorySchema, ChassisSchema, ClassSchema, CrawlerBaySchema, CrawlerSchema, CrawlerTechLevelSchema, CreatureSchema, DistanceSchema, DroneSchema, EquipmentSchema, FactionSchema, GuideSchema, KeywordSchema, MeldSchema, MetaActionSchema, ModuleSchema, NPCSchema, RollTableSchema, SourceEntitySchema, SquadSchema, SystemSchema, TechLevelEntitySchema, TraitEntitySchema, VehicleSchema } from './entities.js';
 import type { SchemaNameSchema } from './enums.js';
-import type { TraitSchema, StatsSchema, DataValueSchema, ContentBlockSchema, ContentSchema, TableContentSchema, TableSchema, PatternSystemModuleSchema, SystemModuleSchema, ChoiceSchema, PatternSchema, DamageSchema, AdvancedClassSchema, FormationMechSchema, GrantSchema, CrawlerMutationSchema, GuideStepSchema } from './objects.js';
-import type { AbilitySchema, AbilityTreeRequirementSchema, MetaActionSchema, BioTitanSchema, ChassisSchema, ClassSchema, CrawlerBaySchema, CrawlerTechLevelSchema, CrawlerSchema, CreatureSchema, DistanceSchema, DroneSchema, EquipmentSchema, FactionSchema, KeywordSchema, MeldSchema, ModuleSchema, NPCSchema, RollTableSchema, SquadSchema, SystemSchema, TraitEntitySchema, VehicleSchema, GuideSchema, SourceEntitySchema, TechLevelEntitySchema, CatalogCategorySchema } from './entities.js';
+import type { AdvancedClassSchema, ChoiceSchema, ContentBlockSchema, ContentSchema, CrawlerMutationSchema, DamageSchema, DataValueSchema, FormationMechSchema, GrantSchema, GuideStepSchema, PatternSchema, PatternSystemModuleSchema, StatsSchema, SystemModuleSchema, TableContentSchema, TableSchema, TraitSchema } from './objects.js';
 export type SURefEnumSchemaName = z.infer<typeof SchemaNameSchema>;
 export type SURefObjectTrait = z.infer<typeof TraitSchema>;
 export type SURefObjectDataValue = z.infer<typeof DataValueSchema>;
@@ -11101,21 +11099,21 @@ export type SURefMetaEntity = SURefAbility | SURefChassis | SURefClass | SURefCr
  * (`ChoiceOptionSchema` / `ChoiceConstraintsSchema`, needed by `guides.ts`), and
  * naming the re-exports keeps those from leaking into the package's surface.
  */
-export { TraitSchema, StatsSchema, ChassisStatsSchema, CombatEntitySchema, MechanicalEntitySchema, DataValueSchema, DamageSchema, } from './objects/primitives.js';
-export { ContentBlockSchema, ContentSchema } from './objects/content.js';
-export { TableContentSchema, TableSchema } from './objects/tables.js';
-export { AdditionalSourceSchema } from './objects/sources.js';
-export { ContributionStatSchema, ContributionTargetSchema, ContributionAmountSchema, ContributionSchema, } from './objects/contributions.js';
-export { EffectTargetSchema, ChoiceEffectSchema } from './objects/effects.js';
-export { SystemModuleSchema } from './objects/systemModule.js';
-export { ChoiceSchema, ChoicesSchema } from './objects/choices.js';
-export { NpcSchema } from './objects/npc.js';
-export { PatternSystemModuleSchema, PatternDroneConfigSchema, PatternSchema, } from './objects/patterns.js';
 export { ActionSchema } from './objects/actions.js';
-export { BaseEntitySchema, AdvancedClassSchema } from './objects/entityBase.js';
-export { FormationMechSchema, GrantSchema, SchemaNameWithActionsSchema, } from './objects/references.js';
+export { ChoiceSchema, ChoicesSchema } from './objects/choices.js';
+export { ContentBlockSchema, ContentSchema } from './objects/content.js';
+export { ContributionAmountSchema, ContributionSchema, ContributionStatSchema, ContributionTargetSchema, } from './objects/contributions.js';
 export { CrawlerMutationSchema } from './objects/crawlerMutations.js';
+export { ChoiceEffectSchema, EffectTargetSchema } from './objects/effects.js';
+export { AdvancedClassSchema, BaseEntitySchema } from './objects/entityBase.js';
 export { GuideStepSchema, GuideTypeSchema } from './objects/guides.js';
+export { NpcSchema } from './objects/npc.js';
+export { PatternDroneConfigSchema, PatternSchema, PatternSystemModuleSchema, } from './objects/patterns.js';
+export { ChassisStatsSchema, CombatEntitySchema, DamageSchema, DataValueSchema, MechanicalEntitySchema, StatsSchema, TraitSchema, } from './objects/primitives.js';
+export { FormationMechSchema, GrantSchema, SchemaNameWithActionsSchema, } from './objects/references.js';
+export { AdditionalSourceSchema } from './objects/sources.js';
+export { SystemModuleSchema } from './objects/systemModule.js';
+export { TableContentSchema, TableSchema } from './objects/tables.js';
 //# sourceMappingURL=objects.d.ts.map
 // === lib/schemas/objects/actions.d.ts ===
 /**
@@ -11281,11 +11279,10 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
         rollTable: z.ZodOptional<z.ZodString>;
         schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -11298,6 +11295,7 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -11465,11 +11463,10 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"catalog">;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -11482,6 +11479,7 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -12317,11 +12315,10 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
     }>>;
     page: z.ZodOptional<z.ZodNumber>;
     actionSource: z.ZodOptional<z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -12334,6 +12331,7 @@ export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -12465,11 +12463,10 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
     rollTable: z.ZodOptional<z.ZodString>;
     schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
     schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -12482,6 +12479,7 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -12649,11 +12647,10 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"catalog">;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -12666,6 +12663,7 @@ export declare const ChoiceSchema: z.ZodLazy<z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -12849,11 +12847,10 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
     rollTable: z.ZodOptional<z.ZodString>;
     schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
     schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -12866,6 +12863,7 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -13033,11 +13031,10 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"catalog">;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -13050,6 +13047,7 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -13829,11 +13827,10 @@ export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
     schema: z.ZodOptional<z.ZodArray<z.ZodUnion<readonly [z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -13846,6 +13843,7 @@ export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -14048,11 +14046,10 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
         rollTable: z.ZodOptional<z.ZodString>;
         schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
         schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
             abilities: "abilities";
             "ability-tree-requirements": "ability-tree-requirements";
             chassis: "chassis";
+            classes: "classes";
             "crawler-bays": "crawler-bays";
             "crawler-tech-levels": "crawler-tech-levels";
             crawlers: "crawlers";
@@ -14065,6 +14062,7 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
             factions: "factions";
             meld: "meld";
             modules: "modules";
+            npcs: "npcs";
             "roll-tables": "roll-tables";
             sources: "sources";
             squads: "squads";
@@ -14232,11 +14230,10 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"catalog">;
             schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
                 abilities: "abilities";
                 "ability-tree-requirements": "ability-tree-requirements";
                 chassis: "chassis";
+                classes: "classes";
                 "crawler-bays": "crawler-bays";
                 "crawler-tech-levels": "crawler-tech-levels";
                 crawlers: "crawlers";
@@ -14249,6 +14246,7 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
                 factions: "factions";
                 meld: "meld";
                 modules: "modules";
+                npcs: "npcs";
                 "roll-tables": "roll-tables";
                 sources: "sources";
                 squads: "squads";
@@ -14613,11 +14611,10 @@ export declare const FormationMechSchema: z.ZodObject<{
     chassis: z.ZodString;
     pattern: z.ZodOptional<z.ZodString>;
     schema: z.ZodOptional<z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -14630,6 +14627,7 @@ export declare const FormationMechSchema: z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -14659,11 +14657,10 @@ export declare const FormationMechSchema: z.ZodObject<{
  */
 export declare const GrantSchema: z.ZodObject<{
     schema: z.ZodUnion<readonly [z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
         abilities: "abilities";
         "ability-tree-requirements": "ability-tree-requirements";
         chassis: "chassis";
+        classes: "classes";
         "crawler-bays": "crawler-bays";
         "crawler-tech-levels": "crawler-tech-levels";
         crawlers: "crawlers";
@@ -14676,6 +14673,7 @@ export declare const GrantSchema: z.ZodObject<{
         factions: "factions";
         meld: "meld";
         modules: "modules";
+        npcs: "npcs";
         "roll-tables": "roll-tables";
         sources: "sources";
         squads: "squads";
@@ -14691,11 +14689,10 @@ export declare const GrantSchema: z.ZodObject<{
  * Schema name (includes 'actions' as special case)
  */
 export declare const SchemaNameWithActionsSchema: z.ZodUnion<readonly [z.ZodEnum<{
-    classes: "classes";
-    npcs: "npcs";
     abilities: "abilities";
     "ability-tree-requirements": "ability-tree-requirements";
     chassis: "chassis";
+    classes: "classes";
     "crawler-bays": "crawler-bays";
     "crawler-tech-levels": "crawler-tech-levels";
     crawlers: "crawlers";
@@ -14708,6 +14705,7 @@ export declare const SchemaNameWithActionsSchema: z.ZodUnion<readonly [z.ZodEnum
     factions: "factions";
     meld: "meld";
     modules: "modules";
+    npcs: "npcs";
     "roll-tables": "roll-tables";
     sources: "sources";
     squads: "squads";
@@ -15801,13 +15799,13 @@ export type * from '../schemas/index.js';
  * Prefer importing from those modules directly in new package-internal code;
  * consumers outside the package should keep importing from the package barrel.
  */
-export * from './entityFields.js';
 export * from './actionResolution.js';
-export * from './entityGuards.js';
-export * from './patterns.js';
 export * from './assets.js';
-export * from './traitText.js';
+export * from './entityFields.js';
+export * from './entityGuards.js';
 export * from './inventorySlots.js';
+export * from './patterns.js';
+export * from './traitText.js';
 //# sourceMappingURL=utilities.d.ts.map
 // === lib/utils/resultForTable.d.ts ===
 import type { SURefObjectTable, SURefObjectTableContent } from '../types/index.js';

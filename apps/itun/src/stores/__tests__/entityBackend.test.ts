@@ -1,10 +1,9 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-
 import {
-  WritesBlockedOffline,
   requireWritableBackend,
   selectBackend,
   setEntityBackendAuthState,
+  WritesBlockedOffline,
 } from '../entityBackend'
 
 /**

@@ -1,6 +1,6 @@
-import { describe, test, expect } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
-import { render, screen, fireEvent } from '@testing-library/react'
 import type { SURefObjectChoice } from 'salvageunion-reference'
 import { ChoiceGroups } from '../ChoiceGroups'
 import type { ChoiceSelections } from '../choiceSelectionHelpers'

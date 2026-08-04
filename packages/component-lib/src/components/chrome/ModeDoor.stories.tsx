@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
-import type { CSSVarStyle } from '../../styles/cssVars'
 import { Caption } from '../../stories/_harness'
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { ModeDoor } from './ModeDoor'
 import { Sel } from './Sel'
 

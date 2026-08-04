@@ -1,5 +1,6 @@
 // eslint-disable-next-line react-refresh/only-export-components
 export { toast } from 'sonner'
+
 import { Toaster as SonnerToaster } from 'sonner'
 
 export function Toaster() {

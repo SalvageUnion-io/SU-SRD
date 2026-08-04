@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-
 import { EntityRow } from '../EntityRow'
 
 // Not automatic under bun:test — without it, rows accumulate in the document and

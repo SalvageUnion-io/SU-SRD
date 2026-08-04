@@ -23,15 +23,19 @@
  * readOnly suppresses every affordance: no foot actions, no status cycle.
  */
 
-import { useState } from 'react'
-import { Button, ModalShell, ReferenceEntityCard, StatusBadge } from 'component-lib'
 import type { CardFootMeta, ReferenceEntityControl } from 'component-lib'
-
+import {
+  Button,
+  CardRemoveButton,
+  ModalShell,
+  ReferenceEntityCard,
+  StatusBadge,
+} from 'component-lib'
+import { useState } from 'react'
 import type { ScrapPool } from '../../lib/schemas/crawler'
 import type { ItemCondition } from '../../lib/schemas/mech'
-import { itemEconomy, repairPoolTl, repairScrapCost } from './mechItemRules'
 import type { MechItem, MechItemEconomy } from './mechItemRules'
-import { CardRemoveButton } from 'component-lib'
+import { itemEconomy, repairPoolTl, repairScrapCost } from './mechItemRules'
 
 /** Stable hide literal — keeps ReferenceEntityCard's memo effective. */
 const HIDE_CHOICES = { choices: true } as const

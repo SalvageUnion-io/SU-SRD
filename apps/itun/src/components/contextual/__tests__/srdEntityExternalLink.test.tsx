@@ -9,10 +9,10 @@
 
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { render } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
-import { srdEntityExternalLink } from '../srdEntityExternalLink'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { must } from '../../__tests__/must'
+import { srdEntityExternalLink } from '../srdEntityExternalLink'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')

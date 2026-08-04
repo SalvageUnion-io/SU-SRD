@@ -6,11 +6,10 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-
+import { SHELF } from '../../lib/container'
 import { _clearAllStores, _resetDbSingleton } from '../../lib/db/index'
 import type { EncounterNpcCreateInput } from '../encounterStore'
 import { useEncounterStore } from '../encounterStore'
-import { SHELF } from '../../lib/container'
 
 const baseNpcInput: EncounterNpcCreateInput = {
   schemaVersion: 1,

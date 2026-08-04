@@ -9,8 +9,8 @@
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import { SalvageUnionReference, getChassisAbilities } from 'salvageunion-reference'
 import type { SURefMetaAction, SURefMetaEntity } from 'salvageunion-reference'
+import { getChassisAbilities, SalvageUnionReference } from 'salvageunion-reference'
 import { ChassisAbilitiesContent } from '../ChassisAbilitiesContent'
 
 const abilitiesOf = (chassisName: string): SURefMetaAction[] => {

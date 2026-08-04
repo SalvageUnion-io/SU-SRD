@@ -1,17 +1,3 @@
-import { useMemo } from 'react'
-import {
-  SalvageUnionReference,
-  nameToSlug,
-  normalizePatternName,
-  visiblePatterns,
-} from 'salvageunion-reference'
-import type { SURefChassis } from 'salvageunion-reference'
-import {
-  isLegalCreationChassis,
-  legalStartingPatterns,
-  matchesRef,
-  MECH_CREATION_SCRAP_CAP,
-} from 'salvageunion-reference/rules'
 import {
   MasonryColumns,
   ReferenceEntityCard,
@@ -19,6 +5,20 @@ import {
   Slab,
   useChassisPatternConfig,
 } from 'component-lib'
+import { useMemo } from 'react'
+import type { SURefChassis } from 'salvageunion-reference'
+import {
+  nameToSlug,
+  normalizePatternName,
+  SalvageUnionReference,
+  visiblePatterns,
+} from 'salvageunion-reference'
+import {
+  isLegalCreationChassis,
+  legalStartingPatterns,
+  MECH_CREATION_SCRAP_CAP,
+  matchesRef,
+} from 'salvageunion-reference/rules'
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
 export type ChassisPattern = SURefChassis['patterns'][number]

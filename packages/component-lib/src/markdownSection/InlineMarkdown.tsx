@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
-
-import { type InlineNode, parseInline } from './parseMarkdownSection'
+import type { InlineNode } from './parseMarkdownSection'
+import { parseInline } from './parseMarkdownSection'
 
 /** Pair each run with its start offset in the text — a stable React key. */
 function withOffsets(nodes: InlineNode[]): Array<{ node: InlineNode; offset: number }> {

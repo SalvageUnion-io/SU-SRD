@@ -4,7 +4,6 @@
  * these pin the pure rewrite semantics.
  */
 import { describe, expect, test } from 'bun:test'
-
 import { normalizeRefsRecord } from '../migrations/6-mech-refs-to-slugs'
 
 describe('normalizeRefsRecord (v6 name → slug rewrite)', () => {

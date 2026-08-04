@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
-import { Conditions, ConditionChip } from './Conditions'
+import { ConditionChip, Conditions } from './Conditions'
 
 export default {
   title: 'Atoms/Conditions',

@@ -1,52 +1,55 @@
+import type { StepRule } from 'component-lib'
+import {
+  Banner,
+  GainScrapStep,
+  MechFlavorStep,
+  OffRulesEscape,
+  RuleBrief,
+  toast,
+  WizShell,
+  WizTracker,
+} from 'component-lib'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import {
   computeMechCapacity,
   evaluateMechWarnings,
-  matchesRef,
   MECH_CREATION_SCRAP_CAP,
+  matchesRef,
   resolveChassisRef,
   resolveModuleRef,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
-import { toast } from 'component-lib'
+import { useMech } from '../../hooks/queries'
+import type { MechWizardStepId, StepGateResult } from '../../lib/rules/creation'
 import {
   clampMechCreationDraft,
   mechCreationBudgetFor,
   mechCreationStepGate,
 } from '../../lib/rules/creation'
-import type { MechWizardStepId, StepGateResult } from '../../lib/rules/creation'
 import { mechMaxEP } from '../../lib/rules/derivedStats'
 import type { SoftWarning } from '../../lib/rules/types'
 import { MechSchema } from '../../lib/schemas/mech'
+import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import {
   EMPTY_MECH_FORM_STATE,
   mechFormToCreateInput,
   mechFormToUpdatePatch,
 } from '../../lib/wizard/mechFormState'
-import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
-import { useMech } from '../../hooks/queries'
-import { Banner } from 'component-lib'
-import { OffRulesEscape } from 'component-lib'
-import { RuleBrief } from 'component-lib'
-import type { StepRule } from 'component-lib'
-import { WizShell, WizTracker } from 'component-lib'
-import { CraftItemsStep } from './CraftItemsStep'
-import { GainScrapStep } from 'component-lib'
-import { InstallStep } from './InstallStep'
-import { LoadoutPanel } from './LoadoutPanel'
-import { useWizardFlow } from '../wizard/useWizardFlow'
-import { MechChassisStep } from './MechChassisStep'
-import type { ChassisPattern } from './MechChassisStep'
-import { MechFlavorStep } from 'component-lib'
-import { MechReviewStep } from './MechReviewStep'
-import { MechStatsStep } from './MechStatsStep'
 import {
   clearWizardDraft,
   readWizardDraft,
   useWizardDraftSync,
   wizardDraftKey,
 } from '../../lib/wizard/wizardDraft'
+import { useWizardFlow } from '../wizard/useWizardFlow'
+import { CraftItemsStep } from './CraftItemsStep'
+import { InstallStep } from './InstallStep'
+import { LoadoutPanel } from './LoadoutPanel'
+import type { ChassisPattern } from './MechChassisStep'
+import { MechChassisStep } from './MechChassisStep'
+import { MechReviewStep } from './MechReviewStep'
+import { MechStatsStep } from './MechStatsStep'
 
 /**
  * Book-order steps (Mech Workshop pp.94–95 + Review — plan §4.2). Edit mode

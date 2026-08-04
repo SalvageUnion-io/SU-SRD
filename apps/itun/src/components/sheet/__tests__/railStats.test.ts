@@ -9,9 +9,8 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { mechRailItems } from '../railStats'
 import { mechFixture } from '../../__tests__/fixtures'
+import { mechRailItems } from '../railStats'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')

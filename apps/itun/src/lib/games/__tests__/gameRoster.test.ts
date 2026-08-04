@@ -1,12 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-
-import {
-  crawlerRows,
-  isTableRunner,
-  ownableRows,
-  tableCapabilities,
-  type GameMember,
-} from '../gameRoster'
+import type { GameMember } from '../gameRoster'
+import { crawlerRows, isTableRunner, ownableRows, tableCapabilities } from '../gameRoster'
 
 /**
  * The Game roster's rules, tested against the same cases as the server.

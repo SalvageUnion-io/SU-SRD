@@ -63,29 +63,32 @@
  * readOnly suppresses every edit affordance (snapshot contexts).
  */
 
-import { useState } from 'react'
+import {
+  CardRemoveButton,
+  EntityGridRow,
+  MasonryColumns,
+  ReferenceEntityCard,
+  SheetHero,
+  SheetSectionSlab,
+  Stat,
+} from 'component-lib'
 import type { ReactNode } from 'react'
-import { ReferenceEntityCard, SheetHero, Stat } from 'component-lib'
-
+import { useState } from 'react'
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
-import { SCRAP_TLS, drawFromPool, poolAvailableAtOrAbove } from '../../lib/rules/crawlerEconomy'
+import { drawFromPool, poolAvailableAtOrAbove, SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
+import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
-import { EntityGridRow, MasonryColumns } from 'component-lib'
-import { CardRemoveButton } from 'component-lib'
-import { SheetSectionSlab } from 'component-lib'
-import { StorageManifest } from './StorageManifest'
-
-import { CrawlerBayCard } from './CrawlerSheetItems'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
+import { CrawlerBayCard } from './CrawlerSheetItems'
 import { BAY_REPAIR_COST, resolveCrawlerSystem } from './crawlerSheetItemRules'
-import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
+import { StorageManifest } from './StorageManifest'
 import { runWrite } from './sheetWrite'
 
 type CrawlerSheetProps = {

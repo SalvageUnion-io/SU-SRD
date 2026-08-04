@@ -8,9 +8,8 @@
  * is read-only — the log is never mutated from the UI.
  */
 
-import { useEffect, useState } from 'react'
 import { ModalShell } from 'component-lib'
-
+import { useEffect, useState } from 'react'
 import { changeLog } from '../../lib/db/index'
 import type { ChangeLogEntry, ChangeLogKind } from '../../lib/schemas/changeLog'
 import type { EntityType } from '../../stores/entityStore'

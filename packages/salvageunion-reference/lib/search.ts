@@ -2,8 +2,8 @@
  * Search functionality for Salvage Union data
  */
 
+import { getDataMaps, getSchemaCatalog } from './ModelFactory.js'
 import type { SURefEntity, SURefEnumSchemaName } from './types/index.js'
-import { getSchemaCatalog, getDataMaps } from './ModelFactory.js'
 import { extractActions } from './utilities.js'
 
 /** Lazily-built membership set: the non-meta schema catalog ids. */

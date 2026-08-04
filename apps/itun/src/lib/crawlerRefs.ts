@@ -11,8 +11,8 @@
  * reference data not yet preloaded) resolves to null rather than throwing.
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefCrawler, SURefCrawlerBay } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 
 /** A freeform/permanent NPC choice (its id + display name). */
 export type ResolvedNpcChoice = { id: string; name: string }

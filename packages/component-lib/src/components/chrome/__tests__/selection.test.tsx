@@ -1,5 +1,5 @@
-import { describe, test, expect, mock } from 'bun:test'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { Sel } from '../Sel'
 
 describe('Sel', () => {

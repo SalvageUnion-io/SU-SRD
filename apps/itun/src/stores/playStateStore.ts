@@ -19,7 +19,6 @@
  */
 
 import { create } from 'zustand'
-
 import type { RangeBand } from '../components/dashboard/dashboardRules'
 
 /** Which entity currently "owns" the cockpit — the active-row entity. */

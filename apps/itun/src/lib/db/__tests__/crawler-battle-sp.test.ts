@@ -12,7 +12,6 @@
  * touched here.
  */
 import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { crawlerMaxSP } from 'salvageunion-reference/rules'
 import { CrawlerSchema } from '../../schemas/crawler'

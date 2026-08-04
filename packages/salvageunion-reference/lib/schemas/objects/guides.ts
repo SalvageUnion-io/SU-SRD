@@ -5,8 +5,8 @@
 
 import { z } from '../../zod.js'
 import { IdSchema, NameSchema, NonNegativeIntegerSchema } from '../common.js'
-import { ContentSchema } from './content.js'
 import { ChoiceConstraintsSchema, ChoiceOptionSchema } from './choices.js'
+import { ContentSchema } from './content.js'
 import { SchemaNameWithActionsSchema } from './references.js'
 
 /**

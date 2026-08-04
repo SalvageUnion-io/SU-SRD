@@ -1,10 +1,9 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import { CrawlerBuilder } from '../../components/crawler/CrawlerBuilder'
 import { NewEntityScreen } from '../../components/wizard/NewEntityScreen'
-import { parseCreateMode } from '../../lib/wizard/createMode'
 import type { CreateMode } from '../../lib/wizard/createMode'
+import { parseCreateMode } from '../../lib/wizard/createMode'
 
 export const Route = createFileRoute('/crawlers/new')({
   // mode: absent → chooser · 'guided' → the wizard · 'blank' → blank dialog

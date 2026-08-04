@@ -1,5 +1,4 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
-
 import { GameEntitySheet, GameSheetNotice } from '../components/games/GameEntitySheet'
 import type { RosterKind } from '../lib/games/gameRoster'
 

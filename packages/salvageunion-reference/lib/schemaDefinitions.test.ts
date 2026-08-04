@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { getJsonSchemaDefinition, getAllJsonSchemaDefinitions } from './schemaDefinitions.js'
+import { getAllJsonSchemaDefinitions, getJsonSchemaDefinition } from './schemaDefinitions.js'
 
 describe('getJsonSchemaDefinition', () => {
   it('returns a JSON Schema object for a known schema ID', () => {

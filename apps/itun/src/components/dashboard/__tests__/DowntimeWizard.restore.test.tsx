@@ -6,13 +6,12 @@
  * respects the bay gates rather than healing unconditionally.
  */
 
-import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
+import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { DowntimeWizard } from '../DowntimeWizard'
 import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { DowntimeWizard } from '../DowntimeWizard'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')

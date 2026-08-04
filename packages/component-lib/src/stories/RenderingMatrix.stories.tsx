@@ -1,14 +1,13 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { Stat } from '../components/shared/Stat'
-import { VitalGauge } from '../components/stat/VitalGauge'
-import { BayStatus } from '../components/stat/BayStatus'
 import { Badge } from '../components/chrome/Badge'
-import { ConditionSwatch } from '../components/stat/ConditionSwatch'
-import { SlotGrid } from '../components/shared/SlotGrid'
 import { RollTable } from '../components/shared/RollTable'
+import { SlotGrid } from '../components/shared/SlotGrid'
+import { Stat } from '../components/shared/Stat'
+import { BayStatus } from '../components/stat/BayStatus'
+import { ConditionSwatch } from '../components/stat/ConditionSwatch'
+import { VitalGauge } from '../components/stat/VitalGauge'
 
 export default {
   title: 'Foundations/Rendering Matrix',

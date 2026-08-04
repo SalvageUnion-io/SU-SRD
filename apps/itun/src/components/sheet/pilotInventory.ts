@@ -17,12 +17,11 @@
  * Pure functions — no React, no IndexedDB.
  */
 
-import { SalvageUnionReference, getInventorySlots, getTraits } from 'salvageunion-reference'
 import type { SURefEquipment } from 'salvageunion-reference'
-
-import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
-import { pilotMaxInventorySlots } from '../../lib/rules/derivedStats'
+import { getInventorySlots, getTraits, SalvageUnionReference } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
+import { pilotMaxInventorySlots } from '../../lib/rules/derivedStats'
+import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
 
 /**
  * Resolve an equipment ref (slug, name, or id) against the reference data.

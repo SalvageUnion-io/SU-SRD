@@ -13,7 +13,6 @@
  * zodSchemaMap directly, so it is covered transitively.
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
-
 import { SalvageUnionReference } from './index.js'
 import { _registryKeySets, getSchemaCatalog, schemaDisplayNames } from './ModelFactory.js'
 

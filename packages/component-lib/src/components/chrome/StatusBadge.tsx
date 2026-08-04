@@ -1,5 +1,6 @@
-import { Badge, type BadgeTone } from './Badge'
 import type { EntityStatus } from '../shared/entityStatus'
+import type { BadgeTone } from './Badge'
+import { Badge } from './Badge'
 
 /** The domain vocabulary maps onto the shared badge tones — one rendering. */
 const STATUS_STYLES: Record<EntityStatus, { label: string; tone: BadgeTone }> = {

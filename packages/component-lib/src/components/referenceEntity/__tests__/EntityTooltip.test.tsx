@@ -26,9 +26,8 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { EntityTooltip } from '../EntityTooltip'
 import { InsideTooltipContext } from '../../ui/insideTooltipContext'
+import { EntityTooltip } from '../EntityTooltip'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload(['chassis', 'systems', 'classes'])

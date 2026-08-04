@@ -1,6 +1,5 @@
 import type { Story } from '@ladle/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
 import { InlineRef } from './InlineRef'
 
 export default {

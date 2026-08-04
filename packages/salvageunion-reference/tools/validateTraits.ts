@@ -16,7 +16,8 @@
  */
 
 import { loadAllDataFiles } from './loadData.js'
-import { findTraitIssues, type TraitIssue } from './validateTraitsLogic.js'
+import type { TraitIssue } from './validateTraitsLogic.js'
+import { findTraitIssues } from './validateTraitsLogic.js'
 
 function main(): void {
   const filesByName = loadAllDataFiles()

@@ -12,14 +12,12 @@
  */
 
 import { create } from 'zustand'
-
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { EntityRef } from '../../lib/schemas/entity'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import type { SoftLink } from '../../lib/schemas/softLink'
-import type { useEntityStore } from '../../stores/entityStore'
-import type { ChangeMeta, EntityState } from '../../stores/entityStore'
+import type { ChangeMeta, EntityState, useEntityStore } from '../../stores/entityStore'
 import type { CreateInput, EntityForType, EntityType } from '../../stores/types'
 import type { EntityLookup } from '../sheet/composition'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'

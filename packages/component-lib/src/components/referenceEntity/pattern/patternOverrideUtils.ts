@@ -1,10 +1,10 @@
 import type { SURefEntity } from 'salvageunion-reference'
 import {
-  SalvageUnionReference,
   getPatterns,
   getSalvageValue,
   getTechLevelNumber,
   normalizePatternName,
+  SalvageUnionReference,
 } from 'salvageunion-reference'
 import type { PatternOverrideData } from '../referenceEntityTypes'
 

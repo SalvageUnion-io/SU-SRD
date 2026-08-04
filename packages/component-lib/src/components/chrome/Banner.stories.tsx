@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
-import { Banner } from './Banner'
 import type { BannerWarning } from './Banner'
+import { Banner } from './Banner'
 
 export default {
   title: 'Containers/Banner',

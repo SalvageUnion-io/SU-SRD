@@ -4,8 +4,8 @@
  */
 
 import { roll } from '@randsum/roller'
-import { SalvageUnionReference, rollOnTable } from 'salvageunion-reference'
 import type { SURefRollTable } from 'salvageunion-reference'
+import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 
 /** Roll IDs for pilot wizard identity fields. */
 export const PILOT_ROLL_TABLE_NAMES = {

@@ -1,10 +1,10 @@
-import { Client, GatewayIntentBits, Events } from 'discord.js'
+import { Client, Events, GatewayIntentBits } from 'discord.js'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { config } from './config.js'
 import { commands } from './commands/index.js'
-import { handleReady } from './events/ready.js'
+import { config } from './config.js'
 import { handleInteractionCreate } from './events/interactionCreate.js'
-import { initObservability, captureException, flushObservability } from './observability.js'
+import { handleReady } from './events/ready.js'
+import { captureException, flushObservability, initObservability } from './observability.js'
 
 // Initialize error tracking as early as possible (no-op without SENTRY_DSN).
 initObservability()

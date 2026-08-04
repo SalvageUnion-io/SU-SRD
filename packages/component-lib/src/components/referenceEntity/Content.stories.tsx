@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import type { ReactNode } from 'react'
-import { Content } from './Content'
 import type { SURefObjectContentBlock } from 'salvageunion-reference'
+import { Content } from './Content'
 
 export default {
   title: 'Compositions/Entity/Content',

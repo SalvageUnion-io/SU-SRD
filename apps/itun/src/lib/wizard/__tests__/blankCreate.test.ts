@@ -8,12 +8,11 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
+import { useEntityStore } from '../../../stores/entityStore'
 import { _clearAllStores, _resetDbSingleton } from '../../db/index'
 import { CrawlerSchema } from '../../schemas/crawler'
 import { MechSchema } from '../../schemas/mech'
 import { PilotSchema } from '../../schemas/pilot'
-import { useEntityStore } from '../../../stores/entityStore'
 import { createBlank } from '../blankCreate'
 
 beforeAll(async () => {

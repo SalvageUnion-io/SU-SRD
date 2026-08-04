@@ -7,59 +7,55 @@
 
 import { describe, expect, it } from 'bun:test'
 import { z } from '../zod.js'
-
+import {
+  ActivationCostSchema,
+  IdSchema,
+  NameSchema,
+  NonNegativeIntegerSchema,
+  PositiveIntegerSchema,
+  TechLevelSchema,
+} from './common.js'
 import {
   AbilitySchema,
   AbilityTreeRequirementSchema,
-  MetaActionSchema,
   BioTitanSchema,
+  CatalogCategorySchema,
   ChassisSchema,
   ClassSchema,
   CrawlerBaySchema,
-  CrawlerTechLevelSchema,
   CrawlerSchema,
+  CrawlerTechLevelSchema,
   CreatureSchema,
   DistanceSchema,
   DroneSchema,
   EquipmentSchema,
   FactionSchema,
+  GuideSchema,
   KeywordSchema,
   MeldSchema,
+  MetaActionSchema,
   ModuleSchema,
   NPCSchema,
   RollTableSchema,
+  SourceEntitySchema,
   SquadSchema,
   SystemSchema,
+  TechLevelEntitySchema,
   TraitEntitySchema,
   VehicleSchema,
-  GuideSchema,
-  SourceEntitySchema,
-  TechLevelEntitySchema,
-  CatalogCategorySchema,
 } from './entities.js'
-
-import * as objectSchemaModule from './objects.js'
-
 import {
-  SourceSchema,
+  ActionTypeSchema,
+  ClassTypeSchema,
   ContentTypeSchema,
+  DamageTypeSchema,
   RangeItemSchema,
   RangeSchema,
-  ActionTypeSchema,
-  DamageTypeSchema,
-  ClassTypeSchema,
-  TreeSchema,
   SchemaNameSchema,
+  SourceSchema,
+  TreeSchema,
 } from './enums.js'
-
-import {
-  IdSchema,
-  NameSchema,
-  NonNegativeIntegerSchema,
-  PositiveIntegerSchema,
-  ActivationCostSchema,
-  TechLevelSchema,
-} from './common.js'
+import * as objectSchemaModule from './objects.js'
 
 type JsonSchemaObject = {
   description?: string

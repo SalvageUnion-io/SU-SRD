@@ -21,14 +21,13 @@
  * see `ContainerSwitcher` for the same branch and the reasoning behind it.
  */
 
-import { useState } from 'react'
 import { FieldError, Select } from 'component-lib'
 import { useQuery } from 'convex/react'
-
+import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { containerOf, moveTo } from '../../lib/container'
 import type { ContainerFields } from '../../lib/container'
+import { containerOf, moveTo } from '../../lib/container'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'

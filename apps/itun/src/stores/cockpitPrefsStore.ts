@@ -14,11 +14,10 @@
  */
 
 import { create } from 'zustand'
-
-import { serializeContainer } from './activeContainerStore'
+import type { Container } from '../lib/container'
 import type { CockpitPrefs } from '../lib/schemas/cockpitPrefs'
 import { CockpitPrefsSchema } from '../lib/schemas/cockpitPrefs'
-import type { Container } from '../lib/container'
+import { serializeContainer } from './activeContainerStore'
 
 const STORAGE_KEY = 'itun.cockpitPrefs'
 

@@ -8,7 +8,6 @@
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-
 import { requestPersistentStorage } from '../index'
 
 const originalStorage = Object.getOwnPropertyDescriptor(navigator, 'storage')

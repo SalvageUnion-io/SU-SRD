@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
 import { useConvexAuth } from 'convex/react'
-
-import { ConnectionContext } from './connectionContext'
+import type { ReactNode } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { setEntityBackendAuthState } from '../../stores/entityBackend'
 import type { ConnectionState } from './connectionContext'
+import { ConnectionContext } from './connectionContext'
 import {
   isSettlingConnection,
   resolveConnectionMode,
@@ -11,7 +11,6 @@ import {
   writesAllowed,
 } from './connectionMode'
 import { convexClient, isConvexConfigured } from './convexClient'
-import { setEntityBackendAuthState } from '../../stores/entityBackend'
 
 /**
  * Supplies the current storage mode (ADR-030 §1) to the tree.

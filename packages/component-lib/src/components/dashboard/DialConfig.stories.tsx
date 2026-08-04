@@ -1,8 +1,9 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
-import { Caption } from '../../stories/_harness'
 import { InstrumentStage } from '../../stories/_dashboardStage'
-import { DialConfig, type DialConfigRow } from './DialConfig'
+import { Caption } from '../../stories/_harness'
+import type { DialConfigRow } from './DialConfig'
+import { DialConfig } from './DialConfig'
 
 export default { title: 'Compositions/Dashboard/Dial Config' }
 

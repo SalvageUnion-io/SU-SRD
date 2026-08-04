@@ -15,8 +15,8 @@
  * undefined amount.
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 
 /**
  * Resolve the fixed AP cost of an ability, or null if there is no fixed numeric

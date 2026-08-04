@@ -9,9 +9,8 @@
 
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { buttonVariants } from 'component-lib'
-
-import { ShareSnapshotScreen } from '../../../components/sheet/ShareSnapshotScreen'
 import { AppLink } from '../../../components/shared/AppLink'
+import { ShareSnapshotScreen } from '../../../components/sheet/ShareSnapshotScreen'
 import type { EntityRef } from '../../../lib/schemas/entity'
 import { cn } from '../../../lib/utils'
 import { useEntityStore } from '../../../stores/entityStore'

@@ -28,11 +28,10 @@
  * pinned by tests rather than left to the call sites.
  */
 
-import type { StatBreakdown } from 'salvageunion-reference/rules'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import type { StatBreakdown } from 'salvageunion-reference/rules'
 import { matchesRef } from 'salvageunion-reference/rules'
-
 import type { PartnerInstance } from '../schemas/partner'
 
 /** Mecha Companion's floor — "equal to your Union Crawler (Tech 3 minimum)". */

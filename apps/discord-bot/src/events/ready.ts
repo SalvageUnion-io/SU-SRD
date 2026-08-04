@@ -1,4 +1,5 @@
-import { ActivityType, type PresenceData } from 'discord.js'
+import type { PresenceData } from 'discord.js'
+import { ActivityType } from 'discord.js'
 import { captureMessage } from '../observability.js'
 
 /**

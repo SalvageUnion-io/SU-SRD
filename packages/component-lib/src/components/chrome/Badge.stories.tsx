@@ -1,8 +1,10 @@
 import type { Story } from '@ladle/react'
-import { type ReactNode, useState } from 'react'
+import type { ReactNode } from 'react'
+import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
-import { Badge, type BadgeTone } from './Badge'
+import type { BadgeTone } from './Badge'
+import { Badge } from './Badge'
 
 export default {
   title: 'Atoms/Badge',

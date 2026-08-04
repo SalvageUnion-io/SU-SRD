@@ -10,8 +10,8 @@
  * 'systems', 'modules'])`) before the first call to `computeMechCapacity`.
  */
 
-import type { MechCapacityResult, MechInput, CapacityViolation } from './types.js'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from './resolveRefs.js'
+import type { CapacityViolation, MechCapacityResult, MechInput } from './types.js'
 
 /**
  * Look up the slot cost of a system by ref (slug; legacy name/id tolerated).

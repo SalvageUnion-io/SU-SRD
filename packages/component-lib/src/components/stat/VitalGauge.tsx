@@ -1,13 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent } from 'react'
-
-import { cn } from '../../utils/cn'
+import { useEffect, useRef, useState } from 'react'
 import type { SizeRung } from '../../styles/sizing'
+import { cn } from '../../utils/cn'
 import { capsLabel } from '../chrome/capsLabel'
 import { POSTER_STAMP } from '../chrome/posterStamp'
 import { pipClickValue, statBlockRowStarts, trackSegmentState } from './pipRows'
-import { StatProvenance } from './StatProvenance'
 import type { ProvenanceLine } from './StatProvenance'
+import { StatProvenance } from './StatProvenance'
 
 export type VitalGaugeProps = {
   /** Stamp label, e.g. 'HP', 'SP', 'Heat'. */

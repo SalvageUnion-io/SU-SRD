@@ -18,18 +18,19 @@
  */
 
 import { useMemo, useState } from 'react'
-import { SalvageUnionReference, searchIn } from 'salvageunion-reference'
 import type {
   EntitySchemaName,
   SchemaToEntityMap,
   SURefEnumSchemaName,
 } from 'salvageunion-reference'
-import { matchesRef, type TechLevel } from 'salvageunion-reference/rules'
+import { SalvageUnionReference, searchIn } from 'salvageunion-reference'
+import type { TechLevel } from 'salvageunion-reference/rules'
+import { matchesRef } from 'salvageunion-reference/rules'
 import { cn } from '../../utils/cn'
-import { FOCUS_WITHIN } from '../chrome/interaction'
 import { Badge } from '../chrome/Badge'
-import { Panel } from '../chrome/Panel'
 import { Button } from '../chrome/Button'
+import { FOCUS_WITHIN } from '../chrome/interaction'
+import { Panel } from '../chrome/Panel'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { statBlockRowStarts } from '../stat/pipRows'
 import { Card } from './Card'

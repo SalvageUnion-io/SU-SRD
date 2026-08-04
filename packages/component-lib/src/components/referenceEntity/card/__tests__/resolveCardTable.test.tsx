@@ -7,8 +7,8 @@
  */
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import { SalvageUnionReference, extractVisibleActions } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
+import { extractVisibleActions, SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 import { resolveCardTable } from '../resolveCardTable'
 

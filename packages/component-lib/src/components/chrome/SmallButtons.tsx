@@ -1,5 +1,5 @@
-import { forwardRef } from 'react'
 import type { ComponentPropsWithoutRef } from 'react'
+import { forwardRef } from 'react'
 import { cn } from '../../utils/cn'
 import { DISABLED, FOCUS_RING } from './interaction'
 

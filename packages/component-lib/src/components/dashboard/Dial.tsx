@@ -18,12 +18,13 @@
  * (Actions / Tables / SRD) show a centered title — no stats.
  */
 
-import { useCallback, useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
-
+import type { PointerEvent, ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { Button } from '../chrome/Button'
-import { DashboardGauge, type GaugeTone } from './DashboardGauge'
 import type { ProvenanceLine } from '../stat/StatProvenance'
+import type { GaugeTone } from './DashboardGauge'
+import { DashboardGauge } from './DashboardGauge'
 
 export type DialGauge = {
   label: string

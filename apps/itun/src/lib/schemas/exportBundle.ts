@@ -1,5 +1,4 @@
 import { z } from 'salvageunion-reference/zod'
-
 import { CrawlerSchema } from './crawler'
 import { EncounterNpcSchema } from './encounterNpc'
 import { MechSchema } from './mech'

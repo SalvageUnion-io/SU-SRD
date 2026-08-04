@@ -1,10 +1,9 @@
 import type { Story } from '@ladle/react'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-
-import { ModalShell } from './ModalShell'
-import { Button } from '../chrome/Button'
 import { Text } from '../base/Text'
+import { Button } from '../chrome/Button'
+import { ModalShell } from './ModalShell'
 
 export default {
   title: 'Containers/Modal Shell',

@@ -1,8 +1,8 @@
 import type { Story } from '@ladle/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { BayStatus } from './BayStatus'
-import type { EntityStatus } from '../shared/entityStatus'
 import { Caption } from '../../stories/_harness'
+import type { EntityStatus } from '../shared/entityStatus'
+import { BayStatus } from './BayStatus'
 
 export default {
   title: 'Atoms/Bay Status',

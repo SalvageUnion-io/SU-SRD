@@ -1,5 +1,5 @@
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefClass } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 
 type SURClassesAccessor = {
   all: () => unknown[]

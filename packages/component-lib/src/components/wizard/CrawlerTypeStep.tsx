@@ -3,8 +3,8 @@ import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/ru
 import { Callout } from '../chrome/Callout'
 import { EmptyState } from '../chrome/EmptyState'
 import { Slab } from '../chrome/Slab'
-import { MasonryColumns } from '../shared/MasonryColumns'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
+import { MasonryColumns } from '../shared/MasonryColumns'
 
 type CrawlerTypeOptionListProps = {
   types: SURefCrawler[]

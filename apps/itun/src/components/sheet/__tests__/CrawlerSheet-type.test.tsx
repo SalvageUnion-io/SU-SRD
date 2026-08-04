@@ -16,14 +16,13 @@
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import type { SURefCrawler } from 'salvageunion-reference'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-
-import { CrawlerIdentityPanel } from '../CrawlerIdentity'
+import type { SURefCrawler } from 'salvageunion-reference'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { CrawlerIdentityPanel } from '../CrawlerIdentity'
 
 afterEach(() => {
   cleanup()

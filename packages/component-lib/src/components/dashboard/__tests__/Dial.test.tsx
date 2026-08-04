@@ -7,8 +7,8 @@
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render } from '@testing-library/react'
 import { useState } from 'react'
-
-import { Dial, type DialItem } from '../Dial'
+import type { DialItem } from '../Dial'
+import { Dial } from '../Dial'
 
 const items: DialItem[] = [
   { key: 'actions', statless: true, label: 'Actions', sublabel: 'deck' },

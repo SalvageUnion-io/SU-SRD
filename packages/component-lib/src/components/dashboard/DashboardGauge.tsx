@@ -12,8 +12,8 @@
  */
 
 import type { CSSVarStyle } from '../../styles/cssVars'
-import { VitalGauge } from '../stat/VitalGauge'
 import type { ProvenanceLine } from '../stat/StatProvenance'
+import { VitalGauge } from '../stat/VitalGauge'
 
 export type GaugeTone = 'mech' | 'pilot' | 'crawler'
 

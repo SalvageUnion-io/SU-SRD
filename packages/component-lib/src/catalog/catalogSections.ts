@@ -19,8 +19,8 @@ import {
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import { getCatalogBg, getCatalogLabel } from './catalogColors'
-import { buildCatalogCategories } from './catalogHelpers'
 import type { CatalogSection } from './catalogHelpers'
+import { buildCatalogCategories } from './catalogHelpers'
 
 export function buildCatalogSections(): CatalogSection[] {
   const schemas = getSchemaCatalog().schemas.filter((s) => !s.meta)

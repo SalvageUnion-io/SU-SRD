@@ -5,7 +5,14 @@
  * Models are loaded lazily via SalvageUnionReference.preload().
  */
 
+// Imported from the concrete module rather than the ./utilities.js barrel: the
+// action-resolution module already imports this one (it needs
+// SalvageUnionReference), so going through the barrel would pull every other
+// utilities module into that cycle for no reason.
+import { extractActions, getChassisAbilities, invalidateActionMap } from './actionResolution.js'
 import type { ModelWithMetadata } from './BaseModel.js'
+import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated.js'
+import { lazyModelMap, SCHEMA_REGISTRY } from './generated/schemaRegistry.generated.js'
 import type { LazyModel } from './LazyModel.js'
 import {
   getLoadedModel,
@@ -14,87 +21,65 @@ import {
   resetLoadStateForTesting,
   toPascalCase,
 } from './ModelFactory.js'
-import {
-  lazyModelMap,
-  SCHEMA_REGISTRY,
-  type SchemaToEntityMap,
-  type EntitySchemaName,
-} from './generated/schemaRegistry.generated.js'
-// Imported from the concrete module rather than the ./utilities.js barrel: the
-// action-resolution module already imports this one (it needs
-// SalvageUnionReference), so going through the barrel would pull every other
-// utilities module into that cycle for no reason.
-import { extractActions, getChassisAbilities, invalidateActionMap } from './actionResolution.js'
 import { invalidateSearchIndex } from './search.js'
 import type {
-  SURefMetaAction,
   SURefEntity,
-  SURefMetaEntity,
   SURefEnumSchemaName,
+  SURefMetaAction,
+  SURefMetaEntity,
 } from './types/index.js'
 
 export { BaseModel, type ModelWithMetadata } from './BaseModel.js'
-
-export { getDataMaps, getSchemaCatalog, type EnhancedSchemaMetadata } from './ModelFactory.js'
-
-export {
-  resultForTable,
-  resultForColumnsTable,
-  isColumnsTable,
-  type TableRollResult,
-  type ColumnsTableRollResult,
-} from './utils/resultForTable.js'
-
-export { rollOnTable, type RollOnTableOutcome, type D20Roller } from './rollOnTable.js'
-
-// Export utility functions (type guards and property extractors)
-export * from './utilities.js'
-
-// Export helper functions for common operations
-export * from './helpers.js'
-
-// Export slug utilities
-export { nameToSlug, getEntitySlug, findEntityBySlug } from './slug.js'
-
 // Export content block helpers
 export {
-  replaceChassisPlaceholder,
   parseContentBlockString,
+  replaceChassisPlaceholder,
   resolveDataValueForTechLevel,
 } from './contentBlockHelpers.js'
-
+// Export helper functions for common operations
+export * from './helpers.js'
+export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory.js'
+// Export the granted-equipment choice resolver (pure view computation)
 export {
-  search,
-  searchIn,
+  type ChoicePrompt,
+  type ChoiceSelections,
+  type ResolvedChoiceView,
+  resolveChoiceView,
+} from './resolveChoiceView.js'
+export { type D20Roller, type RollOnTableOutcome, rollOnTable } from './rollOnTable.js'
+export {
+  extractContentText,
   getSuggestions,
   invalidateSearchIndex,
-  type SearchOptions,
-  type SearchResult,
   // Search primitives. Public because every consumer that needs them today has
   // forked them instead (discord-bot + component-lib fork `isSchemaName`; srd
   // forks `extractContentText`, `withinEditDistance1` and
   // `TYPO_MIN_TOKEN_LENGTH`). One implementation, one behaviour.
   isSchemaName,
-  extractContentText,
-  withinEditDistance1,
-  TYPO_MIN_TOKEN_LENGTH,
-} from './search.js'
-
-// Export the granted-equipment choice resolver (pure view computation)
-export {
-  resolveChoiceView,
-  type ChoiceSelections,
-  type ChoicePrompt,
-  type ResolvedChoiceView,
-} from './resolveChoiceView.js'
-
-// Import search functions for use in class methods
-import {
-  search as searchFn,
-  searchIn as searchInFn,
-  getSuggestions as getSuggestionsFn,
   type SearchOptions,
   type SearchResult,
+  search,
+  searchIn,
+  TYPO_MIN_TOKEN_LENGTH,
+  withinEditDistance1,
+} from './search.js'
+// Export slug utilities
+export { findEntityBySlug, getEntitySlug, nameToSlug } from './slug.js'
+// Export utility functions (type guards and property extractors)
+export * from './utilities.js'
+export {
+  type ColumnsTableRollResult,
+  isColumnsTable,
+  resultForColumnsTable,
+  resultForTable,
+  type TableRollResult,
+} from './utils/resultForTable.js'
+
+import type { SearchOptions, SearchResult } from './search.js'
+import {
+  getSuggestions as getSuggestionsFn,
+  search as searchFn,
+  searchIn as searchInFn,
 } from './search.js'
 
 // ---------------------------------------------------------------------------
@@ -115,8 +100,7 @@ import {
 const lazyModelsById: Record<string, LazyModel<unknown> | undefined> = lazyModelMap
 
 export type * from './types/index.js'
-
-export type { SchemaToEntityMap, EntitySchemaName }
+export type { EntitySchemaName, SchemaToEntityMap }
 
 // Runtime set of entity schema names (derived from registry, excludes non-entity metadata schemas)
 export const EntitySchemaNames = new Set<EntitySchemaName>(

@@ -1,11 +1,11 @@
 import type { SURefMetaAction } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
-import { entityHostTone } from '../card/entityCardTone'
-import { Slab } from '../../chrome/Slab'
-import { PatternEquipmentItem } from './PatternEquipmentItem'
 import { cn } from '../../../utils/cn'
+import { Slab } from '../../chrome/Slab'
+import { entityHostTone } from '../card/entityCardTone'
+import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
 import { getReferenceEntitySpacing } from '../referenceEntityTypes'
+import { PatternEquipmentItem } from './PatternEquipmentItem'
 
 type ChassisAbilitiesContentProps = {
   chassisName?: string

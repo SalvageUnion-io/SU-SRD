@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-
-import { UNCLAIMED_LABEL, ownerChipFor, viewerMayEdit } from '../ownerChip'
+import { ownerChipFor, UNCLAIMED_LABEL, viewerMayEdit } from '../ownerChip'
 
 /**
  * Owner chips (D32).

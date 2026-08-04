@@ -1,7 +1,7 @@
-import { Suspense, use, type ReactNode } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntityExternalLinkProvider } from 'component-lib'
-
+import type { ReactNode } from 'react'
+import { Suspense, use } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 
 /**

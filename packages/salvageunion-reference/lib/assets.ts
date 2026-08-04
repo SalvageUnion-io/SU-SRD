@@ -6,8 +6,8 @@
  * public surface.
  */
 
-import type { SURefMetaEntity } from './types/index.js'
 import { getEntitySlug } from './slug.js'
+import type { SURefMetaEntity } from './types/index.js'
 
 /**
  * Base URL of the Netlify-hosted artwork CDN (the su-assets site, backed by a

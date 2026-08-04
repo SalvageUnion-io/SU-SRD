@@ -9,10 +9,8 @@
  */
 import { beforeAll, describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../index.js'
-
+import type { ChassisStats } from './derivedStats.js'
 import {
-  PILOT_BASE_AP,
-  PILOT_BASE_HP,
   clampCrawlerCurrentStats,
   clampMechCurrentStats,
   clampPilotCurrentStats,
@@ -21,21 +19,22 @@ import {
   injuryMaxHpPenalty,
   isPilotDead,
   mechMaxCargo,
+  mechMaxCargoParts,
   mechMaxEP,
   mechMaxHeat,
-  mechMaxSP,
-  pilotMaxHPParts,
-  mechMaxSPParts,
   mechMaxHeatParts,
-  mechMaxCargoParts,
+  mechMaxSP,
+  mechMaxSPParts,
+  PILOT_BASE_AP,
+  PILOT_BASE_HP,
+  PILOT_BASE_INVENTORY_SLOTS,
   pilotMaxAP,
   pilotMaxHP,
+  pilotMaxHPParts,
   pilotMaxInventorySlots,
   pilotMaxInventorySlotsParts,
-  PILOT_BASE_INVENTORY_SLOTS,
   unifiedMechConditions,
 } from './derivedStats.js'
-import type { ChassisStats } from './derivedStats.js'
 
 beforeAll(async () => {
   await SalvageUnionReference.preload([
