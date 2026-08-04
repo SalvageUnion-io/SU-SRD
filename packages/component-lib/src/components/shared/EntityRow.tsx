@@ -195,6 +195,20 @@ type EntityRowProps = FilledEntityRowProps | EmptyEntityRowProps
  * Per-ontology tone (see `--color-sheet-*` in theme.css), read as `Card` reads
  * it: `band` is the header fill, `ink` the text that sits legibly on it.
  *
+ * ## Why the band is the DEEP tone
+ *
+ * The title sits on this band in paper-white, and on the BASE tones that was
+ * never legible: 2.41:1 on pilot orange, 1.69:1 on game blue, against a 4.5:1
+ * AA floor. No choice of white fixes it — contrast against a light ground
+ * improves as the text darkens, so a "safer white" is a contradiction in terms.
+ * Either the text goes ink or the band goes dark. This is the latter, and on
+ * the deep fills the same four measure 5.17 / 10.16 / 8.49 / 8.12 — AA across
+ * the board, worst case now better than the best case was.
+ *
+ * These are the tokens the retired left rail used to wear, which is fitting: the
+ * ontology's strongest statement of itself moved from a 6px edge to the band
+ * carrying the name.
+ *
  * ## Why there is no longer a `rail` or a `wash`
  *
  * The row used to carry its ontology two ways at once — a 6px deep-tone bar
@@ -209,14 +223,14 @@ type EntityRowProps = FilledEntityRowProps | EmptyEntityRowProps
  * ground per ontology, and the rail put a hard 6px of `crawler-deep` against a
  * pink wash — the highest-contrast element on the row spent on decoration.
  *
- * `crawler` takes paper text for the same reason its Badge tone does: it is the
- * one dark fill in the ramp.
+ * Every ontology now takes paper text, crawler included — on a deep fill they
+ * are all dark grounds, so the split that used to single crawler out is gone.
  */
 const TONE: Record<EntityRowType, { band: string; ink: string }> = {
-  pilot: { band: 'var(--color-sheet-pilot)', ink: 'var(--color-ink)' },
-  mech: { band: 'var(--color-sheet-mech)', ink: 'var(--color-ink)' },
-  crawler: { band: 'var(--color-sheet-crawler)', ink: 'var(--color-paper)' },
-  game: { band: 'var(--color-sheet-game)', ink: 'var(--color-ink)' },
+  pilot: { band: 'var(--color-sheet-pilot-deep)', ink: 'var(--color-paper)' },
+  mech: { band: 'var(--color-sheet-mech-deep)', ink: 'var(--color-paper)' },
+  crawler: { band: 'var(--color-sheet-crawler-deep)', ink: 'var(--color-paper)' },
+  game: { band: 'var(--color-sheet-game-deep)', ink: 'var(--color-paper)' },
 }
 
 /**

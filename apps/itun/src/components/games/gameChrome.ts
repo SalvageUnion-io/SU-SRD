@@ -25,6 +25,25 @@
  */
 export const PAGE = 'min-h-screen bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12 flex flex-col gap-6'
 
+/**
+ * A panel's TITLE, as it sits in the card's header band.
+ *
+ * The same rule the entity card and the entity row use for a title: paper-white
+ * text directly on the tone, condensed, bold, uppercase, tight caps tracking.
+ * The Game panels used to state their names as a small `STAMP` INSIDE an
+ * untoned slab, which left the game surface speaking two dialects — banded,
+ * toned rows above; grey-labelled boxes below.
+ */
+export const PANEL_TITLE =
+  'font-cond text-base font-bold uppercase leading-none tracking-caps-tight text-paper'
+
+/**
+ * The tone every Game-surface panel wears — the `game` ontology, the same blue
+ * a Game row carries in the lobby. `Card` darkens it to the deep fill for the
+ * band, which is what makes the paper-white title legible on it.
+ */
+export const PANEL_TONE = 'bg-sheet-game'
+
 /** Small stamped label above a group. */
 export const STAMP = 'font-cond text-xs font-bold tracking-caps-wide uppercase'
 

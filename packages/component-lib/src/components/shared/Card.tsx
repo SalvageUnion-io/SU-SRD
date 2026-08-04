@@ -5,7 +5,11 @@ import { FOCUS_RING_ON_TONE } from '../chrome/interaction'
 import { CardControlRail } from './CardControlRail'
 import { Stat } from './Stat'
 import type { StatItem } from './statsBarTypes'
-import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntity/referenceEntityHelpers'
+import {
+  accentDeeperColor,
+  bandSurface,
+  borderColorFromHeaderBg,
+} from '../referenceEntity/referenceEntityHelpers'
 import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
 import { Badge } from '../chrome/Badge'
 import type { EntityStatus } from './entityStatus'
@@ -209,7 +213,11 @@ export function Card({
   // Sub-header band (design-spec four-band model): a darker shade of the
   // header tone, sitting flush below the header content row. Optional —
   // populated by `subHeader` content and/or `stats`; no band when both are empty.
-  const subHeaderBg = accentDeepColor(headerBg, headerBgColor) ?? 'var(--color-ink)'
+  // The header band now carries the DEEP fill (paper-white titles were never
+  // legible on the base tones — see `bandSurface`), so the sub-header steps one
+  // further down to stay a distinct band rather than merging with it.
+  const band = bandSurface(headerBg, headerBgColor)
+  const subHeaderBg = accentDeeperColor(headerBg, headerBgColor) ?? 'var(--color-ink)'
   const hasStats = !!stats && stats.length > 0
   const hasSubHeader = !!subHeader || hasStats
 
@@ -324,12 +332,12 @@ export function Card({
                 // top) → pt-3 ≈ 4px gap, tighter to suit dense listings.
                 !isCompact && hasCallout && 'pb-4 pt-5',
                 isCompact && hasCallout && 'pt-3',
-                headerBg,
+                band.className,
                 headerStyleProp?.className,
                 headerStyleProp?.className && 'h-full'
               )}
               style={{
-                ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
+                ...band.style,
                 ...headerStyleProp?.style,
               }}
             >

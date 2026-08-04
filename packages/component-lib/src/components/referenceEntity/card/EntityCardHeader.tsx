@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { cn } from '../../../utils/cn'
-import { accentSurface } from '../referenceEntityHelpers'
+import { bandSurface } from '../referenceEntityHelpers'
 import { EntityCardStatBox } from './EntityCardStatBox'
 import type { StatItem } from '../../shared/statsBarTypes'
 
@@ -137,7 +137,9 @@ export function EntityCardHeader({
   listing = false,
   compact = false,
 }: EntityCardHeaderProps) {
-  const accent = accentSurface(bg, bgColor)
+  // The band is the accent DARKENED — see `bandSurface`. The title sits on it
+  // in paper-white, which the base tones could not carry legibly.
+  const accent = bandSurface(bg, bgColor)
   // A compact/listing card is ALREADY on the cells, so it needs no measuring.
   const compactStats = compact || listing
   const { bandRef, narrow } = useNarrowStats(stats.length, !compactStats && stats.length > 0)

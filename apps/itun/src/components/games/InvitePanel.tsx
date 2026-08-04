@@ -71,7 +71,6 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <span className={STAMP}>Invite someone</span>
         <div className="flex flex-wrap items-end gap-2">
           <label className="flex flex-col gap-1">
             <span className={STAMP}>Note (optional)</span>

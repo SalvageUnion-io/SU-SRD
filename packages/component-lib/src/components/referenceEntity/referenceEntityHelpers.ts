@@ -129,3 +129,46 @@ export function accentDeepColor(
   const base = borderColorFromHeaderBg(headerBg, headerBgColor)
   return base ? `color-mix(in srgb, ${base} 65%, black)` : undefined
 }
+
+/**
+ * Deeper still — the SUB-header band, one step below the header band.
+ *
+ * The header band moved down onto `accentDeepColor` (see `bandSurface`), so the
+ * sub-header had to move with it or the two would have rendered as one flat
+ * block. The ramp is unchanged in shape, just shifted: base → deep → deeper.
+ */
+export function accentDeeperColor(
+  headerBg: string | undefined,
+  headerBgColor?: string
+): string | undefined {
+  const base = borderColorFromHeaderBg(headerBg, headerBgColor)
+  return base ? `color-mix(in srgb, ${base} 45%, black)` : undefined
+}
+
+/**
+ * The HEADER BAND's fill — the accent surface, darkened.
+ *
+ * ## Why the band is not the base tone any more
+ *
+ * A card states its name in paper-white directly on this band, and measured
+ * against the base tones that text was never legible: 2.41:1 on pilot orange
+ * and 1.69:1 on game blue, against a 4.5:1 AA floor. No choice of white fixes
+ * it — contrast against a LIGHT ground improves as the text darkens, so a
+ * "safer white" is a contradiction. Either the text goes ink, or the band goes
+ * dark; this is the latter, which keeps the white title the design wants.
+ *
+ * On the deep fill the same four ontologies measure 5.17 / 10.16 / 8.49 / 8.12
+ * — AA across the board, with the worst case now better than the best case was.
+ *
+ * An UNTONED card is returned unchanged: there is no base colour to darken, its
+ * band is paper, and its title is ink. Darkening nothing would paint a black
+ * band under black text.
+ */
+export function bandSurface(
+  headerBg: string | undefined,
+  headerBgColor: string | undefined
+): { className: string; style: CSSProperties | undefined } {
+  const deep = accentDeepColor(headerBg, headerBgColor)
+  if (!deep) return accentSurface(headerBg, headerBgColor)
+  return { className: '', style: { backgroundColor: deep } }
+}
