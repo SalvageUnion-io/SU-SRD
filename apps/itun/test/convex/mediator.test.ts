@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { api } from '../_generated/api'
-import { PRESENCE_WINDOW_MS } from '../mediator'
+import { api } from '../../convex/_generated/api'
+import { PRESENCE_WINDOW_MS } from '../../convex/mediator'
 import { testConvex } from './harness'
 
 /**

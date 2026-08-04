@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import type { BotOp } from '../botHttp'
-import { BOT_OPS, bearerToken, opFromPath, secretsMatch } from '../botHttp'
+import type { BotOp } from '../../convex/botHttp'
+import { BOT_OPS, bearerToken, opFromPath, secretsMatch } from '../../convex/botHttp'
 
 /**
  * The bot's HTTP door.
