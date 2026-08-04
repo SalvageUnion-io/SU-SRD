@@ -13,15 +13,20 @@ type EntityCardHeaderProps = {
   bgColor: string | undefined
   /** Title type-scale class from the DEPTH ladder (steps down per nesting level). */
   titleClass: string
-  /** On-tone text colour class for the title, which sits directly on the header
-   * band (`text-ink` / `text-paper` — resolved against the band tone). */
-  titleTextClass?: string
   /**
-   * Darken the band to the deep fill (default). Pass `false` when the title on
-   * it is INK — a damaged / destroyed / ghosted card keeps a light grey band,
-   * and darkening it would drop that ink title to 2.40:1.
+   * The title's colour, which also DECIDES the band's fill.
+   *
+   * A union rather than a free string because these two values are a contract,
+   * not styling: `text-paper` means the band darkens to the deep fill so the
+   * white title clears AA; `text-ink` means the band stays at its base tone so
+   * the dark title does. The band follows the text, always.
+   *
+   * This was briefly a separate `bandDeep` flag the caller passed alongside,
+   * which is the same fact stated twice and therefore the same fact you can get
+   * wrong — forget it on a damaged card and its ink title lands on a dark band
+   * at 2.40:1. Deriving it makes that unrepresentable.
    */
-  bandDeep?: boolean
+  titleTextClass?: 'text-ink' | 'text-paper'
   /** Write layer: a full replacement node for the title (overrides the name-tab). */
   titleSlot?: ReactNode
   /** SEO: render the name-tab as an `h1` (item pages) instead of the default `span`. */
@@ -135,7 +140,6 @@ export function EntityCardHeader({
   bgColor,
   titleClass,
   titleTextClass = 'text-ink',
-  bandDeep = true,
   titleSlot,
   titleAs,
   stats,
@@ -144,9 +148,11 @@ export function EntityCardHeader({
   listing = false,
   compact = false,
 }: EntityCardHeaderProps) {
-  // The band is the accent DARKENED — see `bandSurface`. The title sits on it
-  // in paper-white, which the base tones could not carry legibly.
-  const accent = bandSurface(bg, bgColor, bandDeep)
+  // The band is the accent DARKENED when a paper-white title sits on it (the
+  // base tones cannot carry that legibly), and left alone when the title is ink
+  // — a damaged / destroyed / ghosted card fades to a light band precisely so
+  // its ink title reads. One rule, derived from the text, never passed in.
+  const accent = bandSurface(bg, bgColor, titleTextClass === 'text-paper')
   // A compact/listing card is ALREADY on the cells, so it needs no measuring.
   const compactStats = compact || listing
   const { bandRef, narrow } = useNarrowStats(stats.length, !compactStats && stats.length > 0)

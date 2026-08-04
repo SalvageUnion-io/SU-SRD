@@ -153,8 +153,8 @@ describe('bandSurface — the ink-title opt-out', () => {
     // A damaged / destroyed / ghosted card keeps an INK title on a light grey
     // band. Darkening that band measures 2.40:1 against 4.87:1 undarkened — so
     // the contrast fix, applied blindly, would have broken the one state it was
-    // most important not to break. `ReferenceEntityCard` passes
-    // `bandDeep={!(isDown || isGhosted)}`.
+    // most important not to break. `EntityCardHeader` derives this from its
+    // `titleTextClass`, so an ink title can never sit on a darkened band.
     const grey = 'color-mix(in srgb, var(--color-ink) 50%, var(--color-paper))'
     const band = bandSurface(undefined, grey, false)
     expect(band.style?.backgroundColor).toBe(grey)

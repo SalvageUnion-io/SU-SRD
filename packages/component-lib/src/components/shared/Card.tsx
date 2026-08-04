@@ -27,7 +27,13 @@ type CardProps = {
   headerBgColor?: string
   /** Content rendered inside the header bar. Omit it and NO header band is
    * painted — a card that has nothing to put in the band shouldn't render an
-   * empty one. (The sub-header band is independent of this.) */
+   * empty one. (The sub-header band is independent of this.)
+   *
+   * **A toned band is DARK** (see `bandSurface`), so whatever goes in here must
+   * read against a dark ground — paper-white text, not ink. Card cannot check
+   * this for you the way `EntityCardHeader` does: that component owns its title
+   * and derives the band from its colour, whereas this slot is opaque JSX and
+   * could be anything. If you need an ink header, leave the card untoned. */
   headerContent?: ReactNode
   /** Content rendered inside the footer bar (optional) */
   footerContent?: ReactNode
