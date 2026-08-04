@@ -71,6 +71,7 @@ import { setActiveContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
+import { ConvexPending } from '../shared/ConvexPending'
 import { SECTION } from './gameChrome'
 
 type GameRosterProps = {
@@ -408,7 +409,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       )}
 
       {loading ? (
-        <Text variant="hint">Loading the crew…</Text>
+        <ConvexPending label="the crew" />
       ) : (
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {COLUMNS.map((column) => {

@@ -27,42 +27,28 @@ export function matchesRef(entity: RefEntity, ref: string): boolean {
 }
 
 /**
- * Lazy per-model lookup maps (audit item 18): derived-stat computations call
- * these resolvers once per installed ref per render, and the linear
- * `.find()` scans over the full Systems+Modules catalogs were the dominant
- * per-render cost on the sheet surfaces. Each map indexes id, name, AND slug
- * so every tolerated ref form is O(1). Reference data is immutable after
- * preload, so the maps build once on first successful access; a throw from
- * `.all()` (schema not yet loaded) propagates exactly like the old `.find()`
- * path and leaves the cache unbuilt for the next attempt.
+ * Lookups go through `BaseModel`'s own id / name / slug indexes, which every
+ * model builds once and shares with every other caller. This module used to
+ * keep a private per-model `Map` of its own (id+name+slug in one map, behind a
+ * `WeakMap`); that map moved into `BaseModel` so the ~20 other name-scanning
+ * call sites across the apps get the same O(1) path instead of re-scanning the
+ * full Systems+Modules catalogs once per installed ref per render.
+ *
+ * Precedence is id, then name, then slug. That is a different tie-break from
+ * the old single map (which answered with whichever ROW came first in data
+ * order, whatever field it matched on), so it is verified rather than assumed:
+ * `BaseModel.indexes.test.ts` reconstructs the combined map for every schema
+ * and asserts the two resolve every key to the same row.
+ * A throw from an unloaded schema propagates as before.
  */
-type ModelLike<T extends RefEntity> = { all: () => readonly T[] }
-
-function buildRefMap<T extends RefEntity>(model: ModelLike<T>): Map<string, T> {
-  const map = new Map<string, T>()
-  // First writer wins on collisions, matching Array.prototype.find order.
-  const claim = (key: string, entity: T) => {
-    if (!map.has(key)) map.set(key, entity)
-  }
-  for (const entity of model.all()) {
-    claim(entity.id, entity)
-    if (entity.name) {
-      claim(entity.name, entity)
-      claim(nameToSlug(entity.name), entity)
-    }
-  }
-  return map
+type ModelLike<T extends RefEntity> = {
+  getById: (id: string) => T | undefined
+  getByName: (name: string) => T | undefined
+  getBySlug: (slug: string) => T | undefined
 }
 
-const refMaps = new WeakMap<object, Map<string, RefEntity>>()
-
 function resolveVia<T extends RefEntity>(model: ModelLike<T>, ref: string): T | null {
-  let map = refMaps.get(model)
-  if (!map) {
-    map = buildRefMap(model)
-    refMaps.set(model, map)
-  }
-  return (map.get(ref) as T | undefined) ?? null
+  return model.getById(ref) ?? model.getByName(ref) ?? model.getBySlug(ref) ?? null
 }
 
 /** Resolve a mech `chassisRef` (slug; legacy name/id tolerated). */

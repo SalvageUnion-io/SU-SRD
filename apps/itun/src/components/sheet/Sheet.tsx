@@ -29,6 +29,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { useEntityStore } from '../../stores/entityStore'
 import { ExportEntityButton } from '../export/ExportEntityButton'
 import { AppLink } from '../shared/AppLink'
+import { NotFoundPanel } from '../shared/RouteFallbacks'
 import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 import { MoveToContainerControl } from '../container/MoveToContainerControl'
@@ -165,22 +166,11 @@ export function Sheet({
     // Styled not-found with an exit path — this is the most-visited surface
     // in the app; a bare one-liner stranded the user (audit item 7).
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-wk-bg p-6">
-        <div className="flex w-full max-w-xl flex-col items-start gap-4 rounded-[6px] border-chrome border-ink bg-paper p-6 sm:p-8">
-          <h1 className="font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
-            {kind} not found
-          </h1>
-          <p className="font-body text-sm text-wk-muted">
-            This {kind} may have been deleted, or the link may be stale.
-          </p>
-          <AppLink
-            href={back.href}
-            className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
-          >
-            &larr; Back to {back.label}
-          </AppLink>
-        </div>
-      </main>
+      <NotFoundPanel
+        title={`${kind} not found`}
+        message={`This ${kind} may have been deleted, or the link may be stale.`}
+        back={back}
+      />
     )
   }
 

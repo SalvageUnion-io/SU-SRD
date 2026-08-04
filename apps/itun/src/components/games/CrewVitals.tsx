@@ -4,6 +4,7 @@ import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { UNCLAIMED_LABEL } from '../../lib/ownership/ownerChip'
+import { ConvexPending } from '../shared/ConvexPending'
 import { NUM, ROW, SECTION } from './gameChrome'
 
 /**
@@ -24,7 +25,7 @@ import { NUM, ROW, SECTION } from './gameChrome'
 export function CrewVitals({ gameId }: { gameId: Id<'games'> }) {
   const crew = useQuery(api.crew.vitals, { gameId })
 
-  if (crew === undefined) return <Text variant="hint">Loading the crew…</Text>
+  if (crew === undefined) return <ConvexPending label="the crew" />
 
   const owner = (name: string | null, ownerId: string | null) =>
     ownerId === null ? UNCLAIMED_LABEL : (name ?? 'Crewmate')

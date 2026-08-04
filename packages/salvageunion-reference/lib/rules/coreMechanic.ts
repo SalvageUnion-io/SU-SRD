@@ -92,6 +92,29 @@ export function performCoreRoll(roll: Roll): CoreRollResult {
 }
 
 /**
+ * The Heat Check outcome sentence — everything after the `… — ` in a Heat Check
+ * readout. This is the SOLE copy of the five-branch Reactor Overload ladder: the
+ * Dashboard's `describeHeatCheck` and this module's `describePushOutcome` differ
+ * only in the head they prefix, so the tail lives here and the FAB, the sheet
+ * body and the Dashboard band can never drift apart.
+ */
+export function describeOverloadOutcome(result: HeatCheckEffect['result']): string {
+  if (!result.overloaded) return 'passed (no overload).'
+
+  const outcome =
+    result.outcome === 'meltdown'
+      ? 'Catastrophic Meltdown — mech DESTROYED.'
+      : result.outcome === 'system-destroyed'
+        ? 'A System is destroyed — mark one on the sheet.'
+        : result.outcome === 'module-destroyed'
+          ? 'A Module is destroyed — mark one on the sheet.'
+          : result.outcome === 'overheat'
+            ? 'Reactor Overheat — shutdown, Vulnerable, SP damage applied.'
+            : 'Safe — no effect.'
+  return `OVERLOAD. Reactor Overload ${result.overloadRoll}: ${outcome}`
+}
+
+/**
  * One-line readout for a mech Push's Heat Check outcome, surfaced next to the
  * re-rolled d20 in the quick-roll log. Mirrors HeatCheckControl's wording so
  * the FAB and the sheet-body readout never disagree.
@@ -99,17 +122,5 @@ export function performCoreRoll(roll: Roll): CoreRollResult {
 export function describePushOutcome(nextHeat: number, effect: HeatCheckEffect): string {
   const r = effect.result
   const head = `+2 Heat → ${nextHeat}. Heat Check ${r.heatCheckRoll} vs Heat ${r.heatAtCheck}`
-  if (!r.overloaded) return `${head} — passed (no overload).`
-
-  const outcome =
-    r.outcome === 'meltdown'
-      ? 'Catastrophic Meltdown — mech DESTROYED.'
-      : r.outcome === 'system-destroyed'
-        ? 'A System is destroyed — mark one on the sheet.'
-        : r.outcome === 'module-destroyed'
-          ? 'A Module is destroyed — mark one on the sheet.'
-          : r.outcome === 'overheat'
-            ? 'Reactor Overheat — shutdown, Vulnerable, SP damage applied.'
-            : 'Safe — no effect.'
-  return `${head} — OVERLOAD. Reactor Overload ${r.overloadRoll}: ${outcome}`
+  return `${head} — ${describeOverloadOutcome(r)}`
 }

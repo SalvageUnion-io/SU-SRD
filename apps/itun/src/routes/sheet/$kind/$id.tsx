@@ -13,13 +13,11 @@
  */
 
 import { createFileRoute, notFound } from '@tanstack/react-router'
-import { buttonVariants } from 'component-lib'
 
 import { useEntityStore } from '../../../stores/entityStore'
-import { AppLink } from '../../../components/shared/AppLink'
+import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
 import { Sheet } from '../../../components/sheet/Sheet'
 import { SheetSkeleton } from 'component-lib'
-import { cn } from '../../../lib/utils'
 import type { EntityRef } from '../../../lib/schemas/entity'
 
 /**
@@ -39,23 +37,15 @@ function isSheetKind(kind: string): kind is SheetKind {
 function SheetKindNotFound() {
   const params = Route.useParams()
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-wk-bg p-6">
-      <div className="flex w-full max-w-xl flex-col items-start gap-4 rounded-[6px] border-chrome border-ink bg-paper p-6 sm:p-8">
-        <h1 className="font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
-          Sheet not found
-        </h1>
-        <p className="font-body text-sm text-wk-muted">
+    <NotFoundPanel
+      title="Sheet not found"
+      message={
+        <>
           &ldquo;{params.kind}&rdquo; is not a sheet type. Sheets exist for pilots, mechs, and
           crawlers.
-        </p>
-        <AppLink
-          href="/"
-          className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
-        >
-          &larr; Back to Roster
-        </AppLink>
-      </div>
-    </main>
+        </>
+      }
+    />
   )
 }
 

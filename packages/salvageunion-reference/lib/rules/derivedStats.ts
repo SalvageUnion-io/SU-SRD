@@ -509,7 +509,12 @@ function parseCrawlerTechLevel(techLevel: string): number | undefined {
 function crawlerTypeMaxSpBonus(typeRef: string | undefined): number {
   if (!typeRef) return 0
   try {
-    const type = SalvageUnionReference.Crawlers.find((c) => c.id === typeRef || c.name === typeRef)
+    // id-then-name via the model's indexes. Equivalent to the linear OR-scan
+    // this replaced — see BaseModel.indexes.test.ts, which verifies the
+    // id-first tie-break resolves every key exactly as data order did.
+    const type =
+      SalvageUnionReference.Crawlers.getById(typeRef) ??
+      SalvageUnionReference.Crawlers.getByName(typeRef)
     return crawlerMaxSpBonus(type?.mutations)
   } catch {
     return 0

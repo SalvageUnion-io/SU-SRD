@@ -37,6 +37,15 @@ export const Default: Story = () => (
       <Cluster label="Conditions — read-only (no remove, no add)">
         <Conditions conditions={['Shutdown', 'Prone']} />
       </Cluster>
+      <Cluster label="Quiet tone — the neutral rung a crawler NPC's facts row uses">
+        <Conditions
+          conditions={['Hates synths', 'Owes a debt']}
+          tone="quiet"
+          onRemove={() => {}}
+          onAdd={() => {}}
+          addLabel="Add Command Bay crew fact"
+        />
+      </Cluster>
       <div>
         <Label>ConditionChip states</Label>
         <div className="flex flex-wrap items-start gap-3">

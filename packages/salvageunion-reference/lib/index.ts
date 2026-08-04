@@ -20,7 +20,11 @@ import {
   type SchemaToEntityMap,
   type EntitySchemaName,
 } from './generated/schemaRegistry.generated.js'
-import { extractActions, getChassisAbilities, invalidateActionMap } from './utilities.js'
+// Imported from the concrete module rather than the ./utilities.js barrel: the
+// action-resolution module already imports this one (it needs
+// SalvageUnionReference), so going through the barrel would pull every other
+// utilities module into that cycle for no reason.
+import { extractActions, getChassisAbilities, invalidateActionMap } from './actionResolution.js'
 import { invalidateSearchIndex } from './search.js'
 import type {
   SURefMetaAction,

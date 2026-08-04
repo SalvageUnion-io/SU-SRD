@@ -3,9 +3,6 @@ import { SalvageUnionReference, EntitySchemaNames, SchemaToModelMap } from './in
 import { BaseModel } from './BaseModel.js'
 import {
   isAbility,
-  isSystem,
-  isModule,
-  isChassis,
   getTechLevel,
   getTechLevelNumber,
   getSalvageValue,
@@ -428,25 +425,12 @@ describe('Type Guards', () => {
   it('should correctly identify abilities', () => {
     const ability = defined(SalvageUnionReference.Abilities.all()[0])
     expect(isAbility(ability)).toBe(true)
-    expect(isSystem(ability)).toBe(false)
   })
 
-  it('should correctly identify systems', () => {
-    const system = defined(SalvageUnionReference.Systems.all()[0])
-    expect(isSystem(system)).toBe(true)
-    expect(isAbility(system)).toBe(false)
-  })
-
-  it('should correctly identify modules', () => {
-    const module = defined(SalvageUnionReference.Modules.all()[0])
-    expect(isModule(module)).toBe(true)
-    expect(isAbility(module)).toBe(false)
-  })
-
-  it('should correctly identify chassis', () => {
-    const chassis = defined(SalvageUnionReference.Chassis.all()[0])
-    expect(isChassis(chassis)).toBe(true)
-    expect(isAbility(chassis)).toBe(false)
+  it('should return false for non-abilities', () => {
+    expect(isAbility(defined(SalvageUnionReference.Systems.all()[0]))).toBe(false)
+    expect(isAbility(defined(SalvageUnionReference.Modules.all()[0]))).toBe(false)
+    expect(isAbility(defined(SalvageUnionReference.Chassis.all()[0]))).toBe(false)
   })
 
   it('should return false for null or undefined', () => {

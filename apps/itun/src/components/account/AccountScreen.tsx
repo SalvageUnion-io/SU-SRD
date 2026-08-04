@@ -5,6 +5,7 @@ import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { ConvexPending } from '../shared/ConvexPending'
 import { ClaimLocalData } from './ClaimLocalData'
 import { SignInControl } from './SignInControl'
 
@@ -41,7 +42,7 @@ function SignedInAccount() {
   const [name, setName] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
 
-  if (me === undefined) return <Text>Loading your account…</Text>
+  if (me === undefined) return <ConvexPending label="your account" />
   if (me === null) return <Text>No account found.</Text>
 
   const value = name ?? me.displayName ?? ''
@@ -83,11 +84,7 @@ function SignedInAccount() {
           <Text as="label" className="font-cond text-xs font-bold tracking-widest uppercase">
             Your games
           </Text>
-          {games === undefined && (
-            <Text variant="hint" className="text-left">
-              Loading…
-            </Text>
-          )}
+          {games === undefined && <ConvexPending className="text-left" />}
           {games?.length === 0 && (
             <Text variant="hint" className="text-left">
               You are not in any games yet.

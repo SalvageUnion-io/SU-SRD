@@ -109,6 +109,21 @@ export function getLoadedModel(schemaId: string, propertyName: string): BaseMode
 }
 
 /**
+ * Get a loaded model by its kebab-case schema id, or `undefined` if that
+ * schema has not been preloaded.
+ *
+ * The non-throwing sibling of {@link getLoadedModel}, for callers whose
+ * contract is "return nothing when the schema isn't there" — `lib/slug.ts`'s
+ * `findEntityBySlug`, which used to read the raw row array out of
+ * {@link getDataMaps} and linear-scan it. Going through the model instead
+ * reaches its name/slug indexes.
+ */
+export function getLoadedModelBySchemaId(schemaId: string): BaseModel<unknown> | undefined {
+  if (!loadedSchemas.has(schemaId)) return undefined
+  return modelRegistry[toPascalCase(schemaId)]
+}
+
+/**
  * Reset all load state. Exposed for testing only.
  * In production, schemas are loaded once and kept for the lifetime of the process.
  */

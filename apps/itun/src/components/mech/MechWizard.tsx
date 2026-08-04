@@ -26,7 +26,6 @@ import {
 } from '../../lib/wizard/mechFormState'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { useMech } from '../../hooks/queries'
-import { useEntityStore } from '../../stores/entityStore'
 import { Banner } from 'component-lib'
 import { OffRulesEscape } from 'component-lib'
 import { RuleBrief } from 'component-lib'
@@ -36,12 +35,12 @@ import { CraftItemsStep } from './CraftItemsStep'
 import { GainScrapStep } from 'component-lib'
 import { InstallStep } from './InstallStep'
 import { LoadoutPanel } from './LoadoutPanel'
+import { useWizardFlow } from '../wizard/useWizardFlow'
 import { MechChassisStep } from './MechChassisStep'
 import type { ChassisPattern } from './MechChassisStep'
 import { MechFlavorStep } from 'component-lib'
 import { MechReviewStep } from './MechReviewStep'
 import { MechStatsStep } from './MechStatsStep'
-import { WIZARD_TXN } from '../../stores/surfaceProvenance'
 import {
   clearWizardDraft,
   readWizardDraft,
@@ -176,7 +175,6 @@ export function MechWizard({
   const existingMech = useMech(mechId)
   const steps = isEdit ? EDIT_STEPS : CREATE_STEPS
 
-  const [step, setStep] = useState<MechWizardStepId>(steps[0] ?? 'chassis')
   // Draft-aware init: a stored session draft (refresh, back-nav, PWA reload)
   // wins over the pristine initial state; cleared on submit/cancelled exit.
   // Create-mode drafts pass through the deterministic knapsack clamp (§5.3);
@@ -200,10 +198,26 @@ export function MechWizard({
     }
   }, [])
   const formDirty = useWizardDraftSync(draftKey, form, initialState ?? EMPTY_MECH_FORM_STATE)
-  const [submitError, setSubmitError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const currentIndex = steps.indexOf(step)
+  // The step machine + the upsert-or-create submit, shared verbatim with the
+  // pilot and crawler wizards (`useWizardFlow`). Like the pilot, the mech needs
+  // neither escape hatch: no extra update-path lifecycle work, and its create
+  // input is a plain projection of the form.
+  const { step, setStep, currentIndex, goNext, goBack, isSubmitting, submitError } = useWizardFlow({
+    entityType: 'mech',
+    noun: 'mech',
+    steps,
+    initialStep: steps[0] ?? 'chassis',
+    submitStep: 'review',
+    form,
+    draftKey,
+    ...(mechId !== undefined ? { entityId: mechId } : {}),
+    schema: MechSchema,
+    toCreateInput: mechFormToCreateInput,
+    toUpdatePatch: mechFormToUpdatePatch,
+    failureMessage: 'Failed to save mech. Please retry.',
+    onComplete,
+  })
 
   function updateForm(patch: Partial<MechWizardFormState>) {
     setForm((prev) => ({ ...prev, ...patch }))
@@ -359,67 +373,6 @@ export function MechWizard({
   // presence checks. The gate's reason renders in the footerNote so a locked
   // Next always explains itself.
   const gate = isEdit ? mechEditStepGate(step, form) : mechCreationStepGate(step, form)
-
-  function goNext() {
-    if (step === 'review') {
-      void handleSubmit()
-      return
-    }
-    const next = steps[currentIndex + 1]
-    if (next) setStep(next)
-  }
-
-  function goBack() {
-    const prev = steps[currentIndex - 1]
-    if (currentIndex > 0 && prev) {
-      setStep(prev)
-    }
-  }
-
-  async function handleSubmit() {
-    setSubmitError(null)
-    setIsSubmitting(true)
-
-    try {
-      const store = useEntityStore.getState()
-
-      // Upsert branch: update when editing — NEVER a second create.
-      if (mechId) {
-        await store.update('mech', mechId, mechFormToUpdatePatch(form), WIZARD_TXN)
-        toast.success(`Saved ${form.name.trim() || 'mech'}.`)
-        clearWizardDraft(draftKey)
-        onComplete(mechId)
-        return
-      }
-
-      const now = new Date().toISOString()
-      const rawInput = mechFormToCreateInput(form)
-
-      // Validate against MechSchema before submitting (surface errors in-UI)
-      const validation = MechSchema.safeParse({
-        ...rawInput,
-        id: 'temp-validate-only',
-        createdAt: now,
-        updatedAt: now,
-      })
-      if (!validation.success) {
-        const messages = validation.error.issues
-          .map((e: { message: string }) => e.message)
-          .join('; ')
-        setSubmitError(`Validation error: ${messages}`)
-        setIsSubmitting(false)
-        return
-      }
-
-      const created = await store.create('mech', rawInput)
-      toast.success(`Saved ${form.name.trim() || 'mech'}.`)
-      clearWizardDraft(draftKey)
-      onComplete(created.id)
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to save mech. Please retry.')
-      setIsSubmitting(false)
-    }
-  }
 
   // Per-step RuleBrief: the Core Book's own Mech Workshop copy, pp.94–95
   // (create); edit variants describe the lifted soft regime.

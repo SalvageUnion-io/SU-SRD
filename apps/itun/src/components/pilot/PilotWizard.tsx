@@ -9,7 +9,6 @@ import {
 import { toast } from 'component-lib'
 import { usePilot } from '../../hooks/queries'
 import { PilotSchema } from '../../lib/schemas/pilot'
-import { useEntityStore } from '../../stores/entityStore'
 import { STARTING_ABILITY_BUDGET, STARTING_EQUIPMENT_BUDGET } from '../../lib/constants'
 import {
   EMPTY_PILOT_FORM_STATE,
@@ -35,10 +34,10 @@ import { CallsignStep } from 'component-lib'
 import { ClassAbilityStep } from 'component-lib'
 import { EquipmentStep } from 'component-lib'
 import { FlavorStep } from 'component-lib'
+import { useWizardFlow } from '../wizard/useWizardFlow'
 import { ReviewStep } from './ReviewStep'
 import { StatsStep } from './StatsStep'
 import type { RollTableDeps } from 'component-lib'
-import { WIZARD_TXN } from '../../stores/surfaceProvenance'
 import {
   clearWizardDraft,
   readWizardDraft,
@@ -189,7 +188,6 @@ export function PilotWizard({
   const existingPilot = usePilot(pilotId)
   const steps = isEdit ? EDIT_STEPS : CREATE_STEPS
 
-  const [step, setStep] = useState<PilotWizardStepId>(steps[0] ?? 'classAbility')
   // Draft-aware init: a stored session draft (refresh, back-nav, PWA reload)
   // wins over the pristine initial state; cleared on submit/cancelled exit.
   // Create-mode drafts are passed through the deterministic clamp (§5.3) —
@@ -214,10 +212,26 @@ export function PilotWizard({
     }
   }, [])
   const formDirty = useWizardDraftSync(draftKey, form, initialState ?? EMPTY_PILOT_FORM_STATE)
-  const [submitError, setSubmitError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const currentIndex = steps.indexOf(step)
+  // The step machine + the upsert-or-create submit, shared verbatim with the
+  // mech and crawler wizards (`useWizardFlow`). The pilot needs neither of its
+  // escape hatches: no extra update-path lifecycle work, and its create input
+  // is a plain projection of the form.
+  const { step, setStep, currentIndex, goNext, goBack, isSubmitting, submitError } = useWizardFlow({
+    entityType: 'pilot',
+    noun: 'pilot',
+    steps,
+    initialStep: steps[0] ?? 'classAbility',
+    submitStep: 'review',
+    form,
+    draftKey,
+    ...(pilotId !== undefined ? { entityId: pilotId } : {}),
+    schema: PilotSchema,
+    toCreateInput: pilotFormToCreateInput,
+    toUpdatePatch: pilotFormToUpdatePatch,
+    failureMessage: 'Failed to save pilot. Please retry.',
+    onComplete,
+  })
 
   // Pre-save soft warnings (plan §5.2): EDIT-mode Review only — the create
   // flow is hard-enforced, so nothing can be in violation and the banner is
@@ -331,67 +345,6 @@ export function PilotWizard({
   // presence checks. The gate's reason renders in the footerNote so a locked
   // Next always explains itself.
   const gate = isEdit ? pilotEditStepGate(step, form) : pilotCreationStepGate(step, form)
-
-  function goNext() {
-    if (step === 'review') {
-      void handleSubmit()
-      return
-    }
-    const next = steps[currentIndex + 1]
-    if (next) setStep(next)
-  }
-
-  function goBack() {
-    const prev = steps[currentIndex - 1]
-    if (currentIndex > 0 && prev) {
-      setStep(prev)
-    }
-  }
-
-  async function handleSubmit() {
-    setSubmitError(null)
-    setIsSubmitting(true)
-
-    try {
-      const store = useEntityStore.getState()
-
-      // Upsert branch: update when editing — NEVER a second create.
-      if (pilotId) {
-        await store.update('pilot', pilotId, pilotFormToUpdatePatch(form), WIZARD_TXN)
-        toast.success(`Saved ${form.name.trim() || 'pilot'}.`)
-        clearWizardDraft(draftKey)
-        onComplete(pilotId)
-        return
-      }
-
-      const now = new Date().toISOString()
-      const rawInput = pilotFormToCreateInput(form)
-
-      // Validate against PilotSchema before submitting (surface errors in-UI)
-      const validation = PilotSchema.safeParse({
-        ...rawInput,
-        id: 'temp-validate-only',
-        createdAt: now,
-        updatedAt: now,
-      })
-      if (!validation.success) {
-        const messages = validation.error.issues
-          .map((e: { message: string }) => e.message)
-          .join('; ')
-        setSubmitError(`Validation error: ${messages}`)
-        setIsSubmitting(false)
-        return
-      }
-
-      const created = await store.create('pilot', rawInput)
-      toast.success(`Saved ${form.name.trim() || 'pilot'}.`)
-      clearWizardDraft(draftKey)
-      onComplete(created.id)
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to save pilot. Please retry.')
-      setIsSubmitting(false)
-    }
-  }
 
   // Per-step RuleBrief: the Core Book's own creation copy, pp.18–19 (create);
   // edit variants describe the lifted soft regime.

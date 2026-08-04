@@ -83,6 +83,7 @@ export {
   coreRollBand,
   performCoreRoll,
   describePushOutcome,
+  describeOverloadOutcome,
 } from './coreMechanic.js'
 export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from './coreMechanic.js'
 export {

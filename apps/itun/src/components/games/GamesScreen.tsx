@@ -7,6 +7,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { ConvexPending } from '../shared/ConvexPending'
 import { SignInControl } from '../account/SignInControl'
 import { GameRow } from './GameRow'
 import { INPUT, PAGE, STAMP } from './gameChrome'
@@ -189,7 +190,7 @@ function ConnectedGames() {
         )}
       </div>
 
-      {games === undefined && <Text>Loading your games…</Text>}
+      {games === undefined && <ConvexPending label="your games" />}
       {games?.length === 0 && (
         <EntityRow
           empty

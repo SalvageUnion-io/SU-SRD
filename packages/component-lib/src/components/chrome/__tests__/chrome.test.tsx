@@ -184,9 +184,23 @@ describe('Conditions', () => {
     render(<Conditions conditions={['Burning', 'Stunned']} onRemove={onRemove} onAdd={onAdd} />)
     expect(screen.getByText('Burning')).toBeTruthy()
     fireEvent.click(screen.getByLabelText('Remove condition Stunned'))
-    expect(onRemove).toHaveBeenLastCalledWith('Stunned')
+    // The index rides along with the value so a row of repeatable strings
+    // (NPC facts) can remove by position.
+    expect(onRemove).toHaveBeenLastCalledWith('Stunned', 1)
     fireEvent.click(screen.getByRole('button', { name: 'Add condition' }))
     expect(onAdd).toHaveBeenCalled()
+  })
+
+  test('addLabel renames the + Add chip for a non-condition row', () => {
+    render(<Conditions conditions={[]} onAdd={() => {}} addLabel="Add Command Bay crew fact" />)
+    expect(screen.getByRole('button', { name: 'Add Command Bay crew fact' })).toBeTruthy()
+  })
+
+  test('quiet tone is the neutral, prose-cased chip (no warn fill)', () => {
+    const { container } = render(<ConditionChip label="Owes a debt" tone="quiet" />)
+    const className = container.firstElementChild?.className ?? ''
+    expect(className).toContain('normal-case')
+    expect(className).not.toContain('bg-status-warn')
   })
 
   test('inactive condition chip is paper, active is warn', () => {

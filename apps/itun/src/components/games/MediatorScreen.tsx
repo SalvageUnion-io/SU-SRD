@@ -6,6 +6,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
+import { ConvexPending } from '../shared/ConvexPending'
 import { CrewVitals } from './CrewVitals'
 import { DowntimePanel } from './DowntimePanel'
 import { GameRoster } from './GameRoster'
@@ -254,7 +255,7 @@ function PresenceList({ gameId }: { gameId: Id<'games'> }) {
 function MediatorBody({ gameId }: { gameId: Id<'games'> }) {
   const amMediator = useQuery(api.mediator.amMediator, { gameId })
 
-  if (amMediator === undefined) return <Text>Loading…</Text>
+  if (amMediator === undefined) return <ConvexPending />
   if (!amMediator) {
     return (
       <Card>

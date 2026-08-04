@@ -73,4 +73,12 @@ export class LazyModel<T> extends BaseModel<T> {
   getById(id: string): (T & { schemaName: string }) | undefined {
     return this._loadedBacking().getById(id)
   }
+
+  getByName(name: string): (T & { schemaName: string }) | undefined {
+    return this._loadedBacking().getByName(name)
+  }
+
+  getBySlug(slug: string): (T & { schemaName: string }) | undefined {
+    return this._loadedBacking().getBySlug(slug)
+  }
 }

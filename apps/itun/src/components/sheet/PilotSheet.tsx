@@ -25,47 +25,41 @@
  *   - the Bio `SheetDescription` section (#409) — folded into the Identity
  *     card instead as an extra field (see `PilotIdentityPanel`'s Bio field).
  *   - the Crawler Level slab (#410) — `resolveEffectiveCrawlerLevel` is
- *     PRESERVED below (still scales the Modification-style choice caps); only
- *     the manual-fallback editor UI is dropped.
+ *     PRESERVED (in `pilotSheetModel`, still scaling the Modification-style
+ *     choice caps); only the manual-fallback editor UI is dropped.
  * The always-live Vitals gauges and per-card activation (Spend AP, Use /
  * Restock, condition cycling) are KEPT — only the play-control PANELS drop.
+ *
+ * ## What lives where
+ *
+ * This file is now the RENDER, and only the render. The two jobs that used to
+ * share it are its siblings:
+ *   - `pilotSheetModel.ts` — everything derived (vitals maxima, provenance
+ *     ledgers, ability grouping, inventory capacity, the linked crawler).
+ *   - `pilotSheetActions.ts` — every write, all of them through one `write()`
+ *     that reads the freshest record and handles the offline refusal.
+ * Local UI state (which picker is open) stays here, because it is render state.
  *
  * All handlers read the freshest record from the store (never the render-time
  * prop) so rapid sequential edits don't stomp each other. readOnly suppresses
  * every edit affordance (published snapshots).
  */
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility } from 'salvageunion-reference'
 import { Badge, Panel, SheetHero, Stat, VitalGauge } from 'component-lib'
 
-import type { ItemCondition } from '../../lib/schemas/mech'
-import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
-import { resolveEffectiveCrawlerLevel } from '../../lib/crawlerLevel'
-import {
-  isPilotDead,
-  pilotMaxAP,
-  pilotMaxAPParts,
-  pilotMaxHPParts,
-} from '../../lib/rules/derivedStats'
-import { enrichPilotSnapshot } from 'salvageunion-reference/rules'
+import type { Pilot } from '../../lib/schemas/pilot'
+import { pilotMaxAP } from '../../lib/rules/derivedStats'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
-import { useSoftWarnings } from '../shared/useSoftWarnings'
 import { useEntityStore } from '../../stores/entityStore'
-import { type ClassLike, treesFor } from '../pilot/abilityTrees'
 import { EntitySearcher } from 'component-lib'
-import { useSoftLinks } from '../wiring/useSoftLinks'
 import { ConditionsEditor } from 'component-lib'
-import { destroyedUndoToast } from './destroyedUndoToast'
 import { EntityGridRow, MasonryColumns } from 'component-lib'
 import { PilotIdentityPanel } from './PilotIdentity'
-import type { UsedToggleKey } from './PilotIdentity'
 import { SectionManageButton, SheetPickerModal } from 'component-lib'
 import { SheetSectionSlab, Slab } from 'component-lib'
-import { pilotInventoryCapacity, pilotInventoryUsed, resolveEquipment } from './pilotInventory'
-import type { SheetPatch } from './sheetViewProps'
 import {
   GenericEntryAdder,
   GenericEntryCard,
@@ -73,19 +67,8 @@ import {
   PilotEquipmentItem,
 } from './PilotSheetItems'
 import { PartnerCard } from './PartnerCard'
-import { resolveAbility } from './pilotAbilities'
-import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
-import { linesFromBreakdown } from 'component-lib'
-import { runWrite } from './sheetWrite'
-
-/**
- * The tree every pilot has regardless of class (Repair, Scrap, Mount, …).
- *
- * It is INTRINSIC, not chosen: it is never offered in the abilities picker and
- * never stored in `pilot.abilities`. The sheet renders it from reference data,
- * as its own tree above the class trees.
- */
-const GENERIC_TREE = 'Generic'
+import { pinOrUndef, usePilotSheetActions } from './pilotSheetActions'
+import { GENERIC_TREE, usePilotSheetModel } from './pilotSheetModel'
 
 // ---------------------------------------------------------------------------
 // TpBlock — pilot Training Points, in the Vitals card's dashed-topped `.vrow`
@@ -156,316 +139,14 @@ export function PilotSheet({
   const storeState = store()
   // Which collection's shared picker modal is open ('+ Add' — unified edit
   // language archetype B; always available, never rule-gated for now).
-  const [picker, setPicker] = useState<'abilities' | 'equipment' | null>(null)
   // Identity is a FIELD section (unified edit language archetype A): its own
-  // Edit/Done toggle, now rendered in the SheetSectionCard header (Phase 2).
+  // Edit/Done toggle, rendered in the SheetSectionCard header (Phase 2).
+  const [picker, setPicker] = useState<'abilities' | 'equipment' | null>(null)
 
-  // Soft warnings (REQ-012, ADR-021) on BUILD edits only — ability add/remove
-  // and the class change. Advisory, never blocking: a clean edit saves straight
-  // through and the dialog never appears. Vitals/live-play writes (HP, AP, TP,
-  // conditions, uses, Spend AP) deliberately bypass this — they are transient
-  // state, not the build these rules evaluate, and would warn on every tick.
-  // `enrichPilotSnapshot` is REQUIRED: Pilot.abilities is a slug array, and the
-  // tier/tree checks need the resolved ability structs.
-  const softWarnings = useSoftWarnings({
-    entityType: 'pilot',
-    entityId: pilot.id,
-    toSnapshot: (p) => enrichPilotSnapshot(p),
-    store,
-  })
-  const [warningSubtitle, setWarningSubtitle] = useState<string | null>(null)
+  const model = usePilotSheetModel({ pilot, storeState, picker })
+  const actions = usePilotSheetActions({ pilot, store, storeState })
 
-  /**
-   * Preview a build patch: save immediately when clean, otherwise raise the
-   * confirm-and-proceed dialog. `label` describes the pending edit.
-   */
-  function saveBuildEdit(fields: Partial<Pilot>, label: string) {
-    if (softWarnings.preview(fields).length === 0) {
-      void softWarnings.saveAnyway()
-      return
-    }
-    setWarningSubtitle(label)
-  }
-
-  // Resolve the pilot's crawler (if any) via the pilot-to-crawler SoftLink,
-  // then compute the EFFECTIVE crawler Tech Level used to scale choice caps
-  // (e.g. the Modification choice). A linked crawler's techLevel wins; with no
-  // link the pilot's manual `crawlerLevel` is used; with neither it is
-  // undefined and caps stay unbounded. (The Crawler Level slab UI is dropped
-  // — #410 — but this scaling source stays live.)
-  const { outgoing } = useSoftLinks({
-    entityType: 'pilot',
-    entityId: pilot.id,
-    // Forward the injected store snapshot so tests drive SoftLinks through the
-    // same stub; in production `storeState` is the live Zustand snapshot.
-    store: storeState,
-  })
-  const crawlerLink = outgoing.find((link) => link.type === 'pilot-to-crawler')
-  const linkedCrawler = crawlerLink ? storeState.get('crawler', crawlerLink.to.id) : null
-  const effectiveCrawlerLevel = resolveEffectiveCrawlerLevel(pilot, linkedCrawler)
-  // Memoized so the {techLevel} object's identity is stable across renders —
-  // a fresh literal each render would defeat the React.memo on the (heavy)
-  // ReferenceEntityCard subtree it is threaded into.
-  const scalingParent = useMemo(
-    () => (effectiveCrawlerLevel !== undefined ? { techLevel: effectiveCrawlerLevel } : undefined),
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- intentional: effectiveCrawlerLevel is a derived scalar, memoized purely to keep the {techLevel} object identity stable for the memoized ReferenceEntityCard subtree
-    [effectiveCrawlerLevel]
-  )
-
-  // PARTNERS — the statted companions a pilot ability grants (Auto-Turret,
-  // Survey Drone, Mecha Companion). The granting equipment slug and the granted
-  // partner are the SAME entry in the player's eyes, so the partner instance
-  // renders IN PLACE of the ordinary equipment card rather than beside it: one
-  // card, one thing. Each instance gets its own card, which is what makes Mecha
-  // Packmaster's two Mecha Companions two cards over one equipment slug.
-  const partners = pilot.partners ?? []
-  const partnerSlugs = new Set(
-    partners.filter((p) => p.hostSchema === 'equipment').map((p) => p.hostRef)
-  )
-  const ordinaryEquipment = pilot.equipment.filter((slug) => !partnerSlugs.has(slug))
-  // How many of each stat block is fielded, so a card can say "2 of 2".
-  const fieldedByRef = partners.reduce<Record<string, number>>((acc, p) => {
-    acc[p.hostRef] = (acc[p.hostRef] ?? 0) + 1
-    return acc
-  }, {})
-
-  const dead = isPilotDead(pilot)
-  const slotsUsed = pilotInventoryUsed(pilot)
-  const slotsCap = pilotInventoryCapacity(pilot)
-  const overCapacity = slotsUsed > slotsCap
-  const genericInventory = pilot.genericInventory ?? []
-
-  // Abilities offered on the live sheet are scoped to the pilot's class trees
-  // (core + advanced + legendary + any tree they've already learned) — the same
-  // edit-mode logic AbilitiesStep used, now feeding the shared searcher's filter.
-  // Computed only while the Abilities picker is open: it reads the reference ORM,
-  // which read-only snapshot renders never preload (the picker never opens there).
-  //
-  // GENERIC is deliberately NOT in this set: those abilities are intrinsic to
-  // every pilot rather than chosen, so they are never offered for selection —
-  // they are rendered from reference data in their own tree below.
-  const abilityTrees = useMemo(() => {
-    if (picker !== 'abilities') return null
-    const cls: ClassLike | undefined = SalvageUnionReference.Classes.find(
-      (c) => c.id === pilot.classRef
-    )
-    if (!cls) return null
-    const selectedTrees = SalvageUnionReference.Abilities.all()
-      .filter((a) => pilot.abilities.includes(a.id))
-      .map((a) => a.tree)
-    return new Set(treesFor(cls, true, selectedTrees))
-  }, [picker, pilot.classRef, pilot.abilities])
-
-  // Learned abilities grouped by tree — the section renders one sub-slab per
-  // tree rather than one flat grid. Generic is excluded here and sourced
-  // separately: it is intrinsic, so a pilot never "has" it in `abilities`.
-  const abilityGroups = useMemo(() => {
-    // Keyed by the STORED slug, not `ability.id`: `pilot.abilities` (and
-    // `usedAbilities`, and every handler) speak slugs, and the two are not the
-    // same string — grouping by id silently broke the used/recharge lookups.
-    const byTree = new Map<string, { slug: string; ability: SURefAbility }[]>()
-    for (const slug of pilot.abilities) {
-      const ability = resolveAbility(slug)
-      if (!ability || ability.tree === GENERIC_TREE) continue
-      const entry = { slug, ability }
-      const list = byTree.get(ability.tree)
-      if (list) list.push(entry)
-      else byTree.set(ability.tree, [entry])
-    }
-    return { trees: [...byTree.entries()] }
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- keyed on the slug list; resolveAbility is a pure ORM lookup
-  }, [pilot.abilities])
-
-  /**
-   * The Generic tree — EVERY pilot has all of it, so it is read from the
-   * reference data rather than from `pilot.abilities` (which only ever holds
-   * chosen, class-tree abilities). Keyed by `ability.id`, which `resolveAbility`
-   * accepts, so the used/recharge toggles persist like any other ability.
-   *
-   * Guarded: read-only snapshot renders may not have preloaded the ORM, and a
-   * missing catalog should drop the section, not throw the sheet.
-   */
-  const genericAbilities = useMemo(() => {
-    try {
-      return SalvageUnionReference.Abilities.all()
-        .filter((ability) => ability.tree === GENERIC_TREE)
-        .map((ability) => ({ slug: ability.id, ability }))
-    } catch {
-      return []
-    }
-  }, [])
-
-  /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
-  const unresolvedAbilities = pilot.abilities.filter((slug) => !resolveAbility(slug))
-
-  const hpParts = pilotMaxHPParts(pilot)
-  const apParts = pilotMaxAPParts(pilot)
-
-  // Stat provenance ledgers (ADR-029). Injuries ride the contribution line —
-  // a negative rules-sourced addend, derived from `injuries` so healing restores
-  // max HP with no bookkeeping.
-  const hpLines = linesFromBreakdown(hpParts, {
-    base: 'Pilot',
-    baseDetail: 'base',
-    installed: 'Injuries',
-    installedDetail: 'rules A11',
-  })
-  const apLines = linesFromBreakdown(apParts, { base: 'Pilot', baseDetail: 'base' })
-  const maxHP = Math.max(0, hpParts.total)
-  const maxAP = Math.max(0, apParts.total)
-  const hp = Math.min(pilot.currentHP ?? maxHP, maxHP)
-  const ap = Math.min(pilot.currentAP ?? maxAP, maxAP)
-  const tp = pilot.trainingPoints ?? 0
-
-  /** Freshest pilot record from the store, falling back to the render prop. */
-  function freshPilot(): Pilot {
-    return storeState.get('pilot', pilot.id) ?? pilot
-  }
-
-  /**
-   * Partial merge on this pilot, reading the freshest record when needed.
-   *
-   * A `classRef` change is a BUILD edit (it can trip CLASS_PREREQUISITE —
-   * switching to an Advanced/Hybrid specialisation without the 6-core gate),
-   * so it routes through the soft-warning flow. Every other field here
-   * (vitals, TP, identity text) writes straight through.
-   */
-  const patchPilot: SheetPatch = (input) => {
-    const fields = typeof input === 'function' ? input(freshPilot()) : input
-    if ('classRef' in fields) {
-      saveBuildEdit(fields, 'Change class')
-      return
-    }
-    runWrite(() => storeState.update('pilot', pilot.id, fields, LIVE_SHEET_MANUAL))
-  }
-
-  // Cap overrides (ADR-022, Free Edit): pin HP/AP maxima via a signed
-  // max*Modifier delta; the gauge shows "overridden from N" + a revert. Tagged
-  // `override` for the Change Log.
-  const overridePilotMax = (fields: Partial<Pilot>) => {
-    runWrite(() => storeState.update('pilot', pilot.id, fields, LIVE_SHEET_OVERRIDE))
-  }
-  /** A pin equal to the derived value is not an override — clear it instead. */
-  const pinOrUndef = (next: number, derived: number): number | undefined =>
-    next === derived ? undefined : next
-
-  /** Toggle one of the once-per-Downtime used flags (rules A8–A10). */
-  function toggleUsed(key: UsedToggleKey, next: boolean) {
-    const fresh = freshPilot()
-    const prev = fresh.usedToggles ?? {}
-    runWrite(() =>
-      storeState.update(
-        'pilot',
-        pilot.id,
-        {
-          usedToggles: { ...prev, [key]: next },
-        },
-        LIVE_SHEET_MANUAL
-      )
-    )
-  }
-
-  /** Persist the full conditions list (flat string set, no partial merge). */
-  function handleConditionsChange(next: string[]) {
-    runWrite(() => storeState.update('pilot', pilot.id, { conditions: next }, LIVE_SHEET_MANUAL))
-  }
-
-  // Collection add/remove (unified edit language archetype B) — always
-  // available, writes through on toggle (ITUN auto-saves; no Save button).
-  // Reads the FRESHEST record so rapid toggles in the picker grid don't race
-  // the async store write.
-  // Advisory only (soft warnings), never rule-GATED: the cap, tree order and
-  // the Advanced/Legendary prerequisites surface in a confirm dialog and the
-  // user may always proceed.
-  function toggleAbility(abilityId: string) {
-    const fresh = freshPilot()
-    const abilities = fresh.abilities
-    const removing = abilities.includes(abilityId)
-    const name = resolveAbility(abilityId)?.name ?? abilityId
-    saveBuildEdit(
-      {
-        abilities: removing ? abilities.filter((a) => a !== abilityId) : [...abilities, abilityId],
-      },
-      `${removing ? 'Remove' : 'Add'} ${name}`
-    )
-  }
-
-  function toggleEquipment(equipmentId: string) {
-    const equipment = freshPilot().equipment
-    runWrite(() =>
-      storeState.update(
-        'pilot',
-        pilot.id,
-        {
-          equipment: equipment.includes(equipmentId)
-            ? equipment.filter((e) => e !== equipmentId)
-            : [...equipment, equipmentId],
-        },
-        LIVE_SHEET_MANUAL
-      )
-    )
-  }
-
-  async function handleEquipmentConditionChange(slug: string, next: ItemCondition) {
-    const prev = freshPilot().equipmentConditions ?? {}
-    const prevCondition = prev[slug] ?? 'intact'
-    await storeState.update(
-      'pilot',
-      pilot.id,
-      {
-        equipmentConditions: { ...prev, [slug]: next },
-      },
-      LIVE_SHEET_MANUAL
-    )
-    // U-6: landing on 'destroyed' offers a one-tap Undo (mis-tap mid-combat).
-    if (next === 'destroyed' && prevCondition !== 'destroyed') {
-      const name = resolveEquipment(slug)?.name ?? slug
-      destroyedUndoToast(name, () => {
-        void handleEquipmentConditionChange(slug, prevCondition)
-      })
-    }
-  }
-
-  async function handleUsesChange(slug: string, next: number) {
-    const prev = freshPilot().equipmentUses ?? {}
-    await storeState.update(
-      'pilot',
-      pilot.id,
-      {
-        equipmentUses: { ...prev, [slug]: next },
-      },
-      LIVE_SHEET_MANUAL
-    )
-  }
-
-  async function handleSpendAP(cost: number) {
-    const p = freshPilot()
-    const current = p.currentAP ?? pilotMaxAP(p)
-    const next = Math.max(0, current - cost)
-    if (next === current) return
-    await storeState.update('pilot', pilot.id, { currentAP: next }, LIVE_SHEET_MANUAL)
-  }
-
-  async function handleAbilityUsedChange(slug: string, next: boolean) {
-    const prev = new Set(freshPilot().usedAbilities ?? [])
-    if (next) {
-      prev.add(slug)
-    } else {
-      prev.delete(slug)
-    }
-    await storeState.update(
-      'pilot',
-      pilot.id,
-      {
-        usedAbilities: Array.from(prev),
-      },
-      LIVE_SHEET_MANUAL
-    )
-  }
-
-  async function handleGenericInventoryChange(next: GenericInventoryEntry[]) {
-    await storeState.update('pilot', pilot.id, { genericInventory: next }, LIVE_SHEET_MANUAL)
-  }
+  const { hpParts, apParts, maxHP, maxAP, hp, ap, tp } = model
 
   /** One learned ability card — identical wherever its tree puts it. */
   function renderAbility({ slug, ability }: { slug: string; ability: SURefAbility }) {
@@ -475,10 +156,10 @@ export function PilotSheet({
         currentAP={pilot.currentAP ?? pilotMaxAP(pilot)}
         used={pilot.usedAbilities?.includes(slug) ?? false}
         onSpend={(cost) => {
-          void handleSpendAP(cost)
+          void actions.handleSpendAP(cost)
         }}
         onToggleUsed={(next) => {
-          void handleAbilityUsedChange(slug, next)
+          void actions.handleAbilityUsedChange(slug, next)
         }}
         readOnly={readOnly}
       />
@@ -495,7 +176,7 @@ export function PilotSheet({
     >
       {/* Dead state (rules A2: max HP 0 = death). Display-only — the record
           stays editable so an erroneous injury can be removed. */}
-      {dead && (
+      {model.dead && (
         <div
           role="alert"
           className="rounded-[3px] border-entity border-status-bad bg-paper px-4 py-3"
@@ -517,7 +198,7 @@ export function PilotSheet({
         cat="Pilot"
         name={pilot.name}
         meta={
-          dead ? (
+          model.dead ? (
             <Badge surface="tone" tone="bad">
               Dead
             </Badge>
@@ -526,8 +207,8 @@ export function PilotSheet({
         fields={
           <PilotIdentityPanel
             pilot={pilot}
-            onToggleUsed={readOnly ? undefined : toggleUsed}
-            patch={readOnly ? undefined : patchPilot}
+            onToggleUsed={readOnly ? undefined : actions.toggleUsed}
+            patch={readOnly ? undefined : actions.patchPilot}
           />
         }
         vitals={
@@ -536,16 +217,19 @@ export function PilotSheet({
               label="HP"
               value={hp}
               max={maxHP}
-              onChange={readOnly ? undefined : (v) => patchPilot({ currentHP: v })}
+              onChange={readOnly ? undefined : (v) => actions.patchPilot({ currentHP: v })}
               onMaxChange={
                 readOnly
                   ? undefined
-                  : (next) => overridePilotMax({ maxHpOverride: pinOrUndef(next, hpParts.derived) })
+                  : (next) =>
+                      actions.overridePilotMax({
+                        maxHpOverride: pinOrUndef(next, hpParts.derived),
+                      })
               }
               overriddenFrom={readOnly || !hpParts.overridden ? undefined : hpParts.derived}
-              provenance={hpLines}
+              provenance={model.hpLines}
               onRevertOverride={
-                readOnly ? undefined : () => overridePilotMax({ maxHpOverride: undefined })
+                readOnly ? undefined : () => actions.overridePilotMax({ maxHpOverride: undefined })
               }
               readOnly={readOnly}
             />
@@ -553,16 +237,19 @@ export function PilotSheet({
               label="AP"
               value={ap}
               max={maxAP}
-              onChange={readOnly ? undefined : (v) => patchPilot({ currentAP: v })}
+              onChange={readOnly ? undefined : (v) => actions.patchPilot({ currentAP: v })}
               onMaxChange={
                 readOnly
                   ? undefined
-                  : (next) => overridePilotMax({ maxApOverride: pinOrUndef(next, apParts.derived) })
+                  : (next) =>
+                      actions.overridePilotMax({
+                        maxApOverride: pinOrUndef(next, apParts.derived),
+                      })
               }
               overriddenFrom={readOnly || !apParts.overridden ? undefined : apParts.derived}
-              provenance={apLines}
+              provenance={model.apLines}
               onRevertOverride={
-                readOnly ? undefined : () => overridePilotMax({ maxApOverride: undefined })
+                readOnly ? undefined : () => actions.overridePilotMax({ maxApOverride: undefined })
               }
               readOnly={readOnly}
             />
@@ -573,7 +260,7 @@ export function PilotSheet({
             <div className="flex w-full min-w-0 items-start gap-3">
               <TpBlock
                 value={tp}
-                onChange={readOnly ? undefined : (v) => patchPilot({ trainingPoints: v })}
+                onChange={readOnly ? undefined : (v) => actions.patchPilot({ trainingPoints: v })}
                 editable={!readOnly}
               />
               <div className="min-w-0 flex-1">
@@ -585,7 +272,7 @@ export function PilotSheet({
                 </span>
                 <ConditionsEditor
                   conditions={pilot.conditions}
-                  onChange={handleConditionsChange}
+                  onChange={actions.handleConditionsChange}
                   readOnly={readOnly}
                 />
               </div>
@@ -611,30 +298,30 @@ export function PilotSheet({
           )
         }
       >
-        {pilot.abilities.length === 0 && genericAbilities.length === 0 ? (
+        {pilot.abilities.length === 0 && model.genericAbilities.length === 0 ? (
           <p className="font-body text-caption text-wk-muted">No abilities learned yet.</p>
         ) : (
           <div className="flex flex-col gap-5">
-            {genericAbilities.length > 0 && (
+            {model.genericAbilities.length > 0 && (
               <div>
                 {/* No count: the class trees show how many you have TAKEN,
                     which is a number worth reading. Generic is intrinsic and
                     fixed, so a tally beside it is noise. */}
                 <Slab label={GENERIC_TREE} />
                 <MasonryColumns maxColumns={3}>
-                  {genericAbilities.map((entry) => (
+                  {model.genericAbilities.map((entry) => (
                     <EntityGridRow key={entry.slug}>{renderAbility(entry)}</EntityGridRow>
                   ))}
                 </MasonryColumns>
               </div>
             )}
 
-            {abilityGroups.trees.length > 0 && (
+            {model.abilityGroups.trees.length > 0 && (
               // One COLUMN per tree, three to a row — a tree's abilities stack
               // under their own leader instead of being interleaved with
               // another tree's by a masonry flow.
               <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 xl:grid-cols-3">
-                {abilityGroups.trees.map(([tree, entries]) => (
+                {model.abilityGroups.trees.map(([tree, entries]) => (
                   <div key={tree} className="min-w-0">
                     <Slab label={tree} count={entries.length} />
                     <div className="flex flex-col gap-4">
@@ -649,9 +336,9 @@ export function PilotSheet({
               </div>
             )}
 
-            {unresolvedAbilities.length > 0 && (
+            {model.unresolvedAbilities.length > 0 && (
               <div className="flex flex-col gap-2">
-                {unresolvedAbilities.map((slug) => (
+                {model.unresolvedAbilities.map((slug) => (
                   <Panel key={slug} className="px-3 py-2.5 font-body text-sm text-wk-muted">
                     {slug}
                   </Panel>
@@ -666,8 +353,8 @@ export function PilotSheet({
       <SheetSectionSlab
         title="Inventory"
         count={
-          <span className={overCapacity ? 'text-status-bad' : undefined}>
-            {slotsUsed} / {slotsCap} slots
+          <span className={model.overCapacity ? 'text-status-bad' : undefined}>
+            {model.slotsUsed} / {model.slotsCap} slots
           </span>
         }
         controls={
@@ -676,11 +363,11 @@ export function PilotSheet({
           )
         }
       >
-        {pilot.equipment.length === 0 && genericInventory.length === 0 ? (
+        {pilot.equipment.length === 0 && model.genericInventory.length === 0 ? (
           <p className="font-body text-caption text-wk-muted">Nothing carried.</p>
         ) : (
           <MasonryColumns maxColumns={2}>
-            {ordinaryEquipment.map((slug) => (
+            {model.ordinaryEquipment.map((slug) => (
               <EntityGridRow key={slug}>
                 <PilotEquipmentItem
                   slug={slug}
@@ -689,25 +376,25 @@ export function PilotSheet({
                   condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
                   usesLeft={pilot.equipmentUses?.[slug]}
                   onConditionChange={(itemSlug, next) => {
-                    void handleEquipmentConditionChange(itemSlug, next)
+                    void actions.handleEquipmentConditionChange(itemSlug, next)
                   }}
                   onUsesChange={(itemSlug, next) => {
-                    void handleUsesChange(itemSlug, next)
+                    void actions.handleUsesChange(itemSlug, next)
                   }}
                   onRemove={
                     readOnly
                       ? undefined
                       : () => {
-                          toggleEquipment(slug)
+                          actions.toggleEquipment(slug)
                         }
                   }
                   readOnly={readOnly}
-                  scalingParent={scalingParent}
+                  scalingParent={model.scalingParent}
                   store={store}
                 />
               </EntityGridRow>
             ))}
-            {genericInventory.map((entry, index) => (
+            {model.genericInventory.map((entry, index) => (
               <EntityGridRow key={entry.id}>
                 <GenericEntryCard
                   entry={entry}
@@ -715,8 +402,8 @@ export function PilotSheet({
                     readOnly
                       ? undefined
                       : () => {
-                          void handleGenericInventoryChange(
-                            genericInventory.filter((_, i) => i !== index)
+                          void actions.handleGenericInventoryChange(
+                            model.genericInventory.filter((_, i) => i !== index)
                           )
                         }
                   }
@@ -729,32 +416,23 @@ export function PilotSheet({
             masonry above. Each carries a nested loadout and a cargo hold, so a
             column would crush it, and a partner acts on its own turn rather
             than being one item among the pilot's carried gear. */}
-        {partners.length > 0 && (
+        {model.partners.length > 0 && (
           <div className="mt-3 flex flex-col gap-3">
-            {partners.map((partner) => (
+            {model.partners.map((partner) => (
               <PartnerCard
                 key={partner.id}
                 found={{ partner, hostKind: 'pilot', host: pilot }}
-                crawler={linkedCrawler}
-                crawlerTechLevel={effectiveCrawlerLevel}
+                crawler={model.linkedCrawler}
+                crawlerTechLevel={model.effectiveCrawlerLevel}
                 hostAbilityRefs={pilot.abilities}
-                fielded={fieldedByRef[partner.hostRef] ?? 1}
+                fielded={model.fieldedByRef[partner.hostRef] ?? 1}
                 readOnly={readOnly}
                 store={store}
                 onRemove={
                   readOnly
                     ? undefined
                     : () => {
-                        runWrite(() =>
-                          storeState.update(
-                            'pilot',
-                            pilot.id,
-                            {
-                              partners: partners.filter((p) => p.id !== partner.id),
-                            },
-                            LIVE_SHEET_MANUAL
-                          )
-                        )
+                        actions.removePartner(partner.id)
                       }
                 }
               />
@@ -765,7 +443,7 @@ export function PilotSheet({
           <div className="mt-3">
             <GenericEntryAdder
               onAdd={(entry) => {
-                void handleGenericInventoryChange([...genericInventory, entry])
+                void actions.handleGenericInventoryChange([...model.genericInventory, entry])
               }}
             />
           </div>
@@ -797,10 +475,12 @@ export function PilotSheet({
         <EntitySearcher
           schema="abilities"
           selected={pilot.abilities}
-          onToggle={toggleAbility}
+          onToggle={actions.toggleAbility}
           idOf={(item) => item.id}
           filter={
-            abilityTrees ? (item) => abilityTrees.has((item as SURefAbility).tree) : undefined
+            model.abilityTrees
+              ? (item) => model.abilityTrees?.has((item as SURefAbility).tree) ?? false
+              : undefined
           }
           facets={{
             category: { label: 'Tree', of: (item) => (item as SURefAbility).tree },
@@ -820,28 +500,22 @@ export function PilotSheet({
         <EntitySearcher
           schema="equipment"
           selected={pilot.equipment}
-          onToggle={toggleEquipment}
+          onToggle={actions.toggleEquipment}
           idOf={(item) => item.id}
           railName={pilot.name}
           chosenLabel="Equipped"
           emptyMessage="No equipment matches those filters."
-          budget={{ label: 'Inventory slots', used: slotsUsed, max: slotsCap }}
+          budget={{ label: 'Inventory slots', used: model.slotsUsed, max: model.slotsCap }}
         />
       </SheetPickerModal>
 
       {/* Advisory confirm — only mounts when a build edit tripped a rule. */}
       <SoftWarningDialog
-        open={warningSubtitle !== null}
-        warnings={softWarnings.warnings}
-        subtitle={warningSubtitle ?? undefined}
-        onCancel={() => {
-          softWarnings.fixIt()
-          setWarningSubtitle(null)
-        }}
-        onSaveAnyway={() => {
-          void softWarnings.saveAnyway()
-          setWarningSubtitle(null)
-        }}
+        open={actions.warningSubtitle !== null}
+        warnings={actions.warnings}
+        subtitle={actions.warningSubtitle ?? undefined}
+        onCancel={actions.cancelBuildEdit}
+        onSaveAnyway={actions.confirmBuildEdit}
       />
     </section>
   )

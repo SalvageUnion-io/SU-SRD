@@ -35,19 +35,18 @@ import {
   useWizardDraftSync,
   wizardDraftKey,
 } from '../../lib/wizard/wizardDraft'
-import { useEntityStore } from '../../stores/entityStore'
 import { Banner } from 'component-lib'
 import { OffRulesEscape } from 'component-lib'
 import { RuleBrief } from 'component-lib'
 import type { StepRule } from 'component-lib'
 import { WizShell, WizTracker } from 'component-lib'
+import { useWizardFlow } from '../wizard/useWizardFlow'
 import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
 import { CrawlerReviewStep } from './CrawlerReviewStep'
 import { CrawlerStatsStep } from 'component-lib'
 import { CrawlerTypeSelectStep } from 'component-lib'
 import { SystemsList } from 'component-lib'
-import { WIZARD_TXN } from '../../stores/surfaceProvenance'
 
 /**
  * Book-order steps (Union Crawler pp.212–213 + Review — plan §4.3). Edit mode
@@ -197,11 +196,54 @@ export function CrawlerBuilder({
     }
   }, [])
   const formDirty = useWizardDraftSync(draftKey, form, initialState ?? EMPTY_CRAWLER_FORM_STATE)
-  const [step, setStep] = useState<CrawlerWizardStepId>(steps[0] ?? 'type')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const currentIndex = steps.indexOf(step)
+  // The step machine + the upsert-or-create submit, shared with the pilot and
+  // mech wizards (`useWizardFlow`) — but the crawler is the wizard that made
+  // the hook's two escape hatches necessary, and both are wired here:
+  //
+  //   - `afterUpdate` runs `applyCrawlerCrewAndTypeEdit`, a SECOND lifecycle
+  //     write the other two wizards have no counterpart for. It needs the
+  //     record as it was BEFORE the wizard patch, because the patch overwrites
+  //     `type` and the crew/NPC reset is decided by the OLD type.
+  //   - `toCreateInput` is a closure rather than the bare projection: a fresh
+  //     crawler starts at its DERIVED full SP and pre-seeds the base bay set.
+  //
+  // The failure copy is also passed verbatim: the crawler's catch has never
+  // carried the "Please retry." suffix the other two use.
+  const { step, setStep, currentIndex, goNext, goBack, isSubmitting, submitError } = useWizardFlow({
+    entityType: 'crawler',
+    noun: 'crawler',
+    steps,
+    initialStep: steps[0] ?? 'type',
+    submitStep: 'review',
+    form,
+    draftKey,
+    ...(crawlerId !== undefined ? { entityId: crawlerId } : {}),
+    schema: CrawlerSchema,
+    toCreateInput: (f) => {
+      // Fresh crawlers start at FULL SP — the DERIVED max (bare tech-level
+      // base + the type's read-applied bonus; Battle = 20 + 5 = 25). The
+      // record itself stores no SP maximum: maxSP stays derived-at-read.
+      const maxSP =
+        f.techLevel !== null
+          ? crawlerMaxSP({
+              techLevel: `tech-${f.techLevel}`,
+              ...(f.type !== null ? { type: f.type } : {}),
+            })
+          : undefined
+      // Seed the full base bay set — the official sheets pre-print every bay.
+      return crawlerFormToCreateInput(f, { maxSP, crawlerBays: seedDefaultCrawlerBays() })
+    },
+    toUpdatePatch: crawlerFormToUpdatePatch,
+    // Crew/NPC edits + the type-NPC reset / orphan cleanup route through the
+    // shared multi-write helper (also used by the live sheet's inline build
+    // editor), so live HP/condition on bays + the type NPC survive an edit.
+    afterUpdate: async (store, id, before) => {
+      await applyCrawlerCrewAndTypeEdit(store, id, form, before?.type ?? null, types)
+    },
+    failureMessage: 'Failed to save crawler.',
+    onComplete,
+  })
 
   useEffect(() => {
     // crawlers drives the type selection (and its mutations-derived budgets);
@@ -260,91 +302,6 @@ export function CrawlerBuilder({
       }
     }
     updateForm({ type: typeId, crew: nextCrew, systems: nextSystems })
-  }
-
-  function goNext() {
-    if (step === 'review') {
-      void handleSubmit()
-      return
-    }
-    const next = steps[currentIndex + 1]
-    if (next) setStep(next)
-  }
-
-  function goBack() {
-    const prev = steps[currentIndex - 1]
-    if (currentIndex > 0 && prev) setStep(prev)
-  }
-
-  async function handleSubmit() {
-    setSubmitError(null)
-    setIsSubmitting(true)
-
-    try {
-      const store = useEntityStore.getState()
-
-      // Upsert branch: update when editing — NEVER a second create.
-      // The patch touches only wizard-owned fields; bays/NPC live state stays.
-      if (crawlerId) {
-        // Read the stored record BEFORE the wizard patch so we know the old
-        // type (the patch overwrites `type`).
-        const stored = store.get('crawler', crawlerId)
-        const oldType = stored?.type ?? null
-
-        await store.update('crawler', crawlerId, crawlerFormToUpdatePatch(form), WIZARD_TXN)
-
-        // Crew/NPC edits + the type-NPC reset / orphan cleanup route through the
-        // shared multi-write helper (also used by the live sheet's inline build
-        // editor), so live HP/condition on bays + the type NPC survive an edit.
-        await applyCrawlerCrewAndTypeEdit(store, crawlerId, form, oldType, types)
-
-        toast.success(`Saved ${form.name.trim() || 'crawler'}.`)
-        clearWizardDraft(draftKey)
-        onComplete(crawlerId)
-        return
-      }
-
-      const now = new Date().toISOString()
-      // Fresh crawlers start at FULL SP — the DERIVED max (bare tech-level
-      // base + the type's read-applied bonus; Battle = 20 + 5 = 25). The
-      // record itself stores no SP maximum: maxSP stays derived-at-read.
-      const maxSP =
-        form.techLevel !== null
-          ? crawlerMaxSP({
-              techLevel: `tech-${form.techLevel}`,
-              ...(form.type !== null ? { type: form.type } : {}),
-            })
-          : undefined
-      // Seed the full base bay set — the official sheets pre-print every bay.
-      const rawInput = crawlerFormToCreateInput(form, {
-        maxSP,
-        crawlerBays: seedDefaultCrawlerBays(),
-      })
-
-      // Validate against CrawlerSchema before submitting (surface errors in-UI)
-      const validation = CrawlerSchema.safeParse({
-        ...rawInput,
-        id: 'temp-validate-only',
-        createdAt: now,
-        updatedAt: now,
-      })
-      if (!validation.success) {
-        const messages = validation.error.issues
-          .map((e: { message: string }) => e.message)
-          .join('; ')
-        setSubmitError(`Validation error: ${messages}`)
-        setIsSubmitting(false)
-        return
-      }
-
-      const created = await store.create('crawler', rawInput)
-      toast.success(`Saved ${form.name.trim() || 'crawler'}.`)
-      clearWizardDraft(draftKey)
-      onComplete(created.id)
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to save crawler.')
-      setIsSubmitting(false)
-    }
   }
 
   const selectedTechLevel = techLevels.find((t) => t.techLevel === form.techLevel)

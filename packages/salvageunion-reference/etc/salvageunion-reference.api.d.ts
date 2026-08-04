@@ -17,8 +17,12 @@ export type ModelWithMetadata<T> = BaseModel<T> & {
  * Simplified Base Model class for querying JSON data with type safety
  * Provides only the essential query methods
  *
- * Performance: schemaName is stamped on each entity at construction time
- * and an ID map is built for O(1) lookups via getById().
+ * Performance: schemaName is stamped on each entity at construction time and an
+ * ID map is built for O(1) `getById()`. `name` and `slug` are indexed too, but
+ * LAZILY — the id map serves one caller (`SalvageUnionReference.get`) while name
+ * and slug are how nearly every consumer actually addresses an entity, and a
+ * model that is never looked up by name should not pay to slugify every row.
+ * Reference data is immutable after load, so each map is built once on first use.
  */
 export declare class BaseModel<T> {
     protected data: (T & {
@@ -27,6 +31,12 @@ export declare class BaseModel<T> {
     protected idMap: Map<string, T & {
         schemaName: string;
     }>;
+    protected nameMap: Map<string, T & {
+        schemaName: string;
+    }> | null;
+    protected slugMap: Map<string, T & {
+        schemaName: string;
+    }> | null;
     protected _schemaName: string;
     protected _displayName: string;
     constructor(data: T[], schemaName: string, displayName: string);
@@ -54,6 +64,31 @@ export declare class BaseModel<T> {
     getById(id: string): (T & {
         schemaName: string;
     }) | undefined;
+    /**
+     * Get an entity by exact `name` in O(1) time.
+     *
+     * Exactly equivalent to `find((e) => e.name === name)`: rows whose `name` is
+     * absent or not a string are not indexed, and on a duplicate name the FIRST
+     * row in data order wins — the same answer `Array.prototype.find` gives.
+     */
+    getByName(name: string): (T & {
+        schemaName: string;
+    }) | undefined;
+    /**
+     * Get an entity by the slug derived from its `name`, in O(1) time.
+     *
+     * Exactly equivalent to `find((e) => nameToSlug(e.name) === slug)`, with the
+     * same first-writer-wins collision rule as {@link getByName}.
+     */
+    getBySlug(slug: string): (T & {
+        schemaName: string;
+    }) | undefined;
+    /**
+     * Index every row carrying a string `name` under `key(name)`, skipping rows
+     * for which `key` returns null. First writer wins, matching
+     * `Array.prototype.find` order.
+     */
+    private buildKeyIndex;
 }
 //# sourceMappingURL=BaseModel.d.ts.map
 // === lib/LazyModel.d.ts ===
@@ -103,6 +138,12 @@ export declare class LazyModel<T> extends BaseModel<T> {
     getById(id: string): (T & {
         schemaName: string;
     }) | undefined;
+    getByName(name: string): (T & {
+        schemaName: string;
+    }) | undefined;
+    getBySlug(slug: string): (T & {
+        schemaName: string;
+    }) | undefined;
 }
 //# sourceMappingURL=LazyModel.d.ts.map
 // === lib/ModelFactory.d.ts ===
@@ -136,6 +177,17 @@ export declare function loadSchemas(schemas: string[] | 'all'): Promise<void>;
  * Throws with a descriptive error if the schema hasn't been loaded yet.
  */
 export declare function getLoadedModel(schemaId: string, propertyName: string): BaseModel<unknown>;
+/**
+ * Get a loaded model by its kebab-case schema id, or `undefined` if that
+ * schema has not been preloaded.
+ *
+ * The non-throwing sibling of {@link getLoadedModel}, for callers whose
+ * contract is "return nothing when the schema isn't there" — `lib/slug.ts`'s
+ * `findEntityBySlug`, which used to read the raw row array out of
+ * {@link getDataMaps} and linear-scan it. Going through the model instead
+ * reaches its name/slug indexes.
+ */
+export declare function getLoadedModelBySchemaId(schemaId: string): BaseModel<unknown> | undefined;
 /**
  * Reset all load state. Exposed for testing only.
  * In production, schemas are loaded once and kept for the lifetime of the process.
@@ -188,6 +240,127 @@ export declare function getSchemaCatalog(): {
     schemas: EnhancedSchemaMetadata[];
 };
 //# sourceMappingURL=ModelFactory.d.ts.map
+// === lib/actionResolution.d.ts ===
+/**
+ * Action resolution: the cached name → action map, and every getter whose
+ * answer may come from an entity's SELF-ACTION rather than the entity itself.
+ *
+ * The dataset stores an entity's actions as NAMES; the combat facets
+ * (activationCost / actionType / range / damage) and the trait, table, option
+ * and choice payloads live on the resolved action, not on the entity. Every
+ * function here therefore has a resolution step — which is exactly what
+ * separates it from the plain readers in `entityFields.ts`.
+ *
+ * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
+ * there (and from the package barrel), so this is an internal home, not a new
+ * public surface.
+ */
+import type { SURefMetaEntity, SURefMetaAction, SURefObjectTable, SURefObjectTrait, SURefObjectChoice, SURefObjectActionOptions } from './types/index.js';
+/** Clear the cached action map so the next lookup reads fresh data. Called by `preload()`. */
+export declare function invalidateActionMap(): void;
+/**
+ * Extract actions from an entity
+ * Resolves action names to full action objects from actions schema
+ * @param entity - The entity to extract from
+ * @returns The actions array or undefined
+ */
+export declare function extractActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined;
+/**
+ * Extract visible (non-hidden) actions from an entity
+ * @param entity - The entity to extract from
+ * @returns The visible actions array or undefined
+ */
+export declare function extractVisibleActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined;
+/**
+ * Extract chassis abilities from a chassis
+ * Resolves ability names to full ability objects from actions schema
+ * @param entity - The entity to extract from
+ * @returns The chassis abilities array or undefined
+ */
+export declare function getChassisAbilities(entity: SURefMetaEntity): SURefMetaAction[] | undefined;
+type DamageValue = {
+    damageType: string;
+    amount: number | string;
+};
+/**
+ * Get activation cost from an entity
+ * Checks base level first, then action if action name matches entity name
+ * @param entity - The entity to extract activation cost from
+ * @returns The activation cost or undefined if not present
+ */
+export declare function getActivationCost(entity: SURefMetaEntity): number | string | undefined;
+/**
+ * Get action type from an entity (self-action fallback).
+ */
+export declare function getActionType(entity: SURefMetaEntity): string | undefined;
+/**
+ * Get range from an entity (self-action fallback).
+ */
+export declare function getRange(entity: SURefMetaEntity): string[] | undefined;
+/**
+ * Get damage from an entity (self-action fallback).
+ */
+export declare function getDamage(entity: SURefMetaEntity): DamageValue | undefined;
+/**
+ * Get traits from an entity
+ * Checks base level first, then action if action name matches entity name
+ * @param entity - The entity to extract traits from
+ * @returns The traits array or undefined if not present
+ */
+export declare function getTraits(entity: SURefMetaEntity): SURefObjectTrait[] | undefined;
+/**
+ * Get table from an entity
+ * Checks base level, nested action property, and tableName references
+ * @param entity - The entity to extract table from
+ * @returns The table object or undefined if not present
+ */
+export declare function getTable(entity: SURefMetaEntity): SURefObjectTable | undefined;
+/**
+ * Get options from an entity
+ * Checks both base level and nested action property
+ * @param entity - The entity to extract options from
+ * @returns The options array or undefined if not present
+ */
+export declare function getOptions(entity: SURefMetaEntity): SURefObjectActionOptions | undefined;
+/**
+ * Get choices from an entity
+ * Checks action choices first (if action name matches entity name), then root-level choices
+ * If both base entity and a granted entity have actions with the same name, action choices
+ * are filtered out (handled by grantable UI) but root-level choices are still returned
+ * @param entity - The entity to extract choices from
+ * @returns The choices array or undefined if not present
+ */
+export declare function getChoices(entity: SURefMetaEntity): SURefObjectChoice[] | undefined;
+export {};
+//# sourceMappingURL=actionResolution.d.ts.map
+// === lib/assets.d.ts ===
+/**
+ * Artwork URL derivation.
+ *
+ * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
+ * there (and from the package barrel), so this is an internal home, not a new
+ * public surface.
+ */
+import type { SURefMetaEntity } from './types/index.js';
+/**
+ * Base URL of the Netlify-hosted artwork CDN (the su-assets site, backed by a
+ * Netlify Blobs store). Asset URLs are derived from this base plus the entity's
+ * schema name and slug — see getAssetUrl().
+ */
+export declare const ASSET_BASE_URL = "https://assets.salvageunion.io";
+/**
+ * Derive an entity's asset URL from its schema name and slug.
+ *
+ * Artwork is unified on WebP, so the whole URL is inferred:
+ * `{ASSET_BASE_URL}/{schemaName}/{slug}.webp`. The boolean `hasArtwork` flag
+ * marks which entities have artwork; the slug matches `getEntitySlug`, so the
+ * artwork path lines up with the entity's canonical reference path.
+ *
+ * @param entity - The entity to derive from (must carry a stamped `schemaName`)
+ * @returns The asset URL, or undefined if the entity has no artwork
+ */
+export declare function getAssetUrl(entity: SURefMetaEntity): string | undefined;
+//# sourceMappingURL=assets.d.ts.map
 // === lib/contentBlockHelpers.d.ts ===
 /**
  * Helper functions for working with content blocks in entity data
@@ -226,6 +399,243 @@ export declare function resolveDataValueForTechLevel(dv: SURefObjectDataValue, e
     scaled: boolean;
 };
 //# sourceMappingURL=contentBlockHelpers.d.ts.map
+// === lib/entityFields.d.ts ===
+/**
+ * Plain field extractors: read one property straight off an entity, narrowing
+ * it to the type the reference data promises and returning `undefined` when the
+ * entity does not carry it.
+ *
+ * Every function here is total, synchronous and dependency-free — nothing in
+ * this module consults the ORM, the action map, or another entity. Anything
+ * that has to RESOLVE something (an action name, a self-action fallback, a
+ * pattern) lives in `actionResolution.ts` or `patterns.ts` instead.
+ *
+ * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
+ * there (and from the package barrel), so this is an internal home, not a new
+ * public surface.
+ */
+import type { SURefMetaEntity, SURefObjectGrant } from './types/index.js';
+/**
+ * Extract tech level from an entity
+ * @param entity - The entity to extract from
+ * @returns The tech level (number, 'B', 'N') or undefined
+ */
+export declare function getTechLevel(entity: SURefMetaEntity): number | 'B' | 'N' | undefined;
+/**
+ * Extract tech level from an entity as a numeric value
+ * Normalizes 'B' and 'N' to 1 for math operations
+ * @param entity - The entity to extract from
+ * @returns The tech level as a number or undefined
+ */
+export declare function getTechLevelNumber(entity: SURefMetaEntity): number | undefined;
+/**
+ * Extract salvage value from an entity
+ * @param entity - The entity to extract from
+ * @returns The salvage value or undefined
+ */
+export declare function getSalvageValue(entity: SURefMetaEntity): number | undefined;
+/**
+ * Extract slots required from an entity
+ * @param entity - The entity to extract from
+ * @returns The slots required or undefined
+ */
+export declare function getSlotsRequired(entity: SURefMetaEntity): number | undefined;
+/**
+ * Extract page reference from an entity
+ * @param entity - The entity to extract from
+ * @returns The page number or undefined
+ */
+export declare function getPageReference(entity: SURefMetaEntity): number | undefined;
+/**
+ * Extract structure points from an entity
+ * @param entity - The entity to extract from
+ * @returns The structure points or undefined
+ */
+export declare function getStructurePoints(entity: SURefMetaEntity): number | undefined;
+/**
+ * Extract energy points from an entity
+ * @param entity - The entity to extract from
+ * @returns The energy points or undefined
+ */
+export declare function getEnergyPoints(entity: SURefMetaEntity): number | undefined;
+/**
+ * Extract heat capacity from an entity
+ * @param entity - The entity to extract from
+ * @returns The heat capacity or undefined
+ */
+export declare function getHeatCapacity(entity: SURefMetaEntity): number | undefined;
+/**
+ * Extract system slots from an entity
+ * @param entity - The entity to extract from
+ * @returns The number of system slots or undefined
+ */
+export declare function getSystemSlots(entity: SURefMetaEntity): number | undefined;
+/**
+ * Extract module slots from an entity
+ * @param entity - The entity to extract from
+ * @returns The number of module slots or undefined
+ */
+export declare function getModuleSlots(entity: SURefMetaEntity): number | undefined;
+/**
+ * Extract cargo capacity from an entity
+ * @param entity - The entity to extract from
+ * @returns The cargo capacity or undefined
+ */
+export declare function getCargoCapacity(entity: SURefMetaEntity): number | undefined;
+/**
+ * Extract a Union Crawler tech level's Upkeep Cost — the Scrap (of the Crawler's
+ * own Tech Level) it costs to keep running through a Downtime.
+ * @param entity - The entity to extract from
+ * @returns The upkeep cost or undefined
+ */
+export declare function getUpkeepCost(entity: SURefMetaEntity): number | undefined;
+/**
+ * Extract a Union Crawler tech level's Upgrade Cost — the Upgrade Pool total
+ * that unlocks the next Tech Level. `null` in the data at the MAXIMUM tier
+ * (there is nothing to upgrade to), which reads back as `undefined` here so the
+ * stat simply does not render.
+ * @param entity - The entity to extract from
+ * @returns The upgrade cost, or undefined at the maximum tech level
+ */
+export declare function getUpgradeCost(entity: SURefMetaEntity): number | undefined;
+/**
+ * Extract hit points from an entity
+ * Used for NPCs, Creatures, Squads, and Meld
+ * @param entity - The entity to extract from
+ * @returns The hit points or undefined
+ */
+export declare function getHitPoints(entity: SURefMetaEntity): number | undefined;
+/**
+ * Extract blackMarket flag from an entity
+ * @param entity - The entity to extract from
+ * @returns True if the entity is from the Black Market, false if not, undefined if not present
+ */
+export declare function getBlackMarket(entity: SURefMetaEntity): boolean | undefined;
+/**
+ * Extract content from an entity
+ * @param entity - The entity to extract from
+ * @returns The content or undefined
+ */
+export declare function getContent(entity: SURefMetaEntity): unknown | undefined;
+/**
+ * Extract name from an entity
+ * @param entity - The entity to extract from
+ * @returns The name or undefined
+ */
+export declare function getName(entity: SURefMetaEntity): string | undefined;
+/**
+ * Extract source from an entity
+ * @param entity - The entity to extract from
+ * @returns The source or undefined
+ */
+export declare function getSource(entity: SURefMetaEntity): string | undefined;
+/**
+ * Extract booklet code from an entity (e.g. "CR" / "PH" / "PC" / "CB" for SUSS).
+ * Only meaningful when the primary source is a multi-booklet product.
+ * @param entity - The entity to extract from
+ * @returns The booklet code or undefined
+ */
+export declare function getBooklet(entity: SURefMetaEntity): string | undefined;
+/**
+ * Extract tree from an entity
+ * @param entity - The entity to extract from
+ * @returns The tree or undefined
+ */
+export declare function getTree(entity: SURefMetaEntity): unknown | undefined;
+/**
+ * Extract bioSalvageValue from an entity
+ * @param entity - The entity to extract from
+ * @returns The bioSalvageValue or undefined
+ */
+export declare function getBioSalvageValue(entity: SURefMetaEntity): number | undefined;
+/**
+ * Get display name from an entity
+ * Falls back to name if displayName is not provided
+ * @param entity - The entity to extract display name from
+ * @returns The display name or name, or undefined if neither is present
+ */
+export declare function getReferenceEntityName(entity: SURefMetaEntity): string | undefined;
+/**
+ * Get description from an entity
+ * @param entity - The entity to extract description from
+ * @returns The description or undefined if not an ability
+ */
+export declare function getDescription(entity: SURefMetaEntity): string | undefined;
+/**
+ * Get effects from an entity
+ * Note: Effects only exist at base level, not in actions
+ * @param entity - The entity to extract from
+ * @returns The effects array or undefined if not present
+ */
+export declare function getEffects(entity: SURefMetaEntity): Array<{
+    label?: string;
+    value: string;
+}> | undefined;
+/**
+ * Get grants from an entity
+ * @param entity - The entity to extract grants from
+ * @returns The grants array or undefined if not present
+ */
+export declare function getGrants(entity: SURefMetaEntity): SURefObjectGrant[] | undefined;
+//# sourceMappingURL=entityFields.d.ts.map
+// === lib/entityGuards.d.ts ===
+/**
+ * Type guards over reference data.
+ *
+ * Every guard here has at least one non-test consumer. Six more used to live
+ * beside them — `isSystem`, `isModule`, `isSystemOrModule`, `isChassis`,
+ * `isClass` and `hasTechLevel`, plus `hasTraits` — with no consumer anywhere in
+ * the repo, and two of them (`isSystem` / `isModule`) were byte-identical
+ * predicates that could not actually tell a System from a Module: Systems and
+ * Modules share one schema, and the only field that distinguishes them is the
+ * `schemaName` stamped at load time. They were deleted rather than fixed; the
+ * discriminant to use if the need returns is `entity.schemaName === 'systems'`.
+ *
+ * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
+ * there (and from the package barrel), so this is an internal home, not a new
+ * public surface.
+ */
+import type { SURefEntity, SURefMetaEntity } from './types/index.js';
+import type { SURefAbility, SURefClass, SURefKeyword, SURefObjectAdvancedClass } from './types/index.js';
+/**
+ * Type guard to distinguish SURefEntity (structured data with id/name/source/page)
+ * from SURefMetaAction or other object types (which lack these fields)
+ * @param data - Entity, action, or other object to check
+ * @returns True if the data has id, name, source, and page fields
+ */
+export declare function isEntityData<T extends object>(data: T): data is T & SURefEntity & {
+    id: string;
+    name: string;
+    source: string;
+    page: number;
+};
+/**
+ * Type guard to check if an entity is an Ability
+ * @param entity - The entity to check (null/undefined accepted; both return false)
+ * @returns True if the entity is an Ability
+ */
+export declare function isAbility(entity: SURefMetaEntity | null | undefined): entity is SURefAbility;
+/**
+ * Type guard to check if an entity is a Keyword
+ * @param entity - The entity to check
+ * @returns True if the entity is a Keyword
+ */
+export declare function isKeyword(entity: SURefMetaEntity): entity is SURefKeyword;
+/**
+ * Type guard to check if an entity is a Core Class
+ * @param entity - The entity to check
+ * @returns True if the entity is a Core Class
+ */
+export declare function isCoreClass(entity: SURefMetaEntity): entity is SURefClass & {
+    coreTrees: string[];
+};
+/**
+ * Type guard to check if an entity is an Advanced Class
+ * @param entity - The entity to check
+ * @returns True if the entity is an Advanced Class
+ */
+export declare function isBaseAdvancedClass(entity: SURefMetaEntity): entity is SURefObjectAdvancedClass;
+//# sourceMappingURL=entityGuards.d.ts.map
 // === lib/generated/modelFactoryRegistry.generated.d.ts ===
 /**
  * AUTO-GENERATED by tools/generateRegistry.ts from lib/schemas/registry.ts.
@@ -731,6 +1141,63 @@ export declare class SalvageUnionReference {
  */
 export declare function resetAllForTesting(): void;
 //# sourceMappingURL=index.d.ts.map
+// === lib/inventorySlots.d.ts ===
+/**
+ * The Pilot inventory-slot rule: an item takes one slot, or two if it is Heavy
+ * or Portable.
+ *
+ * This is a RULE, not a field extractor, and by rights belongs beside the other
+ * pure rules math in `lib/rules/` (ADR-006). It is parked here instead because
+ * `lib/rules/` is published as the separate `salvageunion-reference/rules`
+ * entry point: moving it there would either add a name to that entry point's
+ * public surface or remove one from the main barrel, and this split is meant to
+ * be invisible from outside the package. Its one consumer
+ * (`apps/itun/src/components/sheet/pilotInventory.ts`) imports it from the main
+ * barrel today.
+ *
+ * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
+ * there (and from the package barrel).
+ */
+import type { SURefMetaEntity } from './types/index.js';
+/**
+ * Get the number of inventory slots an equipment entity occupies.
+ * Default is 1. Heavy or Portable traits make it 2.
+ */
+export declare function getInventorySlots(entity: SURefMetaEntity): number;
+//# sourceMappingURL=inventorySlots.d.ts.map
+// === lib/nameToSlug.d.ts ===
+/**
+ * Entity-name slugification.
+ *
+ * Zero imports by design: `BaseModel` indexes every row by slug, and
+ * `lib/slug.ts` (which owns the entity-lookup helpers) imports
+ * `lib/ModelFactory.ts`, which imports `BaseModel`. Keeping the pure string
+ * transform in its own module is what breaks that cycle —
+ * `BaseModel -> nameToSlug` terminates immediately.
+ *
+ * `nameToSlug` remains public API and is still re-exported from `lib/slug.ts`
+ * and the package barrel; this module is an internal home, not a new surface.
+ */
+/**
+ * Converts a name to a URL-safe slug
+ * - Converts to lowercase
+ * - Replaces spaces and special characters with hyphens
+ * - Removes multiple consecutive hyphens
+ * - Trims hyphens from start and end
+ *
+ * CodeQL js/polynomial-redos note: the trailing-hyphen-trim regex used to be
+ * `/^-+|-+$/g`. The `-+$` branch has a quantifier immediately followed by an
+ * anchor with nothing after it in the string to guarantee the match, which is
+ * the classic superlinear (O(n^2)) backtracking shape for the query
+ * (e.g. `"a" + "-".repeat(n) + "a"` forces a retry at every start position).
+ * The fix collapses whitespace/hyphen runs into a single hyphen first
+ * (`[\s-]+` — safe: nothing follows the quantifier, so no backtracking), which
+ * guarantees at most one leading and one trailing hyphen remains. That lets
+ * the final trim drop its quantifier entirely (`/^-|-$/g`), leaving no
+ * superlinear regex in the function.
+ */
+export declare function nameToSlug(name: string): string;
+//# sourceMappingURL=nameToSlug.d.ts.map
 // === lib/naming.d.ts ===
 /**
  * Schema-id naming helpers.
@@ -751,6 +1218,57 @@ export declare function resetAllForTesting(): void;
  */
 export declare function toPascalCase(id: string): string;
 //# sourceMappingURL=naming.d.ts.map
+// === lib/patterns.d.ts ===
+/**
+ * Mech patterns and faction formations: reading a chassis's patterns, the
+ * hidden-pattern rule that every render surface funnels through, pattern-name
+ * normalisation, and resolving a formation member to its entity.
+ *
+ * Split out of the old `lib/utilities.ts` grab bag; still re-exported from
+ * there (and from the package barrel), so this is an internal home, not a new
+ * public surface.
+ */
+import type { SURefEntity, SURefMetaEntity, SURefObjectFormationMech, SURefObjectPattern } from './types/index.js';
+/**
+ * Extract patterns from an entity
+ * @param entity - The entity to extract from
+ * @returns The patterns or undefined
+ */
+export declare function getPatterns(entity: SURefMetaEntity): SURefObjectPattern[] | undefined;
+/**
+ * A HIDDEN pattern carries the stored `hidden` data flag — an explicit tag,
+ * NEVER computed from source (project data convention; mirrors
+ * `legalStarting`). The record stays in the dataset but is withheld from
+ * every rendered surface. Takes the primitive the rule reads — the record's
+ * `hidden` value (undefined = untagged = visible).
+ */
+export declare function isHiddenPattern(hidden: boolean | undefined): boolean;
+/**
+ * Drops the stored-`hidden` set from a chassis's patterns. This is the single
+ * choke point every render surface goes through, so a pattern tagged `hidden`
+ * cannot leak into a card, a generated page, a wizard picker or a bot embed.
+ */
+export declare function visiblePatterns<T extends {
+    hidden?: boolean;
+}>(patterns: readonly T[]): T[];
+/**
+ * Normalize pattern name by removing " Pattern" suffix
+ * @param patternName - The pattern name to normalize
+ * @returns The normalized pattern name
+ */
+export declare function normalizePatternName(patternName: string): string;
+/**
+ * Resolve a formation member to its entity, supporting chassis+pattern and standalone entity types.
+ * For chassis: resolves chassis and optionally its pattern.
+ * For other schemas (vehicles, drones, squads, npcs): resolves by name.
+ * @param member - The formation member from faction data
+ * @returns The resolved entity (with optional pattern for chassis), or undefined
+ */
+export declare function resolveFormationMember(member: SURefObjectFormationMech): {
+    entity: SURefEntity;
+    pattern?: SURefObjectPattern;
+} | undefined;
+//# sourceMappingURL=patterns.d.ts.map
 // === lib/printedNameDeviations.d.ts ===
 /**
  * Entities whose dataset `name` deliberately differs from the heading printed
@@ -1095,6 +1613,14 @@ export type CoreRollResult = {
 };
 /** Rolls the Core Mechanic d20 via the injected roller and reads the band. */
 export declare function performCoreRoll(roll: Roll): CoreRollResult;
+/**
+ * The Heat Check outcome sentence — everything after the `… — ` in a Heat Check
+ * readout. This is the SOLE copy of the five-branch Reactor Overload ladder: the
+ * Dashboard's `describeHeatCheck` and this module's `describePushOutcome` differ
+ * only in the head they prefix, so the tail lives here and the FAB, the sheet
+ * body and the Dashboard band can never drift apart.
+ */
+export declare function describeOverloadOutcome(result: HeatCheckEffect['result']): string;
 /**
  * One-line readout for a mech Push's Heat Check outcome, surfaced next to the
  * re-rolled d20 in the quick-roll log. Mirrors HeatCheckControl's wording so
@@ -1785,7 +2311,7 @@ export { isWeaponSystem } from './crawlerSystems.js';
 export { resolveCatalogChoiceEntities, isSchemaOnlyCatalogChoice, } from './choiceCatalog.js';
 export { matchesRef, resolveChassisRef, resolveSystemRef, resolveModuleRef, resolveInstalledRef, } from './resolveRefs.js';
 export { clampHeat, canActivateAction, reactorOverloadOutcome, performHeatCheck, performPush, } from './heatCheck.js';
-export { CORE_ROLL_BANDS, coreRollBand, performCoreRoll, describePushOutcome, } from './coreMechanic.js';
+export { CORE_ROLL_BANDS, coreRollBand, performCoreRoll, describePushOutcome, describeOverloadOutcome, } from './coreMechanic.js';
 export type { CoreRollBand, CoreRollBandInfo, CoreRollResult } from './coreMechanic.js';
 export { applySpDamage, mechEffectiveDamage, applyMechDamage, criticalDamageOutcome, performCriticalDamage, pilotEffectiveDamage, applyPilotDamage, criticalInjuryOutcome, performCriticalInjury, } from './takeDamage.js';
 export type { DamageKind, MechDamageInput, MechDamageEffect, PilotDamageInput, PilotDamageEffect, CriticalDamageEffect, CriticalInjuryEffect, } from './takeDamage.js';
@@ -3863,7 +4389,6 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
             value: z.ZodString;
         }, z.core.$strict>;
     }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"flat">;
         '1': z.ZodObject<{
             label: z.ZodOptional<z.ZodString>;
             value: z.ZodString;
@@ -3944,6 +4469,7 @@ export declare const MetaActionSchema: z.ZodLazy<z.ZodObject<{
             label: z.ZodOptional<z.ZodString>;
             value: z.ZodString;
         }, z.core.$strict>;
+        type: z.ZodLiteral<"flat">;
     }, z.core.$strict>, z.ZodObject<{
         type: z.ZodLiteral<"dramatic">;
         '20': z.ZodObject<{
@@ -8768,7 +9294,6 @@ export declare const RollTableSchema: z.ZodObject<{
             value: z.ZodString;
         }, z.core.$strict>;
     }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"flat">;
         '1': z.ZodObject<{
             label: z.ZodOptional<z.ZodString>;
             value: z.ZodString;
@@ -8849,6 +9374,7 @@ export declare const RollTableSchema: z.ZodObject<{
             label: z.ZodOptional<z.ZodString>;
             value: z.ZodString;
         }, z.core.$strict>;
+        type: z.ZodLiteral<"flat">;
     }, z.core.$strict>, z.ZodObject<{
         type: z.ZodLiteral<"dramatic">;
         '20': z.ZodObject<{
@@ -9849,6 +10375,7 @@ export declare const TraitEntitySchema: z.ZodObject<{
  * `modules` field — a vehicle carries neither (the schema is strict).
  */
 export declare const VehicleSchema: z.ZodObject<{
+    name: z.ZodString;
     id: z.ZodString;
     traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
@@ -9862,7 +10389,20 @@ export declare const VehicleSchema: z.ZodObject<{
     cargoCapacity: z.ZodOptional<z.ZodNumber>;
     techLevel: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>;
     salvageValue: z.ZodOptional<z.ZodNumber>;
-    name: z.ZodString;
+    source: z.ZodEnum<{
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "The Hive": "The Hive";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Mech Monday": "Mech Monday";
+        "We Were Here First!": "We Were Here First!";
+        Rainmaker: "Rainmaker";
+        "False Flag": "False Flag";
+    }>;
+    booklet: z.ZodOptional<z.ZodString>;
+    page: z.ZodNumber;
     content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
         type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
             paragraph: "paragraph";
@@ -9915,20 +10455,6 @@ export declare const VehicleSchema: z.ZodObject<{
             level: z.ZodOptional<z.ZodNumber>;
         }, z.core.$strict>>>;
     }, z.core.$strict>>>>;
-    source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
-        "False Flag": "False Flag";
-    }>;
-    page: z.ZodNumber;
-    booklet: z.ZodOptional<z.ZodString>;
     additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
         source: z.ZodEnum<{
             "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
@@ -10538,1141 +11064,1300 @@ export type SURefMetaEntity = SURefAbility | SURefChassis | SURefClass | SURefCr
 //# sourceMappingURL=index.d.ts.map
 // === lib/schemas/objects.d.ts ===
 /**
- * Zod object schemas from objects.schema.json
- */
-import { z } from '../zod.js';
-/**
- * Special traits and properties of items, systems, or abilities
- */
-export declare const TraitSchema: z.ZodObject<{
-    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
-    type: z.ZodString;
-}, z.core.$strict>;
-/**
- * Statistics for mechs, chassis, and vehicles
- */
-export declare const StatsSchema: z.ZodObject<{
-    structurePoints: z.ZodOptional<z.ZodNumber>;
-    energyPoints: z.ZodOptional<z.ZodNumber>;
-    heatCapacity: z.ZodOptional<z.ZodNumber>;
-    systemSlots: z.ZodOptional<z.ZodNumber>;
-    moduleSlots: z.ZodOptional<z.ZodNumber>;
-    cargoCapacity: z.ZodOptional<z.ZodNumber>;
-    techLevel: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>;
-    salvageValue: z.ZodOptional<z.ZodNumber>;
-}, z.core.$strip>;
-/**
- * Statistics specific to chassis — all stats required
- */
-export declare const ChassisStatsSchema: z.ZodObject<{
-    structurePoints: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
-    energyPoints: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
-    heatCapacity: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
-    systemSlots: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
-    moduleSlots: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
-    cargoCapacity: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
-    techLevel: z.ZodNonOptional<z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>>;
-    salvageValue: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
-}, z.core.$strip>;
-/**
- * Entity that can perform actions and has traits
- */
-export declare const CombatEntitySchema: z.ZodObject<{
-    actions: z.ZodOptional<z.ZodArray<z.ZodString>>;
-    traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
-        type: z.ZodString;
-    }, z.core.$strict>>>;
-}, z.core.$strip>;
-/**
- * Mechanical entity with structure points and equipment stats
- */
-export declare const MechanicalEntitySchema: z.ZodObject<{
-    structurePoints: z.ZodOptional<z.ZodNumber>;
-    techLevel: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>;
-    salvageValue: z.ZodOptional<z.ZodNumber>;
-    systems: z.ZodOptional<z.ZodArray<z.ZodString>>;
-    traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
-        type: z.ZodString;
-    }, z.core.$strict>>>;
-    energyPoints: z.ZodOptional<z.ZodNumber>;
-    heatCapacity: z.ZodOptional<z.ZodNumber>;
-    systemSlots: z.ZodOptional<z.ZodNumber>;
-    moduleSlots: z.ZodOptional<z.ZodNumber>;
-    cargoCapacity: z.ZodOptional<z.ZodNumber>;
-}, z.core.$strip>;
-/**
- * A data value with label, optional value, and optional type
- */
-export declare const DataValueSchema: z.ZodObject<{
-    label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-    value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-    type: z.ZodOptional<z.ZodEnum<{
-        keyword: "keyword";
-        trait: "trait";
-        cost: "cost";
-    }>>;
-    unit: z.ZodOptional<z.ZodString>;
-    perTechLevel: z.ZodOptional<z.ZodNumber>;
-}, z.core.$strict>;
-/**
- * Block of structured content for rendering (paragraph, heading, list item, etc.)
+ * Zod object schemas — the shapes that appear INSIDE entity records, as opposed
+ * to the entity records themselves (`entities.ts`).
  *
- * Wrapped in `z.lazy()` so the shape is only built on first use. The type is
- * deliberately INFERRED — a hand-written `z.ZodType<…>` annotation here silently
- * erases any key it forgets from `z.infer`, so the field parses and lands in the
- * generated JSON Schema while being invisible to every TypeScript consumer.
+ * This module is now a RE-EXPORT BARREL. It used to be a single 1100-line file
+ * holding eight unrelated schema families; each now lives in `./objects/`, named
+ * for what it describes:
+ *
+ * - `objects/primitives.ts`       — traits, stat blocks, data values, damage.
+ * - `objects/content.ts`          — structured content blocks.
+ * - `objects/tables.ts`           — d20 roll tables (the 9-variant union).
+ * - `objects/sources.ts`          — reprint provenance.
+ * - `objects/contributions.ts`    — the numeric half of ADR-029.
+ * - `objects/effects.ts`          — the trait/damage/range half of ADR-029.
+ * - `objects/systemModule.ts`     — the installable System/Module shape.
+ * - `objects/choices.ts`          — choices, their options and their sources.
+ * - `objects/npc.ts`              — NPCs embedded in another record.
+ * - `objects/patterns.ts`         — mech patterns and their contents.
+ * - `objects/actions.ts`          — the action record.
+ * - `objects/entityBase.ts`       — the shared entity head.
+ * - `objects/references.ts`       — grants, formation members, schema refs.
+ * - `objects/crawlerMutations.ts` — crawler-type rule modifiers.
+ * - `objects/guides.ts`           — guide steps and guide categories.
+ *
+ * The export list below is EXPLICIT, not `export *`, and is exactly the set this
+ * file exported before the split: a few schemas that were module-private are now
+ * exported from their own module so a sibling can import them
+ * (`ChoiceOptionSchema` / `ChoiceConstraintsSchema`, needed by `guides.ts`), and
+ * naming the re-exports keeps those from leaking into the package's surface.
  */
-export declare const ContentBlockSchema: z.ZodLazy<z.ZodObject<{
-    type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-        paragraph: "paragraph";
-        heading: "heading";
-        "list-item": "list-item";
-        label: "label";
-        datavalues: "datavalues";
-        hint: "hint";
-        flavor: "flavor";
-        choice: "choice";
-    }>>>;
-    value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-        label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-        type: z.ZodOptional<z.ZodEnum<{
-            keyword: "keyword";
-            trait: "trait";
-            cost: "cost";
-        }>>;
-        unit: z.ZodOptional<z.ZodString>;
-        perTechLevel: z.ZodOptional<z.ZodNumber>;
-    }, z.core.$strict>>]>>;
-    label: z.ZodOptional<z.ZodString>;
-    level: z.ZodOptional<z.ZodNumber>;
-    lead: z.ZodOptional<z.ZodBoolean>;
-    choiceId: z.ZodOptional<z.ZodString>;
-    items: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
-            choice: "choice";
-        }>>>;
-        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-            type: z.ZodOptional<z.ZodEnum<{
-                keyword: "keyword";
-                trait: "trait";
-                cost: "cost";
-            }>>;
-            unit: z.ZodOptional<z.ZodString>;
-            perTechLevel: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>]>>;
-        label: z.ZodOptional<z.ZodString>;
-        level: z.ZodOptional<z.ZodNumber>;
-    }, z.core.$strict>>>;
-}, z.core.$strict>>;
+export { TraitSchema, StatsSchema, ChassisStatsSchema, CombatEntitySchema, MechanicalEntitySchema, DataValueSchema, DamageSchema, } from './objects/primitives.js';
+export { ContentBlockSchema, ContentSchema } from './objects/content.js';
+export { TableContentSchema, TableSchema } from './objects/tables.js';
+export { AdditionalSourceSchema } from './objects/sources.js';
+export { ContributionStatSchema, ContributionTargetSchema, ContributionAmountSchema, ContributionSchema, } from './objects/contributions.js';
+export { EffectTargetSchema, ChoiceEffectSchema } from './objects/effects.js';
+export { SystemModuleSchema } from './objects/systemModule.js';
+export { ChoiceSchema, ChoicesSchema } from './objects/choices.js';
+export { NpcSchema } from './objects/npc.js';
+export { PatternSystemModuleSchema, PatternDroneConfigSchema, PatternSchema, } from './objects/patterns.js';
+export { ActionSchema } from './objects/actions.js';
+export { BaseEntitySchema, AdvancedClassSchema } from './objects/entityBase.js';
+export { FormationMechSchema, GrantSchema, SchemaNameWithActionsSchema, } from './objects/references.js';
+export { CrawlerMutationSchema } from './objects/crawlerMutations.js';
+export { GuideStepSchema, GuideTypeSchema } from './objects/guides.js';
+//# sourceMappingURL=objects.d.ts.map
+// === lib/schemas/objects/actions.d.ts ===
 /**
- * Array of content blocks
+ * Actions — the record every entity's `actions: string[]` resolves to. The one
+ * place damage, range, activation cost, traits and embedded tables live.
  */
-export declare const ContentSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
-    type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-        paragraph: "paragraph";
-        heading: "heading";
-        "list-item": "list-item";
-        label: "label";
-        datavalues: "datavalues";
-        hint: "hint";
-        flavor: "flavor";
-        choice: "choice";
-    }>>>;
-    value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-        label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-        type: z.ZodOptional<z.ZodEnum<{
-            keyword: "keyword";
-            trait: "trait";
-            cost: "cost";
-        }>>;
-        unit: z.ZodOptional<z.ZodString>;
-        perTechLevel: z.ZodOptional<z.ZodNumber>;
-    }, z.core.$strict>>]>>;
-    label: z.ZodOptional<z.ZodString>;
-    level: z.ZodOptional<z.ZodNumber>;
-    lead: z.ZodOptional<z.ZodBoolean>;
-    choiceId: z.ZodOptional<z.ZodString>;
-    items: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
-            choice: "choice";
-        }>>>;
-        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-            type: z.ZodOptional<z.ZodEnum<{
-                keyword: "keyword";
-                trait: "trait";
-                cost: "cost";
-            }>>;
-            unit: z.ZodOptional<z.ZodString>;
-            perTechLevel: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>]>>;
-        label: z.ZodOptional<z.ZodString>;
-        level: z.ZodOptional<z.ZodNumber>;
-    }, z.core.$strict>>>;
-}, z.core.$strict>>>;
+import { z } from '../../zod.js';
 /**
- * Table content with label and value
+ * Action schema (z.lazy() defers building the shape; the type is inferred, never
+ * hand-annotated — see ContentBlockSchema for why).
  */
-export declare const TableContentSchema: z.ZodObject<{
-    label: z.ZodOptional<z.ZodString>;
-    value: z.ZodString;
-}, z.core.$strict>;
-/**
- * Roll table discriminated union for random outcomes based on d20 rolls
- */
-export declare const TableSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
-    type: z.ZodLiteral<"standard">;
-    '1': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '20': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '11-19': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '6-10': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '2-5': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-}, z.core.$strict>, z.ZodObject<{
-    type: z.ZodLiteral<"alternate">;
-    '1': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '19-20': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '11-18': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '6-10': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '2-5': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-}, z.core.$strict>, z.ZodObject<{
-    type: z.ZodLiteral<"flat">;
-    '1': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '2': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '3': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '4': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '5': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '6': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '7': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '8': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '9': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '10': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '11': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '12': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '13': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '14': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '15': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '16': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '17': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '18': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '19': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '20': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-}, z.core.$strict>, z.ZodObject<{
-    type: z.ZodLiteral<"dramatic">;
-    '20': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-}, z.core.$strict>, z.ZodObject<{
-    type: z.ZodLiteral<"duos">;
-    '1-2': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '3-4': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '5-6': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '7-8': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '9-10': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '11-12': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '13-14': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '15-16': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '17-18': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '19-20': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-}, z.core.$strict>, z.ZodObject<{
-    type: z.ZodLiteral<"bio-chassis">;
-    '1': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '2-3': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '4-5': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '6-8': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '9-10': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '11-19': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '20': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-}, z.core.$strict>, z.ZodObject<{
-    type: z.ZodLiteral<"columns">;
-    '1-4': z.ZodObject<{
-        '1': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '2': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '3': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '4': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '5': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '6': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '7': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '8': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '9': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '10': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '11': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '12': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '13': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '14': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '15': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '16': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '17': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '18': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '19': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '20': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-    }, z.core.$strict>;
-    '5-8': z.ZodObject<{
-        '1': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '2': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '3': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '4': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '5': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '6': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '7': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '8': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '9': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '10': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '11': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '12': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '13': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '14': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '15': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '16': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '17': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '18': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '19': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '20': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-    }, z.core.$strict>;
-    '9-12': z.ZodObject<{
-        '1': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '2': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '3': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '4': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '5': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '6': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '7': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '8': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '9': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '10': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '11': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '12': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '13': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '14': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '15': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '16': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '17': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '18': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '19': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '20': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-    }, z.core.$strict>;
-    '13-16': z.ZodObject<{
-        '1': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '2': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '3': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '4': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '5': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '6': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '7': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '8': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '9': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '10': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '11': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '12': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '13': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '14': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '15': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '16': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '17': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '18': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '19': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '20': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-    }, z.core.$strict>;
-    '17-20': z.ZodObject<{
-        '1': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '2': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '3': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '4': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '5': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '6': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '7': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '8': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '9': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '10': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '11': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '12': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '13': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '14': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '15': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '16': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '17': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '18': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '19': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '20': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-    }, z.core.$strict>;
-}, z.core.$strict>, z.ZodObject<{
-    type: z.ZodLiteral<"salvage-cache">;
-    '1': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '2-3': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '4-5': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '6-7': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '8-9': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '10-11': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '12-13': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '14-15': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '16-17': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '18-19': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '20': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-}, z.core.$strict>, z.ZodObject<{
-    type: z.ZodLiteral<"octet">;
-    '1': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '2-4': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '5-7': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '8-10': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '11-13': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '14-16': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '17-19': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-    '20': z.ZodObject<{
-        label: z.ZodOptional<z.ZodString>;
-        value: z.ZodString;
-    }, z.core.$strict>;
-}, z.core.$strict>], "type">;
-/**
- * Pattern system/module configuration
- */
-export declare const PatternSystemModuleSchema: z.ZodObject<{
+export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
+    id: z.ZodString;
     name: z.ZodString;
-    count: z.ZodOptional<z.ZodNumber>;
-    preselectedChoices: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodString>>;
-}, z.core.$strict>;
-/**
- * The stats a contribution may raise or lower (ADR-029).
- *
- * A superset of the four mech core maxima: an ability can change a
- * PILOT stat (Bionic Legs "+2 Max HP", Beefcake "+4 Inventory Capacity") or a
- * slot COUNT (Modular Face Implant "your Pilot gains a Module Slot"), neither of
- * which the mech-only shape could express.
- */
-export declare const ContributionStatSchema: z.ZodEnum<{
-    structurePoints: "structurePoints";
-    energyPoints: "energyPoints";
-    heatCapacity: "heatCapacity";
-    systemSlots: "systemSlots";
-    moduleSlots: "moduleSlots";
-    cargoCapacity: "cargoCapacity";
-    maxHp: "maxHp";
-    maxAp: "maxAp";
-    inventorySlots: "inventorySlots";
-}>;
-/**
- * Whose stat a contribution changes.
- *
- * `self` is the host the contribution is declared on (a system contributing to
- * its own mech). The others exist because Beefcake is a PILOT ability that
- * raises the piloted MECH's Max SP and Cargo while also raising the pilot's own
- * Max HP and Inventory — one record, two targets, which no single-target shape
- * could express.
- */
-export declare const ContributionTargetSchema: z.ZodEnum<{
-    self: "self";
-    pilot: "pilot";
-    pilotedMech: "pilotedMech";
-    crawler: "crawler";
-}>;
-/**
- * How much a contribution is worth.
- *
- * A plain integer covers most records. `perTechLevel` exists for Beefcake —
- * "increases its Max Structure Points by 3+X (where X is the Mech's Tech
- * Level)" — where the amount is `flat + perTechLevel × techLevel`. Rendering the
- * amount needs the target's tech level, so a consumer that cannot supply one
- * resolves `perTechLevel` to 0 rather than guessing.
- */
-export declare const ContributionAmountSchema: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
-    flat: z.ZodOptional<z.ZodNumber>;
-    perTechLevel: z.ZodNumber;
-}, z.core.$strict>, z.ZodObject<{
-    fromStat: z.ZodEnum<{
-        structurePoints: "structurePoints";
-        energyPoints: "energyPoints";
-        heatCapacity: "heatCapacity";
-        systemSlots: "systemSlots";
-        moduleSlots: "moduleSlots";
-        cargoCapacity: "cargoCapacity";
-        maxHp: "maxHp";
-        maxAp: "maxAp";
-        inventorySlots: "inventorySlots";
-    }>;
-}, z.core.$strict>]>;
-/**
- * A single mechanical contribution a piece of content makes to a stat
- * (ADR-029).
- *
- * This is the numeric half of the converged model. The trait/damage/range half
- * already exists as `ChoiceEffectSchema` and is applied by `resolveChoiceView`;
- * the two are declared side by side rather than merged into one union, because
- * they are resolved at different layers — stats at derivation time, effects at
- * dataview time.
- *
- * **Never infer a contribution from prose.** Populate it only where the rules
- * text states a flat mechanical change; anything conditional, prose-only, or
- * duration-bound stays undeclared and is answered to the parity audit with an
- * explicit exemption instead.
- */
-export declare const ContributionSchema: z.ZodObject<{
-    stat: z.ZodEnum<{
-        structurePoints: "structurePoints";
-        energyPoints: "energyPoints";
-        heatCapacity: "heatCapacity";
-        systemSlots: "systemSlots";
-        moduleSlots: "moduleSlots";
-        cargoCapacity: "cargoCapacity";
-        maxHp: "maxHp";
-        maxAp: "maxAp";
-        inventorySlots: "inventorySlots";
-    }>;
-    amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
-        flat: z.ZodOptional<z.ZodNumber>;
-        perTechLevel: z.ZodNumber;
-    }, z.core.$strict>, z.ZodObject<{
-        fromStat: z.ZodEnum<{
-            structurePoints: "structurePoints";
-            energyPoints: "energyPoints";
-            heatCapacity: "heatCapacity";
-            systemSlots: "systemSlots";
-            moduleSlots: "moduleSlots";
-            cargoCapacity: "cargoCapacity";
-            maxHp: "maxHp";
-            maxAp: "maxAp";
-            inventorySlots: "inventorySlots";
-        }>;
-    }, z.core.$strict>]>;
-    target: z.ZodOptional<z.ZodEnum<{
-        self: "self";
-        pilot: "pilot";
-        pilotedMech: "pilotedMech";
-        crawler: "crawler";
-    }>>;
-    stacks: z.ZodOptional<z.ZodBoolean>;
-    voidWhen: z.ZodOptional<z.ZodEnum<{
-        damaged: "damaged";
-        destroyed: "destroyed";
-    }>>;
-    duration: z.ZodOptional<z.ZodEnum<{
-        permanent: "permanent";
-        activated: "activated";
-    }>>;
-    note: z.ZodOptional<z.ZodString>;
-}, z.core.$strict>;
-/**
- * Whose state an effect changes (ADR-029).
- *
- * `self` — the record declaring it — was the only target the model had, and THAT
- * was the blocker, not the declaration site. Bio-Wings says "YOUR MECH gains the
- * Fly Trait": declared as a self-effect it would say the Bio-Wings *system*
- * flies, which is wrong rather than merely incomplete.
- */
-export declare const EffectTargetSchema: z.ZodEnum<{
-    self: "self";
-    hostMech: "hostMech";
-}>;
-/**
- * A single mechanical effect of a choice option, discriminated by `op` so each
- * operation only permits the fields it actually uses (no `removeTrait` with an
- * `amount`, no `addDamage` with an `amount`, etc.):
- *
- * - `addTrait`    — add a trait by name; optional `amount` is its magnitude
- *                   (e.g. Burn 1). Adding a trait that already exists upgrades it.
- * - `removeTrait` — strip a trait by name.
- * - `setRange`    — replace the Range datavalue.
- * - `addDamage`   — increase the Damage datavalue; optional `unit` (e.g. "SP").
- */
-export declare const ChoiceEffectSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
-    op: z.ZodLiteral<"addTrait">;
-    value: z.ZodString;
-    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-    target: z.ZodOptional<z.ZodEnum<{
-        self: "self";
-        hostMech: "hostMech";
-    }>>;
-}, z.core.$strict>, z.ZodObject<{
-    op: z.ZodLiteral<"removeTrait">;
-    value: z.ZodString;
-    target: z.ZodOptional<z.ZodEnum<{
-        self: "self";
-        hostMech: "hostMech";
-    }>>;
-}, z.core.$strict>, z.ZodObject<{
-    op: z.ZodLiteral<"setRange">;
-    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-}, z.core.$strict>, z.ZodObject<{
-    op: z.ZodLiteral<"addDamage">;
-    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-    unit: z.ZodOptional<z.ZodString>;
-}, z.core.$strict>], "op">;
-/**
- * A system or module that can be installed on a mech
- */
-export declare const SystemModuleSchema: z.ZodObject<{
+    content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
+        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+            paragraph: "paragraph";
+            heading: "heading";
+            "list-item": "list-item";
+            label: "label";
+            datavalues: "datavalues";
+            hint: "hint";
+            flavor: "flavor";
+            choice: "choice";
+        }>>>;
+        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+            type: z.ZodOptional<z.ZodEnum<{
+                keyword: "keyword";
+                trait: "trait";
+                cost: "cost";
+            }>>;
+            unit: z.ZodOptional<z.ZodString>;
+            perTechLevel: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>]>>;
+        label: z.ZodOptional<z.ZodString>;
+        level: z.ZodOptional<z.ZodNumber>;
+        lead: z.ZodOptional<z.ZodBoolean>;
+        choiceId: z.ZodOptional<z.ZodString>;
+        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+                paragraph: "paragraph";
+                heading: "heading";
+                "list-item": "list-item";
+                label: "label";
+                datavalues: "datavalues";
+                hint: "hint";
+                flavor: "flavor";
+                choice: "choice";
+            }>>>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                type: z.ZodOptional<z.ZodEnum<{
+                    keyword: "keyword";
+                    trait: "trait";
+                    cost: "cost";
+                }>>;
+                unit: z.ZodOptional<z.ZodString>;
+                perTechLevel: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strict>>]>>;
+            label: z.ZodOptional<z.ZodString>;
+            level: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>>;
+    }, z.core.$strict>>>>;
     structurePoints: z.ZodOptional<z.ZodNumber>;
     energyPoints: z.ZodOptional<z.ZodNumber>;
     heatCapacity: z.ZodOptional<z.ZodNumber>;
     systemSlots: z.ZodOptional<z.ZodNumber>;
     moduleSlots: z.ZodOptional<z.ZodNumber>;
     cargoCapacity: z.ZodOptional<z.ZodNumber>;
-    name: z.ZodOptional<z.ZodString>;
-    techLevel: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>;
-    slotsRequired: z.ZodNumber;
-    salvageValue: z.ZodNumber;
-    recommended: z.ZodOptional<z.ZodBoolean>;
-    count: z.ZodOptional<z.ZodNumber>;
-    contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        stat: z.ZodEnum<{
-            structurePoints: "structurePoints";
-            energyPoints: "energyPoints";
-            heatCapacity: "heatCapacity";
-            systemSlots: "systemSlots";
-            moduleSlots: "moduleSlots";
-            cargoCapacity: "cargoCapacity";
-            maxHp: "maxHp";
-            maxAp: "maxAp";
-            inventorySlots: "inventorySlots";
-        }>;
-        amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
-            flat: z.ZodOptional<z.ZodNumber>;
-            perTechLevel: z.ZodNumber;
-        }, z.core.$strict>, z.ZodObject<{
-            fromStat: z.ZodEnum<{
-                structurePoints: "structurePoints";
-                energyPoints: "energyPoints";
-                heatCapacity: "heatCapacity";
-                systemSlots: "systemSlots";
-                moduleSlots: "moduleSlots";
-                cargoCapacity: "cargoCapacity";
-                maxHp: "maxHp";
-                maxAp: "maxAp";
-                inventorySlots: "inventorySlots";
-            }>;
-        }, z.core.$strict>]>;
-        target: z.ZodOptional<z.ZodEnum<{
-            self: "self";
-            pilot: "pilot";
-            pilotedMech: "pilotedMech";
-            crawler: "crawler";
-        }>>;
-        stacks: z.ZodOptional<z.ZodBoolean>;
-        voidWhen: z.ZodOptional<z.ZodEnum<{
-            damaged: "damaged";
-            destroyed: "destroyed";
-        }>>;
-        duration: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            activated: "activated";
-        }>>;
-        note: z.ZodOptional<z.ZodString>;
+    techLevel: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>;
+    salvageValue: z.ZodOptional<z.ZodNumber>;
+    displayName: z.ZodOptional<z.ZodString>;
+    activationCost: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"X">]>>;
+    range: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+        Close: "Close";
+        Medium: "Medium";
+        Long: "Long";
+        Far: "Far";
+    }>>>;
+    actionType: z.ZodOptional<z.ZodEnum<{
+        Long: "Long";
+        Passive: "Passive";
+        Free: "Free";
+        Reaction: "Reaction";
+        Turn: "Turn";
+        Short: "Short";
+        DownTime: "DownTime";
+    }>>;
+    traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
+        type: z.ZodString;
     }, z.core.$strict>>>;
-    appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+    damage: z.ZodOptional<z.ZodObject<{
+        damageType: z.ZodEnum<{
+            HP: "HP";
+            SP: "SP";
+        }>;
+        amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>;
+    }, z.core.$strict>>;
+    choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
+        id: z.ZodString;
+        name: z.ZodString;
+        choiceType: z.ZodOptional<z.ZodEnum<{
+            permanent: "permanent";
+            session: "session";
+            freeform: "freeform";
+        }>>;
+        content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
+            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+                paragraph: "paragraph";
+                heading: "heading";
+                "list-item": "list-item";
+                label: "label";
+                datavalues: "datavalues";
+                hint: "hint";
+                flavor: "flavor";
+                choice: "choice";
+            }>>>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                type: z.ZodOptional<z.ZodEnum<{
+                    keyword: "keyword";
+                    trait: "trait";
+                    cost: "cost";
+                }>>;
+                unit: z.ZodOptional<z.ZodString>;
+                perTechLevel: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strict>>]>>;
+            label: z.ZodOptional<z.ZodString>;
+            level: z.ZodOptional<z.ZodNumber>;
+            lead: z.ZodOptional<z.ZodBoolean>;
+            choiceId: z.ZodOptional<z.ZodString>;
+            items: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+                    paragraph: "paragraph";
+                    heading: "heading";
+                    "list-item": "list-item";
+                    label: "label";
+                    datavalues: "datavalues";
+                    hint: "hint";
+                    flavor: "flavor";
+                    choice: "choice";
+                }>>>;
+                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+                    label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    type: z.ZodOptional<z.ZodEnum<{
+                        keyword: "keyword";
+                        trait: "trait";
+                        cost: "cost";
+                    }>>;
+                    unit: z.ZodOptional<z.ZodString>;
+                    perTechLevel: z.ZodOptional<z.ZodNumber>;
+                }, z.core.$strict>>]>>;
+                label: z.ZodOptional<z.ZodString>;
+                level: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strict>>>;
+        }, z.core.$strict>>>>;
+        rollTable: z.ZodOptional<z.ZodString>;
+        schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
+        schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+            classes: "classes";
+            npcs: "npcs";
+            abilities: "abilities";
+            "ability-tree-requirements": "ability-tree-requirements";
+            chassis: "chassis";
+            "crawler-bays": "crawler-bays";
+            "crawler-tech-levels": "crawler-tech-levels";
+            crawlers: "crawlers";
+            creatures: "creatures";
+            distances: "distances";
+            drones: "drones";
+            equipment: "equipment";
+            guides: "guides";
+            keywords: "keywords";
+            factions: "factions";
+            meld: "meld";
+            modules: "modules";
+            "roll-tables": "roll-tables";
+            sources: "sources";
+            squads: "squads";
+            "tech-levels": "tech-levels";
+            systems: "systems";
+            "bio-titans": "bio-titans";
+            traits: "traits";
+            vehicles: "vehicles";
+        }>>>;
+        customSystemOptions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            structurePoints: z.ZodOptional<z.ZodNumber>;
+            energyPoints: z.ZodOptional<z.ZodNumber>;
+            heatCapacity: z.ZodOptional<z.ZodNumber>;
+            systemSlots: z.ZodOptional<z.ZodNumber>;
+            moduleSlots: z.ZodOptional<z.ZodNumber>;
+            cargoCapacity: z.ZodOptional<z.ZodNumber>;
+            name: z.ZodOptional<z.ZodString>;
+            techLevel: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>;
+            slotsRequired: z.ZodNumber;
+            salvageValue: z.ZodNumber;
+            recommended: z.ZodOptional<z.ZodBoolean>;
+            count: z.ZodOptional<z.ZodNumber>;
+            contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                stat: z.ZodEnum<{
+                    structurePoints: "structurePoints";
+                    energyPoints: "energyPoints";
+                    heatCapacity: "heatCapacity";
+                    systemSlots: "systemSlots";
+                    moduleSlots: "moduleSlots";
+                    cargoCapacity: "cargoCapacity";
+                    maxHp: "maxHp";
+                    maxAp: "maxAp";
+                    inventorySlots: "inventorySlots";
+                }>;
+                amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                    flat: z.ZodOptional<z.ZodNumber>;
+                    perTechLevel: z.ZodNumber;
+                }, z.core.$strict>, z.ZodObject<{
+                    fromStat: z.ZodEnum<{
+                        structurePoints: "structurePoints";
+                        energyPoints: "energyPoints";
+                        heatCapacity: "heatCapacity";
+                        systemSlots: "systemSlots";
+                        moduleSlots: "moduleSlots";
+                        cargoCapacity: "cargoCapacity";
+                        maxHp: "maxHp";
+                        maxAp: "maxAp";
+                        inventorySlots: "inventorySlots";
+                    }>;
+                }, z.core.$strict>]>;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    pilot: "pilot";
+                    pilotedMech: "pilotedMech";
+                    crawler: "crawler";
+                }>>;
+                stacks: z.ZodOptional<z.ZodBoolean>;
+                voidWhen: z.ZodOptional<z.ZodEnum<{
+                    damaged: "damaged";
+                    destroyed: "destroyed";
+                }>>;
+                duration: z.ZodOptional<z.ZodEnum<{
+                    permanent: "permanent";
+                    activated: "activated";
+                }>>;
+                note: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>>>;
+            appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                op: z.ZodLiteral<"addTrait">;
+                value: z.ZodString;
+                amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
+            }, z.core.$strict>, z.ZodObject<{
+                op: z.ZodLiteral<"removeTrait">;
+                value: z.ZodString;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
+            }, z.core.$strict>, z.ZodObject<{
+                op: z.ZodLiteral<"setRange">;
+                value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+            }, z.core.$strict>, z.ZodObject<{
+                op: z.ZodLiteral<"addDamage">;
+                value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                unit: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>], "op">>>;
+            actions: z.ZodArray<z.ZodString>;
+        }, z.core.$strip>>>;
+        multiSelect: z.ZodOptional<z.ZodBoolean>;
+        choiceOptions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            label: z.ZodString;
+            value: z.ZodString;
+            description: z.ZodOptional<z.ZodString>;
+            effects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                op: z.ZodLiteral<"addTrait">;
+                value: z.ZodString;
+                amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
+            }, z.core.$strict>, z.ZodObject<{
+                op: z.ZodLiteral<"removeTrait">;
+                value: z.ZodString;
+                target: z.ZodOptional<z.ZodEnum<{
+                    self: "self";
+                    hostMech: "hostMech";
+                }>>;
+            }, z.core.$strict>, z.ZodObject<{
+                op: z.ZodLiteral<"setRange">;
+                value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+            }, z.core.$strict>, z.ZodObject<{
+                op: z.ZodLiteral<"addDamage">;
+                value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                unit: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>], "op">>>;
+        }, z.core.$strict>>>;
+        constraints: z.ZodOptional<z.ZodObject<{
+            field: z.ZodOptional<z.ZodString>;
+            min: z.ZodOptional<z.ZodNumber>;
+            max: z.ZodOptional<z.ZodNumber>;
+            scalesWithField: z.ZodOptional<z.ZodString>;
+        }, z.core.$strict>>;
+        source: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            kind: z.ZodLiteral<"text">;
+            multiline: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"table">;
+            rollTable: z.ZodString;
+            orChooseOwn: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"options">;
+            options: z.ZodArray<z.ZodObject<{
+                label: z.ZodString;
+                value: z.ZodString;
+                description: z.ZodOptional<z.ZodString>;
+                effects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    op: z.ZodLiteral<"addTrait">;
+                    value: z.ZodString;
+                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"removeTrait">;
+                    value: z.ZodString;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"setRange">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"addDamage">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    unit: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>], "op">>>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"catalog">;
+            schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
+                classes: "classes";
+                npcs: "npcs";
+                abilities: "abilities";
+                "ability-tree-requirements": "ability-tree-requirements";
+                chassis: "chassis";
+                "crawler-bays": "crawler-bays";
+                "crawler-tech-levels": "crawler-tech-levels";
+                crawlers: "crawlers";
+                creatures: "creatures";
+                distances: "distances";
+                drones: "drones";
+                equipment: "equipment";
+                guides: "guides";
+                keywords: "keywords";
+                factions: "factions";
+                meld: "meld";
+                modules: "modules";
+                "roll-tables": "roll-tables";
+                sources: "sources";
+                squads: "squads";
+                "tech-levels": "tech-levels";
+                systems: "systems";
+                "bio-titans": "bio-titans";
+                traits: "traits";
+                vehicles: "vehicles";
+            }>>>;
+            entities: z.ZodOptional<z.ZodArray<z.ZodString>>;
+            filter: z.ZodOptional<z.ZodObject<{
+                field: z.ZodOptional<z.ZodString>;
+                min: z.ZodOptional<z.ZodNumber>;
+                max: z.ZodOptional<z.ZodNumber>;
+                damageType: z.ZodOptional<z.ZodEnum<{
+                    HP: "HP";
+                    SP: "SP";
+                }>>;
+            }, z.core.$strict>>;
+            reveals: z.ZodOptional<z.ZodBoolean>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"systemVariant">;
+            options: z.ZodArray<z.ZodObject<{
+                structurePoints: z.ZodOptional<z.ZodNumber>;
+                energyPoints: z.ZodOptional<z.ZodNumber>;
+                heatCapacity: z.ZodOptional<z.ZodNumber>;
+                systemSlots: z.ZodOptional<z.ZodNumber>;
+                moduleSlots: z.ZodOptional<z.ZodNumber>;
+                cargoCapacity: z.ZodOptional<z.ZodNumber>;
+                name: z.ZodOptional<z.ZodString>;
+                techLevel: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>;
+                slotsRequired: z.ZodNumber;
+                salvageValue: z.ZodNumber;
+                recommended: z.ZodOptional<z.ZodBoolean>;
+                count: z.ZodOptional<z.ZodNumber>;
+                contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                    stat: z.ZodEnum<{
+                        structurePoints: "structurePoints";
+                        energyPoints: "energyPoints";
+                        heatCapacity: "heatCapacity";
+                        systemSlots: "systemSlots";
+                        moduleSlots: "moduleSlots";
+                        cargoCapacity: "cargoCapacity";
+                        maxHp: "maxHp";
+                        maxAp: "maxAp";
+                        inventorySlots: "inventorySlots";
+                    }>;
+                    amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                        flat: z.ZodOptional<z.ZodNumber>;
+                        perTechLevel: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        fromStat: z.ZodEnum<{
+                            structurePoints: "structurePoints";
+                            energyPoints: "energyPoints";
+                            heatCapacity: "heatCapacity";
+                            systemSlots: "systemSlots";
+                            moduleSlots: "moduleSlots";
+                            cargoCapacity: "cargoCapacity";
+                            maxHp: "maxHp";
+                            maxAp: "maxAp";
+                            inventorySlots: "inventorySlots";
+                        }>;
+                    }, z.core.$strict>]>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        pilot: "pilot";
+                        pilotedMech: "pilotedMech";
+                        crawler: "crawler";
+                    }>>;
+                    stacks: z.ZodOptional<z.ZodBoolean>;
+                    voidWhen: z.ZodOptional<z.ZodEnum<{
+                        damaged: "damaged";
+                        destroyed: "destroyed";
+                    }>>;
+                    duration: z.ZodOptional<z.ZodEnum<{
+                        permanent: "permanent";
+                        activated: "activated";
+                    }>>;
+                    note: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>>>;
+                appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    op: z.ZodLiteral<"addTrait">;
+                    value: z.ZodString;
+                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"removeTrait">;
+                    value: z.ZodString;
+                    target: z.ZodOptional<z.ZodEnum<{
+                        self: "self";
+                        hostMech: "hostMech";
+                    }>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"setRange">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                }, z.core.$strict>, z.ZodObject<{
+                    op: z.ZodLiteral<"addDamage">;
+                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                    unit: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>], "op">>>;
+                actions: z.ZodArray<z.ZodString>;
+            }, z.core.$strip>>;
+        }, z.core.$strict>], "kind">>;
+        cardinality: z.ZodOptional<z.ZodObject<{
+            min: z.ZodNumber;
+            max: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+                scalesWith: z.ZodString;
+            }, z.core.$strict>]>;
+        }, z.core.$strict>>;
+        lifetime: z.ZodOptional<z.ZodEnum<{
+            permanent: "permanent";
+            session: "session";
+        }>>;
+    }, z.core.$strict>>>>;
+    table: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+        type: z.ZodLiteral<"standard">;
+        '1': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '20': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '11-19': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '6-10': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '2-5': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        type: z.ZodLiteral<"alternate">;
+        '1': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '19-20': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '11-18': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '6-10': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '2-5': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        '1': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '2': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '3': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '4': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '5': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '6': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '7': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '8': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '9': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '10': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '11': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '12': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '13': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '14': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '15': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '16': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '17': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '18': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '19': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '20': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        type: z.ZodLiteral<"flat">;
+    }, z.core.$strict>, z.ZodObject<{
+        type: z.ZodLiteral<"dramatic">;
+        '20': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        type: z.ZodLiteral<"duos">;
+        '1-2': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '3-4': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '5-6': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '7-8': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '9-10': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '11-12': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '13-14': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '15-16': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '17-18': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '19-20': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        type: z.ZodLiteral<"bio-chassis">;
+        '1': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '2-3': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '4-5': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '6-8': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '9-10': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '11-19': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '20': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        type: z.ZodLiteral<"columns">;
+        '1-4': z.ZodObject<{
+            '1': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '2': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '3': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '4': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '5': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '6': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '7': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '8': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '9': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '10': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '11': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '12': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '13': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '14': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '15': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '16': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '17': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '18': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '19': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '20': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        '5-8': z.ZodObject<{
+            '1': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '2': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '3': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '4': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '5': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '6': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '7': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '8': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '9': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '10': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '11': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '12': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '13': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '14': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '15': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '16': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '17': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '18': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '19': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '20': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        '9-12': z.ZodObject<{
+            '1': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '2': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '3': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '4': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '5': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '6': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '7': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '8': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '9': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '10': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '11': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '12': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '13': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '14': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '15': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '16': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '17': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '18': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '19': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '20': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        '13-16': z.ZodObject<{
+            '1': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '2': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '3': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '4': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '5': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '6': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '7': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '8': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '9': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '10': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '11': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '12': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '13': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '14': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '15': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '16': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '17': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '18': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '19': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '20': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        '17-20': z.ZodObject<{
+            '1': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '2': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '3': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '4': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '5': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '6': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '7': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '8': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '9': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '10': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '11': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '12': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '13': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '14': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '15': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '16': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '17': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '18': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '19': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+            '20': z.ZodObject<{
+                label: z.ZodOptional<z.ZodString>;
+                value: z.ZodString;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        type: z.ZodLiteral<"salvage-cache">;
+        '1': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '2-3': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '4-5': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '6-7': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '8-9': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '10-11': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '12-13': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '14-15': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '16-17': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '18-19': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '20': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        type: z.ZodLiteral<"octet">;
+        '1': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '2-4': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '5-7': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '8-10': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '11-13': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '14-16': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '17-19': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '20': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+    }, z.core.$strict>], "type">>;
+    tableName: z.ZodOptional<z.ZodString>;
+    hidden: z.ZodOptional<z.ZodBoolean>;
+    activationCurrency: z.ZodOptional<z.ZodEnum<{
+        "EP or AP": "EP or AP";
+        "SP or HP": "SP or HP";
+        Variable: "Variable";
+    }>>;
+    source: z.ZodOptional<z.ZodEnum<{
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "The Hive": "The Hive";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Mech Monday": "Mech Monday";
+        "We Were Here First!": "We Were Here First!";
+        Rainmaker: "Rainmaker";
+        "False Flag": "False Flag";
+    }>>;
+    page: z.ZodOptional<z.ZodNumber>;
+    actionSource: z.ZodOptional<z.ZodEnum<{
+        classes: "classes";
+        npcs: "npcs";
+        abilities: "abilities";
+        "ability-tree-requirements": "ability-tree-requirements";
+        chassis: "chassis";
+        "crawler-bays": "crawler-bays";
+        "crawler-tech-levels": "crawler-tech-levels";
+        crawlers: "crawlers";
+        creatures: "creatures";
+        distances: "distances";
+        drones: "drones";
+        equipment: "equipment";
+        guides: "guides";
+        keywords: "keywords";
+        factions: "factions";
+        meld: "meld";
+        modules: "modules";
+        "roll-tables": "roll-tables";
+        sources: "sources";
+        squads: "squads";
+        "tech-levels": "tech-levels";
+        systems: "systems";
+        "bio-titans": "bio-titans";
+        traits: "traits";
+        vehicles: "vehicles";
+    }>>;
+    drone: z.ZodOptional<z.ZodString>;
+}, z.core.$strict>>;
+//# sourceMappingURL=actions.d.ts.map
+// === lib/schemas/objects/choices.d.ts ===
+/**
+ * Player-facing choices: the option shapes, the cardinality/constraint
+ * vocabulary, the discriminated "where do the options come from" source axis,
+ * and the choice record itself.
+ *
+ * `ChoiceOptionSchema` and `ChoiceConstraintsSchema` are exported because
+ * `guides.ts` reuses them for guide steps. They are NOT re-exported from the
+ * `objects` barrel — they were module-private before this split and stay
+ * package-internal.
+ */
+import { z } from '../../zod.js';
+/**
+ * Choice options schema
+ */
+export declare const ChoiceOptionSchema: z.ZodObject<{
+    label: z.ZodString;
+    value: z.ZodString;
+    description: z.ZodOptional<z.ZodString>;
+    effects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
         op: z.ZodLiteral<"addTrait">;
         value: z.ZodString;
         amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
@@ -11695,8 +12380,16 @@ export declare const SystemModuleSchema: z.ZodObject<{
         value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
         unit: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>], "op">>>;
-    actions: z.ZodArray<z.ZodString>;
-}, z.core.$strip>;
+}, z.core.$strict>;
+/**
+ * Choice constraints schema
+ */
+export declare const ChoiceConstraintsSchema: z.ZodObject<{
+    field: z.ZodOptional<z.ZodString>;
+    min: z.ZodOptional<z.ZodNumber>;
+    max: z.ZodOptional<z.ZodNumber>;
+    scalesWithField: z.ZodOptional<z.ZodString>;
+}, z.core.$strict>;
 /**
  * Choice schema (z.lazy() defers building the shape; the type is inferred, never
  * hand-annotated — see ContentBlockSchema for why).
@@ -12466,6 +13159,766 @@ export declare const ChoicesSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
         session: "session";
     }>>;
 }, z.core.$strict>>>;
+//# sourceMappingURL=choices.d.ts.map
+// === lib/schemas/objects/content.d.ts ===
+/**
+ * Structured content blocks — the renderable prose/list/datavalue payload that
+ * hangs off almost every entity.
+ */
+import { z } from '../../zod.js';
+/**
+ * Block of structured content for rendering (paragraph, heading, list item, etc.)
+ *
+ * Wrapped in `z.lazy()` so the shape is only built on first use. The type is
+ * deliberately INFERRED — a hand-written `z.ZodType<…>` annotation here silently
+ * erases any key it forgets from `z.infer`, so the field parses and lands in the
+ * generated JSON Schema while being invisible to every TypeScript consumer.
+ */
+export declare const ContentBlockSchema: z.ZodLazy<z.ZodObject<{
+    type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+        paragraph: "paragraph";
+        heading: "heading";
+        "list-item": "list-item";
+        label: "label";
+        datavalues: "datavalues";
+        hint: "hint";
+        flavor: "flavor";
+        choice: "choice";
+    }>>>;
+    value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+        label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+        type: z.ZodOptional<z.ZodEnum<{
+            keyword: "keyword";
+            trait: "trait";
+            cost: "cost";
+        }>>;
+        unit: z.ZodOptional<z.ZodString>;
+        perTechLevel: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$strict>>]>>;
+    label: z.ZodOptional<z.ZodString>;
+    level: z.ZodOptional<z.ZodNumber>;
+    lead: z.ZodOptional<z.ZodBoolean>;
+    choiceId: z.ZodOptional<z.ZodString>;
+    items: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+            paragraph: "paragraph";
+            heading: "heading";
+            "list-item": "list-item";
+            label: "label";
+            datavalues: "datavalues";
+            hint: "hint";
+            flavor: "flavor";
+            choice: "choice";
+        }>>>;
+        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+            type: z.ZodOptional<z.ZodEnum<{
+                keyword: "keyword";
+                trait: "trait";
+                cost: "cost";
+            }>>;
+            unit: z.ZodOptional<z.ZodString>;
+            perTechLevel: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>]>>;
+        label: z.ZodOptional<z.ZodString>;
+        level: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$strict>>>;
+}, z.core.$strict>>;
+/**
+ * Array of content blocks
+ */
+export declare const ContentSchema: z.ZodArray<z.ZodLazy<z.ZodObject<{
+    type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+        paragraph: "paragraph";
+        heading: "heading";
+        "list-item": "list-item";
+        label: "label";
+        datavalues: "datavalues";
+        hint: "hint";
+        flavor: "flavor";
+        choice: "choice";
+    }>>>;
+    value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+        label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+        type: z.ZodOptional<z.ZodEnum<{
+            keyword: "keyword";
+            trait: "trait";
+            cost: "cost";
+        }>>;
+        unit: z.ZodOptional<z.ZodString>;
+        perTechLevel: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$strict>>]>>;
+    label: z.ZodOptional<z.ZodString>;
+    level: z.ZodOptional<z.ZodNumber>;
+    lead: z.ZodOptional<z.ZodBoolean>;
+    choiceId: z.ZodOptional<z.ZodString>;
+    items: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+            paragraph: "paragraph";
+            heading: "heading";
+            "list-item": "list-item";
+            label: "label";
+            datavalues: "datavalues";
+            hint: "hint";
+            flavor: "flavor";
+            choice: "choice";
+        }>>>;
+        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+            type: z.ZodOptional<z.ZodEnum<{
+                keyword: "keyword";
+                trait: "trait";
+                cost: "cost";
+            }>>;
+            unit: z.ZodOptional<z.ZodString>;
+            perTechLevel: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>]>>;
+        label: z.ZodOptional<z.ZodString>;
+        level: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$strict>>>;
+}, z.core.$strict>>>;
+//# sourceMappingURL=content.d.ts.map
+// === lib/schemas/objects/contributions.d.ts ===
+/**
+ * Contributions (ADR-029): the NUMERIC half of the converged "what does this
+ * record change" model — a flat mechanical change to a named stat on a named
+ * target. The trait/damage/range half lives in `effects.ts`.
+ */
+import { z } from '../../zod.js';
+/**
+ * The stats a contribution may raise or lower (ADR-029).
+ *
+ * A superset of the four mech core maxima: an ability can change a
+ * PILOT stat (Bionic Legs "+2 Max HP", Beefcake "+4 Inventory Capacity") or a
+ * slot COUNT (Modular Face Implant "your Pilot gains a Module Slot"), neither of
+ * which the mech-only shape could express.
+ */
+export declare const ContributionStatSchema: z.ZodEnum<{
+    structurePoints: "structurePoints";
+    energyPoints: "energyPoints";
+    heatCapacity: "heatCapacity";
+    systemSlots: "systemSlots";
+    moduleSlots: "moduleSlots";
+    cargoCapacity: "cargoCapacity";
+    maxHp: "maxHp";
+    maxAp: "maxAp";
+    inventorySlots: "inventorySlots";
+}>;
+/**
+ * Whose stat a contribution changes.
+ *
+ * `self` is the host the contribution is declared on (a system contributing to
+ * its own mech). The others exist because Beefcake is a PILOT ability that
+ * raises the piloted MECH's Max SP and Cargo while also raising the pilot's own
+ * Max HP and Inventory — one record, two targets, which no single-target shape
+ * could express.
+ */
+export declare const ContributionTargetSchema: z.ZodEnum<{
+    self: "self";
+    pilot: "pilot";
+    pilotedMech: "pilotedMech";
+    crawler: "crawler";
+}>;
+/**
+ * How much a contribution is worth.
+ *
+ * A plain integer covers most records. `perTechLevel` exists for Beefcake —
+ * "increases its Max Structure Points by 3+X (where X is the Mech's Tech
+ * Level)" — where the amount is `flat + perTechLevel × techLevel`. Rendering the
+ * amount needs the target's tech level, so a consumer that cannot supply one
+ * resolves `perTechLevel` to 0 rather than guessing.
+ */
+export declare const ContributionAmountSchema: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+    flat: z.ZodOptional<z.ZodNumber>;
+    perTechLevel: z.ZodNumber;
+}, z.core.$strict>, z.ZodObject<{
+    fromStat: z.ZodEnum<{
+        structurePoints: "structurePoints";
+        energyPoints: "energyPoints";
+        heatCapacity: "heatCapacity";
+        systemSlots: "systemSlots";
+        moduleSlots: "moduleSlots";
+        cargoCapacity: "cargoCapacity";
+        maxHp: "maxHp";
+        maxAp: "maxAp";
+        inventorySlots: "inventorySlots";
+    }>;
+}, z.core.$strict>]>;
+/**
+ * A single mechanical contribution a piece of content makes to a stat
+ * (ADR-029).
+ *
+ * This is the numeric half of the converged model. The trait/damage/range half
+ * already exists as `ChoiceEffectSchema` and is applied by `resolveChoiceView`;
+ * the two are declared side by side rather than merged into one union, because
+ * they are resolved at different layers — stats at derivation time, effects at
+ * dataview time.
+ *
+ * **Never infer a contribution from prose.** Populate it only where the rules
+ * text states a flat mechanical change; anything conditional, prose-only, or
+ * duration-bound stays undeclared and is answered to the parity audit with an
+ * explicit exemption instead.
+ */
+export declare const ContributionSchema: z.ZodObject<{
+    stat: z.ZodEnum<{
+        structurePoints: "structurePoints";
+        energyPoints: "energyPoints";
+        heatCapacity: "heatCapacity";
+        systemSlots: "systemSlots";
+        moduleSlots: "moduleSlots";
+        cargoCapacity: "cargoCapacity";
+        maxHp: "maxHp";
+        maxAp: "maxAp";
+        inventorySlots: "inventorySlots";
+    }>;
+    amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+        flat: z.ZodOptional<z.ZodNumber>;
+        perTechLevel: z.ZodNumber;
+    }, z.core.$strict>, z.ZodObject<{
+        fromStat: z.ZodEnum<{
+            structurePoints: "structurePoints";
+            energyPoints: "energyPoints";
+            heatCapacity: "heatCapacity";
+            systemSlots: "systemSlots";
+            moduleSlots: "moduleSlots";
+            cargoCapacity: "cargoCapacity";
+            maxHp: "maxHp";
+            maxAp: "maxAp";
+            inventorySlots: "inventorySlots";
+        }>;
+    }, z.core.$strict>]>;
+    target: z.ZodOptional<z.ZodEnum<{
+        self: "self";
+        pilot: "pilot";
+        pilotedMech: "pilotedMech";
+        crawler: "crawler";
+    }>>;
+    stacks: z.ZodOptional<z.ZodBoolean>;
+    voidWhen: z.ZodOptional<z.ZodEnum<{
+        damaged: "damaged";
+        destroyed: "destroyed";
+    }>>;
+    duration: z.ZodOptional<z.ZodEnum<{
+        permanent: "permanent";
+        activated: "activated";
+    }>>;
+    note: z.ZodOptional<z.ZodString>;
+}, z.core.$strict>;
+//# sourceMappingURL=contributions.d.ts.map
+// === lib/schemas/objects/crawlerMutations.d.ts ===
+/**
+ * Crawler-type mutations: the rule modifiers a Union Crawler's type applies
+ * (e.g. the Battle crawler's extra weapon slot and SP bonus).
+ */
+import { z } from '../../zod.js';
+/**
+ * A mutation applied by a crawler type that modifies game rules
+ */
+export declare const CrawlerMutationSchema: z.ZodObject<{
+    type: z.ZodEnum<{
+        weapon_slots: "weapon_slots";
+        max_sp_bonus: "max_sp_bonus";
+    }>;
+    value: z.ZodNumber;
+}, z.core.$strict>;
+//# sourceMappingURL=crawlerMutations.d.ts.map
+// === lib/schemas/objects/effects.d.ts ===
+/**
+ * Effects (ADR-029): the TRAIT/DAMAGE/RANGE half of the converged "what does
+ * this record change" model, applied at dataview time by `resolveChoiceView`.
+ * The numeric half lives in `contributions.ts`.
+ */
+import { z } from '../../zod.js';
+/**
+ * Whose state an effect changes (ADR-029).
+ *
+ * `self` — the record declaring it — was the only target the model had, and THAT
+ * was the blocker, not the declaration site. Bio-Wings says "YOUR MECH gains the
+ * Fly Trait": declared as a self-effect it would say the Bio-Wings *system*
+ * flies, which is wrong rather than merely incomplete.
+ */
+export declare const EffectTargetSchema: z.ZodEnum<{
+    self: "self";
+    hostMech: "hostMech";
+}>;
+/**
+ * A single mechanical effect of a choice option, discriminated by `op` so each
+ * operation only permits the fields it actually uses (no `removeTrait` with an
+ * `amount`, no `addDamage` with an `amount`, etc.):
+ *
+ * - `addTrait`    — add a trait by name; optional `amount` is its magnitude
+ *                   (e.g. Burn 1). Adding a trait that already exists upgrades it.
+ * - `removeTrait` — strip a trait by name.
+ * - `setRange`    — replace the Range datavalue.
+ * - `addDamage`   — increase the Damage datavalue; optional `unit` (e.g. "SP").
+ */
+export declare const ChoiceEffectSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+    op: z.ZodLiteral<"addTrait">;
+    value: z.ZodString;
+    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+    target: z.ZodOptional<z.ZodEnum<{
+        self: "self";
+        hostMech: "hostMech";
+    }>>;
+}, z.core.$strict>, z.ZodObject<{
+    op: z.ZodLiteral<"removeTrait">;
+    value: z.ZodString;
+    target: z.ZodOptional<z.ZodEnum<{
+        self: "self";
+        hostMech: "hostMech";
+    }>>;
+}, z.core.$strict>, z.ZodObject<{
+    op: z.ZodLiteral<"setRange">;
+    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+}, z.core.$strict>, z.ZodObject<{
+    op: z.ZodLiteral<"addDamage">;
+    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+    unit: z.ZodOptional<z.ZodString>;
+}, z.core.$strict>], "op">;
+//# sourceMappingURL=effects.d.ts.map
+// === lib/schemas/objects/entityBase.d.ts ===
+/**
+ * The shared entity head — id, name, source, page, artwork flag, content — and
+ * the one entity variant declared here rather than in `entities.ts` because it
+ * is embedded inside a class record.
+ */
+import { z } from '../../zod.js';
+/**
+ * Basic entity with name, content, source, and page reference
+ */
+export declare const BaseEntitySchema: z.ZodObject<{
+    hasArtwork: z.ZodOptional<z.ZodBoolean>;
+    content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
+        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+            paragraph: "paragraph";
+            heading: "heading";
+            "list-item": "list-item";
+            label: "label";
+            datavalues: "datavalues";
+            hint: "hint";
+            flavor: "flavor";
+            choice: "choice";
+        }>>>;
+        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+            type: z.ZodOptional<z.ZodEnum<{
+                keyword: "keyword";
+                trait: "trait";
+                cost: "cost";
+            }>>;
+            unit: z.ZodOptional<z.ZodString>;
+            perTechLevel: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>]>>;
+        label: z.ZodOptional<z.ZodString>;
+        level: z.ZodOptional<z.ZodNumber>;
+        lead: z.ZodOptional<z.ZodBoolean>;
+        choiceId: z.ZodOptional<z.ZodString>;
+        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+                paragraph: "paragraph";
+                heading: "heading";
+                "list-item": "list-item";
+                label: "label";
+                datavalues: "datavalues";
+                hint: "hint";
+                flavor: "flavor";
+                choice: "choice";
+            }>>>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                type: z.ZodOptional<z.ZodEnum<{
+                    keyword: "keyword";
+                    trait: "trait";
+                    cost: "cost";
+                }>>;
+                unit: z.ZodOptional<z.ZodString>;
+                perTechLevel: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strict>>]>>;
+            label: z.ZodOptional<z.ZodString>;
+            level: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>>;
+    }, z.core.$strict>>>>;
+    id: z.ZodString;
+    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    name: z.ZodString;
+    source: z.ZodEnum<{
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "The Hive": "The Hive";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Mech Monday": "Mech Monday";
+        "We Were Here First!": "We Were Here First!";
+        Rainmaker: "Rainmaker";
+        "False Flag": "False Flag";
+    }>;
+    page: z.ZodNumber;
+    booklet: z.ZodOptional<z.ZodString>;
+    additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        source: z.ZodEnum<{
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "The Hive": "The Hive";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Mech Monday": "Mech Monday";
+            "We Were Here First!": "We Were Here First!";
+            Rainmaker: "Rainmaker";
+            "False Flag": "False Flag";
+        }>;
+        booklet: z.ZodOptional<z.ZodString>;
+        page: z.ZodNumber;
+    }, z.core.$strict>>>;
+}, z.core.$strip>;
+/**
+ * Advanced or hybrid character class
+ */
+export declare const AdvancedClassSchema: z.ZodObject<{
+    hasArtwork: z.ZodOptional<z.ZodBoolean>;
+    content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
+        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+            paragraph: "paragraph";
+            heading: "heading";
+            "list-item": "list-item";
+            label: "label";
+            datavalues: "datavalues";
+            hint: "hint";
+            flavor: "flavor";
+            choice: "choice";
+        }>>>;
+        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+            type: z.ZodOptional<z.ZodEnum<{
+                keyword: "keyword";
+                trait: "trait";
+                cost: "cost";
+            }>>;
+            unit: z.ZodOptional<z.ZodString>;
+            perTechLevel: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>]>>;
+        label: z.ZodOptional<z.ZodString>;
+        level: z.ZodOptional<z.ZodNumber>;
+        lead: z.ZodOptional<z.ZodBoolean>;
+        choiceId: z.ZodOptional<z.ZodString>;
+        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+                paragraph: "paragraph";
+                heading: "heading";
+                "list-item": "list-item";
+                label: "label";
+                datavalues: "datavalues";
+                hint: "hint";
+                flavor: "flavor";
+                choice: "choice";
+            }>>>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                type: z.ZodOptional<z.ZodEnum<{
+                    keyword: "keyword";
+                    trait: "trait";
+                    cost: "cost";
+                }>>;
+                unit: z.ZodOptional<z.ZodString>;
+                perTechLevel: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strict>>]>>;
+            label: z.ZodOptional<z.ZodString>;
+            level: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>>;
+    }, z.core.$strict>>>>;
+    id: z.ZodString;
+    blackMarket: z.ZodDefault<z.ZodBoolean>;
+    name: z.ZodString;
+    source: z.ZodEnum<{
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "The Hive": "The Hive";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Mech Monday": "Mech Monday";
+        "We Were Here First!": "We Were Here First!";
+        Rainmaker: "Rainmaker";
+        "False Flag": "False Flag";
+    }>;
+    page: z.ZodNumber;
+    booklet: z.ZodOptional<z.ZodString>;
+    additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        source: z.ZodEnum<{
+            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+            "Salvage Union Starter Set": "Salvage Union Starter Set";
+            "Reclamation of the Wastes": "Reclamation of the Wastes";
+            "The Hive": "The Hive";
+            "Thatcher's Mech Base": "Thatcher's Mech Base";
+            "Relics of a Time Gone By": "Relics of a Time Gone By";
+            "Mech Monday": "Mech Monday";
+            "We Were Here First!": "We Were Here First!";
+            Rainmaker: "Rainmaker";
+            "False Flag": "False Flag";
+        }>;
+        booklet: z.ZodOptional<z.ZodString>;
+        page: z.ZodNumber;
+    }, z.core.$strict>>>;
+    hybrid: z.ZodOptional<z.ZodBoolean>;
+    advancedTree: z.ZodEnum<{
+        "Advanced Engineer": "Advanced Engineer";
+        "Advanced Hacking": "Advanced Hacking";
+        "Advanced Hauler": "Advanced Hauler";
+        "Advanced Scout": "Advanced Scout";
+        "Advanced Soldier": "Advanced Soldier";
+        Augmentation: "Augmentation";
+        Cyborg: "Cyborg";
+        Electronics: "Electronics";
+        Fabricator: "Fabricator";
+        Forging: "Forging";
+        Generic: "Generic";
+        "Gladiatorial Combat": "Gladiatorial Combat";
+        Hacking: "Hacking";
+        Leadership: "Leadership";
+        "Legendary Cyborg": "Legendary Cyborg";
+        "Legendary Engineer": "Legendary Engineer";
+        "Legendary Fabricator": "Legendary Fabricator";
+        "Legendary Hacker": "Legendary Hacker";
+        "Legendary Hauler": "Legendary Hauler";
+        "Legendary Ranger": "Legendary Ranger";
+        "Legendary Scout": "Legendary Scout";
+        "Legendary Smuggler": "Legendary Smuggler";
+        "Legendary Soldier": "Legendary Soldier";
+        "Legendary Union Rep": "Legendary Union Rep";
+        "Mech-Tech": "Mech-Tech";
+        "Mechanical Knowledge": "Mechanical Knowledge";
+        Ranger: "Ranger";
+        Recon: "Recon";
+        Salvaging: "Salvaging";
+        Sleuth: "Sleuth";
+        Smuggler: "Smuggler";
+        Sniper: "Sniper";
+        Survivalist: "Survivalist";
+        "Tactical Warfare": "Tactical Warfare";
+        Trading: "Trading";
+        "Union Rep": "Union Rep";
+    }>;
+    legendaryTree: z.ZodEnum<{
+        "Advanced Engineer": "Advanced Engineer";
+        "Advanced Hacking": "Advanced Hacking";
+        "Advanced Hauler": "Advanced Hauler";
+        "Advanced Scout": "Advanced Scout";
+        "Advanced Soldier": "Advanced Soldier";
+        Augmentation: "Augmentation";
+        Cyborg: "Cyborg";
+        Electronics: "Electronics";
+        Fabricator: "Fabricator";
+        Forging: "Forging";
+        Generic: "Generic";
+        "Gladiatorial Combat": "Gladiatorial Combat";
+        Hacking: "Hacking";
+        Leadership: "Leadership";
+        "Legendary Cyborg": "Legendary Cyborg";
+        "Legendary Engineer": "Legendary Engineer";
+        "Legendary Fabricator": "Legendary Fabricator";
+        "Legendary Hacker": "Legendary Hacker";
+        "Legendary Hauler": "Legendary Hauler";
+        "Legendary Ranger": "Legendary Ranger";
+        "Legendary Scout": "Legendary Scout";
+        "Legendary Smuggler": "Legendary Smuggler";
+        "Legendary Soldier": "Legendary Soldier";
+        "Legendary Union Rep": "Legendary Union Rep";
+        "Mech-Tech": "Mech-Tech";
+        "Mechanical Knowledge": "Mechanical Knowledge";
+        Ranger: "Ranger";
+        Recon: "Recon";
+        Salvaging: "Salvaging";
+        Sleuth: "Sleuth";
+        Smuggler: "Smuggler";
+        Sniper: "Sniper";
+        Survivalist: "Survivalist";
+        "Tactical Warfare": "Tactical Warfare";
+        Trading: "Trading";
+        "Union Rep": "Union Rep";
+    }>;
+}, z.core.$strict>;
+//# sourceMappingURL=entityBase.d.ts.map
+// === lib/schemas/objects/guides.d.ts ===
+/**
+ * Guides — the read-only, step-by-step transcriptions of the book's creation
+ * and downtime procedures (ADR-021: a guide is never a wizard).
+ */
+import { z } from '../../zod.js';
+/**
+ * A single step in a guide
+ */
+export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
+    id: z.ZodString;
+    name: z.ZodString;
+    stepType: z.ZodEnum<{
+        freeform: "freeform";
+        "select-one": "select-one";
+        "select-many": "select-many";
+        "roll-table": "roll-table";
+        info: "info";
+        "sub-guide": "sub-guide";
+    }>;
+    section: z.ZodOptional<z.ZodString>;
+    content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
+        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+            paragraph: "paragraph";
+            heading: "heading";
+            "list-item": "list-item";
+            label: "label";
+            datavalues: "datavalues";
+            hint: "hint";
+            flavor: "flavor";
+            choice: "choice";
+        }>>>;
+        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+            type: z.ZodOptional<z.ZodEnum<{
+                keyword: "keyword";
+                trait: "trait";
+                cost: "cost";
+            }>>;
+            unit: z.ZodOptional<z.ZodString>;
+            perTechLevel: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>]>>;
+        label: z.ZodOptional<z.ZodString>;
+        level: z.ZodOptional<z.ZodNumber>;
+        lead: z.ZodOptional<z.ZodBoolean>;
+        choiceId: z.ZodOptional<z.ZodString>;
+        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
+                paragraph: "paragraph";
+                heading: "heading";
+                "list-item": "list-item";
+                label: "label";
+                datavalues: "datavalues";
+                hint: "hint";
+                flavor: "flavor";
+                choice: "choice";
+            }>>>;
+            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
+                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+                type: z.ZodOptional<z.ZodEnum<{
+                    keyword: "keyword";
+                    trait: "trait";
+                    cost: "cost";
+                }>>;
+                unit: z.ZodOptional<z.ZodString>;
+                perTechLevel: z.ZodOptional<z.ZodNumber>;
+            }, z.core.$strict>>]>>;
+            label: z.ZodOptional<z.ZodString>;
+            level: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strict>>>;
+    }, z.core.$strict>>>>;
+    schema: z.ZodOptional<z.ZodArray<z.ZodUnion<readonly [z.ZodEnum<{
+        classes: "classes";
+        npcs: "npcs";
+        abilities: "abilities";
+        "ability-tree-requirements": "ability-tree-requirements";
+        chassis: "chassis";
+        "crawler-bays": "crawler-bays";
+        "crawler-tech-levels": "crawler-tech-levels";
+        crawlers: "crawlers";
+        creatures: "creatures";
+        distances: "distances";
+        drones: "drones";
+        equipment: "equipment";
+        guides: "guides";
+        keywords: "keywords";
+        factions: "factions";
+        meld: "meld";
+        modules: "modules";
+        "roll-tables": "roll-tables";
+        sources: "sources";
+        squads: "squads";
+        "tech-levels": "tech-levels";
+        systems: "systems";
+        "bio-titans": "bio-titans";
+        traits: "traits";
+        vehicles: "vehicles";
+    }>, z.ZodLiteral<"actions">]>>>;
+    schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    schemaField: z.ZodOptional<z.ZodString>;
+    rollTable: z.ZodOptional<z.ZodString>;
+    choiceOptions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        label: z.ZodString;
+        value: z.ZodString;
+        description: z.ZodOptional<z.ZodString>;
+        effects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            op: z.ZodLiteral<"addTrait">;
+            value: z.ZodString;
+            amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+            target: z.ZodOptional<z.ZodEnum<{
+                self: "self";
+                hostMech: "hostMech";
+            }>>;
+        }, z.core.$strict>, z.ZodObject<{
+            op: z.ZodLiteral<"removeTrait">;
+            value: z.ZodString;
+            target: z.ZodOptional<z.ZodEnum<{
+                self: "self";
+                hostMech: "hostMech";
+            }>>;
+        }, z.core.$strict>, z.ZodObject<{
+            op: z.ZodLiteral<"setRange">;
+            value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+        }, z.core.$strict>, z.ZodObject<{
+            op: z.ZodLiteral<"addDamage">;
+            value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+            unit: z.ZodOptional<z.ZodString>;
+        }, z.core.$strict>], "op">>>;
+    }, z.core.$strict>>>;
+    filters: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        field: z.ZodString;
+        operator: z.ZodOptional<z.ZodEnum<{
+            eq: "eq";
+            ne: "ne";
+        }>>;
+        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean]>>;
+        min: z.ZodOptional<z.ZodNumber>;
+        max: z.ZodOptional<z.ZodNumber>;
+    }, z.core.$strict>>>;
+    constraints: z.ZodOptional<z.ZodObject<{
+        field: z.ZodOptional<z.ZodString>;
+        min: z.ZodOptional<z.ZodNumber>;
+        max: z.ZodOptional<z.ZodNumber>;
+        scalesWithField: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>>;
+    guideRef: z.ZodOptional<z.ZodString>;
+    optional: z.ZodOptional<z.ZodBoolean>;
+    paperOnly: z.ZodOptional<z.ZodBoolean>;
+    entityLayout: z.ZodOptional<z.ZodEnum<{
+        sidebar: "sidebar";
+    }>>;
+}, z.core.$strict>>;
+/**
+ * Category of a guide
+ */
+export declare const GuideTypeSchema: z.ZodEnum<{
+    "character-creation": "character-creation";
+    "mech-creation": "mech-creation";
+    "crawler-creation": "crawler-creation";
+    progression: "progression";
+    downtime: "downtime";
+    gameplay: "gameplay";
+}>;
+//# sourceMappingURL=guides.d.ts.map
+// === lib/schemas/objects/npc.d.ts ===
+/**
+ * NPCs attached to another record (a crawler bay's crew member, for example) —
+ * distinct from the standalone `npcs` entity schema.
+ */
+import { z } from '../../zod.js';
 /**
  * NPC associated with an entity
  */
@@ -12906,6 +14359,21 @@ export declare const NpcSchema: z.ZodLazy<z.ZodObject<{
         }>>;
     }, z.core.$strict>>>>;
 }, z.core.$strict>>;
+//# sourceMappingURL=npc.d.ts.map
+// === lib/schemas/objects/patterns.d.ts ===
+/**
+ * Mech patterns — a preset loadout for a chassis, plus the system/module and
+ * drone configuration entries a pattern is built from.
+ */
+import { z } from '../../zod.js';
+/**
+ * Pattern system/module configuration
+ */
+export declare const PatternSystemModuleSchema: z.ZodObject<{
+    name: z.ZodString;
+    count: z.ZodOptional<z.ZodNumber>;
+    preselectedChoices: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodString>>;
+}, z.core.$strict>;
 /**
  * Named drone configuration for patterns with multiple drones
  */
@@ -12916,8 +14384,10 @@ export declare const PatternDroneConfigSchema: z.ZodObject<{
     modules: z.ZodArray<z.ZodString>;
 }, z.core.$strict>;
 /**
- * Pattern schema. The `z.lazy()` is load-bearing here: the shape references
- * `AdditionalSourceSchema`, which is declared further down this file. The type is
+ * Pattern schema. The `z.lazy()` is kept — it defers building the shape to
+ * first use, exactly as before the objects split (when it was load-bearing for
+ * a forward reference to `AdditionalSourceSchema`, now an ordinary import).
+ * Removing it would change module-evaluation order for no benefit. The type is
  * inferred, never hand-annotated — see ContentBlockSchema for why.
  */
 export declare const PatternSchema: z.ZodLazy<z.ZodObject<{
@@ -13023,6 +14493,92 @@ export declare const PatternSchema: z.ZodLazy<z.ZodObject<{
         modules: z.ZodArray<z.ZodString>;
     }, z.core.$strict>>>;
 }, z.core.$strict>>;
+//# sourceMappingURL=patterns.d.ts.map
+// === lib/schemas/objects/primitives.d.ts ===
+/**
+ * Object-schema primitives: the small, widely-reused shapes other object
+ * schemas compose out of — a trait, a stat block, a labelled data value, a
+ * damage figure.
+ *
+ * Nothing here references another object family, which is what makes it the
+ * bottom of the objects dependency graph.
+ */
+import { z } from '../../zod.js';
+/**
+ * Special traits and properties of items, systems, or abilities
+ */
+export declare const TraitSchema: z.ZodObject<{
+    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
+    type: z.ZodString;
+}, z.core.$strict>;
+/**
+ * Statistics for mechs, chassis, and vehicles
+ */
+export declare const StatsSchema: z.ZodObject<{
+    structurePoints: z.ZodOptional<z.ZodNumber>;
+    energyPoints: z.ZodOptional<z.ZodNumber>;
+    heatCapacity: z.ZodOptional<z.ZodNumber>;
+    systemSlots: z.ZodOptional<z.ZodNumber>;
+    moduleSlots: z.ZodOptional<z.ZodNumber>;
+    cargoCapacity: z.ZodOptional<z.ZodNumber>;
+    techLevel: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>;
+    salvageValue: z.ZodOptional<z.ZodNumber>;
+}, z.core.$strip>;
+/**
+ * Statistics specific to chassis — all stats required
+ */
+export declare const ChassisStatsSchema: z.ZodObject<{
+    structurePoints: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
+    energyPoints: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
+    heatCapacity: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
+    systemSlots: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
+    moduleSlots: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
+    cargoCapacity: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
+    techLevel: z.ZodNonOptional<z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>>;
+    salvageValue: z.ZodNonOptional<z.ZodOptional<z.ZodNumber>>;
+}, z.core.$strip>;
+/**
+ * Entity that can perform actions and has traits
+ */
+export declare const CombatEntitySchema: z.ZodObject<{
+    actions: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
+        type: z.ZodString;
+    }, z.core.$strict>>>;
+}, z.core.$strip>;
+/**
+ * Mechanical entity with structure points and equipment stats
+ */
+export declare const MechanicalEntitySchema: z.ZodObject<{
+    structurePoints: z.ZodOptional<z.ZodNumber>;
+    techLevel: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>;
+    salvageValue: z.ZodOptional<z.ZodNumber>;
+    systems: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
+        type: z.ZodString;
+    }, z.core.$strict>>>;
+    energyPoints: z.ZodOptional<z.ZodNumber>;
+    heatCapacity: z.ZodOptional<z.ZodNumber>;
+    systemSlots: z.ZodOptional<z.ZodNumber>;
+    moduleSlots: z.ZodOptional<z.ZodNumber>;
+    cargoCapacity: z.ZodOptional<z.ZodNumber>;
+}, z.core.$strip>;
+/**
+ * A data value with label, optional value, and optional type
+ */
+export declare const DataValueSchema: z.ZodObject<{
+    label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+    value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+    type: z.ZodOptional<z.ZodEnum<{
+        keyword: "keyword";
+        trait: "trait";
+        cost: "cost";
+    }>>;
+    unit: z.ZodOptional<z.ZodString>;
+    perTechLevel: z.ZodOptional<z.ZodNumber>;
+}, z.core.$strict>;
 /**
  * Damage schema
  */
@@ -13033,1511 +14589,14 @@ export declare const DamageSchema: z.ZodObject<{
     }>;
     amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>;
 }, z.core.$strict>;
+//# sourceMappingURL=primitives.d.ts.map
+// === lib/schemas/objects/references.d.ts ===
 /**
- * Action schema (z.lazy() defers building the shape; the type is inferred, never
- * hand-annotated — see ContentBlockSchema for why).
+ * Cross-record references — the shapes one record uses to point at another:
+ * an ability's grant, a faction formation member, and the schema-name
+ * vocabulary that admits `actions` alongside the entity schemas.
  */
-export declare const ActionSchema: z.ZodLazy<z.ZodObject<{
-    id: z.ZodString;
-    name: z.ZodString;
-    content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
-        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
-            choice: "choice";
-        }>>>;
-        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-            type: z.ZodOptional<z.ZodEnum<{
-                keyword: "keyword";
-                trait: "trait";
-                cost: "cost";
-            }>>;
-            unit: z.ZodOptional<z.ZodString>;
-            perTechLevel: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>]>>;
-        label: z.ZodOptional<z.ZodString>;
-        level: z.ZodOptional<z.ZodNumber>;
-        lead: z.ZodOptional<z.ZodBoolean>;
-        choiceId: z.ZodOptional<z.ZodString>;
-        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
-            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
-                choice: "choice";
-            }>>>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-                type: z.ZodOptional<z.ZodEnum<{
-                    keyword: "keyword";
-                    trait: "trait";
-                    cost: "cost";
-                }>>;
-                unit: z.ZodOptional<z.ZodString>;
-                perTechLevel: z.ZodOptional<z.ZodNumber>;
-            }, z.core.$strict>>]>>;
-            label: z.ZodOptional<z.ZodString>;
-            level: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>>;
-    }, z.core.$strict>>>>;
-    structurePoints: z.ZodOptional<z.ZodNumber>;
-    energyPoints: z.ZodOptional<z.ZodNumber>;
-    heatCapacity: z.ZodOptional<z.ZodNumber>;
-    systemSlots: z.ZodOptional<z.ZodNumber>;
-    moduleSlots: z.ZodOptional<z.ZodNumber>;
-    cargoCapacity: z.ZodOptional<z.ZodNumber>;
-    techLevel: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>>;
-    salvageValue: z.ZodOptional<z.ZodNumber>;
-    displayName: z.ZodOptional<z.ZodString>;
-    activationCost: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"X">]>>;
-    range: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-        Close: "Close";
-        Medium: "Medium";
-        Long: "Long";
-        Far: "Far";
-    }>>>;
-    actionType: z.ZodOptional<z.ZodEnum<{
-        Long: "Long";
-        Passive: "Passive";
-        Free: "Free";
-        Reaction: "Reaction";
-        Turn: "Turn";
-        Short: "Short";
-        DownTime: "DownTime";
-    }>>;
-    traits: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>>;
-        type: z.ZodString;
-    }, z.core.$strict>>>;
-    damage: z.ZodOptional<z.ZodObject<{
-        damageType: z.ZodEnum<{
-            HP: "HP";
-            SP: "SP";
-        }>;
-        amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodString]>;
-    }, z.core.$strict>>;
-    choices: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
-        id: z.ZodString;
-        name: z.ZodString;
-        choiceType: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            session: "session";
-            freeform: "freeform";
-        }>>;
-        content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
-            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
-                choice: "choice";
-            }>>>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-                type: z.ZodOptional<z.ZodEnum<{
-                    keyword: "keyword";
-                    trait: "trait";
-                    cost: "cost";
-                }>>;
-                unit: z.ZodOptional<z.ZodString>;
-                perTechLevel: z.ZodOptional<z.ZodNumber>;
-            }, z.core.$strict>>]>>;
-            label: z.ZodOptional<z.ZodString>;
-            level: z.ZodOptional<z.ZodNumber>;
-            lead: z.ZodOptional<z.ZodBoolean>;
-            choiceId: z.ZodOptional<z.ZodString>;
-            items: z.ZodOptional<z.ZodArray<z.ZodObject<{
-                type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                    paragraph: "paragraph";
-                    heading: "heading";
-                    "list-item": "list-item";
-                    label: "label";
-                    datavalues: "datavalues";
-                    hint: "hint";
-                    flavor: "flavor";
-                    choice: "choice";
-                }>>>;
-                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-                    label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                    value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-                    type: z.ZodOptional<z.ZodEnum<{
-                        keyword: "keyword";
-                        trait: "trait";
-                        cost: "cost";
-                    }>>;
-                    unit: z.ZodOptional<z.ZodString>;
-                    perTechLevel: z.ZodOptional<z.ZodNumber>;
-                }, z.core.$strict>>]>>;
-                label: z.ZodOptional<z.ZodString>;
-                level: z.ZodOptional<z.ZodNumber>;
-            }, z.core.$strict>>>;
-        }, z.core.$strict>>>>;
-        rollTable: z.ZodOptional<z.ZodString>;
-        schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
-        schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-            classes: "classes";
-            npcs: "npcs";
-            abilities: "abilities";
-            "ability-tree-requirements": "ability-tree-requirements";
-            chassis: "chassis";
-            "crawler-bays": "crawler-bays";
-            "crawler-tech-levels": "crawler-tech-levels";
-            crawlers: "crawlers";
-            creatures: "creatures";
-            distances: "distances";
-            drones: "drones";
-            equipment: "equipment";
-            guides: "guides";
-            keywords: "keywords";
-            factions: "factions";
-            meld: "meld";
-            modules: "modules";
-            "roll-tables": "roll-tables";
-            sources: "sources";
-            squads: "squads";
-            "tech-levels": "tech-levels";
-            systems: "systems";
-            "bio-titans": "bio-titans";
-            traits: "traits";
-            vehicles: "vehicles";
-        }>>>;
-        customSystemOptions: z.ZodOptional<z.ZodArray<z.ZodObject<{
-            structurePoints: z.ZodOptional<z.ZodNumber>;
-            energyPoints: z.ZodOptional<z.ZodNumber>;
-            heatCapacity: z.ZodOptional<z.ZodNumber>;
-            systemSlots: z.ZodOptional<z.ZodNumber>;
-            moduleSlots: z.ZodOptional<z.ZodNumber>;
-            cargoCapacity: z.ZodOptional<z.ZodNumber>;
-            name: z.ZodOptional<z.ZodString>;
-            techLevel: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>;
-            slotsRequired: z.ZodNumber;
-            salvageValue: z.ZodNumber;
-            recommended: z.ZodOptional<z.ZodBoolean>;
-            count: z.ZodOptional<z.ZodNumber>;
-            contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
-                stat: z.ZodEnum<{
-                    structurePoints: "structurePoints";
-                    energyPoints: "energyPoints";
-                    heatCapacity: "heatCapacity";
-                    systemSlots: "systemSlots";
-                    moduleSlots: "moduleSlots";
-                    cargoCapacity: "cargoCapacity";
-                    maxHp: "maxHp";
-                    maxAp: "maxAp";
-                    inventorySlots: "inventorySlots";
-                }>;
-                amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
-                    flat: z.ZodOptional<z.ZodNumber>;
-                    perTechLevel: z.ZodNumber;
-                }, z.core.$strict>, z.ZodObject<{
-                    fromStat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
-                        energyPoints: "energyPoints";
-                        heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
-                        inventorySlots: "inventorySlots";
-                    }>;
-                }, z.core.$strict>]>;
-                target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
-                    pilot: "pilot";
-                    pilotedMech: "pilotedMech";
-                    crawler: "crawler";
-                }>>;
-                stacks: z.ZodOptional<z.ZodBoolean>;
-                voidWhen: z.ZodOptional<z.ZodEnum<{
-                    damaged: "damaged";
-                    destroyed: "destroyed";
-                }>>;
-                duration: z.ZodOptional<z.ZodEnum<{
-                    permanent: "permanent";
-                    activated: "activated";
-                }>>;
-                note: z.ZodOptional<z.ZodString>;
-            }, z.core.$strict>>>;
-            appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                op: z.ZodLiteral<"addTrait">;
-                value: z.ZodString;
-                amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-                target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
-                    hostMech: "hostMech";
-                }>>;
-            }, z.core.$strict>, z.ZodObject<{
-                op: z.ZodLiteral<"removeTrait">;
-                value: z.ZodString;
-                target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
-                    hostMech: "hostMech";
-                }>>;
-            }, z.core.$strict>, z.ZodObject<{
-                op: z.ZodLiteral<"setRange">;
-                value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-            }, z.core.$strict>, z.ZodObject<{
-                op: z.ZodLiteral<"addDamage">;
-                value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                unit: z.ZodOptional<z.ZodString>;
-            }, z.core.$strict>], "op">>>;
-            actions: z.ZodArray<z.ZodString>;
-        }, z.core.$strip>>>;
-        multiSelect: z.ZodOptional<z.ZodBoolean>;
-        choiceOptions: z.ZodOptional<z.ZodArray<z.ZodObject<{
-            label: z.ZodString;
-            value: z.ZodString;
-            description: z.ZodOptional<z.ZodString>;
-            effects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                op: z.ZodLiteral<"addTrait">;
-                value: z.ZodString;
-                amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-                target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
-                    hostMech: "hostMech";
-                }>>;
-            }, z.core.$strict>, z.ZodObject<{
-                op: z.ZodLiteral<"removeTrait">;
-                value: z.ZodString;
-                target: z.ZodOptional<z.ZodEnum<{
-                    self: "self";
-                    hostMech: "hostMech";
-                }>>;
-            }, z.core.$strict>, z.ZodObject<{
-                op: z.ZodLiteral<"setRange">;
-                value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-            }, z.core.$strict>, z.ZodObject<{
-                op: z.ZodLiteral<"addDamage">;
-                value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                unit: z.ZodOptional<z.ZodString>;
-            }, z.core.$strict>], "op">>>;
-        }, z.core.$strict>>>;
-        constraints: z.ZodOptional<z.ZodObject<{
-            field: z.ZodOptional<z.ZodString>;
-            min: z.ZodOptional<z.ZodNumber>;
-            max: z.ZodOptional<z.ZodNumber>;
-            scalesWithField: z.ZodOptional<z.ZodString>;
-        }, z.core.$strict>>;
-        source: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
-            kind: z.ZodLiteral<"text">;
-            multiline: z.ZodOptional<z.ZodBoolean>;
-        }, z.core.$strict>, z.ZodObject<{
-            kind: z.ZodLiteral<"table">;
-            rollTable: z.ZodString;
-            orChooseOwn: z.ZodOptional<z.ZodBoolean>;
-        }, z.core.$strict>, z.ZodObject<{
-            kind: z.ZodLiteral<"options">;
-            options: z.ZodArray<z.ZodObject<{
-                label: z.ZodString;
-                value: z.ZodString;
-                description: z.ZodOptional<z.ZodString>;
-                effects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    op: z.ZodLiteral<"addTrait">;
-                    value: z.ZodString;
-                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-                    target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
-                        hostMech: "hostMech";
-                    }>>;
-                }, z.core.$strict>, z.ZodObject<{
-                    op: z.ZodLiteral<"removeTrait">;
-                    value: z.ZodString;
-                    target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
-                        hostMech: "hostMech";
-                    }>>;
-                }, z.core.$strict>, z.ZodObject<{
-                    op: z.ZodLiteral<"setRange">;
-                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                }, z.core.$strict>, z.ZodObject<{
-                    op: z.ZodLiteral<"addDamage">;
-                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                    unit: z.ZodOptional<z.ZodString>;
-                }, z.core.$strict>], "op">>>;
-            }, z.core.$strict>>;
-        }, z.core.$strict>, z.ZodObject<{
-            kind: z.ZodLiteral<"catalog">;
-            schema: z.ZodOptional<z.ZodArray<z.ZodEnum<{
-                classes: "classes";
-                npcs: "npcs";
-                abilities: "abilities";
-                "ability-tree-requirements": "ability-tree-requirements";
-                chassis: "chassis";
-                "crawler-bays": "crawler-bays";
-                "crawler-tech-levels": "crawler-tech-levels";
-                crawlers: "crawlers";
-                creatures: "creatures";
-                distances: "distances";
-                drones: "drones";
-                equipment: "equipment";
-                guides: "guides";
-                keywords: "keywords";
-                factions: "factions";
-                meld: "meld";
-                modules: "modules";
-                "roll-tables": "roll-tables";
-                sources: "sources";
-                squads: "squads";
-                "tech-levels": "tech-levels";
-                systems: "systems";
-                "bio-titans": "bio-titans";
-                traits: "traits";
-                vehicles: "vehicles";
-            }>>>;
-            entities: z.ZodOptional<z.ZodArray<z.ZodString>>;
-            filter: z.ZodOptional<z.ZodObject<{
-                field: z.ZodOptional<z.ZodString>;
-                min: z.ZodOptional<z.ZodNumber>;
-                max: z.ZodOptional<z.ZodNumber>;
-                damageType: z.ZodOptional<z.ZodEnum<{
-                    HP: "HP";
-                    SP: "SP";
-                }>>;
-            }, z.core.$strict>>;
-            reveals: z.ZodOptional<z.ZodBoolean>;
-        }, z.core.$strict>, z.ZodObject<{
-            kind: z.ZodLiteral<"systemVariant">;
-            options: z.ZodArray<z.ZodObject<{
-                structurePoints: z.ZodOptional<z.ZodNumber>;
-                energyPoints: z.ZodOptional<z.ZodNumber>;
-                heatCapacity: z.ZodOptional<z.ZodNumber>;
-                systemSlots: z.ZodOptional<z.ZodNumber>;
-                moduleSlots: z.ZodOptional<z.ZodNumber>;
-                cargoCapacity: z.ZodOptional<z.ZodNumber>;
-                name: z.ZodOptional<z.ZodString>;
-                techLevel: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>;
-                slotsRequired: z.ZodNumber;
-                salvageValue: z.ZodNumber;
-                recommended: z.ZodOptional<z.ZodBoolean>;
-                count: z.ZodOptional<z.ZodNumber>;
-                contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
-                    stat: z.ZodEnum<{
-                        structurePoints: "structurePoints";
-                        energyPoints: "energyPoints";
-                        heatCapacity: "heatCapacity";
-                        systemSlots: "systemSlots";
-                        moduleSlots: "moduleSlots";
-                        cargoCapacity: "cargoCapacity";
-                        maxHp: "maxHp";
-                        maxAp: "maxAp";
-                        inventorySlots: "inventorySlots";
-                    }>;
-                    amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
-                        flat: z.ZodOptional<z.ZodNumber>;
-                        perTechLevel: z.ZodNumber;
-                    }, z.core.$strict>, z.ZodObject<{
-                        fromStat: z.ZodEnum<{
-                            structurePoints: "structurePoints";
-                            energyPoints: "energyPoints";
-                            heatCapacity: "heatCapacity";
-                            systemSlots: "systemSlots";
-                            moduleSlots: "moduleSlots";
-                            cargoCapacity: "cargoCapacity";
-                            maxHp: "maxHp";
-                            maxAp: "maxAp";
-                            inventorySlots: "inventorySlots";
-                        }>;
-                    }, z.core.$strict>]>;
-                    target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
-                        pilot: "pilot";
-                        pilotedMech: "pilotedMech";
-                        crawler: "crawler";
-                    }>>;
-                    stacks: z.ZodOptional<z.ZodBoolean>;
-                    voidWhen: z.ZodOptional<z.ZodEnum<{
-                        damaged: "damaged";
-                        destroyed: "destroyed";
-                    }>>;
-                    duration: z.ZodOptional<z.ZodEnum<{
-                        permanent: "permanent";
-                        activated: "activated";
-                    }>>;
-                    note: z.ZodOptional<z.ZodString>;
-                }, z.core.$strict>>>;
-                appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    op: z.ZodLiteral<"addTrait">;
-                    value: z.ZodString;
-                    amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-                    target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
-                        hostMech: "hostMech";
-                    }>>;
-                }, z.core.$strict>, z.ZodObject<{
-                    op: z.ZodLiteral<"removeTrait">;
-                    value: z.ZodString;
-                    target: z.ZodOptional<z.ZodEnum<{
-                        self: "self";
-                        hostMech: "hostMech";
-                    }>>;
-                }, z.core.$strict>, z.ZodObject<{
-                    op: z.ZodLiteral<"setRange">;
-                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                }, z.core.$strict>, z.ZodObject<{
-                    op: z.ZodLiteral<"addDamage">;
-                    value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                    unit: z.ZodOptional<z.ZodString>;
-                }, z.core.$strict>], "op">>>;
-                actions: z.ZodArray<z.ZodString>;
-            }, z.core.$strip>>;
-        }, z.core.$strict>], "kind">>;
-        cardinality: z.ZodOptional<z.ZodObject<{
-            min: z.ZodNumber;
-            max: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
-                scalesWith: z.ZodString;
-            }, z.core.$strict>]>;
-        }, z.core.$strict>>;
-        lifetime: z.ZodOptional<z.ZodEnum<{
-            permanent: "permanent";
-            session: "session";
-        }>>;
-    }, z.core.$strict>>>>;
-    table: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
-        type: z.ZodLiteral<"standard">;
-        '1': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '20': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '11-19': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '6-10': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '2-5': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-    }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"alternate">;
-        '1': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '19-20': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '11-18': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '6-10': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '2-5': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-    }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"flat">;
-        '1': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '2': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '3': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '4': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '5': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '6': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '7': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '8': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '9': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '10': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '11': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '12': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '13': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '14': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '15': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '16': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '17': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '18': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '19': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '20': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-    }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"dramatic">;
-        '20': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-    }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"duos">;
-        '1-2': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '3-4': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '5-6': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '7-8': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '9-10': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '11-12': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '13-14': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '15-16': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '17-18': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '19-20': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-    }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"bio-chassis">;
-        '1': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '2-3': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '4-5': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '6-8': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '9-10': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '11-19': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '20': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-    }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"columns">;
-        '1-4': z.ZodObject<{
-            '1': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '2': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '3': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '4': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '5': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '6': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '7': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '8': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '9': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '10': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '11': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '12': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '13': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '14': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '15': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '16': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '17': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '18': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '19': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '20': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-        }, z.core.$strict>;
-        '5-8': z.ZodObject<{
-            '1': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '2': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '3': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '4': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '5': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '6': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '7': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '8': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '9': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '10': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '11': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '12': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '13': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '14': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '15': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '16': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '17': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '18': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '19': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '20': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-        }, z.core.$strict>;
-        '9-12': z.ZodObject<{
-            '1': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '2': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '3': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '4': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '5': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '6': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '7': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '8': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '9': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '10': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '11': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '12': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '13': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '14': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '15': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '16': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '17': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '18': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '19': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '20': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-        }, z.core.$strict>;
-        '13-16': z.ZodObject<{
-            '1': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '2': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '3': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '4': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '5': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '6': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '7': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '8': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '9': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '10': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '11': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '12': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '13': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '14': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '15': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '16': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '17': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '18': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '19': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '20': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-        }, z.core.$strict>;
-        '17-20': z.ZodObject<{
-            '1': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '2': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '3': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '4': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '5': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '6': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '7': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '8': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '9': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '10': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '11': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '12': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '13': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '14': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '15': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '16': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '17': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '18': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '19': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-            '20': z.ZodObject<{
-                label: z.ZodOptional<z.ZodString>;
-                value: z.ZodString;
-            }, z.core.$strict>;
-        }, z.core.$strict>;
-    }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"salvage-cache">;
-        '1': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '2-3': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '4-5': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '6-7': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '8-9': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '10-11': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '12-13': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '14-15': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '16-17': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '18-19': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '20': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-    }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"octet">;
-        '1': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '2-4': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '5-7': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '8-10': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '11-13': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '14-16': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '17-19': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-        '20': z.ZodObject<{
-            label: z.ZodOptional<z.ZodString>;
-            value: z.ZodString;
-        }, z.core.$strict>;
-    }, z.core.$strict>], "type">>;
-    tableName: z.ZodOptional<z.ZodString>;
-    hidden: z.ZodOptional<z.ZodBoolean>;
-    activationCurrency: z.ZodOptional<z.ZodEnum<{
-        "EP or AP": "EP or AP";
-        "SP or HP": "SP or HP";
-        Variable: "Variable";
-    }>>;
-    source: z.ZodOptional<z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
-        "False Flag": "False Flag";
-    }>>;
-    page: z.ZodOptional<z.ZodNumber>;
-    actionSource: z.ZodOptional<z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
-        abilities: "abilities";
-        "ability-tree-requirements": "ability-tree-requirements";
-        chassis: "chassis";
-        "crawler-bays": "crawler-bays";
-        "crawler-tech-levels": "crawler-tech-levels";
-        crawlers: "crawlers";
-        creatures: "creatures";
-        distances: "distances";
-        drones: "drones";
-        equipment: "equipment";
-        guides: "guides";
-        keywords: "keywords";
-        factions: "factions";
-        meld: "meld";
-        modules: "modules";
-        "roll-tables": "roll-tables";
-        sources: "sources";
-        squads: "squads";
-        "tech-levels": "tech-levels";
-        systems: "systems";
-        "bio-titans": "bio-titans";
-        traits: "traits";
-        vehicles: "vehicles";
-    }>>;
-    drone: z.ZodOptional<z.ZodString>;
-}, z.core.$strict>>;
-/**
- * Reprint of an entity in a secondary source book
- *
- * `booklet` is optional and used when a source is a multi-booklet product
- * (e.g. the Salvage Union Starter Set, which uses CR / PH / PC / RR / AP codes
- * for its Core Rulebook / Pilots Handbook / Parts Catalogue / Rules Reference / Asset Pack).
- * Single-volume sources omit it.
- */
-export declare const AdditionalSourceSchema: z.ZodObject<{
-    source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
-        "False Flag": "False Flag";
-    }>;
-    booklet: z.ZodOptional<z.ZodString>;
-    page: z.ZodNumber;
-}, z.core.$strict>;
-/**
- * Basic entity with name, content, source, and page reference
- */
-export declare const BaseEntitySchema: z.ZodObject<{
-    hasArtwork: z.ZodOptional<z.ZodBoolean>;
-    content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
-        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
-            choice: "choice";
-        }>>>;
-        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-            type: z.ZodOptional<z.ZodEnum<{
-                keyword: "keyword";
-                trait: "trait";
-                cost: "cost";
-            }>>;
-            unit: z.ZodOptional<z.ZodString>;
-            perTechLevel: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>]>>;
-        label: z.ZodOptional<z.ZodString>;
-        level: z.ZodOptional<z.ZodNumber>;
-        lead: z.ZodOptional<z.ZodBoolean>;
-        choiceId: z.ZodOptional<z.ZodString>;
-        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
-            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
-                choice: "choice";
-            }>>>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-                type: z.ZodOptional<z.ZodEnum<{
-                    keyword: "keyword";
-                    trait: "trait";
-                    cost: "cost";
-                }>>;
-                unit: z.ZodOptional<z.ZodString>;
-                perTechLevel: z.ZodOptional<z.ZodNumber>;
-            }, z.core.$strict>>]>>;
-            label: z.ZodOptional<z.ZodString>;
-            level: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>>;
-    }, z.core.$strict>>>>;
-    id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
-    name: z.ZodString;
-    source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
-        "False Flag": "False Flag";
-    }>;
-    page: z.ZodNumber;
-    booklet: z.ZodOptional<z.ZodString>;
-    additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
-            "False Flag": "False Flag";
-        }>;
-        booklet: z.ZodOptional<z.ZodString>;
-        page: z.ZodNumber;
-    }, z.core.$strict>>>;
-}, z.core.$strip>;
-/**
- * Advanced or hybrid character class
- */
-export declare const AdvancedClassSchema: z.ZodObject<{
-    hasArtwork: z.ZodOptional<z.ZodBoolean>;
-    content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
-        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
-            choice: "choice";
-        }>>>;
-        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-            type: z.ZodOptional<z.ZodEnum<{
-                keyword: "keyword";
-                trait: "trait";
-                cost: "cost";
-            }>>;
-            unit: z.ZodOptional<z.ZodString>;
-            perTechLevel: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>]>>;
-        label: z.ZodOptional<z.ZodString>;
-        level: z.ZodOptional<z.ZodNumber>;
-        lead: z.ZodOptional<z.ZodBoolean>;
-        choiceId: z.ZodOptional<z.ZodString>;
-        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
-            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
-                choice: "choice";
-            }>>>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-                type: z.ZodOptional<z.ZodEnum<{
-                    keyword: "keyword";
-                    trait: "trait";
-                    cost: "cost";
-                }>>;
-                unit: z.ZodOptional<z.ZodString>;
-                perTechLevel: z.ZodOptional<z.ZodNumber>;
-            }, z.core.$strict>>]>>;
-            label: z.ZodOptional<z.ZodString>;
-            level: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>>;
-    }, z.core.$strict>>>>;
-    id: z.ZodString;
-    blackMarket: z.ZodDefault<z.ZodBoolean>;
-    name: z.ZodString;
-    source: z.ZodEnum<{
-        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-        "Salvage Union Starter Set": "Salvage Union Starter Set";
-        "Reclamation of the Wastes": "Reclamation of the Wastes";
-        "The Hive": "The Hive";
-        "Thatcher's Mech Base": "Thatcher's Mech Base";
-        "Relics of a Time Gone By": "Relics of a Time Gone By";
-        "Mech Monday": "Mech Monday";
-        "We Were Here First!": "We Were Here First!";
-        Rainmaker: "Rainmaker";
-        "False Flag": "False Flag";
-    }>;
-    page: z.ZodNumber;
-    booklet: z.ZodOptional<z.ZodString>;
-    additionalSources: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        source: z.ZodEnum<{
-            "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
-            "Salvage Union Starter Set": "Salvage Union Starter Set";
-            "Reclamation of the Wastes": "Reclamation of the Wastes";
-            "The Hive": "The Hive";
-            "Thatcher's Mech Base": "Thatcher's Mech Base";
-            "Relics of a Time Gone By": "Relics of a Time Gone By";
-            "Mech Monday": "Mech Monday";
-            "We Were Here First!": "We Were Here First!";
-            Rainmaker: "Rainmaker";
-            "False Flag": "False Flag";
-        }>;
-        booklet: z.ZodOptional<z.ZodString>;
-        page: z.ZodNumber;
-    }, z.core.$strict>>>;
-    hybrid: z.ZodOptional<z.ZodBoolean>;
-    advancedTree: z.ZodEnum<{
-        "Advanced Engineer": "Advanced Engineer";
-        "Advanced Hacking": "Advanced Hacking";
-        "Advanced Hauler": "Advanced Hauler";
-        "Advanced Scout": "Advanced Scout";
-        "Advanced Soldier": "Advanced Soldier";
-        Augmentation: "Augmentation";
-        Cyborg: "Cyborg";
-        Electronics: "Electronics";
-        Fabricator: "Fabricator";
-        Forging: "Forging";
-        Generic: "Generic";
-        "Gladiatorial Combat": "Gladiatorial Combat";
-        Hacking: "Hacking";
-        Leadership: "Leadership";
-        "Legendary Cyborg": "Legendary Cyborg";
-        "Legendary Engineer": "Legendary Engineer";
-        "Legendary Fabricator": "Legendary Fabricator";
-        "Legendary Hacker": "Legendary Hacker";
-        "Legendary Hauler": "Legendary Hauler";
-        "Legendary Ranger": "Legendary Ranger";
-        "Legendary Scout": "Legendary Scout";
-        "Legendary Smuggler": "Legendary Smuggler";
-        "Legendary Soldier": "Legendary Soldier";
-        "Legendary Union Rep": "Legendary Union Rep";
-        "Mech-Tech": "Mech-Tech";
-        "Mechanical Knowledge": "Mechanical Knowledge";
-        Ranger: "Ranger";
-        Recon: "Recon";
-        Salvaging: "Salvaging";
-        Sleuth: "Sleuth";
-        Smuggler: "Smuggler";
-        Sniper: "Sniper";
-        Survivalist: "Survivalist";
-        "Tactical Warfare": "Tactical Warfare";
-        Trading: "Trading";
-        "Union Rep": "Union Rep";
-    }>;
-    legendaryTree: z.ZodEnum<{
-        "Advanced Engineer": "Advanced Engineer";
-        "Advanced Hacking": "Advanced Hacking";
-        "Advanced Hauler": "Advanced Hauler";
-        "Advanced Scout": "Advanced Scout";
-        "Advanced Soldier": "Advanced Soldier";
-        Augmentation: "Augmentation";
-        Cyborg: "Cyborg";
-        Electronics: "Electronics";
-        Fabricator: "Fabricator";
-        Forging: "Forging";
-        Generic: "Generic";
-        "Gladiatorial Combat": "Gladiatorial Combat";
-        Hacking: "Hacking";
-        Leadership: "Leadership";
-        "Legendary Cyborg": "Legendary Cyborg";
-        "Legendary Engineer": "Legendary Engineer";
-        "Legendary Fabricator": "Legendary Fabricator";
-        "Legendary Hacker": "Legendary Hacker";
-        "Legendary Hauler": "Legendary Hauler";
-        "Legendary Ranger": "Legendary Ranger";
-        "Legendary Scout": "Legendary Scout";
-        "Legendary Smuggler": "Legendary Smuggler";
-        "Legendary Soldier": "Legendary Soldier";
-        "Legendary Union Rep": "Legendary Union Rep";
-        "Mech-Tech": "Mech-Tech";
-        "Mechanical Knowledge": "Mechanical Knowledge";
-        Ranger: "Ranger";
-        Recon: "Recon";
-        Salvaging: "Salvaging";
-        Sleuth: "Sleuth";
-        Smuggler: "Smuggler";
-        Sniper: "Sniper";
-        Survivalist: "Survivalist";
-        "Tactical Warfare": "Tactical Warfare";
-        Trading: "Trading";
-        "Union Rep": "Union Rep";
-    }>;
-}, z.core.$strict>;
+import { z } from '../../zod.js';
 /**
  * Formation member schema
  * Supports chassis+pattern combos and standalone entities (vehicles, drones, squads, npcs)
@@ -14621,16 +14680,6 @@ export declare const GrantSchema: z.ZodObject<{
     name: z.ZodString;
 }, z.core.$strict>;
 /**
- * A mutation applied by a crawler type that modifies game rules
- */
-export declare const CrawlerMutationSchema: z.ZodObject<{
-    type: z.ZodEnum<{
-        weapon_slots: "weapon_slots";
-        max_sp_bonus: "max_sp_bonus";
-    }>;
-    value: z.ZodNumber;
-}, z.core.$strict>;
-/**
  * Schema name (includes 'actions' as special case)
  */
 export declare const SchemaNameWithActionsSchema: z.ZodUnion<readonly [z.ZodEnum<{
@@ -14660,166 +14709,844 @@ export declare const SchemaNameWithActionsSchema: z.ZodUnion<readonly [z.ZodEnum
     traits: "traits";
     vehicles: "vehicles";
 }>, z.ZodLiteral<"actions">]>;
+//# sourceMappingURL=references.d.ts.map
+// === lib/schemas/objects/sources.d.ts ===
 /**
- * A single step in a guide
+ * Reprint provenance: where else a record appears besides its primary source.
  */
-export declare const GuideStepSchema: z.ZodLazy<z.ZodObject<{
-    id: z.ZodString;
-    name: z.ZodString;
-    stepType: z.ZodEnum<{
-        freeform: "freeform";
-        "select-one": "select-one";
-        "select-many": "select-many";
-        "roll-table": "roll-table";
-        info: "info";
-        "sub-guide": "sub-guide";
+import { z } from '../../zod.js';
+/**
+ * Reprint of an entity in a secondary source book
+ *
+ * `booklet` is optional and used when a source is a multi-booklet product
+ * (e.g. the Salvage Union Starter Set, which uses CR / PH / PC / RR / AP codes
+ * for its Core Rulebook / Pilots Handbook / Parts Catalogue / Rules Reference / Asset Pack).
+ * Single-volume sources omit it.
+ */
+export declare const AdditionalSourceSchema: z.ZodObject<{
+    source: z.ZodEnum<{
+        "Salvage Union Workshop Manual": "Salvage Union Workshop Manual";
+        "Salvage Union Starter Set": "Salvage Union Starter Set";
+        "Reclamation of the Wastes": "Reclamation of the Wastes";
+        "The Hive": "The Hive";
+        "Thatcher's Mech Base": "Thatcher's Mech Base";
+        "Relics of a Time Gone By": "Relics of a Time Gone By";
+        "Mech Monday": "Mech Monday";
+        "We Were Here First!": "We Were Here First!";
+        Rainmaker: "Rainmaker";
+        "False Flag": "False Flag";
     }>;
-    section: z.ZodOptional<z.ZodString>;
-    content: z.ZodOptional<z.ZodArray<z.ZodLazy<z.ZodObject<{
-        type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-            paragraph: "paragraph";
-            heading: "heading";
-            "list-item": "list-item";
-            label: "label";
-            datavalues: "datavalues";
-            hint: "hint";
-            flavor: "flavor";
-            choice: "choice";
-        }>>>;
-        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-            label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-            type: z.ZodOptional<z.ZodEnum<{
-                keyword: "keyword";
-                trait: "trait";
-                cost: "cost";
-            }>>;
-            unit: z.ZodOptional<z.ZodString>;
-            perTechLevel: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>]>>;
-        label: z.ZodOptional<z.ZodString>;
-        level: z.ZodOptional<z.ZodNumber>;
-        lead: z.ZodOptional<z.ZodBoolean>;
-        choiceId: z.ZodOptional<z.ZodString>;
-        items: z.ZodOptional<z.ZodArray<z.ZodObject<{
-            type: z.ZodDefault<z.ZodOptional<z.ZodEnum<{
-                paragraph: "paragraph";
-                heading: "heading";
-                "list-item": "list-item";
-                label: "label";
-                datavalues: "datavalues";
-                hint: "hint";
-                flavor: "flavor";
-                choice: "choice";
-            }>>>;
-            value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodArray<z.ZodObject<{
-                label: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-                value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-                type: z.ZodOptional<z.ZodEnum<{
-                    keyword: "keyword";
-                    trait: "trait";
-                    cost: "cost";
-                }>>;
-                unit: z.ZodOptional<z.ZodString>;
-                perTechLevel: z.ZodOptional<z.ZodNumber>;
-            }, z.core.$strict>>]>>;
-            label: z.ZodOptional<z.ZodString>;
-            level: z.ZodOptional<z.ZodNumber>;
-        }, z.core.$strict>>>;
-    }, z.core.$strict>>>>;
-    schema: z.ZodOptional<z.ZodArray<z.ZodUnion<readonly [z.ZodEnum<{
-        classes: "classes";
-        npcs: "npcs";
-        abilities: "abilities";
-        "ability-tree-requirements": "ability-tree-requirements";
-        chassis: "chassis";
-        "crawler-bays": "crawler-bays";
-        "crawler-tech-levels": "crawler-tech-levels";
-        crawlers: "crawlers";
-        creatures: "creatures";
-        distances: "distances";
-        drones: "drones";
-        equipment: "equipment";
-        guides: "guides";
-        keywords: "keywords";
-        factions: "factions";
-        meld: "meld";
-        modules: "modules";
-        "roll-tables": "roll-tables";
-        sources: "sources";
-        squads: "squads";
-        "tech-levels": "tech-levels";
-        systems: "systems";
-        "bio-titans": "bio-titans";
-        traits: "traits";
-        vehicles: "vehicles";
-    }>, z.ZodLiteral<"actions">]>>>;
-    schemaEntities: z.ZodOptional<z.ZodArray<z.ZodString>>;
-    schemaField: z.ZodOptional<z.ZodString>;
-    rollTable: z.ZodOptional<z.ZodString>;
-    choiceOptions: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        label: z.ZodString;
-        value: z.ZodString;
-        description: z.ZodOptional<z.ZodString>;
-        effects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
-            op: z.ZodLiteral<"addTrait">;
-            value: z.ZodString;
-            amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
-            target: z.ZodOptional<z.ZodEnum<{
-                self: "self";
-                hostMech: "hostMech";
-            }>>;
-        }, z.core.$strict>, z.ZodObject<{
-            op: z.ZodLiteral<"removeTrait">;
-            value: z.ZodString;
-            target: z.ZodOptional<z.ZodEnum<{
-                self: "self";
-                hostMech: "hostMech";
-            }>>;
-        }, z.core.$strict>, z.ZodObject<{
-            op: z.ZodLiteral<"setRange">;
-            value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-        }, z.core.$strict>, z.ZodObject<{
-            op: z.ZodLiteral<"addDamage">;
-            value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
-            unit: z.ZodOptional<z.ZodString>;
-        }, z.core.$strict>], "op">>>;
-    }, z.core.$strict>>>;
-    filters: z.ZodOptional<z.ZodArray<z.ZodObject<{
-        field: z.ZodString;
-        operator: z.ZodOptional<z.ZodEnum<{
-            eq: "eq";
-            ne: "ne";
-        }>>;
-        value: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean]>>;
-        min: z.ZodOptional<z.ZodNumber>;
-        max: z.ZodOptional<z.ZodNumber>;
-    }, z.core.$strict>>>;
-    constraints: z.ZodOptional<z.ZodObject<{
-        field: z.ZodOptional<z.ZodString>;
-        min: z.ZodOptional<z.ZodNumber>;
-        max: z.ZodOptional<z.ZodNumber>;
-        scalesWithField: z.ZodOptional<z.ZodString>;
-    }, z.core.$strict>>;
-    guideRef: z.ZodOptional<z.ZodString>;
-    optional: z.ZodOptional<z.ZodBoolean>;
-    paperOnly: z.ZodOptional<z.ZodBoolean>;
-    entityLayout: z.ZodOptional<z.ZodEnum<{
-        sidebar: "sidebar";
-    }>>;
-}, z.core.$strict>>;
+    booklet: z.ZodOptional<z.ZodString>;
+    page: z.ZodNumber;
+}, z.core.$strict>;
+//# sourceMappingURL=sources.d.ts.map
+// === lib/schemas/objects/systemModule.d.ts ===
 /**
- * Category of a guide
+ * Systems and Modules — the one installable-item shape. Systems and Modules
+ * share this schema; only the stamped `schemaName` tells them apart.
  */
-export declare const GuideTypeSchema: z.ZodEnum<{
-    "character-creation": "character-creation";
-    "mech-creation": "mech-creation";
-    "crawler-creation": "crawler-creation";
-    progression: "progression";
-    downtime: "downtime";
-    gameplay: "gameplay";
-}>;
-//# sourceMappingURL=objects.d.ts.map
+import { z } from '../../zod.js';
+/**
+ * A system or module that can be installed on a mech
+ */
+export declare const SystemModuleSchema: z.ZodObject<{
+    structurePoints: z.ZodOptional<z.ZodNumber>;
+    energyPoints: z.ZodOptional<z.ZodNumber>;
+    heatCapacity: z.ZodOptional<z.ZodNumber>;
+    systemSlots: z.ZodOptional<z.ZodNumber>;
+    moduleSlots: z.ZodOptional<z.ZodNumber>;
+    cargoCapacity: z.ZodOptional<z.ZodNumber>;
+    name: z.ZodOptional<z.ZodString>;
+    techLevel: z.ZodUnion<readonly [z.ZodNumber, z.ZodLiteral<"B">, z.ZodLiteral<"N">]>;
+    slotsRequired: z.ZodNumber;
+    salvageValue: z.ZodNumber;
+    recommended: z.ZodOptional<z.ZodBoolean>;
+    count: z.ZodOptional<z.ZodNumber>;
+    contributions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        stat: z.ZodEnum<{
+            structurePoints: "structurePoints";
+            energyPoints: "energyPoints";
+            heatCapacity: "heatCapacity";
+            systemSlots: "systemSlots";
+            moduleSlots: "moduleSlots";
+            cargoCapacity: "cargoCapacity";
+            maxHp: "maxHp";
+            maxAp: "maxAp";
+            inventorySlots: "inventorySlots";
+        }>;
+        amount: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
+            flat: z.ZodOptional<z.ZodNumber>;
+            perTechLevel: z.ZodNumber;
+        }, z.core.$strict>, z.ZodObject<{
+            fromStat: z.ZodEnum<{
+                structurePoints: "structurePoints";
+                energyPoints: "energyPoints";
+                heatCapacity: "heatCapacity";
+                systemSlots: "systemSlots";
+                moduleSlots: "moduleSlots";
+                cargoCapacity: "cargoCapacity";
+                maxHp: "maxHp";
+                maxAp: "maxAp";
+                inventorySlots: "inventorySlots";
+            }>;
+        }, z.core.$strict>]>;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            pilot: "pilot";
+            pilotedMech: "pilotedMech";
+            crawler: "crawler";
+        }>>;
+        stacks: z.ZodOptional<z.ZodBoolean>;
+        voidWhen: z.ZodOptional<z.ZodEnum<{
+            damaged: "damaged";
+            destroyed: "destroyed";
+        }>>;
+        duration: z.ZodOptional<z.ZodEnum<{
+            permanent: "permanent";
+            activated: "activated";
+        }>>;
+        note: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>>>;
+    appliedEffects: z.ZodOptional<z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+        op: z.ZodLiteral<"addTrait">;
+        value: z.ZodString;
+        amount: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>>;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            hostMech: "hostMech";
+        }>>;
+    }, z.core.$strict>, z.ZodObject<{
+        op: z.ZodLiteral<"removeTrait">;
+        value: z.ZodString;
+        target: z.ZodOptional<z.ZodEnum<{
+            self: "self";
+            hostMech: "hostMech";
+        }>>;
+    }, z.core.$strict>, z.ZodObject<{
+        op: z.ZodLiteral<"setRange">;
+        value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+    }, z.core.$strict>, z.ZodObject<{
+        op: z.ZodLiteral<"addDamage">;
+        value: z.ZodUnion<readonly [z.ZodString, z.ZodNumber]>;
+        unit: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>], "op">>>;
+    actions: z.ZodArray<z.ZodString>;
+}, z.core.$strip>;
+//# sourceMappingURL=systemModule.d.ts.map
+// === lib/schemas/objects/tables.d.ts ===
+/**
+ * d20 roll tables — one entry shape, and the nine-variant discriminated union
+ * of bucket layouts the books actually print.
+ */
+import { z } from '../../zod.js';
+/**
+ * Table content with label and value
+ */
+export declare const TableContentSchema: z.ZodObject<{
+    label: z.ZodOptional<z.ZodString>;
+    value: z.ZodString;
+}, z.core.$strict>;
+/**
+ * Roll table discriminated union for random outcomes based on d20 rolls
+ */
+export declare const TableSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+    type: z.ZodLiteral<"standard">;
+    '1': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '20': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '11-19': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '6-10': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '2-5': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+}, z.core.$strict>, z.ZodObject<{
+    type: z.ZodLiteral<"alternate">;
+    '1': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '19-20': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '11-18': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '6-10': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '2-5': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+}, z.core.$strict>, z.ZodObject<{
+    '1': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '2': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '3': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '4': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '5': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '6': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '7': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '8': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '9': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '10': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '11': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '12': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '13': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '14': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '15': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '16': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '17': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '18': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '19': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '20': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    type: z.ZodLiteral<"flat">;
+}, z.core.$strict>, z.ZodObject<{
+    type: z.ZodLiteral<"dramatic">;
+    '20': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+}, z.core.$strict>, z.ZodObject<{
+    type: z.ZodLiteral<"duos">;
+    '1-2': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '3-4': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '5-6': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '7-8': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '9-10': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '11-12': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '13-14': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '15-16': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '17-18': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '19-20': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+}, z.core.$strict>, z.ZodObject<{
+    type: z.ZodLiteral<"bio-chassis">;
+    '1': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '2-3': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '4-5': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '6-8': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '9-10': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '11-19': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '20': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+}, z.core.$strict>, z.ZodObject<{
+    type: z.ZodLiteral<"columns">;
+    '1-4': z.ZodObject<{
+        '1': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '2': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '3': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '4': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '5': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '6': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '7': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '8': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '9': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '10': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '11': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '12': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '13': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '14': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '15': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '16': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '17': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '18': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '19': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '20': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+    }, z.core.$strict>;
+    '5-8': z.ZodObject<{
+        '1': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '2': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '3': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '4': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '5': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '6': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '7': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '8': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '9': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '10': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '11': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '12': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '13': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '14': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '15': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '16': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '17': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '18': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '19': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '20': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+    }, z.core.$strict>;
+    '9-12': z.ZodObject<{
+        '1': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '2': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '3': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '4': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '5': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '6': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '7': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '8': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '9': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '10': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '11': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '12': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '13': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '14': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '15': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '16': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '17': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '18': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '19': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '20': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+    }, z.core.$strict>;
+    '13-16': z.ZodObject<{
+        '1': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '2': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '3': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '4': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '5': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '6': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '7': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '8': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '9': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '10': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '11': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '12': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '13': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '14': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '15': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '16': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '17': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '18': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '19': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '20': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+    }, z.core.$strict>;
+    '17-20': z.ZodObject<{
+        '1': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '2': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '3': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '4': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '5': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '6': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '7': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '8': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '9': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '10': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '11': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '12': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '13': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '14': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '15': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '16': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '17': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '18': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '19': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+        '20': z.ZodObject<{
+            label: z.ZodOptional<z.ZodString>;
+            value: z.ZodString;
+        }, z.core.$strict>;
+    }, z.core.$strict>;
+}, z.core.$strict>, z.ZodObject<{
+    type: z.ZodLiteral<"salvage-cache">;
+    '1': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '2-3': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '4-5': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '6-7': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '8-9': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '10-11': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '12-13': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '14-15': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '16-17': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '18-19': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '20': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+}, z.core.$strict>, z.ZodObject<{
+    type: z.ZodLiteral<"octet">;
+    '1': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '2-4': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '5-7': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '8-10': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '11-13': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '14-16': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '17-19': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+    '20': z.ZodObject<{
+        label: z.ZodOptional<z.ZodString>;
+        value: z.ZodString;
+    }, z.core.$strict>;
+}, z.core.$strict>], "type">;
+//# sourceMappingURL=tables.d.ts.map
 // === lib/schemas/registry.d.ts ===
 /**
  * Registry manifest — the single source of truth for every schema (entity
@@ -14967,31 +15694,18 @@ export declare function getSuggestions(query: string, options?: {
  * and finding entities by their slug
  *
  * Note: This module avoids importing from helpers.ts to prevent circular dependencies.
- * It uses getDataMaps() from ModelFactory directly for entity lookups.
+ * It reaches the loaded BaseModel directly via ModelFactory for entity lookups.
  */
 import type { SURefEntity, SURefEnumSchemaName } from './types/index.js';
-/**
- * Converts a name to a URL-safe slug
- * - Converts to lowercase
- * - Replaces spaces and special characters with hyphens
- * - Removes multiple consecutive hyphens
- * - Trims hyphens from start and end
- *
- * CodeQL js/polynomial-redos note: the trailing-hyphen-trim regex used to be
- * `/^-+|-+$/g`. The `-+$` branch has a quantifier immediately followed by an
- * anchor with nothing after it in the string to guarantee the match, which is
- * the classic superlinear (O(n^2)) backtracking shape for the query
- * (e.g. `"a" + "-".repeat(n) + "a"` forces a retry at every start position).
- * The fix collapses whitespace/hyphen runs into a single hyphen first
- * (`[\s-]+` — safe: nothing follows the quantifier, so no backtracking), which
- * guarantees at most one leading and one trailing hyphen remains. That lets
- * the final trim drop its quantifier entirely (`/^-|-$/g`), leaving no
- * superlinear regex in the function.
- */
-export declare function nameToSlug(name: string): string;
+export { nameToSlug } from './nameToSlug.js';
 /**
  * Finds an entity in a schema by its slug
  * Returns the entity if found, null otherwise
+ *
+ * O(1) via `BaseModel`'s slug index (built once per model, on first use).
+ * Semantics are unchanged from the previous linear scan: rows without a
+ * truthy string `name` are not slug-addressable, and on a slug collision the
+ * FIRST row in data order wins — exactly what `Array.prototype.find` returned.
  */
 export declare function findEntityBySlug(schemaName: SURefEnumSchemaName, slug: string): SURefEntity | null;
 /**
@@ -15000,408 +15714,15 @@ export declare function findEntityBySlug(schemaName: SURefEnumSchemaName, slug: 
  */
 export declare function getEntitySlug(entity: SURefEntity): string;
 //# sourceMappingURL=slug.d.ts.map
-// === lib/types/index.d.ts ===
+// === lib/traitText.d.ts ===
 /**
- * TypeScript type exports
+ * Trait-reference markup in rules text: `[[TraitName]]` and
+ * `[[[TraitName] (param)]]`.
  *
- * NOTE: All types are inferred from Zod schemas in lib/schemas/.
- * This file re-exports them for backward compatibility — including the
- * `SURefEntity` / `SURefMetaEntity` unions, which are DECLARED ONCE in
- * `lib/schemas/index.ts`. They used to be re-declared here as well; the two
- * copies drifted (the local pair omitted `SURefGuide`), and because
- * `lib/index.ts` re-exports only this module, the drifted copy was the one
- * every consumer got. Never re-declare a union here — re-export it.
+ * Pure string work — nothing here touches entities or the ORM. Split out of the
+ * old `lib/utilities.ts` grab bag; still re-exported from there (and from the
+ * package barrel), so this is an internal home, not a new public surface.
  */
-export type * from '../schemas/index.js';
-//# sourceMappingURL=index.d.ts.map
-// === lib/utilities.d.ts ===
-/**
- * Utility functions for Salvage Union entities
- * Type guards and property extractors
- */
-import type { SURefMetaEntity, SURefMetaAction, SURefObjectGrant, SURefEntity, SURefObjectTable, SURefObjectTrait, SURefObjectChoice, SURefObjectActionOptions } from './types/index.js';
-import type { SURefAbility, SURefChassis, SURefClass, SURefKeyword, SURefModule, SURefSystem, SURefObjectAdvancedClass, SURefObjectFormationMech, SURefObjectPattern } from './types/index.js';
-/**
- * Base URL of the Netlify-hosted artwork CDN (the su-assets site, backed by a
- * Netlify Blobs store). Asset URLs are derived from this base plus the entity's
- * schema name and slug — see getAssetUrl().
- */
-export declare const ASSET_BASE_URL = "https://assets.salvageunion.io";
-/** Clear the cached action map so the next lookup reads fresh data. Called by `preload()`. */
-export declare function invalidateActionMap(): void;
-/**
- * Extract tech level from an entity
- * @param entity - The entity to extract from
- * @returns The tech level (number, 'B', 'N') or undefined
- */
-export declare function getTechLevel(entity: SURefMetaEntity): number | 'B' | 'N' | undefined;
-/**
- * Extract tech level from an entity as a numeric value
- * Normalizes 'B' and 'N' to 1 for math operations
- * @param entity - The entity to extract from
- * @returns The tech level as a number or undefined
- */
-export declare function getTechLevelNumber(entity: SURefMetaEntity): number | undefined;
-/**
- * Extract salvage value from an entity
- * @param entity - The entity to extract from
- * @returns The salvage value or undefined
- */
-export declare function getSalvageValue(entity: SURefMetaEntity): number | undefined;
-/**
- * Extract slots required from an entity
- * @param entity - The entity to extract from
- * @returns The slots required or undefined
- */
-export declare function getSlotsRequired(entity: SURefMetaEntity): number | undefined;
-/**
- * Extract page reference from an entity
- * @param entity - The entity to extract from
- * @returns The page number or undefined
- */
-export declare function getPageReference(entity: SURefMetaEntity): number | undefined;
-/**
- * Extract actions from an entity
- * Resolves action names to full action objects from actions schema
- * @param entity - The entity to extract from
- * @returns The actions array or undefined
- */
-export declare function extractActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined;
-/**
- * Extract visible (non-hidden) actions from an entity
- * @param entity - The entity to extract from
- * @returns The visible actions array or undefined
- */
-export declare function extractVisibleActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined;
-/**
- * Extract chassis abilities from a chassis
- * Resolves ability names to full ability objects from actions schema
- * @param entity - The entity to extract from
- * @returns The chassis abilities array or undefined
- */
-export declare function getChassisAbilities(entity: SURefMetaEntity): SURefMetaAction[] | undefined;
-/**
- * Extract structure points from an entity
- * @param entity - The entity to extract from
- * @returns The structure points or undefined
- */
-export declare function getStructurePoints(entity: SURefMetaEntity): number | undefined;
-/**
- * Extract energy points from an entity
- * @param entity - The entity to extract from
- * @returns The energy points or undefined
- */
-export declare function getEnergyPoints(entity: SURefMetaEntity): number | undefined;
-/**
- * Extract heat capacity from an entity
- * @param entity - The entity to extract from
- * @returns The heat capacity or undefined
- */
-export declare function getHeatCapacity(entity: SURefMetaEntity): number | undefined;
-/**
- * Extract system slots from an entity
- * @param entity - The entity to extract from
- * @returns The number of system slots or undefined
- */
-export declare function getSystemSlots(entity: SURefMetaEntity): number | undefined;
-/**
- * Extract module slots from an entity
- * @param entity - The entity to extract from
- * @returns The number of module slots or undefined
- */
-export declare function getModuleSlots(entity: SURefMetaEntity): number | undefined;
-/**
- * Extract cargo capacity from an entity
- * @param entity - The entity to extract from
- * @returns The cargo capacity or undefined
- */
-export declare function getCargoCapacity(entity: SURefMetaEntity): number | undefined;
-/**
- * Extract a Union Crawler tech level's Upkeep Cost — the Scrap (of the Crawler's
- * own Tech Level) it costs to keep running through a Downtime.
- * @param entity - The entity to extract from
- * @returns The upkeep cost or undefined
- */
-export declare function getUpkeepCost(entity: SURefMetaEntity): number | undefined;
-/**
- * Extract a Union Crawler tech level's Upgrade Cost — the Upgrade Pool total
- * that unlocks the next Tech Level. `null` in the data at the MAXIMUM tier
- * (there is nothing to upgrade to), which reads back as `undefined` here so the
- * stat simply does not render.
- * @param entity - The entity to extract from
- * @returns The upgrade cost, or undefined at the maximum tech level
- */
-export declare function getUpgradeCost(entity: SURefMetaEntity): number | undefined;
-/**
- * Extract hit points from an entity
- * Used for NPCs, Creatures, Squads, and Meld
- * @param entity - The entity to extract from
- * @returns The hit points or undefined
- */
-export declare function getHitPoints(entity: SURefMetaEntity): number | undefined;
-/**
- * Derive an entity's asset URL from its schema name and slug.
- *
- * Artwork is unified on WebP, so the whole URL is inferred:
- * `{ASSET_BASE_URL}/{schemaName}/{slug}.webp`. The boolean `hasArtwork` flag
- * marks which entities have artwork; the slug matches `getEntitySlug`, so the
- * artwork path lines up with the entity's canonical reference path.
- *
- * @param entity - The entity to derive from (must carry a stamped `schemaName`)
- * @returns The asset URL, or undefined if the entity has no artwork
- */
-export declare function getAssetUrl(entity: SURefMetaEntity): string | undefined;
-/**
- * Extract blackMarket flag from an entity
- * @param entity - The entity to extract from
- * @returns True if the entity is from the Black Market, false if not, undefined if not present
- */
-export declare function getBlackMarket(entity: SURefMetaEntity): boolean | undefined;
-/**
- * Extract content from an entity
- * @param entity - The entity to extract from
- * @returns The content or undefined
- */
-export declare function getContent(entity: SURefMetaEntity): unknown | undefined;
-/**
- * Extract name from an entity
- * @param entity - The entity to extract from
- * @returns The name or undefined
- */
-export declare function getName(entity: SURefMetaEntity): string | undefined;
-/**
- * Extract source from an entity
- * @param entity - The entity to extract from
- * @returns The source or undefined
- */
-export declare function getSource(entity: SURefMetaEntity): string | undefined;
-/**
- * Extract booklet code from an entity (e.g. "CR" / "PH" / "PC" / "CB" for SUSS).
- * Only meaningful when the primary source is a multi-booklet product.
- * @param entity - The entity to extract from
- * @returns The booklet code or undefined
- */
-export declare function getBooklet(entity: SURefMetaEntity): string | undefined;
-/**
- * Extract tree from an entity
- * @param entity - The entity to extract from
- * @returns The tree or undefined
- */
-export declare function getTree(entity: SURefMetaEntity): unknown | undefined;
-/**
- * Extract patterns from an entity
- * @param entity - The entity to extract from
- * @returns The patterns or undefined
- */
-export declare function getPatterns(entity: SURefMetaEntity): SURefObjectPattern[] | undefined;
-/**
- * A HIDDEN pattern carries the stored `hidden` data flag — an explicit tag,
- * NEVER computed from source (project data convention; mirrors
- * `legalStarting`). The record stays in the dataset but is withheld from
- * every rendered surface. Takes the primitive the rule reads — the record's
- * `hidden` value (undefined = untagged = visible).
- */
-export declare function isHiddenPattern(hidden: boolean | undefined): boolean;
-/**
- * Drops the stored-`hidden` set from a chassis's patterns. This is the single
- * choke point every render surface goes through, so a pattern tagged `hidden`
- * cannot leak into a card, a generated page, a wizard picker or a bot embed.
- */
-export declare function visiblePatterns<T extends {
-    hidden?: boolean;
-}>(patterns: readonly T[]): T[];
-/**
- * Extract bioSalvageValue from an entity
- * @param entity - The entity to extract from
- * @returns The bioSalvageValue or undefined
- */
-export declare function getBioSalvageValue(entity: SURefMetaEntity): number | undefined;
-/**
- * Resolve a formation member to its entity, supporting chassis+pattern and standalone entity types.
- * For chassis: resolves chassis and optionally its pattern.
- * For other schemas (vehicles, drones, squads, npcs): resolves by name.
- * @param member - The formation member from faction data
- * @returns The resolved entity (with optional pattern for chassis), or undefined
- */
-export declare function resolveFormationMember(member: SURefObjectFormationMech): {
-    entity: SURefEntity;
-    pattern?: SURefObjectPattern;
-} | undefined;
-/**
- * Type guard to distinguish SURefEntity (structured data with id/name/source/page)
- * from SURefMetaAction or other object types (which lack these fields)
- * @param data - Entity, action, or other object to check
- * @returns True if the data has id, name, source, and page fields
- */
-export declare function isEntityData<T extends object>(data: T): data is T & SURefEntity & {
-    id: string;
-    name: string;
-    source: string;
-    page: number;
-};
-/**
- * Type guard to check if an entity has a techLevel property
- * @param entity - The entity to check
- * @returns True if the entity has a techLevel property
- */
-export declare function hasTechLevel(entity: SURefMetaEntity): entity is SURefMetaEntity & {
-    techLevel: number | 'B' | 'N';
-};
-/**
- * Type guard to check if an entity has traits
- * @param entity - The entity to check
- * @returns True if the entity has a traits property (either at base level or in action property)
- */
-export declare function hasTraits(entity: SURefMetaEntity): entity is SURefMetaEntity & {
-    traits?: unknown[];
-};
-/**
- * Type guard to check if an entity is an Ability
- * @param entity - The entity to check (null/undefined accepted; both return false)
- * @returns True if the entity is an Ability
- */
-export declare function isAbility(entity: SURefMetaEntity | null | undefined): entity is SURefAbility;
-/**
- * Type guard to check if an entity is a System
- * Note: Systems and Modules share the same schema, so this checks for
- * the presence of required system/module properties
- * @param entity - The entity to check
- * @returns True if the entity is a System
- */
-export declare function isSystem(entity: SURefMetaEntity): entity is SURefSystem;
-/**
- * Type guard to check if an entity is a Module
- * Note: Systems and Modules share the same schema, so this checks for
- * the presence of required system/module properties
- * @param entity - The entity to check
- * @returns True if the entity is a Module
- */
-export declare function isModule(entity: SURefMetaEntity): entity is SURefModule;
-/**
- * Type guard to check if an entity is a Chassis
- * @param entity - The entity to check
- * @returns True if the entity is a Chassis
- */
-export declare function isChassis(entity: SURefMetaEntity): entity is SURefChassis;
-/**
- * Type guard to check if an entity is a Keyword
- * @param entity - The entity to check
- * @returns True if the entity is a Keyword
- */
-export declare function isKeyword(entity: SURefMetaEntity): entity is SURefKeyword;
-/**
- * Type guard to check if an entity is a Core Class
- * @param entity - The entity to check
- * @returns True if the entity is a Core Class
- */
-export declare function isCoreClass(entity: SURefMetaEntity): entity is SURefClass & {
-    coreTrees: string[];
-};
-/**
- * Type guard to check if an entity is an Advanced Class
- * @param entity - The entity to check
- * @returns True if the entity is an Advanced Class
- */
-export declare function isBaseAdvancedClass(entity: SURefMetaEntity): entity is SURefObjectAdvancedClass;
-/**
- * Type guard to check if an entity is a class (any type)
- * @param entity - The entity to check
- * @returns True if the entity is a Core, Advanced, or Hybrid class
- */
-export declare function isClass(entity: SURefMetaEntity): entity is SURefClass;
-/**
- * Type guard to check if an entity is a System or Module
- * @param entity - The entity to check
- * @returns True if the entity is a System or Module
- */
-export declare function isSystemOrModule(entity: SURefMetaEntity): entity is SURefSystem | SURefModule;
-/**
- * Get display name from an entity
- * Falls back to name if displayName is not provided
- * @param entity - The entity to extract display name from
- * @returns The display name or name, or undefined if neither is present
- */
-export declare function getReferenceEntityName(entity: SURefMetaEntity): string | undefined;
-/**
- * Get description from an entity
- * @param entity - The entity to extract description from
- * @returns The description or undefined if not an ability
- */
-export declare function getDescription(entity: SURefMetaEntity): string | undefined;
-/**
- * Normalize pattern name by removing " Pattern" suffix
- * @param patternName - The pattern name to normalize
- * @returns The normalized pattern name
- */
-export declare function normalizePatternName(patternName: string): string;
-type DamageValue = {
-    damageType: string;
-    amount: number | string;
-};
-export declare function getActivationCost(entity: SURefMetaEntity): number | string | undefined;
-/**
- * Get action type from an entity (self-action fallback).
- */
-export declare function getActionType(entity: SURefMetaEntity): string | undefined;
-/**
- * Get range from an entity (self-action fallback).
- */
-export declare function getRange(entity: SURefMetaEntity): string[] | undefined;
-/**
- * Get damage from an entity (self-action fallback).
- */
-export declare function getDamage(entity: SURefMetaEntity): DamageValue | undefined;
-/**
- * Get traits from an entity
- * Checks base level first, then action if action name matches entity name
- * @param entity - The entity to extract traits from
- * @returns The traits array or undefined if not present
- */
-export declare function getTraits(entity: SURefMetaEntity): SURefObjectTrait[] | undefined;
-/**
- * Get the number of inventory slots an equipment entity occupies.
- * Default is 1. Heavy or Portable traits make it 2.
- */
-export declare function getInventorySlots(entity: SURefMetaEntity): number;
-/**
- * Get effects from an entity
- * Note: Effects only exist at base level, not in actions
- * @param entity - The entity to extract effects from
- * @returns The effects array or undefined if not present
- */
-export declare function getEffects(entity: SURefMetaEntity): Array<{
-    label?: string;
-    value: string;
-}> | undefined;
-/**
- * Get table from an entity
- * Checks base level, nested action property, and tableName references
- * @param entity - The entity to extract table from
- * @returns The table object or undefined if not present
- */
-export declare function getTable(entity: SURefMetaEntity): SURefObjectTable | undefined;
-/**
- * Get options from an entity
- * Checks both base level and nested action property
- * @param entity - The entity to extract options from
- * @returns The options array or undefined if not present
- */
-export declare function getOptions(entity: SURefMetaEntity): SURefObjectActionOptions | undefined;
-/**
- * Get choices from an entity
- * Checks action choices first (if action name matches entity name), then root-level choices
- * If both base entity and a granted entity have actions with the same name, action choices
- * are filtered out (handled by grantable UI) but root-level choices are still returned
- * @param entity - The entity to extract choices from
- * @returns The choices array or undefined if not present
- */
-export declare function getChoices(entity: SURefMetaEntity): SURefObjectChoice[] | undefined;
-/**
- * Get grants from an entity
- * @param entity - The entity to extract grants from
- * @returns The grants array or undefined if not present
- */
-export declare function getGrants(entity: SURefMetaEntity): SURefObjectGrant[] | undefined;
 /**
  * Represents a parsed trait reference from text
  */
@@ -15432,7 +15753,53 @@ export type ParsedTraitReference = {
  * // ]
  */
 export declare function parseTraitReferences(text: string): ParsedTraitReference[];
-export {};
+//# sourceMappingURL=traitText.d.ts.map
+// === lib/types/index.d.ts ===
+/**
+ * TypeScript type exports
+ *
+ * NOTE: All types are inferred from Zod schemas in lib/schemas/.
+ * This file re-exports them for backward compatibility — including the
+ * `SURefEntity` / `SURefMetaEntity` unions, which are DECLARED ONCE in
+ * `lib/schemas/index.ts`. They used to be re-declared here as well; the two
+ * copies drifted (the local pair omitted `SURefGuide`), and because
+ * `lib/index.ts` re-exports only this module, the drifted copy was the one
+ * every consumer got. Never re-declare a union here — re-export it.
+ */
+export type * from '../schemas/index.js';
+//# sourceMappingURL=index.d.ts.map
+// === lib/utilities.d.ts ===
+/**
+ * Utility functions for Salvage Union entities.
+ *
+ * This module is now a PURE RE-EXPORT BARREL. It used to be a 1233-line grab
+ * bag holding seven unrelated jobs at once; each of those now has its own named
+ * module, and the barrel stays so that every existing import keeps resolving —
+ * the package barrel does `export * from './utilities.js'`, and this file's
+ * export set is unchanged apart from seven deliberately-deleted dead type
+ * guards (see `entityGuards.ts`).
+ *
+ * Where things went:
+ *
+ * - `entityFields.ts`     — the plain, dependency-free property extractors.
+ * - `actionResolution.ts` — the cached action map and every getter that
+ *                           resolves through an entity's self-action.
+ * - `entityGuards.ts`     — the type guards that still have a consumer.
+ * - `patterns.ts`         — patterns, the hidden-pattern rule, formations.
+ * - `assets.ts`           — `ASSET_BASE_URL` + `getAssetUrl`.
+ * - `traitText.ts`        — `[[Trait]]` markup parsing.
+ * - `inventorySlots.ts`   — the Heavy/Portable inventory-slot rule.
+ *
+ * Prefer importing from those modules directly in new package-internal code;
+ * consumers outside the package should keep importing from the package barrel.
+ */
+export * from './entityFields.js';
+export * from './actionResolution.js';
+export * from './entityGuards.js';
+export * from './patterns.js';
+export * from './assets.js';
+export * from './traitText.js';
+export * from './inventorySlots.js';
 //# sourceMappingURL=utilities.d.ts.map
 // === lib/utils/resultForTable.d.ts ===
 import type { SURefObjectTable, SURefObjectTableContent } from '../types/index.js';
