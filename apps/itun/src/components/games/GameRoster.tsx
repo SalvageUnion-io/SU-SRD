@@ -135,6 +135,17 @@ function statsFor(row: RosterRow): Array<{ label: string; value: string | number
     if (num('currentAP') !== undefined) out.push({ label: 'AP', value: num('currentAP') as number })
   }
   if (row.kind === 'mech') {
+    // The chassis leads: it is what the mech IS, where SP and Heat are how it
+    // is doing. Rendered as `CHASSIS | Iron Mongrel` rather than a bare chip,
+    // so the name arrives labelled.
+    const chassis = row.body.chassisRef
+    if (typeof chassis === 'string' && chassis.length > 0) {
+      const resolved = chassisOf(chassis)
+      out.push({ label: 'Chassis', value: resolved.name })
+      // TL is its own stat rather than a suffix on the chassis value: two facts
+      // crammed into one value box is the thing `Stat` exists to stop.
+      if (resolved.techLevel != null) out.push({ label: 'TL', value: resolved.techLevel })
+    }
     if (num('currentSP') !== undefined) out.push({ label: 'SP', value: num('currentSP') as number })
     if (num('currentHeat') !== undefined) {
       out.push({ label: 'Heat', value: num('currentHeat') as number })
@@ -169,27 +180,28 @@ function captionFor(row: RosterRow): string[] {
     const className = resolveClassName(String(row.body.classRef ?? ''))
     if (className) parts.push(className)
   }
-  if (row.kind === 'mech') {
-    const chassis = row.body.chassisRef
-    // Resolved, not printed raw. The home Roster reads "Iron Mongrel · TL 1"
-    // where this said "iron-mongrel" — the stored value is a slug, and showing
-    // the slug is the surface admitting it never looked the chassis up.
-    if (typeof chassis === 'string' && chassis.length > 0) parts.push(chassisLabel(chassis))
-  }
+  // A mech's chassis is NOT here: it is a `CHASSIS | Iron Mongrel` stat in the
+  // header band. It is a named property of the mech, which is what a Stat is
+  // for — a bare chip saying "Iron Mongrel" left the reader to infer what the
+  // word was doing there.
   return parts
 }
 
-/** A mech's chassis as "Name · TL n", falling back to the raw ref. */
-function chassisLabel(chassisRef: string): string {
+/**
+ * A mech's chassis, resolved. The stored value is a SLUG, and printing the slug
+ * is the surface admitting it never looked the chassis up — the home Roster has
+ * always resolved it, and this said "iron-mongrel" where that said "Iron
+ * Mongrel".
+ */
+function chassisOf(chassisRef: string): { name: string; techLevel?: number } {
   // `resolveChassisRef` throws when the Chassis model is not preloaded (test
   // and snapshot contexts), so this falls back rather than taking the screen
   // down with it — the same guard the Roster's `mechChassisMeta` uses.
   try {
     const chassis = resolveChassisRef(chassisRef) as { name: string; techLevel?: number } | null
-    if (!chassis) return chassisRef
-    return chassis.techLevel != null ? `${chassis.name} · TL ${chassis.techLevel}` : chassis.name
+    return chassis ?? { name: chassisRef }
   } catch {
-    return chassisRef
+    return { name: chassisRef }
   }
 }
 
@@ -231,16 +243,20 @@ function OwnerSeal({
   disabled: boolean
   onClaim: () => void
 }) {
+  // The default stamp plate: ink ground, paper text, at the smallest rung —
+  // a plate riveted across the row's top border, subordinate to the name it
+  // sits beside. It was `inverse` (paper ground, ink text) at `compact`, which
+  // read as another chip floating near the corner rather than as a mark
+  // stamped ON the record.
   const stamp = (
-    <Badge shape="stamp" size="compact" surface="inverse" className="tracking-caps-wide">
+    <Badge shape="stamp" size="mini" className="tracking-caps-wide">
       {owner.label}
     </Badge>
   )
 
   if (!claimable) {
-    // Inert: a fact about the row, not a control. Rotated the same few degrees
-    // so a held row and a free one read as the same kind of mark.
-    return <span className="rotate-[-4deg]">{stamp}</span>
+    // Inert: a fact about the row, not a control.
+    return stamp
   }
 
   return (
@@ -250,8 +266,8 @@ function OwnerSeal({
       disabled={disabled}
       aria-label={`${owner.label} — pick this up`}
       className={cn(
-        'rotate-[-4deg] cursor-pointer border-0 bg-transparent p-0',
-        'transition-transform duration-200 hover:rotate-0 disabled:cursor-default disabled:opacity-50'
+        'cursor-pointer border-0 bg-transparent p-0',
+        'transition-transform duration-200 hover:-translate-y-px disabled:cursor-default disabled:opacity-50'
       )}
     >
       {stamp}

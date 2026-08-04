@@ -21,6 +21,7 @@ import type { ReactNode } from 'react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { Badge, Button, buttonVariants, EmptyState, EntityRow } from 'component-lib'
+import type { EntityRowStat } from 'component-lib'
 
 import {
   useCrawlers,
@@ -52,28 +53,45 @@ import { ModalShell } from 'component-lib'
 // Row-meta helpers
 // ---------------------------------------------------------------------------
 
-/** Roster row meta segment for a mech: "Chassis · TL n". */
-function mechChassisMeta(chassisRef: string): string | undefined {
-  // resolveChassisRef is slug/name/id tolerant; stored refs are slugs, so a
-  // name-only match here would fall through to the raw slug for every mech. Wrap
-  // in try/catch: resolveChassisRef throws when the Chassis model isn't preloaded
-  // (some test/snapshot contexts) — fall back to the raw ref rather than crash.
+/**
+ * A mech row's stats: `CHASSIS | Iron Mongrel`, and `TL | 1` beside it.
+ *
+ * These used to be one caption string, "Iron Mongrel · TL 1" — two facts joined
+ * by a separator, which is the shape `Stat` exists to replace. TL is its own
+ * stat rather than a suffix for the same reason.
+ *
+ * resolveChassisRef is slug/name/id tolerant; stored refs are slugs, so a
+ * name-only match here would fall through to the raw slug for every mech. Wrap
+ * in try/catch: resolveChassisRef throws when the Chassis model isn't preloaded
+ * (some test/snapshot contexts) — fall back to the raw ref rather than crash.
+ */
+function mechChassisStats(chassisRef: string): EntityRowStat[] | undefined {
+  if (!chassisRef) return undefined
+  let resolved: { name: string; techLevel?: number } | null = null
   try {
-    const c = resolveChassisRef(chassisRef) as { name: string; techLevel?: number } | null
-    if (!c) return chassisRef || undefined
-    return c.techLevel != null ? `${c.name} · TL ${c.techLevel}` : c.name
+    resolved = resolveChassisRef(chassisRef) as { name: string; techLevel?: number } | null
   } catch {
-    return chassisRef || undefined
+    resolved = null
   }
+
+  const stats: EntityRowStat[] = [{ label: 'Chassis', value: resolved?.name ?? chassisRef }]
+  if (resolved?.techLevel != null) stats.push({ label: 'TL', value: resolved.techLevel })
+  return stats
 }
 
-/** Roster row meta segment for a crawler: "TL n · m bays". */
-function crawlerTypeMeta(techLevel: string, bayCount: number): string {
+/**
+ * A crawler row's stats: `TL | 2`, `BAYS | 3`.
+ *
+ * Was the caption string "TL 2 · 3 bays" — the same two-facts-one-separator
+ * shape the chassis had, and the same fix. These are the labels the crew roster
+ * already used, so the two surfaces now read identically.
+ */
+function crawlerStats(techLevel: string, bayCount: number): EntityRowStat[] {
   const tl = techLevel.replace(/[^0-9]/g, '')
-  const parts: string[] = []
-  if (tl) parts.push(`TL ${tl}`)
-  parts.push(`${bayCount} ${bayCount === 1 ? 'bay' : 'bays'}`)
-  return parts.join(' · ')
+  const stats: EntityRowStat[] = []
+  if (tl) stats.push({ label: 'TL', value: tl })
+  stats.push({ label: 'Bays', value: bayCount })
+  return stats
 }
 
 /**
@@ -398,8 +416,12 @@ export function Roster() {
                         sheetHref={`/sheet/mech/${m.id}`}
                         linkAs={AppLink}
                         onDeleteClick={() => openDeleteDialog('mech', m.id, m.name)}
+                        // The chassis is a STAT (`CHASSIS | Iron Mongrel`), not
+                        // a caption chip: it is a named property of the mech,
+                        // and a bare chip left the reader to infer what the word
+                        // was doing there. Same call the crew roster makes.
+                        stats={mechChassisStats(m.chassisRef)}
                         metaLine={metaParts([
-                          mechChassisMeta(m.chassisRef),
                           linkSegment(
                             'pilot',
                             pilotLink?.to.id,
@@ -433,8 +455,8 @@ export function Roster() {
                         sheetHref={`/sheet/crawler/${c.id}`}
                         linkAs={AppLink}
                         onDeleteClick={() => openDeleteDialog('crawler', c.id, c.name)}
+                        stats={crawlerStats(c.techLevel, c.crawlerBays?.length ?? 0)}
                         metaLine={metaParts([
-                          crawlerTypeMeta(c.techLevel, c.crawlerBays?.length ?? 0),
                           ...crewLinks.map((l) =>
                             linkSegment('pilot', l.from.id, pilotNameById.get(l.from.id))
                           ),

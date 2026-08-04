@@ -5,6 +5,7 @@ import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
 import { Button } from '../chrome/Button'
 import { buttonVariants } from '../chrome/buttonVariants'
+import { STAMP_SEAM } from '../chrome/stampSeam'
 import { Stat } from './Stat'
 
 /**
@@ -15,14 +16,19 @@ import { Stat } from './Stat'
  * entity card is, in the same order, at the same frame weight
  * (`--bw-entity`):
  *
- *   ┌──────────────────────────────────┐
- *   │ ▸ HEADER BAND — solid ontology tone, carrying the black name stamp
- *   │   (pilot → orange, mech → green, crawler → pink, game → blue, the
- *   │   `--color-sheet-*` tokens). The seal, when present, is pinned to this
- *   │   band's top-right corner.
- *   │ ▸ BODY — paper. Caption chips, ontology-toned meta badges, `Stat`s, and
- *   │   the trailing View / Delete controls.
+ *                    ╔═══════╗  ← `seal`, riding the top border (STAMP_SEAM)
+ *   ┌────────────────╨───────╨─────────┐
+ *   │ ▸ HEADER BAND — solid ontology tone (pilot → orange, mech → green,
+ *   │   crawler → pink, game → blue, the `--color-sheet-*` tokens), carrying
+ *   │   the black name stamp on the left and the row's `stats` on the right.
+ *   │   What the thing IS, and how it is doing.
+ *   │ ▸ BODY — paper. Ontology-toned meta badges, quiet caption chips, and the
+ *   │   trailing View / Delete controls. Details, and verbs.
  *   └──────────────────────────────────┘
+ *
+ * Vitals live in the BAND, not the body, because they are what a roster is
+ * scanned for: a column of forty rows should let the eye run down HP or SP
+ * without crossing the buttons. The body is where the things you press live.
  *
  * It previously said its ontology twice and in neither of the card's ways: a
  * 6px deep-tone rail down the left edge, over a body tinted ~10% with the same
@@ -278,12 +284,22 @@ export function EntityRow(props: EntityRowProps) {
   // all rather than an empty one.
   const metaBadges = toNodes(meta)
   const captionParts = toNodes(metaLine)
-  const hasBody = captionParts.length > 0 || metaBadges.length > 0 || (stats?.length ?? 0) > 0
+  const hasStats = (stats?.length ?? 0) > 0
+  const hasBody =
+    captionParts.length > 0 ||
+    metaBadges.length > 0 ||
+    !!actions ||
+    sheetHref !== undefined ||
+    !!onDeleteClick
 
   return (
     <div
       className={cn(
-        'group relative flex flex-col overflow-hidden rounded-card bg-paper',
+        // `overflow-visible`, so the seal can ride the top border: a clipped
+        // frame would slice the stamp in half along the seam it is meant to
+        // straddle. The inner wrapper does the clipping instead — the same
+        // split `Card` uses for its callout.
+        'group relative flex flex-col overflow-visible rounded-card bg-paper',
         // The frame is the card's, at the card's weight — a row is the compact
         // translation of an entity card, not a lighter-weight cousin of one.
         'border-[length:var(--bw-entity)] border-ink',
@@ -291,120 +307,139 @@ export function EntityRow(props: EntityRowProps) {
         'md:hover:-translate-y-0.5 md:hover:shadow-[0_7px_18px_var(--color-ink-20)]'
       )}
     >
-      {/* HEADER BAND — the card's, in row form: a solid strip of the ontology
-          tone carrying the name stamp. This is where the row states what kind
-          of thing it is, replacing the left rail + tinted body it used to say
-          it with. `pr-24` reserves the corner the seal is pinned to. */}
+      {/* Inner wrapper clips the bands to the frame's radius. */}
       <div
-        className={cn('flex min-w-0 items-center px-2.5 py-1.5', seal && 'pr-24')}
-        style={{ background: tone.band, color: tone.ink }}
+        className="flex flex-col overflow-hidden"
+        style={{ borderRadius: 'calc(var(--radius-card) - var(--bw-entity))' }}
       >
-        {/* Black name tab — the canonical stamp, not a hand-rolled span. It
-            was the latter (rounded-pip, its own padding/size), which is the
-            drift the stamp atom exists to prevent. */}
-        <Badge shape="stamp" size="full" className="block max-w-full truncate align-middle">
-          {name}
-        </Badge>
-      </div>
+        {/* HEADER BAND — the card's, in row form: a solid strip of the ontology
+            tone carrying the name stamp on the left and the row's vitals on the
+            right. This is where the row states what kind of thing it is and how
+            it is doing, replacing the left rail + tinted body it used to say the
+            first half with.
 
-      {/* BODY — paper, like a card's. Everything that is not the name lives
-          here, so chips, stats and buttons all sit on one ground regardless of
-          ontology. Rendered only when there is something to put in it: a row
-          with nothing but a name closes at the band rather than opening an
-          empty strip under it. */}
-      {(hasBody || actions || sheetHref !== undefined || onDeleteClick) && (
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2 px-2.5 py-2">
-          {/* `min-w` is a wrap TRIGGER, not a width: without it the caption
-              block shrinks to whatever the controls leave behind, and a row
-              with four buttons truncated "Iron Mongrel" to "IRON-MON…" rather
-              than dropping the controls to their own line. */}
-          <div className="flex min-w-[9rem] flex-1 flex-col gap-1.5">
-            {captionParts.length > 0 && (
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                {captionParts.map((part, i) =>
-                  typeof part === 'string' || typeof part === 'number' ? (
-                    <Badge
-                      // biome-ignore lint/suspicious/noArrayIndexKey: positional caption parts that never reorder; a callsign or chassis name is a worse key than its slot
-                      key={i}
-                      surface="quiet"
-                      className="max-w-full truncate"
-                    >
-                      {part}
-                    </Badge>
-                  ) : (
-                    // Already a node — a cross-link anchor wrapping its own toned
-                    // Badge — so it renders as given rather than nested in a chip.
-                    // biome-ignore lint/suspicious/noArrayIndexKey: as above
-                    <Fragment key={i}>{part}</Fragment>
-                  )
-                )}
-              </div>
-            )}
-            {(metaBadges.length > 0 || (stats && stats.length > 0)) && (
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                {/* Subheader info is only stats or toned badges — the class/role
-                    line is a badge keyed to the entity's ontology tone (pilot →
-                    orange, mech → green, crawler → pink, game → blue). */}
-                {metaBadges.map((badge, i) => (
+            Stats sit HERE rather than in the body because they are what you scan
+            a roster for — HP, SP, Heat, the chassis — and the body is where the
+            things you press live. The top padding grows when a seal is present,
+            clearing the stamp riding the border above (the same allowance
+            `Card` makes for its callout). */}
+        <div
+          className={cn(
+            'flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 px-2.5 py-1.5',
+            // Only extra TOP padding, no right reserve: the seal rides the
+            // border half above the frame, so its intrusion is vertical, and
+            // clearing it downward frees the band's right edge for the stats
+            // (which a `pr-24` reserve had stranded in the middle of the band).
+            seal && 'pt-3'
+          )}
+          style={{ background: tone.band, color: tone.ink }}
+        >
+          {/* Black name tab — the canonical stamp, not a hand-rolled span. It
+              was the latter (rounded-pip, its own padding/size), which is the
+              drift the stamp atom exists to prevent. */}
+          <Badge shape="stamp" size="full" className="block max-w-full truncate align-middle">
+            {name}
+          </Badge>
+          {hasStats && (
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-x-2 gap-y-1">
+              {stats?.map((stat) => (
+                <Stat
+                  key={String(stat.label)}
+                  label={stat.label}
+                  value={stat.value}
+                  orientation="horizontal"
+                  size="mini"
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* BODY — paper, like a card's. The row's DETAILS and its VERBS: the
+            class/role badges, the caption chips, and the controls. Vitals are
+            not here; they are in the band above, where they can be scanned down
+            a column without reading past the buttons.
+
+            Rendered only when there is something to put in it — a row that is
+            just a name and its stats closes at the band rather than opening an
+            empty strip beneath it. */}
+        {hasBody && (
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2 px-2.5 py-2">
+            {/* `min-w` is a wrap TRIGGER, not a width: without it the detail
+                block shrinks to whatever the controls leave behind, and a row
+                with four buttons truncated its chips rather than dropping the
+                controls to their own line. */}
+            <div className="flex min-w-[9rem] flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+              {/* The class/role badge is keyed to the entity's ontology tone
+                  (pilot → orange, mech → green, crawler → pink, game → blue). */}
+              {metaBadges.map((badge, i) => (
+                <Badge
+                  // biome-ignore lint/suspicious/noArrayIndexKey: static per-render list that never reorders; a count badge's text changes as the count does, so content is a worse key than position
+                  key={i}
+                  surface="tone"
+                  tone={entityType}
+                  className="max-w-full truncate"
+                >
+                  {badge}
+                </Badge>
+              ))}
+              {captionParts.map((part, i) =>
+                typeof part === 'string' || typeof part === 'number' ? (
                   <Badge
-                    // biome-ignore lint/suspicious/noArrayIndexKey: static per-render list that never reorders; a count badge's text changes as the count does, so content is a worse key than position
+                    // biome-ignore lint/suspicious/noArrayIndexKey: positional caption parts that never reorder; a callsign is a worse key than its slot
                     key={i}
-                    surface="tone"
-                    tone={entityType}
+                    surface="quiet"
                     className="max-w-full truncate"
                   >
-                    {badge}
+                    {part}
                   </Badge>
-                ))}
-                {stats?.map((stat) => (
-                  <Stat
-                    key={String(stat.label)}
-                    label={stat.label}
-                    value={stat.value}
-                    orientation="horizontal"
-                    size="mini"
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+                ) : (
+                  // Already a node — a cross-link anchor wrapping its own toned
+                  // Badge — so it renders as given rather than nested in a chip.
+                  // biome-ignore lint/suspicious/noArrayIndexKey: as above
+                  <Fragment key={i}>{part}</Fragment>
+                )
+              )}
+            </div>
 
-          {/* The controls, trailing the body. They no longer compete with the
-              name for width — the name has its own band above — so this is a
-              plain right-aligned cluster that wraps when it must. */}
-          <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
-            {actions}
-            {sheetHref !== undefined && (
-              <Link
-                href={sheetHref}
-                className={cn(
-                  buttonVariants({ variant: 'default', size: 'compact' }),
-                  'no-underline'
-                )}
-              >
-                View
-              </Link>
-            )}
-            {onDeleteClick && (
-              <Button
-                variant="ghost"
-                size="compact"
-                aria-label={`Delete ${name}`}
-                onClick={onDeleteClick}
-                className="border-transparent px-2 text-status-bad hover:bg-transparent hover:text-status-bad"
-              >
-                <Trash2 aria-hidden="true" className="size-4" />
-              </Button>
-            )}
+            {/* The controls, trailing the body. They no longer compete with the
+                name for width — the name has its own band above — so this is a
+                plain right-aligned cluster that wraps when it must. */}
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
+              {actions}
+              {sheetHref !== undefined && (
+                <Link
+                  href={sheetHref}
+                  className={cn(
+                    buttonVariants({ variant: 'default', size: 'compact' }),
+                    'no-underline'
+                  )}
+                >
+                  View
+                </Link>
+              )}
+              {onDeleteClick && (
+                <Button
+                  variant="ghost"
+                  size="compact"
+                  aria-label={`Delete ${name}`}
+                  onClick={onDeleteClick}
+                  className="border-transparent px-2 text-status-bad hover:bg-transparent hover:text-status-bad"
+                >
+                  <Trash2 aria-hidden="true" className="size-4" />
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* The seal owns the top-right corner outright — pulled out of the flow
-          so no amount of name, caption or controls can push it somewhere else.
-          The name block reserves its width with `pr-24` above, which is what
-          keeps a long name from sliding underneath it. */}
-      {seal && <span className="absolute right-2.5 top-2.5 z-10">{seal}</span>}
+      {/* The seal RIDES THE TOP BORDER — the canonical stamp-seam placement
+          (`STAMP_SEAM`), half above the frame and half over it, like a label
+          plate riveted across the seam. It is outside the clipping wrapper for
+          exactly that reason; the band's extra top padding is what keeps its
+          contents clear of the half that overhangs them. */}
+      {seal && <span className={cn(STAMP_SEAM, 'right-3')}>{seal}</span>}
     </div>
   )
 }
