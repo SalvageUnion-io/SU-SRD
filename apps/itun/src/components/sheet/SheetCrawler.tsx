@@ -13,26 +13,24 @@
  * only because the branch wasn't a component).
  */
 
+import type { EconLozItem } from 'component-lib'
+import { CrawlerEconFrame, EntityRow, linesFromBreakdown, VitalGauge } from 'component-lib'
 import { useState } from 'react'
-import { EntityRow, VitalGauge } from 'component-lib'
-
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { crawlerMaxSPParts } from '../../lib/rules/derivedStats'
+import { pilotingContext } from '../../lib/rules/pilotingContext'
 import type { Crawler } from '../../lib/schemas/crawler'
-import { CrawlerEconFrame } from 'component-lib'
-import type { EconLozItem } from 'component-lib'
-import { CrawlerEconomyControl } from './CrawlerEconomyControl'
-import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
-import { CrawlerSheet } from './CrawlerSheet'
-import { LiveSheet } from './LiveSheet'
-import type { LiveSheetStripItem } from './LiveSheet'
-import { RailCta } from './SheetRailParts'
-import { AppLink } from '../shared/AppLink'
-import { bayStates, mechRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
-import type { SheetViewCommonProps } from './sheetViewProps'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
-import { linesFromBreakdown } from 'component-lib'
+import { AppLink } from '../shared/AppLink'
+import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
+import { CrawlerEconomyControl } from './CrawlerEconomyControl'
+import { CrawlerSheet } from './CrawlerSheet'
+import type { LiveSheetStripItem } from './LiveSheet'
+import { LiveSheet } from './LiveSheet'
+import { bayStates, mechRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
+import { RailCta } from './SheetRailParts'
+import type { SheetViewCommonProps } from './sheetViewProps'
 import { runWrite } from './sheetWrite'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
@@ -157,17 +155,22 @@ export function SheetCrawler({
   // home for a CREW. Both slots are lists — every pilot wired to this crawler,
   // and every mech those pilots have — rather than the one-of-each the
   // composition resolver picks out for the two-hop mech lookup.
+  //
+  // Each docked mech keeps the pilot it was reached through: its Max SP depends
+  // on that pilot's abilities (Beefcake, ADR-029), so dropping the pilot here
+  // would make this rail read a lower cap than the mech's own sheet.
   const dockedMechs = composition.crawlerPilots
     .map((crewPilot) => {
       const link = storeState.softLinks.find(
         (l) => l.type === 'mech-to-pilot' && l.to.id === crewPilot.id
       )
-      return link ? storeState.get('mech', link.from.id) : null
+      const mech = link ? storeState.get('mech', link.from.id) : null
+      return mech ? { mech, pilot: crewPilot } : null
     })
-    .filter((m): m is NonNullable<typeof m> => m !== null)
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
     // Deduped: two pilots may be wired to the same mech, which would otherwise
     // render that mech twice (and collide on its React key).
-    .filter((m, i, all) => all.findIndex((other) => other.id === m.id) === i)
+    .filter((entry, i, all) => all.findIndex((other) => other.mech.id === entry.mech.id) === i)
 
   /** Unlink one pilot from this crawler (always available on editable sheets). */
   function unlinkPilot(pilotId: string) {
@@ -182,7 +185,7 @@ export function SheetCrawler({
   const rail = (
     <>
       {dockedMechs.length > 0 ? (
-        dockedMechs.map((dockedMech) => (
+        dockedMechs.map(({ mech: dockedMech, pilot: dockedPilot }) => (
           <EntityRow
             key={dockedMech.id}
             entityType="mech"
@@ -192,7 +195,9 @@ export function SheetCrawler({
             linkAs={AppLink}
             meta="Docked Mech"
             metaLine={mechStatusPill(dockedMech).label}
-            stats={rowStats(mechRailItems(dockedMech))}
+            stats={rowStats(
+              mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot.abilities))
+            )}
           />
         ))
       ) : (

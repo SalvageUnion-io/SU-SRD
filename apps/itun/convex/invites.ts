@@ -1,10 +1,9 @@
 import { v } from 'convex/values'
-
 import { generateUniqueId } from '../src/lib/snapshot/id'
 import type { Doc, Id } from './_generated/dataModel'
-import { mutation, query } from './_generated/server'
 import type { MutationCtx } from './_generated/server'
-import { NotAuthorized, getMembership, requireOrganizer, requireUser } from './model/permissions'
+import { mutation, query } from './_generated/server'
+import { getMembership, NotAuthorized, requireOrganizer, requireUser } from './model/permissions'
 import { logOwnershipChange } from './ownership'
 
 /**

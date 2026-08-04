@@ -1,6 +1,6 @@
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
-import { NotAuthorized, getMembership, requireOrganizerAs } from './permissions'
+import { getMembership, NotAuthorized, requireOrganizerAs } from './permissions'
 
 /**
  * Shared logic for the Discord bot as a Game participant (ADR-030 Phase 6).

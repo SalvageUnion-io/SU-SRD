@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'bun:test'
-
 import { containerOf, gameIdOf, isOnShelf, moveTo, sameContainer } from '../container'
 
 /** Inlined from the deleted lib/defaultWorkspace.ts (Workspaces are retired). */

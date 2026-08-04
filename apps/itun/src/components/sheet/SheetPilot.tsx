@@ -9,18 +9,18 @@
  */
 
 import { EntityRow, Stat } from 'component-lib'
-
-import { pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
-import type { Pilot } from '../../lib/schemas/pilot'
-import { AssignCrawlerToPilot } from '../wiring/AssignCrawlerToPilot'
-import { LiveSheet } from './LiveSheet'
-import type { LiveSheetStripItem } from './LiveSheet'
 import { containerOf } from '../../lib/container'
+import { pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
+import { pilotingContext } from '../../lib/rules/pilotingContext'
+import type { Pilot } from '../../lib/schemas/pilot'
 import { DashboardChooser } from '../dashboard/DashboardChooser'
-import { PilotSheet } from './PilotSheet'
-import { RailCta } from './SheetRailParts'
 import { AppLink } from '../shared/AppLink'
+import { AssignCrawlerToPilot } from '../wiring/AssignCrawlerToPilot'
+import type { LiveSheetStripItem } from './LiveSheet'
+import { LiveSheet } from './LiveSheet'
+import { PilotSheet } from './PilotSheet'
 import { crawlerRailItems, mechRailItems, mechStatusPill, rowStats } from './railStats'
+import { RailCta } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps'
 import { runWrite } from './sheetWrite'
 
@@ -74,7 +74,9 @@ export function SheetPilot({
           linkAs={AppLink}
           meta="Assigned Mech"
           metaLine={mechStatusPill(composition.mech).label}
-          stats={rowStats(mechRailItems(composition.mech))}
+          stats={rowStats(
+            mechRailItems(composition.mech, pilotingContext(composition.mech, pilot.abilities))
+          )}
           onDeleteClick={unassign(mechLinkId)}
         />
       ) : (

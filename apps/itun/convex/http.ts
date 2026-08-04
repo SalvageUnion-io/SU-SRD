@@ -1,5 +1,4 @@
 import { httpRouter } from 'convex/server'
-
 import { auth } from './auth'
 import { BOT_PATH_PREFIX, botRoute } from './botHttp'
 

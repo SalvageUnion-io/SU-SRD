@@ -1,5 +1,4 @@
 import { convexTest } from 'convex-test'
-
 import schema from '../schema'
 
 /**
@@ -61,6 +60,7 @@ const modules: Record<string, () => Promise<unknown>> = {
   './proposals.ts': () => import('../proposals'),
   './templates.ts': () => import('../templates'),
   './model/bot.ts': () => import('../model/bot'),
+  './model/entities.ts': () => import('../model/entities'),
   './model/permissions.ts': () => import('../model/permissions'),
 }
 

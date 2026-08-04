@@ -1,10 +1,10 @@
+import type { SearchComboboxResult } from 'component-lib'
+import { SearchField, useSearchCombobox } from 'component-lib'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
-import { SearchField, useSearchCombobox } from 'component-lib'
-import type { SearchComboboxResult } from 'component-lib'
-import { useSearchIndex } from '../../lib/useSearchIndex'
-import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { itemHref, schemaHref } from '../../lib/entityHref'
+import { searchCompactIndex } from '../../lib/searchCompactIndex'
+import { useSearchIndex } from '../../lib/useSearchIndex'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type SearchIslandProps = {

@@ -5,7 +5,6 @@
  * happy-dom provides localStorage via the bunfig preload.
  */
 import { beforeEach, describe, expect, test } from 'bun:test'
-
 import {
   BACKUP_NUDGE_STALE_MS,
   BACKUP_NUDGE_WRITE_THRESHOLD,

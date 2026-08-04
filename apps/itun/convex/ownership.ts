@@ -1,11 +1,12 @@
 import { v } from 'convex/values'
-
-import type { Doc, Id } from './_generated/dataModel'
-import { mutation } from './_generated/server'
+import type { Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
+import { mutation } from './_generated/server'
+import type { OwnableTable } from './model/entities'
+import { loadOwnable } from './model/entities'
 import {
-  NotAuthorized,
   getMembership,
+  NotAuthorized,
   requireMember,
   requireOwnershipAssigner,
   requireUser,
@@ -40,29 +41,16 @@ import {
  * self-claim cannot express.
  */
 
-/** The two entity tables that carry an owner. Crawlers are communal by design. */
+/**
+ * The two entity tables that carry an owner. Crawlers are communal by design.
+ *
+ * The runtime list is here because `leaveGame` iterates it; the type it names
+ * is `OwnableTable` from `model/entities.ts`, where the loader that consumes it
+ * lives.
+ */
 const OWNABLE = ['pilots', 'mechs'] as const
-export type OwnableTable = (typeof OWNABLE)[number]
 
 const ownableTable = v.union(v.literal('pilots'), v.literal('mechs'))
-
-async function loadOwnable(
-  ctx: MutationCtx,
-  table: OwnableTable,
-  entityId: string
-): Promise<Doc<'pilots'> | Doc<'mechs'>> {
-  // `normalizeId` is what makes `table` load-bearing rather than decorative: a
-  // Convex id is table-tagged, but `db.get` returns a document from ANY table,
-  // so casting the string let an id from a table nobody may claim through here
-  // reach the ownership writes below. An id that is not this table's is not
-  // there, which is also what the old `'ownerId' in doc` guard was groping for.
-  const id = ctx.db.normalizeId(table, entityId)
-  if (id === null) throw new Error('That entity no longer exists')
-
-  const doc = await ctx.db.get(id)
-  if (doc === null) throw new Error('That entity no longer exists')
-  return doc
-}
 
 /**
  * Record an ownership change on the Change Log.

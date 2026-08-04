@@ -1,11 +1,11 @@
+import { Badge, FilterRow, SearchField, schemaPluralLabel } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
-import { getEntitySlug } from 'salvageunion-reference'
 import type { SearchResult } from 'salvageunion-reference'
-import { Badge, FilterRow, SearchField } from 'component-lib'
-import { useSearchIndex } from '../../lib/useSearchIndex'
+import { getEntitySlug } from 'salvageunion-reference'
+import { itemHref } from '../../lib/entityHref'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
-import { itemHref } from '../../lib/entityHref'
+import { useSearchIndex } from '../../lib/useSearchIndex'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 const PARAM_QUERY = 'q'
@@ -16,9 +16,9 @@ function readQueryParam(): string {
   return new URLSearchParams(window.location.search).get(PARAM_QUERY) ?? ''
 }
 
-/** Right-hand schema label — 'Salvage Union ' prefix stripped, matching the combobox. */
+/** Right-hand schema label — the authored plural, matching the combobox. */
 function schemaLabel(result: SearchResult): string {
-  return result.schemaTitle.replace('Salvage Union ', '')
+  return schemaPluralLabel(result.schemaName)
 }
 
 /** Show-page URL for a result entity. Mirrors srdEntityHref / the combobox. */

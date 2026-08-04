@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'bun:test'
-
 import { initBrowserObservability } from '../observability'
 
 describe('initBrowserObservability', () => {

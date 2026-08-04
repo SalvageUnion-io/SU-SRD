@@ -1,6 +1,7 @@
-import { NavDrawer, Badge, type NavDrawerItem } from 'component-lib'
-import { SearchIsland } from './SearchIsland'
+import type { NavDrawerItem } from 'component-lib'
+import { Badge, NavDrawer } from 'component-lib'
 import { ITUN_URL } from '../../lib/constants'
+import { SearchIsland } from './SearchIsland'
 
 type SchemaLink = {
   id: string

@@ -1,6 +1,6 @@
-import { getSchemaCatalog } from '../../lib/gameData'
-import { getJsonSchemaDefinition } from 'salvageunion-reference/schema-definitions'
 import type { APIRoute } from 'astro'
+import { getJsonSchemaDefinition } from 'salvageunion-reference/schema-definitions'
+import { getSchemaCatalog } from '../../lib/gameData'
 
 export function getStaticPaths() {
   const { schemas } = getSchemaCatalog()

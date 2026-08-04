@@ -9,7 +9,7 @@
  * See: apps/srd/src/pages/schema/[schemaId]/item/[itemId].astro
  */
 
-import { getSchemaCatalog } from 'salvageunion-reference'
+import { getEntitySchemas } from 'salvageunion-reference'
 
 type EntityRef = {
   schemaName: string
@@ -18,10 +18,13 @@ type EntityRef = {
 
 const SUREF_WEB_BASE = 'https://salvageunion.io'
 
-// srd statically generates an item page for every schema in the
-// reference catalog (see apps/srd/src/lib/staticPaths.ts —
-// getItemStaticPaths iterates getSchemaCatalog().schemas), so catalog
-// membership is the "an SRD page exists" test. Lazily cached.
+// srd generates item pages for ENTITY schemas only: getItemStaticPaths in
+// apps/srd/src/lib/staticPaths.ts iterates getEntitySchemas(), which is
+// getSchemaCatalog().schemas.filter((s) => !s.meta). So full catalog
+// membership is NOT the test — it would claim a page for the three meta
+// schemas (actions, catalog-categories, ability-tree-requirements) and every
+// "View in SRD →" on an action would 404. Mirror the generator's own filter.
+// Lazily cached.
 let srdSchemaIds: Set<string> | undefined
 
 /**
@@ -30,7 +33,7 @@ let srdSchemaIds: Set<string> | undefined
  */
 export function hasSRDPage(schemaName: string): boolean {
   if (!srdSchemaIds) {
-    srdSchemaIds = new Set(getSchemaCatalog().schemas.map((schema) => schema.id))
+    srdSchemaIds = new Set(getEntitySchemas().map((schema) => schema.id))
   }
   return srdSchemaIds.has(schemaName)
 }

@@ -1,5 +1,5 @@
-import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { ReferenceEntityCard } from 'component-lib'
+import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 
 type CatalogTileProps = {
   entity: SURefEntity

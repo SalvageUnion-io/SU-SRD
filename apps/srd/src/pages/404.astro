@@ -1,11 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
 import { CatalogTile, getCatalogBg, getCatalogLabel } from 'component-lib'
-import { getSchemaCatalog } from '../lib/gameData'
+import { getEntitySchemas } from '../lib/gameData'
 import { schemaHref } from '../lib/entityHref'
 
-const catalog = getSchemaCatalog()
-const schemas = catalog.schemas.filter((s) => !s.meta).slice(0, 6)
+const schemas = getEntitySchemas().slice(0, 6)
 ---
 
 <BaseLayout

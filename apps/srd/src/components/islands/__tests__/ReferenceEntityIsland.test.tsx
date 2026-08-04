@@ -1,8 +1,9 @@
-import { describe, it, expect, afterEach, spyOn, type Mock } from 'bun:test'
+import type { Mock } from 'bun:test'
+import { afterEach, describe, expect, it, spyOn } from 'bun:test'
 import { render, waitFor } from '@testing-library/react'
 import { getEntitySchemas, getModel, getName, SalvageUnionReference } from 'salvageunion-reference'
-import { ReferenceEntityIsland } from '../ReferenceEntityIsland'
 import { resetPreloadForTests } from '../../../lib/useGameData'
+import { ReferenceEntityIsland } from '../ReferenceEntityIsland'
 
 const entitySchemas = getEntitySchemas()
 

@@ -1,15 +1,16 @@
-import {
-  getSchemaCatalog,
-  SalvageUnionReference,
-  getModel,
-  getEntitySchemas,
-  getReferenceEntityData,
-} from './gameData'
-import { nameToSlug, normalizePatternName, visiblePatterns } from 'salvageunion-reference'
-import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
 import { isSchemaName } from 'component-lib'
-
-const catalog = getSchemaCatalog()
+import type {
+  EnhancedSchemaMetadata,
+  SURefEntity,
+  SURefObjectPattern,
+} from 'salvageunion-reference'
+import { nameToSlug, normalizePatternName, visiblePatterns } from 'salvageunion-reference'
+import {
+  getEntitySchemas,
+  getModel,
+  getReferenceEntityData,
+  SalvageUnionReference,
+} from './gameData'
 
 export function getSchemaStaticPaths() {
   return getEntitySchemas().map((schema) => {
@@ -30,7 +31,7 @@ export function getItemStaticPaths() {
     params: { schemaId: string; itemId: string }
     props: {
       item: SURefEntity
-      schema: (typeof catalog.schemas)[number]
+      schema: EnhancedSchemaMetadata
       itemName: string
       itemDescription: string
     }
@@ -40,8 +41,10 @@ export function getItemStaticPaths() {
   // catalog-categories) have no /schema/<id>/ listing page (see
   // getSchemaStaticPaths above), so item pages for them would be sitemap
   // orphans with 404 breadcrumbs. Their content renders inline on the pages
-  // of the entities that own it.
-  for (const schema of catalog.schemas.filter((s) => !s.meta)) {
+  // of the entities that own it. `getEntitySchemas()` IS that filter — going
+  // through the helper keeps consumers that ask "does this schema have a
+  // page?" (ITUN's hasSRDPage) agreeing with what actually gets generated.
+  for (const schema of getEntitySchemas()) {
     // Runtime-validated narrowing (string catalog id → schema name) instead
     // of an assertion; a non-canonical id is skipped, same as a load failure.
     if (!isSchemaName(schema.id)) continue

@@ -1,21 +1,22 @@
-import { useState, useMemo, useEffect, Suspense } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
-import { getTechLevel, getSource, getEntitySlug, getTree } from 'salvageunion-reference'
 import {
   Badge,
-  Skeleton,
+  EntityDetailLinkProvider,
+  EntityHrefProvider,
   FilterRow,
+  FOCUS_RING,
   MasonryColumns,
+  Skeleton,
   TECH_LEVEL_STYLES,
   techLevelLabel,
-  EntityHrefProvider,
-  EntityDetailLinkProvider,
-  FOCUS_RING,
 } from 'component-lib'
-import { GameDataGate, type SchemaList } from '../../lib/useGameData'
+import { Suspense, useEffect, useMemo, useState } from 'react'
+import type { SURefEntity } from 'salvageunion-reference'
+import { getEntitySlug, getSource, getTechLevel, getTree } from 'salvageunion-reference'
 import { itemHref, srdEntityHref } from '../../lib/entityHref'
-import { IslandErrorBoundary } from './IslandErrorBoundary'
+import type { SchemaList } from '../../lib/useGameData'
+import { GameDataGate } from '../../lib/useGameData'
 import { CatalogTile } from './CatalogTile'
+import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 // Hoisted to a stable module-level reference so the `memo()` on
 // ReferenceEntityCard is not defeated by a fresh inline object literal on

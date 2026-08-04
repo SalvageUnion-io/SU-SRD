@@ -1,8 +1,9 @@
-import { describe, test, expect, afterEach, beforeEach, mock, spyOn, type Mock } from 'bun:test'
-import { render, screen, cleanup, fireEvent, act } from '@testing-library/react'
-import { SearchIsland } from '../SearchIsland'
+import type { Mock } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { buildSearchIndexEntries } from '../../../lib/searchIndexBuild'
 import { resetSearchIndexForTests } from '../../../lib/useSearchIndex'
+import { SearchIsland } from '../SearchIsland'
 
 // SearchIsland now fetches the build-time compact index (`/search-index.json`)
 // instead of preloading the ORM — mock `fetch` to serve the real index (built

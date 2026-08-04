@@ -1,11 +1,10 @@
-import { getSchemaCatalog } from '../lib/gameData'
+import type { APIRoute } from 'astro'
 import { SITE_URL } from '../lib/constants'
 import { schemaHref } from '../lib/entityHref'
-import type { APIRoute } from 'astro'
+import { getEntitySchemas } from '../lib/gameData'
 
 export const GET: APIRoute = () => {
-  const { schemas } = getSchemaCatalog()
-  const entitySchemas = schemas.filter((s) => s.meta !== true)
+  const entitySchemas = getEntitySchemas()
 
   const contentCategories = entitySchemas
     .map((s) => `- ${s.displayNamePlural} (${s.description}): ${SITE_URL}${schemaHref(s.id)}`)

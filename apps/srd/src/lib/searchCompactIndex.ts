@@ -23,8 +23,9 @@
  * corpus, because matching runs against the fetched `/search-index.json`, not
  * an ORM `preload()`.
  */
-import { TYPO_MIN_TOKEN_LENGTH, withinEditDistance1 } from 'salvageunion-reference'
+
 import type { SearchOptions, SearchResult } from 'salvageunion-reference'
+import { TYPO_MIN_TOKEN_LENGTH, withinEditDistance1 } from 'salvageunion-reference'
 import type { CompactSearchEntry } from './searchIndexTypes'
 
 /**

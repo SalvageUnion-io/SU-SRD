@@ -7,9 +7,8 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility } from 'salvageunion-reference'
-
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveAbilityApCost } from '../abilityCost'
 
 beforeAll(async () => {

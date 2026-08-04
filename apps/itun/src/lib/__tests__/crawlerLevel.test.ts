@@ -5,7 +5,6 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-
 import { parseCrawlerTechLevel, resolveEffectiveCrawlerLevel } from '../crawlerLevel'
 
 describe('parseCrawlerTechLevel', () => {

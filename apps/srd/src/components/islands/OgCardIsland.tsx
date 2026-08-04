@@ -1,14 +1,14 @@
+import { EntityDetailLinkProvider, EntityHrefProvider } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
+import type { SURefEntity, SURefEnumSchemaName, SURefObjectPattern } from 'salvageunion-reference'
 import {
-  SalvageUnionReference,
   getEntitySlug,
   nameToSlug,
+  SalvageUnionReference,
   visiblePatterns,
 } from 'salvageunion-reference'
-import type { SURefEntity, SURefEnumSchemaName, SURefObjectPattern } from 'salvageunion-reference'
-import { EntityHrefProvider, EntityDetailLinkProvider } from 'component-lib'
-import { GameDataGate } from '../../lib/useGameData'
 import { itemHref, patternHref, srdEntityHref } from '../../lib/entityHref'
+import { GameDataGate } from '../../lib/useGameData'
 import { CatalogTile } from './CatalogTile'
 
 /**

@@ -1,5 +1,5 @@
-import { extractStaticEntitySummary, normalizePatternName } from 'salvageunion-reference'
 import type { StaticEntitySummary, SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import { extractStaticEntitySummary, normalizePatternName } from 'salvageunion-reference'
 
 /** `[{ name, count? }]` → `"Rigging Arm, Floodlights ×2"`. */
 function loadoutLine(items: { name: string; count?: number }[] | undefined): string | undefined {

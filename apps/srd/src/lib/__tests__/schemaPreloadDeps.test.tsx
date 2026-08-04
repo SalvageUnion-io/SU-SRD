@@ -1,21 +1,21 @@
-import { describe, it, expect, afterEach } from 'bun:test'
-import { Suspense } from 'react'
-import { render, cleanup } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'bun:test'
+import { cleanup, render } from '@testing-library/react'
 import {
-  SalvageUnionReference,
+  EntityDetailLinkProvider,
+  EntityHrefProvider,
+  ReferenceEntityCard,
+  Skeleton,
+} from 'component-lib'
+import { Suspense } from 'react'
+import type { SURefEntity } from 'salvageunion-reference'
+import {
   getEntitySchemas,
   getModel,
   resetAllForTesting,
-  type SURefEntity,
+  SalvageUnionReference,
 } from 'salvageunion-reference'
-import {
-  ReferenceEntityCard,
-  EntityHrefProvider,
-  EntityDetailLinkProvider,
-  Skeleton,
-} from 'component-lib'
-import { getSchemaPreloadList } from '../schemaPreloadDeps'
 import { srdEntityHref } from '../entityHref'
+import { getSchemaPreloadList } from '../schemaPreloadDeps'
 
 /**
  * Render-equivalence safety net for schemaPreloadDeps.ts (see that file's

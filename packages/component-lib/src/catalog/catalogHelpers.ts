@@ -1,9 +1,9 @@
-import { isSchemaName } from 'salvageunion-reference'
 import type {
   EnhancedSchemaMetadata,
-  SURefEnumSchemaName,
   SURefEntity,
+  SURefEnumSchemaName,
 } from 'salvageunion-reference'
+import { isSchemaName } from 'salvageunion-reference'
 
 export type CatalogCategory = {
   id: string
@@ -58,7 +58,7 @@ export function pluralize(name: string, count: number): string {
   return pluralizeWord(name)
 }
 
-type SchemaMapEntry = Pick<EnhancedSchemaMetadata, 'id' | 'title' | 'displayName' | 'itemCount'>
+type SchemaMapEntry = Pick<EnhancedSchemaMetadata, 'id' | 'displayName' | 'itemCount'>
 
 type BuildCatalogCategoriesOptions = {
   catalogCategories: CatalogCategory[]
@@ -119,7 +119,11 @@ export function buildCatalogCategories({
       schemas: cat.schemas.flatMap((id) => {
         const s = schemaMap.get(id)
         if (!s) return []
-        const rawDisplayName = s.displayName || s.title.replace('Salvage Union ', '')
+        // `displayName` is always populated — getSchemaCatalog() falls back to
+        // the raw title itself — so there is nothing left to strip here. (The
+        // old `title.replace('Salvage Union ', '')` fallback matched no title
+        // in the catalog; every one of them is the kebab-case schema id.)
+        const rawDisplayName = s.displayName
         return [
           {
             id: s.id,

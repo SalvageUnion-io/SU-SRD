@@ -1,5 +1,5 @@
-import { getEntitySlug, nameToSlug } from 'salvageunion-reference'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import { getEntitySlug, nameToSlug } from 'salvageunion-reference'
 import { patternHref } from './entityHref'
 
 /**

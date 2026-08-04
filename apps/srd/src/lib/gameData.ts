@@ -17,14 +17,14 @@ if (!SalvageUnionReference.isLoaded('chassis')) {
   await SalvageUnionReference.preload('all')
 }
 
-export { SalvageUnionReference }
 export {
-  getSchemaCatalog,
-  getReferenceEntityData,
-  getModel,
-  getEntitySchemas,
-  getUniqueTechLevels,
-  getUniqueSources,
-  getUniqueTrees,
   extractStaticEntitySummary,
+  getEntitySchemas,
+  getModel,
+  getReferenceEntityData,
+  getSchemaCatalog,
+  getUniqueSources,
+  getUniqueTechLevels,
+  getUniqueTrees,
 } from 'salvageunion-reference'
+export { SalvageUnionReference }
