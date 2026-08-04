@@ -3,7 +3,7 @@ import { useMutation, useQuery } from 'convex/react'
 
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { NUM, ROW, STAMP } from './gameChrome'
+import { NUM, PANEL_TITLE, PANEL_TONE, ROW } from './gameChrome'
 
 /**
  * The player's side of propose-and-confirm (D7).
@@ -36,11 +36,11 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
     value === null || value === undefined ? '—' : String(value)
 
   return (
-    <Card>
+    <Card
+      headerBg={PANEL_TONE}
+      headerContent={<h2 className={PANEL_TITLE}>Awaiting your answer</h2>}
+    >
       <div className="flex flex-col gap-3 p-4">
-        <Text as="span" className={STAMP}>
-          Awaiting your answer
-        </Text>
         {pending.map((p) => (
           <div key={p._id} className="flex flex-col gap-2">
             <div className={ROW}>

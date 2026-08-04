@@ -3,7 +3,7 @@ import { useMutation, useQuery } from 'convex/react'
 
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { ROW, STAMP } from './gameChrome'
+import { PANEL_TITLE, PANEL_TONE, ROW, STAMP } from './gameChrome'
 
 /**
  * Crew-wide Downtime (Phase 5).
@@ -35,12 +35,8 @@ export function DowntimePanel({ gameId }: { gameId: Id<'games'> }) {
   if (state === undefined) return null
 
   return (
-    <Card>
+    <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Downtime</h2>}>
       <div className="flex flex-col gap-3 p-4">
-        <Text as="span" className={STAMP}>
-          Downtime
-        </Text>
-
         {!state.running && (
           <>
             <Text variant="hint">

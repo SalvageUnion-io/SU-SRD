@@ -106,6 +106,30 @@ describe('GameScreen', () => {
     expect(screen.queryByLabelText('Invite note')).toBeNull()
   })
 
+  test('every panel states its name in its header band', () => {
+    // A pending proposal, so the inbox renders at all (it returns null when
+    // there is nothing to answer).
+    // Slot 5 is `proposals.pending` — see the REST comment for the order.
+    const withProposal: unknown[] = [...REST]
+    withProposal[5] = [{ _id: 'p1', entityType: 'pilot', field: 'currentHP', to: 3 }]
+    withQueries([{ ...GAME, organizer: true }, ...withProposal])
+    wrap()
+
+    // These titles used to sit inside each panel's body as a small grey stamp.
+    // They are the Card's header now, and `Invite someone` in particular
+    // changed OWNER in that move — it is rendered by GameScreen, not by
+    // InvitePanel — so nothing else would catch it going missing.
+    // Queried by ROLE, not by text: these are section headings, and a screen
+    // reader navigating the Game surface should find them as such. They were
+    // spans until the a11y pass; `getByRole` is what stops them regressing to
+    // one.
+    expect(screen.getByRole('heading', { level: 2, name: 'Invite someone' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 2, name: 'Awaiting your answer' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 2, name: 'Downtime' })).toBeTruthy()
+    // …under the page's h1, over the roster columns' h3s. No level is skipped.
+    expect(screen.getByRole('heading', { level: 1, name: 'Game' })).toBeTruthy()
+  })
+
   test('an Organizer gets invite management', () => {
     withQueries([{ ...GAME, organizer: true }, ...REST])
     wrap()

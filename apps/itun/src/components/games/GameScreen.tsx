@@ -25,7 +25,7 @@ import { DowntimePanel } from './DowntimePanel'
 import { GameRoster } from './GameRoster'
 import { InvitePanel } from './InvitePanel'
 import { ProposalInbox } from './ProposalInbox'
-import { PAGE, TITLE } from './gameChrome'
+import { PAGE, PANEL_TITLE, PANEL_TONE, TITLE } from './gameChrome'
 import { AppLink } from '../shared/AppLink'
 
 function GameBody({ gameId }: { gameId: string }) {
@@ -56,7 +56,7 @@ function GameBody({ gameId }: { gameId: string }) {
       {/* Invites are administrative, so they live with the Game rather than in
           the lobby, and only the Organizer sees them (ADR-030 §3). */}
       {game.organizer && (
-        <Card>
+        <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Invite someone</h2>}>
           <div className="p-4">
             <InvitePanel gameId={gameId as Id<'games'>} />
           </div>

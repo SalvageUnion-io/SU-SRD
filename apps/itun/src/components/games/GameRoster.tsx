@@ -380,7 +380,11 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     <section className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-ink pb-4">
         <div>
-          <Text as="div" className={SECTION}>
+          {/* An h2, so the columns' h3s sit under something. The page reads
+              h1 (Game) → h2 (the crew, the panels) → h3 (Pilots / Mechs /
+              Crawlers); as a div it skipped a level and left the columns
+              parented by nothing. */}
+          <Text as="h2" className={SECTION}>
             {gameName ?? 'The crew'}
           </Text>
           <Text variant="hint" className="text-left">
