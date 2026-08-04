@@ -2,9 +2,8 @@
  * SheetMech — the mech branch of the live sheet (extracted from
  * Sheet.tsx, audit item 19; redesigned to the poster layout, Phase 2).
  *
- * The body owns the identity band now (Workshop-Manual layout): SheetMech
- * passes NO `renderHero`, and `MechSheet` renders the `SheetHero` band as its
- * first region, wrapping it with the `heroRef` from `renderBody`. This
+ * The body owns the identity band (Workshop-Manual layout): `MechSheet`
+ * renders the `SheetHero` band as its first region. This
  * component's remaining job is the condensed top-bar strip and composing the
  * assigned-pilot/home-crawler rail content handed to `MechSheet` as
  * `linkedUnits`. Push / Heat Check are Guided-Play transactions that live on
@@ -24,7 +23,7 @@ import { MechSheet } from './MechSheet'
 import { EntityRow } from 'component-lib'
 import { RailCta } from './SheetRailParts'
 import { AppLink } from '../shared/AppLink'
-import { crawlerRailItems, mechStatusPill, pilotRailItems, rowStats } from './railStats'
+import { crawlerRailItems, pilotRailItems, rowStats } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
 
@@ -149,7 +148,6 @@ export function SheetMech({
       name={mech.name}
       strip={strip}
       back={back}
-      pill={mechStatusPill(mech)}
       segments={segments}
       syncStats={{ cargo: cargoUsed }}
       actions={
@@ -162,12 +160,11 @@ export function SheetMech({
           actions
         )
       }
-      renderBody={({ heroRef }) => (
+      renderBody={() => (
         <MechSheet
           mech={mech}
           store={store}
           readOnly={readOnly}
-          heroRef={heroRef}
           crawler={composition.crawler}
           linkedUnits={rail}
           pilotAbilities={pilotAbilitiesOverride ?? composition.pilot?.abilities}

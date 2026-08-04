@@ -35,7 +35,6 @@ export {
   crawlerWeaponSlots,
   crawlerMaxSpBonus,
   isCrawlerWeaponPickComplete,
-  pilotAbilityPicksRemaining,
   pilotEquipmentPicksRemaining,
   isPilotAbilityPickComplete,
   isPilotEquipmentPickComplete,
@@ -53,7 +52,6 @@ export type {
 export { enrichPilotSnapshot } from './pilotSnapshot.js'
 export { computeCrawlerCapacity } from './crawlerCapacity.js'
 export { salvageValueFor, scrapCostFor, tierUpgradeCost } from './scrap.js'
-export { computeCargoCapacity } from './cargo.js'
 export {
   evaluateSoftWarnings,
   evaluatePilotWarnings,
@@ -72,9 +70,7 @@ export {
   resolveSystemRef,
   resolveModuleRef,
   resolveInstalledRef,
-  refDisplayName,
 } from './resolveRefs.js'
-export { pilotDetailWarnings, mechDetailWarnings, crawlerDetailWarnings } from './detailWarnings.js'
 export {
   clampHeat,
   canActivateAction,
@@ -137,8 +133,6 @@ export {
 } from './derivedStats.js'
 export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js'
 export { statesMechanicalChange } from './rulesBearing.js'
-export { mechTraits } from './mechTraits.js'
-export type { MechTrait } from './mechTraits.js'
 export type { RulesClaim } from './rulesBearing.js'
 export {
   abilityContributions,

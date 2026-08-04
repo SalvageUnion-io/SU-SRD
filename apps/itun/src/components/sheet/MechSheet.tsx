@@ -2,10 +2,9 @@
  * MechSheet — the mech variant BODY for the LiveSheet shell (design §4.3,
  * plan 4.5; redesigned to the poster layout, Phase 2).
  *
- * The body OWNS the identity band now (Workshop-Manual mech sheet): SheetMech
- * passes NO `renderHero`, and this body renders `SheetHero` in band mode as
- * its first region (wrapped with the shell's `heroRef`). Region order mirrors
- * the printed mech sheet:
+ * The body OWNS the identity band (Workshop-Manual mech sheet): it renders
+ * `SheetHero` in band mode as its first region. Region order mirrors the
+ * printed mech sheet:
  *
  *   Identity Band: edge wordmark ∥ the pattern-name/chassis fields + the
  *       8-lozenge chassis-stats strip ∥ SP/EP/Heat `VitalGauge`s + Conditions
@@ -46,7 +45,7 @@
  */
 
 import { useState } from 'react'
-import type { ReactNode, Ref } from 'react'
+import type { ReactNode } from 'react'
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 import {
   VitalGauge,
@@ -110,12 +109,6 @@ type MechSheetProps = {
   /** Suppresses every edit affordance (published snapshots). */
   readOnly?: boolean
   /**
-   * Marks the body's first region. VESTIGIAL: the sticky bar condenses off its
-   * own 1px sentinel now, so nothing observes this. Undefined in bare test
-   * renders (no shell).
-   */
-  heroRef?: Ref<HTMLElement>
-  /**
    * The linked home crawler (composition resolver) — powers The Hold's stow
    * target and the optional repair scrap-pool deduction. Null = unlinked.
    */
@@ -147,7 +140,6 @@ export function MechSheet({
   chassis: chassisOverride,
   store = useEntityStore,
   readOnly = false,
-  heroRef,
   crawler = null,
   linkedUnits,
   pilotAbilities,
@@ -479,10 +471,8 @@ export function MechSheet({
 
       {/* ===== Identity Band (Workshop-Manual mech sheet top region) =====
           Edge wordmark ∥ Chassis/Pattern fields + Chassis-Stats strip ∥
-          SP/EP/Heat + Conditions vitals rail, in one toned frame. Carries the
-          shell's `heroRef` (vestigial — the bar's own sentinel drives condense now). */}
+          SP/EP/Heat + Conditions vitals rail, in one toned frame. */}
       <SheetHero
-        heroRef={heroRef}
         cat="Mech"
         name={mech.name}
         // On a mech this region IS the chassis: its name, its stats, its

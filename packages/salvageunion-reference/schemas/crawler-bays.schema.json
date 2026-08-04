@@ -701,7 +701,8 @@
                                 "maxHp",
                                 "maxAp",
                                 "inventorySlots"
-                              ]
+                              ],
+                              "description": "The mech, pilot or slot-count stat a contribution raises or lowers"
                             },
                             "amount": {
                               "anyOf": [
@@ -744,13 +745,15 @@
                                         "maxHp",
                                         "maxAp",
                                         "inventorySlots"
-                                      ]
+                                      ],
+                                      "description": "The mech, pilot or slot-count stat a contribution raises or lowers"
                                     }
                                   },
                                   "required": ["fromStat"],
                                   "additionalProperties": false
                                 }
-                              ]
+                              ],
+                              "description": "How much a contribution is worth: a flat integer, a per-tech-level formula, or another of the target stats"
                             },
                             "target": {
                               "type": "string",
@@ -834,7 +837,8 @@
                               "required": ["op", "value"],
                               "additionalProperties": false
                             }
-                          ]
+                          ],
+                          "description": "A single mechanical effect applied when a choice option is selected"
                         },
                         "description": "Trait/damage/range effects this item applies unconditionally (ADR-029). Same vocabulary as a choice option’s `effects`, declared directly on the record for grants that are not a choice. Named `appliedEffects`, not `effects`: that key is already taken on meta entities with a different `{ label, value }` shape (see getEffects), and one field name meaning two things is how a schema rots."
                       },
@@ -914,7 +918,8 @@
                               "required": ["op", "value"],
                               "additionalProperties": false
                             }
-                          ]
+                          ],
+                          "description": "A single mechanical effect applied when a choice option is selected"
                         }
                       }
                     },
@@ -1038,7 +1043,8 @@
                                       "required": ["op", "value"],
                                       "additionalProperties": false
                                     }
-                                  ]
+                                  ],
+                                  "description": "A single mechanical effect applied when a choice option is selected"
                                 }
                               }
                             },
@@ -1246,7 +1252,8 @@
                                         "maxHp",
                                         "maxAp",
                                         "inventorySlots"
-                                      ]
+                                      ],
+                                      "description": "The mech, pilot or slot-count stat a contribution raises or lowers"
                                     },
                                     "amount": {
                                       "anyOf": [
@@ -1289,13 +1296,15 @@
                                                 "maxHp",
                                                 "maxAp",
                                                 "inventorySlots"
-                                              ]
+                                              ],
+                                              "description": "The mech, pilot or slot-count stat a contribution raises or lowers"
                                             }
                                           },
                                           "required": ["fromStat"],
                                           "additionalProperties": false
                                         }
-                                      ]
+                                      ],
+                                      "description": "How much a contribution is worth: a flat integer, a per-tech-level formula, or another of the target stats"
                                     },
                                     "target": {
                                       "type": "string",
@@ -1385,7 +1394,8 @@
                                       "required": ["op", "value"],
                                       "additionalProperties": false
                                     }
-                                  ]
+                                  ],
+                                  "description": "A single mechanical effect applied when a choice option is selected"
                                 },
                                 "description": "Trait/damage/range effects this item applies unconditionally (ADR-029). Same vocabulary as a choice option’s `effects`, declared directly on the record for grants that are not a choice. Named `appliedEffects`, not `effects`: that key is already taken on meta entities with a different `{ label, value }` shape (see getEffects), and one field name meaning two things is how a schema rots."
                               },
@@ -1474,14 +1484,6 @@
             "minimum": 0,
             "maximum": 9007199254740991,
             "description": "Amount of Scrap required to build this bay"
-          },
-          "scrapTechLevel": {
-            "anyOf": [
-              { "type": "integer", "minimum": 1, "maximum": 6 },
-              { "type": "string", "const": "B" },
-              { "type": "string", "const": "N" }
-            ],
-            "description": "Tech level of the Scrap required"
           },
           "bioSalvage": {
             "type": "integer",
@@ -1815,7 +1817,8 @@
                             "maxHp",
                             "maxAp",
                             "inventorySlots"
-                          ]
+                          ],
+                          "description": "The mech, pilot or slot-count stat a contribution raises or lowers"
                         },
                         "amount": {
                           "anyOf": [
@@ -1858,13 +1861,15 @@
                                     "maxHp",
                                     "maxAp",
                                     "inventorySlots"
-                                  ]
+                                  ],
+                                  "description": "The mech, pilot or slot-count stat a contribution raises or lowers"
                                 }
                               },
                               "required": ["fromStat"],
                               "additionalProperties": false
                             }
-                          ]
+                          ],
+                          "description": "How much a contribution is worth: a flat integer, a per-tech-level formula, or another of the target stats"
                         },
                         "target": {
                           "type": "string",
@@ -1948,7 +1953,8 @@
                           "required": ["op", "value"],
                           "additionalProperties": false
                         }
-                      ]
+                      ],
+                      "description": "A single mechanical effect applied when a choice option is selected"
                     },
                     "description": "Trait/damage/range effects this item applies unconditionally (ADR-029). Same vocabulary as a choice option’s `effects`, declared directly on the record for grants that are not a choice. Named `appliedEffects`, not `effects`: that key is already taken on meta entities with a different `{ label, value }` shape (see getEffects), and one field name meaning two things is how a schema rots."
                   },
@@ -2028,7 +2034,8 @@
                           "required": ["op", "value"],
                           "additionalProperties": false
                         }
-                      ]
+                      ],
+                      "description": "A single mechanical effect applied when a choice option is selected"
                     }
                   }
                 },
@@ -2152,7 +2159,8 @@
                                   "required": ["op", "value"],
                                   "additionalProperties": false
                                 }
-                              ]
+                              ],
+                              "description": "A single mechanical effect applied when a choice option is selected"
                             }
                           }
                         },
@@ -2360,7 +2368,8 @@
                                     "maxHp",
                                     "maxAp",
                                     "inventorySlots"
-                                  ]
+                                  ],
+                                  "description": "The mech, pilot or slot-count stat a contribution raises or lowers"
                                 },
                                 "amount": {
                                   "anyOf": [
@@ -2403,13 +2412,15 @@
                                             "maxHp",
                                             "maxAp",
                                             "inventorySlots"
-                                          ]
+                                          ],
+                                          "description": "The mech, pilot or slot-count stat a contribution raises or lowers"
                                         }
                                       },
                                       "required": ["fromStat"],
                                       "additionalProperties": false
                                     }
-                                  ]
+                                  ],
+                                  "description": "How much a contribution is worth: a flat integer, a per-tech-level formula, or another of the target stats"
                                 },
                                 "target": {
                                   "type": "string",
@@ -2499,7 +2510,8 @@
                                   "required": ["op", "value"],
                                   "additionalProperties": false
                                 }
-                              ]
+                              ],
+                              "description": "A single mechanical effect applied when a choice option is selected"
                             },
                             "description": "Trait/damage/range effects this item applies unconditionally (ADR-029). Same vocabulary as a choice option’s `effects`, declared directly on the record for grants that are not a choice. Named `appliedEffects`, not `effects`: that key is already taken on meta entities with a different `{ label, value }` shape (see getEffects), and one field name meaning two things is how a schema rots."
                           },

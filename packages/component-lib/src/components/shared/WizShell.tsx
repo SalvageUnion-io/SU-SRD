@@ -22,12 +22,6 @@ type WizShellProps = {
   title: string
   /** Meta line under the title — live counts, helper copy. */
   subtitle?: ReactNode
-  /**
-   * Optional 320px master pane (catalog-card lists). When present the shell renders
-   * the three-pane master-detail layout with title/subtitle in this pane;
-   * otherwise title/subtitle head the main pane (grid/form/review variant).
-   */
-  optionPane?: ReactNode
   /** Main pane content (detail card, Sel grid, form, review). */
   children: ReactNode
   /** Rendered between content and footer — soft warnings, submit errors. */
@@ -160,7 +154,7 @@ function RailStep({
  * Shared wizard skeleton, reskinned as a poster sibling (wizard-refresh
  * Phase 2, mockup Screens 01/02): the `.sheet--{kind}` tone context on the
  * `var(--ground)` page, a tone band banner up top, the manual's connector-pipe
- * stepper rail (196px), optional 320px option pane, and a flex-1 main pane
+ * stepper rail (196px) and a flex-1 main pane
  * headed by an ink-stamp 'STEP n OF N · {title}' h1 with a floating ink
  * action pill (ghost Back/Cancel + primary CTA + tracker tabs + gate text).
  * The shell is layout-only — all wizard state lives in the caller.
@@ -176,7 +170,6 @@ export function WizShell({
   onStepClick,
   title,
   subtitle,
-  optionPane,
   children,
   notice,
   trackers,
@@ -365,21 +358,7 @@ export function WizShell({
           </nav>
         </aside>
 
-        {/* (b) optional 320px option pane — carries only its list; the step
-            heading always renders in the main pane so the h1 stays anchored
-            horizontally across every step (option-pane steps and others alike) */}
-        {optionPane && (
-          <section
-            className={cn(
-              'shrink-0 border-b-chrome border-ink px-5 py-5 lg:overflow-y-auto lg:border-b-0 lg:border-r-chrome lg:px-6 lg:py-9',
-              'lg:w-[320px]'
-            )}
-          >
-            {optionPane}
-          </section>
-        )}
-
-        {/* (c) flex-1 main pane — always owns the step heading */}
+        {/* (b) flex-1 main pane — always owns the step heading */}
         <main className="flex min-w-0 flex-1 flex-col px-5 py-5 lg:px-10 lg:py-[30px]">
           {tintedStepCard ? (
             /* Blown-up tinted step card (mockup `.stepcard`): tone-card fill,

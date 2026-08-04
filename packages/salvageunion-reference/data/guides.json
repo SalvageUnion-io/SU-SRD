@@ -170,8 +170,6 @@
             "value": "core"
           }
         ],
-        "contextFrom": "801d291b-c684-4560-9ead-e047786f207b",
-        "dependsOn": ["801d291b-c684-4560-9ead-e047786f207b"],
         "content": [
           {
             "type": "paragraph",
@@ -351,7 +349,6 @@
         "name": "Note down your Mech's statistics",
         "stepType": "info",
         "paperOnly": true,
-        "dependsOn": ["5d0d53e1-d2a5-4929-893c-01413b059450"],
         "content": [
           {
             "type": "paragraph",
@@ -400,8 +397,6 @@
           "Sandblaster",
           "Riveting Gun"
         ],
-        "contextFrom": "5d0d53e1-d2a5-4929-893c-01413b059450",
-        "dependsOn": ["5d0d53e1-d2a5-4929-893c-01413b059450"],
         "constraints": {
           "scalesWithField": "systemSlots"
         },
@@ -441,8 +436,6 @@
           "Zoom Optics",
           "Heating Unit"
         ],
-        "contextFrom": "5d0d53e1-d2a5-4929-893c-01413b059450",
-        "dependsOn": ["5d0d53e1-d2a5-4929-893c-01413b059450"],
         "constraints": {
           "scalesWithField": "moduleSlots"
         },
@@ -536,7 +529,6 @@
         "name": "Note down your Crawler statistics",
         "stepType": "info",
         "paperOnly": true,
-        "dependsOn": ["7719034d-b2af-4e4b-a782-a951f43e0576"],
         "content": [
           {
             "type": "paragraph",
@@ -557,7 +549,6 @@
         "name": "Choose Weapons Systems",
         "stepType": "select-many",
         "schema": ["systems"],
-        "dependsOn": ["7719034d-b2af-4e4b-a782-a951f43e0576"],
         "constraints": {
           "min": 1
         },

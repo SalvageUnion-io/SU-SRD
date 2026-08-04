@@ -433,7 +433,7 @@ these functions; it never reimplements the math.**
 
 The pure rules functions named in this section (`performPush`,
 `performHeatCheck`, `reactorOverloadOutcome`, `clampHeat`, `applySpDamage`,
-`canActivateAction`, the `takeDamage.ts` family, `computeCargoCapacity`)
+`canActivateAction`, the `takeDamage.ts` family, `computeMechCapacity`)
 all live in `packages/salvageunion-reference/lib/rules/` and are imported via the
 `salvageunion-reference/rules` subpath; ITUN's `src/lib/rules/*`
 modules are thin re-export/patch wrappers over them.
@@ -474,9 +474,9 @@ string[]`), resolved by `SalvageUnionReference.resolveActions(entity)` →
 
 ### 5.4 Cargo / storage
 
-- Mech cargo tracked as cargo lots; capacity via `computeCargoCapacity` /
-  `computeMechCapacity` (imported directly from `salvageunion-reference/rules`).
-  The **Storage** button opens the cargo
+- Mech cargo tracked as cargo lots; used units come from ITUN's `totalLotUnits`
+  and capacity from `computeMechCapacity` (imported directly from
+  `salvageunion-reference/rules`). The **Storage** button opens the cargo
   hold overlay (manifest + Jettison decrements a slot).
 
 ### 5.5 Downtime loop

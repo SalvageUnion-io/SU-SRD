@@ -2,11 +2,9 @@
  * PilotSheet — the pilot body for the LiveSheet shell (Workshop-Manual pilot
  * sheet, region-for-region).
  *
- * The body OWNS the identity band (no LiveSheet `renderHero`): it renders
- * `SheetHero` in band mode as its first region, wrapped with the shell's
- * `heroRef` so the sticky bar still condenses when the band scrolls away. This
- * keeps the identity + vitals rendering (and all their handlers) in one
- * component. Region order mirrors the printed pilot sheet:
+ * The body OWNS the identity band: it renders `SheetHero` in band mode as its
+ * first region, which keeps the identity + vitals rendering (and all their
+ * handlers) in one component. Region order mirrors the printed pilot sheet:
  *   - Identity Band: edge wordmark ∥ identity fields ∥ HP/AP/TP + Conditions
  *     vitals rail (one toned frame — the printed top band).
  *   - Abilities (full width, 3-column card grid) — entity cards with Spend AP
@@ -38,7 +36,7 @@
  */
 
 import { useMemo, useState } from 'react'
-import type { ReactNode, Ref } from 'react'
+import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefAbility } from 'salvageunion-reference'
 import { Badge, Panel, SheetHero, Stat, VitalGauge } from 'component-lib'
@@ -141,12 +139,6 @@ type PilotSheetProps = {
   /** When true, every edit affordance is suppressed (published snapshots). */
   readOnly?: boolean
   /**
-   * Marks the body's first region. VESTIGIAL: the sticky bar condenses off its
-   * own 1px sentinel now, so nothing observes this. Undefined in bare test
-   * renders (no shell).
-   */
-  heroRef?: Ref<HTMLElement>
-  /**
    * The Linked Units rail content (mech + crawler RailChip/RailEmpty), built
    * by SheetPilot from `composition` — PilotSheet has no composition access
    * of its own, so this is passed straight through into the R3 section.
@@ -158,7 +150,6 @@ export function PilotSheet({
   pilot,
   store = useEntityStore,
   readOnly = false,
-  heroRef,
   linkedUnits,
 }: PilotSheetProps) {
   const storeState = store()
@@ -516,10 +507,8 @@ export function PilotSheet({
 
       {/* ===== Identity Band (Workshop-Manual pilot sheet top region) =====
           Edge wordmark ∥ identity fields ∥ HP/AP/TP + Conditions vitals rail,
-          in one toned frame — the printed pilot sheet's top band. Carries the
-          shell's `heroRef` (vestigial — the bar's own sentinel drives condense now). */}
+          in one toned frame — the printed pilot sheet's top band. */}
       <SheetHero
-        heroRef={heroRef}
         cat="Pilot"
         name={pilot.name}
         meta={

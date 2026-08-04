@@ -32,7 +32,6 @@ import {
   legalCreationAbilities,
   legalStartingPatterns,
   mechCreationBudget,
-  pilotAbilityPicksRemaining,
   pilotEquipmentPicksRemaining,
 } from './creation.js'
 
@@ -169,9 +168,6 @@ describe('pilot pick budgets (1 ability / 2 equipment)', () => {
   })
 
   it('remaining counts clamp at 0', () => {
-    expect(pilotAbilityPicksRemaining(0)).toBe(1)
-    expect(pilotAbilityPicksRemaining(1)).toBe(0)
-    expect(pilotAbilityPicksRemaining(5)).toBe(0)
     expect(pilotEquipmentPicksRemaining(0)).toBe(2)
     expect(pilotEquipmentPicksRemaining(1)).toBe(1)
     expect(pilotEquipmentPicksRemaining(2)).toBe(0)

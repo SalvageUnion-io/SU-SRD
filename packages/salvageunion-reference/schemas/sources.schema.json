@@ -222,18 +222,9 @@
         },
         "description": "Other source books where this entity is reprinted"
       },
-      "purchaseLink": {
-        "type": "string",
-        "format": "uri",
-        "description": "URL where this source can be purchased"
-      },
       "version": {
         "type": "string",
         "description": "Printing/edition of the source this dataset reflects (e.g. \"1.5\")"
-      },
-      "verifiedAgainst": {
-        "type": "string",
-        "description": "ISO date the dataset was last verified against this printing"
       }
     },
     "required": ["id", "blackMarket", "name", "source", "page"],

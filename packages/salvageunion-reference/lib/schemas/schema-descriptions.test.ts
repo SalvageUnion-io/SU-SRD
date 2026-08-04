@@ -38,34 +38,7 @@ import {
   CatalogCategorySchema,
 } from './entities.js'
 
-import {
-  TraitSchema,
-  StatsSchema,
-  ChassisStatsSchema,
-  EquipmentStatsSchema,
-  CombatEntitySchema,
-  MechanicalEntitySchema,
-  DataValueSchema,
-  ContentBlockSchema,
-  ContentSchema,
-  TableContentSchema,
-  TableSchema,
-  PatternSystemModuleSchema,
-  MechStatBonusSchema,
-  SystemModuleSchema,
-  ChoiceSchema,
-  NpcSchema,
-  PatternSchema,
-  DamageSchema,
-  ActionSchema,
-  AdditionalSourceSchema,
-  BaseEntitySchema,
-  AdvancedClassSchema,
-  FormationMechSchema,
-  GrantSchema,
-  CrawlerMutationSchema,
-  GuideStepSchema,
-} from './objects.js'
+import * as objectSchemaModule from './objects.js'
 
 import {
   SourceSchema,
@@ -197,34 +170,18 @@ const entitySchemas: Record<string, z.ZodType> = {
   CatalogCategorySchema,
 }
 
-// Object schemas -- shared building blocks
-const objectSchemas: Record<string, z.ZodType> = {
-  TraitSchema,
-  StatsSchema,
-  ChassisStatsSchema,
-  EquipmentStatsSchema,
-  CombatEntitySchema,
-  MechanicalEntitySchema,
-  DataValueSchema,
-  ContentBlockSchema,
-  ContentSchema,
-  TableContentSchema,
-  TableSchema,
-  PatternSystemModuleSchema,
-  MechStatBonusSchema,
-  SystemModuleSchema,
-  ChoiceSchema,
-  NpcSchema,
-  PatternSchema,
-  DamageSchema,
-  ActionSchema,
-  AdditionalSourceSchema,
-  BaseEntitySchema,
-  AdvancedClassSchema,
-  FormationMechSchema,
-  GrantSchema,
-  CrawlerMutationSchema,
-  GuideStepSchema,
+// Object schemas -- shared building blocks.
+//
+// Derived from the module namespace rather than a hand-written import list: a
+// named list is an entry point as far as knip is concerned, so it silently
+// pins dead schemas alive (this is how `EquipmentStatsSchema` survived the
+// 72-export deletion pass). Sweeping the namespace means a schema is covered
+// here because it exists, never because someone remembered to name it.
+const objectSchemas: Record<string, z.ZodType> = {}
+for (const [name, value] of Object.entries(objectSchemaModule)) {
+  if (name.endsWith('Schema') && value instanceof z.ZodType) {
+    objectSchemas[name] = value
+  }
 }
 
 // Enum schemas

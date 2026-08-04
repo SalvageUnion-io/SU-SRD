@@ -65,8 +65,6 @@ type SheetHeroProps = {
   vitals?: ReactNode
   /** Band mode: title of the fields card. */
   fieldsTitle?: string
-  /** Band mode: title of the gauges card (crawler passes 'Economy'). */
-  vitalsTitle?: string
   /** Band mode: header-right controls (e.g. the identity Edit/Done toggle). */
   controls?: ReactNode
   /** Forwarded to the hero root for the shell's condense observer. */
@@ -84,7 +82,6 @@ export function SheetHero({
   fields,
   vitals,
   fieldsTitle = 'Identity',
-  vitalsTitle = 'Vitals',
   controls,
   heroRef,
   className,
@@ -124,7 +121,7 @@ export function SheetHero({
         >
           {fields}
         </SheetSectionCard>
-        {vitals && <SheetSectionCard title={vitalsTitle}>{vitals}</SheetSectionCard>}
+        {vitals && <SheetSectionCard title="Vitals">{vitals}</SheetSectionCard>}
       </section>
     )
   }

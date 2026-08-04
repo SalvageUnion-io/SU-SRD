@@ -34,7 +34,6 @@ type SearchIndexEntry = {
   entityName: string
   nameText: string
   descriptionText: string
-  effectText: string
   goalsText: string
   assetsText: string
   weaknessesText: string
@@ -100,8 +99,6 @@ function buildSearchIndex(): SearchIndexEntry[] {
         'description' in entity && typeof entity.description === 'string'
           ? entity.description.toLowerCase()
           : ''
-      const effectText =
-        'effect' in entity && typeof entity.effect === 'string' ? entity.effect.toLowerCase() : ''
       const goalsText =
         'goals' in entity && typeof entity.goals === 'string' ? entity.goals.toLowerCase() : ''
       const assetsText =
@@ -117,7 +114,6 @@ function buildSearchIndex(): SearchIndexEntry[] {
 
       const fieldPairs: Array<readonly [string, string]> = [['name', nameText]]
       if (descriptionText) fieldPairs.push(['description', descriptionText])
-      if (effectText) fieldPairs.push(['effect', effectText])
       if (goalsText) fieldPairs.push(['goals', goalsText])
       if (assetsText) fieldPairs.push(['assets', assetsText])
       if (weaknessesText) fieldPairs.push(['weaknesses', weaknessesText])
@@ -132,7 +128,6 @@ function buildSearchIndex(): SearchIndexEntry[] {
         entityName: entity.name,
         nameText,
         descriptionText,
-        effectText,
         goalsText,
         assetsText,
         weaknessesText,

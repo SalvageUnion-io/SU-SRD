@@ -68,16 +68,6 @@ export const ChassisStatsSchema = StatsSchema.required({
 }).describe('Statistics specific to chassis — all stats required')
 
 /**
- * Statistics for equipment (systems and modules)
- */
-export const EquipmentStatsSchema = z
-  .object({
-    techLevel: TechLevelSchema.optional(),
-    salvageValue: NonNegativeIntegerSchema.describe('Scrap value when salvaged').optional(),
-  })
-  .describe('Statistics for equipment (systems and modules)')
-
-/**
  * Entity that can perform actions and has traits
  */
 export const CombatEntitySchema = z
@@ -136,22 +126,13 @@ export const DataValueSchema = z
 
 /**
  * Block of structured content for rendering (paragraph, heading, list item, etc.)
- * Note: Using z.lazy() for recursive structure
+ *
+ * Wrapped in `z.lazy()` so the shape is only built on first use. The type is
+ * deliberately INFERRED — a hand-written `z.ZodType<…>` annotation here silently
+ * erases any key it forgets from `z.infer`, so the field parses and lands in the
+ * generated JSON Schema while being invisible to every TypeScript consumer.
  */
-export const ContentBlockSchema: z.ZodType<{
-  type?: z.infer<typeof ContentTypeSchema>
-  value?: string | z.infer<typeof DataValueSchema>[]
-  label?: string
-  level?: number
-  lead?: boolean
-  choiceId?: string
-  items?: Array<{
-    type?: z.infer<typeof ContentTypeSchema>
-    value?: string | z.infer<typeof DataValueSchema>[]
-    label?: string
-    level?: number
-  }>
-}> = z
+export const ContentBlockSchema = z
   .lazy(() =>
     z
       .object({
@@ -439,19 +420,21 @@ export const MechStatBonusSchema = z
  * slot COUNT (Modular Face Implant "your Pilot gains a Module Slot"), neither of
  * which the mech-only shape could express.
  */
-export const ContributionStatSchema = z.enum([
-  // mech
-  'structurePoints',
-  'energyPoints',
-  'heatCapacity',
-  'cargoCapacity',
-  'systemSlots',
-  'moduleSlots',
-  // pilot
-  'maxHp',
-  'maxAp',
-  'inventorySlots',
-])
+export const ContributionStatSchema = z
+  .enum([
+    // mech
+    'structurePoints',
+    'energyPoints',
+    'heatCapacity',
+    'cargoCapacity',
+    'systemSlots',
+    'moduleSlots',
+    // pilot
+    'maxHp',
+    'maxAp',
+    'inventorySlots',
+  ])
+  .describe('The mech, pilot or slot-count stat a contribution raises or lowers')
 
 /**
  * Whose stat a contribution changes.
@@ -462,7 +445,9 @@ export const ContributionStatSchema = z.enum([
  * Max HP and Inventory — one record, two targets, which no single-target shape
  * could express.
  */
-export const ContributionTargetSchema = z.enum(['self', 'pilot', 'pilotedMech', 'crawler'])
+export const ContributionTargetSchema = z
+  .enum(['self', 'pilot', 'pilotedMech', 'crawler'])
+  .describe('Whose stat a contribution changes — the declaring host, or a related entity')
 
 /**
  * How much a contribution is worth.
@@ -473,25 +458,29 @@ export const ContributionTargetSchema = z.enum(['self', 'pilot', 'pilotedMech', 
  * amount needs the target's tech level, so a consumer that cannot supply one
  * resolves `perTechLevel` to 0 rather than guessing.
  */
-export const ContributionAmountSchema = z.union([
-  z.number().int(),
-  z
-    .object({
-      flat: z.number().int().describe('The constant part').optional(),
-      perTechLevel: z.number().int().describe("Multiplied by the target's tech level"),
-    })
-    .strict(),
-  z
-    .object({
-      /**
-       * The amount IS another of the target's stats. Hull Magnetiser increases
-       * Cargo Capacity "by its System Slot Value" — a number that changes with
-       * the chassis, so it cannot be written as a constant.
-       */
-      fromStat: ContributionStatSchema,
-    })
-    .strict(),
-])
+export const ContributionAmountSchema = z
+  .union([
+    z.number().int(),
+    z
+      .object({
+        flat: z.number().int().describe('The constant part').optional(),
+        perTechLevel: z.number().int().describe("Multiplied by the target's tech level"),
+      })
+      .strict(),
+    z
+      .object({
+        /**
+         * The amount IS another of the target's stats. Hull Magnetiser increases
+         * Cargo Capacity "by its System Slot Value" — a number that changes with
+         * the chassis, so it cannot be written as a constant.
+         */
+        fromStat: ContributionStatSchema,
+      })
+      .strict(),
+  ])
+  .describe(
+    'How much a contribution is worth: a flat integer, a per-tech-level formula, or another of the target stats'
+  )
 
 /**
  * A single mechanical contribution a piece of content makes to a stat
@@ -542,11 +531,10 @@ export const ContributionSchema = z
  * Fly Trait": declared as a self-effect it would say the Bio-Wings *system*
  * flies, which is wrong rather than merely incomplete.
  */
-export const EffectTargetSchema = z.enum(['self', 'hostMech'])
+export const EffectTargetSchema = z
+  .enum(['self', 'hostMech'])
+  .describe('Whose state an effect changes — the declaring record, or the mech hosting it')
 
-/**
- * Choice effect schema — describes a mechanical effect applied when a choice option is selected
- */
 /**
  * A single mechanical effect of a choice option, discriminated by `op` so each
  * operation only permits the fields it actually uses (no `removeTrait` with an
@@ -558,36 +546,38 @@ export const EffectTargetSchema = z.enum(['self', 'hostMech'])
  * - `setRange`    — replace the Range datavalue.
  * - `addDamage`   — increase the Damage datavalue; optional `unit` (e.g. "SP").
  */
-export const ChoiceEffectSchema = z.discriminatedUnion('op', [
-  z
-    .object({
-      op: z.literal('addTrait'),
-      value: z.string(),
-      amount: z.union([z.string(), z.number()]).optional(),
-      target: EffectTargetSchema.describe('Defaults to `self` when absent').optional(),
-    })
-    .strict(),
-  z
-    .object({
-      op: z.literal('removeTrait'),
-      value: z.string(),
-      target: EffectTargetSchema.describe('Defaults to `self` when absent').optional(),
-    })
-    .strict(),
-  z
-    .object({
-      op: z.literal('setRange'),
-      value: z.union([z.string(), z.number()]),
-    })
-    .strict(),
-  z
-    .object({
-      op: z.literal('addDamage'),
-      value: z.union([z.string(), z.number()]),
-      unit: z.string().optional(),
-    })
-    .strict(),
-])
+export const ChoiceEffectSchema = z
+  .discriminatedUnion('op', [
+    z
+      .object({
+        op: z.literal('addTrait'),
+        value: z.string(),
+        amount: z.union([z.string(), z.number()]).optional(),
+        target: EffectTargetSchema.describe('Defaults to `self` when absent').optional(),
+      })
+      .strict(),
+    z
+      .object({
+        op: z.literal('removeTrait'),
+        value: z.string(),
+        target: EffectTargetSchema.describe('Defaults to `self` when absent').optional(),
+      })
+      .strict(),
+    z
+      .object({
+        op: z.literal('setRange'),
+        value: z.union([z.string(), z.number()]),
+      })
+      .strict(),
+    z
+      .object({
+        op: z.literal('addDamage'),
+        value: z.union([z.string(), z.number()]),
+        unit: z.string().optional(),
+      })
+      .strict(),
+  ])
+  .describe('A single mechanical effect applied when a choice option is selected')
 
 /**
  * A system or module that can be installed on a mech
@@ -723,24 +713,10 @@ const ChoiceSourceSchema = z.discriminatedUnion('kind', [
 ])
 
 /**
- * Choice schema (using z.lazy() for recursive reference to ContentSchema)
+ * Choice schema (z.lazy() defers building the shape; the type is inferred, never
+ * hand-annotated — see ContentBlockSchema for why).
  */
-export const ChoiceSchema: z.ZodType<{
-  id: string
-  name: string
-  choiceType?: 'permanent' | 'session' | 'freeform'
-  content?: z.infer<typeof ContentSchema>
-  rollTable?: string
-  schemaEntities?: string[]
-  schema?: z.infer<typeof SchemaNameSchema>[]
-  customSystemOptions?: z.infer<typeof SystemModuleSchema>[]
-  multiSelect?: boolean
-  choiceOptions?: z.infer<typeof ChoiceOptionSchema>[]
-  constraints?: z.infer<typeof ChoiceConstraintsSchema>
-  source?: z.infer<typeof ChoiceSourceSchema>
-  cardinality?: z.infer<typeof CardinalitySchema>
-  lifetime?: 'permanent' | 'session'
-}> = z
+export const ChoiceSchema = z
   .lazy(() =>
     z
       .object({
@@ -787,17 +763,12 @@ export const ChoiceSchema: z.ZodType<{
 /**
  * Array of choices
  */
-export const ChoicesSchema = z.array(ChoiceSchema)
+export const ChoicesSchema = z.array(ChoiceSchema).describe('Array of choices offered by an entity')
 
 /**
  * NPC associated with an entity
  */
-export const NpcSchema: z.ZodType<{
-  position: string
-  content?: z.infer<typeof ContentSchema>
-  hitPoints: z.infer<typeof NonNegativeIntegerSchema>
-  choices?: z.infer<typeof ChoicesSchema>
-}> = z
+export const NpcSchema = z
   .lazy(() =>
     z
       .object({
@@ -837,21 +808,11 @@ export const PatternDroneConfigSchema = z
   .describe('Named drone configuration for patterns with multiple drones')
 
 /**
- * Pattern schema (using z.lazy() for recursive reference)
+ * Pattern schema. The `z.lazy()` is load-bearing here: the shape references
+ * `AdditionalSourceSchema`, which is declared further down this file. The type is
+ * inferred, never hand-annotated — see ContentBlockSchema for why.
  */
-export const PatternSchema: z.ZodType<{
-  name: string
-  content?: z.infer<typeof ContentSchema>
-  legalStarting?: boolean
-  hidden?: boolean
-  source?: z.infer<typeof SourceSchema>
-  page?: z.infer<typeof PositiveIntegerSchema>
-  booklet?: string
-  additionalSources?: z.infer<typeof AdditionalSourceSchema>[]
-  systems: z.infer<typeof PatternSystemModuleSchema>[]
-  modules: z.infer<typeof PatternSystemModuleSchema>[]
-  drones?: z.infer<typeof PatternDroneConfigSchema>[]
-}> = z
+export const PatternSchema = z
   .lazy(() =>
     z
       .object({
@@ -907,37 +868,10 @@ export const DamageSchema = z
 const ActivationCurrencySchema = z.enum(['EP or AP', 'SP or HP', 'Variable'])
 
 /**
- * Action schema (using z.lazy() for recursive references)
+ * Action schema (z.lazy() defers building the shape; the type is inferred, never
+ * hand-annotated — see ContentBlockSchema for why).
  */
-export const ActionSchema: z.ZodType<{
-  id: string
-  name: string
-  content?: z.infer<typeof ContentSchema>
-  structurePoints?: number
-  energyPoints?: number
-  heatCapacity?: number
-  systemSlots?: number
-  moduleSlots?: number
-  cargoCapacity?: number
-  techLevel?: z.infer<typeof TechLevelSchema>
-  salvageValue?: number
-  displayName?: string
-  activationCost?: z.infer<typeof ActivationCostSchema>
-  range?: z.infer<typeof RangeSchema>
-  actionType?: z.infer<typeof ActionTypeSchema>
-  traits?: z.infer<typeof TraitSchema>[]
-  damage?: z.infer<typeof DamageSchema>
-  choices?: z.infer<typeof ChoiceSchema>[]
-  table?: z.infer<typeof TableSchema>
-  tableName?: string
-  hidden?: boolean
-  activationCurrency?: z.infer<typeof ActivationCurrencySchema>
-  source?: z.infer<typeof SourceSchema>
-  page?: z.infer<typeof PositiveIntegerSchema>
-  actionSource?: z.infer<typeof SchemaNameSchema>
-  drone?: string
-  requiredTraits?: string[]
-}> = z
+export const ActionSchema = z
   .lazy(() =>
     z
       .object({
@@ -974,10 +908,6 @@ export const ActionSchema: z.ZodType<{
         page: PositiveIntegerSchema.describe('Page number in the source book').optional(),
         actionSource: SchemaNameSchema.describe('Schema this action originates from').optional(),
         drone: z.string().describe('Drone name this action is associated with').optional(),
-        requiredTraits: z
-          .array(z.string())
-          .describe('Trait names required to use this action')
-          .optional(),
       })
       .strict()
   )
@@ -1143,26 +1073,7 @@ const GuideStepTypeSchema = z.enum([
 /**
  * A single step in a guide
  */
-export const GuideStepSchema: z.ZodType<{
-  id: string
-  name: string
-  stepType: z.infer<typeof GuideStepTypeSchema>
-  section?: string
-  content?: z.infer<typeof ContentSchema>
-  schema?: z.infer<typeof SchemaNameWithActionsSchema>[]
-  schemaEntities?: string[]
-  schemaField?: string
-  rollTable?: string
-  choiceOptions?: z.infer<typeof ChoiceOptionSchema>[]
-  filters?: z.infer<typeof GuideStepFilterSchema>[]
-  constraints?: z.infer<typeof ChoiceConstraintsSchema>
-  dependsOn?: string[]
-  contextFrom?: string
-  guideRef?: string
-  optional?: boolean
-  paperOnly?: boolean
-  entityLayout?: 'sidebar'
-}> = z
+export const GuideStepSchema = z
   .lazy(() =>
     z
       .object({
@@ -1197,16 +1108,6 @@ export const GuideStepSchema: z.ZodType<{
           .optional(),
         filters: z.array(GuideStepFilterSchema).optional(),
         constraints: ChoiceConstraintsSchema.optional(),
-        dependsOn: z
-          .array(z.string())
-          .describe('Step IDs that must be completed before this step')
-          .optional(),
-        contextFrom: z
-          .string()
-          .describe(
-            'Step ID whose result provides context (e.g., chassis selection provides patterns)'
-          )
-          .optional(),
         guideRef: z.string().describe('ID of another guide to execute as a sub-guide').optional(),
         optional: z.boolean().optional(),
         paperOnly: z

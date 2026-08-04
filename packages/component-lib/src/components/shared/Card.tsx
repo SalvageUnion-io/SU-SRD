@@ -43,9 +43,6 @@ type CardProps = {
   status?: EntityStatus
   /** Cycle handler for the status badge (Intact → Damaged → Destroyed) */
   onStatusClick?: () => void
-  /** Entity name for the status badge's accessible label, so multiple badges
-   * on one page get distinct accessible names */
-  statusSubject?: string
   /** Expansion slot rendered after the body, before the footer (design-spec
    * §2.1 `.ec__expand`) — ability trees, integrated systems, bay crew insets.
    * Hidden in listing/head mode like the body. */
@@ -161,7 +158,6 @@ export function Card({
   extent,
   status,
   onStatusClick,
-  statusSubject,
   expand,
   footMeta,
   onCardClick,
@@ -182,10 +178,7 @@ export function Card({
   // `status` is presentational sugar over the controls API: it folds into a
   // status CONTROL so the condition badge has exactly ONE implementation (the
   // shared rail), rather than a second inline rendering inside the header row.
-  const railControls = foldStatusControl(controls, status, {
-    onClick: onStatusClick,
-    subject: statusSubject,
-  })
+  const railControls = foldStatusControl(controls, status, { onClick: onStatusClick })
 
   // Resolve card-level click: onCardClick prop → fallback to controls with
   // cardClick (when multiple controls set it, the last one wins).

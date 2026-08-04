@@ -87,8 +87,3 @@ export function resolveModuleRef(ref: string) {
 export function resolveInstalledRef(ref: string) {
   return resolveSystemRef(ref) ?? resolveModuleRef(ref)
 }
-
-/** Display name for a ref: the resolved entity's name, else the raw ref. */
-export function refDisplayName(ref: string): string {
-  return resolveInstalledRef(ref)?.name ?? ref
-}

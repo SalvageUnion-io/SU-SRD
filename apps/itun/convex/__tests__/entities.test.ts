@@ -213,6 +213,7 @@ describe('the crawler is communal and merges per field', () => {
       async (ctx) =>
         await ctx.db.insert('crawlers', {
           gameId,
+          appId: 'c1',
           // Shape probed against CrawlerSchema, not guessed: techLevel is a
           // STRING here, there is no `modules` key, and `systems` is required.
           body: {
@@ -228,11 +229,14 @@ describe('the crawler is communal and merges per field', () => {
         })
     )
 
-    await organizer.as.mutation(api.entities.patchCrawler, {
-      crawlerId,
+    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
+      appId: 'c1',
       patch: { name: 'Tenacity' },
     })
-    await player.as.mutation(api.entities.patchCrawler, { crawlerId, patch: { techLevel: '2' } })
+    await player.as.mutation(api.entities.patchCrawlerByAppId, {
+      appId: 'c1',
+      patch: { techLevel: '2' },
+    })
 
     const row = await t.run(async (ctx) => await ctx.db.get(crawlerId))
     const body = row?.body as { name: string; techLevel: string; id: string }
@@ -248,12 +252,16 @@ describe('the crawler is communal and merges per field', () => {
     const t = testConvex()
     const { gameId } = await seedGame(t)
     const outsider = await makeUser(t, 'Outsider')
-    const crawlerId = await t.run(
-      async (ctx) => await ctx.db.insert('crawlers', { gameId, body: {}, updatedAt: 1 })
+    await t.run(
+      async (ctx) =>
+        await ctx.db.insert('crawlers', { gameId, appId: 'c1', body: {}, updatedAt: 1 })
     )
 
     await expect(
-      outsider.as.mutation(api.entities.patchCrawler, { crawlerId, patch: { scrap: 999 } })
+      outsider.as.mutation(api.entities.patchCrawlerByAppId, {
+        appId: 'c1',
+        patch: { scrap: 999 },
+      })
     ).rejects.toThrow(/not a member/i)
   })
 })

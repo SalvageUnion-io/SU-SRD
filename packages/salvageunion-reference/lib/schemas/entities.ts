@@ -154,7 +154,6 @@ export const CrawlerBayCostSchema = z
     scrap: NonNegativeIntegerSchema.describe(
       'Amount of Scrap required to build this bay'
     ).optional(),
-    scrapTechLevel: TechLevelSchema.describe('Tech level of the Scrap required').optional(),
     bioSalvage: NonNegativeIntegerSchema.describe(
       'Amount of Bio-Salvage required to build this bay'
     ).optional(),
@@ -495,14 +494,9 @@ export const GuideSchema = BaseEntitySchema.extend({
  * Source books and expansions
  */
 export const SourceEntitySchema = BaseEntitySchema.extend({
-  purchaseLink: z.string().url().describe('URL where this source can be purchased').optional(),
   version: z
     .string()
     .describe('Printing/edition of the source this dataset reflects (e.g. "1.5")')
-    .optional(),
-  verifiedAgainst: z
-    .string()
-    .describe('ISO date the dataset was last verified against this printing')
     .optional(),
 })
   .strict()

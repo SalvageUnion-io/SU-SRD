@@ -508,7 +508,8 @@
                           "required": ["op", "value"],
                           "additionalProperties": false
                         }
-                      ]
+                      ],
+                      "description": "A single mechanical effect applied when a choice option is selected"
                     }
                   }
                 },
@@ -574,15 +575,6 @@
                 }
               },
               "additionalProperties": false
-            },
-            "dependsOn": {
-              "type": "array",
-              "items": { "type": "string" },
-              "description": "Step IDs that must be completed before this step"
-            },
-            "contextFrom": {
-              "type": "string",
-              "description": "Step ID whose result provides context (e.g., chassis selection provides patterns)"
             },
             "guideRef": {
               "type": "string",

@@ -468,7 +468,6 @@
     "actionType": "Long",
     "activationCost": 1,
     "name": "Area Salvage",
-    "requiredTraits": ["salvaging"],
     "content": [
       {
         "type": "paragraph",
@@ -5253,7 +5252,6 @@
     "range": ["Close"],
     "actionType": "Short",
     "name": "Load",
-    "requiredTraits": ["rigging"],
     "content": [
       {
         "type": "paragraph",
@@ -5575,7 +5573,6 @@
     "range": ["Close"],
     "actionType": "Long",
     "name": "Mech Salvage",
-    "requiredTraits": ["salvaging"],
     "content": [
       {
         "type": "paragraph",
@@ -6217,7 +6214,6 @@
     "range": ["Close"],
     "actionType": "Long",
     "name": "Mount",
-    "requiredTraits": ["rigging"],
     "content": [
       {
         "type": "paragraph",
@@ -7075,7 +7071,6 @@
     "range": ["Close"],
     "actionType": "Long",
     "name": "Patch Up",
-    "requiredTraits": ["rigging"],
     "content": [
       {
         "type": "paragraph",
@@ -8168,7 +8163,6 @@
     "range": ["Close"],
     "actionType": "Long",
     "name": "Repair",
-    "requiredTraits": ["rigging"],
     "content": [
       {
         "type": "paragraph",
@@ -8524,7 +8518,6 @@
     "range": ["Close"],
     "actionType": "Short",
     "name": "Scrap",
-    "requiredTraits": ["salvaging"],
     "content": [
       {
         "type": "paragraph",

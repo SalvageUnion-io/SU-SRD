@@ -61,14 +61,35 @@ bun run build:package    # Reference package only
 bun run lint
 bun run format        # bun run format:check to verify only
 bun run typecheck
-bun test
+bun run test          # never bare `bun test` at the root — it skips the
+                      # per-workspace bunfig preloads and fails by the hundreds
 bun run validate:all  # Data integrity: IDs, cross-refs, action refs
 bun run check:all     # Full CI suite (lint, format, typecheck, test, validate, knip)
 ```
 
-All root scripts use `bun --filter` to target workspaces; you can also run a
-script in a single workspace directly, e.g. `bun --filter srd build` or
-`bun --filter salvageunion-reference test`.
+The root scripts are the aggregates only — there are deliberately no
+per-workspace `lint:*` / `test:*` / `typecheck:*` aliases. To scope any of them
+to one workspace, call it directly: `bun --filter srd build`,
+`bun --filter component-lib lint`, `bun --filter salvageunion-reference test`.
+
+### Local-only diagnostics
+
+These read the copyright-bearing rulebook PDFs in `rules/`, which are gitignored
+and therefore unavailable to CI. They are advisory: read the findings, do not
+apply them blind.
+
+```bash
+bun run rules:extract        # PDF → rules/extracted/ text layer (prerequisite)
+bun run rules:regen          # regenerate the docs/rules/ agent digest
+bun run check:printed-names  # diff every entity name + page against the Core
+                             # Book index; run after a data import or a bulk
+                             # name/page edit, not on a schedule
+```
+
+With no extract present `check:printed-names` prints a notice and exits 0.
+Deviations it has already been told about live in
+`packages/salvageunion-reference/lib/printedNameDeviations.ts`, which is shared
+with the test that enforces them.
 
 ## Making Changes to salvageunion-reference
 

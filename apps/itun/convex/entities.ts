@@ -177,32 +177,6 @@ export const listForGame = query({
   },
 })
 
-/** The caller's own shelf — entities that belong to them and to no Game. */
-export const listShelf = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await requireUser(ctx)
-
-    const pilots = (
-      await ctx.db
-        .query('pilots')
-        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
-        .collect()
-    ).filter((p) => p.gameId === null)
-    const mechs = (
-      await ctx.db
-        .query('mechs')
-        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
-        .collect()
-    ).filter((m) => m.gameId === null)
-
-    return {
-      pilots: pilots.map((p) => ({ _id: p._id, body: p.body })),
-      mechs: mechs.map((m) => ({ _id: m._id, body: m.body })),
-    }
-  },
-})
-
 /**
  * Create an entity, on the caller's shelf or in a Game they belong to.
  *
@@ -267,18 +241,6 @@ export const update = mutation({
   },
 })
 
-export const remove = mutation({
-  args: { table: OWNABLE, entityId: v.string() },
-  handler: async (ctx, args): Promise<void> => {
-    const userId = await requireUser(ctx)
-    const doc = await ctx.db.get(args.entityId as Id<'pilots'> | Id<'mechs'>)
-    if (doc === null) return
-
-    assertMayWrite(doc as Doc<'pilots'> | Doc<'mechs'>, userId)
-    await ctx.db.delete(doc._id)
-  },
-})
-
 /**
  * Raise a Union Crawler in this Game. Table runner only.
  *
@@ -331,38 +293,6 @@ export const removeCrawler = mutation({
     if (doc === null) return
     await requireTableRunner(ctx, doc.gameId)
     await ctx.db.delete(args.crawlerId)
-  },
-})
-
-/**
- * Write the communal crawler with a **field-level merge** (D19).
- *
- * Last-write-wins would be wrong here in a way that shows up on exactly the
- * night it matters: during Downtime the whole crew touches the crawler within
- * the same few minutes, and a full-body write would silently discard whichever
- * member happened to lose the race. Merging per top-level field means two
- * people editing different things both succeed, and only a genuine same-field
- * collision contends.
- */
-export const patchCrawler = mutation({
-  args: {
-    crawlerId: v.id('crawlers'),
-    patch: v.any(),
-  },
-  handler: async (ctx, args): Promise<void> => {
-    const doc = await ctx.db.get(args.crawlerId)
-    if (doc === null) throw new Error('That crawler no longer exists')
-
-    // Communal: membership is the whole check. No ownerId to consult.
-    await requireMember(ctx, doc.gameId)
-
-    const merged = { ...(doc.body as Record<string, unknown>), ...(args.patch as object) }
-    const result = CrawlerSchema.safeParse(merged)
-    if (!result.success) {
-      throw new Error(`Invalid crawler payload: ${result.error.issues[0]?.message ?? 'unknown'}`)
-    }
-
-    await ctx.db.patch(args.crawlerId, { body: result.data, updatedAt: Date.now() })
   },
 })
 
@@ -584,13 +514,19 @@ export const upsertByAppId = mutation({
 })
 
 /**
- * Mirror a local crawler write, addressed by app id, as a field-level merge.
+ * Mirror a local crawler write, addressed by app id, as a **field-level merge**
+ * (D19).
  *
  * The crawler needs its own mirror because it is the one entity whose local
  * edits are legitimate from *any* member — "players can only edit fields" is
- * only true end to end if those edits actually arrive. Routing them through the
- * same merge `patchCrawler` uses is what keeps two people editing scrap and
- * cargo in the same minute from overwriting each other.
+ * only true end to end if those edits actually arrive.
+ *
+ * Last-write-wins would be wrong here in a way that shows up on exactly the
+ * night it matters: during Downtime the whole crew touches the crawler within
+ * the same few minutes, and a full-body write would silently discard whichever
+ * member happened to lose the race. Merging per top-level field means two
+ * people editing different things both succeed, and only a genuine same-field
+ * collision contends.
  *
  * Unlike the ownable tables this **never inserts**. A missing row means the
  * crawler is not in this Game — either it is a purely local build (Solo, or on

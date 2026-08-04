@@ -3,8 +3,7 @@
  * §4.4, plan 4.6; redesigned to the poster layout, Phase 2).
  *
  * The body OWNS the identity band now (Workshop-Manual crawler sheet):
- * SheetCrawler passes NO `renderHero`, and this body renders `SheetHero` in
- * band mode as its first region (wrapped with the shell's `heroRef`).
+ * This body renders `SheetHero` in band mode as its first region.
  * Following the printed sheet (`Editable_..._Crawler_Sheets.pdf`), the sheet is
  * a single-column region stack, inside the same `@container` shape
  * PilotSheet/MechSheet use:
@@ -65,7 +64,7 @@
  */
 
 import { useState } from 'react'
-import type { ReactNode, Ref } from 'react'
+import type { ReactNode } from 'react'
 import { ReferenceEntityCard, SheetHero, Stat } from 'component-lib'
 
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
@@ -102,12 +101,6 @@ type CrawlerSheetProps = {
   /** Suppresses every edit affordance (published snapshots). */
   readOnly?: boolean
   /**
-   * Marks the body's first region. VESTIGIAL: the sticky bar condenses off its
-   * own 1px sentinel now, so nothing observes this. Undefined in bare test
-   * renders (no shell).
-   */
-  heroRef?: Ref<HTMLElement>
-  /**
    * The economy band content (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade
    * lozenges) — built by `SheetCrawler` (it owns the economy-dialog state
    * and `patch`), rendered as the identity band's vitals rail. Undefined
@@ -128,7 +121,6 @@ export function CrawlerSheet({
   mech = null,
   store = useEntityStore,
   readOnly = false,
-  heroRef,
   economy,
   linkedUnits,
 }: CrawlerSheetProps) {
@@ -345,10 +337,8 @@ export function CrawlerSheet({
         {/* ===== Identity Band (Workshop-Manual crawler sheet top region) =====
             Edge wordmark ∥ Name/Type/Ability/Description fields ∥ the Economy
             rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts), in one
-            toned frame — no name pseudoheader stamp. Carries the shell's
-            condense sentinel (heroRef). */}
+            toned frame — no name pseudoheader stamp. */}
         <SheetHero
-          heroRef={heroRef}
           cat="Crawler"
           name={crawler.name}
           fields={

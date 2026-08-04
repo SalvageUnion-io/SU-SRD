@@ -2,9 +2,8 @@
  * SheetCrawler — the crawler branch of the live sheet (extracted from
  * Sheet.tsx, audit item 19; redesigned to the poster layout, Phase 2).
  *
- * The body owns the identity band now (Workshop-Manual layout): SheetCrawler
- * passes NO `renderHero`, and `CrawlerSheet` renders the `SheetHero` band as
- * its first region (wrapping it with the `heroRef` from `renderBody`).
+ * The body owns the identity band now (Workshop-Manual layout): `CrawlerSheet`
+ * renders the `SheetHero` band as its first region.
  * This component's remaining job is composing the economy band (the poster
  * `.econ` frame — `CrawlerEconFrame` — wrapping the SP `VitalGauge` + the
  * Tech-LVL/Upkeep/Upgrade/Trade/Crew lozenges, the R-4 action entry points),
@@ -277,16 +276,14 @@ export function SheetCrawler({
         name={crawler.name}
         strip={strip}
         back={back}
-        pill={{ label: 'Crawler', tone: 'crawler' }}
         segments={segments}
         actions={actions}
-        renderBody={({ heroRef }) => (
+        renderBody={() => (
           <CrawlerSheet
             crawler={crawler}
             mech={composition.mech}
             store={store}
             readOnly={readOnly}
-            heroRef={heroRef}
             economy={economy}
             linkedUnits={rail}
           />
