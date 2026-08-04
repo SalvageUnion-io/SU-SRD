@@ -323,7 +323,6 @@
         },
         "name": "Armament Bay Weapons System",
         "choiceType": "permanent",
-        "schema": ["systems"],
         "content": [
           {
             "type": "paragraph",

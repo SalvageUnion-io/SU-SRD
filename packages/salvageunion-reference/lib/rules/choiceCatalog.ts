@@ -5,7 +5,7 @@
  * A catalog choice names one or more schema collections and, optionally, a
  * filter. The two shapes:
  *
- * - **Shortlist** (`entities` / legacy `schemaEntities`) — a fixed set of named
+ * - **Shortlist** (`source.entities`) — a fixed set of named
  *   entities (e.g. Weapon Type → Ballistic / Energy). Resolved by name.
  * - **Schema-only** (no shortlist) — "pick any X from the collection", narrowed
  *   by `filter`. The Armament Bay's Weapons System is the canonical case: any
@@ -64,7 +64,12 @@ function byTechThenName(a: SURefMetaEntity, b: SURefMetaEntity): number {
   return an.localeCompare(bn)
 }
 
-/** The catalog fields, read from the unified `source` or the legacy fields. */
+/**
+ * The catalog fields, read from the unified `source` — never the legacy
+ * `schema`/`schemaEntities` duplicates. A reader that falls back to the legacy
+ * half keeps working right up to the moment the duplicate is deleted, and then
+ * quietly resolves an empty catalog.
+ */
 function catalogSpec(choice: SURefObjectChoice): {
   schema?: CatalogSchema
   shortlist?: string[]
@@ -77,7 +82,7 @@ function catalogSpec(choice: SURefObjectChoice): {
       filter: choice.source.filter,
     }
   }
-  return { schema: choice.schema, shortlist: choice.schemaEntities }
+  return {}
 }
 
 /**

@@ -5,14 +5,33 @@
 import type { SURefEntity, SURefEnumSchemaName } from './types/index.js'
 import { getSchemaCatalog, getDataMaps } from './ModelFactory.js'
 import { extractActions } from './utilities.js'
-import { SchemaNameSchema } from './schemas/enums.js'
 
-/** Runtime membership set for the canonical schema-name enum. */
-const SCHEMA_NAME_SET: ReadonlySet<string> = new Set(SchemaNameSchema.options)
+/** Lazily-built membership set: the non-meta schema catalog ids. */
+let indexableSchemaNames: ReadonlySet<string> | null = null
 
-/** Type guard: is this catalog id a canonical SURefEnumSchemaName? */
-function isSchemaName(id: string): id is SURefEnumSchemaName {
-  return SCHEMA_NAME_SET.has(id)
+/**
+ * Type guard: is this string a canonical, indexable schema name?
+ *
+ * Membership is the NON-META schema catalog — exactly the set entity pages, the
+ * search index and catalog tiles are generated from, and a strict subset of the
+ * `SchemaNameSchema` enum (which also carries the meta-only
+ * `ability-tree-requirements`). Narrowing on the catalog rather than the enum is
+ * what makes this usable as an untrusted-input guard.
+ *
+ * @public — the canonical implementation. `apps/discord-bot/src/schemaName.ts`
+ * and `packages/component-lib/src/catalog/schemaName.ts` each carry a
+ * byte-equivalent fork of it; they exist only because it was not exported.
+ *
+ * `getSchemaCatalog()` reads the static schema index and needs no `preload()`,
+ * so this is safe from any build-time or test context.
+ */
+export function isSchemaName(id: string): id is SURefEnumSchemaName {
+  indexableSchemaNames ??= new Set(
+    getSchemaCatalog()
+      .schemas.filter((s) => !s.meta)
+      .map((s) => s.id)
+  )
+  return indexableSchemaNames.has(id)
 }
 
 export interface SearchOptions {
@@ -188,9 +207,13 @@ export interface SearchResult {
 }
 
 /**
- * Extract all text from content blocks recursively
+ * Extract all text from content blocks recursively.
+ *
+ * @public — the canonical implementation of "flatten a ContentBlock tree to
+ * searchable text". `apps/srd/src/lib/searchIndexBuild.ts` carries a verbatim
+ * fork (its own comment says so); it exists only because this was not exported.
  */
-function extractContentText(content: unknown): string {
+export function extractContentText(content: unknown): string {
   if (!content) return ''
 
   if (Array.isArray(content)) {
@@ -224,8 +247,15 @@ function extractContentText(content: unknown): string {
 /**
  * True when `token` is within edit distance 1 of `word` (insert, delete, or
  * substitute one character). Two-pointer scan — no DP table, O(len) time.
+ *
+ * @public — the canonical typo-tolerance primitive. `apps/srd`'s
+ * `searchCompactIndex.ts` carries a verbatim port (its own comment says
+ * "ported verbatim from search.ts"); it exists only because this was not
+ * exported. Ranking parity between the ORM-backed search and the compact
+ * client index depends on the two behaving identically, which is exactly the
+ * thing a fork cannot guarantee.
  */
-function withinEditDistance1(token: string, word: string): boolean {
+export function withinEditDistance1(token: string, word: string): boolean {
   const lenDiff = token.length - word.length
   if (lenDiff < -1 || lenDiff > 1) return false
   // Walk both strings past the common prefix, then compare the remainder
@@ -238,8 +268,14 @@ function withinEditDistance1(token: string, word: string): boolean {
   return token.slice(i) === word.slice(i + 1) // insert into token
 }
 
-/** Minimum token length before typo (edit-distance-1) matching applies. */
-const TYPO_MIN_TOKEN_LENGTH = 4
+/**
+ * Minimum token length before typo (edit-distance-1) matching applies.
+ *
+ * @public — paired with {@link withinEditDistance1}; `apps/srd`'s
+ * `searchCompactIndex.ts` re-declares it, and a fork that drifts changes
+ * ranking silently.
+ */
+export const TYPO_MIN_TOKEN_LENGTH = 4
 
 /**
  * Calculate a relevance score for a search match.

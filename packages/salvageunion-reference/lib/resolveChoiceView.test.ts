@@ -21,9 +21,13 @@ type ResolvableEntity = {
   choices?: SURefObjectChoice[]
 }
 
-type ChoiceOption = NonNullable<SURefObjectChoice['choiceOptions']>[number]
+type OptionsSource = Extract<NonNullable<SURefObjectChoice['source']>, { kind: 'options' }>
+type ChoiceOption = OptionsSource['options'][number]
 type ChoiceEffect = NonNullable<ChoiceOption['effects']>[number]
-type ChoiceConstraints = NonNullable<SURefObjectChoice['constraints']>
+type Cardinality = NonNullable<SURefObjectChoice['cardinality']>
+
+/** An optional multi-pick choice ("take as many modifications as you like"). */
+const OPTIONAL_MULTI: Cardinality = { min: 0, max: 99 }
 
 // --- fixture builders -------------------------------------------------------
 
@@ -54,32 +58,34 @@ const option = (value: string, effects?: ChoiceEffect[]): ChoiceOption => ({
   ...(effects ? { effects } : {}),
 })
 
+/** An inline structured option list — `source.kind: 'options'`. */
 function optionChoice(
   id: string,
   options: ChoiceOption[],
-  opts: { name?: string; multiSelect?: boolean; constraints?: ChoiceConstraints } = {}
+  opts: { name?: string; cardinality?: Cardinality } = {}
 ): SURefObjectChoice {
   return {
     id,
     name: opts.name ?? id,
-    choiceOptions: options,
-    ...(opts.multiSelect ? { multiSelect: true } : {}),
-    ...(opts.constraints ? { constraints: opts.constraints } : {}),
+    source: { kind: 'options', options },
+    ...(opts.cardinality ? { cardinality: opts.cardinality } : {}),
   }
 }
 
-/** A trait-schema choice (e.g. Weapon Type → Ballistic / Energy): the resolver
- * infers `addTrait <selectedName>`, and an unresolved exclusive one is required. */
+/** A shortlist catalog choice — `source.kind: 'catalog'` with named `entities`
+ * (e.g. Weapon Type → Ballistic / Energy): the resolver infers
+ * `addTrait <selectedName>`, and an unresolved one with no declared cardinality
+ * is required. */
 function traitSchemaChoice(
   id: string,
   entities: string[],
-  opts: { name?: string; multiSelect?: boolean } = {}
+  opts: { name?: string; cardinality?: Cardinality } = {}
 ): SURefObjectChoice {
   return {
     id,
     name: opts.name ?? id,
-    schemaEntities: entities,
-    ...(opts.multiSelect ? { multiSelect: true } : {}),
+    source: { kind: 'catalog', entities },
+    ...(opts.cardinality ? { cardinality: opts.cardinality } : {}),
   }
 }
 
@@ -115,7 +121,9 @@ describe('resolveChoiceView — base datavalues', () => {
   it('does not mutate the source content block', () => {
     const e = entity({
       datavalues: DV,
-      choices: [optionChoice('mod', [option('boost', [addDamage(1)])], { multiSelect: true })],
+      choices: [
+        optionChoice('mod', [option('boost', [addDamage(1)])], { cardinality: OPTIONAL_MULTI }),
+      ],
     })
     const before = JSON.stringify(e.content)
     resolveChoiceView(e, { mod: ['boost'] })
@@ -127,7 +135,9 @@ describe('resolveChoiceView — setRange effect', () => {
   it('replaces the existing Range value', () => {
     const e = entity({
       datavalues: DV,
-      choices: [optionChoice('mod', [option('rf', [setRange('Far')])], { multiSelect: true })],
+      choices: [
+        optionChoice('mod', [option('rf', [setRange('Far')])], { cardinality: OPTIONAL_MULTI }),
+      ],
     })
     const view = resolveChoiceView(e, { mod: ['rf'] })
     expect(range(view)).toBe('Far')
@@ -137,7 +147,9 @@ describe('resolveChoiceView — setRange effect', () => {
   it('creates a Range datavalue when none exists', () => {
     const e = entity({
       datavalues: [{ label: 'Damage', type: 'keyword', value: 2 }],
-      choices: [optionChoice('mod', [option('rf', [setRange('Close')])], { multiSelect: true })],
+      choices: [
+        optionChoice('mod', [option('rf', [setRange('Close')])], { cardinality: OPTIONAL_MULTI }),
+      ],
     })
     const view = resolveChoiceView(e, { mod: ['rf'] })
     expect(range(view)).toBe('Close')
@@ -148,7 +160,9 @@ describe('resolveChoiceView — addDamage effect', () => {
   it('sums a numeric Damage value', () => {
     const e = entity({
       datavalues: DV,
-      choices: [optionChoice('mod', [option('hc', [addDamage(1)])], { multiSelect: true })],
+      choices: [
+        optionChoice('mod', [option('hc', [addDamage(1)])], { cardinality: OPTIONAL_MULTI }),
+      ],
     })
     expect(damage(resolveChoiceView(e, { mod: ['hc'] }))).toBe(3)
   })
@@ -156,7 +170,9 @@ describe('resolveChoiceView — addDamage effect', () => {
   it('sums when the base Damage is a numeric string', () => {
     const e = entity({
       datavalues: [{ label: 'Damage', type: 'keyword', value: '2' }],
-      choices: [optionChoice('mod', [option('hc', [addDamage(2)])], { multiSelect: true })],
+      choices: [
+        optionChoice('mod', [option('hc', [addDamage(2)])], { cardinality: OPTIONAL_MULTI }),
+      ],
     })
     expect(damage(resolveChoiceView(e, { mod: ['hc'] }))).toBe(4)
   })
@@ -164,7 +180,9 @@ describe('resolveChoiceView — addDamage effect', () => {
   it('creates a Damage datavalue with its unit when none exists', () => {
     const e = entity({
       datavalues: [{ label: 'Range', type: 'keyword', value: 'Long' }],
-      choices: [optionChoice('mod', [option('hc', [addDamage(1, 'SP')])], { multiSelect: true })],
+      choices: [
+        optionChoice('mod', [option('hc', [addDamage(1, 'SP')])], { cardinality: OPTIONAL_MULTI }),
+      ],
     })
     const view = resolveChoiceView(e, { mod: ['hc'] })
     expect(damage(view)).toBe(1)
@@ -174,7 +192,9 @@ describe('resolveChoiceView — addDamage effect', () => {
   it('concatenates with the unit when the base Damage is non-numeric', () => {
     const e = entity({
       datavalues: [{ label: 'Damage', type: 'keyword', value: '2d6' }],
-      choices: [optionChoice('mod', [option('hc', [addDamage(1, 'SP')])], { multiSelect: true })],
+      choices: [
+        optionChoice('mod', [option('hc', [addDamage(1, 'SP')])], { cardinality: OPTIONAL_MULTI }),
+      ],
     })
     expect(damage(resolveChoiceView(e, { mod: ['hc'] }))).toBe('2d6 / +1 SP')
   })
@@ -184,7 +204,9 @@ describe('resolveChoiceView — addTrait effect', () => {
   it('adds a new trait', () => {
     const e = entity({
       choices: [
-        optionChoice('mod', [option('dd', [addTrait('Anti-Organic')])], { multiSelect: true }),
+        optionChoice('mod', [option('dd', [addTrait('Anti-Organic')])], {
+          cardinality: OPTIONAL_MULTI,
+        }),
       ],
     })
     expect(traitTypes(resolveChoiceView(e, { mod: ['dd'] }))).toEqual(['Anti-Organic'])
@@ -193,7 +215,9 @@ describe('resolveChoiceView — addTrait effect', () => {
   it('adds a trait carrying an amount', () => {
     const e = entity({
       choices: [
-        optionChoice('mod', [option('napalm', [addTrait('Burn', 1)])], { multiSelect: true }),
+        optionChoice('mod', [option('napalm', [addTrait('Burn', 1)])], {
+          cardinality: OPTIONAL_MULTI,
+        }),
       ],
     })
     expect(traitAmount(resolveChoiceView(e, { mod: ['napalm'] }), 'Burn')).toBe(1)
@@ -203,7 +227,9 @@ describe('resolveChoiceView — addTrait effect', () => {
     const e = entity({
       traits: [{ type: 'Explosive', amount: 1 }],
       choices: [
-        optionChoice('mod', [option('boom', [addTrait('Explosive', 2)])], { multiSelect: true }),
+        optionChoice('mod', [option('boom', [addTrait('Explosive', 2)])], {
+          cardinality: OPTIONAL_MULTI,
+        }),
       ],
     })
     const view = resolveChoiceView(e, { mod: ['boom'] })
@@ -215,7 +241,9 @@ describe('resolveChoiceView — addTrait effect', () => {
     const e = entity({
       traits: [{ type: 'Ballistic' }],
       choices: [
-        optionChoice('mod', [option('again', [addTrait('Ballistic')])], { multiSelect: true }),
+        optionChoice('mod', [option('again', [addTrait('Ballistic')])], {
+          cardinality: OPTIONAL_MULTI,
+        }),
       ],
     })
     expect(traitTypes(resolveChoiceView(e, { mod: ['again'] }))).toEqual(['Ballistic'])
@@ -227,7 +255,9 @@ describe('resolveChoiceView — removeTrait effect', () => {
     const e = entity({
       traits: [{ type: 'Heavy' }, { type: 'Missile' }],
       choices: [
-        optionChoice('mod', [option('portable', [removeTrait('Heavy')])], { multiSelect: true }),
+        optionChoice('mod', [option('portable', [removeTrait('Heavy')])], {
+          cardinality: OPTIONAL_MULTI,
+        }),
       ],
     })
     expect(traitTypes(resolveChoiceView(e, { mod: ['portable'] }))).toEqual(['Missile'])
@@ -237,7 +267,9 @@ describe('resolveChoiceView — removeTrait effect', () => {
     const e = entity({
       traits: [{ type: 'Missile' }],
       choices: [
-        optionChoice('mod', [option('portable', [removeTrait('Heavy')])], { multiSelect: true }),
+        optionChoice('mod', [option('portable', [removeTrait('Heavy')])], {
+          cardinality: OPTIONAL_MULTI,
+        }),
       ],
     })
     expect(traitTypes(resolveChoiceView(e, { mod: ['portable'] }))).toEqual(['Missile'])
@@ -253,7 +285,9 @@ describe('resolveChoiceView — inferred trait choices (schemaEntities)', () => 
   })
 
   it('adds one trait per selection for a multi-select trait-schema choice', () => {
-    const e = entity({ choices: [traitSchemaChoice('opt', ['A', 'B'], { multiSelect: true })] })
+    const e = entity({
+      choices: [traitSchemaChoice('opt', ['A', 'B'], { cardinality: OPTIONAL_MULTI })],
+    })
     expect(traitTypes(resolveChoiceView(e, { opt: ['A', 'B'] }))).toEqual(['A', 'B'])
   })
 })
@@ -285,7 +319,9 @@ describe('resolveChoiceView — prompts for unresolved choices', () => {
   })
 
   it('does not prompt for a multi-select choice with zero selections', () => {
-    const e = entity({ choices: [traitSchemaChoice('opt', ['A', 'B'], { multiSelect: true })] })
+    const e = entity({
+      choices: [traitSchemaChoice('opt', ['A', 'B'], { cardinality: OPTIONAL_MULTI })],
+    })
     expect(resolveChoiceView(e, {}).prompts).toEqual([])
   })
 
@@ -294,18 +330,20 @@ describe('resolveChoiceView — prompts for unresolved choices', () => {
     expect(resolveChoiceView(e, {}).prompts).toEqual([])
   })
 
-  it('treats constraints.min > 0 as required and prompts', () => {
+  it('treats cardinality.min > 0 as required and prompts', () => {
     const e = entity({
-      choices: [optionChoice('mod', [option('a'), option('b')], { constraints: { min: 1 } })],
+      choices: [
+        optionChoice('mod', [option('a'), option('b')], { cardinality: { min: 1, max: 1 } }),
+      ],
     })
     expect(resolveChoiceView(e, {}).prompts[0]?.text).toBe('Choose: a or b')
   })
 
-  it('treats constraints.min === 0 as optional', () => {
+  it('treats cardinality.min === 0 as optional', () => {
     const e = entity({
       choices: [
         traitSchemaChoice('wt', ['A', 'B']),
-        optionChoice('opt', [option('x')], { constraints: { min: 0 } }),
+        optionChoice('opt', [option('x')], { cardinality: { min: 0, max: 1 } }),
       ],
     })
     const prompts = resolveChoiceView(e, {}).prompts
@@ -326,7 +364,7 @@ describe('resolveChoiceView — combined effects', () => {
             option('hc', [addDamage(1)]),
             option('dd', [addTrait('Anti-Organic')]),
           ],
-          { multiSelect: true }
+          { cardinality: OPTIONAL_MULTI }
         ),
       ],
     })
@@ -341,7 +379,7 @@ describe('resolveChoiceView — combined effects', () => {
       datavalues: DV,
       choices: [
         traitSchemaChoice('wt', ['Ballistic', 'Energy']),
-        optionChoice('mod', [option('rf', [setRange('Far')])], { multiSelect: true }),
+        optionChoice('mod', [option('rf', [setRange('Far')])], { cardinality: OPTIONAL_MULTI }),
       ],
     })
     const view = resolveChoiceView(e, { wt: ['Ballistic'], mod: ['rf'] })
@@ -354,7 +392,7 @@ describe('resolveChoiceView — combined effects', () => {
     const e = entity({
       choices: [
         traitSchemaChoice('wt', ['Ballistic', 'Energy']),
-        optionChoice('mod', [option('rf', [setRange('Far')])], { multiSelect: true }),
+        optionChoice('mod', [option('rf', [setRange('Far')])], { cardinality: OPTIONAL_MULTI }),
       ],
     })
     expect(resolveChoiceView(e, { mod: ['rf'] }).prompts[0]?.choiceId).toBe('wt')
@@ -366,7 +404,9 @@ describe('resolveChoiceView — purity and determinism', () => {
     const e = entity({
       traits: [{ type: 'Heavy' }],
       choices: [
-        optionChoice('mod', [option('dd', [addTrait('Anti-Organic')])], { multiSelect: true }),
+        optionChoice('mod', [option('dd', [addTrait('Anti-Organic')])], {
+          cardinality: OPTIONAL_MULTI,
+        }),
       ],
     })
     const view = resolveChoiceView(e, { mod: ['dd'] })
@@ -379,7 +419,7 @@ describe('resolveChoiceView — purity and determinism', () => {
       traits: [{ type: 'Heavy' }, { type: 'Explosive', amount: 1 }],
       choices: [
         optionChoice('mod', [option('p', [removeTrait('Heavy'), addTrait('Explosive', 2)])], {
-          multiSelect: true,
+          cardinality: OPTIONAL_MULTI,
         }),
       ],
     })
@@ -395,7 +435,7 @@ describe('resolveChoiceView — purity and determinism', () => {
         optionChoice(
           'mod',
           [option('rf', [setRange('Far')]), option('dd', [addTrait('Anti-Organic')])],
-          { multiSelect: true }
+          { cardinality: OPTIONAL_MULTI }
         ),
       ],
     })
@@ -415,7 +455,9 @@ describe('resolveChoiceView — edge cases', () => {
   it('ignores an unknown option value in the selections', () => {
     const e = entity({
       datavalues: DV,
-      choices: [optionChoice('mod', [option('real', [addTrait('T')])], { multiSelect: true })],
+      choices: [
+        optionChoice('mod', [option('real', [addTrait('T')])], { cardinality: OPTIONAL_MULTI }),
+      ],
     })
     const view = resolveChoiceView(e, { mod: ['nope'] })
     expect(view.traits).toEqual([])
@@ -425,7 +467,9 @@ describe('resolveChoiceView — edge cases', () => {
   it('ignores selections keyed by an unknown choice id', () => {
     const e = entity({
       datavalues: DV,
-      choices: [optionChoice('mod', [option('real', [addTrait('T')])], { multiSelect: true })],
+      choices: [
+        optionChoice('mod', [option('real', [addTrait('T')])], { cardinality: OPTIONAL_MULTI }),
+      ],
     })
     const view = resolveChoiceView(e, { bogus: ['x'] })
     expect(view.traits).toEqual([])
@@ -436,7 +480,7 @@ describe('resolveChoiceView — edge cases', () => {
   it('treats a selected option without effects as a no-op on the row', () => {
     const e = entity({
       datavalues: DV,
-      choices: [optionChoice('mod', [option('plain')], { multiSelect: true })],
+      choices: [optionChoice('mod', [option('plain')], { cardinality: OPTIONAL_MULTI })],
     })
     const view = resolveChoiceView(e, { mod: ['plain'] })
     expect(damage(view)).toBe(2)

@@ -682,7 +682,6 @@
         },
         "name": "A.I. Personality",
         "choiceType": "permanent",
-        "rollTable": "A.I. Personality",
         "content": [
           {
             "type": "paragraph",
@@ -759,7 +758,6 @@
         },
         "name": "A.I. Personality",
         "choiceType": "permanent",
-        "rollTable": "A.I. Personality",
         "content": [
           {
             "type": "paragraph",
@@ -783,7 +781,6 @@
         },
         "name": "A.I. Personality",
         "choiceType": "permanent",
-        "rollTable": "A.I. Personality",
         "content": [
           {
             "type": "paragraph",
@@ -832,30 +829,7 @@
           ]
         },
         "name": "Turret Model",
-        "choiceType": "permanent",
-        "customSystemOptions": [
-          {
-            "name": "Automated Machine Gun Turret",
-            "techLevel": 4,
-            "slotsRequired": 5,
-            "salvageValue": 2,
-            "actions": ["Automated Machine Gun Turret"]
-          },
-          {
-            "name": "Automated Green Laser Turret",
-            "techLevel": 4,
-            "slotsRequired": 9,
-            "salvageValue": 4,
-            "actions": ["Automated Green Laser Turret"]
-          },
-          {
-            "name": "Automated 120mm Cannon Turret",
-            "techLevel": 4,
-            "slotsRequired": 7,
-            "salvageValue": 3,
-            "actions": ["Automated 120mm Cannon Turret"]
-          }
-        ]
+        "choiceType": "permanent"
       }
     ],
     "name": "Automated Weapon Turret",
@@ -1260,9 +1234,7 @@
           ]
         },
         "name": "Bionic Senses",
-        "choiceType": "permanent",
-        "schemaEntities": ["Thermal Optics", "Zoom Optics", "IR Night Vision Optics"],
-        "schema": ["modules"]
+        "choiceType": "permanent"
       }
     ],
     "name": "Bionic Senses",
@@ -1353,9 +1325,7 @@
         },
         "lifetime": "session",
         "name": "Black Market Modules",
-        "choiceType": "session",
-        "schema": ["modules"],
-        "schemaEntities": ["Goflow Plant Growing System", "Corrupted Neuralink Module"]
+        "choiceType": "session"
       },
       {
         "id": "ae51286a-64c8-416f-a052-81ef0869d4cc",
@@ -1378,9 +1348,7 @@
         },
         "lifetime": "session",
         "name": "Black Market Systems",
-        "choiceType": "session",
-        "schema": ["systems"],
-        "schemaEntities": ["Napalm Launcher", "Rad Wave Generator"]
+        "choiceType": "session"
       },
       {
         "id": "3df10ce5-ef5d-44a5-8a64-949a6e56bed6",
@@ -1402,9 +1370,7 @@
         },
         "lifetime": "session",
         "name": "Black Market Pilot Equipment",
-        "choiceType": "session",
-        "schema": ["equipment"],
-        "schemaEntities": ["Blinding Blue Laser Rifle"]
+        "choiceType": "session"
       }
     ],
     "actionSource": "abilities"
@@ -2163,7 +2129,7 @@
     "actionType": "Passive",
     "choices": [
       {
-        "schema": ["chassis"],
+        "cardinality": { "min": 1, "max": 1 },
         "id": "8286393e-daf8-4a1d-8b91-dd8457da6251",
         "content": [
           {
@@ -2183,12 +2149,7 @@
           }
         },
         "name": "Chassis Choice",
-        "choiceType": "permanent",
-        "constraints": {
-          "field": "techLevel",
-          "min": 3,
-          "max": 4
-        }
+        "choiceType": "permanent"
       }
     ],
     "name": "Corpo Body Kit",
@@ -4144,7 +4105,6 @@
         },
         "name": "A.I. Personality",
         "choiceType": "permanent",
-        "rollTable": "A.I. Personality",
         "content": [
           {
             "type": "paragraph",
@@ -4357,7 +4317,6 @@
         },
         "name": "Additional Armament Bay Weapons System",
         "choiceType": "permanent",
-        "schema": ["systems"],
         "content": [
           {
             "type": "paragraph",
@@ -4553,7 +4512,7 @@
       {
         "name": "Industrial Body Kit Choice",
         "choiceType": "permanent",
-        "schema": ["chassis"],
+        "cardinality": { "min": 1, "max": 1 },
         "id": "ed8cb1b3-3b38-4c92-9f0c-2638356edfc7",
         "content": [
           {
@@ -4571,11 +4530,6 @@
             "min": 1,
             "max": 2
           }
-        },
-        "constraints": {
-          "field": "techLevel",
-          "min": 1,
-          "max": 2
         }
       }
     ],
@@ -5679,7 +5633,6 @@
         },
         "name": "A.I. Personality",
         "choiceType": "permanent",
-        "rollTable": "A.I. Personality",
         "content": [
           {
             "type": "paragraph",
@@ -8607,7 +8560,6 @@
         },
         "name": "A.I. Personality",
         "choiceType": "permanent",
-        "rollTable": "A.I. Personality",
         "content": [
           {
             "type": "paragraph",

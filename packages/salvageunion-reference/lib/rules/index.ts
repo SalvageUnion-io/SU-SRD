@@ -114,7 +114,6 @@ export {
   pilotMaxAP,
   isPilotDead,
   clampPilotCurrentStats,
-  installedStatBonus,
   mechMaxSP,
   mechMaxEP,
   mechMaxHeat,
@@ -129,6 +128,8 @@ export {
   mechMaxCargoParts,
   pilotMaxHPParts,
   pilotMaxAPParts,
+  pilotMaxInventorySlots,
+  pilotMaxInventorySlotsParts,
   clampCrawlerCurrentStats,
 } from './derivedStats.js'
 export type { ChassisStats, CrawlerMaxSPParts, StatBreakdown } from './derivedStats.js'

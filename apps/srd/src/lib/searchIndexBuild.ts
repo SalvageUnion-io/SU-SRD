@@ -16,25 +16,12 @@
  * corpus to the browser.
  */
 import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
-import { getEntitySlug } from 'salvageunion-reference'
-import { isSchemaName } from 'component-lib'
+// `extractContentText` and `isSchemaName` are the package's own primitives —
+// this module is Node-only and already loads the ORM, so importing them costs
+// nothing and keeps the index's field extraction byte-identical to the
+// ORM-backed `search()` it mirrors.
+import { extractContentText, getEntitySlug, isSchemaName } from 'salvageunion-reference'
 import type { CompactSearchEntry } from './searchIndexTypes'
-
-/** Recursively extract display text from a ContentBlock tree (mirrors
- *  salvageunion-reference's internal search.ts#extractContentText). */
-function extractContentText(content: unknown): string {
-  if (!content) return ''
-  if (Array.isArray(content)) return content.map(extractContentText).join(' ')
-  if (typeof content === 'object' && content !== null) {
-    let text = ''
-    if ('value' in content && typeof content.value === 'string') text += `${content.value} `
-    if ('label' in content && typeof content.label === 'string') text += `${content.label} `
-    if ('items' in content && Array.isArray(content.items))
-      text += extractContentText(content.items)
-    return text
-  }
-  return ''
-}
 
 const TEXT_FIELDS = ['description', 'effect', 'goals', 'assets', 'weaknesses'] as const
 

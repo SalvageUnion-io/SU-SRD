@@ -6,13 +6,18 @@ import {
   type SlashCommandSubcommandBuilder,
 } from 'discord.js'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions.js'
-import { search, getEntitySlug, findEntityBySlug, nameToSlug } from 'salvageunion-reference'
+import {
+  search,
+  getEntitySlug,
+  findEntityBySlug,
+  isSchemaName,
+  nameToSlug,
+} from 'salvageunion-reference'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 
 import { rollAgainRow } from '../customId.js'
 import { BRAND_NAME } from '../format.js'
 import { buildLookupEmbed } from '../lookupEmbed.js'
-import { isSchemaName } from '../schemaName.js'
 
 type Hit = {
   schemaName: SURefEnumSchemaName

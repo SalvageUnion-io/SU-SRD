@@ -66,6 +66,14 @@ export {
   invalidateSearchIndex,
   type SearchOptions,
   type SearchResult,
+  // Search primitives. Public because every consumer that needs them today has
+  // forked them instead (discord-bot + component-lib fork `isSchemaName`; srd
+  // forks `extractContentText`, `withinEditDistance1` and
+  // `TYPO_MIN_TOKEN_LENGTH`). One implementation, one behaviour.
+  isSchemaName,
+  extractContentText,
+  withinEditDistance1,
+  TYPO_MIN_TOKEN_LENGTH,
 } from './search.js'
 
 // Export the granted-equipment choice resolver (pure view computation)

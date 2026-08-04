@@ -63,7 +63,7 @@ describe('findUnresolvableRemoveTraitIssues', () => {
       {
         id: 'c',
         name: 'Mod',
-        choiceOptions: [{ label: 'O', value: 'O', effects }],
+        source: { kind: 'options', options: [{ label: 'O', value: 'O', effects }] },
       },
     ],
   })
@@ -87,18 +87,21 @@ describe('findUnresolvableRemoveTraitIssues', () => {
           {
             id: 'c',
             name: 'Mod',
-            choiceOptions: [
-              {
-                label: 'add',
-                value: 'add',
-                effects: [{ op: 'addTrait', value: 'Shielded' }],
-              },
-              {
-                label: 'rm',
-                value: 'rm',
-                effects: [{ op: 'removeTrait', value: 'Shielded' }],
-              },
-            ],
+            source: {
+              kind: 'options',
+              options: [
+                {
+                  label: 'add',
+                  value: 'add',
+                  effects: [{ op: 'addTrait', value: 'Shielded' }],
+                },
+                {
+                  label: 'rm',
+                  value: 'rm',
+                  effects: [{ op: 'removeTrait', value: 'Shielded' }],
+                },
+              ],
+            },
           },
         ],
       },

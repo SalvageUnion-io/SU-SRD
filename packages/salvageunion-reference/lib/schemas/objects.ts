@@ -374,48 +374,9 @@ export const PatternSystemModuleSchema = z
   .describe('System or module configuration within a pattern')
 
 /**
- * Explicit, per-installed-item bonuses a system/module applies to a mech's
- * derived core maxima. Each field is the FLAT amount this one installed item
- * adds to the corresponding mech maximum; consumers sum (bonus × installed
- * count) across all installed systems/modules.
- *
- * This is deliberately distinct from the absolute-stat fields in StatsSchema
- * (which describe an entity's own stats): these are signed modifiers applied to
- * the host mech. Only populate items whose rule text states a flat numeric
- * core-stat change (e.g. Cargo Pod +1 Cargo Capacity, Heat Sink +1 Max Heat,
- * Capacitance Bank +2 EP). Items with prose-only or conditional benefits get
- * no bonus data — never infer a number from prose.
- */
-export const MechStatBonusSchema = z
-  .object({
-    structurePoints: z
-      .number()
-      .int()
-      .describe('Flat bonus to the mech max Structure Points per installed item')
-      .optional(),
-    energyPoints: z
-      .number()
-      .int()
-      .describe('Flat bonus to the mech max Energy Points per installed item')
-      .optional(),
-    heatCapacity: z
-      .number()
-      .int()
-      .describe('Flat bonus to the mech max Heat Capacity per installed item')
-      .optional(),
-    cargoCapacity: z
-      .number()
-      .int()
-      .describe('Flat bonus to the mech Cargo Capacity per installed item')
-      .optional(),
-  })
-  .strict()
-  .describe('Flat per-installed-item bonuses this system/module applies to a mech’s derived maxima')
-
-/**
  * The stats a contribution may raise or lower (ADR-029).
  *
- * A superset of `MechStatBonusSchema`'s four keys: an ability can change a
+ * A superset of the four mech core maxima: an ability can change a
  * PILOT stat (Bionic Legs "+2 Max HP", Beefcake "+4 Inventory Capacity") or a
  * slot COUNT (Modular Face Implant "your Pilot gains a Module Slot"), neither of
  * which the mech-only shape could express.
@@ -592,15 +553,14 @@ export const SystemModuleSchema = StatsSchema.extend({
     .describe('Whether this is a recommended starting system/module')
     .optional(),
   count: NonNegativeIntegerSchema.describe('Number of this system/module installed').optional(),
-  statBonus: MechStatBonusSchema.describe(
-    'Explicit flat bonuses this item applies to the host mech’s derived maxima, summed per installed copy'
-  ).optional(),
   contributions: z
     .array(ContributionSchema)
     .describe(
-      'Contributions this item makes (ADR-029). Distinct from `statBonus`: these ' +
-        'carry a target, a duration and expression amounts, so they cover what a ' +
-        'flat per-copy bonus cannot.'
+      'Every flat mechanical change this item makes to a stat (ADR-029). This is ' +
+        'the ONE numeric encoding: the older `statBonus` shape — a bare per-copy ' +
+        'map with no target, duration or expression amounts — was a strict subset ' +
+        'of it, and two encodings summed independently by the same derivation is a ' +
+        'double-count waiting to be authored.'
     )
     .optional(),
   appliedEffects: z

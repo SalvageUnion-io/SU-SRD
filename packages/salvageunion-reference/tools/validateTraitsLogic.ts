@@ -72,13 +72,22 @@ function baseTraitTypes(entity: Entity): Set<string> {
 
 type Effect = { op: string; value: string }
 
-/** Effects declared on every `choices[].choiceOptions[].effects[]` of an entity. */
+/**
+ * Effects declared on every `choices[].source.options[].effects[]` of an entity.
+ *
+ * Reads the unified `source` encoding only — never the legacy `choiceOptions`
+ * duplicate. A validator that reads the legacy half stops seeing effects the
+ * moment the duplicate is removed, and reports a clean sweep over data it is no
+ * longer looking at.
+ */
 function collectChoiceEffects(entity: Entity): Effect[] {
   const effects: Effect[] = []
   if (!Array.isArray(entity.choices)) return effects
   for (const choice of entity.choices) {
-    if (!isObject(choice) || !Array.isArray(choice.choiceOptions)) continue
-    for (const option of choice.choiceOptions) {
+    if (!isObject(choice)) continue
+    const source = choice.source
+    if (!isObject(source) || source.kind !== 'options' || !Array.isArray(source.options)) continue
+    for (const option of source.options) {
       if (!isObject(option) || !Array.isArray(option.effects)) continue
       for (const effect of option.effects) {
         if (isObject(effect) && typeof effect.op === 'string') {

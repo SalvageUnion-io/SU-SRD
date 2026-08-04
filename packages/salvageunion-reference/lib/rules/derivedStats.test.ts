@@ -19,7 +19,6 @@ import {
   crawlerMaxSP,
   crawlerMaxSPParts,
   injuryMaxHpPenalty,
-  installedStatBonus,
   isPilotDead,
   mechMaxCargo,
   mechMaxEP,
@@ -27,8 +26,13 @@ import {
   mechMaxSP,
   pilotMaxHPParts,
   mechMaxSPParts,
+  mechMaxHeatParts,
+  mechMaxCargoParts,
   pilotMaxAP,
   pilotMaxHP,
+  pilotMaxInventorySlots,
+  pilotMaxInventorySlotsParts,
+  PILOT_BASE_INVENTORY_SLOTS,
   unifiedMechConditions,
 } from './derivedStats.js'
 import type { ChassisStats } from './derivedStats.js'
@@ -40,6 +44,7 @@ beforeAll(async () => {
     'chassis',
     'systems',
     'modules',
+    'abilities',
   ])
 })
 
@@ -173,14 +178,15 @@ describe('mech derivation', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Installed system/module stat bonuses (data-driven, real ORM items).
+// Installed system/module contributions (data-driven, real ORM items).
 //
-// Reference data (packages/salvageunion-reference/data/systems.json):
-//   Cargo Pod        -> statBonus.cargoCapacity = 1  (Core Book p.164)
-//   Transport Hold   -> statBonus.cargoCapacity = 4  (Core Book p.168)
-//   Heat Sink        -> statBonus.heatCapacity  = 1  (Core Book p.170)
-//   Capacitance Bank -> statBonus.energyPoints  = 2  (Core Book p.173)
-//   Composite Armour -> statBonus.structurePoints = 5  (Core Book p.173)
+// Reference data (packages/salvageunion-reference/data/systems.json) — each of
+// these declares ONE `contributions` entry, `target: 'self'`:
+//   Cargo Pod        -> cargoCapacity   +1  (Core Book p.164)
+//   Transport Hold   -> cargoCapacity   +4  (Core Book p.168)
+//   Heat Sink        -> heatCapacity    +1  (Core Book p.170)
+//   Capacitance Bank -> energyPoints    +2  (Core Book p.173)
+//   Composite Armour -> structurePoints +5  (Core Book p.173)
 // ---------------------------------------------------------------------------
 describe('cap overrides — absolute pins (ADR-022 amendment)', () => {
   const bare = { chassisRef: 'no-such-chassis' }
@@ -253,37 +259,88 @@ describe('cap overrides — absolute pins (ADR-022 amendment)', () => {
   })
 })
 
-describe('installed system/module stat bonuses', () => {
-  const bare = { chassisRef: 'no-such-chassis' }
+describe('pilot inventory capacity', () => {
+  // Pins the equivalence with the derivation this replaced (ITUN's
+  // pilotInventoryCapacity): base 6 + maxInventorySlotsModifier + ability
+  // contributions, floored at 0 — plus the override path that field never had.
+  it('is the rules base with no modifiers', () => {
+    expect(pilotMaxInventorySlots({})).toBe(PILOT_BASE_INVENTORY_SLOTS)
+    expect(PILOT_BASE_INVENTORY_SLOTS).toBe(6)
+  })
 
-  it('sums a single installed item bonus into the relevant maximum', () => {
+  it('adds the hand-edited modifier', () => {
+    expect(pilotMaxInventorySlots({ maxInventorySlotsModifier: 2 })).toBe(8)
+  })
+
+  it('never goes below 0', () => {
+    expect(pilotMaxInventorySlots({ maxInventorySlotsModifier: -20 })).toBe(0)
+  })
+
+  it("applies Beefcake's +4 inventorySlots as a NAMED source, not an anonymous total", () => {
+    const parts = pilotMaxInventorySlotsParts({ abilities: ['Beefcake'] })
+    expect(parts.total).toBe(10)
+    expect(parts.base).toBe(6)
+    expect(parts.sources.map((s) => [s.source, s.amount])).toEqual([['Beefcake', 4]])
+  })
+
+  it('honours maxInventorySlotsOverride as an absolute pin, retaining the derived value', () => {
+    const parts = pilotMaxInventorySlotsParts({
+      abilities: ['Beefcake'],
+      maxInventorySlotsModifier: 1,
+      maxInventorySlotsOverride: 3,
+    })
+    expect(parts.overridden).toBe(true)
+    expect(parts.total).toBe(3)
+    expect(parts.derived).toBe(11)
+  })
+
+  it('a pin of 0 is honoured, not treated as absent', () => {
+    const parts = pilotMaxInventorySlotsParts({ maxInventorySlotsOverride: 0 })
+    expect(parts.overridden).toBe(true)
+    expect(parts.total).toBe(0)
+  })
+})
+
+describe('installed system/module contributions', () => {
+  const bare = { chassisRef: 'no-such-chassis' }
+  // These totals are unchanged from when the same nine systems declared a flat
+  // `statBonus` summed by `installedStatBonus`. The convergence onto
+  // `contributions` moves them from the ANONYMOUS `installed` slot into named
+  // `sources`, so the numbers below pin that the arithmetic did not move.
+  const sourceOf = (parts: { sources: { source: string; amount: number }[] }) =>
+    parts.sources.map((s) => [s.source, s.amount])
+
+  it('sums a single installed item contribution into the relevant maximum', () => {
     const mech = { ...bare, systems: ['Cargo Pod'] }
     // base cargoCapacity 6 + Cargo Pod +1 = 7
     expect(mechMaxCargo(mech, chassis)).toBe(7)
-    expect(installedStatBonus(mech, 'cargoCapacity')).toBe(1)
+    const parts = mechMaxCargoParts(mech, chassis)
+    expect(parts.installed).toBe(0)
+    expect(sourceOf(parts)).toEqual([['Cargo Pod', 1]])
   })
 
-  it('stacks bonuses across multiple installed copies (2× Heat Sink = +2)', () => {
+  it('stacks contributions across multiple installed copies (2x Heat Sink = +2)', () => {
     const mech = { ...bare, systems: ['Heat Sink', 'Heat Sink'] }
     // base heatCapacity 5 + 2 Heat Sinks (+1 each) = 7
     expect(mechMaxHeat(mech, chassis)).toBe(7)
-    expect(installedStatBonus(mech, 'heatCapacity')).toBe(2)
+    const parts = mechMaxHeatParts(mech, chassis)
+    expect(sourceOf(parts)).toEqual([['Heat Sink', 2]])
+    expect(parts.sources[0]?.copies).toBe(2)
   })
 
   it('applies Composite Armour +5 Max SP, per installed copy', () => {
     // Its rules text -- "increases your Mech's Max SP by 5 for each Composite
-    // Armour System you have installed" -- is exactly the shape statBonus
-    // exists for, but the field was absent, so the system contributed nothing.
+    // Armour System you have installed" -- is a flat per-copy contribution.
     const one = { ...bare, systems: ['Composite Armour'] }
-    expect(installedStatBonus(one, 'structurePoints')).toBe(5)
     expect(mechMaxSP(one, chassis)).toBe(15) // base 10 + 5
+    expect(sourceOf(mechMaxSPParts(one, chassis))).toEqual([['Composite Armour', 5]])
 
     const two = { ...bare, systems: ['Composite Armour', 'Composite Armour'] }
-    expect(installedStatBonus(two, 'structurePoints')).toBe(10)
     expect(mechMaxSP(two, chassis)).toBe(20) // base 10 + 5 + 5
+    expect(sourceOf(mechMaxSPParts(two, chassis))).toEqual([['Composite Armour', 10]])
   })
 
-  it('adds installed bonuses on top of the hand-edited modifier', () => {
+  it('adds installed contributions on top of the hand-edited modifier', () => {
     const mech = {
       ...bare,
       maxEpModifier: 1,
@@ -293,7 +350,7 @@ describe('installed system/module stat bonuses', () => {
     expect(mechMaxEP(mech, chassis)).toBe(11)
   })
 
-  it('mixes system and module refs and ignores unresolved / no-bonus items', () => {
+  it('mixes system and module refs and ignores unresolved / no-contribution items', () => {
     const mech = {
       ...bare,
       systems: ['Cargo Pod', 'Transport Hold', 'Made Up System'],
@@ -304,7 +361,9 @@ describe('installed system/module stat bonuses', () => {
   })
 
   it('contributes 0 when no installed lists are provided', () => {
-    expect(installedStatBonus(bare, 'cargoCapacity')).toBe(0)
+    const parts = mechMaxCargoParts(bare, chassis)
+    expect(parts.sources).toEqual([])
+    expect(parts.installed).toBe(0)
     expect(mechMaxCargo(bare, chassis)).toBe(6)
   })
 })

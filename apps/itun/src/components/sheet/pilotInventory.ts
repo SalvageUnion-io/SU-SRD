@@ -6,8 +6,9 @@
  *   - reference equipment: 1 slot, 2 when Heavy/Portable (ORM getInventorySlots)
  *   - unresolved slugs: counted at 1 so the total never lies low
  *   - generic entries: explicit slotCost × qty (Scrap = 3 per unit, plan S7)
- *   - capacity: base 6 + maxInventorySlotsModifier + ability contributions
- *     (Beefcake +4, rules A13 — now applied from the ability, not hand-entered)
+ *   - capacity: derived by `pilotMaxInventorySlots` (base 6 +
+ *     maxInventorySlotsModifier + ability contributions like Beefcake +4,
+ *     rules A13), honouring the absolute maxInventorySlotsOverride pin
  *
  * Uses accounting (rules A14): an item's max uses come from its `uses` trait
  * (on the equipment record or its matching action). `equipmentUses[slug]`
@@ -20,8 +21,7 @@ import { SalvageUnionReference, getInventorySlots, getTraits } from 'salvageunio
 import type { SURefEquipment } from 'salvageunion-reference'
 
 import type { GenericInventoryEntry, Pilot } from '../../lib/schemas/pilot'
-import { abilityContributions, sumContributions } from 'salvageunion-reference/rules'
-import { PILOT_BASE_INVENTORY_SLOTS } from '../../lib/rules/derivedStats'
+import { pilotMaxInventorySlots } from '../../lib/rules/derivedStats'
 import { matchesRef } from 'salvageunion-reference/rules'
 
 /**
@@ -80,19 +80,21 @@ export function pilotInventoryUsed(pilot: PilotInventoryInput): number {
 }
 
 type PilotCapacityInput = Pick<Pilot, 'maxInventorySlotsModifier'> &
-  Partial<Pick<Pilot, 'abilities'>>
+  Partial<Pick<Pilot, 'abilities' | 'maxInventorySlotsOverride'>>
 
 /**
  * Inventory capacity (rules A13: 6 base) plus the hand-edited passive bonus
- * (`maxInventorySlotsModifier`) PLUS any ability contributions (Beefcake +4).
- * Never below 0.
+ * (`maxInventorySlotsModifier`) PLUS any ability contributions (Beefcake +4),
+ * and the absolute `maxInventorySlotsOverride` pin when one is set. Never
+ * below 0.
+ *
+ * This used to inline the arithmetic, which is why `maxInventorySlotsOverride`
+ * — in the persisted Pilot schema since the cap-override work — was read by
+ * nothing: a Free-Edit pin wrote a value this gauge then ignored. Delegating to
+ * `pilotMaxInventorySlots` puts it through the same `breakdownOf` as every
+ * other derived maximum, so the pin now takes effect exactly like the HP and AP
+ * pins do. The unpinned number is unchanged.
  */
 export function pilotInventoryCapacity(pilot?: PilotCapacityInput): number {
-  const fromAbilities = sumContributions(
-    abilityContributions(pilot?.abilities, 'pilot', 'inventorySlots')
-  )
-  return Math.max(
-    0,
-    PILOT_BASE_INVENTORY_SLOTS + (pilot?.maxInventorySlotsModifier ?? 0) + fromAbilities
-  )
+  return pilotMaxInventorySlots(pilot ?? {})
 }

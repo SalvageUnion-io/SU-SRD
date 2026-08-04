@@ -1,9 +1,9 @@
+import { isSchemaName } from 'salvageunion-reference'
 import type {
   EnhancedSchemaMetadata,
   SURefEnumSchemaName,
   SURefEntity,
 } from 'salvageunion-reference'
-import { isSchemaName } from './schemaName'
 
 export type CatalogCategory = {
   id: string

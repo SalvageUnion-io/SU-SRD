@@ -1,94 +1,13 @@
 /**
  * TypeScript type exports
  *
- * NOTE: All types are now inferred from Zod schemas in lib/schemas/
- * This file re-exports them for backward compatibility
+ * NOTE: All types are inferred from Zod schemas in lib/schemas/.
+ * This file re-exports them for backward compatibility — including the
+ * `SURefEntity` / `SURefMetaEntity` unions, which are DECLARED ONCE in
+ * `lib/schemas/index.ts`. They used to be re-declared here as well; the two
+ * copies drifted (the local pair omitted `SURefGuide`), and because
+ * `lib/index.ts` re-exports only this module, the drifted copy was the one
+ * every consumer got. Never re-declare a union here — re-export it.
  */
 
-// Re-export all types from the new schemas directory
 export type * from '../schemas/index.js'
-
-// Import types for use in union types (for compatibility)
-import type {
-  SURefAbility,
-  SURefChassis,
-  SURefClass,
-  SURefCrawler,
-  SURefCrawlerBay,
-  SURefCreature,
-  SURefDistance,
-  SURefDrone,
-  SURefEquipment,
-  SURefFaction,
-  SURefKeyword,
-  SURefMeld,
-  SURefMetaAbilityTreeRequirement,
-  SURefMetaAction,
-  SURefMetaCrawlerTechLevel,
-  SURefModule,
-  SURefNPC,
-  SURefRollTable,
-  SURefSource,
-  SURefTechLevel,
-  SURefSquad,
-  SURefSystem,
-  SURefBioTitan,
-  SURefTrait,
-  SURefVehicle,
-} from '../schemas/index.js'
-
-// All types are already exported from '../schemas/index.js' above
-// This file just re-exports them for backward compatibility
-
-// Union type of all entity types (excludes meta schemas and non-entities)
-export type SURefEntity =
-  | SURefAbility
-  | SURefChassis
-  | SURefClass
-  | SURefCrawler
-  | SURefCrawlerBay
-  | SURefCreature
-  | SURefDistance
-  | SURefDrone
-  | SURefEquipment
-  | SURefFaction
-  | SURefKeyword
-  | SURefMeld
-  | SURefModule
-  | SURefNPC
-  | SURefRollTable
-  | SURefSource
-  | SURefSquad
-  | SURefSystem
-  | SURefTechLevel
-  | SURefBioTitan
-  | SURefTrait
-  | SURefVehicle
-
-// Union type of all meta entity types (includes all schemas except non-entities)
-export type SURefMetaEntity =
-  | SURefAbility
-  | SURefChassis
-  | SURefClass
-  | SURefCrawler
-  | SURefCrawlerBay
-  | SURefCreature
-  | SURefDistance
-  | SURefDrone
-  | SURefEquipment
-  | SURefFaction
-  | SURefKeyword
-  | SURefMeld
-  | SURefMetaAbilityTreeRequirement
-  | SURefMetaAction
-  | SURefMetaCrawlerTechLevel
-  | SURefModule
-  | SURefNPC
-  | SURefRollTable
-  | SURefSource
-  | SURefTechLevel
-  | SURefBioTitan
-  | SURefSquad
-  | SURefSystem
-  | SURefTrait
-  | SURefVehicle

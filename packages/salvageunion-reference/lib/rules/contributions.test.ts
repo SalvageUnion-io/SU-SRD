@@ -145,13 +145,16 @@ describe('named sources stay attributable', () => {
   // Folding an ability's contribution into that number made the panel attribute
   // Beefcake's bonus to installed hardware — a provenance feature lying about
   // provenance. Named contributions therefore ride `sources`, never `installed`.
-  it('an ability contribution does NOT inflate the anonymous installed aggregate', () => {
+  it('an ability contributes nothing to a stat it does not name', () => {
     const mech = { chassisRef: 'no-such-chassis', systems: ['Heat Sink'] }
     const chassis = { heatCapacity: 5 }
     const parts = mechMaxHeatParts(mech, chassis, { abilities: ['Beefcake'] })
-    // Heat Sink is real installed hardware; Beefcake contributes no heat.
-    expect(parts.installed).toBe(1)
-    expect(parts.sources).toEqual([])
+    // Heat Sink is real installed hardware and is now a NAMED source (it used
+    // to sum into the anonymous `installed` slot as a flat `statBonus`);
+    // Beefcake contributes no heat at all.
+    expect(parts.installed).toBe(0)
+    expect(parts.sources.map((s) => [s.source, s.amount])).toEqual([['Heat Sink', 1]])
+    expect(parts.total).toBe(6)
   })
 
   it('a piloted-mech contribution arrives as a NAMED source, not as installed', () => {

@@ -125,7 +125,10 @@ export type {
   CatalogSection,
 } from './catalog/catalogHelpers'
 export { getCatalogBg, getCatalogLabel } from './catalog/catalogColors'
-export { isSchemaName } from './catalog/schemaName'
+// Re-exported (not re-implemented) from salvageunion-reference so consumers
+// already importing the rest of the catalog surface from component-lib keep a
+// single import site. One implementation lives in the package.
+export { isSchemaName } from 'salvageunion-reference'
 
 // Utilities — the ONE cn(): its tailwind-merge config knows the custom
 // text/tracking/border-width utilities (consumers must not re-wrap twMerge

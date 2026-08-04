@@ -653,37 +653,6 @@
                         "maximum": 9007199254740991,
                         "description": "Number of this system/module installed"
                       },
-                      "statBonus": {
-                        "type": "object",
-                        "properties": {
-                          "structurePoints": {
-                            "type": "integer",
-                            "minimum": -9007199254740991,
-                            "maximum": 9007199254740991,
-                            "description": "Flat bonus to the mech max Structure Points per installed item"
-                          },
-                          "energyPoints": {
-                            "type": "integer",
-                            "minimum": -9007199254740991,
-                            "maximum": 9007199254740991,
-                            "description": "Flat bonus to the mech max Energy Points per installed item"
-                          },
-                          "heatCapacity": {
-                            "type": "integer",
-                            "minimum": -9007199254740991,
-                            "maximum": 9007199254740991,
-                            "description": "Flat bonus to the mech max Heat Capacity per installed item"
-                          },
-                          "cargoCapacity": {
-                            "type": "integer",
-                            "minimum": -9007199254740991,
-                            "maximum": 9007199254740991,
-                            "description": "Flat bonus to the mech Cargo Capacity per installed item"
-                          }
-                        },
-                        "additionalProperties": false,
-                        "description": "Explicit flat bonuses this item applies to the host mech’s derived maxima, summed per installed copy"
-                      },
                       "contributions": {
                         "type": "array",
                         "items": {
@@ -783,7 +752,7 @@
                           "additionalProperties": false,
                           "description": "A flat mechanical contribution this content makes to a stat"
                         },
-                        "description": "Contributions this item makes (ADR-029). Distinct from `statBonus`: these carry a target, a duration and expression amounts, so they cover what a flat per-copy bonus cannot."
+                        "description": "Every flat mechanical change this item makes to a stat (ADR-029). This is the ONE numeric encoding: the older `statBonus` shape — a bare per-copy map with no target, duration or expression amounts — was a strict subset of it, and two encodings summed independently by the same derivation is a double-count waiting to be authored."
                       },
                       "appliedEffects": {
                         "type": "array",
@@ -1204,37 +1173,6 @@
                                 "maximum": 9007199254740991,
                                 "description": "Number of this system/module installed"
                               },
-                              "statBonus": {
-                                "type": "object",
-                                "properties": {
-                                  "structurePoints": {
-                                    "type": "integer",
-                                    "minimum": -9007199254740991,
-                                    "maximum": 9007199254740991,
-                                    "description": "Flat bonus to the mech max Structure Points per installed item"
-                                  },
-                                  "energyPoints": {
-                                    "type": "integer",
-                                    "minimum": -9007199254740991,
-                                    "maximum": 9007199254740991,
-                                    "description": "Flat bonus to the mech max Energy Points per installed item"
-                                  },
-                                  "heatCapacity": {
-                                    "type": "integer",
-                                    "minimum": -9007199254740991,
-                                    "maximum": 9007199254740991,
-                                    "description": "Flat bonus to the mech max Heat Capacity per installed item"
-                                  },
-                                  "cargoCapacity": {
-                                    "type": "integer",
-                                    "minimum": -9007199254740991,
-                                    "maximum": 9007199254740991,
-                                    "description": "Flat bonus to the mech Cargo Capacity per installed item"
-                                  }
-                                },
-                                "additionalProperties": false,
-                                "description": "Explicit flat bonuses this item applies to the host mech’s derived maxima, summed per installed copy"
-                              },
                               "contributions": {
                                 "type": "array",
                                 "items": {
@@ -1334,7 +1272,7 @@
                                   "additionalProperties": false,
                                   "description": "A flat mechanical contribution this content makes to a stat"
                                 },
-                                "description": "Contributions this item makes (ADR-029). Distinct from `statBonus`: these carry a target, a duration and expression amounts, so they cover what a flat per-copy bonus cannot."
+                                "description": "Every flat mechanical change this item makes to a stat (ADR-029). This is the ONE numeric encoding: the older `statBonus` shape — a bare per-copy map with no target, duration or expression amounts — was a strict subset of it, and two encodings summed independently by the same derivation is a double-count waiting to be authored."
                               },
                               "appliedEffects": {
                                 "type": "array",
@@ -1769,37 +1707,6 @@
                     "maximum": 9007199254740991,
                     "description": "Number of this system/module installed"
                   },
-                  "statBonus": {
-                    "type": "object",
-                    "properties": {
-                      "structurePoints": {
-                        "type": "integer",
-                        "minimum": -9007199254740991,
-                        "maximum": 9007199254740991,
-                        "description": "Flat bonus to the mech max Structure Points per installed item"
-                      },
-                      "energyPoints": {
-                        "type": "integer",
-                        "minimum": -9007199254740991,
-                        "maximum": 9007199254740991,
-                        "description": "Flat bonus to the mech max Energy Points per installed item"
-                      },
-                      "heatCapacity": {
-                        "type": "integer",
-                        "minimum": -9007199254740991,
-                        "maximum": 9007199254740991,
-                        "description": "Flat bonus to the mech max Heat Capacity per installed item"
-                      },
-                      "cargoCapacity": {
-                        "type": "integer",
-                        "minimum": -9007199254740991,
-                        "maximum": 9007199254740991,
-                        "description": "Flat bonus to the mech Cargo Capacity per installed item"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "Explicit flat bonuses this item applies to the host mech’s derived maxima, summed per installed copy"
-                  },
                   "contributions": {
                     "type": "array",
                     "items": {
@@ -1899,7 +1806,7 @@
                       "additionalProperties": false,
                       "description": "A flat mechanical contribution this content makes to a stat"
                     },
-                    "description": "Contributions this item makes (ADR-029). Distinct from `statBonus`: these carry a target, a duration and expression amounts, so they cover what a flat per-copy bonus cannot."
+                    "description": "Every flat mechanical change this item makes to a stat (ADR-029). This is the ONE numeric encoding: the older `statBonus` shape — a bare per-copy map with no target, duration or expression amounts — was a strict subset of it, and two encodings summed independently by the same derivation is a double-count waiting to be authored."
                   },
                   "appliedEffects": {
                     "type": "array",
@@ -2320,37 +2227,6 @@
                             "maximum": 9007199254740991,
                             "description": "Number of this system/module installed"
                           },
-                          "statBonus": {
-                            "type": "object",
-                            "properties": {
-                              "structurePoints": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991,
-                                "description": "Flat bonus to the mech max Structure Points per installed item"
-                              },
-                              "energyPoints": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991,
-                                "description": "Flat bonus to the mech max Energy Points per installed item"
-                              },
-                              "heatCapacity": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991,
-                                "description": "Flat bonus to the mech max Heat Capacity per installed item"
-                              },
-                              "cargoCapacity": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991,
-                                "description": "Flat bonus to the mech Cargo Capacity per installed item"
-                              }
-                            },
-                            "additionalProperties": false,
-                            "description": "Explicit flat bonuses this item applies to the host mech’s derived maxima, summed per installed copy"
-                          },
                           "contributions": {
                             "type": "array",
                             "items": {
@@ -2450,7 +2326,7 @@
                               "additionalProperties": false,
                               "description": "A flat mechanical contribution this content makes to a stat"
                             },
-                            "description": "Contributions this item makes (ADR-029). Distinct from `statBonus`: these carry a target, a duration and expression amounts, so they cover what a flat per-copy bonus cannot."
+                            "description": "Every flat mechanical change this item makes to a stat (ADR-029). This is the ONE numeric encoding: the older `statBonus` shape — a bare per-copy map with no target, duration or expression amounts — was a strict subset of it, and two encodings summed independently by the same derivation is a double-count waiting to be authored."
                           },
                           "appliedEffects": {
                             "type": "array",
