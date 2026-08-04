@@ -1,9 +1,8 @@
-import { describe, test, expect, afterEach } from 'bun:test'
-import { render, screen, cleanup } from '@testing-library/react'
+import { describe, test, expect } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { Footer } from '../Footer'
 
 describe('Footer', () => {
-  afterEach(cleanup)
   test('renders Leyline Press copyright', () => {
     render(<Footer poweredBySalvageUrl="/test-logo.webp" />)
     expect(screen.getByText(/Salvage Union is copyrighted by/)).toBeTruthy()

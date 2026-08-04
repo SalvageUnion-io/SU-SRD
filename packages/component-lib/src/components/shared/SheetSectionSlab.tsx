@@ -49,12 +49,6 @@ type SheetSectionSlabProps = {
   /** Extra classes on the content block (e.g. grid gaps). */
   bodyClassName?: string
   /**
-   * Start folded. Slabs default to OPEN — a sheet whose sections were all shut
-   * would open on a page of labels telling you nothing about the character.
-   * (Entity CARDS default the other way; see `ReferenceEntityCard.collapsible`.)
-   */
-  defaultCollapsed?: boolean
-  /**
    * Can the reader fold this section away at all? Defaults to true.
    *
    * The sheet's OPENING sections (Identity / Chassis, Vitals) pass false: they
@@ -76,12 +70,14 @@ export function SheetSectionSlab({
   controls,
   className,
   bodyClassName,
-  defaultCollapsed = false,
   collapsible = true,
   id,
   children,
 }: SheetSectionSlabProps) {
-  const [collapsed, setCollapsed] = useState(collapsible && defaultCollapsed)
+  // Slabs always start OPEN — a sheet whose sections were all shut would open
+  // on a page of labels telling you nothing about the character. (Entity CARDS
+  // default the other way; see `ReferenceEntityCard.collapsible`.)
+  const [collapsed, setCollapsed] = useState(false)
   const bodyId = useId()
   const folded = collapsible && collapsed
 

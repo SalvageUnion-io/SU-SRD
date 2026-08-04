@@ -23,7 +23,7 @@ import {
  */
 
 afterEach(() => {
-  setEntityBackendAuthState({ signedIn: false, online: true })
+  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
 })
 
 describe('a build with no Convex URL is always local', () => {
@@ -45,9 +45,28 @@ describe('a build with no Convex URL is always local', () => {
   })
 })
 
+describe('an unsettled auth handshake cannot make a Solo build blocked', () => {
+  test('still local, and still writable', () => {
+    // This is the guard on the handshake fix. `authSettled: false` is what
+    // ConnectionProvider pushes for the first few hundred ms of a signed-in
+    // load — but with no Convex URL there is no handshake to wait for, and
+    // blocking here would break CI and every unmigrated contributor.
+    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: false })
+    expect(selectBackend()).toBe('local')
+    expect(requireWritableBackend()).toBe('local')
+  })
+
+  test('an omitted authSettled is treated as settled', () => {
+    // Back-compat for any caller predating the field: absence must not mean
+    // "blocked", because the absent case is a build with no auth layer at all.
+    setEntityBackendAuthState({ signedIn: false, online: true })
+    expect(selectBackend()).toBe('local')
+  })
+})
+
 describe('writes are never blocked in a Solo build', () => {
   test('requireWritableBackend returns local rather than throwing', () => {
-    setEntityBackendAuthState({ signedIn: false, online: false })
+    setEntityBackendAuthState({ signedIn: false, online: false, authSettled: true })
     // Offline + signed out is Solo, not Disconnected. A person who never
     // signed in has nothing to be disconnected FROM, and refusing their write
     // would break the app for the majority of users.
@@ -66,5 +85,14 @@ describe('WritesBlockedOffline', () => {
     // instanceof does not survive being re-thrown through some boundaries, so
     // callers match on name — that has to keep working.
     expect(new WritesBlockedOffline().name).toBe('WritesBlockedOffline')
+  })
+
+  test('the settling refusal says something different, because it IS different', () => {
+    // "Read-only until the connection returns" would be a lie during the
+    // handshake: nothing is wrong and it resolves by itself in a moment.
+    const settling = new WritesBlockedOffline('settling')
+    expect(settling.reason).toBe('settling')
+    expect(settling.message).toMatch(/still signing in/i)
+    expect(new WritesBlockedOffline().reason).toBe('offline')
   })
 })

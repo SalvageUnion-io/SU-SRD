@@ -10,7 +10,9 @@
  * round-trip) live in cargoTransfer.ts.
  */
 
+import type { ChangeMeta } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { mechMaxCargo } from '../rules/derivedStats'
 import type { CargoLot } from '../schemas/cargoLot'
 import type { Crawler } from '../schemas/crawler'
@@ -40,6 +42,14 @@ type UseCargoOptions = {
   store?: typeof useEntityStore
   /** When true every transfer refuses — read-only sheet contexts. */
   readOnly?: boolean
+  /**
+   * Change Log provenance for the writes this hook commits (ADR-022).
+   *
+   * Defaults to the Live Sheet's manual tag because that is where cargo is
+   * moved by hand; a Dashboard-side caller should pass `DASHBOARD_TXN` so the
+   * log distinguishes an enforced transaction from someone dragging a lot.
+   */
+  meta?: ChangeMeta
 }
 
 export type UseCargoResult = {
@@ -90,6 +100,7 @@ export function useCargo({
   crawler,
   store = useEntityStore,
   readOnly = false,
+  meta = LIVE_SHEET_MANUAL,
 }: UseCargoOptions): UseCargoResult {
   const storeState = store()
 
@@ -132,7 +143,7 @@ export function useCargo({
       })
     }
     if (updates.length === 0) return result
-    return commitUpdates(() => storeState.transfer({ updates }), result)
+    return commitUpdates(() => storeState.transfer({ updates }, meta), result)
   }
 
   // Mech-hold-local edits: the mech's own cargo hold is its own container, so
@@ -163,9 +174,14 @@ export function useCargo({
     if (!result.changed.carrier) return result
     return commitUpdates(
       () =>
-        storeState.transfer({
-          updates: [{ type: 'mech', id: mech.id, patch: { cargoLots: result.state.carrierLots } }],
-        }),
+        storeState.transfer(
+          {
+            updates: [
+              { type: 'mech', id: mech.id, patch: { cargoLots: result.state.carrierLots } },
+            ],
+          },
+          meta
+        ),
       result
     )
   }
@@ -195,11 +211,14 @@ export function useCargo({
     if (!result.changed.depot) return result
     return commitUpdates(
       () =>
-        storeState.transfer({
-          updates: [
-            { type: 'crawler', id: crawler.id, patch: { cargoLots: result.state.depotLots } },
-          ],
-        }),
+        storeState.transfer(
+          {
+            updates: [
+              { type: 'crawler', id: crawler.id, patch: { cargoLots: result.state.depotLots } },
+            ],
+          },
+          meta
+        ),
       result
     )
   }

@@ -4,6 +4,7 @@ import { SearchField, useSearchCombobox } from 'component-lib'
 import type { SearchComboboxResult } from 'component-lib'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
+import { itemHref, schemaHref } from '../../lib/entityHref'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type SearchIslandProps = {
@@ -14,8 +15,8 @@ type SearchIslandProps = {
 
 /** Site URL for a combobox result: category listing or entity item page. */
 function resultUrl(result: SearchComboboxResult): string {
-  if (result.kind === 'schema') return `/schema/${result.schemaId}/`
-  return `/schema/${result.schemaId}/item/${getEntitySlug(result.entity)}/`
+  if (result.kind === 'schema') return schemaHref(result.schemaId)
+  return itemHref(result.schemaId, getEntitySlug(result.entity))
 }
 
 export function SearchIsland({ navigate }: SearchIslandProps = {}) {

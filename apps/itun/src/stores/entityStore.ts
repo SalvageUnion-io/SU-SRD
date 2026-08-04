@@ -114,15 +114,17 @@ export type EntityState = {
   /**
    * Merges patch, persists to db, updates in-memory state, then appends a
    * Change Log entry per changed field (provenance, ADR-022). `meta` tags those
-   * entries — pass `{ kind: 'override', source: 'live-sheet' }` for a Free-Edit
-   * cap override, `{ kind: 'transaction', source: 'dashboard' }` for an enforced
-   * play transaction; the default is a `manual` edit from an unknown surface.
+   * entries and is **required**: pick the constant for your surface from
+   * `surfaceProvenance.ts` (`LIVE_SHEET_MANUAL`, `DASHBOARD_TXN`, …) rather than
+   * writing the object inline. It used to be optional with a `manual`/`unknown`
+   * default, which quietly defeated the whole point of declaring provenance once
+   * per surface — an untagged call site logged as a hand edit and nothing said so.
    */
   update: <T extends EntityType>(
     type: T,
     id: string,
     patch: Partial<EntityForType<T>>,
-    meta?: ChangeMeta
+    meta: ChangeMeta
   ) => Promise<EntityForType<T>>
 
   /**
@@ -140,9 +142,9 @@ export type EntityState = {
      * index is patched when its bayRef matches; otherwise the first bayRef
      * match wins.
      */
-    index?: number,
-    /** Change Log provenance for the resulting update (ADR-022). */
-    meta?: ChangeMeta
+    index: number | undefined,
+    /** Change Log provenance for the resulting update (ADR-022). Required. */
+    meta: ChangeMeta
   ) => Promise<Crawler>
 
   /**
@@ -163,7 +165,8 @@ export type EntityState = {
       updates?: TransferUpdate[]
       deletes?: { type: EntityType; id: string }[]
     },
-    meta?: ChangeMeta
+    /** Change Log provenance for every updated entity (ADR-022). Required. */
+    meta: ChangeMeta
   ) => Promise<void>
 }
 
@@ -173,16 +176,19 @@ export type TransferUpdate = {
 }[EntityType]
 
 /**
- * Provenance tags for a Change Log entry (ADR-022). Both fields are optional;
- * an untagged update logs as a `manual` edit from an `unknown` source.
+ * Provenance tags for a Change Log entry (ADR-022).
+ *
+ * Both fields are required, and so is the parameter that carries them. The
+ * earlier all-optional shape meant a forgotten tag was not a compile error but a
+ * Change Log line reading `manual` / `unknown` — indistinguishable from a real
+ * hand edit, and invisible until somebody read the drawer and disbelieved it.
+ * Declare the tag once per surface in `surfaceProvenance.ts` and pass the
+ * constant.
  */
 export type ChangeMeta = {
-  kind?: ChangeLogKind
-  source?: string
+  kind: ChangeLogKind
+  source: string
 }
-
-const CHANGE_LOG_DEFAULT_KIND: ChangeLogKind = 'manual'
-const CHANGE_LOG_DEFAULT_SOURCE = 'unknown'
 
 /** Structural equality via JSON — entity fields are Zod-parsed, so key order is stable. */
 function jsonEqual(a: unknown, b: unknown): boolean {
@@ -223,14 +229,13 @@ async function emitChangeLog<T extends EntityType>(
   patch: Partial<EntityForType<T>>,
   before: EntityForType<T> | null,
   after: EntityForType<T>,
-  meta: ChangeMeta | undefined
+  meta: ChangeMeta
 ): Promise<void> {
   try {
     const changes = changedFields(patch, before, after)
     if (changes.length === 0) return
     const ts = Date.now()
-    const kind = meta?.kind ?? CHANGE_LOG_DEFAULT_KIND
-    const source = meta?.source ?? CHANGE_LOG_DEFAULT_SOURCE
+    const { kind, source } = meta
     await db.changeLog.append(
       changes.map((c) => ({
         entityType: type,
@@ -459,7 +464,7 @@ export const useEntityStore = create<EntityState>((set, get) => ({
     type: T,
     id: string,
     patch: Partial<EntityForType<T>>,
-    meta?: ChangeMeta
+    meta: ChangeMeta
   ): Promise<EntityForType<T>> {
     const key = storeKeyFor(type)
     // Capture the before-image BEFORE the write so the Change Log can diff it.

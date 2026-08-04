@@ -1,5 +1,6 @@
 import { cn } from '../../utils/cn'
 import { Button } from './Button'
+import { capsLabel } from './capsLabel'
 import { StepButton } from './SmallButtons'
 
 type CountStepperProps = {
@@ -112,7 +113,8 @@ export function CountStepper({
       <span
         aria-hidden="true"
         className={cn(
-          'grid place-items-center bg-paper font-cond text-caption font-bold uppercase leading-none text-ink',
+          capsLabel({ size: 'caption', tracking: 'inherit' }),
+          'grid place-items-center bg-paper leading-none text-ink',
           label !== undefined ? 'min-w-[4.5rem] px-1.5 tabular-nums' : 'w-8',
           count === 0 && 'opacity-55'
         )}

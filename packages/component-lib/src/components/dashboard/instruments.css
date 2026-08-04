@@ -18,6 +18,40 @@
  * (DashboardCanvas.css) and the `.pc-grid` regions (DashboardGrid.css).
  */
 
+/* ---- Keyboard focus: the canonical rust ring, in raw CSS ----
+ *
+ * Every interactive surface in this file is a NATIVE <button> (or a
+ * role="option" button, in the dial), so it takes keyboard focus — but this
+ * stylesheet styled `:hover` five times and `:focus` zero times, and no global
+ * `:focus-visible` rule exists in either app or in the library. That left a
+ * keyboard user driving the cockpit with no visible caret at all: the browser
+ * default outline is suppressed on none of these, but each rule sets its own
+ * `border` and `background`, so the default ring is the only affordance and it
+ * is exactly what the rest of the app deliberately replaced.
+ *
+ * This is `FOCUS_RING` (chrome/interaction.ts — `focus-visible:ring-[3px]
+ * focus-visible:ring-rust/25`) transcribed into CSS rather than a new
+ * treatment: the dashboard is a self-contained stylesheet by design, so it
+ * restates the canonical rung instead of importing Tailwind utilities into
+ * markup that is otherwise class-driven. `color-mix()` is this file's own
+ * established alpha spelling (it appears 16 times already).
+ *
+ * `:focus-visible`, not `:focus` — a mouse click on a tab must not leave a ring
+ * behind it, and these are all pointer-first controls. The offset keeps the
+ * ring clear of each surface's own border, including `.is-active`, whose ink
+ * fill would otherwise swallow an inset ring.
+ */
+.pc-deck-tab:focus-visible,
+.pc-deck-range-btn:focus-visible,
+.pc-deck-source:focus-visible,
+.pc-tablepick-item:focus-visible,
+.pc-srd-result:focus-visible,
+.pc-srd-row:focus-visible,
+.pc-cell:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-rust) 25%, transparent);
+  outline-offset: 1px;
+}
+
 .pc-display-scroll {
   height: 100%;
   overflow-y: auto;
@@ -176,7 +210,16 @@
   font-family: var(--font-cond);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  font-size: 24px;
+  /* Was a raw 24px. The token guard's arbitrary-font-size rule only matches the
+     Tailwind BRACKET spelling, so a raw declaration in a `.css` file it already
+     scans was invisible — this readout, `.pc-deck-d20` and `.pc-deck-band` were
+     the only three font sizes in this 1100-line sheet not coming from the
+     ladder. (Deliberately describing the anti-pattern rather than spelling it:
+     the guard reads comments too and cannot tell a citation from a commission.)
+     24 sits between `--text-title` (22) and `--text-display` (26); it lands on
+     display because this IS the readout the display step was introduced for —
+     a numeral read at a glance, not a label. */
+  font-size: var(--text-display);
   min-width: 44px;
   text-align: center;
   color: var(--color-ink);
@@ -251,7 +294,10 @@
   font-family: var(--font-cond);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  font-size: 34px;
+  /* Was a raw `34px` — the largest of the three off-ladder literals, and the
+     one the ladder note at theme.css:64-80 already names as a cluster it
+     absorbs (`display-lg 31`). */
+  font-size: var(--text-display-lg);
   line-height: 1;
   min-width: 48px;
   text-align: center;
@@ -494,7 +540,9 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-tight);
-  font-size: 20px;
+  /* Was a raw `20px`; `--text-title` (22) is the nearest rung and the correct
+     role — this is a banner heading, not a readout. */
+  font-size: var(--text-title);
   line-height: 1.1;
   color: var(--color-ink);
 }

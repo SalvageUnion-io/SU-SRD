@@ -187,9 +187,14 @@ describe('useEntityChoices — setSelections persistence', () => {
     )
 
     // Simulate a concurrent write to a sibling item through the same store.
-    await store.getState().update('pilot', PILOT_ID, {
-      equipmentChoices: { 'auto-turret': { 'choice-name': ['Sentinel'] } },
-    })
+    await store.getState().update(
+      'pilot',
+      PILOT_ID,
+      {
+        equipmentChoices: { 'auto-turret': { 'choice-name': ['Sentinel'] } },
+      },
+      LIVE_SHEET_MANUAL
+    )
 
     // Now this item's setSelections must merge against the FRESH map, not the
     // empty render-time snapshot.

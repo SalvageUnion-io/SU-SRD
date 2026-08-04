@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 /**
@@ -13,55 +13,35 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
  *  - a signed-out visitor must still see what they were invited to
  *  - a gated invite must say it is asking, not claim it joined
  *
- * Queries answer in call order; this screen asks only `invites.preview`.
+ * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * This screen asks only `invites.preview`, from two components.
  */
 
-let previewValue: unknown
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+
 let redeemResult: unknown = { kind: 'joined', gameId: 'g1', granted: 0 }
 let redeemError: Error | null = null
 // Flipped per-test: the signed-out path is the one a stranger following a link
 // actually hits, so it needs exercising rather than assuming.
 let isAuthenticated = true
-const navigations: unknown[] = []
-
-const realConvexClient = { ...(await import('../../../lib/connection/convexClient')) }
-const realConvexReact = { ...(await import('convex/react')) }
-const realAuthReact = { ...(await import('@convex-dev/auth/react')) }
-const realRouter = { ...(await import('@tanstack/react-router')) }
-
-mock.module('../../../lib/connection/convexClient', () => ({
-  isConvexConfigured: true,
-  convexClient: {},
-}))
-
-mock.module('convex/react', () => ({
-  useQuery: () => previewValue,
-  useMutation: () => async () => {
-    if (redeemError !== null) throw redeemError
-    return redeemResult
+// Module scope, before the imports below: `mock.module` only affects imports
+// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+//
+// `authReact` for the signed-out branch's sign-in control; `router` because
+// redeeming navigates, and the stub records where.
+const convexMocks = await installConvexMocks({
+  authReact: true,
+  router: true,
+  convexReact: {
+    useMutation: () => async () => {
+      if (redeemError !== null) throw redeemError
+      return redeemResult
+    },
+    useConvexAuth: () => ({ isAuthenticated, isLoading: false }),
   },
-  useConvexAuth: () => ({ isAuthenticated, isLoading: false }),
-  ConvexReactClient: class {},
-  ConvexProvider: ({ children }: { children: unknown }) => children,
-  ConvexProviderWithAuth: ({ children }: { children: unknown }) => children,
-  useConvex: () => ({}),
-  useAction: () => async () => undefined,
-}))
+})
 
-mock.module('@convex-dev/auth/react', () => ({
-  useAuthActions: () => ({ signIn: async () => undefined, signOut: async () => undefined }),
-  ConvexAuthProvider: ({ children }: { children: unknown }) => children,
-}))
-
-mock.module('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
-  ),
-  useNavigate: () => async (opts: unknown) => {
-    navigations.push(opts)
-  },
-  useRouter: () => undefined,
-}))
+const navigations = convexMocks.navigations
 
 const { JoinScreen } = await import('../JoinScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
@@ -79,7 +59,7 @@ function preview(over: Record<string, unknown> = {}) {
 }
 
 function renderJoin(value: unknown) {
-  previewValue = value
+  setQueryAnswers({ 'invites:preview': value })
   navigations.length = 0
   redeemError = null
   isAuthenticated = true
@@ -187,7 +167,7 @@ describe('a visitor who is not signed in', () => {
     renderJoin(preview())
     isAuthenticated = false
     cleanup()
-    previewValue = preview()
+    setQueryAnswers({ 'invites:preview': preview() })
     render(
       <ConnectionProvider>
         <JoinScreen code="A1B2C3D4" />
@@ -202,7 +182,7 @@ describe('a visitor who is not signed in', () => {
 
   test('a dead code is refused without ever prompting a sign-in', () => {
     isAuthenticated = false
-    previewValue = preview({ status: 'expired' })
+    setQueryAnswers({ 'invites:preview': preview({ status: 'expired' }) })
     render(
       <ConnectionProvider>
         <JoinScreen code="A1B2C3D4" />
@@ -215,9 +195,4 @@ describe('a visitor who is not signed in', () => {
   })
 })
 
-afterAll(() => {
-  mock.module('../../../lib/connection/convexClient', () => realConvexClient)
-  mock.module('convex/react', () => realConvexReact)
-  mock.module('@convex-dev/auth/react', () => realAuthReact)
-  mock.module('@tanstack/react-router', () => realRouter)
-})
+afterAll(convexMocks.restore)

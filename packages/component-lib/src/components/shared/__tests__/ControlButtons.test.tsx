@@ -1,4 +1,4 @@
-import { describe, test, expect, afterEach, mock } from 'bun:test'
+import { describe, test, expect, mock } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { ControlButtons } from '../ControlButtons'
 import type { ReferenceEntityControl } from '../../referenceEntity/referenceEntityControlTypes'
@@ -14,8 +14,6 @@ function makeControl(overrides: Partial<ReferenceEntityControl> = {}): Reference
 }
 
 describe('ControlButtons', () => {
-  afterEach(cleanup)
-
   test('renders a button for each control', () => {
     const controls = [
       makeControl({ key: 'a', ariaLabel: 'Action A', label: 'A' }),

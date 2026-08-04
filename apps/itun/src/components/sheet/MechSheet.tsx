@@ -2,10 +2,9 @@
  * MechSheet — the mech variant BODY for the LiveSheet shell (design §4.3,
  * plan 4.5; redesigned to the poster layout, Phase 2).
  *
- * The body OWNS the identity band now (Workshop-Manual mech sheet): SheetMech
- * passes NO `renderHero`, and this body renders `SheetHero` in band mode as
- * its first region (wrapped with the shell's `heroRef`). Region order mirrors
- * the printed mech sheet:
+ * The body OWNS the identity band (Workshop-Manual mech sheet): it renders
+ * `SheetHero` in band mode as its first region. Region order mirrors the
+ * printed mech sheet:
  *
  *   Identity Band: edge wordmark ∥ the pattern-name/chassis fields + the
  *       8-lozenge chassis-stats strip ∥ SP/EP/Heat `VitalGauge`s + Conditions
@@ -40,14 +39,21 @@
  * still surface (and clear) through the unified Conditions chips in the
  * Vitals card (`MechConditionsEditor`), which already merges those flags.
  *
+ * ## What lives where
+ *
+ * This file is now the RENDER, and only the render. Its two siblings:
+ *   - `mechSheetModel.ts` — the derived model (SP/EP/Heat maxima and their
+ *     provenance ledgers, slot capacity, the chassis-stats strip, cargo).
+ *   - `mechSheetActions.ts` — every write, all of them through one `write()`
+ *     that reads the freshest record and handles the offline refusal.
+ *
  * Dep-injectable for tests: `chassis` (stats override), `store` (Zustand
  * stub), `crawler` (linked home crawler — null means no pool/stow target).
  * readOnly suppresses every edit affordance.
  */
 
 import { useState } from 'react'
-import type { ReactNode, Ref } from 'react'
-import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
+import type { ReactNode } from 'react'
 import {
   VitalGauge,
   heatDangerFrom,
@@ -56,44 +62,25 @@ import {
   SheetHero,
 } from 'component-lib'
 
-import { useCargo } from '../../lib/cargo/useCargo'
-import { computeMechCapacity, resolveChassisRef } from 'salvageunion-reference/rules'
-import { mechMaxEPParts, mechMaxHeatParts, mechMaxSPParts } from '../../lib/rules/derivedStats'
-import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
 import type { Crawler } from '../../lib/schemas/crawler'
-import type { ItemCondition, Mech } from '../../lib/schemas/mech'
+import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { EntitySearcher } from 'component-lib'
-import { destroyedUndoToast } from './destroyedUndoToast'
 import { EntityGridRow, MasonryColumns } from 'component-lib'
 import { Field } from 'component-lib'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechIdentityPanel } from './MechIdentity'
 import { MechItemCard } from './MechItemCard'
-import { cycleCondition, resolveModule, resolveSystem } from './mechItemRules'
+import { resolveModule, resolveSystem } from './mechItemRules'
 import { SoftWarningDialog } from '../shared/SoftWarningDialog'
-import { useSoftWarnings } from '../shared/useSoftWarnings'
 import { SectionManageButton, SheetPickerModal } from 'component-lib'
 import { SheetSectionSlab } from 'component-lib'
 import { PartnerCard } from './PartnerCard'
-import type { ChassisStatItem } from 'component-lib'
 import { StorageManifest } from './StorageManifest'
-import { freshEntity } from './controlPrimitives'
-import type { SheetPatch } from './sheetViewProps'
-import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
-import { linesFromBreakdown } from 'component-lib'
-import { pilotingContext } from '../../lib/rules/pilotingContext'
-
-// Narrow subset of chassis data the stat derivations need
-type ChassisLike = {
-  name: string
-  structurePoints?: number
-  energyPoints?: number
-  heatCapacity?: number
-  systemSlots?: number
-  moduleSlots?: number
-  cargoCapacity?: number
-}
+import type { ItemKind } from './mechSheetActions'
+import { pinOrUndef, useMechSheetActions } from './mechSheetActions'
+import type { ChassisLike } from './mechSheetModel'
+import { useMechSheetModel } from './mechSheetModel'
 
 type MechSheetProps = {
   mech: Mech
@@ -109,12 +96,6 @@ type MechSheetProps = {
   store?: typeof useEntityStore
   /** Suppresses every edit affordance (published snapshots). */
   readOnly?: boolean
-  /**
-   * Marks the body's first region. VESTIGIAL: the sticky bar condenses off its
-   * own 1px sentinel now, so nothing observes this. Undefined in bare test
-   * renders (no shell).
-   */
-  heroRef?: Ref<HTMLElement>
   /**
    * The linked home crawler (composition resolver) — powers The Hold's stow
    * target and the optional repair scrap-pool deduction. Null = unlinked.
@@ -135,284 +116,37 @@ type MechSheetProps = {
   pilotAbilities?: string[]
 }
 
-function resolveChassis(mech: Mech, override?: ChassisLike | null): ChassisLike | null {
-  if (override !== undefined) return override
-  return resolveChassisRef(mech.chassisRef)
-}
-
-type ItemKind = 'system' | 'module'
-
 export function MechSheet({
   mech,
   chassis: chassisOverride,
   store = useEntityStore,
   readOnly = false,
-  heroRef,
   crawler = null,
   linkedUnits,
   pilotAbilities,
 }: MechSheetProps) {
-  const chassis = resolveChassis(mech, chassisOverride)
   const storeState = store()
-  const cargo = useCargo({ mech, crawler, store, readOnly, pilotAbilities })
   // Which collection's shared picker modal is open ('+ Add' — unified edit
   // language archetype B; always available, never rule-gated for now).
-  const [picker, setPicker] = useState<ItemKind | null>(null)
   // Identity / Quirk+Appearance are FIELD sections (unified edit language
   // archetype A): their own Edit/Done toggle, rendered in the
   // SheetSectionCard header (Phase 2).
   // Quirk & Appearance now live inside the identity card, so they follow ITS
   // Edit toggle — a second Edit button inside the same frame would have been
   // two switches for one section.
+  const [picker, setPicker] = useState<ItemKind | null>(null)
 
-  // Soft warnings (REQ-012, ADR-021) on the one mech BUILD edit the rules
-  // evaluate: system removal. Play-state writes (SP/EP/heat, conditions, item
-  // activation) deliberately bypass this — they are transient combat state.
-  // `toSnapshot` is REQUIRED: Mech.systems is a slug array, while the rules
-  // read `{ ref, requires }` structs.
-  const softWarnings = useSoftWarnings({
-    entityType: 'mech',
-    entityId: mech.id,
-    toSnapshot: (m) => ({ systems: m.systems.map((ref) => ({ ref })) }),
+  const model = useMechSheetModel({
+    mech,
+    chassisOverride,
     store,
+    readOnly,
+    crawler,
+    pilotAbilities,
   })
-  const [warningSubtitle, setWarningSubtitle] = useState<string | null>(null)
+  const actions = useMechSheetActions({ mech, store, storeState, crawler })
 
-  // Derived maxima (plan 2.5): chassis stat + hand-edited modifiers.
-  // Beefcake is a PILOT ability that raises the piloted MECH's Max SP and Cargo,
-  // so a mech's maxima cannot be derived from the mech alone (ADR-029).
-  const piloting = pilotingContext(mech, pilotAbilities)
-  const spParts = mechMaxSPParts(mech, chassis, piloting)
-  const epParts = mechMaxEPParts(mech, chassis, piloting)
-  const heatParts = mechMaxHeatParts(mech, chassis, piloting)
-  const maxSP = spParts.total
-  const maxEP = epParts.total
-  const heatCap = heatParts.total
-  const currentSP = mech.currentSP ?? maxSP
-  const currentEP = mech.currentEP ?? maxEP
-  const currentHeat = Math.min(mech.currentHeat ?? 0, heatCap)
-
-  // Slot budgets for the picker's loadout panel (soft — never blocks).
-  const capacity = computeMechCapacity({
-    chassisRef: mech.chassisRef,
-    systems: mech.systems.map((ref) => ({ ref })),
-    modules: mech.modules.map((ref) => ({ ref })),
-  })
-
-  // Chassis abilities AND the identity meta (chassis name, Tech Level, Salvage
-  // Value) come from the FULL reference chassis — the injectable `chassis`
-  // override only carries the narrow stat subset above.
-  const chassisEntity = resolveChassisRef(mech.chassisRef)
-  const chassisAbilities = chassisEntity
-    ? (SalvageUnionReference.resolveActions(chassisEntity) ?? [])
-    : []
-  const chassisName = chassisEntity?.name ?? chassis?.name ?? mech.chassisRef
-
-  // Stat provenance ledgers (ADR-029). The installed line is a single aggregate
-  // until the contribution model can attribute it per item.
-  const spLines = linesFromBreakdown(spParts, {
-    base: `${chassisName} chassis`,
-    baseDetail: 'base',
-    installed: 'Installed systems & modules',
-  })
-  const epLines = linesFromBreakdown(epParts, {
-    base: `${chassisName} chassis`,
-    baseDetail: 'base',
-    installed: 'Installed systems & modules',
-  })
-  const heatLines = linesFromBreakdown(heatParts, {
-    base: `${chassisName} chassis`,
-    baseDetail: 'base',
-    installed: 'Installed systems & modules',
-  })
-  const techLevel =
-    typeof chassisEntity?.techLevel === 'number' ? chassisEntity.techLevel : undefined
-
-  // The poster's 8-lozenge chassis-stats strip (identity card body):
-  // Structure/Energy/Heat maxima, System/Module slot usage, Cargo usage,
-  // Tech Level, Salvage Value — number-only lozenges, a bounded 4-col grid
-  // rather than a free-wrapped strip.
-  const specs: ChassisStatItem[] = [
-    { code: 'SP', value: maxSP },
-    { code: 'EP', value: maxEP },
-    { code: 'HEAT', value: heatCap },
-    { code: 'SYS', value: capacity.systemSlotsUsed, max: capacity.systemSlotsMax },
-    { code: 'MOD', value: capacity.moduleSlotsUsed, max: capacity.moduleSlotsMax },
-    { code: 'CARGO', value: cargo.usage.used, max: cargo.usage.cap },
-    ...(techLevel !== undefined ? [{ code: 'TL', value: techLevel }] : []),
-    ...(typeof chassisEntity?.salvageValue === 'number'
-      ? [{ code: 'SV', value: chassisEntity.salvageValue }]
-      : []),
-  ]
-
-  const scrapPool = crawler ? (crawler.scrapPool ?? {}) : null
-
-  /** Freshest mech from the store — rapid actions must not stomp each other. */
-  function freshMech(): Mech {
-    return freshEntity(storeState, 'mech', mech)
-  }
-
-  /** Partial merge on this mech, reading the freshest record when needed. */
-  const patchMech: SheetPatch = (input) => {
-    const fields = typeof input === 'function' ? input(freshMech()) : input
-    void storeState.update('mech', mech.id, fields, LIVE_SHEET_MANUAL)
-  }
-
-  // Cap overrides (ADR-022 amendment, Free Edit): a pinned maximum is stored
-  // ABSOLUTELY in max*Override. The derivation keeps running underneath, so the
-  // gauge can show "overridden from N" and revert by clearing the pin.
-  //
-  // These used to be signed max*Modifier deltas with the baseline recovered by
-  // subtraction — which meant the same field carried both a hand pin and every
-  // rules modifier, so an automatic contribution would have rendered as an
-  // override. max*Modifier now means only "manual adjustment" and contributes to
-  // the derivation. See ADR-029.
-  const overrideMechMax = (fields: Partial<Mech>) => {
-    void storeState.update('mech', mech.id, fields, LIVE_SHEET_OVERRIDE)
-  }
-  /** A pin equal to the derived value is not an override — clear it instead. */
-  const pinOrUndef = (next: number, derived: number): number | undefined =>
-    next === derived ? undefined : next
-
-  // Collection add/remove (unified edit language archetype B) — always
-  // available, writes through immediately (ITUN auto-saves; no Save button).
-  // Reads the FRESHEST record so rapid picker clicks don't race the async
-  // store write. Duplicates are rules-legal; capacity stays soft.
-  // Unlike the old build editor, hand-editing the loadout no longer clears
-  // patternName — the pattern name IS the mech's identity now (redesign).
-  // TODO(redesign): rule-gate add/remove (slot budgets / scrap economy) —
-  // deferred; users self-manage for now.
-  function addItem(kind: ItemKind, name: string) {
-    const fresh = freshMech()
-    const slug = nameToSlug(name)
-    void storeState.update(
-      'mech',
-      mech.id,
-      kind === 'system'
-        ? { systems: [...fresh.systems, slug] }
-        : { modules: [...fresh.modules, slug] },
-      LIVE_SHEET_MANUAL
-    )
-  }
-
-  /**
-   * Remove one installed item. System removal is the one mech BUILD edit the
-   * soft-warning rules evaluate (SYSTEM_DEPENDENCY_REMOVED — "a system another
-   * system depends on is being removed"), so it previews first and confirms
-   * only when something is flagged. Module removal has no such rule and writes
-   * straight through.
-   */
-  function removeItem(kind: ItemKind, index: number) {
-    const fresh = freshMech()
-    if (kind === 'module') {
-      void storeState.update(
-        'mech',
-        mech.id,
-        {
-          modules: fresh.modules.filter((_, i) => i !== index),
-        },
-        LIVE_SHEET_MANUAL
-      )
-      return
-    }
-    const removed = fresh.systems[index]
-    const patch = { systems: fresh.systems.filter((_, i) => i !== index) }
-    if (softWarnings.preview(patch).length === 0) {
-      void softWarnings.saveAnyway()
-      return
-    }
-    setWarningSubtitle(`Remove ${(removed && resolveSystem(removed)?.name) || removed || 'system'}`)
-  }
-
-  /** Write one item's condition (used by the cycle and the toast Undo). */
-  async function setItemCondition(kind: ItemKind, slug: string, condition: ItemCondition) {
-    const fresh = freshMech()
-    const prev = (kind === 'system' ? fresh.systemConditions : fresh.moduleConditions) ?? {}
-    const nextMap = { ...prev, [slug]: condition }
-    await storeState.update(
-      'mech',
-      mech.id,
-      kind === 'system' ? { systemConditions: nextMap } : { moduleConditions: nextMap },
-      LIVE_SHEET_MANUAL
-    )
-  }
-
-  async function cycleItemCondition(kind: ItemKind, slug: string) {
-    const fresh = freshMech()
-    const prev = (kind === 'system' ? fresh.systemConditions : fresh.moduleConditions) ?? {}
-    const prevCondition = prev[slug] ?? 'intact'
-    const next = cycleCondition(prevCondition)
-    await setItemCondition(kind, slug, next)
-    // U-6: landing on 'destroyed' offers a one-tap Undo (mis-tap mid-combat).
-    if (next === 'destroyed') {
-      const name = (kind === 'system' ? resolveSystem(slug) : resolveModule(slug))?.name ?? slug
-      destroyedUndoToast(name, () => {
-        void setItemCondition(kind, slug, prevCondition)
-      })
-    }
-  }
-
-  async function setItemUses(slug: string, next: number) {
-    const fresh = freshMech()
-    const prevUses = fresh.itemUses ?? {}
-    await storeState.update(
-      'mech',
-      mech.id,
-      {
-        itemUses: { ...prevUses, [slug]: Math.max(0, next) },
-      },
-      LIVE_SHEET_MANUAL
-    )
-  }
-
-  /**
-   * Repair to Intact (half SV in Scrap — the cost is shown on the button).
-   * `deductTl` is the optional crawler pool bucket to decrement; the repair
-   * itself never blocks on the pool (S12).
-   */
-  async function repairItem(kind: ItemKind, slug: string, deductTl: number | null, cost: number) {
-    const fresh = freshMech()
-    const prev = (kind === 'system' ? fresh.systemConditions : fresh.moduleConditions) ?? {}
-    const nextMap: Record<string, ItemCondition> = {
-      ...prev,
-      [slug]: 'intact',
-    }
-    await storeState.update(
-      'mech',
-      mech.id,
-      kind === 'system' ? { systemConditions: nextMap } : { moduleConditions: nextMap },
-      LIVE_SHEET_MANUAL
-    )
-    if (deductTl !== null && crawler) {
-      const freshCrawler = freshEntity(storeState, 'crawler', crawler)
-      await storeState.update(
-        'crawler',
-        crawler.id,
-        {
-          scrapPool: addToScrapPool(freshCrawler.scrapPool ?? {}, deductTl, -cost),
-        },
-        LIVE_SHEET_MANUAL
-      )
-    }
-  }
-
-  /** Quirk / Appearance field save — mirrors the old SheetDescription saves. */
-  function saveQuirk(next: string) {
-    void storeState.update('mech', mech.id, { quirk: next.trim() || undefined }, LIVE_SHEET_MANUAL)
-  }
-
-  /** Appearance heals the deprecated `description` field into `appearance`. */
-  function saveAppearance(next: string) {
-    void storeState.update(
-      'mech',
-      mech.id,
-      {
-        appearance: next.trim() || undefined,
-        description: undefined,
-      },
-      LIVE_SHEET_MANUAL
-    )
-  }
+  const { chassis, cargo, capacity, spParts, epParts, heatParts, maxSP, maxEP, heatCap } = model
 
   function renderItems(kind: ItemKind, slugs: string[]) {
     const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
@@ -433,22 +167,22 @@ export function MechSheet({
               entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
               condition={conditions[slug] ?? 'intact'}
               usesRemaining={mech.itemUses?.[slug]}
-              scrapPool={scrapPool}
+              scrapPool={model.scrapPool}
               readOnly={readOnly}
               onStatusCycle={() => {
-                void cycleItemCondition(kind, slug)
+                void actions.cycleItemCondition(kind, slug)
               }}
               onUsesChange={(next) => {
-                void setItemUses(slug, next)
+                void actions.setItemUses(slug, next)
               }}
               onRepair={(deductTl, cost) => {
-                void repairItem(kind, slug, deductTl, cost)
+                void actions.repairItem(kind, slug, deductTl, cost)
               }}
               onRemove={
                 readOnly
                   ? undefined
                   : () => {
-                      removeItem(kind, index)
+                      actions.removeItem(kind, index)
                     }
               }
             />
@@ -479,10 +213,8 @@ export function MechSheet({
 
       {/* ===== Identity Band (Workshop-Manual mech sheet top region) =====
           Edge wordmark ∥ Chassis/Pattern fields + Chassis-Stats strip ∥
-          SP/EP/Heat + Conditions vitals rail, in one toned frame. Carries the
-          shell's `heroRef` (vestigial — the bar's own sentinel drives condense now). */}
+          SP/EP/Heat + Conditions vitals rail, in one toned frame. */}
       <SheetHero
-        heroRef={heroRef}
         cat="Mech"
         name={mech.name}
         // On a mech this region IS the chassis: its name, its stats, its
@@ -492,13 +224,13 @@ export function MechSheet({
           <div className="flex h-full min-w-0 flex-col gap-4">
             <MechIdentityPanel
               mech={mech}
-              chassisName={chassisName}
-              patch={readOnly ? undefined : patchMech}
+              chassisName={model.chassisName}
+              patch={readOnly ? undefined : actions.patchMech}
               besideChassis={
                 <Field
                   label="Quirk"
                   value={mech.quirk ?? ''}
-                  onSave={readOnly ? undefined : saveQuirk}
+                  onSave={readOnly ? undefined : actions.saveQuirk}
                   placeholder="No quirk recorded."
                 />
               }
@@ -512,9 +244,9 @@ export function MechSheet({
                 // Always visible, never folded — there is nothing to manage or
                 // choose here, so a fold would hide the one thing that
                 // distinguishes this chassis from another.
-                chassisAbilities.length > 0 ? (
+                model.chassisAbilities.length > 0 ? (
                   <div className="flex min-w-0 flex-col gap-4">
-                    {chassisAbilities.map((ability, i) => {
+                    {model.chassisAbilities.map((ability, i) => {
                       // Activating an ability (spending its EP) is a Guided-Play
                       // transaction — it lives on the Dashboard, not the
                       // Free-Edit Live Sheet (ADR-021). The sheet shows the
@@ -536,7 +268,7 @@ export function MechSheet({
                             // each ability had its own.
                             statsOverride={
                               i === 0
-                                ? specs.map((spec) => ({
+                                ? model.specs.map((spec) => ({
                                     key: spec.code,
                                     label: spec.code,
                                     value: spec.value,
@@ -569,7 +301,7 @@ export function MechSheet({
               value={mech.appearance ?? mech.description ?? ''}
               multiline
               fill
-              onSave={readOnly ? undefined : saveAppearance}
+              onSave={readOnly ? undefined : actions.saveAppearance}
               placeholder="No appearance recorded."
               className="flex-1"
             />
@@ -580,55 +312,59 @@ export function MechSheet({
             <VitalGauge
               label="SP"
               subLabel="Structure"
-              value={currentSP}
+              value={model.currentSP}
               max={maxSP}
-              onChange={readOnly ? undefined : (v) => patchMech({ currentSP: v })}
+              onChange={readOnly ? undefined : (v) => actions.patchMech({ currentSP: v })}
               onMaxChange={
                 readOnly
                   ? undefined
-                  : (next) => overrideMechMax({ maxSpOverride: pinOrUndef(next, spParts.derived) })
+                  : (next) =>
+                      actions.overrideMechMax({ maxSpOverride: pinOrUndef(next, spParts.derived) })
               }
               overriddenFrom={readOnly || !spParts.overridden ? undefined : spParts.derived}
-              provenance={spLines}
+              provenance={model.spLines}
               onRevertOverride={
-                readOnly ? undefined : () => overrideMechMax({ maxSpOverride: undefined })
+                readOnly ? undefined : () => actions.overrideMechMax({ maxSpOverride: undefined })
               }
               readOnly={readOnly}
             />
             <VitalGauge
               label="EP"
               subLabel="Energy"
-              value={currentEP}
+              value={model.currentEP}
               max={maxEP}
-              onChange={readOnly ? undefined : (v) => patchMech({ currentEP: v })}
+              onChange={readOnly ? undefined : (v) => actions.patchMech({ currentEP: v })}
               onMaxChange={
                 readOnly
                   ? undefined
-                  : (next) => overrideMechMax({ maxEpOverride: pinOrUndef(next, epParts.derived) })
+                  : (next) =>
+                      actions.overrideMechMax({ maxEpOverride: pinOrUndef(next, epParts.derived) })
               }
               overriddenFrom={readOnly || !epParts.overridden ? undefined : epParts.derived}
-              provenance={epLines}
+              provenance={model.epLines}
               onRevertOverride={
-                readOnly ? undefined : () => overrideMechMax({ maxEpOverride: undefined })
+                readOnly ? undefined : () => actions.overrideMechMax({ maxEpOverride: undefined })
               }
               readOnly={readOnly}
             />
             <VitalGauge
               label="Heat"
-              value={currentHeat}
+              value={model.currentHeat}
               max={heatCap}
               danger={heatCap > 0 ? heatDangerFrom(heatCap) : undefined}
-              onChange={readOnly ? undefined : (v) => patchMech({ currentHeat: v })}
+              onChange={readOnly ? undefined : (v) => actions.patchMech({ currentHeat: v })}
               onMaxChange={
                 readOnly
                   ? undefined
                   : (next) =>
-                      overrideMechMax({ maxHeatOverride: pinOrUndef(next, heatParts.derived) })
+                      actions.overrideMechMax({
+                        maxHeatOverride: pinOrUndef(next, heatParts.derived),
+                      })
               }
               overriddenFrom={readOnly || !heatParts.overridden ? undefined : heatParts.derived}
-              provenance={heatLines}
+              provenance={model.heatLines}
               onRevertOverride={
-                readOnly ? undefined : () => overrideMechMax({ maxHeatOverride: undefined })
+                readOnly ? undefined : () => actions.overrideMechMax({ maxHeatOverride: undefined })
               }
               readOnly={readOnly}
             />
@@ -723,14 +459,7 @@ export function MechSheet({
                   readOnly
                     ? undefined
                     : () => {
-                        void store.getState().update(
-                          'mech',
-                          mech.id,
-                          {
-                            partners: (mech.partners ?? []).filter((p) => p.id !== partner.id),
-                          },
-                          LIVE_SHEET_MANUAL
-                        )
+                        actions.removePartner(partner.id)
                       }
                 }
               />
@@ -762,14 +491,14 @@ export function MechSheet({
           schema="systems"
           mode="count"
           selected={mech.systems}
-          onAdd={(name) => addItem('system', name)}
-          onRemove={(index) => removeItem('system', index)}
+          onAdd={(name) => actions.addItem('system', name)}
+          onRemove={(index) => actions.removeItem('system', index)}
           railName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
           chosenLabel="Installed"
           emptyMessage="No systems match those filters."
           budget={[
             { label: 'System Slots', used: capacity.systemSlotsUsed, max: capacity.systemSlotsMax },
-            { label: 'Energy', used: currentEP, max: maxEP, tone: 'ap' },
+            { label: 'Energy', used: model.currentEP, max: maxEP, tone: 'ap' },
           ]}
         />
       </SheetPickerModal>
@@ -783,31 +512,25 @@ export function MechSheet({
           schema="modules"
           mode="count"
           selected={mech.modules}
-          onAdd={(name) => addItem('module', name)}
-          onRemove={(index) => removeItem('module', index)}
+          onAdd={(name) => actions.addItem('module', name)}
+          onRemove={(index) => actions.removeItem('module', index)}
           railName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
           chosenLabel="Installed"
           emptyMessage="No modules match those filters."
           budget={[
             { label: 'Module Slots', used: capacity.moduleSlotsUsed, max: capacity.moduleSlotsMax },
-            { label: 'Energy', used: currentEP, max: maxEP, tone: 'ap' },
+            { label: 'Energy', used: model.currentEP, max: maxEP, tone: 'ap' },
           ]}
         />
       </SheetPickerModal>
 
       {/* Advisory confirm — only mounts when a build edit tripped a rule. */}
       <SoftWarningDialog
-        open={warningSubtitle !== null}
-        warnings={softWarnings.warnings}
-        subtitle={warningSubtitle ?? undefined}
-        onCancel={() => {
-          softWarnings.fixIt()
-          setWarningSubtitle(null)
-        }}
-        onSaveAnyway={() => {
-          void softWarnings.saveAnyway()
-          setWarningSubtitle(null)
-        }}
+        open={actions.warningSubtitle !== null}
+        warnings={actions.warnings}
+        subtitle={actions.warningSubtitle ?? undefined}
+        onCancel={actions.cancelBuildEdit}
+        onSaveAnyway={actions.confirmBuildEdit}
       />
     </section>
   )

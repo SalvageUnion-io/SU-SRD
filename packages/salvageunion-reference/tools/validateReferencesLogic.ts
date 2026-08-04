@@ -25,9 +25,22 @@ function bag(filesByName: Record<string, unknown[]>, filename: string): Rec[] {
 interface Choice {
   id?: string
   name?: string
-  schemaEntities?: string[]
-  schema?: string[]
+  /**
+   * The unified option source. Shortlist references live at
+   * `source.entities` + `source.schema`; the legacy `schemaEntities`/`schema`
+   * duplicates are deliberately NOT read here — validating the copy that is
+   * being retired means the check evaporates the day it is deleted.
+   */
+  source?: { kind?: string; entities?: string[]; schema?: string[] }
   choices?: Choice[]
+}
+
+/** The shortlist a catalog choice references, or null when it has none. */
+function catalogShortlist(choice: Choice): { entities: string[]; schema: string[] } | null {
+  const source = choice.source
+  if (source?.kind !== 'catalog') return null
+  if (!source.entities || source.entities.length === 0) return null
+  return { entities: source.entities, schema: source.schema ?? [] }
 }
 
 interface EntityWithChoices {
@@ -48,16 +61,17 @@ function validateChoicesSchemaEntities(
     const choiceId = choice.id || choice.name || 'unknown'
     const currentPath = `${choicePath}.${choiceId}`
 
-    if (choice.schemaEntities && choice.schemaEntities.length > 0) {
-      const targetSchemas = choice.schema || []
+    const shortlist = catalogShortlist(choice)
+    if (shortlist) {
+      const targetSchemas = shortlist.schema
 
       if (targetSchemas.length === 0) {
         errors.push({
           file: sourceFile,
           entityName,
-          field: `${currentPath}.schemaEntities`,
-          referencedName: choice.schemaEntities.join(', '),
-          message: `schemaEntities defined but no schema specified to validate against`,
+          field: `${currentPath}.source.entities`,
+          referencedName: shortlist.entities.join(', '),
+          message: `source.entities defined but no source.schema specified to validate against`,
         })
       } else {
         const validNames = new Set<string>()
@@ -70,12 +84,12 @@ function validateChoicesSchemaEntities(
           }
         }
 
-        for (const entityRef of choice.schemaEntities) {
+        for (const entityRef of shortlist.entities) {
           if (!validNames.has(entityRef)) {
             errors.push({
               file: sourceFile,
               entityName,
-              field: `${currentPath}.schemaEntities`,
+              field: `${currentPath}.source.entities`,
               referencedName: entityRef,
               message: `Entity "${entityRef}" not found in schemas: ${targetSchemas.join(', ')}`,
             })
@@ -244,7 +258,7 @@ export function findReferenceErrors(filesByName: Record<string, unknown[]>): Val
     }
   }
 
-  // Validate schemaEntities in actions.json
+  // Validate catalog-choice shortlists (source.entities) in actions.json
   for (const action of actions as EntityWithChoices[]) {
     const actionName = String(action.name ?? 'unknown')
     if (action.choices && Array.isArray(action.choices)) {
@@ -259,7 +273,7 @@ export function findReferenceErrors(filesByName: Record<string, unknown[]>): Val
     }
   }
 
-  // Validate schemaEntities in equipment.json
+  // Validate catalog-choice shortlists (source.entities) in equipment.json
   for (const item of equipment as EntityWithChoices[]) {
     const itemName = String(item.name ?? 'unknown')
     if (item.actions && Array.isArray(item.actions)) {

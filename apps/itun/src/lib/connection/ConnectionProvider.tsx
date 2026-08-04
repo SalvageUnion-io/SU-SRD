@@ -4,7 +4,12 @@ import { useConvexAuth } from 'convex/react'
 
 import { ConnectionContext } from './connectionContext'
 import type { ConnectionState } from './connectionContext'
-import { resolveConnectionMode, shouldWarnDisconnected, writesAllowed } from './connectionMode'
+import {
+  isSettlingConnection,
+  resolveConnectionMode,
+  shouldWarnDisconnected,
+  writesAllowed,
+} from './connectionMode'
 import { convexClient, isConvexConfigured } from './convexClient'
 import { setEntityBackendAuthState } from '../../stores/entityBackend'
 
@@ -49,19 +54,20 @@ function useOnline(): boolean {
   return online
 }
 
-function useConnectionState(signedIn: boolean): ConnectionState {
+function useConnectionState(signedIn: boolean, authSettled: boolean): ConnectionState {
   const online = useOnline()
 
   // The stores are not components and cannot call hooks, so the mode is PUSHED
   // to them from here rather than pulled. One writer, one direction — and it
   // happens in an effect so a render never has a side effect.
   useEffect(() => {
-    setEntityBackendAuthState({ signedIn, online })
-  }, [signedIn, online])
+    setEntityBackendAuthState({ signedIn, online, authSettled })
+  }, [signedIn, online, authSettled])
 
   return useMemo(() => {
     const mode = resolveConnectionMode({
       convexConfigured: isConvexConfigured,
+      authSettled,
       signedIn,
       online,
     })
@@ -69,19 +75,25 @@ function useConnectionState(signedIn: boolean): ConnectionState {
       mode,
       canWrite: writesAllowed(mode),
       showDisconnectedWarning: shouldWarnDisconnected(mode),
+      settling: isSettlingConnection(mode),
     }
-  }, [signedIn, online])
+  }, [signedIn, online, authSettled])
 }
 
 function ConvexBackedConnection({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useConvexAuth()
-  const state = useConnectionState(isAuthenticated)
+  // All three flags matter, and discarding the latter two is what used to make
+  // the initial handshake masquerade as Solo: `isAuthenticated` is false for the
+  // whole of it, and Solo silently routes writes to IndexedDB with no mirror.
+  const { isAuthenticated, isLoading, isRefreshing } = useConvexAuth()
+  const state = useConnectionState(isAuthenticated, !isLoading && !isRefreshing)
   return <ConnectionContext.Provider value={state}>{children}</ConnectionContext.Provider>
 }
 
 function SoloConnection({ children }: { children: ReactNode }) {
-  // No account is possible in this build, so `signedIn` is structurally false.
-  const state = useConnectionState(false)
+  // No account is possible in this build, so `signedIn` is structurally false —
+  // and there is no auth layer to wait for, so the session is settled by
+  // construction rather than by having resolved.
+  const state = useConnectionState(false, true)
   return <ConnectionContext.Provider value={state}>{children}</ConnectionContext.Provider>
 }
 

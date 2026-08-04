@@ -28,7 +28,9 @@ import type { CargoLot } from '../schemas/cargoLot'
 import type { Crawler } from '../schemas/crawler'
 import type { PartnerWithHost } from '../partnerLookup'
 import { replacePartner } from '../partnerLookup'
+import type { ChangeMeta } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import {
   cargoTransfer,
   carrierCargoUsage,
@@ -46,6 +48,8 @@ type UsePartnerCargoOptions = {
   crawler?: Crawler | null
   store?: typeof useEntityStore
   readOnly?: boolean
+  /** Change Log provenance for the writes this hook commits (ADR-022). */
+  meta?: ChangeMeta
 }
 
 export type UsePartnerCargoResult = {
@@ -67,6 +71,7 @@ export function usePartnerCargo({
   crawler,
   store = useEntityStore,
   readOnly = false,
+  meta = LIVE_SHEET_MANUAL,
 }: UsePartnerCargoOptions): UsePartnerCargoResult {
   const { partner, hostKind, host } = found
   const storeState = store()
@@ -91,7 +96,28 @@ export function usePartnerCargo({
       }
     }
 
-    const result = cargoTransfer(state, action)
+    // Reduce against a FRESH read, not the render-time `state` snapshot — the
+    // same guard `useCargo.dispatchMechLocal` carries. These are per-lot
+    // buttons on a list, so two clicks can land before the store round-trip
+    // re-renders; both would otherwise compute from the same base array and
+    // the second write would resurrect the lot the first removed.
+    //
+    // The host is re-read too, not just the partner's lots: the patch below
+    // rebuilds the WHOLE `partners` array, so a stale host would also revert
+    // any concurrent edit to a sibling partner.
+    const freshHost = storeState.get(hostKind, host.id) ?? host
+    const freshPartner = (freshHost.partners ?? []).find((p) => p.id === partner.id) ?? partner
+    const freshCrawler = crawler ? (storeState.get('crawler', crawler.id) ?? crawler) : null
+
+    const result = cargoTransfer(
+      {
+        carrierLots: freshPartner.cargoLots ?? [],
+        carrierCargoCap: partnerDerivedStats(freshPartner, techLevel).cargoCapacity,
+        depotLots: freshCrawler?.cargoLots ?? [],
+        scrapPool: freshCrawler?.scrapPool ?? {},
+      },
+      action
+    )
     if (!result.ok) return result
 
     // Both sides commit in ONE IndexedDB transaction: a crash between two
@@ -104,7 +130,7 @@ export function usePartnerCargo({
         // The partner's lots persist as a patch to its HOST's partners array —
         // the one thing that differs from useCargo.
         patch: {
-          partners: replacePartner(host.partners, partner.id, {
+          partners: replacePartner(freshHost.partners, partner.id, {
             cargoLots: result.state.carrierLots,
           }),
         },
@@ -120,7 +146,7 @@ export function usePartnerCargo({
     if (updates.length === 0) return result
 
     try {
-      await storeState.transfer({ updates })
+      await storeState.transfer({ updates }, meta)
       return result
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)

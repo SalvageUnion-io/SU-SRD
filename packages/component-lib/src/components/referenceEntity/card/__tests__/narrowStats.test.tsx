@@ -23,8 +23,8 @@
  * every other test would measure as cramped and silently render the wrong
  * anatomy.
  */
-import { afterEach, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { EntityCardHeader } from '../EntityCardHeader'
 import type { StatItem } from '../../../shared/statsBarTypes'
 
@@ -89,8 +89,6 @@ function renderAtWidth(width: number, count = FULL_STATS.length) {
     if (clientWidth) Object.defineProperty(HTMLElement.prototype, 'clientWidth', clientWidth)
   }
 }
-
-afterEach(cleanup)
 
 describe('header stats under width pressure', () => {
   test('a phone-width band renders the SHORT-form badge cells', () => {

@@ -11,6 +11,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { useEntityStore } from '../../../stores/entityStore'
+import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../../stores/surfaceProvenance'
 import { ChangeLogDrawer } from '../ChangeLogDrawer'
 import { Sheet } from '../Sheet'
 
@@ -57,8 +58,8 @@ describe('ChangeLogDrawer', () => {
     const store = useEntityStore.getState()
     const pilot = await store.create('pilot', basePilotInput)
     await act(async () => {
-      await store.update('pilot', pilot.id, { callsign: 'Wraith' }, { kind: 'override' })
-      await store.update('pilot', pilot.id, { motto: 'Rise again.' })
+      await store.update('pilot', pilot.id, { callsign: 'Wraith' }, LIVE_SHEET_OVERRIDE)
+      await store.update('pilot', pilot.id, { motto: 'Rise again.' }, LIVE_SHEET_MANUAL)
     })
 
     render(
@@ -76,7 +77,7 @@ describe('ChangeLogDrawer', () => {
     expect(screen.getByText('Wraith')).toBeTruthy()
     // The cap edit carried kind:'override' → an Override badge renders.
     expect(screen.getByText('Override')).toBeTruthy()
-    // The untagged edit defaults to a Manual badge.
+    // The plain Free-Edit write is tagged manual → a Manual badge.
     expect(screen.getByText('Manual')).toBeTruthy()
   })
 

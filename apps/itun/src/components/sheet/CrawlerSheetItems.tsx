@@ -16,6 +16,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { Content, NpcInset } from 'component-lib'
 import { BAY_REPAIR_COST } from './crawlerSheetItemRules'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { runWrite } from './sheetWrite'
 
 export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 
@@ -150,7 +151,9 @@ export function CrawlerBayCard({
     // the freshest persisted record and patches only this entry, so
     // concurrent edits to different bays don't clobber each other. index
     // disambiguates duplicate bayRefs.
-    void storeState.updateCrawlerBay(crawlerId, entry.bayRef, patch, index, LIVE_SHEET_MANUAL)
+    runWrite(() =>
+      storeState.updateCrawlerBay(crawlerId, entry.bayRef, patch, index, LIVE_SHEET_MANUAL)
+    )
   }
 
   /** Bays are Intact/Damaged ONLY — never Destroyed (rules C8). */
@@ -356,13 +359,15 @@ export function CrawlerTypeCard({
 
   function patchNpc(patch: Partial<CrawlerNpcState>) {
     const fresh = storeState.get('crawler', crawlerId)
-    void storeState.update(
-      'crawler',
-      crawlerId,
-      {
-        typeNpc: { ...(fresh?.typeNpc ?? {}), ...patch },
-      },
-      LIVE_SHEET_MANUAL
+    runWrite(() =>
+      storeState.update(
+        'crawler',
+        crawlerId,
+        {
+          typeNpc: { ...(fresh?.typeNpc ?? {}), ...patch },
+        },
+        LIVE_SHEET_MANUAL
+      )
     )
   }
 

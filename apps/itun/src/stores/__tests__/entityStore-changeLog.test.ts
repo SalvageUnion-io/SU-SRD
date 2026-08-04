@@ -11,7 +11,7 @@ import { beforeEach, describe, expect, test } from 'bun:test'
 
 import { _clearAllStores, _resetDbSingleton, changeLog } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
-import { DASHBOARD_TXN } from '../surfaceProvenance'
+import { DASHBOARD_TXN, LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../surfaceProvenance'
 
 const basePilotInput = {
   schemaVersion: 1 as const,
@@ -50,7 +50,9 @@ async function seedPilot() {
 describe('Change Log — write-through chokepoint', () => {
   test('a single-field update appends exactly one entry, correctly shaped', async () => {
     const pilot = await seedPilot()
-    await useEntityStore.getState().update('pilot', pilot.id, { callsign: 'Wraith' })
+    await useEntityStore
+      .getState()
+      .update('pilot', pilot.id, { callsign: 'Wraith' }, LIVE_SHEET_MANUAL)
 
     const entries = await changeLog.listForEntity(pilot.id)
     expect(entries).toHaveLength(1)
@@ -61,8 +63,10 @@ describe('Change Log — write-through chokepoint', () => {
     expect(entry.field).toBe('callsign')
     expect(entry.before).toBe('Ghost')
     expect(entry.after).toBe('Wraith')
+    // The tag comes from the surface constant, never from a default — `meta` is
+    // a required argument precisely so an untagged write cannot compile.
     expect(entry.kind).toBe('manual')
-    expect(entry.source).toBe('unknown')
+    expect(entry.source).toBe('live-sheet')
     expect(entry.seq).toBeGreaterThan(0)
     expect(typeof entry.ts).toBe('number')
   })
@@ -72,9 +76,12 @@ describe('Change Log — write-through chokepoint', () => {
     // update(). Before this was wired it emitted nothing, so cargo stow/load
     // and scrap hand-offs mutated entities with no provenance at all.
     const pilot = await seedPilot()
-    await useEntityStore.getState().transfer({
-      updates: [{ type: 'pilot', id: pilot.id, patch: { callsign: 'Wraith' } }],
-    })
+    await useEntityStore.getState().transfer(
+      {
+        updates: [{ type: 'pilot', id: pilot.id, patch: { callsign: 'Wraith' } }],
+      },
+      LIVE_SHEET_MANUAL
+    )
 
     const entries = await changeLog.listForEntity(pilot.id)
     expect(entries).toHaveLength(1)
@@ -102,9 +109,12 @@ describe('Change Log — write-through chokepoint', () => {
 
   test('transfer() emits nothing for a patch that changes no field', async () => {
     const pilot = await seedPilot()
-    await useEntityStore.getState().transfer({
-      updates: [{ type: 'pilot', id: pilot.id, patch: { callsign: 'Ghost' } }],
-    })
+    await useEntityStore.getState().transfer(
+      {
+        updates: [{ type: 'pilot', id: pilot.id, patch: { callsign: 'Ghost' } }],
+      },
+      LIVE_SHEET_MANUAL
+    )
     expect(await changeLog.listForEntity(pilot.id)).toHaveLength(0)
   })
 
@@ -122,7 +132,7 @@ describe('Change Log — write-through chokepoint', () => {
     const pilot = await seedPilot()
     await useEntityStore
       .getState()
-      .update('pilot', pilot.id, { callsign: 'Wraith', motto: 'Rise again.' })
+      .update('pilot', pilot.id, { callsign: 'Wraith', motto: 'Rise again.' }, LIVE_SHEET_MANUAL)
 
     const entries = await changeLog.listForEntity(pilot.id)
     expect(entries).toHaveLength(2)
@@ -135,7 +145,7 @@ describe('Change Log — write-through chokepoint', () => {
     // callsign is already 'Ghost'; motto changes.
     await useEntityStore
       .getState()
-      .update('pilot', pilot.id, { callsign: 'Ghost', motto: 'A new creed.' })
+      .update('pilot', pilot.id, { callsign: 'Ghost', motto: 'A new creed.' }, LIVE_SHEET_MANUAL)
 
     const entries = await changeLog.listForEntity(pilot.id)
     expect(entries).toHaveLength(1)
@@ -146,7 +156,7 @@ describe('Change Log — write-through chokepoint', () => {
     const pilot = await seedPilot()
     await useEntityStore
       .getState()
-      .update('pilot', pilot.id, { callsign: 'Wraith' }, { kind: 'override', source: 'live-sheet' })
+      .update('pilot', pilot.id, { callsign: 'Wraith' }, LIVE_SHEET_OVERRIDE)
 
     const entry = (await changeLog.listForEntity(pilot.id))[0]
     if (!entry) throw new Error('expected a Change Log entry')
@@ -157,9 +167,9 @@ describe('Change Log — write-through chokepoint', () => {
   test('the log is append-only and ordered across successive updates', async () => {
     const pilot = await seedPilot()
     const store = useEntityStore.getState()
-    await store.update('pilot', pilot.id, { callsign: 'A' })
-    await store.update('pilot', pilot.id, { callsign: 'B' })
-    await store.update('pilot', pilot.id, { callsign: 'C' })
+    await store.update('pilot', pilot.id, { callsign: 'A' }, LIVE_SHEET_MANUAL)
+    await store.update('pilot', pilot.id, { callsign: 'B' }, LIVE_SHEET_MANUAL)
+    await store.update('pilot', pilot.id, { callsign: 'C' }, LIVE_SHEET_MANUAL)
 
     const entries = await changeLog.listForEntity(pilot.id)
     expect(entries.map((e) => e.after)).toEqual(['A', 'B', 'C'])
@@ -176,8 +186,8 @@ describe('Change Log — write-through chokepoint', () => {
     const b = await useEntityStore
       .getState()
       .create('pilot', { ...basePilotInput, name: 'Rex', callsign: 'Hammer' })
-    await useEntityStore.getState().update('pilot', a.id, { callsign: 'A-new' })
-    await useEntityStore.getState().update('pilot', b.id, { callsign: 'B-new' })
+    await useEntityStore.getState().update('pilot', a.id, { callsign: 'A-new' }, LIVE_SHEET_MANUAL)
+    await useEntityStore.getState().update('pilot', b.id, { callsign: 'B-new' }, LIVE_SHEET_MANUAL)
 
     const aEntries = await changeLog.listForEntity(a.id)
     const bEntries = await changeLog.listForEntity(b.id)

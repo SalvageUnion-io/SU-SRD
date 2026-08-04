@@ -4,8 +4,8 @@
  * (the app persists it via the store in production). Plain item fixtures, no ORM.
  */
 
-import { afterEach, describe, expect, test } from 'bun:test'
-import { cleanup, fireEvent, render } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { fireEvent, render } from '@testing-library/react'
 import { useState } from 'react'
 
 import { Dial, type DialItem } from '../Dial'
@@ -27,8 +27,6 @@ function ControlledDial() {
   const [idx, setIdx] = useState(0)
   return <Dial items={items} activeIndex={idx} onActiveIndexChange={setIdx} />
 }
-
-afterEach(cleanup)
 
 describe('Dial', () => {
   test('active slot starts on the first item', () => {

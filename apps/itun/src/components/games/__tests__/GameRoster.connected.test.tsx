@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 /**
@@ -14,36 +14,15 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
  *  - offering "create" in a Game with no crawler, which the server rejects
  *  - hiding the crawler CTA from the only person who can raise one
  *
- * Queries are answered in **call order** — the generated `api` is a Proxy that
- * throws when inspected, so position is the only stable key. This component
- * asks for: account.me, games.members, entities.listForGame.
+ * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * This component asks for: account.me, games.members, entities.listForGame.
  */
 
-let queryQueue: unknown[] = []
-let queryIndex = 0
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
-const realConvexClient = { ...(await import('../../../lib/connection/convexClient')) }
-const realConvexReact = { ...(await import('convex/react')) }
-
-mock.module('../../../lib/connection/convexClient', () => ({
-  isConvexConfigured: true,
-  convexClient: {},
-}))
-
-mock.module('convex/react', () => ({
-  useQuery: () => {
-    const value = queryQueue[queryIndex]
-    queryIndex += 1
-    return value
-  },
-  useMutation: () => async () => undefined,
-  useConvexAuth: () => ({ isAuthenticated: true, isLoading: false }),
-  ConvexReactClient: class {},
-  ConvexProvider: ({ children }: { children: unknown }) => children,
-  ConvexProviderWithAuth: ({ children }: { children: unknown }) => children,
-  useConvex: () => ({}),
-  useAction: () => async () => undefined,
-}))
+// Module scope, before the imports below: `mock.module` only affects imports
+// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+const convexMocks = await installConvexMocks()
 
 const { GameRoster } = await import('../GameRoster')
 
@@ -90,8 +69,11 @@ function listing(over: Record<string, unknown> = {}) {
 
 /** Render as `viewer`, against one crew listing. */
 function renderAs(me: unknown, rows: ReturnType<typeof listing>, members: unknown = MEMBERS): void {
-  queryQueue = [me, members, rows]
-  queryIndex = 0
+  setQueryAnswers({
+    'account:me': me,
+    'games:members': members,
+    'entities:listForGame': rows,
+  })
   render(<GameRoster gameId="g1" gameName="Tenacity" />)
 }
 
@@ -222,7 +204,4 @@ describe('what the game will accept', () => {
   })
 })
 
-afterAll(() => {
-  mock.module('../../../lib/connection/convexClient', () => realConvexClient)
-  mock.module('convex/react', () => realConvexReact)
-})
+afterAll(convexMocks.restore)

@@ -63,8 +63,6 @@ type RollTableDisplayProps = {
    */
   size?: Extract<SizeRung, 'full' | 'compact'>
   tableName?: string
-  /** Only allow a single roll — disables the roll button after first use and hides reroll */
-  singleRoll?: boolean
   /** Called with the result text (and roll key) when the built-in roll button is used */
   onRollResult?: (text: string, key: string) => void
   /**
@@ -96,8 +94,6 @@ function RollTableHeader({
   setExpanded,
   tableName,
   disabled,
-  singleRoll,
-  hasRolled,
   handleRoll,
   titleSelect,
 }: {
@@ -107,8 +103,6 @@ function RollTableHeader({
   setExpanded: Dispatch<SetStateAction<boolean>>
   tableName?: string
   disabled?: boolean
-  singleRoll?: boolean
-  hasRolled: boolean
   handleRoll: () => void
   titleSelect?: RollTableTitleSelect
 }) {
@@ -133,13 +127,7 @@ function RollTableHeader({
           <button
             type="button"
             onClick={handleRoll}
-            disabled={singleRoll && hasRolled}
-            className={cn(
-              'inline-flex items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-badge font-bold uppercase tracking-caps-tight text-paper',
-              singleRoll && hasRolled
-                ? 'cursor-not-allowed opacity-30'
-                : 'cursor-pointer hover:border-rust-hi hover:bg-rust-hi'
-            )}
+            className="inline-flex cursor-pointer items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-badge font-bold uppercase tracking-caps-tight text-paper hover:border-rust-hi hover:bg-rust-hi"
             aria-label="Roll on this table"
             title="Roll on this table"
           >
@@ -299,13 +287,11 @@ function ResultActionBar({
   compact,
   resultText,
   onReroll,
-  hideReroll,
   onClear,
 }: {
   compact?: boolean
   resultText: string
   onReroll: () => void
-  hideReroll?: boolean
   /** When provided, renders a Clear action that resets the current result. */
   onClear?: () => void
 }) {
@@ -360,16 +346,14 @@ function ResultActionBar({
         Copy
         <Copy className={iconSize} />
       </button>
-      {!hideReroll && (
-        <button
-          type="button"
-          onClick={handleReroll}
-          className={cn(boxMetrics, 'bg-ink text-paper hover:bg-brand-srd')}
-        >
-          Reroll
-          <DiceIcon compact={compact} />
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={handleReroll}
+        className={cn(boxMetrics, 'bg-ink text-paper hover:bg-brand-srd')}
+      >
+        Reroll
+        <DiceIcon compact={compact} />
+      </button>
       {onClear && (
         <button
           type="button"
@@ -406,7 +390,6 @@ function CollapsedResultSlideout({
   resultText,
   compact,
   onReroll,
-  hideReroll,
   onClear,
   children,
 }: {
@@ -415,7 +398,6 @@ function CollapsedResultSlideout({
   resultText: string
   compact?: boolean
   onReroll: () => void
-  hideReroll?: boolean
   onClear: () => void
   children: ReactNode
 }) {
@@ -444,7 +426,6 @@ function CollapsedResultSlideout({
           compact={compact}
           resultText={resultText}
           onReroll={onReroll}
-          hideReroll={hideReroll}
           onClear={onClear}
         />
       )}
@@ -474,7 +455,6 @@ function ColumnsRollTable({
   table,
   showCommand = false,
   tableName,
-  singleRoll = false,
   onRollResult,
   collapsible = false,
   titleSelect,
@@ -482,7 +462,6 @@ function ColumnsRollTable({
   const compact = size === 'compact'
   const [result, setResult] = useState<ColumnsRollResult | null>(null)
   const [rollAnnouncement, setRollAnnouncement] = useState('')
-  const [hasRolled, setHasRolled] = useState(false)
   const [expanded, setExpanded] = useState(!collapsible)
   const highlightedRef = useRef<HTMLTableCellElement>(null)
   const showHeader = showCommand || collapsible
@@ -496,7 +475,6 @@ function ColumnsRollTable({
   const tableData = table
 
   const handleRoll = () => {
-    if (singleRoll && hasRolled) return
     setResult(null)
     setRollAnnouncement('')
     const colRoll = roll('1d20').total
@@ -509,7 +487,6 @@ function ColumnsRollTable({
           entryKey: res.entryKey,
           value: res.result.value,
         })
-        if (singleRoll) setHasRolled(true)
         setRollAnnouncement(`Column ${res.columnKey}, Roll ${res.entryKey}: ${res.result.value}`)
         onRollResult?.(res.result.value, res.entryKey)
       }
@@ -535,8 +512,6 @@ function ColumnsRollTable({
           setExpanded={setExpanded}
           tableName={tableName}
           disabled={disabled}
-          singleRoll={singleRoll}
-          hasRolled={hasRolled}
           handleRoll={handleRoll}
           titleSelect={titleSelect}
         />
@@ -547,7 +522,6 @@ function ColumnsRollTable({
           resultText={result?.value ?? ''}
           compact={compact}
           onReroll={handleRoll}
-          hideReroll={singleRoll}
           onClear={handleClear}
         >
           {/* Mirror the expanded cell: bold roll `#` then the result text. */}
@@ -624,7 +598,6 @@ function ColumnsRollTable({
                                 compact={compact}
                                 resultText={entry?.value ?? ''}
                                 onReroll={handleRoll}
-                                hideReroll={singleRoll}
                               />
                             )}
                           </td>
@@ -658,7 +631,6 @@ function StandardRollTable({
   table,
   showCommand = false,
   tableName,
-  singleRoll = false,
   onRollResult,
   collapsible = false,
   titleSelect,
@@ -666,7 +638,6 @@ function StandardRollTable({
   const compact = size === 'compact'
   const digestedTable = digestRollTable(table)
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null)
-  const [hasRolled, setHasRolled] = useState(false)
   const [rollAnnouncement, setRollAnnouncement] = useState('')
   const [expanded, setExpanded] = useState(!collapsible)
   const highlightedRowRef = useRef<HTMLTableRowElement>(null)
@@ -679,13 +650,11 @@ function StandardRollTable({
   }, [highlightedKey])
 
   const handleRoll = () => {
-    if (singleRoll && hasRolled) return
     setHighlightedKey(null)
     setRollAnnouncement('')
     const { key } = resultForTable(table as SURefObjectTable, roll('1d20').total)
     setTimeout(() => {
       setHighlightedKey(key)
-      if (singleRoll) setHasRolled(true)
       const entry = digestedTable.find((d) => d.key === key)
       if (entry) {
         const text = entry.label ? `${entry.label}: ${entry.value}` : entry.value
@@ -726,8 +695,6 @@ function StandardRollTable({
           setExpanded={setExpanded}
           tableName={tableName}
           disabled={disabled}
-          singleRoll={singleRoll}
-          hasRolled={hasRolled}
           handleRoll={handleRoll}
           titleSelect={titleSelect}
         />
@@ -737,7 +704,6 @@ function StandardRollTable({
           resultText={collapsedResultText}
           compact={compact}
           onReroll={handleRoll}
-          hideReroll={singleRoll}
           onClear={handleClearHighlight}
         >
           {/* Mirror the expanded row: the 52px roll `#` cell + the description. */}
@@ -818,7 +784,6 @@ function StandardRollTable({
                           compact={compact}
                           resultText={label ? `${label}: ${value}` : value}
                           onReroll={handleRoll}
-                          hideReroll={singleRoll}
                         />
                       </td>
                     )}

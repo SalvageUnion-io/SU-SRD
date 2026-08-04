@@ -1,11 +1,10 @@
-import { afterEach, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 
 import { EntityRow } from '../EntityRow'
 
 // Not automatic under bun:test — without it, rows accumulate in the document and
 // `screen` queries match the previous test's markup.
-afterEach(cleanup)
 
 /**
  * EntityRow gained a fourth ontology (`game`, ADR-030) and `meta` gained array

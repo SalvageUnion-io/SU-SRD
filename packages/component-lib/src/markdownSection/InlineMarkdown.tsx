@@ -1,6 +1,5 @@
 import { Fragment } from 'react'
 
-import { cn } from '../utils/cn'
 import { type InlineNode, parseInline } from './parseMarkdownSection'
 
 /** Pair each run with its start offset in the text — a stable React key. */
@@ -16,9 +15,10 @@ function withOffsets(nodes: InlineNode[]): Array<{ node: InlineNode; offset: num
 type InlineMarkdownProps = {
   /** A single line of prose; `[label](href)` links are interpreted. */
   text: string
-  /** Class applied to rendered `<a>` links. */
-  linkClassName?: string
 }
+
+/** The one link look both markdown surfaces render. */
+const LINK_CLASS = 'font-semibold text-rust hover:underline'
 
 /**
  * The inline half of the shared markdown contract: split `text` into plain runs
@@ -30,10 +30,7 @@ type InlineMarkdownProps = {
  * notes) so an issue/commit reference like `([#518](…))` renders as a link on
  * both, from one rendering path rather than two hand-kept copies.
  */
-export function InlineMarkdown({
-  text,
-  linkClassName = 'font-semibold text-rust hover:underline',
-}: InlineMarkdownProps) {
+export function InlineMarkdown({ text }: InlineMarkdownProps) {
   return (
     <>
       {/* Keyed by running offset: two runs in one line can hold the same text,
@@ -45,7 +42,7 @@ export function InlineMarkdown({
             href={node.href}
             target="_blank"
             rel="noopener noreferrer"
-            className={cn(linkClassName)}
+            className={LINK_CLASS}
           >
             {node.text}
           </a>

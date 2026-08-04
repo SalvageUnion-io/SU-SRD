@@ -1,10 +1,8 @@
-import { describe, test, expect, afterEach } from 'bun:test'
-import { render, screen, cleanup } from '@testing-library/react'
+import { describe, test, expect } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { CardImage } from '../CardImage'
 
 describe('CardImage', () => {
-  afterEach(cleanup)
-
   test('renders the alt attribute on the img element', () => {
     render(<CardImage url="https://example.com/image.png" alt="Iron Mongrel chassis" />)
     const img = screen.getByRole('img')

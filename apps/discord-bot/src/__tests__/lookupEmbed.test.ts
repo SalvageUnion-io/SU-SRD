@@ -12,12 +12,12 @@ import {
   SalvageUnionReference,
   getDataMaps,
   getSchemaCatalog,
+  isSchemaName,
   search,
 } from 'salvageunion-reference'
 import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
 
 import { buildLookupEmbed, type LookupEmbed } from '../lookupEmbed.js'
-import { isSchemaName } from '../schemaName.js'
 
 // Discord's hard limits (mirrors lookupEmbed.ts).
 const LIMIT = {

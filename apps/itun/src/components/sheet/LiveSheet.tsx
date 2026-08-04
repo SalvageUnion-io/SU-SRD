@@ -3,8 +3,7 @@
  * One shell, three variants, "so the three screens cannot drift apart".
  *
  * Render-prop contract (binding, plan 4.1):
- *   { variant, name, strip, back, rail, condense,
- *     renderHero, renderBody, syncStats }
+ *   { variant, name, strip, back, condense, renderBody, syncStats }
  *
  * App bar (poster `.appbar`, design source clean-pilot.html): back + overflow
  * are bordered 38px icon buttons either side of the SU cargo mark. At rest the
@@ -31,7 +30,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { Badge, buttonVariants, Stat } from 'component-lib'
-import type { BadgeTone, StatTone } from 'component-lib'
+import type { StatTone } from 'component-lib'
 
 import { cn } from '../../lib/utils'
 import { AppLink } from '../shared/AppLink'
@@ -63,37 +62,12 @@ export type LiveSheetStripItem = {
   mobilePriority?: boolean
 }
 
-type LiveSheetHeroContext = {
-  /** Must reach the hero root element — the condense sentinel observes it. */
-  heroRef: RefObject<HTMLElement | null>
-  /** The rail strip — slot into the hero frame (SheetHero `rail` prop). */
-  rail: ReactNode
-}
-
-type LiveSheetBodyContext = {
-  /**
-   * The condense sentinel ref. Sheets that own their identity band inside the
-   * BODY (no `renderHero`) wrap that band's frame with this so the sticky bar
-   * still condenses when the band scrolls away (Workshop-Manual layout).
-   */
-  heroRef: RefObject<HTMLElement | null>
-}
-
 type LiveSheetProps = {
   variant: SheetVariant
   name: string
   /** Condensed-bar MiniStat readouts (values live, from the entity record). */
   strip?: LiveSheetStripItem[]
   back?: { href: string; label: string }
-  /**
-   * Kind/status pill. NO LONGER RENDERED in the bar: the gutter wordmark names
-   * the sheet's kind permanently, and repeating it in the condensed bar said
-   * the same word twice on one screen. Kept on the type because callers still
-   * pass it and a status pill may earn a place here later.
-   */
-  pill?: { label: string; tone?: BadgeTone }
-  /** Linked-entity rail content (RailChip / RailEmpty row) — slotted into the hero by the caller. */
-  rail?: ReactNode
   /**
    * Mobile segmented Pilot/Mech/Crawler switch (design §3.7) — rendered as a
    * full-width row of flex-1 sm btns under the top-bar controls, visible only
@@ -104,13 +78,11 @@ type LiveSheetProps = {
   /** Sticky condense bar on scroll (default true — shipped tweak default). */
   condense?: boolean
   /**
-   * The hero band. Optional: Workshop-Manual sheets fold their identity band
-   * into the BODY's first region (so identity + vitals stay in one component
-   * with their handlers), pass no `renderHero`, and wrap that band with the
-   * `heroRef` handed to `renderBody` instead.
+   * The sheet body. Workshop-Manual sheets fold their identity band into the
+   * body's first region, so identity + vitals stay in one component with their
+   * handlers — the shell has no separate hero slot.
    */
-  renderHero?: (ctx: LiveSheetHeroContext) => ReactNode
-  renderBody: (ctx: LiveSheetBodyContext) => ReactNode
+  renderBody: () => ReactNode
   /** Derived stat overlays merged onto strip items by key (e.g. {cargo: used}). */
   syncStats?: Record<string, number>
   /** Trailing top-bar actions (Share/Publish). */
@@ -152,24 +124,16 @@ export function LiveSheet({
   name,
   strip = [],
   back,
-  rail,
   segments,
   condense = true,
-  renderHero,
   renderBody,
   syncStats,
   actions,
   className,
 }: LiveSheetProps) {
-  const heroRef = useRef<HTMLElement | null>(null)
   // A 1px sentinel directly beneath the bar, NOT the identity block: the bar
   // should seam and fill the moment you scroll past IT, rather than waiting for
   // a whole region to clear the viewport.
-  //
-  // `heroRef` below is now VESTIGIAL: it is still created, handed to the body
-  // and attached by each sheet to its first region, but nothing observes it any
-  // more. Left in place rather than unpicked across eight files at the end of
-  // this pass; removing it is a mechanical follow-up.
   const topRef = useRef<HTMLDivElement | null>(null)
   const condensed = useCondensed(topRef, condense)
 
@@ -327,19 +291,9 @@ export function LiveSheet({
           bar seams (border + shadow) and fills (name + vitals). */}
       <div ref={topRef} aria-hidden="true" className="h-px w-full" />
 
-      {/* Hero band — the rail is passed through so the hero slots it inside
-          its own frame (design: hero rail strip sits under the band, inside
-          the 3px entity border). Optional: Workshop-Manual sheets own their
-          identity band in the body and pass no renderHero. */}
-      {renderHero && (
-        <div className="px-4 pb-1.5 pt-4 sm:px-[30px] sm:pt-[22px]">
-          {renderHero({ heroRef, rail })}
-        </div>
-      )}
-
       {/* Body slabs — extra phone bottom padding when the FAB floats so the
-          last card's controls stay reachable behind the thumb zone. When the
-          body owns the hero (no renderHero), it takes the hero's top padding. */}
+          last card's controls stay reachable behind the thumb zone. The body
+          owns the hero, so it takes the hero's top padding. */}
       <div className="relative">
         {/* Edge wordmark — PILOT / MECH / CRAWLER running up the page gutter.
             It sits in the shell's own padding, outside the content column, so
@@ -372,13 +326,8 @@ export function LiveSheet({
             {variant}
           </span>
         </span>
-        <div
-          className={cn(
-            'px-4 pb-[34px] sm:px-[30px] sm:pb-[60px] xl:pl-[84px]',
-            renderHero ? 'pt-[18px] sm:pt-6' : 'pt-4 sm:pt-[22px]'
-          )}
-        >
-          {renderBody({ heroRef })}
+        <div className="px-4 pb-[34px] pt-4 sm:px-[30px] sm:pb-[60px] sm:pt-[22px] xl:pl-[84px]">
+          {renderBody()}
         </div>
       </div>
     </div>

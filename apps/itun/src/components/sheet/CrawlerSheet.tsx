@@ -3,8 +3,7 @@
  * §4.4, plan 4.6; redesigned to the poster layout, Phase 2).
  *
  * The body OWNS the identity band now (Workshop-Manual crawler sheet):
- * SheetCrawler passes NO `renderHero`, and this body renders `SheetHero` in
- * band mode as its first region (wrapped with the shell's `heroRef`).
+ * This body renders `SheetHero` in band mode as its first region.
  * Following the printed sheet (`Editable_..._Crawler_Sheets.pdf`), the sheet is
  * a single-column region stack, inside the same `@container` shape
  * PilotSheet/MechSheet use:
@@ -65,14 +64,15 @@
  */
 
 import { useState } from 'react'
-import type { ReactNode, Ref } from 'react'
+import type { ReactNode } from 'react'
 import { ReferenceEntityCard, SheetHero, Stat } from 'component-lib'
 
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
-import type { Crawler, ScrapPool } from '../../lib/schemas/crawler'
+import { SCRAP_TLS, drawFromPool, poolAvailableAtOrAbove } from '../../lib/rules/crawlerEconomy'
+import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import { useEntityStore } from '../../stores/entityStore'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
@@ -84,8 +84,9 @@ import { StorageManifest } from './StorageManifest'
 
 import { CrawlerBayCard } from './CrawlerSheetItems'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
-import { BAY_REPAIR_COST, SCRAP_TLS, resolveCrawlerSystem } from './crawlerSheetItemRules'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { BAY_REPAIR_COST, resolveCrawlerSystem } from './crawlerSheetItemRules'
+import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
+import { runWrite } from './sheetWrite'
 
 type CrawlerSheetProps = {
   crawler: Crawler
@@ -101,12 +102,6 @@ type CrawlerSheetProps = {
   store?: typeof useEntityStore
   /** Suppresses every edit affordance (published snapshots). */
   readOnly?: boolean
-  /**
-   * Marks the body's first region. VESTIGIAL: the sticky bar condenses off its
-   * own 1px sentinel now, so nothing observes this. Undefined in bare test
-   * renders (no shell).
-   */
-  heroRef?: Ref<HTMLElement>
   /**
    * The economy band content (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade
    * lozenges) — built by `SheetCrawler` (it owns the economy-dialog state
@@ -128,7 +123,6 @@ export function CrawlerSheet({
   mech = null,
   store = useEntityStore,
   readOnly = false,
-  heroRef,
   economy,
   linkedUnits,
 }: CrawlerSheetProps) {
@@ -152,7 +146,7 @@ export function CrawlerSheet({
     if (readOnly) return
     const fields =
       typeof input === 'function' ? input(storeState.get('crawler', crawler.id) ?? crawler) : input
-    void storeState.update('crawler', crawler.id, fields, LIVE_SHEET_MANUAL)
+    runWrite(() => storeState.update('crawler', crawler.id, fields, LIVE_SHEET_MANUAL))
   }
 
   const tl = parseCrawlerTechLevel(crawler.techLevel) ?? 1
@@ -161,10 +155,7 @@ export function CrawlerSheet({
   const pool = crawler.scrapPool ?? {}
 
   // Repair affordability is advisory only — TL+ buckets count (S12).
-  const repairable = SCRAP_TLS.filter((t) => t >= tl).reduce(
-    (sum, t) => sum + scrapPoolBucket(pool, t),
-    0
-  )
+  const repairable = poolAvailableAtOrAbove(pool, tl)
   const repairShortfall = Math.max(0, BAY_REPAIR_COST - repairable)
 
   /**
@@ -172,26 +163,28 @@ export function CrawlerSheet({
    * bucket, spilling into higher buckets, then flip the bay Intact. A short
    * pool still repairs — the shortfall is surfaced on the button, never a
    * block (S12).
+   *
+   * Tagged `LIVE_SHEET_TXN`: Scrap leaves the pool by a rule, so the Change Log
+   * should not call it a hand edit. One of the three sanctioned Live-Sheet
+   * transactions in `docs/architecture/rules-engine-boundary.md`.
    */
   function repairBay(entry: CrawlerBayEntry, index: number) {
     if (readOnly) return
     const fresh = storeState.get('crawler', crawler.id) ?? crawler
-    let nextPool: ScrapPool = { ...(fresh.scrapPool ?? {}) }
-    let remaining = BAY_REPAIR_COST
-    for (let t = tl; t <= 6 && remaining > 0; t++) {
-      const take = Math.min(scrapPoolBucket(nextPool, t), remaining)
-      if (take > 0) {
-        nextPool = addToScrapPool(nextPool, t, -take)
-        remaining -= take
-      }
-    }
-    void storeState.update('crawler', crawler.id, { scrapPool: nextPool }, LIVE_SHEET_MANUAL)
-    void storeState.updateCrawlerBay(
-      crawler.id,
-      entry.bayRef,
-      { condition: 'intact' },
-      index,
-      LIVE_SHEET_MANUAL
+    // `partial` is what makes this the same draw the hand-rolled loop did:
+    // an empty or short pool spends what it has and the bay still repairs.
+    const drawn = drawFromPool(fresh.scrapPool ?? {}, tl, BAY_REPAIR_COST, { partial: true })
+    runWrite(() =>
+      storeState.update('crawler', crawler.id, { scrapPool: drawn.pool }, LIVE_SHEET_TXN)
+    )
+    runWrite(() =>
+      storeState.updateCrawlerBay(
+        crawler.id,
+        entry.bayRef,
+        { condition: 'intact' },
+        index,
+        LIVE_SHEET_TXN
+      )
     )
   }
 
@@ -211,13 +204,15 @@ export function CrawlerSheet({
     const currentPool = fresh.scrapPool ?? {}
     const delta = next - scrapPoolBucket(currentPool, tlBucket)
     if (delta === 0) return
-    void storeState.update(
-      'crawler',
-      crawler.id,
-      {
-        scrapPool: addToScrapPool(currentPool, tlBucket, delta),
-      },
-      LIVE_SHEET_MANUAL
+    runWrite(() =>
+      storeState.update(
+        'crawler',
+        crawler.id,
+        {
+          scrapPool: addToScrapPool(currentPool, tlBucket, delta),
+        },
+        LIVE_SHEET_MANUAL
+      )
     )
   }
 
@@ -345,10 +340,8 @@ export function CrawlerSheet({
         {/* ===== Identity Band (Workshop-Manual crawler sheet top region) =====
             Edge wordmark ∥ Name/Type/Ability/Description fields ∥ the Economy
             rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts), in one
-            toned frame — no name pseudoheader stamp. Carries the shell's
-            condense sentinel (heroRef). */}
+            toned frame — no name pseudoheader stamp. */}
         <SheetHero
-          heroRef={heroRef}
           cat="Crawler"
           name={crawler.name}
           fields={

@@ -4,8 +4,8 @@ Bun workspace monorepo with multiple apps and shared packages.
 
 ## Workspace Structure
 
-- `apps/srd/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4)
-- `apps/itun/` - Character builder & game manager (React, TanStack Router/Query, ShadCN + Tailwind v4, local-first IndexedDB — no auth, no backend)
+- `apps/srd/` - Static SRD reference site (Astro 7, React 19 islands, Tailwind v4)
+- `apps/itun/` - Character builder & game manager (React 19 + Vite, TanStack Router, Tailwind v4). **Two storage modes** ([ADR-030](../../docs/adrs/ADR-030-accounts-games-server-of-record.md), superseding ADR-001): Solo — not signed in, IndexedDB is the truth, no account needed, permanently supported; Connected/Disconnected — signed in, Convex (`apps/itun/convex/`) is the server of record and IndexedDB is a cache, offline is read-only. See `apps/itun/CLAUDE.md`.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
 - `apps/su-assets/` - Netlify site (`assets.salvageunion.io`) serving licensed entity artwork from Netlify Blobs; `salvageunion-reference` resolves artwork URLs against it at runtime
 - `packages/component-lib/` - Shared React component library (no build step, exports TypeScript source)
@@ -27,7 +27,7 @@ Following [Bun workspace conventions](https://bun.com/docs/guides/install/worksp
 - Root scripts use `bun --filter` to target packages
 - `bun run build:package` only regenerates the package's JSON schemas — apps consume its TypeScript source directly, so no build ordering exists
 - Dev commands: `bun run dev` (srd), `bun run dev:itun` (ITUN), `bun run dev:bot` (Discord bot)
-- Watch mode: `bun run dev:watch` (watches package changes and app)
+- `bun run dev:watch` is an **alias of `bun run dev`**, not a watcher — the packages ship TypeScript source, so there is nothing to rebuild on change
 - Type checking: `bun run typecheck` (checks all packages)
 - Linting: `bun run lint` (all packages)
 

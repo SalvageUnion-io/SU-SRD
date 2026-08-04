@@ -13,10 +13,25 @@ import type { ConnectionMode } from './connectionMode'
 
 export type ConnectionState = {
   mode: ConnectionMode
-  /** False only while signed in and offline — see ADR-030 §1. */
+  /**
+   * False while signed in and offline, and while the initial auth handshake is
+   * still in flight — see ADR-030 §1.
+   *
+   * Surfaces that offer an edit affordance must consult this. Not doing so is
+   * how a Disconnected user ended up with a fully live-looking sheet whose every
+   * control threw `WritesBlockedOffline` into an unhandled rejection.
+   */
   canWrite: boolean
-  /** True only in `disconnected`; never in Solo. */
+  /** True only in `disconnected`; never in Solo, never while `settling`. */
   showDisconnectedWarning: boolean
+  /**
+   * True only during the initial auth handshake.
+   *
+   * Distinguishes "we cannot write because the server said no" from "we cannot
+   * write yet because we do not know who you are" — the same refusal, but one
+   * resolves itself in a moment and should not be dressed as a failure.
+   */
+  settling: boolean
 }
 
 /**
@@ -30,6 +45,7 @@ export const SOLO_STATE: ConnectionState = {
   mode: 'solo',
   canWrite: true,
   showDisconnectedWarning: false,
+  settling: false,
 }
 
 export const ConnectionContext = createContext<ConnectionState>(SOLO_STATE)

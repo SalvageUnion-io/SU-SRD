@@ -22,10 +22,9 @@
 
 import { useEffect, useMemo, useState } from 'react'
 
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { isSchemaName, SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { buildCatalogSections } from '../../catalog/catalogSections'
-import { isSchemaName } from '../../catalog/schemaName'
 import { Button } from '../chrome/Button'
 import { Input } from '../chrome/Field'
 import { SectionHeader } from '../chrome/SectionHeader'

@@ -6,34 +6,26 @@
  * `matchedFields`-based scoring (never surfaced in the srd UI — the
  * only consumers, `SearchIsland`/`SearchResultsIsland`, don't render match
  * reasons) and the `+10` description-specific boost. It keeps the
- * name-priority scoring tiers and typo tolerance (`withinEditDistance1`,
- * ported from search.ts) so ranking/UX parity holds for the common cases.
- * This trade-off is what makes entity search fully decoupled from the ORM —
- * no preload, no `salvageunion-reference` import — at the cost of losing
- * fine-grained field-match ranking.
+ * name-priority scoring tiers and typo tolerance so ranking/UX parity holds
+ * for the common cases. This trade-off is what keeps entity search decoupled
+ * from the ORM — no preload, no entity corpus in the browser — at the cost of
+ * losing fine-grained field-match ranking.
+ *
+ * `withinEditDistance1` / `TYPO_MIN_TOKEN_LENGTH` were forked into this file
+ * (byte-for-byte, per the old comment here) to keep the import type-only. They
+ * are now imported for real from `salvageunion-reference`, so typo-tolerance
+ * parity with `search()` is structural rather than aspirational. Measured cost
+ * on the srd bundle: **none**. Every consumer of this module —
+ * `SearchIsland`, `SearchResultsIsland`, `MobileSearchIsland` — already
+ * imports the shared `src` chunk, which already contained these functions;
+ * moving to them shrank this chunk by 215 B and grew `src` by 8 B. The part
+ * that actually mattered still holds: the browser never loads the entity
+ * corpus, because matching runs against the fetched `/search-index.json`, not
+ * an ORM `preload()`.
  */
+import { TYPO_MIN_TOKEN_LENGTH, withinEditDistance1 } from 'salvageunion-reference'
 import type { SearchOptions, SearchResult } from 'salvageunion-reference'
 import type { CompactSearchEntry } from './searchIndexTypes'
-
-/** Minimum token length before typo (edit-distance-1) matching applies —
- *  mirrors salvageunion-reference's search.ts. */
-const TYPO_MIN_TOKEN_LENGTH = 4
-
-/**
- * True when `token` is within edit distance 1 of `word` (insert, delete, or
- * substitute one character). Ported verbatim from search.ts so typo
- * tolerance behaves identically to the ORM-backed search.
- */
-function withinEditDistance1(token: string, word: string): boolean {
-  const lenDiff = token.length - word.length
-  if (lenDiff < -1 || lenDiff > 1) return false
-  let i = 0
-  while (i < token.length && i < word.length && token[i] === word[i]) i++
-  if (i === token.length && i === word.length) return true
-  if (lenDiff === 0) return token.slice(i + 1) === word.slice(i + 1)
-  if (lenDiff === 1) return token.slice(i + 1) === word.slice(i)
-  return token.slice(i) === word.slice(i + 1)
-}
 
 /**
  * Search a compact index built by `searchIndexBuild.ts`. Same call/result

@@ -7,6 +7,14 @@ for review** below). Two notes for anyone revisiting the loaders: `ssrEmitAssets
 was verified NOT to fix the blocker; dropping the `with: { type: 'json' }`
 attribute did, and was validated across all four consumers.
 
+> **Do not move or delete this file.** `apps/srd/astro.config.mjs:15` cites it
+> **by path** — the comment reads
+> _"build succeeds. See plan-docs/upgrade-astro-7.md for the SEO trade-off."_ —
+> so relocating it orphans a live code comment. It is the only remaining
+> occupant of `plan-docs/`; the other planning documents were folded into
+> [`docs/design/`](../docs/design/) on 2026-08-03. If this ever does move,
+> update that comment in the same change.
+
 ## What landed
 
 Four coordinated changes, all in one commit (Astro 7 hard-requires Vite 8, so

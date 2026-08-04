@@ -4,15 +4,16 @@
  * loaded during the Astro build.
  */
 import { SalvageUnionReference, getEntitySlug } from 'salvageunion-reference'
+import { itemHref } from './entityHref'
 
 export function resolveTraitHref(traitName: string): string | null {
   const trait = SalvageUnionReference.Traits.all().find(
     (t) => t.name.toLowerCase() === traitName.toLowerCase()
   )
-  if (trait) return `/schema/traits/item/${getEntitySlug(trait)}/`
+  if (trait) return itemHref('traits', getEntitySlug(trait))
   const keyword = SalvageUnionReference.Keywords.all().find(
     (k) => k.name.toLowerCase() === traitName.toLowerCase()
   )
-  if (keyword) return `/schema/keywords/item/${getEntitySlug(keyword)}/`
+  if (keyword) return itemHref('keywords', getEntitySlug(keyword))
   return null
 }

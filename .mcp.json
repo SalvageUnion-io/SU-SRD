@@ -7,6 +7,14 @@
     "sentry": {
       "type": "http",
       "url": "https://mcp.sentry.dev/mcp"
+    },
+    "render": {
+      "type": "http",
+      "url": "https://mcp.render.com/mcp"
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/"
     }
   }
 }

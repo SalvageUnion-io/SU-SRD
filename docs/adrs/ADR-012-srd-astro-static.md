@@ -4,6 +4,13 @@
 
 Accepted
 
+> **Note (2026-08-03):** the decision here is "**Astro, static, React islands**" —
+> the major version is incidental to it. `srd` was on **Astro 5** when this was
+> written; it runs **Astro 7** today (`apps/srd/package.json`; upgrade record in
+> [`plan-docs/upgrade-astro-7.md`](../../plan-docs/upgrade-astro-7.md), merged in
+> #365). The upgrade changed nothing this ADR decided. The Decision section below
+> is preserved as written apart from that version marker.
+
 ## Context
 
 The SRD reference site serves a large, fixed catalog of game entities to anyone
@@ -19,7 +26,8 @@ pieces.
 
 ## Decision
 
-`srd` is built with **Astro 5**, pre-rendering all entity reference pages
+`srd` is built with **Astro** (v5 when decided, **v7** today — see Status),
+pre-rendering all entity reference pages
 to static HTML/CSS/JS, with **React 19 islands** for the interactive parts
 (search, schema viewer, entity display), hydrated via `client:load` /
 `client:visible`.

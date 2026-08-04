@@ -16,11 +16,10 @@
  * affordance — chips render as plain badges (published snapshots).
  */
 
-import { useRef, useState } from 'react'
-
 import { Conditions } from '../chrome/Conditions'
 import { INPUT_FOCUS } from '../chrome/interaction'
 import { cn } from '../../utils/cn'
+import { useChipDraft } from './useChipDraft'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -41,35 +40,16 @@ export function ConditionsEditor({
   onChange,
   readOnly = false,
 }: ConditionsEditorProps) {
-  const [adding, setAdding] = useState(false)
-  const [draft, setDraft] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  function startAdd() {
-    if (readOnly) return
-    setDraft('')
-    setAdding(true)
-    setTimeout(() => inputRef.current?.focus(), 0)
-  }
-
-  function cancelAdd() {
-    setAdding(false)
-    setDraft('')
-  }
-
-  async function commitAdd() {
-    const value = draft.trim()
-    if (!value) {
-      cancelAdd()
-      return
-    }
-    // Skip case-insensitive duplicates; conditions are a flat string set.
-    const exists = conditions.some((c) => c.trim().toLowerCase() === value.toLowerCase())
-    if (!exists) {
-      await onChange([...conditions, value])
-    }
-    cancelAdd()
-  }
+  const draft = useChipDraft({
+    disabled: readOnly,
+    onCommit: async (value) => {
+      // Skip case-insensitive duplicates; conditions are a flat string set.
+      const exists = conditions.some((c) => c.trim().toLowerCase() === value.toLowerCase())
+      if (!exists) {
+        await onChange([...conditions, value])
+      }
+    },
+  })
 
   /** Remove the first occurrence — identical strings are indistinguishable. */
   async function remove(condition: string) {
@@ -81,39 +61,24 @@ export function ConditionsEditor({
 
   return (
     <div className="flex min-h-12 flex-wrap items-center gap-1.5 rounded border-chrome border-ink bg-paper p-2.5">
-      {conditions.length === 0 && !adding && (
+      {conditions.length === 0 && !draft.adding && (
         <span className="font-body text-xs text-wk-muted">None</span>
       )}
 
       {/* Only rendered when it has chips or the '+ Add' affordance to show —
           an empty row would still count as a flex item and double the gap. */}
-      {(conditions.length > 0 || (!readOnly && !adding)) && (
+      {(conditions.length > 0 || (!readOnly && !draft.adding)) && (
         <Conditions
           conditions={[...conditions]}
           onRemove={readOnly ? undefined : (condition) => void remove(condition)}
-          onAdd={readOnly || adding ? undefined : startAdd}
+          onAdd={readOnly || draft.adding ? undefined : draft.startAdd}
         />
       )}
 
-      {!readOnly && adding && (
+      {!readOnly && draft.adding && (
         <input
-          ref={inputRef}
-          type="text"
-          value={draft}
+          {...draft.inputProps}
           aria-label="New condition"
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              void commitAdd()
-            } else if (e.key === 'Escape') {
-              e.preventDefault()
-              cancelAdd()
-            }
-          }}
-          onBlur={() => {
-            void commitAdd()
-          }}
           className={cn(
             'w-28 rounded-badge border border-ink bg-paper px-1.5 py-0.5 font-cond text-badge uppercase tracking-caps text-ink',
             INPUT_FOCUS

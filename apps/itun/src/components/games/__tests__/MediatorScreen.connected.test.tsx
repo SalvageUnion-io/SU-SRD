@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, mock, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 
 /**
@@ -9,58 +9,25 @@ import { render, screen } from '@testing-library/react'
  * the propose form obeys the one rule that is easy to lose — you may only
  * propose to an entity that has somebody to answer.
  *
- * Queries are answered in **call order**; the generated `api` object is a Proxy
- * that throws when inspected, so position is the only stable key. Render order
- * is: amMediator, then the crew roster's three (me, members, listForGame), then
- * crew (vitals), presence, crew (propose form), alerts, downtime state,
- * downtime amMediator, npcs.
- *
- * Positional answering is brittle by construction — inserting a panel shifts
- * every later answer — so `mediatingQueries` is the single place that encodes
- * the order, and each case names only what it cares about.
+ * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * This screen is the strongest argument for that: it renders ten `useQuery`
+ * calls across six panels, two of them (`crew.vitals`, `mediator.amMediator`)
+ * asked twice by different components, so under the old positional queue
+ * inserting a panel shifted every later answer silently.
  */
 
-let queryQueue: unknown[] = []
-let queryIndex = 0
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import type { QueryAnswers } from '../../__tests__/convexMock'
 
-/**
- * `mock.module` replaces the entry in the process-wide module registry, so these
- * mocks outlive this file and would otherwise poison every test that runs after
- * it — the exports below are captured first and put back in `afterAll`.
- *
- * The spread is load-bearing. A module namespace is a *live* view, and mocking
- * rewrites it in place, so holding the namespace itself captures nothing: by
- * `afterAll` it already reads as the mock.
- */
-const realConvexClient = { ...(await import('../../../lib/connection/convexClient')) }
-const realConvexReact = { ...(await import('convex/react')) }
-
-mock.module('../../../lib/connection/convexClient', () => ({
-  isConvexConfigured: true,
-  convexClient: {},
-}))
-
-mock.module('convex/react', () => ({
-  useQuery: () => {
-    const value = queryQueue[queryIndex]
-    queryIndex += 1
-    return value
-  },
-  useMutation: () => async () => undefined,
-  useConvexAuth: () => ({ isAuthenticated: true, isLoading: false }),
-  ConvexReactClient: class {},
-  ConvexProvider: ({ children }: { children: unknown }) => children,
-  ConvexProviderWithAuth: ({ children }: { children: unknown }) => children,
-  useConvex: () => ({}),
-  useAction: () => async () => undefined,
-}))
+// Module scope, before the imports below: `mock.module` only affects imports
+// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+const convexMocks = await installConvexMocks()
 
 const { MediatorScreen } = await import('../MediatorScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 
-function withQueries(values: unknown[]): void {
-  queryQueue = values
-  queryIndex = 0
+function withQueries(answers: QueryAnswers): void {
+  setQueryAnswers(answers)
 }
 
 const wrap = () =>
@@ -114,27 +81,27 @@ function mediatingQueries(
     members?: unknown
     listing?: unknown
   } = {}
-): unknown[] {
-  return [
-    true,
-    // The crew roster leads the surface now: who I am, who is in this game,
-    // and what the game holds.
-    ME,
-    extra.members ?? MEMBERS,
-    extra.listing ?? EMPTY_LISTING,
-    crew,
-    extra.presence ?? [],
-    crew,
-    extra.alerts ?? [],
-    DOWNTIME,
-    true,
-    extra.npcs ?? [],
-  ]
+): QueryAnswers {
+  return {
+    'mediator:amMediator': true,
+    // The crew roster leads the surface: who I am, who is in this game, and
+    // what the game holds.
+    'account:me': ME,
+    'games:members': extra.members ?? MEMBERS,
+    'entities:listForGame': extra.listing ?? EMPTY_LISTING,
+    // Asked twice — by CrewVitals and by the propose form — and both readers
+    // want the same answer.
+    'crew:vitals': crew,
+    'mediator:presence': extra.presence ?? [],
+    'proposals:alerts': extra.alerts ?? [],
+    'downtime:state': DOWNTIME,
+    'mediator:npcs': extra.npcs ?? [],
+  }
 }
 
 describe('who the Mediator surface is for', () => {
   test('somebody who does not mediate is told so, and gets none of the tools', () => {
-    withQueries([false])
+    withQueries({ 'mediator:amMediator': false })
     wrap()
 
     expect(screen.getByText(/You do not mediate this game/i)).toBeTruthy()
@@ -148,7 +115,7 @@ describe('who the Mediator surface is for', () => {
   test('while the role is still unknown it says so rather than guessing', () => {
     // Rendering the tools optimistically would flash the whole Mediator surface
     // at a player who is about to be refused it.
-    withQueries([undefined])
+    withQueries({ 'mediator:amMediator': undefined })
     wrap()
     expect(screen.getByText('Loading…')).toBeTruthy()
   })
@@ -270,7 +237,4 @@ describe('the rest of the table', () => {
   })
 })
 
-afterAll(() => {
-  mock.module('../../../lib/connection/convexClient', () => realConvexClient)
-  mock.module('convex/react', () => realConvexReact)
-})
+afterAll(convexMocks.restore)

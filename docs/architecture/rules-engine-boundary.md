@@ -83,7 +83,10 @@ homebrew content** — a system or ability that isn't in the dataset — is a
 different problem the model does not solve today; see
 [Long-tail vision](#long-tail-vision-not-in-scope).)
 
-The root of all of it is [ADR-001](../adrs/ADR-001-local-first-no-backend.md):
+The root of all of it is [ADR-001](../adrs/ADR-001-local-first-no-backend.md)
+(superseded by [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md),
+which adds accounts and shared Games but keeps the honour-system stance on
+cross-player writes as propose-and-confirm):
 local-first, no server game state, so no turn enforcement and an honor system.
 The app owns the math and _tools_ adjudication; the table makes the calls.
 
@@ -183,6 +186,40 @@ Reading examples:
   (Encounter): the app rolls on the Mediator table as GM tooling and enforces
   nothing on a player. (Outside the player-entity matrix, by design.)
 
+### Sanctioned Live-Sheet transactions (the closed exception list)
+
+The lifecycle-transaction row says "bypassed in Free Edit", and the Live Sheet is
+where a player edits an end-state without paying for it. Three shipped controls
+nonetheless run a **real transaction** on that surface — they draw from the scrap
+pool, roll a table and write the outcome. This is deliberate, and it is recorded
+here rather than left as drift for the next audit to re-discover:
+
+| Control                                                      | What it transacts                                                                      | Why it is here                                                                                                                                                                           |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sheet/CrawlerEconomyControl.tsx` (Upkeep / Upgrade / Trade) | Scrap-pool draw, Upgrade-Pool credit, the Deterioration d20, the fixed-rate Scrap swap | The crawler has no Dashboard presence of its own; the whole economy hangs off the crawler hero's lozenges (Core Book p.218-223), and the Dashboard's Downtime layer is pilot/mech-shaped |
+| `sheet/CrawlerSheet.tsx` bay Repair                          | 5 Scrap of crawler TL or higher, then the bay flips Intact                             | Reached from the bay card it repairs; the draw is advisory (a short pool still repairs) rather than gated                                                                                |
+| `sheet/MechItemCard.tsx` per-card repair + remaining-uses    | Field-repair Scrap cost; `_used` counters                                              | Survived the D6 redesign that removed `HeatCheckControl` / `TakeDamageControl` from the sheet, because both act on the card in front of you                                              |
+
+The rules that keep this an exception rather than a second front door:
+
+1. **Nothing here blocks.** Every gate is a disabled button plus a visible
+   advisory (a `FieldError` shortfall, a "roll Deterioration instead" message).
+   A Free-Edit surface may _decline_ to spend for you; it may not tell you no.
+2. **The free-edit door stays open beside it.** `scrapPool` is hand-editable on
+   the same sheet, so the transaction is a convenience, never the only path.
+3. **They are tagged `LIVE_SHEET_TXN`, not `LIVE_SHEET_MANUAL`.** A rolled
+   Deterioration is not a hand edit, and the Change Log used to claim it was.
+   Rows 1 and 2 are tagged; **row 3 is not yet** — `MechSheet.tsx`'s
+   `repairItem` still writes `LIVE_SHEET_MANUAL`, and retagging it is the one
+   piece of this outstanding.
+4. **The list is closed.** A new lifecycle transaction goes on the Dashboard.
+   Adding a row here needs the same three properties above and an edit to this
+   table in the same change.
+
+The open question this defers — not answers — is whether the crawler deserves a
+Dashboard presence at all. If it gets one, the first table row moves there and
+its writes retag to `DASHBOARD_TXN`.
+
 ---
 
 ## Confirmed destructive consequences (the old "hybrid")
@@ -248,9 +285,12 @@ This doc is the target. Where the code stands today:
   Pilot + Mech + Crawler with its lifecycle-transaction layers (use a system,
   Push, Downtime, take damage). The working title "Play Cockpit" and the
   `components/play/` directory are gone.
-- **Live Sheet** is pure Free Edit — Push / Heat Check / `activateItem` no longer
-  live there (`SheetMech.tsx`), and cap **overrides** with the derived-baseline
-  callout and one-click revert are built.
+- **Live Sheet** is Free Edit plus the three sanctioned transactions above — Push
+  / Heat Check / `activateItem` no longer live there (`SheetMech.tsx`), and cap
+  **overrides** with the derived-baseline callout and one-click revert are built.
+  It is not _pure_ Free Edit and never has been: the crawler economy, bay Repair
+  and per-card repair all spend Scrap on this surface. See
+  [Sanctioned Live-Sheet transactions](#sanctioned-live-sheet-transactions-the-closed-exception-list).
 - **Provenance log** is **built** (ADR-022): the `changeLog` store
   (`lib/db/changeLog.ts`, schema in `lib/schemas/changeLog.ts`) is written at the
   `entityStore.update` chokepoint, tagged `transaction` / `override` / `manual`,
@@ -271,10 +311,12 @@ Recorded so it isn't lost, explicitly **not** something we build toward now:
 
 - **Shared, live Dashboard.** The single-player Dashboard (Pilot + Mech + Crawler)
   eventually goes **multiplayer** — several players on the same Dashboard at once,
-  **synchronized with a Mediator live**. That needs the same auth + backend the
-  local-first stance ([ADR-001](../adrs/ADR-001-local-first-no-backend.md)) rules
-  out today, so it is gated on revisiting ADR-001, hand-in-hand with Game spaces
-  and the Mediator layer below.
+  **synchronized with a Mediator live**. That needs auth + a backend, which the
+  original local-first stance ([ADR-001](../adrs/ADR-001-local-first-no-backend.md))
+  ruled out. ADR-001 has since been superseded by
+  [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md) (accounts, Games,
+  a server of record), so the gate is no longer ADR-001 — it is ADR-030's phased
+  delivery, hand-in-hand with Game spaces and the Mediator layer below.
 - **Workspaces → "Game spaces."** Today's local-only `workspaces` become shared
   Game spaces where entities are **owned by you vs. owned by others** (cross-user
   Pilots, Mechs, Crawlers). The multi-user direction deferred by local-first; the
@@ -313,7 +355,9 @@ not in code comments.
 ## Cross-references
 
 - [ADR-001](../adrs/ADR-001-local-first-no-backend.md) — local-first; the honor
-  system that makes Free Edit legitimate.
+  system that makes Free Edit legitimate. Superseded by
+  [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md), which keeps that
+  honour system as propose-and-confirm.
 - [ADR-003](../adrs/ADR-003-zustand-hydration.md) — the `entityStore` write-through
   path the provenance log hooks into.
 - [ADR-006](../adrs/ADR-006-pure-rules-logic.md) — rules as pure functions; the

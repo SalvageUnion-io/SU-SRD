@@ -21,7 +21,7 @@
 
 import { SalvageUnionReference } from '../index.js'
 import { crawlerMaxSpBonus } from './creation.js'
-import { resolveChassisRef, resolveInstalledRef } from './resolveRefs.js'
+import { resolveChassisRef } from './resolveRefs.js'
 import { abilityContributions, installedContributions, sumContributions } from './contributions.js'
 import type { ActiveEffects } from './contributions.js'
 import type { ResolvedContribution } from './contributions.js'
@@ -48,8 +48,10 @@ type PilotDerivationInput = {
   injuries?: Injury[]
   maxHpModifier?: number
   maxApModifier?: number
+  maxInventorySlotsModifier?: number
   maxHpOverride?: number
   maxApOverride?: number
+  maxInventorySlotsOverride?: number
 }
 
 /** Total max-HP penalty from injuries: minor −1, major −2 (rules A2/A11). */
@@ -101,6 +103,32 @@ export function pilotMaxAPParts(pilot: PilotDerivationInput): StatBreakdown {
 
 export function pilotMaxAP(pilot: PilotDerivationInput): number {
   return pilotMaxAPParts(pilot).total
+}
+
+/**
+ * Derived pilot inventory capacity (rules A13: 6 base) + the hand-edited
+ * `maxInventorySlotsModifier` + ability contributions (Beefcake +4), with the
+ * same absolute `maxInventorySlotsOverride` pin HP and AP already honour.
+ *
+ * This lived in the ITUN sheet as a bare number with no provenance and no
+ * override path, which meant `maxInventorySlotsOverride` — a field that has been
+ * in ITUN's persisted Pilot schema all along — was read by nothing: a Free-Edit
+ * pin wrote a value the gauge then ignored. Deriving it here, through the same
+ * `breakdownOf` as every other maximum, is what makes the pin take effect and
+ * gives the provenance panel a per-ability line instead of an anonymous total.
+ */
+export function pilotMaxInventorySlotsParts(pilot: PilotDerivationInput): StatBreakdown {
+  return breakdownOf(
+    PILOT_BASE_INVENTORY_SLOTS,
+    0,
+    pilot.maxInventorySlotsModifier ?? 0,
+    pilot.maxInventorySlotsOverride,
+    abilityContributions(pilot.abilities, 'pilot', 'inventorySlots')
+  )
+}
+
+export function pilotMaxInventorySlots(pilot: PilotDerivationInput): number {
+  return pilotMaxInventorySlotsParts(pilot).total
 }
 
 /** Dead-state check: derived max HP ≤ 0 means the pilot is dead. */
@@ -181,12 +209,6 @@ export type PilotingContext = {
 }
 
 /**
- * The mech-stat-bonus key each derivation sums over installed systems/modules.
- * Mirrors the `statBonus` field names declared on the reference item schema.
- */
-type StatBonusKey = 'structurePoints' | 'energyPoints' | 'heatCapacity' | 'cargoCapacity'
-
-/**
  * How a derived maximum was arrived at (ADR-029).
  *
  * `derived` is what the rules produce: base + installed bonuses + the player's
@@ -201,12 +223,14 @@ export type StatBreakdown = {
   /** The rules baseline before anything is added (chassis stat, tech-level SP, a constant). */
   base: number
   /**
-   * Summed `statBonus` across installed systems/modules, counted per copy.
+   * An ANONYMOUS rules-sourced addend — one aggregate line in the provenance
+   * panel, with no per-item attribution. Two stats still use it: the pilot's
+   * injury penalty (a negative contribution derived from `injuries`) and the
+   * crawler's type `max_sp_bonus`.
    *
-   * ANONYMOUS by construction — the sum is taken across items and there is no
-   * per-item attribution yet, so provenance renders it as one aggregate line.
-   * Named contributions live in `sources` and must NOT be folded in here, or the
-   * panel attributes an ability's bonus to installed hardware.
+   * Installed systems/modules used to land here too, as a summed `statBonus`.
+   * They are `contributions` now and so arrive through `sources`, per item and
+   * by name ("Heat Sink +1") rather than as an unattributed lump.
    */
   installed: number
   /**
@@ -254,38 +278,20 @@ function resolveChassis(mech: MechDerivationInput, chassis?: ChassisStats | null
 }
 
 /**
- * Resolve an installed system/module ref (a slug; legacy id/name tolerated)
- * to its reference record. Returns null when the ref does not resolve
- * (custom items, stale data) — such items simply contribute no bonus.
- */
-function resolveInstalledItem(
-  ref: string
-): { statBonus?: Record<string, number | undefined> } | null {
-  return resolveInstalledRef(ref)
-}
-
-/**
- * Σ(declared statBonus × installed count) for one stat across every installed
- * system and module (rules B2/B4/B6/B14 — Heat Sink +1 Max Heat each,
- * Capacitance Bank +2 EP each, Cargo Pod/Holds/Bays +N Cargo, etc.). Each ref
- * in the arrays counts as one installed copy, so two Heat Sinks sum to +2.
- * Items with no `statBonus` data contribute 0 — bonuses are never inferred from
- * prose (only flat, explicitly-declared modifiers are summed).
- */
-export function installedStatBonus(mech: MechDerivationInput, stat: StatBonusKey): number {
-  const refs = [...(mech.systems ?? []), ...(mech.modules ?? [])]
-  return refs.reduce((sum, ref) => {
-    const value = resolveInstalledItem(ref)?.statBonus?.[stat]
-    return sum + (typeof value === 'number' ? value : 0)
-  }, 0)
-}
-
-/**
- * Derived mech maxima: chassis stat + hand-edited modifier (composite armour,
- * etc.) + Σ(installed system/module `statBonus` × count) (heat sinks,
- * capacitance banks, holds — rules B2/B4/B6/B14). Pass a pre-resolved `chassis`
- * to avoid repeated ORM lookups; floored at 0 so a negative total never
- * produces a negative maximum.
+ * Derived mech maxima: chassis stat + hand-edited modifier + every declared
+ * `contribution` from the pilot's abilities and the mech's installed
+ * systems/modules (heat sinks, capacitance banks, holds — rules B2/B4/B6/B14),
+ * each counted per installed copy and attributed by name. Pass a pre-resolved
+ * `chassis` to avoid repeated ORM lookups; floored at 0 so a negative total
+ * never produces a negative maximum.
+ *
+ * There used to be a second, parallel encoding — a flat per-copy `statBonus`
+ * map summed by `installedStatBonus` and added ALONGSIDE `installedContributions`
+ * for the same stat. Nothing carried both, so nothing was double-counted; but
+ * one record authored with both would have been, silently, and the parity
+ * validator's `hasCapData` (an OR) could not tell that record from a correct
+ * one. `statBonus` is gone: `contributions` is the only numeric encoding, and
+ * `validateParityLogic` now fails on any record that re-introduces a second.
  */
 export function mechMaxSPParts(
   mech: MechDerivationInput,
@@ -293,30 +299,24 @@ export function mechMaxSPParts(
   pilot?: PilotingContext
 ): StatBreakdown {
   const c = resolveChassis(mech, chassis)
-  return breakdownOf(
-    c.structurePoints ?? 0,
-    installedStatBonus(mech, 'structurePoints'),
-    mech.maxSpModifier ?? 0,
-    mech.maxSpOverride,
-    [
-      ...abilityContributions(
-        pilot?.abilities,
-        'pilotedMech',
-        'structurePoints',
-        pilot?.techLevel,
-        pilot?.active
-      ),
-      ...installedContributions(
-        [...(mech.systems ?? []), ...(mech.modules ?? [])],
-        'structurePoints',
-        {
-          techLevel: pilot?.techLevel,
-          active: pilot?.active,
-          stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
-        }
-      ),
-    ]
-  )
+  return breakdownOf(c.structurePoints ?? 0, 0, mech.maxSpModifier ?? 0, mech.maxSpOverride, [
+    ...abilityContributions(
+      pilot?.abilities,
+      'pilotedMech',
+      'structurePoints',
+      pilot?.techLevel,
+      pilot?.active
+    ),
+    ...installedContributions(
+      [...(mech.systems ?? []), ...(mech.modules ?? [])],
+      'structurePoints',
+      {
+        techLevel: pilot?.techLevel,
+        active: pilot?.active,
+        stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
+      }
+    ),
+  ])
 }
 
 export function mechMaxEPParts(
@@ -325,30 +325,20 @@ export function mechMaxEPParts(
   pilot?: PilotingContext
 ): StatBreakdown {
   const c = resolveChassis(mech, chassis)
-  return breakdownOf(
-    c.energyPoints ?? 0,
-    installedStatBonus(mech, 'energyPoints'),
-    mech.maxEpModifier ?? 0,
-    mech.maxEpOverride,
-    [
-      ...abilityContributions(
-        pilot?.abilities,
-        'pilotedMech',
-        'energyPoints',
-        pilot?.techLevel,
-        pilot?.active
-      ),
-      ...installedContributions(
-        [...(mech.systems ?? []), ...(mech.modules ?? [])],
-        'energyPoints',
-        {
-          techLevel: pilot?.techLevel,
-          active: pilot?.active,
-          stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
-        }
-      ),
-    ]
-  )
+  return breakdownOf(c.energyPoints ?? 0, 0, mech.maxEpModifier ?? 0, mech.maxEpOverride, [
+    ...abilityContributions(
+      pilot?.abilities,
+      'pilotedMech',
+      'energyPoints',
+      pilot?.techLevel,
+      pilot?.active
+    ),
+    ...installedContributions([...(mech.systems ?? []), ...(mech.modules ?? [])], 'energyPoints', {
+      techLevel: pilot?.techLevel,
+      active: pilot?.active,
+      stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
+    }),
+  ])
 }
 
 export function mechMaxHeatParts(
@@ -357,30 +347,20 @@ export function mechMaxHeatParts(
   pilot?: PilotingContext
 ): StatBreakdown {
   const c = resolveChassis(mech, chassis)
-  return breakdownOf(
-    c.heatCapacity ?? 0,
-    installedStatBonus(mech, 'heatCapacity'),
-    mech.maxHeatModifier ?? 0,
-    mech.maxHeatOverride,
-    [
-      ...abilityContributions(
-        pilot?.abilities,
-        'pilotedMech',
-        'heatCapacity',
-        pilot?.techLevel,
-        pilot?.active
-      ),
-      ...installedContributions(
-        [...(mech.systems ?? []), ...(mech.modules ?? [])],
-        'heatCapacity',
-        {
-          techLevel: pilot?.techLevel,
-          active: pilot?.active,
-          stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
-        }
-      ),
-    ]
-  )
+  return breakdownOf(c.heatCapacity ?? 0, 0, mech.maxHeatModifier ?? 0, mech.maxHeatOverride, [
+    ...abilityContributions(
+      pilot?.abilities,
+      'pilotedMech',
+      'heatCapacity',
+      pilot?.techLevel,
+      pilot?.active
+    ),
+    ...installedContributions([...(mech.systems ?? []), ...(mech.modules ?? [])], 'heatCapacity', {
+      techLevel: pilot?.techLevel,
+      active: pilot?.active,
+      stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
+    }),
+  ])
 }
 
 export function mechMaxCargoParts(
@@ -389,30 +369,20 @@ export function mechMaxCargoParts(
   pilot?: PilotingContext
 ): StatBreakdown {
   const c = resolveChassis(mech, chassis)
-  return breakdownOf(
-    c.cargoCapacity ?? 0,
-    installedStatBonus(mech, 'cargoCapacity'),
-    mech.maxCargoModifier ?? 0,
-    mech.maxCargoOverride,
-    [
-      ...abilityContributions(
-        pilot?.abilities,
-        'pilotedMech',
-        'cargoCapacity',
-        pilot?.techLevel,
-        pilot?.active
-      ),
-      ...installedContributions(
-        [...(mech.systems ?? []), ...(mech.modules ?? [])],
-        'cargoCapacity',
-        {
-          techLevel: pilot?.techLevel,
-          active: pilot?.active,
-          stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
-        }
-      ),
-    ]
-  )
+  return breakdownOf(c.cargoCapacity ?? 0, 0, mech.maxCargoModifier ?? 0, mech.maxCargoOverride, [
+    ...abilityContributions(
+      pilot?.abilities,
+      'pilotedMech',
+      'cargoCapacity',
+      pilot?.techLevel,
+      pilot?.active
+    ),
+    ...installedContributions([...(mech.systems ?? []), ...(mech.modules ?? [])], 'cargoCapacity', {
+      techLevel: pilot?.techLevel,
+      active: pilot?.active,
+      stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
+    }),
+  ])
 }
 
 // The scalar forms every existing call site uses. Thin `.total` wrappers so the
@@ -539,7 +509,12 @@ function parseCrawlerTechLevel(techLevel: string): number | undefined {
 function crawlerTypeMaxSpBonus(typeRef: string | undefined): number {
   if (!typeRef) return 0
   try {
-    const type = SalvageUnionReference.Crawlers.find((c) => c.id === typeRef || c.name === typeRef)
+    // id-then-name via the model's indexes. Equivalent to the linear OR-scan
+    // this replaced — see BaseModel.indexes.test.ts, which verifies the
+    // id-first tie-break resolves every key exactly as data order did.
+    const type =
+      SalvageUnionReference.Crawlers.getById(typeRef) ??
+      SalvageUnionReference.Crawlers.getByName(typeRef)
     return crawlerMaxSpBonus(type?.mutations)
   } catch {
     return 0

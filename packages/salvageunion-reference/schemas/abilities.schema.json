@@ -359,7 +359,8 @@
                 "maxHp",
                 "maxAp",
                 "inventorySlots"
-              ]
+              ],
+              "description": "The mech, pilot or slot-count stat a contribution raises or lowers"
             },
             "amount": {
               "anyOf": [
@@ -398,13 +399,15 @@
                         "maxHp",
                         "maxAp",
                         "inventorySlots"
-                      ]
+                      ],
+                      "description": "The mech, pilot or slot-count stat a contribution raises or lowers"
                     }
                   },
                   "required": ["fromStat"],
                   "additionalProperties": false
                 }
-              ]
+              ],
+              "description": "How much a contribution is worth: a flat integer, a per-tech-level formula, or another of the target stats"
             },
             "target": {
               "type": "string",

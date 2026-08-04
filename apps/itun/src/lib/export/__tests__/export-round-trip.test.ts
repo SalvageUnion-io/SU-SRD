@@ -373,6 +373,140 @@ describe('export round-trip — field fidelity', () => {
 })
 
 // ---------------------------------------------------------------------------
+// Duplicate-skip branches.
+//
+// mergeImport dedupes on the *incoming* id already existing in the local
+// store, so the realistic trigger is re-importing a bundle into the store it
+// was exported from (a double-click on Import, or restoring a backup on top
+// of live data). Only the pilot and mechPattern skip branches were covered
+// before; the mech, crawler, softLink and encounterNpc branches were not,
+// and the mech/crawler ones additionally populate `idMap` — a regression
+// there mis-wires soft links rather than merely duplicating rows.
+// ---------------------------------------------------------------------------
+
+describe('mergeImport — duplicate skip branches', () => {
+  test('re-importing a full backup into its own store creates nothing and skips every entity kind', async () => {
+    const entityStore = useEntityStore.getState()
+
+    await entityStore.hydrate('pilot')
+    const pilot = await entityStore.create('pilot', richPilotInput)
+    await entityStore.hydrate('mech')
+    const mech = await entityStore.create('mech', richMechInput)
+    await entityStore.hydrate('crawler')
+    const crawler = await entityStore.create('crawler', richCrawlerInput)
+
+    await entityStore.hydrate('softLink')
+    await entityStore.create('softLink', {
+      from: { type: 'mech', id: mech.id },
+      to: { type: 'pilot', id: pilot.id },
+      type: 'mech-to-pilot',
+    })
+    await entityStore.create('softLink', {
+      from: { type: 'pilot', id: pilot.id },
+      to: { type: 'crawler', id: crawler.id },
+      type: 'pilot-to-crawler',
+    })
+
+    await mechPatterns.create(richPatternInput)
+    await encounterNpcs.create(richEncounterNpcInput)
+
+    const bundle = await buildExportBundle(entityStore)
+
+    // Import back into the SAME store — every incoming id already exists.
+    const summary = await mergeImport(bundle, useEntityStore.getState())
+
+    expect(summary.created).toEqual({
+      pilots: 0,
+      mechs: 0,
+      crawlers: 0,
+      softLinks: 0,
+      mechPatterns: 0,
+      encounterNpcs: 0,
+    })
+    expect(summary.remappedLinks).toBe(0)
+    // 1 pilot + 1 mech + 1 crawler + 2 softLinks + 1 pattern + 1 encounterNpc
+    expect(summary.skippedDuplicates).toBe(7)
+
+    // Nothing was duplicated on disk either.
+    _resetDbSingleton()
+    resetStores()
+    const verifyEntityStore = useEntityStore.getState()
+    await verifyEntityStore.hydrate('pilot')
+    await verifyEntityStore.hydrate('mech')
+    await verifyEntityStore.hydrate('crawler')
+    await verifyEntityStore.hydrate('softLink')
+
+    expect(verifyEntityStore.list('pilot')).toHaveLength(1)
+    expect(verifyEntityStore.list('mech')).toHaveLength(1)
+    expect(verifyEntityStore.list('crawler')).toHaveLength(1)
+    expect(verifyEntityStore.list('softLink')).toHaveLength(2)
+    expect(await mechPatterns.list()).toHaveLength(1)
+    expect(await encounterNpcs.list()).toHaveLength(1)
+  })
+
+  test('a NEW soft link between already-present endpoints resolves to the existing ids (idMap identity on the skip path)', async () => {
+    const entityStore = useEntityStore.getState()
+
+    await entityStore.hydrate('pilot')
+    const pilot = await entityStore.create('pilot', richPilotInput)
+    await entityStore.hydrate('mech')
+    const mech = await entityStore.create('mech', richMechInput)
+    await entityStore.hydrate('crawler')
+    const crawler = await entityStore.create('crawler', richCrawlerInput)
+    await entityStore.hydrate('softLink')
+
+    const exported = await buildExportBundle(entityStore)
+
+    // A bundle carrying the same pilot/mech/crawler (all duplicates) plus one
+    // soft link this store has never seen. The mech and crawler skip branches
+    // must still register themselves in idMap or these endpoints resolve to
+    // undefined and the link is silently dropped.
+    const bundle: ExportBundle = {
+      ...exported,
+      softLinks: [
+        {
+          id: crypto.randomUUID(),
+          from: { type: 'mech', id: mech.id },
+          to: { type: 'pilot', id: pilot.id },
+          type: 'mech-to-pilot',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: crypto.randomUUID(),
+          from: { type: 'pilot', id: pilot.id },
+          to: { type: 'crawler', id: crawler.id },
+          type: 'pilot-to-crawler',
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    }
+
+    const summary = await mergeImport(bundle, useEntityStore.getState())
+
+    // Pilot, mech and crawler skipped; both new links created against the
+    // pre-existing ids, so nothing was remapped.
+    expect(summary.skippedDuplicates).toBe(3)
+    expect(summary.created.softLinks).toBe(2)
+    expect(summary.remappedLinks).toBe(0)
+
+    _resetDbSingleton()
+    resetStores()
+    const verifyEntityStore = useEntityStore.getState()
+    await verifyEntityStore.hydrate('softLink')
+    const links = verifyEntityStore.list('softLink')
+    expect(links).toHaveLength(2)
+
+    const mechToPilot = links.find((l) => l.type === 'mech-to-pilot')
+    const pilotToCrawler = links.find((l) => l.type === 'pilot-to-crawler')
+    if (!mechToPilot || !pilotToCrawler) throw new Error('expected both imported soft links')
+    expect(mechToPilot.from.id).toBe(mech.id)
+    expect(mechToPilot.to.id).toBe(pilot.id)
+    expect(pilotToCrawler.from.id).toBe(pilot.id)
+    expect(pilotToCrawler.to.id).toBe(crawler.id)
+  })
+})
+
+// ---------------------------------------------------------------------------
 // Cross-entity fidelity: softLinks + container assignment survive together
 // in one full-backup round trip (not just each entity type in isolation).
 // ---------------------------------------------------------------------------

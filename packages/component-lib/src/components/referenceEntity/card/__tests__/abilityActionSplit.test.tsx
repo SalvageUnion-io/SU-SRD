@@ -11,8 +11,8 @@
  * These tests pin BOTH halves to the card, and pin the far larger unsplit case
  * (every other action in the dataset) to its unchanged single unqualified cell.
  */
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { cleanup, render } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -25,8 +25,6 @@ const ability = (name: string) => {
 /** Rendered text, whitespace-collapsed, for substring assertions. */
 const textOf = (node: Parameters<typeof render>[0]) =>
   (render(node).container.textContent ?? '').replace(/\s+/g, ' ')
-
-afterEach(cleanup)
 
 describe('ability card action split', () => {
   beforeAll(async () => {

@@ -41,8 +41,14 @@ import type { Roll } from './heatCheck'
 import { tierUpgradeCost } from 'salvageunion-reference/rules'
 import type { TechLevel } from './types'
 
-/** The numeric scrap tech levels (pool bucket keys are tl1..tl6). */
-const SCRAP_TLS = [1, 2, 3, 4, 5, 6] as const
+/**
+ * The numeric scrap tech levels (pool bucket keys are tl1..tl6).
+ *
+ * Exported as the ONE home for this list: the crawler sheet's bucket steppers
+ * and the exchange dialog's TL pickers used to each keep a private copy, so a
+ * seventh tech level would have had to be found in three places.
+ */
+export const SCRAP_TLS = [1, 2, 3, 4, 5, 6] as const
 
 /** Tech levels with a sequential upgrade above them, and that next level. */
 const UPGRADABLE_TLS = [1, 2, 3, 4, 5] as const
@@ -66,19 +72,48 @@ export function poolAvailableAtOrAbove(pool: ScrapPool, tl: number): number {
   return SCRAP_TLS.filter((t) => t >= tl).reduce((sum, t) => sum + scrapPoolBucket(pool, t), 0)
 }
 
+/** A completed pool draw: the pool afterwards, and which buckets paid. */
+export type PoolDrawResult = { pool: ScrapPool; draws: PoolDraw[] }
+
+export type DrawFromPoolOptions = {
+  /**
+   * Spend whatever the qualifying buckets hold instead of refusing when they
+   * cannot cover the full amount — the bay-repair convention (S12), where a
+   * short pool still repairs and the shortfall is only surfaced on the button.
+   *
+   * Upkeep, Upgrade-Pool contributions and every other economy draw are
+   * all-or-nothing and leave this off.
+   */
+  partial?: boolean
+}
+
 /**
  * Draw `amount` scrap from the pool starting at the `tl` bucket and spilling
  * into higher buckets (the app's TL-or-higher payment convention). Returns
  * the new pool plus the per-bucket draws, or `null` when the pool can't
- * cover the full amount (no partial draws).
+ * cover the full amount — unless `{ partial: true }`, which spends what it
+ * can and therefore never returns `null`.
  */
 export function drawFromPool(
   pool: ScrapPool,
   tl: number,
-  amount: number
-): { pool: ScrapPool; draws: PoolDraw[] } | null {
+  amount: number,
+  options: DrawFromPoolOptions & { partial: true }
+): PoolDrawResult
+export function drawFromPool(
+  pool: ScrapPool,
+  tl: number,
+  amount: number,
+  options?: DrawFromPoolOptions
+): PoolDrawResult | null
+export function drawFromPool(
+  pool: ScrapPool,
+  tl: number,
+  amount: number,
+  options: DrawFromPoolOptions = {}
+): PoolDrawResult | null {
   if (amount <= 0) return { pool, draws: [] }
-  if (poolAvailableAtOrAbove(pool, tl) < amount) return null
+  if (!options.partial && poolAvailableAtOrAbove(pool, tl) < amount) return null
   let next = pool
   let remaining = amount
   const draws: PoolDraw[] = []

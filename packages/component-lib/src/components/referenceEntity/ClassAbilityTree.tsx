@@ -15,7 +15,6 @@ type ResolvedTrees = {
 
 type ClassAbilityTreeProps = {
   classEntity: SURefClass
-  activeAbilityIds?: Set<string>
 }
 
 function levelOrder(l: number | 'L' | 'G'): number {
@@ -51,7 +50,7 @@ function resolveClassTrees(classEntity: SURefClass): ResolvedTrees {
   return { coreTrees: [], advancedTree: null, legendaryTree: null }
 }
 
-function AbilityTreeListing({ ability, disabled }: { ability: SURefAbility; disabled: boolean }) {
+function AbilityTreeListing({ ability }: { ability: SURefAbility }) {
   const detailModal = useDetailModal(ability)
 
   return (
@@ -61,35 +60,26 @@ function AbilityTreeListing({ ability, disabled }: { ability: SURefAbility; disa
         size="medium"
         extent="head"
         controls={[detailModal.control]}
-        disabled={disabled}
       />
       {detailModal.modal}
     </>
   )
 }
 
-function TreeSection({
-  tree,
-  abilities,
-  activeAbilityIds,
-}: TreeGroup & { activeAbilityIds?: Set<string> }) {
+function TreeSection({ tree, abilities }: TreeGroup) {
   return (
     <div className="space-y-4">
       <div className="pt-2">
         <Slab variant="solid" label={tree} count="Tree" />
       </div>
       {abilities.map((ability) => (
-        <AbilityTreeListing
-          key={ability.id}
-          ability={ability}
-          disabled={activeAbilityIds !== undefined && !activeAbilityIds.has(ability.id)}
-        />
+        <AbilityTreeListing key={ability.id} ability={ability} />
       ))}
     </div>
   )
 }
 
-export function ClassAbilityTree({ classEntity, activeAbilityIds }: ClassAbilityTreeProps) {
+export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
   const trees = useMemo(() => resolveClassTrees(classEntity), [classEntity])
 
   const hasCoreTrees = trees.coreTrees.length > 0
@@ -104,18 +94,14 @@ export function ClassAbilityTree({ classEntity, activeAbilityIds }: ClassAbility
       {hasCoreTrees && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {trees.coreTrees.map((group) => (
-            <TreeSection key={group.tree} {...group} activeAbilityIds={activeAbilityIds} />
+            <TreeSection key={group.tree} {...group} />
           ))}
         </div>
       )}
       {hasSpecialTrees && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {trees.advancedTree && (
-            <TreeSection {...trees.advancedTree} activeAbilityIds={activeAbilityIds} />
-          )}
-          {trees.legendaryTree && (
-            <TreeSection {...trees.legendaryTree} activeAbilityIds={activeAbilityIds} />
-          )}
+          {trees.advancedTree && <TreeSection {...trees.advancedTree} />}
+          {trees.legendaryTree && <TreeSection {...trees.legendaryTree} />}
         </div>
       )}
     </div>

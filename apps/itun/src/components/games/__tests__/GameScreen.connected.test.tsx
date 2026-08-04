@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 
 /**
@@ -10,51 +10,22 @@ import { cleanup, render, screen } from '@testing-library/react'
  * which must read as an explanation rather than a crash — a bookmarked URL for
  * a Game you left is an ordinary thing to visit.
  *
- * Queries are answered in **call order** — the generated `api` is a Proxy that
- * throws when inspected, so position is the only stable key.
+ * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  */
 
-let queryQueue: unknown[] = []
-let queryIndex = 0
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import type { QueryAnswers } from '../../__tests__/convexMock'
 
-const realConvexClient = { ...(await import('../../../lib/connection/convexClient')) }
-const realConvexReact = { ...(await import('convex/react')) }
-const realRouter = { ...(await import('@tanstack/react-router')) }
-
-mock.module('../../../lib/connection/convexClient', () => ({
-  isConvexConfigured: true,
-  convexClient: {},
-}))
-
-mock.module('convex/react', () => ({
-  useQuery: () => {
-    const value = queryQueue[queryIndex]
-    queryIndex += 1
-    return value
-  },
-  useMutation: () => async () => undefined,
-  useConvexAuth: () => ({ isAuthenticated: true, isLoading: false }),
-  ConvexReactClient: class {},
-  ConvexProvider: ({ children }: { children: unknown }) => children,
-  ConvexProviderWithAuth: ({ children }: { children: unknown }) => children,
-  useConvex: () => ({}),
-  useAction: () => async () => undefined,
-}))
-
-mock.module('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
-  ),
-  useNavigate: () => async () => undefined,
-  useRouter: () => undefined,
-}))
+// Module scope, before the imports below: `mock.module` only affects imports
+// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+// `router` because the panels link out; nothing here asserts on navigation.
+const convexMocks = await installConvexMocks({ router: true })
 
 const { GameScreen } = await import('../GameScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 
-function withQueries(values: unknown[]): void {
-  queryQueue = values
-  queryIndex = 0
+function withQueries(answers: QueryAnswers): void {
+  setQueryAnswers(answers)
 }
 
 const wrap = () =>
@@ -77,27 +48,27 @@ const GAME = {
 }
 
 /**
- * Everything downstream of `games.get`, in render order: GameRoster's
- * account.me / games.members / entities.listForGame, then the invite panel's
- * two queries, then the proposal inbox and Downtime panel. Only the first slot
- * (games.get) varies between these tests.
+ * Everything downstream of `games.get`: GameRoster's account.me /
+ * games.members / entities.listForGame, the invite panel's two queries, the
+ * proposal inbox and the Downtime panel. Only `games:get` varies between
+ * these tests.
  */
-const REST = [
-  { _id: 'u1', displayName: 'Ash' },
-  [],
-  { pilots: [], mechs: [], crawlers: [], softLinks: [] },
-  [],
-  [],
-  [],
-  { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
-  false,
-]
+const REST: QueryAnswers = {
+  'account:me': { _id: 'u1', displayName: 'Ash' },
+  'games:members': [],
+  'entities:listForGame': { pilots: [], mechs: [], crawlers: [], softLinks: [] },
+  'invites:list': [],
+  'invites:pendingRequests': [],
+  'proposals:pending': [],
+  'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
+  'mediator:amMediator': false,
+}
 
 afterEach(cleanup)
 
 describe('GameScreen', () => {
   test('a plain member gets no invite management', () => {
-    withQueries([GAME, ...REST])
+    withQueries({ ...REST, 'games:get': GAME })
     wrap()
 
     // The server refuses a non-Organizer's invites.list outright, so offering
@@ -109,10 +80,11 @@ describe('GameScreen', () => {
   test('every panel states its name in its header band', () => {
     // A pending proposal, so the inbox renders at all (it returns null when
     // there is nothing to answer).
-    // Slot 5 is `proposals.pending` — see the REST comment for the order.
-    const withProposal: unknown[] = [...REST]
-    withProposal[5] = [{ _id: 'p1', entityType: 'pilot', field: 'currentHP', to: 3 }]
-    withQueries([{ ...GAME, organizer: true }, ...withProposal])
+    withQueries({
+      ...REST,
+      'games:get': { ...GAME, organizer: true },
+      'proposals:pending': [{ _id: 'p1', entityType: 'pilot', field: 'currentHP', to: 3 }],
+    })
     wrap()
 
     // These titles used to sit inside each panel's body as a small grey stamp.
@@ -131,7 +103,7 @@ describe('GameScreen', () => {
   })
 
   test('an Organizer gets invite management', () => {
-    withQueries([{ ...GAME, organizer: true }, ...REST])
+    withQueries({ ...REST, 'games:get': { ...GAME, organizer: true } })
     wrap()
 
     expect(screen.getByText('Create invite code')).toBeTruthy()
@@ -141,7 +113,7 @@ describe('GameScreen', () => {
   })
 
   test('a game you are not in explains itself instead of crashing', () => {
-    withQueries([null, ...REST])
+    withQueries({ ...REST, 'games:get': null })
     wrap()
 
     expect(screen.getByText(/not in this game/i)).toBeTruthy()
@@ -149,7 +121,7 @@ describe('GameScreen', () => {
   })
 
   test('still loading is not the same as not a member', () => {
-    withQueries([undefined, ...REST])
+    withQueries({ ...REST, 'games:get': undefined })
     wrap()
 
     expect(screen.getByText(/Loading this game/i)).toBeTruthy()
@@ -157,8 +129,4 @@ describe('GameScreen', () => {
   })
 })
 
-afterAll(() => {
-  mock.module('../../../lib/connection/convexClient', () => realConvexClient)
-  mock.module('convex/react', () => realConvexReact)
-  mock.module('@tanstack/react-router', () => realRouter)
-})
+afterAll(convexMocks.restore)

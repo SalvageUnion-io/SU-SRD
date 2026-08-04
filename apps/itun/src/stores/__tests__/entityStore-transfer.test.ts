@@ -11,6 +11,7 @@ import { beforeEach, describe, expect, test } from 'bun:test'
 
 import { _clearAllStores, _resetDbSingleton, crawlers, mechs, softLinks } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
+import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
 
 function resetEntityStore(): void {
   useEntityStore.setState({
@@ -54,10 +55,13 @@ describe('entityStore.transfer', () => {
   test('commits an update and a delete across stores together', async () => {
     const { mech, crawler } = await seed()
 
-    await useEntityStore.getState().transfer({
-      updates: [{ type: 'crawler', id: crawler.id, patch: { scrapPool: { tl1: 3 } } }],
-      deletes: [{ type: 'mech', id: mech.id }],
-    })
+    await useEntityStore.getState().transfer(
+      {
+        updates: [{ type: 'crawler', id: crawler.id, patch: { scrapPool: { tl1: 3 } } }],
+        deletes: [{ type: 'mech', id: mech.id }],
+      },
+      LIVE_SHEET_MANUAL
+    )
 
     // On disk:
     expect((await crawlers.get(crawler.id))?.scrapPool).toEqual({ tl1: 3 })
@@ -71,13 +75,16 @@ describe('entityStore.transfer', () => {
     const { mech, crawler } = await seed()
 
     await expect(
-      useEntityStore.getState().transfer({
-        updates: [
-          // Invalid: currentSP must be >= 0 — strict parse throws.
-          { type: 'crawler', id: crawler.id, patch: { currentSP: -5 } },
-        ],
-        deletes: [{ type: 'mech', id: mech.id }],
-      })
+      useEntityStore.getState().transfer(
+        {
+          updates: [
+            // Invalid: currentSP must be >= 0 — strict parse throws.
+            { type: 'crawler', id: crawler.id, patch: { currentSP: -5 } },
+          ],
+          deletes: [{ type: 'mech', id: mech.id }],
+        },
+        LIVE_SHEET_MANUAL
+      )
     ).rejects.toThrow()
 
     // Nothing changed: the mech still exists, the crawler is untouched.
@@ -90,10 +97,13 @@ describe('entityStore.transfer', () => {
     const { mech } = await seed()
 
     await expect(
-      useEntityStore.getState().transfer({
-        updates: [{ type: 'crawler', id: 'no-such-crawler', patch: { scrapPool: {} } }],
-        deletes: [{ type: 'mech', id: mech.id }],
-      })
+      useEntityStore.getState().transfer(
+        {
+          updates: [{ type: 'crawler', id: 'no-such-crawler', patch: { scrapPool: {} } }],
+          deletes: [{ type: 'mech', id: mech.id }],
+        },
+        LIVE_SHEET_MANUAL
+      )
     ).rejects.toThrow()
 
     expect(await mechs.get(mech.id)).not.toBeNull()
@@ -107,16 +117,19 @@ describe('entityStore.transfer', () => {
       type: 'mech-to-pilot',
     })
 
-    await useEntityStore.getState().transfer({
-      updates: [{ type: 'crawler', id: crawler.id, patch: { scrapPool: { tl2: 1 } } }],
-      deletes: [{ type: 'mech', id: mech.id }],
-    })
+    await useEntityStore.getState().transfer(
+      {
+        updates: [{ type: 'crawler', id: crawler.id, patch: { scrapPool: { tl2: 1 } } }],
+        deletes: [{ type: 'mech', id: mech.id }],
+      },
+      LIVE_SHEET_MANUAL
+    )
 
     expect(await softLinks.get(link.id)).toBeNull()
     expect(useEntityStore.getState().list('softLink')).toHaveLength(0)
   })
 
   test('no-op transfer resolves without touching anything', async () => {
-    await expect(useEntityStore.getState().transfer({})).resolves.toBeUndefined()
+    await expect(useEntityStore.getState().transfer({}, LIVE_SHEET_MANUAL)).resolves.toBeUndefined()
   })
 })

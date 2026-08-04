@@ -1,17 +1,55 @@
-# The Style Unification Pass — Standing Knowledge
+# The Style Unification Pass — Historical Record
 
-> **Status:** Standing operating knowledge for an ongoing, multi-run effort. This
-> doc enshrines the universal knowledge of the **Style Unification Pass** so any
-> future run (agent or contributor) can pick it up without re-deriving it. It is
-> the _how we work_; [`ruleset.md`](./ruleset.md) is the _laws_ and
-> [`canonical-primitive-language.md`](./canonical-primitive-language.md) is the
-> _build order_. Where they disagree, the ruleset wins.
+> **⚠️ STATUS: COMPLETED — HISTORICAL RECORD. DO NOT WORK FROM THIS DOCUMENT.**
 >
-> **Companion design artifacts** (rendered proof; may be private — ask the owner
-> to share):
+> The pass this document ran is over. It is preserved because §2's five governing
+> laws are still correct and because it is the record of _how_ the work was done —
+> **not** as a work-list. The live documents are
+> [`ruleset.md`](./ruleset.md) (the laws — canon; where they disagree, the ruleset
+> wins) and [`display-system.md`](../architecture/display-system.md) (the card
+> stack as it actually stands).
+>
+> **The whole ladder in §1 shipped.** Foundations, Atoms, Compositions and
+> Containers landed in #466 as the ladder already records. The two rungs still
+> marked "← FUTURE" are also done:
+>
+> - **Entity Display pass** — the `ReferenceEntityDisplay` subtree was replaced by
+>   a single `ReferenceEntityCard` plus a typed `controls` API; the migration
+>   record is [`entity-card-reconciliation.md`](../design/entity-card-reconciliation.md)
+>   and the resulting rules are enshrined in
+>   [ADR-026](../adrs/ADR-026-entity-card-design-rules.md).
+> - **Dashboard pass** — the instruments were lifted into
+>   `packages/component-lib/src/components/dashboard/` and are barrel-exported
+>   (`RailBar`, `Dial`, `ActiveItemBand`, `DisplayPanel`, `ActionsDeck`,
+>   `SheetHero`).
+>
+> That also means **§3's "Deferred (do NOT build in this sub-pass)" list is spent** —
+> every component it forbids is built and exported. Do not read it as a
+> prohibition.
+>
+> **§5's work-list is five-sixths drained.** `EntityRow`, `Inset`, `Banner`,
+> `InlineEditField` and `EntityGrid` all exist in the `component-lib` barrel. The
+> one increment that was **never done** is **#2, the ItemCard fold**:
+> `apps/itun/src/components/sheet/MechItemCard.tsx` is still live, with two
+> consumers (`sheet/PartnerCard.tsx` and `sheet/MechSheet.tsx`). If that fold is
+> ever picked up, it is a fresh piece of work — not a resumption of this pass.
+>
+> **Dead symbols, left uncorrected.** §3's Card law names `footActions`, which has
+> **zero occurrences** in `apps/` and `packages/` — the action economy is now
+> expressed through the typed `controls` API. `StatsBar` is likewise gone, folded
+> into `Card` (the only surviving code reference is the historical comment at
+> `packages/component-lib/src/components/shared/Card.tsx:97`). Both are recorded
+> here as the API stood when the pass ran. §6's instruction to "work on the 466
+> branch" is equally historical — #466 merged long ago.
+>
+> **Companion design artifacts** (rendered proof from the run; may be private —
+> ask the owner to share):
 >
 > - Inventory map (old → new, lift/keep): <https://claude.ai/code/artifact/4fbcb58a-d92b-4f82-a82b-fc019b17a331>
-> - Primitive Rules + Mockups (the current sub-pass): <https://claude.ai/code/artifact/b857eaef-e92a-4136-af3c-e848d4e62c43>
+> - Primitive Rules + Mockups: <https://claude.ai/code/artifact/b857eaef-e92a-4136-af3c-e848d4e62c43>
+>
+> Everything below §1 is preserved verbatim as the record of what was built and
+> why.
 
 ---
 

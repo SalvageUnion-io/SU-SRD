@@ -98,6 +98,20 @@
         "noAssignInExpressions": "warn"
       },
       "style": {
+        // `.claude/rules/typescript-style.md`: "Prefer `type` over `interface`
+        // for object types (unless extending)". That convention was asserted in
+        // prose and enforced by nothing, so it held only where a reviewer
+        // happened to look. Note the explicit `style: "type"` option — Biome's
+        // DEFAULT for this rule is the opposite direction ("interface"), which
+        // would flag ~613 correct `type X = { … }` declarations instead.
+        //
+        // Genuine, permanent exemptions (module augmentation and declaration
+        // merging REQUIRE `interface`; `type` cannot express either) are listed
+        // as overrides at the bottom of this file, not suppressed per-line.
+        "useConsistentTypeDefinitions": {
+          "level": "error",
+          "options": { "style": "type" }
+        },
         "noRestrictedImports": {
           "level": "error",
           "options": {
@@ -383,6 +397,92 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    {
+      // PERMANENT exemption from useConsistentTypeDefinitions. Every file here
+      // declares a `declare global { interface … }` module augmentation, which
+      // is the ONE thing `type` cannot express: declaration merging into an
+      // existing interface (`Window`, discord.js's `Client`, TanStack Router's
+      // `Register`) requires the `interface` keyword by language rule, not by
+      // preference. Rewriting any of these as `type` is a compile error, so
+      // this list is a statement of fact, not a burn-down.
+      //
+      // `**/*.d.ts` is listed even though an override far above already sets
+      // `linter.enabled: false` for it. That override does NOT reach
+      // apps/itun/src/vite-env.d.ts or apps/srd/src/env.d.ts: Biome applies
+      // overrides in array order, and a LATER override that supplies a
+      // `linter` object (the `apps/itun/**` and `apps/srd/**` blocks above)
+      // resets `enabled` back to true for files it also matches. Verified with
+      // `biome lint apps/itun/src/vite-env.d.ts` — 2 errors, not 0. The same
+      // hazard silently re-enables linting for the reference package's
+      // tools/**, e2e/** and playwright configs; enabling a new rule is not
+      // the place to restructure that, so the affected paths are named
+      // explicitly here and the ordering bug is left as its own fix.
+      //
+      // The three d.ts interfaces are ImportMetaEnv/ImportMeta, declaration-
+      // merged with `vite/client` — augmentation again, so permanent.
+      "includes": [
+        "**/*.d.ts",
+        "apps/discord-bot/src/events/interactionCreate.ts",
+        "apps/itun/src/main.tsx",
+        "apps/srd/src/components/islands/OgCardIsland.tsx",
+        "packages/component-lib/src/components/shared/KofiButton.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "useConsistentTypeDefinitions": "off"
+          }
+        }
+      }
+    },
+    {
+      // Not an exemption from the convention — a restatement of one that
+      // already exists. `packages/salvageunion-reference/tools/**` is
+      // linter-disabled wholesale by an override above (it was never covered
+      // by the old ESLint config either), but that override is reset for these
+      // files by the later `packages/salvageunion-reference/**` block — the
+      // same array-ordering hazard described in the override above. Without
+      // this entry a brand-new rule would start reporting in a directory the
+      // repo has decided not to lint at all.
+      "includes": ["packages/salvageunion-reference/tools/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useConsistentTypeDefinitions": "off"
+          }
+        }
+      }
+    },
+    {
+      // TEMPORARY burn-down — delete this whole override once the list is
+      // empty. These are the last 9 non-augmentation `interface` declarations
+      // in the repo; unlike the block above they CAN and SHOULD become `type`,
+      // they just were not converted in the change that turned the rule on.
+      // The rule is enabled repo-wide regardless, so no NEW `interface` can be
+      // introduced anywhere while these are cleared:
+      //
+      //   lib/search.ts:37  SearchOptions           — public (re-exported from lib/index.ts)
+      //   lib/search.ts:199 SearchResult            — public (re-exported from lib/index.ts)
+      //   lib/ModelFactory.ts:202 EnhancedSchemaMetadata — public (re-exported from lib/index.ts)
+      //   lib/preselectedChoices.test.ts — 6 test-local shapes
+      //
+      // None of the nine extends or is merged into anything, so each is a
+      // mechanical `export interface X {` -> `export type X = {` swap. Converting
+      // the three public ones changes the DECLARATION FORM in the generated
+      // API report, so regenerate it: `bun run build:package` (CI fails on drift).
+      "includes": [
+        "packages/salvageunion-reference/lib/search.ts",
+        "packages/salvageunion-reference/lib/ModelFactory.ts",
+        "packages/salvageunion-reference/lib/preselectedChoices.test.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "useConsistentTypeDefinitions": "off"
           }
         }
       }

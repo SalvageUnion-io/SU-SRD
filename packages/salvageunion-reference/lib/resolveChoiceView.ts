@@ -11,14 +11,23 @@
  *   replaces Range, addDamage bumps Damage), and unresolved required-choice
  *   prompts removed once resolved.
  * - `traits`: base traits with `addTrait`/`removeTrait` effects applied
- *   (explicit on choiceOptions, or inferred from trait-schema `schemaEntities`
- *   choices). Adding an existing trait upgrades its amount (Explosive 1 → 2).
+ *   (explicit on a `source.kind: 'options'` option, or inferred from a
+ *   shortlist `source.kind: 'catalog'` choice). Adding an existing trait
+ *   upgrades its amount (Explosive 1 → 2).
  * - `prompts`: one entry per unresolved required choice (nothing selected),
  *   e.g. { choiceId, label, text: 'Choose: Ballistic or Energy' }.
  *
  * The function is deterministic and performs no I/O. It is the single source
  * of truth shared by srd (ephemeral selection state) and ITUN
  * (persisted selection state).
+ *
+ * It reads the UNIFIED choice encoding only — `source` / `cardinality` — never
+ * the legacy `schemaEntities` / `choiceOptions` / `customSystemOptions` /
+ * `multiSelect` / `constraints` fields. Reading the legacy half while the data
+ * carried both was the live hazard: deleting a legacy duplicate would have
+ * turned a resolved trait + prompt off silently, with the card still rendering
+ * correctly. All 88 choices in the dataset were verified to resolve identically
+ * across the switch.
  */
 
 import type {
@@ -87,35 +96,37 @@ function findByLabel(
 }
 
 /**
- * A `schemaEntities` choice with neither structured `choiceOptions` nor
- * `customSystemOptions` is a trait-schema option choice (e.g. Weapon Type →
- * Ballistic / Energy): the resolver infers `addTrait <selectedEntityName>`
- * for each selection. The option cards keep their entity linkage in the UI.
+ * A **shortlist catalog** choice — `source.kind: 'catalog'` naming specific
+ * `entities` (e.g. Weapon Type → Ballistic / Energy) — is a trait-schema option
+ * choice: the resolver infers `addTrait <selectedEntityName>` for each
+ * selection. The option cards keep their entity linkage in the UI.
+ *
+ * A catalog with no shortlist ("pick any System that deals SP damage") is not
+ * one of these: the pick is an entity, not a trait.
  */
 function isInferredTraitChoice(choice: SURefObjectChoice): boolean {
-  return (
-    Array.isArray(choice.schemaEntities) &&
-    choice.schemaEntities.length > 0 &&
-    !choice.choiceOptions &&
-    !choice.customSystemOptions
-  )
+  const source = choice.source
+  return source?.kind === 'catalog' && Array.isArray(source.entities) && source.entities.length > 0
 }
 
 /**
- * Whether a choice is required. A choice with a `min` of 0 (or an explicit
- * non-required marker) is optional; otherwise selecting an option choice that
- * presents mutually-exclusive entity options is treated as required.
+ * Whether a choice is required — i.e. whether an unresolved one emits a
+ * `Choose: …` prompt.
  *
- * Trait-schema `schemaEntities` choices (Weapon Type) are required: the row
- * shows a `Choose: …` prompt until resolved. Multi-select modification choices
- * are optional (the player may take zero), so they never emit a prompt.
+ * `cardinality.min` is the answer whenever the choice declares one; a
+ * multi-select modification choice declares `min: 0` (the player may take zero)
+ * and so never prompts. A shortlist catalog with no declared cardinality is a
+ * pick-one and is required.
+ *
+ * This used to read `constraints.min`, which is NOT a pick count — on the two
+ * body-kit choices `constraints` is a `techLevel` RANGE (`{field:'techLevel',
+ * min:3, max:4}`), and reading its `min` as "at least 3 picks" made them
+ * required by accident. Both now declare `cardinality: {min:1, max:1}`, which
+ * says the same thing on purpose.
  */
 function isRequired(choice: SURefObjectChoice): boolean {
-  if (choice.constraints?.min !== undefined) {
-    return choice.constraints.min > 0
-  }
-  if (choice.multiSelect) {
-    return false
+  if (choice.cardinality) {
+    return choice.cardinality.min > 0
   }
   return isInferredTraitChoice(choice)
 }
@@ -124,11 +135,12 @@ function isRequired(choice: SURefObjectChoice): boolean {
  * Human-readable list of option labels for a choice, used in prompt text.
  */
 function promptOptionLabels(choice: SURefObjectChoice): string[] {
-  if (choice.choiceOptions && choice.choiceOptions.length > 0) {
-    return choice.choiceOptions.map((o) => o.label)
+  const source = choice.source
+  if (source?.kind === 'options') {
+    return source.options.map((o) => o.label)
   }
-  if (choice.schemaEntities && choice.schemaEntities.length > 0) {
-    return [...choice.schemaEntities]
+  if (source?.kind === 'catalog' && source.entities) {
+    return [...source.entities]
   }
   return []
 }
@@ -259,10 +271,11 @@ export function resolveChoiceView(
       continue
     }
 
-    // choiceOptions with explicit effects.
-    if (choice.choiceOptions) {
+    // An inline option list with explicit effects (`source.kind: 'options'`).
+    if (choice.source?.kind === 'options') {
+      const options = choice.source.options
       for (const value of selected) {
-        const option = choice.choiceOptions.find((o) => o.value === value)
+        const option = options.find((o) => o.value === value)
         if (!option?.effects) {
           continue
         }

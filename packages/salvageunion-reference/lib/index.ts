@@ -20,7 +20,11 @@ import {
   type SchemaToEntityMap,
   type EntitySchemaName,
 } from './generated/schemaRegistry.generated.js'
-import { extractActions, getChassisAbilities, invalidateActionMap } from './utilities.js'
+// Imported from the concrete module rather than the ./utilities.js barrel: the
+// action-resolution module already imports this one (it needs
+// SalvageUnionReference), so going through the barrel would pull every other
+// utilities module into that cycle for no reason.
+import { extractActions, getChassisAbilities, invalidateActionMap } from './actionResolution.js'
 import { invalidateSearchIndex } from './search.js'
 import type {
   SURefMetaAction,
@@ -66,6 +70,14 @@ export {
   invalidateSearchIndex,
   type SearchOptions,
   type SearchResult,
+  // Search primitives. Public because every consumer that needs them today has
+  // forked them instead (discord-bot + component-lib fork `isSchemaName`; srd
+  // forks `extractContentText`, `withinEditDistance1` and
+  // `TYPO_MIN_TOKEN_LENGTH`). One implementation, one behaviour.
+  isSchemaName,
+  extractContentText,
+  withinEditDistance1,
+  TYPO_MIN_TOKEN_LENGTH,
 } from './search.js'
 
 // Export the granted-equipment choice resolver (pure view computation)

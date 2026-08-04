@@ -30,6 +30,7 @@ import type {
 import { evaluateSoftWarnings as defaultEvaluate } from 'salvageunion-reference/rules'
 import type { ChangeMeta } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import type { AssignableType, EntityForType } from '../../stores/types'
 
 // ---------------------------------------------------------------------------
@@ -42,20 +43,24 @@ type UseSoftWarningsOptions<T extends AssignableType> = {
   /**
    * Project a stored entity onto the minimal snapshot the rules evaluate.
    *
-   * REQUIRED for any check that reads structure: `Pilot.abilities` and
-   * `Mech.systems` are `string[]` of slugs, while `PilotSnapshot.abilities` /
+   * REQUIRED, and the type says so: `Pilot.abilities` and `Mech.systems` are
+   * `string[]` of slugs, while `PilotSnapshot.abilities` /
    * `MechSnapshot.systems` are structs (`{ ref, tree, level, tier }` /
-   * `{ ref, requires }`). Without a mapper the tier/tree-driven checks see
-   * undefined fields and silently no-op. Pilot sites pass
-   * `enrichPilotSnapshot`; mech sites map slugs to `{ ref }`.
+   * `{ ref, requires }`). The optional version of this prop stood in for a
+   * `as unknown as PilotSnapshot | MechSnapshot` fallback whose failure mode
+   * was the tier/tree-driven checks seeing undefined fields and the warning
+   * dialog silently never appearing — no error, no warning, nothing.
    *
-   * Defaults to a structural pass-through (the pre-wire-in behaviour).
+   * Pilot sites pass `enrichPilotSnapshot`; mech sites map slugs to `{ ref }`.
    */
-  toSnapshot?: (entity: EntityForType<T>) => PilotSnapshot | MechSnapshot
+  toSnapshot: (entity: EntityForType<T>) => PilotSnapshot | MechSnapshot
   /**
    * Change Log provenance (ADR-022) forwarded as entityStore.update's 4th
-   * argument. Omitted → the write logs as `manual` / `unknown`, exactly as an
-   * un-tagged direct update does.
+   * argument.
+   *
+   * Optional here but no longer *untagged* when omitted: the store requires a
+   * tag, and the only surfaces that mount this hook are the two Live Sheets, so
+   * the fallback is their tag rather than the old `manual` / `unknown`.
    */
   meta?: ChangeMeta
   /**
@@ -103,7 +108,7 @@ export function useSoftWarnings<T extends AssignableType>(
     entityType,
     entityId,
     toSnapshot,
-    meta,
+    meta = LIVE_SHEET_MANUAL,
     evaluate = defaultEvaluate,
     store = useEntityStore,
   } = opts
@@ -115,15 +120,6 @@ export function useSoftWarnings<T extends AssignableType>(
   // event tick (the "clean edit saves immediately" path), and a setState would
   // not be visible until the next render.
   const pendingPatch = useRef<Partial<EntityForType<T>> | null>(null)
-
-  /**
-   * Project an entity onto the rules' snapshot shape. Without a `toSnapshot`
-   * mapper this is the historic structural cast — safe at runtime, but the
-   * struct-shaped checks (ability tier/tree, system `requires`) see nothing.
-   */
-  function snapshot(entity: EntityForType<T>): PilotSnapshot | MechSnapshot {
-    return toSnapshot ? toSnapshot(entity) : (entity as unknown as PilotSnapshot | MechSnapshot)
-  }
 
   function preview(
     patch: Partial<EntityForType<T>>,
@@ -145,7 +141,7 @@ export function useSoftWarnings<T extends AssignableType>(
       ...context,
     }
 
-    const computed = evaluate(snapshot(before), snapshot(after), ctx)
+    const computed = evaluate(toSnapshot(before), toSnapshot(after), ctx)
 
     setWarnings(computed)
     pendingPatch.current = patch
@@ -159,11 +155,7 @@ export function useSoftWarnings<T extends AssignableType>(
         `useSoftWarnings(${entityType}:${entityId}): saveAnyway() called with no pending patch. Call preview() first.`
       )
     }
-    // Only forward the 4th argument when a tag was supplied — an untagged call
-    // must stay byte-identical to a plain 3-arg update (same Change Log entry).
-    const updated = meta
-      ? await storeState.update(entityType, entityId, patch, meta)
-      : await storeState.update(entityType, entityId, patch)
+    const updated = await storeState.update(entityType, entityId, patch, meta)
     // Clear state after a successful save.
     setWarnings([])
     pendingPatch.current = null

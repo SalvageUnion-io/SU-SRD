@@ -5,13 +5,30 @@
  * Upgrade Crawler, the fixed-rate Scrap exchange, and the Trading Bay
  * availability roll.
  *
- * ADR-007 automation boundary, following the HeatCheckControl pattern:
- * deterministic bookkeeping auto-applies — the Upkeep draw + Upgrade-Pool
- * credit, the Deterioration SP loss and its "chosen at random" Bay damage,
- * the upgrade's TL bump / pool spend / bay repairs, and the Scrap exchange.
- * The Deterioration 6-10 band (the PLAYER chooses a Bay) only shows an
- * advisory; the availability roll is informational — buying the sourced
- * wares stays a table call.
+ * WHY A LIFECYCLE TRANSACTION LIVES ON A FREE-EDIT SURFACE. ADR-021 puts
+ * lifecycle transactions on the guided modes, so this control is an exception
+ * — a **sanctioned** one, recorded in the "Sanctioned Live-Sheet transactions"
+ * table in `docs/architecture/rules-engine-boundary.md`, which is the
+ * authoritative placement doc. The short version: the crawler has no Dashboard
+ * presence, the whole economy hangs off the crawler hero's lozenges, nothing
+ * here blocks (every gate is a disabled button plus a visible advisory), and
+ * `scrapPool` stays hand-editable on the same sheet, so this is a convenience
+ * rather than the only door. If the crawler ever gets a Dashboard presence,
+ * these three dialogs move there and retag `DASHBOARD_TXN`.
+ *
+ * Its writes are therefore `LIVE_SHEET_TXN`, not `LIVE_SHEET_MANUAL`: a rolled
+ * Deterioration is not somebody typing in a box.
+ *
+ * (The header used to cite "the HeatCheckControl pattern" as precedent. That
+ * control was removed from the sheet in the D6 redesign — the precedent is
+ * gone, the placement decision above is what stands in its place.)
+ *
+ * ADR-007 automation boundary: deterministic bookkeeping auto-applies — the
+ * Upkeep draw + Upgrade-Pool credit, the Deterioration SP loss and its "chosen
+ * at random" Bay damage, the upgrade's TL bump / pool spend / bay repairs, and
+ * the Scrap exchange. The Deterioration 6-10 band (the PLAYER chooses a Bay)
+ * only shows an advisory; the availability roll is informational — buying the
+ * sourced wares stays a table call.
  *
  * Rolls are ephemeral (nothing persists but the applied bookkeeping), so
  * snapshots have nothing to show; the control mounts only on editable
@@ -25,6 +42,7 @@ import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { parseCrawlerTechLevel } from '../../lib/crawlerLevel'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
 import {
+  SCRAP_TLS,
   TRADING_AVAILABILITY_LABEL,
   UPKEEP_SCRAP,
   bayGate,
@@ -47,13 +65,12 @@ import type { Roll } from '../../lib/rules/heatCheck'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { useEntityStore } from '../../stores/entityStore'
 import { freshEntity } from './controlPrimitives'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
 
 /** Which economy dialog is open (the lozenge that was clicked). */
 export type CrawlerEconomyDialog = 'upkeep' | 'upgrade' | 'trade'
 
 const TRADING_BAY = 'Trading Bay'
-const SCRAP_TLS = [1, 2, 3, 4, 5, 6] as const
 
 type CrawlerEconomyControlProps = {
   crawler: Crawler
@@ -146,7 +163,7 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
         scrapPool: payment.pool,
         upgradePool: nextUpgradePool,
       },
-      LIVE_SHEET_MANUAL
+      LIVE_SHEET_TXN
     )
     const drawText = payment.draws.map((d) => `${d.count}× T${d.tl}`).join(' + ')
     setResult(
@@ -170,12 +187,7 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
     const effect = performDeterioration({ currentSP, bayCount: bays.length, roll })
 
     if (effect.spLoss > 0) {
-      await storeState.update(
-        'crawler',
-        crawler.id,
-        { currentSP: effect.nextSP },
-        LIVE_SHEET_MANUAL
-      )
+      await storeState.update('crawler', crawler.id, { currentSP: effect.nextSP }, LIVE_SHEET_TXN)
     }
     let bayName: string | null = null
     if (effect.randomBayIndex !== null) {
@@ -186,7 +198,7 @@ function UpkeepDialog({ crawler, store, roll, onClose }: DialogProps & { roll: R
           entry.bayRef,
           { condition: 'damaged' },
           effect.randomBayIndex,
-          LIVE_SHEET_MANUAL
+          LIVE_SHEET_TXN
         )
         bayName = resolveCrawlerBay(entry.bayRef)?.name ?? entry.bayRef
       }
@@ -291,7 +303,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
         scrapPool: result.pool,
         upgradePool: (fresh.upgradePool ?? 0) + contribution,
       },
-      LIVE_SHEET_MANUAL
+      LIVE_SHEET_TXN
     )
   }
 
@@ -309,7 +321,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
     if (bays.some((bay) => (bay.condition ?? 'intact') === 'damaged')) {
       patch.crawlerBays = bays.map((bay) => ({ ...bay, condition: 'intact' as const }))
     }
-    await storeState.update('crawler', crawler.id, patch, LIVE_SHEET_MANUAL)
+    await storeState.update('crawler', crawler.id, patch, LIVE_SHEET_TXN)
     onClose()
   }
 
@@ -432,7 +444,7 @@ function TradeDialog({ crawler, store, roll, onClose }: DialogProps & { roll: Ro
       setConvertNote('The pool no longer covers that trade.')
       return
     }
-    await storeState.update('crawler', crawler.id, { scrapPool: result.pool }, LIVE_SHEET_MANUAL)
+    await storeState.update('crawler', crawler.id, { scrapPool: result.pool }, LIVE_SHEET_TXN)
     setConvertNote(`Traded ${count}× T${fromTl} for ${result.toCount}× T${toTl}.`)
   }
 

@@ -2,16 +2,15 @@
  * SheetPilot — the pilot branch of the live sheet (extracted from
  * Sheet.tsx, audit item 19; redesigned to the poster layout, Phase 2).
  *
- * The body owns the identity band now (Workshop-Manual layout): SheetPilot
- * passes NO `renderHero`, and `PilotSheet` renders the `SheetHero` band as its
- * first region, wrapping it with the `heroRef` from `renderBody`. This
+ * The body owns the identity band (Workshop-Manual layout): `PilotSheet`
+ * renders the `SheetHero` band as its first region. This
  * component's remaining job is composing the assigned-mech/home-crawler rail
  * content and handing it to `PilotSheet` as `linkedUnits`.
  */
 
 import { EntityRow, Stat } from 'component-lib'
 
-import { isPilotDead, pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
+import { pilotMaxAP, pilotMaxHP } from '../../lib/rules/derivedStats'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { AssignCrawlerToPilot } from '../wiring/AssignCrawlerToPilot'
 import { LiveSheet } from './LiveSheet'
@@ -23,6 +22,7 @@ import { RailCta } from './SheetRailParts'
 import { AppLink } from '../shared/AppLink'
 import { crawlerRailItems, mechRailItems, mechStatusPill, rowStats } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
+import { runWrite } from './sheetWrite'
 
 type SheetPilotProps = SheetViewCommonProps & { pilot: Pilot }
 
@@ -49,7 +49,7 @@ export function SheetPilot({
     (l) => l.type === 'pilot-to-crawler' && l.from.id === pilot.id
   )?.id
   const unassign = (linkId: string | undefined) =>
-    editable && linkId ? () => void storeState.delete('softLink', linkId) : undefined
+    editable && linkId ? () => runWrite(() => storeState.delete('softLink', linkId)) : undefined
   const maxHP = Math.max(0, pilotMaxHP(pilot))
   const maxAP = Math.max(0, pilotMaxAP(pilot))
   const hp = Math.min(pilot.currentHP ?? maxHP, maxHP)
@@ -59,8 +59,6 @@ export function SheetPilot({
     { key: 'hp', label: 'HP', stat: 'hp', value: hp, max: maxHP },
     { key: 'ap', label: 'AP', stat: 'ap', value: ap, max: maxAP },
   ]
-
-  const dead = isPilotDead(pilot)
 
   // Linked Units rail content (poster R3, span 5) — built here because it
   // needs `composition` (resolved mech/crawler), which PilotSheet does not
@@ -135,7 +133,6 @@ export function SheetPilot({
       name={pilot.name}
       strip={strip}
       back={back}
-      pill={dead ? { label: 'Dead', tone: 'bad' } : { label: 'Pilot', tone: 'pilot' }}
       segments={segments}
       actions={
         editable ? (
@@ -152,14 +149,8 @@ export function SheetPilot({
           actions
         )
       }
-      renderBody={({ heroRef }) => (
-        <PilotSheet
-          pilot={pilot}
-          store={store}
-          readOnly={readOnly}
-          heroRef={heroRef}
-          linkedUnits={rail}
-        />
+      renderBody={() => (
+        <PilotSheet pilot={pilot} store={store} readOnly={readOnly} linkedUnits={rail} />
       )}
     />
   )

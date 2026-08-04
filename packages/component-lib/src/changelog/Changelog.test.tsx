@@ -1,9 +1,7 @@
-import { afterEach, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { Changelog } from './Changelog'
 import type { ChangelogEntry } from './parseChangelog'
-
-afterEach(cleanup)
 
 describe('Changelog', () => {
   test('renders an empty state when there are no entries', () => {

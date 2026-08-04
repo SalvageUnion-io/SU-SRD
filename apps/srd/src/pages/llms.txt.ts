@@ -1,5 +1,6 @@
 import { getSchemaCatalog } from '../lib/gameData'
 import { SITE_URL } from '../lib/constants'
+import { schemaHref } from '../lib/entityHref'
 import type { APIRoute } from 'astro'
 
 export const GET: APIRoute = () => {
@@ -7,7 +8,7 @@ export const GET: APIRoute = () => {
   const entitySchemas = schemas.filter((s) => s.meta !== true)
 
   const contentCategories = entitySchemas
-    .map((s) => `- ${s.displayNamePlural} (${s.description}): ${SITE_URL}/schema/${s.id}/`)
+    .map((s) => `- ${s.displayNamePlural} (${s.description}): ${SITE_URL}${schemaHref(s.id)}`)
     .join('\n')
 
   const schemaIds = entitySchemas.map((s) => `- \`${s.id}\` — ${s.description}`).join('\n')
@@ -33,7 +34,7 @@ Salvage Union is created and published by Leyline Press (https://leyline.press).
 
 ## Rules Content Map
 
-Rules prose (player-facing guides and processes) lives at: ${SITE_URL}/schema/guides/
+Rules prose (player-facing guides and processes) lives at: ${SITE_URL}${schemaHref('guides')}
 Individual guide pages are accessible at: ${SITE_URL}/schema/guides/item/{slug}/
 Guide data as JSON: ${SITE_URL}/schema/guides.json
 All other schema endpoints contain structured game DATA (stats, abilities, tables, etc.), not narrative rules prose.

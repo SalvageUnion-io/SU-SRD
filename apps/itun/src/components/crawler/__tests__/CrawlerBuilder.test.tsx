@@ -18,6 +18,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bu
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { useEntityStore } from '../../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import {
   EMPTY_SCRAP_POOL,
@@ -458,11 +459,19 @@ describe('CrawlerBuilder — edit mode', () => {
     const crawler = await seedCrawler()
     // Simulate play: SP knocked down + a bay NPC wounded.
     const playedBayRef = must(must(crawler.crawlerBays)[0]).bayRef
-    await useEntityStore.getState().update('crawler', crawler.id, { currentSP: 5 })
-    await useEntityStore.getState().updateCrawlerBay(crawler.id, playedBayRef, {
-      npcCurrentHP: 1,
-      condition: 'damaged',
-    })
+    await useEntityStore
+      .getState()
+      .update('crawler', crawler.id, { currentSP: 5 }, LIVE_SHEET_MANUAL)
+    await useEntityStore.getState().updateCrawlerBay(
+      crawler.id,
+      playedBayRef,
+      {
+        npcCurrentHP: 1,
+        condition: 'damaged',
+      },
+      undefined,
+      LIVE_SHEET_MANUAL
+    )
 
     const played = must(useEntityStore.getState().get('crawler', crawler.id))
     const onComplete = mock(() => {})
@@ -615,7 +624,9 @@ describe('CrawlerBuilder — edit mode', () => {
 
     // Wound a real bay's NPC so we can prove live HP is preserved on save.
     const playedBayRef = must(must(crawler.crawlerBays)[0]).bayRef
-    await useEntityStore.getState().updateCrawlerBay(crawler.id, playedBayRef, { npcCurrentHP: 1 })
+    await useEntityStore
+      .getState()
+      .updateCrawlerBay(crawler.id, playedBayRef, { npcCurrentHP: 1 }, undefined, LIVE_SHEET_MANUAL)
 
     const played = must(useEntityStore.getState().get('crawler', crawler.id))
     render(

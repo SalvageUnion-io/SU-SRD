@@ -34,15 +34,34 @@ import { NotAuthorized, requireMediator, requireMember, requireUser } from './mo
  *    contradictory pending changes to one value.
  */
 
+/**
+ * The table a Change Log row's `entityType` names, or null when it names none.
+ *
+ * A log row is not always about a sheet — a table-wide alert or a recorded roll
+ * is written against the Game itself — so this is a partial mapping on purpose.
+ */
+function ownableTableFor(entityType: Doc<'changeLog'>['entityType']): 'pilots' | 'mechs' | null {
+  if (entityType === 'pilot') return 'pilots'
+  if (entityType === 'mech') return 'mechs'
+  return null
+}
+
 /** Only the Mediator proposes; only the target's owner answers. */
 async function requireProposalTarget(
   ctx: MutationCtx,
+  entityType: Doc<'changeLog'>['entityType'],
   entityId: string
 ): Promise<{ doc: Doc<'pilots'> | Doc<'mechs'>; gameId: Id<'games'> }> {
-  const doc = (await ctx.db.get(entityId as Id<'pilots'> | Id<'mechs'>)) as
-    | Doc<'pilots'>
-    | Doc<'mechs'>
-    | null
+  // `normalizeId` is what makes `entityType` load-bearing rather than
+  // decorative: a Convex id is table-tagged, but `db.get` returns a document
+  // from ANY table, so casting the string let a proposal be aimed at a row that
+  // is not a sheet at all and then read as one. An id that is not the named
+  // table's is simply not there.
+  const table = ownableTableFor(entityType)
+  const id = table === null ? null : ctx.db.normalizeId(table, entityId)
+  if (id === null) throw new Error('That entity no longer exists')
+
+  const doc = await ctx.db.get(id)
   if (doc === null) throw new Error('That entity no longer exists')
   if (doc.gameId === null) {
     throw new NotAuthorized('An entity on a shelf is not part of a game and cannot be proposed to')
@@ -67,7 +86,7 @@ export const propose = mutation({
     after: v.any(),
   },
   handler: async (ctx, args): Promise<Id<'changeLog'>> => {
-    const { doc, gameId } = await requireProposalTarget(ctx, args.entityId)
+    const { doc, gameId } = await requireProposalTarget(ctx, args.entityType, args.entityId)
     const membership = await requireMediator(ctx, gameId)
 
     if (doc.ownerId === null) {
@@ -119,10 +138,14 @@ export const pending = query({
 
     const mine = []
     for (const row of rows) {
-      const target = (await ctx.db.get(row.entityId as Id<'pilots'> | Id<'mechs'>)) as
-        | Doc<'pilots'>
-        | Doc<'mechs'>
-        | null
+      // Same table-tagging guard as `requireProposalTarget`: resolve the id
+      // against the table `entityType` names, and skip a row whose id belongs
+      // to some other table rather than reading it as a sheet.
+      const table = ownableTableFor(row.entityType)
+      const targetId = table === null ? null : ctx.db.normalizeId(table, row.entityId)
+      if (targetId === null) continue
+
+      const target = await ctx.db.get(targetId)
       // Only the owner is asked. A proposal against somebody else's entity is
       // not this player's to answer, and showing it would leak an edit in
       // flight.
@@ -156,7 +179,7 @@ export const apply = mutation({
     if (proposal === null) throw new Error('That proposal no longer exists')
     if (proposal.state !== 'proposed') throw new Error('That proposal has already been answered')
 
-    const { doc } = await requireProposalTarget(ctx, proposal.entityId)
+    const { doc } = await requireProposalTarget(ctx, proposal.entityType, proposal.entityId)
     if (doc.ownerId !== userId) throw new NotAuthorized('Only the owner can apply this')
 
     /**
@@ -192,7 +215,7 @@ export const decline = mutation({
     if (proposal === null) return
     if (proposal.state !== 'proposed') return
 
-    const { doc } = await requireProposalTarget(ctx, proposal.entityId)
+    const { doc } = await requireProposalTarget(ctx, proposal.entityType, proposal.entityId)
     if (doc.ownerId !== userId) throw new NotAuthorized('Only the owner can decline this')
 
     await ctx.db.patch(args.proposalId, { state: 'declined' })

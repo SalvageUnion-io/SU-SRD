@@ -11,11 +11,9 @@
  * (The tint itself is a `color-mix()`, which happy-dom rejects as a style
  * value, so the band is asserted by presence rather than computed colour.)
  */
-import { afterEach, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { Callout } from '../Callout'
-
-afterEach(cleanup)
 
 const MECH_ACCENT = 'var(--color-sheet-mech)'
 

@@ -8,7 +8,7 @@
  * fake-indexeddb/auto is preloaded via bunfig.toml.
  */
 
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 
 import {
   _clearAllStores,
@@ -17,6 +17,22 @@ import {
   crawlers as dbCrawlers,
 } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
+import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
+import { installMonotonicClock } from '../../lib/db/__tests__/monotonicClock'
+import type { MonotonicClock } from '../../lib/db/__tests__/monotonicClock'
+
+// `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
+// sorts on `createdAt`. A monotonic clock makes consecutive writes distinct and
+// ordered by construction, so the ordering assertions below need no sleeping.
+let clock: MonotonicClock
+
+beforeAll(() => {
+  clock = installMonotonicClock()
+})
+
+afterAll(() => {
+  clock.restore()
+})
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -121,12 +137,15 @@ describe('entityStore — mech update', () => {
     await useEntityStore.getState().hydrate('mech')
     const created = await useEntityStore.getState().create('mech', baseMechInput)
 
-    await new Promise((r) => setTimeout(r, 5))
-
-    const updated = await useEntityStore.getState().update('mech', created.id, {
-      name: 'Renamed Mech',
-      chassisRef: 'scorpion',
-    })
+    const updated = await useEntityStore.getState().update(
+      'mech',
+      created.id,
+      {
+        name: 'Renamed Mech',
+        chassisRef: 'scorpion',
+      },
+      LIVE_SHEET_MANUAL
+    )
 
     expect(updated.name).toBe('Renamed Mech')
     expect(updated.chassisRef).toBe('scorpion')
@@ -142,7 +161,7 @@ describe('entityStore — mech update', () => {
     await useEntityStore.getState().hydrate('mech')
     const created = await useEntityStore.getState().create('mech', baseMechInput)
 
-    await useEntityStore.getState().update('mech', created.id, { currentHP: 7 })
+    await useEntityStore.getState().update('mech', created.id, { currentHP: 7 }, LIVE_SHEET_MANUAL)
 
     const inMemory = useEntityStore.getState().get('mech', created.id)
     expect(inMemory?.currentHP).toBe(7)
@@ -224,12 +243,15 @@ describe('entityStore — crawler update', () => {
     await useEntityStore.getState().hydrate('crawler')
     const created = await useEntityStore.getState().create('crawler', baseCrawlerInput)
 
-    await new Promise((r) => setTimeout(r, 5))
-
-    const updated = await useEntityStore.getState().update('crawler', created.id, {
-      name: 'Renamed Crawler',
-      techLevel: 'tech-4',
-    })
+    const updated = await useEntityStore.getState().update(
+      'crawler',
+      created.id,
+      {
+        name: 'Renamed Crawler',
+        techLevel: 'tech-4',
+      },
+      LIVE_SHEET_MANUAL
+    )
 
     expect(updated.name).toBe('Renamed Crawler')
     expect(updated.techLevel).toBe('tech-4')
@@ -245,7 +267,9 @@ describe('entityStore — crawler update', () => {
     await useEntityStore.getState().hydrate('crawler')
     const created = await useEntityStore.getState().create('crawler', baseCrawlerInput)
 
-    await useEntityStore.getState().update('crawler', created.id, { currentSP: 40 })
+    await useEntityStore
+      .getState()
+      .update('crawler', created.id, { currentSP: 40 }, LIVE_SHEET_MANUAL)
 
     const inMemory = useEntityStore.getState().get('crawler', created.id)
     expect(inMemory?.currentSP).toBe(40)

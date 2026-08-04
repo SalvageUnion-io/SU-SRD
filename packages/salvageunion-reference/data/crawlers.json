@@ -45,7 +45,6 @@
           },
           "name": "A.I. Personality",
           "choiceType": "permanent",
-          "rollTable": "A.I. Personality",
           "content": [
             {
               "type": "paragraph",

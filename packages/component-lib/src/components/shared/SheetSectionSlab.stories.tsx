@@ -4,7 +4,8 @@ import type { CSSVarStyle } from '../../styles/cssVars'
 import { Caption } from '../../stories/_harness'
 import { Button } from '../chrome/Button'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
-import { EntityGrid, EntityGridRow } from './EntityGrid'
+import { EntityGridRow } from './EntityGrid'
+import { MasonryColumns } from './MasonryColumns'
 import { SheetSectionSlab } from './SheetSectionSlab'
 
 export default { title: 'Containers/Sheet Section Slab' }
@@ -33,13 +34,13 @@ export const Default: Story = () => {
           </Button>
         }
       >
-        <EntityGrid columns={3}>
+        <MasonryColumns>
           {systems.map((system) => (
             <EntityGridRow key={system.id}>
               <ReferenceEntityCard data={system} size="medium" />
             </EntityGridRow>
           ))}
-        </EntityGrid>
+        </MasonryColumns>
       </SheetSectionSlab>
     </div>
   )

@@ -1,8 +1,6 @@
-import { describe, test, expect, afterEach, mock } from 'bun:test'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { describe, test, expect, mock } from 'bun:test'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { Sel } from '../Sel'
-
-afterEach(cleanup)
 
 describe('Sel', () => {
   test('selection ring toggles without layout shift (box-shadow only)', () => {

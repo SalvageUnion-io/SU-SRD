@@ -1,58 +1,27 @@
 /**
- * EntityGrid — the shared entity-card grid + action-economy injector.
+ * EntityGridRow — the shared entity-card wrapper that injects a card's action
+ * economy.
  *
- * A LAYOUT primitive, not a card. Two named exports:
+ * A LAYOUT primitive, not a card. It wraps ONE entity card in a `min-w-0` cell
+ * (so a long unbreakable string can't blow out the column) and folds `footMeta`
+ * into the child card's own foot — `Card` / `ReferenceEntityCard` accept it
+ * natively, so the clone is a prop pass-through, not markup surgery. Card
+ * actions ride the card's own `controls` overlay.
  *
- * - `EntityGrid`: the entity-card grid. ONE column on mobile, capped at TWO
- *   columns on desktop (the poster rule: no entity-card grid exceeds two
- *   columns), rows made equal-height (`items-stretch`). Gap rhythm 26px between
- *   rows / 18px between columns.
- * - `EntityGridRow`: wraps one entity card with its action economy. Mode
- *   `'card'` (default) folds `footMeta` into the child card's own foot
- *   (Card / ReferenceEntityCard accept it natively, so the clone is a
- *   prop pass-through — no markup surgery); card actions ride the card's own
- *   `controls` overlay. Mode `'rail'` puts a fixed 152px right-hand callout
- *   column beside the card: a key/value dl of `footMeta` above a stacked,
- *   full-width action-button column.
+ * The row is the cell; the FLOW around it is `MasonryColumns` (the live sheets
+ * pair the two). There was also an `EntityGrid` container and a `'rail'` mode
+ * here — a fixed 152px callout column beside the card — and both are deleted:
+ * every sheet moved to `MasonryColumns`, so nothing outside this package's own
+ * story and test ever rendered them.
  *
  * Re-implemented from ITUN's Ecflow/Erow (since deleted — the sheets render
  * through this primitive now) onto shared component-lib tokens.
  */
 
 import { cloneElement } from 'react'
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement } from 'react'
 import { cn } from '../../utils/cn'
 import type { CardFootMeta } from './Card'
-
-type EntityGridProps = {
-  children: ReactNode
-  /**
-   * Max desktop column count. `2` (default) keeps the original two-column cap.
-   * `3` opts into the three-across ladder the Workshop-Manual live sheets use
-   * (abilities / systems & modules / bays), matching the printed sheets; it
-   * still steps down to 2 at tablet and 1 on mobile so a card never crushes.
-   */
-  columns?: 2 | 3
-  className?: string
-}
-
-/**
- * Entity-card grid — 1 column on mobile, up to `columns` on desktop (default
- * 2), equal-height rows. Gap rhythm: 26px between rows, 18px between columns.
- */
-export function EntityGrid({ children, columns = 2, className }: EntityGridProps) {
-  return (
-    <div
-      className={cn(
-        'grid grid-cols-1 items-stretch gap-x-4 gap-y-6 md:grid-cols-2',
-        columns === 3 && 'xl:grid-cols-3',
-        className
-      )}
-    >
-      {children}
-    </div>
-  )
-}
 
 /** The card props EntityGridRow may inject (Card/ReferenceEntityCard accept these). */
 type InjectableCardProps = {
@@ -60,53 +29,14 @@ type InjectableCardProps = {
 }
 
 type EntityGridRowProps = {
-  /** `'card'` (default) folds the economy into the card foot; `'rail'` puts a 152px callout beside it. */
-  mode?: 'card' | 'rail'
-  /** Action buttons for this card's economy (Use / Repair / Pay / Fund). */
-  actions?: ReactNode
-  /** Inline foot meta (e.g. EP · 2, +HEAT · 1). */
+  /** Inline foot meta folded into the card's own foot (e.g. EP · 2, +HEAT · 1). */
   footMeta?: CardFootMeta[]
-  /** The entity card to wrap (accepts `footMeta` when mode is `'card'`). */
+  /** The entity card to wrap. */
   children: ReactElement<InjectableCardProps>
   className?: string
 }
 
-export function EntityGridRow({
-  mode = 'card',
-  actions,
-  footMeta,
-  children,
-  className,
-}: EntityGridRowProps) {
-  if (mode === 'card') {
-    const card = footMeta ? cloneElement(children, { footMeta }) : children
-    return <div className={cn('min-w-0', className)}>{card}</div>
-  }
-
-  // mode 'rail': fixed 152px right callout — meta k/v header + full-width actions.
-  return (
-    <div className={cn('grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[1fr_152px]', className)}>
-      {children}
-      <div
-        className="flex flex-col gap-2 rounded-card border-chrome border-wk-faint p-2.5"
-        style={{ background: 'var(--ground-2, var(--color-ink-8))' }}
-      >
-        {footMeta && footMeta.length > 0 && (
-          <dl className="m-0 space-y-1">
-            {footMeta.map((meta) => (
-              <div key={meta.label} className="flex items-baseline justify-between gap-2">
-                <dt className="font-cond text-label-lg font-bold uppercase leading-none tracking-caps-tight text-ink opacity-75">
-                  {meta.label}
-                </dt>
-                <dd className="m-0 font-body text-caption font-bold leading-none text-ink">
-                  {meta.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        )}
-        {actions && <div className="flex flex-col gap-1.5 *:w-full">{actions}</div>}
-      </div>
-    </div>
-  )
+export function EntityGridRow({ footMeta, children, className }: EntityGridRowProps) {
+  const card = footMeta ? cloneElement(children, { footMeta }) : children
+  return <div className={cn('min-w-0', className)}>{card}</div>
 }

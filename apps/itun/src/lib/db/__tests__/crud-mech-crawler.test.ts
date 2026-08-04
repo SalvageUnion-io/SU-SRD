@@ -8,9 +8,24 @@
  * fake-indexeddb/auto is preloaded via bunfig.toml.
  */
 
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 
 import { _clearAllStores, mechs, crawlers } from '../index'
+import { installMonotonicClock } from './monotonicClock'
+import type { MonotonicClock } from './monotonicClock'
+
+// `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
+// sorts on `createdAt`. A monotonic clock makes consecutive writes distinct and
+// ordered by construction, so the ordering assertions below need no sleeping.
+let clock: MonotonicClock
+
+beforeAll(() => {
+  clock = installMonotonicClock()
+})
+
+afterAll(() => {
+  clock.restore()
+})
 
 beforeEach(async () => {
   await _clearAllStores()
@@ -73,9 +88,7 @@ describe('mechs CRUD — create/get round-trip', () => {
 describe('mechs CRUD — list ordering', () => {
   test('list returns mechs newest-first by createdAt', async () => {
     const m1 = await mechs.create({ ...baseMechInput, name: 'Alpha' })
-    await new Promise((r) => setTimeout(r, 5))
     const m2 = await mechs.create({ ...baseMechInput, name: 'Beta' })
-    await new Promise((r) => setTimeout(r, 5))
     const m3 = await mechs.create({ ...baseMechInput, name: 'Gamma' })
 
     const all = await mechs.list()
@@ -87,8 +100,6 @@ describe('mechs CRUD — update merge', () => {
   test('update merges patch and bumps updatedAt', async () => {
     const created = await mechs.create(baseMechInput)
     const originalUpdatedAt = created.updatedAt
-
-    await new Promise((r) => setTimeout(r, 5))
 
     const updated = await mechs.update(created.id, { name: 'Renamed Mech', chassisRef: 'scorpion' })
 
@@ -194,9 +205,7 @@ describe('crawlers CRUD — create/get round-trip', () => {
 describe('crawlers CRUD — list ordering', () => {
   test('list returns crawlers newest-first by createdAt', async () => {
     const c1 = await crawlers.create({ ...baseCrawlerInput, name: 'Alpha' })
-    await new Promise((r) => setTimeout(r, 5))
     const c2 = await crawlers.create({ ...baseCrawlerInput, name: 'Beta' })
-    await new Promise((r) => setTimeout(r, 5))
     const c3 = await crawlers.create({ ...baseCrawlerInput, name: 'Gamma' })
 
     const all = await crawlers.list()
@@ -208,8 +217,6 @@ describe('crawlers CRUD — update merge', () => {
   test('update merges patch and bumps updatedAt', async () => {
     const created = await crawlers.create(baseCrawlerInput)
     const originalUpdatedAt = created.updatedAt
-
-    await new Promise((r) => setTimeout(r, 5))
 
     const updated = await crawlers.update(created.id, {
       name: 'Renamed Crawler',

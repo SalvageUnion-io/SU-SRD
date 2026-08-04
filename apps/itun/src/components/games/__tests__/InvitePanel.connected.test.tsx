@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 /**
@@ -10,41 +10,28 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
  * a code that already exists — its state, who spent it, and whether the Revoke
  * button is offered when it would actually do something.
  *
- * Queries are answered in call order: `invites.list`, then
- * `invites.pendingRequests`.
+ * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * The panel asks `invites.list` and `invites.pendingRequests`, which sit on
+ * adjacent lines (InvitePanel.tsx:48-49): under the old positional queue,
+ * swapping those two lines was invisible to this file.
  */
 
-let queryQueue: unknown[] = []
-let queryIndex = 0
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+
 const calls: { name: string; args: unknown }[] = []
 
-const realConvexClient = { ...(await import('../../../lib/connection/convexClient')) }
-const realConvexReact = { ...(await import('convex/react')) }
-
-mock.module('../../../lib/connection/convexClient', () => ({
-  isConvexConfigured: true,
-  convexClient: {},
-}))
-
-mock.module('convex/react', () => ({
-  useQuery: () => {
-    const value = queryQueue[queryIndex]
-    queryIndex += 1
-    return value
+// Module scope, before the imports below: `mock.module` only affects imports
+// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+const convexMocks = await installConvexMocks({
+  convexReact: {
+    // Every mutation records its call so the tests can assert what the panel
+    // asked the server to do, which is the half a render assertion cannot cover.
+    useMutation: () => async (args: unknown) => {
+      calls.push({ name: 'mutation', args })
+      return undefined
+    },
   },
-  // Every mutation records its call so the tests can assert what the panel
-  // asked the server to do, which is the half a render assertion cannot cover.
-  useMutation: () => async (args: unknown) => {
-    calls.push({ name: 'mutation', args })
-    return undefined
-  },
-  useConvexAuth: () => ({ isAuthenticated: true, isLoading: false }),
-  ConvexReactClient: class {},
-  ConvexProvider: ({ children }: { children: unknown }) => children,
-  ConvexProviderWithAuth: ({ children }: { children: unknown }) => children,
-  useConvex: () => ({}),
-  useAction: () => async () => undefined,
-}))
+})
 
 const { InvitePanel } = await import('../InvitePanel')
 
@@ -67,8 +54,7 @@ function invite(over: Record<string, unknown> = {}) {
 }
 
 function renderPanel(invites: unknown[], requests: unknown[] = []) {
-  queryQueue = [invites, requests]
-  queryIndex = 0
+  setQueryAnswers({ 'invites:list': invites, 'invites:pendingRequests': requests })
   calls.length = 0
   return render(<InvitePanel gameId={'g1' as never} />)
 }
@@ -226,7 +212,4 @@ describe('answering knocks', () => {
   })
 })
 
-afterAll(() => {
-  mock.module('../../../lib/connection/convexClient', () => realConvexClient)
-  mock.module('convex/react', () => realConvexReact)
-})
+afterAll(convexMocks.restore)

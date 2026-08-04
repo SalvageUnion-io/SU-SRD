@@ -1,6 +1,6 @@
-import { describe, test, expect, afterEach } from 'bun:test'
+import { describe, test, expect } from 'bun:test'
 import { useState } from 'react'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import type { SURefObjectChoice } from 'salvageunion-reference'
 import { ChoiceGroups } from '../ChoiceGroups'
 import type { ChoiceSelections } from '../choiceSelectionHelpers'
@@ -46,8 +46,6 @@ function asInput(el: HTMLElement): HTMLInputElement {
   if (!(el instanceof HTMLInputElement)) throw new Error('expected an <input> element')
   return el
 }
-
-afterEach(cleanup)
 
 describe('ChoiceGroups — uncontrolled (ephemeral) state', () => {
   test('renders option cards dimmed (unchosen) with no Chosen stamp by default', () => {

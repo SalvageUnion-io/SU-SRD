@@ -31,7 +31,30 @@ All TypeScript source in `lib/` is hand-written and safe to edit directly:
 - `lib/index.ts` - Main entry point and model definitions
 - `lib/types/index.ts` - Type re-exports for backward compatibility
 - `lib/BaseModel.ts`, `lib/ModelFactory.ts` - ORM infrastructure
-- `lib/utilities.ts`, `lib/search.ts`, `lib/helpers.ts`, `lib/slug.ts`, `lib/contentBlockHelpers.ts`
+- `lib/search.ts`, `lib/helpers.ts`, `lib/slug.ts`, `lib/contentBlockHelpers.ts`
+
+### Two re-export barrels — edit the module, not the barrel
+
+`lib/utilities.ts` and `lib/schemas/objects.ts` are **pure re-export barrels**.
+They exist so no consumer import breaks; put new code in the module that owns
+the responsibility, not in the barrel.
+
+- `lib/utilities.ts` → `entityFields.ts` (plain property readers),
+  `actionResolution.ts` (the action map + every self-action fallback getter),
+  `entityGuards.ts`, `patterns.ts`, `assets.ts`, `traitText.ts`,
+  `inventorySlots.ts`.
+- `lib/schemas/objects.ts` → `lib/schemas/objects/*.ts`, one file per schema
+  family (`primitives`, `content`, `tables`, `sources`, `contributions`,
+  `effects`, `systemModule`, `choices`, `npc`, `patterns`, `actions`,
+  `entityBase`, `references`, `crawlerMutations`, `guides`). Its re-export list
+  is **explicit on purpose** — a submodule may export a helper its siblings
+  need without that helper joining the package's public surface.
+
+### Looking an entity up
+
+`BaseModel` indexes `id` (eagerly) plus `name` and `slug` (lazily, on first
+use). Use `getById` / `getByName` / `getBySlug` — never
+`model.find((e) => e.name === x)`, which is a linear scan of the whole schema.
 
 ## Package Structure
 

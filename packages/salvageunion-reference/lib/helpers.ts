@@ -131,16 +131,6 @@ export function getHybridClasses(): (SURefObjectAdvancedClass & {
 }
 
 // ============================================================================
-// CHASSIS HELPERS
-// ============================================================================
-
-/**
- * Find a chassis by ID
- * @param chassisId - The ID of the chassis to find
- * @returns The chassis or undefined if not found
- */
-
-// ============================================================================
 // CRAWLER HELPERS
 // ============================================================================
 
@@ -192,45 +182,6 @@ export function getMaxSpBonus(crawlerId: string): number {
   const mutations = getCrawlerMutations(crawlerId)
   return mutations.filter((m) => m.type === 'max_sp_bonus').reduce((sum, m) => sum + m.value, 0)
 }
-
-/**
- * Normalize tech level to a number for calculations
- * Treats "B" (Bio) and "N" (Nanite) as 1
- * @param techLevel - The tech level (number, 'B', or 'N')
- * @returns The numeric tech level
- */
-
-/**
- * Find a crawler tech level by level number
- * @param techLevel - The tech level number to find
- * @returns The tech level or undefined if not found
- */
-
-// ============================================================================
-// ABILITY HELPERS
-// ============================================================================
-
-// ============================================================================
-// EQUIPMENT HELPERS
-// ============================================================================
-
-// ============================================================================
-// TECH LEVEL HELPERS
-// ============================================================================
-
-/**
- * Get all tech levels as an array of numbers
- * Derived from crawler-tech-levels data
- * @returns Array of tech level numbers (1-6)
- */
-
-/**
- * Get scrap conversion rate for a tech level
- * Each tech level is worth its numeric value in TL1 scrap
- * "B" (Bio) and "N" (Nanite) are treated as 1
- * @param techLevel - The tech level (1-6, 'B', or 'N')
- * @returns The conversion rate (tech level value)
- */
 
 // ============================================================================
 // GAME RULE CONSTANTS

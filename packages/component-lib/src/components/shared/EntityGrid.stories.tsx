@@ -1,77 +1,41 @@
 import type { Story } from '@ladle/react'
-import type { ReactNode } from 'react'
-import { EntityGrid, EntityGridRow } from './EntityGrid'
-import { Card } from './Card'
-import { Button } from '../chrome/Button'
-import { Text } from '../base/Text'
-import { Badge } from '../chrome/Badge'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import { Caption } from '../../stories/_harness'
+import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
+import { EntityGridRow } from './EntityGrid'
+import { MasonryColumns } from './MasonryColumns'
 
 export default {
-  title: 'Compositions/Catalog/Entity Grid',
+  title: 'Compositions/Catalog/Entity Grid Row',
 }
 
-/** Header for a generic entity card — abstract, so the grid + economy read as the subject. */
-function cardHeader(title: string) {
-  return <Badge shape="stamp">{title}</Badge>
-}
-
-/** Abstract body — a stand-in for whatever card the layout primitive holds. */
-const body = (
-  <div className="p-3">
-    <Text as="p" className="text-sm text-ink-2">
-      Entity body — an abstract stand-in for whatever card the grid holds.
-    </Text>
-  </div>
-)
-
-function Gallery({ rule, children }: { rule: string; children: ReactNode }) {
+/**
+ * One row = one entity card cell. `footMeta` is folded into the card's own
+ * foot, so the activation economy reads on the card rather than beside it —
+ * here the real .50 Cal Machine Gun cost (EP 2 / +HEAT 1). The FLOW is
+ * `MasonryColumns`, exactly as the live sheets pair them.
+ */
+export const Default: Story = () => {
+  const systems = SalvageUnionReference.Systems.all().slice(0, 3)
   return (
-    <div className="flex flex-col gap-5 bg-paper p-5 font-body text-ink">
-      <p className="max-w-2xl text-xs leading-relaxed text-ink-2">{rule}</p>
-      {children}
+    <div className="flex flex-col gap-5">
+      <Caption>
+        EntityGridRow is the cell: a min-w-0 wrapper that folds footMeta into the card it holds.
+        MasonryColumns is the flow around it (1 column on mobile, up to 3 on desktop).
+      </Caption>
+      <MasonryColumns>
+        {systems.map((system) => (
+          <EntityGridRow
+            key={system.id}
+            footMeta={[
+              { label: 'EP', value: 2 },
+              { label: '+HEAT', value: 1 },
+            ]}
+          >
+            <ReferenceEntityCard data={system} size="medium" />
+          </EntityGridRow>
+        ))}
+      </MasonryColumns>
     </div>
   )
 }
-
-// The rail card's action economy is real weapon-activation data: the .50 Cal
-// Machine Gun costs EP to fire and adds Heat — the one place the primitive's
-// own mechanic surfaces, so it uses real numbers, not an abstract stand-in.
-const railFootMeta = [
-  { label: 'EP', value: 2 },
-  { label: '+HEAT', value: 1 },
-]
-
-/**
- * The grid caps at two columns on desktop, one on mobile, with equal-height
- * rows. Mode 'card' folds the economy into the card foot; mode 'rail' puts the
- * 152px meta + action callout beside the card.
- */
-export const Default: Story = () => (
-  <Gallery rule="EntityGrid: 1 column on mobile, max 2 on desktop, equal-height rows (26px row gap / 18px column gap). Left row folds footMeta into the card foot ('card'); right row breaks the economy out into a 152px rail callout ('rail') — real .50 Cal Machine Gun activation cost, EP 2 / +HEAT 1, above stacked action buttons. Rust rides only the Use control.">
-    <EntityGrid>
-      <EntityGridRow footMeta={[{ label: 'SP', value: 12 }]}>
-        <Card headerBg="bg-mech" headerContent={cardHeader('Salvage Rig')}>
-          {body}
-        </Card>
-      </EntityGridRow>
-      <EntityGridRow
-        mode="rail"
-        footMeta={railFootMeta}
-        actions={
-          <>
-            <Button variant="primary" size="compact">
-              Use
-            </Button>
-            <Button variant="default" size="compact">
-              Repair
-            </Button>
-          </>
-        }
-      >
-        <Card headerBg="bg-mech" headerContent={cardHeader('.50 Cal Machine Gun')}>
-          {body}
-        </Card>
-      </EntityGridRow>
-    </EntityGrid>
-  </Gallery>
-)

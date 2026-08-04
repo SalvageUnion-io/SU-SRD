@@ -159,11 +159,15 @@ describe('the table runner raises the crawler', () => {
     const { mediator, player, gameId } = await seedTable(t)
     const crawlerId = await mediator.as.mutation(api.entities.createCrawler, {
       gameId,
+      appId: 'c1',
       body: crawlerBody(),
     })
 
     // Communal editing is the whole point of the crawler; only authorship moved.
-    await player.as.mutation(api.entities.patchCrawler, { crawlerId, patch: { techLevel: '2' } })
+    await player.as.mutation(api.entities.patchCrawlerByAppId, {
+      appId: 'c1',
+      patch: { techLevel: '2' },
+    })
 
     const row = await t.run(async (ctx) => await ctx.db.get(crawlerId))
     expect((row?.body as { techLevel: string } | undefined)?.techLevel).toBe('2')

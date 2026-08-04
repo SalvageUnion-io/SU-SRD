@@ -50,7 +50,7 @@ export function InlineRef({ children, href, title, className, ...rest }: InlineR
   return (
     <span
       title={title}
-      className={cn(base, 'cursor-help border-dashed border-ink/50 text-ink', className)}
+      className={cn(base, 'cursor-help border-dashed border-ink-50 text-ink', className)}
     >
       {children}
     </span>

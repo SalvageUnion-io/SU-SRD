@@ -24,7 +24,7 @@ import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
 
 afterEach(() => {
   cleanup()
@@ -168,14 +168,14 @@ describe('CrawlerSheet — bay function/Repair actions (design §4.4, S12)', () 
       {
         scrapPool: { tl2: 0, tl3: 2 },
       },
-      LIVE_SHEET_MANUAL
+      LIVE_SHEET_TXN
     )
     expect(updateCrawlerBay).toHaveBeenCalledWith(
       fakeCrawler.id,
       'command-bay',
       { condition: 'intact' },
       0,
-      LIVE_SHEET_MANUAL
+      LIVE_SHEET_TXN
     )
   })
 
@@ -202,14 +202,46 @@ describe('CrawlerSheet — bay function/Repair actions (design §4.4, S12)', () 
       {
         scrapPool: { tl2: 0 },
       },
-      LIVE_SHEET_MANUAL
+      LIVE_SHEET_TXN
     )
     expect(updateCrawlerBay).toHaveBeenCalledWith(
       broke.id,
       'command-bay',
       { condition: 'intact' },
       0,
-      LIVE_SHEET_MANUAL
+      LIVE_SHEET_TXN
+    )
+  })
+
+  // The degenerate case of the one above, pinned separately because the draw
+  // now runs through `drawFromPool`, whose DEFAULT behaviour is to refuse and
+  // return null when the pool cannot cover the cost. Only `{ partial: true }`
+  // keeps an empty pool repairing; drop that option and this test is what
+  // catches it.
+  test('an empty pool still repairs — nothing is drawn, the bay flips anyway', async () => {
+    restore = await patchCrawlerBays()
+    const empty: Crawler = { ...fakeCrawler, scrapPool: {} }
+    const update = mock(async () => empty)
+    const updateCrawlerBay = mock(async () => empty)
+    render(
+      <CrawlerSheet crawler={empty} store={makeStubStore(empty, { update, updateCrawlerBay })} />
+    )
+
+    const repair = screen
+      .getAllByRole('button', { name: 'Repair' })
+      .find((b) => !(b as HTMLButtonElement).disabled)
+    expect(repair).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(must(repair))
+    })
+
+    expect(update).toHaveBeenCalledWith('crawler', empty.id, { scrapPool: {} }, LIVE_SHEET_TXN)
+    expect(updateCrawlerBay).toHaveBeenCalledWith(
+      empty.id,
+      'command-bay',
+      { condition: 'intact' },
+      0,
+      LIVE_SHEET_TXN
     )
   })
 

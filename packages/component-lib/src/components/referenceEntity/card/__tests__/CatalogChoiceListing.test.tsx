@@ -3,8 +3,8 @@
  * Mech System that deals SP damage") — renders as an expandable entity listing
  * in the card, static in read-only and a single-select picker when editable.
  */
-import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../choiceCard/choiceSelectionHelpers'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
@@ -14,8 +14,6 @@ const armamentBay = () => {
   if (!bay) throw new Error('Armament Bay fixture missing')
   return bay
 }
-
-afterEach(cleanup)
 
 describe('Armament Bay — Weapons System catalog listing', () => {
   beforeAll(async () => {

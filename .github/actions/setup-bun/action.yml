@@ -10,7 +10,11 @@ runs:
         bun-version-file: .bun-version
 
     - name: Cache Bun dependencies
-      uses: actions/cache@v4
+      # v6 matches every other actions/cache use in this repo. This file sat
+      # outside Dependabot's scope (see .github/dependabot.yml) so it stalled on
+      # v4; the inputs below are unchanged between v4 and v6, and a protocol
+      # mismatch would degrade to a cache miss rather than a failure.
+      uses: actions/cache@v6
       with:
         path: ~/.bun/install/cache
         key: bun-${{ runner.os }}-${{ hashFiles('**/bun.lock') }}

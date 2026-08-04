@@ -633,37 +633,6 @@
                     "maximum": 9007199254740991,
                     "description": "Number of this system/module installed"
                   },
-                  "statBonus": {
-                    "type": "object",
-                    "properties": {
-                      "structurePoints": {
-                        "type": "integer",
-                        "minimum": -9007199254740991,
-                        "maximum": 9007199254740991,
-                        "description": "Flat bonus to the mech max Structure Points per installed item"
-                      },
-                      "energyPoints": {
-                        "type": "integer",
-                        "minimum": -9007199254740991,
-                        "maximum": 9007199254740991,
-                        "description": "Flat bonus to the mech max Energy Points per installed item"
-                      },
-                      "heatCapacity": {
-                        "type": "integer",
-                        "minimum": -9007199254740991,
-                        "maximum": 9007199254740991,
-                        "description": "Flat bonus to the mech max Heat Capacity per installed item"
-                      },
-                      "cargoCapacity": {
-                        "type": "integer",
-                        "minimum": -9007199254740991,
-                        "maximum": 9007199254740991,
-                        "description": "Flat bonus to the mech Cargo Capacity per installed item"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "Explicit flat bonuses this item applies to the host mech’s derived maxima, summed per installed copy"
-                  },
                   "contributions": {
                     "type": "array",
                     "items": {
@@ -681,7 +650,8 @@
                             "maxHp",
                             "maxAp",
                             "inventorySlots"
-                          ]
+                          ],
+                          "description": "The mech, pilot or slot-count stat a contribution raises or lowers"
                         },
                         "amount": {
                           "anyOf": [
@@ -724,13 +694,15 @@
                                     "maxHp",
                                     "maxAp",
                                     "inventorySlots"
-                                  ]
+                                  ],
+                                  "description": "The mech, pilot or slot-count stat a contribution raises or lowers"
                                 }
                               },
                               "required": ["fromStat"],
                               "additionalProperties": false
                             }
-                          ]
+                          ],
+                          "description": "How much a contribution is worth: a flat integer, a per-tech-level formula, or another of the target stats"
                         },
                         "target": {
                           "type": "string",
@@ -760,7 +732,7 @@
                       "additionalProperties": false,
                       "description": "A flat mechanical contribution this content makes to a stat"
                     },
-                    "description": "Contributions this item makes (ADR-029). Distinct from `statBonus`: these carry a target, a duration and expression amounts, so they cover what a flat per-copy bonus cannot."
+                    "description": "Every flat mechanical change this item makes to a stat (ADR-029). This is the ONE numeric encoding: the older `statBonus` shape — a bare per-copy map with no target, duration or expression amounts — was a strict subset of it, and two encodings summed independently by the same derivation is a double-count waiting to be authored."
                   },
                   "appliedEffects": {
                     "type": "array",
@@ -814,7 +786,8 @@
                           "required": ["op", "value"],
                           "additionalProperties": false
                         }
-                      ]
+                      ],
+                      "description": "A single mechanical effect applied when a choice option is selected"
                     },
                     "description": "Trait/damage/range effects this item applies unconditionally (ADR-029). Same vocabulary as a choice option’s `effects`, declared directly on the record for grants that are not a choice. Named `appliedEffects`, not `effects`: that key is already taken on meta entities with a different `{ label, value }` shape (see getEffects), and one field name meaning two things is how a schema rots."
                   },
@@ -894,7 +867,8 @@
                           "required": ["op", "value"],
                           "additionalProperties": false
                         }
-                      ]
+                      ],
+                      "description": "A single mechanical effect applied when a choice option is selected"
                     }
                   }
                 },
@@ -1018,7 +992,8 @@
                                   "required": ["op", "value"],
                                   "additionalProperties": false
                                 }
-                              ]
+                              ],
+                              "description": "A single mechanical effect applied when a choice option is selected"
                             }
                           }
                         },
@@ -1178,37 +1153,6 @@
                             "maximum": 9007199254740991,
                             "description": "Number of this system/module installed"
                           },
-                          "statBonus": {
-                            "type": "object",
-                            "properties": {
-                              "structurePoints": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991,
-                                "description": "Flat bonus to the mech max Structure Points per installed item"
-                              },
-                              "energyPoints": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991,
-                                "description": "Flat bonus to the mech max Energy Points per installed item"
-                              },
-                              "heatCapacity": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991,
-                                "description": "Flat bonus to the mech max Heat Capacity per installed item"
-                              },
-                              "cargoCapacity": {
-                                "type": "integer",
-                                "minimum": -9007199254740991,
-                                "maximum": 9007199254740991,
-                                "description": "Flat bonus to the mech Cargo Capacity per installed item"
-                              }
-                            },
-                            "additionalProperties": false,
-                            "description": "Explicit flat bonuses this item applies to the host mech’s derived maxima, summed per installed copy"
-                          },
                           "contributions": {
                             "type": "array",
                             "items": {
@@ -1226,7 +1170,8 @@
                                     "maxHp",
                                     "maxAp",
                                     "inventorySlots"
-                                  ]
+                                  ],
+                                  "description": "The mech, pilot or slot-count stat a contribution raises or lowers"
                                 },
                                 "amount": {
                                   "anyOf": [
@@ -1269,13 +1214,15 @@
                                             "maxHp",
                                             "maxAp",
                                             "inventorySlots"
-                                          ]
+                                          ],
+                                          "description": "The mech, pilot or slot-count stat a contribution raises or lowers"
                                         }
                                       },
                                       "required": ["fromStat"],
                                       "additionalProperties": false
                                     }
-                                  ]
+                                  ],
+                                  "description": "How much a contribution is worth: a flat integer, a per-tech-level formula, or another of the target stats"
                                 },
                                 "target": {
                                   "type": "string",
@@ -1305,7 +1252,7 @@
                               "additionalProperties": false,
                               "description": "A flat mechanical contribution this content makes to a stat"
                             },
-                            "description": "Contributions this item makes (ADR-029). Distinct from `statBonus`: these carry a target, a duration and expression amounts, so they cover what a flat per-copy bonus cannot."
+                            "description": "Every flat mechanical change this item makes to a stat (ADR-029). This is the ONE numeric encoding: the older `statBonus` shape — a bare per-copy map with no target, duration or expression amounts — was a strict subset of it, and two encodings summed independently by the same derivation is a double-count waiting to be authored."
                           },
                           "appliedEffects": {
                             "type": "array",
@@ -1365,7 +1312,8 @@
                                   "required": ["op", "value"],
                                   "additionalProperties": false
                                 }
-                              ]
+                              ],
+                              "description": "A single mechanical effect applied when a choice option is selected"
                             },
                             "description": "Trait/damage/range effects this item applies unconditionally (ADR-029). Same vocabulary as a choice option’s `effects`, declared directly on the record for grants that are not a choice. Named `appliedEffects`, not `effects`: that key is already taken on meta entities with a different `{ label, value }` shape (see getEffects), and one field name meaning two things is how a schema rots."
                           },

@@ -10,7 +10,7 @@ conventions, then the relevant architecture doc below.
 
 **I'm adding/changing a UI component** → [design-system/ruleset.md](design-system/ruleset.md) (**the governing primitive laws** — one kind × one context = one primitive) + [architecture/display-system.md](architecture/display-system.md) + [architecture/package-contracts.md](architecture/package-contracts.md)
 
-**I'm changing how data flows / persists** → [architecture/data-flow.md](architecture/data-flow.md) + [adrs/ADR-002-indexeddb-idb-zod.md](adrs/ADR-002-indexeddb-idb-zod.md) + [adrs/ADR-003-zustand-hydration.md](adrs/ADR-003-zustand-hydration.md)
+**I'm changing how data flows / persists** → [architecture/data-flow.md](architecture/data-flow.md) + [adrs/ADR-030-accounts-games-server-of-record.md](adrs/ADR-030-accounts-games-server-of-record.md) (**governing** — which of the two persistence domains you're in) + [adrs/ADR-002-indexeddb-idb-zod.md](adrs/ADR-002-indexeddb-idb-zod.md) + [adrs/ADR-003-zustand-hydration.md](adrs/ADR-003-zustand-hydration.md)
 
 **I'm touching rules/combat logic or deciding where a rule is enforced** → [architecture/rules-engine-boundary.md](architecture/rules-engine-boundary.md) (**Rules & the ITUN Surfaces** — the mode/rule-class matrix) + [adrs/ADR-021-itun-surface-taxonomy.md](adrs/ADR-021-itun-surface-taxonomy.md) (**governing** ADR for enforcement placement) + [architecture/combat-loop.md](architecture/combat-loop.md) + [adrs/ADR-007-automation-boundary.md](adrs/ADR-007-automation-boundary.md)
 
@@ -30,22 +30,22 @@ conventions, then the relevant architecture doc below.
 
 ### [`design-system/`](design-system/) — The canonical primitive language
 
-| Doc                                                                              | Scope                                                                                                                                                                                      |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [ruleset.md](design-system/ruleset.md)                                           | **Canon** — the governing laws: context laws, the rendering matrix, foundations, the irreducible atom set, the merge map, value-cell + StampSeam laws                                      |
-| [canonical-primitive-language.md](design-system/canonical-primitive-language.md) | The buildable migration plan — primitive catalog, token codification, phased merge order                                                                                                   |
-| [style-unification-pass.md](design-system/style-unification-pass.md)             | **Standing operating knowledge** for the ongoing pass — the layer ladder, the current Card tidy-up scope, per-primitive rules, the Ladle conversion procedure, and the migration work-list |
+| Doc                                                                              | Scope                                                                                                                                                                                                               |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ruleset.md](design-system/ruleset.md)                                           | **Canon** — the governing laws: context laws, the rendering matrix, foundations, the irreducible atom set, the merge map, value-cell + StampSeam laws                                                               |
+| [canonical-primitive-language.md](design-system/canonical-primitive-language.md) | The buildable migration plan — primitive catalog, token codification, phased merge order                                                                                                                            |
+| [style-unification-pass.md](design-system/style-unification-pass.md)             | **Completed — historical record.** The pass as it ran: the layer ladder, per-primitive rules, the Ladle conversion procedure, the migration work-list. Not a work-list; §2's governing laws are the part still live |
 
 ### [`architecture/`](architecture/) — Cross-cutting architecture
 
 | Doc                                                                   | Scope                                                                                                  |
 | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | [display-system.md](architecture/display-system.md)                   | The two card shells (ReferenceEntityCard / Card), size × extent, controls                              |
-| [data-flow.md](architecture/data-flow.md)                             | Reference data + player data hydration, IndexedDB, Zustand, TanStack Query                             |
+| [data-flow.md](architecture/data-flow.md)                             | Reference data + player data hydration; the two persistence domains (IndexedDB / Convex), Zustand      |
 | [package-contracts.md](architecture/package-contracts.md)             | Package APIs, dependency rules, cross-package change checklist                                         |
 | [rules-engine-boundary.md](architecture/rules-engine-boundary.md)     | **Rules & the ITUN Surfaces** — enforcement mode × rule-class matrix                                   |
 | [dashboard.md](architecture/dashboard.md)                             | The Dashboard (Guided-Play surface) design — layout, instruments, canvas                               |
-| [combat-loop.md](architecture/combat-loop.md)                         | Action activation, heat checks, conditions — current local-first flow                                  |
+| [combat-loop.md](architecture/combat-loop.md)                         | Action activation, heat checks, conditions — the client-side flow                                      |
 | [seo-accessibility.md](architecture/seo-accessibility.md)             | SEO strategy (srd) + WCAG 2.1 AA patterns                                                              |
 | [accounts-and-games.md](architecture/accounts-and-games.md)           | ADR-030 delivery phases + the Convex/Netlify/Discord operational reference                             |
 | [discord-bot-game-client.md](architecture/discord-bot-game-client.md) | **Plan** — the bot as an authenticated Game client: credential model, command surface, embed rendering |
@@ -64,20 +64,38 @@ generator is in git. Produce the digest locally with `bun run rules:regen`
 
 ### [`adrs/`](adrs/) — Architecture Decision Records
 
-MADR-style records of architecturally significant decisions. ADR-001–014 are
-**live in the code today**. ADR-015–020 are **Accepted** — the Dashboard play
-surface, **built** at `components/dashboard/`, routed at `/dashboard/$id`.
-ADR-021 is the **governing** surface/mode taxonomy and ADR-022 its Change Log
-companion — both now **built** (hard-enforced create wizards, the Dashboard, and
-the `entityStore.update` provenance log + cap overrides). ADR-023–026 are
-**Accepted**; ADR-024–025 (derived release changelogs + the ref surface gate)
-are being implemented together, and ADR-026 (entity card design rules) is
-**built**. Each says so in its Status.
+MADR-style records of architecturally significant decisions. **30 ADRs.** Each
+one's own `## Status` block is authoritative — this summary tracks it, so if the
+two ever disagree, believe the ADR.
+
+- **ADR-002–014** are **Accepted** and live in the code today.
+- **ADR-001** (local-first, no backend, no auth) is **superseded by ADR-030**.
+  It is retained because its reasoning still governs the parts ADR-030 left
+  alone — anonymous Solo play, and snapshot sharing.
+- **ADR-015–020** are **Accepted** — the Dashboard play surface, **built** at
+  `components/dashboard/`, routed at `/dashboard/$id`.
+- **ADR-021** is the **governing** surface/mode taxonomy and **ADR-022** its
+  Change Log companion — both **built** (hard-enforced create wizards, the
+  Dashboard, and the `entityStore.update` provenance log + cap overrides).
+- **ADR-023** is **superseded by ADR-027**, which is itself **superseded by
+  ADR-028** (partners render in place; it keeps ADR-027's model in full and
+  removes only its surface). ADR-028 is the live one of the three.
+- **ADR-024–025** (derived release changelogs + the reference surface gate) are
+  **Accepted and shipped** — release-please config, manifest and workflow all
+  ship.
+- **ADR-026** (entity card design rules) is **Accepted** and **built**.
+- **ADR-029** is **Proposed** — not yet decided; don't build against it.
+- **ADR-030** is the **governing** ADR for identity, ownership, and sharing:
+  Convex as server of record. It **supersedes ADR-001** and **amends ADR-022**.
+  Delivery state lives in
+  [architecture/accounts-and-games.md](architecture/accounts-and-games.md), not
+  in the ADR.
+
 Read the matching ADR before proposing alternatives.
 
 | ADR                                                                  | Topic                                                                                                           |
 | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| [ADR-001](adrs/ADR-001-local-first-no-backend.md)                    | Local-first, no backend, no auth                                                                                |
+| [ADR-001](adrs/ADR-001-local-first-no-backend.md)                    | Local-first, no backend, no auth — **superseded by ADR-030**; reasoning retained for Solo + snapshots           |
 | [ADR-002](adrs/ADR-002-indexeddb-idb-zod.md)                         | IndexedDB via `idb`, Zod as schema source, salvage-read resilience                                              |
 | [ADR-003](adrs/ADR-003-zustand-hydration.md)                         | Zustand state — lazy hydration, write-through, cross-tab invalidation                                           |
 | [ADR-004](adrs/ADR-004-snapshot-netlify-functions.md)                | Snapshot sharing — unauthenticated Netlify Functions + Blobs                                                    |
@@ -99,11 +117,11 @@ Read the matching ADR before proposing alternatives.
 | [ADR-020](adrs/ADR-020-dashboard-fixed-canvas-scale-to-fit.md)       | Fixed 1280×800 scale-to-fit canvas with a phone-reflow floor (built)                                            |
 | [ADR-021](adrs/ADR-021-itun-surface-taxonomy.md)                     | **Governing** — surface/mode taxonomy; rule enforcement is per-mode (Guided Creation / Free Edit / Guided Play) |
 | [ADR-022](adrs/ADR-022-provenance-log-and-overrides.md)              | Per-entity **Change Log** (provenance, behind a menu) + non-destructive stat overrides (built)                  |
-| [ADR-023](adrs/ADR-023-drone-equipment-installed-loadout.md)         | Granted drone/companion equipment hosts a real installed Systems/Modules loadout (built)                        |
-| [ADR-024](adrs/ADR-024-derived-release-changelogs.md)                | Derived, per-app release changelogs (release-please) + on-site history; supersedes the web hand-changelog       |
+| [ADR-023](adrs/ADR-023-drone-equipment-installed-loadout.md)         | Granted drone/companion equipment hosts an installed loadout — **superseded by ADR-027 → ADR-028**              |
+| [ADR-024](adrs/ADR-024-derived-release-changelogs.md)                | Derived, per-app release changelogs (release-please) + on-site history; superseded the web hand-changelog       |
 | [ADR-025](adrs/ADR-025-reference-versioned-releases-surface-gate.md) | Versioned internal releases + public-surface (TS + schema) gate for the ref; partially supersedes ADR-014       |
 | [ADR-026](adrs/ADR-026-entity-card-design-rules.md)                  | **Entity card design rules** — one renderer, choice/stat-atom/modified-stats/tech-level rules (built)           |
-| [ADR-027](adrs/ADR-027-partners-owned-by-host.md)                    | Partners are owned by their host entity                                                                         |
+| [ADR-027](adrs/ADR-027-partners-owned-by-host.md)                    | Partners are owned by their host entity — **superseded by ADR-028** (model kept, surface removed)               |
 | [ADR-028](adrs/ADR-028-partners-render-in-place.md)                  | Partners render in place as reference entities; supersedes ADR-027                                              |
 | [ADR-029](adrs/ADR-029-contribution-model-and-stat-provenance.md)    | **Proposed** — one contribution model for caps/traits/damage + stat provenance; amends ADR-022's overrides      |
 | [ADR-030](adrs/ADR-030-accounts-games-server-of-record.md)           | **Governing** — accounts, Games, ownership, and Convex as server of record; supersedes ADR-001, amends ADR-022  |
@@ -114,6 +132,11 @@ Read the matching ADR before proposing alternatives.
 > the code; the remaining gaps (unwired `salvage` / `crafting` / `scrapMech`
 > primitives, no Change Log replay surface) are listed in the implementation-status
 > note in [rules-engine-boundary.md](architecture/rules-engine-boundary.md).
+>
+> The two governing ADRs do not overlap: **ADR-021** governs _how hard a rule is
+> enforced on which surface_, **ADR-030** governs _who owns a record and where it
+> lives_. ADR-030 adds an ownership axis to ADR-021 without altering any of its
+> enforcement modes.
 
 ### Per-package CLAUDE.md
 
@@ -121,7 +144,7 @@ Each app and shared package has its own `CLAUDE.md` with stack-specific
 conventions:
 
 - [`apps/srd/CLAUDE.md`](../apps/srd/CLAUDE.md) — Static reference site (Astro + islands)
-- [`apps/itun/CLAUDE.md`](../apps/itun/CLAUDE.md) — Character builder (React, local-first)
+- [`apps/itun/CLAUDE.md`](../apps/itun/CLAUDE.md) — Character builder + game manager (React; Solo on IndexedDB, Connected on Convex)
 - [`apps/discord-bot/CLAUDE.md`](../apps/discord-bot/CLAUDE.md) — Discord.js bot
 - [`packages/salvageunion-reference/CLAUDE.md`](../packages/salvageunion-reference/CLAUDE.md) — Game data ORM + schemas
 - [`packages/component-lib/CLAUDE.md`](../packages/component-lib/CLAUDE.md) — Shared component library

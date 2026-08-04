@@ -25,9 +25,12 @@ import type { EntityRef } from '../../lib/schemas/entity'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { cn } from '../../lib/utils'
+import { useConnection } from '../../lib/connection/connectionContext'
 import { useEntityStore } from '../../stores/entityStore'
 import { ExportEntityButton } from '../export/ExportEntityButton'
 import { AppLink } from '../shared/AppLink'
+import { NotFoundPanel } from '../shared/RouteFallbacks'
+import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 import { MoveToContainerControl } from '../container/MoveToContainerControl'
 
@@ -40,6 +43,7 @@ import { SheetCrawler } from './SheetCrawler'
 import { SheetMech } from './SheetMech'
 import { SheetPilot } from './SheetPilot'
 import type { SheetPatch } from './sheetViewProps'
+import { runWrite } from './sheetWrite'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 
 // Re-exported so existing consumers (PublishButton, tests) keep their import.
@@ -84,7 +88,14 @@ type SheetProps = {
   softLinkStore?: SoftLinkStore
   /** Injectable store hook (writes); the real Zustand store when omitted. */
   store?: typeof useEntityStore
-  /** Hides publish + disables all stat editing (snapshot contexts). */
+  /**
+   * Hides publish + disables all stat editing (snapshot contexts).
+   *
+   * This is the *caller's* declaration that the sheet is a read-only rendering.
+   * Connectivity read-only is resolved separately, from `useConnection()`, and
+   * ORs into the same downstream `readOnly` — the two reasons are different but
+   * the affordances they withdraw are identical.
+   */
   readOnly?: boolean
   /**
    * Where the sheet's back link goes. Defaults to the Roster.
@@ -116,12 +127,27 @@ export function Sheet({
   entityStore,
   softLinkStore,
   store = useEntityStore,
-  readOnly = false,
+  readOnly: readOnlyProp = false,
   back = { href: '/', label: 'Roster' },
   pilotAbilities,
 }: SheetProps) {
   const storeState = store()
   const [changeLogOpen, setChangeLogOpen] = useState(false)
+  const { canWrite, settling } = useConnection()
+
+  // Signed in and offline: the server of record refuses writes (ADR-030 §1), so
+  // every edit affordance on this sheet is a lie. Withdraw them rather than
+  // letting each one throw `WritesBlockedOffline` on click.
+  //
+  // `settling` is excluded on purpose. It is the sub-second initial handshake,
+  // and folding it in here would make every signed-in load flash a read-only
+  // sheet — which reads as a bug far more loudly than it reads as honesty. A
+  // write attempted inside that window is still refused, and `runWrite` says so.
+  //
+  // This is orthogonal to ADR-021's surface taxonomy: it withdraws Free Edit for
+  // a connectivity reason, and imposes no lifecycle enforcement on what remains.
+  const writesBlocked = !canWrite && !settling
+  const readOnly = readOnlyProp || writesBlocked
 
   const lookup: EntityLookup = entityStore ?? {
     get: (type, entityId) => storeState.get(type, entityId),
@@ -140,22 +166,11 @@ export function Sheet({
     // Styled not-found with an exit path — this is the most-visited surface
     // in the app; a bare one-liner stranded the user (audit item 7).
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-wk-bg p-6">
-        <div className="flex w-full max-w-xl flex-col items-start gap-4 rounded-[6px] border-chrome border-ink bg-paper p-6 sm:p-8">
-          <h1 className="font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
-            {kind} not found
-          </h1>
-          <p className="font-body text-sm text-wk-muted">
-            This {kind} may have been deleted, or the link may be stale.
-          </p>
-          <AppLink
-            href={back.href}
-            className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
-          >
-            &larr; Back to {back.label}
-          </AppLink>
-        </div>
-      </main>
+      <NotFoundPanel
+        title={`${kind} not found`}
+        message={`This ${kind} may have been deleted, or the link may be stale.`}
+        back={back}
+      />
     )
   }
 
@@ -201,15 +216,24 @@ export function Sheet({
       Change Log
     </button>
   )
-  const actions = !readOnly ? (
+  // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
+  // Log are reads, and a disconnected player has more reason to want a local
+  // export, not less. Only Share goes — publishing a snapshot posts to a server
+  // this session cannot reach — and the lozenge takes its place so the gap says
+  // what happened.
+  const actions = !readOnlyProp ? (
     <div className="flex items-center gap-2.5">
-      <AppLink
-        href={`/sheet/${kind}/${id}/share`}
-        aria-label={`Share this ${kind} as a snapshot`}
-        className={cn(buttonVariants({ size: 'compact' }), 'min-h-11 no-underline sm:min-h-9')}
-      >
-        Share
-      </AppLink>
+      {writesBlocked ? (
+        <WritesBlockedNotice />
+      ) : (
+        <AppLink
+          href={`/sheet/${kind}/${id}/share`}
+          aria-label={`Share this ${kind} as a snapshot`}
+          className={cn(buttonVariants({ size: 'compact' }), 'min-h-11 no-underline sm:min-h-9')}
+        >
+          Share
+        </AppLink>
+      )}
       <SheetActionsMenu>
         {printButton}
         {exportButton}
@@ -257,7 +281,10 @@ export function Sheet({
    */
   const patch: SheetPatch = (input) => {
     const fields = typeof input === 'function' ? input(storeState.get(kind, id) ?? entity) : input
-    void storeState.update(kind, id, fields, LIVE_SHEET_MANUAL)
+    // `runWrite`, not `void`: the store refuses a write whose backend is blocked,
+    // and a bare `void` on that turns a refusal into an unhandled rejection and a
+    // control that visibly does nothing.
+    runWrite(() => storeState.update(kind, id, fields, LIVE_SHEET_MANUAL))
   }
 
   const common = {
@@ -285,7 +312,7 @@ export function Sheet({
   return (
     <>
       {sheetView}
-      {!readOnly && (
+      {!readOnlyProp && (
         <ChangeLogDrawer
           entityType={kind}
           entityId={id}

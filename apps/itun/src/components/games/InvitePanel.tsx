@@ -4,6 +4,7 @@ import { useMutation, useQuery } from 'convex/react'
 
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { ConvexPending } from '../shared/ConvexPending'
 import { INPUT, ROW, STAMP } from './gameChrome'
 
 /**
@@ -151,7 +152,7 @@ export function InvitePanel({ gameId }: { gameId: Id<'games'> }) {
 
       <div className="flex flex-col gap-1">
         <span className={STAMP}>Codes</span>
-        {invites === undefined && <Text variant="hint">Loading…</Text>}
+        {invites === undefined && <ConvexPending />}
         {invites?.length === 0 && (
           <Text variant="hint" className="text-left">
             No invite codes yet.

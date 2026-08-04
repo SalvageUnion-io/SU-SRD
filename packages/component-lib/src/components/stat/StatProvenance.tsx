@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Popover } from '@base-ui/react/popover'
 
 import { cn } from '../../utils/cn'
+import { capsLabel } from '../chrome/capsLabel'
+import { FOCUS_RING } from '../chrome/interaction'
 
 /**
  * One line of a derived value's provenance.
@@ -77,8 +79,11 @@ export function StatProvenance({
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger
         className={cn(
-          'cursor-help border-b border-dotted border-current/40 focus-visible:outline-none',
-          'focus-visible:ring-[3px] focus-visible:ring-rust/25',
+          'cursor-help border-b border-dotted border-current/40',
+          // Was the three classes of `FOCUS_RING` spelled out by hand. Same
+          // rung, imported rather than re-inlined so the ring can never drift
+          // from the canonical one.
+          FOCUS_RING,
           className
         )}
         aria-label={`${statLabel}: how this is derived`}
@@ -98,7 +103,10 @@ export function StatProvenance({
             onMouseLeave={() => setOpen(false)}
           >
             <Popover.Title
-              className={cn('mb-1.5 font-cond text-label-lg uppercase tracking-caps opacity-60')}
+              className={cn(
+                capsLabel({ size: 'label-lg', weight: 'inherit', tracking: 'caps' }),
+                'mb-1.5 opacity-60'
+              )}
             >
               {statLabel} · how this is derived
             </Popover.Title>
@@ -108,7 +116,7 @@ export function StatProvenance({
                   key={`${line.kind}-${line.label}-${i}`}
                   className={cn(
                     'flex items-baseline justify-between gap-4 py-[2px]',
-                    line.kind === 'derived' && 'mt-1.5 border-t border-paper/25 pt-1.5',
+                    line.kind === 'derived' && 'mt-1.5 border-t border-paper-30 pt-1.5',
                     line.kind === 'override' && 'font-semibold text-caution'
                   )}
                 >
@@ -125,7 +133,7 @@ export function StatProvenance({
                   </span>
                 </li>
               ))}
-              <li className="mt-1.5 flex items-baseline justify-between gap-4 border-t border-paper/25 pt-1.5 font-semibold">
+              <li className="mt-1.5 flex items-baseline justify-between gap-4 border-t border-paper-30 pt-1.5 font-semibold">
                 <span>Showing</span>
                 <span>
                   {total}

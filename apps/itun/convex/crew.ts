@@ -104,15 +104,24 @@ export const readEntity = query({
     entityId: v.string(),
   },
   handler: async (ctx, args) => {
-    const doc = await ctx.db.get(args.entityId as never)
+    // `normalizeId` is what makes `table` load-bearing rather than decorative —
+    // the same guard `botClient.sheet` carries, for the same reason. A Convex id
+    // is table-tagged, but `db.get` will happily return a document from ANY
+    // table, so casting the string and checking only `gameId` let a member pass
+    // an `encounterNpcs` id and read the Mediator's prepared opposition, the one
+    // thing ADR-030 §5 says must stay hidden. It also turns a malformed id from
+    // a throw into a clean not-found.
+    const entityId = ctx.db.normalizeId(args.table, args.entityId)
+    if (entityId === null) return null
+
+    const doc = await ctx.db.get(entityId)
     if (doc === null) return null
 
-    const row = doc as unknown as { gameId: string | null; ownerId: string | null; body: unknown }
     // A shelved entity has no Game to be a member of; it is private to its
     // owner, and this query is deliberately not the way to reach one.
-    if (row.gameId === null) return null
+    if (doc.gameId === null) return null
 
-    await requireMember(ctx, row.gameId as never)
-    return { ownerId: row.ownerId, body: row.body }
+    await requireMember(ctx, doc.gameId)
+    return { ownerId: doc.ownerId, body: doc.body }
   },
 })

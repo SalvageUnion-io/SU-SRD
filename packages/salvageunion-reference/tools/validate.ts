@@ -15,6 +15,7 @@
  *   - traits           (validateTraitsLogic.ts)
  *   - schemas          (validateSchemasLogic.ts)
  *   - parity           (validateParityLogic.ts)
+ *   - double-encoding  (validateParityLogic.ts)
  *
  * Every check's detection logic lives in its own `*Logic.ts` module, and the
  * standalone `bun run validate:*` CLIs (still supported individually) import
@@ -44,7 +45,13 @@ import { findActionReferenceErrors } from './validateActionReferencesLogic.js'
 import { runActionBackrefCheck } from './validateActionBackrefsLogic.js'
 import { runOrphanCheck } from './validateOrphansLogic.js'
 import { findTraitIssues } from './validateTraitsLogic.js'
-import { KNOWN_UNRESOLVED, auditParity, unresolvedFindings } from './validateParityLogic.js'
+import {
+  KNOWN_UNRESOLVED,
+  auditParity,
+  findDoubleEncodings,
+  staleDoubleEncodings,
+  unresolvedFindings,
+} from './validateParityLogic.js'
 import { validateAllFilesAgainstSchemas } from './validateSchemasLogic.js'
 import { fixMissingIds } from './generateMissingIds.js'
 
@@ -203,6 +210,30 @@ function parityCheck(data: DataBag): Diagnostic[] {
   return diagnostics
 }
 
+/**
+ * One concept, one encoding. Fails when a record states the same thing twice
+ * (`statBonus` beside `contributions`, a legacy choice field beside `source`) —
+ * the half-migrated state in which deleting either half changes behaviour with
+ * nothing to see. See `findDoubleEncodings` for why this is the systemic fix.
+ */
+function doubleEncodingCheck(data: DataBag): Diagnostic[] {
+  const diagnostics: Diagnostic[] = findDoubleEncodings(data as never).map((d) => ({
+    check: 'double-encoding',
+    file: d.schema,
+    path: `"${d.record}" ${d.path}`,
+    message: `carries both "${d.unified}" and legacy "${d.legacy}" — keep the unified one and delete the legacy duplicate`,
+  }))
+  for (const id of staleDoubleEncodings(data as never)) {
+    diagnostics.push({
+      check: 'double-encoding',
+      file: 'tools/validateParityLogic.ts',
+      path: `KNOWN_DOUBLE_ENCODED "${id}"`,
+      message: 'stale entry — no longer doubly encoded; remove it so the list keeps burning down',
+    })
+  }
+  return diagnostics
+}
+
 function schemasCheck(data: DataBag): Diagnostic[] {
   const diagnostics: Diagnostic[] = []
   for (const report of validateAllFilesAgainstSchemas(data, zodSchemaMap)) {
@@ -236,6 +267,7 @@ const CHECKS: CheckDefinition[] = [
   { id: 'orphans', label: 'Orphan detection', run: orphansCheck },
   { id: 'traits', label: 'Trait data', run: traitsCheck },
   { id: 'parity', label: 'Rules parity', run: parityCheck },
+  { id: 'double-encoding', label: 'One concept, one encoding', run: doubleEncodingCheck },
   { id: 'schemas', label: 'Zod schema validation', run: schemasCheck },
 ]
 

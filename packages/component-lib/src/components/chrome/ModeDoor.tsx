@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
+import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 
 type ModeDoorProps = {
@@ -22,8 +23,7 @@ const DOOR_BASE =
   'relative min-h-[170px] cursor-pointer rounded-xl p-[22px] pb-5 pl-[26px] text-left transition-transform duration-[120ms] hover:-translate-y-0.5'
 const TAB =
   'absolute -left-3.5 top-[18px] grid h-12 w-11 place-items-center rounded-[2px] bg-ink font-cond text-title font-bold text-paper shadow-[0_8px_14px_-8px_var(--color-ink-50)]'
-const HEAD =
-  'mb-1.5 ml-[34px] block font-cond text-display font-bold uppercase leading-none tracking-caps-tight'
+const HEAD = cn(capsLabel({ size: 'display' }), 'mb-1.5 ml-[34px] block leading-none')
 const BODY = 'ml-[34px] block font-body text-caption leading-[1.55] text-ink'
 const CITE = 'ml-[34px] mt-2.5 block font-body text-caption font-bold text-ink'
 
@@ -60,7 +60,7 @@ export function ModeDoor({
         FOCUS_RING,
         guided
           ? GUIDED_HALO
-          : 'border-entity border-dashed border-ink/55 bg-paper text-ink shadow-[0_14px_26px_-14px_var(--color-ink-40)]',
+          : 'border-entity border-dashed border-ink-50 bg-paper text-ink shadow-[0_14px_26px_-14px_var(--color-ink-40)]',
         className
       )}
     >

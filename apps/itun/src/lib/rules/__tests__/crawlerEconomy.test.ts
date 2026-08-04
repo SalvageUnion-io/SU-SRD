@@ -87,6 +87,37 @@ describe('drawFromPool', () => {
     const pool: ScrapPool = { tl2: 1 }
     expect(drawFromPool(pool, 2, 0)).toEqual({ pool, draws: [] })
   })
+
+  // The bay-repair convention (S12): a short pool still pays what it has, and
+  // the repair goes through regardless. Without `partial` these three cases
+  // would refuse, which is why the option had to exist before CrawlerSheet's
+  // hand-rolled drain loop could be replaced by this function.
+  describe('{ partial: true }', () => {
+    it('spends what the qualifying buckets hold instead of refusing', () => {
+      const result = drawFromPool({ tl1: 99, tl3: 4 }, 3, 5, { partial: true })
+      expect(result.pool).toEqual({ tl1: 99, tl3: 0 })
+      expect(result.draws).toEqual([{ tl: 3, count: 4 }])
+    })
+
+    it('draws nothing from an empty pool but still returns a result', () => {
+      const result = drawFromPool({}, 2, 5, { partial: true })
+      expect(result.pool).toEqual({})
+      expect(result.draws).toEqual([])
+    })
+
+    it('ignores buckets below the requested tech level', () => {
+      const result = drawFromPool({ tl1: 99 }, 4, 5, { partial: true })
+      expect(result.pool).toEqual({ tl1: 99 })
+      expect(result.draws).toEqual([])
+    })
+
+    it('behaves identically to the all-or-nothing draw when the pool covers', () => {
+      const pool: ScrapPool = { tl2: 2, tl3: 2, tl4: 5 }
+      expect(drawFromPool(pool, 2, 5, { partial: true })).toEqual(
+        drawFromPool(pool, 2, 5) as { pool: ScrapPool; draws: { tl: number; count: number }[] }
+      )
+    })
+  })
 })
 
 // ---------------------------------------------------------------------------

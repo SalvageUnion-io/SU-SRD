@@ -25,6 +25,7 @@ import type {
 } from 'salvageunion-reference'
 
 import { canActivateAction, resolveChassisRef } from 'salvageunion-reference/rules'
+import { describeOverloadOutcome } from '../../lib/rules/coreMechanic'
 import type { CoreRollBand } from '../../lib/rules/coreMechanic'
 import { clampHeat, heatCheckPatch, performHeatCheck, performPush } from '../../lib/rules/heatCheck'
 import type { HeatCheckEffect, Roll } from '../../lib/rules/heatCheck'
@@ -111,22 +112,16 @@ export function shutdownTogglePatch(shutdown: boolean | undefined): Partial<Mech
   return { shutdown: !(shutdown ?? false) }
 }
 
-/** One-line readout for a resolved Heat Check (Push wording lives in coreMechanic). */
+/**
+ * One-line readout for a resolved Heat Check. The outcome sentence ladder is
+ * `describeOverloadOutcome` in the rules package (shared with the Push readout,
+ * which prefixes the same tail with its `+2 Heat → N.` head) — only the head is
+ * the Dashboard's own.
+ */
 export function describeHeatCheck(effect: HeatCheckEffect): string {
   const r = effect.result
   const head = `Heat Check ${r.heatCheckRoll} vs Heat ${r.heatAtCheck}`
-  if (!r.overloaded) return `${head} — passed (no overload).`
-  const outcome =
-    r.outcome === 'meltdown'
-      ? 'Catastrophic Meltdown — mech DESTROYED.'
-      : r.outcome === 'system-destroyed'
-        ? 'A System is destroyed — mark one on the sheet.'
-        : r.outcome === 'module-destroyed'
-          ? 'A Module is destroyed — mark one on the sheet.'
-          : r.outcome === 'overheat'
-            ? 'Reactor Overheat — shutdown, Vulnerable, SP damage applied.'
-            : 'Safe — no effect.'
-  return `${head} — OVERLOAD. Reactor Overload ${r.overloadRoll}: ${outcome}`
+  return `${head} — ${describeOverloadOutcome(r)}`
 }
 
 // ---------------------------------------------------------------------------

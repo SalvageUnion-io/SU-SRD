@@ -5,13 +5,11 @@
  * teach as it enforces, so this pins the fix at both layers.
  */
 
-import { describe, expect, test, afterEach } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import { DashboardGauge } from '../DashboardGauge'
 import type { ProvenanceLine } from '../../stat/StatProvenance'
-
-afterEach(cleanup)
 
 const LINES: ProvenanceLine[] = [
   { kind: 'base', label: 'Atlas chassis', detail: 'base', amount: 18 },

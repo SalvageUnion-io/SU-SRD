@@ -214,4 +214,54 @@ describe('readEntity', () => {
     })
     expect(seen).toBeNull()
   })
+
+  test("an id from another table is not readable through the table it isn't in", async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seedGame(t)
+    const pilotId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('pilots', {
+          gameId,
+          ownerId: player.userId,
+          body: { callsign: 'Rook' },
+          updatedAt: 1,
+        })
+    )
+
+    // A Convex id is table-tagged, but `db.get` returns a document from ANY
+    // table — so a handler that casts the string and checks only `gameId`
+    // would happily serve this pilot as a mech.
+    const seen = await organizer.as.query(api.crew.readEntity, {
+      table: 'mechs',
+      entityId: pilotId,
+    })
+    expect(seen).toBeNull()
+  })
+
+  test('an encounterNpcs id is not readable through this surface', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    const npcId = await t.run(
+      async (ctx) => await ctx.db.insert('encounterNpcs', { gameId, body: { name: 'Ambush' } })
+    )
+
+    // ADR-030 §5: the Mediator's prepared opposition is the ONE thing a member
+    // must not be able to read. It is in the same Game and carries no
+    // `ownerId`, so a gameId-only check would have handed it straight over.
+    const seen = await organizer.as.query(api.crew.readEntity, {
+      table: 'pilots',
+      entityId: npcId,
+    })
+    expect(seen).toBeNull()
+  })
+
+  test('a malformed id is null rather than a throw', async () => {
+    const t = testConvex()
+    const { organizer } = await seedGame(t)
+    const seen = await organizer.as.query(api.crew.readEntity, {
+      table: 'pilots',
+      entityId: 'not-an-id',
+    })
+    expect(seen).toBeNull()
+  })
 })

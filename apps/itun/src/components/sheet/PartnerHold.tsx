@@ -12,12 +12,19 @@
  * Vocabulary matches the mech hold, because a partner "uses the same rules as
  * Mechs": Load in, Unload out, Stow across to the Storage Bay. The Bay keeps
  * its own Stow/Unstow pair on the crawler sheet.
+ *
+ * Every move goes through `reportCargo` — the same helper `StorageManifest`
+ * uses. The disabled states below pre-empt the predictable refusals; the
+ * unpredictable ones (a blocked or failed save, a second click landing after
+ * the first already moved the lot) only exist in the resolved result, and
+ * dropping it left the player with a button that appeared to do nothing.
  */
 
 import type { ReactNode } from 'react'
 
 import { Button, Stat } from 'component-lib'
 
+import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
 
@@ -67,14 +74,14 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
                       size="compact"
                       disabled={!crawlerLinked}
                       title={crawlerLinked ? undefined : 'No crawler is linked.'}
-                      onClick={() => void cargo.stow(lot.id)}
+                      onClick={() => reportCargo(cargo.stow(lot.id))}
                     >
                       Stow →
                     </Button>
                     <Button
                       variant="ghost"
                       size="compact"
-                      onClick={() => void cargo.removeLot(lot.id)}
+                      onClick={() => reportCargo(cargo.removeLot(lot.id))}
                     >
                       Unload
                     </Button>
@@ -105,7 +112,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
                       size="compact"
                       disabled={usage.free <= 0}
                       title={usage.free <= 0 ? 'The hold is full.' : undefined}
-                      onClick={() => void cargo.load(lot.id)}
+                      onClick={() => reportCargo(cargo.load(lot.id))}
                     >
                       ← Load
                     </Button>

@@ -1,5 +1,5 @@
-import { describe, it, expect, afterEach } from 'bun:test'
-import { render, screen, cleanup, renderHook } from '@testing-library/react'
+import { describe, it, expect } from 'bun:test'
+import { render, screen, renderHook } from '@testing-library/react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { useChassisPatternConfig } from '../useChassisPatternConfig'
 import type { PatternOverrideData } from '../../referenceEntityTypes'
@@ -12,8 +12,6 @@ import type { PatternOverrideData } from '../../referenceEntityTypes'
  * were wrongly badged.
  */
 describe('useChassisPatternConfig legal starting badge', () => {
-  afterEach(cleanup)
-
   // Synthetic chassis: one pattern explicitly tagged, one not. Resolution is by
   // pattern name against this chassis's own patterns, so the dataset is irrelevant.
   // (Double-cast kept: the synthetic patterns lack SURefObjectPattern's other

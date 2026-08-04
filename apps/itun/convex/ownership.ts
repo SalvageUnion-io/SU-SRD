@@ -51,10 +51,17 @@ async function loadOwnable(
   table: OwnableTable,
   entityId: string
 ): Promise<Doc<'pilots'> | Doc<'mechs'>> {
-  const doc = await ctx.db.get(entityId as Id<'pilots'> | Id<'mechs'>)
+  // `normalizeId` is what makes `table` load-bearing rather than decorative: a
+  // Convex id is table-tagged, but `db.get` returns a document from ANY table,
+  // so casting the string let an id from a table nobody may claim through here
+  // reach the ownership writes below. An id that is not this table's is not
+  // there, which is also what the old `'ownerId' in doc` guard was groping for.
+  const id = ctx.db.normalizeId(table, entityId)
+  if (id === null) throw new Error('That entity no longer exists')
+
+  const doc = await ctx.db.get(id)
   if (doc === null) throw new Error('That entity no longer exists')
-  if (!('ownerId' in doc)) throw new Error(`${table} rows are not ownable`)
-  return doc as Doc<'pilots'> | Doc<'mechs'>
+  return doc
 }
 
 /**

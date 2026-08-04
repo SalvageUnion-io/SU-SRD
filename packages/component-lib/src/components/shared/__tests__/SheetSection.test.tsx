@@ -11,8 +11,8 @@
  *     to Card's card-level `controls` slot.
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { ControlButtons } from '../ControlButtons'
 
 import { Slab } from '../../chrome/Slab'
@@ -20,8 +20,6 @@ import { HButton, SectionEditButton, SectionManageButton } from '../SheetSection
 import { cardRemoveControls } from '../editLanguage'
 
 describe('HButton', () => {
-  afterEach(cleanup)
-
   test('renders as a button with the design chrome and keeps the tap floor', () => {
     render(<HButton>Edit</HButton>)
     const btn = screen.getByRole('button', { name: 'Edit' })
@@ -48,8 +46,6 @@ describe('HButton', () => {
 })
 
 describe('section header (solid Slab)', () => {
-  afterEach(cleanup)
-
   test('renders the stamp label and the trailing actions', () => {
     render(<Slab variant="solid" label="Identity" actions={<button type="button">Edit</button>} />)
     expect(screen.getByText('Identity')).toBeTruthy()
@@ -64,8 +60,6 @@ describe('section header (solid Slab)', () => {
 })
 
 describe('SectionEditButton', () => {
-  afterEach(cleanup)
-
   test('at rest reads "Edit {section}", aria-pressed false, pencil affordance', () => {
     render(<SectionEditButton section="Identity" editing={false} onToggle={() => {}} />)
     const btn = screen.getByRole('button', { name: 'Edit identity' })
@@ -90,8 +84,6 @@ describe('SectionEditButton', () => {
 })
 
 describe('SectionManageButton', () => {
-  afterEach(cleanup)
-
   test('reads "Manage {noun}" with the circled affordance', () => {
     render(<SectionManageButton label="abilities" onClick={() => {}} />)
     const btn = screen.getByRole('button', { name: 'Manage abilities' })
@@ -110,8 +102,6 @@ describe('SectionManageButton', () => {
 })
 
 describe('cardRemoveControls', () => {
-  afterEach(cleanup)
-
   test('builds a single icon-only remove control by default', () => {
     const onRemove = mock(() => {})
     const controls = cardRemoveControls({ name: 'Charge', onRemove })

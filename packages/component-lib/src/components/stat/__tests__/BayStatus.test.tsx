@@ -1,8 +1,6 @@
-import { describe, test, expect, afterEach, mock } from 'bun:test'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { describe, test, expect, mock } from 'bun:test'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { BayStatus } from '../BayStatus'
-
-afterEach(cleanup)
 
 // The crawler-bay condition tally — its own primitive (the former Stat
 // states[] mode). Ported from the retired framed-tracker states tests.

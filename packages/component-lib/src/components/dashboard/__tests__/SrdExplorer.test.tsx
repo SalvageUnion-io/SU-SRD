@@ -7,8 +7,8 @@
  * the ORM, so preload('all') runs once.
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { fireEvent, render, waitFor } from '@testing-library/react'
 import { EntityHrefProvider } from '../../referenceEntity/entityHrefContext'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
@@ -19,9 +19,9 @@ beforeAll(async () => {
   await SalvageUnionReference.preload('all')
 })
 
-// component-lib's test env has no global auto-cleanup, so unmount each render —
-// the body-scoped role queries below must not see a prior test's leftover DOM.
-afterEach(cleanup)
+// Unmounting between tests is handled globally: component-lib's bunfig preloads
+// ../../test/testing-library.ts, whose act()-wrapped `afterEach(cleanup)` keeps
+// the body-scoped role queries below from seeing a prior test's leftover DOM.
 
 /** Narrow a found element to a real `<button>`, failing loudly otherwise. */
 function mustButton(el: Element | null | undefined): HTMLButtonElement {

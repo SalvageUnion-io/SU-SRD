@@ -65,12 +65,23 @@ function findClass(classId: string): SURefClass | undefined {
 }
 
 /**
+ * The class branch of the `SURefClass` union that actually carries `coreTrees`.
+ * Reaching the field type through the schema-inferred type keeps the tree
+ * NAMES a closed union (`z.array(TreeSchema)`, 36 literals) instead of
+ * flattening them to `string` — a hand-typed tree name is then a compile
+ * error here rather than a silently-empty ability list at runtime.
+ */
+type ClassCoreTrees = Extract<SURefClass, { coreTrees: unknown }>['coreTrees']
+
+/**
  * The neutral input the package predicates read: a class's core ability trees,
  * or `undefined`. Narrowing the `SURefClass` union to `coreTrees` HERE (the
  * specialisation branch has no such property) keeps the package predicates
- * free of the union entirely.
+ * free of the union entirely. The predicates take the widened
+ * `readonly string[]`, so the union survives this hop by covariance without
+ * forcing the package to know about it.
  */
-function coreTreesOf(cls: SURefClass | undefined): readonly string[] | undefined {
+function coreTreesOf(cls: SURefClass | undefined): ClassCoreTrees | undefined {
   return cls && 'coreTrees' in cls ? cls.coreTrees : undefined
 }
 

@@ -40,7 +40,7 @@
     "techLevel": 1,
     "slotsRequired": 1,
     "salvageValue": 1,
-    "statBonus": { "cargoCapacity": 1 },
+    "contributions": [{ "stat": "cargoCapacity", "amount": 1, "target": "self" }],
     "page": 164,
     "actions": ["Cargo Pod"],
     "additionalSources": [
@@ -281,7 +281,7 @@
     "techLevel": 1,
     "slotsRequired": 2,
     "salvageValue": 2,
-    "statBonus": { "cargoCapacity": 4 },
+    "contributions": [{ "stat": "cargoCapacity", "amount": 4, "target": "self" }],
     "page": 168,
     "actions": ["Transport Hold"],
     "additionalSources": [
@@ -384,7 +384,7 @@
     "techLevel": 2,
     "slotsRequired": 4,
     "salvageValue": 2,
-    "statBonus": { "cargoCapacity": 10 },
+    "contributions": [{ "stat": "cargoCapacity", "amount": 10, "target": "self" }],
     "page": 169,
     "actions": ["Cargo Bay"],
     "additionalSources": [
@@ -470,7 +470,7 @@
     "techLevel": 2,
     "slotsRequired": 2,
     "salvageValue": 1,
-    "statBonus": { "heatCapacity": 1 },
+    "contributions": [{ "stat": "heatCapacity", "amount": 1, "target": "self" }],
     "page": 170,
     "actions": ["Heat Sink"],
     "additionalSources": [
@@ -717,7 +717,7 @@
     "techLevel": 3,
     "slotsRequired": 4,
     "salvageValue": 2,
-    "statBonus": { "energyPoints": 2 },
+    "contributions": [{ "stat": "energyPoints", "amount": 2, "target": "self" }],
     "page": 173,
     "actions": ["Capacitance Bank"]
   },
@@ -728,7 +728,7 @@
     "techLevel": 3,
     "slotsRequired": 3,
     "salvageValue": 1,
-    "statBonus": { "structurePoints": 5 },
+    "contributions": [{ "stat": "structurePoints", "amount": 5, "target": "self" }],
     "page": 173,
     "actions": ["Composite Armour"]
   },
@@ -874,7 +874,7 @@
     "techLevel": 3,
     "slotsRequired": 5,
     "salvageValue": 2,
-    "statBonus": { "cargoCapacity": 8 },
+    "contributions": [{ "stat": "cargoCapacity", "amount": 8, "target": "self" }],
     "page": 176,
     "actions": ["Smuggling Hold"]
   },
@@ -997,7 +997,7 @@
     "techLevel": 4,
     "slotsRequired": 5,
     "salvageValue": 4,
-    "statBonus": { "cargoCapacity": 20 },
+    "contributions": [{ "stat": "cargoCapacity", "amount": 20, "target": "self" }],
     "page": 179,
     "actions": ["Grav Assisted Cargo Bay"]
   },
@@ -1243,7 +1243,7 @@
     "techLevel": 6,
     "slotsRequired": 5,
     "salvageValue": 4,
-    "statBonus": { "cargoCapacity": 10 },
+    "contributions": [{ "stat": "cargoCapacity", "amount": 10, "target": "self" }],
     "page": 185,
     "actions": ["Experimental Teleportation Hold"]
   },

@@ -3,6 +3,7 @@ import type { CSSProperties, KeyboardEvent } from 'react'
 
 import { cn } from '../../utils/cn'
 import type { SizeRung } from '../../styles/sizing'
+import { capsLabel } from '../chrome/capsLabel'
 import { POSTER_STAMP } from '../chrome/posterStamp'
 import { pipClickValue, statBlockRowStarts, trackSegmentState } from './pipRows'
 import { StatProvenance } from './StatProvenance'
@@ -185,7 +186,7 @@ export function VitalGauge({
 
   // Empty-segment fill differs by surface: recessed outline on a dark instrument
   // ground, paper on the light sheet.
-  const emptyFill = onDark ? 'border-paper/35 bg-transparent' : 'border-ink/50 bg-paper'
+  const emptyFill = onDark ? 'border-paper-30 bg-transparent' : 'border-ink-50 bg-paper'
   const segFill = (state: ReturnType<typeof trackSegmentState>): string =>
     state === 'off'
       ? emptyFill
@@ -208,7 +209,8 @@ export function VitalGauge({
       >
         <span
           className={cn(
-            'shrink-0 font-cond text-label font-bold uppercase leading-none tracking-caps',
+            capsLabel({ size: 'label', tracking: 'caps' }),
+            'shrink-0 leading-none',
             onDark ? 'text-paper' : 'text-ink'
           )}
         >
@@ -267,7 +269,7 @@ export function VitalGauge({
             overridden={isOverridden}
             className={cn(
               'shrink-0 border-b-0 text-label leading-none',
-              onDark ? 'text-paper/60 hover:text-paper' : 'text-wk-muted hover:text-ink'
+              onDark ? 'text-paper-60 hover:text-paper' : 'text-wk-muted hover:text-ink'
             )}
           >
             {isOverridden ? '*' : 'ⓘ'}
@@ -299,7 +301,12 @@ export function VitalGauge({
             {label}
           </span>
           {subLabel && (
-            <span className="truncate font-cond text-label uppercase leading-none tracking-caps text-wk-muted">
+            <span
+              className={cn(
+                capsLabel({ size: 'label', weight: 'inherit', tracking: 'caps' }),
+                'truncate leading-none text-wk-muted'
+              )}
+            >
               {subLabel}
             </span>
           )}
@@ -323,7 +330,14 @@ export function VitalGauge({
           >
             {shown}
           </b>
-          <i className={cn('px-0.5 not-italic text-readout text-ink/55')}>/</i>
+          {/* The `current / max` cluster all sits on ONE ink rung. It used to be
+              two off-ramp alphas — the separator at `ink/55` (3.64:1 on paper)
+              and the max at `ink/70` — and the separator failed AA outright at
+              17px. `ink-75` (6.87:1) is the nearest rung that clears it; the
+              max moves onto the same rung rather than staying 5pp above it,
+              because the hierarchy this gauge is built on is the 31px bold
+              numeral against this whole cluster, not the 1-rung step inside it. */}
+          <i className={cn('px-0.5 not-italic text-readout text-ink-75')}>/</i>
           {editingMax ? (
             <input
               ref={maxInputRef}
@@ -334,7 +348,7 @@ export function VitalGauge({
               onBlur={commitMax}
               aria-label={`Set ${label} max`}
               className={cn(
-                'w-14 rounded-card border border-ink/40 bg-paper px-1 text-center text-readout tabular-nums text-ink'
+                'w-14 rounded-card border border-ink-40 bg-paper px-1 text-center text-readout tabular-nums text-ink'
               )}
             />
           ) : editableMax ? (
@@ -344,13 +358,13 @@ export function VitalGauge({
               aria-label={`Override ${label} max (currently ${max})`}
               className={cn(
                 'cursor-pointer rounded-badge px-0.5 text-readout underline decoration-dotted underline-offset-2',
-                isOverridden ? 'text-[var(--tone-deep)]' : 'text-ink/70'
+                isOverridden ? 'text-[var(--tone-deep)]' : 'text-ink-75'
               )}
             >
               {max}
             </button>
           ) : (
-            <span className={cn('text-readout text-ink/70')}>{max}</span>
+            <span className={cn('text-readout text-ink-75')}>{max}</span>
           )}
           {isOverridden &&
             (provenance ? (
@@ -430,7 +444,12 @@ export function VitalGauge({
       </div>
 
       {/* Caption — right-aligned Current / Max; an override note sits left. */}
-      <div className="mt-1.5 flex items-center justify-end gap-1 font-cond text-nano font-semibold uppercase leading-none tracking-eyebrow text-ink/55">
+      <div
+        className={cn(
+          capsLabel({ size: 'nano', weight: 'semibold', tracking: 'eyebrow' }),
+          'mt-1.5 flex items-center justify-end gap-1 leading-none text-ink-75'
+        )}
+      >
         {isOverridden && (
           <span className="mr-auto tracking-caps-snug text-[var(--tone-deep)]">
             overridden from {overriddenFrom}

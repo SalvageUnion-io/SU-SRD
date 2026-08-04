@@ -58,7 +58,7 @@ function Rung({ rung }: { rung: SizeRung }) {
           <Badge shape="stamp" size={rung}>
             {chassis?.name ?? 'Mule'}
           </Badge>
-          <p className="font-body text-note text-wk-faint">
+          <p className="font-body text-note text-wk-muted">
             {RUNG_INLINE_PADDING[rung]} · {RUNG_TYPE[rung].label}
           </p>
         </div>

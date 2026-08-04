@@ -8,7 +8,7 @@ import {
 import type { SURefEntity, SURefEnumSchemaName, SURefObjectPattern } from 'salvageunion-reference'
 import { EntityHrefProvider, EntityDetailLinkProvider } from 'component-lib'
 import { GameDataGate } from '../../lib/useGameData'
-import { srdEntityHref } from '../../lib/entityHref'
+import { itemHref, patternHref, srdEntityHref } from '../../lib/entityHref'
 import { CatalogTile } from './CatalogTile'
 
 /**
@@ -112,8 +112,8 @@ function OgCardResolved() {
   // that shared component is what makes the og:image a true 1:1 of the Catalog
   // view rather than a look-alike that can drift.
   const href = pattern
-    ? `/schema/${target.schema}/item/${target.item}/pattern/${target.pattern}/`
-    : `/schema/${target.schema}/item/${target.item}/`
+    ? patternHref(target.schema, target.item, target.pattern)
+    : itemHref(target.schema, target.item)
 
   return (
     <EntityHrefProvider value={srdEntityHref}>

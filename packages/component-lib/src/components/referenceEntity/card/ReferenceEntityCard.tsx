@@ -63,6 +63,7 @@ import type { AnchoredContentBlock } from './choiceAnchoring'
 import { crawlerPopulationRange } from './crawlerPopulationRange'
 import { resolveCatalogLeadBlocks } from './catalogLead'
 import { firstParagraphText } from './firstParagraphText'
+import { resolveAdditionalSources } from './provenance'
 import { EntityCardHeader } from './EntityCardHeader'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
 import { EntityCardSubHeader } from './EntityCardSubHeader'
@@ -646,6 +647,18 @@ function ReferenceEntityCardInner({
   const footerSource = usePatternProvenance ? pattern.source : getSource(entity)
   const footerBooklet = usePatternProvenance ? pattern.booklet : getBooklet(entity)
   const footerPage = usePatternProvenance ? pattern.page : getPageReference(entity)
+  // REPRINTS ride with that same unit: `additionalSources` records which OTHER
+  // books an entity was reprinted in (the Starter Set condensations, the
+  // expansion re-listings). It is provenance, so it belongs to whichever record
+  // the footer is attributing — the pattern's own when the pattern carries a
+  // source, the chassis's otherwise — never a mix of the two.
+  const footerAdditionalSources = resolveAdditionalSources(
+    usePatternProvenance
+      ? pattern.additionalSources
+      : 'additionalSources' in entity
+        ? entity.additionalSources
+        : undefined
+  )
   // A PATTERN names its owning chassis as a horizontal stat stampseal in the
   // seam — `[Chassis | Little Sestra]` — rather than a bare stampseal, so it
   // reads as the same `[label | value]` pill vocabulary as every other axis.
@@ -2243,6 +2256,15 @@ function ReferenceEntityCardInner({
                 source={footerSource}
                 booklet={footerBooklet}
                 page={footerPage}
+                // Reprints are the entity's OWN-PAGE fact — the roomy full card
+                // where a reader is looking up an entity, not a live-sheet /
+                // nested card where the same band is already the tightest strip
+                // on the sheet. Gated at the call site for the same reason
+                // `externalLink` is: the footer stays a dumb renderer, and the
+                // card owns which extents earn which meta. (`head` and `catalog`
+                // never reach here at all — `head` returns before the body and
+                // `rendersFooter` drops the band on `catalog`.)
+                additionalSources={compact ? undefined : footerAdditionalSources}
                 footMeta={footMeta}
                 externalLink={extent === 'full' ? externalLinkNode : undefined}
                 compact={compact}

@@ -1,3 +1,6 @@
+import { cn } from '../../utils/cn'
+import { capsLabel } from './capsLabel'
+
 /**
  * The poster wrapping-stamp shape (clean-pilot.html `.sect`/`.stamp`) — the
  * multi-line ink label whose background is cloned across each wrapped line
@@ -16,5 +19,7 @@
  * without a tracking delta: the off-ladder value was the thing keeping two
  * implementations of one section header apart.
  */
-export const POSTER_STAMP =
-  'box-decoration-clone inline bg-ink text-paper font-cond font-bold uppercase tracking-caps'
+export const POSTER_STAMP = cn(
+  capsLabel({ tracking: 'caps' }),
+  'box-decoration-clone inline bg-ink text-paper'
+)

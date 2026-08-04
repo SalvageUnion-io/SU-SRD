@@ -13,7 +13,13 @@
  */
 
 import { loadAllDataFiles } from './loadData.js'
-import { KNOWN_UNRESOLVED, auditParity, unresolvedFindings } from './validateParityLogic.js'
+import {
+  KNOWN_UNRESOLVED,
+  auditParity,
+  findDoubleEncodings,
+  staleDoubleEncodings,
+  unresolvedFindings,
+} from './validateParityLogic.js'
 
 function main(): void {
   const filesByName = loadAllDataFiles()
@@ -37,8 +43,8 @@ function main(): void {
       console.error(`      "${f.sentence}"`)
     }
     console.error(
-      '\nEncode the change on the record (`contributions` / `statBonus` / choice ' +
-        '`effects`), or add a reasoned entry to PARITY_EXEMPTIONS.\n' +
+      '\nEncode the change on the record (`contributions` / choice `effects`), ' +
+        'or add a reasoned entry to PARITY_EXEMPTIONS.\n' +
         'Never infer a number from prose — if the text does not state a flat ' +
         'value, it is an exemption, not a guess.'
     )
@@ -52,7 +58,31 @@ function main(): void {
     process.exit(1)
   }
 
+  const doubled = findDoubleEncodings(filesByName as never)
+  if (doubled.length > 0) {
+    console.error('\n✗ DOUBLY-ENCODED records — one concept, two encodings\n')
+    for (const d of doubled) {
+      console.error(`  ${d.schema} :: ${d.record}  ${d.path}`)
+      console.error(`      carries both "${d.unified}" and legacy "${d.legacy}"`)
+    }
+    console.error(
+      '\nKeep the unified encoding and delete the legacy one. Two encodings of ' +
+        'one concept are read by different consumers, so removing either half ' +
+        'later changes behaviour silently.'
+    )
+    process.exit(1)
+  }
+
+  const staleDoubles = staleDoubleEncodings(filesByName as never)
+  if (staleDoubles.length > 0) {
+    console.error('\n✗ STALE entries in KNOWN_DOUBLE_ENCODED (no longer doubly encoded):\n')
+    for (const id of staleDoubles) console.error(`  ${id}`)
+    console.error('\nRemove them — a burn-down list that never shrinks is not burning down.')
+    process.exit(1)
+  }
+
   console.log('✅ Every stated mechanical change is encoded or reasoned.')
+  console.log('✅ No record states one concept in two encodings.')
 }
 
 main()

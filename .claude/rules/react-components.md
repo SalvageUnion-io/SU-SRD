@@ -16,38 +16,77 @@ React component patterns using functional components and TypeScript.
 
 ## Component Organization
 
-- `src/components/shared/` - Reusable UI components
-- `src/components/{FeatureName}/` - Feature-specific components
-- `src/components/base/` - Typography and foundational components
-- `src/components/entity/` - Entity display and selection components
+Shared, app-agnostic components live in `packages/component-lib/src/components/`
+(`base/`, `chrome/`, `shared/`, `stat/`, `ui/`, `referenceEntity/`, `sheet/`,
+`dashboard/`, `skeleton/`, `wizard/`). Reach for the library **first** — see
+`docs/architecture/package-contracts.md` for what lives where, and read the
+barrel (`packages/component-lib/src/index.ts`) rather than trusting any
+hand-written inventory.
+
+Inside an app:
+
+- `src/components/shared/` — app-wide components that are not library-worthy
+  (app router glue, providers, gates)
+- `src/components/{feature}/` — feature-scoped components. In itun these are
+  lowercase feature folders: `account/`, `container/`, `contextual/`,
+  `crawler/`, `dashboard/`, `encounter/`, `export/`, `games/`, `mech/`,
+  `pilot/`, `roster/`, `sheet/`, `wiring/`, `wizard/`.
 
 ## UI Frameworks
 
-**srd** uses Astro 5 with React 19 islands:
+**srd** uses Astro 7 with React 19 islands:
 
 - Shared components imported from `component-lib` package
 - Tailwind v4 with theme from component-lib
 - React islands hydrated via `client:load` or `client:visible` directives
 
-**itun** uses ShadCN + Tailwind v4:
+**itun** uses React 19 + Vite + Tailwind v4:
 
-- Use ShadCN components from `src/components/ui/`
-- Custom Tailwind theme in `src/index.css` with `@theme` block (SU brand colors)
-- State management via Zustand stores + TanStack Query (no React Context)
+- UI primitives come from `component-lib` (`ui/`, `chrome/`, `base/`), not from
+  an app-local `src/components/ui/` — there is no such directory. Underneath,
+  the primitive layer is **Base UI** (`@base-ui/react`) plus `lucide-react`,
+  `class-variance-authority` and `sonner`. The repo does **not** depend on
+  Radix.
+- Data access follows the two-domain seam in
+  [`tanstack-query-hooks.md`](tanstack-query-hooks.md): Zustand stores for
+  player entities, Convex hooks for accounts/Games/ownership. React Context is
+  fine and is used (`ConnectionProvider`, `EntityHrefProvider`) — prefer props
+  where props suffice, not as an absolute ban.
 - Validation via Zod schemas in `src/lib/schemas/`
 
 **component-lib** (shared components):
 
 - No build step - exports TypeScript source directly
 - Uses Tailwind + `cn()` utility for styling
-- Entity display system with render prop pattern
+- Two card shells, not a layered stack: `ReferenceEntityCard` for SRD game data
+  and `Card` for everything else. See
+  [`display-system.md`](display-system.md) and
+  `docs/architecture/display-system.md`. There is no render-prop layer.
 - No backend dependency - agnostic to data source
+
+## Styling ownership (CI-enforced)
+
+**All design tokens live in `packages/component-lib/src/styles/theme.css`.** An
+app must not declare an `@theme` block or define a `--color-*` / `--text-*` /
+`--tracking-*` / `--bw-*` / `--radius-*` / `--font-*` / `--shadow-*` token.
+`tools/check-styling-ownership.ts` (rule `app-theme`) fails on it, and it runs
+in `check:all` and at **pre-push** via lefthook — so a violation surfaces late,
+after the code is written.
+
+There is exactly one exemption, listed in that file: the
+`--animate-loader-slide` keyframe binding in `apps/itun/src/index.css`. It
+exempts only the "no `@theme` in an app" clause — adding a reserved-namespace
+token inside it still fails.
+
+Two related rules from the same checker: authored app CSS must have a consumer
+(`dead-app-css`), and the dashboard `pc-*` class contract is closed in both
+directions (`pc-class-contract`).
 
 ## State Management
 
 - Prefer props over context when possible
-- Use TanStack Query hooks for server state
-- Use Zustand stores for shared client state (ITUN)
+- Use Zustand stores for shared persistent client state (ITUN)
+- Use Convex `useQuery`/`useMutation` for account/Game/ownership server state
 - Use React state for local UI state
 
 ## Examples

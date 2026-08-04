@@ -73,13 +73,13 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
         { key: 'cargo', label: 'Hold', stat: 'cargo', value: 0, max: 6 },
       ]}
       back={{ href: '/', label: 'Roster' }}
-      pill={{ label: 'Pilot', tone: 'pilot' }}
-      renderHero={({ heroRef }) => (
-        <section ref={heroRef} aria-label="hero">
-          Hero
-        </section>
+      renderBody={() => (
+        <>
+          {/* The body owns the identity band — the shell has no hero slot. */}
+          <section aria-label="hero">Hero</section>
+          <div>Body</div>
+        </>
       )}
-      renderBody={() => <div>Body</div>}
       {...props}
     />
   )
@@ -92,10 +92,11 @@ function stripWrapper(): HTMLElement {
   return screen.getByText('Mara Vex').parentElement as HTMLElement
 }
 
-// The KIND PILL is gone from the bar: the gutter wordmark (PILOT / MECH /
-// CRAWLER, running up the page margin) names the sheet's kind permanently, and
-// repeating it in the condensed bar said the same word twice on one screen.
-// These tests now pin the NAME stamp alone, and that the pill is not rendered.
+// The KIND PILL is gone from the bar (and from the props): the gutter wordmark
+// (PILOT / MECH / CRAWLER, running up the page margin) names the sheet's kind
+// permanently, and repeating it in the condensed bar said the same word twice
+// on one screen. These tests pin the NAME stamp alone, and that no kind label
+// is rendered in the bar.
 describe('LiveSheet — condensed identity (name stamp)', () => {
   test('the name is hidden at rest — it lives in the poster below', () => {
     renderShell()

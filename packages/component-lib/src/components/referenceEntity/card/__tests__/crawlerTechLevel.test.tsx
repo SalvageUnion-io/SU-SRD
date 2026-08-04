@@ -5,7 +5,7 @@
  * schema — catalog tile AND full page — showed nothing but a name, a TL and an
  * SP. These tests pin each field to a surface so that cannot silently return.
  */
-import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
+import { beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
@@ -20,8 +20,6 @@ const tier = (name: string) => {
 /** Rendered text, whitespace-collapsed, for substring assertions. */
 const textOf = (node: Parameters<typeof render>[0]) =>
   (render(node).container.textContent ?? '').replace(/\s+/g, ' ')
-
-afterEach(cleanup)
 
 describe('crawler tech level card', () => {
   beforeAll(async () => {

@@ -43,25 +43,13 @@
  */
 
 import { useId, useState } from 'react'
-import { Badge, Button, Card, Input, SlotGrid, Stat, toast } from 'component-lib'
+import { Badge, Button, Card, Input, SlotGrid, Stat } from 'component-lib'
 
-import type { CargoTransferResult } from '../../lib/cargo/cargoTransfer'
+import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { CargoLot } from '../../lib/schemas/cargoLot'
 import { makeScrapLot, makeUnitLot, totalLotUnits } from '../../lib/schemas/cargoLot'
 import { cn } from '../../lib/utils'
-
-/**
- * Every cargo move can REFUSE — no crawler linked, over the mech's cap, or a
- * patch that failed its schema parse. Discarding the result would leave the
- * player staring at a button that silently did nothing, so route each dispatch
- * through here and surface the reason.
- */
-function report(pending: Promise<CargoTransferResult>): void {
-  void pending.then((result) => {
-    if (!result.ok) toast.error(result.reason)
-  })
-}
 
 /** A slot cost is a non-negative INTEGER (`CargoLotSchema.units` is `.int()`). */
 function coerceSlots(raw: string): number {

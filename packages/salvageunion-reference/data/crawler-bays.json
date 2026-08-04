@@ -323,7 +323,6 @@
         },
         "name": "Armament Bay Weapons System",
         "choiceType": "permanent",
-        "schema": ["systems"],
         "content": [
           {
             "type": "paragraph",
@@ -1202,7 +1201,6 @@
     "source": "We Were Here First!",
     "cost": {
       "scrap": 5,
-      "scrapTechLevel": 1,
       "bioSalvage": 10
     },
     "page": 61,
@@ -1220,7 +1218,6 @@
     "source": "We Were Here First!",
     "cost": {
       "scrap": 5,
-      "scrapTechLevel": 1,
       "bioSalvage": 10
     },
     "page": 61,
@@ -1237,8 +1234,7 @@
     "expansion": true,
     "source": "False Flag",
     "cost": {
-      "scrap": 5,
-      "scrapTechLevel": 6
+      "scrap": 5
     },
     "page": 66,
     "content": [

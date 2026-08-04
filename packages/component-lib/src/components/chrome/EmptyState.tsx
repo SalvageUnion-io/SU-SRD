@@ -60,7 +60,7 @@ export function EmptyState({
         'flex flex-col rounded-card border-chrome border-dashed',
         quiet
           ? 'items-center justify-center gap-3.5 border-wk-faint p-6 text-center'
-          : 'items-start gap-3 border-ink/40 bg-paper p-4 text-left',
+          : 'items-start gap-3 border-ink-40 bg-paper p-4 text-left',
         className
       )}
     >

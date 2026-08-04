@@ -1,4 +1,5 @@
 import { cva } from 'class-variance-authority'
+import { capsLabel } from './capsLabel'
 import { DISABLED, FOCUS_RING } from './interaction'
 
 /**
@@ -47,7 +48,8 @@ export const buttonVariants = cva(
         paper: '',
         // Dashboard HUD — condensed-caps typography; the ghost recolour
         // (the one variant the HUD uses) rides on the compoundVariant below.
-        instrument: 'font-cond font-bold uppercase tracking-caps-tight',
+        // Size rides on the `size` axis below, so the recipe is role-only.
+        instrument: capsLabel(),
       },
       // The canonical size ladder (styles/sizing.ts) — full / compact / mini.
       size: {
@@ -59,7 +61,7 @@ export const buttonVariants = cva(
         // The former MiniBtn / `xs`: a compact uppercase action chip (badge
         // radius, condensed caps, tight padding) for secondary controls like
         // '⇄ Swap' / '✕ Remove'. Overrides the base radius/font/gap via twMerge.
-        mini: 'gap-1 rounded-badge px-2 py-[3px] font-cond text-label-lg font-semibold uppercase tracking-normal',
+        mini: `gap-1 rounded-badge px-2 py-[3px] ${capsLabel({ size: 'label-lg', weight: 'semibold', tracking: 'none' })}`,
       },
     },
     compoundVariants: [

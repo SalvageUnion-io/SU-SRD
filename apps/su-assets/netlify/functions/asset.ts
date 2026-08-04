@@ -25,37 +25,55 @@ const CONTENT_TYPES: Record<string, string> = {
   svg: 'image/svg+xml',
 }
 
-export default async (req: Request): Promise<Response> => {
-  const { pathname } = new URL(req.url)
-  const key = decodeURIComponent(pathname.replace(/^\/+/, ''))
-
-  // Reject empty keys, path traversal, and dotfiles.
-  if (!key || key.includes('..') || key.startsWith('.')) {
-    return new Response('Not found', { status: 404 })
-  }
-
-  const ext = key.split('.').pop()?.toLowerCase() ?? ''
-  const contentType = CONTENT_TYPES[ext]
-  if (!contentType) {
-    return new Response('Unsupported asset type', { status: 404 })
-  }
-
-  const store = getStore('lp-assets')
-  const stream = await store.get(key, { type: 'stream' })
-  if (!stream) {
-    return new Response('Not found', { status: 404 })
-  }
-
-  return new Response(stream, {
-    status: 200,
-    headers: {
-      'content-type': contentType,
-      'cache-control': 'public, max-age=31536000, immutable',
-      'netlify-cdn-cache-control': 'public, max-age=31536000, immutable',
-      'access-control-allow-origin': '*',
-    },
-  })
+/**
+ * The slice of a Netlify Blobs store this function actually uses. Declaring it
+ * structurally lets the tests inject a fake without a live Blobs runtime — the
+ * same dependency-injection seam the ITUN snapshot handlers use, chosen over
+ * `mock.module()` for the same reason (it is process-global).
+ */
+export type AssetBlobStore = {
+  get(key: string, options: { type: 'stream' }): Promise<ReadableStream | null>
 }
+
+/**
+ * Handler factory. The store getter is invoked per request (never at module
+ * scope) because `getStore` requires the Netlify Functions runtime context.
+ */
+export const makeAssetHandler =
+  (openStore: () => AssetBlobStore) =>
+  async (req: Request): Promise<Response> => {
+    const { pathname } = new URL(req.url)
+    const key = decodeURIComponent(pathname.replace(/^\/+/, ''))
+
+    // Reject empty keys, path traversal, and dotfiles.
+    if (!key || key.includes('..') || key.startsWith('.')) {
+      return new Response('Not found', { status: 404 })
+    }
+
+    const ext = key.split('.').pop()?.toLowerCase() ?? ''
+    const contentType = CONTENT_TYPES[ext]
+    if (!contentType) {
+      return new Response('Unsupported asset type', { status: 404 })
+    }
+
+    const store = openStore()
+    const stream = await store.get(key, { type: 'stream' })
+    if (!stream) {
+      return new Response('Not found', { status: 404 })
+    }
+
+    return new Response(stream, {
+      status: 200,
+      headers: {
+        'content-type': contentType,
+        'cache-control': 'public, max-age=31536000, immutable',
+        'netlify-cdn-cache-control': 'public, max-age=31536000, immutable',
+        'access-control-allow-origin': '*',
+      },
+    })
+  }
+
+export default makeAssetHandler(() => getStore('lp-assets'))
 
 // Functions v2 in-code routing: this function handles every path on the site.
 export const config = {

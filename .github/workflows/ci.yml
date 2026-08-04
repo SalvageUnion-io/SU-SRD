@@ -65,6 +65,19 @@ jobs:
               - 'lefthook.yml'
               - '.github/workflows/**'
               - '.github/actions/**'
+              # Root test preloads (test/happydom.ts, test/testing-library.ts)
+              # are pulled in by every workspace bunfig, the root bunfig.toml
+              # sets the linker mode + root preload, and patches/** rewrites
+              # installed dependencies — a change to any of them affects every
+              # app's tests and build, so they belong in `shared` (same
+              # treatment as package.json / bun.lock). coverage-baseline.json is
+              # the ratchet the coverage job reads. Without these, a PR touching
+              # only them matched no filter at all and every heavy job skipped
+              # while `quality-checks` still reported green.
+              - 'test/**'
+              - 'bunfig.toml'
+              - 'patches/**'
+              - 'coverage-baseline.json'
             itun:
               - *shared
               - 'apps/itun/**'
@@ -92,7 +105,8 @@ jobs:
               - 'docs/**'
 
   lint:
-    # Always runs — format:check covers docs (markdown/yaml) too.
+    # Always runs — format:check covers docs (markdown/yaml) too, and the two
+    # static design guards below are unconditional by design.
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -106,6 +120,21 @@ jobs:
 
       - name: Format check
         run: bun run format:check
+
+      # The design-token and styling-ownership guards sit at a hard ZERO
+      # baseline (tools/design-tokens-baseline.json,
+      # tools/styling-ownership-baseline.json) after a full burn-down. They used
+      # to run ONLY in lefthook's `pre-push` hook, which is bypassable with
+      # `git push --no-verify`, never runs for a GitHub web edit, and does not
+      # exist at all for anyone who has not installed the hooks — so the only
+      # mechanical backstop for those baselines was opt-in. Both are sub-0.2s
+      # static scans with no path filter, so running them on every event costs
+      # nothing and this job is already in `quality-checks`' needs list.
+      - name: Design token check
+        run: bun run check:tokens
+
+      - name: Styling ownership check
+        run: bun run check:styling
 
   build-package:
     needs: [changes]
@@ -341,14 +370,27 @@ jobs:
       - name: Build discord-bot
         run: bun --filter discord-bot build
 
-  smoke-web:
-    # PR-blocking smoke tier (previously e2e/visual only ran nightly, so a
-    # broken route could merge to main and sit broken for up to a day). Runs
-    # ONLY apps/srd/e2e/smoke.e2e.ts — the full suite stays nightly-only
-    # (.github/workflows/e2e-nightly.yml) so the PR gate stays fast and free of
-    # the flakiness that got browser e2e demoted from PR-blocking in the first
-    # place. Uses the same hermetic `astro build` + `astro preview` pattern the
-    # nightly job already proves works — no live Netlify deploy preview.
+  e2e-web:
+    # PR-blocking browser tier for srd (previously e2e/visual only ran nightly,
+    # so a broken route could merge to main and sit broken for up to a day).
+    # Runs exactly two specs — apps/srd/e2e/smoke.e2e.ts (routes render) and
+    # apps/srd/e2e/bundle-budget.e2e.ts (per-route data loading stays inside its
+    # byte budget; see src/lib/schemaPreloadDeps.ts and src/lib/searchIndexBuild.ts).
+    # The full suite stays nightly-only (.github/workflows/e2e-nightly.yml) so
+    # the PR gate stays fast and free of the flakiness that got browser e2e
+    # demoted from PR-blocking in the first place. Uses the same hermetic
+    # `astro build` + `astro preview` pattern the nightly job already proves
+    # works — no live Netlify deploy preview.
+    #
+    # These two specs used to be two separate jobs (smoke-web / bundle-budget-web)
+    # so a budget regression would read as its own clearly-named failure. They
+    # are one job now because that split cost a WHOLE EXTRA `astro build`:
+    # playwright.config.ts's `webServer` rebuilds the app under CI, so srd was
+    # built three times per PR (build-srd + one per e2e job). Failure attribution
+    # is preserved by Playwright's `github` reporter, which annotates by spec
+    # file and test title, so the budget failure is still named — it just names
+    # the spec instead of the job. If you add a third PR-blocking spec, add it to
+    # the run line below; do NOT add a third job.
     needs: [changes, build-package, build-srd]
     if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
@@ -370,66 +412,30 @@ jobs:
         working-directory: apps/srd
         run: bunx playwright install --with-deps chromium
 
-      - name: Run smoke test
+      - name: Run smoke + bundle-budget specs
         working-directory: apps/srd
-        run: bunx playwright test smoke.e2e.ts
+        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts
 
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report-smoke-web
+          name: playwright-report-e2e-web
           path: apps/srd/playwright-report/
           retention-days: 7
 
-  bundle-budget-web:
-    # PR-blocking bundle-size regression guard for srd's per-route data
-    # loading (src/lib/schemaPreloadDeps.ts, src/lib/searchIndexBuild.ts —
-    # see those files' doc comments and the accompanying ADR/audit notes).
-    # Runs ONLY apps/srd/e2e/bundle-budget.e2e.ts against the same
-    # hermetic `astro build` + `astro preview` target as smoke-web, asserting
-    # (a) large schema-specific data chunks never load on pages that don't
-    # need them and (b) total per-route JS stays under a byte budget. Kept as
-    # its own job (not folded into smoke-web) so a budget regression reads as
-    # its own clearly-named failure rather than an ambiguous smoke failure.
-    needs: [changes, build-package, build-srd]
-    if: needs.changes.outputs.web == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/srd
-        run: bunx playwright install --with-deps chromium
-
-      - name: Run bundle-budget test
-        working-directory: apps/srd
-        run: bunx playwright test bundle-budget.e2e.ts
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: playwright-report-bundle-budget-web
-          path: apps/srd/playwright-report/
-          retention-days: 7
-
-  smoke-itun:
-    # PR-blocking smoke tier — same rationale as smoke-web. Runs ONLY
-    # apps/itun/e2e/smoke.e2e.ts against a self-contained static
-    # build (`vite preview`, no deploy preview), mirroring e2e-nightly.yml's
-    # e2e-itun job.
+  e2e-itun:
+    # PR-blocking browser tier for ITUN — same rationale and same two-spec shape
+    # as e2e-web, against a self-contained static build (`vite preview`, no
+    # deploy preview), mirroring e2e-nightly.yml's e2e-itun job.
+    # apps/itun/e2e/bundle-budget.e2e.ts asserts per-route total JS stays under
+    # a byte budget and that no single chunk balloons back to a monolithic entry
+    # bundle (the guard for `autoCodeSplitting` in apps/itun/vite.config.ts).
+    #
+    # Merging the former smoke-itun / bundle-budget-itun pair matters more here
+    # than on srd: apps/itun/package.json's `build` is `tsc --noEmit && vite build`
+    # and playwright.config.ts's `webServer` runs it, so each extra e2e job cost
+    # a full extra typecheck of itun on top of the extra build.
     needs: [changes, build-package, build-itun]
     if: needs.changes.outputs.itun == 'true'
     runs-on: ubuntu-latest
@@ -451,57 +457,15 @@ jobs:
         working-directory: apps/itun
         run: bunx playwright install --with-deps chromium
 
-      - name: Run smoke test
+      - name: Run smoke + bundle-budget specs
         working-directory: apps/itun
-        run: bunx playwright test smoke.e2e.ts
+        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts
 
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report-smoke-itun
-          path: apps/itun/playwright-report/
-          retention-days: 7
-
-  bundle-budget-itun:
-    # PR-blocking bundle-size regression guard for ITUN, the counterpart to
-    # bundle-budget-web. Runs ONLY apps/itun/e2e/bundle-budget.e2e.ts against
-    # the same hermetic `vite build` + `vite preview` target smoke-itun uses,
-    # asserting per-route total JS stays under a byte budget and that no
-    # single chunk balloons back to a monolithic entry bundle (the guard for
-    # `autoCodeSplitting` in apps/itun/vite.config.ts). Kept as its own job so
-    # a budget regression reads as its own clearly-named failure rather than
-    # an ambiguous smoke failure.
-    needs: [changes, build-package, build-itun]
-    if: needs.changes.outputs.itun == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers (Chromium)
-        working-directory: apps/itun
-        run: bunx playwright install --with-deps chromium
-
-      - name: Run bundle-budget test
-        working-directory: apps/itun
-        run: bunx playwright test bundle-budget.e2e.ts
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: playwright-report-bundle-budget-itun
+          name: playwright-report-e2e-itun
           path: apps/itun/playwright-report/
           retention-days: 7
 
@@ -526,15 +490,17 @@ jobs:
       - build-srd
       - build-itun
       - build-discord-bot
-      - smoke-web
-      - bundle-budget-web
-      - smoke-itun
-      - bundle-budget-itun
+      - e2e-web
+      - e2e-itun
       # NOTE: the FULL browser e2e suites (ITUN + srd) still only run
       # nightly, not per-PR — see .github/workflows/e2e-nightly.yml.
-      # smoke-web/smoke-itun above cover only the PR-blocking smoke tier, so
-      # the PR gate stays fast and free of full-suite preview/browser
-      # flakiness; deeper regressions are still caught nightly.
+      # e2e-web/e2e-itun above cover only the PR-blocking tier (the smoke and
+      # bundle-budget specs), so the PR gate stays fast and free of full-suite
+      # preview/browser flakiness; deeper regressions are still caught nightly.
+      #
+      # EVERY job above must be listed here. This is the single required check
+      # for branch protection, so a job missing from this list is a job that
+      # can fail without blocking merge.
     runs-on: ubuntu-latest
     steps:
       - name: Verify no job failed

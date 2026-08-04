@@ -104,6 +104,17 @@ describe('pilotInventoryUsed / pilotInventoryCapacity', () => {
     expect(pilotInventoryCapacity({})).toBe(6)
   })
 
+  // `maxInventorySlotsOverride` has been in the persisted Pilot schema all
+  // along but was read by nothing, so a Free-Edit pin silently did nothing.
+  // The capacity now derives through `pilotMaxInventorySlots`, so the pin wins
+  // over base + modifier exactly like the HP and AP pins do.
+  test('capacity honours the maxInventorySlotsOverride pin', () => {
+    expect(
+      pilotInventoryCapacity({ maxInventorySlotsModifier: 4, maxInventorySlotsOverride: 3 })
+    ).toBe(3)
+    expect(pilotInventoryCapacity({ maxInventorySlotsOverride: 0 })).toBe(0)
+  })
+
   test('empty inventory uses 0 slots', () => {
     expect(pilotInventoryUsed(inventory([]))).toBe(0)
   })

@@ -62,7 +62,7 @@ export { FilterRow } from './components/shared/FilterRow'
 export { MasonryColumns } from './components/shared/MasonryColumns'
 export { ModalShell } from './components/shared/ModalShell'
 export { EntitySearcher } from './components/shared/EntitySearcher'
-export { EntityGrid, EntityGridRow } from './components/shared/EntityGrid'
+export { EntityGridRow } from './components/shared/EntityGrid'
 export { EntityRow } from './components/shared/EntityRow'
 export type { EntityRowStat, EntityRowType } from './components/shared/EntityRow'
 export { TECH_LEVEL_STYLES, techLevelLabel } from './components/shared/techLevelStyles'
@@ -125,7 +125,10 @@ export type {
   CatalogSection,
 } from './catalog/catalogHelpers'
 export { getCatalogBg, getCatalogLabel } from './catalog/catalogColors'
-export { isSchemaName } from './catalog/schemaName'
+// Re-exported (not re-implemented) from salvageunion-reference so consumers
+// already importing the rest of the catalog surface from component-lib keep a
+// single import site. One implementation lives in the package.
+export { isSchemaName } from 'salvageunion-reference'
 
 // Utilities — the ONE cn(): its tailwind-merge config knows the custom
 // text/tracking/border-width utilities (consumers must not re-wrap twMerge

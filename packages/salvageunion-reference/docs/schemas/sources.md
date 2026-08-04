@@ -23,7 +23,6 @@ Source books and expansions
 | `page`              | integer       | ✅       | Page number in the primary source book                                                                                                                    |
 | `booklet`           | string        | ❌       | Booklet code within a multi-booklet primary source (e.g. "CR", "PH", "PC", "RR", "AP" for the Salvage Union Starter Set). Omit for single-volume sources. |
 | `additionalSources` | Array<object> | ❌       | Other source books where this entity is reprinted                                                                                                         |
-| `purchaseLink`      | string        | ❌       | URL where this source can be purchased                                                                                                                    |
 
 ## Example
 
@@ -33,7 +32,6 @@ Source books and expansions
   "name": "Salvage Union Workshop Manual",
   "source": "Salvage Union Workshop Manual",
   "page": 1,
-  "purchaseLink": "https://leyline.press/products/salvage-union-core-book?variant=43991343956158",
   "content": [
     {
       "type": "paragraph",

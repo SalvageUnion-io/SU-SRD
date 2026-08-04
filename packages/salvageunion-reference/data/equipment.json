@@ -697,8 +697,7 @@
             "type": "paragraph",
             "value": "Choose if your Custom Sniper Rifle is a Ballistic or Energy weapon. It gains the respective Energy or Ballistic Trait."
           }
-        ],
-        "schemaEntities": ["Ballistic", "Energy"]
+        ]
       },
       {
         "name": "Modification",
@@ -815,75 +814,9 @@
             "value": "At each Tech Level you may choose an additional modification for your Custom Sniper Rifle."
           }
         ],
-        "multiSelect": true,
         "constraints": {
           "scalesWithField": "techLevel"
-        },
-        "choiceOptions": [
-          {
-            "label": "Rangefinder",
-            "value": "Rangefinder",
-            "description": "The Custom Sniper Rifle increases its Range to Far.",
-            "effects": [{ "op": "setRange", "value": "Far" }]
-          },
-          {
-            "label": "Laser Guidance",
-            "value": "Laser Guidance",
-            "description": "You may spend 2 AP to automatically hit with the Custom Sniper Rifle. It also gains the [[Targeter]] Trait.",
-            "effects": [
-              {
-                "op": "addTrait",
-                "value": "Targeter"
-              }
-            ]
-          },
-          {
-            "label": "Pinpoint Targeter",
-            "value": "Pinpoint Targeter",
-            "description": "You may spend 2 AP when you make an attack. If it hits, a System, Module, or appendage of your choice on the target is damaged. It also gains the [[Targeter]] Trait.",
-            "effects": [
-              {
-                "op": "addTrait",
-                "value": "Targeter"
-              }
-            ]
-          },
-          {
-            "label": "Dum Dum Rounds",
-            "value": "Dum Dum Rounds",
-            "description": "The Custom Sniper Rifle gains the [[Anti-Organic]] Trait.",
-            "effects": [{ "op": "addTrait", "value": "Anti-Organic" }]
-          },
-          {
-            "label": "High Calibre Rounds",
-            "value": "High Calibre Rounds",
-            "description": "The Custom Sniper Rifle deals an additional 1 SP damage.",
-            "effects": [{ "op": "addDamage", "value": 1, "unit": "SP" }]
-          },
-          {
-            "label": "Anti-Matter",
-            "value": "Anti-Matter",
-            "description": "The Custom Sniper Rifle gains the [[Deadly]] Trait.",
-            "effects": [{ "op": "addTrait", "value": "Deadly" }]
-          },
-          {
-            "label": "Flashy",
-            "value": "Flashy",
-            "description": "The Custom Sniper Rifle gains the [[Flashy]] Trait.",
-            "effects": [{ "op": "addTrait", "value": "Flashy" }]
-          },
-          {
-            "label": "Silencer",
-            "value": "Silencer",
-            "description": "The Custom Sniper Rifle gains the [[Silent]] Trait.",
-            "effects": [{ "op": "addTrait", "value": "Silent" }]
-          },
-          {
-            "label": "Compact Design",
-            "value": "Compact Design",
-            "description": "The Custom Sniper Rifle is designed to fold down into a briefcase, making it easily concealable."
-          }
-        ]
+        }
       }
     ],
     "actions": ["Custom Sniper Rifle"]
@@ -951,7 +884,6 @@
         },
         "name": "A.I. Personality",
         "choiceType": "permanent",
-        "rollTable": "A.I. Personality",
         "content": [
           {
             "type": "paragraph",
@@ -1341,61 +1273,9 @@
             "value": "At each Tech Level you may choose an additional modification for your Custom Missile Launcher."
           }
         ],
-        "multiSelect": true,
         "constraints": {
           "scalesWithField": "techLevel"
-        },
-        "choiceOptions": [
-          {
-            "label": "Rangefinder",
-            "value": "Rangefinder",
-            "description": "The Custom Missile increases its Range to Long.",
-            "effects": [{ "op": "setRange", "value": "Long" }]
-          },
-          {
-            "label": "Laser Guidance",
-            "value": "Laser Guidance",
-            "description": "You may spend 2 AP to automatically hit with the Custom Missile Launcher. This attack counts as having the [[Targeter]] Trait."
-          },
-          {
-            "label": "A.I. Tracking",
-            "value": "A.I. Tracking",
-            "description": "You may spend 1 AP to give the Custom Missile Launcher the [[Guided]] Trait for the next attack. This attack counts as having the [[Targeter]] Trait."
-          },
-          {
-            "label": "Napalm Rounds",
-            "value": "Napalm Rounds",
-            "description": "The Custom Missile Launcher gains the Anti-Organic and [[[Burn] (1)]] Trait.",
-            "effects": [
-              { "op": "addTrait", "value": "Anti-Organic" },
-              { "op": "addTrait", "value": "Burn", "amount": 1 }
-            ]
-          },
-          {
-            "label": "Bigger Boom",
-            "value": "Bigger Boom",
-            "description": "The Custom Missile Launcher gains the [[[Explosive] (2)]] Trait.",
-            "effects": [{ "op": "addTrait", "value": "Explosive", "amount": 2 }]
-          },
-          {
-            "label": "Flashy",
-            "value": "Flashy",
-            "description": "The Custom Missile Launcher gains the [[Flashy]] Trait.",
-            "effects": [{ "op": "addTrait", "value": "Flashy" }]
-          },
-          {
-            "label": "Expanded Warhead",
-            "value": "Expanded Warhead",
-            "description": "The Custom Missile Launcher deals an additional 1 SP damage.",
-            "effects": [{ "op": "addDamage", "value": 1, "unit": "SP" }]
-          },
-          {
-            "label": "Portable",
-            "value": "Portable",
-            "description": "The Custom Missile Launcher loses the [[Heavy]] Trait.",
-            "effects": [{ "op": "removeTrait", "value": "Heavy" }]
-          }
-        ]
+        }
       }
     ]
   },

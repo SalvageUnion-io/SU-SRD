@@ -5,6 +5,7 @@ import { Badge, FilterRow, SearchField } from 'component-lib'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
+import { itemHref } from '../../lib/entityHref'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 const PARAM_QUERY = 'q'
@@ -22,7 +23,7 @@ function schemaLabel(result: SearchResult): string {
 
 /** Show-page URL for a result entity. Mirrors srdEntityHref / the combobox. */
 function resultUrl(result: SearchResult): string {
-  return `/schema/${result.schemaName}/item/${getEntitySlug(result.entity)}/`
+  return itemHref(result.schemaName, getEntitySlug(result.entity))
 }
 
 /**

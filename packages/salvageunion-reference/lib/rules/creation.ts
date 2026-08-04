@@ -85,11 +85,6 @@ export const PILOT_CREATION_ABILITY_PICKS = 1
 /** Starting equipment picks: exactly 2 ("two pieces of Tech 1", p.19). */
 export const PILOT_CREATION_EQUIPMENT_PICKS = 2
 
-/** Ability picks still owed (never negative). */
-export function pilotAbilityPicksRemaining(selectedCount: number): number {
-  return Math.max(0, PILOT_CREATION_ABILITY_PICKS - selectedCount)
-}
-
 /** Equipment picks still owed (never negative). */
 export function pilotEquipmentPicksRemaining(selectedCount: number): number {
   return Math.max(0, PILOT_CREATION_EQUIPMENT_PICKS - selectedCount)

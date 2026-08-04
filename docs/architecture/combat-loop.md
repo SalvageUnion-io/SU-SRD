@@ -2,7 +2,10 @@
 
 ITUN is a shared living character sheet, not a game engine. During play it lets a
 player spend resources, track heat, run heat checks, and record equipment
-conditions on their own mech. It is **local-first** ([ADR-001](../adrs/ADR-001-local-first-no-backend.md)):
+conditions on their own mech. It is **local-first**
+([ADR-001](../adrs/ADR-001-local-first-no-backend.md), superseded by
+[ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md) — which keeps
+anonymous Solo play fully local, so everything below still holds for it):
 all state lives in the player's IndexedDB and is mutated client-side through the
 Zustand stores ([ADR-003](../adrs/ADR-003-zustand-hydration.md)). There is no
 backend, no RPC, and no turn enforcement. There **is** an append-only
@@ -250,7 +253,7 @@ the current local-first app — do not document or assume them:
 
 ## Cross-references
 
-- [ADR-001](../adrs/ADR-001-local-first-no-backend.md) — local-first; honor system, no turn enforcement
+- [ADR-001](../adrs/ADR-001-local-first-no-backend.md) — local-first; honor system, no turn enforcement (superseded by [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md); Solo play stays local)
 - [ADR-006](../adrs/ADR-006-pure-rules-logic.md) — rules math as pure functions
 - [ADR-007](../adrs/ADR-007-automation-boundary.md) — automation boundary
 - [ADR-008](../adrs/ADR-008-sequential-mutations.md) — sequential client-side mutations

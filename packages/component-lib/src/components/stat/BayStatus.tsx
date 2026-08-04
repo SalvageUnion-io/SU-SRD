@@ -1,5 +1,6 @@
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
+import { capsLabel } from '../chrome/capsLabel'
 import type { EntityStatus } from '../shared/entityStatus'
 import { ConditionSwatch } from './ConditionSwatch'
 import { statBlockRowStarts } from './pipRows'
@@ -52,7 +53,7 @@ export function BayStatus({ states, label = 'Bays', onBayClick, className }: Bay
         className="flex w-full items-center justify-between gap-3 px-2 py-1 tracking-caps-wide"
       >
         <span>{label}</span>
-        <span className="font-normal text-micro tracking-normal text-paper/60">
+        <span className="font-normal text-micro tracking-normal text-paper-60">
           {states.length} {states.length === 1 ? 'bay' : 'bays'}
         </span>
       </Badge>
@@ -64,7 +65,12 @@ export function BayStatus({ states, label = 'Bays', onBayClick, className }: Bay
             <span key={state} className="flex items-center gap-1.5">
               <ConditionSwatch state={state} aria-hidden="true" className="size-3" />
               <span className="font-body text-base font-bold leading-none text-ink">{count}</span>
-              <span className="font-cond text-micro uppercase leading-none text-wk-muted">
+              <span
+                className={cn(
+                  capsLabel({ size: 'micro', weight: 'inherit', tracking: 'inherit' }),
+                  'leading-none text-wk-muted'
+                )}
+              >
                 {state}
               </span>
             </span>
@@ -74,7 +80,7 @@ export function BayStatus({ states, label = 'Bays', onBayClick, className }: Bay
 
       {/* Per-bay swatch grid */}
       {states.length > 0 && (
-        <div className="flex flex-col items-center gap-1 border-t border-ink/15 px-2.5 py-2">
+        <div className="flex flex-col items-center gap-1 border-t border-ink-12 px-2.5 py-2">
           {statBlockRowStarts(states.length).map(({ count, start }, row) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: swatch rows are positional — the row index IS their identity
             <div key={row} className="flex justify-center gap-1">

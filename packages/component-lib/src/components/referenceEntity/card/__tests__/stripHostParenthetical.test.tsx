@@ -7,7 +7,7 @@
  * else the full name must survive, or the ambiguity the convention prevents
  * comes back.
  */
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
+import { beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
@@ -16,8 +16,6 @@ import { stripHostParenthetical } from '../stripHostParenthetical'
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
 })
-
-afterEach(cleanup)
 
 describe('stripHostParenthetical', () => {
   test('strips when the parenthetical matches the host exactly', () => {

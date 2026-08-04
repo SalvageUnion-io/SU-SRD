@@ -241,7 +241,6 @@ async function seat(
 
   let granted = 0
   for (const grant of invite.grants ?? []) {
-    const doc = await ctx.db.get(grant.entityId as Id<'pilots'> | Id<'mechs'>)
     /*
      * A grant is a promise made when the invite was minted, and the world may
      * have moved since: the entity could have been claimed by someone else,
@@ -249,9 +248,18 @@ async function seat(
      * arriving without the promised pilot is a notice, whereas failing the join
      * over a stale pointer would strand someone outside a Game they were
      * genuinely invited to.
+     *
+     * `normalizeId` is what makes `grant.table` load-bearing rather than
+     * decorative: a Convex id is table-tagged, but `db.get` returns a document
+     * from ANY table, so casting the string let a grant naming `pilots` hand
+     * over a row from somewhere else entirely. A mismatched id is a stale
+     * pointer like any other, so it takes the same skip.
      */
+    const entityId = ctx.db.normalizeId(grant.table, grant.entityId)
+    if (entityId === null) continue
+
+    const doc = await ctx.db.get(entityId)
     if (doc === null) continue
-    if (!('ownerId' in doc)) continue
     if (doc.gameId !== invite.gameId) continue
     if (doc.ownerId !== null) continue
 

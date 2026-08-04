@@ -1,8 +1,12 @@
 import { v } from 'convex/values'
 
 import { CrawlerSchema } from '../src/lib/schemas/crawler'
+import type { EntityRef } from '../src/lib/schemas/entity'
+import { EntityRefSchema } from '../src/lib/schemas/entity'
 import { MechSchema } from '../src/lib/schemas/mech'
 import { PilotSchema } from '../src/lib/schemas/pilot'
+import type { SoftLink } from '../src/lib/schemas/softLink'
+import { SoftLinkSchema } from '../src/lib/schemas/softLink'
 import type { Doc, Id } from './_generated/dataModel'
 import { mutation, query } from './_generated/server'
 import type { MutationCtx, QueryCtx } from './_generated/server'
@@ -64,6 +68,22 @@ const PARSERS = {
   pilots: PilotSchema,
   mechs: MechSchema,
 } as const
+
+/*
+ * Soft-link kind guards, asked of the Zod schemas rather than of a copied list,
+ * so the Convex unions in `schema.ts` and the local schemas cannot drift apart
+ * without one of these failing.
+ */
+
+/** Whether `value` is an endpoint kind `EntityRefSchema` allows. */
+function isEntityRefType(value: unknown): value is EntityRef['type'] {
+  return EntityRefSchema.shape.type.safeParse(value).success
+}
+
+/** Whether `value` is a relationship kind `SoftLinkSchema` allows. */
+function isSoftLinkType(value: unknown): value is SoftLink['type'] {
+  return SoftLinkSchema.shape.type.safeParse(value).success
+}
 
 /** Parse a body against its Zod schema, or throw with a legible reason. */
 function parseBody(table: OwnableTable, body: unknown): unknown {
@@ -177,32 +197,6 @@ export const listForGame = query({
   },
 })
 
-/** The caller's own shelf — entities that belong to them and to no Game. */
-export const listShelf = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await requireUser(ctx)
-
-    const pilots = (
-      await ctx.db
-        .query('pilots')
-        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
-        .collect()
-    ).filter((p) => p.gameId === null)
-    const mechs = (
-      await ctx.db
-        .query('mechs')
-        .withIndex('by_owner', (q) => q.eq('ownerId', userId))
-        .collect()
-    ).filter((m) => m.gameId === null)
-
-    return {
-      pilots: pilots.map((p) => ({ _id: p._id, body: p.body })),
-      mechs: mechs.map((m) => ({ _id: m._id, body: m.body })),
-    }
-  },
-})
-
 /**
  * Create an entity, on the caller's shelf or in a Game they belong to.
  *
@@ -257,25 +251,22 @@ export const update = mutation({
   },
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
-    const doc = await ctx.db.get(args.entityId as Id<'pilots'> | Id<'mechs'>)
+    // `normalizeId` is what makes `table` load-bearing rather than decorative:
+    // a Convex id is table-tagged, but `db.get` returns a document from ANY
+    // table, so casting the string let a caller reach a row `table` does not
+    // name — a `mechPatterns` id through the `mechs` endpoint would be parsed
+    // with the mech schema and patched. An id that is not this table's is
+    // simply not there.
+    const entityId = ctx.db.normalizeId(args.table, args.entityId)
+    if (entityId === null) throw new Error('That entity no longer exists')
+
+    const doc = await ctx.db.get(entityId)
     if (doc === null) throw new Error('That entity no longer exists')
 
-    assertMayWrite(doc as Doc<'pilots'> | Doc<'mechs'>, userId)
+    assertMayWrite(doc, userId)
     const body = parseBody(args.table, args.body)
 
     await ctx.db.patch(doc._id, { body, updatedAt: Date.now() })
-  },
-})
-
-export const remove = mutation({
-  args: { table: OWNABLE, entityId: v.string() },
-  handler: async (ctx, args): Promise<void> => {
-    const userId = await requireUser(ctx)
-    const doc = await ctx.db.get(args.entityId as Id<'pilots'> | Id<'mechs'>)
-    if (doc === null) return
-
-    assertMayWrite(doc as Doc<'pilots'> | Doc<'mechs'>, userId)
-    await ctx.db.delete(doc._id)
   },
 })
 
@@ -331,38 +322,6 @@ export const removeCrawler = mutation({
     if (doc === null) return
     await requireTableRunner(ctx, doc.gameId)
     await ctx.db.delete(args.crawlerId)
-  },
-})
-
-/**
- * Write the communal crawler with a **field-level merge** (D19).
- *
- * Last-write-wins would be wrong here in a way that shows up on exactly the
- * night it matters: during Downtime the whole crew touches the crawler within
- * the same few minutes, and a full-body write would silently discard whichever
- * member happened to lose the race. Merging per top-level field means two
- * people editing different things both succeed, and only a genuine same-field
- * collision contends.
- */
-export const patchCrawler = mutation({
-  args: {
-    crawlerId: v.id('crawlers'),
-    patch: v.any(),
-  },
-  handler: async (ctx, args): Promise<void> => {
-    const doc = await ctx.db.get(args.crawlerId)
-    if (doc === null) throw new Error('That crawler no longer exists')
-
-    // Communal: membership is the whole check. No ownerId to consult.
-    await requireMember(ctx, doc.gameId)
-
-    const merged = { ...(doc.body as Record<string, unknown>), ...(args.patch as object) }
-    const result = CrawlerSchema.safeParse(merged)
-    if (!result.success) {
-      throw new Error(`Invalid crawler payload: ${result.error.issues[0]?.message ?? 'unknown'}`)
-    }
-
-    await ctx.db.patch(args.crawlerId, { body: result.data, updatedAt: Date.now() })
   },
 })
 
@@ -475,18 +434,28 @@ export const claimLocal = mutation({
         to?: { type?: string; id?: string }
         type?: string
       }
+      /*
+       * Endpoint kinds and the link kind are checked here rather than coerced.
+       * They used to be waved through — `String(l.from.type ?? '')` wrote an
+       * empty string for a link with no endpoint kind — and the schema, which
+       * now declares both as closed unions, would refuse that write outright.
+       * A link this claim cannot honour takes the same `skipped` path a
+       * malformed one already did: the rest of the payload still lands.
+       */
       if (
         typeof l.from?.id !== 'string' ||
         typeof l.to?.id !== 'string' ||
-        typeof l.type !== 'string'
+        !isEntityRefType(l.from.type) ||
+        !isEntityRefType(l.to.type) ||
+        !isSoftLinkType(l.type)
       ) {
         skipped += 1
         continue
       }
       await ctx.db.insert('softLinks', {
         gameId: shelfGameId,
-        from: { type: String(l.from.type ?? ''), id: l.from.id },
-        to: { type: String(l.to.type ?? ''), id: l.to.id },
+        from: { type: l.from.type, id: l.from.id },
+        to: { type: l.to.type, id: l.to.id },
         type: l.type,
       })
       bump('softLinks')
@@ -584,13 +553,19 @@ export const upsertByAppId = mutation({
 })
 
 /**
- * Mirror a local crawler write, addressed by app id, as a field-level merge.
+ * Mirror a local crawler write, addressed by app id, as a **field-level merge**
+ * (D19).
  *
  * The crawler needs its own mirror because it is the one entity whose local
  * edits are legitimate from *any* member — "players can only edit fields" is
- * only true end to end if those edits actually arrive. Routing them through the
- * same merge `patchCrawler` uses is what keeps two people editing scrap and
- * cargo in the same minute from overwriting each other.
+ * only true end to end if those edits actually arrive.
+ *
+ * Last-write-wins would be wrong here in a way that shows up on exactly the
+ * night it matters: during Downtime the whole crew touches the crawler within
+ * the same few minutes, and a full-body write would silently discard whichever
+ * member happened to lose the race. Merging per top-level field means two
+ * people editing different things both succeed, and only a genuine same-field
+ * collision contends.
  *
  * Unlike the ownable tables this **never inserts**. A missing row means the
  * crawler is not in this Game — either it is a purely local build (Solo, or on

@@ -5,8 +5,8 @@ import { statesMechanicalChange } from '../lib/rules/rulesBearing.js'
  * its rules text claims?
  *
  * The dataset states mechanical changes in prose. Some are encoded as structured
- * data the app can apply (`contributions`, `statBonus`, crawler `mutations`,
- * choice `effects`); some are stated and encoded nowhere, so the number on the
+ * data the app can apply (`contributions`, crawler `mutations`, choice
+ * `effects`); some are stated and encoded nowhere, so the number on the
  * sheet is simply wrong. Nothing previously told the two apart, which is how
  * Beefcake sat inert for the app's whole life.
  *
@@ -165,12 +165,15 @@ function sentences(text: string): string[] {
     .filter(Boolean)
 }
 
+/**
+ * Note this is an OR, and deliberately so — but an OR over encodings that no
+ * longer overlap. It used to accept `contributions` OR `statBonus`, two
+ * encodings of the SAME number, which meant it read a record carrying both as
+ * satisfied and could not distinguish it from a correct one. `statBonus` is
+ * gone; `findDoubleEncodings` below is what now refuses a second encoding.
+ */
 function hasCapData(record: Json): boolean {
-  return (
-    Array.isArray(record.contributions) ||
-    (record.statBonus !== undefined && record.statBonus !== null) ||
-    Array.isArray(record.mutations)
-  )
+  return Array.isArray(record.contributions) || Array.isArray(record.mutations)
 }
 
 function hasEffectData(record: Json): boolean {
@@ -179,12 +182,14 @@ function hasEffectData(record: Json): boolean {
   if (Array.isArray(record.appliedEffects) && record.appliedEffects.length > 0) return true
   const choices = record.choices
   if (!Array.isArray(choices)) return false
+  // The unified encoding only (`source.kind: 'options'`), never the legacy
+  // `choiceOptions` duplicate: an audit that reads the legacy half would report
+  // "encoded" from data that is on its way out, and then silently report
+  // "unencoded" for every record the moment the duplicate is deleted.
   return choices.some((choice) => {
-    const options = (choice as Json)?.choiceOptions
-    return (
-      Array.isArray(options) &&
-      options.some((o) => Array.isArray((o as Json)?.effects) && (o as Json).effects !== undefined)
-    )
+    const source = (choice as Json)?.source as Json | undefined
+    if (!source || source.kind !== 'options' || !Array.isArray(source.options)) return false
+    return source.options.some((o) => Array.isArray((o as Json)?.effects))
   })
 }
 
@@ -260,4 +265,156 @@ export function auditParity(filesByName: Record<string, Json[]>): ParityFinding[
 /** Findings that are neither encoded nor exempt — the remaining backlog. */
 export function unresolvedFindings(findings: ParityFinding[]): ParityFinding[] {
   return findings.filter((f) => !f.encoded && !f.exempt)
+}
+
+// ---------------------------------------------------------------------------
+// Double-encoding guard
+// ---------------------------------------------------------------------------
+
+/**
+ * A record must state each concept ONCE.
+ *
+ * Every migration in this dataset has run the same way: a better encoding is
+ * added beside the old one, some records carry both for a while, and the
+ * readers are migrated last. That interval is where the damage happens, and it
+ * is invisible from either side:
+ *
+ *   - Two encodings of the same NUMBER (`statBonus` + `contributions`) are
+ *     summed independently by the same derivation. Nothing ever carried both,
+ *     so nothing was double-counted — but `hasCapData` is an OR, so it read a
+ *     doubly-encoded record as satisfied and could not tell it from a correct
+ *     one. The one record authored with both would have silently over-counted.
+ *   - Two encodings of the same CHOICE (`source` + `schemaEntities`) are read
+ *     by different consumers. Deleting the legacy duplicate turned the trait
+ *     inference off in `resolveChoiceView` while the card still rendered
+ *     perfectly — a silent loss with no failing test and nothing to see.
+ *
+ * So this check fails on the COEXISTENCE itself, not on either encoding. It is
+ * the systemic fix: a half-migration becomes loud the moment it is authored,
+ * instead of at the arbitrary later moment someone deletes the other half.
+ */
+export type DoubleEncoding = {
+  /** Display name of the owning record. */
+  record: string
+  schema: string
+  /** Where inside the record, e.g. `choices["weapon-type"]`. */
+  path: string
+  /** The unified field. */
+  unified: string
+  /** The legacy field that duplicates it. */
+  legacy: string
+}
+
+/**
+ * Legacy choice fields, each paired with the unified field that replaced it.
+ *
+ * `constraints` → `cardinality` is the pair still tolerated below: the two
+ * `Modification` choices and the two body-kit choices keep `constraints`
+ * because `packages/component-lib`'s `ReferenceEntityCard` reads
+ * `constraints.scalesWithField` directly (it is the only reader left that is
+ * not `source`/`cardinality`-first).
+ */
+const LEGACY_CHOICE_FIELDS: ReadonlyArray<readonly [legacy: string, unified: string]> = [
+  ['rollTable', 'source'],
+  ['schemaEntities', 'source'],
+  ['schema', 'source'],
+  ['customSystemOptions', 'source'],
+  ['choiceOptions', 'source'],
+  ['multiSelect', 'cardinality'],
+  ['constraints', 'cardinality'],
+]
+
+/**
+ * Choice ids allowed to carry both encodings, with the reason.
+ *
+ * Burn-down, like `KNOWN_UNRESOLVED`: an entry that is no longer doubly encoded
+ * is STALE and fails, so the list can only shrink.
+ */
+export const KNOWN_DOUBLE_ENCODED: Record<string, string> = {
+  // Both keep `constraints.scalesWithField` alongside `cardinality.max.scalesWith`
+  // because component-lib's ReferenceEntityCard reads the legacy field directly
+  // to decide whether the header shows the EFFECTIVE (scaled) Tech Level. Delete
+  // these two entries — and the `constraints` blocks — in the same change that
+  // teaches that card to read `cardinality`.
+  '8688eb63-550c-4d06-9b50-e1649c442da6': 'Custom Sniper Rifle / Modification',
+  'd097ed5d-d7d9-46f5-8bda-ba902f09ebc8': 'Custom Missile Launcher / Modification',
+}
+
+function isObject(value: unknown): value is Json {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/** Walk every `choices[]` array anywhere inside a record. */
+function eachChoice(node: unknown, visit: (choice: Json, path: string) => void, path = ''): void {
+  if (Array.isArray(node)) {
+    node.forEach((item, i) => eachChoice(item, visit, `${path}[${i}]`))
+    return
+  }
+  if (!isObject(node)) return
+  for (const [key, value] of Object.entries(node)) {
+    if (key === 'choices' && Array.isArray(value)) {
+      for (const choice of value) {
+        if (isObject(choice)) {
+          const id = typeof choice.id === 'string' ? choice.id : '?'
+          visit(choice, `${path}choices["${id}"]`)
+        }
+      }
+    }
+    eachChoice(value, visit, path)
+  }
+}
+
+/**
+ * Every place a record states one concept twice. Empty is the healthy state.
+ */
+export function findDoubleEncodings(filesByName: Record<string, Json[]>): DoubleEncoding[] {
+  const found: DoubleEncoding[] = []
+
+  for (const [schema, records] of Object.entries(filesByName)) {
+    for (const record of records) {
+      if (!isObject(record)) continue
+      const name = typeof record.name === 'string' ? record.name : '(unnamed)'
+
+      // Numeric contributions: one encoding only.
+      if (record.statBonus !== undefined && Array.isArray(record.contributions)) {
+        found.push({
+          record: name,
+          schema,
+          path: '(record)',
+          unified: 'contributions',
+          legacy: 'statBonus',
+        })
+      }
+
+      eachChoice(record, (choice, path) => {
+        const id = typeof choice.id === 'string' ? choice.id : ''
+        for (const [legacy, unified] of LEGACY_CHOICE_FIELDS) {
+          if (choice[legacy] === undefined || choice[unified] === undefined) continue
+          if (KNOWN_DOUBLE_ENCODED[id]) continue
+          found.push({ record: name, schema, path, unified, legacy })
+        }
+      })
+    }
+  }
+
+  return found
+}
+
+/** Known ids that are no longer doubly encoded — the list must keep shrinking. */
+export function staleDoubleEncodings(filesByName: Record<string, Json[]>): string[] {
+  const live = new Set<string>()
+  for (const records of Object.values(filesByName)) {
+    for (const record of records) {
+      if (!isObject(record)) continue
+      eachChoice(record, (choice) => {
+        const id = typeof choice.id === 'string' ? choice.id : ''
+        if (!id) return
+        const doubled = LEGACY_CHOICE_FIELDS.some(
+          ([legacy, unified]) => choice[legacy] !== undefined && choice[unified] !== undefined
+        )
+        if (doubled) live.add(id)
+      })
+    }
+  }
+  return Object.keys(KNOWN_DOUBLE_ENCODED).filter((id) => !live.has(id))
 }

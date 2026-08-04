@@ -93,7 +93,8 @@ describe('mergeImport — mech patterns', () => {
     // Import into the SAME store — the pattern id already exists.
     const summary = await mergeImport(bundle, useEntityStore.getState())
     expect(summary.created.mechPatterns).toBe(0)
-    expect(summary.skippedDuplicates).toBeGreaterThanOrEqual(1)
+    // Exactly one: the store holds a single pattern and nothing else.
+    expect(summary.skippedDuplicates).toBe(1)
     expect(await mechPatterns.list()).toHaveLength(1)
   })
 })

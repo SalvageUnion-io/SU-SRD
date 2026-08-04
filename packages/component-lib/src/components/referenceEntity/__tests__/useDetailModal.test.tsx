@@ -8,7 +8,7 @@
  * so it is pinned here alongside the dialog chrome it mounts.
  */
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
 import { useDetailModal } from '../useDetailModal'
@@ -35,8 +35,6 @@ function Harness({ data, forceModal }: { data: SURefEntity | undefined; forceMod
     </>
   )
 }
-
-afterEach(cleanup)
 
 /** Captured before any test can swap it. Link-mode tests stub `window.open` to
  *  observe the navigation; restoring in an `afterEach` rather than at the end of

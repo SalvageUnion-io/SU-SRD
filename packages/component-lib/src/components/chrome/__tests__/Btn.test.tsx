@@ -1,8 +1,6 @@
-import { describe, test, expect, afterEach, mock } from 'bun:test'
+import { describe, test, expect, mock } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { Button } from '../Button'
-
-afterEach(cleanup)
 
 describe('Button', () => {
   test('defaults to a paper/ink md button of type="button"', () => {

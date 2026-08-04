@@ -56,6 +56,25 @@ function pilotBody(over: Record<string, unknown> = {}) {
   }
 }
 
+/** A minimal body that satisfies MechSchema. */
+function mechBody(over: Record<string, unknown> = {}) {
+  return {
+    id: 'm1',
+    schemaVersion: 1,
+    name: 'Iron Mongrel',
+    chassisRef: 'iron-mongrel',
+    systems: [],
+    modules: [],
+    cargoLots: [],
+    conditions: [],
+    currentSP: 12,
+    currentHeat: 0,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    ...over,
+  }
+}
+
 /** A minimal body that satisfies CrawlerSchema — techLevel is a STRING. */
 function crawlerBody(over: Record<string, unknown> = {}) {
   return {
@@ -203,6 +222,52 @@ describe('reading is per-game, writing is per-entity', () => {
     expect(row).not.toBeNull()
     expect((row?.body as { name: string } | undefined)?.name).toBe('Renamed')
   })
+
+  test("an id from another table cannot be written through the table it isn't in", async () => {
+    const t = testConvex()
+    const { player, gameId } = await seedGame(t)
+    const pilotId = await player.as.mutation(api.entities.create, {
+      table: 'pilots',
+      gameId,
+      body: pilotBody(),
+    })
+
+    // A Convex id is table-tagged, but `db.get` returns a document from ANY
+    // table — so a handler that casts the string would fetch this pilot, parse
+    // the payload with the MECH schema, and patch it back over the pilot.
+    await expect(
+      player.as.mutation(api.entities.update, {
+        table: 'mechs',
+        entityId: pilotId,
+        body: mechBody(),
+      })
+    ).rejects.toThrow(/no longer exists/i)
+  })
+
+  test('a row from a table this endpoint does not serve is not writable at all', async () => {
+    const t = testConvex()
+    const { player, gameId } = await seedGame(t)
+    // Owned by the caller, so the ownership check would have passed it: the
+    // table tag is the only thing standing between a pattern and the mech
+    // write path.
+    const patternId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('mechPatterns', {
+          ownerId: player.userId,
+          gameId,
+          sharedToGame: false,
+          body: { name: 'Draft' },
+        })
+    )
+
+    await expect(
+      player.as.mutation(api.entities.update, {
+        table: 'mechs',
+        entityId: patternId,
+        body: mechBody(),
+      })
+    ).rejects.toThrow(/no longer exists/i)
+  })
 })
 
 describe('the crawler is communal and merges per field', () => {
@@ -213,6 +278,7 @@ describe('the crawler is communal and merges per field', () => {
       async (ctx) =>
         await ctx.db.insert('crawlers', {
           gameId,
+          appId: 'c1',
           // Shape probed against CrawlerSchema, not guessed: techLevel is a
           // STRING here, there is no `modules` key, and `systems` is required.
           body: {
@@ -228,11 +294,14 @@ describe('the crawler is communal and merges per field', () => {
         })
     )
 
-    await organizer.as.mutation(api.entities.patchCrawler, {
-      crawlerId,
+    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
+      appId: 'c1',
       patch: { name: 'Tenacity' },
     })
-    await player.as.mutation(api.entities.patchCrawler, { crawlerId, patch: { techLevel: '2' } })
+    await player.as.mutation(api.entities.patchCrawlerByAppId, {
+      appId: 'c1',
+      patch: { techLevel: '2' },
+    })
 
     const row = await t.run(async (ctx) => await ctx.db.get(crawlerId))
     const body = row?.body as { name: string; techLevel: string; id: string }
@@ -248,12 +317,16 @@ describe('the crawler is communal and merges per field', () => {
     const t = testConvex()
     const { gameId } = await seedGame(t)
     const outsider = await makeUser(t, 'Outsider')
-    const crawlerId = await t.run(
-      async (ctx) => await ctx.db.insert('crawlers', { gameId, body: {}, updatedAt: 1 })
+    await t.run(
+      async (ctx) =>
+        await ctx.db.insert('crawlers', { gameId, appId: 'c1', body: {}, updatedAt: 1 })
     )
 
     await expect(
-      outsider.as.mutation(api.entities.patchCrawler, { crawlerId, patch: { scrap: 999 } })
+      outsider.as.mutation(api.entities.patchCrawlerByAppId, {
+        appId: 'c1',
+        patch: { scrap: 999 },
+      })
     ).rejects.toThrow(/not a member/i)
   })
 })
