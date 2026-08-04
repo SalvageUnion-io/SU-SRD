@@ -9,7 +9,7 @@ import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { CrewVitals } from './CrewVitals'
 import { DowntimePanel } from './DowntimePanel'
 import { GameRoster } from './GameRoster'
-import { INPUT, PAGE, ROW, SECTION, STAMP, TITLE } from './gameChrome'
+import { INPUT, PAGE, PANEL_TITLE, PANEL_TONE, ROW, STAMP, TITLE } from './gameChrome'
 
 /**
  * The Mediator surface — the layer ADR-021 deferred and ADR-030 §6 specifies.
@@ -60,11 +60,8 @@ function NpcTray({ gameId }: { gameId: Id<'games'> }) {
   const [name, setName] = useState('')
 
   return (
-    <Card>
+    <Card headerBg={PANEL_TONE} headerContent={<span className={PANEL_TITLE}>Opposition</span>}>
       <div className="flex flex-col gap-3 p-4">
-        <Text as="span" className={SECTION}>
-          Opposition
-        </Text>
         <Text variant="hint">Only you can see this. Players never read the tray.</Text>
 
         {npcs?.map((n) => (
@@ -121,11 +118,11 @@ function ProposeForm({ gameId }: { gameId: Id<'games'> }) {
   const chosen = targets.find((t) => t.id === target)
 
   return (
-    <Card>
+    <Card
+      headerBg={PANEL_TONE}
+      headerContent={<span className={PANEL_TITLE}>Propose a change</span>}
+    >
       <div className="flex flex-col gap-3 p-4">
-        <Text as="span" className={SECTION}>
-          Propose a change
-        </Text>
         <Text variant="hint">
           You are asking, not setting. The player sees the before and after, and applies or declines
           it.
@@ -204,11 +201,8 @@ function AlertBar({ gameId }: { gameId: Id<'games'> }) {
   const [message, setMessage] = useState('')
 
   return (
-    <Card>
+    <Card headerBg={PANEL_TONE} headerContent={<span className={PANEL_TITLE}>Tell the table</span>}>
       <div className="flex flex-col gap-3 p-4">
-        <Text as="span" className={SECTION}>
-          Tell the table
-        </Text>
         <div className="flex flex-wrap items-end gap-2">
           <label className="flex flex-1 flex-col gap-1">
             <span className={STAMP}>Alert</span>
@@ -245,11 +239,8 @@ function PresenceList({ gameId }: { gameId: Id<'games'> }) {
   if (rows === undefined || rows.length === 0) return null
 
   return (
-    <Card>
+    <Card headerBg={PANEL_TONE} headerContent={<span className={PANEL_TITLE}>At the table</span>}>
       <div className="flex flex-col gap-1 p-4">
-        <Text as="span" className={SECTION}>
-          At the table
-        </Text>
         {rows.map((r) => (
           <div key={r.userId} className={ROW}>
             <Text as="span">{r.displayName}</Text>
@@ -284,7 +275,7 @@ function MediatorBody({ gameId }: { gameId: Id<'games'> }) {
       <GameRoster gameId={gameId} />
       {/* Then the numbers, live. The roster shows vitals per row; this is the
           same crew read as one strip, which is how you scan a table mid-fight. */}
-      <Card>
+      <Card headerBg={PANEL_TONE} headerContent={<span className={PANEL_TITLE}>Crew vitals</span>}>
         <div className="p-4">
           <CrewVitals gameId={gameId} />
         </div>

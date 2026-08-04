@@ -106,6 +106,24 @@ describe('GameScreen', () => {
     expect(screen.queryByLabelText('Invite note')).toBeNull()
   })
 
+  test('every panel states its name in its header band', () => {
+    // A pending proposal, so the inbox renders at all (it returns null when
+    // there is nothing to answer).
+    // Slot 5 is `proposals.pending` — see the REST comment for the order.
+    const withProposal: unknown[] = [...REST]
+    withProposal[5] = [{ _id: 'p1', entityType: 'pilot', field: 'currentHP', to: 3 }]
+    withQueries([{ ...GAME, organizer: true }, ...withProposal])
+    wrap()
+
+    // These titles used to sit inside each panel's body as a small grey stamp.
+    // They are the Card's header now, and `Invite someone` in particular
+    // changed OWNER in that move — it is rendered by GameScreen, not by
+    // InvitePanel — so nothing else would catch it going missing.
+    expect(screen.getByText('Invite someone')).toBeTruthy()
+    expect(screen.getByText('Awaiting your answer')).toBeTruthy()
+    expect(screen.getByText('Downtime')).toBeTruthy()
+  })
+
   test('an Organizer gets invite management', () => {
     withQueries([{ ...GAME, organizer: true }, ...REST])
     wrap()
