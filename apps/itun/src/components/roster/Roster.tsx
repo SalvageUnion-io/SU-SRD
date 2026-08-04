@@ -20,8 +20,8 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
-import { Badge, Button, buttonVariants, EmptyState, EntityRow } from 'component-lib'
-import type { EntityRowStat } from 'component-lib'
+import { Button, buttonVariants, EmptyState, EntityRow, Stat } from 'component-lib'
+import type { EntityRowDetail, EntityRowStat } from 'component-lib'
 
 import {
   useCrawlers,
@@ -94,15 +94,22 @@ function crawlerStats(techLevel: string, bayCount: number): EntityRowStat[] {
   return stats
 }
 
+/** `CLASS | Scavenger`, tinted pilot-orange. Omitted when the ref won't resolve. */
+function classDetail(classRef: string): EntityRowDetail | null {
+  const name = resolveClassName(classRef)
+  return name ? { label: 'Class', value: name, tone: 'pilot' } : null
+}
+
 /**
- * The row's caption parts, blanks dropped.
+ * The row's body details, blanks dropped.
  *
- * These used to be joined into one muted line with ' · ' separators. `EntityRow`
- * now chips each part itself — every piece of text on a row is a badge — so the
- * separator characters have nothing left to separate, and a string part arrives
- * as its own chip rather than as a run of grey prose.
+ * These used to be joined into one muted line with ' · ' separators, then became
+ * chips, and are now `label | value` stats — each step removing an inference the
+ * reader was making on the row's behalf.
  */
-function metaParts(parts: Array<ReactNode | null | undefined>): ReactNode[] | undefined {
+function metaParts(
+  parts: Array<ReactNode | EntityRowDetail | null | undefined>
+): Array<ReactNode | EntityRowDetail> | undefined {
   const kept = parts.filter((part) => part != null && part !== '')
   return kept.length === 0 ? undefined : kept
 }
@@ -118,6 +125,23 @@ type DeleteTarget = {
 }
 
 type SegmentKind = 'pilot' | 'mech' | 'crawler'
+
+/**
+ * Label-plate tints for a cross-link, keyed to the TARGET's ontology — the same
+ * `--color-sheet-*` tokens `EntityRow` bands itself with, so a link to a mech
+ * is the green a mech row wears. Crawler takes paper text; it is the one dark
+ * fill in the ramp.
+ */
+const TONE_BG: Record<SegmentKind, string> = {
+  pilot: 'var(--color-sheet-pilot)',
+  mech: 'var(--color-sheet-mech)',
+  crawler: 'var(--color-sheet-crawler)',
+}
+const TONE_INK: Record<SegmentKind, string> = {
+  pilot: 'var(--color-ink)',
+  mech: 'var(--color-ink)',
+  crawler: 'var(--color-paper)',
+}
 
 const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
   { kind: 'pilot', label: 'Pilots' },
@@ -154,6 +178,18 @@ export function Roster() {
   const pilotNameById = new Map(allPilots.map((p) => [p.id, p.name]))
   const mechNameById = new Map(allMechs.map((m) => [m.id, m.name]))
   const crawlerNameById = new Map(allCrawlers.map((c) => [c.id, c.name]))
+  // …and the one fact each cross-link states about its target, so a link reads
+  // `IRON JAW | Titan` rather than naming a thing and saying nothing about it.
+  const pilotClassById = new Map(allPilots.map((p) => [p.id, resolveClassName(p.classRef)]))
+  const mechChassisNameById = new Map(
+    allMechs.map((m) => [m.id, mechChassisStats(m.chassisRef)?.[0]?.value as string | undefined])
+  )
+  const crawlerTlById = new Map(
+    allCrawlers.map((c) => {
+      const tl = c.techLevel.replace(/[^0-9]/g, '')
+      return [c.id, tl ? `TL ${tl}` : undefined]
+    })
+  )
 
   /**
    * A cross-link to another entity's live sheet, as a Badge tinted with THAT
@@ -173,7 +209,8 @@ export function Roster() {
   function linkSegment(
     kind: SegmentKind,
     id: string | undefined,
-    name: string | undefined
+    name: string | undefined,
+    detail: string | undefined
   ): ReactNode | undefined {
     if (!id || !name) return undefined
     return (
@@ -182,9 +219,19 @@ export function Roster() {
         className="inline-flex max-w-full align-middle no-underline"
         aria-label={`Open ${name}'s ${kind} sheet`}
       >
-        <Badge shape="chip" surface="tone" tone={kind} className="max-w-full truncate">
-          {name}
-        </Badge>
+        {/* `NAME | detail` — the linked entity names ITSELF on the label plate
+            (a mech's name IS its pattern, SU rules), with its defining fact as
+            the value: a mech's chassis, a pilot's class, a crawler's TL. The
+            plate is tinted with the TARGET's ontology, never the row's, so the
+            kind of thing you are about to open is seen rather than read. */}
+        <Stat
+          label={name}
+          value={detail ?? '—'}
+          orientation="horizontal"
+          size="mini"
+          bgColor={TONE_BG[kind]}
+          textColor={TONE_INK[kind]}
+        />
       </AppLink>
     )
   }
@@ -365,17 +412,19 @@ export function Roster() {
                         linkAs={AppLink}
                         onDeleteClick={() => openDeleteDialog('pilot', p.id, p.name)}
                         metaLine={metaParts([
-                          p.callsign ? `"${p.callsign}"` : null,
-                          resolveClassName(p.classRef),
+                          p.callsign ? { label: 'Callsign', value: p.callsign } : null,
+                          classDetail(p.classRef),
                           linkSegment(
                             'mech',
                             mechLink?.from.id,
-                            mechLink && mechNameById.get(mechLink.from.id)
+                            mechLink && mechNameById.get(mechLink.from.id),
+                            mechLink && mechChassisNameById.get(mechLink.from.id)
                           ),
                           linkSegment(
                             'crawler',
                             crawlerLink?.to.id,
-                            crawlerLink && crawlerNameById.get(crawlerLink.to.id)
+                            crawlerLink && crawlerNameById.get(crawlerLink.to.id),
+                            crawlerLink && crawlerTlById.get(crawlerLink.to.id)
                           ),
                         ])}
                       />
@@ -425,7 +474,8 @@ export function Roster() {
                           linkSegment(
                             'pilot',
                             pilotLink?.to.id,
-                            pilotLink && pilotNameById.get(pilotLink.to.id)
+                            pilotLink && pilotNameById.get(pilotLink.to.id),
+                            pilotLink && pilotClassById.get(pilotLink.to.id)
                           ),
                         ])}
                       />
@@ -458,7 +508,12 @@ export function Roster() {
                         stats={crawlerStats(c.techLevel, c.crawlerBays?.length ?? 0)}
                         metaLine={metaParts([
                           ...crewLinks.map((l) =>
-                            linkSegment('pilot', l.from.id, pilotNameById.get(l.from.id))
+                            linkSegment(
+                              'pilot',
+                              l.from.id,
+                              pilotNameById.get(l.from.id),
+                              pilotClassById.get(l.from.id)
+                            )
                           ),
                         ])}
                       />

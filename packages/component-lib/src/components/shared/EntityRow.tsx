@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, isValidElement } from 'react'
 import type { ElementType, ReactNode } from 'react'
 import { Bot, type LucideIcon, Trash2, UserRound, Users, Warehouse } from 'lucide-react'
 import { cn } from '../../utils/cn'
@@ -64,6 +64,28 @@ export type EntityRowStat = {
   value: string | number
 }
 
+/**
+ * A `label | value` DETAIL in the row's body — the same horizontal `Stat` cell
+ * the band uses, tinted on its label plate by ontology.
+ *
+ * Details are the body's whole vocabulary. They were loose badges (`"GHOST"`,
+ * `SCAVENGER`, `IRON JAW`) which stated a value with no name attached: the
+ * reader had to infer that one was a callsign, one a class and one a linked
+ * mech, from nothing but position and colour. A `Stat` says which is which —
+ * `CALLSIGN | Ghost`, `CLASS | Scavenger` — and it is the primitive every other
+ * `label | value` in the system already renders through (ruleset §3.7).
+ *
+ * `tone` tints the LABEL plate only, which is the sanctioned chip role for
+ * `Stat` (see its `bgColor` docs): the value stays ink-canonical, so a cell
+ * carries its ontology without spending the value's legibility on it.
+ */
+export type EntityRowDetail = {
+  label: string | number
+  value: string | number
+  /** Ontology tint for the label plate. Omit for the quiet default. */
+  tone?: EntityRowType
+}
+
 /** The filled row: a linked player entity. */
 type FilledEntityRowProps = {
   /** Entity ontology driving the header band's tone. */
@@ -89,26 +111,20 @@ type FilledEntityRowProps = {
    */
   meta?: ReactNode | ReactNode[]
   /**
-   * Caption under the name tab — a wrapping row of quiet chips.
+   * The row's DETAILS, rendered in the body beneath the band.
    *
-   * **Every piece of text on a row is a badge.** Plain strings and numbers
-   * passed here are wrapped in a quiet chip for you; nodes are rendered as
-   * given, because a caller passing a node is passing something already
-   * chipped (a `↳ Name` cross-link is an anchor wrapping a toned Badge, and
-   * re-wrapping it would nest one badge inside another).
+   * Each entry is either an `EntityRowDetail` (`label | value`, rendered as a
+   * tinted horizontal `Stat`) or a ReactNode, rendered as given — which is how
+   * a cross-link arrives, since only the app knows how to build its own router
+   * link. Bare strings still render as quiet chips, for a caller with a value
+   * and genuinely no name for it.
    *
-   * Pass an ARRAY to render several chips. It used to be one free-form node
-   * that callers joined with ' · ' separators into a single muted line, which
-   * left the row with two vocabularies — stamped name, badged class/stats, and
-   * then a run of loose grey prose underneath carrying the callsign, the
-   * chassis and the owner. The separator characters were doing the work a chip
-   * boundary does better.
-   *
-   * Distinct from `meta`: `meta` is the entity's CLASS/ROLE and takes the
-   * ontology tone, whereas these are quiet — the row's tone belongs to what the
-   * entity IS, not to its incidental facts.
+   * It began as one free-form node that callers joined with ' · ' separators
+   * into a muted grey line, became a row of chips, and is now stats: each step
+   * removed an inference the reader was making for the row. A chip saying
+   * "Ghost" is a value with its name rubbed off.
    */
-  metaLine?: ReactNode | ReactNode[]
+  metaLine?: ReactNode | Array<ReactNode | EntityRowDetail>
   /**
    * A stamp pinned to the row's TOP-RIGHT corner — the mark applied ON the
    * record about its status, as distinct from `actions` (things you do to it)
@@ -210,9 +226,35 @@ const TONE: Record<EntityRowType, { band: string; ink: string }> = {
  * passing `undefined` (or a falsy conditional) renders nothing rather than an
  * empty chip.
  */
+function toEntries(
+  value: ReactNode | Array<ReactNode | EntityRowDetail>
+): Array<ReactNode | EntityRowDetail> {
+  return (Array.isArray(value) ? value : [value]).filter(
+    (node) => node !== null && node !== undefined && node !== false && node !== ''
+  )
+}
+
+/** The node-only flavour, for `meta` — which never carries details. */
 function toNodes(value: ReactNode | ReactNode[]): ReactNode[] {
   return (Array.isArray(value) ? value : [value]).filter(
     (node) => node !== null && node !== undefined && node !== false && node !== ''
+  )
+}
+
+/**
+ * Is this entry a `label | value` detail rather than something to render as-is?
+ *
+ * `isValidElement` is checked FIRST because a React element is also a plain
+ * object, and a component whose props happened to include `label` would
+ * otherwise be mistaken for a detail and rendered as a stat.
+ */
+function isDetail(entry: ReactNode | EntityRowDetail): entry is EntityRowDetail {
+  return (
+    !isValidElement(entry) &&
+    typeof entry === 'object' &&
+    entry !== null &&
+    'label' in entry &&
+    'value' in entry
   )
 }
 
@@ -283,7 +325,7 @@ export function EntityRow(props: EntityRowProps) {
   // a caller passing `undefined` (or a falsy conditional) renders no badge at
   // all rather than an empty one.
   const metaBadges = toNodes(meta)
-  const captionParts = toNodes(metaLine)
+  const captionParts = toEntries(metaLine)
   const hasStats = (stats?.length ?? 0) > 0
   const hasBody =
     captionParts.length > 0 ||
@@ -384,9 +426,22 @@ export function EntityRow(props: EntityRowProps) {
                 </Badge>
               ))}
               {captionParts.map((part, i) =>
-                typeof part === 'string' || typeof part === 'number' ? (
+                isDetail(part) ? (
+                  <Stat
+                    // biome-ignore lint/suspicious/noArrayIndexKey: positional detail cells that never reorder; a callsign is a worse key than its slot
+                    key={i}
+                    label={part.label}
+                    value={part.value}
+                    orientation="horizontal"
+                    size="mini"
+                    // Tint the LABEL plate only — the value stays ink-canonical,
+                    // which is the sanctioned chip role for a Stat.
+                    bgColor={part.tone ? TONE[part.tone].band : undefined}
+                    textColor={part.tone ? TONE[part.tone].ink : undefined}
+                  />
+                ) : typeof part === 'string' || typeof part === 'number' ? (
                   <Badge
-                    // biome-ignore lint/suspicious/noArrayIndexKey: positional caption parts that never reorder; a callsign is a worse key than its slot
+                    // biome-ignore lint/suspicious/noArrayIndexKey: as above
                     key={i}
                     surface="quiet"
                     className="max-w-full truncate"
@@ -394,8 +449,8 @@ export function EntityRow(props: EntityRowProps) {
                     {part}
                   </Badge>
                 ) : (
-                  // Already a node — a cross-link anchor wrapping its own toned
-                  // Badge — so it renders as given rather than nested in a chip.
+                  // A node — a cross-link anchor wrapping its own Stat — so it
+                  // renders as given rather than nested inside another cell.
                   // biome-ignore lint/suspicious/noArrayIndexKey: as above
                   <Fragment key={i}>{part}</Fragment>
                 )

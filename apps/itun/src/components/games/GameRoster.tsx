@@ -51,6 +51,7 @@ import {
   ModalShell,
   Text,
 } from 'component-lib'
+import type { EntityRowDetail } from 'component-lib'
 
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -161,24 +162,24 @@ function statsFor(row: RosterRow): Array<{ label: string; value: string | number
 }
 
 /**
- * The row's caption parts — callsign, class, chassis — each rendered by
- * `EntityRow` as its own quiet chip.
+ * The row's body details — `CALLSIGN | Ghost`, `CLASS | Salvager` — each
+ * rendered by `EntityRow` as a horizontal `Stat` with its label plate tinted by
+ * ontology.
  *
- * Ownership is NOT among them any more: it is the row's seal, stamped in the
- * top-right corner (see `OwnerSeal`). It used to be a toned chip down here
- * beside the callsign, which put the single most consequential fact about a
- * row — whose character is this — in the same visual register as their
- * nickname.
+ * Ownership is NOT among them: it is the row's seal, stamped on the top border
+ * (see `OwnerSeal`). It used to be a toned chip down here beside the callsign,
+ * which put the single most consequential fact about a row — whose character is
+ * this — in the same visual register as their nickname.
  */
-function captionFor(row: RosterRow): string[] {
-  const parts: string[] = []
+function captionFor(row: RosterRow): EntityRowDetail[] {
+  const parts: EntityRowDetail[] = []
   if (row.kind === 'pilot') {
     const callsign = row.body.callsign
     if (typeof callsign === 'string' && callsign.length > 0 && callsign !== row.name) {
-      parts.push(`"${callsign}"`)
+      parts.push({ label: 'Callsign', value: callsign })
     }
     const className = resolveClassName(String(row.body.classRef ?? ''))
-    if (className) parts.push(className)
+    if (className) parts.push({ label: 'Class', value: className, tone: 'pilot' })
   }
   // A mech's chassis is NOT here: it is a `CHASSIS | Iron Mongrel` stat in the
   // header band. It is a named property of the mech, which is what a Stat is

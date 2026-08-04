@@ -64,7 +64,11 @@ export { ModalShell } from './components/shared/ModalShell'
 export { EntitySearcher } from './components/shared/EntitySearcher'
 export { EntityGrid, EntityGridRow } from './components/shared/EntityGrid'
 export { EntityRow } from './components/shared/EntityRow'
-export type { EntityRowStat, EntityRowType } from './components/shared/EntityRow'
+export type {
+  EntityRowDetail,
+  EntityRowStat,
+  EntityRowType,
+} from './components/shared/EntityRow'
 export { TECH_LEVEL_STYLES, techLevelLabel } from './components/shared/techLevelStyles'
 
 // Skeletons
