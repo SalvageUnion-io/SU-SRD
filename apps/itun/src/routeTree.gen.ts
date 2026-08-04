@@ -29,6 +29,7 @@ import { Route as SIdRouteImport } from './routes/s/$id'
 import { Route as MechsPatternsIndexRouteImport } from './routes/mechs/patterns/index'
 import { Route as SheetKindIdRouteImport } from './routes/sheet/$kind/$id'
 import { Route as SheetKindIdShareRouteImport } from './routes/sheet/$kind/$id_.share'
+import { Route as GamesGameIdViewKindEntityIdRouteImport } from './routes/games_.$gameId_.view.$kind.$entityId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -130,6 +131,12 @@ const SheetKindIdShareRoute = SheetKindIdShareRouteImport.update({
   path: '/sheet/$kind/$id/share',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GamesGameIdViewKindEntityIdRoute =
+  GamesGameIdViewKindEntityIdRouteImport.update({
+    id: '/games_/$gameId_/view/$kind/$entityId',
+    path: '/games/$gameId/view/$kind/$entityId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
   '/sheet/$kind/$id/share': typeof SheetKindIdShareRoute
+  '/games/$gameId/view/$kind/$entityId': typeof GamesGameIdViewKindEntityIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -174,6 +182,7 @@ export interface FileRoutesByTo {
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns': typeof MechsPatternsIndexRoute
   '/sheet/$kind/$id/share': typeof SheetKindIdShareRoute
+  '/games/$gameId/view/$kind/$entityId': typeof GamesGameIdViewKindEntityIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -197,6 +206,7 @@ export interface FileRoutesById {
   '/sheet/$kind/$id': typeof SheetKindIdRoute
   '/mechs/patterns/': typeof MechsPatternsIndexRoute
   '/sheet/$kind/$id_/share': typeof SheetKindIdShareRoute
+  '/games_/$gameId_/view/$kind/$entityId': typeof GamesGameIdViewKindEntityIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/sheet/$kind/$id'
     | '/mechs/patterns/'
     | '/sheet/$kind/$id/share'
+    | '/games/$gameId/view/$kind/$entityId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/sheet/$kind/$id'
     | '/mechs/patterns'
     | '/sheet/$kind/$id/share'
+    | '/games/$gameId/view/$kind/$entityId'
   id:
     | '__root__'
     | '/'
@@ -265,6 +277,7 @@ export interface FileRouteTypes {
     | '/sheet/$kind/$id'
     | '/mechs/patterns/'
     | '/sheet/$kind/$id_/share'
+    | '/games_/$gameId_/view/$kind/$entityId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -288,6 +301,7 @@ export interface RootRouteChildren {
   SheetKindIdRoute: typeof SheetKindIdRoute
   MechsPatternsIndexRoute: typeof MechsPatternsIndexRoute
   SheetKindIdShareRoute: typeof SheetKindIdShareRoute
+  GamesGameIdViewKindEntityIdRoute: typeof GamesGameIdViewKindEntityIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -432,6 +446,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SheetKindIdShareRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games_/$gameId_/view/$kind/$entityId': {
+      id: '/games_/$gameId_/view/$kind/$entityId'
+      path: '/games/$gameId/view/$kind/$entityId'
+      fullPath: '/games/$gameId/view/$kind/$entityId'
+      preLoaderRoute: typeof GamesGameIdViewKindEntityIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -456,6 +477,7 @@ const rootRouteChildren: RootRouteChildren = {
   SheetKindIdRoute: SheetKindIdRoute,
   MechsPatternsIndexRoute: MechsPatternsIndexRoute,
   SheetKindIdShareRoute: SheetKindIdShareRoute,
+  GamesGameIdViewKindEntityIdRoute: GamesGameIdViewKindEntityIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

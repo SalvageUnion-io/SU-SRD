@@ -16,7 +16,7 @@
  *      listing immediately (Zustand in-memory update is synchronous).
  */
 
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
@@ -76,17 +76,17 @@ function crawlerTypeMeta(techLevel: string, bayCount: number): string {
   return parts.join(' · ')
 }
 
-/** Join meta segments with the design's ' · ' separator, dropping blanks. */
-function joinMeta(parts: Array<ReactNode | null | undefined>): ReactNode | undefined {
+/**
+ * The row's caption parts, blanks dropped.
+ *
+ * These used to be joined into one muted line with ' · ' separators. `EntityRow`
+ * now chips each part itself — every piece of text on a row is a badge — so the
+ * separator characters have nothing left to separate, and a string part arrives
+ * as its own chip rather than as a run of grey prose.
+ */
+function metaParts(parts: Array<ReactNode | null | undefined>): ReactNode[] | undefined {
   const kept = parts.filter((part) => part != null && part !== '')
-  if (kept.length === 0) return undefined
-  return kept.map((part, i) => (
-    // biome-ignore lint/suspicious/noArrayIndexKey: meta parts are positional ReactNodes with no stable identity; the joined caption never reorders
-    <Fragment key={i}>
-      {i > 0 && ' · '}
-      {part}
-    </Fragment>
-  ))
+  return kept.length === 0 ? undefined : kept
 }
 
 // ---------------------------------------------------------------------------
@@ -346,7 +346,7 @@ export function Roster() {
                         sheetHref={`/sheet/pilot/${p.id}`}
                         linkAs={AppLink}
                         onDeleteClick={() => openDeleteDialog('pilot', p.id, p.name)}
-                        metaLine={joinMeta([
+                        metaLine={metaParts([
                           p.callsign ? `"${p.callsign}"` : null,
                           resolveClassName(p.classRef),
                           linkSegment(
@@ -398,7 +398,7 @@ export function Roster() {
                         sheetHref={`/sheet/mech/${m.id}`}
                         linkAs={AppLink}
                         onDeleteClick={() => openDeleteDialog('mech', m.id, m.name)}
-                        metaLine={joinMeta([
+                        metaLine={metaParts([
                           mechChassisMeta(m.chassisRef),
                           linkSegment(
                             'pilot',
@@ -433,7 +433,7 @@ export function Roster() {
                         sheetHref={`/sheet/crawler/${c.id}`}
                         linkAs={AppLink}
                         onDeleteClick={() => openDeleteDialog('crawler', c.id, c.name)}
-                        metaLine={joinMeta([
+                        metaLine={metaParts([
                           crawlerTypeMeta(c.techLevel, c.crawlerBays?.length ?? 0),
                           ...crewLinks.map((l) =>
                             linkSegment('pilot', l.from.id, pilotNameById.get(l.from.id))

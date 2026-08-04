@@ -9,7 +9,7 @@ import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { CrewVitals } from './CrewVitals'
 import { DowntimePanel } from './DowntimePanel'
 import { GameRoster } from './GameRoster'
-import { INPUT, ROW, SECTION, STAMP, TITLE } from './gameChrome'
+import { INPUT, PAGE, ROW, SECTION, STAMP, TITLE } from './gameChrome'
 
 /**
  * The Mediator surface — the layer ADR-021 deferred and ADR-030 §6 specifies.
@@ -304,7 +304,7 @@ export function MediatorScreen({ gameId }: { gameId: string }) {
   return (
     // Wider than it was: the surface now leads with a three-column roster, and
     // the old 3xl column squeezed it to one column on every screen size.
-    <main className="mx-auto flex max-w-6xl flex-col gap-6 p-4 sm:p-8">
+    <main className={PAGE}>
       <Text as="h1" className={TITLE}>
         Mediator
       </Text>

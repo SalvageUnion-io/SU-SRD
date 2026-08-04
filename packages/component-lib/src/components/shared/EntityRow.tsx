@@ -1,4 +1,5 @@
-import type { CSSProperties, ElementType, ReactNode } from 'react'
+import { Fragment } from 'react'
+import type { ElementType, ReactNode } from 'react'
 import { Bot, type LucideIcon, Trash2, UserRound, Users, Warehouse } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import { Badge } from '../chrome/Badge'
@@ -10,14 +11,33 @@ import { Stat } from './Stat'
  * EntityRow — a header-only clickable listing ROW: the compact, one-line
  * translation of a `Card` for roster / index surfaces.
  *
- * Anatomy (grounded in ITUN's `EntityListItem`, re-composed on canon atoms):
- * a hover-lift frame (2px ink border, faint tone-wash background) fronted by a
- * 6px deep-tone LEFT accent rail keyed to entity ontology (pilot → orange,
- * mech → green, crawler → pink, game → blue — the `--color-sheet-*` tokens), a black name
- * tab (Barlow Semi Condensed, white-on-ink, caps at 0.04em tracking), an
- * optional muted meta caption beneath it, and trailing View (link) + Delete
- * (ghost trash) actions. Neither action is the rust action colour — a row
- * navigates and removes, it never performs a true game action.
+ * Anatomy — the CARD's, compressed. A row is built from the same bands an
+ * entity card is, in the same order, at the same frame weight
+ * (`--bw-entity`):
+ *
+ *   ┌──────────────────────────────────┐
+ *   │ ▸ HEADER BAND — solid ontology tone, carrying the black name stamp
+ *   │   (pilot → orange, mech → green, crawler → pink, game → blue, the
+ *   │   `--color-sheet-*` tokens). The seal, when present, is pinned to this
+ *   │   band's top-right corner.
+ *   │ ▸ BODY — paper. Caption chips, ontology-toned meta badges, `Stat`s, and
+ *   │   the trailing View / Delete controls.
+ *   └──────────────────────────────────┘
+ *
+ * It previously said its ontology twice and in neither of the card's ways: a
+ * 6px deep-tone rail down the left edge, over a body tinted ~10% with the same
+ * tone. Both are gone. A card states its kind in a band across the top and puts
+ * its content on paper, so a row does too — which also means every chip, stat
+ * and button on a row sits on ONE ground instead of four faintly different
+ * ones.
+ *
+ * Neither trailing action is the rust action colour — a row navigates and
+ * removes, it never performs a true game action.
+ *
+ * **Every piece of text on the row is a badge**: the name is a stamp, the
+ * class/role is a toned badge, stats render through `Stat`, and the caption is
+ * a row of quiet chips. Nothing on a row is loose prose, so the eye reads one
+ * vocabulary down a column of forty of them.
  *
  * Data-source agnostic: View renders `linkAs` (a plain `<a>` by default) styled
  * with `buttonVariants`, so the primitive works with any router or none — an
@@ -40,7 +60,7 @@ export type EntityRowStat = {
 
 /** The filled row: a linked player entity. */
 type FilledEntityRowProps = {
-  /** Entity ontology driving the accent rail + tone wash. */
+  /** Entity ontology driving the header band's tone. */
   entityType: EntityRowType
   /** Filled is the default; omit or pass `false`. */
   empty?: false
@@ -63,14 +83,41 @@ type FilledEntityRowProps = {
    */
   meta?: ReactNode | ReactNode[]
   /**
-   * Free-form caption under the name tab — muted, single-line, truncating.
+   * Caption under the name tab — a wrapping row of quiet chips.
    *
-   * Distinct from `meta`: `meta` is the entity's CLASS/ROLE and renders as an
-   * ontology-toned Badge, whereas this line carries arbitrary nodes such as a
-   * callsign and `↳ Name` cross-links to other sheets. Links inside a toned
-   * Badge would be illegible, which is why these are two props and not one.
+   * **Every piece of text on a row is a badge.** Plain strings and numbers
+   * passed here are wrapped in a quiet chip for you; nodes are rendered as
+   * given, because a caller passing a node is passing something already
+   * chipped (a `↳ Name` cross-link is an anchor wrapping a toned Badge, and
+   * re-wrapping it would nest one badge inside another).
+   *
+   * Pass an ARRAY to render several chips. It used to be one free-form node
+   * that callers joined with ' · ' separators into a single muted line, which
+   * left the row with two vocabularies — stamped name, badged class/stats, and
+   * then a run of loose grey prose underneath carrying the callsign, the
+   * chassis and the owner. The separator characters were doing the work a chip
+   * boundary does better.
+   *
+   * Distinct from `meta`: `meta` is the entity's CLASS/ROLE and takes the
+   * ontology tone, whereas these are quiet — the row's tone belongs to what the
+   * entity IS, not to its incidental facts.
    */
-  metaLine?: ReactNode
+  metaLine?: ReactNode | ReactNode[]
+  /**
+   * A stamp pinned to the row's TOP-RIGHT corner — the mark applied ON the
+   * record about its status, as distinct from `actions` (things you do to it)
+   * and `meta` (what it is).
+   *
+   * A slot rather than a typed prop for the same reason `actions` is one: what
+   * a row is stamped with belongs to the surface listing it. The Game roster
+   * stamps ownership here (`UNCLAIMED` / `YOU` / a crewmate's name, ADR-030
+   * D32); a personal roster stamps nothing at all.
+   *
+   * It is pinned to the header band's top-right corner and taken out of the
+   * flow, so nothing on the row can push it elsewhere; the band reserves the
+   * width for it, which is what stops a long name sliding underneath.
+   */
+  seal?: ReactNode
   /**
    * Destination for the View link. **Omit when there is nothing to open.**
    *
@@ -105,7 +152,7 @@ type FilledEntityRowProps = {
 
 /**
  * The EMPTY row: a dashed placeholder slot for an unfilled link (e.g. a pilot
- * with no assigned mech). Keeps the ontology tone wash + a black role tab, over
+ * with no assigned mech). Keeps the ontology header band + a black role tab, over
  * a helper message and optional create/link actions.
  */
 type EmptyEntityRowProps = {
@@ -125,27 +172,42 @@ type EmptyEntityRowProps = {
 type EntityRowProps = FilledEntityRowProps | EmptyEntityRowProps
 
 /**
- * Per-ontology tone pair (see `--color-sheet-*` in theme.css): `rail` is the
- * deep tone driving the 6px accent bar; `wash` is a faint tint of the base tone
- * mixed into paper so the row reads coloured without fighting the ink text.
+ * Per-ontology tone (see `--color-sheet-*` in theme.css), read as `Card` reads
+ * it: `band` is the header fill, `ink` the text that sits legibly on it.
+ *
+ * ## Why there is no longer a `rail` or a `wash`
+ *
+ * The row used to carry its ontology two ways at once — a 6px deep-tone bar
+ * down the left edge, over a body tinted ~10% with the same tone — and neither
+ * is how a card says it. A card states its ontology **in a solid band across
+ * the top**, over a paper body: the tone is a header, not an edge, and the
+ * content sits on paper so black text is black text everywhere in the system.
+ * Rows are the compact translation of that card, so they say it the same way.
+ *
+ * The practical gain is legibility, not just consistency. A tinted body meant
+ * every quiet chip, stat and button on the row sat on a slightly different
+ * ground per ontology, and the rail put a hard 6px of `crawler-deep` against a
+ * pink wash — the highest-contrast element on the row spent on decoration.
+ *
+ * `crawler` takes paper text for the same reason its Badge tone does: it is the
+ * one dark fill in the ramp.
  */
-const TONE: Record<EntityRowType, { rail: string; wash: string }> = {
-  pilot: {
-    rail: 'var(--color-sheet-pilot-deep)',
-    wash: 'color-mix(in srgb, var(--color-sheet-pilot) 10%, var(--color-paper))',
-  },
-  mech: {
-    rail: 'var(--color-sheet-mech-deep)',
-    wash: 'color-mix(in srgb, var(--color-sheet-mech) 12%, var(--color-paper))',
-  },
-  crawler: {
-    rail: 'var(--color-sheet-crawler-deep)',
-    wash: 'color-mix(in srgb, var(--color-sheet-crawler) 11%, var(--color-paper))',
-  },
-  game: {
-    rail: 'var(--color-sheet-game-deep)',
-    wash: 'color-mix(in srgb, var(--color-sheet-game) 11%, var(--color-paper))',
-  },
+const TONE: Record<EntityRowType, { band: string; ink: string }> = {
+  pilot: { band: 'var(--color-sheet-pilot)', ink: 'var(--color-ink)' },
+  mech: { band: 'var(--color-sheet-mech)', ink: 'var(--color-ink)' },
+  crawler: { band: 'var(--color-sheet-crawler)', ink: 'var(--color-paper)' },
+  game: { band: 'var(--color-sheet-game)', ink: 'var(--color-ink)' },
+}
+
+/**
+ * Normalise a one-or-many node prop to a list, dropping the empties so a caller
+ * passing `undefined` (or a falsy conditional) renders nothing rather than an
+ * empty chip.
+ */
+function toNodes(value: ReactNode | ReactNode[]): ReactNode[] {
+  return (Array.isArray(value) ? value : [value]).filter(
+    (node) => node !== null && node !== undefined && node !== false && node !== ''
+  )
 }
 
 /** Per-ontology "missing entity" glyph for the empty variant (decorative). */
@@ -166,23 +228,27 @@ export function EntityRow(props: EntityRowProps) {
     return (
       <div
         className={cn(
-          'flex min-w-0 flex-col overflow-hidden rounded-card border-2 border-dashed border-ink',
+          'flex min-w-0 flex-col overflow-hidden rounded-card bg-paper',
+          'border-[length:var(--bw-entity)] border-dashed border-ink',
           className
         )}
-        style={{ background: tone.wash }}
       >
-        {/* Black role tab — the same canonical stamp atom the filled variant's
-            name tab uses, not a hand-rolled span. */}
-        <Badge shape="stamp" size="compact" className="self-start">
-          {roleLabel}
-        </Badge>
+        {/* The role tab rides its own tone band, the same way the filled row's
+            name does — an empty slot is still a slot for a KIND of thing, and
+            it should announce which one in the same place its filled sibling
+            would. Dashed frame is what marks it empty; the band is not. */}
+        <div
+          className="flex items-center px-2.5 py-1.5"
+          style={{ background: tone.band, color: tone.ink }}
+        >
+          <Badge shape="stamp" size="compact">
+            {roleLabel}
+          </Badge>
+        </div>
         <div className="flex flex-wrap items-center gap-3 px-2.5 py-2">
-          <EmptyGlyph aria-hidden="true" className="size-6 shrink-0" style={{ color: tone.rail }} />
+          <EmptyGlyph aria-hidden="true" className="size-6 shrink-0" style={{ color: tone.band }} />
           {mock}
-          <p
-            className="m-0 min-w-[140px] flex-1 font-body text-note leading-snug"
-            style={{ color: tone.rail }}
-          >
+          <p className="m-0 min-w-[140px] flex-1 font-body text-note leading-snug text-ink">
             {message}
           </p>
         </div>
@@ -201,102 +267,144 @@ export function EntityRow(props: EntityRowProps) {
     stats,
     meta,
     metaLine,
+    seal,
     sheetHref,
     onDeleteClick,
     actions,
     linkAs: Link = 'a',
   } = props
-  const frameStyle: CSSProperties = { background: tone.wash }
-
   // `meta` accepts one node or several. Normalise to a list, dropping empties so
   // a caller passing `undefined` (or a falsy conditional) renders no badge at
   // all rather than an empty one.
-  const metaBadges = (Array.isArray(meta) ? meta : [meta]).filter(
-    (node) => node !== null && node !== undefined && node !== false && node !== ''
-  )
+  const metaBadges = toNodes(meta)
+  const captionParts = toNodes(metaLine)
+  const hasBody = captionParts.length > 0 || metaBadges.length > 0 || (stats?.length ?? 0) > 0
 
   return (
     <div
       className={cn(
-        'group relative flex items-stretch overflow-hidden rounded-card border-2 border-ink',
+        'group relative flex flex-col overflow-hidden rounded-card bg-paper',
+        // The frame is the card's, at the card's weight — a row is the compact
+        // translation of an entity card, not a lighter-weight cousin of one.
+        'border-[length:var(--bw-entity)] border-ink',
         'shadow-[0_1px_0_var(--color-ink-8)] transition-all duration-200',
         'md:hover:-translate-y-0.5 md:hover:shadow-[0_7px_18px_var(--color-ink-20)]'
       )}
-      style={frameStyle}
     >
-      {/* Deep-tone accent rail — the entity card's left body accent, in row form */}
-      <span
-        aria-hidden="true"
-        className="w-[6px] shrink-0 self-stretch"
-        style={{ background: tone.rail }}
-      />
-
-      <div className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5">
-        <div className="min-w-0 flex-1">
-          {/* Black name tab — the canonical stamp, not a hand-rolled span. It
-              was the latter (rounded-pip, its own padding/size), which is the
-              drift the stamp atom exists to prevent. */}
-          <Badge shape="stamp" size="full" className="block max-w-full truncate align-middle">
-            {name}
-          </Badge>
-          {metaLine && (
-            <div className="mt-1.5 truncate font-body text-xs text-wk-muted">{metaLine}</div>
-          )}
-          {(metaBadges.length > 0 || (stats && stats.length > 0)) && (
-            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-              {/* Subheader info is only stats or toned badges — the class/role
-                  line is a badge keyed to the entity's ontology tone (pilot →
-                  orange, mech → green, crawler → pink, game → blue). */}
-              {metaBadges.map((badge, i) => (
-                <Badge
-                  // biome-ignore lint/suspicious/noArrayIndexKey: static per-render list that never reorders; a count badge's text changes as the count does, so content is a worse key than position
-                  key={i}
-                  surface="tone"
-                  tone={entityType}
-                  className="max-w-full truncate"
-                >
-                  {badge}
-                </Badge>
-              ))}
-              {stats?.map((stat) => (
-                <Stat
-                  key={String(stat.label)}
-                  label={stat.label}
-                  value={stat.value}
-                  orientation="horizontal"
-                  size="mini"
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
-          {actions}
-          {sheetHref !== undefined && (
-            <Link
-              href={sheetHref}
-              className={cn(
-                buttonVariants({ variant: 'default', size: 'compact' }),
-                'no-underline'
-              )}
-            >
-              View
-            </Link>
-          )}
-          {onDeleteClick && (
-            <Button
-              variant="ghost"
-              size="compact"
-              aria-label={`Delete ${name}`}
-              onClick={onDeleteClick}
-              className="border-transparent px-2 text-status-bad hover:bg-transparent hover:text-status-bad"
-            >
-              <Trash2 aria-hidden="true" className="size-4" />
-            </Button>
-          )}
-        </div>
+      {/* HEADER BAND — the card's, in row form: a solid strip of the ontology
+          tone carrying the name stamp. This is where the row states what kind
+          of thing it is, replacing the left rail + tinted body it used to say
+          it with. `pr-24` reserves the corner the seal is pinned to. */}
+      <div
+        className={cn('flex min-w-0 items-center px-2.5 py-1.5', seal && 'pr-24')}
+        style={{ background: tone.band, color: tone.ink }}
+      >
+        {/* Black name tab — the canonical stamp, not a hand-rolled span. It
+            was the latter (rounded-pip, its own padding/size), which is the
+            drift the stamp atom exists to prevent. */}
+        <Badge shape="stamp" size="full" className="block max-w-full truncate align-middle">
+          {name}
+        </Badge>
       </div>
+
+      {/* BODY — paper, like a card's. Everything that is not the name lives
+          here, so chips, stats and buttons all sit on one ground regardless of
+          ontology. Rendered only when there is something to put in it: a row
+          with nothing but a name closes at the band rather than opening an
+          empty strip under it. */}
+      {(hasBody || actions || sheetHref !== undefined || onDeleteClick) && (
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2 px-2.5 py-2">
+          {/* `min-w` is a wrap TRIGGER, not a width: without it the caption
+              block shrinks to whatever the controls leave behind, and a row
+              with four buttons truncated "Iron Mongrel" to "IRON-MON…" rather
+              than dropping the controls to their own line. */}
+          <div className="flex min-w-[9rem] flex-1 flex-col gap-1.5">
+            {captionParts.length > 0 && (
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                {captionParts.map((part, i) =>
+                  typeof part === 'string' || typeof part === 'number' ? (
+                    <Badge
+                      // biome-ignore lint/suspicious/noArrayIndexKey: positional caption parts that never reorder; a callsign or chassis name is a worse key than its slot
+                      key={i}
+                      surface="quiet"
+                      className="max-w-full truncate"
+                    >
+                      {part}
+                    </Badge>
+                  ) : (
+                    // Already a node — a cross-link anchor wrapping its own toned
+                    // Badge — so it renders as given rather than nested in a chip.
+                    // biome-ignore lint/suspicious/noArrayIndexKey: as above
+                    <Fragment key={i}>{part}</Fragment>
+                  )
+                )}
+              </div>
+            )}
+            {(metaBadges.length > 0 || (stats && stats.length > 0)) && (
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                {/* Subheader info is only stats or toned badges — the class/role
+                    line is a badge keyed to the entity's ontology tone (pilot →
+                    orange, mech → green, crawler → pink, game → blue). */}
+                {metaBadges.map((badge, i) => (
+                  <Badge
+                    // biome-ignore lint/suspicious/noArrayIndexKey: static per-render list that never reorders; a count badge's text changes as the count does, so content is a worse key than position
+                    key={i}
+                    surface="tone"
+                    tone={entityType}
+                    className="max-w-full truncate"
+                  >
+                    {badge}
+                  </Badge>
+                ))}
+                {stats?.map((stat) => (
+                  <Stat
+                    key={String(stat.label)}
+                    label={stat.label}
+                    value={stat.value}
+                    orientation="horizontal"
+                    size="mini"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* The controls, trailing the body. They no longer compete with the
+              name for width — the name has its own band above — so this is a
+              plain right-aligned cluster that wraps when it must. */}
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
+            {actions}
+            {sheetHref !== undefined && (
+              <Link
+                href={sheetHref}
+                className={cn(
+                  buttonVariants({ variant: 'default', size: 'compact' }),
+                  'no-underline'
+                )}
+              >
+                View
+              </Link>
+            )}
+            {onDeleteClick && (
+              <Button
+                variant="ghost"
+                size="compact"
+                aria-label={`Delete ${name}`}
+                onClick={onDeleteClick}
+                className="border-transparent px-2 text-status-bad hover:bg-transparent hover:text-status-bad"
+              >
+                <Trash2 aria-hidden="true" className="size-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* The seal owns the top-right corner outright — pulled out of the flow
+          so no amount of name, caption or controls can push it somewhere else.
+          The name block reserves its width with `pr-24` above, which is what
+          keeps a long name from sliding underneath it. */}
+      {seal && <span className="absolute right-2.5 top-2.5 z-10">{seal}</span>}
     </div>
   )
 }

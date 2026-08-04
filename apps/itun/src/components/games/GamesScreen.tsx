@@ -9,7 +9,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { SignInControl } from '../account/SignInControl'
 import { GameRow } from './GameRow'
-import { INPUT, STAMP } from './gameChrome'
+import { INPUT, PAGE, STAMP } from './gameChrome'
 
 /**
  * Games — the shelf of tables you belong to.
@@ -246,7 +246,7 @@ function GamesBody() {
 
 export function GamesScreen() {
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-6 p-4">
+    <main className={PAGE}>
       <Text as="h1" className="font-cond text-2xl font-bold tracking-caps uppercase">
         Games
       </Text>

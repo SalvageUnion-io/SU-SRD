@@ -8,7 +8,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { SignInControl } from '../account/SignInControl'
 import { AppLink } from '../shared/AppLink'
-import { STAMP, TITLE } from './gameChrome'
+import { PAGE, STAMP, TITLE } from './gameChrome'
 
 /**
  * `/join/$code` — the link half of an invite.
@@ -203,11 +203,15 @@ export function JoinScreen({ code }: { code: string }) {
   }
 
   return (
-    <main className="mx-auto flex max-w-lg flex-col gap-6 p-4">
+    <main className={PAGE}>
       <Text as="h1" className={TITLE}>
         Join a game
       </Text>
-      {body()}
+      {/* The page shell is the full-width one every Game surface now uses, but
+          the form inside is capped: a Game screen is wide because it lists a
+          crew, and this one holds a six-character code. Stretching the card to
+          1440px would make the shells match by making the content worse. */}
+      <div className="w-full max-w-xl">{body()}</div>
     </main>
   )
 }

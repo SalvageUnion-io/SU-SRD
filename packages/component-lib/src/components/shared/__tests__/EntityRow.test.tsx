@@ -55,12 +55,14 @@ describe('EntityRow — meta arity', () => {
 })
 
 describe('EntityRow — the game ontology', () => {
-  test('a game row paints the game rail, not the crawler rail', () => {
+  test('a game row paints the game band, not the crawler band', () => {
     const { container } = render(
       <EntityRow entityType="game" name="Union Crawler #430" sheetHref="#/games/430" />
     )
     const html = container.innerHTML
-    expect(html).toContain('--color-sheet-game-deep')
+    // A Game named after a crawler is exactly where the two tones could be
+    // confused, which is why this asserts the token rather than the look.
+    expect(html).toContain('--color-sheet-game')
     expect(html).not.toContain('--color-sheet-crawler')
   })
 

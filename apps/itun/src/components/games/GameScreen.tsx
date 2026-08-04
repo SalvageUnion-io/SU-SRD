@@ -25,7 +25,7 @@ import { DowntimePanel } from './DowntimePanel'
 import { GameRoster } from './GameRoster'
 import { InvitePanel } from './InvitePanel'
 import { ProposalInbox } from './ProposalInbox'
-import { TITLE } from './gameChrome'
+import { PAGE, TITLE } from './gameChrome'
 import { AppLink } from '../shared/AppLink'
 
 function GameBody({ gameId }: { gameId: string }) {
@@ -77,7 +77,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
   const { mode } = useConnection()
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-6 p-4 sm:p-8">
+    <main className={PAGE}>
       <Text as="h1" className={TITLE}>
         Game
       </Text>

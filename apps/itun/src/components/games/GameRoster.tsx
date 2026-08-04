@@ -41,6 +41,7 @@ import { useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { useMutation, useQuery } from 'convex/react'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import {
   Badge,
   Button,
@@ -62,6 +63,7 @@ import {
   type RosterRow,
   type RosterKind,
 } from '../../lib/games/gameRoster'
+import type { OwnerChip } from '../../lib/ownership/ownerChip'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
@@ -147,8 +149,17 @@ function statsFor(row: RosterRow): Array<{ label: string; value: string | number
   return out
 }
 
-/** The muted caption under the name: callsign / chassis, then the owner chip. */
-function metaLineFor(row: RosterRow) {
+/**
+ * The row's caption parts — callsign, class, chassis — each rendered by
+ * `EntityRow` as its own quiet chip.
+ *
+ * Ownership is NOT among them any more: it is the row's seal, stamped in the
+ * top-right corner (see `OwnerSeal`). It used to be a toned chip down here
+ * beside the callsign, which put the single most consequential fact about a
+ * row — whose character is this — in the same visual register as their
+ * nickname.
+ */
+function captionFor(row: RosterRow): string[] {
   const parts: string[] = []
   if (row.kind === 'pilot') {
     const callsign = row.body.callsign
@@ -160,55 +171,90 @@ function metaLineFor(row: RosterRow) {
   }
   if (row.kind === 'mech') {
     const chassis = row.body.chassisRef
-    if (typeof chassis === 'string' && chassis.length > 0) parts.push(chassis)
+    // Resolved, not printed raw. The home Roster reads "Iron Mongrel · TL 1"
+    // where this said "iron-mongrel" — the stored value is a slug, and showing
+    // the slug is the surface admitting it never looked the chassis up.
+    if (typeof chassis === 'string' && chassis.length > 0) parts.push(chassisLabel(chassis))
   }
+  return parts
+}
 
-  return (
-    <span className="flex flex-wrap items-center gap-1.5">
-      {parts.length > 0 && <span>{parts.join(' · ')}</span>}
-      {/* Ownership is a STATE, not a blank (ADR-030 D32). An UNCLAIMED row
-          carries its state as a stamp seal in the row's trailing controls
-          instead of a chip here — see `UnclaimedSeal`. */}
-      {row.owner !== null && !row.owner.unclaimed && (
-        <Badge shape="chip" surface="tone" tone={row.kind} className="max-w-full truncate">
-          {row.owner.label}
-        </Badge>
-      )}
-    </span>
-  )
+/** A mech's chassis as "Name · TL n", falling back to the raw ref. */
+function chassisLabel(chassisRef: string): string {
+  // `resolveChassisRef` throws when the Chassis model is not preloaded (test
+  // and snapshot contexts), so this falls back rather than taking the screen
+  // down with it — the same guard the Roster's `mechChassisMeta` uses.
+  try {
+    const chassis = resolveChassisRef(chassisRef) as { name: string; techLevel?: number } | null
+    if (!chassis) return chassisRef
+    return chassis.techLevel != null ? `${chassis.name} · TL ${chassis.techLevel}` : chassis.name
+  } catch {
+    return chassisRef
+  }
 }
 
 /**
- * The UNCLAIMED seal: a stamped mark on the right of the row, and the way in
- * to picking that character up.
+ * The ownership seal: one stamp in the row's top-right corner saying who holds
+ * this character — `UNCLAIMED`, `YOU`, or a crewmate's name.
  *
- * It is one control rather than a chip plus a button because it is one fact.
- * An unclaimed pre-gen is an *offer*, so the thing that announces it should
- * also be the thing you press — a row that read "Unclaimed" in muted grey next
- * to a separate "Pick up" said the same thing twice and buried the invitation
- * in the quieter half.
+ * ## One mark, three states
  *
- * Stamped rather than chipped for the same reason a document is stamped: it is
- * a mark applied ON the record about its status, not a property of the
- * character. It opens a confirm rather than claiming outright — taking a
- * character is a commitment at the table, and the modal is where the surface
- * says what happens next (it becomes yours, and it lands in this browser).
+ * Ownership is one fact, so it gets one mark. The surface previously said it
+ * two ways at once: an owner chip in the caption for held characters, and a
+ * separate UNCLAIMED stamp among the buttons for free ones — two vocabularies
+ * for a single field, in two different places, so scanning a column meant
+ * checking both. A seal that is always present and always in the same corner
+ * can be read down a list without reading anything else.
+ *
+ * Stamped rather than chipped for the reason documents are stamped: it is a
+ * mark applied ON the record about its status, not a property of the character
+ * itself.
+ *
+ * ## Why UNCLAIMED is the pressable one
+ *
+ * An unclaimed pre-gen is an *offer*, so the thing that announces it is also
+ * the thing you press. The other two states are statements of fact with nothing
+ * to do — pressing "MARA" should not do anything, and it does not.
+ *
+ * It opens a confirm rather than claiming outright: taking a character is a
+ * commitment at the table, and the modal is where the surface says what happens
+ * next (it becomes yours, and it lands in this browser).
  */
-function UnclaimedSeal({ onClick, disabled }: { onClick: () => void; disabled: boolean }) {
+function OwnerSeal({
+  owner,
+  claimable,
+  disabled,
+  onClaim,
+}: {
+  owner: OwnerChip
+  claimable: boolean
+  disabled: boolean
+  onClaim: () => void
+}) {
+  const stamp = (
+    <Badge shape="stamp" size="compact" surface="inverse" className="tracking-caps-wide">
+      {owner.label}
+    </Badge>
+  )
+
+  if (!claimable) {
+    // Inert: a fact about the row, not a control. Rotated the same few degrees
+    // so a held row and a free one read as the same kind of mark.
+    return <span className="rotate-[-4deg]">{stamp}</span>
+  }
+
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={onClaim}
       disabled={disabled}
-      aria-label="Unclaimed — pick this up"
+      aria-label={`${owner.label} — pick this up`}
       className={cn(
         'rotate-[-4deg] cursor-pointer border-0 bg-transparent p-0',
         'transition-transform duration-200 hover:rotate-0 disabled:cursor-default disabled:opacity-50'
       )}
     >
-      <Badge shape="stamp" size="compact" surface="inverse" className="tracking-caps-wide">
-        Unclaimed
-      </Badge>
+      {stamp}
     </button>
   )
 }
@@ -418,8 +464,25 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                           entityType={row.kind}
                           name={row.name}
                           stats={statsFor(row)}
-                          metaLine={metaLineFor(row)}
+                          metaLine={captionFor(row)}
                           linkAs={AppLink}
+                          /* Every row is a door now. View goes to the frozen
+                             crew sheet (`GameEntitySheet`) for EVERY row,
+                             including your own: it is a plain anchor to a
+                             read-only surface, so it needs no adoption round
+                             trip and behaves like the Roster's View. Editing
+                             is the separate, owner-only verb beside it. */
+                          sheetHref={`/games/${gameId}/view/${row.kind}/${row.serverId}`}
+                          seal={
+                            row.owner === null ? undefined : (
+                              <OwnerSeal
+                                owner={row.owner}
+                                claimable={row.can.claim}
+                                disabled={busy !== null}
+                                onClaim={() => setClaimTarget(row)}
+                              />
+                            )
+                          }
                           actions={
                             <>
                               {row.can.openSheet && (
@@ -431,7 +494,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                                     void run(`open-${row.serverId}`, () => openSheet(row))
                                   }
                                 >
-                                  Sheet
+                                  Edit
                                 </Button>
                               )}
                               {row.kind === 'mech' && row.can.openSheet && (
@@ -446,13 +509,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                                   Dashboard
                                 </Button>
                               )}
-                              {row.can.claim && (
-                                <UnclaimedSeal
-                                  disabled={busy !== null}
-                                  onClick={() => setClaimTarget(row)}
-                                />
-                              )}
-                              {/* Any owner, not just the table runner: ADR-030
+                              {/* Picking up is the SEAL's job, not a button's —
+                                  see `OwnerSeal`. Any owner, not just the table runner: ADR-030
                                   §4 says ownership is voluntary in the outward
                                   direction, and the pick-up confirm promises
                                   exactly this as the way back out. */}
