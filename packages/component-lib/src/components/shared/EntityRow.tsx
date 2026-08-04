@@ -20,8 +20,10 @@ import { Stat } from './Stat'
  *   ┌────────────────╨───────╨─────────┐
  *   │ ▸ HEADER BAND — solid ontology tone (pilot → orange, mech → green,
  *   │   crawler → pink, game → blue, the `--color-sheet-*` tokens), carrying
- *   │   the black name stamp on the left and the row's `stats` on the right.
- *   │   What the thing IS, and how it is doing.
+ *   │   the TITLE on the left and the row's `stats` on the right. What the
+ *   │   thing IS, and how it is doing. The title follows the entity card's own
+ *   │   rule (`EntityCardHeader`): paper-white text directly on the tone, no
+ *   │   ink block behind it, at the size ladder's `small` rung.
  *   │ ▸ BODY — paper. Ontology-toned meta badges, quiet caption chips, and the
  *   │   trailing View / Delete controls. Details, and verbs.
  *   └──────────────────────────────────┘
@@ -376,12 +378,32 @@ export function EntityRow(props: EntityRowProps) {
           )}
           style={{ background: tone.band, color: tone.ink }}
         >
-          {/* Black name tab — the canonical stamp, not a hand-rolled span. It
-              was the latter (rounded-pip, its own padding/size), which is the
-              drift the stamp atom exists to prevent. */}
-          <Badge shape="stamp" size="full" className="block max-w-full truncate align-middle">
+          {/* The title, under the ENTITY CARD's title rule (`EntityCardHeader`):
+              plain paper-white text sitting directly ON the tone — no ink
+              name-tab block behind it — condensed, bold, uppercase, tight caps
+              tracking, hugging its own text rather than filling the band.
+
+              It was a black stamp plate, which is the treatment cards use for
+              their SEAM tags and eyebrows, not for a name. Two different
+              answers to "how does an entity announce itself" in one system was
+              the drift; the card's is the one that wins, so a row's title and a
+              card's title are now the same object at a different rung.
+
+              `text-base` is the ladder's `small` rung at depth 0 — a row is the
+              card's compact translation, so it sits where a small card sits,
+              and it is meaningfully larger than the stamp it replaces.
+
+              `break-words` so an unbreakable token wraps instead of running
+              under the stat cluster beside it. */}
+          <span
+            className={cn(
+              'w-fit min-w-0 self-center break-words',
+              'font-cond text-base font-bold uppercase leading-none tracking-caps-tight',
+              'text-paper'
+            )}
+          >
             {name}
-          </Badge>
+          </span>
           {hasStats && (
             <div className="ml-auto flex flex-wrap items-center justify-end gap-x-2 gap-y-1">
               {stats?.map((stat) => (
