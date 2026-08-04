@@ -54,7 +54,7 @@
  *
  * Run:  bun tools/check-printed-names.ts
  */
-import { readdirSync, readFileSync, existsSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { SalvageUnionReference } from '../packages/salvageunion-reference/lib/index'
 import { DEVIATIONS } from '../packages/salvageunion-reference/lib/printedNameDeviations'

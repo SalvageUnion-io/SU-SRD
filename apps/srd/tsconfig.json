@@ -1,8 +1,32 @@
 {
-  "extends": "astro/tsconfigs/strict",
+  // This used to extend `astro/tsconfigs/strict`, which made srd the only
+  // workspace not built on the repo base — and so the only one running without
+  // `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch` and
+  // `allowSyntheticDefaultImports`, none of which Astro's preset defines. Four
+  // checks every sibling enforced were silently off here.
+  //
+  // The fix is to extend the repo base like every sibling and layer Astro's
+  // needs on top, rather than swapping the base out. `astro/tsconfigs/strict`
+  // is only `base.json` + `strict: true`, and the base settings it contributed
+  // that the repo base does not are re-declared explicitly below, so nothing
+  // Astro relies on is lost. Keep them in sync if Astro's preset changes.
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "noImplicitReturns": true,
-    "noUncheckedIndexedAccess": true,
+    /* From astro/tsconfigs/base.json — Astro's requirements, restated */
+    "target": "ESNext",
+    // Astro runs TypeScript directly and emits nothing from here;
+    // `allowImportingTsExtensions` is only legal alongside `noEmit`.
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    // `astro.config.mjs` is in `include`, so JS must be allowed — the repo base
+    // sets `allowJs: false`.
+    "allowJs": true,
+    // The repo base emits declarations; this workspace emits nothing.
+    "declaration": false,
+    "declarationMap": false,
+    "composite": false,
+
+    /* srd's own */
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -12,5 +36,8 @@
     "skipLibCheck": true,
     "types": ["node", "bun-types"]
   },
-  "include": ["src/**/*", "test/**/*", "scripts/**/*", "astro.config.mjs", ".astro/types.d.ts"]
+  "include": ["src/**/*", "test/**/*", "scripts/**/*", "astro.config.mjs", ".astro/types.d.ts"],
+  // Astro's preset excluded `dist`. `include` is explicit here, but a stale
+  // build output must not be picked up by `astro check`.
+  "exclude": ["dist"]
 }

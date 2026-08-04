@@ -4,11 +4,12 @@
  *
  * Usage: bun tools/a11y-scan.ts <base-url> <page1> <page2> ...
  */
-import puppeteer from 'puppeteer-core'
+
 import { mkdirSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
+import puppeteer from 'puppeteer-core'
 
 const AXE_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.4/axe.min.js'
 

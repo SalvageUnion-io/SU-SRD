@@ -4,10 +4,17 @@
  * Bun-version drift check (audit item 8).
  *
  * `.bun-version` drives CI (setup-bun reads it via bun-version-file), but the
- * two Netlify sites pin BUN_VERSION independently and root devDeps pin
+ * three Netlify sites pin BUN_VERSION independently and root devDeps pin
  * bun-types — these HAD drifted (CI tested 1.3.10 while ITUN production
  * built on 1.3.14), which breaks "test what you ship". This script fails
  * check:all whenever any surface disagrees with .bun-version.
+ *
+ * su-assets was the third site and had no BUN_VERSION at all, so it silently
+ * built on whatever Netlify's default Bun happened to be — invisible to this
+ * check, which only knew about two files. It serves the artwork for BOTH
+ * production sites, so a Bun it was never tested against is a live risk, not a
+ * hygiene point. A site with no pin now fails as `(missing)` rather than being
+ * absent from the list.
  */
 
 import { readFileSync } from 'node:fs'
@@ -38,6 +45,10 @@ const surfaces: Surface[] = [
     actual: netlifyBunVersion('apps/itun/netlify.toml'),
   },
   {
+    label: 'apps/su-assets/netlify.toml BUN_VERSION',
+    actual: netlifyBunVersion('apps/su-assets/netlify.toml'),
+  },
+  {
     label: 'root package.json devDependencies.bun-types',
     actual: rootPkg.devDependencies?.['bun-types'],
   },
@@ -52,4 +63,6 @@ if (drifted.length > 0) {
   process.exit(1)
 }
 
-console.log(`✓ Bun ${expected} pinned consistently across CI, both Netlify sites, and bun-types.`)
+console.log(
+  `✓ Bun ${expected} pinned consistently across CI, all ${surfaces.length - 1} Netlify sites, and bun-types.`
+)

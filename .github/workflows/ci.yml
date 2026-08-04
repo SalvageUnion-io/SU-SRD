@@ -501,6 +501,33 @@ jobs:
       # EVERY job above must be listed here. This is the single required check
       # for branch protection, so a job missing from this list is a job that
       # can fail without blocking merge.
+      #
+      # `needs:` reaches only inside this workflow, so this gate CANNOT cover
+      # .github/workflows/codeql.yml. CodeQL's `analyze` job runs on the same
+      # pull_request trigger and appears in no aggregate, which makes every SAST
+      # finding advisory: a CodeQL failure does not block a merge today.
+      #
+      # ACTION REQUIRED — two steps, IN THIS ORDER. Reversing them wedges the
+      # merge queue on every PR:
+      #
+      #   1. Add `merge_group:` to codeql.yml's `on:` block. It currently
+      #      triggers on push/pull_request/schedule only. Requiring a context
+      #      that never fires on the queue's temporary branches is the exact
+      #      failure the `merge_group:` trigger at the top of THIS file was
+      #      added to prevent — the queue would wait forever.
+      #   2. Then add `CodeQL / Analyze (javascript-typescript)` as a SECOND
+      #      required status context alongside `quality-checks` in the branch
+      #      ruleset for `main`. Confirm the exact context string first — it is
+      #      the workflow name plus the job's `name:` — with:
+      #        gh api repos/{owner}/{repo}/commits/main/check-runs --jq '.check_runs[].name'
+      #
+      # Unlike the jobs above, CodeQL runs unfiltered (no path filter), so once
+      # it fires on the queue it can be required without stranding docs-only
+      # PRs in "pending".
+      #
+      # Do NOT instead add a step here that polls the CodeQL check-run via `gh`:
+      # it would race the other workflow, and a poll that times out or 404s
+      # reports green — worse than the advisory state it replaced.
     runs-on: ubuntu-latest
     steps:
       - name: Verify no job failed

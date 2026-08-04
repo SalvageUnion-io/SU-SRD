@@ -1,0 +1,12 @@
+# The other five workspaces each set NODE_ENV = "test" here; su-assets was the
+# one that did not, so its tests ran with whatever NODE_ENV the shell carried.
+# That matters for a function whose production config keys off NODE_ENV
+# (netlify.toml sets NODE_ENV = "production" for the build), and it is exactly
+# the kind of per-workspace divergence that makes a suite pass locally and
+# behave differently in CI.
+#
+# No `preload` — this workspace has no DOM, no IndexedDB and no reference-data
+# fixtures to stand up; the asset function is tested against plain Request /
+# Response objects.
+[test.env]
+NODE_ENV = "test"
