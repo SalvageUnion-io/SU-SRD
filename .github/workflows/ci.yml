@@ -241,12 +241,26 @@ jobs:
     # high/critical advisories so a vulnerable dependency blocks merge; lower
     # severities are reported by `bun audit` locally but do not gate CI.
     #
-    # The lockfile resolves every high/critical advisory to a patched version
-    # on its own — NO package.json `overrides` are required. The formerly
-    # ignored advisory GHSA-gv7w-rqvm-qjhr no longer appears in the resolved
-    # lockfile after the vite 8 upgrade, so no --ignore is needed. Any residual
-    # esbuild advisory pulled by the vite-7-pinned srd subtree is `low`
-    # severity and sits below this `--audit-level=high` gate.
+    # HOW ADVISORIES GET CLEARED HERE. Most resolve on their own when the
+    # lockfile moves. The rest are held above the vulnerable range by the
+    # `overrides` block in the root package.json — those entries are SECURITY
+    # FLOORS, not compatibility pins, and several high advisories currently
+    # depend on them. (`sharp` is the one exception: it is a real pinned
+    # dependency mirrored in the root and apps/srd devDependencies, so it stays
+    # exact.) No `--ignore` is needed: the formerly ignored GHSA-gv7w-rqvm-qjhr
+    # left the resolved lockfile with the vite 8 upgrade, and the residual
+    # esbuild advisory from the vite-7-pinned srd subtree is `low`, below this
+    # `--audit-level=high` gate.
+    #
+    # WHEN THIS JOB FAILS ON A TRANSITIVE DEP, the fix is `bun update <pkg>`
+    # plus the regenerated bun.lock. The floors are caret ranges so that works.
+    # Do NOT pin a floor to an exact version: an exact override pins the package
+    # *down* as well as up, so when the next advisory is fixed one patch above
+    # it, the override itself becomes the thing holding the vulnerable version
+    # in place and no `bun update` can clear it. `brace-expansion` alone was
+    # hand-bumped that way twice — 5.0.7 -> 5.0.8 (#565) and 5.0.8 -> 5.0.9
+    # (#673) — each time after the exact pin had blocked every open PR.
+    # Raise the floor, never freeze it.
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
