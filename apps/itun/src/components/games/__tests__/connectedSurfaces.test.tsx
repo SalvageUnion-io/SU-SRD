@@ -16,14 +16,12 @@ import { render, screen } from '@testing-library/react'
  */
 
 /**
- * Queries answered in CALL ORDER rather than by looking up the function
- * reference. The generated `api` object is a Proxy that throws ("No default
- * value") the moment a test touches a property on it, so introspecting the
- * reference is not available — but each component's hook order is fixed, which
- * makes position a stable key.
+ * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * This file renders three different components, so a positional queue meant
+ * three separate implicit orderings to keep straight.
  */
-let queryQueue: unknown[] = []
-let queryIndex = 0
+import { convexReactMock, setQueryAnswers } from '../../__tests__/convexMock'
+import type { QueryAnswers } from '../../__tests__/convexMock'
 
 /**
  * `mock.module` replaces the entry in the process-wide module registry, so these
@@ -42,35 +40,29 @@ mock.module('../../../lib/connection/convexClient', () => ({
   convexClient: {},
 }))
 
-mock.module('convex/react', () => ({
-  useQuery: () => {
-    const value = queryQueue[queryIndex]
-    queryIndex += 1
-    return value
-  },
-  useMutation: () => async () => undefined,
-  useConvexAuth: () => ({ isAuthenticated: true, isLoading: false }),
-  ConvexReactClient: class {},
-  ConvexProvider: ({ children }: { children: unknown }) => children,
-}))
+mock.module('convex/react', () => convexReactMock())
 
 const { CrewVitals } = await import('../CrewVitals')
 const { DowntimePanel } = await import('../DowntimePanel')
 const { ProposalInbox } = await import('../ProposalInbox')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 
-/** Answer this component's useQuery calls, in the order it makes them. */
-function withQueries(values: unknown[]): void {
-  queryQueue = values
-  queryIndex = 0
+/** Answer this component's useQuery calls, keyed by `<module>:<export>`. */
+function withQueries(answers: QueryAnswers): void {
+  setQueryAnswers(answers)
+}
+
+/** DowntimePanel asks for the phase state and whether the viewer mediates. */
+function downtimeQueries(state: unknown, amMediator: boolean): QueryAnswers {
+  return { 'downtime:state': state, 'mediator:amMediator': amMediator }
 }
 
 const wrap = (ui: React.ReactNode) => render(<ConnectionProvider>{ui}</ConnectionProvider>)
 
 describe('CrewVitals', () => {
   test('an unclaimed pilot reads as Unclaimed, not as a blank', () => {
-    withQueries([
-      {
+    withQueries({
+      'crew:vitals': {
         viewerId: 'u1',
         pilots: [
           {
@@ -85,7 +77,7 @@ describe('CrewVitals', () => {
         ],
         mechs: [],
       },
-    ])
+    })
     wrap(<CrewVitals gameId={'g1' as never} />)
 
     // A pre-gen waiting to be handed out is available, not broken.
@@ -93,8 +85,8 @@ describe('CrewVitals', () => {
   })
 
   test('a missing vital renders as a dash, never as zero', () => {
-    withQueries([
-      {
+    withQueries({
+      'crew:vitals': {
         viewerId: 'u1',
         pilots: [
           {
@@ -109,7 +101,7 @@ describe('CrewVitals', () => {
         ],
         mechs: [],
       },
-    ])
+    })
     wrap(<CrewVitals gameId={'g1' as never} />)
 
     // Zero would read as DEAD on a vitals strip, which is worse than blank.
@@ -118,13 +110,13 @@ describe('CrewVitals', () => {
   })
 
   test('an empty game says so rather than rendering nothing', () => {
-    withQueries([{ viewerId: 'u1', pilots: [], mechs: [] }])
+    withQueries({ 'crew:vitals': { viewerId: 'u1', pilots: [], mechs: [] } })
     wrap(<CrewVitals gameId={'g1' as never} />)
     expect(screen.getByText(/No pilots in this game yet/i)).toBeTruthy()
   })
 
   test('while loading it says so', () => {
-    withQueries([undefined])
+    withQueries({ 'crew:vitals': undefined })
     wrap(<CrewVitals gameId={'g1' as never} />)
     expect(screen.getByText(/Loading the crew/i)).toBeTruthy()
   })
@@ -132,7 +124,12 @@ describe('CrewVitals', () => {
 
 describe('DowntimePanel', () => {
   test('not running, and a non-Mediator is offered no phase controls', () => {
-    withQueries([{ running: false, stepIndex: null, completedBy: [], upkeepSpent: false }, false])
+    withQueries(
+      downtimeQueries(
+        { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
+        false
+      )
+    )
     wrap(<DowntimePanel gameId={'g1' as never} />)
 
     expect(screen.getByText(/Not running/i)).toBeTruthy()
@@ -140,21 +137,28 @@ describe('DowntimePanel', () => {
   })
 
   test('the Mediator can begin it', () => {
-    withQueries([{ running: false, stepIndex: null, completedBy: [], upkeepSpent: false }, true])
+    withQueries(
+      downtimeQueries(
+        { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
+        true
+      )
+    )
     wrap(<DowntimePanel gameId={'g1' as never} />)
     expect(screen.getByText('Begin Downtime')).toBeTruthy()
   })
 
   test('running: shows the step, who has finished, and upkeep state', () => {
-    withQueries([
-      {
-        running: true,
-        stepIndex: 2,
-        completedBy: [{ userId: 'u2', displayName: 'Beefcake' }],
-        upkeepSpent: true,
-      },
-      true,
-    ])
+    withQueries(
+      downtimeQueries(
+        {
+          running: true,
+          stepIndex: 2,
+          completedBy: [{ userId: 'u2', displayName: 'Beefcake' }],
+          upkeepSpent: true,
+        },
+        true
+      )
+    )
     wrap(<DowntimePanel gameId={'g1' as never} />)
 
     // stepIndex is zero-based on the wire and one-based on screen.
@@ -164,7 +168,9 @@ describe('DowntimePanel', () => {
   })
 
   test('nobody finished yet says so rather than showing an empty list', () => {
-    withQueries([{ running: true, stepIndex: 0, completedBy: [], upkeepSpent: false }, false])
+    withQueries(
+      downtimeQueries({ running: true, stepIndex: 0, completedBy: [], upkeepSpent: false }, false)
+    )
     wrap(<DowntimePanel gameId={'g1' as never} />)
 
     expect(screen.getByText(/Nobody yet/i)).toBeTruthy()
@@ -174,15 +180,15 @@ describe('DowntimePanel', () => {
 
 describe('ProposalInbox', () => {
   test('renders nothing when there is nothing to answer', () => {
-    withQueries([[]])
+    withQueries({ 'proposals:pending': [] })
     const { container } = wrap(<ProposalInbox gameId={'g1' as never} />)
     // An empty inbox should not occupy space on a play surface.
     expect(container.innerHTML).toBe('')
   })
 
   test('shows before and after so a mismatch is visible', () => {
-    withQueries([
-      [
+    withQueries({
+      'proposals:pending': [
         {
           _id: 'c1',
           entityId: 'm1',
@@ -193,7 +199,7 @@ describe('ProposalInbox', () => {
           ts: 1,
         },
       ],
-    ])
+    })
     wrap(<ProposalInbox gameId={'g1' as never} />)
 
     // The Mediator's `before` is what THEY believed; showing it lets the table
@@ -205,8 +211,8 @@ describe('ProposalInbox', () => {
   })
 
   test('a null before renders as a dash rather than "null"', () => {
-    withQueries([
-      [
+    withQueries({
+      'proposals:pending': [
         {
           _id: 'c1',
           entityId: 'm1',
@@ -217,7 +223,7 @@ describe('ProposalInbox', () => {
           ts: 1,
         },
       ],
-    ])
+    })
     wrap(<ProposalInbox gameId={'g1' as never} />)
     expect(screen.getByText('— → 6')).toBeTruthy()
   })

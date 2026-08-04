@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 
 import { _clearAllStores, _resetDbSingleton, pilots as dbPilots } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
+import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -122,10 +123,15 @@ describe('entityStore — update', () => {
 
     await new Promise((r) => setTimeout(r, 5)) // ensure updatedAt differs
 
-    const updated = await useEntityStore.getState().update('pilot', created.id, {
-      name: 'New Name',
-      callsign: 'Wraith',
-    })
+    const updated = await useEntityStore.getState().update(
+      'pilot',
+      created.id,
+      {
+        name: 'New Name',
+        callsign: 'Wraith',
+      },
+      LIVE_SHEET_MANUAL
+    )
 
     expect(updated.name).toBe('New Name')
     expect(updated.callsign).toBe('Wraith')

@@ -11,13 +11,15 @@ import { fireEvent, render, screen } from '@testing-library/react'
  * not offered before there is anything to export, and that a blank display name
  * falls back to the Discord one rather than to nothing.
  *
- * Queries are answered in **call order** (`me`, `games`, `exportMine`); the
- * generated `api` object is a Proxy that throws when inspected, so position is
- * the only stable key.
+ * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * Name-keying also retires the modulo wrap the positional queue needed: a
+ * state change re-renders and replays the same hooks, which used to run off
+ * the end of the queue and collapse the screen back to its loading state.
  */
 
-let queryQueue: unknown[] = []
-let queryIndex = 0
+import { convexReactMock, setQueryAnswers } from '../../__tests__/convexMock'
+import type { QueryAnswers } from '../../__tests__/convexMock'
+
 let authed = true
 
 /**
@@ -38,24 +40,9 @@ mock.module('../../../lib/connection/convexClient', () => ({
   convexClient: {},
 }))
 
-mock.module('convex/react', () => ({
-  useQuery: () => {
-    // Wraps rather than running off the end: a state change re-renders the
-    // component, which replays the same fixed run of hooks. Without the wrap
-    // every post-interaction render would read `undefined` and the screen would
-    // collapse back to its loading state.
-    const value = queryQueue[queryIndex % Math.max(queryQueue.length, 1)]
-    queryIndex += 1
-    return value
-  },
-  useMutation: () => async () => undefined,
-  useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }),
-  ConvexReactClient: class {},
-  ConvexProvider: ({ children }: { children: unknown }) => children,
-  ConvexProviderWithAuth: ({ children }: { children: unknown }) => children,
-  useConvex: () => ({}),
-  useAction: () => async () => undefined,
-}))
+mock.module('convex/react', () =>
+  convexReactMock({ useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) })
+)
 
 mock.module('@convex-dev/auth/react', () => ({
   useAuthActions: () => ({ signIn: async () => undefined, signOut: async () => undefined }),
@@ -65,9 +52,17 @@ mock.module('@convex-dev/auth/react', () => ({
 const { AccountScreen } = await import('../AccountScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 
-function withQueries(values: unknown[]): void {
-  queryQueue = values
-  queryIndex = 0
+function withQueries(answers: QueryAnswers): void {
+  setQueryAnswers(answers)
+}
+
+/** The three the profile asks for; `exported` is what most cases vary. */
+function profileQueries(
+  me: unknown,
+  games: unknown = GAMES,
+  exported: unknown = { pilots: [] }
+): QueryAnswers {
+  return { 'account:me': me, 'games:listMine': games, 'account:exportMine': exported }
 }
 
 /** Force the browser's online flag, which is what picks Connected vs Disconnected. */
@@ -96,7 +91,7 @@ const GAMES = [
 describe('what the account page is when there is no account', () => {
   test('solo says the data is safe here and offers the way in', () => {
     authed = false
-    withQueries([])
+    withQueries({})
     wrap()
 
     // Solo is a supported way to use the app, not a degraded one — the copy
@@ -107,7 +102,7 @@ describe('what the account page is when there is no account', () => {
 
   test('disconnected explains it rather than showing a broken profile form', () => {
     setOnline(false)
-    withQueries([])
+    withQueries({})
     wrap()
 
     expect(screen.getByText(/unreachable right now/i)).toBeTruthy()
@@ -118,19 +113,19 @@ describe('what the account page is when there is no account', () => {
 
 describe('the profile', () => {
   test('while it loads it says so', () => {
-    withQueries([undefined])
+    withQueries(profileQueries(undefined))
     wrap()
     expect(screen.getByText(/Loading your account/i)).toBeTruthy()
   })
 
   test('a signed-in session with no row says so plainly', () => {
-    withQueries([null])
+    withQueries(profileQueries(null))
     wrap()
     expect(screen.getByText('No account found.')).toBeTruthy()
   })
 
   test('the display name is pre-filled from Discord', () => {
-    withQueries([ME, GAMES, { pilots: [] }])
+    withQueries(profileQueries(ME))
     wrap()
 
     const input = screen.getByLabelText('Display name') as HTMLInputElement
@@ -138,7 +133,7 @@ describe('the profile', () => {
   })
 
   test('a null display name renders as empty, not as the string null', () => {
-    withQueries([{ ...ME, displayName: null }, GAMES, { pilots: [] }])
+    withQueries(profileQueries({ ...ME, displayName: null }))
     wrap()
     expect((screen.getByLabelText('Display name') as HTMLInputElement).value).toBe('')
   })
@@ -146,7 +141,7 @@ describe('the profile', () => {
 
 describe('your games, seen from the account page', () => {
   test('each game names your role in it', () => {
-    withQueries([ME, GAMES, { pilots: [] }])
+    withQueries(profileQueries(ME))
     wrap()
 
     expect(screen.getByText('Union Crawler #430')).toBeTruthy()
@@ -156,7 +151,7 @@ describe('your games, seen from the account page', () => {
   })
 
   test('no games says so rather than rendering an empty card', () => {
-    withQueries([ME, [], { pilots: [] }])
+    withQueries(profileQueries(ME, []))
     wrap()
     expect(screen.getByText(/not in any games yet/i)).toBeTruthy()
   })
@@ -165,19 +160,21 @@ describe('your games, seen from the account page', () => {
 describe('taking your data, and taking it away', () => {
   test('download is refused until the export has actually arrived', () => {
     // Clicking it early would hand somebody an empty file and call it their data.
-    withQueries([ME, GAMES, undefined])
+    // Explicit rather than via profileQueries: a default parameter cannot
+    // express "still loading", since `undefined` is what triggers the default.
+    withQueries({ ...profileQueries(ME), 'account:exportMine': undefined })
     wrap()
     expect(screen.getByText('Download my data').closest('button')?.disabled).toBe(true)
   })
 
   test('once the export is ready the button is live', () => {
-    withQueries([ME, GAMES, { pilots: [] }])
+    withQueries(profileQueries(ME))
     wrap()
     expect(screen.getByText('Download my data').closest('button')?.disabled).toBe(false)
   })
 
   test('deletion takes two deliberate clicks, and says what survives', () => {
-    withQueries([ME, GAMES, { pilots: [] }])
+    withQueries(profileQueries(ME))
     wrap()
 
     // The first click only arms it; nothing irreversible is one click away.
@@ -188,7 +185,7 @@ describe('taking your data, and taking it away', () => {
   })
 
   test('it warns that the shared game outlives the account', () => {
-    withQueries([ME, GAMES, { pilots: [] }])
+    withQueries(profileQueries(ME))
     wrap()
     // A crawler is communal; deleting yourself must not delete the table's game.
     expect(screen.getByText(/Games you are in survive/i)).toBeTruthy()

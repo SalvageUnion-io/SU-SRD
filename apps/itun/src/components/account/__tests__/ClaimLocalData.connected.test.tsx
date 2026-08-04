@@ -12,7 +12,14 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
  * roster. Both are covered here, along with the promises the copy makes — that
  * nothing local is removed, and that the copy lands on the shelf rather than in
  * somebody's game.
+ *
+ * `ClaimLocalData` calls no `useQuery` at all. It still goes through the shared
+ * name-keyed mock (see `convexMock.ts`) rather than a blanket
+ * `() => undefined`, so if it ever grows a query the test fails loudly instead
+ * of silently rendering that query's loading state forever.
  */
+
+import { convexReactMock, setQueryAnswers } from '../../__tests__/convexMock'
 
 let authed = true
 let claimResult: unknown = { claimed: 0, skipped: 0, byKind: {} }
@@ -40,16 +47,15 @@ mock.module('../../../lib/connection/convexClient', () => ({
   convexClient: {},
 }))
 
-mock.module('convex/react', () => ({
-  useQuery: () => undefined,
-  useMutation: () => async () => claimResult,
-  useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }),
-  ConvexReactClient: class {},
-  ConvexProvider: ({ children }: { children: unknown }) => children,
-  ConvexProviderWithAuth: ({ children }: { children: unknown }) => children,
-  useConvex: () => ({}),
-  useAction: () => async () => undefined,
-}))
+mock.module('convex/react', () =>
+  convexReactMock({
+    useMutation: () => async () => claimResult,
+    useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }),
+  })
+)
+
+// No queries: this component asks the server nothing.
+setQueryAnswers({})
 
 /**
  * The stores are stubbed rather than seeded through IndexedDB: what is under

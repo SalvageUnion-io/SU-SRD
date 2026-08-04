@@ -76,6 +76,7 @@ import { PartnerCard } from './PartnerCard'
 import { resolveAbility } from './pilotAbilities'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { linesFromBreakdown } from 'component-lib'
+import { runWrite } from './sheetWrite'
 
 /**
  * The tree every pilot has regardless of class (Repair, Scrap, Mount, …).
@@ -335,14 +336,14 @@ export function PilotSheet({
       saveBuildEdit(fields, 'Change class')
       return
     }
-    void storeState.update('pilot', pilot.id, fields, LIVE_SHEET_MANUAL)
+    runWrite(() => storeState.update('pilot', pilot.id, fields, LIVE_SHEET_MANUAL))
   }
 
   // Cap overrides (ADR-022, Free Edit): pin HP/AP maxima via a signed
   // max*Modifier delta; the gauge shows "overridden from N" + a revert. Tagged
   // `override` for the Change Log.
   const overridePilotMax = (fields: Partial<Pilot>) => {
-    void storeState.update('pilot', pilot.id, fields, LIVE_SHEET_OVERRIDE)
+    runWrite(() => storeState.update('pilot', pilot.id, fields, LIVE_SHEET_OVERRIDE))
   }
   /** A pin equal to the derived value is not an override — clear it instead. */
   const pinOrUndef = (next: number, derived: number): number | undefined =>
@@ -352,19 +353,21 @@ export function PilotSheet({
   function toggleUsed(key: UsedToggleKey, next: boolean) {
     const fresh = freshPilot()
     const prev = fresh.usedToggles ?? {}
-    void storeState.update(
-      'pilot',
-      pilot.id,
-      {
-        usedToggles: { ...prev, [key]: next },
-      },
-      LIVE_SHEET_MANUAL
+    runWrite(() =>
+      storeState.update(
+        'pilot',
+        pilot.id,
+        {
+          usedToggles: { ...prev, [key]: next },
+        },
+        LIVE_SHEET_MANUAL
+      )
     )
   }
 
   /** Persist the full conditions list (flat string set, no partial merge). */
   function handleConditionsChange(next: string[]) {
-    void storeState.update('pilot', pilot.id, { conditions: next }, LIVE_SHEET_MANUAL)
+    runWrite(() => storeState.update('pilot', pilot.id, { conditions: next }, LIVE_SHEET_MANUAL))
   }
 
   // Collection add/remove (unified edit language archetype B) — always
@@ -389,15 +392,17 @@ export function PilotSheet({
 
   function toggleEquipment(equipmentId: string) {
     const equipment = freshPilot().equipment
-    void storeState.update(
-      'pilot',
-      pilot.id,
-      {
-        equipment: equipment.includes(equipmentId)
-          ? equipment.filter((e) => e !== equipmentId)
-          : [...equipment, equipmentId],
-      },
-      LIVE_SHEET_MANUAL
+    runWrite(() =>
+      storeState.update(
+        'pilot',
+        pilot.id,
+        {
+          equipment: equipment.includes(equipmentId)
+            ? equipment.filter((e) => e !== equipmentId)
+            : [...equipment, equipmentId],
+        },
+        LIVE_SHEET_MANUAL
+      )
     )
   }
 
@@ -740,13 +745,15 @@ export function PilotSheet({
                   readOnly
                     ? undefined
                     : () => {
-                        void storeState.update(
-                          'pilot',
-                          pilot.id,
-                          {
-                            partners: partners.filter((p) => p.id !== partner.id),
-                          },
-                          LIVE_SHEET_MANUAL
+                        runWrite(() =>
+                          storeState.update(
+                            'pilot',
+                            pilot.id,
+                            {
+                              partners: partners.filter((p) => p.id !== partner.id),
+                            },
+                            LIVE_SHEET_MANUAL
+                          )
                         )
                       }
                 }

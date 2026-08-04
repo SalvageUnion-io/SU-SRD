@@ -56,6 +56,25 @@ function pilotBody(over: Record<string, unknown> = {}) {
   }
 }
 
+/** A minimal body that satisfies MechSchema. */
+function mechBody(over: Record<string, unknown> = {}) {
+  return {
+    id: 'm1',
+    schemaVersion: 1,
+    name: 'Iron Mongrel',
+    chassisRef: 'iron-mongrel',
+    systems: [],
+    modules: [],
+    cargoLots: [],
+    conditions: [],
+    currentSP: 12,
+    currentHeat: 0,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    ...over,
+  }
+}
+
 /** A minimal body that satisfies CrawlerSchema — techLevel is a STRING. */
 function crawlerBody(over: Record<string, unknown> = {}) {
   return {
@@ -202,6 +221,52 @@ describe('reading is per-game, writing is per-entity', () => {
     const row = await t.run(async (ctx) => await ctx.db.get(pilotId as Id<'pilots'>))
     expect(row).not.toBeNull()
     expect((row?.body as { name: string } | undefined)?.name).toBe('Renamed')
+  })
+
+  test("an id from another table cannot be written through the table it isn't in", async () => {
+    const t = testConvex()
+    const { player, gameId } = await seedGame(t)
+    const pilotId = await player.as.mutation(api.entities.create, {
+      table: 'pilots',
+      gameId,
+      body: pilotBody(),
+    })
+
+    // A Convex id is table-tagged, but `db.get` returns a document from ANY
+    // table — so a handler that casts the string would fetch this pilot, parse
+    // the payload with the MECH schema, and patch it back over the pilot.
+    await expect(
+      player.as.mutation(api.entities.update, {
+        table: 'mechs',
+        entityId: pilotId,
+        body: mechBody(),
+      })
+    ).rejects.toThrow(/no longer exists/i)
+  })
+
+  test('a row from a table this endpoint does not serve is not writable at all', async () => {
+    const t = testConvex()
+    const { player, gameId } = await seedGame(t)
+    // Owned by the caller, so the ownership check would have passed it: the
+    // table tag is the only thing standing between a pattern and the mech
+    // write path.
+    const patternId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('mechPatterns', {
+          ownerId: player.userId,
+          gameId,
+          sharedToGame: false,
+          body: { name: 'Draft' },
+        })
+    )
+
+    await expect(
+      player.as.mutation(api.entities.update, {
+        table: 'mechs',
+        entityId: patternId,
+        body: mechBody(),
+      })
+    ).rejects.toThrow(/no longer exists/i)
   })
 })
 

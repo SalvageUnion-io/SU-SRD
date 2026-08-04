@@ -17,6 +17,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { SalvageUnionReference, nameToSlug } from 'salvageunion-reference'
 import { legalStartingPatterns, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 import { useEntityStore } from '../../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { mechFormToCreateInput, mechToFormState } from '../../../lib/wizard/mechFormState'
 import { MechWizard } from '../MechWizard'
@@ -369,11 +370,16 @@ describe('MechWizard — edit mode (soft regime)', () => {
   it('hides the briefing steps, lifts the filters, and updates without duplicating', async () => {
     const mech = await seedMuleMech()
     // Live-play state that the wizard patch must never clobber.
-    await useEntityStore.getState().update('mech', mech.id, {
-      currentSP: 5,
-      conditions: ['Vulnerable'],
-      systemConditions: { 'cargo-pod': 'damaged' },
-    })
+    await useEntityStore.getState().update(
+      'mech',
+      mech.id,
+      {
+        currentSP: 5,
+        conditions: ['Vulnerable'],
+        systemConditions: { 'cargo-pod': 'damaged' },
+      },
+      LIVE_SHEET_MANUAL
+    )
     const onComplete = mock(() => {})
 
     render(

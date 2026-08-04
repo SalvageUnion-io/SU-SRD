@@ -186,6 +186,40 @@ Reading examples:
   (Encounter): the app rolls on the Mediator table as GM tooling and enforces
   nothing on a player. (Outside the player-entity matrix, by design.)
 
+### Sanctioned Live-Sheet transactions (the closed exception list)
+
+The lifecycle-transaction row says "bypassed in Free Edit", and the Live Sheet is
+where a player edits an end-state without paying for it. Three shipped controls
+nonetheless run a **real transaction** on that surface — they draw from the scrap
+pool, roll a table and write the outcome. This is deliberate, and it is recorded
+here rather than left as drift for the next audit to re-discover:
+
+| Control                                                      | What it transacts                                                                      | Why it is here                                                                                                                                                                           |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sheet/CrawlerEconomyControl.tsx` (Upkeep / Upgrade / Trade) | Scrap-pool draw, Upgrade-Pool credit, the Deterioration d20, the fixed-rate Scrap swap | The crawler has no Dashboard presence of its own; the whole economy hangs off the crawler hero's lozenges (Core Book p.218-223), and the Dashboard's Downtime layer is pilot/mech-shaped |
+| `sheet/CrawlerSheet.tsx` bay Repair                          | 5 Scrap of crawler TL or higher, then the bay flips Intact                             | Reached from the bay card it repairs; the draw is advisory (a short pool still repairs) rather than gated                                                                                |
+| `sheet/MechItemCard.tsx` per-card repair + remaining-uses    | Field-repair Scrap cost; `_used` counters                                              | Survived the D6 redesign that removed `HeatCheckControl` / `TakeDamageControl` from the sheet, because both act on the card in front of you                                              |
+
+The rules that keep this an exception rather than a second front door:
+
+1. **Nothing here blocks.** Every gate is a disabled button plus a visible
+   advisory (a `FieldError` shortfall, a "roll Deterioration instead" message).
+   A Free-Edit surface may _decline_ to spend for you; it may not tell you no.
+2. **The free-edit door stays open beside it.** `scrapPool` is hand-editable on
+   the same sheet, so the transaction is a convenience, never the only path.
+3. **They are tagged `LIVE_SHEET_TXN`, not `LIVE_SHEET_MANUAL`.** A rolled
+   Deterioration is not a hand edit, and the Change Log used to claim it was.
+   Rows 1 and 2 are tagged; **row 3 is not yet** — `MechSheet.tsx`'s
+   `repairItem` still writes `LIVE_SHEET_MANUAL`, and retagging it is the one
+   piece of this outstanding.
+4. **The list is closed.** A new lifecycle transaction goes on the Dashboard.
+   Adding a row here needs the same three properties above and an edit to this
+   table in the same change.
+
+The open question this defers — not answers — is whether the crawler deserves a
+Dashboard presence at all. If it gets one, the first table row moves there and
+its writes retag to `DASHBOARD_TXN`.
+
 ---
 
 ## Confirmed destructive consequences (the old "hybrid")
@@ -251,9 +285,12 @@ This doc is the target. Where the code stands today:
   Pilot + Mech + Crawler with its lifecycle-transaction layers (use a system,
   Push, Downtime, take damage). The working title "Play Cockpit" and the
   `components/play/` directory are gone.
-- **Live Sheet** is pure Free Edit — Push / Heat Check / `activateItem` no longer
-  live there (`SheetMech.tsx`), and cap **overrides** with the derived-baseline
-  callout and one-click revert are built.
+- **Live Sheet** is Free Edit plus the three sanctioned transactions above — Push
+  / Heat Check / `activateItem` no longer live there (`SheetMech.tsx`), and cap
+  **overrides** with the derived-baseline callout and one-click revert are built.
+  It is not _pure_ Free Edit and never has been: the crawler economy, bay Repair
+  and per-card repair all spend Scrap on this surface. See
+  [Sanctioned Live-Sheet transactions](#sanctioned-live-sheet-transactions-the-closed-exception-list).
 - **Provenance log** is **built** (ADR-022): the `changeLog` store
   (`lib/db/changeLog.ts`, schema in `lib/schemas/changeLog.ts`) is written at the
   `entityStore.update` chokepoint, tagged `transaction` / `override` / `manual`,

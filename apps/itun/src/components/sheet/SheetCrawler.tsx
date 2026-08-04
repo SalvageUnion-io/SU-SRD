@@ -33,6 +33,7 @@ import { bayStates, mechRailItems, mechStatusPill, pilotRailItems, rowStats } fr
 import type { SheetViewCommonProps } from './sheetViewProps'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { linesFromBreakdown } from 'component-lib'
+import { runWrite } from './sheetWrite'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
 
@@ -65,7 +66,7 @@ export function SheetCrawler({
   // Cap override (ADR-022, Free Edit): pin Max SP via a signed maxSpModifier
   // delta; the gauge shows "overridden from N" + a revert. Tagged `override`.
   const overrideCrawlerMax = (fields: Partial<Crawler>) => {
-    void storeState.update('crawler', crawler.id, fields, LIVE_SHEET_OVERRIDE)
+    runWrite(() => storeState.update('crawler', crawler.id, fields, LIVE_SHEET_OVERRIDE))
   }
   /** A pin equal to the derived value is not an override — clear it instead. */
   const pinOrUndef = (next: number, derived: number): number | undefined =>
@@ -173,7 +174,9 @@ export function SheetCrawler({
     const linkId = storeState.softLinks.find(
       (l) => l.type === 'pilot-to-crawler' && l.to.id === crawler.id && l.from.id === pilotId
     )?.id
-    return editable && linkId ? () => void storeState.delete('softLink', linkId) : undefined
+    return editable && linkId
+      ? () => runWrite(() => storeState.delete('softLink', linkId))
+      : undefined
   }
 
   const rail = (

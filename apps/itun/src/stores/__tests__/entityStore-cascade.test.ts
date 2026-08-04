@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 
 import { _clearAllStores, _resetDbSingleton, softLinks as dbSoftLinks } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
+import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
 
 const basePilotInput = {
   schemaVersion: 1 as const,
@@ -162,7 +163,7 @@ describe('updateCrawlerBay — per-bay merge', () => {
     // would clobber the rename; the per-bay merge must not.
     const updated = await useEntityStore
       .getState()
-      .updateCrawlerBay(crawler.id, 'mech-bay', { npcCurrentHP: 1 }, 1)
+      .updateCrawlerBay(crawler.id, 'mech-bay', { npcCurrentHP: 1 }, 1, LIVE_SHEET_MANUAL)
 
     expect(updated.crawlerBays).toEqual([
       { bayRef: 'command-bay', npcName: 'Renamed Elsewhere', npcCurrentHP: 4 },
@@ -175,11 +176,15 @@ describe('updateCrawlerBay — per-bay merge', () => {
     await store.hydrate('crawler')
     const crawler = await store.create('crawler', baseCrawlerInput)
 
-    expect(useEntityStore.getState().updateCrawlerBay('nope', 'command-bay', {})).rejects.toThrow(
-      'not found'
-    )
-    expect(useEntityStore.getState().updateCrawlerBay(crawler.id, 'cantina', {})).rejects.toThrow(
-      'not found'
-    )
+    expect(
+      useEntityStore
+        .getState()
+        .updateCrawlerBay('nope', 'command-bay', {}, undefined, LIVE_SHEET_MANUAL)
+    ).rejects.toThrow('not found')
+    expect(
+      useEntityStore
+        .getState()
+        .updateCrawlerBay(crawler.id, 'cantina', {}, undefined, LIVE_SHEET_MANUAL)
+    ).rejects.toThrow('not found')
   })
 })

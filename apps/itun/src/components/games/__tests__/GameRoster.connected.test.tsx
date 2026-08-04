@@ -14,13 +14,11 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
  *  - offering "create" in a Game with no crawler, which the server rejects
  *  - hiding the crawler CTA from the only person who can raise one
  *
- * Queries are answered in **call order** — the generated `api` is a Proxy that
- * throws when inspected, so position is the only stable key. This component
- * asks for: account.me, games.members, entities.listForGame.
+ * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * This component asks for: account.me, games.members, entities.listForGame.
  */
 
-let queryQueue: unknown[] = []
-let queryIndex = 0
+import { convexReactMock, setQueryAnswers } from '../../__tests__/convexMock'
 
 const realConvexClient = { ...(await import('../../../lib/connection/convexClient')) }
 const realConvexReact = { ...(await import('convex/react')) }
@@ -30,20 +28,7 @@ mock.module('../../../lib/connection/convexClient', () => ({
   convexClient: {},
 }))
 
-mock.module('convex/react', () => ({
-  useQuery: () => {
-    const value = queryQueue[queryIndex]
-    queryIndex += 1
-    return value
-  },
-  useMutation: () => async () => undefined,
-  useConvexAuth: () => ({ isAuthenticated: true, isLoading: false }),
-  ConvexReactClient: class {},
-  ConvexProvider: ({ children }: { children: unknown }) => children,
-  ConvexProviderWithAuth: ({ children }: { children: unknown }) => children,
-  useConvex: () => ({}),
-  useAction: () => async () => undefined,
-}))
+mock.module('convex/react', () => convexReactMock())
 
 const { GameRoster } = await import('../GameRoster')
 
@@ -90,8 +75,11 @@ function listing(over: Record<string, unknown> = {}) {
 
 /** Render as `viewer`, against one crew listing. */
 function renderAs(me: unknown, rows: ReturnType<typeof listing>, members: unknown = MEMBERS): void {
-  queryQueue = [me, members, rows]
-  queryIndex = 0
+  setQueryAnswers({
+    'account:me': me,
+    'games:members': members,
+    'entities:listForGame': rows,
+  })
   render(<GameRoster gameId="g1" gameName="Tenacity" />)
 }
 

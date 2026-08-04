@@ -30,7 +30,57 @@ import { v } from 'convex/values'
  * at the edge, exactly as `SnapshotStorage` already treats snapshot payloads.
  * The trade is real and worth naming: Convex cannot reject a malformed body on
  * write, so every mutation MUST parse with the Zod schema before persisting.
+ *
+ * ## …but a field that is already a closed set is declared as one
+ *
+ * The `v.any()` bodies above are the *only* place we give up validation. Where a
+ * column's values are a short, closed list that some Zod schema already names,
+ * it is declared as a `v.union` of literals rather than a `v.string()` with the
+ * list in a comment. A comment is not checked: `Doc<'changeLog'>['state']` typed
+ * as `string` meant every `row.state === 'proposed'` in `proposals.ts` compared
+ * two arbitrary strings, so a typo read as "no rows match" rather than as a type
+ * error. The unions below are the checked version of comments that were already
+ * there, each kept in step with its Zod counterpart in `src/lib/schemas/`.
  */
+
+/** Mirrors `EntityRefSchema.type` (src/lib/schemas/entity.ts) — ADR-027. */
+const entityRefType = v.union(v.literal('pilot'), v.literal('mech'), v.literal('crawler'))
+
+/** Mirrors `SoftLinkSchema.type` (src/lib/schemas/softLink.ts). */
+const softLinkType = v.union(v.literal('mech-to-pilot'), v.literal('pilot-to-crawler'))
+
+/**
+ * Mirrors `ChangeLogEntityTypeSchema` (src/lib/schemas/changeLog.ts), plus
+ * `'game'`.
+ *
+ * `'game'` has no local counterpart because it only arises server-side: a
+ * table-wide alert (`proposals.broadcast`) and a recorded Discord roll
+ * (`botClient.recordRoll`) are log rows about the Game itself rather than about
+ * anybody's sheet. Everything that reads a row's target must therefore handle a
+ * row that names no entity table — see `ownableTableFor` in `proposals.ts`.
+ */
+const changeLogEntityType = v.union(
+  v.literal('pilot'),
+  v.literal('mech'),
+  v.literal('crawler'),
+  v.literal('softLink'),
+  v.literal('game')
+)
+
+/** Mirrors `CHANGE_LOG_KINDS` (src/lib/schemas/changeLog.ts) — ADR-022. */
+const changeLogKind = v.union(v.literal('transaction'), v.literal('override'), v.literal('manual'))
+
+/**
+ * Proposal lifecycle (ADR-030 §4). No Zod counterpart: the local-only log has
+ * no proposals, so this state machine exists only on the server.
+ */
+const changeLogState = v.union(
+  v.literal('applied'),
+  v.literal('proposed'),
+  v.literal('declined'),
+  v.literal('superseded')
+)
+
 export default defineSchema({
   // Auth tables from @convex-dev/auth: authAccounts, authSessions, etc.
   // `users` is extended below with the profile fields the owner chip reads.
@@ -261,9 +311,9 @@ export default defineSchema({
   /** 'mech-to-pilot' | 'pilot-to-crawler'. EntityRef is NOT widened (ADR-027). */
   softLinks: defineTable({
     gameId: v.union(v.id('games'), v.null()),
-    from: v.object({ type: v.string(), id: v.string() }),
-    to: v.object({ type: v.string(), id: v.string() }),
-    type: v.string(),
+    from: v.object({ type: entityRefType, id: v.string() }),
+    to: v.object({ type: entityRefType, id: v.string() }),
+    type: softLinkType,
   })
     .index('by_game', ['gameId'])
     .index('by_from', ['from.id'])
@@ -298,20 +348,27 @@ export default defineSchema({
    */
   changeLog: defineTable({
     gameId: v.union(v.id('games'), v.null()),
-    entityType: v.string(),
+    entityType: changeLogEntityType,
     entityId: v.string(),
     ts: v.number(),
-    /** 'transaction' | 'override' | 'manual' (ADR-022). */
-    kind: v.string(),
+    kind: changeLogKind,
     field: v.string(),
     before: v.any(),
     after: v.any(),
-    /** The surface that made the change, e.g. 'live-sheet', 'dashboard'. */
+    /**
+     * The surface that made the change, e.g. 'live-sheet', 'dashboard',
+     * 'mediator-proposal', 'ownership', 'discord-bot'.
+     *
+     * Deliberately left open where its neighbours are closed unions: a surface
+     * is a fact about where a write came from, and a new one appears every time
+     * a new screen or client lands. Closing it would make adding a surface a
+     * schema migration and would reject the log rows a client sends from a
+     * build newer than the deployment.
+     */
     source: v.string(),
     /** Who performed or proposed it. */
     actorId: v.union(v.id('users'), v.null()),
-    /** 'applied' | 'proposed' | 'declined' | 'superseded'. */
-    state: v.string(),
+    state: changeLogState,
     supersededBy: v.optional(v.id('changeLog')),
   })
     .index('by_entity', ['entityId'])

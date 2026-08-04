@@ -20,6 +20,7 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { useEntityStore } from '../../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { useMech, usePilot, usePilots } from '../index'
 
 // ---------------------------------------------------------------------------
@@ -186,7 +187,7 @@ describe('usePilot / useMech (by id)', () => {
     // Update mech A — update() maps the array and reuses untouched elements,
     // so mech B's reference (the selected value) is unchanged.
     await act(async () => {
-      await useEntityStore.getState().update('mech', a.id, { name: 'Renamed' })
+      await useEntityStore.getState().update('mech', a.id, { name: 'Renamed' }, LIVE_SHEET_MANUAL)
     })
 
     expect(renderSpy.mock.calls.length).toBe(rendersAfterMount)

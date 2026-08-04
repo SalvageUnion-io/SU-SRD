@@ -82,6 +82,7 @@ import type { SheetPatch } from './sheetViewProps'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { linesFromBreakdown } from 'component-lib'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
+import { runWrite } from './sheetWrite'
 
 // Narrow subset of chassis data the stat derivations need
 type ChassisLike = {
@@ -247,7 +248,7 @@ export function MechSheet({
   /** Partial merge on this mech, reading the freshest record when needed. */
   const patchMech: SheetPatch = (input) => {
     const fields = typeof input === 'function' ? input(freshMech()) : input
-    void storeState.update('mech', mech.id, fields, LIVE_SHEET_MANUAL)
+    runWrite(() => storeState.update('mech', mech.id, fields, LIVE_SHEET_MANUAL))
   }
 
   // Cap overrides (ADR-022 amendment, Free Edit): a pinned maximum is stored
@@ -260,7 +261,7 @@ export function MechSheet({
   // override. max*Modifier now means only "manual adjustment" and contributes to
   // the derivation. See ADR-029.
   const overrideMechMax = (fields: Partial<Mech>) => {
-    void storeState.update('mech', mech.id, fields, LIVE_SHEET_OVERRIDE)
+    runWrite(() => storeState.update('mech', mech.id, fields, LIVE_SHEET_OVERRIDE))
   }
   /** A pin equal to the derived value is not an override — clear it instead. */
   const pinOrUndef = (next: number, derived: number): number | undefined =>
@@ -277,13 +278,15 @@ export function MechSheet({
   function addItem(kind: ItemKind, name: string) {
     const fresh = freshMech()
     const slug = nameToSlug(name)
-    void storeState.update(
-      'mech',
-      mech.id,
-      kind === 'system'
-        ? { systems: [...fresh.systems, slug] }
-        : { modules: [...fresh.modules, slug] },
-      LIVE_SHEET_MANUAL
+    runWrite(() =>
+      storeState.update(
+        'mech',
+        mech.id,
+        kind === 'system'
+          ? { systems: [...fresh.systems, slug] }
+          : { modules: [...fresh.modules, slug] },
+        LIVE_SHEET_MANUAL
+      )
     )
   }
 
@@ -297,13 +300,15 @@ export function MechSheet({
   function removeItem(kind: ItemKind, index: number) {
     const fresh = freshMech()
     if (kind === 'module') {
-      void storeState.update(
-        'mech',
-        mech.id,
-        {
-          modules: fresh.modules.filter((_, i) => i !== index),
-        },
-        LIVE_SHEET_MANUAL
+      runWrite(() =>
+        storeState.update(
+          'mech',
+          mech.id,
+          {
+            modules: fresh.modules.filter((_, i) => i !== index),
+          },
+          LIVE_SHEET_MANUAL
+        )
       )
       return
     }
@@ -390,19 +395,23 @@ export function MechSheet({
 
   /** Quirk / Appearance field save — mirrors the old SheetDescription saves. */
   function saveQuirk(next: string) {
-    void storeState.update('mech', mech.id, { quirk: next.trim() || undefined }, LIVE_SHEET_MANUAL)
+    runWrite(() =>
+      storeState.update('mech', mech.id, { quirk: next.trim() || undefined }, LIVE_SHEET_MANUAL)
+    )
   }
 
   /** Appearance heals the deprecated `description` field into `appearance`. */
   function saveAppearance(next: string) {
-    void storeState.update(
-      'mech',
-      mech.id,
-      {
-        appearance: next.trim() || undefined,
-        description: undefined,
-      },
-      LIVE_SHEET_MANUAL
+    runWrite(() =>
+      storeState.update(
+        'mech',
+        mech.id,
+        {
+          appearance: next.trim() || undefined,
+          description: undefined,
+        },
+        LIVE_SHEET_MANUAL
+      )
     )
   }
 
@@ -713,13 +722,15 @@ export function MechSheet({
                   readOnly
                     ? undefined
                     : () => {
-                        void store.getState().update(
-                          'mech',
-                          mech.id,
-                          {
-                            partners: (mech.partners ?? []).filter((p) => p.id !== partner.id),
-                          },
-                          LIVE_SHEET_MANUAL
+                        runWrite(() =>
+                          store.getState().update(
+                            'mech',
+                            mech.id,
+                            {
+                              partners: (mech.partners ?? []).filter((p) => p.id !== partner.id),
+                            },
+                            LIVE_SHEET_MANUAL
+                          )
                         )
                       }
                 }

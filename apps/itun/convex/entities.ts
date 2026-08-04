@@ -1,8 +1,12 @@
 import { v } from 'convex/values'
 
 import { CrawlerSchema } from '../src/lib/schemas/crawler'
+import type { EntityRef } from '../src/lib/schemas/entity'
+import { EntityRefSchema } from '../src/lib/schemas/entity'
 import { MechSchema } from '../src/lib/schemas/mech'
 import { PilotSchema } from '../src/lib/schemas/pilot'
+import type { SoftLink } from '../src/lib/schemas/softLink'
+import { SoftLinkSchema } from '../src/lib/schemas/softLink'
 import type { Doc, Id } from './_generated/dataModel'
 import { mutation, query } from './_generated/server'
 import type { MutationCtx, QueryCtx } from './_generated/server'
@@ -64,6 +68,22 @@ const PARSERS = {
   pilots: PilotSchema,
   mechs: MechSchema,
 } as const
+
+/*
+ * Soft-link kind guards, asked of the Zod schemas rather than of a copied list,
+ * so the Convex unions in `schema.ts` and the local schemas cannot drift apart
+ * without one of these failing.
+ */
+
+/** Whether `value` is an endpoint kind `EntityRefSchema` allows. */
+function isEntityRefType(value: unknown): value is EntityRef['type'] {
+  return EntityRefSchema.shape.type.safeParse(value).success
+}
+
+/** Whether `value` is a relationship kind `SoftLinkSchema` allows. */
+function isSoftLinkType(value: unknown): value is SoftLink['type'] {
+  return SoftLinkSchema.shape.type.safeParse(value).success
+}
 
 /** Parse a body against its Zod schema, or throw with a legible reason. */
 function parseBody(table: OwnableTable, body: unknown): unknown {
@@ -231,10 +251,19 @@ export const update = mutation({
   },
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
-    const doc = await ctx.db.get(args.entityId as Id<'pilots'> | Id<'mechs'>)
+    // `normalizeId` is what makes `table` load-bearing rather than decorative:
+    // a Convex id is table-tagged, but `db.get` returns a document from ANY
+    // table, so casting the string let a caller reach a row `table` does not
+    // name — a `mechPatterns` id through the `mechs` endpoint would be parsed
+    // with the mech schema and patched. An id that is not this table's is
+    // simply not there.
+    const entityId = ctx.db.normalizeId(args.table, args.entityId)
+    if (entityId === null) throw new Error('That entity no longer exists')
+
+    const doc = await ctx.db.get(entityId)
     if (doc === null) throw new Error('That entity no longer exists')
 
-    assertMayWrite(doc as Doc<'pilots'> | Doc<'mechs'>, userId)
+    assertMayWrite(doc, userId)
     const body = parseBody(args.table, args.body)
 
     await ctx.db.patch(doc._id, { body, updatedAt: Date.now() })
@@ -405,18 +434,28 @@ export const claimLocal = mutation({
         to?: { type?: string; id?: string }
         type?: string
       }
+      /*
+       * Endpoint kinds and the link kind are checked here rather than coerced.
+       * They used to be waved through — `String(l.from.type ?? '')` wrote an
+       * empty string for a link with no endpoint kind — and the schema, which
+       * now declares both as closed unions, would refuse that write outright.
+       * A link this claim cannot honour takes the same `skipped` path a
+       * malformed one already did: the rest of the payload still lands.
+       */
       if (
         typeof l.from?.id !== 'string' ||
         typeof l.to?.id !== 'string' ||
-        typeof l.type !== 'string'
+        !isEntityRefType(l.from.type) ||
+        !isEntityRefType(l.to.type) ||
+        !isSoftLinkType(l.type)
       ) {
         skipped += 1
         continue
       }
       await ctx.db.insert('softLinks', {
         gameId: shelfGameId,
-        from: { type: String(l.from.type ?? ''), id: l.from.id },
-        to: { type: String(l.to.type ?? ''), id: l.to.id },
+        from: { type: l.from.type, id: l.from.id },
+        to: { type: l.to.type, id: l.to.id },
         type: l.type,
       })
       bump('softLinks')

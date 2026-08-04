@@ -9,13 +9,12 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
  * Mediator link) moved to `/games/$gameId`, and is covered by
  * `GameDetailScreen.connected.test.tsx`.
  *
- * Queries are answered in **call order** — the generated `api` object is a
- * Proxy that throws the moment a test inspects it, so position is the only
- * stable key. The order is the render order of the hooks.
+ * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  */
 
-let queryQueue: unknown[] = []
-let queryIndex = 0
+import { convexReactMock, setQueryAnswers } from '../../__tests__/convexMock'
+import type { QueryAnswers } from '../../__tests__/convexMock'
+
 let redeemResult: unknown = { kind: 'joined', gameId: 'g9', granted: 0 }
 let redeemError: Error | null = null
 const navigations: unknown[] = []
@@ -39,26 +38,18 @@ mock.module('../../../lib/connection/convexClient', () => ({
   convexClient: {},
 }))
 
-mock.module('convex/react', () => ({
-  useQuery: () => {
-    const v = queryQueue[queryIndex]
-    queryIndex += 1
-    return v
-  },
-  useMutation: () => async () => {
-    if (redeemError !== null) throw redeemError
-    return redeemResult
-  },
-  useConvexAuth: () => ({ isAuthenticated: true, isLoading: false }),
-  ConvexReactClient: class {},
-  // `@convex-dev/auth/react` (reached via SignInControl) imports these from
-  // convex/react, so a partial mock of the module breaks its import rather
-  // than the component under test.
-  ConvexProviderWithAuth: ({ children }: { children: unknown }) => children,
-  ConvexProvider: ({ children }: { children: unknown }) => children,
-  useConvex: () => ({}),
-  useAction: () => async () => undefined,
-}))
+// `convexReactMock` supplies every export the transitive importers reach —
+// `@convex-dev/auth/react` (via SignInControl) imports ConvexProviderWithAuth
+// from convex/react, so a partial mock breaks its import rather than the
+// component under test.
+mock.module('convex/react', () =>
+  convexReactMock({
+    useMutation: () => async () => {
+      if (redeemError !== null) throw redeemError
+      return redeemResult
+    },
+  })
+)
 
 mock.module('@convex-dev/auth/react', () => ({
   useAuthActions: () => ({ signIn: async () => undefined, signOut: async () => undefined }),
@@ -80,9 +71,8 @@ mock.module('@tanstack/react-router', () => ({
 const { GamesScreen } = await import('../GamesScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 
-function withQueries(values: unknown[]): void {
-  queryQueue = values
-  queryIndex = 0
+function withQueries(answers: QueryAnswers): void {
+  setQueryAnswers(answers)
   navigations.length = 0
   redeemError = null
 }
@@ -111,8 +101,8 @@ const TEMPLATES = [
 ]
 
 /** listMine, templates — the index's only two queries. */
-function queriesFor(game: Record<string, unknown>): unknown[] {
-  return [[game], TEMPLATES]
+function queriesFor(game: Record<string, unknown>): QueryAnswers {
+  return { 'games:listMine': [game], 'templates:list': TEMPLATES }
 }
 
 afterEach(cleanup)
@@ -216,7 +206,7 @@ describe('the Games index for a signed-in player', () => {
   })
 
   test('no games yet says so, and still offers the way in', () => {
-    withQueries([[], TEMPLATES])
+    withQueries({ 'games:listMine': [], 'templates:list': TEMPLATES })
     wrap()
 
     expect(screen.getByText(/not in any games yet/i)).toBeTruthy()

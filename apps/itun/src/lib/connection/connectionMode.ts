@@ -15,9 +15,19 @@
  *   see no banner, and no write of theirs is ever refused. Only a user who
  *   opted into a Game can end up in `disconnected`, and the read-only cost is
  *   the honest price of having chosen a server of record for shared state.
+ *
+ * And a fourth state that is *not* one of the three, which is why it is named:
+ *
+ *   **Connecting is not Solo.** While Convex is still completing its initial
+ *   auth handshake nobody knows yet whether there is a session. Collapsing that
+ *   window into Solo is what made it dangerous: writes went to IndexedDB and
+ *   the mirror early-returned, so a crawler edit made in the first few hundred
+ *   milliseconds after load was persisted locally and never sent — permanently,
+ *   because the crawler mirror is a field patch that is never resent. Naming the
+ *   window means writes are refused for it instead of silently forked.
  */
 
-export const CONNECTION_MODES = ['solo', 'connected', 'disconnected'] as const
+export const CONNECTION_MODES = ['solo', 'connecting', 'connected', 'disconnected'] as const
 
 export type ConnectionMode = (typeof CONNECTION_MODES)[number]
 
@@ -31,6 +41,21 @@ export type ConnectionInputs = {
    * play is first-class (ADR-030 §1).
    */
   convexConfigured: boolean
+  /**
+   * Whether the auth layer has finished deciding (`!isLoading && !isRefreshing`
+   * from `useConvexAuth`).
+   *
+   * `signedIn` is meaningless until this is true: Convex reports
+   * `isAuthenticated: false` for the whole initial handshake, which is
+   * indistinguishable from a signed-out user by that flag alone. This input is
+   * what makes the two distinguishable.
+   *
+   * Only the *initial* handshake is covered, and that is the whole of the
+   * problem: Convex documents `isRefreshing` as only ever true while
+   * `isAuthenticated` is also true, so routine token rotation never drops the
+   * app out of `connected`.
+   */
+  authSettled: boolean
   /** Whether an authenticated session exists. */
   signedIn: boolean
   /** Whether the browser believes it has a network connection. */
@@ -40,12 +65,19 @@ export type ConnectionInputs = {
 /**
  * Resolve the current mode.
  *
- * Order is deliberate: configuration, then identity, then connectivity. A
- * signed-out user is Solo *whatever* the network is doing, because there is no
- * server-of-record relationship to lose.
+ * Order is deliberate: configuration, then settling, then identity, then
+ * connectivity. A signed-out user is Solo *whatever* the network is doing,
+ * because there is no server-of-record relationship to lose — but only once we
+ * know they are signed out, which is what the settling check comes before
+ * identity to establish.
+ *
+ * The `convexConfigured` gate stays first so a build with no `VITE_CONVEX_URL`
+ * is permanently Solo and can never reach `connecting`: CI and a fresh checkout
+ * have no auth layer to wait for.
  */
 export function resolveConnectionMode(inputs: ConnectionInputs): ConnectionMode {
   if (!inputs.convexConfigured) return 'solo'
+  if (!inputs.authSettled) return 'connecting'
   if (!inputs.signedIn) return 'solo'
   return inputs.online ? 'connected' : 'disconnected'
 }
@@ -57,19 +89,35 @@ export function resolveConnectionMode(inputs: ConnectionInputs): ConnectionMode 
  * would reintroduce conflict resolution through the back door, which is the
  * thing choosing a server of record was meant to avoid. Solo writes are never
  * blocked — IndexedDB is that user's source of truth, not a cache.
+ *
+ * `connecting` blocks too, for a different reason: not "the server said no" but
+ * "we do not yet know which store this belongs in". A write let through in that
+ * window lands locally and is never mirrored.
  */
 export function writesAllowed(mode: ConnectionMode): boolean {
-  return mode !== 'disconnected'
+  return mode !== 'disconnected' && mode !== 'connecting'
 }
 
 /**
  * Whether the NOT CONNECTED banner should show.
  *
  * Only ever true in `disconnected`. Showing it in Solo would tell a person with
- * a perfectly working offline app that something is wrong.
+ * a perfectly working offline app that something is wrong — and showing it for
+ * the sub-second `connecting` handshake would flash a failure banner on every
+ * single load, which is the same lie with a shorter fuse.
  */
 export function shouldWarnDisconnected(mode: ConnectionMode): boolean {
   return mode === 'disconnected'
+}
+
+/**
+ * Whether the app is still working out which mode it is in.
+ *
+ * Separate from `shouldWarnDisconnected` on purpose: this window wants a quiet
+ * "signing in…" notice, not an alarm.
+ */
+export function isSettlingConnection(mode: ConnectionMode): boolean {
+  return mode === 'connecting'
 }
 
 /** Whether reads/writes should be routed to Convex rather than IndexedDB. */

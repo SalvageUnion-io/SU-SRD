@@ -17,6 +17,7 @@ import {
   crawlers as dbCrawlers,
 } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
+import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -123,10 +124,15 @@ describe('entityStore — mech update', () => {
 
     await new Promise((r) => setTimeout(r, 5))
 
-    const updated = await useEntityStore.getState().update('mech', created.id, {
-      name: 'Renamed Mech',
-      chassisRef: 'scorpion',
-    })
+    const updated = await useEntityStore.getState().update(
+      'mech',
+      created.id,
+      {
+        name: 'Renamed Mech',
+        chassisRef: 'scorpion',
+      },
+      LIVE_SHEET_MANUAL
+    )
 
     expect(updated.name).toBe('Renamed Mech')
     expect(updated.chassisRef).toBe('scorpion')
@@ -142,7 +148,7 @@ describe('entityStore — mech update', () => {
     await useEntityStore.getState().hydrate('mech')
     const created = await useEntityStore.getState().create('mech', baseMechInput)
 
-    await useEntityStore.getState().update('mech', created.id, { currentHP: 7 })
+    await useEntityStore.getState().update('mech', created.id, { currentHP: 7 }, LIVE_SHEET_MANUAL)
 
     const inMemory = useEntityStore.getState().get('mech', created.id)
     expect(inMemory?.currentHP).toBe(7)
@@ -226,10 +232,15 @@ describe('entityStore — crawler update', () => {
 
     await new Promise((r) => setTimeout(r, 5))
 
-    const updated = await useEntityStore.getState().update('crawler', created.id, {
-      name: 'Renamed Crawler',
-      techLevel: 'tech-4',
-    })
+    const updated = await useEntityStore.getState().update(
+      'crawler',
+      created.id,
+      {
+        name: 'Renamed Crawler',
+        techLevel: 'tech-4',
+      },
+      LIVE_SHEET_MANUAL
+    )
 
     expect(updated.name).toBe('Renamed Crawler')
     expect(updated.techLevel).toBe('tech-4')
@@ -245,7 +256,9 @@ describe('entityStore — crawler update', () => {
     await useEntityStore.getState().hydrate('crawler')
     const created = await useEntityStore.getState().create('crawler', baseCrawlerInput)
 
-    await useEntityStore.getState().update('crawler', created.id, { currentSP: 40 })
+    await useEntityStore
+      .getState()
+      .update('crawler', created.id, { currentSP: 40 }, LIVE_SHEET_MANUAL)
 
     const inMemory = useEntityStore.getState().get('crawler', created.id)
     expect(inMemory?.currentSP).toBe(40)

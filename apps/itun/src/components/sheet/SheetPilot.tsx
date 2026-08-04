@@ -22,6 +22,7 @@ import { RailCta } from './SheetRailParts'
 import { AppLink } from '../shared/AppLink'
 import { crawlerRailItems, mechRailItems, mechStatusPill, rowStats } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
+import { runWrite } from './sheetWrite'
 
 type SheetPilotProps = SheetViewCommonProps & { pilot: Pilot }
 
@@ -48,7 +49,7 @@ export function SheetPilot({
     (l) => l.type === 'pilot-to-crawler' && l.from.id === pilot.id
   )?.id
   const unassign = (linkId: string | undefined) =>
-    editable && linkId ? () => void storeState.delete('softLink', linkId) : undefined
+    editable && linkId ? () => runWrite(() => storeState.delete('softLink', linkId)) : undefined
   const maxHP = Math.max(0, pilotMaxHP(pilot))
   const maxAP = Math.max(0, pilotMaxAP(pilot))
   const hp = Math.min(pilot.currentHP ?? maxHP, maxHP)

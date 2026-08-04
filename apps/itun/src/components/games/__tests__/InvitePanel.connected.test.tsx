@@ -10,12 +10,14 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
  * a code that already exists — its state, who spent it, and whether the Revoke
  * button is offered when it would actually do something.
  *
- * Queries are answered in call order: `invites.list`, then
- * `invites.pendingRequests`.
+ * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * The panel asks `invites.list` and `invites.pendingRequests`, which sit on
+ * adjacent lines (InvitePanel.tsx:48-49): under the old positional queue,
+ * swapping those two lines was invisible to this file.
  */
 
-let queryQueue: unknown[] = []
-let queryIndex = 0
+import { convexReactMock, setQueryAnswers } from '../../__tests__/convexMock'
+
 const calls: { name: string; args: unknown }[] = []
 
 const realConvexClient = { ...(await import('../../../lib/connection/convexClient')) }
@@ -26,25 +28,16 @@ mock.module('../../../lib/connection/convexClient', () => ({
   convexClient: {},
 }))
 
-mock.module('convex/react', () => ({
-  useQuery: () => {
-    const value = queryQueue[queryIndex]
-    queryIndex += 1
-    return value
-  },
-  // Every mutation records its call so the tests can assert what the panel
-  // asked the server to do, which is the half a render assertion cannot cover.
-  useMutation: () => async (args: unknown) => {
-    calls.push({ name: 'mutation', args })
-    return undefined
-  },
-  useConvexAuth: () => ({ isAuthenticated: true, isLoading: false }),
-  ConvexReactClient: class {},
-  ConvexProvider: ({ children }: { children: unknown }) => children,
-  ConvexProviderWithAuth: ({ children }: { children: unknown }) => children,
-  useConvex: () => ({}),
-  useAction: () => async () => undefined,
-}))
+mock.module('convex/react', () =>
+  convexReactMock({
+    // Every mutation records its call so the tests can assert what the panel
+    // asked the server to do, which is the half a render assertion cannot cover.
+    useMutation: () => async (args: unknown) => {
+      calls.push({ name: 'mutation', args })
+      return undefined
+    },
+  })
+)
 
 const { InvitePanel } = await import('../InvitePanel')
 
@@ -67,8 +60,7 @@ function invite(over: Record<string, unknown> = {}) {
 }
 
 function renderPanel(invites: unknown[], requests: unknown[] = []) {
-  queryQueue = [invites, requests]
-  queryIndex = 0
+  setQueryAnswers({ 'invites:list': invites, 'invites:pendingRequests': requests })
   calls.length = 0
   return render(<InvitePanel gameId={'g1' as never} />)
 }

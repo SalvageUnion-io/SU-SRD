@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import type { ConnectionInputs } from '../connectionMode'
 import {
+  isSettlingConnection,
   resolveConnectionMode,
   shouldWarnDisconnected,
   usesServerOfRecord,
@@ -10,12 +11,13 @@ import {
 
 /**
  * The mode table is small enough to test exhaustively, so it is — all eight
- * input combinations, named by what they mean rather than by their booleans.
- * A regression here is a regression in ADR-030's central promise.
+ * settled input combinations, named by what they mean rather than by their
+ * booleans, plus the unsettled window below. A regression here is a regression
+ * in ADR-030's central promise.
  */
 
 function inputs(over: Partial<ConnectionInputs> = {}): ConnectionInputs {
-  return { convexConfigured: true, signedIn: true, online: true, ...over }
+  return { convexConfigured: true, authSettled: true, signedIn: true, online: true, ...over }
 }
 
 describe('resolveConnectionMode — all eight combinations', () => {
@@ -59,6 +61,42 @@ describe('resolveConnectionMode — all eight combinations', () => {
       expect(resolveConnectionMode(inputs(c.over))).toBe(c.expected as never)
     })
   }
+})
+
+describe('the unsettled auth handshake is its own mode, not Solo', () => {
+  test('configured + still settling -> connecting, whatever signedIn says', () => {
+    // `isAuthenticated` is false for the whole initial handshake, so reading it
+    // alone made this window indistinguishable from a signed-out user — and Solo
+    // routes writes to IndexedDB with the mirror switched off.
+    expect(resolveConnectionMode(inputs({ authSettled: false, signedIn: false }))).toBe(
+      'connecting'
+    )
+    expect(resolveConnectionMode(inputs({ authSettled: false, signedIn: true }))).toBe('connecting')
+  })
+
+  test('a build with no Convex URL never reaches connecting', () => {
+    // There is no auth layer to wait for. CI and a fresh checkout stay Solo, and
+    // their writes are never refused.
+    expect(resolveConnectionMode(inputs({ convexConfigured: false, authSettled: false }))).toBe(
+      'solo'
+    )
+  })
+
+  test('connecting refuses writes but does not raise the alarm', () => {
+    // Refusing is the point: a write let through here lands locally and is never
+    // mirrored. Warning is not — this window closes in well under a second, and
+    // a NOT CONNECTED banner on every load would be a lie with a short fuse.
+    expect(writesAllowed('connecting')).toBe(false)
+    expect(shouldWarnDisconnected('connecting')).toBe(false)
+    expect(isSettlingConnection('connecting')).toBe(true)
+    expect(usesServerOfRecord('connecting')).toBe(false)
+  })
+
+  test('no other mode reports itself as settling', () => {
+    expect(isSettlingConnection('solo')).toBe(false)
+    expect(isSettlingConnection('connected')).toBe(false)
+    expect(isSettlingConnection('disconnected')).toBe(false)
+  })
 })
 
 describe('Solo is not Disconnected', () => {

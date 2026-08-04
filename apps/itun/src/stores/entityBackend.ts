@@ -1,7 +1,12 @@
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { convexClient } from '../lib/connection/convexClient'
-import { resolveConnectionMode, usesServerOfRecord } from '../lib/connection/connectionMode'
+import {
+  isSettlingConnection,
+  resolveConnectionMode,
+  usesServerOfRecord,
+} from '../lib/connection/connectionMode'
+import type { ConnectionMode } from '../lib/connection/connectionMode'
 
 /**
  * Where entity writes actually go (ADR-030 §1).
@@ -30,10 +35,27 @@ import { resolveConnectionMode, usesServerOfRecord } from '../lib/connection/con
  */
 
 /** Signed-in state as far as this module is concerned. */
-type AuthState = { signedIn: boolean; online: boolean }
+type AuthState = {
+  signedIn: boolean
+  online: boolean
+  /**
+   * Whether the auth layer has finished deciding. Optional so a caller that
+   * predates the handshake fix keeps its meaning, and defaulted to `true`
+   * because the *absence* of a push is a build with no auth layer at all
+   * (`convexConfigured` is then false and the mode is Solo regardless).
+   */
+  authSettled?: boolean
+}
 
-/** Read once per write rather than subscribed — the store is not a component. */
-let authState: AuthState = { signedIn: false, online: true }
+/**
+ * Read once per write rather than subscribed — the store is not a component.
+ *
+ * The initial value has to be one that cannot block a Solo build's writes, and
+ * `authSettled: true` is that value: with no Convex URL compiled in,
+ * `selectBackend` short-circuits to Solo before this is consulted, and with one
+ * compiled in `ConnectionProvider` pushes the real value on mount.
+ */
+let authState: AuthState = { signedIn: false, online: true, authSettled: true }
 
 /**
  * Publish the current auth/connectivity state to the store layer.
@@ -53,22 +75,52 @@ export type BackendKind = 'local' | 'remote' | 'blocked'
  * Exported for tests and for surfaces that want to explain themselves — a
  * button that would be `blocked` should say why rather than fail on click.
  */
-export function selectBackend(): BackendKind {
-  const mode = resolveConnectionMode({
+/** The mode the store layer currently believes it is in. */
+function currentMode(): ConnectionMode {
+  return resolveConnectionMode({
     convexConfigured: convexClient !== null,
+    authSettled: authState.authSettled ?? true,
     signedIn: authState.signedIn,
     online: authState.online,
   })
+}
+
+export function selectBackend(): BackendKind {
+  const mode = currentMode()
   if (mode === 'solo') return 'local'
   if (usesServerOfRecord(mode)) return 'remote'
+  // `connecting` lands here alongside `disconnected`, and deliberately: writing
+  // locally before the handshake resolves is exactly the silent fork this
+  // module exists to prevent.
   return 'blocked'
 }
 
-/** Thrown when a write is attempted while the server of record is unreachable. */
+/**
+ * Why a write was refused. Two states, two different things to say to a player:
+ * one is a condition they have to wait out, the other resolves by itself in a
+ * moment and only needs "try that again".
+ */
+export type BlockedWriteReason = 'offline' | 'settling'
+
+/**
+ * Thrown when a write is attempted while the server of record is unreachable.
+ *
+ * The message is user-facing copy, not a developer string: it is what the
+ * refusal toast shows, so it says the consequence rather than the condition.
+ * The class name is kept (rather than renamed for the settling case) because
+ * call sites narrow on it with `instanceof`.
+ */
 export class WritesBlockedOffline extends Error {
-  constructor() {
-    super('Not connected — your games are read-only until the connection returns')
+  readonly reason: BlockedWriteReason
+
+  constructor(reason: BlockedWriteReason = 'offline') {
+    super(
+      reason === 'settling'
+        ? 'Still signing in — that change was not saved. Try again in a moment.'
+        : 'Not connected — your games are read-only until the connection returns'
+    )
     this.name = 'WritesBlockedOffline'
+    this.reason = reason
   }
 }
 
@@ -177,6 +229,8 @@ export async function mirrorCrawlerWrite(
  */
 export function requireWritableBackend(): Exclude<BackendKind, 'blocked'> {
   const backend = selectBackend()
-  if (backend === 'blocked') throw new WritesBlockedOffline()
+  if (backend === 'blocked') {
+    throw new WritesBlockedOffline(isSettlingConnection(currentMode()) ? 'settling' : 'offline')
+  }
   return backend
 }

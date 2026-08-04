@@ -15,7 +15,7 @@ import { describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
 
 import { useSoftWarnings } from '../useSoftWarnings'
-import type { SoftWarning } from '../../../lib/rules/types'
+import type { MechSnapshot, PilotSnapshot, SoftWarning } from '../../../lib/rules/types'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
@@ -55,6 +55,20 @@ function makeStore(opts: { entity?: Pilot | null; updateResult?: Pilot }) {
   return { storeHook, updateFn }
 }
 
+/**
+ * The structural pass-through every call site below hands to `toSnapshot`.
+ *
+ * `toSnapshot` is REQUIRED on the hook — its optional form stood in for an
+ * unsound cast inside the hook itself, whose failure mode was the warning
+ * dialog silently never appearing. These tests all drive stub evaluators and
+ * only ever read `id` / `name` off the snapshot, so the projection is
+ * irrelevant to what they assert; the cast lives here, where nothing reads a
+ * struct-shaped field, rather than in production.
+ */
+function passThrough<T>(entity: T): PilotSnapshot | MechSnapshot {
+  return entity as unknown as PilotSnapshot | MechSnapshot
+}
+
 /** The argument view the tests assert on — snapshots overlap it structurally. */
 type SnapshotView = { id?: string; name?: string; abilities?: unknown; systems?: unknown }
 type CtxView = { entityType?: string; techLevelDowngraded?: boolean }
@@ -75,6 +89,7 @@ describe('useSoftWarnings', () => {
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
+          toSnapshot: passThrough,
           evaluate: evaluateFn,
           store: storeHook,
         })
@@ -106,6 +121,7 @@ describe('useSoftWarnings', () => {
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
+          toSnapshot: passThrough,
           evaluate: evaluateFn,
           store: storeHook,
         })
@@ -130,6 +146,7 @@ describe('useSoftWarnings', () => {
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
+          toSnapshot: passThrough,
           evaluate: evaluateFn,
           store: storeHook,
         })
@@ -152,6 +169,7 @@ describe('useSoftWarnings', () => {
         useSoftWarnings({
           entityType: 'mech',
           entityId: PILOT_ID,
+          toSnapshot: passThrough,
           evaluate: evaluateFn,
           store: storeHook,
         })
@@ -177,6 +195,7 @@ describe('useSoftWarnings', () => {
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
+          toSnapshot: passThrough,
           evaluate: evaluateFn,
           store: storeHook,
         })
@@ -207,6 +226,7 @@ describe('useSoftWarnings', () => {
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
+          toSnapshot: passThrough,
           evaluate: evaluateFn,
           store: storeHook,
         })
@@ -232,6 +252,7 @@ describe('useSoftWarnings', () => {
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
+          toSnapshot: passThrough,
           store: storeHook,
         })
       )
@@ -254,6 +275,7 @@ describe('useSoftWarnings', () => {
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
+          toSnapshot: passThrough,
           evaluate: evaluateFn,
           store: storeHook,
         })
@@ -280,6 +302,7 @@ describe('useSoftWarnings', () => {
         useSoftWarnings({
           entityType: 'pilot',
           entityId: PILOT_ID,
+          toSnapshot: passThrough,
           store: storeHook,
         })
       )

@@ -25,7 +25,7 @@ import { CrawlerEconomyControl } from '../CrawlerEconomyControl'
 import type { Roll } from '../../../lib/rules/heatCheck'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
 import type { ChangeMeta } from '../../../stores/entityStore'
 
 beforeAll(async () => {
@@ -125,7 +125,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
       'crawler',
       crawler.id,
       { scrapPool: { tl2: 1 }, upgradePool: 15 },
-      LIVE_SHEET_MANUAL,
+      LIVE_SHEET_TXN,
     ])
     expect(screen.getByRole('status').textContent).toContain('Upgrade Pool now 15 of 30')
   })
@@ -157,7 +157,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
       'Med Bay',
       { condition: 'damaged' },
       1,
-      LIVE_SHEET_MANUAL,
+      LIVE_SHEET_TXN,
     ])
     expect(screen.getByRole('status').textContent).toContain('Med Bay is Damaged')
   })
@@ -178,12 +178,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Roll Deterioration (d20)' }))
     await screen.findByRole('status')
 
-    expect(update.mock.calls[0]).toEqual([
-      'crawler',
-      crawler.id,
-      { currentSP: 5 },
-      LIVE_SHEET_MANUAL,
-    ])
+    expect(update.mock.calls[0]).toEqual(['crawler', crawler.id, { currentSP: 5 }, LIVE_SHEET_TXN])
     expect(updateCrawlerBay).not.toHaveBeenCalled()
   })
 
@@ -239,7 +234,7 @@ describe('CrawlerEconomyControl — Upgrade Crawler', () => {
           { bayRef: 'Med Bay', condition: 'intact' },
         ],
       },
-      LIVE_SHEET_MANUAL,
+      LIVE_SHEET_TXN,
     ])
     expect(onClose).toHaveBeenCalled()
   })
@@ -270,7 +265,7 @@ describe('CrawlerEconomyControl — Upgrade Crawler', () => {
       'crawler',
       crawler.id,
       { scrapPool: { tl2: 5 }, upgradePool: 11 },
-      LIVE_SHEET_MANUAL,
+      LIVE_SHEET_TXN,
     ])
   })
 })
@@ -297,7 +292,7 @@ describe('CrawlerEconomyControl — Trading Bay', () => {
       'crawler',
       crawler.id,
       { scrapPool: { tl1: 1, tl4: 1 } },
-      LIVE_SHEET_MANUAL,
+      LIVE_SHEET_TXN,
     ])
   })
 

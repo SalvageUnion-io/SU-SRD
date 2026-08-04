@@ -26,6 +26,7 @@ import { AppLink } from '../shared/AppLink'
 import { crawlerRailItems, pilotRailItems, rowStats } from './railStats'
 import type { SheetViewCommonProps } from './sheetViewProps'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
+import { runWrite } from './sheetWrite'
 
 type SheetMechProps = SheetViewCommonProps & {
   mech: Mech
@@ -84,7 +85,9 @@ export function SheetMech({
     (l) => l.type === 'mech-to-pilot' && l.from.id === mech.id
   )?.id
   const unassignPilot =
-    editable && pilotLinkId ? () => void storeState.delete('softLink', pilotLinkId) : undefined
+    editable && pilotLinkId
+      ? () => runWrite(() => storeState.delete('softLink', pilotLinkId))
+      : undefined
 
   // Linked Units rail content (poster R4, span 5) — built here because it
   // needs `composition` (resolved pilot/crawler), which MechSheet does not

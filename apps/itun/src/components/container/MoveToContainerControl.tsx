@@ -31,6 +31,7 @@ import { containerOf, moveTo } from '../../lib/container'
 import type { ContainerFields } from '../../lib/container'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
+import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
 
 type MoveToContainerControlProps = {
@@ -60,7 +61,7 @@ function ConnectedMoveToContainerControl({
     setPending(true)
     setError(null)
     try {
-      await useEntityStore.getState().update(entityType, entityId, moveTo(next))
+      await useEntityStore.getState().update(entityType, entityId, moveTo(next), CONTAINER_MOVE)
       onChanged?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to move this build.')

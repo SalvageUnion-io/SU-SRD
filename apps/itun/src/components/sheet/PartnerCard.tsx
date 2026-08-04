@@ -56,6 +56,7 @@ import { partnerDisplayName } from './partnerDisplay'
 import { resolveModule, resolveSystem } from './mechItemRules'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { summarizeBreakdown } from 'component-lib'
+import { runWrite } from './sheetWrite'
 
 type PartnerCardProps = {
   /**
@@ -130,13 +131,15 @@ export function PartnerCard({
   /** Write through the HOST — a partner has no store row of its own. */
   const patch = (fields: Partial<PartnerInstance>): void => {
     if (readOnly) return
-    void storeState.update(
-      hostKind,
-      host.id,
-      {
-        partners: replacePartner(host.partners, partner.id, fields),
-      },
-      LIVE_SHEET_MANUAL
+    runWrite(() =>
+      storeState.update(
+        hostKind,
+        host.id,
+        {
+          partners: replacePartner(host.partners, partner.id, fields),
+        },
+        LIVE_SHEET_MANUAL
+      )
     )
   }
 
