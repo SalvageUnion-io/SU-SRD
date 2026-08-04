@@ -7,6 +7,14 @@ services:
     # Command registration is intentionally NOT part of the deploy build.
     # Global slash commands are registered manually (an explicit step) only
     # when the command shape changes — see apps/discord-bot/README.md.
+    #
+    # `build:bot` runs `bun run --cwd apps/discord-bot build`, NOT
+    # `bun --filter discord-bot build`. The filter runner wedges here: the
+    # bundle itself takes ~20ms, but the build has twice hung on that exact
+    # line with no further output — 2026-07-28 (~2h, until Render SIGTERMed
+    # it, which is what drained the workspace's build-pipeline minutes) and
+    # again 2026-08-04. `--cwd` runs the same script with no filter runner in
+    # front of it and exits cleanly. Keep it that way.
     buildCommand: 'bun install --ignore-scripts && bun run build:bot'
     startCommand: 'node apps/discord-bot/dist/index.js'
     # Without this, every commit to main rebuilds and redeploys the bot —

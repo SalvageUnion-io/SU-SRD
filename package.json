@@ -50,7 +50,7 @@
     "build": "bun run build:package && bun run build:web && bun run build:itun && bun run build:bot",
     "build:web": "bun --filter srd build",
     "build:itun": "bun --filter itun build",
-    "build:bot": "bun --filter discord-bot build",
+    "build:bot": "bun run --cwd apps/discord-bot build",
     "build:package": "bun --filter salvageunion-reference build",
     "build:package:watch": "bun --filter salvageunion-reference watch",
     "deploy-commands": "bun --filter discord-bot deploy-commands",
