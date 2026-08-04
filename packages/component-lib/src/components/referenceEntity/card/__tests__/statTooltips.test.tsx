@@ -14,8 +14,8 @@
  * Both are asserted through the trigger attribute base-ui stamps on whatever it
  * arms, since the popup itself only mounts on hover.
  */
-import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 import { InsideTooltipContext } from '../../../ui/insideTooltipContext'
@@ -41,8 +41,6 @@ const leafWithText = (text: string) =>
 beforeAll(async () => {
   await SalvageUnionReference.preload('all')
 })
-
-afterEach(cleanup)
 
 describe('sub-header trait line', () => {
   test('each trait segment arms its own hovercard', () => {

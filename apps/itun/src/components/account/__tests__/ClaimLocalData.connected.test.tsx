@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 
 /**
@@ -19,7 +19,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
  * of silently rendering that query's loading state forever.
  */
 
-import { convexReactMock, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 let authed = true
 let claimResult: unknown = { claimed: 0, skipped: 0, byKind: {} }
@@ -28,54 +28,37 @@ let mechs: unknown[] = []
 let crawlers: unknown[] = []
 let patterns: unknown[] = []
 
-/**
- * `mock.module` replaces the entry in the process-wide module registry, so these
- * mocks outlive this file and would otherwise poison every test that runs after
- * it — the exports below are captured first and put back in `afterAll`.
- *
- * The spread is load-bearing. A module namespace is a *live* view, and mocking
- * rewrites it in place, so holding the namespace itself captures nothing: by
- * `afterAll` it already reads as the mock.
- */
-const realConvexClient = { ...(await import('../../../lib/connection/convexClient')) }
-const realConvexReact = { ...(await import('convex/react')) }
-const realEntityStore = { ...(await import('../../../stores/entityStore')) }
-const realPatternStore = { ...(await import('../../../stores/patternStore')) }
-
-mock.module('../../../lib/connection/convexClient', () => ({
-  isConvexConfigured: true,
-  convexClient: {},
-}))
-
-mock.module('convex/react', () =>
-  convexReactMock({
+// Module scope, before the imports below: `mock.module` only affects imports
+// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+//
+// The stores go through `also` rather than IndexedDB: what is under test is
+// the prompt's arithmetic and its one-time marker, not hydration. Those
+// specifiers resolve relative to `convexMock.ts`, not to this file.
+const convexMocks = await installConvexMocks({
+  convexReact: {
     useMutation: () => async () => claimResult,
     useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }),
-  })
-)
+  },
+  also: {
+    '../../stores/entityStore': () => ({
+      useEntityStore: (selector: (s: unknown) => unknown) =>
+        selector({
+          list: (kind: string) => {
+            if (kind === 'pilot') return pilots
+            if (kind === 'mech') return mechs
+            if (kind === 'crawler') return crawlers
+            return []
+          },
+        }),
+    }),
+    '../../stores/patternStore': () => ({
+      usePatternStore: (selector: (s: unknown) => unknown) => selector({ mechPatterns: patterns }),
+    }),
+  },
+})
 
 // No queries: this component asks the server nothing.
 setQueryAnswers({})
-
-/**
- * The stores are stubbed rather than seeded through IndexedDB: what is under
- * test is the prompt's arithmetic and its one-time marker, not hydration.
- */
-mock.module('../../../stores/entityStore', () => ({
-  useEntityStore: (selector: (s: unknown) => unknown) =>
-    selector({
-      list: (kind: string) => {
-        if (kind === 'pilot') return pilots
-        if (kind === 'mech') return mechs
-        if (kind === 'crawler') return crawlers
-        return []
-      },
-    }),
-}))
-
-mock.module('../../../stores/patternStore', () => ({
-  usePatternStore: (selector: (s: unknown) => unknown) => selector({ mechPatterns: patterns }),
-}))
 
 const { ClaimLocalData } = await import('../ClaimLocalData')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
@@ -212,9 +195,4 @@ describe('after copying', () => {
   })
 })
 
-afterAll(() => {
-  mock.module('../../../lib/connection/convexClient', () => realConvexClient)
-  mock.module('convex/react', () => realConvexReact)
-  mock.module('../../../stores/entityStore', () => realEntityStore)
-  mock.module('../../../stores/patternStore', () => realPatternStore)
-})
+afterAll(convexMocks.restore)

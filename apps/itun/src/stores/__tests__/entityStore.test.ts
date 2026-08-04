@@ -6,11 +6,26 @@
  * resetting the Zustand store state manually.
  */
 
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 
 import { _clearAllStores, _resetDbSingleton, pilots as dbPilots } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
 import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
+import { installMonotonicClock } from '../../lib/db/__tests__/monotonicClock'
+import type { MonotonicClock } from '../../lib/db/__tests__/monotonicClock'
+
+// `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
+// sorts on `createdAt`. A monotonic clock makes consecutive writes distinct and
+// ordered by construction, so the ordering assertions below need no sleeping.
+let clock: MonotonicClock
+
+beforeAll(() => {
+  clock = installMonotonicClock()
+})
+
+afterAll(() => {
+  clock.restore()
+})
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -120,8 +135,6 @@ describe('entityStore — update', () => {
   test('update merges patch and writes through to db', async () => {
     await useEntityStore.getState().hydrate('pilot')
     const created = await useEntityStore.getState().create('pilot', basePilotInput)
-
-    await new Promise((r) => setTimeout(r, 5)) // ensure updatedAt differs
 
     const updated = await useEntityStore.getState().update(
       'pilot',

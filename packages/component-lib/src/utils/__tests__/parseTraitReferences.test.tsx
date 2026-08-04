@@ -1,8 +1,6 @@
-import { describe, test, expect, afterEach } from 'bun:test'
-import { render, screen, cleanup } from '@testing-library/react'
+import { describe, test, expect } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { useParseTraitReferences } from '../parseTraitReferences'
-
-afterEach(cleanup)
 
 function Prose({ text }: { text: string }) {
   return <p>{useParseTraitReferences(text)}</p>

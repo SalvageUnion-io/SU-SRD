@@ -10,14 +10,12 @@
  * silent: it is an ADDITIONAL printing under the primary source, on the entity's
  * own full-size card only.
  */
-import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SURefObjectPattern } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 import { formatProvenance, resolveAdditionalSources } from '../provenance'
-
-afterEach(cleanup)
 
 const equipmentNamed = (name: string) => {
   const found = SalvageUnionReference.Equipment.all().find((e) => e.name === name)

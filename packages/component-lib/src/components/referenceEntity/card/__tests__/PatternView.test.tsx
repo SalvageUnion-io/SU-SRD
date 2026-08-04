@@ -10,7 +10,7 @@
  * 3. The full pattern view reads chassis prose → chassis ability → pattern prose
  *    → systems → modules, so the pattern is framed by the chassis it belongs to.
  */
-import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
+import { beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference, nameToSlug, visiblePatterns } from 'salvageunion-reference'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
@@ -27,8 +27,6 @@ const mule = () => {
 /** Stands in for srd's route builder. */
 const testPatternHref = (chassis: SURefEntity, pattern: SURefObjectPattern) =>
   `/chassis/${'name' in chassis ? nameToSlug(String(chassis.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
-
-afterEach(cleanup)
 
 describe('chassis pattern rows', () => {
   beforeAll(async () => {

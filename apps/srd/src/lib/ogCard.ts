@@ -5,6 +5,7 @@
  * (`scripts/og-screenshots.ts`) and the item page that references the output
  * path can never disagree about width, canvas size, or file location.
  */
+import { itemHref, patternHref } from './entityHref'
 
 /**
  * Viewport the catalog tile is laid out at.
@@ -151,9 +152,13 @@ export function pickTileWidth(measurements: readonly TileMeasurement[]): number 
  * A chassis pattern is addressed as an entity in its own right (it has its own
  * page, its own card view and its own provenance), mirroring its page URL with
  * the `.og.png` suffix moved to the end.
+ *
+ * "Mirrors the page URL" is enforced, not merely asserted: the path is DERIVED
+ * from the same `itemHref`/`patternHref` grammar the page routes are built from,
+ * with the trailing slash swapped for the extension. Hand-writing the segments
+ * here a second time is how a route rename silently 404s every social preview.
  */
 export function ogImagePath(schemaId: string, itemId: string, patternId?: string): string {
-  return patternId
-    ? `/schema/${schemaId}/item/${itemId}/pattern/${patternId}.og.png`
-    : `/schema/${schemaId}/item/${itemId}.og.png`
+  const pageHref = patternId ? patternHref(schemaId, itemId, patternId) : itemHref(schemaId, itemId)
+  return `${pageHref.slice(0, -1)}.og.png`
 }

@@ -12,8 +12,8 @@
  * and three action controls — so a re-position that drops the max-width (and
  * lets the rail spill) fails here.
  */
-import { afterEach, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { CardControlRail } from '../CardControlRail'
 import type { ReferenceEntityControl } from '../../referenceEntity/referenceEntityControlTypes'
 
@@ -40,8 +40,6 @@ function railEl(container: HTMLElement): HTMLElement {
   if (!(el instanceof HTMLElement)) throw new Error('no absolute rail rendered')
   return el
 }
-
-afterEach(cleanup)
 
 describe('CardControlRail — corner-pinned, still contained', () => {
   test('the rail is right-pinned (not centred)', () => {

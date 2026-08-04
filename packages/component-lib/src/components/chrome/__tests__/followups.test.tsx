@@ -1,10 +1,8 @@
-import { describe, test, expect, afterEach } from 'bun:test'
+import { describe, test, expect } from 'bun:test'
 import { render, screen, cleanup } from '@testing-library/react'
 import { Badge } from '../Badge'
 import { EmptyState } from '../EmptyState'
 import { InlineRef } from '../InlineRef'
-
-afterEach(cleanup)
 
 describe('Badge (unified) + presets', () => {
   test('solid is ink-on-paper; tone fills the surface', () => {

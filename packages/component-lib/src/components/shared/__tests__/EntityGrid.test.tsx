@@ -5,8 +5,8 @@
  * ride the card's own controls overlay.
  */
 
-import { describe, test, expect, afterEach } from 'bun:test'
-import { render, screen, cleanup } from '@testing-library/react'
+import { describe, test, expect } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { EntityGridRow } from '../EntityGrid'
 
@@ -29,8 +29,6 @@ function StubCard({ footMeta }: StubCardProps) {
 }
 
 describe('EntityGridRow', () => {
-  afterEach(cleanup)
-
   test('injects footMeta into the wrapped card', () => {
     render(
       <EntityGridRow footMeta={[{ label: 'AP Cost', value: 1 }]}>

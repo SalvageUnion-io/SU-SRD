@@ -1,4 +1,5 @@
 import { cn } from '../../utils/cn'
+import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 import { Badge } from './Badge'
 
@@ -152,7 +153,10 @@ export function Conditions({
           type="button"
           aria-label={addLabel ?? 'Add condition'}
           onClick={onAdd}
-          className="inline-flex h-[22px] cursor-pointer items-center rounded-badge border-2 border-dashed border-wk-faint px-[9px] font-cond text-badge font-semibold uppercase leading-none tracking-caps text-wk-muted hover:border-ink hover:text-ink"
+          className={cn(
+            capsLabel({ size: 'badge', weight: 'semibold', tracking: 'caps' }),
+            'inline-flex h-[22px] cursor-pointer items-center rounded-badge border-2 border-dashed border-wk-faint px-[9px] leading-none text-wk-muted hover:border-ink hover:text-ink'
+          )}
         >
           + Add
         </button>

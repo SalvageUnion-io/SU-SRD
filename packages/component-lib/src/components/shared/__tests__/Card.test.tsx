@@ -1,5 +1,5 @@
-import { describe, test, expect, afterEach } from 'bun:test'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { describe, test, expect } from 'bun:test'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { Card } from '../Card'
 import type { ReferenceEntityControl } from '../../referenceEntity/referenceEntityControlTypes'
@@ -33,7 +33,6 @@ function headerRowAround(text: string): HTMLElement {
 }
 
 describe('Card', () => {
-  afterEach(cleanup)
   test('renders header content', () => {
     render(
       <Card headerBg="bg-mech" headerContent={<span>My Header</span>}>

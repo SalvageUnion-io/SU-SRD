@@ -62,7 +62,7 @@ export function Slab({ label, as, count, actions, className, variant = 'dashed' 
         </span>
       )}
       {isSolid ? (
-        <span aria-hidden="true" className="h-0 min-w-3 flex-1 border-t-chrome border-ink/35" />
+        <span aria-hidden="true" className="h-0 min-w-3 flex-1 border-t-chrome border-ink-30" />
       ) : (
         <span
           aria-hidden="true"

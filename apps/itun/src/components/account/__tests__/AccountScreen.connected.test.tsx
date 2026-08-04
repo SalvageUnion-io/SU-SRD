@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 
 /**
@@ -17,37 +17,18 @@ import { fireEvent, render, screen } from '@testing-library/react'
  * the end of the queue and collapse the screen back to its loading state.
  */
 
-import { convexReactMock, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import type { QueryAnswers } from '../../__tests__/convexMock'
 
 let authed = true
 
-/**
- * `mock.module` replaces the entry in the process-wide module registry, so these
- * mocks outlive this file and would otherwise poison every test that runs after
- * it — the exports below are captured first and put back in `afterAll`.
- *
- * The spread is load-bearing. A module namespace is a *live* view, and mocking
- * rewrites it in place, so holding the namespace itself captures nothing: by
- * `afterAll` it already reads as the mock.
- */
-const realConvexClient = { ...(await import('../../../lib/connection/convexClient')) }
-const realConvexReact = { ...(await import('convex/react')) }
-const realAuthReact = { ...(await import('@convex-dev/auth/react')) }
-
-mock.module('../../../lib/connection/convexClient', () => ({
-  isConvexConfigured: true,
-  convexClient: {},
-}))
-
-mock.module('convex/react', () =>
-  convexReactMock({ useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) })
-)
-
-mock.module('@convex-dev/auth/react', () => ({
-  useAuthActions: () => ({ signIn: async () => undefined, signOut: async () => undefined }),
-  ConvexAuthProvider: ({ children }: { children: unknown }) => children,
-}))
+// Module scope, before the imports below: `mock.module` only affects imports
+// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+// `authReact` because the profile mounts `SignInControl`.
+const convexMocks = await installConvexMocks({
+  authReact: true,
+  convexReact: { useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) },
+})
 
 const { AccountScreen } = await import('../AccountScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
@@ -192,8 +173,4 @@ describe('taking your data, and taking it away', () => {
   })
 })
 
-afterAll(() => {
-  mock.module('../../../lib/connection/convexClient', () => realConvexClient)
-  mock.module('convex/react', () => realConvexReact)
-  mock.module('@convex-dev/auth/react', () => realAuthReact)
-})
+afterAll(convexMocks.restore)

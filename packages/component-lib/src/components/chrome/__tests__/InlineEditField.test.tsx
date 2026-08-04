@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, test } from 'bun:test'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import { InlineEditField } from '../InlineEditField'
 
@@ -14,11 +14,11 @@ import { InlineEditField } from '../InlineEditField'
  * a style: the read-only sheet must not offer an affordance that would write.
  */
 
-// Explicit rather than relying on Testing Library's auto-cleanup: every test
-// here renders the same `Callsign` label, so a single leaked render turns every
-// later `getByLabelText` into "found multiple elements". Auto-cleanup covered
-// this when the file ran alone and did not when the whole suite ran together.
-afterEach(cleanup)
+// Unmounting between tests is load-bearing here: every test renders the same
+// `Callsign` label, so a single leaked render turns every later
+// `getByLabelText` into "found multiple elements". The shared preload
+// (../../test/testing-library.ts, wired in via component-lib's bunfig) runs an
+// act()-wrapped `afterEach(cleanup)` for every file in the workspace.
 
 /** Render with a recording `onSave`; returns the calls array. */
 function setup(props: Partial<Parameters<typeof InlineEditField>[0]> = {}) {

@@ -1,10 +1,8 @@
-import { describe, test, expect, afterEach } from 'bun:test'
-import { render, screen, cleanup } from '@testing-library/react'
+import { describe, test, expect } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { Stat } from '../Stat'
 
 describe('Stat', () => {
-  afterEach(cleanup)
-
   test('default colors are text-ink on bg-paper (16:1 contrast, WCAG AAA)', () => {
     render(<Stat label="HP" value={10} />)
     const group = screen.getByRole('group')

@@ -1,9 +1,24 @@
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 
 // fake-indexeddb/auto is loaded via bunfig.toml preload — it patches the global
 // indexedDB so that idb's openDB() works in the test environment.
 
 import { _clearAllStores, pilots } from '../index'
+import { installMonotonicClock } from './monotonicClock'
+import type { MonotonicClock } from './monotonicClock'
+
+// `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
+// sorts on `createdAt`. A monotonic clock makes consecutive writes distinct and
+// ordered by construction, so the ordering assertions below need no sleeping.
+let clock: MonotonicClock
+
+beforeAll(() => {
+  clock = installMonotonicClock()
+})
+
+afterAll(() => {
+  clock.restore()
+})
 
 /**
  * Between each test: clear all IDB stores so state doesn't leak.
@@ -53,11 +68,9 @@ describe('pilots CRUD — round-trip', () => {
 
 describe('pilots CRUD — list ordering', () => {
   test('list returns pilots newest-first by createdAt', async () => {
-    // Create three pilots with staggered timestamps
+    // Three pilots, one clock tick apart (see the monotonic clock above).
     const p1 = await pilots.create({ ...basePilotInput, name: 'Alpha' })
-    await new Promise((r) => setTimeout(r, 5))
     const p2 = await pilots.create({ ...basePilotInput, name: 'Beta' })
-    await new Promise((r) => setTimeout(r, 5))
     const p3 = await pilots.create({ ...basePilotInput, name: 'Gamma' })
 
     const all = await pilots.list()
@@ -70,9 +83,6 @@ describe('pilots CRUD — update merge', () => {
   test('update merges patch and bumps updatedAt', async () => {
     const created = await pilots.create(basePilotInput)
     const originalUpdatedAt = created.updatedAt
-
-    // Wait so updatedAt will differ
-    await new Promise((r) => setTimeout(r, 5))
 
     const updated = await pilots.update(created.id, { name: 'New Name', callsign: 'Wraith' })
 

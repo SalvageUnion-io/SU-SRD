@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
 import type { ElementType, HTMLAttributes, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
+import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 import { STAMP_SEAM } from './stampSeam'
 import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE, type SizeRung } from '../../styles/sizing'
@@ -33,7 +34,7 @@ const BADGE_TONES: Record<BadgeTone, string> = {
 /** Per-surface geometry — every chip is a fixed 22px, rounded-badge stamp-chip. */
 const BADGE_SURFACE: Record<BadgeSurface, string> = {
   solid: 'px-[7px] bg-ink text-paper tracking-caps-snug',
-  ghost: 'px-[7px] bg-paper text-ink ring-1 ring-inset ring-ink/20 tracking-caps-snug',
+  ghost: 'px-[7px] bg-paper text-ink ring-1 ring-inset ring-ink-20 tracking-caps-snug',
   outline: 'px-[9px] border-2 border-ink bg-paper text-ink tracking-caps',
   tone: 'px-[9px] border-2 tracking-caps',
   quiet: 'px-2 bg-wk-bg-2 text-ink-2',
@@ -165,7 +166,10 @@ export const Badge = forwardRef<HTMLElement, BadgeProps>(function Badge(props, r
       <Tag
         ref={ref}
         className={cn(
-          'inline-block w-fit font-cond font-bold uppercase tracking-caps-tight',
+          // Size comes from `STAMP_SIZE[size]`, so the recipe supplies only the
+          // caps role (font-cond / uppercase / bold / caps-tight).
+          capsLabel(),
+          'inline-block w-fit',
           // The stamp bakes in line-height:1 for crisp single-line labels; a
           // `leading` override (e.g. a wrapping display headline) opts out.
           leading ?? 'leading-none',
@@ -197,7 +201,10 @@ export const Badge = forwardRef<HTMLElement, BadgeProps>(function Badge(props, r
       ref={ref}
       {...(Tag === 'button' ? { type: 'button' } : {})}
       className={cn(
-        'inline-flex h-[22px] items-center rounded-badge font-cond text-badge font-semibold uppercase leading-none',
+        // Tracking is a per-SURFACE decision here (`BADGE_SURFACE` picks
+        // caps-snug or caps), so the recipe inherits rather than setting it.
+        capsLabel({ size: 'badge', weight: 'semibold', tracking: 'inherit' }),
+        'inline-flex h-[22px] items-center rounded-badge leading-none',
         swatch != null && 'gap-1.5',
         interactive && cn('cursor-pointer', FOCUS_RING),
         BADGE_SURFACE[surface],

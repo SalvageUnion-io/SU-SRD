@@ -1,4 +1,4 @@
-import { describe, test, expect, afterEach, mock } from 'bun:test'
+import { describe, test, expect, mock } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { Field, Input, Textarea, Select } from '../Field'
 import { KvRow } from '../KvRow'
@@ -12,8 +12,6 @@ import { StepButton } from '../SmallButtons'
 import { StatusBadge } from '../StatusBadge'
 import { Badge } from '../Badge'
 import { Glyph } from '../glyphs'
-
-afterEach(cleanup)
 
 function rootEl(container: Element): HTMLElement {
   const el = container.firstElementChild

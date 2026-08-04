@@ -175,10 +175,18 @@
      The Dashboard cockpit is warm paper too (ruleset §1), so the dark-skin
      exception this note used to carve out no longer exists. */
   --color-paper: rgb(251, 250, 247); /* #fbfaf7 */
-  /* Paper at opacity — the inset bevel highlight on a dark surface. One rung,
-     because there is exactly one such highlight; it was `rgba(255,255,255,0.28)`,
-     a pure white that the paper law (§4.1) retired everywhere the guard could
-     actually see. */
+  /* Paper-opacity ramp — the mirror of the ink ramp above, for the surfaces
+     where paper is the FOREGROUND (text and hairlines printed onto a tone or a
+     dark ground) rather than the surface.
+     `-30` began as the single inset bevel highlight (it was
+     `rgba(255,255,255,0.28)`, a pure white the paper law (§4.1) retired
+     everywhere the guard could see). One rung was not enough: call sites that
+     needed a softer paper reached for Tailwind's `paper/NN` slash form instead,
+     which spread one concept over eleven alphas. `-60` absorbs the largest of
+     those clusters (the `/55`–`/60` supporting-label tone); `-30` absorbs the
+     `/25`–`/35` hairline cluster. Both are FOREGROUND rungs — paper as a
+     background is always the flat `--color-paper`. */
+  --color-paper-60: rgb(251 250 247 / 0.6);
   --color-paper-30: rgb(251 250 247 / 0.3);
   --color-rust: rgb(168, 82, 34); /* #a85222 — THE single action color */
   /* The one sanctioned cream. The rendering matrix (ruleset §2) specifies the
@@ -198,7 +206,21 @@
      panel (style-unification-pass.md §2.5). */
   --color-wk-bg: rgb(230, 240, 245); /* #e6f0f5 */
   --color-wk-bg-2: rgb(215, 230, 238); /* #d7e6ee */
-  --color-wk-muted: rgb(108, 119, 128); /* #6c7780 */
+  /* The muted secondary-text tone. RETONED from #6c7780, which failed WCAG 2.1
+     AA on every ground it actually lands on — 4.39:1 on paper, 3.96:1 on
+     `--color-wk-bg` (the ITUN <body> background) and 3.58:1 on `--color-wk-bg-2`
+     — across ~117 call sites, most of them small text (`text-sm` / `text-caption`
+     / `text-label`), where AA demands 4.5:1 rather than the 3:1 large-text floor.
+     The value is chosen against the DARKEST ground it can sit on (wk-bg-2), not
+     against paper, because the same token is used on all three:
+       #5a646d → paper 5.78:1 · wk-bg 5.22:1 · wk-bg-2 4.73:1
+     Hue and chroma are unchanged (the same cool grey-blue); only lightness drops,
+     so the primary/secondary hierarchy against `--color-ink-2` (10.20:1 on paper)
+     is compressed but preserved. */
+  --color-wk-muted: rgb(90, 100, 109); /* #5a646d */
+  /* NON-TEXT ONLY — 2.03:1 on paper. This is a hairline/divider tone (~18 border
+     uses) and must never carry text; the placeholder and separator uses it once
+     had now resolve to `wk-muted`. */
   --color-wk-faint: rgb(167, 180, 189); /* #a7b4bd */
   --color-wk-line: rgb(143, 195, 216); /* #8fc3d8 — advisory/info rule (was su-blue) */
   --color-wk-accent: rgb(125, 206, 235); /* #7dceeb — game-state accent (was su-blue-game) */

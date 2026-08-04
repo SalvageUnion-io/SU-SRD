@@ -8,7 +8,7 @@
  * fake-indexeddb/auto is preloaded via bunfig.toml.
  */
 
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 
 import {
   _clearAllStores,
@@ -18,6 +18,21 @@ import {
 } from '../../lib/db/index'
 import { useEntityStore } from '../entityStore'
 import { LIVE_SHEET_MANUAL } from '../surfaceProvenance'
+import { installMonotonicClock } from '../../lib/db/__tests__/monotonicClock'
+import type { MonotonicClock } from '../../lib/db/__tests__/monotonicClock'
+
+// `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
+// sorts on `createdAt`. A monotonic clock makes consecutive writes distinct and
+// ordered by construction, so the ordering assertions below need no sleeping.
+let clock: MonotonicClock
+
+beforeAll(() => {
+  clock = installMonotonicClock()
+})
+
+afterAll(() => {
+  clock.restore()
+})
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -121,8 +136,6 @@ describe('entityStore — mech update', () => {
   test('update merges patch and writes through to db', async () => {
     await useEntityStore.getState().hydrate('mech')
     const created = await useEntityStore.getState().create('mech', baseMechInput)
-
-    await new Promise((r) => setTimeout(r, 5))
 
     const updated = await useEntityStore.getState().update(
       'mech',
@@ -229,8 +242,6 @@ describe('entityStore — crawler update', () => {
   test('update merges patch and writes through to db', async () => {
     await useEntityStore.getState().hydrate('crawler')
     const created = await useEntityStore.getState().create('crawler', baseCrawlerInput)
-
-    await new Promise((r) => setTimeout(r, 5))
 
     const updated = await useEntityStore.getState().update(
       'crawler',

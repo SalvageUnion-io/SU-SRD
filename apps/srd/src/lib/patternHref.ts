@@ -1,5 +1,6 @@
 import { getEntitySlug, nameToSlug } from 'salvageunion-reference'
 import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import { patternHref } from './entityHref'
 
 /**
  * A chassis PATTERN's own page: `/schema/chassis/item/<chassis>/pattern/<pattern>/`.
@@ -11,5 +12,5 @@ import type { SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
  * names are unique within a chassis, which is all this slug has to disambiguate.
  */
 export function srdPatternHref(chassis: SURefEntity, pattern: SURefObjectPattern): string {
-  return `/schema/chassis/item/${getEntitySlug(chassis)}/pattern/${nameToSlug(pattern.name)}/`
+  return patternHref('chassis', getEntitySlug(chassis), nameToSlug(pattern.name))
 }

@@ -5,6 +5,7 @@ import { SchemaViewerIsland } from '../../../components/islands/SchemaViewerIsla
 import { getUniqueTechLevels, getUniqueSources, getUniqueTrees } from '../../../lib/gameData'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
 import { SITE_URL } from '../../../lib/constants'
+import { schemaHref } from '../../../lib/entityHref'
 
 export function getStaticPaths() {
   return getSchemaStaticPaths()
@@ -14,7 +15,7 @@ const { schema, data } = Astro.props
 const { schemaId } = Astro.params
 
 const schemaName = schema.displayName || 'Schema'
-const canonicalUrl = `${SITE_URL}/schema/${schemaId}/`
+const canonicalUrl = `${SITE_URL}${schemaHref(schemaId)}`
 
 // Pre-compute filter facets at build time
 const techLevels = getUniqueTechLevels(data)

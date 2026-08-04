@@ -1,8 +1,6 @@
-import { describe, test, expect, afterEach, mock } from 'bun:test'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { describe, test, expect, mock } from 'bun:test'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { VitalGauge } from '../VitalGauge'
-
-afterEach(cleanup)
 
 /** Narrow a possibly-null query result, failing the test loudly if absent. */
 function mustInput(el: HTMLElement | null | undefined): HTMLInputElement {

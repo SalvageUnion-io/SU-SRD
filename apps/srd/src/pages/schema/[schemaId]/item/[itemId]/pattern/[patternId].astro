@@ -5,6 +5,7 @@ import { getPatternStaticPaths } from '../../../../../../lib/staticPaths'
 import { getReferenceEntityData } from '../../../../../../lib/gameData'
 import { patternStaticSummary } from '../../../../../../lib/patternSummary'
 import { SITE_URL } from '../../../../../../lib/constants'
+import { itemHref, patternHref, schemaHref } from '../../../../../../lib/entityHref'
 
 export function getStaticPaths() {
   return getPatternStaticPaths()
@@ -13,8 +14,8 @@ export function getStaticPaths() {
 const { chassis, pattern, chassisName, patternName } = Astro.props
 const { schemaId, itemId, patternId } = Astro.params
 
-const canonicalUrl = `${SITE_URL}/schema/${schemaId}/item/${itemId}/pattern/${patternId}/`
-const chassisUrl = `${SITE_URL}/schema/${schemaId}/item/${itemId}/`
+const canonicalUrl = `${SITE_URL}${patternHref(schemaId, itemId, patternId)}`
+const chassisUrl = `${SITE_URL}${itemHref(schemaId, itemId)}`
 
 const displayData = getReferenceEntityData(chassis)
 const summary = patternStaticSummary(chassis, pattern)
@@ -75,7 +76,7 @@ const structuredData: Record<string, unknown> = {
   preloadImage={displayData?.assetUrl}
   breadcrumbs={[
     { name: 'SRD', url: `${SITE_URL}/` },
-    { name: 'Chassis', url: `${SITE_URL}/schema/${schemaId}/` },
+    { name: 'Chassis', url: `${SITE_URL}${schemaHref(schemaId)}` },
     { name: chassisName, url: chassisUrl },
     { name: patternName, url: canonicalUrl },
   ]}

@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 /**
@@ -17,49 +17,31 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
  * This screen asks only `invites.preview`, from two components.
  */
 
-import { convexReactMock, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 let redeemResult: unknown = { kind: 'joined', gameId: 'g1', granted: 0 }
 let redeemError: Error | null = null
 // Flipped per-test: the signed-out path is the one a stranger following a link
 // actually hits, so it needs exercising rather than assuming.
 let isAuthenticated = true
-const navigations: unknown[] = []
-
-const realConvexClient = { ...(await import('../../../lib/connection/convexClient')) }
-const realConvexReact = { ...(await import('convex/react')) }
-const realAuthReact = { ...(await import('@convex-dev/auth/react')) }
-const realRouter = { ...(await import('@tanstack/react-router')) }
-
-mock.module('../../../lib/connection/convexClient', () => ({
-  isConvexConfigured: true,
-  convexClient: {},
-}))
-
-mock.module('convex/react', () =>
-  convexReactMock({
+// Module scope, before the imports below: `mock.module` only affects imports
+// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+//
+// `authReact` for the signed-out branch's sign-in control; `router` because
+// redeeming navigates, and the stub records where.
+const convexMocks = await installConvexMocks({
+  authReact: true,
+  router: true,
+  convexReact: {
     useMutation: () => async () => {
       if (redeemError !== null) throw redeemError
       return redeemResult
     },
     useConvexAuth: () => ({ isAuthenticated, isLoading: false }),
-  })
-)
-
-mock.module('@convex-dev/auth/react', () => ({
-  useAuthActions: () => ({ signIn: async () => undefined, signOut: async () => undefined }),
-  ConvexAuthProvider: ({ children }: { children: unknown }) => children,
-}))
-
-mock.module('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
-  ),
-  useNavigate: () => async (opts: unknown) => {
-    navigations.push(opts)
   },
-  useRouter: () => undefined,
-}))
+})
+
+const navigations = convexMocks.navigations
 
 const { JoinScreen } = await import('../JoinScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
@@ -213,9 +195,4 @@ describe('a visitor who is not signed in', () => {
   })
 })
 
-afterAll(() => {
-  mock.module('../../../lib/connection/convexClient', () => realConvexClient)
-  mock.module('convex/react', () => realConvexReact)
-  mock.module('@convex-dev/auth/react', () => realAuthReact)
-  mock.module('@tanstack/react-router', () => realRouter)
-})
+afterAll(convexMocks.restore)

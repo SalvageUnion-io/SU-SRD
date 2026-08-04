@@ -1,10 +1,8 @@
-import { describe, test, expect, afterEach } from 'bun:test'
-import { render, screen, cleanup } from '@testing-library/react'
+import { describe, test, expect } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { FilterRow } from '../FilterRow'
 
 describe('FilterRow', () => {
-  afterEach(cleanup)
-
   test('renders the label text', () => {
     render(
       <FilterRow label="Type">

@@ -7,13 +7,11 @@
  * each pinned here rather than left to a component library's defaults.
  */
 
-import { describe, expect, test, afterEach } from 'bun:test'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import { StatProvenance } from './StatProvenance'
 import type { ProvenanceLine } from './StatProvenance'
-
-afterEach(cleanup)
 
 const LINES: ProvenanceLine[] = [
   { kind: 'base', label: 'Atlas chassis', detail: 'base', amount: 18 },

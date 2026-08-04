@@ -10,12 +10,10 @@
  * is visible in the product and not only in CI.
  */
 
-import { describe, expect, test, afterEach } from 'bun:test'
-import { cleanup, render } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { render } from '@testing-library/react'
 
 import { Content } from '../Content'
-
-afterEach(cleanup)
 
 const claim = [
   { type: 'paragraph' as const, value: "This System increases your Mech's Max SP by 5." },

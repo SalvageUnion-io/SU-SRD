@@ -9,8 +9,8 @@
  * Mutant Squad carry no prose of their own, only actions — and their tiles
  * rendered as a bare strip of paper under the stat band.
  */
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import {
   getSchemaCatalog,
   SalvageUnionReference,
@@ -19,8 +19,6 @@ import {
 } from 'salvageunion-reference'
 
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
-
-afterEach(cleanup)
 
 /** Text the tile renders, with the entity's own name removed — what a reader
  * learns from the tile beyond the label they clicked. */

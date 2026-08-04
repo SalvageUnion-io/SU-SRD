@@ -1,8 +1,6 @@
-import { describe, test, expect, afterEach } from 'bun:test'
-import { render, cleanup } from '@testing-library/react'
+import { describe, test, expect } from 'bun:test'
+import { render } from '@testing-library/react'
 import { ConditionSwatch } from '../ConditionSwatch'
-
-afterEach(cleanup)
 
 describe('ConditionSwatch', () => {
   test('intact is a solid ok-toned square', () => {

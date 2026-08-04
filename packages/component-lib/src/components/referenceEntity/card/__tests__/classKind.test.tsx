@@ -11,8 +11,8 @@
  * a data change that breaks the derivation fails here rather than silently
  * mis-stamping a card.
  */
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   formatClassRequirements,
@@ -52,8 +52,6 @@ const EXPECTED_REQUIREMENTS = [
   ['Smuggler', ['Sleuth', 'Salvaging']],
   ['Ranger', ['Survivalist', 'Sniper']],
 ] as const
-
-afterEach(cleanup)
 
 describe('class kind derivation', () => {
   beforeAll(async () => {

@@ -23,8 +23,8 @@
  * would have made these tests fail against working code.
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 import { EntityTooltip } from '../EntityTooltip'
@@ -33,8 +33,6 @@ import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 beforeAll(async () => {
   await SalvageUnionReference.preload(['chassis', 'systems', 'classes'])
 })
-
-afterEach(cleanup)
 
 const firstChassis = () => {
   const c = SalvageUnionReference.Chassis.all()[0]

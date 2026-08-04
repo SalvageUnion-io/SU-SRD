@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 
 /**
@@ -13,27 +13,13 @@ import { cleanup, render, screen } from '@testing-library/react'
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  */
 
-import { convexReactMock, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import type { QueryAnswers } from '../../__tests__/convexMock'
 
-const realConvexClient = { ...(await import('../../../lib/connection/convexClient')) }
-const realConvexReact = { ...(await import('convex/react')) }
-const realRouter = { ...(await import('@tanstack/react-router')) }
-
-mock.module('../../../lib/connection/convexClient', () => ({
-  isConvexConfigured: true,
-  convexClient: {},
-}))
-
-mock.module('convex/react', () => convexReactMock())
-
-mock.module('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
-  ),
-  useNavigate: () => async () => undefined,
-  useRouter: () => undefined,
-}))
+// Module scope, before the imports below: `mock.module` only affects imports
+// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+// `router` because the panels link out; nothing here asserts on navigation.
+const convexMocks = await installConvexMocks({ router: true })
 
 const { GameScreen } = await import('../GameScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
@@ -142,8 +128,4 @@ describe('GameScreen', () => {
   })
 })
 
-afterAll(() => {
-  mock.module('../../../lib/connection/convexClient', () => realConvexClient)
-  mock.module('convex/react', () => realConvexReact)
-  mock.module('@tanstack/react-router', () => realRouter)
-})
+afterAll(convexMocks.restore)

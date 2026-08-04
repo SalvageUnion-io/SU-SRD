@@ -1,10 +1,8 @@
-import { describe, test, expect, afterEach, mock } from 'bun:test'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { describe, test, expect, mock } from 'bun:test'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { ModalShell } from '../ModalShell'
 
 describe('ModalShell', () => {
-  afterEach(cleanup)
-
   test('renders title text when open', () => {
     render(
       <ModalShell open={true} onOpenChange={() => {}} title="My Modal">

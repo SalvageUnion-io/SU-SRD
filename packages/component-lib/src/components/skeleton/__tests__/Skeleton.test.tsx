@@ -1,8 +1,6 @@
-import { describe, test, expect, afterEach } from 'bun:test'
+import { describe, test, expect } from 'bun:test'
 import { render, screen, cleanup } from '@testing-library/react'
 import { Skeleton } from '../Skeleton'
-
-afterEach(cleanup)
 
 describe('Skeleton', () => {
   test('every mode exposes a loading status', () => {

@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 /**
@@ -12,61 +12,30 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  */
 
-import { convexReactMock, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import type { QueryAnswers } from '../../__tests__/convexMock'
 
 let redeemResult: unknown = { kind: 'joined', gameId: 'g9', granted: 0 }
 let redeemError: Error | null = null
-const navigations: unknown[] = []
 
-/**
- * `mock.module` replaces the entry in the process-wide module registry, so these
- * mocks outlive this file and would otherwise poison every test that runs after
- * it — the exports below are captured first and put back in `afterAll`.
- *
- * The spread is load-bearing. A module namespace is a *live* view, and mocking
- * rewrites it in place, so holding the namespace itself captures nothing: by
- * `afterAll` it already reads as the mock.
- */
-const realConvexClient = { ...(await import('../../../lib/connection/convexClient')) }
-const realConvexReact = { ...(await import('convex/react')) }
-const realAuthReact = { ...(await import('@convex-dev/auth/react')) }
-const realRouter = { ...(await import('@tanstack/react-router')) }
-
-mock.module('../../../lib/connection/convexClient', () => ({
-  isConvexConfigured: true,
-  convexClient: {},
-}))
-
-// `convexReactMock` supplies every export the transitive importers reach —
-// `@convex-dev/auth/react` (via SignInControl) imports ConvexProviderWithAuth
-// from convex/react, so a partial mock breaks its import rather than the
-// component under test.
-mock.module('convex/react', () =>
-  convexReactMock({
+// Module scope, before the imports below: `mock.module` only affects imports
+// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+//
+// `authReact` because SignInControl mounts here; `router` because rows link out
+// and joining navigates — neither needs a real RouterProvider for these
+// assertions, and the stub records what was navigated to.
+const convexMocks = await installConvexMocks({
+  authReact: true,
+  router: true,
+  convexReact: {
     useMutation: () => async () => {
       if (redeemError !== null) throw redeemError
       return redeemResult
     },
-  })
-)
-
-mock.module('@convex-dev/auth/react', () => ({
-  useAuthActions: () => ({ signIn: async () => undefined, signOut: async () => undefined }),
-  ConvexAuthProvider: ({ children }: { children: unknown }) => children,
-}))
-
-// Rows link through the router, and joining navigates — neither needs a real
-// RouterProvider for these assertions.
-mock.module('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
-  ),
-  useNavigate: () => async (opts: unknown) => {
-    navigations.push(opts)
   },
-  useRouter: () => undefined,
-}))
+})
+
+const navigations = convexMocks.navigations
 
 const { GamesScreen } = await import('../GamesScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
@@ -258,9 +227,4 @@ describe('joining by code from the lobby', () => {
   })
 })
 
-afterAll(() => {
-  mock.module('../../../lib/connection/convexClient', () => realConvexClient)
-  mock.module('convex/react', () => realConvexReact)
-  mock.module('@convex-dev/auth/react', () => realAuthReact)
-  mock.module('@tanstack/react-router', () => realRouter)
-})
+afterAll(convexMocks.restore)

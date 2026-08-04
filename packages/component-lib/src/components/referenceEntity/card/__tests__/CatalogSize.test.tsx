@@ -5,8 +5,8 @@
  * happens to carry. These fixtures are chosen because each one DOES carry
  * nested content at full size, so the assertions would fail if it leaked.
  */
-import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference, resolveGrantedEntities } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -25,8 +25,6 @@ const armamentBay = () => {
   if (!bay) throw new Error('Armament Bay fixture missing')
   return bay
 }
-
-afterEach(cleanup)
 
 describe('ReferenceEntityCard size="medium" extent="catalog"', () => {
   beforeAll(async () => {

@@ -13,7 +13,7 @@ import {
   FOCUS_RING,
 } from 'component-lib'
 import { GameDataGate, type SchemaList } from '../../lib/useGameData'
-import { srdEntityHref } from '../../lib/entityHref'
+import { itemHref, srdEntityHref } from '../../lib/entityHref'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import { CatalogTile } from './CatalogTile'
 
@@ -343,10 +343,7 @@ export function SchemaViewerIsland({
                   <MasonryColumns>
                     {filteredData.map((item: SURefEntity) => (
                       <Suspense key={item.id} fallback={<Skeleton mode="card" compact />}>
-                        <CatalogTile
-                          entity={item}
-                          href={`/schema/${schemaId}/item/${getEntitySlug(item)}/`}
-                        />
+                        <CatalogTile entity={item} href={itemHref(schemaId, getEntitySlug(item))} />
                       </Suspense>
                     ))}
                   </MasonryColumns>

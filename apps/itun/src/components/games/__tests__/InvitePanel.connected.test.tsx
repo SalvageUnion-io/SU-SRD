@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 /**
@@ -16,28 +16,22 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
  * swapping those two lines was invisible to this file.
  */
 
-import { convexReactMock, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 const calls: { name: string; args: unknown }[] = []
 
-const realConvexClient = { ...(await import('../../../lib/connection/convexClient')) }
-const realConvexReact = { ...(await import('convex/react')) }
-
-mock.module('../../../lib/connection/convexClient', () => ({
-  isConvexConfigured: true,
-  convexClient: {},
-}))
-
-mock.module('convex/react', () =>
-  convexReactMock({
+// Module scope, before the imports below: `mock.module` only affects imports
+// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+const convexMocks = await installConvexMocks({
+  convexReact: {
     // Every mutation records its call so the tests can assert what the panel
     // asked the server to do, which is the half a render assertion cannot cover.
     useMutation: () => async (args: unknown) => {
       calls.push({ name: 'mutation', args })
       return undefined
     },
-  })
-)
+  },
+})
 
 const { InvitePanel } = await import('../InvitePanel')
 
@@ -218,7 +212,4 @@ describe('answering knocks', () => {
   })
 })
 
-afterAll(() => {
-  mock.module('../../../lib/connection/convexClient', () => realConvexClient)
-  mock.module('convex/react', () => realConvexReact)
-})
+afterAll(convexMocks.restore)

@@ -3,6 +3,7 @@ import { PageHeading, Slab } from 'component-lib'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import { getSchemaCatalog } from '../lib/gameData'
 import { SITE_URL } from '../lib/constants'
+import { schemaHref } from '../lib/entityHref'
 
 const catalog = getSchemaCatalog()
 const schemas = catalog.schemas.filter((s) => !s.meta)
@@ -195,7 +196,7 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
                 <tr class:list={['border-b border-wk-faint', i % 2 === 0 ? 'bg-paper' : 'bg-wk-bg']}>
                   <td class="px-4 py-2">
                     <a
-                      href={`/schema/${schema.id}/`}
+                      href={schemaHref(schema.id)}
                       class="font-body text-xs font-bold text-rust hover:underline"
                     >
                       {schema.id}

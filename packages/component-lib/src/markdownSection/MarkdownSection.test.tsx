@@ -1,11 +1,9 @@
-import { afterEach, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { cleanup, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { MarkdownSection } from './MarkdownSection'
 import { parseInline, parseMarkdownSection } from './parseMarkdownSection'
-
-afterEach(cleanup)
 
 /** The repo-root prose documents both about pages render. */
 const DOCS = ['ABOUT_JRVS.md', 'LLM_STATEMENT.md'].map((name) => ({

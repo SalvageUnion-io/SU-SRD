@@ -11,10 +11,25 @@
  * No mock.module() — no global leak risk.
  */
 
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { MechPatternSchema } from '../../../../lib/schemas/pattern'
 import { mechPatterns, mechs, _clearAllStores, _resetDbSingleton } from '../../../../lib/db/index'
 import { must } from '../../../__tests__/must'
+import { installMonotonicClock } from '../../../../lib/db/__tests__/monotonicClock'
+import type { MonotonicClock } from '../../../../lib/db/__tests__/monotonicClock'
+
+// `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
+// sorts on `createdAt`. A monotonic clock makes consecutive writes distinct and
+// ordered by construction, so the ordering assertions below need no sleeping.
+let clock: MonotonicClock
+
+beforeAll(() => {
+  clock = installMonotonicClock()
+})
+
+afterAll(() => {
+  clock.restore()
+})
 
 // ---------------------------------------------------------------------------
 // DB reset between tests
@@ -174,7 +189,6 @@ describe('db.mechPatterns — create + get round-trip', () => {
 describe('db.mechPatterns — list', () => {
   test('list returns all patterns, newest first', async () => {
     const p1 = await mechPatterns.create({ ...validPatternBase, name: 'Alpha' })
-    await new Promise((r) => setTimeout(r, 5))
     const p2 = await mechPatterns.create({ ...validPatternBase, name: 'Beta' })
 
     const all = await mechPatterns.list()
@@ -232,9 +246,6 @@ describe('instantiate from pattern — fresh mech with pattern fields', () => {
         },
       ],
     })
-
-    // Simulate a small delay so timestamps differ
-    await new Promise((r) => setTimeout(r, 5))
 
     // Instantiate: create a fresh mech from the pattern's fields
     const mech = await mechs.create({

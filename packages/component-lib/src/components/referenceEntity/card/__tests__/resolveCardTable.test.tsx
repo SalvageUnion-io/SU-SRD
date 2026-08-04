@@ -5,7 +5,7 @@
  * `entity.table` only, so "System and Software Hacker" (and 87 other entities)
  * rendered their prose with the d20 outcomes silently missing.
  */
-import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
+import { beforeAll, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { SalvageUnionReference, extractVisibleActions } from 'salvageunion-reference'
 import type { SURefEntity } from 'salvageunion-reference'
@@ -19,8 +19,6 @@ const find = <T extends { name?: string }>(items: readonly T[], name: string): T
   if (!match) throw new Error(`fixture missing: ${name}`)
   return match
 }
-
-afterEach(cleanup)
 
 describe('roll tables reach the card by reference, not just inline', () => {
   beforeAll(async () => {

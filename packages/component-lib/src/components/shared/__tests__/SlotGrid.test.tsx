@@ -1,8 +1,6 @@
-import { describe, test, expect, afterEach } from 'bun:test'
-import { render, screen, cleanup } from '@testing-library/react'
+import { describe, test, expect } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { SlotGrid } from '../SlotGrid'
-
-afterEach(cleanup)
 
 describe('SlotGrid', () => {
   test('renders one cell per capacity slot; empties are dashed', () => {

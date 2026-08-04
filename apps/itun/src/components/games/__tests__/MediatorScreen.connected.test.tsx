@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, mock, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 
 /**
@@ -16,27 +16,12 @@ import { render, screen } from '@testing-library/react'
  * inserting a panel shifted every later answer silently.
  */
 
-import { convexReactMock, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import type { QueryAnswers } from '../../__tests__/convexMock'
 
-/**
- * `mock.module` replaces the entry in the process-wide module registry, so these
- * mocks outlive this file and would otherwise poison every test that runs after
- * it — the exports below are captured first and put back in `afterAll`.
- *
- * The spread is load-bearing. A module namespace is a *live* view, and mocking
- * rewrites it in place, so holding the namespace itself captures nothing: by
- * `afterAll` it already reads as the mock.
- */
-const realConvexClient = { ...(await import('../../../lib/connection/convexClient')) }
-const realConvexReact = { ...(await import('convex/react')) }
-
-mock.module('../../../lib/connection/convexClient', () => ({
-  isConvexConfigured: true,
-  convexClient: {},
-}))
-
-mock.module('convex/react', () => convexReactMock())
+// Module scope, before the imports below: `mock.module` only affects imports
+// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+const convexMocks = await installConvexMocks()
 
 const { MediatorScreen } = await import('../MediatorScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
@@ -252,7 +237,4 @@ describe('the rest of the table', () => {
   })
 })
 
-afterAll(() => {
-  mock.module('../../../lib/connection/convexClient', () => realConvexClient)
-  mock.module('convex/react', () => realConvexReact)
-})
+afterAll(convexMocks.restore)

@@ -3,11 +3,9 @@
  * the former SelCard count-stepper. Guards the accessible names, the sr-only
  * count announcement, and the min/max bounds.
  */
-import { afterEach, describe, expect, it, mock } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, mock } from 'bun:test'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { CountStepper } from '../CountStepper'
-
-afterEach(cleanup)
 
 describe('CountStepper', () => {
   it('announces the count and labels the ± controls by subject', () => {

@@ -9,8 +9,8 @@
  * - A compact card labels stats with their SHORT forms (TL / SP / EP / SV /
  *   SYS / MODS); the full card keeps the two-line long form.
  */
-import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
-import { cleanup, render } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -29,8 +29,6 @@ const mule = () => {
 /** Rendered text, whitespace-collapsed, for substring assertions. */
 const textOf = (node: Parameters<typeof render>[0]) =>
   (render(node).container.textContent ?? '').replace(/\s+/g, ' ')
-
-afterEach(cleanup)
 
 describe('trait rendering', () => {
   beforeAll(async () => {

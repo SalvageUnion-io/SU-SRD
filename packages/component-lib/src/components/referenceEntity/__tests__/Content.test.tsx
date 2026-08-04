@@ -7,14 +7,12 @@
  * type-checked (the block `type` is a free string), so the branches are pinned
  * here with assertions about what actually reaches the DOM.
  */
-import { afterEach, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import type { SURefObjectContentBlock } from 'salvageunion-reference'
 import { Content } from '../Content'
 
 const blocks = (...items: unknown[]) => items as SURefObjectContentBlock[]
-
-afterEach(cleanup)
 
 describe('Content — empty inputs', () => {
   test('renders nothing for an absent or empty body', () => {

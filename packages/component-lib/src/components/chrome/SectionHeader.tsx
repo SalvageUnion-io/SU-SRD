@@ -1,5 +1,6 @@
 import type { ElementType, ReactNode } from 'react'
 import { cn } from '../../utils/cn'
+import { capsLabel } from './capsLabel'
 
 type SectionHeaderProps = {
   /** The centered label, e.g. a catalog category name. */
@@ -22,7 +23,12 @@ export function SectionHeader({ label, as: Tag = 'h2', className }: SectionHeade
   return (
     <div className={cn('flex items-center gap-3', className)}>
       <span aria-hidden="true" className="h-px flex-1 bg-wk-faint" />
-      <Tag className="whitespace-nowrap font-cond text-caption font-bold uppercase leading-none tracking-caps-wide text-rust">
+      <Tag
+        className={cn(
+          capsLabel({ size: 'caption', tracking: 'wide' }),
+          'whitespace-nowrap leading-none text-rust'
+        )}
+      >
         {label}
       </Tag>
       <span aria-hidden="true" className="h-px flex-1 bg-wk-faint" />

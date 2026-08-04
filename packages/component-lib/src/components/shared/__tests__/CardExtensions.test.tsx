@@ -1,9 +1,7 @@
-import { describe, test, expect, afterEach, mock } from 'bun:test'
+import { describe, test, expect, mock } from 'bun:test'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { Card } from '../Card'
 import { displayBooleans, resolveCardDisplay } from '../displayMode'
-
-afterEach(cleanup)
 
 describe('resolveCardDisplay', () => {
   test('size and extent are orthogonal — a small card can still be full', () => {

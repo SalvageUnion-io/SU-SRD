@@ -19,8 +19,8 @@
  * used to fill `afterExtraContent` with its loadout). The loadout now renders
  * inline as shortform badges, and the layout is chosen rather than inherited.
  */
-import { beforeAll, describe, expect, test, afterEach } from 'bun:test'
-import { cleanup, render } from '@testing-library/react'
+import { beforeAll, describe, expect, test } from 'bun:test'
+import { render } from '@testing-library/react'
 import { SalvageUnionReference, visiblePatterns } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -43,8 +43,6 @@ const mule = () => {
 
 /** Stands in for any trailing section (an ability tree, a loadout grid). */
 const trailing = <div data-testid="trailing">trailing section</div>
-
-afterEach(cleanup)
 
 describe('aside lead is opt-in', () => {
   beforeAll(async () => {
