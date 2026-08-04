@@ -206,14 +206,8 @@ describe('Card', () => {
         <p>Body</p>
       </Card>
     )
-    // The band's tone is asserted in `referenceEntityHelpers.test.ts` against
-    // `bandSurface` directly, not here: the band now paints an inline
-    // `color-mix(...)` DEEP fill instead of the raw `bg-mech` class, and
-    // happy-dom rejects `color-mix` as an invalid backgroundColor — it drops
-    // the declaration, so both `style.backgroundColor` and the `style`
-    // attribute read empty in this environment regardless of what React set.
-    // Asserting it here could only ever produce a false failure or a fake pass.
-    expect(headerRowAround('Disabled')).toBeTruthy()
+    const header = headerRowAround('Disabled')
+    expect(header.className).toContain('bg-mech')
     // Outer wrapper gets opacity-50
     const wrapper = rootEl(container)
     expect(wrapper.className).toContain('opacity-50')

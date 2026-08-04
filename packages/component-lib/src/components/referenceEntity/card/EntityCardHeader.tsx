@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { cn } from '../../../utils/cn'
-import { bandSurface } from '../referenceEntityHelpers'
+import { accentSurface } from '../referenceEntityHelpers'
 import { EntityCardStatBox } from './EntityCardStatBox'
 import type { StatItem } from '../../shared/statsBarTypes'
 
@@ -13,20 +13,9 @@ type EntityCardHeaderProps = {
   bgColor: string | undefined
   /** Title type-scale class from the DEPTH ladder (steps down per nesting level). */
   titleClass: string
-  /**
-   * The title's colour, which also DECIDES the band's fill.
-   *
-   * A union rather than a free string because these two values are a contract,
-   * not styling: `text-paper` means the band darkens to the deep fill so the
-   * white title clears AA; `text-ink` means the band stays at its base tone so
-   * the dark title does. The band follows the text, always.
-   *
-   * This was briefly a separate `bandDeep` flag the caller passed alongside,
-   * which is the same fact stated twice and therefore the same fact you can get
-   * wrong — forget it on a damaged card and its ink title lands on a dark band
-   * at 2.40:1. Deriving it makes that unrepresentable.
-   */
-  titleTextClass?: 'text-ink' | 'text-paper'
+  /** On-tone text colour class for the title, which sits directly on the header
+   * band (`text-ink` / `text-paper` — resolved against the band tone). */
+  titleTextClass?: string
   /** Write layer: a full replacement node for the title (overrides the name-tab). */
   titleSlot?: ReactNode
   /** SEO: render the name-tab as an `h1` (item pages) instead of the default `span`. */
@@ -148,11 +137,7 @@ export function EntityCardHeader({
   listing = false,
   compact = false,
 }: EntityCardHeaderProps) {
-  // The band is the accent DARKENED when a paper-white title sits on it (the
-  // base tones cannot carry that legibly), and left alone when the title is ink
-  // — a damaged / destroyed / ghosted card fades to a light band precisely so
-  // its ink title reads. One rule, derived from the text, never passed in.
-  const accent = bandSurface(bg, bgColor, titleTextClass === 'text-paper')
+  const accent = accentSurface(bg, bgColor)
   // A compact/listing card is ALREADY on the cells, so it needs no measuring.
   const compactStats = compact || listing
   const { bandRef, narrow } = useNarrowStats(stats.length, !compactStats && stats.length > 0)

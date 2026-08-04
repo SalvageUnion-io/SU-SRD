@@ -1,9 +1,8 @@
-import { describe, it, test, expect } from 'bun:test'
+import { describe, it, expect } from 'bun:test'
 import {
   calculateBackgroundColor,
   borderColorFromHeaderBg,
   accentSurface,
-  bandSurface,
 } from '../referenceEntityHelpers'
 
 describe('calculateBackgroundColor', () => {
@@ -121,48 +120,5 @@ describe('accentSurface', () => {
       className: 'bg-mech',
       style: { backgroundColor: '#D46A30' },
     })
-  })
-})
-
-describe('bandSurface — the header band fill', () => {
-  test('a toned band paints the DEEP mix, not the base tone', () => {
-    // Paper-white titles sit on this band, and the BASE tones could not carry
-    // them: 2.41:1 on pilot, 1.69:1 on game, against a 4.5:1 AA floor. The fix
-    // is the band, not the white — contrast against a light ground only
-    // improves as the text darkens, so there is no "safer white" to reach for.
-    const band = bandSurface('bg-mech', undefined)
-    expect(band.style?.backgroundColor).toBe('color-mix(in srgb, var(--color-mech) 65%, black)')
-  })
-
-  test('a raw colour override is darkened the same way', () => {
-    const band = bandSurface(undefined, '#ce5898')
-    expect(band.style?.backgroundColor).toBe('color-mix(in srgb, #ce5898 65%, black)')
-  })
-
-  test('an UNTONED band is left alone', () => {
-    // There is no base colour to darken here; the band is paper and its title
-    // is ink. Darkening nothing would paint a black band under black text.
-    const band = bandSurface(undefined, undefined)
-    expect(band.className).toBe('bg-paper')
-    expect(band.style).toBeUndefined()
-  })
-})
-
-describe('bandSurface — the ink-title opt-out', () => {
-  test('deep: false leaves the band at its base tone', () => {
-    // A damaged / destroyed / ghosted card keeps an INK title on a light grey
-    // band. Darkening that band measures 2.40:1 against 4.87:1 undarkened — so
-    // the contrast fix, applied blindly, would have broken the one state it was
-    // most important not to break. `EntityCardHeader` derives this from its
-    // `titleTextClass`, so an ink title can never sit on a darkened band.
-    const grey = 'color-mix(in srgb, var(--color-ink) 50%, var(--color-paper))'
-    const band = bandSurface(undefined, grey, false)
-    expect(band.style?.backgroundColor).toBe(grey)
-  })
-
-  test('deep defaults to true, so an ordinary card still darkens', () => {
-    expect(bandSurface('bg-pilot', undefined).style?.backgroundColor).toBe(
-      'color-mix(in srgb, var(--color-pilot) 65%, black)'
-    )
   })
 })

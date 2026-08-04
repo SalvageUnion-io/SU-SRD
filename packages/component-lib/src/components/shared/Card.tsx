@@ -5,11 +5,7 @@ import { FOCUS_RING_ON_TONE } from '../chrome/interaction'
 import { CardControlRail } from './CardControlRail'
 import { Stat } from './Stat'
 import type { StatItem } from './statsBarTypes'
-import {
-  accentDeeperColor,
-  bandSurface,
-  borderColorFromHeaderBg,
-} from '../referenceEntity/referenceEntityHelpers'
+import { accentDeepColor, borderColorFromHeaderBg } from '../referenceEntity/referenceEntityHelpers'
 import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
 import { Badge } from '../chrome/Badge'
 import type { EntityStatus } from './entityStatus'
@@ -27,13 +23,7 @@ type CardProps = {
   headerBgColor?: string
   /** Content rendered inside the header bar. Omit it and NO header band is
    * painted — a card that has nothing to put in the band shouldn't render an
-   * empty one. (The sub-header band is independent of this.)
-   *
-   * **A toned band is DARK** (see `bandSurface`), so whatever goes in here must
-   * read against a dark ground — paper-white text, not ink. Card cannot check
-   * this for you the way `EntityCardHeader` does: that component owns its title
-   * and derives the band from its colour, whereas this slot is opaque JSX and
-   * could be anything. If you need an ink header, leave the card untoned. */
+   * empty one. (The sub-header band is independent of this.) */
   headerContent?: ReactNode
   /** Content rendered inside the footer bar (optional) */
   footerContent?: ReactNode
@@ -219,11 +209,7 @@ export function Card({
   // Sub-header band (design-spec four-band model): a darker shade of the
   // header tone, sitting flush below the header content row. Optional —
   // populated by `subHeader` content and/or `stats`; no band when both are empty.
-  // The header band now carries the DEEP fill (paper-white titles were never
-  // legible on the base tones — see `bandSurface`), so the sub-header steps one
-  // further down to stay a distinct band rather than merging with it.
-  const band = bandSurface(headerBg, headerBgColor)
-  const subHeaderBg = accentDeeperColor(headerBg, headerBgColor) ?? 'var(--color-ink)'
+  const subHeaderBg = accentDeepColor(headerBg, headerBgColor) ?? 'var(--color-ink)'
   const hasStats = !!stats && stats.length > 0
   const hasSubHeader = !!subHeader || hasStats
 
@@ -338,12 +324,12 @@ export function Card({
                 // top) → pt-3 ≈ 4px gap, tighter to suit dense listings.
                 !isCompact && hasCallout && 'pb-4 pt-5',
                 isCompact && hasCallout && 'pt-3',
-                band.className,
+                headerBg,
                 headerStyleProp?.className,
                 headerStyleProp?.className && 'h-full'
               )}
               style={{
-                ...band.style,
+                ...(headerBgColor ? { backgroundColor: headerBgColor } : {}),
                 ...headerStyleProp?.style,
               }}
             >

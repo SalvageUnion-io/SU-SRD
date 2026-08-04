@@ -26,23 +26,28 @@
 export const PAGE = 'min-h-screen bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12 flex flex-col gap-6'
 
 /**
- * A panel's TITLE, as it sits in the card's header band.
+ * A panel's TITLE, as it sits in the card's header band — paper-white on ink,
+ * condensed, bold, uppercase, tight caps tracking.
  *
- * The same rule the entity card and the entity row use for a title: paper-white
- * text directly on the tone, condensed, bold, uppercase, tight caps tracking.
  * The Game panels used to state their names as a small `STAMP` INSIDE an
- * untoned slab, which left the game surface speaking two dialects — banded,
- * toned rows above; grey-labelled boxes below.
+ * untoned slab, which left the surface speaking two dialects: banded, toned
+ * entity rows above; grey-labelled boxes below.
  */
-export const PANEL_TITLE =
-  'font-cond text-base font-bold uppercase leading-none tracking-caps-tight text-paper'
+export const PANEL_TITLE = 'font-cond text-base font-bold uppercase tracking-caps-tight text-paper'
 
 /**
- * The tone every Game-surface panel wears — the `game` ontology, the same blue
- * a Game row carries in the lobby. `Card` darkens it to the deep fill for the
- * band, which is what makes the paper-white title legible on it.
+ * The band every Game-surface panel wears.
+ *
+ * INK rather than the game ontology's blue, which is the convention ITUN's
+ * other panels already follow (`StorageManifest`, the encounter cards). It also
+ * sidesteps a live problem: a paper-white title on the base game blue measures
+ * 1.69:1, nowhere near the 4.5:1 AA floor. Ink is 15:1 and needs no argument.
+ *
+ * The ontology tones are legible under white only if the BAND darkens, which is
+ * a system-wide design decision about every entity card in both apps — not
+ * something three Game panels should settle on their way past.
  */
-export const PANEL_TONE = 'bg-sheet-game'
+export const PANEL_TONE = 'bg-ink'
 
 /** Small stamped label above a group. */
 export const STAMP = 'font-cond text-xs font-bold tracking-caps-wide uppercase'

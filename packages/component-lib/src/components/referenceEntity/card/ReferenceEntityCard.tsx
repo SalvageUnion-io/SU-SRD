@@ -867,9 +867,6 @@ function ReferenceEntityCardInner({
       bg={headerBg}
       bgColor={headerBgColor}
       titleClass={titleClass}
-      // Also decides the band's fill: ink title → base tone, paper title → deep.
-      // A down/ghosted card sets this to `text-ink`, which is what keeps its
-      // light grey band light (4.87:1; darkened it would read 2.40:1).
       titleTextClass={titleTextClass}
       stats={effectiveHeaderStats}
       narrowStats={effectiveNarrowStats}
