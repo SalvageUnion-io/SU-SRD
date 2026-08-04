@@ -1,4 +1,5 @@
 import { EntityRow } from 'component-lib'
+import type { EntityRowStat } from 'component-lib'
 
 import type { Id } from '../../../convex/_generated/dataModel'
 import { AppLink } from '../shared/AppLink'
@@ -9,11 +10,6 @@ import { AppLink } from '../shared/AppLink'
  * A Game is not game data, so it does not render through `ReferenceEntityDisplay`
  * — but it *is* another thing you own and open, so it gets the same `EntityRow`
  * the player entities use, with its own blue ontology tone (ADR-030).
- *
- * The three badges answer "what is this table" before you open it: which
- * crawler the crew rides, and how much is built. A brand-new Game reads
- * "No crawler · 0 Pilots · 0 Mechs" rather than dropping the badges, because a
- * row with nothing under the name looks broken rather than empty.
  *
  * Deleting is deliberately absent. `games.destroy` ends a shared campaign for
  * everyone in it, which needs a confirm that names what is being destroyed —
@@ -31,15 +27,36 @@ export type GameRowGame = {
   mechCount: number
 }
 
-/** Join the row's caption segments with the Roster's separator, dropping blanks. */
-function captionOf(game: GameRowGame): string {
-  const role = game.mediator ? 'Mediator' : 'Player'
-  const segments = [
-    game.organizer ? `${role} · Organizer` : role,
-    `${game.memberCount} ${game.memberCount === 1 ? 'member' : 'members'}`,
-    game.templateOrigin === undefined ? null : `from the ${game.templateOrigin} template`,
+/**
+ * What the table IS, as `label | value` stats in the header band.
+ *
+ * These answer "what is this table" before you open it: which crawler the crew
+ * rides, how much is built, who you are at it, and how many of you there are.
+ *
+ * They were body badges (`#430 Tenacity`, `4 Pilots`, `3 Mechs`) over a caption
+ * that joined the rest with ' · ' separators — `Mediator · Organizer · 4
+ * members · from the starter-set template`. Both are the vocabulary the entity
+ * rows left behind: a count is a `label | value` fact, and a separator-joined
+ * run is several facts wearing one chip. The band states them the way every
+ * other row now does.
+ *
+ * A brand-new Game reads `CRAWLER | None` rather than dropping the stat: a row
+ * with nothing beside the name looks broken rather than empty.
+ */
+function statsOf(game: GameRowGame): EntityRowStat[] {
+  const stats: EntityRowStat[] = [
+    { label: 'Crawler', value: game.crawlerName ?? 'None' },
+    { label: 'Pilots', value: game.pilotCount },
+    { label: 'Mechs', value: game.mechCount },
+    // Your standing at the table, not a count — but still one label, one value.
+    { label: 'Role', value: game.mediator ? 'Mediator' : game.organizer ? 'Organizer' : 'Player' },
+    { label: 'Members', value: game.memberCount },
   ]
-  return segments.filter((segment) => segment !== null).join(' · ')
+  // Provenance is only worth a cell when there IS a template behind the game.
+  if (game.templateOrigin !== undefined) {
+    stats.push({ label: 'From', value: `${game.templateOrigin} template` })
+  }
+  return stats
 }
 
 export function GameRow({ game }: { game: GameRowGame }) {
@@ -49,12 +66,7 @@ export function GameRow({ game }: { game: GameRowGame }) {
       name={game.name}
       sheetHref={`/games/${game._id}`}
       linkAs={AppLink}
-      meta={[
-        game.crawlerName ?? 'No crawler',
-        `${game.pilotCount} ${game.pilotCount === 1 ? 'Pilot' : 'Pilots'}`,
-        `${game.mechCount} ${game.mechCount === 1 ? 'Mech' : 'Mechs'}`,
-      ]}
-      metaLine={captionOf(game)}
+      stats={statsOf(game)}
     />
   )
 }

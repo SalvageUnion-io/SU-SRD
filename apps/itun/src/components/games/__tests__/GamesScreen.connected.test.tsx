@@ -124,24 +124,36 @@ describe('the Games index for a signed-in player', () => {
     expect(screen.getByText('Union Crawler #430')).toBeTruthy()
   })
 
-  test('the row badges say what the table is', () => {
+  test('the row stats say what the table is', () => {
     withQueries(queriesFor(GAME))
     wrap()
 
-    // A Game row answers "what is this table" before you open it.
+    // A Game row answers "what is this table" before you open it. These are
+    // `label | value` stats in the header band now, not body badges, so the
+    // label and the value are separate cells — "4 Pilots" is `PILOTS | 4`.
+    expect(screen.getByText('Crawler')).toBeTruthy()
     expect(screen.getByText('Hamlet')).toBeTruthy()
-    expect(screen.getByText('4 Pilots')).toBeTruthy()
-    expect(screen.getByText('3 Mechs')).toBeTruthy()
+    expect(screen.getByText('Pilots')).toBeTruthy()
+    expect(screen.getByText('4')).toBeTruthy()
+    expect(screen.getByText('Mechs')).toBeTruthy()
+    // `3` is deliberately counted, not fetched: this game has three mechs AND
+    // three members, so the bare value is ambiguous by design. Splitting a
+    // label from its value is what makes it so — the trade for cells that can
+    // be scanned down a column.
+    expect(screen.getAllByText('3').length).toBe(2)
+    expect(screen.getByText('Members')).toBeTruthy()
   })
 
-  test('a game with nothing in it still renders all three badges', () => {
+  test('a game with nothing in it still renders all three stats', () => {
     withQueries(queriesFor({ ...GAME, crawlerName: null, pilotCount: 0, mechCount: 0 }))
     wrap()
 
-    // Dropping the badges would make a new Game's row look broken rather than empty.
-    expect(screen.getByText('No crawler')).toBeTruthy()
-    expect(screen.getByText('0 Pilots')).toBeTruthy()
-    expect(screen.getByText('0 Mechs')).toBeTruthy()
+    // Dropping the stats would make a new Game's row look broken rather than
+    // empty — an absent crawler reads as a value ("None"), never as a gap.
+    expect(screen.getByText('None')).toBeTruthy()
+    expect(screen.getByText('Pilots')).toBeTruthy()
+    expect(screen.getByText('Mechs')).toBeTruthy()
+    expect(screen.getAllByText('0').length).toBe(2)
   })
 
   test('the row links to the game, not to a modal', () => {
