@@ -3,7 +3,7 @@
  *
  * Every check (existing and new) converges on this shape so `tools/validate.ts`
  * can print one consistent report and group/filter uniformly, regardless of
- * which of the 8 checks produced a given diagnostic.
+ * which of the 11 checks produced a given diagnostic.
  */
 
 export type Diagnostic = {

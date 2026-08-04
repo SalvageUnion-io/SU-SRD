@@ -1564,7 +1564,7 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "You have learned to use the momentum and bulk of the vast weight of cargo you can carry to crush your enemies and see them driven before you. When you activate this Ability, choose a target in Range. You make a special charge attack against the target. Roll to hit as normal. On a hit, this deals HP damage equal to the amount of Inventory Slots your Pilot has filled, for example, if you have 6 Inventory Slots filled, it deals 6 HP damage. Non-Bio-Titan or Meld creatures hit by this attack are knocked Prone and gain the [[Vulnerable]] Trait. If you use this Ability whilst piloting a Mech, it deals SP damage equal to the amount of Cargo Slots you currently have filled on your Mech, for example, if you have 10 Cargo Slots filled, the attack deals 10 SP damage. Any target hit by this attack is knocked Prone and gains the [[Vulnerable]] Trait."
+        "value": "You have learned to use the momentum and bulk of the vast weight of cargo you can carry to crush your enemies and see them driven before you."
       },
       {
         "type": "paragraph",
@@ -1572,11 +1572,11 @@
       },
       {
         "type": "paragraph",
-        "value": "You make a special charge attack against the target. Roll to hit as normal. On a hit, this deals HP damage equal to the amount of Inventory Slots your Pilot has filled, for example, if you have 6 Inventory Slots filled, it deals 6 HP damage. Non-Bio-Titan or Meld creatures hit by this attack are knocked Prone and gain the Vulnerable Trait."
+        "value": "You make a special charge attack against the target. Roll to hit as normal. On a hit, this deals HP damage equal to the amount of Inventory Slots your Pilot has filled, for example, if you have 6 Inventory Slots filled, it deals 6 HP damage. Non-Bio-Titan or Meld creatures hit by this attack are knocked Prone and gain the [[Vulnerable]] Trait."
       },
       {
         "type": "paragraph",
-        "value": "If you use this Ability whilst piloting a Mech, it deals SP damage equal to the amount of Cargo Slots you currently have filled on your Mech, for example, if you have 10 Cargo Slots filled, the attack deals 10 SP damage. Any target hit by this attack is knocked Prone and gains the Vulnerable Trait."
+        "value": "If you use this Ability whilst piloting a Mech, it deals SP damage equal to the amount of Cargo Slots you currently have filled on your Mech, for example, if you have 10 Cargo Slots filled, the attack deals 10 SP damage. Any target hit by this attack is knocked Prone and gains the [[Vulnerable]] Trait."
       }
     ],
     "actionSource": "abilities"
@@ -5587,7 +5587,7 @@
         "type": "paragraph"
       },
       {
-        "value": "When you are in an area with Scrap at your disposal, you may craft any System or Module of your choice of a Tech Level equal to or lower than your Union Crawler. You must spend 1 Scrap of the Tech Level of the System or Module or higher to use this Ability. This System or Module gains the [[Unwieldy]] Trait, and is destroyed on any roll of 1-5 when used, in addition to any other setbacks.",
+        "value": "When you are in an area with Scrap at your disposal, you may craft any System or Module of your choice of a Tech Level equal to or lower than your Union Crawler. You must spend 1 Scrap of the Tech Level of the System or Module or higher to use this Ability.",
         "type": "paragraph"
       },
       {
