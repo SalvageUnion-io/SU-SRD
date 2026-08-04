@@ -494,6 +494,13 @@ export const GuideSchema = BaseEntitySchema.extend({
  * Source books and expansions
  */
 export const SourceEntitySchema = BaseEntitySchema.extend({
+  /**
+   * Kept deliberately, though no code reads it. Every one of the 10 source
+   * records carries a real publisher storefront URL (Leyline Press / BackerKit),
+   * and that is researched data about where to buy the books this dataset
+   * transcribes — not cruft. Owner decision: retain unread rather than delete.
+   */
+  purchaseLink: z.string().url().describe('URL where this source can be purchased').optional(),
   version: z
     .string()
     .describe('Printing/edition of the source this dataset reflects (e.g. "1.5")')

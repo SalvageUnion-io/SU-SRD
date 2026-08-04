@@ -10818,6 +10818,7 @@ export declare const SourceEntitySchema: z.ZodObject<{
         booklet: z.ZodOptional<z.ZodString>;
         page: z.ZodNumber;
     }, z.core.$strict>>>;
+    purchaseLink: z.ZodOptional<z.ZodString>;
     version: z.ZodOptional<z.ZodString>;
 }, z.core.$strict>;
 /**
