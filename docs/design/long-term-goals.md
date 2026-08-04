@@ -1,31 +1,43 @@
 # Long-Term Goals: Salvage Union Rules vs ITUN Gap Analysis
 
-> **Historical framing note (added 2026-07-03).** This document predates the
-> project's move to a **local-first** architecture, and its infrastructure and
-> multiplayer framing is **historical — abandoned**. Everything it describes in
-> terms of a hosted backend — Supabase/Postgres, row-level security (RLS),
-> realtime subscriptions, multi-user campaigns with member/mediator roles,
-> invite-code join flows, and RPC migrations to make multiplayer writes atomic —
-> belonged to an earlier stack that was **dropped**. It was replaced by a
-> local-first design: all user data lives on-device in IndexedDB with **no auth
-> and no application backend**
-> ([ADR-001](../docs/adrs/ADR-001-local-first-no-backend.md)), and cross-device
-> sharing happens through **immutable, unauthenticated snapshots** stored via
-> Netlify Functions + Blobs
-> ([ADR-004](../docs/adrs/ADR-004-snapshot-netlify-functions.md)). Multi-user
-> "Games" (cross-user pilot↔crawler interaction, shared server state) are
-> explicitly **deferred** under ADR-001; there is no realtime sync, no RLS, and
-> no RPC layer.
+> ## ⚠️ HISTORICAL FRAMING — the mechanics audit is live, the infrastructure framing is not
 >
-> The **game-mechanic gap analysis remains current.** The supported-vs-gaps
+> _Framing note added 2026-07-03; **corrected and moved here from `plan-docs/`
+> on 2026-08-03** — the 2026-07-03 note asserted things that are no longer
+> true._
+>
+> **1. The original hosted stack was dropped.** Everything this document
+> describes in terms of **Supabase/Postgres** — row-level security (RLS),
+> Postgres realtime subscriptions, and RPC migrations to make multiplayer writes
+> atomic — belonged to an earlier stack that was abandoned. ITUN's on-device
+> layer is IndexedDB
+> ([ADR-002](../adrs/ADR-002-indexeddb-idb-zod.md)), and anonymous cross-device
+> sharing still happens through immutable, unauthenticated snapshots on Netlify
+> Functions + Blobs
+> ([ADR-004](../adrs/ADR-004-snapshot-netlify-functions.md)).
+>
+> **2. Multi-user Games are NOT deferred — they shipped.** The 2026-07-03 note
+> said there was "no auth and no application backend" and that Games were
+> "explicitly deferred under ADR-001". **That is now false.** Accounts, Games,
+> member rosters with mediator/player roles, invite-code join flows and realtime
+> sync are all built on **Convex as the server of record** — see
+> [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md) (**governing**;
+> supersedes ADR-001),
+> [architecture/accounts-and-games.md](../architecture/accounts-and-games.md),
+> [game-invites-and-membership-plan.md](./game-invites-and-membership-plan.md)
+> (**Status: BUILT**), and `apps/itun/convex/{games,invites,proposals,mediator}.ts`.
+> Read this document's multiplayer **implementation** notes as historical (the
+> mechanism is Convex, not Supabase/RLS/RPC) while treating the **capability**
+> as delivered. In particular, the inventory and matrix rows struck through
+> below as `(historical — abandoned, see note at top)` — member roster, realtime
+> subscriptions, the "Invite Code Join Flow" P1 row — describe a shipped feature
+> under a different implementation; they are left physically intact per this
+> doc's purpose rather than rewritten.
+>
+> **3. The game-mechanic gap analysis remains current.** The supported-vs-gaps
 > inventory and the P0–P4 priority matrix are an accurate audit of Salvage Union
-> mechanics against ITUN and are independent of the storage layer — read those as
-> live. Read anything about Supabase/RLS/realtime/multiplayer/invite codes/RPC as
-> historical, whether or not it carries an inline marker. The `(historical —
-abandoned, see note at top)` markers below flag the most load-bearing spots;
-> matrix and inventory rows are left physically intact per this doc's purpose, so
-> multi-user entries there (e.g. the "Invite Code Join Flow" P1 row) are likewise
-> historical.
+> mechanics against ITUN and are independent of the storage layer — read those
+> as live. They are the reason this document is kept.
 
 ## Context
 
@@ -168,9 +180,9 @@ These are mechanics that players use every session and are central to the game.
 
 ---
 
-### Tier 3 -- Multiplayer & Campaign Features (historical — abandoned, see note at top)
+### Tier 3 -- Multiplayer & Campaign Features (historical — superseded, see note at top)
 
-_This entire tier assumed the abandoned multi-user backend (Supabase campaigns, invite codes, member roles). It is retained for historical context; multi-user "Games" are deferred under ADR-001. The gaps below are preserved as written but the "DB infrastructure exists" claims no longer hold._
+_This entire tier assumed the abandoned Supabase multi-user backend (Postgres campaigns, RLS, invite codes, member roles), so its "DB infrastructure exists" claims no longer hold and the gaps below are preserved only as written history. **The capabilities themselves are no longer deferred — they shipped on Convex** under [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md) (which supersedes ADR-001): Games, member rosters with mediator/player roles, invite-code join flows and realtime sync are all built. See [architecture/accounts-and-games.md](../architecture/accounts-and-games.md) and [game-invites-and-membership-plan.md](./game-invites-and-membership-plan.md) for the delivered design._
 
 #### 10. Invite Code Join Flow (UI)
 
@@ -356,9 +368,9 @@ Everything else in the gap list above is **not currently on any roadmap**.
 
 ---
 
-## Race Conditions (Multiplayer Blockers) (historical — abandoned, see note at top)
+## Race Conditions (Multiplayer Blockers) (historical — superseded, see note at top)
 
-_This entire section is moot under the local-first architecture: there is no server, no multiplayer, and no RPC layer (see ADR-001). It described operations that would have needed atomic RPCs in the abandoned Supabase stack._
+_This section is moot **as written**: it enumerated operations that would have needed atomic Postgres RPC migrations in the abandoned Supabase stack. Multiplayer itself is no longer hypothetical — it shipped on Convex ([ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md)), whose mutations are transactional by construction, so the RPC-migration framing below has no successor task._
 
 ~~7 non-atomic multi-table operations that need RPC migration before multiplayer is reliable:~~
 

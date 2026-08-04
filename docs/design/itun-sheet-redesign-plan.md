@@ -1,9 +1,26 @@
 # ITUN Live-Sheet Redesign — Plan & Visual Directions
 
-_Redesign on branch 395 (`worktree-sheet-single-surface`). Design record — the redesign is now
-**implemented** on this branch (poster layout + the section-based edit language). Deferred
-follow-ups (Save-as-pattern, Source-pattern field, rule-gating add/remove, separate Quirk/Appearance,
-Custom Bays group) are marked `// TODO(redesign)` in the code._
+> **STATUS: historical design record — still the referent for the live
+> `// TODO(redesign)` markers.** Written for PR #395
+> (`worktree-sheet-single-surface`); the redesign it describes **shipped**
+> (poster layout + the section-based edit language). Moved here from the repo
+> root on 2026-08-03 — it is kept, not retired, because five
+> `// TODO(redesign)` comments in the source point at the deferred follow-ups
+> named below (Save-as-pattern, Source-pattern field, rule-gating add/remove,
+> separate Quirk/Appearance, Custom Bays group):
+> `apps/itun/src/components/sheet/{CrawlerSheet.tsx,MechIdentity.tsx,MechSheet.tsx}`
+> and `packages/component-lib/src/components/shared/SheetSection.tsx`.
+>
+> Read the prose below as of its writing, not as current. In particular it
+> routes game-data rendering through "the existing SRD `ReferenceEntityDisplay`
+> system" — that renderer has since been replaced by `ReferenceEntityCard`
+> ([ADR-026](../adrs/ADR-026-entity-card-design-rules.md),
+> [architecture/display-system.md](../architecture/display-system.md)).
+>
+> The ongoing reconciliation of the sheet shell onto the canonical primitive
+> language lives in
+> [`livesheet-reconciliation.md`](./livesheet-reconciliation.md), which cites
+> this document for the region-for-region gap analysis.
 
 ## Goal
 

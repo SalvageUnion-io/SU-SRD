@@ -6,7 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Start here for navigation:** [`docs/README.md`](docs/README.md) maps user intent → relevant doc (architecture, ADRs, per-package CLAUDE.md).
 
-- [`docs/adrs/`](docs/adrs/) — architecture decision records (26 ADRs; 001–014 live in the code, 015–020 the Dashboard play surface as built at `apps/itun/src/components/dashboard/`, 021 the governing surface/mode taxonomy + 022 provenance, both built). Consult the matching ADR before revisiting a prior decision (e.g. [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) — the **governing** surface/mode taxonomy for where a rule is enforced — and [ADR-007](docs/adrs/ADR-007-automation-boundary.md) automation boundary before building rules-driven features).
+- [`docs/adrs/`](docs/adrs/) — architecture decision records, **30 of them** (ADR-001 through ADR-030). Consult the matching ADR before revisiting a prior decision, and **read its `## Status` header first** — several are superseded and the supersession is only recorded there (ADR-001 → ADR-030; ADR-023 → ADR-027 → ADR-028). The three that govern:
+  - [ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md) — accounts, Games, and Convex as the server of record for identity/ownership/sharing. **Supersedes ADR-001** (local-first, no backend, no auth) and amends ADR-022. Decision accepted; delivery is phased — see [`docs/architecture/accounts-and-games.md`](docs/architecture/accounts-and-games.md) for what has actually landed.
+  - [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) — the surface/mode taxonomy for **where a rule is enforced**. ADR-030 adds an ownership axis to it without changing its enforcement modes.
+  - [ADR-007](docs/adrs/ADR-007-automation-boundary.md) — the automation boundary. Read before building rules-driven features.
+
+  ADR-015–020 cover the Dashboard play surface, built at `apps/itun/src/components/dashboard/`.
+
 - [`docs/architecture/`](docs/architecture/) — cross-cutting architecture (display system, data flow, package contracts, rules-engine boundary, combat loop, SEO/a11y).
 - `docs/rules/` — agent-readable digest of the Salvage Union core rules + expansions (turn loop, heat, damage, salvage, creation, GM guidance, Meld/Chimerium subsystems). **Generated, gitignored, not committed** (condensed from the copyright-bearing PDFs in `rules/`, also gitignored) — produce it locally with `bun run rules:regen`, then read it instead of re-parsing the PDFs. Generator/manifest: `tools/rules-digest/`.
 
@@ -17,7 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## UI Development
 
-- Always reuse existing shared components (e.g., EntityDisplay, Card) rather than building custom one-off UI. Check for existing patterns in the shared packages first before creating new components.
+- Always reuse existing shared components (e.g., `ReferenceEntityCard`, `Card`) rather than building custom one-off UI. Check for existing patterns in the shared packages first before creating new components.
 - When making CSS/layout changes, get the first attempt right by carefully considering the rendering context (e.g., float doesn't work inside grid/flex containers). If a visual change requires iteration, ask the user to confirm via screenshot before making further adjustments. Prefer simple, well-understood CSS patterns over clever approaches.
 - For UI components, prefer compact/listing card displays by default (header-only, clickable) rather than full inline expanded displays. Ask if unsure about the level of detail to render.
 
@@ -59,13 +65,18 @@ Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools, located in the `S
 
 ## External Integrations & MCP Servers
 
-The apps deploy to two platforms, each with an official MCP server wired up in the project-scoped [`.mcp.json`](.mcp.json) (committed; Claude Code prompts each contributor to approve it per-project):
+The project-scoped [`.mcp.json`](.mcp.json) is committed (Claude Code prompts each contributor to approve it per-project) and declares **four** servers — Netlify, Sentry, Render, GitHub:
 
-- **Netlify** — hosts three sites: `apps/srd` (static), `apps/itun` (static SPA + the snapshot backend Netlify Functions + Blobs; see `apps/*/netlify.toml` and [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md)), and `apps/su-assets` (`assets.salvageunion.io` — one function serving licensed entity artwork out of the `lp-assets` Netlify Blobs store; `salvageunion-reference` resolves artwork URLs against it at runtime). MCP server: official `@netlify/mcp` (stdio); authenticates via the Netlify CLI/OAuth — no token in the file.
-- **Render** — hosts `apps/discord-bot` as a worker (see `render.yaml`). MCP server: official hosted server at `https://mcp.render.com/mcp`; reads `RENDER_API_KEY` from your shell env.
-- **GitHub** — repo host + Actions CI + PR workflow. MCP server: official remote `https://api.githubcopilot.com/mcp/`; reads `GITHUB_PAT` from your shell env.
+- **Netlify** — hosts three sites: `apps/srd` (static, no functions), `apps/itun` (static SPA + the snapshot backend Netlify Functions + Blobs; see `apps/*/netlify.toml` and [ADR-004](docs/adrs/ADR-004-snapshot-netlify-functions.md)), and `apps/su-assets` (`assets.salvageunion.io` — one function serving licensed entity artwork out of the `lp-assets` Netlify Blobs store; `salvageunion-reference` resolves artwork URLs against it at runtime). MCP server: official `@netlify/mcp`, run over stdio via `npx`; authenticates through the Netlify CLI/OAuth.
+- **Sentry** — browser + server error tracking for all three code apps (`@sentry/browser` in `srd` and `itun`, `@sentry/node` in `itun` and `discord-bot`, `@sentry/vite-plugin` for `itun` release artifacts). MCP server: remote HTTP at `https://mcp.sentry.dev/mcp`.
+- **Render** — hosts `apps/discord-bot` as a worker (see `render.yaml`). MCP server: hosted HTTP at `https://mcp.render.com/mcp`.
+- **GitHub** — repo host + Actions CI + PR workflow. MCP server: remote HTTP at `https://api.githubcopilot.com/mcp/`.
 
-`.mcp.json` is **secret-free by design** — never put tokens in it; auth is via env vars (`RENDER_API_KEY`, `GITHUB_PAT`) or OAuth. Set the env vars before launching Claude Code if you want those servers to connect (e.g. `export RENDER_API_KEY=...`).
+`.mcp.json` is **secret-free by design.** It carries transport, command and URL only — no `Authorization` headers, no tokens, and deliberately **no `${VAR}` placeholders** (#291 removed those on purpose; do not reintroduce them). Authenticate each remote server locally — OAuth on first connect, or machine-local Claude Code config that is never committed.
+
+**Convex** is a deployment target with no MCP server in this file. It is the **server of record** for accounts and Games ([ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md)); the backend lives in `apps/itun/convex/` (17 modules — `auth.ts`, `games.ts`, `invites.ts`, `proposals.ts`, `mediator.ts`, `http.ts`, …) and the phased delivery plan is [`docs/architecture/accounts-and-games.md`](docs/architecture/accounts-and-games.md).
+
+**Sentry's failure mode is silent, and CI guards it.** Both browser apps env-gate the SDK on a DSN, so with no DSN Vite tree-shakes Sentry out and the build looks identical to a working one; and even with a DSN, a `connect-src` that omits Sentry's ingest origin blocks every event in the browser while still looking healthy. `tools/check-observability.ts` checks both halves together (wired into `validate:all` via `bun run validate:observability`) and asserts its `SENTRY_INGEST_HOST` constant against both apps' `netlify.toml` CSPs. **If you change the CSP or the Sentry region, change both in lockstep** — `apps/srd/netlify.toml` carries the reciprocal comment.
 
 ## SU-SRD Monorepo
 
@@ -117,8 +128,8 @@ bun run build:bot        # Build Discord bot
 
 **Workspace structure:**
 
-- `apps/srd/` - Static SRD reference site (Astro 5, React 19 islands, Tailwind v4, Vite). No auth, no backend.
-- `apps/itun/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Vite). Local-first: IndexedDB persistence, no auth, no backend. Has dashboard, live sheets, snapshot sharing.
+- `apps/srd/` - Static SRD reference site (Astro 7, React 19 islands, Tailwind v4, Vite). No auth, no backend, no user data.
+- `apps/itun/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Vite). Has roster, wizards, dashboard, live sheets, snapshot sharing. **Two storage modes** ([ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md), which supersedes ADR-001): **Solo** — not signed in, IndexedDB is the source of truth, nothing is gated, and this must keep working forever (a build with no `VITE_CONVEX_URL` is permanently Solo); **Connected / Disconnected** — signed in, Convex (`apps/itun/convex/`) is the source of truth and IndexedDB becomes a cache, with offline meaning read-only rather than a write queue. Resolve the mode through `src/lib/connection/`, never by reading `navigator.onLine` or an auth flag directly. Read [`apps/itun/CLAUDE.md`](apps/itun/CLAUDE.md) before touching data.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
 - `apps/su-assets/` - Dedicated Netlify site (`assets.salvageunion.io`) serving licensed entity artwork from a Netlify Blobs store via one function. Image bytes live in Blobs, never in git. `packages/salvageunion-reference` points at it at runtime (`ASSET_BASE_URL` in `lib/utilities.ts`), so entity-card artwork in both `srd` and `itun` depends on it.
 - `packages/component-lib/` - Shared React component library (ShadCN + Tailwind, entity display system, base typography, UI primitives). No build step, exports TypeScript source.
@@ -140,7 +151,7 @@ discord-bot (standalone, depends on salvageunion-reference)
 
 Detailed cross-cutting architecture docs live in `docs/architecture/`:
 
-- **[display-system.md](docs/architecture/display-system.md)** — Three-layer rendering stack: Card -> ReferenceEntityDisplay -> consumer patterns
+- **[display-system.md](docs/architecture/display-system.md)** — The **two card shells**: `ReferenceEntityCard` (THE renderer for every SRD entity, in both apps) and `Card` (the generic four-band container everything non-entity composes). There is no single stack and no middle layer.
 - **[data-flow.md](docs/architecture/data-flow.md)** — Reference data + player data resolution, TanStack Query patterns, IndexedDB hydration
 - **[seo-accessibility.md](docs/architecture/seo-accessibility.md)** — SEO strategy (srd) and WCAG 2.1 AA compliance patterns
 - **[package-contracts.md](docs/architecture/package-contracts.md)** — Package APIs, dependency rules, cross-package change checklist
@@ -166,14 +177,13 @@ Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageU
 ### component-lib Package (Shared Components)
 
 - **No build step** - exports TypeScript source directly via `src/index.ts` barrel. Vite in consuming apps handles `.ts/.tsx`.
-- **Contents:** Theme system (colors, recipes), base typography (Heading, Text), UI primitives (Tooltip, Toaster), entity display system (~30 files), shared components (Card, ValueDisplay, SheetDisplay, RollTable, Modal, etc.), skeletons, utilities (slug, parseTraitReferences), constants.
+- **Contents:** `src/index.ts` **is the public API and the only trustworthy roster** — read it, do not trust a hand-maintained list (this file has twice grown one full of names that no longer exist). Broad categories: theme/tokens, base typography (`Text`), UI primitives (`Toaster`/`toast`, `ModalShell`), chrome primitives (`src/components/chrome/`), stat trackers (`src/components/stat/`), the entity display system (`src/components/referenceEntity/`), shared components (`Card`, `EntityGrid`, `EntitySearcher`, `CatalogTile`, …), the Dashboard shell, sheet presentation, wizard steps, and `cn()`. [`docs/architecture/package-contracts.md`](docs/architecture/package-contracts.md) describes the categories in full and flags what is deliberately **not** exported.
 - **No backend dependency** - agnostic to data source.
-- **Entity display** uses a render prop pattern (`classAbilitiesRenderer`) so consuming apps can inject app-specific renderers.
 - **Testing:** Own `bunfig.toml` with happy-dom preload (no backend env vars).
 
 ### srd App (Static Reference Site)
 
-- **Framework:** Astro 5 with React 19 islands architecture. Static output, no SSR.
+- **Framework:** Astro 7 with React 19 islands architecture. Static output, no SSR.
 - **Routing:** File-based routing in `src/pages/` via Astro. Routes: `/` (landing), `/schema/[schemaId]`, `/schema/[schemaId]/item/[itemId]`, `/about`, `/404`.
 - **No auth, no backend, no user data.** Pure static reference site.
 - **UI:** Tailwind v4 with theme from `component-lib`. React islands for interactive components (search, schema viewer, entity display). Components import from `component-lib` for shared UI.
