@@ -14,6 +14,17 @@
  * unpick.
  */
 
+/**
+ * The page shell every Game surface sits on — the Roster's, verbatim.
+ *
+ * The Game screens used to be a centred `max-w-6xl` column while the Roster ran
+ * the full width of the window. Both are the same kind of surface (three
+ * ontology columns of entity rows), so at any desktop width the crew view read
+ * as a narrower, punier version of the home page — and its three columns went
+ * cramped exactly where the Roster's had room. Same shape, same shell.
+ */
+export const PAGE = 'min-h-screen bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12 flex flex-col gap-6'
+
 /** Small stamped label above a group. */
 export const STAMP = 'font-cond text-xs font-bold tracking-caps-wide uppercase'
 

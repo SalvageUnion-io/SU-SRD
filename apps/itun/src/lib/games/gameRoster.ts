@@ -45,7 +45,7 @@ export type GameMember = {
 
 /** What the viewer may do with one row. */
 export type RowCapabilities = {
-  /** There is a sheet to open — either already in this browser, or fetchable. */
+  /** The viewer may open the row's EDITABLE live sheet. Mirrors `assertMayWrite`. */
   openSheet: boolean
   /** Free, and the viewer is in the Game: they can take it. */
   claim: boolean
@@ -148,14 +148,18 @@ function bodyOf(body: unknown): Record<string, unknown> {
  * whether a row can open a sheet *without a round trip*, not whether it may —
  * see `openSheet` below.
  *
- * The `openSheet` rule is the one place this file is stricter than it strictly
- * has to be, and deliberately: only what the viewer **owns** offers a sheet.
- * ADR-030 §5 does allow reading a crewmate's sheet, but ITUN's sheet is a
- * *live, editing* surface backed by local storage — caching a crewmate's pilot
- * into it would hand the viewer an editor whose writes the server then refuses,
- * and a sheet that silently stops saving is worse than no link at all. A
- * read-only drill-in is its own surface and is not built yet; the crew strip
- * carries the vitals in the meantime.
+ * `openSheet` means the EDITABLE live sheet, so it mirrors `assertMayWrite`:
+ * only the owner. That is not the same as "only the owner may look" — ADR-030
+ * §5 allows reading a crewmate's sheet, and every row is now readable through
+ * the frozen crew view (`GameEntitySheet`), which renders the server body
+ * behind a store that throws on write and caches nothing locally.
+ *
+ * The distinction is the whole point. What was never safe was handing a
+ * non-owner ITUN's *live* sheet — an editing surface backed by local storage,
+ * whose writes the server then refuses, so it would silently stop saving. A
+ * read-only surface has no such failure mode, so reading needs no capability
+ * flag here: membership in the Game is the only gate, and the server's own
+ * listing query already enforces it.
  */
 export function ownableRows(args: {
   kind: 'pilot' | 'mech'

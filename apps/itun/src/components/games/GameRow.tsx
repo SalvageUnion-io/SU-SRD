@@ -1,4 +1,5 @@
 import { EntityRow } from 'component-lib'
+import type { EntityRowStat } from 'component-lib'
 
 import type { Id } from '../../../convex/_generated/dataModel'
 import { AppLink } from '../shared/AppLink'
@@ -9,11 +10,6 @@ import { AppLink } from '../shared/AppLink'
  * A Game is not game data, so it does not render through `ReferenceEntityDisplay`
  * — but it *is* another thing you own and open, so it gets the same `EntityRow`
  * the player entities use, with its own blue ontology tone (ADR-030).
- *
- * The three badges answer "what is this table" before you open it: which
- * crawler the crew rides, and how much is built. A brand-new Game reads
- * "No crawler · 0 Pilots · 0 Mechs" rather than dropping the badges, because a
- * row with nothing under the name looks broken rather than empty.
  *
  * Deleting is deliberately absent. `games.destroy` ends a shared campaign for
  * everyone in it, which needs a confirm that names what is being destroyed —
@@ -31,15 +27,44 @@ export type GameRowGame = {
   mechCount: number
 }
 
-/** Join the row's caption segments with the Roster's separator, dropping blanks. */
-function captionOf(game: GameRowGame): string {
-  const role = game.mediator ? 'Mediator' : 'Player'
-  const segments = [
-    game.organizer ? `${role} · Organizer` : role,
-    `${game.memberCount} ${game.memberCount === 1 ? 'member' : 'members'}`,
-    game.templateOrigin === undefined ? null : `from the ${game.templateOrigin} template`,
+/**
+ * What the TABLE is — the band's register, scanned down the column.
+ *
+ * Which crawler the crew rides, and how much is built. A brand-new Game reads
+ * `CRAWLER | None` rather than dropping the stat: a row with nothing beside its
+ * name looks broken rather than new.
+ */
+function tableStats(game: GameRowGame): EntityRowStat[] {
+  return [
+    { label: 'Crawler', value: game.crawlerName ?? 'None' },
+    { label: 'Pilots', value: game.pilotCount },
+    { label: 'Mechs', value: game.mechCount },
   ]
-  return segments.filter((segment) => segment !== null).join(' · ')
+}
+
+/**
+ * What YOU are at the table — the body's register, beside the controls.
+ *
+ * Your role, the size of the crew, and where the game came from. These are
+ * facts about the row, but not what a reader scans a list of games FOR: you
+ * scan for which table, and how much is on it. All six cells briefly sat in the
+ * band together, which made the one line meant to be scanned the longest line
+ * on the row.
+ *
+ * They were a single caption chip joining the lot with ' · ' separators —
+ * `Mediator · Organizer · 4 members · from the starter-set template` — which is
+ * several facts wearing one chip.
+ */
+function standingStats(game: GameRowGame): EntityRowStat[] {
+  const stats: EntityRowStat[] = [
+    { label: 'Role', value: game.mediator ? 'Mediator' : game.organizer ? 'Organizer' : 'Player' },
+    { label: 'Members', value: game.memberCount },
+  ]
+  // Provenance earns a cell only when there IS a template behind the game.
+  if (game.templateOrigin !== undefined) {
+    stats.push({ label: 'From', value: `${game.templateOrigin} template` })
+  }
+  return stats
 }
 
 export function GameRow({ game }: { game: GameRowGame }) {
@@ -49,12 +74,8 @@ export function GameRow({ game }: { game: GameRowGame }) {
       name={game.name}
       sheetHref={`/games/${game._id}`}
       linkAs={AppLink}
-      meta={[
-        game.crawlerName ?? 'No crawler',
-        `${game.pilotCount} ${game.pilotCount === 1 ? 'Pilot' : 'Pilots'}`,
-        `${game.mechCount} ${game.mechCount === 1 ? 'Mech' : 'Mechs'}`,
-      ]}
-      metaLine={captionOf(game)}
+      stats={tableStats(game)}
+      bodyStats={standingStats(game)}
     />
   )
 }

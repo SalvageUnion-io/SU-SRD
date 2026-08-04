@@ -327,10 +327,12 @@ describe('Roster — entity listing', () => {
     expect(toMech.textContent).toContain('Iron Fist')
     expect(toPilot.textContent).toContain('Mara Vex')
 
-    // The tone is the destination's, not the row's — a pilot row's mech badge
-    // is mech-toned. This is the whole point of the change.
-    expect(toMech.querySelector('.bg-mech')).toBeTruthy()
-    expect(toPilot.querySelector('.bg-pilot')).toBeTruthy()
+    // The tone is the destination's, not the row's — a pilot row's mech link is
+    // mech-toned. This is the whole point of the change. It is now carried as
+    // the Stat label plate's inline tint rather than a Badge tone class, so the
+    // assertion reads the token: same rule, different mechanism.
+    expect(toMech.innerHTML).toContain('--color-sheet-mech')
+    expect(toPilot.innerHTML).toContain('--color-sheet-pilot')
   })
 })
 

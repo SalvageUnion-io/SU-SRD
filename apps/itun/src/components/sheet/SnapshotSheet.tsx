@@ -10,6 +10,10 @@
  * fully independent of local state. With no SoftLinks the resolver yields
  * the single-entity mode — no rail chips to other people's data.
  *
+ * The frozen store and the Zod parse both live in `frozenSheet.ts`, shared with
+ * the Game crew view (`GameEntitySheet`), which needs the same
+ * read-without-owning mechanism for a crewmate's build.
+ *
  * Snapshot payload shape (as published by PublishButton v1):
  *   { kind: 'pilot' | 'mech' | 'crawler', entity: <entity object> }
  *
@@ -17,19 +21,10 @@
  */
 
 import { useMemo } from 'react'
-import { create } from 'zustand'
 
 import { isRecord } from '../../lib/isRecord'
-import type { Crawler } from '../../lib/schemas/crawler'
-import type { Mech } from '../../lib/schemas/mech'
-import type { Pilot } from '../../lib/schemas/pilot'
-import { CrawlerSchema } from '../../lib/schemas/crawler'
-import { MechSchema } from '../../lib/schemas/mech'
-import { PilotSchema, normalizeLegacyPilotRecord } from '../../lib/schemas/pilot'
-import { normalizeLegacyCargoRecord } from '../../lib/schemas/cargoLot'
-import type { useEntityStore } from '../../stores/entityStore'
-import type { EntityType } from '../../stores/entityStore'
 import { AppLink } from '../shared/AppLink'
+import { makeFrozenStore, parseFrozenEntity } from './frozenSheet'
 
 import { Sheet } from './Sheet'
 
@@ -56,104 +51,10 @@ function parseContext(snapshot: Record<string, unknown>): string[] | undefined {
   return refs.filter((r): r is string => typeof r === 'string')
 }
 
-type ParseResult =
-  | { ok: true; kind: 'pilot'; entity: Pilot }
-  | { ok: true; kind: 'mech'; entity: Mech; pilotAbilities?: string[] }
-  | { ok: true; kind: 'crawler'; entity: Crawler }
-  | { ok: false; reason: string }
-
-function parseSnapshot(snapshot: Record<string, unknown>): ParseResult {
-  const kind = snapshot.kind
-  const entity = snapshot.entity
-
-  if (!isRecord(entity) || Array.isArray(entity)) {
-    return { ok: false, reason: 'Snapshot entity is missing or invalid.' }
-  }
-
-  if (kind === 'pilot') {
-    // Snapshots published before the vestigial `rollResults` removal still
-    // carry the field — same rewrite parseImportBundle applies.
-    const parsed = PilotSchema.safeParse(normalizeLegacyPilotRecord(entity))
-    if (!parsed.success) {
-      return {
-        ok: false,
-        reason: `Invalid pilot data: ${parsed.error.message}`,
-      }
-    }
-    return { ok: true, kind: 'pilot', entity: parsed.data }
-  }
-
-  if (kind === 'mech') {
-    // Snapshots published before the cargo→cargoLots rename carry a legacy
-    // `cargo: string[]` field — same rewrite parseImportBundle applies.
-    const parsed = MechSchema.safeParse(normalizeLegacyCargoRecord(entity))
-    if (!parsed.success) {
-      return {
-        ok: false,
-        reason: `Invalid mech data: ${parsed.error.message}`,
-      }
-    }
-    return { ok: true, kind: 'mech', entity: parsed.data, pilotAbilities: parseContext(snapshot) }
-  }
-
-  if (kind === 'crawler') {
-    const parsed = CrawlerSchema.safeParse(entity)
-    if (!parsed.success) {
-      return {
-        ok: false,
-        reason: `Invalid crawler data: ${parsed.error.message}`,
-      }
-    }
-    return { ok: true, kind: 'crawler', entity: parsed.data }
-  }
-
-  return { ok: false, reason: `Unknown entity kind: ${String(kind)}` }
-}
-
-type EntityState = ReturnType<typeof useEntityStore.getState>
-
-/**
- * A read-only entity store containing ONLY the snapshot entity. Reads serve
- * the frozen record; writes throw (unreachable behind `readOnly`).
- */
-function makeSnapshotStore(parsed: Extract<ParseResult, { ok: true }>): typeof useEntityStore {
-  const readOnlyWrite = async (): Promise<never> => {
-    throw new Error('Snapshots are read-only.')
-  }
-
-  const byType = (type: EntityType): Array<Pilot | Mech | Crawler> => {
-    if (type === parsed.kind) return [parsed.entity]
-    return []
-  }
-
-  const state: EntityState = {
-    pilots: parsed.kind === 'pilot' ? [parsed.entity] : [],
-    mechs: parsed.kind === 'mech' ? [parsed.entity] : [],
-    crawlers: parsed.kind === 'crawler' ? [parsed.entity] : [],
-    softLinks: [],
-    hydrated: { pilots: true, mechs: true, crawlers: true, softLinks: true },
-    hydrate: async () => {},
-    rehydrate: async () => {},
-    list: ((type: EntityType) => byType(type)) as EntityState['list'],
-    get: ((type: EntityType, id: string) =>
-      byType(type).find((e) => e.id === id) ?? null) as EntityState['get'],
-    create: readOnlyWrite,
-    // A snapshot is frozen and container-less (ADR-004), so there is no server
-    // row it could be a cache of — adoption is as unavailable as any other write.
-    adopt: readOnlyWrite,
-    forget: readOnlyWrite,
-    update: readOnlyWrite,
-    updateCrawlerBay: readOnlyWrite,
-    delete: readOnlyWrite,
-    transfer: readOnlyWrite,
-  }
-
-  return create<EntityState>(() => state)
-}
-
 export function SnapshotSheet({ snapshot }: SnapshotSheetProps) {
-  const result = useMemo(() => parseSnapshot(snapshot), [snapshot])
-  const store = useMemo(() => (result.ok ? makeSnapshotStore(result) : null), [result])
+  const result = useMemo(() => parseFrozenEntity(snapshot.kind, snapshot.entity), [snapshot])
+  const store = useMemo(() => (result.ok ? makeFrozenStore(result) : null), [result])
+  const pilotAbilities = useMemo(() => parseContext(snapshot), [snapshot])
 
   if (!result.ok || !store) {
     // Styled validation-failure state (plan 5.2) — invalid payloads land
@@ -191,7 +92,7 @@ export function SnapshotSheet({ snapshot }: SnapshotSheetProps) {
         kind={result.kind}
         id={result.entity.id}
         store={store}
-        pilotAbilities={result.kind === 'mech' ? result.pilotAbilities : undefined}
+        pilotAbilities={result.kind === 'mech' ? pilotAbilities : undefined}
         readOnly
       />
     </div>

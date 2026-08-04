@@ -98,10 +98,12 @@ function renderAs(me: unknown, rows: ReturnType<typeof listing>, members: unknow
 afterEach(cleanup)
 
 describe('what a row offers', () => {
-  test('your own pilot opens its sheet', () => {
+  test('your own pilot offers the editable sheet', () => {
     renderAs(ME, listing({ pilots: [MY_PILOT] }))
     expect(screen.getByText('Roach-Boy')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Sheet' })).toBeTruthy()
+    // Edit, not View: View is the read-only crew sheet every row carries, and
+    // the editable one is the extra verb ownership buys.
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeTruthy()
   })
 
   test('your own mech also offers the Dashboard', () => {
@@ -121,15 +123,29 @@ describe('what a row offers', () => {
     expect(screen.queryByRole('button', { name: 'Offer to the crew' })).toBeNull()
   })
 
-  test("a crewmate's pilot shows who holds it and opens nothing", () => {
+  test("a crewmate's pilot names its holder and opens READ-ONLY", () => {
     renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
 
     expect(screen.getByText('Ash')).toBeTruthy()
-    // Naming the owner is the point of the chip; opening their sheet would
-    // hand over an editor whose every save the server refuses.
+    // The seal names who holds it — the row's one ownership mark.
     expect(screen.getByText('Mediator')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Sheet' })).toBeNull()
+    // Readable: a shared table whose crew you cannot look at is not shared.
+    // The link goes to the frozen crew sheet, addressed by the SERVER id.
+    const view = screen.getByRole('link', { name: 'View' })
+    expect(view.getAttribute('href')).toBe('/games/g1/view/pilot/s-theirs')
+    // But not editable — that would hand over an editor the server refuses.
+    expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
+    // Nor is it takeable: somebody already holds it.
     expect(screen.queryByRole('button', { name: /Unclaimed/i })).toBeNull()
+  })
+
+  test('a crewmate has no delete affordance on your screen', () => {
+    renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
+
+    // Game rows carry no trash at all — leaving a character you hold is
+    // "Offer to the crew", and the crawler's Scrap is the table runner's.
+    // Nothing here can destroy somebody else's build.
+    expect(screen.queryByRole('button', { name: /Delete Ash/i })).toBeNull()
   })
 })
 
@@ -198,8 +214,10 @@ describe('what the game will accept', () => {
     renderAs(ME, listing({ crawlers: [CRAWLER] }))
 
     expect(screen.getByText('#430 Tenacity')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Sheet' })).toBeTruthy()
-    // It has no owner at all, so nothing invites anyone to claim it.
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeTruthy()
+    // It has no owner at all, so it carries no ownership seal — neither a
+    // claim invitation nor a holder's name. "Who owns the crawler" is not a
+    // question the game asks.
     expect(screen.queryByRole('button', { name: /Unclaimed/i })).toBeNull()
   })
 })

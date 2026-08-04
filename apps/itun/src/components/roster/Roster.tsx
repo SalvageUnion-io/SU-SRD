@@ -16,11 +16,12 @@
  *      listing immediately (Zustand in-memory update is synchronous).
  */
 
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
-import { Badge, Button, buttonVariants, EmptyState, EntityRow } from 'component-lib'
+import { Button, buttonVariants, EmptyState, EntityRow, Stat } from 'component-lib'
+import type { EntityRowStat } from 'component-lib'
 
 import {
   useCrawlers,
@@ -52,41 +53,75 @@ import { ModalShell } from 'component-lib'
 // Row-meta helpers
 // ---------------------------------------------------------------------------
 
-/** Roster row meta segment for a mech: "Chassis · TL n". */
-function mechChassisMeta(chassisRef: string): string | undefined {
-  // resolveChassisRef is slug/name/id tolerant; stored refs are slugs, so a
-  // name-only match here would fall through to the raw slug for every mech. Wrap
-  // in try/catch: resolveChassisRef throws when the Chassis model isn't preloaded
-  // (some test/snapshot contexts) — fall back to the raw ref rather than crash.
+/**
+ * A mech row's stats: `CHASSIS | Iron Mongrel`, and `TL | 1` beside it.
+ *
+ * These used to be one caption string, "Iron Mongrel · TL 1" — two facts joined
+ * by a separator, which is the shape `Stat` exists to replace. TL is its own
+ * stat rather than a suffix for the same reason.
+ *
+ * resolveChassisRef is slug/name/id tolerant; stored refs are slugs, so a
+ * name-only match here would fall through to the raw slug for every mech. Wrap
+ * in try/catch: resolveChassisRef throws when the Chassis model isn't preloaded
+ * (some test/snapshot contexts) — fall back to the raw ref rather than crash.
+ */
+function mechChassisStats(chassisRef: string): EntityRowStat[] | undefined {
+  if (!chassisRef) return undefined
+  let resolved: { name: string; techLevel?: number } | null = null
   try {
-    const c = resolveChassisRef(chassisRef) as { name: string; techLevel?: number } | null
-    if (!c) return chassisRef || undefined
-    return c.techLevel != null ? `${c.name} · TL ${c.techLevel}` : c.name
+    resolved = resolveChassisRef(chassisRef) as { name: string; techLevel?: number } | null
   } catch {
-    return chassisRef || undefined
+    resolved = null
   }
+
+  const stats: EntityRowStat[] = [{ label: 'Chassis', value: resolved?.name ?? chassisRef }]
+  if (resolved?.techLevel != null) stats.push({ label: 'TL', value: resolved.techLevel })
+  return stats
 }
 
-/** Roster row meta segment for a crawler: "TL n · m bays". */
-function crawlerTypeMeta(techLevel: string, bayCount: number): string {
+/**
+ * A crawler row's stats: `TL | 2`, `BAYS | 3`.
+ *
+ * Was the caption string "TL 2 · 3 bays" — the same two-facts-one-separator
+ * shape the chassis had, and the same fix. These are the labels the crew roster
+ * already used, so the two surfaces now read identically.
+ */
+function crawlerStats(techLevel: string, bayCount: number): EntityRowStat[] {
   const tl = techLevel.replace(/[^0-9]/g, '')
-  const parts: string[] = []
-  if (tl) parts.push(`TL ${tl}`)
-  parts.push(`${bayCount} ${bayCount === 1 ? 'bay' : 'bays'}`)
-  return parts.join(' · ')
+  const stats: EntityRowStat[] = []
+  if (tl) stats.push({ label: 'TL', value: tl })
+  stats.push({ label: 'Bays', value: bayCount })
+  return stats
 }
 
-/** Join meta segments with the design's ' · ' separator, dropping blanks. */
-function joinMeta(parts: Array<ReactNode | null | undefined>): ReactNode | undefined {
+/**
+ * A pilot row's header stats: `CLASS | Scavenger`, `CALLSIGN | Ghost`.
+ *
+ * These lived in the body as tone-tinted chips. They are `label | value` facts
+ * like any other, so they belong in the band with the rest, on the plain ink
+ * label plate every other stat uses — the tint was a second way of saying what
+ * the band already says.
+ *
+ * No HP/AP here: a roster answers "what have I got", not "how hurt is it".
+ */
+function pilotStats(classRef: string, callsign?: string): EntityRowStat[] | undefined {
+  const stats: EntityRowStat[] = []
+  const className = resolveClassName(classRef)
+  if (className) stats.push({ label: 'Class', value: className })
+  if (callsign) stats.push({ label: 'Callsign', value: callsign })
+  return stats.length > 0 ? stats : undefined
+}
+
+/**
+ * The row's body details, blanks dropped.
+ *
+ * These used to be joined into one muted line with ' · ' separators, then became
+ * chips, and are now `label | value` stats — each step removing an inference the
+ * reader was making on the row's behalf.
+ */
+function metaParts(parts: Array<ReactNode | null | undefined>): ReactNode[] | undefined {
   const kept = parts.filter((part) => part != null && part !== '')
-  if (kept.length === 0) return undefined
-  return kept.map((part, i) => (
-    // biome-ignore lint/suspicious/noArrayIndexKey: meta parts are positional ReactNodes with no stable identity; the joined caption never reorders
-    <Fragment key={i}>
-      {i > 0 && ' · '}
-      {part}
-    </Fragment>
-  ))
+  return kept.length === 0 ? undefined : kept
 }
 
 // ---------------------------------------------------------------------------
@@ -100,6 +135,23 @@ type DeleteTarget = {
 }
 
 type SegmentKind = 'pilot' | 'mech' | 'crawler'
+
+/**
+ * Label-plate tints for a cross-link, keyed to the TARGET's ontology — the same
+ * `--color-sheet-*` tokens `EntityRow` bands itself with, so a link to a mech
+ * is the green a mech row wears. Crawler takes paper text; it is the one dark
+ * fill in the ramp.
+ */
+const TONE_BG: Record<SegmentKind, string> = {
+  pilot: 'var(--color-sheet-pilot)',
+  mech: 'var(--color-sheet-mech)',
+  crawler: 'var(--color-sheet-crawler)',
+}
+const TONE_INK: Record<SegmentKind, string> = {
+  pilot: 'var(--color-ink)',
+  mech: 'var(--color-ink)',
+  crawler: 'var(--color-paper)',
+}
 
 const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
   { kind: 'pilot', label: 'Pilots' },
@@ -136,6 +188,18 @@ export function Roster() {
   const pilotNameById = new Map(allPilots.map((p) => [p.id, p.name]))
   const mechNameById = new Map(allMechs.map((m) => [m.id, m.name]))
   const crawlerNameById = new Map(allCrawlers.map((c) => [c.id, c.name]))
+  // …and the one fact each cross-link states about its target, so a link reads
+  // `IRON JAW | Titan` rather than naming a thing and saying nothing about it.
+  const pilotClassById = new Map(allPilots.map((p) => [p.id, resolveClassName(p.classRef)]))
+  const mechChassisNameById = new Map(
+    allMechs.map((m) => [m.id, mechChassisStats(m.chassisRef)?.[0]?.value as string | undefined])
+  )
+  const crawlerTlById = new Map(
+    allCrawlers.map((c) => {
+      const tl = c.techLevel.replace(/[^0-9]/g, '')
+      return [c.id, tl ? `TL ${tl}` : undefined]
+    })
+  )
 
   /**
    * A cross-link to another entity's live sheet, as a Badge tinted with THAT
@@ -155,7 +219,8 @@ export function Roster() {
   function linkSegment(
     kind: SegmentKind,
     id: string | undefined,
-    name: string | undefined
+    name: string | undefined,
+    detail: string | undefined
   ): ReactNode | undefined {
     if (!id || !name) return undefined
     return (
@@ -164,9 +229,19 @@ export function Roster() {
         className="inline-flex max-w-full align-middle no-underline"
         aria-label={`Open ${name}'s ${kind} sheet`}
       >
-        <Badge shape="chip" surface="tone" tone={kind} className="max-w-full truncate">
-          {name}
-        </Badge>
+        {/* `NAME | detail` — the linked entity names ITSELF on the label plate
+            (a mech's name IS its pattern, SU rules), with its defining fact as
+            the value: a mech's chassis, a pilot's class, a crawler's TL. The
+            plate is tinted with the TARGET's ontology, never the row's, so the
+            kind of thing you are about to open is seen rather than read. */}
+        <Stat
+          label={name}
+          value={detail ?? '—'}
+          orientation="horizontal"
+          size="mini"
+          bgColor={TONE_BG[kind]}
+          textColor={TONE_INK[kind]}
+        />
       </AppLink>
     )
   }
@@ -346,18 +421,19 @@ export function Roster() {
                         sheetHref={`/sheet/pilot/${p.id}`}
                         linkAs={AppLink}
                         onDeleteClick={() => openDeleteDialog('pilot', p.id, p.name)}
-                        metaLine={joinMeta([
-                          p.callsign ? `"${p.callsign}"` : null,
-                          resolveClassName(p.classRef),
+                        stats={pilotStats(p.classRef, p.callsign)}
+                        metaLine={metaParts([
                           linkSegment(
                             'mech',
                             mechLink?.from.id,
-                            mechLink && mechNameById.get(mechLink.from.id)
+                            mechLink && mechNameById.get(mechLink.from.id),
+                            mechLink && mechChassisNameById.get(mechLink.from.id)
                           ),
                           linkSegment(
                             'crawler',
                             crawlerLink?.to.id,
-                            crawlerLink && crawlerNameById.get(crawlerLink.to.id)
+                            crawlerLink && crawlerNameById.get(crawlerLink.to.id),
+                            crawlerLink && crawlerTlById.get(crawlerLink.to.id)
                           ),
                         ])}
                       />
@@ -398,12 +474,17 @@ export function Roster() {
                         sheetHref={`/sheet/mech/${m.id}`}
                         linkAs={AppLink}
                         onDeleteClick={() => openDeleteDialog('mech', m.id, m.name)}
-                        metaLine={joinMeta([
-                          mechChassisMeta(m.chassisRef),
+                        // The chassis is a STAT (`CHASSIS | Iron Mongrel`), not
+                        // a caption chip: it is a named property of the mech,
+                        // and a bare chip left the reader to infer what the word
+                        // was doing there. Same call the crew roster makes.
+                        stats={mechChassisStats(m.chassisRef)}
+                        metaLine={metaParts([
                           linkSegment(
                             'pilot',
                             pilotLink?.to.id,
-                            pilotLink && pilotNameById.get(pilotLink.to.id)
+                            pilotLink && pilotNameById.get(pilotLink.to.id),
+                            pilotLink && pilotClassById.get(pilotLink.to.id)
                           ),
                         ])}
                       />
@@ -433,10 +514,15 @@ export function Roster() {
                         sheetHref={`/sheet/crawler/${c.id}`}
                         linkAs={AppLink}
                         onDeleteClick={() => openDeleteDialog('crawler', c.id, c.name)}
-                        metaLine={joinMeta([
-                          crawlerTypeMeta(c.techLevel, c.crawlerBays?.length ?? 0),
+                        stats={crawlerStats(c.techLevel, c.crawlerBays?.length ?? 0)}
+                        metaLine={metaParts([
                           ...crewLinks.map((l) =>
-                            linkSegment('pilot', l.from.id, pilotNameById.get(l.from.id))
+                            linkSegment(
+                              'pilot',
+                              l.from.id,
+                              pilotNameById.get(l.from.id),
+                              pilotClassById.get(l.from.id)
+                            )
                           ),
                         ])}
                       />

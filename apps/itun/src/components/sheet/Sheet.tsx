@@ -87,6 +87,14 @@ type SheetProps = {
   /** Hides publish + disables all stat editing (snapshot contexts). */
   readOnly?: boolean
   /**
+   * Where the sheet's back link goes. Defaults to the Roster.
+   *
+   * A sheet reached from a Game's crew list belongs to that game for the length
+   * of the visit, and sending its back link to the personal Roster would strand
+   * the viewer one surface away from the crew they were reading.
+   */
+  back?: { href: string; label: string }
+  /**
    * Pilot ability refs to use instead of the composition's.
    *
    * A published snapshot shares a LIVE INSTANCE but carries a private read-only
@@ -109,6 +117,7 @@ export function Sheet({
   softLinkStore,
   store = useEntityStore,
   readOnly = false,
+  back = { href: '/', label: 'Roster' },
   pilotAbilities,
 }: SheetProps) {
   const storeState = store()
@@ -140,10 +149,10 @@ export function Sheet({
             This {kind} may have been deleted, or the link may be stale.
           </p>
           <AppLink
-            href="/"
+            href={back.href}
             className={cn(buttonVariants({ variant: 'ghost', size: 'compact' }), 'no-underline')}
           >
-            &larr; Back to Roster
+            &larr; Back to {back.label}
           </AppLink>
         </div>
       </main>
@@ -152,7 +161,6 @@ export function Sheet({
 
   const { entity } = resolved
   const wired = composition.mode === 'wired'
-  const back = { href: '/', label: 'Roster' }
   // Top-bar trailing actions (app-bar right group, design source
   // clean-pilot.html `.bar-actions`): Share (publish) stays inline; Print,
   // Export and the container control tuck into the "⋯" overflow at every width — the app
