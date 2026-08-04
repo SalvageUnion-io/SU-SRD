@@ -5,6 +5,7 @@ import { commands } from './commands/index.js'
 import { handleReady } from './events/ready.js'
 import { handleInteractionCreate } from './events/interactionCreate.js'
 import { initObservability, captureException, flushObservability } from './observability.js'
+import { armReadyWatchdog } from './startupWatchdog.js'
 
 // Initialize error tracking as early as possible (no-op without SENTRY_DSN).
 initObservability()
@@ -17,8 +18,26 @@ const client = new Client({
 // Attach commands collection to client
 client.commands = commands
 
+// Startup deadline. Armed before preload so it covers everything between here
+// and a connected gateway, because a hang anywhere in that stretch looks
+// identical from the outside: a live process answering nothing. See
+// startupWatchdog.ts for the twelve-hour outage that motivated it.
+const disarmReadyWatchdog = armReadyWatchdog({
+  onExpire: (error) => {
+    console.error(error.message)
+    captureException(error, { source: 'startup-watchdog' })
+    // Same flush-then-exit as the uncaughtException path below: exiting non-zero
+    // is the whole point (Render restarts the worker), and a synchronous exit
+    // would drop the one event that explains why.
+    void flushObservability().finally(() => process.exit(1))
+  },
+})
+
 // Register event handlers
-client.once(Events.ClientReady, handleReady)
+client.once(Events.ClientReady, (readyClient) => {
+  disarmReadyWatchdog()
+  handleReady(readyClient)
+})
 client.on(Events.InteractionCreate, (interaction) => {
   void handleInteractionCreate(interaction)
 })
