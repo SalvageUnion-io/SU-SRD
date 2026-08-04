@@ -28,31 +28,39 @@ export type GameRowGame = {
 }
 
 /**
- * What the table IS, as `label | value` stats in the header band.
+ * What the TABLE is — the band's register, scanned down the column.
  *
- * These answer "what is this table" before you open it: which crawler the crew
- * rides, how much is built, who you are at it, and how many of you there are.
- *
- * They were body badges (`#430 Tenacity`, `4 Pilots`, `3 Mechs`) over a caption
- * that joined the rest with ' · ' separators — `Mediator · Organizer · 4
- * members · from the starter-set template`. Both are the vocabulary the entity
- * rows left behind: a count is a `label | value` fact, and a separator-joined
- * run is several facts wearing one chip. The band states them the way every
- * other row now does.
- *
- * A brand-new Game reads `CRAWLER | None` rather than dropping the stat: a row
- * with nothing beside the name looks broken rather than empty.
+ * Which crawler the crew rides, and how much is built. A brand-new Game reads
+ * `CRAWLER | None` rather than dropping the stat: a row with nothing beside its
+ * name looks broken rather than new.
  */
-function statsOf(game: GameRowGame): EntityRowStat[] {
-  const stats: EntityRowStat[] = [
+function tableStats(game: GameRowGame): EntityRowStat[] {
+  return [
     { label: 'Crawler', value: game.crawlerName ?? 'None' },
     { label: 'Pilots', value: game.pilotCount },
     { label: 'Mechs', value: game.mechCount },
-    // Your standing at the table, not a count — but still one label, one value.
+  ]
+}
+
+/**
+ * What YOU are at the table — the body's register, beside the controls.
+ *
+ * Your role, the size of the crew, and where the game came from. These are
+ * facts about the row, but not what a reader scans a list of games FOR: you
+ * scan for which table, and how much is on it. All six cells briefly sat in the
+ * band together, which made the one line meant to be scanned the longest line
+ * on the row.
+ *
+ * They were a single caption chip joining the lot with ' · ' separators —
+ * `Mediator · Organizer · 4 members · from the starter-set template` — which is
+ * several facts wearing one chip.
+ */
+function standingStats(game: GameRowGame): EntityRowStat[] {
+  const stats: EntityRowStat[] = [
     { label: 'Role', value: game.mediator ? 'Mediator' : game.organizer ? 'Organizer' : 'Player' },
     { label: 'Members', value: game.memberCount },
   ]
-  // Provenance is only worth a cell when there IS a template behind the game.
+  // Provenance earns a cell only when there IS a template behind the game.
   if (game.templateOrigin !== undefined) {
     stats.push({ label: 'From', value: `${game.templateOrigin} template` })
   }
@@ -66,7 +74,8 @@ export function GameRow({ game }: { game: GameRowGame }) {
       name={game.name}
       sheetHref={`/games/${game._id}`}
       linkAs={AppLink}
-      stats={statsOf(game)}
+      stats={tableStats(game)}
+      bodyStats={standingStats(game)}
     />
   )
 }

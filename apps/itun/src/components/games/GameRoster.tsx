@@ -492,7 +492,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                               {row.can.openSheet && (
                                 <Button
                                   variant="default"
-                                  size="compact"
+                                  size="mini"
                                   disabled={busy !== null}
                                   onClick={() =>
                                     void run(`open-${row.serverId}`, () => openSheet(row))
@@ -504,7 +504,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                               {row.kind === 'mech' && row.can.openSheet && (
                                 <Button
                                   variant="primary"
-                                  size="compact"
+                                  size="mini"
                                   disabled={busy !== null}
                                   onClick={() =>
                                     void run(`dash-${row.serverId}`, () => launchDashboard(row))
@@ -521,7 +521,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                               {row.can.release && (
                                 <Button
                                   variant="ghost"
-                                  size="compact"
+                                  size="mini"
                                   disabled={busy !== null}
                                   onClick={() =>
                                     void run(`offer-${row.serverId}`, async () => {
@@ -546,7 +546,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                               {row.can.scrap && (
                                 <Button
                                   variant="ghost"
-                                  size="compact"
+                                  size="mini"
                                   disabled={busy !== null}
                                   onClick={() =>
                                     void run(`scrap-${row.serverId}`, async () => {

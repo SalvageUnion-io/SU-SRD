@@ -78,11 +78,27 @@ type FilledEntityRowProps = {
   /** Entity name rendered in the black pseudoheader name tab. */
   name: string
   /**
-   * Subheader stat content. Each entry renders through the canonical
-   * Stat (horizontal `label | value` mode) — never hand-assembled text
-   * (see the stats-render-through-Stat law, ruleset §3).
+   * The stats carried in the HEADER BAND, opposite the title. Each renders
+   * through the canonical Stat (horizontal `label | value` mode) — never
+   * hand-assembled text (see the stats-render-through-Stat law, ruleset §3).
+   *
+   * This is the row's PRIMARY register: what a reader scans a column of forty
+   * rows for. Keep it short. A band asked to carry six cells stops being a
+   * scannable edge and becomes a queue — put the rest in `bodyStats`.
    */
   stats?: EntityRowStat[]
+  /**
+   * The SECONDARY stats, rendered in the body beside the controls.
+   *
+   * Same cell, same primitive, lower billing — for facts that belong to the row
+   * but are not what you scan it for. A Game states what the table IS in the
+   * band (its crawler, its pilots, its mechs) and your standing at it down here
+   * (your role, the member count, the template it came from).
+   *
+   * The split is the point. Everything was briefly in the band, which made the
+   * one line a reader is meant to scan the longest line on the row.
+   */
+  bodyStats?: EntityRowStat[]
   /**
    * Class/role label(s) beside the stats — rendered as ontology-toned Badges
    * (pilot → orange, mech → green, crawler → pink, game → blue), never plain
@@ -269,6 +285,7 @@ export function EntityRow(props: EntityRowProps) {
     entityType,
     name,
     stats,
+    bodyStats,
     meta,
     metaLine,
     seal,
@@ -286,6 +303,7 @@ export function EntityRow(props: EntityRowProps) {
   const hasBody =
     captionParts.length > 0 ||
     metaBadges.length > 0 ||
+    (bodyStats?.length ?? 0) > 0 ||
     !!actions ||
     sheetHref !== undefined ||
     !!onDeleteClick
@@ -394,6 +412,17 @@ export function EntityRow(props: EntityRowProps) {
                 with four buttons truncated its chips rather than dropping the
                 controls to their own line. */}
             <div className="flex min-w-[9rem] flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+              {/* The SECONDARY stats — the same cell as the band's, in the
+                  quieter register. See `bodyStats`. */}
+              {bodyStats?.map((stat) => (
+                <Stat
+                  key={String(stat.label)}
+                  label={stat.label}
+                  value={stat.value}
+                  orientation="horizontal"
+                  size="mini"
+                />
+              ))}
               {/* The class/role badge is keyed to the entity's ontology tone
                   (pilot → orange, mech → green, crawler → pink, game → blue). */}
               {metaBadges.map((badge, i) => (
@@ -435,7 +464,7 @@ export function EntityRow(props: EntityRowProps) {
                 <Link
                   href={sheetHref}
                   className={cn(
-                    buttonVariants({ variant: 'default', size: 'compact' }),
+                    buttonVariants({ variant: 'default', size: 'mini' }),
                     'no-underline'
                   )}
                 >
@@ -445,7 +474,7 @@ export function EntityRow(props: EntityRowProps) {
               {onDeleteClick && (
                 <Button
                   variant="ghost"
-                  size="compact"
+                  size="mini"
                   aria-label={`Delete ${name}`}
                   onClick={onDeleteClick}
                   className="border-transparent px-2 text-status-bad hover:bg-transparent hover:text-status-bad"
