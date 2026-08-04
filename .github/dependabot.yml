@@ -59,7 +59,13 @@ updates:
 
   # ------------------------------------------------------------- GitHub Actions
   - package-ecosystem: 'github-actions'
-    directory: '/'
+    # `directory: '/'` only scans .github/workflows — it does NOT descend into
+    # composite actions, so .github/actions/setup-bun/action.yml sat outside
+    # Dependabot's scope and stalled on actions/cache@v4 while every workflow
+    # moved to @v6. The `directories:` glob form covers both.
+    directories:
+      - '/'
+      - '/.github/actions/*'
     schedule:
       interval: 'weekly'
       day: 'monday'

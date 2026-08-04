@@ -51,7 +51,8 @@ Dashboard (spend EP, take SP damage) is immediately visible on the live sheet in
 another tab (the multi-tab broadcast in `src/lib/db/broadcast.ts`), and vice
 versa. **There is one source of truth; the Dashboard is a second lens on it.**
 
-Local-first is preserved end to end ([ADR-001], [ADR-003]): the Dashboard adds no
+Local-first is preserved end to end ([ADR-001] — superseded by [ADR-030], which
+leaves anonymous Solo play fully local — and [ADR-003]): the Dashboard adds no
 backend, no auth, no RPC. It is a client of `entityStore`/`workspaceStore` and
 the pure rules functions, exactly like the sheet.
 
@@ -839,3 +840,4 @@ load-bearing; the ADR files are the authoritative records.
 [adr-010]: ../adrs/ADR-010-srd-choices-ephemeral-vs-persisted.md
 [adr-011]: ../adrs/ADR-011-component-lib-source-no-build.md
 [adr-013]: ../adrs/ADR-013-csp-zod-jitless.md
+[adr-030]: ../adrs/ADR-030-accounts-games-server-of-record.md

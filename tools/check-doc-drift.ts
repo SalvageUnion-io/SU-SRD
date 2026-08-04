@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 /**
- * Doc-drift guard (mechanical, narrow — 3 checks, not a general doc-linter).
+ * Doc-drift guard (mechanical, narrow — 6 checks, not a general doc-linter).
  *
  * A prior campaign PR had to hand-fix docs/architecture/package-contracts.md
  * after its "Entry Points" JSON block silently fell out of sync with
@@ -10,6 +10,12 @@
  * the doc was written). This script extracts a fact from source and the
  * corresponding claim from docs and asserts they match, so that exact class
  * of drift fails CI instead of sitting unnoticed until the next audit.
+ *
+ * Checks 4–6 were added after a repo-wide audit found the same drift class
+ * running unchecked in three more places while this script sat green: docs
+ * citing a superseded ADR as live authority (seven sites on the day ADR-030
+ * merged), docs naming component-lib symbols that had been deleted, and
+ * "Astro 5" surviving in ten files after `apps/srd` moved to Astro 7.
  *
  * Checks:
  *
@@ -26,43 +32,211 @@
  *      the workspaces the root package.json's `apps/*` + `packages/*` globs
  *      resolve to — `apps/su-assets` was a real, deployed workspace member that
  *      no doc mentioned for months.
+ *   4. No live-instruction doc may cite a superseded ADR without saying so.
+ *      The superseded set is parsed out of each ADR's own `## Status` block, so
+ *      marking an ADR superseded is all it takes to arm this check.
+ *   5. Every backticked PascalCase symbol a live-instruction doc attributes to
+ *      component-lib must still be a barrel export or a file under
+ *      `packages/component-lib/src/`.
+ *   6. Every "<framework> <major>" claim in the docs must match the version in
+ *      the package.json that actually installs that framework.
+ *
+ * Checks 4 and 5 read *live-instruction* docs only (see LIVE_INSTRUCTION_DOC_DIRS
+ * / HISTORICAL_DOCS / HISTORICAL_MENTION). The repo deliberately keeps bannered
+ * historical documents that name dead symbols and past decisions on purpose —
+ * "its previous version described `ReferenceEntityDisplay`, which no longer
+ * exists" is *good* documentation, and a check that fights it would be a check
+ * that gets deleted.
  */
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
-import { dirname, join, relative } from 'node:path'
+import { basename, dirname, extname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const pkgDir = join(root, 'packages/salvageunion-reference')
-const contractsDocPath = join(root, 'docs/architecture/package-contracts.md')
-const rootClaudeMdPath = join(root, 'CLAUDE.md')
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 
-let failed = false
-
-function fail(message: string): void {
-  console.error(`✗ ${message}`)
-  failed = true
+/** The outcome of one check: `failures` empty means it passed. */
+export type CheckResult = {
+  /** One-line summary printed after a ✓ when the check passes. */
+  ok: string
+  /** One entry per drift found; empty when the check passes. */
+  failures: string[]
 }
+
+// ---------------------------------------------------------------------------
+// Shared helpers
+// ---------------------------------------------------------------------------
+
+function read(root: string, relPath: string): string {
+  return readFileSync(join(root, relPath), 'utf-8')
+}
+
+/** Repo-relative paths of the `.md` files directly inside `dir`, sorted. */
+function markdownIn(root: string, dir: string): string[] {
+  const full = join(root, dir)
+  if (!existsSync(full)) return []
+  return readdirSync(full)
+    .filter((name) => name.endsWith('.md'))
+    .sort()
+    .map((name) => `${dir}/${name}`)
+}
+
+/**
+ * A markdown block: a paragraph, a single list item, a heading, or a fenced
+ * block. Blocks are the unit of judgement for checks 4–6 — "is the
+ * supersession/version/deleted-ness acknowledged *next to* the claim" is a
+ * question about the surrounding sentence, not the whole file.
+ */
+export type DocBlock = {
+  /** Repo-relative path of the doc this block came from. */
+  file: string
+  /** 1-indexed line number of the block's first line. */
+  line: number
+  /** The block's raw text. */
+  text: string
+  /** Heading trail above (and including) the block, outermost first. */
+  headings: string[]
+}
+
+const FENCE_RE = /^\s{0,3}(```|~~~)/
+const HEADING_RE = /^(#{1,6})\s+(.*)$/
+const LIST_ITEM_RE = /^\s{0,3}(?:[-*+]|\d+[.)])\s/
+/** A markdown link-reference definition — a target, not a citation. */
+const LINK_DEFINITION_RE = /^\s*\[[^\]]+\]:\s/
+
+/** 1-indexed file line of `index` within a block's text. */
+function lineOf(block: DocBlock, index: number): number {
+  return block.line + (block.text.slice(0, index).match(/\n/g)?.length ?? 0)
+}
+
+export function splitMarkdownBlocks(
+  file: string,
+  source: string,
+  options: { includeFences?: boolean } = {}
+): DocBlock[] {
+  const includeFences = options.includeFences ?? false
+  const lines = source.split('\n')
+  const blocks: DocBlock[] = []
+  const headings: string[] = []
+  let current: string[] = []
+  let currentLine = 0
+  let inFence = false
+
+  const flush = (): void => {
+    if (current.length === 0) return
+    blocks.push({
+      file,
+      line: currentLine,
+      text: current.join('\n'),
+      headings: headings.filter(Boolean),
+    })
+    current = []
+  }
+
+  const push = (line: string, lineNumber: number): void => {
+    if (current.length === 0) currentLine = lineNumber
+    current.push(line)
+  }
+
+  for (const [index, line] of lines.entries()) {
+    const lineNumber = index + 1
+
+    if (FENCE_RE.test(line)) {
+      if (inFence) {
+        if (includeFences) push(line, lineNumber)
+        flush()
+      } else {
+        flush()
+        if (includeFences) push(line, lineNumber)
+      }
+      inFence = !inFence
+      continue
+    }
+    if (inFence) {
+      if (includeFences) push(line, lineNumber)
+      continue
+    }
+    if (line.trim() === '') {
+      flush()
+      continue
+    }
+
+    const heading = line.match(HEADING_RE)
+    if (heading) {
+      flush()
+      // biome-ignore lint/style/noNonNullAssertion: both groups are unconditional in HEADING_RE
+      const level = heading[1]!.length
+      headings.length = level - 1
+      // biome-ignore lint/style/noNonNullAssertion: both groups are unconditional in HEADING_RE
+      headings[level - 1] = heading[2]!.trim()
+      blocks.push({ file, line: lineNumber, text: line, headings: headings.filter(Boolean) })
+      continue
+    }
+
+    if (LIST_ITEM_RE.test(line)) flush()
+    push(line, lineNumber)
+  }
+
+  flush()
+  return blocks
+}
+
+/**
+ * Docs an agent reads as a description of the code *as it is now*. Anything not
+ * in here (docs/design/, plan-docs/, docs/design-system/, the ADR bodies) is
+ * allowed to describe the past.
+ */
+const LIVE_INSTRUCTION_DOC_DIRS = ['.claude/rules', '.claude/agents', 'docs/architecture']
+
+/**
+ * Live-instruction docs that are deliberately historical records. They carry
+ * their own "this is what we used to think / what no longer exists" banner, and
+ * naming dead things is the entire point of them.
+ */
+const HISTORICAL_DOCS = new Set([
+  'docs/architecture/dashboard-display-completion-plan.md',
+  'docs/architecture/game-invites-and-membership-plan.md',
+])
+
+function liveInstructionDocs(root: string): string[] {
+  return ['CLAUDE.md', ...LIVE_INSTRUCTION_DOC_DIRS.flatMap((dir) => markdownIn(root, dir))].filter(
+    (doc) => !HISTORICAL_DOCS.has(doc) && existsSync(join(root, doc))
+  )
+}
+
+/**
+ * A block that is explicitly talking about the past. Checks 4 and 5 skip these:
+ * "`StatsBar` (deleted)" and "ADR-001, superseded by ADR-030" are the repo doing
+ * the right thing, and a guard that flagged them would train people to delete
+ * the banners instead of the drift.
+ */
+const HISTORICAL_MENTION =
+  /\b(no longer|previously|used to|formerly|former|deleted|removed|replaced|renamed|retired|deprecated|superseded|supersedes|absorbed|there is no|do(?:es)? not exist|don't exist|not exported|earlier revisions?|history|historical)\b/i
 
 // ---------------------------------------------------------------------------
 // Check 1: Entry Points exports map matches package.json
 // ---------------------------------------------------------------------------
 
-function checkExportsMap(): void {
-  const pkg = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf-8')) as {
+export function checkExportsMap(root: string): CheckResult {
+  const contractsDoc = 'docs/architecture/package-contracts.md'
+  const pkg = JSON.parse(read(root, 'packages/salvageunion-reference/package.json')) as {
     exports?: unknown
   }
   const actualExports = pkg.exports
 
-  const doc = readFileSync(contractsDocPath, 'utf-8')
+  const doc = read(root, contractsDoc)
   const sectionMatch = doc.match(/### Entry Points\s*\n\s*```json\n([\s\S]*?)\n```/)
 
+  const ok = 'package-contracts.md "Entry Points" matches package.json#exports.'
+
   if (!sectionMatch) {
-    fail(
-      `Could not find the "### Entry Points" \`\`\`json block in ` +
-        `${relative(root, contractsDocPath)} — has the section been renamed or removed?`
-    )
-    return
+    return {
+      ok,
+      failures: [
+        `Could not find the "### Entry Points" \`\`\`json block in ` +
+          `${contractsDoc} — has the section been renamed or removed?`,
+      ],
+    }
   }
 
   let documentedExports: unknown
@@ -70,41 +244,45 @@ function checkExportsMap(): void {
     // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group — a successful match always defines [1]
     documentedExports = JSON.parse(sectionMatch[1]!)
   } catch (err) {
-    fail(
-      `The "### Entry Points" \`\`\`json block in ${relative(root, contractsDocPath)} ` +
-        `is not valid JSON: ${(err as Error).message}`
-    )
-    return
+    return {
+      ok,
+      failures: [
+        `The "### Entry Points" \`\`\`json block in ${contractsDoc} ` +
+          `is not valid JSON: ${(err as Error).message}`,
+      ],
+    }
   }
 
   const actualStr = JSON.stringify(actualExports, null, 2)
   const documentedStr = JSON.stringify(documentedExports, null, 2)
 
   if (actualStr !== documentedStr) {
-    fail(
-      `${relative(root, contractsDocPath)}'s "Entry Points" block has drifted from ` +
-        `packages/salvageunion-reference/package.json's actual "exports" map.\n\n` +
-        `  package.json#exports:\n${actualStr
-          .split('\n')
-          .map((l) => `    ${l}`)
-          .join('\n')}\n\n` +
-        `  documented:\n${documentedStr
-          .split('\n')
-          .map((l) => `    ${l}`)
-          .join('\n')}\n\n` +
-        `  → update the doc's JSON block to match package.json exactly.`
-    )
-    return
+    const indent = (s: string) =>
+      s
+        .split('\n')
+        .map((l) => `    ${l}`)
+        .join('\n')
+    return {
+      ok,
+      failures: [
+        `${contractsDoc}'s "Entry Points" block has drifted from ` +
+          `packages/salvageunion-reference/package.json's actual "exports" map.\n\n` +
+          `  package.json#exports:\n${indent(actualStr)}\n\n` +
+          `  documented:\n${indent(documentedStr)}\n\n` +
+          `  → update the doc's JSON block to match package.json exactly.`,
+      ],
+    }
   }
 
-  console.log('✓ package-contracts.md "Entry Points" matches package.json#exports.')
+  return { ok, failures: [] }
 }
 
 // ---------------------------------------------------------------------------
 // Check 2: every referenced lib/generated/*.generated.ts file exists
 // ---------------------------------------------------------------------------
 
-function checkGeneratedFileReferences(): void {
+export function checkGeneratedFileReferences(root: string): CheckResult {
+  const pkgDir = join(root, 'packages/salvageunion-reference')
   const docsToScan = [
     'docs/architecture/package-contracts.md',
     'packages/salvageunion-reference/CLAUDE.md',
@@ -117,36 +295,38 @@ function checkGeneratedFileReferences(): void {
   for (const docPath of docsToScan) {
     const fullPath = join(root, docPath)
     if (!existsSync(fullPath)) continue
-    const text = readFileSync(fullPath, 'utf-8')
-    for (const match of text.matchAll(pattern)) {
+    for (const match of readFileSync(fullPath, 'utf-8').matchAll(pattern)) {
       referenced.add(match[0])
     }
   }
 
   if (referenced.size === 0) {
-    fail(
-      'Expected at least one lib/generated/*.generated.ts reference across ' +
-        `${docsToScan.join(', ')} — did the registry-codegen docs get rewritten ` +
-        'to describe the generated files differently? Update this check to match.'
-    )
-    return
+    return {
+      ok: 'All referenced lib/generated/*.generated.ts file(s) exist on disk.',
+      failures: [
+        'Expected at least one lib/generated/*.generated.ts reference across ' +
+          `${docsToScan.join(', ')} — did the registry-codegen docs get rewritten ` +
+          'to describe the generated files differently? Update this check to match.',
+      ],
+    }
   }
 
+  const ok = `All ${referenced.size} referenced lib/generated/*.generated.ts file(s) exist on disk.`
   const missing = [...referenced].filter((rel) => !existsSync(join(pkgDir, rel)))
 
   if (missing.length > 0) {
-    fail(
-      `Docs reference generated file(s) that don't exist on disk (stale registry-codegen docs):\n` +
-        missing.map((m) => `    packages/salvageunion-reference/${m}`).join('\n') +
-        `\n  → run 'bun run build:package' if these should exist, or update the docs if the ` +
-        `generated-file layout changed.`
-    )
-    return
+    return {
+      ok,
+      failures: [
+        `Docs reference generated file(s) that don't exist on disk (stale registry-codegen docs):\n` +
+          missing.map((m) => `    packages/salvageunion-reference/${m}`).join('\n') +
+          `\n  → run 'bun run build:package' if these should exist, or update the docs if the ` +
+          `generated-file layout changed.`,
+      ],
+    }
   }
 
-  console.log(
-    `✓ All ${referenced.size} referenced lib/generated/*.generated.ts file(s) exist on disk.`
-  )
+  return { ok, failures: [] }
 }
 
 // ---------------------------------------------------------------------------
@@ -154,7 +334,7 @@ function checkGeneratedFileReferences(): void {
 // apps/* + packages/* workspace glob expansion
 // ---------------------------------------------------------------------------
 
-function checkWorkspaceList(): void {
+export function checkWorkspaceList(root: string): CheckResult {
   const workspaceGlobs = ['apps', 'packages']
 
   const actual = new Set<string>()
@@ -168,23 +348,29 @@ function checkWorkspaceList(): void {
     }
   }
 
+  const ok = `CLAUDE.md "Workspace structure" names all ${actual.size} workspaces.`
+
   if (actual.size === 0) {
-    fail(
-      `Found no workspace members under ${workspaceGlobs.join('/, ')}/ — is this ` +
-        'running from the monorepo root? Update this check if the layout changed.'
-    )
-    return
+    return {
+      ok,
+      failures: [
+        `Found no workspace members under ${workspaceGlobs.join('/, ')}/ — is this ` +
+          'running from the monorepo root? Update this check if the layout changed.',
+      ],
+    }
   }
 
-  const doc = readFileSync(rootClaudeMdPath, 'utf-8')
+  const doc = read(root, 'CLAUDE.md')
   const sectionMatch = doc.match(/\*\*Workspace structure:\*\*\s*\n([\s\S]*?)\n\s*\n\*\*/)
 
   if (!sectionMatch) {
-    fail(
-      `Could not find the "**Workspace structure:**" bullet list in ` +
-        `${relative(root, rootClaudeMdPath)} — has the section been renamed or removed?`
-    )
-    return
+    return {
+      ok,
+      failures: [
+        `Could not find the "**Workspace structure:**" bullet list in ` +
+          `CLAUDE.md — has the section been renamed or removed?`,
+      ],
+    }
   }
 
   const documented = new Set<string>()
@@ -206,21 +392,378 @@ function checkWorkspaceList(): void {
     if (phantom.length > 0) {
       lines.push(`  documented workspaces that don't exist:\n${bullets(phantom)}`)
     }
-    fail(
-      `${relative(root, rootClaudeMdPath)}'s "Workspace structure" list has drifted from ` +
-        `the real apps/* + packages/* workspace expansion.\n\n${lines.join('\n\n')}\n\n` +
-        `  → add or remove the bullet(s) so the list names every workspace exactly once.`
-    )
-    return
+    return {
+      ok,
+      failures: [
+        `CLAUDE.md's "Workspace structure" list has drifted from ` +
+          `the real apps/* + packages/* workspace expansion.\n\n${lines.join('\n\n')}\n\n` +
+          `  → add or remove the bullet(s) so the list names every workspace exactly once.`,
+      ],
+    }
   }
 
-  console.log(`✓ CLAUDE.md "Workspace structure" names all ${actual.size} workspaces.`)
+  return { ok, failures: [] }
 }
 
-checkExportsMap()
-checkGeneratedFileReferences()
-checkWorkspaceList()
+// ---------------------------------------------------------------------------
+// Check 4: no live-instruction doc cites a superseded ADR as live authority
+// ---------------------------------------------------------------------------
 
-if (failed) {
-  process.exit(1)
+const ADR_FILE_RE = /^ADR-(\d{3})-.*\.md$/
+const ADR_CITATION_RE = /\bADR-(\d{3})\b/g
+
+/** ADR id → the id that superseded it, parsed from each ADR's own Status block. */
+export function supersededAdrs(root: string): Map<string, string> {
+  const adrDir = join(root, 'docs/adrs')
+  const superseded = new Map<string, string>()
+  if (!existsSync(adrDir)) return superseded
+
+  for (const name of readdirSync(adrDir).sort()) {
+    const idMatch = name.match(ADR_FILE_RE)
+    if (!idMatch) continue
+    const text = readFileSync(join(adrDir, name), 'utf-8')
+    const heading = text.match(/^##\s+Status\s*$/m)
+    if (heading?.index === undefined) continue
+    const afterHeading = text.slice(heading.index + heading[0].length)
+    const nextSection = afterHeading.search(/^##\s/m)
+    const status = nextSection === -1 ? afterHeading : afterHeading.slice(0, nextSection)
+    // "Superseded by [ADR-030](...)" — the passive form only. "Supersedes
+    // [ADR-023]" and "Partially supersedes [ADR-014]" describe the *other* ADR.
+    const bySomething = status.match(/superseded\s+by\s+\[?ADR-(\d{3})/i)
+    if (!bySomething) continue
+    // biome-ignore lint/style/noNonNullAssertion: guarded by the match above
+    superseded.set(`ADR-${idMatch[1]!}`, `ADR-${bySomething[1]!}`)
+  }
+
+  return superseded
+}
+
+export function checkSupersededAdrCitations(root: string): CheckResult {
+  const adrDir = join(root, 'docs/adrs')
+  const adrCount = existsSync(adrDir)
+    ? readdirSync(adrDir).filter((n) => ADR_FILE_RE.test(n)).length
+    : 0
+
+  if (adrCount === 0) {
+    return {
+      ok: 'No live-instruction doc cites a superseded ADR without saying so.',
+      failures: [
+        'Found no docs/adrs/ADR-NNN-*.md files to parse — has the ADR layout or ' +
+          'naming changed? Update this check to match.',
+      ],
+    }
+  }
+
+  const superseded = supersededAdrs(root)
+  const ok =
+    `No live-instruction doc cites any of the ${superseded.size} superseded ADR(s) ` +
+    'without a supersession marker.'
+  const failures: string[] = []
+
+  for (const doc of liveInstructionDocs(root)) {
+    for (const block of splitMarkdownBlocks(doc, read(root, doc))) {
+      // Link-reference definitions are link targets, not claims — blank them out
+      // rather than dropping them, so line offsets stay true.
+      const lines = block.text.split('\n')
+      const scannable = lines.map((line) => (LINK_DEFINITION_RE.test(line) ? '' : line))
+      const scannableText = scannable.join('\n')
+
+      const cited = new Set([...scannableText.matchAll(ADR_CITATION_RE)].map((m) => m[0]))
+      for (const id of cited) {
+        const superseder = superseded.get(id)
+        if (!superseder) continue
+        if (/supersed/i.test(scannableText)) continue
+        if (scannableText.includes(superseder)) continue
+        const offset = scannable.findIndex((line) => line.includes(id))
+        const citingLine = scannable[offset] ?? ''
+        failures.push(
+          `${doc}:${block.line + offset} cites ${id} as live authority, but ${id}'s own ` +
+            `Status block reads "Superseded by ${superseder}".\n` +
+            `    ${citingLine.trim()}\n` +
+            `  → cite ${superseder} instead, or mark the citation ` +
+            `(e.g. "${id}, superseded by ${superseder}").`
+        )
+      }
+    }
+  }
+
+  return { ok, failures }
+}
+
+// ---------------------------------------------------------------------------
+// Check 5: every component-lib symbol named in a live-instruction doc exists
+// ---------------------------------------------------------------------------
+
+/** The docs that describe component-lib's public surface as it is now. */
+function componentLibSymbolDocs(root: string): string[] {
+  return [
+    'CLAUDE.md',
+    ...markdownIn(root, '.claude/rules'),
+    ...markdownIn(root, '.claude/agents'),
+    'docs/architecture/package-contracts.md',
+  ].filter((doc) => existsSync(join(root, doc)))
+}
+
+/** Every name a barrel file re-exports. */
+export function barrelExports(root: string, relPath: string): Set<string> {
+  const barrelPath = join(root, relPath)
+  const names = new Set<string>()
+  if (!existsSync(barrelPath)) return names
+
+  const source = readFileSync(barrelPath, 'utf-8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/[^\n]*/g, '')
+
+  for (const match of source.matchAll(/export\s+(?:type\s+)?\{([\s\S]*?)\}/g)) {
+    // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group
+    for (const entry of match[1]!.split(',')) {
+      const parts = entry
+        .trim()
+        .replace(/^type\s+/, '')
+        .split(/\s+as\s+/)
+      const name = (parts.at(-1) ?? '').trim()
+      if (name) names.add(name)
+    }
+  }
+  for (const match of source.matchAll(
+    /export\s+(?:declare\s+)?(?:const|let|function|class|type|interface|enum)\s+([A-Za-z0-9_$]+)/g
+  )) {
+    // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group
+    names.add(match[1]!)
+  }
+
+  return names
+}
+
+/** Every file/directory name under `packages/component-lib/src/`. */
+function componentLibSourceNames(root: string): Set<string> {
+  const names = new Set<string>()
+  const srcDir = join(root, 'packages/component-lib/src')
+  if (!existsSync(srcDir)) return names
+
+  const walk = (dir: string): void => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name === 'node_modules') continue
+      if (entry.isDirectory()) {
+        names.add(entry.name)
+        walk(join(dir, entry.name))
+        continue
+      }
+      names.add(basename(entry.name, extname(entry.name)).replace(/\.stories$/, ''))
+    }
+  }
+  walk(srcDir)
+
+  return names
+}
+
+/** Backticked PascalCase identifiers — `Card`, not `cn`, `UI` or `TECH_LEVEL_STYLES`. */
+const BACKTICKED_SYMBOL_RE = /`([A-Z][A-Za-z0-9]*)`/g
+
+export function checkComponentLibSymbolNames(root: string): CheckResult {
+  const known = new Set([
+    ...barrelExports(root, 'packages/component-lib/src/index.ts'),
+    ...componentLibSourceNames(root),
+  ])
+  // A block can name component-lib alongside its sibling packages ("all consumer
+  // packages (`component-lib`, `srd`, `itun`) … code touching
+  // `SalvageUnionReference`"). Those symbols belong to the sibling, not here.
+  const siblingExports = barrelExports(root, 'packages/salvageunion-reference/lib/index.ts')
+  const ok = 'Every component-lib symbol named in a live-instruction doc still exists.'
+
+  if (known.size === 0) {
+    return {
+      ok,
+      failures: [
+        'Parsed zero names out of packages/component-lib/src — has the package moved? ' +
+          'Update this check to match.',
+      ],
+    }
+  }
+
+  const failures: string[] = []
+
+  for (const doc of componentLibSymbolDocs(root)) {
+    for (const block of splitMarkdownBlocks(doc, read(root, doc))) {
+      const attributed =
+        block.text.includes('component-lib') ||
+        block.headings.some((heading) => heading.includes('component-lib'))
+      if (!attributed) continue
+      // A block that is explicitly talking about what was deleted/renamed is
+      // *supposed* to name dead symbols.
+      if (HISTORICAL_MENTION.test(block.text)) continue
+
+      for (const match of block.text.matchAll(BACKTICKED_SYMBOL_RE)) {
+        // biome-ignore lint/style/noNonNullAssertion: the regex has a single unconditional capture group
+        const symbol = match[1]!
+        if (symbol.length < 2 || !/[a-z]/.test(symbol)) continue
+        if (known.has(symbol) || siblingExports.has(symbol)) continue
+        failures.push(
+          `${doc}:${lineOf(block, match.index)} attributes \`${symbol}\` to component-lib, but it is ` +
+            `neither exported from packages/component-lib/src/index.ts nor a file under ` +
+            `packages/component-lib/src/.\n` +
+            `  → remove the name, or point at what replaced it.`
+        )
+      }
+    }
+  }
+
+  return { ok, failures }
+}
+
+// ---------------------------------------------------------------------------
+// Check 6: documented framework majors match the installed ones
+// ---------------------------------------------------------------------------
+
+/** A "<framework> <major>" claim docs make, and the manifest that settles it. */
+type FrameworkFact = {
+  /** How the framework is written in prose. */
+  name: string
+  /** Repo-relative package.json that actually installs it. */
+  manifest: string
+  /** Dependency key inside that manifest. */
+  dependency: string
+  /** Matches the prose claim, capturing the major version. */
+  pattern: RegExp
+}
+
+const FRAMEWORKS: FrameworkFact[] = [
+  {
+    name: 'Astro',
+    manifest: 'apps/srd/package.json',
+    dependency: 'astro',
+    pattern: /\bAstro\s+v?(\d+)(?:\.\d+)*/g,
+  },
+  {
+    name: 'React',
+    manifest: 'apps/itun/package.json',
+    dependency: 'react',
+    pattern: /\bReact\s+v?(\d+)(?:\.\d+)*/g,
+  },
+  {
+    name: 'Tailwind',
+    manifest: 'package.json',
+    dependency: 'tailwindcss',
+    pattern: /\bTailwind(?:\s+CSS)?\s+v?(\d+)(?:\.\d+)*/g,
+  },
+]
+
+function installedMajor(root: string, fact: FrameworkFact): string | null {
+  const manifestPath = join(root, fact.manifest)
+  if (!existsSync(manifestPath)) return null
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')) as {
+    dependencies?: Record<string, string>
+    devDependencies?: Record<string, string>
+  }
+  const range =
+    manifest.dependencies?.[fact.dependency] ?? manifest.devDependencies?.[fact.dependency]
+  const major = range?.match(/(\d+)/)
+  return major?.[1] ?? null
+}
+
+/** Docs that describe the stack as it is now. */
+function frameworkVersionDocs(root: string): string[] {
+  const perWorkspace = ['apps', 'packages'].flatMap((parent) => {
+    const parentDir = join(root, parent)
+    if (!existsSync(parentDir)) return []
+    return readdirSync(parentDir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .flatMap((entry) => [
+        `${parent}/${entry.name}/CLAUDE.md`,
+        `${parent}/${entry.name}/README.md`,
+      ])
+  })
+
+  return [
+    'CLAUDE.md',
+    'README.md',
+    ...LIVE_INSTRUCTION_DOC_DIRS.flatMap((dir) => markdownIn(root, dir)),
+    ...markdownIn(root, 'docs/adrs'),
+    ...perWorkspace,
+  ].filter((doc) => !HISTORICAL_DOCS.has(doc) && existsSync(join(root, doc)))
+}
+
+export function checkFrameworkVersions(root: string): CheckResult {
+  const majors = new Map<string, string>()
+  const failures: string[] = []
+
+  for (const fact of FRAMEWORKS) {
+    const major = installedMajor(root, fact)
+    if (major === null) {
+      failures.push(
+        `Could not read the installed "${fact.dependency}" version from ${fact.manifest} — ` +
+          'has the dependency moved? Update this check to match.'
+      )
+      continue
+    }
+    majors.set(fact.name, major)
+  }
+
+  const ok =
+    `Documented framework majors match the installed ones (` +
+    `${[...majors].map(([name, major]) => `${name} ${major}`).join(', ')}).`
+
+  if (failures.length > 0) return { ok, failures }
+
+  for (const doc of frameworkVersionDocs(root)) {
+    // Fences included: the ASCII dependency diagrams state versions too.
+    for (const block of splitMarkdownBlocks(doc, read(root, doc), { includeFences: true })) {
+      for (const fact of FRAMEWORKS) {
+        const installed = majors.get(fact.name)
+        if (!installed) continue
+        const claimed = [...block.text.matchAll(fact.pattern)]
+        if (claimed.length === 0) continue
+        // A block that also states the current major is contextualising the old
+        // one ("`srd` was on Astro 5 when this was written; it runs Astro 7 today").
+        if (claimed.some((match) => match[1] === installed)) continue
+
+        for (const match of claimed) {
+          failures.push(
+            `${doc}:${lineOf(block, match.index)} says "${match[0]}", but ${fact.manifest} installs ` +
+              `${fact.dependency} ${installed}.x.\n` +
+              `  → say "${fact.name} ${installed}", or keep the old number only alongside ` +
+              `the current one (e.g. "was on ${fact.name} ${match[1]}, runs ${fact.name} ${installed} today").`
+          )
+        }
+      }
+    }
+  }
+
+  return { ok, failures }
+}
+
+// ---------------------------------------------------------------------------
+// Runner
+// ---------------------------------------------------------------------------
+
+export const CHECKS = [
+  checkExportsMap,
+  checkGeneratedFileReferences,
+  checkWorkspaceList,
+  checkSupersededAdrCitations,
+  checkComponentLibSymbolNames,
+  checkFrameworkVersions,
+] as const
+
+export function runChecks(root: string): { failures: string[]; passed: string[] } {
+  const failures: string[] = []
+  const passed: string[] = []
+  for (const check of CHECKS) {
+    const result = check(root)
+    if (result.failures.length === 0) passed.push(result.ok)
+    else failures.push(...result.failures)
+  }
+  return { failures, passed }
+}
+
+if (import.meta.main) {
+  const { failures, passed } = runChecks(repoRoot)
+  for (const message of passed) console.log(`✓ ${message}`)
+  for (const message of failures) console.error(`✗ ${message}`)
+  if (failures.length > 0) {
+    console.error(
+      `\n${failures.length} doc-drift failure(s) in ${relative(process.cwd(), repoRoot) || '.'}`
+    )
+    process.exit(1)
+  }
 }

@@ -1,6 +1,6 @@
 # SURef Web
 
-Static SRD reference site for [Salvage Union](https://leyline-press.itch.io/salvage-union). Astro 5 + React 19 islands. No auth, no backend.
+Static SRD reference site for [Salvage Union](https://leyline-press.itch.io/salvage-union). Astro 7 + React 19 islands. No auth, no backend.
 
 ## Quick start
 
@@ -24,7 +24,7 @@ Run from the repo root:
 
 ## Tech stack
 
-Astro 5 (static output) + React 19 islands, Tailwind v4, Pagefind for search indexing. Deployed to Netlify.
+Astro 7 (static output) + React 19 islands, Tailwind v4, Pagefind for search indexing. Deployed to Netlify.
 
 ## Routes
 

@@ -65,6 +65,19 @@ jobs:
               - 'lefthook.yml'
               - '.github/workflows/**'
               - '.github/actions/**'
+              # Root test preloads (test/happydom.ts, test/testing-library.ts)
+              # are pulled in by every workspace bunfig, the root bunfig.toml
+              # sets the linker mode + root preload, and patches/** rewrites
+              # installed dependencies — a change to any of them affects every
+              # app's tests and build, so they belong in `shared` (same
+              # treatment as package.json / bun.lock). coverage-baseline.json is
+              # the ratchet the coverage job reads. Without these, a PR touching
+              # only them matched no filter at all and every heavy job skipped
+              # while `quality-checks` still reported green.
+              - 'test/**'
+              - 'bunfig.toml'
+              - 'patches/**'
+              - 'coverage-baseline.json'
             itun:
               - *shared
               - 'apps/itun/**'
@@ -92,7 +105,8 @@ jobs:
               - 'docs/**'
 
   lint:
-    # Always runs — format:check covers docs (markdown/yaml) too.
+    # Always runs — format:check covers docs (markdown/yaml) too, and the two
+    # static design guards below are unconditional by design.
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -106,6 +120,21 @@ jobs:
 
       - name: Format check
         run: bun run format:check
+
+      # The design-token and styling-ownership guards sit at a hard ZERO
+      # baseline (tools/design-tokens-baseline.json,
+      # tools/styling-ownership-baseline.json) after a full burn-down. They used
+      # to run ONLY in lefthook's `pre-push` hook, which is bypassable with
+      # `git push --no-verify`, never runs for a GitHub web edit, and does not
+      # exist at all for anyone who has not installed the hooks — so the only
+      # mechanical backstop for those baselines was opt-in. Both are sub-0.2s
+      # static scans with no path filter, so running them on every event costs
+      # nothing and this job is already in `quality-checks`' needs list.
+      - name: Design token check
+        run: bun run check:tokens
+
+      - name: Styling ownership check
+        run: bun run check:styling
 
   build-package:
     needs: [changes]

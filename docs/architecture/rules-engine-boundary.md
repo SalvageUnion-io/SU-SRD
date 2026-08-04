@@ -83,7 +83,10 @@ homebrew content** — a system or ability that isn't in the dataset — is a
 different problem the model does not solve today; see
 [Long-tail vision](#long-tail-vision-not-in-scope).)
 
-The root of all of it is [ADR-001](../adrs/ADR-001-local-first-no-backend.md):
+The root of all of it is [ADR-001](../adrs/ADR-001-local-first-no-backend.md)
+(superseded by [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md),
+which adds accounts and shared Games but keeps the honour-system stance on
+cross-player writes as propose-and-confirm):
 local-first, no server game state, so no turn enforcement and an honor system.
 The app owns the math and _tools_ adjudication; the table makes the calls.
 
@@ -271,10 +274,12 @@ Recorded so it isn't lost, explicitly **not** something we build toward now:
 
 - **Shared, live Dashboard.** The single-player Dashboard (Pilot + Mech + Crawler)
   eventually goes **multiplayer** — several players on the same Dashboard at once,
-  **synchronized with a Mediator live**. That needs the same auth + backend the
-  local-first stance ([ADR-001](../adrs/ADR-001-local-first-no-backend.md)) rules
-  out today, so it is gated on revisiting ADR-001, hand-in-hand with Game spaces
-  and the Mediator layer below.
+  **synchronized with a Mediator live**. That needs auth + a backend, which the
+  original local-first stance ([ADR-001](../adrs/ADR-001-local-first-no-backend.md))
+  ruled out. ADR-001 has since been superseded by
+  [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md) (accounts, Games,
+  a server of record), so the gate is no longer ADR-001 — it is ADR-030's phased
+  delivery, hand-in-hand with Game spaces and the Mediator layer below.
 - **Workspaces → "Game spaces."** Today's local-only `workspaces` become shared
   Game spaces where entities are **owned by you vs. owned by others** (cross-user
   Pilots, Mechs, Crawlers). The multi-user direction deferred by local-first; the
@@ -313,7 +318,9 @@ not in code comments.
 ## Cross-references
 
 - [ADR-001](../adrs/ADR-001-local-first-no-backend.md) — local-first; the honor
-  system that makes Free Edit legitimate.
+  system that makes Free Edit legitimate. Superseded by
+  [ADR-030](../adrs/ADR-030-accounts-games-server-of-record.md), which keeps that
+  honour system as propose-and-confirm.
 - [ADR-003](../adrs/ADR-003-zustand-hydration.md) — the `entityStore` write-through
   path the provenance log hooks into.
 - [ADR-006](../adrs/ADR-006-pure-rules-logic.md) — rules as pure functions; the

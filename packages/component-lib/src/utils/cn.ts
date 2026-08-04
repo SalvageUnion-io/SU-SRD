@@ -2,6 +2,12 @@ import { type ClassValue, clsx } from 'clsx'
 import { extendTailwindMerge } from 'tailwind-merge'
 
 /**
+ * The semantic border-WEIGHT words (`--bw-*` in `theme.css`). Applied to every
+ * side group so a new `@utility border-<side>-<weight>` needs no change here.
+ */
+const BORDER_WEIGHTS = ['chrome', 'rail', 'entity'] as const
+
+/**
  * tailwind-merge extended with the custom utilities the SU theme registers
  * (ITUN design-review T-5). Without this, twMerge's default config classifies
  * unknown `text-*` / `border-*` classes as COLORS and silently drops them
@@ -16,12 +22,33 @@ import { extendTailwindMerge } from 'tailwind-merge'
  *   `text-display` was treated as a COLOR, so `cn('text-paper', 'text-display')`
  *   dropped `text-paper` — which is exactly how the sheet hero name-stamp lost
  *   its white ink and rendered black-on-ink (an invisible title).
- * - `theme.tracking` — the caps tracking steps (`--tracking-caps*`) feed the
- *   letter-spacing group (defensive: unknown tracking values pass through
- *   today, but registering them gives correct conflict resolution).
+ * - `theme.tracking` — the WHOLE letter-spacing ladder (`--tracking-caps*` plus
+ *   `--tracking-eyebrow`). Unknown tracking values pass through rather than
+ *   being eaten, so a gap here is quieter than the `text-*` one — but it still
+ *   breaks conflict resolution: before `eyebrow` was registered,
+ *   `cn('tracking-caps', 'tracking-eyebrow')` emitted BOTH and let source order
+ *   in the stylesheet decide the winner instead of the last class.
  * - Border-width groups — the semantic weights registered via `@utility`
  *   (chrome 1.5px / rail 2.5px / entity 3px, from the theme's `--bw-*`
- *   tokens), per side where a side variant exists.
+ *   tokens). Registered as the full weight × side cross-product, deliberately
+ *   including sides `theme.css` has no `@utility` for yet: listing only the
+ *   side variants that exist today is what made this bug recur a third time.
+ *   `theme.css:331` added `@utility border-l-entity` without adding `entity` to
+ *   `border-w-l` here, so twMerge classified it as a border COLOR and
+ *   `cn('border-l-entity border-[var(--tone-deep)]')` dropped the width —
+ *   deleting the 3px accent spine from every `SheetSectionCard` (all three live
+ *   sheets, and every wizard `RuleBrief`). A class registered here that no
+ *   `@utility` emits costs nothing; the reverse costs a silently-missing style.
+ *   So this block describes the border-width VOCABULARY, not the current
+ *   inventory of utilities — new `@utility border-<side>-<weight>` rules in
+ *   `theme.css` are covered in advance.
+ *
+ * Twice now this drifted silently, so it is no longer left to review:
+ * `__tests__/cn.test.ts` PARSES `theme.css` and asserts every `@utility` and
+ * every `--text-*` / `--tracking-*` / `--radius-*` rung survives a class it
+ * would conflict with. Add a token there and this file must follow, or the
+ * test fails — which is the only signal available, since a dropped width or
+ * colour throws nothing and merely renders wrong.
  */
 const twMerge = extendTailwindMerge({
   extend: {
@@ -41,16 +68,16 @@ const twMerge = extendTailwindMerge({
         'display-lg',
         'hero',
       ],
-      tracking: ['caps', 'caps-tight', 'caps-snug', 'caps-wide'],
+      tracking: ['caps', 'caps-tight', 'caps-snug', 'caps-wide', 'eyebrow'],
       // Radius scale (--radius-* in theme.css) → rounded-pip/badge/card/panel.
       radius: ['pip', 'badge', 'card', 'panel'],
     },
     classGroups: {
-      'border-w': [{ border: ['chrome', 'rail', 'entity'] }],
-      'border-w-t': [{ 'border-t': ['chrome'] }],
-      'border-w-b': [{ 'border-b': ['chrome', 'entity'] }],
-      'border-w-l': [{ 'border-l': ['chrome'] }],
-      'border-w-r': [{ 'border-r': ['chrome'] }],
+      'border-w': [{ border: BORDER_WEIGHTS }],
+      'border-w-t': [{ 'border-t': BORDER_WEIGHTS }],
+      'border-w-b': [{ 'border-b': BORDER_WEIGHTS }],
+      'border-w-l': [{ 'border-l': BORDER_WEIGHTS }],
+      'border-w-r': [{ 'border-r': BORDER_WEIGHTS }],
     },
   },
 })

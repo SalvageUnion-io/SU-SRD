@@ -29,7 +29,7 @@ Other dev servers: `bun run dev:itun` (character builder), `bun run dev:bot`
 ```
 .
 ├── apps/
-│   ├── srd/              # Static SRD reference site (Astro 5 + React islands)
+│   ├── srd/              # Static SRD reference site (Astro 7 + React islands)
 │   ├── itun/       # Character builder & game manager (React 19, local-first)
 │   └── discord-bot/            # Discord.js bot for rolling on SU tables
 ├── packages/

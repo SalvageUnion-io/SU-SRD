@@ -9,7 +9,7 @@ salvageunion-reference (game data ORM, no build step)
   |
   +---> component-lib (shared UI components, no build step)
   |       |
-  |       +---> srd (static reference site, Astro 5)
+  |       +---> srd (static reference site, Astro 7)
   |       |
   |       +---> itun (character builder, React 19 + Vite)
   |
@@ -210,7 +210,7 @@ barrel:
 - **Stat trackers** (`src/components/stat/`) — `VitalGauge`, `BayStatus`, `heatDangerFrom` (the running-text `StatLine` was
   absorbed into `Stat` as `orientation="horizontal" surface="plain"`)
 - **Entity display system** — `ReferenceEntityCard`, the href/detail-link providers, `ClassAbilityTree`, `entityHostTone`/`resolveSchemaDomain`, `navigateControl`, `useDetailModal`, `useChassisPatternConfig`, `Skeleton`
-- **Shared components** — `Card`, `AppBar`, `Footer`, `FilterChip`/`FilterRow`, `EntityGrid`/`EntityRow`, `EntitySearcher`, `SlotGrid`, `Stat`, `CatalogTile`, `StaticEntityContent`, …
+- **Shared components** — `Card`, `AppBar`, `Footer`, `FilterRow`, `EntityGrid`/`EntityRow`, `EntitySearcher`, `SlotGrid`, `Stat`, `CatalogTile`, `StaticEntityContent`, … (the former `FilterChip` is gone: the interactive chip is now `Badge as="button"`, with the call site owning pressed state)
 - **Dashboard shell** (`src/components/dashboard/`) — `DashboardCanvas`, `DashboardGrid`, `RailBar`, `Dial`/`DialConfig`, `DisplayPanel`, `ActionsDeck`, `ActiveItemBand`/`StorageBay`
 - **Sheet presentation** (`src/components/sheet/`) — `SheetHero`/`ChassisStats`, `CrawlerEconFrame`, `ConditionsEditor`, `SnapshotQr`, …
 - **Wizard steps** (`src/components/wizard/`) — `ClassOptionList`, `CrawlerTypeSelectStep`, `EquipmentStep`, …
@@ -238,7 +238,7 @@ published, and `ConditionChip` ships only as a sub-part of `Conditions`.
 ## srd
 
 **Location:** `apps/srd/`
-**Framework:** Astro 5 + React 19 islands
+**Framework:** Astro 7 + React 19 islands
 
 ### Consumes
 

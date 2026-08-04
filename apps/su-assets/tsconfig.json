@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "types": ["node", "bun-types"],
+    "moduleDetection": "force",
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "composite": false
+  },
+  "include": ["netlify/**/*.ts"]
+}

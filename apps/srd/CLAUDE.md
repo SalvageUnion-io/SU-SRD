@@ -7,7 +7,7 @@ islands). Read-only — choices render ephemerally/non-editably
 
 ## Stack
 
-- **Framework:** Astro 5 with React 19 islands architecture
+- **Framework:** Astro 7 with React 19 islands architecture
 - **Output:** Static site (no SSR, no auth, no backend)
 - **UI:** Tailwind v4 with theme from `component-lib` package
 - **Components:** Shared components from `component-lib`, React islands for interactivity
