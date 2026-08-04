@@ -2,9 +2,9 @@
 /**
  * Unified validation runner.
  *
- * Replaces chaining 8 separate `bun run validate:*` process invocations
+ * Replaces chaining 11 separate `bun run validate:*` process invocations
  * (each re-reading and re-parsing the ~1.3MB `data/*.json` corpus on its
- * own) with a single shared data-load pass, fed to all 8 checks:
+ * own) with a single shared data-load pass, fed to all 11 checks:
  *
  *   - ids              (checkUniqueIdsLogic.ts)
  *   - slugs            (validateSlugsLogic.ts)
@@ -12,6 +12,7 @@
  *   - actions          (validateActionReferencesLogic.ts)
  *   - action-backrefs  (validateActionBackrefsLogic.ts)
  *   - orphans          (validateOrphansLogic.ts)
+ *   - content-dupes    (validateContentDupesLogic.ts)
  *   - traits           (validateTraitsLogic.ts)
  *   - schemas          (validateSchemasLogic.ts)
  *   - parity           (validateParityLogic.ts)
@@ -44,6 +45,7 @@ import { findReferenceErrors } from './validateReferencesLogic.js'
 import { findActionReferenceErrors } from './validateActionReferencesLogic.js'
 import { runActionBackrefCheck } from './validateActionBackrefsLogic.js'
 import { runOrphanCheck } from './validateOrphansLogic.js'
+import { runContentDupeCheck } from './validateContentDupesLogic.js'
 import { findTraitIssues } from './validateTraitsLogic.js'
 import {
   KNOWN_UNRESOLVED,
@@ -173,6 +175,26 @@ function orphansCheck(data: DataBag): Diagnostic[] {
   return diagnostics
 }
 
+/**
+ * Intra-record content duplication: a paragraph that repeats another paragraph
+ * of the same record, or an un-split blob sitting alongside the split version
+ * of the same prose. Renders the text twice on the entity card.
+ */
+function contentDupesCheck(data: DataBag): Diagnostic[] {
+  return runContentDupeCheck(data).map((dupe) => ({
+    check: 'content-dupes',
+    file: dupe.file,
+    path: `"${dupe.record}" content[${dupe.paragraph}]`,
+    message:
+      `${
+        dupe.kind === 'exact'
+          ? `Repeats paragraph ${dupe.duplicateOf} verbatim`
+          : `Fully contains paragraph ${dupe.duplicateOf}`
+      } — the card renders this prose twice. Remove the redundant paragraph, or trim ` +
+      `the containing one to the text that is genuinely its own: "${dupe.excerpt}"`,
+  }))
+}
+
 function traitsCheck(data: DataBag): Diagnostic[] {
   return findTraitIssues(data).map((issue) => ({
     check: 'traits',
@@ -265,6 +287,7 @@ const CHECKS: CheckDefinition[] = [
   { id: 'actions', label: 'Action references', run: actionReferencesCheck },
   { id: 'action-backrefs', label: 'Namesake action back-references', run: actionBackrefsCheck },
   { id: 'orphans', label: 'Orphan detection', run: orphansCheck },
+  { id: 'content-dupes', label: 'Duplicated record content', run: contentDupesCheck },
   { id: 'traits', label: 'Trait data', run: traitsCheck },
   { id: 'parity', label: 'Rules parity', run: parityCheck },
   { id: 'double-encoding', label: 'One concept, one encoding', run: doubleEncodingCheck },

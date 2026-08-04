@@ -52,6 +52,7 @@
     "validate:actions": "bun tools/validateActionReferences.ts",
     "validate:action-backrefs": "bun tools/validateActionBackrefs.ts",
     "validate:orphans": "bun tools/validateOrphans.ts",
+    "validate:content-dupes": "bun tools/validateContentDupes.ts",
     "validate:traits": "bun tools/validateTraits.ts",
     "validate:schemas": "bun tools/validateSchemas.ts",
     "validate:all": "bun tools/validate.ts",
