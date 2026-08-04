@@ -3248,8 +3248,13 @@ export type CargoItemCustom = {
 };
 export type CargoItem = CargoItemRef | CargoItemCustom;
 /**
- * Minimal parent shape consumed by `computeCargoCapacity`.
+ * Minimal parent shape for a cargo-carrying entity.
  * `cargoCapacity` is the maximum cargo slots.
+ *
+ * NOTE: `computeCargoCapacity`, the function these cargo types were written
+ * for, was deleted as dead code — it had no production consumer. The types
+ * survive only because ITUN's ADR-006 shim re-exports them, which is what
+ * keeps knip quiet about them. They are candidates for removal.
  */
 export type CargoParent = {
     cargoCapacity: number;
@@ -3272,7 +3277,9 @@ export type CargoViolation = {
     };
 };
 /**
- * Result of `computeCargoCapacity`.
+ * Shape a cargo-capacity calculation returns: slots used, slots available,
+ * and any violations. See the note on `CargoParent` — the function that
+ * produced this was deleted as dead code.
  */
 export type CargoCapacityResult = {
     used: number;
