@@ -50,7 +50,17 @@ export const BOT_PATH_PREFIX = '/bot/'
 
 export type BotOp = keyof typeof QUERIES | keyof typeof MUTATIONS
 
-/** Every operation name, for tests and for the 404 body. */
+/**
+ * Every operation name, for tests and for the 404 body.
+ *
+ * The `readonly string[]` annotation is LOAD-BEARING — do not "improve" it to
+ * `readonly BotOp[]`. Convex codegen puts this module's exports into
+ * `_generated/api.d.ts`, and `BotOp` is derived from `QUERIES`/`MUTATIONS`,
+ * which read `internal.botClient.*` back out of that same api type. Annotating
+ * this with `BotOp` closes the loop and TypeScript collapses `QUERIES` to `any`
+ * (TS7022/TS2456/TS2502), which in turn degrades every `useQuery` result in
+ * `src/` to an implicit any. Widening to `string` here is what cuts it.
+ */
 export const BOT_OPS: readonly string[] = [...Object.keys(QUERIES), ...Object.keys(MUTATIONS)]
 
 /**

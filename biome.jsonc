@@ -20,6 +20,17 @@
       "apps/**",
       "packages/**",
       "tools/**",
+      // Agent worktrees are full checkouts, each carrying its own copy of THIS
+      // file with `"root": true`. Biome 2.5+ hard-errors on a nested root
+      // config, and that discovery walk is independent of the includes above —
+      // so without this line `bun run lint` / `format:check` (and therefore
+      // `check:all`) exit 1 from the repo root for anyone who has ever used the
+      // documented agent-worktree workflow. CI never saw it (fresh checkout,
+      // no worktrees), pre-commit never saw it (explicit staged paths don't
+      // trigger discovery), and pre-push doesn't run lint at all. Bare
+      // `!.claude` is the form Biome itself prescribes for ignoring a folder;
+      // `!.claude/**` also works but emits a warning.
+      "!.claude",
       "!**/node_modules",
       "!**/dist",
       "!**/build",
