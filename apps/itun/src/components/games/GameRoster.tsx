@@ -51,7 +51,6 @@ import {
   ModalShell,
   Text,
 } from 'component-lib'
-import type { EntityRowDetail } from 'component-lib'
 
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -123,7 +122,18 @@ const TONE_TEXT: Record<RosterKind, string> = {
   crawler: 'text-sheet-crawler-deep',
 }
 
-/** Vitals for the row's stat strip. Absent numbers are omitted, never zeroed. */
+/**
+ * Everything the row states as `label | value`, all of it in the header band.
+ *
+ * There is no second place for these any more: a stat is a stat whether it is a
+ * number or a name, so `CLASS | Salvager` sits in the band beside `SP | 12`
+ * rather than in a separate register below it. The body is left to the verbs.
+ *
+ * **HP and AP are deliberately absent.** A roster answers "what have I got",
+ * not "how hurt is it": live vitals belong to the sheet and the Dashboard, and
+ * a number that changes every round is stale on a listing the moment it renders.
+ * Absent numbers are omitted, never zeroed.
+ */
 function statsFor(row: RosterRow): Array<{ label: string; value: string | number }> {
   const num = (key: string): number | undefined => {
     const value = row.body[key]
@@ -132,8 +142,13 @@ function statsFor(row: RosterRow): Array<{ label: string; value: string | number
   const out: Array<{ label: string; value: string | number }> = []
 
   if (row.kind === 'pilot') {
-    if (num('currentHP') !== undefined) out.push({ label: 'HP', value: num('currentHP') as number })
-    if (num('currentAP') !== undefined) out.push({ label: 'AP', value: num('currentAP') as number })
+    // What the pilot IS — the class leads, the callsign names them.
+    const className = resolveClassName(String(row.body.classRef ?? ''))
+    if (className) out.push({ label: 'Class', value: className })
+    const callsign = row.body.callsign
+    if (typeof callsign === 'string' && callsign.length > 0 && callsign !== row.name) {
+      out.push({ label: 'Callsign', value: callsign })
+    }
   }
   if (row.kind === 'mech') {
     // The chassis leads: it is what the mech IS, where SP and Heat are how it
@@ -159,33 +174,6 @@ function statsFor(row: RosterRow): Array<{ label: string; value: string | number
     out.push({ label: 'Bays', value: bays })
   }
   return out
-}
-
-/**
- * The row's body details — `CALLSIGN | Ghost`, `CLASS | Salvager` — each
- * rendered by `EntityRow` as a horizontal `Stat` with its label plate tinted by
- * ontology.
- *
- * Ownership is NOT among them: it is the row's seal, stamped on the top border
- * (see `OwnerSeal`). It used to be a toned chip down here beside the callsign,
- * which put the single most consequential fact about a row — whose character is
- * this — in the same visual register as their nickname.
- */
-function captionFor(row: RosterRow): EntityRowDetail[] {
-  const parts: EntityRowDetail[] = []
-  if (row.kind === 'pilot') {
-    const callsign = row.body.callsign
-    if (typeof callsign === 'string' && callsign.length > 0 && callsign !== row.name) {
-      parts.push({ label: 'Callsign', value: callsign })
-    }
-    const className = resolveClassName(String(row.body.classRef ?? ''))
-    if (className) parts.push({ label: 'Class', value: className, tone: 'pilot' })
-  }
-  // A mech's chassis is NOT here: it is a `CHASSIS | Iron Mongrel` stat in the
-  // header band. It is a named property of the mech, which is what a Stat is
-  // for — a bare chip saying "Iron Mongrel" left the reader to infer what the
-  // word was doing there.
-  return parts
 }
 
 /**
@@ -481,7 +469,6 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                           entityType={row.kind}
                           name={row.name}
                           stats={statsFor(row)}
-                          metaLine={captionFor(row)}
                           linkAs={AppLink}
                           /* Every row is a door now. View goes to the frozen
                              crew sheet (`GameEntitySheet`) for EVERY row,

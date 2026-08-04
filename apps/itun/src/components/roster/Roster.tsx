@@ -21,7 +21,7 @@ import type { ReactNode } from 'react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { Button, buttonVariants, EmptyState, EntityRow, Stat } from 'component-lib'
-import type { EntityRowDetail, EntityRowStat } from 'component-lib'
+import type { EntityRowStat } from 'component-lib'
 
 import {
   useCrawlers,
@@ -94,10 +94,22 @@ function crawlerStats(techLevel: string, bayCount: number): EntityRowStat[] {
   return stats
 }
 
-/** `CLASS | Scavenger`, tinted pilot-orange. Omitted when the ref won't resolve. */
-function classDetail(classRef: string): EntityRowDetail | null {
-  const name = resolveClassName(classRef)
-  return name ? { label: 'Class', value: name, tone: 'pilot' } : null
+/**
+ * A pilot row's header stats: `CLASS | Scavenger`, `CALLSIGN | Ghost`.
+ *
+ * These lived in the body as tone-tinted chips. They are `label | value` facts
+ * like any other, so they belong in the band with the rest, on the plain ink
+ * label plate every other stat uses — the tint was a second way of saying what
+ * the band already says.
+ *
+ * No HP/AP here: a roster answers "what have I got", not "how hurt is it".
+ */
+function pilotStats(classRef: string, callsign?: string): EntityRowStat[] | undefined {
+  const stats: EntityRowStat[] = []
+  const className = resolveClassName(classRef)
+  if (className) stats.push({ label: 'Class', value: className })
+  if (callsign) stats.push({ label: 'Callsign', value: callsign })
+  return stats.length > 0 ? stats : undefined
 }
 
 /**
@@ -107,9 +119,7 @@ function classDetail(classRef: string): EntityRowDetail | null {
  * chips, and are now `label | value` stats — each step removing an inference the
  * reader was making on the row's behalf.
  */
-function metaParts(
-  parts: Array<ReactNode | EntityRowDetail | null | undefined>
-): Array<ReactNode | EntityRowDetail> | undefined {
+function metaParts(parts: Array<ReactNode | null | undefined>): ReactNode[] | undefined {
   const kept = parts.filter((part) => part != null && part !== '')
   return kept.length === 0 ? undefined : kept
 }
@@ -411,9 +421,8 @@ export function Roster() {
                         sheetHref={`/sheet/pilot/${p.id}`}
                         linkAs={AppLink}
                         onDeleteClick={() => openDeleteDialog('pilot', p.id, p.name)}
+                        stats={pilotStats(p.classRef, p.callsign)}
                         metaLine={metaParts([
-                          p.callsign ? { label: 'Callsign', value: p.callsign } : null,
-                          classDetail(p.classRef),
                           linkSegment(
                             'mech',
                             mechLink?.from.id,
