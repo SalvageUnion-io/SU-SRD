@@ -68,6 +68,45 @@ async function captureAstroJsTotals(
   return totals
 }
 
+/**
+ * This suite is only meaningful against a PRODUCTION BUILD, and locally it does
+ * not get one by default.
+ *
+ * `playwright.config.ts` starts `bun run dev` outside CI (and reuses an existing
+ * server on 4321). The dev server serves ES modules straight from source under
+ * `/src/…`, `/@fs/…` and `/node_modules/.vite/…` — the `/assets/…` prefix that
+ * this file measures exists ONLY in a Rollup build. So a plain local
+ * `bunx playwright test` used to report two confusing failures here: the
+ * dead-selector guard saw zero chunks, and the byte budget summed zero.
+ *
+ * That is a harness mismatch, not a payload regression, and it should not read
+ * as one. Detect it up front and fail with the command that fixes it, rather
+ * than letting each test fail on its own misleading assertion. CI always builds
+ * (`bun ssg/build.ts && bun ssg/preview.ts`), so this never trips there.
+ */
+test.beforeAll(async ({ browser }) => {
+  const page = await browser.newPage()
+  try {
+    await page.goto('/schema/traits/item/missile/', { waitUntil: 'domcontentloaded' })
+    const built = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('script[src]')).some((s) =>
+        (s as HTMLScriptElement).src.includes('/assets/')
+      )
+    )
+    if (!built) {
+      throw new Error(
+        'bundle-budget requires a production build — the server on this port is ' +
+          'serving unbundled dev modules, so there are no /assets/*.js chunks to ' +
+          'measure.\n\nRun the suite against a real build instead:\n' +
+          '  cd apps/srd && bun ssg/build.ts && bun ssg/preview.ts --port 4321\n' +
+          '  bunx playwright test bundle-budget.e2e.ts\n'
+      )
+    }
+  } finally {
+    await page.close()
+  }
+})
+
 test.describe('bundle-size budget', () => {
   // Every assertion in this file is of the form "these chunks are absent" or
   // "the total is under N". Both are trivially satisfied when the capture

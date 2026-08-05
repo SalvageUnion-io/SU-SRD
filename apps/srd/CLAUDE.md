@@ -151,9 +151,26 @@ not the goal. It checks:
 
 It reports **zero differences across 1,039 pages** today, and it is known to
 bite — it fails against eight deliberately-injected defects. **Trust it over any
-agent's opinion**, including your own, about whether output changed. If the
-baseline directory is gone, rebuild one from the last Astro commit before
-concluding the gate is unavailable.
+agent's opinion**, including your own, about whether output changed.
+
+### If the baseline is missing, regenerate it — don't skip the gate
+
+The baseline is ~56 MB, so it is gitignored rather than committed, which means a
+fresh checkout has no baseline and `parity.ts` exits 2 with "baseline directory
+does not exist". That is not the gate being unavailable — the baseline is a pure
+function of a commit still in history:
+
+```bash
+cd apps/srd
+bun run parity:baseline   # ssg/make-parity-baseline.ts — minutes, needs network
+bun ssg/build.ts && bun run parity
+```
+
+`make-parity-baseline.ts` derives the last Astro commit (the parent of whichever
+commit deleted `apps/srd/astro.config.mjs` — not hardcoded), checks it out into a
+throwaway detached worktree, runs that commit's own install + `astro build`, and
+copies the result to `.parity-baseline/`. It is deliberately **not** part of
+`check:all`: the Astro-era install is ~2,200 packages.
 
 ## Key Directories
 
