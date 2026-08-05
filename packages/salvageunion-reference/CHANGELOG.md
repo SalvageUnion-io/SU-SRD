@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.1](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.9.0...salvageunion-reference-v2.9.1) (2026-08-05)
+
+
+### Bug Fixes
+
+* **data:** stop two actions rendering their content twice ([#680](https://github.com/SalvageUnion-io/SU-SRD/issues/680)) ([8ca04fd](https://github.com/SalvageUnion-io/SU-SRD/commit/8ca04fd5f3bca74feb7b51140360db3ea428bc66))
+
 ## [2.9.0](https://github.com/SalvageUnion-io/SU-SRD/compare/salvageunion-reference-v2.8.0...salvageunion-reference-v2.9.0) (2026-07-31)
 
 
