@@ -39,6 +39,7 @@ import {
 import { defaultRoll } from '../../lib/rules/heatCheck'
 import { pilotingContext } from '../../lib/rules/pilotingContext'
 import type { CriticalDamageEffect, CriticalInjuryEffect } from '../../lib/rules/takeDamage'
+import { runWrite } from '../../lib/runWrite'
 import { totalLotUnits } from '../../lib/schemas/cargoLot'
 import type { Crawler } from '../../lib/schemas/crawler'
 import type { Mech } from '../../lib/schemas/mech'
@@ -148,7 +149,7 @@ function CraftBody({ crawler, store }: { crawler: Crawler; store: PlayStore }) {
       )
       return
     }
-    void store.update('crawler', crawler.id, patch, DASHBOARD_TXN)
+    runWrite(() => store.update('crawler', crawler.id, patch, DASHBOARD_TXN))
     setNote(`Crafted ${item.name} for ${quote.cost} Scrap — it is in the Hold.`)
   }
 
@@ -210,7 +211,7 @@ function CrawlerBand({
       areaTl: crawlerTl ?? 1,
       roll: defaultRoll,
     })
-    if (patch) void store.update('crawler', crawler.id, patch, DASHBOARD_TXN)
+    if (patch) runWrite(() => store.update('crawler', crawler.id, patch, DASHBOARD_TXN))
     setPrompt({
       kind: 'salvage',
       log: result.requiresPlayerChoice
@@ -230,14 +231,16 @@ function CrawlerBand({
     const c = fresh()
     const m = store.get('mech', mech.id) ?? mech
     const { breakdown, crawlerPatch, mechPatch } = scrapMechOutcome(m, c)
-    void store.transfer(
-      {
-        updates: [
-          { type: 'crawler', id: crawler.id, patch: crawlerPatch },
-          { type: 'mech', id: mech.id, patch: mechPatch },
-        ],
-      },
-      DASHBOARD_TXN
+    runWrite(() =>
+      store.transfer(
+        {
+          updates: [
+            { type: 'crawler', id: crawler.id, patch: crawlerPatch },
+            { type: 'mech', id: mech.id, patch: mechPatch },
+          ],
+        },
+        DASHBOARD_TXN
+      )
     )
     setPrompt({ kind: 'scrap', total: breakdown.total, skipped: breakdown.skipped.length })
   }
@@ -404,7 +407,7 @@ function MechBand({
       currentSP: Math.min(m.currentSP ?? spMax, spMax),
       roll: defaultRoll,
     })
-    void store.update('mech', mech.id, patch, DASHBOARD_TXN)
+    runWrite(() => store.update('mech', mech.id, patch, DASHBOARD_TXN))
     setPrompt({ kind: 'reactor', log: describePushOutcome(nextHeat, effect), meltdown })
   }
 
@@ -417,12 +420,12 @@ function MechBand({
       currentSP: Math.min(m.currentSP ?? spMax, spMax),
       roll: defaultRoll,
     })
-    void store.update('mech', mech.id, patch, DASHBOARD_TXN)
+    runWrite(() => store.update('mech', mech.id, patch, DASHBOARD_TXN))
     setPrompt({ kind: 'reactor', log: describeHeatCheck(effect), meltdown })
   }
 
   function doVent() {
-    void store.update('mech', mech.id, VENT_PATCH, DASHBOARD_TXN)
+    runWrite(() => store.update('mech', mech.id, VENT_PATCH, DASHBOARD_TXN))
     setPrompt({
       kind: 'reactor',
       log: 'Vented — Heat 0, Vulnerable. (Shut down separately if needed.)',
@@ -430,7 +433,9 @@ function MechBand({
   }
 
   function doShutdown() {
-    void store.update('mech', mech.id, shutdownTogglePatch(fresh().shutdown), DASHBOARD_TXN)
+    runWrite(() =>
+      store.update('mech', mech.id, shutdownTogglePatch(fresh().shutdown), DASHBOARD_TXN)
+    )
   }
 
   function applyDamage() {
@@ -442,7 +447,7 @@ function MechBand({
       amount: dmg,
       vulnerable: m.vulnerable ?? false,
     })
-    void store.update('mech', mech.id, patch, DASHBOARD_TXN)
+    runWrite(() => store.update('mech', mech.id, patch, DASHBOARD_TXN))
     if (effect.criticalDue) {
       setPrompt({ kind: 'crit', effect: null, log: `−${effect.effectiveDamage} SP → 0.` })
     } else {
@@ -452,22 +457,24 @@ function MechBand({
 
   function rollCritical() {
     const { patch, effect } = critDamagePatch(defaultRoll)
-    void store.update('mech', mech.id, patch, DASHBOARD_TXN)
+    runWrite(() => store.update('mech', mech.id, patch, DASHBOARD_TXN))
     setPrompt({ kind: 'crit', effect, log: describeCritDamage(effect) })
   }
 
   function confirmDestroyed() {
-    void store.update('mech', mech.id, { destroyed: true }, DASHBOARD_TXN)
+    runWrite(() => store.update('mech', mech.id, { destroyed: true }, DASHBOARD_TXN))
     setPrompt(null)
   }
 
   function jettison(lotId: string) {
     const m = fresh()
-    void store.update(
-      'mech',
-      mech.id,
-      { cargoLots: m.cargoLots.filter((lot) => lot.id !== lotId) },
-      DASHBOARD_TXN
+    runWrite(() =>
+      store.update(
+        'mech',
+        mech.id,
+        { cargoLots: m.cargoLots.filter((lot) => lot.id !== lotId) },
+        DASHBOARD_TXN
+      )
     )
   }
 
@@ -724,7 +731,7 @@ function PilotBand({
       amount: dmg,
       vulnerable: false,
     })
-    void store.update('pilot', pilot.id, patch, DASHBOARD_TXN)
+    runWrite(() => store.update('pilot', pilot.id, patch, DASHBOARD_TXN))
     if (effect.criticalDue) {
       setPrompt({ kind: 'crit', effect: null, log: `−${effect.effectiveDamage} HP → 0.` })
     } else {
@@ -734,7 +741,7 @@ function PilotBand({
 
   function rollInjury() {
     const { patch, effect } = critInjuryPatch(defaultRoll)
-    void store.update('pilot', pilot.id, patch, DASHBOARD_TXN)
+    runWrite(() => store.update('pilot', pilot.id, patch, DASHBOARD_TXN))
     setPrompt({ kind: 'crit', effect, log: describeCritInjury(effect) })
   }
 

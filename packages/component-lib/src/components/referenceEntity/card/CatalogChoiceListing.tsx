@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import type { SURefEntity, SURefMetaEntity, SURefObjectChoice } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
+import { Button } from '../../chrome/Button'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { firstParagraphText } from './firstParagraphText'
@@ -66,13 +67,14 @@ export function CatalogChoiceListing({
       <div className="flex flex-col gap-1.5">
         {prompt && <p className="font-body text-xs text-ink/70">{prompt}</p>}
         {chosenEntity && renderEntity(chosenEntity, 'chosen')}
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          size="mini"
           onClick={() => setModalOpen(true)}
-          className="w-fit rounded-badge border-2 border-rust bg-rust px-3 py-1 font-cond text-badge font-bold uppercase tracking-caps-tight text-paper hover:border-rust-hi hover:bg-rust-hi"
+          className="w-fit px-3 py-1"
         >
           {chosen ? `Change — ${chosen}` : `Choose ${choice.name}…`}
-        </button>
+        </Button>
         <CatalogChoiceModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}

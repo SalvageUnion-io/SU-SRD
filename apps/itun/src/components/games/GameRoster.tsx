@@ -45,6 +45,7 @@ import {
   EmptyState,
   EntityRow,
   ModalShell,
+  PageHeading,
   Text,
 } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
@@ -66,7 +67,6 @@ import { setActiveContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
-import { SECTION } from './gameChrome'
 
 type GameRosterProps = {
   gameId: string
@@ -379,9 +379,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
               h1 (Game) → h2 (the crew, the panels) → h3 (Pilots / Mechs /
               Crawlers); as a div it skipped a level and left the columns
               parented by nothing. */}
-          <Text as="h2" className={SECTION}>
-            {gameName ?? 'The crew'}
-          </Text>
+          <PageHeading variant="subheading">{gameName ?? 'The crew'}</PageHeading>
           <Text variant="hint" className="text-left">
             {caps.tableRunner
               ? 'You run this table: raise its crawler, and build characters for the crew to pick up.'
@@ -419,9 +417,9 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
             return (
               <div key={column.kind}>
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="font-cond text-base font-bold uppercase tracking-widest text-rust">
+                  <PageHeading variant="section" as="h3" className="text-rust">
                     {column.title}
-                  </h3>
+                  </PageHeading>
                   {mayCreate && columnRows.length > 0 && (
                     <AppLink
                       href={column.createHref}

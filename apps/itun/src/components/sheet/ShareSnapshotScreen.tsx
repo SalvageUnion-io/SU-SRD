@@ -335,7 +335,7 @@ export function ShareSnapshotScreen({
                 <p
                   role="note"
                   title="The snapshot service could not be reached — publishing needs the deployed /api/snapshots endpoint."
-                  className="text-wk-muted mb-0 rounded-[3px] border-chrome border-dashed border-wk-faint px-3 py-2.5 font-body text-caption"
+                  className="text-wk-muted mb-0 rounded-card border-chrome border-dashed border-wk-faint px-3 py-2.5 font-body text-caption"
                 >
                   Publishing unavailable — the snapshot service could not be reached.
                 </p>
@@ -400,7 +400,7 @@ export function ShareSnapshotScreen({
               ) : (
                 <div
                   aria-hidden="true"
-                  className="h-[84px] w-[84px] shrink-0 rounded-[3px] border-chrome border-ink"
+                  className="h-[84px] w-[84px] shrink-0 rounded-card border-chrome border-ink"
                   style={{
                     // Hard-stop checkerboard standing in for the unpublished QR
                     // code — a repeating PATTERN, not shading (see ruleset §3.5).

@@ -14,7 +14,7 @@
  * belonged to. A list of games is a list; the work happens inside one.
  */
 
-import { Card, Text } from 'component-lib'
+import { Badge, Card, PageHeading, Text } from 'component-lib'
 import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -24,7 +24,6 @@ import { AppLink } from '../shared/AppLink'
 import { ConvexPending } from '../shared/ConvexPending'
 import { DowntimePanel } from './DowntimePanel'
 import { GameRoster } from './GameRoster'
-import { PAGE, PANEL_TITLE, PANEL_TONE, TITLE } from './gameChrome'
 import { InvitePanel } from './InvitePanel'
 import { ProposalInbox } from './ProposalInbox'
 
@@ -56,7 +55,14 @@ function GameBody({ gameId }: { gameId: string }) {
       {/* Invites are administrative, so they live with the Game rather than in
           the lobby, and only the Organizer sees them (ADR-030 §3). */}
       {game.organizer && (
-        <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Invite someone</h2>}>
+        <Card
+          headerBg="bg-ink"
+          headerContent={
+            <Badge shape="stamp" as="h2" size="full">
+              Invite someone
+            </Badge>
+          }
+        >
           <div className="p-4">
             <InvitePanel gameId={gameId as Id<'games'>} />
           </div>
@@ -77,10 +83,8 @@ export function GameScreen({ gameId }: { gameId: string }) {
   const { mode } = useConnection()
 
   return (
-    <main className={PAGE}>
-      <Text as="h1" className={TITLE}>
-        Game
-      </Text>
+    <main className="flex min-h-screen flex-col gap-6 bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
+      <PageHeading className="w-fit">Game</PageHeading>
       {!isConvexConfigured || mode !== 'connected' ? (
         <Card>
           <div className="p-4">

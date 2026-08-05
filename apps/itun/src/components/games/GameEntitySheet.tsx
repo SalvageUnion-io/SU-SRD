@@ -30,7 +30,7 @@
  * look something up.
  */
 
-import { Card, Text } from 'component-lib'
+import { Card, PageHeading, Text } from 'component-lib'
 import { useQuery } from 'convex/react'
 import { useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -41,7 +41,6 @@ import type { RosterKind } from '../../lib/games/gameRoster'
 import { AppLink } from '../shared/AppLink'
 import { makeFrozenStore, parseFrozenEntity } from '../sheet/frozenSheet'
 import { Sheet } from '../sheet/Sheet'
-import { PAGE, TITLE } from './gameChrome'
 
 type GameEntitySheetProps = {
   gameId: string
@@ -59,10 +58,8 @@ export function GameSheetNotice({
   children: React.ReactNode
 }) {
   return (
-    <main className={PAGE}>
-      <Text as="h1" className={TITLE}>
-        Crew sheet
-      </Text>
+    <main className="flex min-h-screen flex-col gap-6 bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
+      <PageHeading className="w-fit">Crew sheet</PageHeading>
       <Card>
         <div className="flex flex-col items-start gap-3 p-4">
           <Text>{children}</Text>

@@ -36,6 +36,17 @@ type RowProps = {
   meta?: ReactNode
   /** Trailing actions (e.g. a 'Sheet' Button) */
   actions?: ReactNode
+  /**
+   * Let the name and meta WRAP instead of truncating to one line.
+   *
+   * The default single-line clamp is right for a saved-build row, whose meta is
+   * a short caption. It is wrong for a row whose meta is a provenance line —
+   * an invite code reads `for Sam · Mediator seat · needs approval · 2 uses
+   * left · 14 days left`, and every fact after the second one is exactly what
+   * the reader opened the panel for. Truncating those is losing the content to
+   * keep the geometry.
+   */
+  wrap?: boolean
   className?: string
 }
 
@@ -43,19 +54,26 @@ type RowProps = {
  * Saved-build row (design-spec §2.10 `.row`): 1.5px ink frame, name + muted
  * meta caption + trailing actions.
  */
-export function Row({ name, meta, actions, className }: RowProps) {
+export function Row({ name, meta, actions, wrap = false, className }: RowProps) {
   return (
     <div
       className={cn(
-        'flex items-center gap-3 rounded-card border-chrome border-ink bg-paper px-3 py-2.5',
+        'flex gap-3 rounded-card border-chrome border-ink bg-paper px-3 py-2.5',
+        // A wrapping row aligns its columns at the TOP: with two lines of meta,
+        // centring pushes the trailing actions to the middle of the block.
+        wrap ? 'flex-wrap items-start' : 'items-center',
         className
       )}
     >
       <div className="min-w-0 flex-1">
-        <div className="truncate font-body text-lede font-medium text-ink">{name}</div>
-        {meta && <div className="truncate font-body text-xs text-wk-muted">{meta}</div>}
+        <div className={cn('font-body text-lede font-medium text-ink', !wrap && 'truncate')}>
+          {name}
+        </div>
+        {meta && (
+          <div className={cn('font-body text-xs text-wk-muted', !wrap && 'truncate')}>{meta}</div>
+        )}
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-1.5">{actions}</div>}
+      {actions && <div className="flex shrink-0 flex-wrap items-center gap-1.5">{actions}</div>}
     </div>
   )
 }

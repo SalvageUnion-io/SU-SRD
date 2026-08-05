@@ -1,10 +1,9 @@
-import { Text } from 'component-lib'
+import { PageHeading, Row, Text } from 'component-lib'
 import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { UNCLAIMED_LABEL } from '../../lib/ownership/ownerChip'
 import { ConvexPending } from '../shared/ConvexPending'
-import { NUM, ROW, SECTION } from './gameChrome'
 
 /**
  * The crew strip: everybody's vitals, live.
@@ -31,43 +30,37 @@ export function CrewVitals({ gameId }: { gameId: Id<'games'> }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <Text as="span" className={SECTION}>
-          Pilots
-        </Text>
+      <div className="flex flex-col gap-1.5">
+        <PageHeading variant="subheading">Pilots</PageHeading>
         {crew.pilots.length === 0 && <Text variant="hint">No pilots in this game yet.</Text>}
         {crew.pilots.map((p) => (
-          <div key={p._id} className={ROW}>
-            <Text as="span">{p.name}</Text>
-            <span className="flex items-baseline gap-3">
-              <Text as="span" variant="hint">
-                {owner(p.ownerName, p.ownerId)}
-              </Text>
-              <Text as="span" className={NUM}>
+          <Row
+            key={p._id}
+            name={p.name}
+            meta={owner(p.ownerName, p.ownerId)}
+            actions={
+              <span className="font-cond tabular-nums">
                 HP {p.currentHP ?? '—'} · AP {p.currentAP ?? '—'}
-              </Text>
-            </span>
-          </div>
+              </span>
+            }
+          />
         ))}
       </div>
 
-      <div>
-        <Text as="span" className={SECTION}>
-          Mechs
-        </Text>
+      <div className="flex flex-col gap-1.5">
+        <PageHeading variant="subheading">Mechs</PageHeading>
         {crew.mechs.length === 0 && <Text variant="hint">No mechs in this game yet.</Text>}
         {crew.mechs.map((m) => (
-          <div key={m._id} className={ROW}>
-            <Text as="span">{m.name}</Text>
-            <span className="flex items-baseline gap-3">
-              <Text as="span" variant="hint">
-                {owner(m.ownerName, m.ownerId)}
-              </Text>
-              <Text as="span" className={NUM}>
+          <Row
+            key={m._id}
+            name={m.name}
+            meta={owner(m.ownerName, m.ownerId)}
+            actions={
+              <span className="font-cond tabular-nums">
                 SP {m.currentSP ?? '—'} · Heat {m.currentHeat ?? '—'}
-              </Text>
-            </span>
-          </div>
+              </span>
+            }
+          />
         ))}
       </div>
     </div>

@@ -62,6 +62,27 @@ export const buttonVariants = cva(
         // radius, condensed caps, tight padding) for secondary controls like
         // '⇄ Swap' / '✕ Remove'. Overrides the base radius/font/gap via twMerge.
         mini: `gap-1 rounded-badge px-2 py-[3px] ${capsLabel({ size: 'label-lg', weight: 'semibold', tracking: 'none' })}`,
+        /**
+         * The SQUARE icon-only rung — a glyph with no label (a close ✕, a
+         * collapse chevron, a search magnifier).
+         *
+         * It is a `size` rung rather than a separate component because an icon
+         * button differs from a worded one only in its geometry: same frame,
+         * same variants, same focus ring, same disabled treatment. Before this
+         * there were five hand-rolled squares across the package — 28 / 32 / 36
+         * / 44px, three radii, four border treatments — and the one with no
+         * visible focus ring at all was the only one a keyboard user could not
+         * see.
+         *
+         * 36px (`size-9`) is the resting geometry: comfortably past the WCAG
+         * 2.5.8 24px minimum, and the size the majority of those squares
+         * already were. A call site whose button must line up with a
+         * neighbouring control of a different height overrides with a single
+         * `size-*` class (the sheet slab's chevron matches its `compact`
+         * siblings at `size-7`; a phone's bar trigger holds the 44px WCAG
+         * 2.5.5 target at `size-11`) — one class, not a whole re-spelled skin.
+         */
+        iconOnly: 'size-9 shrink-0 gap-0 p-0 text-base leading-none',
       },
     },
     compoundVariants: [

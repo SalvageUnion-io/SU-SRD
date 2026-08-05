@@ -26,6 +26,7 @@ import type { CoreRollResult } from '../../lib/rules/coreMechanic'
 import { CORE_ROLL_BANDS, describePushOutcome, performCoreRoll } from '../../lib/rules/coreMechanic'
 import { mechMaxEP, mechMaxHeat, mechMaxSP, pilotMaxAP } from '../../lib/rules/derivedStats'
 import { defaultRoll } from '../../lib/rules/heatCheck'
+import { runWrite } from '../../lib/runWrite'
 import type { Mech } from '../../lib/schemas/mech'
 import type { Pilot } from '../../lib/schemas/pilot'
 import { useEntityStore } from '../../stores/entityStore'
@@ -141,7 +142,9 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
         apCost: economy.epCost,
         currentAP: fresh.currentAP ?? pilotMaxAP(fresh),
       })
-      if (Object.keys(patch).length > 0) void s.update('pilot', pilot.id, patch, DASHBOARD_TXN)
+      if (Object.keys(patch).length > 0) {
+        runWrite(() => s.update('pilot', pilot.id, patch, DASHBOARD_TXN))
+      }
       setActivated(true)
       return
     }
@@ -158,7 +161,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
       prevUses: fresh.itemUses,
     })
     if (Object.keys(patch).length > 0) {
-      void s.update('mech', mech.id, patch, DASHBOARD_TXN)
+      runWrite(() => s.update('mech', mech.id, patch, DASHBOARD_TXN))
     }
     setActivated(true)
   }
@@ -196,7 +199,7 @@ export function ActionsDeck({ mech, pilot, mount = 'mech', store }: ActionsDeckP
       currentSP: fresh.currentSP ?? mechMaxSP(fresh, chassis),
       roll: defaultRoll,
     })
-    void s.update('mech', mech.id, patch, DASHBOARD_TXN)
+    runWrite(() => s.update('mech', mech.id, patch, DASHBOARD_TXN))
     setRoll(performCoreRoll(defaultRoll))
     setPushLog(describePushOutcome(nextHeat, effect))
     setApplied(false)

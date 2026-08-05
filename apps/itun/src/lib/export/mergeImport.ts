@@ -1,5 +1,8 @@
+import type { EncounterNpcCreateInput } from '../../stores/encounterStore'
+import { useEncounterStore } from '../../stores/encounterStore'
+import type { MechPatternCreateInput } from '../../stores/patternStore'
+import { usePatternStore } from '../../stores/patternStore'
 import type { EntityType } from '../../stores/types'
-import * as db from '../db/index'
 import type { EncounterNpc } from '../schemas/encounterNpc'
 import type { ExportBundle } from '../schemas/exportBundle'
 import type { MechPattern } from '../schemas/pattern'
@@ -18,22 +21,32 @@ type MergeEntityStore = {
 }
 
 /**
- * Minimal pattern store for import. Patterns are not in entityStore — they
- * default to the db layer; tests may pass a double.
+ * Minimal pattern store for import. Patterns are not in entityStore — they have
+ * their own Zustand store; tests may pass a double.
+ *
+ * `rehydrate` is part of the contract, not a convenience. These stores list
+ * synchronously from memory, so deduping against a cold cache would let an
+ * import create a second copy of every pattern the user already has. It has to
+ * be `rehydrate` rather than `hydrate`: `hydrate` is idempotent and returns
+ * immediately once the store has ever loaded, which would dedupe against a
+ * cache that another tab's writes have since moved on from. An import is
+ * exactly when a stale read is expensive, so it re-reads from IndexedDB.
  */
 type MergePatternStore = {
-  list: () => Promise<MechPattern[]>
-  create: (input: Omit<MechPattern, 'id' | 'createdAt'>) => Promise<MechPattern>
+  rehydrate: () => Promise<void>
+  list: () => MechPattern[]
+  create: (input: MechPatternCreateInput) => Promise<MechPattern>
 }
 
 /**
- * Minimal encounter-NPC store for import. Like patterns, encounterNpcs are
- * not in entityStore — they default to the db layer; tests may pass a
- * double.
+ * Minimal encounter-NPC store for import. Like patterns, encounterNpcs are not
+ * in entityStore but have their own store; tests may pass a double. Same
+ * rehydrate-before-list contract as above.
  */
 type MergeEncounterNpcStore = {
-  list: () => Promise<EncounterNpc[]>
-  create: (input: Omit<EncounterNpc, 'id' | 'createdAt' | 'updatedAt'>) => Promise<EncounterNpc>
+  rehydrate: () => Promise<void>
+  list: () => EncounterNpc[]
+  create: (input: EncounterNpcCreateInput) => Promise<EncounterNpc>
 }
 
 export type MergeSummary = {
@@ -76,8 +89,15 @@ export type MergeSummary = {
 export async function mergeImport(
   bundle: ExportBundle,
   entityStore: MergeEntityStore,
-  patternStore: MergePatternStore = db.mechPatterns,
-  encounterNpcStore: MergeEncounterNpcStore = db.encounterNpcs
+  // Patterns and encounter NPCs go through their stores, not `db.*`. Writing
+  // straight to the db layer is the exact bypass patternStore was created to
+  // end: those writes never reached the backup nudge and never published the
+  // cross-tab broadcast, so an import left every other tab — and the importing
+  // tab's own caches, which get no self-echo — showing the pre-import lists
+  // until a reload. Pilots/mechs/crawlers below already went through their
+  // store; these two were the holdouts.
+  patternStore: MergePatternStore = usePatternStore.getState(),
+  encounterNpcStore: MergeEncounterNpcStore = useEncounterStore.getState()
 ): Promise<MergeSummary> {
   // Hydrate so we can check for existing ids.
   await Promise.all([
@@ -209,7 +229,8 @@ export async function mergeImport(
   // 6. Mech patterns — fresh UUIDs, exact-id dedupe (same policy as entities).
   //    Patterns reference no other bundle entities, so no remapping needed.
   // -------------------------------------------------------------------------
-  const existingPatternIds = new Set((await patternStore.list()).map((p) => p.id))
+  await patternStore.rehydrate()
+  const existingPatternIds = new Set(patternStore.list().map((p) => p.id))
   for (const pattern of bundle.mechPatterns) {
     if (existingPatternIds.has(pattern.id)) {
       summary.skippedDuplicates++
@@ -227,7 +248,8 @@ export async function mergeImport(
   //    lands on the Shelf (dropped if the referenced container was not
   //    part of this bundle / not in the map).
   // -------------------------------------------------------------------------
-  const existingEncounterNpcIds = new Set((await encounterNpcStore.list()).map((n) => n.id))
+  await encounterNpcStore.rehydrate()
+  const existingEncounterNpcIds = new Set(encounterNpcStore.list().map((n) => n.id))
   for (const npc of bundle.encounterNpcs) {
     if (existingEncounterNpcIds.has(npc.id)) {
       summary.skippedDuplicates++

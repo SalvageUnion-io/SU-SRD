@@ -52,7 +52,7 @@ export function NotFoundPanel({
 }: NotFoundPanelProps) {
   return (
     <FullPageShell>
-      <div className="flex w-full max-w-xl flex-col items-start gap-4 rounded-[6px] border-chrome border-ink bg-paper p-6 sm:p-8">
+      <div className="flex w-full max-w-xl flex-col items-start gap-4 rounded-panel border-chrome border-ink bg-paper p-6 sm:p-8">
         <h1 className="font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
           {title}
         </h1>

@@ -30,7 +30,7 @@ import { ChevronDown } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useId, useState } from 'react'
 import { cn } from '../../utils/cn'
-import { FOCUS_RING } from '../chrome/interaction'
+import { Button } from '../chrome/Button'
 import { Slab } from '../chrome/Slab'
 
 type SheetSectionSlabProps = {
@@ -101,18 +101,20 @@ export function SheetSectionSlab({
           <>
             {controls}
             {collapsible && (
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="iconOnly"
                 onClick={() => setCollapsed((v) => !v)}
                 aria-expanded={!collapsed}
                 aria-controls={bodyId}
                 // The accessible name carries the section, so a screen reader
                 // hears "Collapse Systems" rather than a rail of bare chevrons.
                 aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${title}`}
-                className={cn(
-                  'inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-card border-chrome border-ink/35 text-ink transition-colors hover:bg-ink/10',
-                  FOCUS_RING
-                )}
+                // `size-7` (28px) is the one documented override on the rung:
+                // this chevron shares the slab's actions rail with the section
+                // Edit/Add buttons, which run at `compact`, so it matches THEM
+                // rather than the rung's 36px resting height.
+                className="size-7 border-ink/35"
               >
                 <ChevronDown
                   aria-hidden="true"
@@ -121,7 +123,7 @@ export function SheetSectionSlab({
                     collapsed && '-rotate-90'
                   )}
                 />
-              </button>
+              </Button>
             )}
           </>
         }

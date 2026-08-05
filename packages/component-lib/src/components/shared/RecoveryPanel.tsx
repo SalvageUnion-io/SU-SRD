@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../utils/cn'
 import { Button } from '../chrome/Button'
+import { PageHeading } from '../chrome/PageHeading'
 
 type RecoveryPanelProps = {
   /** Stamp heading — the failure summary (e.g. 'Something went wrong'). */
@@ -38,13 +39,13 @@ export function RecoveryPanel({ title, message, action, children, className }: R
     <div
       role="alert"
       className={cn(
-        'flex w-full max-w-xl flex-col items-center gap-4 rounded-[6px] border-chrome border-ink bg-paper p-6 text-center sm:p-8',
+        'flex w-full max-w-xl flex-col items-center gap-4 rounded-panel border-chrome border-ink bg-paper p-6 text-center sm:p-8',
         className
       )}
     >
-      <h1 className="font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
+      <PageHeading variant="subheading" as="h1" className="tracking-caps-tight text-ink">
         {title}
-      </h1>
+      </PageHeading>
       <p className="font-body text-sm text-wk-muted">{message}</p>
       {children}
       <Button variant="primary" onClick={action.onClick}>

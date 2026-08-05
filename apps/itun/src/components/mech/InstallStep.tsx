@@ -1,17 +1,10 @@
-import { Badge, MasonryColumns, ReferenceEntityCard } from 'component-lib'
+import { Badge, EmptyState, MasonryColumns, ReferenceEntityCard } from 'component-lib'
 import { useMemo, useState } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, techLevelRank } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
 import type { TechLevel } from '../../lib/rules/types'
 
 const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
-
-/** Sort rank for a tech level: numeric tiers 1–6, then Bio (B), then Nanite (N). */
-function tlRank(tl: number | 'B' | 'N'): number {
-  if (tl === 'B') return 7
-  if (tl === 'N') return 8
-  return tl
-}
 
 type InstallStepProps = {
   /** Which dataset this step installs from. */
@@ -39,7 +32,8 @@ export function InstallStep({ kind, selected, onAdd }: InstallStepProps) {
       kind === 'systems' ? SalvageUnionReference.Systems : SalvageUnionReference.Modules
     const items = accessor.all()
     return [...items].sort(
-      (a, b) => tlRank(a.techLevel) - tlRank(b.techLevel) || a.name.localeCompare(b.name)
+      (a, b) =>
+        techLevelRank(a.techLevel) - techLevelRank(b.techLevel) || a.name.localeCompare(b.name)
     )
   }, [kind])
 
@@ -102,7 +96,11 @@ export function InstallStep({ kind, selected, onAdd }: InstallStepProps) {
         </MasonryColumns>
       </div>
       {visible.length === 0 && (
-        <p className="mt-4 text-sm text-wk-muted">No {kind} at the selected tech levels.</p>
+        <EmptyState
+          variant="quiet"
+          className="mt-4"
+          body={`No ${kind} at the selected tech levels.`}
+        />
       )}
     </div>
   )

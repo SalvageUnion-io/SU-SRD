@@ -172,7 +172,7 @@ export function MechChassisStep({
                 isCustom ? 'shadow-[0_0_0_3px_var(--ground),0_0_0_6px_var(--color-ink)]' : undefined
               }
             >
-              <div className="rounded-[5px] border-2 border-dashed border-ink/55 bg-paper px-4 py-4">
+              <div className="rounded-panel border-2 border-dashed border-ink/55 bg-paper px-4 py-4">
                 <p className="m-0 font-cond text-sm font-bold uppercase tracking-caps text-ink">
                   Custom build
                 </p>

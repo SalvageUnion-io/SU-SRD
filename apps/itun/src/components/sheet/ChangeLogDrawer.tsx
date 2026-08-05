@@ -94,11 +94,11 @@ export function ChangeLogDrawer({
               return (
                 <li
                   key={entry.seq}
-                  className="flex flex-col gap-1 rounded-[4px] border border-ink/15 bg-ink/[0.03] px-3 py-2"
+                  className="flex flex-col gap-1 rounded-card border border-ink/15 bg-ink/[0.03] px-3 py-2"
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className={`rounded-[3px] px-1.5 py-0.5 font-cond text-badge font-bold uppercase tracking-caps-tight ${kind.className}`}
+                      className={`rounded-card px-1.5 py-0.5 font-cond text-badge font-bold uppercase tracking-caps-tight ${kind.className}`}
                     >
                       {kind.label}
                     </span>

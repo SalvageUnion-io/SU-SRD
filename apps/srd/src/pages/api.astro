@@ -1,5 +1,5 @@
 ---
-import { PageHeading, Slab } from 'component-lib'
+import { PageHeading, Panel, Slab } from 'component-lib'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import { getEntitySchemas } from '../lib/gameData'
 import { SITE_URL } from '../lib/constants'
@@ -59,8 +59,8 @@ const baseUrl = SITE_URL
         <Slab as="h2" variant="solid" label="Endpoints" />
 
         <!-- Schema data array -->
-        <div class="rounded-panel border-2 border-wk-faint bg-paper">
-          <div class="border-b-2 border-wk-faint px-5 py-3">
+        <Panel soft>
+          <div class="border-b-chrome border-wk-faint px-5 py-3">
             <p class="font-cond text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
             <p class="mt-1 font-body text-base font-bold">
               /schema/<span class="text-rust">{'{schemaId}'}</span>.json
@@ -90,11 +90,11 @@ const baseUrl = SITE_URL
   ...
 ]</code></pre>
           </div>
-        </div>
+        </Panel>
 
         <!-- JSON Schema definition -->
-        <div class="rounded-panel border-2 border-wk-faint bg-paper">
-          <div class="border-b-2 border-wk-faint px-5 py-3">
+        <Panel soft>
+          <div class="border-b-chrome border-wk-faint px-5 py-3">
             <p class="font-cond text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
             <p class="mt-1 font-body text-base font-bold">
               /schema/<span class="text-rust">{'{schemaId}'}</span>.schema.json
@@ -126,11 +126,11 @@ const baseUrl = SITE_URL
   {'}'}
 {'}'}</code></pre>
           </div>
-        </div>
+        </Panel>
 
         <!-- Individual entity -->
-        <div class="rounded-panel border-2 border-wk-faint bg-paper">
-          <div class="border-b-2 border-wk-faint px-5 py-3">
+        <Panel soft>
+          <div class="border-b-chrome border-wk-faint px-5 py-3">
             <p class="font-cond text-sm font-bold uppercase tracking-wide text-ink-2">GET</p>
             <p class="mt-1 font-body text-base font-bold">
               /schema/<span class="text-rust">{'{schemaId}'}</span>/item/<span class="text-rust">{'{itemId}'}</span>.json
@@ -159,7 +159,7 @@ const baseUrl = SITE_URL
   ...
 {'}'}</code></pre>
           </div>
-        </div>
+        </Panel>
       </section>
 
       <!-- Usage example -->
@@ -180,7 +180,7 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
           The following schema IDs are available. Use them in the endpoint patterns above.
         </p>
 
-        <div class="overflow-hidden rounded-panel border-2 border-wk-faint">
+        <Panel soft className="overflow-hidden">
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b-2 border-wk-faint bg-ink text-paper">
@@ -208,7 +208,7 @@ console.log(chassis[0].name) // "Iron Mongrel"`}</code></pre>
               ))}
             </tbody>
           </table>
-        </div>
+        </Panel>
       </section>
 
       <!-- CORS & headers -->

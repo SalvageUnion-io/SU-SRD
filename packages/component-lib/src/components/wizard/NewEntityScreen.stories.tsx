@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react'
 import { useMemo, useState } from 'react'
-import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { nameToSlug, SalvageUnionReference, techLevelRank } from 'salvageunion-reference'
 import { Caption } from '../../stories/_harness'
 import { cn } from '../../utils/cn'
 import { Button } from '../chrome/Button'
@@ -135,17 +135,15 @@ function classOptions(): RefOption[] {
   }
 }
 
-/** Sortable rank for a chassis TL (non-numeric TLs — Bio/Nanite — sort last). */
-function tlRank(tl: unknown): number {
-  return typeof tl === 'number' ? tl : Number.POSITIVE_INFINITY
-}
-
 /** All chassis, slug-valued — any Tech Level, labelled with its TL. */
 function chassisOptions(): RefOption[] {
   try {
     const all = SalvageUnionReference.Chassis.all()
     return [...all]
-      .sort((a, b) => tlRank(a.techLevel) - tlRank(b.techLevel) || a.name.localeCompare(b.name))
+      .sort(
+        (a, b) =>
+          techLevelRank(a.techLevel) - techLevelRank(b.techLevel) || a.name.localeCompare(b.name)
+      )
       .map((c) => ({
         value: nameToSlug(c.name),
         label: `${c.name} · TL ${String(c.techLevel)}`,

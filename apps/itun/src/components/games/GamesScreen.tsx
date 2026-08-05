@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { Button, Card, EntityRow, ModalShell, Text } from 'component-lib'
+import { Button, Card, EntityRow, Field, Input, ModalShell, PageHeading, Text } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import { useState } from 'react'
@@ -9,7 +9,6 @@ import { isConvexConfigured } from '../../lib/connection/convexClient'
 import { SignInControl } from '../account/SignInControl'
 import { ConvexPending } from '../shared/ConvexPending'
 import { GameRow } from './GameRow'
-import { INPUT, PAGE, STAMP } from './gameChrome'
 
 /**
  * Games — the shelf of tables you belong to.
@@ -67,9 +66,9 @@ function TemplatePicker({ templates }: { templates: TemplateList | undefined }) 
         <div className="flex flex-col gap-5 bg-paper p-5">
           {templates?.map((t) => (
             <div key={t.id} className="flex flex-col gap-2">
-              <Text as="span" className={STAMP}>
+              <PageHeading variant="section" as="h3">
                 {t.name}
-              </Text>
+              </PageHeading>
               <Text variant="hint" className="text-left">
                 {t.description}
               </Text>
@@ -135,17 +134,15 @@ function ConnectedGames() {
           had already used. A lobby's subject is the list; creating is the
           control on it, not the other way round. */}
       <div className="flex flex-col gap-2.5 border-b-2 border-ink pb-5">
-        <div className="flex flex-wrap items-end gap-3">
-          <label className="flex flex-col gap-1">
-            <span className={STAMP}>Start a game</span>
-            <input
+        <div className="flex flex-wrap items-end gap-3 pt-2">
+          <Field label="Start a game" className="min-w-48 flex-1">
+            <Input
               aria-label="New game name"
               placeholder="Union Crawler #430"
-              className={INPUT}
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
             />
-          </label>
+          </Field>
           <Button
             variant="primary"
             size="compact"
@@ -157,16 +154,15 @@ function ConnectedGames() {
 
           <TemplatePicker templates={templates} />
 
-          <label className="flex flex-col gap-1">
-            <span className={STAMP}>Join with a code</span>
-            <input
+          <Field label="Join with a code" className="min-w-40 flex-1">
+            <Input
               aria-label="Invite code"
               placeholder="A1B2C3D4"
-              className={`${INPUT} tracking-caps-wide uppercase`}
+              className="uppercase tracking-caps-wide"
               value={code}
               onChange={(e) => setCode(e.target.value)}
             />
-          </label>
+          </Field>
           <Button
             variant="primary"
             size="compact"
@@ -246,10 +242,8 @@ function GamesBody() {
 
 export function GamesScreen() {
   return (
-    <main className={PAGE}>
-      <Text as="h1" className="font-cond text-2xl font-bold tracking-caps uppercase">
-        Games
-      </Text>
+    <main className="flex min-h-screen flex-col gap-6 bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
+      <PageHeading className="w-fit">Games</PageHeading>
       {isConvexConfigured ? (
         <GamesBody />
       ) : (

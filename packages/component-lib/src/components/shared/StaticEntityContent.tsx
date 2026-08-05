@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import type { StaticEntitySummary } from 'salvageunion-reference'
+import { PageHeading } from '../chrome/PageHeading'
 
 /**
  * StaticEntityContent — the SSR / no-JS entity fallback (converted from
@@ -25,9 +26,7 @@ export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityC
     <div data-static-fallback className="mx-auto w-full max-w-6xl px-4 text-sm text-ink">
       {/* SSR / no-JS heading. JS users get this whole block stripped by BaseLayout
           and the hydrated island supplies the real <h1>, so they never double up. */}
-      <h1 className="mb-3 font-cond text-2xl font-bold uppercase tracking-caps-tight">
-        {summary.name}
-      </h1>
+      <PageHeading className="mb-3 w-fit">{summary.name}</PageHeading>
 
       {summary.description && <p className="mb-3 italic">{summary.description}</p>}
 
@@ -57,9 +56,9 @@ export function StaticEntityContent({ summary, resolveTraitHref }: StaticEntityC
         <div className="mb-3 space-y-3">
           {summary.sections.map((section) => (
             <section key={section.name}>
-              <h2 className="mb-1 font-cond text-base font-bold uppercase tracking-caps-tight">
+              <PageHeading variant="section" as="h2" className="mb-1">
                 {section.name}
-              </h2>
+              </PageHeading>
               <div className="space-y-2">
                 {section.paragraphs.map((p) => (
                   <p key={p}>{p}</p>

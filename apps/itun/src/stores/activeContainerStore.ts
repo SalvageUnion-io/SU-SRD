@@ -30,6 +30,7 @@
 import { create } from 'zustand'
 import type { Container } from '../lib/container'
 import { SHELF } from '../lib/container'
+import { readLocal, writeLocal } from '../lib/safeLocalStorage'
 
 const STORAGE_KEY = 'itun.activeContainer'
 
@@ -56,21 +57,15 @@ export function parseContainer(raw: string | null): Container {
 }
 
 function readPersisted(): Container {
-  try {
-    if (typeof localStorage === 'undefined') return SHELF
-    return parseContainer(localStorage.getItem(STORAGE_KEY))
-  } catch {
-    return SHELF
-  }
+  // `readLocal` already answers "no storage" and "storage threw" with null,
+  // which `parseContainer` reads as the Shelf — the same fallback the old
+  // hand-rolled guard produced.
+  return parseContainer(readLocal(STORAGE_KEY))
 }
 
 function writePersisted(container: Container): void {
-  try {
-    if (typeof localStorage === 'undefined') return
-    localStorage.setItem(STORAGE_KEY, serializeContainer(container))
-  } catch {
-    // best-effort — a private-mode localStorage throw must not break selection
-  }
+  // Best-effort by contract: a private-mode refusal must not break selection.
+  writeLocal(STORAGE_KEY, serializeContainer(container))
 }
 
 type ActiveContainerState = {

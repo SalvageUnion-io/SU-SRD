@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react'
 import { useMemo, useState } from 'react'
 import type { SURefModule, SURefSystem } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference, techLevelRank } from 'salvageunion-reference'
 import { matchesRef } from 'salvageunion-reference/rules'
 import { Caption } from '../../stories/_harness'
 import type { CSSVarStyle } from '../../styles/cssVars'
@@ -23,13 +23,6 @@ const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
 // Gauge tones for the two budget readouts (slots = ink, energy = rust).
 const INK_TONE: CSSVarStyle = { '--tone': 'var(--color-ink)', '--tone-deep': 'var(--color-ink)' }
 const RUST_TONE: CSSVarStyle = { '--tone': 'var(--color-rust)', '--tone-deep': 'var(--color-rust)' }
-
-/** Sort rank for a tech level: numeric tiers 1–6, then Bio (B), then Nanite (N). */
-function tlRank(tl: number | 'B' | 'N'): number {
-  if (tl === 'B') return 7
-  if (tl === 'N') return 8
-  return tl
-}
 
 /**
  * Local mirror of apps/itun/src/components/mech/LoadoutPanel.tsx —
@@ -148,7 +141,8 @@ function LegacyInstallStep({ kind }: { kind: 'systems' | 'modules' }) {
     const items: (SURefSystem | SURefModule)[] =
       kind === 'systems' ? SalvageUnionReference.Systems.all() : SalvageUnionReference.Modules.all()
     return [...items].sort(
-      (a, b) => tlRank(a.techLevel) - tlRank(b.techLevel) || a.name.localeCompare(b.name)
+      (a, b) =>
+        techLevelRank(a.techLevel) - techLevelRank(b.techLevel) || a.name.localeCompare(b.name)
     )
   }, [kind])
 

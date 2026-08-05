@@ -582,7 +582,7 @@ export function Roster() {
  */
 function FirstRunWelcome() {
   return (
-    <div className="mt-6 flex flex-col items-center gap-4 rounded-[3px] border-chrome border-dashed border-wk-faint p-8 text-center sm:p-12">
+    <div className="mt-6 flex flex-col items-center gap-4 rounded-card border-chrome border-dashed border-wk-faint p-8 text-center sm:p-12">
       <UserRound aria-hidden="true" className="size-9 text-sheet-pilot-deep" />
       <h2 className="font-cond text-xl font-bold uppercase tracking-widest text-rust">
         Welcome to In the Union Now

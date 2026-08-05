@@ -48,6 +48,7 @@
 import {
   Badge,
   ConditionsEditor,
+  EmptyState,
   EntityGridRow,
   EntitySearcher,
   MasonryColumns,
@@ -187,7 +188,7 @@ export function PilotSheet({
       {model.dead && (
         <div
           role="alert"
-          className="rounded-[3px] border-entity border-status-bad bg-paper px-4 py-3"
+          className="rounded-card border-entity border-status-bad bg-paper px-4 py-3"
         >
           <p className="m-0 font-cond text-lg font-bold uppercase tracking-caps text-status-bad">
             Killed in Action
@@ -307,7 +308,7 @@ export function PilotSheet({
         }
       >
         {pilot.abilities.length === 0 && model.genericAbilities.length === 0 ? (
-          <p className="font-body text-caption text-wk-muted">No abilities learned yet.</p>
+          <EmptyState variant="quiet" body="No abilities learned yet." />
         ) : (
           <div className="flex flex-col gap-5">
             {model.genericAbilities.length > 0 && (
@@ -372,7 +373,7 @@ export function PilotSheet({
         }
       >
         {pilot.equipment.length === 0 && model.genericInventory.length === 0 ? (
-          <p className="font-body text-caption text-wk-muted">Nothing carried.</p>
+          <EmptyState variant="quiet" body="Nothing carried." />
         ) : (
           <MasonryColumns maxColumns={2}>
             {model.ordinaryEquipment.map((slug) => (

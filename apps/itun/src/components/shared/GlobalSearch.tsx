@@ -107,7 +107,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             role="combobox"
             aria-expanded={hasSearched && results.length > 0}
             aria-controls={listboxId}
-            className={`w-full rounded-[3px] border-chrome border-ink bg-paper px-3 py-2 font-body text-sm text-ink placeholder:text-wk-muted ${INPUT_FOCUS}`}
+            className={`w-full rounded-card border-chrome border-ink bg-paper px-3 py-2 font-body text-sm text-ink placeholder:text-wk-muted ${INPUT_FOCUS}`}
           />
 
           {hasSearched &&
@@ -126,7 +126,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                     role="option"
                     aria-selected={index === selectedIndex}
                     onClick={() => submit(result)}
-                    className={`flex w-full cursor-pointer items-baseline justify-between gap-3 rounded-[3px] border-chrome px-3 py-2 text-left transition-colors ${
+                    className={`flex w-full cursor-pointer items-baseline justify-between gap-3 rounded-card border-chrome px-3 py-2 text-left transition-colors ${
                       index === selectedIndex
                         ? 'border-rust bg-wk-bg-2'
                         : 'border-transparent hover:bg-wk-bg-2'

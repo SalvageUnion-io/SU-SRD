@@ -1,4 +1,4 @@
-import { Button, Card, Text } from 'component-lib'
+import { Badge, Button, Card, Field, Input, PageHeading, Row, Select, Text } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -9,7 +9,6 @@ import { ConvexPending } from '../shared/ConvexPending'
 import { CrewVitals } from './CrewVitals'
 import { DowntimePanel } from './DowntimePanel'
 import { GameRoster } from './GameRoster'
-import { INPUT, PAGE, PANEL_TITLE, PANEL_TONE, ROW, STAMP, TITLE } from './gameChrome'
 
 /**
  * The Mediator surface — the layer ADR-021 deferred and ADR-030 §6 specifies.
@@ -60,29 +59,33 @@ function NpcTray({ gameId }: { gameId: Id<'games'> }) {
   const [name, setName] = useState('')
 
   return (
-    <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Opposition</h2>}>
+    <Card
+      headerBg="bg-ink"
+      headerContent={
+        <Badge shape="stamp" as="h2" size="full">
+          Opposition
+        </Badge>
+      }
+    >
       <div className="flex flex-col gap-3 p-4">
         <Text variant="hint">Only you can see this. Players never read the tray.</Text>
 
         {npcs?.map((n) => (
-          <div key={n._id} className={ROW}>
-            <Text as="span">{String((n.body as { name?: string })?.name ?? 'Unnamed')}</Text>
-            <Button variant="ghost" size="mini" onClick={() => void removeNpc({ npcId: n._id })}>
-              Remove
-            </Button>
-          </div>
+          <Row
+            key={n._id}
+            name={String((n.body as { name?: string })?.name ?? 'Unnamed')}
+            actions={
+              <Button variant="ghost" size="mini" onClick={() => void removeNpc({ npcId: n._id })}>
+                Remove
+              </Button>
+            }
+          />
         ))}
 
-        <div className="flex flex-wrap items-end gap-2">
-          <label className="flex flex-col gap-1">
-            <span className={STAMP}>Add</span>
-            <input
-              aria-label="NPC name"
-              className={INPUT}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </label>
+        <div className="flex flex-wrap items-end gap-2 pt-2">
+          <Field label="Add" className="min-w-40 flex-1">
+            <Input aria-label="NPC name" value={name} onChange={(e) => setName(e.target.value)} />
+          </Field>
           <Button
             variant="primary"
             size="compact"
@@ -118,19 +121,24 @@ function ProposeForm({ gameId }: { gameId: Id<'games'> }) {
   const chosen = targets.find((t) => t.id === target)
 
   return (
-    <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Propose a change</h2>}>
+    <Card
+      headerBg="bg-ink"
+      headerContent={
+        <Badge shape="stamp" as="h2" size="full">
+          Propose a change
+        </Badge>
+      }
+    >
       <div className="flex flex-col gap-3 p-4">
         <Text variant="hint">
           You are asking, not setting. The player sees the before and after, and applies or declines
           it.
         </Text>
 
-        <div className="flex flex-wrap items-end gap-2">
-          <label className="flex flex-col gap-1">
-            <span className={STAMP}>To</span>
-            <select
+        <div className="flex flex-wrap items-end gap-2 pt-2">
+          <Field label="To" className="min-w-48 flex-1">
+            <Select
               aria-label="Proposal target"
-              className={INPUT}
               value={target}
               onChange={(e) => setTarget(e.target.value)}
             >
@@ -140,14 +148,12 @@ function ProposeForm({ gameId }: { gameId: Id<'games'> }) {
                   {t.label}
                 </option>
               ))}
-            </select>
-          </label>
+            </Select>
+          </Field>
 
-          <label className="flex flex-col gap-1">
-            <span className={STAMP}>Field</span>
-            <select
+          <Field label="Field" className="min-w-40 flex-1">
+            <Select
               aria-label="Proposal field"
-              className={INPUT}
               value={field}
               onChange={(e) => setField(e.target.value)}
             >
@@ -156,18 +162,16 @@ function ProposeForm({ gameId }: { gameId: Id<'games'> }) {
                   {f}
                 </option>
               ))}
-            </select>
-          </label>
+            </Select>
+          </Field>
 
-          <label className="flex flex-col gap-1">
-            <span className={STAMP}>New value</span>
-            <input
+          <Field label="New value" className="min-w-32 flex-1">
+            <Input
               aria-label="Proposed value"
-              className={INPUT}
               value={value}
               onChange={(e) => setValue(e.target.value)}
             />
-          </label>
+          </Field>
 
           <Button
             variant="primary"
@@ -198,18 +202,23 @@ function AlertBar({ gameId }: { gameId: Id<'games'> }) {
   const [message, setMessage] = useState('')
 
   return (
-    <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Tell the table</h2>}>
+    <Card
+      headerBg="bg-ink"
+      headerContent={
+        <Badge shape="stamp" as="h2" size="full">
+          Tell the table
+        </Badge>
+      }
+    >
       <div className="flex flex-col gap-3 p-4">
-        <div className="flex flex-wrap items-end gap-2">
-          <label className="flex flex-1 flex-col gap-1">
-            <span className={STAMP}>Alert</span>
-            <input
+        <div className="flex flex-wrap items-end gap-2 pt-2">
+          <Field label="Alert" className="min-w-48 flex-1">
+            <Input
               aria-label="Alert message"
-              className={INPUT}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
-          </label>
+          </Field>
           <Button
             variant="primary"
             size="compact"
@@ -220,11 +229,7 @@ function AlertBar({ gameId }: { gameId: Id<'games'> }) {
           </Button>
         </div>
         {alerts?.map((a) => (
-          <div key={a._id} className={ROW}>
-            <Text as="span" variant="hint">
-              {a.message}
-            </Text>
-          </div>
+          <Row key={a._id} name={a.message} />
         ))}
       </div>
     </Card>
@@ -236,15 +241,25 @@ function PresenceList({ gameId }: { gameId: Id<'games'> }) {
   if (rows === undefined || rows.length === 0) return null
 
   return (
-    <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>At the table</h2>}>
-      <div className="flex flex-col gap-1 p-4">
+    <Card
+      headerBg="bg-ink"
+      headerContent={
+        <Badge shape="stamp" as="h2" size="full">
+          At the table
+        </Badge>
+      }
+    >
+      <div className="flex flex-col gap-1.5 p-4">
         {rows.map((r) => (
-          <div key={r.userId} className={ROW}>
-            <Text as="span">{r.displayName}</Text>
-            <Text as="span" variant="hint">
-              {r.present ? 'here' : 'away'}
-            </Text>
-          </div>
+          <Row
+            key={r.userId}
+            name={r.displayName}
+            actions={
+              <Text as="span" variant="hint">
+                {r.present ? 'here' : 'away'}
+              </Text>
+            }
+          />
         ))}
       </div>
     </Card>
@@ -272,7 +287,14 @@ function MediatorBody({ gameId }: { gameId: Id<'games'> }) {
       <GameRoster gameId={gameId} />
       {/* Then the numbers, live. The roster shows vitals per row; this is the
           same crew read as one strip, which is how you scan a table mid-fight. */}
-      <Card headerBg={PANEL_TONE} headerContent={<h2 className={PANEL_TITLE}>Vitals</h2>}>
+      <Card
+        headerBg="bg-ink"
+        headerContent={
+          <Badge shape="stamp" as="h2" size="full">
+            Vitals
+          </Badge>
+        }
+      >
         <div className="p-4">
           <CrewVitals gameId={gameId} />
         </div>
@@ -292,10 +314,8 @@ export function MediatorScreen({ gameId }: { gameId: string }) {
   return (
     // Wider than it was: the surface now leads with a three-column roster, and
     // the old 3xl column squeezed it to one column on every screen size.
-    <main className={PAGE}>
-      <Text as="h1" className={TITLE}>
-        Mediator
-      </Text>
+    <main className="flex min-h-screen flex-col gap-6 bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
+      <PageHeading className="w-fit">Mediator</PageHeading>
       {!isConvexConfigured || mode !== 'connected' ? (
         <Card>
           <div className="p-4">

@@ -59,7 +59,7 @@ function RootErrorComponent({ error }: ErrorComponentProps) {
         }}
       >
         {import.meta.env.DEV && (
-          <pre className="max-w-full overflow-auto rounded-[3px] border-chrome border-ink/20 bg-wk-bg p-3 text-left text-xs text-ink">
+          <pre className="max-w-full overflow-auto rounded-card border-chrome border-ink/20 bg-wk-bg p-3 text-left text-xs text-ink">
             {error.message}
           </pre>
         )}

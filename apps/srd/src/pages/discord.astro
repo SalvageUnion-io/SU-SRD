@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { buttonVariants, cn, PageHeading, Slab } from 'component-lib'
+import { buttonVariants, cn, PageHeading, Panel, Slab } from 'component-lib'
 import { SITE_URL, ITUN_URL } from '../lib/constants'
 
 // The install CTA is an <a> styled as THE primary (rust) action — the lib
@@ -77,8 +77,8 @@ const breadcrumbs = [
       <section class="flex flex-col gap-6">
         <Slab as="h2" variant="solid" label="Commands" />
 
-        <div class="rounded-panel border-2 border-wk-faint bg-paper">
-          <div class="border-b-2 border-wk-faint px-5 py-3">
+        <Panel soft>
+          <div class="border-b-chrome border-wk-faint px-5 py-3">
             <p class="mt-1 font-body text-base font-bold">
               /su roll <span class="text-rust">[table]</span>
             </p>
@@ -111,10 +111,10 @@ const breadcrumbs = [
               </li>
             </ul>
           </div>
-        </div>
+        </Panel>
 
-        <div class="rounded-panel border-2 border-wk-faint bg-paper">
-          <div class="border-b-2 border-wk-faint px-5 py-3">
+        <Panel soft>
+          <div class="border-b-chrome border-wk-faint px-5 py-3">
             <p class="mt-1 font-body text-base font-bold">
               /su lookup <span class="text-rust">entity</span>
             </p>
@@ -142,7 +142,7 @@ const breadcrumbs = [
               </li>
             </ul>
           </div>
-        </div>
+        </Panel>
       </section>
 
       <!-- Notes -->

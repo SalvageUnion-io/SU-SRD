@@ -1,9 +1,10 @@
 import {
   Badge,
+  Button,
+  EmptyState,
   EntityDetailLinkProvider,
   EntityHrefProvider,
   FilterRow,
-  FOCUS_RING,
   MasonryColumns,
   Skeleton,
   TECH_LEVEL_STYLES,
@@ -326,18 +327,18 @@ export function SchemaViewerIsland({
           {/* Entity Grid */}
           <div className="w-full min-w-0 px-2 pb-6 md:px-6">
             {filteredData.length === 0 ? (
-              <div className="flex flex-col items-start gap-3 p-4">
-                <p className="text-sm text-ink-2">No items match the current filters.</p>
-                {hasActiveFilters && (
-                  <button
-                    type="button"
-                    onClick={clearFilters}
-                    className={`cursor-pointer rounded-card px-2 py-0.5 font-cond text-xs font-semibold uppercase transition-colors bg-wk-faint text-ink hover:bg-wk-muted ${FOCUS_RING}`}
-                  >
-                    Clear filters
-                  </button>
-                )}
-              </div>
+              <EmptyState
+                className="m-4"
+                headline="Nothing here"
+                body="No items match the current filters."
+                action={
+                  hasActiveFilters ? (
+                    <Button variant="primary" size="mini" onClick={clearFilters}>
+                      Clear filters
+                    </Button>
+                  ) : undefined
+                }
+              />
             ) : (
               <EntityHrefProvider value={srdEntityHref}>
                 <EntityDetailLinkProvider value={true}>

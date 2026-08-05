@@ -11,14 +11,12 @@ export default {
 const weaponType: SURefObjectChoice = {
   id: 'weapon-type',
   name: 'Weapon Type',
-  choiceType: 'permanent',
   schema: ['traits'],
   schemaEntities: ['Ballistic', 'Energy'],
 }
 const modification: SURefObjectChoice = {
   id: 'modification',
   name: 'Modification',
-  choiceType: 'permanent',
   multiSelect: true,
   constraints: { scalesWithField: 'techLevel' },
   choiceOptions: [
@@ -30,7 +28,6 @@ const modification: SURefObjectChoice = {
 const nameChoice: SURefObjectChoice = {
   id: 'name',
   name: 'Name',
-  choiceType: 'freeform',
   content: [{ type: 'paragraph', value: 'The name of your companion.' }],
 }
 const parent = { techLevel: 2 }

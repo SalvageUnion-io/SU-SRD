@@ -1,6 +1,8 @@
 import { Dialog } from '@base-ui/react/dialog'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
+import { cn } from '../../utils/cn'
+import { buttonVariants } from '../chrome/buttonVariants'
 
 type MobileSearchDialogProps = {
   /**
@@ -37,10 +39,16 @@ export function MobileSearchDialog({
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger
         render={
-          // size-11 = 44px — meets the WCAG 2.5.5 minimum touch-target size.
+          // size-11 = 44px — meets the WCAG 2.5.5 minimum touch-target size,
+          // the one documented override on the shared icon rung. `ghost` +
+          // `border-transparent` keeps the bar's flat look while the rung
+          // supplies the focus ring this trigger simply did not have.
           <button
             type="button"
-            className="flex size-11 items-center justify-center rounded-panel text-paper"
+            className={cn(
+              buttonVariants({ variant: 'ghost', size: 'iconOnly' }),
+              'size-11 rounded-panel border-transparent text-paper hover:bg-paper/15'
+            )}
             aria-label={triggerAriaLabel}
           >
             <svg
@@ -72,7 +80,10 @@ export function MobileSearchDialog({
               render={
                 <button
                   type="button"
-                  className="flex size-11 items-center justify-center rounded-panel text-ink"
+                  className={cn(
+                    buttonVariants({ variant: 'ghost', size: 'iconOnly' }),
+                    'size-11 rounded-panel border-transparent text-ink'
+                  )}
                   aria-label="Close search"
                 >
                   <svg

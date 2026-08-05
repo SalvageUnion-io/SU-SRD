@@ -324,7 +324,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
   const compactInput = 'px-2 py-1.5 text-xs'
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-[3px] border-chrome border-dashed border-wk-faint p-2.5">
+    <div className="flex flex-wrap items-center gap-2 rounded-card border-chrome border-dashed border-wk-faint p-2.5">
       <Button
         size="compact"
         aria-label="Add Scrap (3 slots)"

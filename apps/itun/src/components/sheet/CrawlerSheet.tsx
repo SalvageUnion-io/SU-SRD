@@ -65,6 +65,7 @@
 
 import {
   CardRemoveButton,
+  EmptyState,
   EntityGridRow,
   MasonryColumns,
   ReferenceEntityCard,
@@ -222,7 +223,7 @@ export function CrawlerSheet({
   /** The Armament Bay's mounted weapons — rendered INSIDE that bay. */
   const armamentContents =
     crawler.systems.length === 0 ? (
-      <p className="font-body text-caption text-wk-muted">No weapons mounted.</p>
+      <EmptyState variant="quiet" body="No weapons mounted." />
     ) : (
       // A full-width STACK, not a 2-up masonry: a mounted weapon reads as a
       // listing row across the bay, and half a bay's width squeezed the card's

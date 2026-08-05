@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react'
 import type { ElementType, ReactNode } from 'react'
+import { SRD_SITE_URL } from 'salvageunion-reference'
 import { Badge } from '../chrome/Badge'
 import { FOCUS_RING } from '../chrome/interaction'
 import type { AppBarNavItem } from './AppBar'
@@ -29,8 +30,8 @@ const SEARCH_BOX = `flex shrink-0 cursor-pointer items-center gap-2 rounded bord
 const DESKTOP_NAV: AppBarNavItem[] = [
   { label: 'About', href: '/about' },
   { label: 'Changelog', href: '/changelog' },
-  { label: 'Discord ↗', href: 'https://salvageunion.io/discord/', external: true },
-  { label: 'SRD ↗', href: 'https://salvageunion.io', external: true },
+  { label: 'Discord ↗', href: `${SRD_SITE_URL}/discord/`, external: true },
+  { label: 'SRD ↗', href: SRD_SITE_URL, external: true },
 ]
 
 /** ITUN's two-tone brand tag for the mobile drawer. */
@@ -50,8 +51,8 @@ const ITUN_DRAWER_BRAND = (
 const DRAWER_NAV: NavDrawerItem[] = [
   { label: 'About', href: '/about' },
   { label: 'Changelog', href: '/changelog' },
-  { label: 'Discord ↗', href: 'https://salvageunion.io/discord/', external: true },
-  { label: 'SalvageUnion.io SRD ↗', href: 'https://salvageunion.io', external: true },
+  { label: 'Discord ↗', href: `${SRD_SITE_URL}/discord/`, external: true },
+  { label: 'SalvageUnion.io SRD ↗', href: SRD_SITE_URL, external: true },
   {
     label: 'Buy the game',
     href: 'https://leyline.press/collections/salvage-union',

@@ -9,14 +9,12 @@
  * See: apps/srd/src/pages/schema/[schemaId]/item/[itemId].astro
  */
 
-import { getEntitySchemas } from 'salvageunion-reference'
+import { getEntitySchemas, SRD_SITE_URL, srdEntityUrl } from 'salvageunion-reference'
 
 type EntityRef = {
   schemaName: string
   slug: string
 }
-
-const SUREF_WEB_BASE = 'https://salvageunion.io'
 
 // srd generates item pages for ENTITY schemas only: getItemStaticPaths in
 // apps/srd/src/lib/staticPaths.ts iterates getEntitySchemas(), which is
@@ -45,7 +43,7 @@ export function hasSRDPage(schemaName: string): boolean {
  * @returns Absolute URL to the entity on srd
  */
 export function deepLinkTo({ schemaName, slug }: EntityRef): string {
-  return `${SUREF_WEB_BASE}/schema/${schemaName}/item/${slug}`
+  return srdEntityUrl(schemaName, slug)
 }
 
 /**
@@ -54,5 +52,5 @@ export function deepLinkTo({ schemaName, slug }: EntityRef): string {
  * ITUN has no in-app schema list routes.
  */
 export function deepLinkToSchema(schemaName: string): string {
-  return `${SUREF_WEB_BASE}/schema/${schemaName}`
+  return `${SRD_SITE_URL}/schema/${schemaName}`
 }

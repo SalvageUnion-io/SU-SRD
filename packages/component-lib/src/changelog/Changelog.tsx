@@ -1,3 +1,4 @@
+import { PageHeading } from '../components/chrome/PageHeading'
 import { Card } from '../components/shared/Card'
 import { InlineMarkdown } from '../markdownSection/InlineMarkdown'
 import { cn } from '../utils/cn'
@@ -53,9 +54,13 @@ export function Changelog({ entries, className }: ChangelogProps) {
             bodyPadding="px-4 pb-3 pt-1"
             headerContent={
               <>
-                <h3 className="font-cond text-lg font-bold uppercase leading-tight tracking-caps-tight text-ink">
+                <PageHeading
+                  variant="subheading"
+                  as="h3"
+                  className="leading-tight tracking-caps-tight text-ink"
+                >
                   {entryHeadline(entry)}
-                </h3>
+                </PageHeading>
                 <time
                   dateTime={entry.date}
                   className="ml-auto font-body text-xs text-wk-muted tabular-nums"

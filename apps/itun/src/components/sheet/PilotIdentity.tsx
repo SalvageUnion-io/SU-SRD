@@ -60,7 +60,7 @@ function UsedChip({
     <span
       aria-hidden="true"
       className={cn(
-        'h-3 w-4 shrink-0 rounded-[2px] border-2 border-current',
+        'h-3 w-4 shrink-0 rounded-badge border-2 border-current',
         used && 'border-[color:var(--tone,var(--color-pilot))] bg-[var(--tone,var(--color-pilot))]'
       )}
     />

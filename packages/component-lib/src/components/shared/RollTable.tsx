@@ -10,6 +10,7 @@ import { cn } from '../../utils/cn'
 import { useParseTraitReferences } from '../../utils/parseTraitReferences'
 import { Text } from '../base/Text'
 import { Badge } from '../chrome/Badge'
+import { Button } from '../chrome/Button'
 import { FOCUS_RING_ON_TONE } from '../chrome/interaction'
 
 type DigestedRollTable = {
@@ -124,16 +125,17 @@ function RollTableHeader({
       {!disabled && (
         <span className="inline-flex items-center gap-2">
           Roll the Die
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="mini"
             onClick={handleRoll}
-            className="inline-flex cursor-pointer items-center gap-1 rounded-badge border-2 border-rust bg-rust px-[11px] py-[3px] font-cond text-badge font-bold uppercase tracking-caps-tight text-paper hover:border-rust-hi hover:bg-rust-hi"
+            className="px-[11px]"
             aria-label="Roll on this table"
             title="Roll on this table"
           >
             Roll
             <DiceIcon compact />
-          </button>
+          </Button>
         </span>
       )}
     </Badge>
