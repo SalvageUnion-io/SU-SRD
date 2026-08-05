@@ -1,11 +1,31 @@
 /* biome-ignore-all lint/complexity/noImportantStyles: print stylesheet — every override must beat Tailwind utility/inline styles at print time, and the pip re-assertions must beat this file's own universal `*` !important reset */
 /**
- * print.css — @media print rules for the ITUN sheet view.
+ * print.css — THE @media print rules for ITUN. One print stylesheet per app.
  *
- * A4 is the default page size. US Letter is documented as an alternate
- * available by printing to a US Letter destination from the browser's print
- * dialog (browser scales automatically; no separate JS class-toggle is needed
- * in Wave 6 — user-selectable variant deferred to a later iteration).
+ * This file used to be half the story: `index.css` imported it and then
+ * declared a second `@media print` block of its own, duplicating six rule
+ * pairs and CONTRADICTING one of them — this file built a
+ * `button:not([data-print])` escape hatch and `index.css` cancelled it with a
+ * bare `button` selector, so the hatch could never fire. That block has been
+ * folded in here and deleted there; do not add a print block to `index.css`.
+ *
+ * A4 is the default page size. US Letter is available by choosing a US Letter
+ * destination in the browser's print dialog (the browser scales automatically;
+ * a user-selectable class toggle is deferred).
+ *
+ * ## The print attribute
+ *
+ * ONE attribute, `data-print`, with two sanctioned values — shared verbatim
+ * with `apps/srd/src/styles/global.css` so the same markup means the same
+ * thing in both apps:
+ *
+ *   data-print="keep"  print this even though its element type is hidden below
+ *   data-print="hide"  hide this on paper even though its type is kept
+ *
+ * The two apps previously used different names for these (`data-print` here,
+ * `[data-print-hide]` in srd) — opposite jobs under confusingly similar names.
+ * Neither is used in markup yet; both are live escape hatches for when a
+ * button must print (a filled-in checkbox) or a printed block must not.
  */
 
 @media print {
@@ -25,7 +45,20 @@
   }
 
   /* -------------------------------------------------------------------------
-   * Reset backgrounds to white / ink-safe
+   * Themed surface tokens → white, so anything reading them (rather than a
+   * Tailwind utility) also lands on paper-white.
+   * ------------------------------------------------------------------------- */
+  :root {
+    --color-wk-bg: #fff;
+    --color-wk-bg-2: #fff;
+    --color-paper: #fff;
+  }
+
+  /* -------------------------------------------------------------------------
+   * Reset backgrounds to white / ink-safe.
+   *
+   * This universal reset already covers the `body { background }` and the
+   * `* { print-color-adjust: exact }` rules that index.css used to repeat.
    * ------------------------------------------------------------------------- */
   *,
   *::before,
@@ -77,15 +110,20 @@
   }
 
   /* -------------------------------------------------------------------------
-   * Hide non-printable elements
+   * Hide non-printable elements.
+   *
+   * App chrome and interactive-only surfaces have no meaning on paper. The
+   * `:not([data-print='keep'])` on buttons is the escape hatch: a control that
+   * carries printed STATE (a ticked box, a filled pip button) opts back in.
+   * index.css used to re-list `button` here without the exclusion, which
+   * silently made the hatch unreachable.
    * ------------------------------------------------------------------------- */
+  header,
   nav,
-  button:not([data-print]) {
-    display: none !important;
-  }
-
-  /* LiveSheet top-bar links (back-to-dashboard, Edit, segment switch) */
-  header a {
+  [role='dialog'],
+  [data-sonner-toaster],
+  [data-print='hide'],
+  button:not([data-print='keep']) {
     display: none !important;
   }
 
@@ -96,6 +134,17 @@
     max-width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  /* Cards should not split across pages when avoidable. The more specific
+     section rules below refine this for the sheet's own sections. */
+  section,
+  article {
+    break-inside: avoid;
   }
 
   /* -------------------------------------------------------------------------

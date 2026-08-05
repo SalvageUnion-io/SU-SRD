@@ -19,6 +19,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../__tests__/expandCards'
+import { pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { PilotSheet } from '../PilotSheet'
 
@@ -31,7 +32,6 @@ import { PilotSheet } from '../PilotSheet'
 // the same key PilotWizard/EquipmentStep persist (onToggle(item.id)) — rather
 // than the display name.
 beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
   const sniper = SalvageUnionReference.Equipment.all().find((e) => e.name === SNIPER_NAME)
   if (!sniper) throw new Error(`Fixture setup: equipment "${SNIPER_NAME}" not found in reference`)
   SNIPER_ID = sniper.id
@@ -103,23 +103,13 @@ function makeEmptyStore() {
 // ---------------------------------------------------------------------------
 
 function makePilot(overrides?: Partial<Pilot>): Pilot {
-  return {
+  return pilotFixture({
     id: 'pilot-choices-1',
-    schemaVersion: 1,
     name: 'Zara Quinn',
     callsign: 'Hex',
-    classRef: 'scavenger',
-    abilities: [],
     equipment: [SNIPER_ID],
-    motto: '',
-    keepsake: '',
-    appearance: '',
-    background: '',
-    conditions: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
     ...overrides,
-  }
+  })
 }
 
 // ---------------------------------------------------------------------------

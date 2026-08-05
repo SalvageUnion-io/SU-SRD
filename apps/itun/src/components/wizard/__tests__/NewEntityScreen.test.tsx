@@ -8,7 +8,7 @@
  * fake-indexeddb/auto is preloaded via bunfig.toml.
  */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
@@ -16,10 +16,6 @@ import { PilotSchema } from '../../../lib/schemas/pilot'
 import { parseCreateMode } from '../../../lib/wizard/createMode'
 import { useEntityStore } from '../../../stores/entityStore'
 import { NewEntityScreen } from '../NewEntityScreen'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload(['classes', 'chassis', 'crawler-bays', 'crawler-tech-levels'])
-})
 
 function resetEntityStore(): void {
   useEntityStore.setState({

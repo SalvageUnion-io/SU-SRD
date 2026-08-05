@@ -50,7 +50,6 @@ let pilotAbility: { id: string; actionNames: string[] } | null = null
 let tableModule: { id: string; actionName: string } | null = null
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
   // A system whose primary action costs EP → Activate produces a currentEP patch.
   for (const sys of SalvageUnionReference.Systems.all()) {
     if (!sys.id) continue

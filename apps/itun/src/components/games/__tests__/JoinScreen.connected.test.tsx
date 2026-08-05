@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 /**
@@ -69,8 +69,6 @@ function renderJoin(value: unknown) {
     </ConnectionProvider>
   )
 }
-
-afterEach(cleanup)
 
 describe('a live invite', () => {
   test('names the game and who invited you before asking for anything', () => {

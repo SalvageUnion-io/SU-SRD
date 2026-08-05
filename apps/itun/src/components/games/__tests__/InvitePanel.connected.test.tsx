@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 
 /**
@@ -58,8 +58,6 @@ function renderPanel(invites: unknown[], requests: unknown[] = []) {
   calls.length = 0
   return render(<InvitePanel gameId={'g1' as never} />)
 }
-
-afterEach(cleanup)
 
 describe('reading a code back', () => {
   test('shows the code, its life left, and who spent it', () => {

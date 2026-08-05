@@ -16,6 +16,7 @@ import { describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { useEntityChoices } from '../useEntityChoices'
 
@@ -26,23 +27,13 @@ import { useEntityChoices } from '../useEntityChoices'
 const PILOT_ID = 'pilot-choices-1'
 
 function makePilot(equipmentChoices?: Pilot['equipmentChoices']): Pilot {
-  return {
+  return pilotFixture({
     id: PILOT_ID,
-    schemaVersion: 1,
     name: 'Test Pilot',
     callsign: 'Tester',
-    classRef: 'scavenger',
-    abilities: [],
     equipment: ['custom-sniper-rifle', 'auto-turret'],
-    motto: '',
-    keepsake: '',
-    appearance: '',
-    background: '',
-    conditions: [],
     equipmentChoices,
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-01-01T00:00:00Z',
-  }
+  })
 }
 
 // ---------------------------------------------------------------------------

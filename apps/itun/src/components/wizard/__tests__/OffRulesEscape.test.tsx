@@ -3,11 +3,9 @@
  * OffRulesEscape control and the WizShell footer slot it mounts into.
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { OffRulesEscape, WizShell } from 'component-lib'
-
-afterEach(cleanup)
 
 describe('OffRulesEscape', () => {
   test('renders the escape and fires onEscape on click', () => {

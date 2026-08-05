@@ -10,18 +10,14 @@
  * Uses toBeTruthy() not toBeInTheDocument() (Wave 4 workaround).
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { ConnectionContext } from '../../../lib/connection/connectionContext'
 import type { Pilot } from '../../../lib/schemas/pilot'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
 import { Sheet } from '../Sheet'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 afterEach(() => {
   cleanup()
@@ -40,8 +36,8 @@ const fakePilot: Pilot = {
   appearance: 'Tall, weathered.',
   background: '',
   conditions: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 function renderSheetIn(state: ConnectionState) {

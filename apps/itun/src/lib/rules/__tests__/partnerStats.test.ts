@@ -14,8 +14,7 @@
  * drones.json (an opposition stat block) with completely different stats.
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { describe, expect, test } from 'bun:test'
 import type { PartnerInstance } from '../../schemas/partner'
 import {
   partnerCap,
@@ -23,10 +22,6 @@ import {
   partnerTechLevel,
   resolvePartnerStatBlock,
 } from '../partnerStats'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 const partner = (over: Partial<PartnerInstance>): PartnerInstance => ({
   id: 'p1',

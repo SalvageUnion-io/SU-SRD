@@ -23,15 +23,11 @@
  * would have made these tests fail against working code.
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { InsideTooltipContext } from '../../ui/insideTooltipContext'
 import { EntityTooltip } from '../EntityTooltip'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload(['chassis', 'systems', 'classes'])
-})
 
 const firstChassis = () => {
   const c = SalvageUnionReference.Chassis.all()[0]

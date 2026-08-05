@@ -186,6 +186,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/*
+ * The srd app's ONE print block. The `data-print` attribute vocabulary is
+ * shared verbatim with apps/itun/src/styles/print.css so the same markup means
+ * the same thing in both apps:
+ *
+ *   data-print="hide"  hide this on paper even though its element type is kept
+ *   data-print="keep"  print this even though its element type is hidden
+ *
+ * This block previously spelled the hide case `[data-print-hide]` while itun
+ * spelled the OPPOSITE job `[data-print]` — two names one letter apart meaning
+ * opposite things. Neither is used in markup yet; both stay as escape hatches.
+ */
 @media print {
   body,
   main {
@@ -199,7 +211,7 @@ body {
      live inside the <nav>, so they are automatically hidden with it. */
   nav,
   footer,
-  [data-print-hide] {
+  [data-print='hide'] {
     /* biome-ignore lint/complexity/noImportantStyles: page chrome must stay hidden in print even against display utilities */
     display: none !important;
   }

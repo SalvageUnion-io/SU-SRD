@@ -5,7 +5,7 @@
  * happens to carry. These fixtures are chosen because each one DOES carry
  * nested content at full size, so the assertions would fail if it leaked.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { resolveGrantedEntities, SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
@@ -27,10 +27,6 @@ const armamentBay = () => {
 }
 
 describe('ReferenceEntityCard size="medium" extent="catalog"', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('a chassis renders its name but none of its patterns', () => {
     const chassis = chassisWithPatterns()
     const patternName = String(chassis.patterns?.[0]?.name ?? '')

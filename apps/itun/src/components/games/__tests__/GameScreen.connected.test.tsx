@@ -1,5 +1,5 @@
-import { afterAll, afterEach, describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { afterAll, describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 
 /**
  * `GameScreen` — one Game, connected.
@@ -63,8 +63,6 @@ const REST: QueryAnswers = {
   'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
   'mediator:amMediator': false,
 }
-
-afterEach(cleanup)
 
 describe('GameScreen', () => {
   test('a plain member gets no invite management', () => {

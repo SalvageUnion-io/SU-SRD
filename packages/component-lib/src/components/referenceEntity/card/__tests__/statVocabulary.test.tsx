@@ -9,7 +9,7 @@
  * - A compact card labels stats with their SHORT forms (TL / SP / EP / SV /
  *   SYS / MODS); the full card keeps the two-line long form.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
@@ -31,10 +31,6 @@ const textOf = (node: Parameters<typeof render>[0]) =>
   (render(node).container.textContent ?? '').replace(/\s+/g, ' ')
 
 describe('trait rendering', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('a NUMERIC uses amount is parenthesised', () => {
     const text = textOf(<ReferenceEntityCard data={action('Beta Fission Gun')} />)
     expect(text).toContain('Uses (3)')
@@ -60,10 +56,6 @@ describe('trait rendering', () => {
 })
 
 describe('stat label short forms', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('a compact card uses the abbreviations', () => {
     const text = textOf(<ReferenceEntityCard data={mule()} size="medium" />)
     for (const label of ['TL', 'SP', 'EP', 'SV', 'SYS', 'MODS']) {

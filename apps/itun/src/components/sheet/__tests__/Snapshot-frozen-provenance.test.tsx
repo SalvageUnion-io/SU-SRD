@@ -9,13 +9,13 @@
  * leak history or a revert control into the frozen surface.
  */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { PublishResult, SnapshotPayload } from '../../../lib/snapshot/client'
 import { useEntityStore } from '../../../stores/entityStore'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityLookupMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
 import type { EntityLookup } from '../composition'
@@ -48,8 +48,8 @@ const overriddenMech: Mech = {
   cargoLots: [],
   conditions: [],
   maxSpModifier: 4,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 function makeEntityStore(entities: Mech[]): EntityLookup {
@@ -65,10 +65,6 @@ function resetEntityStore(): void {
     hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
   })
 }
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 beforeEach(async () => {
   _resetDbSingleton()

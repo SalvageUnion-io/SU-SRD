@@ -5,7 +5,7 @@
  * `entity.table` only, so "System and Software Hacker" (and 87 other entities)
  * rendered their prose with the d20 outcomes silently missing.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { extractVisibleActions, SalvageUnionReference } from 'salvageunion-reference'
@@ -21,10 +21,6 @@ const find = <T extends { name?: string }>(items: readonly T[], name: string): T
 }
 
 describe('roll tables reach the card by reference, not just inline', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test("an ability whose self-action names a table renders that table's rows", () => {
     const ability = find(SalvageUnionReference.Abilities.all(), 'System and Software Hacker')
     render(<ReferenceEntityCard data={ability} />)
@@ -83,10 +79,6 @@ describe('roll tables reach the card by reference, not just inline', () => {
 })
 
 describe('resolveCardTable', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('prefers an inline table, resolves a name, ignores anything else', () => {
     // An inline table wins over a name that would resolve to a different one.
     const inline = find(SalvageUnionReference.RollTables.all(), 'Trading Bay').table

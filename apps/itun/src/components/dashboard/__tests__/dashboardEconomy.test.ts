@@ -7,18 +7,13 @@
  * illegal one produces NO write plus a reason.
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { describe, expect, test } from 'bun:test'
 import {
   areaSalvageOutcome,
   craftOutcome,
   crawlerTechLevelOf,
   scrapMechOutcome,
 } from '../dashboardEconomy'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 const crawler = (over: Record<string, unknown> = {}) => ({
   techLevel: 'tech-3',

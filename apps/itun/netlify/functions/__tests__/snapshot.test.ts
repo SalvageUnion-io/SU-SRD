@@ -8,12 +8,15 @@
  * Assertion style: toBeTruthy() / toBe() / toEqual() — not toBeInTheDocument().
  */
 
-import { beforeEach, describe, expect, it } from 'bun:test'
+import { beforeEach, describe, expect, it, setSystemTime } from 'bun:test'
 import { getClientIp, RateLimiter } from '../../../src/lib/snapshot/rateLimit'
 import { InMemoryStorage } from '../../../src/lib/snapshot/storage'
 import { makeDeleteHandler } from '../snapshot-delete'
 import { makePublishHandler } from '../snapshot-publish'
 import { makeRetrieveHandler } from '../snapshot-retrieve'
+
+/** Fixed origin for the rate-limiter's clock; only the deltas matter. */
+const CLOCK = new Date('2026-01-01T00:00:00.000Z')
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -141,34 +144,43 @@ describe('snapshot-publish', () => {
       expect(limiter.check('10.0.0.1')).toBe(false) // first IP exceeded
     })
 
-    it('window resets after windowMs', async () => {
-      // 50ms window: the two synchronous checks below land inside it reliably,
-      // while the 70ms sleep reliably crosses it (a 1ms window races the scheduler).
-      const limiter = new RateLimiter({ limit: 1, windowMs: 50 })
-      expect(limiter.check('10.0.0.1')).toBe(true)
-      expect(limiter.check('10.0.0.1')).toBe(false) // within window
+    it('window resets after windowMs', () => {
+      // RateLimiter reads Date.now(), so the clock is moved rather than slept
+      // through: exact, instant, and it can't race a loaded scheduler the way a
+      // real sleep with a fixed margin over the window can.
+      setSystemTime(CLOCK)
+      try {
+        const limiter = new RateLimiter({ limit: 1, windowMs: 50 })
+        expect(limiter.check('10.0.0.1')).toBe(true)
+        expect(limiter.check('10.0.0.1')).toBe(false) // within window
 
-      // Wait for window to expire
-      await new Promise((resolve) => setTimeout(resolve, 70))
-      expect(limiter.check('10.0.0.1')).toBe(true) // new window
+        setSystemTime(new Date(CLOCK.getTime() + 51))
+        expect(limiter.check('10.0.0.1')).toBe(true) // new window
+      } finally {
+        setSystemTime()
+      }
     })
 
-    it('expired windows are evicted (map does not grow unbounded)', async () => {
-      // 50ms window so both initial checks are comfortably inside it; the 70ms
-      // sleep then expires them so the third check sweeps the stale entries.
-      const limiter = new RateLimiter({ limit: 1, windowMs: 50 })
-      // Reach into the private window map to assert eviction behaviour.
-      const internals = limiter as unknown as {
-        check(ip: string): boolean
-        windows: Map<string, unknown>
+    it('expired windows are evicted (map does not grow unbounded)', () => {
+      setSystemTime(CLOCK)
+      try {
+        const limiter = new RateLimiter({ limit: 1, windowMs: 50 })
+        // Reach into the private window map to assert eviction behaviour.
+        const internals = limiter as unknown as {
+          check(ip: string): boolean
+          windows: Map<string, unknown>
+        }
+        internals.check('10.0.0.1')
+        internals.check('10.0.0.2')
+        expect(internals.windows.size).toBe(2)
+
+        setSystemTime(new Date(CLOCK.getTime() + 51))
+        // A check after expiry sweeps the stale entries before recording the new one
+        internals.check('10.0.0.3')
+        expect(internals.windows.size).toBe(1)
+      } finally {
+        setSystemTime()
       }
-      internals.check('10.0.0.1')
-      internals.check('10.0.0.2')
-      expect(internals.windows.size).toBe(2)
-      await new Promise((resolve) => setTimeout(resolve, 70))
-      // A check after expiry sweeps the stale entries before recording the new one
-      internals.check('10.0.0.3')
-      expect(internals.windows.size).toBe(1)
     })
   })
 

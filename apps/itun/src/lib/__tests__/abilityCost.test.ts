@@ -6,16 +6,10 @@
  * actions → activationCost) is exercised end-to-end.
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import type { SURefAbility } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveAbilityApCost } from '../abilityCost'
-
-beforeAll(async () => {
-  // resolveAbilityApCost reads Abilities + Actions models; preload them so the
-  // lazy-loaded reference schemas are available in the test runtime.
-  await SalvageUnionReference.preload(['abilities', 'actions'])
-})
 
 function findAbility(name: string): SURefAbility {
   const all = SalvageUnionReference.Abilities.all() as ReadonlyArray<SURefAbility>

@@ -7,13 +7,8 @@
  * the app keeps state.
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { describe, expect, test } from 'bun:test'
 import { activatableEffects } from '../dashboardEffects'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 describe('activatableEffects', () => {
   test('finds an activated contribution on an installed module', () => {

@@ -22,13 +22,13 @@
  *  - afterEach cleanup()
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
 import { Roster } from '../../roster/Roster'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
@@ -40,10 +40,6 @@ import { SnapshotSheet } from '../SnapshotSheet'
 // ---------------------------------------------------------------------------
 // Preload reference data
 // ---------------------------------------------------------------------------
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 afterEach(() => {
   cleanup()
@@ -66,8 +62,8 @@ const fakePilot: Pilot = {
   appearance: '',
   background: '',
   conditions: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 const fakeMech: Mech = {
@@ -79,8 +75,8 @@ const fakeMech: Mech = {
   modules: [],
   cargoLots: [],
   conditions: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 const fakeCrawler: Crawler = {
@@ -89,8 +85,8 @@ const fakeCrawler: Crawler = {
   name: 'Test Crawler',
   techLevel: 'tech-2',
   systems: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 type AnyEntity = Pilot | Mech | Crawler
@@ -109,7 +105,7 @@ function makeMechToPilotLink(mechId: string, pilotId: string): SoftLink {
     from: { type: 'mech', id: mechId },
     to: { type: 'pilot', id: pilotId },
     type: 'mech-to-pilot',
-    createdAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
   }
 }
 

@@ -8,11 +8,12 @@ import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityLookupMock } from '../../__tests__/mockEntityStore'
 import type { EntityLookup } from '../composition'
 import { resolveSheetComposition } from '../composition'
 
-const now = new Date().toISOString()
+const now = FIXTURE_NOW
 
 const pilot: Pilot = {
   id: 'p1',

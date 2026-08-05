@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 @import 'component-lib/styles/theme.css';
+/* The app's ONE print stylesheet. index.css declares no print rules of its own
+   — a second block here is what let six rules duplicate and one contradict. */
 @import './styles/print.css';
 
 @source '../../../packages/component-lib/src';
@@ -77,51 +79,4 @@ h6 {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-
-/*
- * Print / PDF export (#82, #258 — audit item 15). The live sheet doubles as
- * the print layout: chrome (header, rails, controls, FABs, toasts) hides,
- * paper goes white with dark ink, and stat pip rows keep their fills via
- * print-color-adjust so current HP/SP/EP/Heat state survives on paper.
- * "Save as PDF" in the browser print dialog covers PDF export.
- */
-@media print {
-  :root {
-    --color-wk-bg: #ffffff;
-    --color-wk-bg-2: #ffffff;
-    --color-paper: #ffffff;
-  }
-  body {
-    /* biome-ignore lint/complexity/noImportantStyles: print override must beat the app's themed background utilities */
-    background: #ffffff !important;
-  }
-  /* App chrome and interactive-only surfaces have no meaning on paper. */
-  header,
-  nav,
-  button,
-  [role='dialog'],
-  [data-sonner-toaster] {
-    /* biome-ignore lint/complexity/noImportantStyles: must beat Tailwind display utilities (flex/grid) on chrome elements */
-    display: none !important;
-  }
-  main {
-    /* biome-ignore lint/complexity/noImportantStyles: must beat Tailwind padding utilities on the main container */
-    padding: 0 !important;
-  }
-  /* Keep pip fills and status colors — the whole point of a sheet printout
-     is the live state (#258). */
-  * {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  a {
-    text-decoration: none;
-    color: inherit;
-  }
-  /* Cards should not split across pages when avoidable. */
-  section,
-  article {
-    break-inside: avoid;
-  }
 }

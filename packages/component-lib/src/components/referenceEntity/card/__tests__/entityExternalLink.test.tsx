@@ -18,7 +18,7 @@
  * catch this class of bug is an assertion that the rendered output actually
  * contains the provided node, which is what this file does.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntityExternalLinkProvider } from '../../entityHrefContext'
@@ -40,10 +40,6 @@ const renderWithLink = (extent: 'full' | 'head' | 'catalog') =>
   )
 
 describe('entity card external cross-link', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('renders the provided link in the identity footer at full extent', () => {
     renderWithLink('full')
     expect(screen.getByText(LINK_TEXT)).toBeTruthy()

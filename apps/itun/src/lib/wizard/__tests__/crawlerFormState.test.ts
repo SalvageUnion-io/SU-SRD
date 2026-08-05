@@ -5,7 +5,7 @@
  * fields — an edit save must never clobber live-play state (bays + NPC HP,
  * bayChoices, currentSP, cargoLots, maxSpModifier, workspaceId).
  */
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../schemas/crawler'
 import { CrawlerSchema } from '../../schemas/crawler'
@@ -19,10 +19,6 @@ import {
   seedDefaultCrawlerBays,
   toScrapPoolPatch,
 } from '../crawlerFormState'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 /** Narrow an SRD lookup that the fixtures guarantee exists. */
 function defined<T>(value: T | null | undefined, label: string): T {

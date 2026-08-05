@@ -11,9 +11,9 @@
  * Reducer semantics themselves are covered in cargoTransfer.test.ts.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { cleanup, renderHook } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import type { useEntityStore } from '../../../stores/entityStore'
 import type { CargoLot } from '../../schemas/cargoLot'
@@ -21,12 +21,6 @@ import type { Crawler } from '../../schemas/crawler'
 import type { Mech } from '../../schemas/mech'
 import type { PartnerInstance } from '../../schemas/partner'
 import { usePartnerCargo } from '../usePartnerCargo'
-
-beforeAll(async () => {
-  // partnerDerivedStats resolves the stat block through the ORM even when the
-  // ref does not match, so the table must be loaded.
-  await SalvageUnionReference.preload(['equipment'])
-})
 
 afterEach(() => {
   cleanup()
@@ -70,8 +64,8 @@ function makeHost(partners: PartnerInstance[]): Mech {
     conditions: [],
     cargoLots: [],
     partners,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
   }
 }
 
@@ -83,8 +77,8 @@ function makeCrawler(cargoLots: CargoLot[]): Crawler {
     techLevel: 'tech-3',
     systems: [],
     cargoLots,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
   }
 }
 

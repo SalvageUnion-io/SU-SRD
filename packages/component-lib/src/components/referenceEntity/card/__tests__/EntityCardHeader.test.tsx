@@ -26,15 +26,11 @@
  * These pin CLASSES rather than pixels. The layout itself is verified by
  * measuring real pages in a browser — see the PR for the numbers.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { StatItem } from '../../../shared/statsBarTypes'
 import { EntityCardHeader } from '../EntityCardHeader'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 // Real game content, per the story/test data rule. "Coolant Flush" is the
 // module from the wrapped-title bug report; the prose is a real ability

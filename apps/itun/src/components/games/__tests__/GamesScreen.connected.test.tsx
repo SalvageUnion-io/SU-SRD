@@ -1,5 +1,5 @@
-import { afterAll, afterEach, describe, expect, test } from 'bun:test'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterAll, describe, expect, test } from 'bun:test'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 /**
  * `GamesScreen` in its connected state — the Games *index*.
@@ -73,8 +73,6 @@ const TEMPLATES = [
 function queriesFor(game: Record<string, unknown>): QueryAnswers {
   return { 'games:listMine': [game], 'templates:list': TEMPLATES }
 }
-
-afterEach(cleanup)
 
 describe('the Games index for a signed-in player', () => {
   test('lists a row per game', () => {

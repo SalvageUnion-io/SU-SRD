@@ -17,18 +17,14 @@
  * Conventions: toBeTruthy() not toBeInTheDocument(), dep-injected store.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
 import { MechSheet } from '../MechSheet'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 afterEach(() => {
   cleanup()
@@ -55,8 +51,8 @@ function makeMech(overrides: Partial<Mech>): Mech {
     cargoLots: [],
     conditions: [],
     currentEP: 5,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
     ...overrides,
   }
 }
@@ -70,8 +66,8 @@ function makeCrawler(overrides: Partial<Crawler> = {}): Crawler {
     systems: [],
     cargoLots: [],
     scrapPool: { tl2: 5 },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
     ...overrides,
   } as Crawler
 }

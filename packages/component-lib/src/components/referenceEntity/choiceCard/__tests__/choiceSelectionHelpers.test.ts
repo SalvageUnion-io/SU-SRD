@@ -118,7 +118,14 @@ describe('getChoiceSourceKind — the discriminated source', () => {
   })
 
   test('falls back to legacy fields when source is absent', () => {
-    expect(getChoiceSourceKind({ id: 'n', name: 'Name', choiceType: 'freeform' })).toBe('text')
+    // A choice carrying NO source and none of the legacy discriminators is
+    // text. This used to be written as `{ choiceType: 'freeform' }`, which
+    // passed for the wrong reason: `getChoiceSourceKind` never read
+    // `choiceType` at all — it reached 'text' through the final fallthrough
+    // below, so the assertion would have held with the field set to anything.
+    // `choiceType` has since been deleted as a duplicate encoding of
+    // `lifetime` + `source.kind`; this asserts the invariant that remains.
+    expect(getChoiceSourceKind({ id: 'n', name: 'Name' })).toBe('text')
     expect(getChoiceSourceKind({ id: 't', name: 'AI', rollTable: 'A.I. Personality' })).toBe(
       'table'
     )

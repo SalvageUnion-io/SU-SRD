@@ -16,6 +16,7 @@ import type { MonotonicClock } from '../../../../lib/db/__tests__/monotonicClock
 import { installMonotonicClock } from '../../../../lib/db/__tests__/monotonicClock'
 import { _clearAllStores, _resetDbSingleton, mechPatterns, mechs } from '../../../../lib/db/index'
 import { MechPatternSchema } from '../../../../lib/schemas/pattern'
+import { FIXTURE_NOW } from '../../../__tests__/fixtures'
 import { must } from '../../../__tests__/must'
 
 // `createdAt` / `updatedAt` come from `new Date()` inside `crud.ts`, and `list()`
@@ -70,7 +71,7 @@ describe('MechPatternSchema — valid input', () => {
   test('parses a fully valid pattern', () => {
     const result = MechPatternSchema.safeParse({
       id: 'pattern-1',
-      createdAt: new Date().toISOString(),
+      createdAt: FIXTURE_NOW,
       ...validPatternBase,
     })
     expect(result.success).toBe(true)
@@ -79,7 +80,7 @@ describe('MechPatternSchema — valid input', () => {
   test('accepts empty arrays for systems, modules, cargoLots', () => {
     const result = MechPatternSchema.safeParse({
       id: 'pattern-2',
-      createdAt: new Date().toISOString(),
+      createdAt: FIXTURE_NOW,
       schemaVersion: 1,
       name: 'Bare Chassis',
       chassisRef: 'iron-mongrel',
@@ -97,7 +98,7 @@ describe('MechPatternSchema — invalid input', () => {
     delete withoutName.name
     const result = MechPatternSchema.safeParse({
       id: 'p',
-      createdAt: new Date().toISOString(),
+      createdAt: FIXTURE_NOW,
       ...withoutName,
     })
     expect(result.success).toBe(false)
@@ -106,7 +107,7 @@ describe('MechPatternSchema — invalid input', () => {
   test('rejects empty name (min length 1)', () => {
     const result = MechPatternSchema.safeParse({
       id: 'p',
-      createdAt: new Date().toISOString(),
+      createdAt: FIXTURE_NOW,
       ...validPatternBase,
       name: '',
     })
@@ -118,7 +119,7 @@ describe('MechPatternSchema — invalid input', () => {
     delete withoutChassisRef.chassisRef
     const result = MechPatternSchema.safeParse({
       id: 'p',
-      createdAt: new Date().toISOString(),
+      createdAt: FIXTURE_NOW,
       ...withoutChassisRef,
     })
     expect(result.success).toBe(false)
@@ -126,7 +127,7 @@ describe('MechPatternSchema — invalid input', () => {
 
   test('rejects missing id', () => {
     const result = MechPatternSchema.safeParse({
-      createdAt: new Date().toISOString(),
+      createdAt: FIXTURE_NOW,
       ...validPatternBase,
     })
     expect(result.success).toBe(false)
@@ -135,7 +136,7 @@ describe('MechPatternSchema — invalid input', () => {
   test('rejects unknown fields (.strict())', () => {
     const result = MechPatternSchema.safeParse({
       id: 'p',
-      createdAt: new Date().toISOString(),
+      createdAt: FIXTURE_NOW,
       ...validPatternBase,
       unknownField: 'should fail',
     })
@@ -145,7 +146,7 @@ describe('MechPatternSchema — invalid input', () => {
   test('rejects wrong schemaVersion', () => {
     const result = MechPatternSchema.safeParse({
       id: 'p',
-      createdAt: new Date().toISOString(),
+      createdAt: FIXTURE_NOW,
       ...validPatternBase,
       schemaVersion: 2,
     })

@@ -17,8 +17,6 @@ import type { SURefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveGuideLead } from '../resolveGuideLead'
 
-await SalvageUnionReference.preload('all')
-
 const guides = SalvageUnionReference.Guides.all()
 const asEntity = (guide: unknown) => guide as unknown as SURefMetaEntity
 

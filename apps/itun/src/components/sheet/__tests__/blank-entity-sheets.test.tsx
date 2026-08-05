@@ -8,29 +8,23 @@
  * injected EntityLookup + SoftLinkStore, no router provider needed.
  */
 
-import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import { seedDefaultCrawlerBays } from '../../../lib/wizard/crawlerFormState'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
 import type { EntityLookup } from '../Sheet'
 import { Sheet } from '../Sheet'
 
-beforeAll(async () => {
-  // The live sheets resolve refs across many schemas; load the full dataset
-  // like the app's GameDataReady gate does.
-  await SalvageUnionReference.preload('all')
-})
-
 afterEach(() => {
   cleanup()
 })
 
-const now = new Date().toISOString()
+const now = FIXTURE_NOW
 
 const blankPilot: Pilot = {
   id: 'blank-pilot-1',

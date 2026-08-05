@@ -19,7 +19,6 @@ import type { DialItem } from '../dialItems'
 let chassisSlug = 'iron-mongrel'
 
 beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
   const first = SalvageUnionReference.Chassis.all()[0] as { id?: string } | undefined
   if (first?.id) chassisSlug = first.id
 })

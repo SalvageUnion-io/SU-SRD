@@ -8,7 +8,6 @@ import type { ChoiceSelections } from '../choiceSelectionHelpers'
 const weaponTypeChoice: SURefObjectChoice = {
   id: 'weapon-type',
   name: 'Weapon Type',
-  choiceType: 'permanent',
   schema: ['traits'],
   schemaEntities: ['Ballistic', 'Energy'],
 }
@@ -16,7 +15,6 @@ const weaponTypeChoice: SURefObjectChoice = {
 const modificationChoice: SURefObjectChoice = {
   id: 'modification',
   name: 'Modification',
-  choiceType: 'permanent',
   multiSelect: true,
   constraints: { scalesWithField: 'techLevel' },
   choiceOptions: [
@@ -29,7 +27,6 @@ const modificationChoice: SURefObjectChoice = {
 const nameChoice: SURefObjectChoice = {
   id: 'name',
   name: 'Name',
-  choiceType: 'freeform',
   content: [{ type: 'paragraph', value: 'The name of your companion.' }],
 }
 
@@ -217,8 +214,6 @@ describe('ChoiceGroups — empty', () => {
 // NOT the old bare text box. Needs reference data preloaded so the roll table
 // resolves by name.
 // ---------------------------------------------------------------------------
-import { beforeAll } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
 
 const tableChoice: SURefObjectChoice = {
   id: 'ai-personality',
@@ -228,10 +223,6 @@ const tableChoice: SURefObjectChoice = {
 }
 
 describe('ChoiceGroups — table choice (A.I. Personality)', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('renders the cited table header (title + roll), rows collapsed', () => {
     render(<ChoiceGroups choices={[tableChoice]} readOnly />)
     // the header names the table and exposes the Roll button…

@@ -265,9 +265,18 @@
      claim about the UI that the UI does not honour; if the pulse is wanted, it
      comes back with the call site that applies it.
 
-     EVERY animation token here is applied `motion-safe:` (that law was written
-     on the deleted token, so it is restated here to outlive it) — a
-     prefers-reduced-motion user gets the static end state, never the loop. */
+     A prefers-reduced-motion user gets the static end state, never the loop.
+     Prefer stating that at the call site with `motion-safe:` — it is the
+     honest, per-site expression of the intent. But do NOT rely on it: the
+     claim this comment used to make ("EVERY animation token here is applied
+     `motion-safe:`") was simply false — 3 call sites used `motion-safe:`, 4
+     used `motion-reduce:`, one reached for `matchMedia` in JS, and 10 were
+     unguarded, including the `animate-slide-in-right`/`-out-right` drawer this
+     very block defines and 8 `animate-pulse` skeletons. A per-call-site
+     convention that nothing enforces will drift. The
+     `@media (prefers-reduced-motion: reduce)` backstop below the `@theme`
+     block is what makes the guarantee true, and it holds for a call site
+     nobody remembered to mark. */
 
   /* Mobile nav-drawer slide — the shared NavDrawer + the SRD mobile-search
      sheet. Lives here (not in each app's CSS) so the shared drawer animates
@@ -289,6 +298,43 @@
     to {
       transform: translateX(100%);
     }
+  }
+}
+
+/*
+ * Reduced-motion backstop — the single place the "no loops for a
+ * prefers-reduced-motion user" guarantee is actually made true.
+ *
+ * Motion was previously guarded four ways (`motion-safe:`, `motion-reduce:`, a
+ * JS `matchMedia` in Dial.tsx, and — for 10 call sites — not at all), with no
+ * `@media (prefers-reduced-motion)` block anywhere in the repo. That makes the
+ * guarantee a convention, and a convention that nothing enforces is a promise
+ * the next unmarked `animate-*` quietly breaks.
+ *
+ * `animation-duration: 0.01ms` + `animation-iteration-count: 1` does NOT strip
+ * the animation — it runs it once, instantly, so the element lands on the
+ * keyframes' END state rather than being left mid-transform. That is exactly
+ * what each of this file's animations wants: `slide-in-right` ends at
+ * `translateX(0)` (drawer open, in place), `slide-out-right` ends at
+ * `translateX(100%)` (drawer gone, so Base UI's exit-animation unmount still
+ * fires), and `animate-pulse` ends at full opacity (a static skeleton).
+ * Simply disabling the animation would strand the exit case mounted forever.
+ *
+ * The per-call-site `motion-safe:` marks stay and are still preferred — they
+ * say what the author meant. This is the floor under them, not a replacement.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: an accessibility backstop must out-rank every animation utility and inline style it covers, whatever their specificity or layer */
+    animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: same — a loop must not survive because one call site set iteration-count inline */
+    animation-iteration-count: 1 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: same — transitions are motion too, and `motion-reduce:transition-none` covers only the two components that remembered it */
+    transition-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: same — smooth scrolling is vestibular motion; nothing in the repo sets it today, and this keeps it that way */
+    scroll-behavior: auto !important;
   }
 }
 

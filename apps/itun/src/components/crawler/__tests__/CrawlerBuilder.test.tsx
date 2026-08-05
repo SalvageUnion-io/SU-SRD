@@ -10,11 +10,11 @@
  *   submit.
  *
  * Uses the real wizard, real SalvageUnionReference data, real Zod validation,
- * and a fake-indexeddb-backed entityStore (fake-indexeddb/auto preloaded via
- * bunfig.toml; SalvageUnionReference preloaded in beforeAll).
+ * and a fake-indexeddb-backed entityStore (fake-indexeddb/auto and the
+ * reference dataset are both preloaded via bunfig.toml).
  */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { isWeaponSystem } from 'salvageunion-reference/rules'
@@ -33,10 +33,6 @@ import { CrawlerBuilder } from '../CrawlerBuilder'
 // ---------------------------------------------------------------------------
 // Pre-load reference data
 // ---------------------------------------------------------------------------
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 // ---------------------------------------------------------------------------
 // Store reset helpers

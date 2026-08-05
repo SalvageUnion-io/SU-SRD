@@ -6,8 +6,7 @@
  * a default base crawler of a Tech Level. ORM preloaded for chassis/bay lookups.
  */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import type { MechPattern } from '../../../lib/schemas/pattern'
 import { useEntityStore } from '../../../stores/entityStore'
@@ -30,10 +29,6 @@ const pattern: MechPattern = {
   cargoLots: [],
   createdAt: '2026-01-01T00:00:00.000Z',
 }
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 beforeEach(async () => {
   _resetDbSingleton()

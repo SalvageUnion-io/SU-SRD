@@ -8,7 +8,7 @@
  * Tech-Level repair gate and the Orbital Lance never-recharge exception are
  * pinned against the shipped dataset.
  */
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Crawler } from '../../schemas/crawler'
 import type { Mech } from '../../schemas/mech'
@@ -26,17 +26,6 @@ import {
   repairableItems,
   resolveDowntimeScope,
 } from '../downtime'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload([
-    'chassis',
-    'systems',
-    'modules',
-    'equipment',
-    'crawler-bays',
-    'crawler-tech-levels',
-  ])
-})
 
 // ---------------------------------------------------------------------------
 // Fixtures

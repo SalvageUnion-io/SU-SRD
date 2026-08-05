@@ -4,15 +4,11 @@
  * so an unguarded link on a meta-schema entity (an action) renders as a link
  * and 404s.
  */
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import type { SURefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { must } from '../../components/__tests__/must'
 import { itunEntityHref } from '../entityHref'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 /** A complete entity that only differs in the schema it claims to come from. */
 function taggedAs(schemaName: string): SURefEntity & { schemaName: string } {

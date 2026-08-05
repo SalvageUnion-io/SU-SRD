@@ -25,6 +25,7 @@ import { CrawlerSchema } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../__tests__/expandCards'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { CrawlerSheet } from '../CrawlerSheet'
 
@@ -51,9 +52,9 @@ const MOCK_BAYS: Array<SURefCrawlerBay & { schemaName: string }> = [
       position: 'Princeps',
       hitPoints: 4,
       choices: [
-        { id: 'command-bay-name-1', name: 'Name', choiceType: 'freeform' },
-        { id: KEEPSAKE_CHOICE_ID, name: 'Keepsake', choiceType: 'freeform' },
-        { id: MOTTO_CHOICE_ID, name: 'Motto', choiceType: 'freeform' },
+        { id: 'command-bay-name-1', name: 'Name' },
+        { id: KEEPSAKE_CHOICE_ID, name: 'Keepsake' },
+        { id: MOTTO_CHOICE_ID, name: 'Motto' },
       ],
     },
   },
@@ -100,8 +101,8 @@ const baseCrawler: Crawler = {
     },
     { bayRef: 'mech-bay', npcCurrentHP: 4 },
   ],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 type Spies = {

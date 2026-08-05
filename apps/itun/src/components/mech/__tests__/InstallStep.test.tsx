@@ -6,18 +6,14 @@
  * numeric TL1–6 chips. Renders against real SalvageUnionReference data; the
  * step reads the ORM directly (no entityStore), so no DB scaffolding is needed.
  *
- * SalvageUnionReference is preloaded in beforeAll.
+ * SalvageUnionReference is preloaded via bunfig.toml.
  */
 
-import { afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import { afterEach, describe, expect, it } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { TechLevel } from '../../../lib/rules/types'
 import { InstallStep } from '../InstallStep'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 afterEach(() => {
   cleanup()

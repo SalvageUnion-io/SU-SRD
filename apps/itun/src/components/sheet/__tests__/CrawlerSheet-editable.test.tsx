@@ -21,6 +21,7 @@ import type { SURefCrawlerBay } from 'salvageunion-reference'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
 import { CrawlerSheet } from '../CrawlerSheet'
@@ -81,8 +82,8 @@ const fakeCrawler: Crawler = {
     { bayRef: 'command-bay', npcCurrentHP: 4, condition: 'damaged' },
     { bayRef: 'mech-bay', npcCurrentHP: 4 },
   ],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 type Spies = {

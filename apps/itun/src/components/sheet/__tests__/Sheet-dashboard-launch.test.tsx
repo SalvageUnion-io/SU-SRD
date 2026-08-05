@@ -4,9 +4,8 @@
  * frozen (read-only) sheet does not.
  */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { useEntityStore } from '../../../stores/entityStore'
 import { Sheet } from '../Sheet'
@@ -34,10 +33,6 @@ function resetEntityStore(): void {
     hydrated: { pilots: false, mechs: false, crawlers: false, softLinks: false },
   })
 }
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 beforeEach(async () => {
   _resetDbSingleton()

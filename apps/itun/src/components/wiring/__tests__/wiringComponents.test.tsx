@@ -14,6 +14,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { SoftLink } from '../../../lib/schemas/softLink'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import type { AssignCrawlerStore } from '../AssignCrawlerToPilot'
 import { AssignCrawlerToPilot } from '../AssignCrawlerToPilot'
 import type { AssignPilotStore } from '../AssignPilotToMech'
@@ -36,8 +37,8 @@ const fakePilot: Pilot = {
   appearance: '',
   background: '',
   conditions: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 const fakeCrawler: Crawler = {
@@ -46,8 +47,8 @@ const fakeCrawler: Crawler = {
   name: 'Iron Tortoise',
   techLevel: 'tech-2',
   systems: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: FIXTURE_NOW,
+  updatedAt: FIXTURE_NOW,
 }
 
 type MockCreateFn = ReturnType<
@@ -59,7 +60,7 @@ function makeCreateMock(): MockCreateFn {
   return mock(
     async (type: 'softLink', input: Omit<SoftLink, 'id' | 'createdAt'>): Promise<SoftLink> => {
       void type
-      return { ...input, id: 'link-new', createdAt: new Date().toISOString() }
+      return { ...input, id: 'link-new', createdAt: FIXTURE_NOW }
     }
   )
 }

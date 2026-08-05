@@ -7,16 +7,11 @@
  * the ORM, so preload('all') runs once.
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, waitFor } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { buildCatalogSections } from '../../../catalog/catalogSections'
 import { EntityHrefProvider } from '../../referenceEntity/entityHrefContext'
 import { SrdExplorer } from '../SrdExplorer'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 // Unmounting between tests is handled globally: component-lib's bunfig preloads
 // ../../test/testing-library.ts, whose act()-wrapped `afterEach(cleanup)` keeps

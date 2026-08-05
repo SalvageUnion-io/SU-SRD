@@ -6,7 +6,7 @@
  * the package module).
  */
 
-import { beforeAll, describe, expect, it } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { isWeaponSystem } from 'salvageunion-reference/rules'
 import type { CrawlerWizardFormState } from '../../wizard/crawlerFormState'
@@ -25,19 +25,6 @@ import {
   mechCreationStepGate,
   pilotCreationStepGate,
 } from '../creation'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload([
-    'classes',
-    'abilities',
-    'equipment',
-    'chassis',
-    'systems',
-    'modules',
-    'crawlers',
-    'actions',
-  ])
-})
 
 function idOf(name: string, accessor: { find: (fn: (x: { name: string }) => boolean) => unknown }) {
   const found = accessor.find((x) => x.name === name) as { id: string } | undefined

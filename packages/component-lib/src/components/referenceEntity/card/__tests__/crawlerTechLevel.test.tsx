@@ -5,7 +5,7 @@
  * schema — catalog tile AND full page — showed nothing but a name, a TL and an
  * SP. These tests pin each field to a surface so that cannot silently return.
  */
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { cleanup, render } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { crawlerPopulationRange } from '../crawlerPopulationRange'
@@ -22,10 +22,6 @@ const textOf = (node: Parameters<typeof render>[0]) =>
   (render(node).container.textContent ?? '').replace(/\s+/g, ' ')
 
 describe('crawler tech level card', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('the CATALOG tile carries every stored field', () => {
     const text = textOf(
       <ReferenceEntityCard data={tier('Hamlet Crawler')} size="medium" extent="catalog" />
@@ -69,10 +65,6 @@ describe('crawler tech level card', () => {
 })
 
 describe('crawlerPopulationRange', () => {
-  beforeAll(async () => {
-    await SalvageUnionReference.preload('all')
-  })
-
   test('formats a bounded band with an en dash and grouped thousands', () => {
     expect(crawlerPopulationRange(tier('City Crawler'))).toBe('5,000–15,000')
   })

@@ -15,22 +15,17 @@
  * dep-injected store.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../__tests__/expandCards'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { MechSheet } from '../MechSheet'
 
 // MechSheet resolves system/module slugs against the reference data at render.
-beforeAll(async () => {
-  // Full entity cards resolve actions/keywords/traits/distances — load all.
-  await SalvageUnionReference.preload('all')
-})
-
 afterEach(() => {
   cleanup()
 })
@@ -59,8 +54,8 @@ function makeMech(overrides: Partial<Mech>): Mech {
     modules: [],
     cargoLots: [],
     conditions: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
     ...overrides,
   }
 }

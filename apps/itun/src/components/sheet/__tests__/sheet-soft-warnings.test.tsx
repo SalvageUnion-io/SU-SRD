@@ -17,19 +17,15 @@
  * (L3), so dropping L1 while L2 is held trips ABILITY_TREE_ORDER.
  */
 
-import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Mech } from '../../../lib/schemas/mech'
 import type { Pilot } from '../../../lib/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
+import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
 import { MechSheet } from '../MechSheet'
 import { PilotSheet } from '../PilotSheet'
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 afterEach(() => {
   cleanup()
@@ -56,8 +52,8 @@ function makePilot(overrides: Partial<Pilot> = {}): Pilot {
     conditions: [],
     currentHP: 10,
     currentAP: 5,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
     ...overrides,
   }
 }
@@ -103,8 +99,8 @@ function makeMech(overrides: Partial<Mech> = {}): Mech {
     cargoLots: [],
     conditions: [],
     currentEP: 5,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
     ...overrides,
   } as Mech
 }

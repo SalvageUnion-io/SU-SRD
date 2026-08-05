@@ -1,16 +1,15 @@
 /**
  * DashboardChooser tests (Dashboard Phase 8, plan §8).
  *
- * fake-indexeddb/auto is preloaded via bunfig.toml; the real entityStore is
- * exercised so link-writes go through the true write-through path. The ORM is
- * preloaded in beforeAll because the mech step resolves chassis metadata.
+ * fake-indexeddb/auto and the reference dataset are preloaded via bunfig.toml;
+ * the real entityStore is exercised so link-writes go through the true
+ * write-through path.
  *
  * Uses .toBeTruthy() (no jest-dom type augmentation) per the ITUN convention.
  */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { _clearAllStores, _resetDbSingleton } from '../../../lib/db/index'
 import { useEntityStore } from '../../../stores/entityStore'
 import { DashboardChooser } from '../DashboardChooser'
@@ -79,10 +78,6 @@ async function seedCrew() {
   const crawler = await store.create('crawler', baseCrawlerInput)
   return { pilot, mech, crawler }
 }
-
-beforeAll(async () => {
-  await SalvageUnionReference.preload('all')
-})
 
 beforeEach(async () => {
   _resetDbSingleton()
