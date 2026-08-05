@@ -29,6 +29,13 @@ document and one JSON Schema document per schema, plus per-item lookups:
 - `apps/srd/src/pages/api.astro` — human-readable documentation of the
   above, plus `llms.txt` for machine discovery
 
+> **File paths above are as of this decision and have since moved**
+> ([ADR-031](ADR-031-srd-vite-ssg.md) replaced Astro with the in-house SSG). The
+> URLs are unchanged; the modules are now
+> `apps/srd/src/endpoints/{schemaJson,schemaDefinitionJson,itemJson,llmsTxt}.ts`,
+> registered in `apps/srd/ssg/endpoints.ts`, and the `/api` page is
+> `apps/srd/src/pages/api.page.tsx`. What this ADR decided is untouched.
+
 This API requires no install, no auth, and no build step — it is strictly
 easier for an external consumer to use than an npm package that ships raw
 TypeScript. The package's own `README.md` already documents a deprecation

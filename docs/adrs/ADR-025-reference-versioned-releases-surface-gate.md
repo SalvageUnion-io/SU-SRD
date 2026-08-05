@@ -9,7 +9,7 @@ Accepted. **Partially supersedes [ADR-014](ADR-014-json-api-public-interface-npm
 
 [ADR-014](ADR-014-json-api-public-interface-npm-retired.md) established that the
 dataset's public distribution is the **served JSON API** (`apps/srd`
-`/schema/*.json` + `.schema.json` + item endpoints + `api.astro`/`llms.txt`),
+`/schema/*.json` + `.schema.json` + item endpoints + the `/api` page + `llms.txt`),
 retired npm publishing, kept the package **`private: true`, workspace-internal**
 (consumed only via `workspace:*` TypeScript source, no build step), and
 **froze** `packages/salvageunion-reference/CHANGELOG.md` "since there is no
@@ -70,7 +70,7 @@ mechanism.
   ignored, consistent with ADR-014.
 
 - **Optional, not in this decision's required scope:** the served JSON API
-  (`api.astro`/`llms.txt`) may now surface the ref version so external
+  (the `/api` page + `llms.txt`) may now surface the ref version so external
   consumers know which dataset version they fetched. Noted as a follow-on.
 
 ## Consequences

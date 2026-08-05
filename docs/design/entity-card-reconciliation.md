@@ -102,7 +102,7 @@ read-only stays identical). The gaps (widest first = critical path):
 | `cardStyle: {className, style}` (NEW has only `className`)     | MechItemCard, CrawlerSheet, PilotSheetItems                    | pending                                    |
 | `expand` slot (accent field, before footer)                    | CrawlerSheetItems (bay crew)                                   | pending                                    |
 | `scalingParent` → choice-cap resolver in `NEWChoiceGroups`     | PilotSheet(Items) (per-Tech-Level caps)                        | pending                                    |
-| `titleAs: 'span'\|'h1'` on `NEWCardHeader` (SEO)               | srd islands, OG, `[itemId].astro`                              | pending                                    |
+| `titleAs: 'span'\|'h1'` on `NEWCardHeader` (SEO)               | srd islands, OG, `[itemId].page.tsx`                           | pending                                    |
 | `statsOverride` `{value,bottomLabel}` → `StatItem[]` adapter   | `useChassisPatternConfig` (or switch to native `pattern` prop) | pending                                    |
 | NPC parity (`npcConfig` reserved/no-op)                        | encounter/sheet NPC insets                                     | decide: implement or confirm native path   |
 | `mode`/`compact`/`listing` → `size`                            | ~everywhere                                                    | handled by the Stage-a shim                |
@@ -157,7 +157,7 @@ trips knip (unused export) — so it must land together with the barrel flip, on
 ### Stage b — migrate srd islands
 
 `ReferenceEntityIsland`, `SchemaViewerIsland`, `OgCardIsland`,
-`item/[itemId].astro`, `og-screenshots.ts`. Needs `titleAs`, `label` semantics,
+`item/[itemId].page.tsx`, `og-screenshots.ts`. Needs `titleAs`, `label` semantics,
 `afterExtraContent` (ClassAbilityTree); `getClassSelections` stays. Verify
 OG screenshots + a11y. Risk: medium (SEO H1 + OG pixel compare).
 

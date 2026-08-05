@@ -3,8 +3,9 @@ import { cn } from '../../utils/cn'
 import { CATALOG_TILE_CHROME, CATALOG_TILE_FILL, CATALOG_TILE_LABEL } from '../chrome/catalogTile'
 
 /**
- * CatalogTile — the shared catalog-tile link (canonical; converted from
- * srd's CatalogTile.astro). Callers resolve the colours/href/name and
+ * CatalogTile — the shared catalog-tile link (canonical; originally converted
+ * from an srd Astro component, which no longer exists — srd builds through its
+ * own SSG now). Callers resolve the colours/href/name and
  * pass them in; this owns the tile markup so the landing + 404 grids don't
  * duplicate it.
  *

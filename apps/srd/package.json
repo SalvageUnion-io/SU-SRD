@@ -5,12 +5,12 @@
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
-    "dev": "astro dev",
-    "typecheck": "astro check && tsc --noEmit -p tsconfig.json",
-    "build": "astro build",
-    "og:generate": "astro build && OG_SCREENSHOTS=1 bun scripts/og-screenshots.ts",
+    "dev": "bun ssg/dev.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "bun ssg/build.ts",
+    "og:generate": "bun ssg/build.ts && OG_SCREENSHOTS=1 bun scripts/og-screenshots.ts",
     "og:install-browser": "playwright install chromium",
-    "preview": "astro preview",
+    "preview": "bun ssg/preview.ts --port 4321",
     "lint": "biome lint .",
     "format": "biome format --write . && prettier --write '**/*.md' --ignore-unknown --log-level=warn",
     "sanity": "bun run lint -- --write && bun run format && bun run typecheck",
@@ -20,28 +20,25 @@
     "test:watch": "bun test --watch",
     "test:e2e": "playwright test",
     "e2e:install": "playwright install --with-deps chromium",
-    "clean": "rm -rf dist node_modules/.vite .astro",
+    "clean": "rm -rf dist node_modules/.vite",
     "check": "bun run lint && bun run format:check && bun run typecheck"
   },
   "dependencies": {
-    "@astrojs/check": "0.9.10",
-    "@astrojs/react": "^6.0.1",
-    "@astrojs/sitemap": "^3.7.3",
     "@base-ui/react": "1.6.0",
     "@fontsource/barlow": "5.3.0",
     "@fontsource/barlow-semi-condensed": "5.3.0",
     "@sentry/browser": "10.68.0",
-    "astro": "^7.1.4",
+    "component-lib": "workspace:*",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "salvageunion-reference": "workspace:*",
-    "component-lib": "workspace:*"
+    "salvageunion-reference": "workspace:*"
   },
   "devDependencies": {
     "@playwright/test": "1.62.0",
-    "@vite-pwa/astro": "1.2.0",
+    "@vitejs/plugin-react": "^6.0.4",
     "playwright": "1.62.0",
     "sharp": "0.35.3",
-    "typescript": "6.0.3"
+    "vite": "^8.1.5",
+    "workbox-build": "7.4.1"
   }
 }

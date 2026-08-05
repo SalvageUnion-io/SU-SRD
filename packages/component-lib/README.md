@@ -4,9 +4,10 @@ Shared React component library for the SURef monorepo. Consumed by `apps/srd` an
 
 ## Design constraints
 
-- **No build step.** Exports TypeScript source directly via `src/index.ts`. Consuming apps compile via their own Vite/Astro setup.
+- **No build step.** Exports TypeScript source directly via `src/index.ts`. Consuming apps compile it with their own Vite setup — and in `srd` the same source is also executed under Bun by the SSG's SSR pass, with no bundler at all.
 - **No backend dependency.** Data-source agnostic. Apps pass data in; the library renders it.
-- **Reusable across a static Astro site and a dynamic React SPA.** No framework-specific hooks that assume SSR, routing, or auth.
+- **Reusable across a statically generated site and a dynamic React SPA.** No framework-specific hooks that assume SSR, routing, or auth.
+- **Never import `.css` from a component `srd` renders on the server.** `srd`'s SSR pass does not go through Vite, so a stylesheet import reachable from it breaks that build (`apps/srd/ssg/DESIGN.md`, hard rule 1).
 
 ## Contents
 

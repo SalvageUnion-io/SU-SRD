@@ -3,18 +3,18 @@ import { defineConfig, devices } from '@playwright/test'
 /**
  * Playwright configuration for srd end-to-end tests.
  *
- * srd is a fully static Astro site (output: 'static', no SSR, no
- * backend). The e2e suite therefore runs against a locally-served build — the
- * same static-preview approach ITUN uses, NOT a Netlify Deploy-Preview target
+ * srd is a fully static site (the in-house SSG in `ssg/`, no SSR, no backend).
+ * The e2e suite therefore runs against a locally-served build — the same
+ * static-preview approach ITUN uses, NOT a Netlify Deploy-Preview target
  * (there is no server-side behaviour to exercise against a live deployment).
  *
- * - CI: `astro build` produces `dist/`, then `astro preview` serves it as
- *   static files on port 4321 (no per-request compile — first navigation is
- *   fast). The plain `astro build` is used on purpose instead of the
- *   `build` package script, which chains the slow OG-screenshot pass
- *   (headless browser over ~1,500 pages) that the smoke suite does not need.
- * - Local: reuse the already-running `astro dev` server on 4321 (the dev
- *   experience expectation; see the "restart in place on 4321" convention).
+ * - CI: `bun ssg/build.ts` produces `dist/`, then `bun ssg/preview.ts` serves it
+ *   as static files on port 4321 (no per-request compile — first navigation is
+ *   fast). The `build` package script is invoked directly rather than
+ *   `og:generate`, which chains the slow OG-screenshot pass (headless browser
+ *   over ~1,500 pages) that the smoke suite does not need.
+ * - Local: reuse the already-running dev server on 4321 (the dev experience
+ *   expectation; see the "restart in place on 4321" convention).
  */
 export default defineConfig({
   testDir: './e2e',
@@ -38,7 +38,7 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    // The site registers a PWA service worker (@vite-pwa/astro, autoUpdate).
+    // The site registers a PWA service worker (workbox generateSW, autoUpdate).
     // Its activation triggers a reload that can abort an in-flight navigation
     // mid-test; no e2e here exercises offline/installability, so block SW
     // registration to remove the race.
@@ -50,12 +50,10 @@ export default defineConfig({
     // { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     // { name: 'webkit',  use: { ...devices['Desktop Safari']  } },
   ],
-  // webServer.cwd defaults to this config file's directory (apps/srd),
-  // so the astro binary and dist/ resolve without a `cd`.
+  // webServer.cwd defaults to this config file's directory (apps/srd), so the
+  // ssg/ scripts and dist/ resolve without a `cd`.
   webServer: {
-    command: process.env.CI
-      ? 'bunx --bun astro build && bunx --bun astro preview --port 4321'
-      : 'bun run dev',
+    command: process.env.CI ? 'bun ssg/build.ts && bun ssg/preview.ts --port 4321' : 'bun run dev',
     url: 'http://localhost:4321',
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,

@@ -67,8 +67,8 @@ jobs:
           retention-days: 7
 
   e2e-srd:
-    # srd Playwright smoke suite: builds the Astro static bundle and
-    # serves it with `astro preview` via Playwright's webServer.
+    # srd Playwright smoke suite: builds the static bundle with the in-house
+    # SSG and serves it with `ssg/preview.ts` via Playwright's webServer.
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -160,17 +160,19 @@ jobs:
           echo "Chromium: $CHROME_PATH"
           echo "CHROME_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
 
-      # Same static-preview approach as e2e-srd's Playwright webServer: plain
-      # `astro build` (not the `build` package script, which chains the slow
-      # OG-screenshot pass) served by `astro preview` on 4321.
+      # Same static-preview approach as e2e-srd's Playwright webServer: the SSG
+      # build (`ssg/build.ts` directly, not the `og:generate` script, which
+      # chains the slow OG-screenshot pass) served by `ssg/preview.ts` on 4321.
+      # Was `bunx --bun astro build` / `astro preview`; srd no longer installs
+      # Astro, so those commands would fail outright rather than degrade.
       - name: Build srd static bundle
         working-directory: apps/srd
-        run: bunx --bun astro build
+        run: bun ssg/build.ts
 
       - name: Serve the build and run the a11y scan
         run: |
           set -euo pipefail
-          (cd apps/srd && bunx --bun astro preview --port 4321) &
+          (cd apps/srd && bun ssg/preview.ts --port 4321) &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
           for _ in $(seq 1 60); do

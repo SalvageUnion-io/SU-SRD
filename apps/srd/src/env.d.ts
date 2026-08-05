@@ -1,10 +1,12 @@
-/// <reference types="astro/client" />
+/// <reference types="vite/client" />
 
 interface ImportMetaEnv {
   /**
-   * Sentry DSN for browser error monitoring. `PUBLIC_`-prefixed so Astro
-   * exposes it to the client bundle. Unset (the default) → Sentry is a no-op
-   * and `@sentry/browser` is dead-code-eliminated from the bundle.
+   * Sentry DSN for browser error monitoring. The `PUBLIC_` prefix is retained
+   * from the Astro build that preceded this one, and is now honoured by
+   * `envPrefix` in `ssg/vite.config.ts` rather than by Astro — renaming it
+   * would silently unset the DSN on every deploy. Unset (the default) → Sentry
+   * is a no-op and `@sentry/browser` is dead-code-eliminated from the bundle.
    */
   readonly PUBLIC_SENTRY_DSN?: string
   /**

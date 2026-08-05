@@ -4,6 +4,25 @@
 @source '../../../../packages/component-lib/src';
 
 /*
+ * Cross-document view transitions — the replacement for Astro's <ClientRouter>.
+ *
+ * srd is a multi-page site: every navigation is a real document load, so this
+ * is the browser-native form and it ships ZERO JavaScript, where ClientRouter
+ * shipped a router. `TopNavigation.tsx` keeps a stable `view-transition-name`
+ * on the header so the nav is matched across the swap rather than cross-faded
+ * with the rest of the page.
+ *
+ * This rule is load-bearing and easy to lose: without it navigations simply
+ * stop animating, which no test asserts on and no build step notices. It was in
+ * fact missing for the first three commits of the Astro migration — two source
+ * comments referred to it as though it existed while the at-rule itself was
+ * never written.
+ */
+@view-transition {
+  navigation: auto;
+}
+
+/*
  * SEO / no-JS entity fallback (data-static-fallback): hidden pre-paint for
  * JS-capable browsers. BaseLayout adds `.js` to <html> synchronously in
  * <head>, and this render-blocking stylesheet applies before first paint, so

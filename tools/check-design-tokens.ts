@@ -30,7 +30,11 @@ const SCAN_DIRS = [
   'apps/itun/src',
 ]
 
-const SCAN_EXTENSIONS = ['.ts', '.tsx', '.astro', '.css']
+// `.astro` was here until apps/srd moved off Astro. Nothing in the repo emits
+// that extension any more, and the pages it used to cover are now .tsx — which
+// is how greembeem's deliberate Wikipedia palette became visible to this check
+// for the first time (see EXEMPTIONS).
+const SCAN_EXTENSIONS = ['.ts', '.tsx', '.css']
 
 type Rule = {
   /** Stable id, used by the exemption list. */
@@ -160,6 +164,12 @@ const RULES: Rule[] = [
  */
 const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
   {
+    file: 'apps/srd/src/pages/greembeem.page.tsx',
+    rules: ['raw-color'],
+    reason:
+      "Not an SRD surface. This is a standalone novelty page — a Wikipedia pastiche for an in-joke episode list — that is `noindex, nofollow`, excluded from the sitemap (ssg/sitemap.ts, and it registers via registerDocument), linked from nowhere in the repo, and carries its own self-contained inline <style> importing nothing from the theme. It is the ONLY page that opts out of the site stylesheet entirely: it owns its whole <html> and loads no global.css. Its literals ARE the joke: #a2a9b1 borders, #f8f9fa chrome and #3366cc links are MediaWiki's palette, and reskinning them in Salvage Union tokens would destroy the only thing the page does. It shares the deploy, not the design system. (Carried over verbatim from the `greembeem.astro` entry this replaces — the page was ported to .tsx by the Astro migration, not newly exempted. This checker always scanned .astro; it was Biome, not this rule, that gained srd coverage in that migration.)",
+  },
+  {
     file: 'packages/component-lib/src/styles/theme.css',
     rules: ['raw-color', 'arbitrary-border-width', 'arbitrary-radius'],
     reason:
@@ -268,12 +278,6 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
     reason:
       "Self-citation, not a colour: the sole match is a doc comment describing the `hostBase` parameter as accepting a resolvable CSS colour, naming the `rgb()` form it accepts. The rule matches the empty-parens spelling. Rewording the comment to dodge the regex would make the parameter's contract less clear to satisfy a lint — the same trade the raw-color rule already refuses for PR and issue references.",
   },
-  {
-    file: 'apps/srd/src/pages/greembeem.astro',
-    rules: ['raw-color'],
-    reason:
-      "Not an SRD surface. This is a standalone novelty page — a Wikipedia pastiche for an in-joke episode list — that is `noindex, nofollow`, excluded from the sitemap in astro.config.mjs, linked from nowhere in the repo, and carries its own self-contained inline <style> importing nothing from the theme. Its literals ARE the joke: #a2a9b1 borders, #f8f9fa chrome and #3366cc links are MediaWiki's palette, and reskinning them in Salvage Union tokens would destroy the only thing the page does. It shares the deploy, not the design system.",
-  },
 ]
 
 function walk(dir: string): string[] {
@@ -285,7 +289,14 @@ function walk(dir: string): string[] {
     return out
   }
   for (const entry of entries) {
-    if (entry === 'node_modules' || entry === 'dist' || entry.startsWith('.')) continue
+    // `generated`: machine-written files are not a place a violation can be
+    // fixed — the only edit that survives is to the generator, and the literals
+    // in them are DATA rather than authored styling. apps/srd's
+    // src/generated/navCatalog.ts carries the dataset's own `catalogBg` values
+    // (including its gradients), which used to reach the browser as serialized
+    // island props and were never scanned there either.
+    if (entry === 'node_modules' || entry === 'dist' || entry === 'generated') continue
+    if (entry.startsWith('.')) continue
     const full = join(dir, entry)
     if (statSync(full).isDirectory()) out.push(...walk(full))
     else if (SCAN_EXTENSIONS.some((ext) => entry.endsWith(ext))) out.push(full)

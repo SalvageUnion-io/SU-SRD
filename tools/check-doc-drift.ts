@@ -712,11 +712,15 @@ type FrameworkFact = {
 }
 
 const FRAMEWORKS: FrameworkFact[] = [
+  // Was Astro, anchored on apps/srd/package.json. srd no longer installs Astro —
+  // it builds through the in-house SSG in apps/srd/ssg, whose only framework
+  // dependency is Vite. A "Vite <major>" claim in the docs is now the drifting
+  // fact worth pinning for this app.
   {
-    name: 'Astro',
+    name: 'Vite',
     manifest: 'apps/srd/package.json',
-    dependency: 'astro',
-    pattern: /\bAstro\s+v?(\d+)(?:\.\d+)*/g,
+    dependency: 'vite',
+    pattern: /\bVite\s+v?(\d+)(?:\.\d+)*/g,
   },
   {
     name: 'React',

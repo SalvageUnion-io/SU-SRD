@@ -2,11 +2,31 @@
 
 ## Status
 
-Accepted
+**Superseded by [ADR-031](ADR-031-srd-vite-ssg.md)** (`srd` builds on an in-house
+Vite SSG).
 
-> **Note (2026-08-03):** the decision here is "**Astro, static, React islands**" —
-> the major version is incidental to it. `srd` was on **Astro 5** when this was
-> written; it runs **Astro 7** today (`apps/srd/package.json`; upgrade record in
+**Astro is gone from this repo.** There are no `.astro` files, no
+`astro.config.mjs`, no `astro check` and no `client:*` directives in `apps/srd`;
+the site is rendered by the in-house generator at `apps/srd/ssg/`, whose contract
+is [`ssg/DESIGN.md`](../../apps/srd/ssg/DESIGN.md). Anything below that names an
+Astro file, integration or directive is a historical record of how the site used
+to be built, not an instruction.
+
+**What this ADR decided is retained and re-affirmed by ADR-031**, because the
+decision was "**static, pre-rendered, no backend, React islands**" and only the
+machine producing it changed: static output, island-scoped interactivity, the
+`component-lib` + `salvageunion-reference` dependencies, read-only choices
+([ADR-010](ADR-010-srd-choices-ephemeral-vs-persisted.md)), the CSP constraint
+behind [ADR-013](ADR-013-csp-zod-jitless.md), the Netlify static deploy, and the
+closing rule that new interactive features are scoped as islands rather than
+turning the site into an SPA. What ADR-031 overturns is narrower than this
+document's title suggests: the **framework**, and with it the TypeScript 6 pin
+`@astrojs/check` imposed.
+
+> **Historical note (2026-08-03), preserved:** the decision here was "Astro,
+> static, React islands" — the major version was incidental to it. `srd` was on
+> **Astro 5** when this was written and ran **Astro 7** when it was superseded
+> (upgrade record in
 > [`plan-docs/upgrade-astro-7.md`](../../plan-docs/upgrade-astro-7.md), merged in
 > #365). The upgrade changed nothing this ADR decided. The Decision section below
 > is preserved as written apart from that version marker.

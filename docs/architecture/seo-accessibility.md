@@ -4,14 +4,26 @@ SEO applies to `srd` (the static reference site). Accessibility patterns are sha
 
 ## SEO (srd)
 
-### BaseLayout.astro
+> **`srd` is built by an in-house SSG, not Astro.** Everything below describes
+> `apps/srd/ssg` (`build.ts` / `dev.ts` / `render.tsx` / `parity.ts`), route
+> modules at `src/pages/**/*.page.tsx`, and endpoint modules at
+> `src/endpoints/*.ts`. The contract is
+> [`apps/srd/ssg/DESIGN.md`](../../apps/srd/ssg/DESIGN.md); every SEO surface named
+> here is compared against the archived Astro baseline by `bun ssg/parity.ts`,
+> which is the acceptance gate for any change on this page.
 
-**File:** `apps/srd/src/layouts/BaseLayout.astro`
+### BaseLayout
 
-Every page renders through BaseLayout, which provides per-page SEO metadata via props:
+**File:** `apps/srd/src/layouts/BaseLayout.tsx`
+
+Every page renders through BaseLayout, which receives the page's `DocumentMeta`
+(`ssg/types.ts`) and renders the whole `<html>` document except the hashed asset
+tags and the island-props script — `ssg/document.tsx` injects those, because it
+is the only module that reads the Vite manifest. **BaseLayout must never import
+`.css`**; see the hard rule in `ssg/DESIGN.md`.
 
 ```typescript
-type Props = {
+type DocumentMeta = {
   title?: string
   description?: string
   canonical?: string
@@ -36,32 +48,46 @@ type Props = {
 - Twitter Cards: `twitter:card` (`summary_large_image`), `twitter:title`, `twitter:description`, `twitter:image`
 - Favicons: SVG, PNG 96x96, Apple Touch Icon 180x180
 - Web manifest: `site.webmanifest`
-- Web fonts: Barlow superfamily self-hosted via `@fontsource/barlow` and `@fontsource/barlow-semi-condensed`; served same-origin under the strict `font-src 'self'` CSP, bundled into `/_astro/` by Vite with `font-display: swap`
+- Web fonts: Barlow superfamily self-hosted via `@fontsource/barlow` and `@fontsource/barlow-semi-condensed`, imported from `src/runtime/styles.entry.ts`; served same-origin under the strict `font-src 'self'` CSP, bundled into **`/assets/`** by Vite with `font-display: swap`. (The old Astro output directory was `/_astro/`; `netlify.toml`'s long-cache rule was moved with it.)
+- Prefetch/view transitions are browser-native, replacing Astro's runtime: a `<script type="speculationrules">` block with `eagerness: "moderate"` instead of `prefetch: { prefetchAll, hover }`, and a cross-document `@view-transition { navigation: auto; }` in `global.css` instead of `ClientRouter`. Both ship zero JS.
 
 ### Machine-readable surfaces
 
-- **`/llms.txt`** (`src/pages/llms.txt.ts`) — an LLM-oriented site map of the
-  reference content.
+These are **endpoint modules** (`EndpointModule` in `ssg/types.ts`), not routes.
+They live in `src/endpoints/` and are registered in `ssg/endpoints.ts`.
+
+- **`/llms.txt`** (`src/endpoints/llmsTxt.ts`) — an LLM-oriented site map of the
+  reference content. The parity gate compares it **byte for byte**, so its
+  template literal is a verbatim copy of the Astro original — do not reflow it.
 - **Public JSON API** — every schema and item page has a JSON twin:
-  `/schema/{schemaId}.json`, `/schema/{schemaId}.schema.json`, and
-  `/schema/{schemaId}/item/{itemId}.json` (see `src/pages/schema/`). CORS for
-  these paths is opened via `public/_headers`
-  (`Access-Control-Allow-Origin: *`, GET only).
-- **PWA** — `@vite-pwa/astro` in `astro.config.mjs` makes the site installable
-  and offline-capable (service worker, autoUpdate).
+  `/schema/{schemaId}.json` (`schemaJson.ts`),
+  `/schema/{schemaId}.schema.json` (`schemaDefinitionJson.ts`), and
+  `/schema/{schemaId}/item/{itemId}.json` (`itemJson.ts`). All 899 of them are
+  parsed and deep-compared by `ssg/parity.ts`. CORS for these paths is opened via
+  `public/_headers` (`Access-Control-Allow-Origin: *`, GET only).
+- **Search index** — `src/endpoints/searchIndexJson.ts`.
+- **PWA** — `ssg/pwa.ts` runs `workbox-build`'s `generateSW` over the finished
+  `dist` (replacing `@vite-pwa/astro`), keeping the same
+  `globPatterns: ['**/*.{js,css,woff2,svg}']`, `navigateFallback: null`,
+  `skipWaiting`, `clientsClaim` and runtime-caching rules, and still emitting
+  `registerSW.js`.
 
 ### Structured Data (JSON-LD)
 
 Rendered as `<script type="application/ld+json">`. The main content types (the
 one-off page types — `AboutPage`, `WebPage`, `SoftwareApplication`,
-`TechArticle` — are not listed; grep `@type` under `apps/srd/src/pages/`):
+`TechArticle` — are not listed; grep `@type` under `apps/srd/src/pages/**/*.page.tsx`):
 
-| Type             | Page                                            | Key properties                                                         |
-| ---------------- | ----------------------------------------------- | ---------------------------------------------------------------------- |
-| `WebSite`        | Homepage (`index.astro`)                        | name, url                                                              |
-| `CollectionPage` | Schema pages (`[schemaId]/index.astro`)         | description, item count, creator (Organization), keywords              |
-| `ItemPage`       | Entity pages (`[schemaId]/item/[itemId].astro`) | name, tech level (PropertyValue), source (Book), parent CollectionPage |
-| `BreadcrumbList` | All pages with breadcrumbs (`AppBar.tsx`)       | Positional list items with URLs                                        |
+| Type             | Page                                                      | Key properties                                                         |
+| ---------------- | --------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `WebSite`        | Homepage (`index.page.tsx`)                               | name, url                                                              |
+| `CollectionPage` | Schema pages (`schema/[schemaId]/index.page.tsx`)         | description, item count, creator (Organization), keywords              |
+| `ItemPage`       | Entity pages (`schema/[schemaId]/item/[itemId].page.tsx`) | name, tech level (PropertyValue), source (Book), parent CollectionPage |
+| `BreadcrumbList` | All pages with breadcrumbs (`AppBar.tsx`)                 | Positional list items with URLs                                        |
+
+A page declares JSON-LD by returning `meta.structuredData` /
+`meta.additionalStructuredData` from its `page()`. Every emitted block is parsed
+and deep-compared against the baseline by `ssg/parity.ts`.
 
 Entity page meta descriptions are derived from the first static content paragraph, truncated to 155 characters.
 
@@ -76,7 +102,7 @@ Entity pages use progressive enhancement so crawlers see full text content even 
 - Gathers trait names
 - Returns `StaticEntitySummary`
 
-**2. Static HTML** (`StaticEntityContent` — `component-lib`'s `src/components/shared/StaticEntityContent.tsx`, rendered from `apps/srd/src/components/EntityView.astro`):
+**2. Static HTML** (`StaticEntityContent` — `component-lib`'s `src/components/shared/StaticEntityContent.tsx`, rendered from `apps/srd/src/components/EntityView.tsx`):
 
 ```html
 <div data-static-fallback>
@@ -89,16 +115,25 @@ Entity pages use progressive enhancement so crawlers see full text content even 
 ```
 
 **3. Client-side replacement** (`ReferenceEntityIsland.tsx`):
-On React hydration, removes `[data-static-fallback]` elements and replaces them with the interactive `ReferenceEntityCard`.
+When the island **mounts** — `createRoot`, never `hydrateRoot`; there is no
+hydration anywhere in this app — it removes `[data-static-fallback]` elements and
+replaces them with the interactive `ReferenceEntityCard`. `BaseLayout` also stamps
+`document.documentElement.classList.add('js')` synchronously before first paint so
+`.js [data-static-fallback] { display: none }` (`global.css`) hides the no-JS text
+for JS users; without it the naked static text flashed on every entity load.
+
+`EntityCardStatic` — the zero-JS render path used by 82% of entity pages — is
+**not** an island at all; it renders straight into the page tree.
 
 ### Sitemap & Robots
 
-- **Sitemap**: Auto-generated by `@astrojs/sitemap` with `lastmod`. Excludes `/image` paths. Published at `https://salvageunion.io/sitemap-index.xml`.
+- **Sitemap**: generated by `ssg/sitemap.ts` (replacing `@astrojs/sitemap`), emitting the same `sitemap-index.xml` + `sitemap-0.xml` pair. Two independent exclusion mechanisms, on purpose: the **authoritative** one is `register(page, { sitemap: false })` at the registration site in `ssg/routes.ts`, and a URL-shaped filter in `sitemap.ts` still drops `/image`, `/greembeem`, `.og.png` and `/og-card`. Published at `https://salvageunion.io/sitemap-index.xml`.
 - **robots.txt** (`apps/srd/public/robots.txt`): Allows all crawlers, references sitemap.
 
 ### Static Build Paths
 
-`staticPaths.ts` pre-computes all routes at build time:
+`src/lib/staticPaths.ts` pre-computes all routes at build time; the page modules
+expose them through `getStaticPaths()` on their `PageModule`:
 
 - `getSchemaStaticPaths()` — Routes for all schemas
 - `getItemStaticPaths()` — Routes for all items within schemas
@@ -137,17 +172,17 @@ Reports violations with impact level (critical/serious/moderate/minor), node exa
 | ---------- | -------------------------- | ------------------------------ |
 | `<nav>`    | `AppBar.tsx`               | `aria-label="Main navigation"` |
 | `<nav>`    | `AppBar.tsx` (breadcrumbs) | `aria-label="Breadcrumb"`      |
-| `<main>`   | `BaseLayout.astro`         | Wraps all page content         |
+| `<main>`   | `BaseLayout.tsx`           | Wraps all page content         |
 | `<footer>` | `Footer.tsx`               | Implicit landmark              |
 
 `AppBar` and `Footer` both live in `component-lib` (`src/components/shared/`);
-`srd` reaches the nav through `TopNavigation.astro` → `SiteHeader.tsx` → `AppBar`.
+`srd` reaches the nav through `TopNavigation.tsx` → `SiteHeader.tsx` → `AppBar`.
 
 ### Heading Structure
 
 - Homepage: `<h1 class="sr-only">` (hidden, for screen readers)
 - Schema pages: `<h1>` for main heading with pseudoheader label
-- Entity pages: `titleAs="h1"`, passed from `EntityView.astro` through
+- Entity pages: `titleAs="h1"`, passed from `EntityView.tsx` through
   `ReferenceEntityIsland` to `ReferenceEntityCard`, which forwards it to
   `EntityCardHeader` as the title element (defaults to `span`)
 - All pages have exactly one `<h1>`

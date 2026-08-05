@@ -1,19 +1,28 @@
 # Upgrade Path: Astro 6 → 7 (srd)
 
-**Status:** ✅ **Merged** in #365. srd now runs Astro 7 + Vite 8. This doc
+> **Superseded — srd no longer runs Astro at all.** It was migrated onto an
+> in-house static-site generator at [`apps/srd/ssg`](../apps/srd/ssg/DESIGN.md);
+> `astro.config.mjs`, `@astrojs/*` and `astro check` are gone. Everything below is
+> a **historical record of the Astro 6 → 7 upgrade** and describes a stack that no
+> longer exists. Do not follow it as instruction. The `trailingSlash: 'ignore'`
+> decision it settled does still matter — the SSG's URL→file mapping reproduces it
+> exactly, and `ssg/parity.ts` enforces that against the archived Astro baseline.
+
+**Status:** ✅ **Merged** in #365 (and later superseded, see above). srd ran
+Astro 7 + Vite 8 from then until the SSG migration. This doc
 is kept as the historical record of how the deferred blocker was resolved (the
 loader change and the `trailingSlash` decision are described under **Decisions
 for review** below). Two notes for anyone revisiting the loaders: `ssrEmitAssets`
 was verified NOT to fix the blocker; dropping the `with: { type: 'json' }`
 attribute did, and was validated across all four consumers.
 
-> **Do not move or delete this file.** `apps/srd/astro.config.mjs:15` cites it
-> **by path** — the comment reads
-> _"build succeeds. See plan-docs/upgrade-astro-7.md for the SEO trade-off."_ —
-> so relocating it orphans a live code comment. It is the only remaining
-> occupant of `plan-docs/`; the other planning documents were folded into
-> [`docs/design/`](../docs/design/) on 2026-08-03. If this ever does move,
-> update that comment in the same change.
+> **The code comment that pinned this file is gone.** `apps/srd/astro.config.mjs`
+> used to cite this doc **by path** (_"build succeeds. See
+> plan-docs/upgrade-astro-7.md for the SEO trade-off."_), which is why it was
+> marked un-movable. That file was deleted with the rest of Astro, so nothing in
+> the codebase references this path any more. It remains the only occupant of
+> `plan-docs/`; the other planning documents were folded into
+> [`docs/design/`](../docs/design/) on 2026-08-03.
 
 ## What landed
 

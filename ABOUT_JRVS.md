@@ -2,7 +2,7 @@
   The canonical author bio for this project.
 
   Rendered verbatim in the colophon on both about pages, alongside
-  `LLM_STATEMENT.md` — srd's `/about` (`apps/srd/src/pages/about.astro`, read at
+  `LLM_STATEMENT.md` — srd's `/about` (`apps/srd/src/pages/about.page.tsx`, read at
   build time with node:fs) and ITUN's `/about` (`apps/itun/src/routes/about.tsx`,
   inlined via a Vite `?raw` import). Edit the wording here and both sites change
   together; there is no second copy.

@@ -14,6 +14,7 @@
  * mutated in place (a new image gets a new name).
  */
 import { getStore } from '@netlify/blobs'
+import { captureException, initObservability } from './_observability'
 
 const CONTENT_TYPES: Record<string, string> = {
   png: 'image/png',
@@ -36,11 +37,27 @@ export type AssetBlobStore = {
 }
 
 /**
+ * How a failure is reported. Injected for the same reason the store is — the
+ * tests assert *which* outcomes reach Sentry and which deliberately do not,
+ * and doing that with `mock.module('@sentry/node')` would rewrite the module
+ * registry for the whole test process.
+ */
+export type AssetFailureReporter = (error: unknown, context?: Record<string, unknown>) => void
+
+/**
  * Handler factory. The store getter is invoked per request (never at module
  * scope) because `getStore` requires the Netlify Functions runtime context.
+ *
+ * On reporting: a 404 is not an error here. A request for a key that is not in
+ * the store, a path that fails the traversal guard, or an extension outside the
+ * allowlist are all ordinary outcomes on a public, crawler-visible host — this
+ * function answers every path on `assets.salvageunion.io`, so alerting on them
+ * would turn the Sentry project into a scanner log. What IS reported is the
+ * store failing to answer at all, which is the failure mode that silently
+ * breaks entity artwork in both srd and itun.
  */
 export const makeAssetHandler =
-  (openStore: () => AssetBlobStore) =>
+  (openStore: () => AssetBlobStore, report: AssetFailureReporter = captureException) =>
   async (req: Request): Promise<Response> => {
     const { pathname } = new URL(req.url)
     const key = decodeURIComponent(pathname.replace(/^\/+/, ''))
@@ -56,8 +73,19 @@ export const makeAssetHandler =
       return new Response('Unsupported asset type', { status: 404 })
     }
 
-    const store = openStore()
-    const stream = await store.get(key, { type: 'stream' })
+    // Opening the store and reading from it are one failure domain: `getStore`
+    // throws when the Blobs runtime context or the store binding is missing,
+    // and `get` rejects on a Blobs outage. Either way artwork stops serving for
+    // every visitor at once, so it surfaces as a controlled 503 with a Sentry
+    // event rather than an unhandled 500 nobody sees.
+    let stream: ReadableStream | null
+    try {
+      stream = await openStore().get(key, { type: 'stream' })
+    } catch (error) {
+      report(error, { fn: 'asset', op: 'blobs.get', key })
+      return new Response('Asset storage unavailable', { status: 503 })
+    }
+
     if (!stream) {
       return new Response('Not found', { status: 404 })
     }
@@ -73,7 +101,21 @@ export const makeAssetHandler =
     })
   }
 
-export default makeAssetHandler(() => getStore('lp-assets'))
+const handler = makeAssetHandler(() => getStore('lp-assets'))
+
+/** @public Netlify Functions handler — invoked by the platform, not imported. */
+export default async function (req: Request): Promise<Response> {
+  initObservability()
+  try {
+    return await handler(req)
+  } catch (error) {
+    // Nothing above should reach here — the store call has its own catch — so
+    // anything that does is a bug in this function rather than a Blobs outage,
+    // and is worth an event precisely because it was never anticipated.
+    captureException(error, { fn: 'asset' })
+    return new Response('Internal Server Error', { status: 500 })
+  }
+}
 
 // Functions v2 in-code routing: this function handles every path on the site.
 export const config = {
