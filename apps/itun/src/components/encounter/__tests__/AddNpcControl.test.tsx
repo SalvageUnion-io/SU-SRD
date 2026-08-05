@@ -6,9 +6,10 @@
  * the flattened candidate — including HP-vs-SP track derivation.
  */
 
-import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { SURefBioTitan, SURefNPC } from 'salvageunion-reference'
+import { patchModelRows } from '../../../../../../test/patchModel'
 import { must } from '../../__tests__/must'
 import { AddNpcControl } from '../AddNpcControl'
 import type { EncounterCandidate } from '../referenceNpcs'
@@ -40,25 +41,22 @@ const MOCK_BIO_TITANS: Array<SURefBioTitan & { schemaName: string }> = [
 
 async function patchReference(empty = false): Promise<() => void> {
   const { SalvageUnionReference } = await import('salvageunion-reference')
-  const models = [
-    SalvageUnionReference.NPCs,
-    SalvageUnionReference.Squads,
-    SalvageUnionReference.Creatures,
-    SalvageUnionReference.BioTitans,
-    SalvageUnionReference.Vehicles,
-    SalvageUnionReference.Meld,
+  // Every accessor, not just `all()` — see `patchModelRows`. The encounter path
+  // reaches rows through `listCandidates` today, but it resolves a pick with
+  // `find(c => c.slug === slug)`, which is exactly the linear scan that gets
+  // converted to `getBySlug` sooner or later. A patch that covers only `all()`
+  // keeps passing right up until that happens and then hands the component real
+  // data while this file asserts on fixtures.
+  const restores = [
+    patchModelRows(SalvageUnionReference.NPCs, empty ? [] : MOCK_NPCS),
+    patchModelRows(SalvageUnionReference.BioTitans, empty ? [] : MOCK_BIO_TITANS),
+    patchModelRows(SalvageUnionReference.Squads, []),
+    patchModelRows(SalvageUnionReference.Creatures, []),
+    patchModelRows(SalvageUnionReference.Vehicles, []),
+    patchModelRows(SalvageUnionReference.Meld, []),
   ]
-  const originals = models.map((m) => m.all.bind(m))
-  SalvageUnionReference.NPCs.all = mock(() => (empty ? [] : MOCK_NPCS))
-  SalvageUnionReference.BioTitans.all = mock(() => (empty ? [] : MOCK_BIO_TITANS))
-  SalvageUnionReference.Squads.all = mock(() => [])
-  SalvageUnionReference.Creatures.all = mock(() => [])
-  SalvageUnionReference.Vehicles.all = mock(() => [])
-  SalvageUnionReference.Meld.all = mock(() => [])
   return () => {
-    models.forEach((m, i) => {
-      m.all = must(originals[i])
-    })
+    for (const restore of restores) restore()
   }
 }
 

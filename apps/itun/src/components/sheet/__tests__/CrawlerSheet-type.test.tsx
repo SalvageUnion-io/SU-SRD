@@ -18,12 +18,12 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { SURefCrawler } from 'salvageunion-reference'
+import { patchModelRows } from '../../../../../../test/patchModel'
 import type { Crawler } from '../../../lib/schemas/crawler'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import { patchModelRows } from '../../__tests__/patchModel'
 import { CrawlerIdentityPanel } from '../CrawlerIdentity'
 
 afterEach(() => {
