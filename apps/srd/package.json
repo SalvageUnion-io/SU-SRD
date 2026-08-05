@@ -11,6 +11,8 @@
     "og:generate": "bun ssg/build.ts && OG_SCREENSHOTS=1 bun scripts/og-screenshots.ts",
     "og:install-browser": "playwright install chromium",
     "preview": "bun ssg/preview.ts --port 4321",
+    "parity": "bun ssg/parity.ts",
+    "parity:baseline": "bun ssg/make-parity-baseline.ts",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "sanity": "bun run lint -- --write && bun run format && bun run typecheck",
