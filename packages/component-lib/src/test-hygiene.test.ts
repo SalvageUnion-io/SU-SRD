@@ -180,6 +180,15 @@ describe('test hygiene', () => {
     // `patchModelRows` (test/patchModel.ts, shared across workspaces)
     // patches every accessor, so the seam means "this model contains exactly
     // these rows" rather than "this one method returns this array".
+    //
+    // Known blind spot, stated rather than implied: this matches the accessor
+    // on `SalvageUnionReference.<Model>` directly, so binding the model to a
+    // local first (`const m = SalvageUnionReference.NPCs; m.all = …`) evades
+    // it. That is not paranoia — an aliased `const tables = RollTables.all()`
+    // is precisely how a per-render full-schema scan hid from a repo-wide grep
+    // in #682. The direct form is the one that actually gets written, so this
+    // is worth having; just do not read a pass here as proof that no model is
+    // half-patched anywhere.
     const offenders: string[] = []
     for (const { rel, source } of testFiles) {
       for (const match of stripComments(source).matchAll(PARTIAL_MODEL_PATCH)) {
