@@ -85,6 +85,13 @@ for (const workspace of PRELOADED_WORKSPACES) {
 const stripComments = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^[ \t]*\/\/.*$/gm, '')
 
+/**
+ * Assigning a single accessor on a `SalvageUnionReference` model, e.g.
+ * `Model.all = mock(...)`. Matches the accessor set `BaseModel` exposes.
+ */
+const PARTIAL_MODEL_PATCH =
+  /SalvageUnionReference\.(\w+)\.(all|getById|getByName|getBySlug|find|findAll)\s*=/g
+
 describe('test hygiene', () => {
   test('the guard actually found the test files it is meant to police', () => {
     // A broken glob or a moved workspace would otherwise make this file pass
@@ -153,6 +160,35 @@ describe('test hygiene', () => {
     expect(
       missing,
       'these workspaces are policed above but do not preload test/reference-preload.ts'
+    ).toEqual([])
+  })
+
+  test('no test file patches a single accessor on a reference model', () => {
+    // A model is reachable four ways — `all()`, `getById`, `getByName`,
+    // `getBySlug` — and the last three read `BaseModel`'s lazily-built index
+    // rather than calling `all()`. So patching `all` alone does not replace the
+    // model's rows; it replaces ONE route to them. Production code that reaches
+    // rows the other way gets the real dataset while the test asserts on
+    // fixtures, and the resulting failure reads as a component bug rather than
+    // a mocking gap.
+    //
+    // That is not hypothetical. Converting the crawler lookups from a linear
+    // `find(b => b.id === ref || b.name === ref)` to the indexed resolver broke
+    // 17 tests across five suites at once, all of which had patched `all` only.
+    // Nothing about the production change was wrong — the seam was.
+    //
+    // `patchModelRows` (test/patchModel.ts, shared across workspaces)
+    // patches every accessor, so the seam means "this model contains exactly
+    // these rows" rather than "this one method returns this array".
+    const offenders: string[] = []
+    for (const { rel, source } of testFiles) {
+      for (const match of stripComments(source).matchAll(PARTIAL_MODEL_PATCH)) {
+        offenders.push(`${rel} — SalvageUnionReference.${match[1]}.${match[2]} =`)
+      }
+    }
+    expect(
+      offenders,
+      'patch reference-model rows with patchModelRows(model, rows), which covers every accessor'
     ).toEqual([])
   })
 })
