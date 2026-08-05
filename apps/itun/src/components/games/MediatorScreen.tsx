@@ -1,4 +1,15 @@
-import { Badge, Button, Card, Field, Input, PageHeading, Row, Select, Text } from 'component-lib'
+import {
+  Badge,
+  Button,
+  Card,
+  Field,
+  Input,
+  PageHeading,
+  PageShell,
+  Row,
+  Select,
+  Text,
+} from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -314,7 +325,7 @@ export function MediatorScreen({ gameId }: { gameId: string }) {
   return (
     // Wider than it was: the surface now leads with a three-column roster, and
     // the old 3xl column squeezed it to one column on every screen size.
-    <main className="flex min-h-screen flex-col gap-6 bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
+    <PageShell>
       <PageHeading className="w-fit">Mediator</PageHeading>
       {!isConvexConfigured || mode !== 'connected' ? (
         <Card>
@@ -328,6 +339,6 @@ export function MediatorScreen({ gameId }: { gameId: string }) {
       ) : (
         <MediatorBody gameId={gameId as Id<'games'>} />
       )}
-    </main>
+    </PageShell>
   )
 }

@@ -1,5 +1,15 @@
 import { useNavigate } from '@tanstack/react-router'
-import { Button, Card, EntityRow, Field, Input, ModalShell, PageHeading, Text } from 'component-lib'
+import {
+  Button,
+  Card,
+  EntityRow,
+  Field,
+  Input,
+  ModalShell,
+  PageHeading,
+  PageShell,
+  Text,
+} from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import { useState } from 'react'
@@ -242,7 +252,7 @@ function GamesBody() {
 
 export function GamesScreen() {
   return (
-    <main className="flex min-h-screen flex-col gap-6 bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
+    <PageShell>
       <PageHeading className="w-fit">Games</PageHeading>
       {isConvexConfigured ? (
         <GamesBody />
@@ -256,6 +266,6 @@ export function GamesScreen() {
           </div>
         </Card>
       )}
-    </main>
+    </PageShell>
   )
 }

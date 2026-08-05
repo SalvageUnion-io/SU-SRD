@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { Badge, Button, Card, PageHeading, Text } from 'component-lib'
+import { Badge, Button, Card, PageHeading, PageShell, Text } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -205,13 +205,13 @@ export function JoinScreen({ code }: { code: string }) {
   }
 
   return (
-    <main className="flex min-h-screen flex-col gap-6 bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
+    <PageShell>
       <PageHeading className="w-fit">Join a game</PageHeading>
       {/* The page shell is the full-width one every Game surface now uses, but
           the form inside is capped: a Game screen is wide because it lists a
           crew, and this one holds a six-character code. Stretching the card to
           1440px would make the shells match by making the content worse. */}
       <div className="w-full max-w-xl">{body()}</div>
-    </main>
+    </PageShell>
   )
 }

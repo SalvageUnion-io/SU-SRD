@@ -61,10 +61,7 @@ export function resolveNestedEntities(entity: SURefMetaEntity): NestedGroup[] {
       if (typeof ability !== 'object' || ability === null || !('drone' in ability)) continue
       const { drone } = ability
       if (typeof drone === 'string') {
-        push(
-          'Drones',
-          SalvageUnionReference.findIn('drones', (x) => x.name === drone)
-        )
+        push('Drones', SalvageUnionReference.getByNameIn('drones', drone))
       }
     }
   }
@@ -135,23 +132,15 @@ export function resolvePatternGroups(pattern: SURefObjectPattern): NestedGroup[]
   }
 
   for (const s of pattern.systems ?? [])
-    push(
-      'Systems',
-      SalvageUnionReference.findIn('systems', (x) => x.name === s.name),
-      s.count
-    )
+    push('Systems', SalvageUnionReference.getByNameIn('systems', s.name), s.count)
   for (const m of pattern.modules ?? [])
-    push(
-      'Modules',
-      SalvageUnionReference.findIn('modules', (x) => x.name === m.name),
-      m.count
-    )
+    push('Modules', SalvageUnionReference.getByNameIn('modules', m.name), m.count)
   for (const d of pattern.drones ?? [])
     push(
       'Drones',
       // `ref ?? name` — an instance name ('Shield Drone') resolves through its
       // shared stat block ('Big Brother Drone'). See `resolvePatternDrones`.
-      SalvageUnionReference.findIn('drones', (x) => x.name === (d.ref ?? d.name))
+      SalvageUnionReference.getByNameIn('drones', d.ref ?? d.name)
     )
 
   return [...groups.entries()].map(([label, entities]) => ({ label, entities }))
@@ -178,11 +167,11 @@ function resolveLoadout(
   moduleNames: string[]
 ): { systems: SURefEntity[]; modules: SURefEntity[] } {
   const systems = systemNames.flatMap((name) => {
-    const found = SalvageUnionReference.findIn('systems', (s) => s.name === name)
+    const found = SalvageUnionReference.getByNameIn('systems', name)
     return found ? [found] : []
   })
   const modules = moduleNames.flatMap((name) => {
-    const found = SalvageUnionReference.findIn('modules', (m) => m.name === name)
+    const found = SalvageUnionReference.getByNameIn('modules', name)
     return found ? [found] : []
   })
   return { systems, modules }
@@ -196,7 +185,7 @@ export function resolveChassisDrone(entity: SURefMetaEntity): DroneLoadout | und
     .map((ability) => (ability as { drone?: unknown }).drone)
     .find((d): d is string => typeof d === 'string')
   if (!droneName) return undefined
-  const drone = SalvageUnionReference.findIn('drones', (d) => d.name === droneName)
+  const drone = SalvageUnionReference.getByNameIn('drones', droneName)
   if (!drone) return undefined
   const droneSystems = Array.isArray(drone.systems) ? drone.systems : []
   const droneModules = Array.isArray(drone.modules) ? drone.modules : []
@@ -218,7 +207,7 @@ export function resolveChassisDrone(entity: SURefMetaEntity): DroneLoadout | und
 export function resolvePatternDrones(pattern: SURefObjectPattern): DroneLoadout[] {
   return (pattern.drones ?? []).flatMap((config) => {
     const statBlockName = config.ref ?? config.name
-    const drone = SalvageUnionReference.findIn('drones', (d) => d.name === statBlockName)
+    const drone = SalvageUnionReference.getByNameIn('drones', statBlockName)
     if (!drone) return []
     return [
       {

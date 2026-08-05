@@ -231,7 +231,7 @@ function ChoiceOptionGroup({
   if (kind === 'table') {
     const tableName = getChoiceTableName(choice)
     const tableEntity = tableName
-      ? SalvageUnionReference.RollTables.find((t) => t.name === tableName)
+      ? SalvageUnionReference.RollTables.getByName(tableName)
       : undefined
     const table = tableEntity && 'table' in tableEntity ? tableEntity.table : undefined
     return (

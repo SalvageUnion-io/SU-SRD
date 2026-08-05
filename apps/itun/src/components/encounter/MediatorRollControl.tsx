@@ -34,7 +34,7 @@ const TABLE_HINT: Record<MediatorTableId, string> = {
 /** Production table lookup — defensive so unloaded data reads as a miss. */
 const defaultFindTable: FindRollTable = (name) => {
   try {
-    return SalvageUnionReference.RollTables.find((t) => t.name === name)
+    return SalvageUnionReference.RollTables.getByName(name)
   } catch {
     return undefined
   }

@@ -52,10 +52,10 @@ export function computeSvOverride(
   const chassisTL = getTechLevelNumber(data) ?? 1
   let totalTL1 = chassisSV * chassisTL
   totalTL1 += sumItemTL1(patternOverride.systems, (name) =>
-    SalvageUnionReference.Systems.find((s) => s.name === name)
+    SalvageUnionReference.Systems.getByName(name)
   )
   totalTL1 += sumItemTL1(patternOverride.modules, (name) =>
-    SalvageUnionReference.Modules.find((m) => m.name === name)
+    SalvageUnionReference.Modules.getByName(name)
   )
   return { value: totalTL1, bottomLabel: 'TL1' }
 }

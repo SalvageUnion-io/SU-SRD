@@ -23,6 +23,7 @@ import {
   EmptyState,
   EntityRow,
   ModalShell,
+  PageShell,
   RosterSkeleton,
   Stat,
 } from 'component-lib'
@@ -332,7 +333,7 @@ export function Roster() {
   }
 
   return (
-    <main className="min-h-screen bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
+    <PageShell stack={false}>
       {/* Brand identity lives in the global AppHeader (routes/__root.tsx);
           the page keeps an accessible title only. Visible header row:
           Download all/Import · container faux-select. */}
@@ -565,7 +566,7 @@ export function Roster() {
           </div>
         </div>
       </ModalShell>
-    </main>
+    </PageShell>
   )
 }
 

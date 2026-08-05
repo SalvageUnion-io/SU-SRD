@@ -16,7 +16,7 @@
  * new instances land on the Shelf — see Roster.tsx for the same branch.
  */
 
-import { Card, EmptyState, Skeleton } from 'component-lib'
+import { Card, EmptyState, PageShell, Skeleton } from 'component-lib'
 import { Users } from 'lucide-react'
 import { useState } from 'react'
 import { useHydrateOnMount } from '../../hooks/queries/useHydrateEntities'
@@ -126,7 +126,7 @@ export function EncounterScreen({
   }
 
   return (
-    <main className="min-h-screen bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
+    <PageShell stack={false}>
       <div className="border-b-2 border-ink pb-5">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h1 className="m-0 flex items-center gap-2 font-cond text-xl font-bold uppercase tracking-caps-tight text-ink">
@@ -187,6 +187,6 @@ export function EncounterScreen({
           </Section>
         </div>
       </div>
-    </main>
+    </PageShell>
   )
 }

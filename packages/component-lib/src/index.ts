@@ -68,6 +68,8 @@ export {
 export { KvRow } from './components/chrome/KvRow'
 export { ModeDoor } from './components/chrome/ModeDoor'
 export { PageHeading } from './components/chrome/PageHeading'
+// PageShell — the full-bleed <main> landmark for a top-level app screen
+export { PageShell } from './components/chrome/PageShell'
 export { Panel, Row } from './components/chrome/Panel'
 export { SectionHeader } from './components/chrome/SectionHeader'
 export { Sel } from './components/chrome/Sel'

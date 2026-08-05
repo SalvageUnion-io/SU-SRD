@@ -19,7 +19,13 @@
  */
 
 import type { SearchComboboxResult } from 'component-lib'
-import { INPUT_FOCUS, ModalShell, useDetailModal, useSearchCombobox } from 'component-lib'
+import {
+  EmptyState,
+  INPUT_FOCUS,
+  ModalShell,
+  useDetailModal,
+  useSearchCombobox,
+} from 'component-lib'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SURefEntity } from 'salvageunion-reference'
 import { deepLinkToSchema } from '../../lib/srd-deep-link'
@@ -143,7 +149,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                 ))}
               </div>
             ) : (
-              <p className="font-body text-sm text-wk-muted">No results found</p>
+              <EmptyState variant="quiet" body="No results found" />
             ))}
 
           <p className="font-body text-xs text-wk-muted">

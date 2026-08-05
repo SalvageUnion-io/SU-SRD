@@ -68,7 +68,7 @@ export function useChassisPatternConfig(
     () =>
       patternOverride
         ? patternOverride.systems.flatMap((sys) => {
-            const found = SalvageUnionReference.Systems.find((s) => s.name === sys.name)
+            const found = SalvageUnionReference.Systems.getByName(sys.name)
             if (!found) return []
             const count = sys.count ?? 1
             return Array.from({ length: count }, () => found)
@@ -81,7 +81,7 @@ export function useChassisPatternConfig(
     () =>
       patternOverride
         ? patternOverride.modules.flatMap((mod) => {
-            const found = SalvageUnionReference.Modules.find((m) => m.name === mod.name)
+            const found = SalvageUnionReference.Modules.getByName(mod.name)
             if (!found) return []
             const count = mod.count ?? 1
             return Array.from({ length: count }, () => found)

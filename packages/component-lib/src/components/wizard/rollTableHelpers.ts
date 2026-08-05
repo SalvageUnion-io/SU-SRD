@@ -30,7 +30,7 @@ export type RollTableDeps = {
  * Default production deps — read from SalvageUnionReference.
  */
 const defaultRollTableDeps: RollTableDeps = {
-  findTable: (name) => SalvageUnionReference.RollTables.find((t) => t.name === name),
+  findTable: (name) => SalvageUnionReference.RollTables.getByName(name),
   rollD20: () => roll('1d20').total,
 }
 

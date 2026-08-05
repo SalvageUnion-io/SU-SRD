@@ -54,8 +54,11 @@ function TablesView() {
   const seqRef = useRef(0)
 
   const selected =
-    (tableId ? tables.find((t) => t.id === tableId) : undefined) ??
-    tables.find((t) => t.name === 'Core Mechanic') ??
+    // Indexed lookups, not scans over `tables`: `BaseModel` builds an id/name
+    // index lazily, and this runs on every Display render. `tables` is still
+    // needed for the list itself and the `[0]` fallback.
+    (tableId ? SalvageUnionReference.RollTables.getById(tableId) : undefined) ??
+    SalvageUnionReference.RollTables.getByName('Core Mechanic') ??
     tables[0]
 
   return (

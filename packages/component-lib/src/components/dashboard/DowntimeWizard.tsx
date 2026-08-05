@@ -83,9 +83,7 @@ export function DowntimeWizard({
   const headerBg = guide?.guideColor ?? CRAWLER_TONE
   const tableName = STEP_ROLL_TABLE[step.name]
   const table = tableName
-    ? (SalvageUnionReference.RollTables.find((t) => t.name === tableName) as
-        | SURefObjectTable
-        | undefined)
+    ? (SalvageUnionReference.RollTables.getByName(tableName) as SURefObjectTable | undefined)
     : undefined
 
   return (

@@ -31,20 +31,18 @@ export function ChassisAbilitiesContent({
   if (!chassisAbilities || chassisAbilities.length === 0) return null
 
   // The owning chassis's tone — ghosted onto each ability card as its host tone.
-  const chassis = chassisName
-    ? SalvageUnionReference.Chassis.find((c) => c.name === chassisName)
-    : undefined
+  const chassis = chassisName ? SalvageUnionReference.Chassis.getByName(chassisName) : undefined
   const abilityHostTone = chassis ? entityHostTone(chassis) : undefined
 
   const droneAbility = chassisAbilities.find((a) => a.drone)
   const droneEntity = droneAbility?.drone
-    ? SalvageUnionReference.findIn('drones', (d) => d.name === droneAbility.drone)
+    ? SalvageUnionReference.getByNameIn('drones', droneAbility.drone)
     : undefined
 
   const resolvedSystems = droneEquipment?.length
     ? droneEquipment.flatMap((drone) =>
         drone.systems.flatMap((name) => {
-          const found = SalvageUnionReference.findIn('systems', (s) => s.name === name)
+          const found = SalvageUnionReference.getByNameIn('systems', name)
           return found ? [found] : []
         })
       )
@@ -53,7 +51,7 @@ export function ChassisAbilitiesContent({
   const resolvedModules = droneEquipment?.length
     ? droneEquipment.flatMap((drone) =>
         drone.modules.flatMap((name) => {
-          const found = SalvageUnionReference.findIn('modules', (m) => m.name === name)
+          const found = SalvageUnionReference.getByNameIn('modules', name)
           return found ? [found] : []
         })
       )

@@ -30,7 +30,7 @@
  * look something up.
  */
 
-import { Card, PageHeading, Text } from 'component-lib'
+import { Card, PageHeading, PageShell, Text } from 'component-lib'
 import { useQuery } from 'convex/react'
 import { useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -58,7 +58,7 @@ export function GameSheetNotice({
   children: React.ReactNode
 }) {
   return (
-    <main className="flex min-h-screen flex-col gap-6 bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
+    <PageShell>
       <PageHeading className="w-fit">Crew sheet</PageHeading>
       <Card>
         <div className="flex flex-col items-start gap-3 p-4">
@@ -68,7 +68,7 @@ export function GameSheetNotice({
           </AppLink>
         </div>
       </Card>
-    </main>
+    </PageShell>
   )
 }
 

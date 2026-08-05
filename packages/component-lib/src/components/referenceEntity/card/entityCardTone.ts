@@ -315,7 +315,7 @@ export function resolveClassRequirements(entity: SURefMetaEntity): string[] {
   if (resolveClassKind(entity) !== 'HYBRID') return []
   const name = 'name' in entity && entity.name != null ? String(entity.name) : ''
   if (!name) return []
-  const req = SalvageUnionReference.findIn('ability-tree-requirements', (r) => r.name === name)
+  const req = SalvageUnionReference.getByNameIn('ability-tree-requirements', name)
   const requirement = req?.requirement
   return Array.isArray(requirement) ? requirement.map(String) : []
 }

@@ -14,7 +14,7 @@
  * belonged to. A list of games is a list; the work happens inside one.
  */
 
-import { Badge, Card, PageHeading, Text } from 'component-lib'
+import { Badge, Card, PageHeading, PageShell, Text } from 'component-lib'
 import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -83,7 +83,7 @@ export function GameScreen({ gameId }: { gameId: string }) {
   const { mode } = useConnection()
 
   return (
-    <main className="flex min-h-screen flex-col gap-6 bg-wk-bg px-4 py-5 sm:px-8 sm:py-10 lg:px-12">
+    <PageShell>
       <PageHeading className="w-fit">Game</PageHeading>
       {!isConvexConfigured || mode !== 'connected' ? (
         <Card>
@@ -97,6 +97,6 @@ export function GameScreen({ gameId }: { gameId: string }) {
       ) : (
         <GameBody gameId={gameId} />
       )}
-    </main>
+    </PageShell>
   )
 }
