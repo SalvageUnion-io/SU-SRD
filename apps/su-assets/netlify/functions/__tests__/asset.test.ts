@@ -34,9 +34,21 @@ function makeStore(contents: Record<string, string>) {
   return { store, requested }
 }
 
+/** Collects what the handler reported, so a test can assert on silence too. */
+function makeReporter() {
+  const reported: Array<{ error: unknown; context?: Record<string, unknown> }> = []
+  return {
+    reported,
+    report: (error: unknown, context?: Record<string, unknown>) => {
+      reported.push({ error, context })
+    },
+  }
+}
+
 function handlerWith(contents: Record<string, string> = {}) {
   const { store, requested } = makeStore(contents)
-  return { handler: makeAssetHandler(() => store), requested }
+  const { reported, report } = makeReporter()
+  return { handler: makeAssetHandler(() => store, report), requested, reported }
 }
 
 const get = (path: string) => new Request(`${BASE}${path}`)
@@ -162,4 +174,72 @@ describe('asset function — hits', () => {
     expect(await res.text()).toBe('Not found')
     expect(requested).toEqual(['chassis/nope.png'])
   })
+})
+
+describe('asset function — error reporting', () => {
+  it('reports a failing Blobs read as a 503, with the key as context', async () => {
+    // This is the failure that is currently invisible: artwork stops resolving
+    // in both srd and itun at once, and nothing anywhere says so.
+    const failure = new Error('blobs unavailable')
+    const { reported, report } = makeReporter()
+    const handler = makeAssetHandler(
+      () => ({
+        get: async () => {
+          throw failure
+        },
+      }),
+      report
+    )
+
+    const res = await handler(get('/chassis/iron-mongrel.png'))
+
+    expect(res.status).toBe(503)
+    expect(await res.text()).toBe('Asset storage unavailable')
+    expect(reported).toHaveLength(1)
+    expect(reported[0]?.error).toBe(failure)
+    expect(reported[0]?.context).toEqual({
+      fn: 'asset',
+      op: 'blobs.get',
+      key: 'chassis/iron-mongrel.png',
+    })
+  })
+
+  it('reports a store that cannot even be opened', async () => {
+    // `getStore` throws outside the Netlify Blobs runtime context or when the
+    // store binding is missing — a deploy-shaped failure, not a request-shaped
+    // one, and the one worth waking up for.
+    const failure = new Error('missing blobs context')
+    const { reported, report } = makeReporter()
+    const handler = makeAssetHandler(() => {
+      throw failure
+    }, report)
+
+    const res = await handler(get('/chassis/iron-mongrel.png'))
+
+    expect(res.status).toBe(503)
+    expect(reported).toHaveLength(1)
+    expect(reported[0]?.error).toBe(failure)
+  })
+
+  // A 404 is an ordinary outcome on a public host that answers every path.
+  // Reporting these is how a Sentry project becomes a crawler log that nobody
+  // reads — at which point the Blobs outage above is invisible again.
+  const silent: Array<[label: string, path: string]> = [
+    ['a missing asset', '/chassis/nope.png'],
+    ['an unsupported extension', '/notes.txt'],
+    ['an extensionless path', '/chassis/iron-mongrel'],
+    ['an encoded traversal attempt', '/chassis/..%2Fsecrets.png'],
+    ['a dotfile probe', '/.env.png'],
+    ['the site root', '/'],
+  ]
+
+  for (const [label, path] of silent) {
+    it(`reports nothing for ${label}`, async () => {
+      const { handler, reported } = handlerWith()
+      const res = await handler(get(path))
+
+      expect(res.status).toBe(404)
+      expect(reported).toEqual([])
+    })
+  }
 })
