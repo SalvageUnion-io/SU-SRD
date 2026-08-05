@@ -3,8 +3,8 @@ import type { StaticEntitySummary } from 'salvageunion-reference'
 import { PageHeading } from '../chrome/PageHeading'
 
 /**
- * StaticEntityContent — the SSR / no-JS entity fallback (converted from
- * srd's StaticEntityContent.astro, pending review). Renders a plain,
+ * StaticEntityContent — the SSR / no-JS entity fallback (originally converted
+ * from an srd Astro component, which no longer exists). Renders a plain,
  * crawler-friendly summary of an entity (name, description, stats, content,
  * traits, source). On the static site the hydrated island supplies the real
  * display and BaseLayout strips this `data-static-fallback` block for JS users,

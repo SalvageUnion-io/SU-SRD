@@ -59,7 +59,9 @@ const APP_DIRS = ['apps/itun/src', 'apps/srd/src'] as const
 const DASHBOARD_DIR = 'packages/component-lib/src/components/dashboard'
 
 const appCssFiles = APP_DIRS.flatMap((d) => walk(join(ROOT, d), ['.css']))
-const appSourceFiles = APP_DIRS.flatMap((d) => walk(join(ROOT, d), ['.tsx', '.astro', '.ts']))
+// `.astro` was in this list until apps/srd moved off Astro; nothing in the repo
+// emits that extension any more (same cleanup as tools/check-design-tokens.ts).
+const appSourceFiles = APP_DIRS.flatMap((d) => walk(join(ROOT, d), ['.tsx', '.ts']))
 // pc-* usage is checked repo-wide (both apps + the library + tests).
 const allTsFiles = [
   ...walk(join(ROOT, 'apps'), ['.tsx', '.ts']),
