@@ -23,8 +23,9 @@
   (`tools/check-styling-ownership.ts` fails the build at pre-push).
 - Game data: `packages/salvageunion-reference/` (ORM-like API)
 - ITUN app: `apps/itun/` (React 19 + Vite + TanStack Router + Tailwind v4,
-  Base UI primitives via component-lib). SRD site: `apps/srd/` (Astro 7 +
-  React islands).
+  Base UI primitives via component-lib). SRD site: `apps/srd/` — **not Astro**;
+  an in-house SSG at `apps/srd/ssg` over Vite, with React islands mounted via
+  `createRoot`. Contract: `apps/srd/ssg/DESIGN.md`.
 
 ## Dataviz Idioms (pips/tracks/roll readouts)
 

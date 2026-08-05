@@ -274,26 +274,25 @@ jobs:
     # lockfile moves. The rest are held above the vulnerable range by the
     # `overrides` block in the root package.json — those entries are SECURITY
     # FLOORS, and the block is load-bearing: delete it, re-resolve, and two high
-    # advisories come straight back — `sharp` (GHSA-f88m-g3jw-g9cj, reached via
-    # workspace:srd -> astro) and `undici` (GHSA-vxpw-j846-p89q, via discord.js).
+    # advisories come straight back — `sharp` (GHSA-f88m-g3jw-g9cj; it reached
+    # the graph via workspace:srd -> astro until srd left Astro, and is now a
+    # direct srd devDependency for the OG-screenshot pass) and `undici`
+    # (GHSA-vxpw-j846-p89q, via discord.js).
     # The other floors do not bind on a fresh resolve today; they are kept as
     # cheap insurance against a parent range drifting back down.
     #
     # No `--ignore` is needed. As of the audit-remediation change, a plain
     # `bun audit` (no severity gate at all) reports ZERO vulnerabilities, so
     # nothing is riding below this `--audit-level=high` threshold unnoticed.
-    # Getting there took two DEDUPE floors, which are a different kind of entry
-    # from the rest of the block and should not be confused with them:
+    # Getting there took DEDUPE floors, which are a different kind of entry from
+    # the rest of the block and should not be confused with them:
     #
-    #   astro: ^7.1.4
-    #     `@vite-pwa/astro@1.2.0` peer-requires `astro ^1 || … || ^5` — it has
-    #     never been updated for Astro 7 and 1.2.0 is the latest published — so
-    #     bun installed a SECOND, complete astro@6.4.6 tree beside the real
-    #     7.1.4 one. That duplicate never executes, but it is in-advisory (3
-    #     findings) and it dragged in the vulnerable esbuild below. Forcing a
-    #     single astro removes the whole shadow tree. Verified: srd builds, and
-    #     the PWA integration still emits sw.js + the workbox chunk when run
-    #     against astro 7 instead of its own bundled 6.
+    #   (An `astro: ^7.1.4` dedupe floor used to sit here. `@vite-pwa/astro@1.2.0`
+    #   peer-required `astro ^1 || … || ^5`, so bun installed a SECOND, complete
+    #   astro@6.4.6 tree beside the real one — in-advisory, and it dragged in a
+    #   vulnerable esbuild. Both the floor and the problem are gone: srd left
+    #   Astro for the in-house SSG (ADR-031), and @vite-pwa/astro went with it.
+    #   Do not restore the override; nothing depends on astro any more.)
     #
     #   @vitejs/plugin-react-swc: ^4.3.3
     #     A `@ladle/react@5.1.1` dependency, pinned there at ^3.7.2 whose vite

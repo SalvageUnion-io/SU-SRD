@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Start here for navigation:** [`docs/README.md`](docs/README.md) maps user intent → relevant doc (architecture, ADRs, per-package CLAUDE.md).
 
-- [`docs/adrs/`](docs/adrs/) — architecture decision records, **30 of them** (ADR-001 through ADR-030). Consult the matching ADR before revisiting a prior decision, and **read its `## Status` header first** — several are superseded and the supersession is only recorded there (ADR-001 → ADR-030; ADR-023 → ADR-027 → ADR-028). The three that govern:
+- [`docs/adrs/`](docs/adrs/) — architecture decision records, **31 of them** (ADR-001 through ADR-031). Consult the matching ADR before revisiting a prior decision, and **read its `## Status` header first** — several are superseded and the supersession is only recorded there (ADR-001 → ADR-030; ADR-012 → ADR-031; ADR-023 → ADR-027 → ADR-028). The three that govern:
   - [ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md) — accounts, Games, and Convex as the server of record for identity/ownership/sharing. **Supersedes ADR-001** (local-first, no backend, no auth) and amends ADR-022. Decision accepted; delivery is phased — see [`docs/architecture/accounts-and-games.md`](docs/architecture/accounts-and-games.md) for what has actually landed.
   - [ADR-021](docs/adrs/ADR-021-itun-surface-taxonomy.md) — the surface/mode taxonomy for **where a rule is enforced**. ADR-030 adds an ownership axis to it without changing its enforcement modes.
   - [ADR-007](docs/adrs/ADR-007-automation-boundary.md) — the automation boundary. Read before building rules-driven features.
@@ -53,7 +53,8 @@ Two escape hatches, both configured via `tags` in `knip.json`:
 
 Whole workspaces whose entry file legitimately _is_ the public surface set
 `includeEntryExports: false` per-workspace: `component-lib` (barrel is the library
-API), `srd` (Astro route/endpoint exports), `su-assets` (platform handlers).
+API), `srd` (`*.page.tsx` route + endpoint modules, consumed by `ssg/routes.ts`
+and `ssg/endpoints.ts`), `su-assets` (platform handlers).
 
 When knip flags something, the default is to **delete it** — reach for a tag only
 in the two cases above. Deleting dead code often cascades (its callees become dead
@@ -88,6 +89,8 @@ cd SU-SRD && bun install && bun run build:package   # generates JSON schemas (pa
 
 # Development
 bun run dev              # Build package + start reference site dev server
+                         # (srd's own `bun ssg/dev.ts` — Vite in middleware mode,
+                         # rendering through the SAME ssg/render.tsx path as prod)
 bun run dev:watch        # Alias of dev — package TS is consumed directly, nothing to watch
 bun run dev:bot          # Start Discord bot locally
 bun run dev:itun         # Build package + start ITUN app dev server
@@ -145,16 +148,23 @@ bun run deploy-commands          # Deploy slash commands to test guild
 bun run deploy-commands:global   # Deploy globally (production)
 
 # Building
-bun run build            # Full build (package + reference site)
+bun run build            # Full build (package + reference site + ITUN + bot)
+bun run build:web        # Build srd only (= `bun ssg/build.ts` in apps/srd)
 bun run build:itun       # Build ITUN app
 bun run build:bot        # Build Discord bot
+
+# srd migration acceptance gate (run from apps/srd, not the root)
+bun ssg/build.ts         # The static build: vite client build -> render every
+                         # route -> endpoints, sitemap, PWA
+bun ssg/parity.ts        # Compare the built dist against the archived Astro
+                         # baseline. See "srd App" below — this is the gate.
 ```
 
 ### Architecture
 
 **Workspace structure:**
 
-- `apps/srd/` - Static SRD reference site (Astro 7, React 19 islands, Tailwind v4, Vite). No auth, no backend, no user data.
+- `apps/srd/` - Static SRD reference site (in-house SSG at `apps/srd/ssg`, React 19 islands, Tailwind v4, Vite). No auth, no backend, no user data. **Not Astro** — Astro was removed; see the "srd App" section below.
 - `apps/itun/` - Character builder & game manager (React 19, TanStack Router/Query, ShadCN + Tailwind v4, Vite). Has roster, wizards, dashboard, live sheets, snapshot sharing. **Two storage modes** ([ADR-030](docs/adrs/ADR-030-accounts-games-server-of-record.md), which supersedes ADR-001): **Solo** — not signed in, IndexedDB is the source of truth, nothing is gated, and this must keep working forever (a build with no `VITE_CONVEX_URL` is permanently Solo); **Connected / Disconnected** — signed in, Convex (`apps/itun/convex/`) is the source of truth and IndexedDB becomes a cache, with offline meaning read-only rather than a write queue. Resolve the mode through `src/lib/connection/`, never by reading `navigator.onLine` or an auth flag directly. Read [`apps/itun/CLAUDE.md`](apps/itun/CLAUDE.md) before touching data.
 - `apps/discord-bot/` - Discord.js bot for rolling on Salvage Union tables
 - `apps/su-assets/` - Dedicated Netlify site (`assets.salvageunion.io`) serving licensed entity artwork from a Netlify Blobs store via one function. Image bytes live in Blobs, never in git. `packages/salvageunion-reference` points at it at runtime (`ASSET_BASE_URL` in `lib/utilities.ts`), so entity-card artwork in both `srd` and `itun` depends on it.
@@ -209,10 +219,46 @@ Models extend `BaseModel<T>`, created via `ModelFactory`, accessed via `SalvageU
 
 ### srd App (Static Reference Site)
 
-- **Framework:** Astro 7 with React 19 islands architecture. Static output, no SSR.
-- **Routing:** File-based routing in `src/pages/` via Astro. Routes: `/` (landing), `/schema/[schemaId]`, `/schema/[schemaId]/item/[itemId]`, `/about`, `/404`.
+**srd is not an Astro app.** It was migrated off Astro onto an in-house static-site
+generator built on Vite ([ADR-031](docs/adrs/ADR-031-srd-vite-ssg.md), which
+supersedes ADR-012). There are no `.astro` files, no `astro.config.mjs`, no
+`astro check`, and no file-based routing. Read
+[`apps/srd/ssg/DESIGN.md`](apps/srd/ssg/DESIGN.md) — it is the contract the
+generator implements — and then [`apps/srd/CLAUDE.md`](apps/srd/CLAUDE.md).
+
+- **Framework:** in-house SSG at `apps/srd/ssg` (`build.ts` orchestrates, `dev.ts`
+  serves, `render.tsx` renders one route to an HTML string, `parity.ts` is the
+  acceptance gate). React 19 for rendering, Vite 8 for the client bundle. Static
+  output, no server runtime.
+- **Routing:** **explicit**, not file-based. Route modules are
+  `src/pages/**/*.page.tsx` exporting a `PageModule` (`pattern`, optional
+  `getStaticPaths`, `page(ctx) => { meta, children }`) and each one must be
+  registered in `ssg/routes.ts`. A page that is not listed there is simply not
+  built. Non-HTML outputs (`*.json`, `llms.txt`, search index) are
+  `src/endpoints/*.ts` wired through `ssg/endpoints.ts` — endpoints are not routes.
+- **Islands:** `<Island name="X" client="idle" props={…} ssr={false} />` emits a
+  `<div data-island …>` placeholder; `src/runtime/islands.client.ts` mounts it with
+  **`createRoot`, never `hydrateRoot`**. Four client strategies: `load`, `idle`,
+  `visible`, `only`. Because mounting is client-only, `ssr` is purely an SEO/no-JS
+  choice per island and can never cause a hydration mismatch.
+- **Acceptance gate — `ssg/parity.ts`.** Run
+  `cd apps/srd && bun ssg/build.ts && bun ssg/parity.ts`. It diffs the built `dist`
+  **semantically** against an archived Astro baseline build: the emitted file set,
+  per-page head metadata, every JSON-LD block, `<main>` visible text, all 899 JSON
+  endpoints, and `llms.txt`. It reports zero differences across 1,039 pages today,
+  and is known to bite (it fails against eight deliberately-injected defects). Trust
+  it over any agent's opinion about whether output changed.
+- **Hard rule — no `.css` import may be reachable from an SSR module.** The SSR pass
+  runs under Bun and never goes through Vite, so a stray `import './x.css'` anywhere
+  in the SSR graph (`ssg/**`, `src/pages/**`, `src/layouts/BaseLayout.tsx`,
+  `src/runtime/Island.tsx`) breaks the build. **All** css is imported from
+  `src/runtime/styles.entry.ts`, which is a client-bundle entry only.
 - **No auth, no backend, no user data.** Pure static reference site.
-- **UI:** Tailwind v4 with theme from `component-lib`. React islands for interactive components (search, schema viewer, entity display). Components import from `component-lib` for shared UI.
+- **UI:** Tailwind v4 with theme from `component-lib`. React islands for interactive
+  components (search, schema viewer, entity display).
+- **The zero-JS path is not an island.** `apps/srd/src/components/EntityCardStatic.tsx`
+  renders straight into the page tree and ships no JS. It is 82% of entity pages;
+  leave it alone.
 - **Search:** In-memory search via `salvageunion-reference` package `search()` function. Cmd+K/Ctrl+K shortcut to focus.
 - **Testing:** Bun test runner with React Testing Library + happy-dom. No backend env vars needed.
 - **Deployment:** Netlify (static site, no server functions)

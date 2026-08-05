@@ -28,7 +28,7 @@
  */
 
 import { plugin } from 'bun'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build as viteBuild } from 'vite'
@@ -184,6 +184,16 @@ async function main(): Promise<void> {
     `[ssg] assets: ${assets.scripts.length} script(s), ${assets.styles.length} style(s), ${Object.keys(assets.built).length} emitted asset(s)`
   )
 
+  // A build that emits pages with no script or no stylesheet is a catastrophe
+  // that looks like a success: every page renders, the exit code is 0, and the
+  // deploy publishes an unstyled, inert site. Vite changing its manifest shape
+  // or an entry being renamed would do exactly that, silently, so refuse.
+  if (assets.scripts.length === 0 || assets.styles.length === 0) {
+    throw new Error(
+      `[ssg] refusing to render: expected at least one script and one stylesheet from the Vite manifest, got ${assets.scripts.length} script(s) and ${assets.styles.length} style(s). The manifest is at dist/.vite/manifest.json; check the entry names in ssg/vite.config.ts.`
+    )
+  }
+
   // Dynamic, so the css-stub plugin above is already registered when the SSR
   // module graph (pages -> component-lib -> *.css) is first loaded.
   const { routes } = await import('./routes')
@@ -199,9 +209,26 @@ async function main(): Promise<void> {
   }
   console.log(`[ssg] rendered ${count} page(s)`)
 
+  // The same class of silent catastrophe one level up: a registry that resolves
+  // to nothing (a bad glob, an exception swallowed inside resolve()) would emit
+  // an empty dist and still exit 0, and Netlify would happily publish it. The
+  // floor is deliberately low — it is a smoke alarm, not a budget. The parity
+  // gate is what actually holds the page COUNT to 1,039.
+  if (count === 0) {
+    throw new Error('[ssg] refusing to finish: the route registry rendered 0 pages.')
+  }
+
   await writeEndpoints()
   await writeSitemap(sitemapRoutes)
   await writeServiceWorker()
+
+  // `manifest: true` is required — it is how this script learns the hashed
+  // entry filenames — but the manifest itself is a BUILD input, not site
+  // content. Astro published no equivalent, and leaving it would ship a 33 KB
+  // file enumerating every internal chunk to anyone who asks. Everything that
+  // reads it has already run by here (readAssets above, and the service worker
+  // globs only js/css/woff2/svg, so it was never precached).
+  await rm(join(distDir, '.vite'), { recursive: true, force: true })
 
   console.log(`[ssg] done in ${((Date.now() - started) / 1000).toFixed(1)}s`)
 }

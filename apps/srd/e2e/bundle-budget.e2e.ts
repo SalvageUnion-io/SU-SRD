@@ -17,9 +17,16 @@ import { expect, test } from '@playwright/test'
 
 type ResourceTotals = { count: number; bytes: number; names: string[] }
 
-/** Sum transferred bytes of same-origin `_astro/*.js` chunks requested during
+/** Sum transferred bytes of same-origin `assets/*.js` chunks requested during
  *  a page load, keyed by response so redirects/duplicates aren't double
- *  counted. `names` records the chunk filenames for assert-not-present checks. */
+ *  counted. `names` records the chunk filenames for assert-not-present checks.
+ *
+ *  The prefix was `/assets/` until srd moved off Astro; Vite emits to
+ *  `/assets/`. That mattered more than a rename: this whole guard silently
+ *  matched NOTHING after the migration, so the budget summed 0 bytes and every
+ *  assertion passed vacuously — the payload guard was dead while still
+ *  reporting green. Keep this prefix in step with `build.assetsDir` in
+ *  ssg/vite.config.ts, and see the zero-chunk assertion below. */
 async function captureAstroJsTotals(
   page: import('@playwright/test').Page,
   navigate: () => Promise<unknown>
@@ -29,10 +36,10 @@ async function captureAstroJsTotals(
 
   page.on('response', (response) => {
     const url = response.url()
-    if (!url.includes('/_astro/') || !url.endsWith('.js')) return
+    if (!url.includes('/assets/') || !url.endsWith('.js')) return
     if (seen.has(url)) return
     seen.add(url)
-    totals.names.push(url.split('/_astro/')[1] ?? url)
+    totals.names.push(url.split('/assets/')[1] ?? url)
     totals.count += 1
   })
 
@@ -44,7 +51,7 @@ async function captureAstroJsTotals(
   const sizes = await page.evaluate(() =>
     performance
       .getEntriesByType('resource')
-      .filter((e) => e.name.includes('/_astro/') && e.name.endsWith('.js'))
+      .filter((e) => e.name.includes('/assets/') && e.name.endsWith('.js'))
       .map(
         (e) =>
           (e as PerformanceResourceTiming).transferSize ||
@@ -57,10 +64,25 @@ async function captureAstroJsTotals(
 }
 
 test.describe('bundle-size budget', () => {
+  // Every assertion in this file is of the form "these chunks are absent" or
+  // "the total is under N". Both are trivially satisfied when the capture
+  // matches nothing at all — which is exactly what happened when the Astro
+  // migration changed the asset prefix from /_astro/ to /assets/ and this file
+  // was not updated: the suite stayed green while guarding nothing.
+  //
+  // So assert the capture is non-empty FIRST. A budget guard that cannot fail
+  // is worse than no guard, because it is also reassuring.
+  test('the capture actually sees JS chunks (guards against a dead selector)', async ({ page }) => {
+    const totals = await captureAstroJsTotals(page, () => page.goto('/schema/traits/item/missile/'))
+    expect(totals.count).toBeGreaterThan(0)
+    expect(totals.bytes).toBeGreaterThan(0)
+  })
+
   test('a leaf-schema item page never loads the large content/chassis data chunks', async ({
     page,
   }) => {
     const totals = await captureAstroJsTotals(page, () => page.goto('/schema/traits/item/missile/'))
+    expect(totals.count).toBeGreaterThan(0)
 
     // The big, schema-specific data chunks (actions ~360KB, chassis ~150KB,
     // roll-tables' own listing chunk) must not be among the requested files —

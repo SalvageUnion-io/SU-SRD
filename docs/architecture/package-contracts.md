@@ -9,7 +9,7 @@ salvageunion-reference (game data ORM, no build step)
   |
   +---> component-lib (shared UI components, no build step)
   |       |
-  |       +---> srd (static reference site, Astro 7)
+  |       +---> srd (static reference site, in-house SSG at apps/srd/ssg over Vite)
   |       |
   |       +---> itun (character builder, React 19 + Vite)
   |
@@ -30,10 +30,11 @@ All workspace dependencies use `workspace:*` protocol. React 19.2.0+ is aligned 
 **This package is private and workspace-internal — it is not published to npm.**
 It has no npm distribution and is consumed only within this monorepo via the
 `workspace:*` protocol. The dataset's actual public interface is the
-CORS-enabled JSON API served by `srd`
-(`apps/srd/src/pages/schema/[schemaId].json.ts`,
-`schema/[schemaId].schema.json.ts`, `schema/[schemaId]/item/[itemId].json.ts`,
-documented at `apps/srd/src/pages/api.astro`). External consumers should
+CORS-enabled JSON API served by `srd`. Those are **endpoint modules**, not
+routes: `apps/srd/src/endpoints/schemaJson.ts`,
+`schemaDefinitionJson.ts`, `itemJson.ts` (plus `searchIndexJson.ts` and
+`llmsTxt.ts`), all registered in `apps/srd/ssg/endpoints.ts` and documented on
+the `/api` page at `apps/srd/src/pages/api.page.tsx`. External consumers should
 use that API, not `npm install salvageunion-reference`. See
 [ADR-014](../adrs/ADR-014-json-api-public-interface-npm-retired.md) for the
 full rationale.
@@ -193,7 +194,9 @@ When storing cross-entity references in new JSON data files, always use the `"sc
 }
 ```
 
-Consuming apps' Vite/Astro bundlers compile `.ts/.tsx` files directly. No intermediate build step.
+Consuming apps' Vite bundlers compile `.ts/.tsx` files directly. No intermediate build step.
+(In `srd` this is doubly true: the SSR pass runs the same `.tsx` source under Bun,
+with no bundler in the loop at all.)
 
 ### Public API (`src/index.ts` is the source of truth)
 
@@ -238,7 +241,22 @@ published, and `ConditionChip` ships only as a sub-part of `Conditions`.
 ## srd
 
 **Location:** `apps/srd/`
-**Framework:** Astro 7 + React 19 islands
+**Framework:** in-house SSG at `apps/srd/ssg` (Vite 8 for the client bundle, React 19
+for rendering) + React 19 islands. **Not Astro** — see
+[`apps/srd/ssg/DESIGN.md`](../../apps/srd/ssg/DESIGN.md).
+
+### Build surface
+
+- Routes are `src/pages/**/*.page.tsx` (`PageModule`) registered in `ssg/routes.ts`;
+  endpoints are `src/endpoints/*.ts` (`EndpointModule`) registered in
+  `ssg/endpoints.ts`. Nothing is discovered from the filesystem.
+- `bun ssg/build.ts` builds; `bun ssg/dev.ts` serves through the same
+  `ssg/render.tsx`; `bun ssg/parity.ts` is the acceptance gate that diffs the
+  built `dist` semantically against the archived Astro baseline.
+- **Hard rule:** no `.css` import may be reachable from an SSR module. All css is
+  imported from `src/runtime/styles.entry.ts` (a client-bundle entry); all static
+  assets from `src/runtime/assets.entry.ts`, addressed via
+  `RouteContext.builtAssets`.
 
 ### Consumes
 

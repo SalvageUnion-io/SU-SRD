@@ -167,7 +167,7 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
     file: 'apps/srd/src/pages/greembeem.page.tsx',
     rules: ['raw-color'],
     reason:
-      "A deliberate Wikipedia pastiche, and the ONLY page that opts out of the site stylesheet entirely (it owns its whole <html> and loads no global.css — see ssg/routes.ts registerDocument). Its palette is Wikipedia's own — #a2a9b1 borders, #3366cc links, #f8f9fa panel fill — which is the joke; expressing it in Salvage Union tokens would make it look like the SRD and destroy the effect. These literals are not new: they lived in greembeem.astro, which the design-token checker never scanned because the old toolchain excluded *.astro outright. Bringing srd onto Vite put the file under coverage for the first time, so this exemption records a pre-existing, intentional deviation rather than sanctioning a new one.",
+      "Not an SRD surface. This is a standalone novelty page — a Wikipedia pastiche for an in-joke episode list — that is `noindex, nofollow`, excluded from the sitemap (ssg/sitemap.ts, and it registers via registerDocument), linked from nowhere in the repo, and carries its own self-contained inline <style> importing nothing from the theme. It is the ONLY page that opts out of the site stylesheet entirely: it owns its whole <html> and loads no global.css. Its literals ARE the joke: #a2a9b1 borders, #f8f9fa chrome and #3366cc links are MediaWiki's palette, and reskinning them in Salvage Union tokens would destroy the only thing the page does. It shares the deploy, not the design system. (Carried over verbatim from the `greembeem.astro` entry this replaces — the page was ported to .tsx by the Astro migration, not newly exempted. This checker always scanned .astro; it was Biome, not this rule, that gained srd coverage in that migration.)",
   },
   {
     file: 'packages/component-lib/src/styles/theme.css',
@@ -277,12 +277,6 @@ const EXEMPTIONS: { file: string; rules: string[]; reason: string }[] = [
     rules: ['raw-color'],
     reason:
       "Self-citation, not a colour: the sole match is a doc comment describing the `hostBase` parameter as accepting a resolvable CSS colour, naming the `rgb()` form it accepts. The rule matches the empty-parens spelling. Rewording the comment to dodge the regex would make the parameter's contract less clear to satisfy a lint — the same trade the raw-color rule already refuses for PR and issue references.",
-  },
-  {
-    file: 'apps/srd/src/pages/greembeem.astro',
-    rules: ['raw-color'],
-    reason:
-      "Not an SRD surface. This is a standalone novelty page — a Wikipedia pastiche for an in-joke episode list — that is `noindex, nofollow`, excluded from the sitemap in astro.config.mjs, linked from nowhere in the repo, and carries its own self-contained inline <style> importing nothing from the theme. Its literals ARE the joke: #a2a9b1 borders, #f8f9fa chrome and #3366cc links are MediaWiki's palette, and reskinning them in Salvage Union tokens would destroy the only thing the page does. It shares the deploy, not the design system.",
   },
 ]
 

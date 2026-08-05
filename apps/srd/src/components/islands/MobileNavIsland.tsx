@@ -65,7 +65,20 @@ const SRD_BRAND = (
 function MobileNavIslandBody({ categories, currentPath }: MobileNavIslandProps) {
   // Only needed when the catalog was not supplied; the hook is unconditional
   // (rules of hooks) but `buildCatalogSections()` is only called once ready.
-  const { ready } = useGameData()
+  //
+  // The schema list is NARROW on purpose. This defaulted to `useGameData()`,
+  // i.e. `'all'`, which made the nav drawer — pure chrome — wait on the entire
+  // ~1.4 MB reference corpus before it could render a single category. Astro
+  // passed `categories` in as a build-time prop, so it rendered instantly;
+  // designing that prop out (the 17.3 MB win) must not buy the bytes back as
+  // latency.
+  //
+  // `buildCatalogSections()` reads `getSchemaCatalog()` (static metadata, no
+  // load), `CatalogCategories.all()`, and calls `findAllIn` for exactly ONE
+  // schema — `guides`. That was measured by instrumenting `findAllIn`, not
+  // inferred. If the catalog ever queries another schema, add it here; the
+  // symptom of getting it wrong is an empty drawer, so keep it in step.
+  const { ready } = useGameData({ schemas: ['catalog-categories', 'guides'] })
   const resolvedCategories =
     categories ?? (ready ? (buildCatalogSections() as SchemaCategory[]) : [])
   const path = currentPath ?? (typeof location === 'undefined' ? '/' : location.pathname)

@@ -34,11 +34,17 @@ Inside an app:
 
 ## UI Frameworks
 
-**srd** uses Astro 7 with React 19 islands:
+**srd** uses React 19 rendered by an in-house SSG (`apps/srd/ssg`), not Astro:
 
 - Shared components imported from `component-lib` package
 - Tailwind v4 with theme from component-lib
-- React islands hydrated via `client:load` or `client:visible` directives
+- Pages are `src/pages/**/*.page.tsx` modules registered in `ssg/routes.ts`
+- Interactive components are islands: `<Island name="X" client="idle" …/>` emits
+  a placeholder, and `src/runtime/islands.client.ts` mounts it with
+  **`createRoot`, never `hydrateRoot`**. Client strategies are `load`, `idle`,
+  `visible`, `only`. There are no `client:*` directives — those were Astro's.
+- **No `.css` import may be reachable from an SSR module** — all css goes through
+  `src/runtime/styles.entry.ts`. See `apps/srd/ssg/DESIGN.md`.
 
 **itun** uses React 19 + Vite + Tailwind v4:
 
