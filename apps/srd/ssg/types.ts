@@ -21,8 +21,29 @@ export type DocumentMeta = {
   breadcrumbDescription?: string
 }
 
+/**
+ * Which document shell wraps a page's `children`.
+ *
+ * - `'base'` (the default): `children` is the `<main>` content and `BaseLayout`
+ *   builds `<html>`, `<head>` and the site chrome around it from `meta`.
+ * - `'bare'`: `children` **is** the whole `<html>` document and `meta` is
+ *   ignored — the page owns its own `<head>`. `og-card` is written this way and
+ *   must stay that way: routing it through `BaseLayout` would add a `<main>`, a
+ *   canonical link and the whole og/twitter block that the Astro baseline does
+ *   not emit, which the parity gate reads (correctly) as a regression.
+ *
+ * A bare page is still a full member of the island system: the built asset tags
+ * and the island-props script are injected into the rendered string either way,
+ * and the island-collection window is open around the render. That is the whole
+ * difference from `registerDocument` in `ssg/render.tsx`, which renders a
+ * standalone document with NO assets and NO island support — right for a page
+ * that ships neither (greembeem), wrong for one whose entire purpose is to mount
+ * an island against the site stylesheet (og-card).
+ */
+export type DocumentShell = 'base' | 'bare'
+
 /** What a page returns: its head metadata and its body tree. */
-export type PageResult = { meta: DocumentMeta; children: ReactNode }
+export type PageResult = { meta: DocumentMeta; children: ReactNode; shell?: DocumentShell }
 
 export type RouteContext<Params, Props> = {
   params: Params

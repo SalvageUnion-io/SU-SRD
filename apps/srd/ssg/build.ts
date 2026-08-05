@@ -94,9 +94,28 @@ async function writeOutput(relativePath: string, contents: string): Promise<void
   await writeFile(target, contents, 'utf-8')
 }
 
-// TODO(migration): non-HTML outputs (llms.txt, search-index.json,
-// schema/[schemaId].json) — see ssg/endpoints.ts.
-async function writeEndpoints(): Promise<void> {}
+/**
+ * Non-HTML outputs (llms.txt, search-index.json, the JSON API).
+ *
+ * Dynamic import, like `./routes` above and for the same reason: the endpoint
+ * modules reach `src/lib/gameData` and (through `staticPaths`) `component-lib`,
+ * so they must be loaded AFTER the css-stub plugin is registered.
+ *
+ * An endpoint's `outputPath` is written verbatim — `schema/chassis.json` is a
+ * file, never a `schema/chassis.json/index.html` directory.
+ */
+async function writeEndpoints(): Promise<void> {
+  const { endpoints } = await import('./endpoints')
+
+  let count = 0
+  for (const registration of endpoints) {
+    for (const { outputPath, body } of registration.resolve()) {
+      await writeOutput(outputPath, body())
+      count += 1
+    }
+  }
+  console.log(`[ssg] wrote ${count} endpoint(s)`)
+}
 
 // TODO(migration): sitemap-index.xml + sitemap-0.xml, reproducing Astro's
 // filter (exclude /image, /greembeem, .og.png, /og-card).

@@ -13,7 +13,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { BaseLayout } from '../src/layouts/BaseLayout'
 import type { CollectedIslandProps } from '../src/runtime/Island'
 import { beginIslandCollection, endIslandCollection } from '../src/runtime/Island'
-import type { DocumentMeta } from './types'
+import type { DocumentMeta, DocumentShell } from './types'
 
 /** Hashed URLs of the built client assets, read from `dist/.vite/manifest.json`. */
 export type BuildAssets = {
@@ -51,17 +51,32 @@ export type RenderDocumentInput = {
   pathname: string
   children: ReactNode
   assets: BuildAssets
+  /** `'bare'` renders `children` AS the document; see `DocumentShell`. */
+  shell?: DocumentShell
 }
 
-export function renderDocument({ meta, pathname, children, assets }: RenderDocumentInput): string {
+export function renderDocument({
+  meta,
+  pathname,
+  children,
+  assets,
+  shell = 'base',
+}: RenderDocumentInput): string {
   beginIslandCollection()
   let markup: string
   let islandProps: CollectedIslandProps
   try {
+    // A bare page renders its own `<html>`, so it is passed through untouched.
+    // The asset + island-props injection below is string surgery on `</head>`
+    // and `</body>`, which both shells produce, so it works either way.
     markup = renderToStaticMarkup(
-      <BaseLayout meta={meta} pathname={pathname}>
-        {children}
-      </BaseLayout>
+      shell === 'bare' ? (
+        children
+      ) : (
+        <BaseLayout meta={meta} pathname={pathname}>
+          {children}
+        </BaseLayout>
+      )
     )
   } finally {
     islandProps = endIslandCollection()

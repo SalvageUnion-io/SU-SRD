@@ -5,6 +5,8 @@
  * dev and prod can never diverge in what they render.
  */
 
+import type { ReactNode } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { SITE_URL } from '../src/lib/constants'
 import type { BuildAssets } from './document'
 import { renderDocument } from './document'
@@ -64,8 +66,8 @@ export function renderRoute<Params extends Record<string, string>, Props>(
     pathname,
   }
 
-  const { meta, children } = resolved.module.page(ctx)
-  return renderDocument({ meta, pathname, children, assets })
+  const { meta, children, shell } = resolved.module.page(ctx)
+  return renderDocument({ meta, pathname, children, assets, shell })
 }
 
 /** One concrete page, with its own Params/Props already erased away. */
@@ -99,5 +101,51 @@ export function register<Params extends Record<string, string>, Props>(
         route: resolved.route,
         render: (assets: BuildAssets) => renderRoute(resolved, assets),
       })),
+  }
+}
+
+/**
+ * A page that owns its ENTIRE document — `<html>` downwards — instead of
+ * returning a `<main>` subtree for `BaseLayout` to wrap.
+ *
+ * Two Astro pages were written this way and must stay that way: `greembeem`
+ * (a standalone Wikipedia pastiche with its own reset, its own `<style>` and no
+ * site chrome) and `og-card` (a build-only screenshot surface). Both are
+ * `noindex` and both are excluded from the sitemap, so none of what
+ * `BaseLayout` adds — canonical URL, Open Graph, favicons, nav, footer,
+ * speculation rules — belongs on them. Routing them through `renderDocument`
+ * would inject all of it and the parity script would (correctly) call every one
+ * of those tags a regression.
+ *
+ * These pages get NO injected build assets: they are not part of the island
+ * system, so there is no islands entry to load and no stylesheet to link. A
+ * document page must therefore not render `<Island>` — no collection window is
+ * open, and `<Island>` throws when it is used outside one.
+ */
+export type DocumentPageModule = {
+  /** Astro-style pattern. Document pages are single fixed routes. */
+  pattern: string
+  /** The whole document tree, `<html>` downwards. */
+  document: (ctx: RouteContext<Record<string, string>, undefined>) => ReactNode
+}
+
+export function registerDocument(module: DocumentPageModule): RouteRegistration {
+  return {
+    pattern: module.pattern,
+    resolve: () => {
+      const pathname = withTrailingSlash(module.pattern)
+      const ctx: RouteContext<Record<string, string>, undefined> = {
+        params: {},
+        props: undefined,
+        url: new URL(pathname, SITE_URL),
+        pathname,
+      }
+      return [
+        {
+          route: module.pattern,
+          render: () => `<!doctype html>${renderToStaticMarkup(module.document(ctx))}`,
+        },
+      ]
+    },
   }
 }
