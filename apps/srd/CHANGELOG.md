@@ -2,6 +2,18 @@
 
 Maintained by release-please. Older entries below predate automation.
 
+## [2.0.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.4.0...srd-v2.0.0) (2026-08-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* **srd:** migrate off Astro to an in-house Vite SSG ([#689](https://github.com/SalvageUnion-io/SU-SRD/issues/689))
+
+### Features
+
+* **srd:** migrate off Astro to an in-house Vite SSG ([#689](https://github.com/SalvageUnion-io/SU-SRD/issues/689)) ([1af4019](https://github.com/SalvageUnion-io/SU-SRD/commit/1af40192f04850a99b6367cba3f36da7cfbf2252))
+* **srd:** server-render the entity card on the 82% of pages that are documents ([#685](https://github.com/SalvageUnion-io/SU-SRD/issues/685)) ([ab26365](https://github.com/SalvageUnion-io/SU-SRD/commit/ab26365a167222a482b69228801f457e46fc01e9))
+
 ## [1.4.0](https://github.com/SalvageUnion-io/SU-SRD/compare/srd-v1.3.1...srd-v1.4.0) (2026-07-29)
 
 
